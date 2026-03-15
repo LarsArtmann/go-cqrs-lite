@@ -3,6 +3,8 @@ package event
 import (
 	"context"
 	"sync"
+
+	"github.com/cockroachdb/errors"
 )
 
 // MemoryBus is an in-memory implementation of Bus for testing and development
@@ -34,12 +36,12 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...Event) error {
 	defer b.mu.RUnlock()
 
 	if b.closed {
-		return ErrBusClosed
+		return errors.Wrap(ErrBusClosed, "cannot publish events")
 	}
 
-	for _, event := range events {
+	for i, event := range events {
 		if err := b.publishEvent(ctx, event); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to publish event %d (%s)", i, event.Type())
 		}
 	}
 	return nil
@@ -47,16 +49,16 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...Event) error {
 
 func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 	handler := func(ctx context.Context, e Event) error {
-		for _, h := range b.allHandlers {
+		for i, h := range b.allHandlers {
 			if err := h(ctx, e); err != nil {
-				return err
+				return errors.Wrapf(err, "all-handler %d failed for event %s", i, e.Type())
 			}
 		}
 
 		handlers := b.handlers[e.Type()]
-		for _, h := range handlers {
+		for i, h := range handlers {
 			if err := h(ctx, e); err != nil {
-				return err
+				return errors.Wrapf(err, "handler %d failed for event %s", i, e.Type())
 			}
 		}
 		return nil
