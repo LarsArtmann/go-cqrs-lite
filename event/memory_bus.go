@@ -3,8 +3,6 @@ package event
 import (
 	"context"
 	"sync"
-
-	"github.com/cockroachdb/errors"
 )
 
 // MemoryBus is an in-memory implementation of Bus for testing and development
