@@ -6,81 +6,52 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func TestNewEvent(t *testing.T) {
-	tests := []struct {
-		name          string
-		eventType     event.EventType
-		aggregateID   string
-		aggregateType event.AggregateType
-		version       int
-		wantErr       bool
-	}{
-		{
-			name:          "valid event",
-			eventType:     "UserCreated",
-			aggregateID:   "user-123",
-			aggregateType: "User",
-			version:       1,
-			wantErr:       false,
-		},
-		{
-			name:          "missing aggregate ID",
-			eventType:     "UserCreated",
-			aggregateID:   "",
-			aggregateType: "User",
-			version:       1,
-			wantErr:       true,
-		},
-		{
-			name:          "missing aggregate type",
-			eventType:     "UserCreated",
-			aggregateID:   "user-123",
-			aggregateType: "",
-			version:       1,
-			wantErr:       true,
-		},
-		{
-			name:          "negative version",
-			eventType:     "UserCreated",
-			aggregateID:   "user-123",
-			aggregateType: "User",
-			version:       -1,
-			wantErr:       true,
-		},
+func TestNewEvent_Valid(t *testing.T) {
+	evt, err := event.NewEvent(
+		"UserCreated",
+		"user-123",
+		"User",
+		1,
+		[]byte(`{"name":"John"}`),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
+	if evt.ID() == "" {
+		t.Error("event ID should not be empty")
+	}
+	if evt.Type() != "UserCreated" {
+		t.Errorf("expected type UserCreated, got %s", evt.Type())
+	}
+	if evt.AggregateID() != "user-123" {
+		t.Errorf("expected aggregate ID user-123, got %s", evt.AggregateID())
+	}
+	if evt.AggregateType() != "User" {
+		t.Errorf("expected aggregate type User, got %s", evt.AggregateType())
+	}
+	if evt.Version() != 1 {
+		t.Errorf("expected version 1, got %d", evt.Version())
+	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			evt, err := event.NewEvent(
-				tt.eventType,
-				tt.aggregateID,
-				tt.aggregateType,
-				tt.version,
-				[]byte(`{"test":"data"}`),
-			)
+func TestNewEvent_MissingAggregateID(t *testing.T) {
+	_, err := event.NewEvent("UserCreated", "", "User", 1, nil)
+	if err == nil {
+		t.Error("expected error for missing aggregate ID")
+	}
+}
 
-			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
-				}
-				return
-			}
+func TestNewEvent_MissingAggregateType(t *testing.T) {
+	_, err := event.NewEvent("UserCreated", "user-123", "", 1, nil)
+	if err == nil {
+		t.Error("expected error for missing aggregate type")
+	}
+}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if evt.ID() == "" {
-				t.Error("event ID should not be empty")
-			}
-			if evt.Type() != tt.eventType {
-				t.Errorf("expected type %s, got %s", tt.eventType, evt.Type())
-			}
-			if evt.AggregateID() != tt.aggregateID {
-				t.Errorf("expected aggregate ID %s, got %s", tt.aggregateID, evt.AggregateID())
-			}
-		})
+func TestNewEvent_NegativeVersion(t *testing.T) {
+	_, err := event.NewEvent("UserCreated", "user-123", "User", -1, nil)
+	if err == nil {
+		t.Error("expected error for negative version")
 	}
 }
 
@@ -92,20 +63,41 @@ func TestEventOptions(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID("corr-123"),
-		event.WithUserID("user-456"),
-		event.WithCustom("key", "value"),
+		event.WithCausationID("cause-456"),
+		event.WithUserID("user-789"),
+		event.WithRequestID("req-001"),
+		event.WithSource("test-service"),
+		event.WithIPAddress("127.0.0.1"),
+		event.WithUserAgent("test-agent"),
+		event.WithCustom("key1", "value1"),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if evt.Metadata().CorrelationID != "corr-123" {
-		t.Errorf("expected correlation ID corr-123, got %s", evt.Metadata().CorrelationID)
+	m := evt.Metadata()
+	if m.CorrelationID != "corr-123" {
+		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
-	if evt.Metadata().UserID != "user-456" {
-		t.Errorf("expected user ID user-456, got %s", evt.Metadata().UserID)
+	if m.CausationID != "cause-456" {
+		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
-	if evt.Metadata().Custom["key"] != "value" {
-		t.Errorf("expected custom key=value, got %s", evt.Metadata().Custom["key"])
+	if m.UserID != "user-789" {
+		t.Errorf("expected user ID user-789, got %s", m.UserID)
+	}
+	if m.RequestID != "req-001" {
+		t.Errorf("expected request ID req-001, got %s", m.RequestID)
+	}
+	if m.Source != "test-service" {
+		t.Errorf("expected source test-service, got %s", m.Source)
+	}
+	if m.IPAddress != "127.0.0.1" {
+		t.Errorf("expected IP 127.0.0.1, got %s", m.IPAddress)
+	}
+	if m.UserAgent != "test-agent" {
+		t.Errorf("expected user agent test-agent, got %s", m.UserAgent)
+	}
+	if m.Custom["key1"] != "value1" {
+		t.Errorf("expected custom key1=value1, got %s", m.Custom["key1"])
 	}
 }

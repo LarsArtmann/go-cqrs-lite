@@ -1,73 +1,124 @@
 package event_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func TestMemoryBus(t *testing.T) {
+func TestMemoryBus_Publish(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	 received := make([]event.Event, 0)
+	received := make([]event.Event, 0)
 	handler := func(ctx context.Context, evt event.Event) error {
-        received = append(received, evt)
-        return nil
-    }
+		received = append(received, evt)
+		return nil
+	}
 
-}
-}()
-	var gotErr bool
-	wantErr = true
-        return
-    }
-    if !gotErr {
-        if err != nil {
-            t.Errorf("unexpected error: %v", err)
-            return
-        }
-    }
-    if len(received) != 1 {
-        t.Errorf("expected 1 event, got %d", len(received))
-        return
-    }
-    if len(received) != 1 {
-        t.Errorf("expected 1 event, got %d", len(received))
-        return
-    }
-}
-    if len(events) != 1 {
-        t.Errorf("expected 1 event, got %d", len(events))
-        return
-    }
-    if len(events) != 2 {
-        t.Errorf("expected 2 events, got %d", len(events))
-    }
+	err := bus.Subscribe("UserCreated", handler)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-}
-    ctx := context.Background()
-    _ := store.Delete(ctx, "User", "nonexistent")
-    if err != nil {
-        return nil,    }
-    if err == nil {
-        t.Errorf("expected aggregate not found after delete")
-        return
-    }
+	evt, _ := event.NewEvent("UserCreated", "user-1", "User", 0, nil)
+	err = bus.Publish(ctx, evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-    ctx := context.Background()
-    _, err = store.Delete(ctx, "User", "nonexistent")
-    if err != nil {
-        return nil
-    }
-    if err != nil {
-        t.Errorf("unexpected error: %v", err)
-            return
-        }
-    }
-    ctx := context.Background()
-    _, err = bus.Close()
-    if err != nil {
-        return nil
-    }
+	if len(received) != 1 {
+		t.Errorf("expected 1 event, got %d", len(received))
+	}
+}
+
+func TestMemoryBus_SubscribeAll(t *testing.T) {
+	bus := event.NewMemoryBus()
+	ctx := context.Background()
+
+	received := make([]event.Event, 0)
+	handler := func(ctx context.Context, evt event.Event) error {
+		received = append(received, evt)
+		return nil
+	}
+
+	err := bus.SubscribeAll(handler)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	evt1, _ := event.NewEvent("UserCreated", "user-1", "User", 0, nil)
+	evt2, _ := event.NewEvent("OrderPlaced", "order-1", "Order", 0, nil)
+
+	err = bus.Publish(ctx, evt1, evt2)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(received) != 2 {
+		t.Errorf("expected 2 events, got %d", len(received))
+	}
+}
+
+func TestMemoryBus_Middleware(t *testing.T) {
+	bus := event.NewMemoryBus()
+	ctx := context.Background()
+
+	var callOrder []string
+
+	bus.Use(
+		func(h event.Handler) event.Handler {
+			return func(ctx context.Context, evt event.Event) error {
+				callOrder = append(callOrder, "middleware1")
+				return h(ctx, evt)
+			}
+		},
+		func(h event.Handler) event.Handler {
+			return func(ctx context.Context, evt event.Event) error {
+				callOrder = append(callOrder, "middleware2")
+				return h(ctx, evt)
+			}
+		},
+	)
+
+	_ = bus.Subscribe("TestEvent", func(ctx context.Context, evt event.Event) error {
+		callOrder = append(callOrder, "handler")
+		return nil
+	})
+
+	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	_ = bus.Publish(ctx, evt)
+
+	// Middleware is applied in order (first added is outermost wrapper)
+	expected := []string{"middleware1", "middleware2", "handler"}
+	for i, v := range expected {
+		if i >= len(callOrder) || callOrder[i] != v {
+			t.Errorf("expected call order %v, got %v", expected, callOrder)
+			break
+		}
+	}
+}
+
+func TestMemoryBus_Closed(t *testing.T) {
+	bus := event.NewMemoryBus()
+	_ = bus.Close()
+
+	handler := func(ctx context.Context, evt event.Event) error { return nil }
+
+	err := bus.Subscribe("TestEvent", handler)
+	if err == nil {
+		t.Error("expected bus closed error")
+	}
+
+	err = bus.SubscribeAll(handler)
+	if err == nil {
+		t.Error("expected bus closed error")
+	}
+
+	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	err = bus.Publish(context.Background(), evt)
+	if err == nil {
+		t.Error("expected bus closed error")
+	}
 }

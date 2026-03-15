@@ -9,58 +9,119 @@ import (
 
 func TestNewCommand(t *testing.T) {
 	cmd := command.New("CreateUser", "user-123")
+
 	if cmd.Type() != "CreateUser" {
-		t.Errorf("expected CreateUser, got %s", cmd.Type())
+		t.Errorf("expected type CreateUser, got %s", cmd.Type())
 	}
+
 	if cmd.AggregateID() != "user-123" {
-		t.Errorf("expected aggregateID user-123, got %s", cmd.AggregateID())
+		t.Errorf("expected aggregate ID user-123, got %s", cmd.AggregateID())
 	}
 }
 
-func TestDispatcher(t *testing.T) {
-	d := command.NewDispatcher()
-	ctx := context.Background()
+func TestBaseCommand_ImplementsInterface(t *testing.T) {
+	var _ command.Command = command.New("TestCommand", "test-id")
+}
 
-	executed := make([]command.Command, 0)
+func TestDispatcher_Register(t *testing.T) {
+	dispatcher := command.NewDispatcher()
 
 	handler := func(ctx context.Context, cmd command.Command) error {
-		executed = append(executed, cmd)
 		return nil
 	}
 
-	err := d.Register("CreateUser", handler)
+	err := dispatcher.Register("CreateUser", handler)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestDispatcher_Dispatch(t *testing.T) {
+	dispatcher := command.NewDispatcher()
+	ctx := context.Background()
+
+	executed := false
+	handler := func(ctx context.Context, cmd command.Command) error {
+		executed = true
+		return nil
 	}
 
+	_ = dispatcher.Register("CreateUser", handler)
+
 	cmd := command.New("CreateUser", "user-123")
-	err = d.Dispatch(ctx, cmd)
+	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	if len(executed) != 1 {
-		t.Errorf("expected 1 command, got %d", len(executed))
-	}
-
-	if _, ok := d.Dispatch(ctx, command.New("UpdateUser", "user-456")); err == nil {
-		t.Errorf("expected handler not found error for unregistered command")
+	if !executed {
+		t.Error("expected handler to be executed")
 	}
 }
 
-func TestDispatcherClosed(t *testing.T) {
-	d := command.NewDispatcher()
-	_ = d.Close()
+func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
+	dispatcher := command.NewDispatcher()
+	ctx := context.Background()
 
-	cmd := command.New("CreateUser", "user-123")
-	err := d.Dispatch(context.Background(), cmd)
+	cmd := command.New("UnknownCommand", "user-123")
+	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
-		t.Error("expected dispatcher closed error")
-	}
-
-	if _, ok := d.Register("CreateUser", nil); err == nil {
-		t.Error("expected nil error for registering on closed dispatcher")
+		t.Error("expected handler not found error")
 	}
 }
 
+func TestDispatcher_Middleware(t *testing.T) {
+	dispatcher := command.NewDispatcher()
+	ctx := context.Background()
+
+	var callOrder []string
+
+	dispatcher.Use(
+		func(h command.Handler) command.Handler {
+			return func(ctx context.Context, cmd command.Command) error {
+				callOrder = append(callOrder, "middleware1")
+				return h(ctx, cmd)
+			}
+		},
+		func(h command.Handler) command.Handler {
+			return func(ctx context.Context, cmd command.Command) error {
+				callOrder = append(callOrder, "middleware2")
+				return h(ctx, cmd)
+			}
+		},
+	)
+
+	_ = dispatcher.Register("TestCommand", func(ctx context.Context, cmd command.Command) error {
+		callOrder = append(callOrder, "handler")
+		return nil
+	})
+
+	cmd := command.New("TestCommand", "test-123")
+	_ = dispatcher.Dispatch(ctx, cmd)
+
+	expected := []string{"middleware1", "middleware2", "handler"}
+	for i, v := range expected {
+		if i >= len(callOrder) || callOrder[i] != v {
+			t.Errorf("expected call order %v, got %v", expected, callOrder)
+			break
+		}
+	}
+}
+
+func TestDispatcher_Closed(t *testing.T) {
+	dispatcher := command.NewDispatcher()
+	_ = dispatcher.Close()
+
+	handler := func(ctx context.Context, cmd command.Command) error { return nil }
+
+	err := dispatcher.Register("TestCommand", handler)
+	if err == nil {
+		t.Error("expected dispatcher closed error on Register")
+	}
+
+	cmd := command.New("TestCommand", "test-123")
+	err = dispatcher.Dispatch(context.Background(), cmd)
+	if err == nil {
+		t.Error("expected dispatcher closed error on Dispatch")
+	}
 }
