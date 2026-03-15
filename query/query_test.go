@@ -92,24 +92,23 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 	}
 }
 
+func makeTestMiddleware(callOrder *[]string, name string) func(func(query.Query) (any, error)) func(query.Query) (any, error) {
+	return func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
+		return func(q query.Query) (any, error) {
+			*callOrder = append(*callOrder, name)
+			return h(q)
+		}
+	}
+}
+
 func TestDispatcher_Middleware(t *testing.T) {
 	dispatcher := query.NewDispatcher()
 
 	var callOrder []string
 
 	dispatcher.Use(
-		func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
-			return func(q query.Query) (any, error) {
-				callOrder = append(callOrder, "middleware1")
-				return h(q)
-			}
-		},
-		func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
-			return func(q query.Query) (any, error) {
-				callOrder = append(callOrder, "middleware2")
-				return h(q)
-			}
-		},
+		makeTestMiddleware(&callOrder, "middleware1"),
+		makeTestMiddleware(&callOrder, "middleware2"),
 	)
 
 	_ = dispatcher.Register("TestQuery", func(q query.Query) (any, error) {
