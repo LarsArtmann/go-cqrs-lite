@@ -6,12 +6,12 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 
 `cqrs-lite` provides the essential building blocks for implementing CQRS and Event Sourcing patterns without the complexity of enterprise frameworks. It combines the best patterns from:
 
-| Source Project | Patterns Extracted |
-|----------------|-------------------|
+| Source Project  | Patterns Extracted                                         |
+| --------------- | ---------------------------------------------------------- |
 | **ChastityAPI** | Event Store, Domain Events with metadata, Snapshot support |
-| **Cyberdom** | Event Bus, concurrent handlers, sync/async publishing |
-| **Domination** | Type-safe commands, event builders, aggregate patterns |
-| **GmbHG** | Handler separation, middleware patterns |
+| **Cyberdom**    | Event Bus, concurrent handlers, sync/async publishing      |
+| **Domination**  | Type-safe commands, event builders, aggregate patterns     |
+| **GmbHG**       | Handler separation, middleware patterns                    |
 
 ## Design Principles
 
@@ -97,7 +97,7 @@ func (h *CreateUserHandler) Handle(ctx context.Context, cmd *CreateUserCommand) 
 func main() {
     cmdDispatcher := command.NewDispatcher()
     cmdDispatcher.Register(&CreateUserHandler{}, &CreateUserCommand{})
-    
+
     err := cmdDispatcher.Dispatch(ctx, &CreateUserCommand{
         Email: "user@example.com",
         Name:  "John Doe",
@@ -107,12 +107,12 @@ func main() {
 
 ## Package Structure
 
-| Package | Purpose | Lines |
-|---------|---------|-------|
-| `command/` | Command types, dispatcher, handlers | ~200 |
-| `query/` | Query types, dispatcher, handlers | ~200 |
-| `event/` | Domain events, store interface, bus | ~300 |
-| `aggregate/` | Aggregate root, repository patterns | ~150 |
+| Package       | Purpose                             | Lines     |
+| ------------- | ----------------------------------- | --------- |
+| `command/`    | Command types, dispatcher, handlers | ~200      |
+| `query/`      | Query types, dispatcher, handlers   | ~200      |
+| `event/`      | Domain events, store interface, bus | ~300      |
+| `aggregate/`  | Aggregate root, repository patterns | ~150      |
 | `middleware/` | Logging, metrics, retry, validation | ~250 each |
 
 ## Features
@@ -148,15 +148,15 @@ func main() {
 
 ## Comparison with Alternatives
 
-| Feature | cqrs-lite | go-cqrs | cqrs-go |
-|---------|-----------|---------|---------|
-| Zero dependencies | ✅ | ❌ | ❌ |
-| Event Sourcing | ✅ | ✅ | ✅ |
-| Middleware | ✅ | ❌ | Partial |
-| Event Bus | ✅ | ✅ | ❌ |
-| Snapshot support | ✅ | ❌ | ❌ |
-| Context support | ✅ | ❌ | ✅ |
-| Complexity | Low | Medium | High |
+| Feature           | cqrs-lite | go-cqrs | cqrs-go |
+| ----------------- | --------- | ------- | ------- |
+| Zero dependencies | ✅        | ❌      | ❌      |
+| Event Sourcing    | ✅        | ✅      | ✅      |
+| Middleware        | ✅        | ❌      | Partial |
+| Event Bus         | ✅        | ✅      | ❌      |
+| Snapshot support  | ✅        | ❌      | ❌      |
+| Context support   | ✅        | ❌      | ✅      |
+| Complexity        | Low       | Medium  | High    |
 
 ## Requirements
 
