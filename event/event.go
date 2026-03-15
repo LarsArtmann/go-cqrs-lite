@@ -22,9 +22,9 @@
 package event
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 )
 
@@ -89,13 +89,13 @@ func NewEvent(
 	opts ...EventOption,
 ) (*BaseEvent, error) {
 	if aggregateID == "" {
-		return nil, errors.New("aggregate ID is required")
+		return nil, fmt.Errorf("aggregate ID is required for event type %q", eventType)
 	}
 	if aggregateType == "" {
-		return nil, errors.New("aggregate type is required")
+		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q)", aggregateID, eventType)
 	}
 	if version < 0 {
-		return nil, errors.New("version must be non-negative")
+		return nil, fmt.Errorf("version must be non-negative but got %d for aggregate %q (event type %q)", version, aggregateID, eventType)
 	}
 
 	event := &BaseEvent{
