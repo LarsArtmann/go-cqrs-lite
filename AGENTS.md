@@ -4,13 +4,13 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 
 ## Quick Reference
 
-| Item | Value |
-|------|-------|
-| Language | Go 1.21+ |
-| Test Command | `go test ./...` |
-| Build Command | `go build ./...` |
-| Lint Command | `golangci-lint run` |
-| Dependencies | google/uuid, cockroachdb/errors |
+| Item          | Value                           |
+| ------------- | ------------------------------- |
+| Language      | Go 1.21+                        |
+| Test Command  | `go test ./...`                 |
+| Build Command | `go build ./...`                |
+| Lint Command  | `golangci-lint run`             |
+| Dependencies  | google/uuid, cockroachdb/errors |
 
 ## Architecture
 
@@ -32,12 +32,12 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 
 ## Package Overview
 
-| Package | Purpose | Key Types |
-|---------|---------|-----------|
-| `command/` | Command handling | `Dispatcher`, `Base`, `Handler` |
-| `query/` | Query handling | `Dispatcher`, `Base`, `Query` |
-| `event/` | Event sourcing | `Store`, `Bus`, `BaseEvent` |
-| `aggregate/` | Aggregate roots | `Aggregate`, `Base` |
+| Package      | Purpose          | Key Types                       |
+| ------------ | ---------------- | ------------------------------- |
+| `command/`   | Command handling | `Dispatcher`, `Base`, `Handler` |
+| `query/`     | Query handling   | `Dispatcher`, `Base`, `Query`   |
+| `event/`     | Event sourcing   | `Store`, `Bus`, `BaseEvent`     |
+| `aggregate/` | Aggregate roots  | `Aggregate`, `Base`             |
 
 ## Design Principles
 
@@ -77,6 +77,7 @@ if err != nil {
 ## Key Patterns
 
 ### Command Handler
+
 ```go
 func (h *Handler) Handle(ctx context.Context, cmd *CreateUser) error {
     if cmd.Email == "" {
@@ -87,6 +88,7 @@ func (h *Handler) Handle(ctx context.Context, cmd *CreateUser) error {
 ```
 
 ### Event Creation
+
 ```go
 event, err := event.NewEvent(
     "user.created",
@@ -107,13 +109,13 @@ event, err := event.NewEvent(
 
 ## Common Tasks
 
-| Task | Command |
-|------|---------|
-| Run all tests | `go test ./... -v` |
+| Task              | Command                |
+| ----------------- | ---------------------- |
+| Run all tests     | `go test ./... -v`     |
 | Run with coverage | `go test ./... -cover` |
-| Run race detector | `go test ./... -race` |
-| Format code | `gofumpt -w .` |
-| Imports | `goimports -w .` |
+| Run race detector | `go test ./... -race`  |
+| Format code       | `gofumpt -w .`         |
+| Imports           | `goimports -w .`       |
 
 ## References
 
