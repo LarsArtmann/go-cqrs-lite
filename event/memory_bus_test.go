@@ -61,6 +61,16 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 	}
 }
 
+// testMiddleware creates a middleware that records its name in callOrder.
+func testMiddleware(callOrder *[]string, name string) func(h event.Handler) event.Handler {
+	return func(h event.Handler) event.Handler {
+		return func(ctx context.Context, evt event.Event) error {
+			*callOrder = append(*callOrder, name)
+			return h(ctx, evt)
+		}
+	}
+}
+
 func TestMemoryBus_Middleware(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
@@ -68,18 +78,8 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	var callOrder []string
 
 	bus.Use(
-		func(h event.Handler) event.Handler {
-			return func(ctx context.Context, evt event.Event) error {
-				callOrder = append(callOrder, "middleware1")
-				return h(ctx, evt)
-			}
-		},
-		func(h event.Handler) event.Handler {
-			return func(ctx context.Context, evt event.Event) error {
-				callOrder = append(callOrder, "middleware2")
-				return h(ctx, evt)
-			}
-		},
+		testMiddleware(&callOrder, "middleware1"),
+		testMiddleware(&callOrder, "middleware2"),
 	)
 
 	_ = bus.Subscribe("TestEvent", func(ctx context.Context, evt event.Event) error {

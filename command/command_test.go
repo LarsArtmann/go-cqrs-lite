@@ -70,6 +70,16 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	}
 }
 
+// testMiddleware creates a middleware that records its name in callOrder.
+func testMiddleware(callOrder *[]string, name string) func(h command.Handler) command.Handler {
+	return func(h command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			*callOrder = append(*callOrder, name)
+			return h(ctx, cmd)
+		}
+	}
+}
+
 func TestDispatcher_Middleware(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
@@ -77,18 +87,8 @@ func TestDispatcher_Middleware(t *testing.T) {
 	var callOrder []string
 
 	dispatcher.Use(
-		func(h command.Handler) command.Handler {
-			return func(ctx context.Context, cmd command.Command) error {
-				callOrder = append(callOrder, "middleware1")
-				return h(ctx, cmd)
-			}
-		},
-		func(h command.Handler) command.Handler {
-			return func(ctx context.Context, cmd command.Command) error {
-				callOrder = append(callOrder, "middleware2")
-				return h(ctx, cmd)
-			}
-		},
+		testMiddleware(&callOrder, "middleware1"),
+		testMiddleware(&callOrder, "middleware2"),
 	)
 
 	_ = dispatcher.Register("TestCommand", func(ctx context.Context, cmd command.Command) error {
