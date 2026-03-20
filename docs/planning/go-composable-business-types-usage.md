@@ -10,15 +10,15 @@ This document outlines how `go-composable-business-types/id` should be integrate
 
 The codebase currently uses plain `string` for all identifiers:
 
-| Location | Current Type | Purpose |
-|----------|--------------|---------|
-| `event/event.go:41` | `AggregateID() string` | Event aggregate identifier |
-| `event/event.go:102` | `aggregateID string` | BaseEvent field |
-| `event/store.go:10` | `aggregateID string` | Store method parameter |
-| `aggregate/aggregate.go:11` | `ID() string` | Aggregate root identifier |
-| `aggregate/aggregate.go:21` | `id string` | Base aggregate field |
-| `command/command.go:9` | `AggregateID() string` | Command interface |
-| `command/command.go:15` | `aggregateID string` | BaseCommand field |
+| Location                    | Current Type           | Purpose                    |
+| --------------------------- | ---------------------- | -------------------------- |
+| `event/event.go:41`         | `AggregateID() string` | Event aggregate identifier |
+| `event/event.go:102`        | `aggregateID string`   | BaseEvent field            |
+| `event/store.go:10`         | `aggregateID string`   | Store method parameter     |
+| `aggregate/aggregate.go:11` | `ID() string`          | Aggregate root identifier  |
+| `aggregate/aggregate.go:21` | `id string`            | Base aggregate field       |
+| `command/command.go:9`      | `AggregateID() string` | Command interface          |
+| `command/command.go:15`     | `aggregateID string`   | BaseCommand field          |
 
 ### Problem Statement
 
@@ -51,6 +51,7 @@ ProcessOrder(userID)  // ERROR: cannot use UserID as OrderID
 ```
 
 **Key capabilities:**
+
 - Generic phantom type branding (`ID[Brand, ValueType]`)
 - Multiple value types: `string`, `int64`, `int`, `uint64`, etc.
 - Full serialization support: JSON, SQL, Binary, Text, Gob
@@ -414,6 +415,7 @@ cmd := &CreateUserCommand{
 ### Phase 3: Future Considerations (v2)
 
 If a v2 release is planned, consider:
+
 - Making branded IDs the default in core interfaces
 - Providing `compat/` package for migration
 - Generic interfaces: `Event[A any, V comparable]`
@@ -440,24 +442,24 @@ require (
 
 ## Benefits
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Type Safety | Runtime errors | Compile-time errors |
-| Refactoring | Risky, manual checks | Safe, compiler-assisted |
-| Documentation | Comments only | Self-documenting types |
-| Testing | Need integration tests | Unit tests catch type mismatches |
-| ID Generation | Manual validation | NanoId integration available |
-| Serialization | Manual handling | Built-in JSON/SQL support |
+| Aspect        | Before                 | After                            |
+| ------------- | ---------------------- | -------------------------------- |
+| Type Safety   | Runtime errors         | Compile-time errors              |
+| Refactoring   | Risky, manual checks   | Safe, compiler-assisted          |
+| Documentation | Comments only          | Self-documenting types           |
+| Testing       | Need integration tests | Unit tests catch type mismatches |
+| ID Generation | Manual validation      | NanoId integration available     |
+| Serialization | Manual handling        | Built-in JSON/SQL support        |
 
 ## Trade-offs
 
-| Concern | Impact | Mitigation |
-|---------|--------|------------|
-| Additional dependency | Only in xtypes/ | Core remains zero-dep |
-| Learning curve | New type syntax | Comprehensive examples |
-| Verbosity | Generic syntax | Type aliases reduce repetition |
-| Performance | None | ID is just a wrapper struct |
-| Migration effort | Opt-in only | No forced changes |
+| Concern               | Impact          | Mitigation                     |
+| --------------------- | --------------- | ------------------------------ |
+| Additional dependency | Only in xtypes/ | Core remains zero-dep          |
+| Learning curve        | New type syntax | Comprehensive examples         |
+| Verbosity             | Generic syntax  | Type aliases reduce repetition |
+| Performance           | None            | ID is just a wrapper struct    |
+| Migration effort      | Opt-in only     | No forced changes              |
 
 ## Conclusion
 

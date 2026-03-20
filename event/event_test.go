@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -52,6 +53,58 @@ func TestNewEvent_NegativeVersion(t *testing.T) {
 	_, err := event.NewEvent("UserCreated", "user-123", "User", -1, nil)
 	if err == nil {
 		t.Error("expected error for negative version")
+	}
+}
+
+func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
+	tests := []struct {
+		name          string
+		eventType     event.EventType
+		aggregateID   string
+		aggregateType event.AggregateType
+		version       int
+		wantContains  []string
+	}{
+		{
+			name:          "missing aggregate ID includes event type",
+			eventType:     "TestEvent",
+			aggregateID:   "",
+			aggregateType: "User",
+			version:       1,
+			wantContains:  []string{"aggregate ID is required", "TestEvent"},
+		},
+		{
+			name:          "missing aggregate type includes aggregate ID and event type",
+			eventType:     "OrderCreated",
+			aggregateID:   "order-456",
+			aggregateType: "",
+			version:       1,
+			wantContains:  []string{"aggregate type is required", "order-456", "OrderCreated"},
+		},
+		{
+			name:          "negative version includes version, aggregate ID and event type",
+			eventType:     "PaymentProcessed",
+			aggregateID:   "payment-789",
+			aggregateType: "Payment",
+			version:       -5,
+			wantContains:  []string{"version must be non-negative", "-5", "payment-789", "PaymentProcessed"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := event.NewEvent(tt.eventType, tt.aggregateID, tt.aggregateType, tt.version, nil)
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+
+			errMsg := err.Error()
+			for _, want := range tt.wantContains {
+				if !strings.Contains(errMsg, want) {
+					t.Errorf("error message %q does not contain %q", errMsg, want)
+				}
+			}
+		})
 	}
 }
 
