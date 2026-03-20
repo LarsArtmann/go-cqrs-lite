@@ -10,20 +10,21 @@
 
 The go-cqrs-lite project is a **production-ready CQRS library** that has completed all 8 planned phases from the original TODO_LIST.md. The codebase is clean, well-tested (86.7% average coverage), and passes all linting checks.
 
-| Metric | Value |
-|--------|-------|
-| Total Lines of Code | 1,489 |
-| Packages | 4 (aggregate, command, event, query) |
-| Test Coverage (avg) | 86.7% |
-| golangci-lint Issues | 0 |
-| Build Status | PASSING |
-| Git Status | CLEAN |
+| Metric               | Value                                |
+| -------------------- | ------------------------------------ |
+| Total Lines of Code  | 1,489                                |
+| Packages             | 4 (aggregate, command, event, query) |
+| Test Coverage (avg)  | 86.7%                                |
+| golangci-lint Issues | 0                                    |
+| Build Status         | PASSING                              |
+| Git Status           | CLEAN                                |
 
 ---
 
 ## A. FULLY DONE (Completed)
 
 ### Core Infrastructure (Phase 1) - 100%
+
 - [x] `go.mod` with minimal dependencies (google/uuid, cockroachdb/errors)
 - [x] `event/event.go` - Event interface, BaseEvent struct, EventType, AggregateType
 - [x] `event/errors.go` - Typed errors (ErrEventNotFound, ErrVersionConflict, etc.)
@@ -34,6 +35,7 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [x] `aggregate/aggregate.go` - Aggregate interface, BaseAggregate struct
 
 ### Event Layer (Phase 2) - 100%
+
 - [x] `event/store.go` - Store interface (Append, GetByAggregate, GetGlobalStream)
 - [x] `event/store.go` - GetByID, GetLatestVersion, Count methods
 - [x] `event/bus.go` - Handler type, EventBus struct
@@ -41,6 +43,7 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [x] `event/bus.go` - Unsubscribe, HasSubscribers, SubscriberCount
 
 ### Command Layer (Phase 3) - 100%
+
 - [x] `command/handler.go` - Handler interface
 - [x] `command/dispatcher.go` - Dispatcher interface, DispatcherImpl struct
 - [x] `command/dispatcher.go` - Register method (type-safe handler registration)
@@ -48,6 +51,7 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [x] `command/dispatcher.go` - HasHandler, RegisteredCommands helpers
 
 ### Query Layer (Phase 4) - 100%
+
 - [x] `query/handler.go` - Handler interface
 - [x] `query/dispatcher.go` - Dispatcher interface, DispatcherImpl struct
 - [x] `query/dispatcher.go` - Register method
@@ -55,17 +59,20 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [x] `query/pagination.go` - Pagination, PageResult types (integrated in query.go)
 
 ### Middleware (Phase 5) - 100%
+
 - [x] `command/dispatcher.go` - Middleware type (Use method)
 - [x] `event/memory_bus.go` - Middleware type (Use method)
 - [x] `query/dispatcher.go` - Middleware type (Use method)
 
 ### In-Memory Implementations (Phase 6) - 100%
+
 - [x] `event/memory_store.go` - In-memory EventStore implementation
 - [x] `event/memory_store.go` - Thread-safe operations with sync.RWMutex
 - [x] `event/memory_bus.go` - In-memory EventBus implementation
 - [x] `event/memory_bus.go` - Thread-safe operations with sync.RWMutex
 
 ### Tests (Phase 7) - 100%
+
 - [x] `command/dispatcher_test.go` - 100% coverage
 - [x] `query/dispatcher_test.go` - 97.1% coverage
 - [x] `aggregate/aggregate_test.go` - 63.6% coverage
@@ -74,6 +81,7 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [x] `event/memory_store_test.go` - Comprehensive tests
 
 ### Documentation & CI (Phase 8) - 90%
+
 - [x] `.golangci-lint.yml` - Linter configuration (10 linters enabled)
 - [x] `README.md` - Complete API reference
 - [x] `AGENTS.md` - AI assistant project documentation
@@ -87,6 +95,7 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 - [ ] `CONTRIBUTING.md` - NOT CREATED
 
 ### BuildFlow Optimization (Recent)
+
 - [x] Error context improvements in `event/event.go` (lines 92, 95, 98)
 - [x] Error wrapping in `event/memory_bus.go` (lines 37, 42, 52, 59)
 - [x] Error context in `query/dispatcher.go` (lines 75, 79)
@@ -97,40 +106,40 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 
 ## B. PARTIALLY DONE
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Test Coverage - aggregate | 63.6% | Below 80% target, needs more tests |
-| Documentation - Examples | Missing | No `example/` directory |
-| CI/CD Pipeline | 0% | No GitHub Actions workflows |
-| Build Automation | 0% | No Makefile |
+| Item                      | Status  | Notes                              |
+| ------------------------- | ------- | ---------------------------------- |
+| Test Coverage - aggregate | 63.6%   | Below 80% target, needs more tests |
+| Documentation - Examples  | Missing | No `example/` directory            |
+| CI/CD Pipeline            | 0%      | No GitHub Actions workflows        |
+| Build Automation          | 0%      | No Makefile                        |
 
 ---
 
 ## C. NOT STARTED
 
-| Item | Priority | Effort |
-|------|----------|--------|
-| `example/user/` directory with working examples | High | 1h |
-| `.github/workflows/test.yml` CI workflow | High | 10min |
-| `.github/workflows/lint.yml` CI workflow | High | 10min |
-| `Makefile` with build/test/lint targets | Medium | 15min |
-| `CODE_OF_CONDUCT.md` | Low | 5min |
-| `CONTRIBUTING.md` | Medium | 15min |
-| Snapshot support (event/snapshot.go) | Low | 1h |
-| Fuzz tests | Low | 30min |
-| Benchmark tests | Low | 30min |
-| Integration tests (full CQRS flow) | Medium | 30min |
+| Item                                            | Priority | Effort |
+| ----------------------------------------------- | -------- | ------ |
+| `example/user/` directory with working examples | High     | 1h     |
+| `.github/workflows/test.yml` CI workflow        | High     | 10min  |
+| `.github/workflows/lint.yml` CI workflow        | High     | 10min  |
+| `Makefile` with build/test/lint targets         | Medium   | 15min  |
+| `CODE_OF_CONDUCT.md`                            | Low      | 5min   |
+| `CONTRIBUTING.md`                               | Medium   | 15min  |
+| Snapshot support (event/snapshot.go)            | Low      | 1h     |
+| Fuzz tests                                      | Low      | 30min  |
+| Benchmark tests                                 | Low      | 30min  |
+| Integration tests (full CQRS flow)              | Medium   | 30min  |
 
 ---
 
 ## D. TOTALLY FUCKED UP (Issues)
 
-| Issue | Severity | Status | Resolution |
-|-------|----------|--------|------------|
-| Go build cache corruption | Medium | Fixed | Rebuilt toolchain, tests now pass |
-| Parallel golangci-lint errors | Low | Fixed | Kill stale processes before running |
-| Disk space warning (1479 MB) | Low | Ongoing | Monitor, not blocking |
-| gopls diagnostics (cache errors) | Low | Ignored | Build/tests work fine, LSP cache issue |
+| Issue                            | Severity | Status  | Resolution                             |
+| -------------------------------- | -------- | ------- | -------------------------------------- |
+| Go build cache corruption        | Medium   | Fixed   | Rebuilt toolchain, tests now pass      |
+| Parallel golangci-lint errors    | Low      | Fixed   | Kill stale processes before running    |
+| Disk space warning (1479 MB)     | Low      | Ongoing | Monitor, not blocking                  |
+| gopls diagnostics (cache errors) | Low      | Ignored | Build/tests work fine, LSP cache issue |
 
 **No critical blockers. All issues resolved or manageable.**
 
@@ -183,33 +192,33 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 
 ## F. TOP 25 THINGS TO DO NEXT
 
-| # | Task | Priority | Effort | Impact |
-|---|------|----------|--------|--------|
-| 1 | Add aggregate tests to reach 80% coverage | HIGH | 30min | High |
-| 2 | Create `.github/workflows/test.yml` | HIGH | 10min | High |
-| 3 | Create `.github/workflows/lint.yml` | HIGH | 10min | High |
-| 4 | Create `Makefile` with standard targets | MEDIUM | 15min | Medium |
-| 5 | Create `example/user/` directory structure | HIGH | 15min | High |
-| 6 | Create `example/user/commands.go` | HIGH | 10min | High |
-| 7 | Create `example/user/queries.go` | HIGH | 10min | High |
-| 8 | Create `example/user/events.go` | HIGH | 10min | High |
-| 9 | Create `example/user/handlers.go` | HIGH | 15min | High |
-| 10 | Create `example/main.go` working example | HIGH | 15min | High |
-| 11 | Create `CONTRIBUTING.md` | MEDIUM | 15min | Medium |
-| 12 | Add integration test for full CQRS flow | MEDIUM | 20min | Medium |
-| 13 | Add integration test for event sourcing | MEDIUM | 15min | Medium |
-| 14 | Add integration test for middleware chain | MEDIUM | 10min | Medium |
-| 15 | Add benchmark tests for dispatcher | LOW | 15min | Low |
-| 16 | Add benchmark tests for event bus | LOW | 15min | Low |
-| 17 | Add fuzz tests for event parsing | LOW | 20min | Low |
-| 18 | Create `docs/architecture.md` | LOW | 15min | Low |
-| 19 | Create `CODE_OF_CONDUCT.md` | LOW | 5min | Low |
-| 20 | Add version constants to all packages | LOW | 5min | Low |
-| 21 | Add semantic versioning tags | LOW | 10min | Low |
-| 22 | Create release workflow | LOW | 20min | Low |
-| 23 | Add Go report card badge to README | LOW | 5min | Low |
-| 24 | Add codecov integration | LOW | 10min | Low |
-| 25 | Review and update TODO_LIST.md | LOW | 10min | Low |
+| #   | Task                                       | Priority | Effort | Impact |
+| --- | ------------------------------------------ | -------- | ------ | ------ |
+| 1   | Add aggregate tests to reach 80% coverage  | HIGH     | 30min  | High   |
+| 2   | Create `.github/workflows/test.yml`        | HIGH     | 10min  | High   |
+| 3   | Create `.github/workflows/lint.yml`        | HIGH     | 10min  | High   |
+| 4   | Create `Makefile` with standard targets    | MEDIUM   | 15min  | Medium |
+| 5   | Create `example/user/` directory structure | HIGH     | 15min  | High   |
+| 6   | Create `example/user/commands.go`          | HIGH     | 10min  | High   |
+| 7   | Create `example/user/queries.go`           | HIGH     | 10min  | High   |
+| 8   | Create `example/user/events.go`            | HIGH     | 10min  | High   |
+| 9   | Create `example/user/handlers.go`          | HIGH     | 15min  | High   |
+| 10  | Create `example/main.go` working example   | HIGH     | 15min  | High   |
+| 11  | Create `CONTRIBUTING.md`                   | MEDIUM   | 15min  | Medium |
+| 12  | Add integration test for full CQRS flow    | MEDIUM   | 20min  | Medium |
+| 13  | Add integration test for event sourcing    | MEDIUM   | 15min  | Medium |
+| 14  | Add integration test for middleware chain  | MEDIUM   | 10min  | Medium |
+| 15  | Add benchmark tests for dispatcher         | LOW      | 15min  | Low    |
+| 16  | Add benchmark tests for event bus          | LOW      | 15min  | Low    |
+| 17  | Add fuzz tests for event parsing           | LOW      | 20min  | Low    |
+| 18  | Create `docs/architecture.md`              | LOW      | 15min  | Low    |
+| 19  | Create `CODE_OF_CONDUCT.md`                | LOW      | 5min   | Low    |
+| 20  | Add version constants to all packages      | LOW      | 5min   | Low    |
+| 21  | Add semantic versioning tags               | LOW      | 10min  | Low    |
+| 22  | Create release workflow                    | LOW      | 20min  | Low    |
+| 23  | Add Go report card badge to README         | LOW      | 5min   | Low    |
+| 24  | Add codecov integration                    | LOW      | 10min  | Low    |
+| 25  | Review and update TODO_LIST.md             | LOW      | 10min  | Low    |
 
 ---
 
@@ -218,16 +227,19 @@ The go-cqrs-lite project is a **production-ready CQRS library** that has complet
 **I cannot determine: What is the target use case for this library?**
 
 Options:
+
 1. **Internal library** - Extract patterns from existing projects
 2. **Open source library** - Publish for community use
 3. **Educational reference** - Demonstrate CQRS patterns
 
 **Why it matters:**
+
 - If open source: Need examples, CI/CD, CONTRIBUTING.md, version tags
 - If internal: Simpler, focus on core functionality
 - If educational: Need extensive documentation and comments
 
 **Current state suggests open source (LICENSE, AUTHORS, public repo), but missing:**
+
 - Release tags
 - GitHub Actions
 - Example code
@@ -237,13 +249,13 @@ Options:
 
 ## Test Coverage Breakdown
 
-| Package | Coverage | Status |
-|---------|----------|--------|
-| aggregate | 63.6% | NEEDS WORK |
-| command | 100.0% | EXCELLENT |
-| event | 86.0% | GOOD |
-| query | 97.1% | EXCELLENT |
-| **Average** | **86.7%** | GOOD |
+| Package     | Coverage  | Status     |
+| ----------- | --------- | ---------- |
+| aggregate   | 63.6%     | NEEDS WORK |
+| command     | 100.0%    | EXCELLENT  |
+| event       | 86.0%     | GOOD       |
+| query       | 97.1%     | EXCELLENT  |
+| **Average** | **86.7%** | GOOD       |
 
 ---
 
@@ -291,32 +303,35 @@ go-cqrs-lite/
 
 ## Quality Gates Status
 
-| Gate | Status | Notes |
-|------|--------|-------|
-| `go build ./...` | PASS | Compiles cleanly |
-| `go test ./...` | PASS | All tests pass |
-| Coverage > 80% | PARTIAL | 3/4 packages above 80% |
-| golangci-lint | PASS | 0 issues |
-| Files under 250 lines | PASS | All files comply |
-| Functions under 30 lines | PASS | All functions comply |
-| No `any` types | PASS | Strong typing throughout |
-| Context as first param | PARTIAL | Some methods missing context |
+| Gate                     | Status  | Notes                        |
+| ------------------------ | ------- | ---------------------------- |
+| `go build ./...`         | PASS    | Compiles cleanly             |
+| `go test ./...`          | PASS    | All tests pass               |
+| Coverage > 80%           | PARTIAL | 3/4 packages above 80%       |
+| golangci-lint            | PASS    | 0 issues                     |
+| Files under 250 lines    | PASS    | All files comply             |
+| Functions under 30 lines | PASS    | All functions comply         |
+| No `any` types           | PASS    | Strong typing throughout     |
+| Context as first param   | PARTIAL | Some methods missing context |
 
 ---
 
 ## Recommendations
 
 ### Immediate (Do Today)
+
 1. Create `.github/workflows/test.yml` and `.github/workflows/lint.yml`
 2. Create `Makefile` with standard targets
 3. Add aggregate tests to reach 80% coverage
 
 ### Short Term (This Week)
+
 4. Create `example/` directory with complete working example
 5. Create `CONTRIBUTING.md`
 6. Add integration tests
 
 ### Long Term (Next Sprint)
+
 7. Add benchmark tests
 8. Create release tags
 9. Set up codecov integration
