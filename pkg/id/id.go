@@ -46,11 +46,17 @@ func Parse[T any](s string) (Of[T], error) {
 }
 
 // MustParse converts a string to a strongly-typed ID, panicking on error.
-// Use only in tests or when you're certain the input is valid.
+//
+// WARNING: This function panics if the input is empty. Use only in:
+//   - Test code where the input is guaranteed valid
+//   - Initialization code with hardcoded valid IDs
+//   - When you explicitly want a panic on invalid input
+//
+// For production code, prefer Parse[T]() which returns an error.
 func MustParse[T any](s string) Of[T] {
 	id, err := Parse[T](s)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("id.MustParse: %v (input: %q)", err, s))
 	}
 	return id
 }
@@ -79,11 +85,11 @@ func (id Of[T]) MarshalJSON() ([]byte, error) {
 func (id *Of[T]) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return err
+		return fmt.Errorf("unmarshal ID: %w (input: %q)", err, string(data))
 	}
 	parsed, err := Parse[T](s)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse ID from JSON: %w", err)
 	}
 	*id = parsed
 	return nil
@@ -100,14 +106,14 @@ func (id *Of[T]) Scan(src any) error {
 	case string:
 		parsed, err := Parse[T](v)
 		if err != nil {
-			return err
+			return fmt.Errorf("scan ID from string: %w (input: %q)", err, v)
 		}
 		*id = parsed
 		return nil
 	case []byte:
 		parsed, err := Parse[T](string(v))
 		if err != nil {
-			return err
+			return fmt.Errorf("scan ID from bytes: %w (input: %q)", err, string(v))
 		}
 		*id = parsed
 		return nil
