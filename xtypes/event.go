@@ -86,13 +86,13 @@ func (b *EventBuilder[A]) WithUserID(userID string) *EventBuilder[A] {
 // Build creates the typed event.
 func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
 	if b.aggregateID.IsEmpty() {
-		return nil, fmt.Errorf("aggregate ID is required for event type %q", b.eventType)
+		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q)", b.eventType, b.aggregateType)
 	}
 	if b.aggregateType == "" {
-		return nil, fmt.Errorf("aggregate type is required for event type %q", b.eventType)
+		return nil, fmt.Errorf("aggregate type is required for event type %q (aggregate ID %q)", b.eventType, b.aggregateID.String())
 	}
 	if b.version < 0 {
-		return nil, fmt.Errorf("version must be non-negative but got %d", b.version)
+		return nil, fmt.Errorf("version must be non-negative but got %d for event type %q (aggregate %q of type %q)", b.version, b.eventType, b.aggregateID.String(), b.aggregateType)
 	}
 
 	base, err := event.NewEvent(
@@ -114,10 +114,16 @@ func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
 }
 
 // MustBuild creates the typed event or panics on error.
+//
+// WARNING: This method panics if the event cannot be built. Use only in:
+//   - Test code where inputs are guaranteed valid
+//   - When you explicitly want a panic on invalid input
+//
+// For production code, prefer Build() which returns an error.
 func (b *EventBuilder[A]) MustBuild() *TypedEvent[A] {
 	evt, err := b.Build()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("EventBuilder.MustBuild: %v", err))
 	}
 	return evt
 }

@@ -89,13 +89,13 @@ func NewEvent(
 	opts ...EventOption,
 ) (*BaseEvent, error) {
 	if aggregateID == "" {
-		return nil, fmt.Errorf("aggregate ID is required for event type %q", eventType)
+		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q)", eventType, aggregateType)
 	}
 	if aggregateType == "" {
 		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q)", aggregateID, eventType)
 	}
 	if version < 0 {
-		return nil, fmt.Errorf("version must be non-negative but got %d for aggregate %q (event type %q)", version, aggregateID, eventType)
+		return nil, fmt.Errorf("version must be non-negative but got %d for aggregate %q of type %q (event type %q)", version, aggregateID, aggregateType, eventType)
 	}
 
 	event := &BaseEvent{
