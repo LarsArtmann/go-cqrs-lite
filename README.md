@@ -1,33 +1,121 @@
-# cqrs-lite
+# go-cqrs-lite
 
-A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) library for Go, extracted from battle-tested patterns across multiple production projects.
+A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) library for Go with support for Event Sourcing and strongly-typed domain identifiers.
 
-## Overview
+## What It Does
 
-`cqrs-lite` provides the essential building blocks for implementing CQRS and Event Sourcing patterns without the complexity of enterprise frameworks. It combines the best patterns from:
+go-cqrs-lite provides the essential building blocks for implementing CQRS and Event Sourcing patterns:
 
-| Source Project  | Patterns Extracted                                         |
-| --------------- | ---------------------------------------------------------- |
-| **ChastityAPI** | Event Store, Domain Events with metadata, Snapshot support |
-| **Cyberdom**    | Event Bus, concurrent handlers, sync/async publishing      |
-| **Domination**  | Type-safe commands, event builders, aggregate patterns     |
-| **GmbHG**       | Handler separation, middleware patterns                    |
+- **Command Dispatcher** - Type-safe command handling with middleware support
+- **Query Dispatcher** - Type-safe query handling with pagination
+- **Event Store** - Interface for event persistence with in-memory implementation
+- **Event Bus** - Publish/subscribe pattern for domain events
+- **Aggregate Roots** - Base implementation for domain-driven design aggregates
+- **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs (UserId, AggregateId, etc.)
+- **Extended Types** - Type-safe wrappers for commands, queries, and events with built-in ID types
+
+## Quick Start
+
+### Installation
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite
+```
+
+### Requirements
+
+- Go 1.22+
+
+### Dependencies
+
+- `github.com/google/uuid` - UUID generation
+- `github.com/cockroachdb/errors` - Error handling with context
+
+## Core Concepts
+
+### Commands (Write Side)
+
+Commands represent intent to change state:
+
+```go
+type CreateUser struct {
+    command.Base
+    Email string
+    Name  string
+}
+
+type CreateUserHandler struct {
+    eventStore event.Store
+}
+
+func (h *CreateUserHandler) Handle(ctx context.Context, cmd *CreateUserCommand) error {
+    user, _ := aggregate.NewUser(cmd.AggregateID(), cmd.Email, cmd.Name)
+    for _, evt := range user.UncommittedChanges() {
+        if err := h.eventStore.Append(ctx, evt); err != nil {
+            return err
+        }
+    }
+    user.MarkChangesAsCommitted()
+    return nil
+}
+```
+
+### Events (Event Sourcing)
+
+Events represent state changes with rich metadata:
+
+```go
+event, err := event.NewEvent(
+    "user.created",
+    userID,
+    "User",
+    1,
+    payload,
+    event.WithCorrelationID(requestID),
+    event.WithUserID(operatorID),
+)
+```
+
+### Strongly-Typed IDs
+
+Prevents mixing up different ID types:
+
+```go
+// Instead of string IDs
+userID := user_id.NewUserID()
+aggregateID := aggregate_id.New()
+
+// These won't compile - type mismatch:
+// store.GetByID(ctx, userID)  // expects AggregateID, got UserID
+```
+
+## Package Structure
+
+| Package       | Purpose                                      | Status |
+| ------------- | -------------------------------------------- | ------ |
+| `command/`    | Command types, dispatcher, handlers           | ✅ Ready |
+| `query/`      | Query types, dispatcher, handlers             | ✅ Ready |
+| `event/`      | Domain events, store interface, bus           | ✅ Ready |
+| `aggregate/`  | Aggregate root, repository patterns          | ✅ Ready |
+| `pkg/id/`     | Strongly-typed branded identifiers            | ✅ Ready |
+| `xtypes/`     | Type-safe command/query/event wrappers       | ✅ Ready |
+| `middleware/` | Logging, metrics, validation (planned)        | 🔜 Planned |
 
 ## Design Principles
 
-1. **Zero external dependencies** - Only stdlib + `google/uuid`
+1. **Minimal dependencies** - Only uuid and cockroachdb/errors
 2. **Composition over inheritance** - Per Go best practices
 3. **Interface-first design** - All core types are interfaces
 4. **Context-aware** - All operations accept `context.Context`
 5. **Errors as values** - No panics, explicit error returns
-6. **File size limits** - Max 250 lines per file (per HOW_TO_GOLANG.md)
+6. **File size limits** - Max 250 lines per file
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     APPLICATION LAYER                        │
-│   HTTP Handlers ──► Command/Query Dispatchers                │
+│   HTTP Handlers ──► Command/Query Dispatchers               │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -37,131 +125,63 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 │  │   Command    │  │    Query     │  │    Event     │       │
 │  │  Dispatcher  │  │  Dispatcher  │  │     Bus      │       │
 │  └──────────────┘  └──────────────┘  └──────────────┘       │
-│         │                 │                 │                │
-│         ▼                 ▼                 ▼                │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │   Handlers   │  │   Handlers   │  │ Event Store  │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                              │                 │              │
-│                              ▼                 ▼              │
-│                       ┌──────────────┐  ┌──────────────┐     │
-│                       │  Middleware  │  │  Snapshots   │     │
-│                       └──────────────┘  └──────────────┘     │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     DOMAIN LAYER                             │
-│   Aggregates ──► Entities ──► Value Objects                  │
+│   Aggregates ──► Entities ──► Strongly-Typed IDs           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Quick Start
-
-### Installation
-
-```bash
-go get github.com/larsartmann/cqrs-lite
-```
-
-### Basic Usage
+## Usage Example
 
 ```go
 package main
 
 import (
     "context"
-    "github.com/larsartmann/cqrs-lite/command"
-    "github.com/larsartmann/cqrs-lite/query"
-    "github.com/larsartmann/cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/command"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// 1. Define your command
-type CreateUserCommand struct {
-    command.Base
-    Email string
-    Name  string
-}
-
-// 2. Define your handler
-type CreateUserHandler struct {
-    store event.Store
-}
-
-func (h *CreateUserHandler) Handle(ctx context.Context, cmd *CreateUserCommand) error {
-    // Create user, emit events
-    return h.store.Append(ctx, event.New("user.created", cmd.AggregateID, payload))
-}
-
-// 3. Register and dispatch
 func main() {
+    ctx := context.Background()
+    
+    // Create in-memory event store
+    store := event.NewMemoryStore()
+    
+    // Create event bus for publish/subscribe
+    bus := event.NewMemoryBus()
+    
+    // Register command dispatcher
     cmdDispatcher := command.NewDispatcher()
-    cmdDispatcher.Register(&CreateUserHandler{}, &CreateUserCommand{})
-
-    err := cmdDispatcher.Dispatch(ctx, &CreateUserCommand{
-        Email: "user@example.com",
-        Name:  "John Doe",
-    })
+    
+    // Use strongly-typed IDs
+    userID := id.NewUserID()
+    
+    // Create and dispatch command
+    cmd := command.New("user.create", userID.String())
+    cmdDispatcher.Dispatch(ctx, cmd)
 }
 ```
 
-## Package Structure
+## Comparison
 
-| Package       | Purpose                             | Lines     |
-| ------------- | ----------------------------------- | --------- |
-| `command/`    | Command types, dispatcher, handlers | ~200      |
-| `query/`      | Query types, dispatcher, handlers   | ~200      |
-| `event/`      | Domain events, store interface, bus | ~300      |
-| `aggregate/`  | Aggregate root, repository patterns | ~150      |
-| `middleware/` | Logging, metrics, retry, validation | ~250 each |
+| Feature           | go-cqrs-lite | go-cqrs | cqrs-go |
+| ----------------- | ------------ | ------- | ------- |
+| Minimal deps      | ✅           | ❌      | ❌      |
+| Event Sourcing    | ✅           | ✅      | ✅      |
+| Event Bus         | ✅           | ✅      | ❌      |
+| Strong IDs        | ✅           | ❌      | ❌      |
+| Context support   | ✅           | ❌      | ✅      |
 
-## Features
+## Project Status
 
-### Commands (Write Side)
+**Phase:** Active development (Phases 1-4, 6 complete)
 
-- Type-safe command definitions
-- Command dispatcher with handler registration
-- Middleware support (validation, logging, retry)
-- Idempotency support via command IDs
-
-### Queries (Read Side)
-
-- Type-safe query definitions
-- Query dispatcher with handler registration
-- Pagination and filtering support
-- Caching middleware
-
-### Events
-
-- Domain events with rich metadata
-- Event store interface (SQLite, PostgreSQL adapters)
-- Event bus for pub/sub
-- Snapshot support for aggregate optimization
-- Correlation/causation ID tracking
-
-### Middleware
-
-- **Logging** - Structured logging of all operations
-- **Metrics** - OpenTelemetry integration
-- **Retry** - Exponential backoff for transient failures
-- **Validation** - Pre-execution validation
-
-## Comparison with Alternatives
-
-| Feature           | cqrs-lite | go-cqrs | cqrs-go |
-| ----------------- | --------- | ------- | ------- |
-| Zero dependencies | ✅        | ❌      | ❌      |
-| Event Sourcing    | ✅        | ✅      | ✅      |
-| Middleware        | ✅        | ❌      | Partial |
-| Event Bus         | ✅        | ✅      | ❌      |
-| Snapshot support  | ✅        | ❌      | ❌      |
-| Context support   | ✅        | ❌      | ✅      |
-| Complexity        | Low       | Medium  | High    |
-
-## Requirements
-
-- Go 1.21+
-- For event store: SQLite 3.x or PostgreSQL 14+
+See [TODO_LIST.md](TODO_LIST.md) for planned features.
 
 ## License
 
@@ -169,5 +189,5 @@ MIT
 
 ## References
 
-- [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Project coding standards
-- [PARTS_ANALYSIS.md](https://github.com/larsartmann/index) - Source project analysis
+- [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards
+- [CQRS pattern](https://martinfowler.com/bliki/CQRS.html) - Martin Fowler
