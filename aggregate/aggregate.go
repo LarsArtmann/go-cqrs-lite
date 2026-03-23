@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 // Root represents an aggregate root in DDD
@@ -18,14 +19,14 @@ type Root interface {
 
 // Base provides common aggregate root functionality
 type Base struct {
-	id            string
+	id            id.AggregateID
 	aggregateType event.AggregateType
 	version       int
 	changes       []event.Event
 }
 
 // NewBase creates a new aggregate base
-func NewBase(id string, aggregateType event.AggregateType) *Base {
+func NewBase(id id.AggregateID, aggregateType event.AggregateType) *Base {
 	return &Base{
 		id:            id,
 		aggregateType: aggregateType,
@@ -34,7 +35,7 @@ func NewBase(id string, aggregateType event.AggregateType) *Base {
 	}
 }
 
-func (a *Base) ID() string                { return a.id }
+func (a *Base) ID() string                { return a.id.String() }
 func (a *Base) Type() event.AggregateType { return a.aggregateType }
 func (a *Base) Version() int              { return a.version }
 

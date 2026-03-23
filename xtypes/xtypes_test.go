@@ -8,13 +8,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-type testAggregateBrand struct{}
-
 func TestEventBuilder(t *testing.T) {
 	t.Parallel()
 
 	t.Run("builds event with type safety", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 		aggregateType := event.AggregateType("TestAggregate")
 
 		evt, err := NewEventBuilder(
@@ -38,7 +36,7 @@ func TestEventBuilder(t *testing.T) {
 	})
 
 	t.Run("errors on empty aggregate ID", func(t *testing.T) {
-		var emptyID id.Of[testAggregateBrand]
+		var emptyID id.AggregateID
 
 		_, err := NewEventBuilder(
 			"TestCreated",
@@ -53,7 +51,7 @@ func TestEventBuilder(t *testing.T) {
 	})
 
 	t.Run("errors on negative version", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 
 		_, err := NewEventBuilder(
 			"TestCreated",
@@ -72,7 +70,7 @@ func TestTypedCommand(t *testing.T) {
 	t.Parallel()
 
 	t.Run("creates typed command", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 		cmd := NewTypedCommand("CreateTest", aggregateID)
 
 		if cmd.Type() != "CreateTest" {
@@ -88,7 +86,7 @@ func TestTypedAggregate(t *testing.T) {
 	t.Parallel()
 
 	t.Run("creates typed aggregate", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
 		if agg.ID() != aggregateID {
@@ -103,7 +101,7 @@ func TestTypedAggregate(t *testing.T) {
 	})
 
 	t.Run("applies event", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
 		evt, _ := NewEventBuilder(
@@ -124,7 +122,7 @@ func TestTypedAggregate(t *testing.T) {
 	})
 
 	t.Run("loads from history", func(t *testing.T) {
-		aggregateID := id.New[id.Of[testAggregateBrand]]()
+		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
 		evt1, _ := NewEventBuilder(

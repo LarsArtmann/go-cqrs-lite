@@ -6,32 +6,32 @@ import (
 )
 
 // TypedCommand wraps a command with a strongly-typed aggregate ID.
-type TypedCommand[A any] struct {
+type TypedCommand struct {
 	commandType command.Type
-	aggregateID id.Of[A]
+	aggregateID id.AggregateID
 }
 
 // Type returns the command type.
-func (c *TypedCommand[A]) Type() command.Type {
+func (c *TypedCommand) Type() command.Type {
 	return c.commandType
 }
 
 // AggregateID returns the strongly-typed aggregate ID.
-func (c *TypedCommand[A]) AggregateID() id.Of[A] {
+func (c *TypedCommand) AggregateID() id.AggregateID {
 	return c.aggregateID
 }
 
 // Command returns the underlying command.Command interface.
-func (c *TypedCommand[A]) Command() command.Command {
-	return command.New(c.commandType, c.aggregateID.String())
+func (c *TypedCommand) Command() command.Command {
+	return command.New(c.commandType, c.aggregateID)
 }
 
 // NewTypedCommand creates a new typed command.
-func NewTypedCommand[A any](
+func NewTypedCommand(
 	commandType command.Type,
-	aggregateID id.Of[A],
-) *TypedCommand[A] {
-	return &TypedCommand[A]{
+	aggregateID id.AggregateID,
+) *TypedCommand {
+	return &TypedCommand{
 		commandType: commandType,
 		aggregateID: aggregateID,
 	}

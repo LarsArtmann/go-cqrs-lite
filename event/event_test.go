@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 func TestNewEvent_Valid(t *testing.T) {
@@ -60,7 +61,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 	tests := []struct {
 		name          string
 		eventType     event.EventType
-		aggregateID   string
+		aggregateID   id.AggregateID
 		aggregateType event.AggregateType
 		version       int
 		wantContains  []string
@@ -76,7 +77,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "missing aggregate type includes aggregate ID and event type",
 			eventType:     "OrderCreated",
-			aggregateID:   "order-456",
+			aggregateID:   id.AggregateID("order-456"),
 			aggregateType: "",
 			version:       1,
 			wantContains:  []string{"aggregate type is required", "order-456", "OrderCreated"},
@@ -84,7 +85,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "negative version includes version, aggregate ID and event type",
 			eventType:     "PaymentProcessed",
-			aggregateID:   "payment-789",
+			aggregateID:   id.AggregateID("payment-789"),
 			aggregateType: "Payment",
 			version:       -5,
 			wantContains:  []string{"version must be non-negative", "-5", "payment-789", "PaymentProcessed"},
@@ -111,14 +112,14 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 func TestEventOptions(t *testing.T) {
 	evt, err := event.NewEvent(
 		"TestEvent",
-		"agg-123",
+		id.AggregateID("agg-123"),
 		"TestAggregate",
 		1,
 		nil,
-		event.WithCorrelationID("corr-123"),
-		event.WithCausationID("cause-456"),
-		event.WithUserID("user-789"),
-		event.WithRequestID("req-001"),
+		event.WithCorrelationID(id.CorrelationID("corr-123")),
+		event.WithCausationID(id.CausationID("cause-456")),
+		event.WithUserID(id.UserID("user-789")),
+		event.WithRequestID(id.RequestID("req-001")),
 		event.WithSource("test-service"),
 		event.WithIPAddress("127.0.0.1"),
 		event.WithUserAgent("test-agent"),
@@ -129,16 +130,16 @@ func TestEventOptions(t *testing.T) {
 	}
 
 	m := evt.Metadata()
-	if m.CorrelationID != "corr-123" {
+	if m.CorrelationID != id.CorrelationID("corr-123") {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
-	if m.CausationID != "cause-456" {
+	if m.CausationID != id.CausationID("cause-456") {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
-	if m.UserID != "user-789" {
+	if m.UserID != id.UserID("user-789") {
 		t.Errorf("expected user ID user-789, got %s", m.UserID)
 	}
-	if m.RequestID != "req-001" {
+	if m.RequestID != id.RequestID("req-001") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
 	if m.Source != "test-service" {

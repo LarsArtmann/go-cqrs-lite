@@ -8,30 +8,30 @@ import (
 )
 
 // TypedEvent wraps event.Event with a strongly-typed aggregate ID.
-type TypedEvent[A any] struct {
+type TypedEvent struct {
 	base        *event.BaseEvent
-	aggregateID id.Of[A]
+	aggregateID id.AggregateID
 }
 
 // Base returns the underlying event.BaseEvent.
-func (e *TypedEvent[A]) Base() *event.BaseEvent {
+func (e *TypedEvent) Base() *event.BaseEvent {
 	return e.base
 }
 
 // Event returns the underlying event.Event interface.
-func (e *TypedEvent[A]) Event() event.Event {
+func (e *TypedEvent) Event() event.Event {
 	return e.base
 }
 
 // AggregateID returns the strongly-typed aggregate ID.
-func (e *TypedEvent[A]) AggregateID() id.Of[A] {
+func (e *TypedEvent) AggregateID() id.AggregateID {
 	return e.aggregateID
 }
 
 // EventBuilder constructs events with compile-time type safety.
-type EventBuilder[A any] struct {
+type EventBuilder struct {
 	eventType     event.EventType
-	aggregateID   id.Of[A]
+	aggregateID   id.AggregateID
 	aggregateType event.AggregateType
 	version       int
 	payload       []byte
@@ -39,13 +39,13 @@ type EventBuilder[A any] struct {
 }
 
 // NewEventBuilder creates a new event builder with type-safe aggregate ID.
-func NewEventBuilder[A any](
+func NewEventBuilder(
 	eventType event.EventType,
-	aggregateID id.Of[A],
+	aggregateID id.AggregateID,
 	aggregateType event.AggregateType,
 	version int,
-) *EventBuilder[A] {
-	return &EventBuilder[A]{
+) *EventBuilder {
+	return &EventBuilder{
 		eventType:     eventType,
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
@@ -54,37 +54,37 @@ func NewEventBuilder[A any](
 }
 
 // WithPayload sets the event payload.
-func (b *EventBuilder[A]) WithPayload(payload []byte) *EventBuilder[A] {
+func (b *EventBuilder) WithPayload(payload []byte) *EventBuilder {
 	b.payload = payload
 	return b
 }
 
 // WithMetadata adds event options (correlation ID, user ID, etc.).
-func (b *EventBuilder[A]) WithMetadata(opts ...event.EventOption) *EventBuilder[A] {
+func (b *EventBuilder) WithMetadata(opts ...event.EventOption) *EventBuilder {
 	b.opts = append(b.opts, opts...)
 	return b
 }
 
 // WithCorrelationID adds a correlation ID for distributed tracing.
-func (b *EventBuilder[A]) WithCorrelationID(correlationID string) *EventBuilder[A] {
+func (b *EventBuilder) WithCorrelationID(correlationID id.CorrelationID) *EventBuilder {
 	b.opts = append(b.opts, event.WithCorrelationID(correlationID))
 	return b
 }
 
 // WithCausationID adds a causation ID (what triggered this event).
-func (b *EventBuilder[A]) WithCausationID(causationID string) *EventBuilder[A] {
+func (b *EventBuilder) WithCausationID(causationID id.CausationID) *EventBuilder {
 	b.opts = append(b.opts, event.WithCausationID(causationID))
 	return b
 }
 
 // WithUserID adds the user ID who triggered the event.
-func (b *EventBuilder[A]) WithUserID(userID string) *EventBuilder[A] {
+func (b *EventBuilder) WithUserID(userID id.UserID) *EventBuilder {
 	b.opts = append(b.opts, event.WithUserID(userID))
 	return b
 }
 
 // Build creates the typed event.
-func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
+func (b *EventBuilder) Build() (*TypedEvent, error) {
 	if b.aggregateID.IsEmpty() {
 		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q)", b.eventType, b.aggregateType)
 	}
@@ -97,7 +97,7 @@ func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
 
 	base, err := event.NewEvent(
 		b.eventType,
-		b.aggregateID.String(),
+		b.aggregateID,
 		b.aggregateType,
 		b.version,
 		b.payload,
@@ -107,7 +107,7 @@ func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
 		return nil, err
 	}
 
-	return &TypedEvent[A]{
+	return &TypedEvent{
 		base:        base,
 		aggregateID: b.aggregateID,
 	}, nil
@@ -120,7 +120,7 @@ func (b *EventBuilder[A]) Build() (*TypedEvent[A], error) {
 //   - When you explicitly want a panic on invalid input
 //
 // For production code, prefer Build() which returns an error.
-func (b *EventBuilder[A]) MustBuild() *TypedEvent[A] {
+func (b *EventBuilder) MustBuild() *TypedEvent {
 	evt, err := b.Build()
 	if err != nil {
 		panic(fmt.Sprintf("EventBuilder.MustBuild: %v", err))

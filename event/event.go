@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 // EventType is a type identifier for domain events
@@ -48,10 +48,10 @@ type Event interface {
 
 // EventMetadata contains tracing and contextual information for events
 type EventMetadata struct {
-	CorrelationID string
-	CausationID   string
-	UserID        string
-	RequestID     string
+	CorrelationID id.CorrelationID
+	CausationID   id.CausationID
+	UserID        id.UserID
+	RequestID     id.RequestID
 	Source        string
 	IPAddress     string
 	UserAgent     string
@@ -60,9 +60,9 @@ type EventMetadata struct {
 
 // BaseEvent provides a default implementation of Event interface
 type BaseEvent struct {
-	id            string
+	id            id.EventID
 	eventType     EventType
-	aggregateID   string
+	aggregateID   id.AggregateID
 	aggregateType AggregateType
 	version       int
 	payload       []byte
@@ -70,9 +70,9 @@ type BaseEvent struct {
 	occurredAt    time.Time
 }
 
-func (e *BaseEvent) ID() string                   { return e.id }
+func (e *BaseEvent) ID() string                   { return e.id.String() }
 func (e *BaseEvent) Type() EventType              { return e.eventType }
-func (e *BaseEvent) AggregateID() string          { return e.aggregateID }
+func (e *BaseEvent) AggregateID() string          { return e.aggregateID.String() }
 func (e *BaseEvent) AggregateType() AggregateType { return e.aggregateType }
 func (e *BaseEvent) Version() int                 { return e.version }
 func (e *BaseEvent) Payload() []byte              { return e.payload }
@@ -82,13 +82,13 @@ func (e *BaseEvent) OccurredAt() time.Time        { return e.occurredAt }
 // NewEvent creates a new event with validation
 func NewEvent(
 	eventType EventType,
-	aggregateID string,
+	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	version int,
 	payload []byte,
 	opts ...EventOption,
 ) (*BaseEvent, error) {
-	if aggregateID == "" {
+	if aggregateID.IsEmpty() {
 		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q)", eventType, aggregateType)
 	}
 	if aggregateType == "" {
@@ -99,7 +99,7 @@ func NewEvent(
 	}
 
 	event := &BaseEvent{
-		id:            uuid.New().String(),
+		id:            id.NewEventID(),
 		eventType:     eventType,
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
@@ -125,42 +125,42 @@ func WithMetadata(m *EventMetadata) EventOption {
 }
 
 // WithCorrelationID sets the correlation ID for distributed tracing
-func WithCorrelationID(id string) EventOption {
+func WithCorrelationID(correlationID id.CorrelationID) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
-		e.metadata.CorrelationID = id
+		e.metadata.CorrelationID = correlationID
 	}
 }
 
 // WithCausationID sets the causation ID (indicates what triggered this event)
-func WithCausationID(id string) EventOption {
+func WithCausationID(causationID id.CausationID) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
-		e.metadata.CausationID = id
+		e.metadata.CausationID = causationID
 	}
 }
 
 // WithUserID sets the user ID who triggered the event
-func WithUserID(id string) EventOption {
+func WithUserID(userID id.UserID) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
-		e.metadata.UserID = id
+		e.metadata.UserID = userID
 	}
 }
 
 // WithRequestID sets the request ID for debugging
-func WithRequestID(id string) EventOption {
+func WithRequestID(requestID id.RequestID) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
-		e.metadata.RequestID = id
+		e.metadata.RequestID = requestID
 	}
 }
 

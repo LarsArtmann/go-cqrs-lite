@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 // MemoryStore is an in-memory implementation of Store for testing and development
@@ -21,12 +22,12 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) streamKey(aggregateType AggregateType, aggregateID string) string {
-	return string(aggregateType) + ":" + aggregateID
+func (s *MemoryStore) streamKey(aggregateType AggregateType, aggregateID id.AggregateID) string {
+	return string(aggregateType) + ":" + aggregateID.String()
 }
 
 // Save appends events to the aggregate's event stream
-func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, aggregateID string, events []Event, expectedVersion int) error {
+func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, events []Event, expectedVersion int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -47,12 +48,12 @@ func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, agg
 }
 
 // Load retrieves all events for an aggregate
-func (s *MemoryStore) Load(ctx context.Context, aggregateType AggregateType, aggregateID string) ([]Event, error) {
+func (s *MemoryStore) Load(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) ([]Event, error) {
 	return s.LoadFromVersion(ctx, aggregateType, aggregateID, 0)
 }
 
 // LoadFromVersion retrieves events starting from a specific version
-func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID string, version int) ([]Event, error) {
+func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, version int) ([]Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -74,7 +75,7 @@ func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType Aggrega
 }
 
 // Delete removes all events for an aggregate
-func (s *MemoryStore) Delete(ctx context.Context, aggregateType AggregateType, aggregateID string) error {
+func (s *MemoryStore) Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
