@@ -19,56 +19,56 @@ go-cqrs-lite is a lightweight CQRS library for Go. The **strong-id** feature bra
 
 ### Core CQRS Implementation (Phases 1-4, 6)
 
-| Phase | Package | Files | Status |
-|-------|---------|-------|--------|
-| 1.1 | `event/event.go` | 1 | ✅ Event interface, BaseEvent, EventType, AggregateType |
-| 1.1 | `event/errors.go` | 1 | ✅ Typed errors (ErrEventNotFound, ErrVersionConflict) |
-| 1.1 | `event/metadata.go` | (in event.go) | ✅ EventMetadata struct |
-| 1.1 | `command/command.go` | 1 | ✅ Command interface, BaseCommand |
-| 1.1 | `command/errors.go` | 1 | ✅ Typed errors |
-| 1.1 | `command/handler.go` | 1 | ✅ Handler interface |
-| 1.1 | `command/dispatcher.go` | 1 | ✅ Dispatcher with middleware |
-| 1.1 | `query/query.go` | 1 | ✅ Query interface, BaseQuery |
-| 1.1 | `query/errors.go` | 1 | ✅ Typed errors |
-| 1.1 | `query/dispatcher.go` | 1 | ✅ Dispatcher with middleware |
-| 1.2 | `aggregate/aggregate.go` | 1 | ✅ Aggregate interface, Base |
-| 2.1 | `event/store.go` | 1 | ✅ Store interface |
-| 2.1 | `event/memory_store.go` | 1 | ✅ In-memory implementation |
-| 2.2 | `event/bus.go` | 1 | ✅ Bus interface, Handler type |
-| 2.2 | `event/memory_bus.go` | 1 | ✅ In-memory implementation with middleware |
-| 6.1 | `*_test.go` | 11 | ✅ All tests passing |
+| Phase | Package                  | Files         | Status                                                  |
+| ----- | ------------------------ | ------------- | ------------------------------------------------------- |
+| 1.1   | `event/event.go`         | 1             | ✅ Event interface, BaseEvent, EventType, AggregateType |
+| 1.1   | `event/errors.go`        | 1             | ✅ Typed errors (ErrEventNotFound, ErrVersionConflict)  |
+| 1.1   | `event/metadata.go`      | (in event.go) | ✅ EventMetadata struct                                 |
+| 1.1   | `command/command.go`     | 1             | ✅ Command interface, BaseCommand                       |
+| 1.1   | `command/errors.go`      | 1             | ✅ Typed errors                                         |
+| 1.1   | `command/handler.go`     | 1             | ✅ Handler interface                                    |
+| 1.1   | `command/dispatcher.go`  | 1             | ✅ Dispatcher with middleware                           |
+| 1.1   | `query/query.go`         | 1             | ✅ Query interface, BaseQuery                           |
+| 1.1   | `query/errors.go`        | 1             | ✅ Typed errors                                         |
+| 1.1   | `query/dispatcher.go`    | 1             | ✅ Dispatcher with middleware                           |
+| 1.2   | `aggregate/aggregate.go` | 1             | ✅ Aggregate interface, Base                            |
+| 2.1   | `event/store.go`         | 1             | ✅ Store interface                                      |
+| 2.1   | `event/memory_store.go`  | 1             | ✅ In-memory implementation                             |
+| 2.2   | `event/bus.go`           | 1             | ✅ Bus interface, Handler type                          |
+| 2.2   | `event/memory_bus.go`    | 1             | ✅ In-memory implementation with middleware             |
+| 6.1   | `*_test.go`              | 11            | ✅ All tests passing                                    |
 
 ### Strong-ID Feature (This Branch)
 
-| Component | File | Lines | Status |
-|-----------|------|-------|--------|
-| Generic ID Type | `pkg/id/id.go` | 117 | ✅ UUID, JSON, SQL serialization |
-| AggregateID | `pkg/id/aggregate_id.go` | 23 | ✅ |
-| EventID | `pkg/id/event_id.go` | 23 | ✅ |
-| UserID | `pkg/id/user_id.go` | 23 | ✅ |
-| Extended IDs | `xtypes/id.go` | 87 | ✅ CorrelationID, CommandID, etc. |
-| TypedEvent | `xtypes/event.go` | 129 | ✅ Type-safe event wrapper |
-| TypedCommand | `xtypes/command.go` | 51 | ✅ Type-safe command wrapper |
-| TypedAggregate | `xtypes/aggregate.go` | 70 | ✅ Type-safe aggregate wrapper |
+| Component       | File                     | Lines | Status                            |
+| --------------- | ------------------------ | ----- | --------------------------------- |
+| Generic ID Type | `pkg/id/id.go`           | 117   | ✅ UUID, JSON, SQL serialization  |
+| AggregateID     | `pkg/id/aggregate_id.go` | 23    | ✅                                |
+| EventID         | `pkg/id/event_id.go`     | 23    | ✅                                |
+| UserID          | `pkg/id/user_id.go`      | 23    | ✅                                |
+| Extended IDs    | `xtypes/id.go`           | 87    | ✅ CorrelationID, CommandID, etc. |
+| TypedEvent      | `xtypes/event.go`        | 129   | ✅ Type-safe event wrapper        |
+| TypedCommand    | `xtypes/command.go`      | 51    | ✅ Type-safe command wrapper      |
+| TypedAggregate  | `xtypes/aggregate.go`    | 70    | ✅ Type-safe aggregate wrapper    |
 
 ### Error Handling Improvements (Just Completed)
 
-| File | Change | Status |
-|------|--------|--------|
-| `pkg/id/id.go` | MustParse panic with input context | ✅ |
-| `pkg/id/id.go` | UnmarshalJSON/Scan error context | ✅ |
-| `xtypes/event.go` | MustBuild panic documentation | ✅ |
-| `xtypes/event.go` | Build() error messages with full context | ✅ |
-| `event/event.go` | NewEvent error messages with aggregateType | ✅ |
+| File              | Change                                     | Status |
+| ----------------- | ------------------------------------------ | ------ |
+| `pkg/id/id.go`    | MustParse panic with input context         | ✅     |
+| `pkg/id/id.go`    | UnmarshalJSON/Scan error context           | ✅     |
+| `xtypes/event.go` | MustBuild panic documentation              | ✅     |
+| `xtypes/event.go` | Build() error messages with full context   | ✅     |
+| `event/event.go`  | NewEvent error messages with aggregateType | ✅     |
 
 ### Verification Results
 
-| Check | Result |
-|-------|--------|
-| `go build ./...` | ✅ Success |
-| `go test ./...` | ✅ 6 packages, all pass |
-| `golangci-lint run` | ✅ 0 issues |
-| `go vet ./...` | ✅ Clean |
+| Check               | Result                  |
+| ------------------- | ----------------------- |
+| `go build ./...`    | ✅ Success              |
+| `go test ./...`     | ✅ 6 packages, all pass |
+| `golangci-lint run` | ✅ 0 issues             |
+| `go vet ./...`      | ✅ Clean                |
 
 ---
 
@@ -76,20 +76,20 @@ go-cqrs-lite is a lightweight CQRS library for Go. The **strong-id** feature bra
 
 ### Documentation
 
-| Item | Status | Notes |
-|------|--------|-------|
-| README.md | ⚠️ Needs xtypes section | Should document strong-id usage |
-| GoDoc comments | ⚠️ 90% complete | Most types documented |
-| Architecture docs | ⚠️ Missing | No ADRs |
-| CONTRIBUTING.md | ❌ Not started | |
+| Item              | Status                  | Notes                           |
+| ----------------- | ----------------------- | ------------------------------- |
+| README.md         | ⚠️ Needs xtypes section | Should document strong-id usage |
+| GoDoc comments    | ⚠️ 90% complete         | Most types documented           |
+| Architecture docs | ⚠️ Missing              | No ADRs                         |
+| CONTRIBUTING.md   | ❌ Not started          |                                 |
 
 ### Infrastructure
 
-| Item | Status | Notes |
-|------|--------|-------|
-| .golangci-lint.yml | ✅ Exists | Working |
-| CI/CD workflows | ❌ Not started | Need .github/workflows/ |
-| Makefile | ❌ Not started | |
+| Item               | Status         | Notes                   |
+| ------------------ | -------------- | ----------------------- |
+| .golangci-lint.yml | ✅ Exists      | Working                 |
+| CI/CD workflows    | ❌ Not started | Need .github/workflows/ |
+| Makefile           | ❌ Not started |                         |
 
 ---
 
@@ -97,46 +97,46 @@ go-cqrs-lite is a lightweight CQRS library for Go. The **strong-id** feature bra
 
 ### Phase 5: Middleware (0/8 tasks)
 
-| Task | Est. |
-|------|------|
-| `command/middleware.go` | 5min |
-| `middleware/logging.go` | 10min |
-| `middleware/recovery.go` | 10min |
-| `middleware/validation.go` | 10min |
-| `middleware/retry.go` | 12min |
-| `event/middleware.go` | 5min |
+| Task                          | Est.  |
+| ----------------------------- | ----- |
+| `command/middleware.go`       | 5min  |
+| `middleware/logging.go`       | 10min |
+| `middleware/recovery.go`      | 10min |
+| `middleware/validation.go`    | 10min |
+| `middleware/retry.go`         | 12min |
+| `event/middleware.go`         | 5min  |
 | `middleware/event_logging.go` | 10min |
-| `middleware/metrics.go` | 12min |
+| `middleware/metrics.go`       | 12min |
 
 ### Phase 7: Examples (0/6 tasks)
 
-| Task | Est. |
-|------|------|
+| Task                        | Est.  |
+| --------------------------- | ----- |
 | `example/user/aggregate.go` | 15min |
-| `example/user/commands.go` | 10min |
-| `example/user/queries.go` | 10min |
-| `example/user/events.go` | 10min |
-| `example/user/handlers.go` | 12min |
-| `example/main.go` | 12min |
+| `example/user/commands.go`  | 10min |
+| `example/user/queries.go`   | 10min |
+| `example/user/events.go`    | 10min |
+| `example/user/handlers.go`  | 12min |
+| `example/main.go`           | 12min |
 
 ### Phase 8: CI/CD (0/4 tasks)
 
-| Task | Est. |
-|------|------|
+| Task                         | Est. |
+| ---------------------------- | ---- |
 | `.github/workflows/test.yml` | 5min |
 | `.github/workflows/lint.yml` | 5min |
-| `Makefile` | 8min |
-| Update `.golangci.yml` | 5min |
+| `Makefile`                   | 8min |
+| Update `.golangci.yml`       | 5min |
 
 ### Other Missing Items
 
-| Task | Status |
-|------|--------|
-| `aggregate/repository.go` | ❌ |
-| `query/pagination.go` | ❌ |
-| `event/snapshot.go` | ❌ |
-| CODE_OF_CONDUCT.md | ❌ |
-| CONTRIBUTING.md | ❌ |
+| Task                      | Status |
+| ------------------------- | ------ |
+| `aggregate/repository.go` | ❌     |
+| `query/pagination.go`     | ❌     |
+| `event/snapshot.go`       | ❌     |
+| CODE_OF_CONDUCT.md        | ❌     |
+| CONTRIBUTING.md           | ❌     |
 
 ---
 
@@ -145,6 +145,7 @@ go-cqrs-lite is a lightweight CQRS library for Go. The **strong-id** feature bra
 ### Nothing Currently Broken
 
 All systems operational:
+
 - Build: ✅
 - Tests: ✅
 - Lint: ✅
@@ -152,11 +153,11 @@ All systems operational:
 
 ### Previously Fixed Issues
 
-| Issue | Resolution |
-|-------|------------|
-| Go toolchain cache corruption | Cleared cache, working |
-| branching-flow panic suggestions | Added documentation |
-| Error context missing | Fixed in this session |
+| Issue                            | Resolution             |
+| -------------------------------- | ---------------------- |
+| Go toolchain cache corruption    | Cleared cache, working |
+| branching-flow panic suggestions | Added documentation    |
+| Error context missing            | Fixed in this session  |
 
 ---
 
@@ -187,33 +188,33 @@ All systems operational:
 
 ## F) TOP 25 THINGS TO DO NEXT 📋
 
-| # | Priority | Task | Impact | Effort | Est. |
-|---|----------|------|--------|--------|------|
-| 1 | 🔴 P0 | Merge strong-id to master | HIGH | LOW | 2min |
-| 2 | 🔴 P0 | Update README.md with xtypes usage | HIGH | LOW | 10min |
-| 3 | 🟠 P1 | Create `.github/workflows/test.yml` | HIGH | LOW | 5min |
-| 4 | 🟠 P1 | Create `.github/workflows/lint.yml` | MED | LOW | 5min |
-| 5 | 🟠 P1 | Create `Makefile` | MED | LOW | 8min |
-| 6 | 🟠 P1 | Create `example/user/aggregate.go` | HIGH | MED | 15min |
-| 7 | 🟠 P1 | Create `example/user/commands.go` | MED | LOW | 10min |
-| 8 | 🟠 P1 | Create `example/user/events.go` | MED | LOW | 10min |
-| 9 | 🟠 P1 | Create `example/user/handlers.go` | MED | LOW | 12min |
-| 10 | 🟠 P1 | Create `example/main.go` | HIGH | MED | 12min |
-| 11 | 🟡 P2 | Add `query/pagination.go` | MED | LOW | 8min |
-| 12 | 🟡 P2 | Add `aggregate/repository.go` | MED | MED | 10min |
-| 13 | 🟡 P2 | Add `command/middleware.go` | MED | LOW | 5min |
-| 14 | 🟡 P2 | Add `middleware/logging.go` | MED | MED | 10min |
-| 15 | 🟡 P2 | Add `middleware/recovery.go` | HIGH | MED | 10min |
-| 16 | 🟡 P2 | Add `event/middleware.go` | MED | LOW | 5min |
-| 17 | 🟡 P2 | Add integration tests | HIGH | MED | 15min |
-| 18 | 🟡 P2 | Add coverage tracking | MED | LOW | 5min |
-| 19 | 🟢 P3 | Create `CONTRIBUTING.md` | LOW | LOW | 8min |
-| 20 | 🟢 P3 | Create architecture docs | MED | MED | 15min |
-| 21 | 🟢 P3 | Add benchmarks for ID operations | LOW | LOW | 10min |
-| 22 | 🟢 P3 | Add fuzzing for Parse functions | MED | LOW | 10min |
-| 23 | 🟢 P3 | Add snapshot store interface | LOW | MED | 10min |
-| 24 | 🟢 P3 | Add AppendBatch to Store | LOW | LOW | 10min |
-| 25 | 🟢 P3 | Create CODE_OF_CONDUCT.md | LOW | LOW | 3min |
+| #   | Priority | Task                                | Impact | Effort | Est.  |
+| --- | -------- | ----------------------------------- | ------ | ------ | ----- |
+| 1   | 🔴 P0    | Merge strong-id to master           | HIGH   | LOW    | 2min  |
+| 2   | 🔴 P0    | Update README.md with xtypes usage  | HIGH   | LOW    | 10min |
+| 3   | 🟠 P1    | Create `.github/workflows/test.yml` | HIGH   | LOW    | 5min  |
+| 4   | 🟠 P1    | Create `.github/workflows/lint.yml` | MED    | LOW    | 5min  |
+| 5   | 🟠 P1    | Create `Makefile`                   | MED    | LOW    | 8min  |
+| 6   | 🟠 P1    | Create `example/user/aggregate.go`  | HIGH   | MED    | 15min |
+| 7   | 🟠 P1    | Create `example/user/commands.go`   | MED    | LOW    | 10min |
+| 8   | 🟠 P1    | Create `example/user/events.go`     | MED    | LOW    | 10min |
+| 9   | 🟠 P1    | Create `example/user/handlers.go`   | MED    | LOW    | 12min |
+| 10  | 🟠 P1    | Create `example/main.go`            | HIGH   | MED    | 12min |
+| 11  | 🟡 P2    | Add `query/pagination.go`           | MED    | LOW    | 8min  |
+| 12  | 🟡 P2    | Add `aggregate/repository.go`       | MED    | MED    | 10min |
+| 13  | 🟡 P2    | Add `command/middleware.go`         | MED    | LOW    | 5min  |
+| 14  | 🟡 P2    | Add `middleware/logging.go`         | MED    | MED    | 10min |
+| 15  | 🟡 P2    | Add `middleware/recovery.go`        | HIGH   | MED    | 10min |
+| 16  | 🟡 P2    | Add `event/middleware.go`           | MED    | LOW    | 5min  |
+| 17  | 🟡 P2    | Add integration tests               | HIGH   | MED    | 15min |
+| 18  | 🟡 P2    | Add coverage tracking               | MED    | LOW    | 5min  |
+| 19  | 🟢 P3    | Create `CONTRIBUTING.md`            | LOW    | LOW    | 8min  |
+| 20  | 🟢 P3    | Create architecture docs            | MED    | MED    | 15min |
+| 21  | 🟢 P3    | Add benchmarks for ID operations    | LOW    | LOW    | 10min |
+| 22  | 🟢 P3    | Add fuzzing for Parse functions     | MED    | LOW    | 10min |
+| 23  | 🟢 P3    | Add snapshot store interface        | LOW    | MED    | 10min |
+| 24  | 🟢 P3    | Add AppendBatch to Store            | LOW    | LOW    | 10min |
+| 25  | 🟢 P3    | Create CODE_OF_CONDUCT.md           | LOW    | LOW    | 3min  |
 
 ---
 
@@ -223,12 +224,12 @@ All systems operational:
 
 ### Context
 
-| Aspect | pkg/id (current) | go-composable-business-types |
-|--------|------------------|------------------------------|
-| Dependencies | Zero (only uuid) | One external |
-| Features | UUID v4, prefix | UUID, NanoId, int64, uint64 |
-| Lines of code | ~186 | 0 (imported) |
-| Maintenance | We own it | External maintainer |
+| Aspect        | pkg/id (current) | go-composable-business-types |
+| ------------- | ---------------- | ---------------------------- |
+| Dependencies  | Zero (only uuid) | One external                 |
+| Features      | UUID v4, prefix  | UUID, NanoId, int64, uint64  |
+| Lines of code | ~186             | 0 (imported)                 |
+| Maintenance   | We own it        | External maintainer          |
 
 ### Recommendation Needed
 

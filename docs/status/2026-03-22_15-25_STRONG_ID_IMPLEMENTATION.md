@@ -16,16 +16,16 @@ Successfully implemented strongly-typed branded identifiers (`strong-id`) for th
 
 ### Core Implementation
 
-| Component | File(s) | Lines | Status |
-|-----------|---------|-------|--------|
-| Generic ID Type | `pkg/id/id.go` | 117 | ✅ Complete |
-| AggregateID | `pkg/id/aggregate_id.go` | 23 | ✅ Complete |
-| EventID | `pkg/id/event_id.go` | 23 | ✅ Complete |
-| UserID | `pkg/id/user_id.go` | 23 | ✅ Complete |
-| xtypes ID Aliases | `xtypes/id.go` | 87 | ✅ Complete |
-| TypedEvent | `xtypes/event.go` | 123 | ✅ Complete |
-| TypedCommand | `xtypes/command.go` | 51 | ✅ Complete |
-| TypedAggregate | `xtypes/aggregate.go` | 70 | ✅ Complete |
+| Component         | File(s)                  | Lines | Status      |
+| ----------------- | ------------------------ | ----- | ----------- |
+| Generic ID Type   | `pkg/id/id.go`           | 117   | ✅ Complete |
+| AggregateID       | `pkg/id/aggregate_id.go` | 23    | ✅ Complete |
+| EventID           | `pkg/id/event_id.go`     | 23    | ✅ Complete |
+| UserID            | `pkg/id/user_id.go`      | 23    | ✅ Complete |
+| xtypes ID Aliases | `xtypes/id.go`           | 87    | ✅ Complete |
+| TypedEvent        | `xtypes/event.go`        | 123   | ✅ Complete |
+| TypedCommand      | `xtypes/command.go`      | 51    | ✅ Complete |
+| TypedAggregate    | `xtypes/aggregate.go`    | 70    | ✅ Complete |
 
 ### Features Implemented
 
@@ -41,10 +41,10 @@ Successfully implemented strongly-typed branded identifiers (`strong-id`) for th
 
 ### Tests
 
-| Package | File | Tests | Status |
-|---------|------|-------|--------|
-| pkg/id | `id_test.go` | 12 tests | ✅ All pass |
-| xtypes | `xtypes_test.go` | 8 tests | ✅ All pass |
+| Package | File             | Tests    | Status      |
+| ------- | ---------------- | -------- | ----------- |
+| pkg/id  | `id_test.go`     | 12 tests | ✅ All pass |
+| xtypes  | `xtypes_test.go` | 8 tests  | ✅ All pass |
 
 ### Commits on Branch
 
@@ -60,18 +60,18 @@ fa7acaa feat(xtypes): integrate strongly-typed branded IDs and simplify type-saf
 
 ### Documentation
 
-| Item | Status | Notes |
-|------|--------|-------|
-| README.md update | ⚠️ Not done | Should add xtypes usage section |
-| GoDoc comments | ⚠️ Partial | Most types have comments, could improve |
-| Usage examples | ⚠️ Not done | Should add `example/` directory |
+| Item             | Status      | Notes                                   |
+| ---------------- | ----------- | --------------------------------------- |
+| README.md update | ⚠️ Not done | Should add xtypes usage section         |
+| GoDoc comments   | ⚠️ Partial  | Most types have comments, could improve |
+| Usage examples   | ⚠️ Not done | Should add `example/` directory         |
 
 ### Integration with Core Packages
 
-| Item | Status | Notes |
-|------|--------|-------|
-| event package uses string IDs | ⚠️ Intentional | Core stays backward compatible |
-| command package uses string IDs | ⚠️ Intentional | Core stays backward compatible |
+| Item                              | Status         | Notes                          |
+| --------------------------------- | -------------- | ------------------------------ |
+| event package uses string IDs     | ⚠️ Intentional | Core stays backward compatible |
+| command package uses string IDs   | ⚠️ Intentional | Core stays backward compatible |
 | aggregate package uses string IDs | ⚠️ Intentional | Core stays backward compatible |
 
 ---
@@ -81,6 +81,7 @@ fa7acaa feat(xtypes): integrate strongly-typed branded IDs and simplify type-saf
 From TODO_LIST.md (63 total tasks):
 
 ### Phase 5: Middleware (0/8)
+
 - `command/middleware.go` - Middleware type
 - `middleware/logging.go` - Logging middleware
 - `middleware/recovery.go` - Panic recovery
@@ -91,6 +92,7 @@ From TODO_LIST.md (63 total tasks):
 - `middleware/metrics.go` - Metrics collection
 
 ### Phase 7: Examples (0/6)
+
 - `example/user/` - User aggregate example
 - `example/user/commands.go`
 - `example/user/queries.go`
@@ -99,6 +101,7 @@ From TODO_LIST.md (63 total tasks):
 - `example/main.go`
 
 ### Phase 8: CI/CD (0/4)
+
 - `.github/workflows/test.yml`
 - `.github/workflows/lint.yml`
 - `Makefile`
@@ -121,6 +124,7 @@ fork/exec compile: no such file or directory
 **Workaround Applied:** Changed `go.mod` from `go 1.26.1` to `go 1.22`.
 
 **Still Broken:**
+
 - `go test -race ./...` fails due to toolchain issues
 - `golangci-lint run` fails with typecheck errors
 - `go vet ./...` fails with stdlib import errors
@@ -128,6 +132,7 @@ fork/exec compile: no such file or directory
 **Resolution Needed:** Clear Go cache or reinstall Go toolchain.
 
 ### Commands to Fix:
+
 ```bash
 go clean -cache
 go clean -modcache
@@ -169,33 +174,33 @@ go clean -modcache
 
 ## F) TOP 25 THINGS TO DO NEXT 📋
 
-| Priority | Task | Impact | Effort | Package |
-|----------|------|--------|--------|---------|
-| 1 | Fix Go toolchain/cache issues | HIGH | LOW | infra |
-| 2 | Add README.md section for xtypes | HIGH | LOW | docs |
-| 3 | Create `example/user/` working example | HIGH | MED | example |
-| 4 | Add `aggregate/repository.go` interface | HIGH | MED | aggregate |
-| 5 | Add `query/pagination.go` types | MED | LOW | query |
-| 6 | Add middleware type definitions | MED | LOW | command |
-| 7 | Add logging middleware | MED | MED | middleware |
-| 8 | Add recovery middleware | HIGH | MED | middleware |
-| 9 | Add validation middleware | MED | MED | middleware |
-| 10 | Add retry middleware with backoff | MED | MED | middleware |
-| 11 | Add event middleware type | MED | LOW | event |
-| 12 | Add integration tests | HIGH | MED | tests |
-| 13 | Add coverage tracking | MED | LOW | tests |
-| 14 | Add CI workflow for tests | HIGH | LOW | .github |
-| 15 | Add CI workflow for lint | MED | LOW | .github |
-| 16 | Create Makefile | MED | LOW | root |
-| 17 | Update .golangci.yml | MED | LOW | root |
-| 18 | Add benchmarks for ID operations | LOW | LOW | pkg/id |
-| 19 | Add fuzzing for Parse functions | MED | LOW | pkg/id |
-| 20 | Add snapshot store interface | LOW | MED | event |
-| 21 | Add AppendBatch to Store | LOW | LOW | event |
-| 22 | Create CONTRIBUTING.md | LOW | LOW | docs |
-| 23 | Create architecture.md | MED | MED | docs |
-| 24 | Add GoDoc package examples | MED | LOW | all |
-| 25 | Merge strong-id to master | HIGH | LOW | git |
+| Priority | Task                                    | Impact | Effort | Package    |
+| -------- | --------------------------------------- | ------ | ------ | ---------- |
+| 1        | Fix Go toolchain/cache issues           | HIGH   | LOW    | infra      |
+| 2        | Add README.md section for xtypes        | HIGH   | LOW    | docs       |
+| 3        | Create `example/user/` working example  | HIGH   | MED    | example    |
+| 4        | Add `aggregate/repository.go` interface | HIGH   | MED    | aggregate  |
+| 5        | Add `query/pagination.go` types         | MED    | LOW    | query      |
+| 6        | Add middleware type definitions         | MED    | LOW    | command    |
+| 7        | Add logging middleware                  | MED    | MED    | middleware |
+| 8        | Add recovery middleware                 | HIGH   | MED    | middleware |
+| 9        | Add validation middleware               | MED    | MED    | middleware |
+| 10       | Add retry middleware with backoff       | MED    | MED    | middleware |
+| 11       | Add event middleware type               | MED    | LOW    | event      |
+| 12       | Add integration tests                   | HIGH   | MED    | tests      |
+| 13       | Add coverage tracking                   | MED    | LOW    | tests      |
+| 14       | Add CI workflow for tests               | HIGH   | LOW    | .github    |
+| 15       | Add CI workflow for lint                | MED    | LOW    | .github    |
+| 16       | Create Makefile                         | MED    | LOW    | root       |
+| 17       | Update .golangci.yml                    | MED    | LOW    | root       |
+| 18       | Add benchmarks for ID operations        | LOW    | LOW    | pkg/id     |
+| 19       | Add fuzzing for Parse functions         | MED    | LOW    | pkg/id     |
+| 20       | Add snapshot store interface            | LOW    | MED    | event      |
+| 21       | Add AppendBatch to Store                | LOW    | LOW    | event      |
+| 22       | Create CONTRIBUTING.md                  | LOW    | LOW    | docs       |
+| 23       | Create architecture.md                  | MED    | MED    | docs       |
+| 24       | Add GoDoc package examples              | MED    | LOW    | all        |
+| 25       | Merge strong-id to master               | HIGH   | LOW    | git        |
 
 ---
 
@@ -204,6 +209,7 @@ go clean -modcache
 **Question:** Should we keep the zero-dependency `pkg/id` implementation OR switch to `github.com/larsartmann/go-composable-business-types/id`?
 
 **Context:**
+
 - Current `pkg/id` is self-contained, ~186 lines, covers 90% of use cases
 - External lib has NanoId support, int64/uint64 IDs, more serialization options
 - Existing planning doc (`docs/planning/go-composable-business-types-usage.md`) recommends using external lib
@@ -211,11 +217,11 @@ go clean -modcache
 
 **Trade-offs:**
 
-| Option | Pros | Cons |
-|--------|------|------|
-| Keep pkg/id | Zero deps, simple, controlled | Miss advanced features |
-| Use external lib | More features, battle-tested | External dependency |
-| Both | Flexibility, opt-in | More code to maintain |
+| Option           | Pros                          | Cons                   |
+| ---------------- | ----------------------------- | ---------------------- |
+| Keep pkg/id      | Zero deps, simple, controlled | Miss advanced features |
+| Use external lib | More features, battle-tested  | External dependency    |
+| Both             | Flexibility, opt-in           | More code to maintain  |
 
 **Recommendation Needed From User:** Which approach should we take?
 

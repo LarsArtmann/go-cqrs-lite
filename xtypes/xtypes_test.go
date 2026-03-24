@@ -22,7 +22,6 @@ func TestEventBuilder(t *testing.T) {
 			1,
 		).WithPayload([]byte(`{"name":"test"}`)).
 			Build()
-
 		if err != nil {
 			t.Fatalf("NewEventBuilder() error = %v", err)
 		}

@@ -91,15 +91,15 @@ aggregateID := aggregate_id.New()
 
 ## Package Structure
 
-| Package       | Purpose                                      | Status |
-| ------------- | -------------------------------------------- | ------ |
-| `command/`    | Command types, dispatcher, handlers           | ✅ Ready |
-| `query/`      | Query types, dispatcher, handlers             | ✅ Ready |
-| `event/`      | Domain events, store interface, bus           | ✅ Ready |
-| `aggregate/`  | Aggregate root, repository patterns          | ✅ Ready |
-| `pkg/id/`     | Strongly-typed branded identifiers            | ✅ Ready |
-| `xtypes/`     | Type-safe command/query/event wrappers       | ✅ Ready |
-| `middleware/` | Logging, metrics, validation (planned)        | 🔜 Planned |
+| Package       | Purpose                                | Status     |
+| ------------- | -------------------------------------- | ---------- |
+| `command/`    | Command types, dispatcher, handlers    | ✅ Ready   |
+| `query/`      | Query types, dispatcher, handlers      | ✅ Ready   |
+| `event/`      | Domain events, store interface, bus    | ✅ Ready   |
+| `aggregate/`  | Aggregate root, repository patterns    | ✅ Ready   |
+| `pkg/id/`     | Strongly-typed branded identifiers     | ✅ Ready   |
+| `xtypes/`     | Type-safe command/query/event wrappers | ✅ Ready   |
+| `middleware/` | Logging, metrics, validation (planned) | 🔜 Planned |
 
 ## Design Principles
 
@@ -148,19 +148,19 @@ import (
 
 func main() {
     ctx := context.Background()
-    
+
     // Create in-memory event store
     store := event.NewMemoryStore()
-    
+
     // Create event bus for publish/subscribe
     bus := event.NewMemoryBus()
-    
+
     // Register command dispatcher
     cmdDispatcher := command.NewDispatcher()
-    
+
     // Use strongly-typed IDs
     userID := id.NewUserID()
-    
+
     // Create and dispatch command
     cmd := command.New("user.create", userID.String())
     cmdDispatcher.Dispatch(ctx, cmd)
@@ -169,13 +169,13 @@ func main() {
 
 ## Comparison
 
-| Feature           | go-cqrs-lite | go-cqrs | cqrs-go |
-| ----------------- | ------------ | ------- | ------- |
-| Minimal deps      | ✅           | ❌      | ❌      |
-| Event Sourcing    | ✅           | ✅      | ✅      |
-| Event Bus         | ✅           | ✅      | ❌      |
-| Strong IDs        | ✅           | ❌      | ❌      |
-| Context support   | ✅           | ❌      | ✅      |
+| Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
+| --------------- | ------------ | ------- | ------- |
+| Minimal deps    | ✅           | ❌      | ❌      |
+| Event Sourcing  | ✅           | ✅      | ✅      |
+| Event Bus       | ✅           | ✅      | ❌      |
+| Strong IDs      | ✅           | ❌      | ❌      |
+| Context support | ✅           | ❌      | ✅      |
 
 ## Project Status
 
