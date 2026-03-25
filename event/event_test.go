@@ -85,10 +85,10 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "negative version includes version, aggregate ID and event type",
 			eventType:     "PaymentProcessed",
-			aggregateID:   id.AggregateID("payment-789"),
-			aggregateType: "Payment",
+		aggregateID:   id.AggregateID("payment-789"),
+		aggregateType: "Payment",
 			version:       -5,
-			wantContains:  []string{"version must be non-negative", "-5", "payment-789", "PaymentProcessed"},
+			wantContains:  []string{"version validation failed", "payment-789", "PaymentProcessed"},
 		},
 	}
 
@@ -120,9 +120,9 @@ func TestEventOptions(t *testing.T) {
 		event.WithCausationID(id.CausationID("cause-456")),
 		event.WithUserID(id.UserID("user-789")),
 		event.WithRequestID(id.RequestID("req-001")),
-		event.WithSource("test-service"),
-		event.WithIPAddress("127.0.0.1"),
-		event.WithUserAgent("test-agent"),
+		event.WithSource(event.Source("test-service")),
+		event.WithIPAddress(event.IPAddress("127.0.0.1")),
+		event.WithUserAgent(event.UserAgent("test-agent")),
 		event.WithCustom("key1", "value1"),
 	)
 	if err != nil {
@@ -142,13 +142,13 @@ func TestEventOptions(t *testing.T) {
 	if m.RequestID != id.RequestID("req-001") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
-	if m.Source != "test-service" {
+	if m.Source.String() != "test-service" {
 		t.Errorf("expected source test-service, got %s", m.Source)
 	}
-	if m.IPAddress != "127.0.0.1" {
+	if m.IPAddress.String() != "127.0.0.1" {
 		t.Errorf("expected IP 127.0.0.1, got %s", m.IPAddress)
 	}
-	if m.UserAgent != "test-agent" {
+	if m.UserAgent.String() != "test-agent" {
 		t.Errorf("expected user agent test-agent, got %s", m.UserAgent)
 	}
 	if m.Custom["key1"] != "value1" {

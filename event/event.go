@@ -52,9 +52,9 @@ type EventMetadata struct {
 	CausationID   id.CausationID
 	UserID        id.UserID
 	RequestID     id.RequestID
-	Source        string
-	IPAddress     string
-	UserAgent     string
+	Source        Source
+	IPAddress     IPAddress
+	UserAgent     UserAgent
 	Custom        map[string]string
 }
 
@@ -64,7 +64,7 @@ type BaseEvent struct {
 	eventType     EventType
 	aggregateID   id.AggregateID
 	aggregateType AggregateType
-	version       int
+	version       Version
 	payload       []byte
 	metadata      *EventMetadata
 	occurredAt    time.Time
@@ -74,7 +74,7 @@ func (e *BaseEvent) ID() string                   { return e.id.String() }
 func (e *BaseEvent) Type() EventType              { return e.eventType }
 func (e *BaseEvent) AggregateID() string          { return e.aggregateID.String() }
 func (e *BaseEvent) AggregateType() AggregateType { return e.aggregateType }
-func (e *BaseEvent) Version() int                 { return e.version }
+func (e *BaseEvent) Version() int { return e.version.Int() }
 func (e *BaseEvent) Payload() []byte              { return e.payload }
 func (e *BaseEvent) Metadata() *EventMetadata     { return e.metadata }
 func (e *BaseEvent) OccurredAt() time.Time        { return e.occurredAt }
@@ -94,8 +94,9 @@ func NewEvent(
 	if aggregateType == "" {
 		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q), got: %q", aggregateID, eventType, aggregateType)
 	}
-	if version < 0 {
-		return nil, fmt.Errorf("version must be non-negative for aggregate %q of type %q (event type %q), got: %d", aggregateID, aggregateType, eventType, version)
+	v, err := ParseVersion(version)
+	if err != nil {
+		return nil, fmt.Errorf("version validation failed for aggregate %q of type %q (event type %q): %w", aggregateID, aggregateType, eventType, err)
 	}
 
 	event := &BaseEvent{
@@ -103,7 +104,7 @@ func NewEvent(
 		eventType:     eventType,
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
-		version:       version,
+		version:       v,
 		payload:       payload,
 		metadata:      &EventMetadata{},
 		occurredAt:    time.Now(),
@@ -165,7 +166,7 @@ func WithRequestID(requestID id.RequestID) EventOption {
 }
 
 // WithSource sets the source of the event
-func WithSource(source string) EventOption {
+func WithSource(source Source) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
@@ -175,7 +176,7 @@ func WithSource(source string) EventOption {
 }
 
 // WithIPAddress sets the client IP address
-func WithIPAddress(ip string) EventOption {
+func WithIPAddress(ip IPAddress) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
@@ -185,7 +186,7 @@ func WithIPAddress(ip string) EventOption {
 }
 
 // WithUserAgent sets the client user agent
-func WithUserAgent(ua string) EventOption {
+func WithUserAgent(ua UserAgent) EventOption {
 	return func(e *BaseEvent) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}

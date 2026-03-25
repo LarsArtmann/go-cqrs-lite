@@ -21,7 +21,7 @@ type Root interface {
 type Base struct {
 	id            id.AggregateID
 	aggregateType event.AggregateType
-	version       int
+	version       event.Version
 	changes       []event.Event
 }
 
@@ -37,12 +37,12 @@ func NewBase(id id.AggregateID, aggregateType event.AggregateType) *Base {
 
 func (a *Base) ID() string                { return a.id.String() }
 func (a *Base) Type() event.AggregateType { return a.aggregateType }
-func (a *Base) Version() int              { return a.version }
+func (a *Base) Version() int { return a.version.Int() }
 
 // ApplyEvent records an event and increments version
 func (a *Base) ApplyEvent(_ context.Context, evt event.Event) {
 	a.changes = append(a.changes, evt)
-	a.version++
+	a.version = a.version.Increment()
 }
 
 // UncommittedChanges returns pending events
@@ -58,7 +58,7 @@ func (a *Base) MarkChangesAsCommitted() {
 // LoadFromHistory rebuilds aggregate state from events
 func (a *Base) LoadFromHistory(events []event.Event) error {
 	for range events {
-		a.version++
+		a.version = a.version.Increment()
 	}
 	return nil
 }
