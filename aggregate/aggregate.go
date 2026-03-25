@@ -37,7 +37,7 @@ func NewBase(id id.AggregateID, aggregateType event.AggregateType) *Base {
 
 func (a *Base) ID() string                { return a.id.String() }
 func (a *Base) Type() event.AggregateType { return a.aggregateType }
-func (a *Base) Version() int { return a.version.Int() }
+func (a *Base) Version() int              { return a.version.Int() }
 
 // ApplyEvent records an event and increments version
 func (a *Base) ApplyEvent(_ context.Context, evt event.Event) {

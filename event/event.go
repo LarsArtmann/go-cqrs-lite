@@ -74,7 +74,7 @@ func (e *BaseEvent) ID() string                   { return e.id.String() }
 func (e *BaseEvent) Type() EventType              { return e.eventType }
 func (e *BaseEvent) AggregateID() string          { return e.aggregateID.String() }
 func (e *BaseEvent) AggregateType() AggregateType { return e.aggregateType }
-func (e *BaseEvent) Version() int { return e.version.Int() }
+func (e *BaseEvent) Version() int                 { return e.version.Int() }
 func (e *BaseEvent) Payload() []byte              { return e.payload }
 func (e *BaseEvent) Metadata() *EventMetadata     { return e.metadata }
 func (e *BaseEvent) OccurredAt() time.Time        { return e.occurredAt }
