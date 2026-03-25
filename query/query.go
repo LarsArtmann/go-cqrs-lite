@@ -28,3 +28,6 @@ type Result[T any] struct {
 
 // QueryHandler processes a query and returns a result
 type QueryHandler[T any] func(query Query) (T, error)
+
+// Middleware wraps query handlers for cross-cutting concerns
+type Middleware func(func(Query) (any, error)) func(Query) (any, error)

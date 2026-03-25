@@ -30,7 +30,7 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 }
 
 // Register binds a handler to a command type
-func (d *Dispatcher) Register(commandType Type, handler Handler) error {
+func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (d *Dispatcher) Register(commandType Type, handler Handler) error {
 		return ErrDispatcherClosed
 	}
 
-	d.handlers[commandType] = handler
+	d.handlers[cmdType] = handler
 	return nil
 }
 

@@ -117,6 +117,15 @@ event, err := event.NewEvent(
 | Format code       | `gofumpt -w .`         |
 | Imports           | `goimports -w .`       |
 
+## BuildFlow Commands
+
+| Task           | Command                                          |
+| -------------- | ------------------------------------------------ |
+| Full build     | `buildflow --semantic --fix --dupl-threshold 50` |
+| Branching flow | `branching-flow all .`                           |
+
+**Note:** The `--dupl-threshold 50` flag is required due to intentional code duplication in dispatcher Use()/Close() methods (different typed middleware).
+
 ## References
 
 - [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards

@@ -41,7 +41,7 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...Event) error {
 
 	for i, event := range events {
 		if err := b.publishEvent(ctx, event); err != nil {
-			return errors.Wrapf(err, "failed to publish event %d (%s)", i, event.Type())
+			return errors.Wrapf(err, "failed to publish event %d (%s) from batch of %d events", i, event.Type(), len(events))
 		}
 	}
 	return nil

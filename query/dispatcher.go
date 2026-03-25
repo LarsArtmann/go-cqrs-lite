@@ -15,9 +15,6 @@ type Dispatcher struct {
 	closed     bool
 }
 
-// Middleware wraps query handlers for cross-cutting concerns
-type Middleware func(func(Query) (any, error)) func(Query) (any, error)
-
 // NewDispatcher creates a new query dispatcher
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
@@ -72,11 +69,11 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 	var zero T
 	result, err := d.Dispatch(ctx, query)
 	if err != nil {
-		return zero, errors.Wrapf(err, "dispatch failed for query type %q", query.Type())
+		return zero, errors.Wrapf(err, "dispatch failed for query type %q (expected type: %T)", query.Type(), zero)
 	}
 	typed, ok := result.(T)
 	if !ok {
-		return zero, errors.Newf("unexpected result type for query %q: got %T", query.Type(), result)
+		return zero, errors.Newf("unexpected result type for query %q: got %T, expected: %T", query.Type(), result, zero)
 	}
 	return typed, nil
 }

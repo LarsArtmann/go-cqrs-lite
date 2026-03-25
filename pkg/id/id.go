@@ -40,7 +40,7 @@ func NewWithPrefix[T any](prefix string) Of[T] {
 func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
-		return zero, fmt.Errorf("cannot parse empty string as %T", zero)
+		return zero, fmt.Errorf("cannot parse empty string as %T (input: %q)", zero, s)
 	}
 	return Of[T](s), nil
 }
@@ -89,7 +89,7 @@ func (id *Of[T]) UnmarshalJSON(data []byte) error {
 	}
 	parsed, err := Parse[T](s)
 	if err != nil {
-		return fmt.Errorf("parse ID from JSON: %w", err)
+		return fmt.Errorf("parse ID from JSON %q: %w", s, err)
 	}
 	*id = parsed
 	return nil
@@ -106,14 +106,14 @@ func (id *Of[T]) Scan(src any) error {
 	case string:
 		parsed, err := Parse[T](v)
 		if err != nil {
-			return fmt.Errorf("scan ID from string: %w (input: %q)", err, v)
+			return fmt.Errorf("scan ID from string: %w (input: %q, src: %T)", err, v, src)
 		}
 		*id = parsed
 		return nil
 	case []byte:
 		parsed, err := Parse[T](string(v))
 		if err != nil {
-			return fmt.Errorf("scan ID from bytes: %w (input: %q)", err, string(v))
+			return fmt.Errorf("scan ID from bytes: %w (input: %q, src: %T)", err, string(v), src)
 		}
 		*id = parsed
 		return nil
