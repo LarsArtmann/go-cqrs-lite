@@ -31,8 +31,10 @@ func New[T any]() Of[T] {
 }
 
 // NewWithPrefix generates a new ID with a human-readable prefix.
-func NewWithPrefix[T any](prefix string) Of[T] {
-	return Of[T](prefix + "_" + uuid.New().String())
+type PrefixString string
+
+func NewWithPrefix[T any](prefix PrefixString) Of[T] {
+	return Of[T](string(prefix) + "_" + uuid.New().String())
 }
 
 // Parse converts a string to a strongly-typed ID.

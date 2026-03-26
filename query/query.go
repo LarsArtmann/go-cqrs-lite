@@ -8,16 +8,16 @@ type Query interface {
 	Type() Type
 }
 
-// BaseQuery provides a default implementation
-type BaseQuery struct {
+// Core provides a default implementation
+type Core struct {
 	queryType Type
 }
 
-func (q *BaseQuery) Type() Type { return q.queryType }
+func (q *Core) Type() Type { return q.queryType }
 
 // New creates a new query
-func New(queryType Type) *BaseQuery {
-	return &BaseQuery{queryType: queryType}
+func New(queryType Type) *Core {
+	return &Core{queryType: queryType}
 }
 
 // Result contains query results

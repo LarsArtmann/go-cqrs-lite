@@ -13,18 +13,18 @@ type Command interface {
 	AggregateID() string
 }
 
-// BaseCommand provides a default implementation
-type BaseCommand struct {
+// Core provides a default implementation
+type Core struct {
 	commandType Type
 	aggregateID id.AggregateID
 }
 
-func (c *BaseCommand) Type() Type          { return c.commandType }
-func (c *BaseCommand) AggregateID() string { return c.aggregateID.String() }
+func (c *Core) Type() Type          { return c.commandType }
+func (c *Core) AggregateID() string { return c.aggregateID.String() }
 
 // New creates a new command
-func New(commandType Type, aggregateID id.AggregateID) *BaseCommand {
-	return &BaseCommand{
+func New(commandType Type, aggregateID id.AggregateID) *Core {
+	return &Core{
 		commandType: commandType,
 		aggregateID: aggregateID,
 	}

@@ -10,7 +10,7 @@ import (
 
 // TypedAggregate provides type-safe aggregate roots with branded IDs.
 type TypedAggregate struct {
-	base          *aggregate.Base
+	core          *aggregate.Core
 	aggregateID   id.AggregateID
 	aggregateType event.AggregateType
 }
@@ -21,7 +21,7 @@ func NewTypedAggregate(
 	aggregateType event.AggregateType,
 ) *TypedAggregate {
 	return &TypedAggregate{
-		base:          aggregate.NewBase(aggregateID, aggregateType),
+		core:          aggregate.NewCore(aggregateID, aggregateType),
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
 	}
@@ -39,30 +39,30 @@ func (a *TypedAggregate) Type() event.AggregateType {
 
 // Version returns the current version.
 func (a *TypedAggregate) Version() int {
-	return a.base.Version()
+	return a.core.Version()
 }
 
-// Base returns the underlying aggregate.Base for advanced operations.
-func (a *TypedAggregate) Base() *aggregate.Base {
-	return a.base
+// Core returns the underlying aggregate.Core for advanced operations.
+func (a *TypedAggregate) Core() *aggregate.Core {
+	return a.core
 }
 
 // ApplyEvent records a typed event and increments version.
 func (a *TypedAggregate) ApplyEvent(ctx context.Context, evt *TypedEvent) {
-	a.base.ApplyEvent(ctx, evt.Event())
+	a.core.ApplyEvent(ctx, evt.Event())
 }
 
 // UncommittedChanges returns pending events.
 func (a *TypedAggregate) UncommittedChanges() []event.Event {
-	return a.base.UncommittedChanges()
+	return a.core.UncommittedChanges()
 }
 
 // MarkChangesAsCommitted clears pending events.
 func (a *TypedAggregate) MarkChangesAsCommitted() {
-	a.base.MarkChangesAsCommitted()
+	a.core.MarkChangesAsCommitted()
 }
 
 // LoadFromHistory rebuilds aggregate state from events.
 func (a *TypedAggregate) LoadFromHistory(events []event.Event) error {
-	return a.base.LoadFromHistory(events)
+	return a.core.LoadFromHistory(events)
 }

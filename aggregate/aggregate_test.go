@@ -7,8 +7,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func TestBase(t *testing.T) {
-	base := aggregate.NewBase("user-123", event.AggregateType("User"))
+func TestCore(t *testing.T) {
+	base := aggregate.NewCore("user-123", event.AggregateType("User"))
 	if base.ID() != "user-123" {
 		t.Errorf("expected ID user-123, got %s", base.ID())
 	}
@@ -20,8 +20,8 @@ func TestBase(t *testing.T) {
 	}
 }
 
-func TestBaseLoadFromHistory(t *testing.T) {
-	base := aggregate.NewBase("user-123", event.AggregateType("User"))
+func TestCoreLoadFromHistory(t *testing.T) {
+	base := aggregate.NewCore("user-123", event.AggregateType("User"))
 
 	evt, err := event.NewEvent("UserCreated", "user-123", "User", 1, nil)
 	if err != nil {

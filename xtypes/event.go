@@ -9,12 +9,12 @@ import (
 
 // TypedEvent wraps event.Event with a strongly-typed aggregate ID.
 type TypedEvent struct {
-	base        *event.BaseEvent
+	base        *event.Core
 	aggregateID id.AggregateID
 }
 
-// Base returns the underlying event.BaseEvent.
-func (e *TypedEvent) Base() *event.BaseEvent {
+// Core returns the underlying event.Core.
+func (e *TypedEvent) Core() *event.Core {
 	return e.base
 }
 
@@ -33,7 +33,7 @@ type EventBuilder struct {
 	eventType     event.EventType
 	aggregateID   id.AggregateID
 	aggregateType event.AggregateType
-	version       int
+	version       event.Version
 	payload       []byte
 	opts          []event.EventOption
 }
@@ -43,7 +43,7 @@ func NewEventBuilder(
 	eventType event.EventType,
 	aggregateID id.AggregateID,
 	aggregateType event.AggregateType,
-	version int,
+	version event.Version,
 ) *EventBuilder {
 	return &EventBuilder{
 		eventType:     eventType,
@@ -91,15 +91,15 @@ func (b *EventBuilder) Build() (*TypedEvent, error) {
 	if b.aggregateType == "" {
 		return nil, fmt.Errorf("aggregate type is required for event type %q (aggregate ID %q)", b.eventType, b.aggregateID.String())
 	}
-	if b.version < 0 {
-		return nil, fmt.Errorf("version must be non-negative but got %d for event type %q (aggregate %q of type %q)", b.version, b.eventType, b.aggregateID.String(), b.aggregateType)
+	if b.version.Int() < 0 {
+		return nil, fmt.Errorf("version must be non-negative but got %d for event type %q (aggregate %q of type %q)", b.version.Int(), b.eventType, b.aggregateID.String(), b.aggregateType)
 	}
 
 	base, err := event.NewEvent(
 		b.eventType,
 		b.aggregateID,
 		b.aggregateType,
-		b.version,
+		b.version.Int(),
 		b.payload,
 		b.opts...,
 	)

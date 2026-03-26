@@ -27,7 +27,7 @@ func (s *MemoryStore) streamKey(aggregateType AggregateType, aggregateID id.Aggr
 }
 
 // Save appends events to the aggregate's event stream
-func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, events []Event, expectedVersion int) error {
+func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, events []Event, expectedVersion Version) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, agg
 	key := s.streamKey(aggregateType, aggregateID)
 	existing := s.events[key]
 
-	if len(existing) != expectedVersion {
+	if len(existing) != expectedVersion.Int() {
 		return errors.Wrapf(ErrVersionConflict,
 			"expected version %d, got %d", expectedVersion, len(existing))
 	}
@@ -49,11 +49,11 @@ func (s *MemoryStore) Save(ctx context.Context, aggregateType AggregateType, agg
 
 // Load retrieves all events for an aggregate
 func (s *MemoryStore) Load(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) ([]Event, error) {
-	return s.LoadFromVersion(ctx, aggregateType, aggregateID, 0)
+	return s.LoadFromVersion(ctx, aggregateType, aggregateID, Version(0))
 }
 
 // LoadFromVersion retrieves events starting from a specific version
-func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, version int) ([]Event, error) {
+func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID, version Version) ([]Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -67,11 +67,11 @@ func (s *MemoryStore) LoadFromVersion(ctx context.Context, aggregateType Aggrega
 		return nil, ErrAggregateNotFound
 	}
 
-	if version >= len(events) {
+	if version.Int() >= len(events) {
 		return []Event{}, nil
 	}
 
-	return events[version:], nil
+	return events[version.Int():], nil
 }
 
 // Delete removes all events for an aggregate

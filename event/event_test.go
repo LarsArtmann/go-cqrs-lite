@@ -88,7 +88,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 			aggregateID:   id.AggregateID("payment-789"),
 			aggregateType: "Payment",
 			version:       -5,
-			wantContains:  []string{"version validation failed", "payment-789", "PaymentProcessed"},
+			wantContains:  []string{"version -5 invalid", "payment-789", "PaymentProcessed"},
 		},
 	}
 

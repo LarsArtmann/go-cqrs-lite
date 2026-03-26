@@ -13,7 +13,7 @@ type Store interface {
 	Load(ctx context.Context, aggregateType AggregateType, aggregateID string) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting from a specific version
-	LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID string, version int) ([]Event, error)
+	LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID string, version Version) ([]Event, error)
 
 	// Delete removes all events for an aggregate (for testing/snapshots)
 	Delete(ctx context.Context, aggregateType AggregateType, aggregateID string) error
@@ -21,10 +21,13 @@ type Store interface {
 
 // StreamOptions configures event streaming
 type StreamOptions struct {
-	FromVersion   int
+	FromVersion   Version
 	AggregateType AggregateType
-	BatchSize     int
+	BatchSize     BatchSize
 }
+
+// BatchSize represents the number of items in a batch
+type BatchSize int
 
 // Streamer defines streaming capabilities for event stores
 type Streamer interface {

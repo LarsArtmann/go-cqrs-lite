@@ -55,11 +55,11 @@ type EventMetadata struct {
 	Source        Source
 	IPAddress     IPAddress
 	UserAgent     UserAgent
-	Custom        map[string]string
+	Custom        map[MetadataKey]string
 }
 
-// BaseEvent provides a default implementation of Event interface
-type BaseEvent struct {
+// Core provides a default implementation of Event interface
+type Core struct {
 	id            id.EventID
 	eventType     EventType
 	aggregateID   id.AggregateID
@@ -70,14 +70,14 @@ type BaseEvent struct {
 	occurredAt    time.Time
 }
 
-func (e *BaseEvent) ID() string                   { return e.id.String() }
-func (e *BaseEvent) Type() EventType              { return e.eventType }
-func (e *BaseEvent) AggregateID() string          { return e.aggregateID.String() }
-func (e *BaseEvent) AggregateType() AggregateType { return e.aggregateType }
-func (e *BaseEvent) Version() int                 { return e.version.Int() }
-func (e *BaseEvent) Payload() []byte              { return e.payload }
-func (e *BaseEvent) Metadata() *EventMetadata     { return e.metadata }
-func (e *BaseEvent) OccurredAt() time.Time        { return e.occurredAt }
+func (e *Core) ID() string                   { return e.id.String() }
+func (e *Core) Type() EventType              { return e.eventType }
+func (e *Core) AggregateID() string          { return e.aggregateID.String() }
+func (e *Core) AggregateType() AggregateType { return e.aggregateType }
+func (e *Core) Version() int                 { return e.version.Int() }
+func (e *Core) Payload() []byte              { return e.payload }
+func (e *Core) Metadata() *EventMetadata     { return e.metadata }
+func (e *Core) OccurredAt() time.Time        { return e.occurredAt }
 
 // NewEvent creates a new event with validation
 func NewEvent(
@@ -87,19 +87,19 @@ func NewEvent(
 	version int,
 	payload []byte,
 	opts ...EventOption,
-) (*BaseEvent, error) {
-	if aggregateID.IsEmpty() {
-		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q), got: %q", eventType, aggregateType, aggregateID)
-	}
-	if aggregateType == "" {
-		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q), got: %q", aggregateID, eventType, aggregateType)
-	}
+) (*Core, error) {
 	v, err := ParseVersion(version)
 	if err != nil {
-		return nil, fmt.Errorf("version validation failed for aggregate %q of type %q (event type %q): %w", aggregateID, aggregateType, eventType, err)
+		return nil, fmt.Errorf("version %d invalid for aggregate %q of type %q (event type %q): %w", version, aggregateID, aggregateType, eventType, err)
+	}
+	if aggregateID.IsEmpty() {
+		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q, version %d)", eventType, aggregateType, version)
+	}
+	if aggregateType == "" {
+		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q, version %d)", aggregateID, eventType, version)
 	}
 
-	event := &BaseEvent{
+	event := &Core{
 		id:            id.NewEventID(),
 		eventType:     eventType,
 		aggregateID:   aggregateID,
@@ -118,16 +118,16 @@ func NewEvent(
 }
 
 // EventOption configures event creation
-type EventOption func(*BaseEvent)
+type EventOption func(*Core)
 
 // WithMetadata sets custom metadata
 func WithMetadata(m *EventMetadata) EventOption {
-	return func(e *BaseEvent) { e.metadata = m }
+	return func(e *Core) { e.metadata = m }
 }
 
 // WithCorrelationID sets the correlation ID for distributed tracing
 func WithCorrelationID(correlationID id.CorrelationID) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -137,7 +137,7 @@ func WithCorrelationID(correlationID id.CorrelationID) EventOption {
 
 // WithCausationID sets the causation ID (indicates what triggered this event)
 func WithCausationID(causationID id.CausationID) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -147,7 +147,7 @@ func WithCausationID(causationID id.CausationID) EventOption {
 
 // WithUserID sets the user ID who triggered the event
 func WithUserID(userID id.UserID) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -157,7 +157,7 @@ func WithUserID(userID id.UserID) EventOption {
 
 // WithRequestID sets the request ID for debugging
 func WithRequestID(requestID id.RequestID) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -167,7 +167,7 @@ func WithRequestID(requestID id.RequestID) EventOption {
 
 // WithSource sets the source of the event
 func WithSource(source Source) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -177,7 +177,7 @@ func WithSource(source Source) EventOption {
 
 // WithIPAddress sets the client IP address
 func WithIPAddress(ip IPAddress) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -187,7 +187,7 @@ func WithIPAddress(ip IPAddress) EventOption {
 
 // WithUserAgent sets the client user agent
 func WithUserAgent(ua UserAgent) EventOption {
-	return func(e *BaseEvent) {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
@@ -196,13 +196,15 @@ func WithUserAgent(ua UserAgent) EventOption {
 }
 
 // WithCustom sets a custom metadata field
-func WithCustom(key, value string) EventOption {
-	return func(e *BaseEvent) {
+type MetadataKey string
+
+func WithCustom(key MetadataKey, value string) EventOption {
+	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = &EventMetadata{}
 		}
 		if e.metadata.Custom == nil {
-			e.metadata.Custom = make(map[string]string)
+			e.metadata.Custom = make(map[MetadataKey]string)
 		}
 		e.metadata.Custom[key] = value
 	}
