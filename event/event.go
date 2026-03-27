@@ -91,28 +91,31 @@ func NewEvent(
 	v, err := ParseVersion(version)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"version %d invalid for aggregate %q of type %q (event type %q): %w",
+			"version %d invalid for aggregate %q of type %q (event type %q, payload size %d): %w",
 			version,
 			aggregateID,
 			aggregateType,
 			eventType,
+			len(payload),
 			err,
 		)
 	}
 	if aggregateID.IsEmpty() {
 		return nil, fmt.Errorf(
-			"aggregate ID is required for event type %q (aggregate type %q, version %d)",
+			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d",
 			eventType,
 			aggregateType,
 			version,
+			len(payload),
 		)
 	}
 	if aggregateType == "" {
 		return nil, fmt.Errorf(
-			"aggregate type is required for aggregate %q (event type %q, version %d)",
+			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d",
 			aggregateID,
 			eventType,
 			version,
+			len(payload),
 		)
 	}
 
