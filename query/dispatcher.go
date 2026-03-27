@@ -1,54 +1,48 @@
+// Package query provides query dispatching for CQRS.
 package query
 
 import (
 	"context"
-	"sync"
 
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
 )
 
-// Dispatcher routes queries to their handlers
+// Handler processes a query and returns a result.
+type Handler = func(Query) (any, error)
+
+// Dispatcher routes queries to their handlers.
 type Dispatcher struct {
-	mu         sync.RWMutex
-	handlers   map[Type]func(Query) (any, error)
-	middleware []Middleware
-	closed     bool
+	handlers   map[Type]Handler
+	lifecycle  dispatcher.Lifecycle
+	middleware dispatcher.MiddlewareChain[Handler, Middleware]
 }
 
-// NewDispatcher creates a new query dispatcher
+// NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		handlers: make(map[Type]func(Query) (any, error)),
+		handlers: make(map[Type]Handler),
 	}
 }
 
-// Use adds middleware to the dispatcher
+// Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.middleware = append(d.middleware, middleware...)
+	d.middleware.Add(middleware...)
 }
 
-// Register binds a handler to a query type
-func (d *Dispatcher) Register(queryType Type, handler func(Query) (any, error)) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	if d.closed {
-		return ErrDispatcherClosed
+// Register binds a handler to a query type.
+func (d *Dispatcher) Register(queryType Type, handler Handler) error {
+	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return err
 	}
-
 	d.handlers[queryType] = handler
 	return nil
 }
 
-// Dispatch sends a query to its registered handler
-func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	if d.closed {
-		return nil, ErrDispatcherClosed
+// Dispatch sends a query to its registered handler.
+func (d *Dispatcher) Dispatch(_ context.Context, query Query) (any, error) {
+	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return nil, err
 	}
 
 	handler, ok := d.handlers[query.Type()]
@@ -56,15 +50,14 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 		return nil, errors.Wrapf(ErrQueryNotSupported, "query type: %s", query.Type())
 	}
 
-	wrapped := handler
-	for i := len(d.middleware) - 1; i >= 0; i-- {
-		wrapped = d.middleware[i](wrapped)
-	}
+	wrapped := d.middleware.Apply(handler, func(m Middleware, h Handler) Handler {
+		return m(h)
+	})
 
 	return wrapped(query)
 }
 
-// DispatchTyped sends a query and returns a typed result
+// DispatchTyped sends a query and returns a typed result.
 func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, error) {
 	var zero T
 	result, err := d.Dispatch(ctx, query)
@@ -88,10 +81,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 	return typed, nil
 }
 
-// Close marks the dispatcher as closed
+// Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.closed = true
-	return nil
+	return d.lifecycle.Close()
 }

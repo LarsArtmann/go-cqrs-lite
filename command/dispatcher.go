@@ -1,54 +1,45 @@
+// Package command provides command dispatching for CQRS.
 package command
 
 import (
 	"context"
-	"sync"
 
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
 )
 
-// Dispatcher routes commands to their handlers
+// Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	mu         sync.RWMutex
 	handlers   map[Type]Handler
-	middleware []Middleware
-	closed     bool
+	lifecycle  dispatcher.Lifecycle
+	middleware dispatcher.MiddlewareChain[Handler, Middleware]
 }
 
-// NewDispatcher creates a new command dispatcher
+// NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
 		handlers: make(map[Type]Handler),
 	}
 }
 
-// Use adds middleware to the dispatcher
+// Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.middleware = append(d.middleware, middleware...)
+	d.middleware.Add(middleware...)
 }
 
-// Register binds a handler to a command type
+// Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	if d.closed {
-		return ErrDispatcherClosed
+	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return err
 	}
-
 	d.handlers[cmdType] = handler
 	return nil
 }
 
-// Dispatch sends a command to its registered handler
+// Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	if d.closed {
-		return ErrDispatcherClosed
+	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return err
 	}
 
 	handler, ok := d.handlers[cmd.Type()]
@@ -56,18 +47,14 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
 	}
 
-	wrapped := handler
-	for i := len(d.middleware) - 1; i >= 0; i-- {
-		wrapped = d.middleware[i](wrapped)
-	}
+	wrapped := d.middleware.Apply(handler, func(m Middleware, h Handler) Handler {
+		return m(h)
+	})
 
 	return wrapped(ctx, cmd)
 }
 
-// Close marks the dispatcher as closed
+// Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.closed = true
-	return nil
+	return d.lifecycle.Close()
 }
