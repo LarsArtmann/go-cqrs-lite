@@ -69,11 +69,21 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 	var zero T
 	result, err := d.Dispatch(ctx, query)
 	if err != nil {
-		return zero, errors.Wrapf(err, "dispatch failed for query type %q (expected type: %T)", query.Type(), zero)
+		return zero, errors.Wrapf(
+			err,
+			"dispatch failed for query type %q (expected type: %T)",
+			query.Type(),
+			zero,
+		)
 	}
 	typed, ok := result.(T)
 	if !ok {
-		return zero, errors.Newf("unexpected result type for query %q: got %T, expected: %T", query.Type(), result, zero)
+		return zero, errors.Newf(
+			"unexpected result type for query %q: got %T, expected: %T",
+			query.Type(),
+			result,
+			zero,
+		)
 	}
 	return typed, nil
 }

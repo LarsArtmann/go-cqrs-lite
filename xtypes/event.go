@@ -86,13 +86,27 @@ func (b *EventBuilder) WithUserID(userID id.UserID) *EventBuilder {
 // Build creates the typed event.
 func (b *EventBuilder) Build() (*TypedEvent, error) {
 	if b.aggregateID.IsEmpty() {
-		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q)", b.eventType, b.aggregateType)
+		return nil, fmt.Errorf(
+			"aggregate ID is required for event type %q (aggregate type %q)",
+			b.eventType,
+			b.aggregateType,
+		)
 	}
 	if b.aggregateType == "" {
-		return nil, fmt.Errorf("aggregate type is required for event type %q (aggregate ID %q)", b.eventType, b.aggregateID.String())
+		return nil, fmt.Errorf(
+			"aggregate type is required for event type %q (aggregate ID %q)",
+			b.eventType,
+			b.aggregateID.String(),
+		)
 	}
 	if b.version.Int() < 0 {
-		return nil, fmt.Errorf("version must be non-negative but got %d for event type %q (aggregate %q of type %q)", b.version.Int(), b.eventType, b.aggregateID.String(), b.aggregateType)
+		return nil, fmt.Errorf(
+			"version must be non-negative but got %d for event type %q (aggregate %q of type %q)",
+			b.version.Int(),
+			b.eventType,
+			b.aggregateID.String(),
+			b.aggregateType,
+		)
 	}
 
 	base, err := event.NewEvent(

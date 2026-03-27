@@ -92,7 +92,10 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 	}
 }
 
-func makeTestMiddleware(callOrder *[]string, name string) func(func(query.Query) (any, error)) func(query.Query) (any, error) {
+func makeTestMiddleware(
+	callOrder *[]string,
+	name string,
+) func(func(query.Query) (any, error)) func(query.Query) (any, error) {
 	return func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
 		return func(q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)

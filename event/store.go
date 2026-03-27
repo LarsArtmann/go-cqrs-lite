@@ -7,13 +7,24 @@ import (
 // Store defines the interface for event persistence
 type Store interface {
 	// Save appends events to the aggregate's event stream
-	Save(ctx context.Context, aggregateType AggregateType, aggregateID string, events []Event, expectedVersion int) error
+	Save(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID string,
+		events []Event,
+		expectedVersion int,
+	) error
 
 	// Load retrieves all events for an aggregate
 	Load(ctx context.Context, aggregateType AggregateType, aggregateID string) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting from a specific version
-	LoadFromVersion(ctx context.Context, aggregateType AggregateType, aggregateID string, version Version) ([]Event, error)
+	LoadFromVersion(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID string,
+		version Version,
+	) ([]Event, error)
 
 	// Delete removes all events for an aggregate (for testing/snapshots)
 	Delete(ctx context.Context, aggregateType AggregateType, aggregateID string) error

@@ -90,13 +90,30 @@ func NewEvent(
 ) (*Core, error) {
 	v, err := ParseVersion(version)
 	if err != nil {
-		return nil, fmt.Errorf("version %d invalid for aggregate %q of type %q (event type %q): %w", version, aggregateID, aggregateType, eventType, err)
+		return nil, fmt.Errorf(
+			"version %d invalid for aggregate %q of type %q (event type %q): %w",
+			version,
+			aggregateID,
+			aggregateType,
+			eventType,
+			err,
+		)
 	}
 	if aggregateID.IsEmpty() {
-		return nil, fmt.Errorf("aggregate ID is required for event type %q (aggregate type %q, version %d)", eventType, aggregateType, version)
+		return nil, fmt.Errorf(
+			"aggregate ID is required for event type %q (aggregate type %q, version %d)",
+			eventType,
+			aggregateType,
+			version,
+		)
 	}
 	if aggregateType == "" {
-		return nil, fmt.Errorf("aggregate type is required for aggregate %q (event type %q, version %d)", aggregateID, eventType, version)
+		return nil, fmt.Errorf(
+			"aggregate type is required for aggregate %q (event type %q, version %d)",
+			aggregateID,
+			eventType,
+			version,
+		)
 	}
 
 	event := &Core{

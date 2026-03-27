@@ -94,7 +94,13 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := event.NewEvent(tt.eventType, tt.aggregateID, tt.aggregateType, tt.version, nil)
+			_, err := event.NewEvent(
+				tt.eventType,
+				tt.aggregateID,
+				tt.aggregateType,
+				tt.version,
+				nil,
+			)
 			if err == nil {
 				t.Fatal("expected error, got nil")
 			}
