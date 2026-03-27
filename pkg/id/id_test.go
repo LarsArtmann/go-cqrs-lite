@@ -1,8 +1,9 @@
 package id
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/go-json-experiment/json"
 )
 
 func TestNew(t *testing.T) {

@@ -15,9 +15,9 @@ package id
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 
+	"github.com/go-json-experiment/json"
 	"github.com/google/uuid"
 )
 
