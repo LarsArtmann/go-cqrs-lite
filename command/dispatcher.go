@@ -18,7 +18,9 @@ type Dispatcher struct {
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		handlers: make(map[Type]Handler),
+		handlers:   make(map[Type]Handler),
+		lifecycle:  dispatcher.Lifecycle{},
+		middleware: dispatcher.MiddlewareChain[Handler, Middleware]{},
 	}
 }
 

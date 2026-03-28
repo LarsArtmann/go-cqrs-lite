@@ -18,7 +18,9 @@ type MemoryStore struct {
 // NewMemoryStore creates a new in-memory event store
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
+		mu:     sync.RWMutex{},
 		events: make(map[string][]Event),
+		closed: false,
 	}
 }
 

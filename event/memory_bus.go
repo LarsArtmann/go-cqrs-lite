@@ -19,7 +19,11 @@ type MemoryBus struct {
 // NewMemoryBus creates a new in-memory event bus
 func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
-		handlers: make(map[EventType][]Handler),
+		mu:          sync.RWMutex{},
+		handlers:    make(map[EventType][]Handler),
+		allHandlers: nil,
+		middleware:  nil,
+		closed:      false,
 	}
 }
 
