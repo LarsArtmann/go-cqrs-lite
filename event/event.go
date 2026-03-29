@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
@@ -101,21 +102,23 @@ func NewEvent(
 		)
 	}
 	if aggregateID.IsEmpty() {
-		return nil, fmt.Errorf(
-			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d",
+		return nil, errors.Newf(
+			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
 			eventType,
 			aggregateType,
 			version,
 			len(payload),
+			len(opts),
 		)
 	}
 	if aggregateType == "" {
-		return nil, fmt.Errorf(
-			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d",
+		return nil, errors.Newf(
+			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d, opts count: %d",
 			aggregateID,
 			eventType,
 			version,
 			len(payload),
+			len(opts),
 		)
 	}
 

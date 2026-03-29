@@ -32,7 +32,7 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 // Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
-		return err
+		return errors.Wrapf(err, "registering command type %s", cmdType)
 	}
 	d.handlers[cmdType] = handler
 	return nil
@@ -41,7 +41,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 // Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
-		return err
+		return errors.Wrapf(err, "dispatching command %s", cmd.Type())
 	}
 
 	handler, ok := d.handlers[cmd.Type()]
