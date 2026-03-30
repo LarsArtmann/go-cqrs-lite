@@ -89,7 +89,7 @@ func NewDispatcher[H any, M any]() *Dispatcher[H, M] {
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher[H, M]) Use(middleware ...M) {
-	d.middleware.Add(middleware...)
+	d.Middleware.Add(middleware...)
 }
 
 // Register binds a handler to a type.
