@@ -70,7 +70,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		eventType     event.EventType
+		eventType     event.Type
 		aggregateID   id.AggregateID
 		aggregateType event.AggregateType
 		version       int

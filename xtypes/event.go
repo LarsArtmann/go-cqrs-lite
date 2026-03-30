@@ -30,17 +30,17 @@ func (e *TypedEvent) AggregateID() id.AggregateID {
 
 // EventBuilder constructs events with compile-time type safety.
 type EventBuilder struct {
-	eventType     event.EventType
+	eventType     event.Type
 	aggregateID   id.AggregateID
 	aggregateType event.AggregateType
 	version       event.Version
 	payload       []byte
-	opts          []event.EventOption
+	opts          []event.Option
 }
 
 // NewEventBuilder creates a new event builder with type-safe aggregate ID.
 func NewEventBuilder(
-	eventType event.EventType,
+	eventType event.Type,
 	aggregateID id.AggregateID,
 	aggregateType event.AggregateType,
 	version event.Version,
@@ -62,7 +62,7 @@ func (b *EventBuilder) WithPayload(payload []byte) *EventBuilder {
 }
 
 // WithMetadata adds event options (correlation ID, user ID, etc.).
-func (b *EventBuilder) WithMetadata(opts ...event.EventOption) *EventBuilder {
+func (b *EventBuilder) WithMetadata(opts ...event.Option) *EventBuilder {
 	b.opts = append(b.opts, opts...)
 	return b
 }

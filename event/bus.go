@@ -11,7 +11,7 @@ type Bus interface {
 	Publish(ctx context.Context, events ...Event) error
 
 	// Subscribe registers a handler for specific event types
-	Subscribe(eventType EventType, handler Handler) error
+	Subscribe(eventType Type, handler Handler) error
 
 	// SubscribeAll registers a handler for all event types
 	SubscribeAll(handler Handler) error

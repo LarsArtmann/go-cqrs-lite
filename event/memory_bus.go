@@ -10,7 +10,7 @@ import (
 // MemoryBus is an in-memory implementation of Bus for testing and development
 type MemoryBus struct {
 	mu          sync.RWMutex
-	handlers    map[EventType][]Handler
+	handlers    map[Type][]Handler
 	allHandlers []Handler
 	middleware  []Middleware
 	closed      bool
@@ -20,7 +20,7 @@ type MemoryBus struct {
 func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
 		mu:          sync.RWMutex{},
-		handlers:    make(map[EventType][]Handler),
+		handlers:    make(map[Type][]Handler),
 		allHandlers: nil,
 		middleware:  nil,
 		closed:      false,
@@ -82,7 +82,7 @@ func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 }
 
 // Subscribe registers a handler for specific event types
-func (b *MemoryBus) Subscribe(eventType EventType, handler Handler) error {
+func (b *MemoryBus) Subscribe(eventType Type, handler Handler) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 

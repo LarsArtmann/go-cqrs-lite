@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/netip"
 	"strings"
-
-	"github.com/cockroachdb/errors"
 )
 
 // Source identifies where an event originated (e.g., "api", "scheduler", "cli").
@@ -18,7 +16,7 @@ func ParseSource(s string) (Source, error) {
 	original := s
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return "", errors.Newf("source cannot be empty (input: %q)", original)
+		return "", fmt.Errorf("source cannot be empty (input: %q)", original)
 	}
 	return Source(s), nil
 }

@@ -31,7 +31,7 @@ func TestEventBuilder(t *testing.T) {
 		if evt.AggregateID() != aggregateID {
 			t.Error("AggregateID mismatch")
 		}
-		if evt.Event().Type() != event.EventType("TestCreated") {
+		if evt.Event().Type() != event.Type("TestCreated") {
 			t.Error("EventType mismatch")
 		}
 	})

@@ -25,12 +25,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// EventType is a type identifier for domain events
-type EventType string
+// Type is a type identifier for domain events
+type Type string
 
 // AggregateType is a type identifier for aggregate roots
 type AggregateType string
@@ -38,17 +37,17 @@ type AggregateType string
 // Event represents a domain event with rich metadata
 type Event interface {
 	ID() string
-	Type() EventType
+	Type() Type
 	AggregateID() string
 	AggregateType() AggregateType
 	Version() int
 	Payload() []byte
-	Metadata() *EventMetadata
+	Metadata() *Metadata
 	OccurredAt() time.Time
 }
 
-// EventMetadata contains tracing and contextual information for events
-type EventMetadata struct {
+// Metadata contains tracing and contextual information for events
+type Metadata struct {
 	CorrelationID id.CorrelationID
 	CausationID   id.CausationID
 	UserID        id.UserID
@@ -62,18 +61,18 @@ type EventMetadata struct {
 // Core provides a default implementation of Event interface
 type Core struct {
 	id            id.EventID
-	eventType     EventType
+	eventType     Type
 	aggregateID   id.AggregateID
 	aggregateType AggregateType
 	version       Version
 	payload       []byte
-	metadata      *EventMetadata
+	metadata      *Metadata
 	occurredAt    time.Time
 }
 
-// NewMetadata creates an EventMetadata with all fields initialized.
-func NewMetadata() *EventMetadata {
-	return &EventMetadata{
+// NewMetadata creates a Metadata with all fields initialized.
+func NewMetadata() *Metadata {
+	return &Metadata{
 		CorrelationID: "",
 		CausationID:   "",
 		UserID:        "",
@@ -89,7 +88,7 @@ func NewMetadata() *EventMetadata {
 func (e *Core) ID() string { return e.id.String() }
 
 // Type returns the event type.
-func (e *Core) Type() EventType { return e.eventType }
+func (e *Core) Type() Type { return e.eventType }
 
 // AggregateID returns the aggregate ID.
 func (e *Core) AggregateID() string { return e.aggregateID.String() }
@@ -104,19 +103,19 @@ func (e *Core) Version() int { return e.version.Int() }
 func (e *Core) Payload() []byte { return e.payload }
 
 // Metadata returns the event metadata.
-func (e *Core) Metadata() *EventMetadata { return e.metadata }
+func (e *Core) Metadata() *Metadata { return e.metadata }
 
 // OccurredAt returns when the event occurred.
 func (e *Core) OccurredAt() time.Time { return e.occurredAt }
 
 // NewEvent creates a new event with validation
 func NewEvent(
-	eventType EventType,
+	eventType Type,
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	version int,
 	payload []byte,
-	opts ...EventOption,
+	opts ...Option,
 ) (*Core, error) {
 	v, err := ParseVersion(version)
 	if err != nil {
@@ -131,7 +130,7 @@ func NewEvent(
 		)
 	}
 	if aggregateID.IsEmpty() {
-		return nil, errors.Newf(
+		return nil, fmt.Errorf(
 			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
 			eventType,
 			aggregateType,
@@ -141,7 +140,7 @@ func NewEvent(
 		)
 	}
 	if aggregateType == "" {
-		return nil, errors.Newf(
+		return nil, fmt.Errorf(
 			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d, opts count: %d",
 			aggregateID,
 			eventType,
@@ -169,16 +168,16 @@ func NewEvent(
 	return event, nil
 }
 
-// EventOption configures event creation
-type EventOption func(*Core)
+// Option configures event creation
+type Option func(*Core)
 
 // WithMetadata sets custom metadata
-func WithMetadata(m *EventMetadata) EventOption {
+func WithMetadata(m *Metadata) Option {
 	return func(e *Core) { e.metadata = m }
 }
 
 // WithCorrelationID sets the correlation ID for distributed tracing
-func WithCorrelationID(correlationID id.CorrelationID) EventOption {
+func WithCorrelationID(correlationID id.CorrelationID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -188,7 +187,7 @@ func WithCorrelationID(correlationID id.CorrelationID) EventOption {
 }
 
 // WithCausationID sets the causation ID (indicates what triggered this event)
-func WithCausationID(causationID id.CausationID) EventOption {
+func WithCausationID(causationID id.CausationID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -198,7 +197,7 @@ func WithCausationID(causationID id.CausationID) EventOption {
 }
 
 // WithUserID sets the user ID who triggered the event
-func WithUserID(userID id.UserID) EventOption {
+func WithUserID(userID id.UserID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -208,7 +207,7 @@ func WithUserID(userID id.UserID) EventOption {
 }
 
 // WithRequestID sets the request ID for debugging
-func WithRequestID(requestID id.RequestID) EventOption {
+func WithRequestID(requestID id.RequestID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -218,7 +217,7 @@ func WithRequestID(requestID id.RequestID) EventOption {
 }
 
 // WithSource sets the source of the event
-func WithSource(source Source) EventOption {
+func WithSource(source Source) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -228,7 +227,7 @@ func WithSource(source Source) EventOption {
 }
 
 // WithIPAddress sets the client IP address
-func WithIPAddress(ip IPAddress) EventOption {
+func WithIPAddress(ip IPAddress) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -238,7 +237,7 @@ func WithIPAddress(ip IPAddress) EventOption {
 }
 
 // WithUserAgent sets the client user agent
-func WithUserAgent(ua UserAgent) EventOption {
+func WithUserAgent(ua UserAgent) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
@@ -251,7 +250,7 @@ func WithUserAgent(ua UserAgent) EventOption {
 type MetadataKey string
 
 // WithCustom sets a custom metadata field.
-func WithCustom(key MetadataKey, value string) EventOption {
+func WithCustom(key MetadataKey, value string) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
