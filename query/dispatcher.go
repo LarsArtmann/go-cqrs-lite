@@ -3,7 +3,6 @@ package query
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
@@ -14,47 +13,45 @@ type Handler = func(Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
 type Dispatcher struct {
-	handlers   map[Type]Handler
-	lifecycle  dispatcher.Lifecycle
-	middleware dispatcher.MiddlewareChain[Handler, Middleware]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 // NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		handlers:   make(map[Type]Handler),
-		lifecycle:  dispatcher.Lifecycle{},
-		middleware: dispatcher.MiddlewareChain[Handler, Middleware]{},
+		inner: dispatcher.NewDispatcher[Handler, Middleware](),
 	}
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.middleware.Add(middleware...)
+	d.inner.Middleware.Add(middleware...)
 }
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		return errors.Wrapf(err, "registering query type %s", queryType)
 	}
-	d.handlers[queryType] = handler
+	if err := d.inner.Register(string(queryType), handler); err != nil {
+		return errors.Wrapf(err, "registering handler for query type %s", queryType)
+	}
 	return nil
 }
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	_ = ctx // Context available for tracing/logging but not required for basic dispatch
-	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		return nil, errors.Wrapf(err, "dispatching query %s", query.Type())
 	}
 
-	handler, ok := d.handlers[query.Type()]
+	handler, ok := d.inner.Handlers[string(query.Type())]
 	if !ok {
 		return nil, errors.Wrapf(ErrQueryNotSupported, "query type: %s", query.Type())
 	}
 
-	wrapped := d.middleware.Apply(handler, func(m Middleware, h Handler) Handler {
+	wrapped := d.inner.Middleware.Apply(handler, func(m Middleware, h Handler) Handler {
 		return m(h)
 	})
 
@@ -75,7 +72,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 	}
 	typed, ok := result.(T)
 	if !ok {
-		return zero, fmt.Errorf(
+		return zero, errors.Newf(
 			"unexpected result type for query %q: got %T, expected: %T",
 			query.Type(),
 			result,
@@ -87,8 +84,5 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	if err := d.lifecycle.Close(); err != nil {
-		return errors.Wrapf(err, "close query dispatcher")
-	}
-	return nil
+	return d.inner.Lifecycle.Close()
 }
