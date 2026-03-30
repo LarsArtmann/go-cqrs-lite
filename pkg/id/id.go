@@ -30,9 +30,10 @@ func New[T any]() Of[T] {
 	return Of[T](uuid.New().String())
 }
 
-// NewWithPrefix generates a new ID with a human-readable prefix.
+// PrefixString is a string type for human-readable ID prefixes.
 type PrefixString string
 
+// NewWithPrefix generates a new ID with a human-readable prefix.
 func NewWithPrefix[T any](prefix PrefixString) Of[T] {
 	return Of[T](string(prefix) + "_" + uuid.New().String())
 }
@@ -80,7 +81,11 @@ func (id Of[T]) IsValid() bool {
 
 // MarshalJSON implements json.Marshaler.
 func (id Of[T]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(id.String())
+	data, err := json.Marshal(id.String())
+	if err != nil {
+		return nil, fmt.Errorf("marshal ID to JSON: %w", err)
+	}
+	return data, nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.

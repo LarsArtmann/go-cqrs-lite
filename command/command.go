@@ -19,7 +19,10 @@ type Core struct {
 	aggregateID id.AggregateID
 }
 
-func (c *Core) Type() Type          { return c.commandType }
+// Type returns the command type.
+func (c *Core) Type() Type { return c.commandType }
+
+// AggregateID returns the aggregate ID.
 func (c *Core) AggregateID() string { return c.aggregateID.String() }
 
 // New creates a new command

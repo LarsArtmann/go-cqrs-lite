@@ -1,3 +1,4 @@
+// Package aggregate provides aggregate root functionality for CQRS.
 package aggregate
 
 import (
@@ -35,9 +36,14 @@ func NewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
 	}
 }
 
-func (a *Core) ID() string                { return a.id.String() }
+// ID returns the aggregate ID as a string.
+func (a *Core) ID() string { return a.id.String() }
+
+// Type returns the aggregate type.
 func (a *Core) Type() event.AggregateType { return a.aggregateType }
-func (a *Core) Version() int              { return a.version.Int() }
+
+// Version returns the current version.
+func (a *Core) Version() int { return a.version.Int() }
 
 // ApplyEvent records an event and increments version
 func (a *Core) ApplyEvent(_ context.Context, evt event.Event) {

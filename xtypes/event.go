@@ -120,7 +120,7 @@ func (b *EventBuilder) Build() (*TypedEvent, error) {
 		b.opts...,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build typed event %s: %w", b.eventType, err)
 	}
 
 	return &TypedEvent{

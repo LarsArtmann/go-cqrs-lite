@@ -3,6 +3,7 @@ package dispatcher
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -118,7 +119,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error)
 	h, ok := d.Handlers[t]
 	if !ok {
 		var zero H
-		return zero, ErrHandlerNotFound
+		return zero, fmt.Errorf("handler not found for type: %s", t)
 	}
 
 	wrapped := d.Middleware.Apply(h, wrap)

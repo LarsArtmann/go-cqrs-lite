@@ -13,6 +13,7 @@ type Core struct {
 	queryType Type
 }
 
+// Type returns the query type.
 func (q *Core) Type() Type { return q.queryType }
 
 // New creates a new query

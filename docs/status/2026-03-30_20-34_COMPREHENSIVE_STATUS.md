@@ -16,27 +16,30 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 ## a) FULLY DONE ✅
 
 ### Core Architecture (100%)
-| Component | Status | Coverage | Notes |
-|-----------|--------|----------|-------|
-| Event system | ✅ Complete | 76.3% | Core events, metadata, options |
-| Command dispatcher | ✅ Complete | 100% | Full middleware support |
-| Query dispatcher | ✅ Complete | 96% | Typed results support |
-| Aggregate roots | ✅ Complete | 63.6% | Core + load from history |
-| Event store (memory) | ✅ Complete | 76.3% | Thread-safe operations |
-| Event bus | ✅ Complete | 76.3% | Pub/sub with middleware |
-| Strongly-typed IDs | ✅ Complete | 47.2% | Branded types (pkg/id) |
-| Extended types | ✅ Complete | 53.5% | Typed wrappers (xtypes) |
+
+| Component            | Status      | Coverage | Notes                          |
+| -------------------- | ----------- | -------- | ------------------------------ |
+| Event system         | ✅ Complete | 76.3%    | Core events, metadata, options |
+| Command dispatcher   | ✅ Complete | 100%     | Full middleware support        |
+| Query dispatcher     | ✅ Complete | 96%      | Typed results support          |
+| Aggregate roots      | ✅ Complete | 63.6%    | Core + load from history       |
+| Event store (memory) | ✅ Complete | 76.3%    | Thread-safe operations         |
+| Event bus            | ✅ Complete | 76.3%    | Pub/sub with middleware        |
+| Strongly-typed IDs   | ✅ Complete | 47.2%    | Branded types (pkg/id)         |
+| Extended types       | ✅ Complete | 53.5%    | Typed wrappers (xtypes)        |
 
 ### Infrastructure (100%)
-| Item | Status | Details |
-|------|--------|---------|
-| GitHub Actions CI | ✅ Complete | test.yml, lint.yml workflows |
-| Makefile | ✅ Complete | All standard targets working |
-| Linting config | ✅ Complete | .golangci.yml with 70+ linters |
-| Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT |
-| Dependency management | ✅ Complete | go.mod, go.sum |
+
+| Item                  | Status      | Details                                          |
+| --------------------- | ----------- | ------------------------------------------------ |
+| GitHub Actions CI     | ✅ Complete | test.yml, lint.yml workflows                     |
+| Makefile              | ✅ Complete | All standard targets working                     |
+| Linting config        | ✅ Complete | .golangci.yml with 70+ linters                   |
+| Documentation         | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT |
+| Dependency management | ✅ Complete | go.mod, go.sum                                   |
 
 ### Testing (100%)
+
 - All 8 test files pass
 - 100% coverage on command package
 - 96% coverage on query package
@@ -47,24 +50,24 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item | Status | What's Missing |
-|------|--------|----------------|
-| Test coverage | ~73% avg | pkg/id (47%), xtypes (54%), aggregate (64%) need more tests |
-| Middleware examples | ⚠️ Partial | Infrastructure exists, no pre-built middleware |
-| Documentation examples | ⚠️ Partial | No working code examples/ directory |
+| Item                   | Status     | What's Missing                                              |
+| ---------------------- | ---------- | ----------------------------------------------------------- |
+| Test coverage          | ~73% avg   | pkg/id (47%), xtypes (54%), aggregate (64%) need more tests |
+| Middleware examples    | ⚠️ Partial | Infrastructure exists, no pre-built middleware              |
+| Documentation examples | ⚠️ Partial | No working code examples/ directory                         |
 
 ---
 
 ## c) NOT STARTED 🚧
 
-| Item | Priority | Why It Matters |
-|------|----------|----------------|
-| SQL Event Store | Low | Production persistence (currently only memory) |
-| Snapshot support | Low | Performance optimization for large aggregates |
-| Metrics collection | Low | Observability infrastructure |
-| Examples/ directory | Medium | Working code samples for users |
-| Pre-built middleware | Medium | Logging, recovery, retry middleware |
-| Benchmarks | Medium | Performance regression testing |
+| Item                 | Priority | Why It Matters                                 |
+| -------------------- | -------- | ---------------------------------------------- |
+| SQL Event Store      | Low      | Production persistence (currently only memory) |
+| Snapshot support     | Low      | Performance optimization for large aggregates  |
+| Metrics collection   | Low      | Observability infrastructure                   |
+| Examples/ directory  | Medium   | Working code samples for users                 |
+| Pre-built middleware | Medium   | Logging, recovery, retry middleware            |
+| Benchmarks           | Medium   | Performance regression testing                 |
 
 ---
 
@@ -115,6 +118,7 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 ## f) Top #25 Things To Get Done Next
 
 ### Immediate (Next 24 Hours)
+
 1. ✅ Fix paralleltest warnings in pkg/id/id_test.go
 2. ✅ Split TestTypedAggregate into smaller functions
 3. ✅ Fix nilnil warning in query_test.go
@@ -122,6 +126,7 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 5. ✅ Verify all tests pass after fixes
 
 ### This Week
+
 6. ⬜ Add examples/user/ with complete working example
 7. ⬜ Create examples/user/commands.go
 8. ⬜ Create examples/user/events.go
@@ -131,6 +136,7 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 12. ⬜ Improve xtypes test coverage to 80%
 
 ### This Month
+
 13. ⬜ Create pre-built logging middleware
 14. ⬜ Create pre-built recovery middleware
 15. ⬜ Create pre-built retry middleware with backoff
@@ -141,6 +147,7 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 20. ⬜ Add integration tests with real database
 
 ### Future
+
 21. ⬜ Snapshot support for aggregates
 22. ⬜ Metrics collection middleware
 23. ⬜ OpenTelemetry tracing support
@@ -154,23 +161,26 @@ The go-cqrs-lite library is **PRODUCTION READY** with all core functionality imp
 ### **Question: Should the Query Dispatcher be refactored to use the generic `internal/dispatcher.Dispatcher` like Command does?**
 
 **Context:**
+
 - Command dispatcher: Uses `*dispatcher.Dispatcher[Handler, Middleware]` from internal package
 - Query dispatcher: Has its own implementation with direct fields
 
 **Trade-offs:**
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Keep as-is** | Simpler, no generic complexity | Duplicated lifecycle logic |
-| **Refactor to generic** | DRY, consistent architecture | More complex, harder to read |
+| Approach                | Pros                           | Cons                         |
+| ----------------------- | ------------------------------ | ---------------------------- |
+| **Keep as-is**          | Simpler, no generic complexity | Duplicated lifecycle logic   |
+| **Refactor to generic** | DRY, consistent architecture   | More complex, harder to read |
 
 **Why I can't decide:**
+
 1. Query dispatcher has unique needs (returns `any`, has `DispatchTyped[T]`)
 2. The generic pattern adds complexity for marginal benefit
 3. Query and Command have different signatures (Command returns error, Query returns (any, error))
 
 **What I need from you:**
 Decision on whether to:
+
 - A) Leave query dispatcher as-is (simpler, self-contained)
 - B) Refactor to use internal/dispatcher generic (consistent, DRY)
 - C) Something else entirely
@@ -196,24 +206,26 @@ Average:         72.7%
 
 ## File Statistics
 
-| Metric | Count |
-|--------|-------|
-| Total Go files | 35 |
-| Test files | 8 |
-| Production code | 27 |
+| Metric               | Count |
+| -------------------- | ----- |
+| Total Go files       | 35    |
+| Test files           | 8     |
+| Production code      | 27    |
 | Lines of code (est.) | ~3500 |
-| Test lines (est.) | ~1200 |
+| Test lines (est.)    | ~1200 |
 
 ---
 
 ## Recent Changes (Last 2 Commits)
 
 ### Commit 6439df2: docs(cli): remove auto-generated branching-flow CLI documentation
+
 - Removed 12 auto-generated docs from docs/CLI/
 - Added t.Parallel() to xtypes_test.go subtests
 - Rationale: Generated docs shouldn't be in VCS
 
 ### Commit 07a1573: ci(docs): add GitHub Actions, Makefile, and project documentation
+
 - Added .github/workflows/test.yml and lint.yml
 - Added Makefile with standard targets
 - Added CONTRIBUTING.md and CODE_OF_CONDUCT.md
@@ -224,16 +236,16 @@ Average:         72.7%
 
 ## Quality Gates Status
 
-| Gate | Status |
-|------|--------|
-| Tests pass | ✅ PASS |
-| Coverage > 70% | ✅ PASS (72.7%) |
-| Build succeeds | ✅ PASS |
-| Vet clean | ✅ PASS |
-| Lint | ⚠️ 14 warnings (acceptable) |
-| Files < 250 lines | ✅ PASS |
-| Functions < 30 lines | ✅ PASS |
-| No critical issues | ✅ PASS |
+| Gate                 | Status                      |
+| -------------------- | --------------------------- |
+| Tests pass           | ✅ PASS                     |
+| Coverage > 70%       | ✅ PASS (72.7%)             |
+| Build succeeds       | ✅ PASS                     |
+| Vet clean            | ✅ PASS                     |
+| Lint                 | ⚠️ 14 warnings (acceptable) |
+| Files < 250 lines    | ✅ PASS                     |
+| Functions < 30 lines | ✅ PASS                     |
+| No critical issues   | ✅ PASS                     |
 
 ---
 
@@ -261,12 +273,12 @@ Average:         72.7%
 
 ## Risk Assessment
 
-| Risk | Level | Mitigation |
-|------|-------|------------|
-| Low test coverage | Medium | Add tests for pkg/id, xtypes |
-| No production store | Medium | Implement SQL store |
-| No examples | Low | Add examples/ directory |
-| Architecture inconsistency | Low | Decide on query dispatcher approach |
+| Risk                       | Level  | Mitigation                          |
+| -------------------------- | ------ | ----------------------------------- |
+| Low test coverage          | Medium | Add tests for pkg/id, xtypes        |
+| No production store        | Medium | Implement SQL store                 |
+| No examples                | Low    | Add examples/ directory             |
+| Architecture inconsistency | Low    | Decide on query dispatcher approach |
 
 ---
 

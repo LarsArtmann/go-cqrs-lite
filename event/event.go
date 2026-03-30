@@ -85,14 +85,29 @@ func NewMetadata() *EventMetadata {
 	}
 }
 
-func (e *Core) ID() string                   { return e.id.String() }
-func (e *Core) Type() EventType              { return e.eventType }
-func (e *Core) AggregateID() string          { return e.aggregateID.String() }
+// ID returns the event ID.
+func (e *Core) ID() string { return e.id.String() }
+
+// Type returns the event type.
+func (e *Core) Type() EventType { return e.eventType }
+
+// AggregateID returns the aggregate ID.
+func (e *Core) AggregateID() string { return e.aggregateID.String() }
+
+// AggregateType returns the aggregate type.
 func (e *Core) AggregateType() AggregateType { return e.aggregateType }
-func (e *Core) Version() int                 { return e.version.Int() }
-func (e *Core) Payload() []byte              { return e.payload }
-func (e *Core) Metadata() *EventMetadata     { return e.metadata }
-func (e *Core) OccurredAt() time.Time        { return e.occurredAt }
+
+// Version returns the event version.
+func (e *Core) Version() int { return e.version.Int() }
+
+// Payload returns the event payload.
+func (e *Core) Payload() []byte { return e.payload }
+
+// Metadata returns the event metadata.
+func (e *Core) Metadata() *EventMetadata { return e.metadata }
+
+// OccurredAt returns when the event occurred.
+func (e *Core) OccurredAt() time.Time { return e.occurredAt }
 
 // NewEvent creates a new event with validation
 func NewEvent(
@@ -232,9 +247,10 @@ func WithUserAgent(ua UserAgent) EventOption {
 	}
 }
 
-// WithCustom sets a custom metadata field
+// MetadataKey represents a custom metadata key.
 type MetadataKey string
 
+// WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {

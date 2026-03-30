@@ -39,6 +39,7 @@ func TestParse(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid string", func(t *testing.T) {
+		t.Parallel()
 		id, err := Parse[AggregateID]("test-id-123")
 		if err != nil {
 			t.Fatalf("Parse() error = %v", err)
@@ -49,6 +50,7 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("empty string", func(t *testing.T) {
+		t.Parallel()
 		_, err := Parse[AggregateID]("")
 		if err == nil {
 			t.Error("Parse() should error on empty string")
@@ -60,6 +62,7 @@ func TestMustParse(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid string", func(t *testing.T) {
+		t.Parallel()
 		id := MustParse[AggregateID]("test-id")
 		if id.String() != "test-id" {
 			t.Errorf("MustParse() = %q, want %q", id.String(), "test-id")
@@ -67,6 +70,7 @@ func TestMustParse(t *testing.T) {
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
+		t.Parallel()
 		defer func() {
 			if r := recover(); r == nil {
 				t.Error("MustParse() should panic on empty string")
@@ -89,6 +93,7 @@ func TestIsEmpty(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty ID", func(t *testing.T) {
+		t.Parallel()
 		var id AggregateID
 		if !id.IsEmpty() {
 			t.Error("zero value ID should be empty")
@@ -96,6 +101,7 @@ func TestIsEmpty(t *testing.T) {
 	})
 
 	t.Run("non-empty ID", func(t *testing.T) {
+		t.Parallel()
 		id := MustParse[AggregateID]("test")
 		if id.IsEmpty() {
 			t.Error("parsed ID should not be empty")
@@ -107,6 +113,7 @@ func TestIsValid(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty ID", func(t *testing.T) {
+		t.Parallel()
 		var id AggregateID
 		if id.IsValid() {
 			t.Error("zero value ID should not be valid")
@@ -114,6 +121,7 @@ func TestIsValid(t *testing.T) {
 	})
 
 	t.Run("non-empty ID", func(t *testing.T) {
+		t.Parallel()
 		id := MustParse[AggregateID]("test")
 		if !id.IsValid() {
 			t.Error("parsed ID should be valid")
@@ -125,6 +133,7 @@ func TestJSON(t *testing.T) {
 	t.Parallel()
 
 	t.Run("marshal", func(t *testing.T) {
+		t.Parallel()
 		id := MustParse[AggregateID]("test-id")
 		data, err := json.Marshal(id)
 		if err != nil {
@@ -136,6 +145,7 @@ func TestJSON(t *testing.T) {
 	})
 
 	t.Run("unmarshal", func(t *testing.T) {
+		t.Parallel()
 		var id AggregateID
 		err := json.Unmarshal([]byte(`"test-id"`), &id)
 		if err != nil {
@@ -147,6 +157,7 @@ func TestJSON(t *testing.T) {
 	})
 
 	t.Run("unmarshal empty string", func(t *testing.T) {
+		t.Parallel()
 		var id AggregateID
 		err := json.Unmarshal([]byte(`""`), &id)
 		if err == nil {

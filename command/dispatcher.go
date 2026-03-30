@@ -31,7 +31,10 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		return errors.Wrapf(err, "registering command type %s", cmdType)
 	}
-	return d.inner.Register(string(cmdType), handler)
+	if err := d.inner.Register(string(cmdType), handler); err != nil {
+		return errors.Wrapf(err, "register handler for command type %s", cmdType)
+	}
+	return nil
 }
 
 // Dispatch sends a command to its registered handler.
@@ -54,5 +57,8 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	return d.inner.Lifecycle.Close()
+	if err := d.inner.Lifecycle.Close(); err != nil {
+		return errors.Wrapf(err, "close command dispatcher")
+	}
+	return nil
 }

@@ -3,6 +3,7 @@ package query
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
@@ -42,7 +43,8 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 }
 
 // Dispatch sends a query to its registered handler.
-func (d *Dispatcher) Dispatch(_ context.Context, query Query) (any, error) {
+func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
+	_ = ctx // Context available for tracing/logging but not required for basic dispatch
 	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		return nil, errors.Wrapf(err, "dispatching query %s", query.Type())
 	}
@@ -73,7 +75,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 	}
 	typed, ok := result.(T)
 	if !ok {
-		return zero, errors.Newf(
+		return zero, fmt.Errorf(
 			"unexpected result type for query %q: got %T, expected: %T",
 			query.Type(),
 			result,
@@ -85,5 +87,8 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	return d.lifecycle.Close()
+	if err := d.lifecycle.Close(); err != nil {
+		return errors.Wrapf(err, "close query dispatcher")
+	}
+	return nil
 }

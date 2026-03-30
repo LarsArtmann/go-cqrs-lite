@@ -2,6 +2,7 @@ package xtypes
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -64,5 +65,8 @@ func (a *TypedAggregate) MarkChangesAsCommitted() {
 
 // LoadFromHistory rebuilds aggregate state from events.
 func (a *TypedAggregate) LoadFromHistory(events []event.Event) error {
-	return a.core.LoadFromHistory(events)
+	if err := a.core.LoadFromHistory(events); err != nil {
+		return fmt.Errorf("load typed aggregate %s from history: %w", a.Type(), err)
+	}
+	return nil
 }

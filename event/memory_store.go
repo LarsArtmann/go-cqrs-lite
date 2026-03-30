@@ -30,7 +30,7 @@ func (s *MemoryStore) streamKey(aggregateType AggregateType, aggregateID id.Aggr
 
 // Save appends events to the aggregate's event stream
 func (s *MemoryStore) Save(
-	ctx context.Context,
+	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 	events []Event,
@@ -57,16 +57,29 @@ func (s *MemoryStore) Save(
 
 // Load retrieves all events for an aggregate
 func (s *MemoryStore) Load(
-	ctx context.Context,
+	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) ([]Event, error) {
-	return s.LoadFromVersion(ctx, aggregateType, aggregateID, Version(0))
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.closed {
+		return nil, ErrStoreClosed
+	}
+
+	key := s.streamKey(aggregateType, aggregateID)
+	events, exists := s.events[key]
+	if !exists {
+		return nil, ErrAggregateNotFound
+	}
+
+	return events[Version(0).Int():], nil
 }
 
 // LoadFromVersion retrieves events starting from a specific version
 func (s *MemoryStore) LoadFromVersion(
-	ctx context.Context,
+	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 	version Version,
@@ -93,7 +106,7 @@ func (s *MemoryStore) LoadFromVersion(
 
 // Delete removes all events for an aggregate
 func (s *MemoryStore) Delete(
-	ctx context.Context,
+	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) error {

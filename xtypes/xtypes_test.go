@@ -94,7 +94,6 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("creates typed aggregate", func(t *testing.T) {
 		t.Parallel()
-
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
@@ -111,17 +110,9 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("applies event", func(t *testing.T) {
 		t.Parallel()
-
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
-
-		evt, _ := NewEventBuilder(
-			"TestCreated",
-			aggregateID,
-			"TestAggregate",
-			1,
-		).Build()
-
+		evt, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
 		agg.ApplyEvent(context.Background(), evt)
 
 		if agg.Version() != 1 {
@@ -134,29 +125,15 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("loads from history", func(t *testing.T) {
 		t.Parallel()
-
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
-
-		evt1, _ := NewEventBuilder(
-			"TestCreated",
-			aggregateID,
-			"TestAggregate",
-			1,
-		).Build()
-
-		evt2, _ := NewEventBuilder(
-			"TestUpdated",
-			aggregateID,
-			"TestAggregate",
-			2,
-		).Build()
+		evt1, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
+		evt2, _ := NewEventBuilder("TestUpdated", aggregateID, "TestAggregate", 2).Build()
 
 		err := agg.LoadFromHistory([]event.Event{evt1.Event(), evt2.Event()})
 		if err != nil {
 			t.Fatalf("LoadFromHistory() error = %v", err)
 		}
-
 		if agg.Version() != 2 {
 			t.Errorf("Version should be 2, got %d", agg.Version())
 		}
