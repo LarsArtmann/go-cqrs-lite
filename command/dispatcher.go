@@ -10,32 +10,27 @@ import (
 
 // Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	handlers   map[Type]Handler
-	lifecycle  dispatcher.Lifecycle
-	middleware dispatcher.MiddlewareChain[Handler, Middleware]
+	dispatcher *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		handlers:   make(map[Type]Handler),
-		lifecycle:  dispatcher.Lifecycle{},
-		middleware: dispatcher.MiddlewareChain[Handler, Middleware]{},
+		dispatcher: dispatcher.NewDispatcher[Handler, Middleware](),
 	}
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.middleware.Add(middleware...)
+	d.dispatcher.Use(middleware...)
 }
 
 // Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
-	if err := d.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	if err := d.dispatcher.lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		return errors.Wrapf(err, "registering command type %s", cmdType)
 	}
-	d.handlers[cmdType] = handler
-	return nil
+	return d.dispatcher.Register(string(cmdType), handler)
 }
 
 // Dispatch sends a command to its registered handler.
