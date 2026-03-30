@@ -71,6 +71,13 @@ type Core struct {
 	occurredAt    time.Time
 }
 
+// NewMetadata creates an EventMetadata with all fields initialized.
+func NewMetadata() *EventMetadata {
+	return &EventMetadata{
+		Custom: make(map[MetadataKey]string),
+	}
+}
+
 func (e *Core) ID() string                   { return e.id.String() }
 func (e *Core) Type() EventType              { return e.eventType }
 func (e *Core) AggregateID() string          { return e.aggregateID.String() }
@@ -129,7 +136,7 @@ func NewEvent(
 		aggregateType: aggregateType,
 		version:       v,
 		payload:       payload,
-		metadata:      &EventMetadata{},
+		metadata:      NewMetadata(),
 		occurredAt:    time.Now(),
 	}
 
@@ -152,7 +159,7 @@ func WithMetadata(m *EventMetadata) EventOption {
 func WithCorrelationID(correlationID id.CorrelationID) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.CorrelationID = correlationID
 	}
