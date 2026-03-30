@@ -74,7 +74,14 @@ type Core struct {
 // NewMetadata creates an EventMetadata with all fields initialized.
 func NewMetadata() *EventMetadata {
 	return &EventMetadata{
-		Custom: make(map[MetadataKey]string),
+		CorrelationID: "",
+		CausationID:   "",
+		UserID:        "",
+		RequestID:     "",
+		Source:        "",
+		IPAddress:     "",
+		UserAgent:     "",
+		Custom:        make(map[MetadataKey]string),
 	}
 }
 

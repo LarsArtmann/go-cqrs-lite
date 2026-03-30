@@ -81,9 +81,15 @@ type Dispatcher[H any, M any] struct {
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		Handlers:   make(map[string]H),
-		Lifecycle:  Lifecycle{},
-		Middleware: MiddlewareChain[H, M]{},
+		Handlers: make(map[string]H),
+		Lifecycle: Lifecycle{
+			mu:     sync.RWMutex{},
+			closed: false,
+		},
+		Middleware: MiddlewareChain[H, M]{
+			mu:         sync.RWMutex{},
+			middleware: nil,
+		},
 	}
 }
 
