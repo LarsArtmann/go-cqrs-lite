@@ -79,7 +79,7 @@ type Dispatcher[H any, M any] struct {
 }
 
 // NewDispatcher creates a new dispatcher.
-func NewDispatcher[H any, M any]() *Dispatcher[H, M] {
+func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
 		Handlers:   make(map[string]H),
 		Lifecycle:  Lifecycle{},

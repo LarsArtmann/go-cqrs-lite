@@ -10,14 +10,14 @@
 
 The project has **adequate unit tests** but **lacks true BDD-style tests** written from the end-user perspective. Tests are implementation-focused rather than behavior-focused. **Ginkgo is not being used**.
 
-| Category                    | Status      | Score |
-| --------------------------- | ----------- | ----- |
-| Ginkgo Usage                | Not using   | 0/5   |
-| BDD Style (Given-When-Then) | Absent      | 1/5   |
-| End-User Perspective        | Weak        | 2/5   |
-| Coverage of User Stories    | Minimal     | 2/5   |
-| Integration Tests           | Missing     | 1/5   |
-| Documentation Value         | Low         | 2/5   |
+| Category                    | Status         | Score     |
+| --------------------------- | -------------- | --------- |
+| Ginkgo Usage                | Not using      | 0/5       |
+| BDD Style (Given-When-Then) | Absent         | 1/5       |
+| End-User Perspective        | Weak           | 2/5       |
+| Coverage of User Stories    | Minimal        | 2/5       |
+| Integration Tests           | Missing        | 1/5       |
+| Documentation Value         | Low            | 2/5       |
 | **Overall**                 | **Needs Work** | **1.3/5** |
 
 ---
@@ -26,16 +26,16 @@ The project has **adequate unit tests** but **lacks true BDD-style tests** writt
 
 ### Test Files (8 files, ~51 test functions)
 
-| File                         | Tests | Style        | t.Parallel() |
-| ---------------------------- | ----- | ------------ | ------------ |
-| `command/command_test.go`    | 7     | Unit/Assert  | Missing      |
-| `query/query_test.go`        | 8     | Unit/Assert  | Missing      |
-| `event/event_test.go`        | 6     | Unit/Table   | Missing      |
-| `event/memory_bus_test.go`   | 4     | Unit/Assert  | Missing      |
-| `event/memory_store_test.go` | 5     | Unit/Assert  | Missing      |
-| `aggregate/aggregate_test.go`| 2     | Unit/Assert  | Missing      |
-| `pkg/id/id_test.go`          | 13    | Unit/Table   | Good         |
-| `xtypes/xtypes_test.go`      | 6     | Unit/Table   | Good         |
+| File                          | Tests | Style       | t.Parallel() |
+| ----------------------------- | ----- | ----------- | ------------ |
+| `command/command_test.go`     | 7     | Unit/Assert | Missing      |
+| `query/query_test.go`         | 8     | Unit/Assert | Missing      |
+| `event/event_test.go`         | 6     | Unit/Table  | Missing      |
+| `event/memory_bus_test.go`    | 4     | Unit/Assert | Missing      |
+| `event/memory_store_test.go`  | 5     | Unit/Assert | Missing      |
+| `aggregate/aggregate_test.go` | 2     | Unit/Assert | Missing      |
+| `pkg/id/id_test.go`           | 13    | Unit/Table  | Good         |
+| `xtypes/xtypes_test.go`       | 6     | Unit/Table  | Good         |
 
 ### Ginkgo Status
 
@@ -56,6 +56,7 @@ github.com/google/uuid
 ### 1. Missing BDD Structure
 
 **Current approach:**
+
 ```go
 func TestDispatcher_Dispatch(t *testing.T) {
     dispatcher := command.NewDispatcher()
@@ -64,6 +65,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 ```
 
 **BDD approach (what's missing):**
+
 ```go
 Describe("Command Dispatcher", func() {
     Context("when a handler is registered", func() {
@@ -88,6 +90,7 @@ No tests answer questions like:
 ### 3. Missing Integration Tests
 
 The TODO_LIST.md mentions Phase 7.2 integration tests but they don't exist:
+
 - Full CQRS flow test
 - Event sourcing roundtrip test
 - Middleware chain test
@@ -95,6 +98,7 @@ The TODO_LIST.md mentions Phase 7.2 integration tests but they don't exist:
 ### 4. Missing Example Tests
 
 No `example/` directory with:
+
 - User aggregate example
 - Complete working example test
 - Real-world usage patterns
@@ -160,6 +164,7 @@ Describe("Event Sourcing", func() {
 ### Priority 1: Add Ginkgo (High Impact)
 
 **Why Ginkgo:**
+
 - Native BDD syntax (Describe/Context/It)
 - Better test organization
 - Built-in lifecycle hooks (BeforeEach/AfterEach)
@@ -167,6 +172,7 @@ Describe("Event Sourcing", func() {
 - Widely adopted in Go ecosystem
 
 **Implementation:**
+
 ```bash
 go get github.com/onsi/ginkgo/v2
 go get github.com/onsi/gomega
@@ -175,6 +181,7 @@ go get github.com/onsi/gomega
 ### Priority 2: Create User Story Tests (High Impact)
 
 Create `event/event_bdd_test.go`:
+
 ```go
 Describe("Event Creation", func() {
     Context("as a developer building an event-sourced system", func() {
@@ -188,6 +195,7 @@ Describe("Event Creation", func() {
 ### Priority 3: Add Integration Tests (Medium Impact)
 
 Create `integration_test.go` at root level:
+
 - Full CQRS flow (command -> handler -> event -> store -> bus)
 - Event sourcing roundtrip (save -> load -> rebuild)
 - Middleware chain (logging -> recovery -> validation)
@@ -195,6 +203,7 @@ Create `integration_test.go` at root level:
 ### Priority 4: Add Example Tests (Medium Impact)
 
 Create `example/user/` with:
+
 - Complete user aggregate
 - Command handlers
 - Query handlers
@@ -205,16 +214,16 @@ Create `example/user/` with:
 
 ## Action Items
 
-| # | Task                                          | Priority | Est. Time |
-| - | --------------------------------------------- | -------- | --------- |
-| 1 | Add Ginkgo + Gomega dependencies              | High     | 5 min     |
-| 2 | Create `command/command_bdd_test.go`          | High     | 30 min    |
-| 3 | Create `query/query_bdd_test.go`              | High     | 30 min    |
-| 4 | Create `event/event_bdd_test.go`              | High     | 30 min    |
-| 5 | Create `integration_bdd_test.go`              | High     | 45 min    |
-| 6 | Add `example/user/` directory                 | Medium   | 1 hour    |
-| 7 | Add missing `t.Parallel()` to existing tests  | Low      | 15 min    |
-| 8 | Document testing approach in AGENTS.md        | Low      | 10 min    |
+| #   | Task                                         | Priority | Est. Time |
+| --- | -------------------------------------------- | -------- | --------- |
+| 1   | Add Ginkgo + Gomega dependencies             | High     | 5 min     |
+| 2   | Create `command/command_bdd_test.go`         | High     | 30 min    |
+| 3   | Create `query/query_bdd_test.go`             | High     | 30 min    |
+| 4   | Create `event/event_bdd_test.go`             | High     | 30 min    |
+| 5   | Create `integration_bdd_test.go`             | High     | 45 min    |
+| 6   | Add `example/user/` directory                | Medium   | 1 hour    |
+| 7   | Add missing `t.Parallel()` to existing tests | Low      | 15 min    |
+| 8   | Document testing approach in AGENTS.md       | Low      | 10 min    |
 
 **Total Estimated Time:** ~3.5 hours
 
@@ -245,6 +254,7 @@ Create `example/user/` with:
 ## Conclusion
 
 The current test suite provides **good unit test coverage** but fails to deliver **BDD-style tests** that:
+
 1. Document how developers use the library
 2. Test behavior from the end-user perspective
 3. Provide living documentation through test names
