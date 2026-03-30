@@ -9,6 +9,8 @@ import (
 )
 
 func TestNewEvent_Valid(t *testing.T) {
+	t.Parallel()
+
 	evt, err := event.NewEvent(
 		"UserCreated",
 		"user-123",
@@ -37,6 +39,8 @@ func TestNewEvent_Valid(t *testing.T) {
 }
 
 func TestNewEvent_MissingAggregateID(t *testing.T) {
+	t.Parallel()
+
 	_, err := event.NewEvent("UserCreated", "", "User", 1, nil)
 	if err == nil {
 		t.Error("expected error for missing aggregate ID")
@@ -44,6 +48,8 @@ func TestNewEvent_MissingAggregateID(t *testing.T) {
 }
 
 func TestNewEvent_MissingAggregateType(t *testing.T) {
+	t.Parallel()
+
 	_, err := event.NewEvent("UserCreated", "user-123", "", 1, nil)
 	if err == nil {
 		t.Error("expected error for missing aggregate type")
@@ -51,6 +57,8 @@ func TestNewEvent_MissingAggregateType(t *testing.T) {
 }
 
 func TestNewEvent_NegativeVersion(t *testing.T) {
+	t.Parallel()
+
 	_, err := event.NewEvent("UserCreated", "user-123", "User", -1, nil)
 	if err == nil {
 		t.Error("expected error for negative version")
@@ -58,6 +66,8 @@ func TestNewEvent_NegativeVersion(t *testing.T) {
 }
 
 func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		eventType     event.EventType
@@ -94,6 +104,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := event.NewEvent(
 				tt.eventType,
 				tt.aggregateID,
@@ -116,6 +127,8 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 }
 
 func TestEventOptions(t *testing.T) {
+	t.Parallel()
+
 	evt, err := event.NewEvent(
 		"TestEvent",
 		id.AggregateID("agg-123"),

@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewQuery(t *testing.T) {
+	t.Parallel()
+
 	q := query.New("GetUser")
 
 	if q.Type() != "GetUser" {
@@ -16,13 +18,17 @@ func TestNewQuery(t *testing.T) {
 }
 
 func TestBaseQuery_ImplementsInterface(t *testing.T) {
+	t.Parallel()
+
 	var _ query.Query = query.New("TestQuery")
 }
 
 func TestDispatcher_Register(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
-	handler := func(q query.Query) (any, error) {
+	handler := func(_ query.Query) (any, error) {
 		return "result", nil
 	}
 
@@ -33,9 +39,11 @@ func TestDispatcher_Register(t *testing.T) {
 }
 
 func TestDispatcher_Dispatch(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetUser", func(q query.Query) (any, error) {
+	_ = dispatcher.Register("GetUser", func(_ query.Query) (any, error) {
 		return "user-123", nil
 	})
 
@@ -51,6 +59,8 @@ func TestDispatcher_Dispatch(t *testing.T) {
 }
 
 func TestDispatcher_Dispatch_QueryNotSupported(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
 	q := query.New("UnknownQuery")
@@ -61,9 +71,11 @@ func TestDispatcher_Dispatch_QueryNotSupported(t *testing.T) {
 }
 
 func TestDispatchTyped(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetUserName", func(q query.Query) (any, error) {
+	_ = dispatcher.Register("GetUserName", func(_ query.Query) (any, error) {
 		return "John Doe", nil
 	})
 
@@ -79,9 +91,11 @@ func TestDispatchTyped(t *testing.T) {
 }
 
 func TestDispatchTyped_WrongType(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetCount", func(q query.Query) (any, error) {
+	_ = dispatcher.Register("GetCount", func(_ query.Query) (any, error) {
 		return 42, nil
 	})
 
@@ -105,6 +119,8 @@ func makeTestMiddleware(
 }
 
 func TestDispatcher_Middleware(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 
 	var callOrder []string
@@ -114,7 +130,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		makeTestMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = dispatcher.Register("TestQuery", func(q query.Query) (any, error) {
+	_ = dispatcher.Register("TestQuery", func(_ query.Query) (any, error) {
 		callOrder = append(callOrder, "handler")
 		return "result", nil
 	})
@@ -132,10 +148,12 @@ func TestDispatcher_Middleware(t *testing.T) {
 }
 
 func TestDispatcher_Closed(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := query.NewDispatcher()
 	_ = dispatcher.Close()
 
-	handler := func(q query.Query) (any, error) { return nil, nil }
+	handler := func(_ query.Query) (any, error) { return nil, nil }
 
 	err := dispatcher.Register("TestQuery", handler)
 	if err == nil {

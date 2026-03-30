@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewCommand(t *testing.T) {
+	t.Parallel()
+
 	cmd := command.New("CreateUser", "user-123")
 
 	if cmd.Type() != "CreateUser" {
@@ -20,13 +22,17 @@ func TestNewCommand(t *testing.T) {
 }
 
 func TestBaseCommand_ImplementsInterface(t *testing.T) {
+	t.Parallel()
+
 	var _ command.Command = command.New("TestCommand", "test-id")
 }
 
 func TestDispatcher_Register(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := command.NewDispatcher()
 
-	handler := func(ctx context.Context, cmd command.Command) error {
+	handler := func(_ context.Context, _ command.Command) error {
 		return nil
 	}
 
@@ -37,11 +43,13 @@ func TestDispatcher_Register(t *testing.T) {
 }
 
 func TestDispatcher_Dispatch(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
 	executed := false
-	handler := func(ctx context.Context, cmd command.Command) error {
+	handler := func(_ context.Context, _ command.Command) error {
 		executed = true
 		return nil
 	}
@@ -60,6 +68,8 @@ func TestDispatcher_Dispatch(t *testing.T) {
 }
 
 func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
@@ -81,6 +91,8 @@ func testMiddleware(callOrder *[]string, name string) func(h command.Handler) co
 }
 
 func TestDispatcher_Middleware(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
@@ -91,7 +103,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		testMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = dispatcher.Register("TestCommand", func(ctx context.Context, cmd command.Command) error {
+	_ = dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
 		callOrder = append(callOrder, "handler")
 		return nil
 	})
@@ -109,10 +121,12 @@ func TestDispatcher_Middleware(t *testing.T) {
 }
 
 func TestDispatcher_Closed(t *testing.T) {
+	t.Parallel()
+
 	dispatcher := command.NewDispatcher()
 	_ = dispatcher.Close()
 
-	handler := func(ctx context.Context, cmd command.Command) error { return nil }
+	handler := func(_ context.Context, _ command.Command) error { return nil }
 
 	err := dispatcher.Register("TestCommand", handler)
 	if err == nil {

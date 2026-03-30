@@ -8,6 +8,8 @@ import (
 )
 
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 
@@ -37,6 +39,8 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 }
 
 func TestMemoryStore_VersionConflict(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 
@@ -50,6 +54,8 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 }
 
 func TestMemoryStore_AggregateNotFound(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 
@@ -60,6 +66,8 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 }
 
 func TestMemoryStore_LoadFromVersion(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 
@@ -80,6 +88,8 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 }
 
 func TestMemoryStore_Delete(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 
@@ -98,6 +108,8 @@ func TestMemoryStore_Delete(t *testing.T) {
 }
 
 func TestMemoryStore_Closed(t *testing.T) {
+	t.Parallel()
+
 	store := event.NewMemoryStore()
 	ctx := context.Background()
 

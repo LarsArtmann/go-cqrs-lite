@@ -8,11 +8,13 @@ import (
 )
 
 func TestMemoryBus_Publish(t *testing.T) {
+	t.Parallel()
+
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
 	received := make([]event.Event, 0)
-	handler := func(ctx context.Context, evt event.Event) error {
+	handler := func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
 		return nil
 	}
@@ -34,11 +36,13 @@ func TestMemoryBus_Publish(t *testing.T) {
 }
 
 func TestMemoryBus_SubscribeAll(t *testing.T) {
+	t.Parallel()
+
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
 	received := make([]event.Event, 0)
-	handler := func(ctx context.Context, evt event.Event) error {
+	handler := func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
 		return nil
 	}
@@ -72,6 +76,8 @@ func testMiddleware(callOrder *[]string, name string) func(h event.Handler) even
 }
 
 func TestMemoryBus_Middleware(t *testing.T) {
+	t.Parallel()
+
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
@@ -82,7 +88,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		testMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = bus.Subscribe("TestEvent", func(ctx context.Context, evt event.Event) error {
+	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
 		callOrder = append(callOrder, "handler")
 		return nil
 	})
@@ -101,10 +107,12 @@ func TestMemoryBus_Middleware(t *testing.T) {
 }
 
 func TestMemoryBus_Closed(t *testing.T) {
+	t.Parallel()
+
 	bus := event.NewMemoryBus()
 	_ = bus.Close()
 
-	handler := func(ctx context.Context, evt event.Event) error { return nil }
+	handler := func(_ context.Context, _ event.Event) error { return nil }
 
 	err := bus.Subscribe("TestEvent", handler)
 	if err == nil {

@@ -8,6 +8,8 @@ import (
 )
 
 func TestCore(t *testing.T) {
+	t.Parallel()
+
 	base := aggregate.NewCore("user-123", event.AggregateType("User"))
 	if base.ID() != "user-123" {
 		t.Errorf("expected ID user-123, got %s", base.ID())
@@ -21,6 +23,8 @@ func TestCore(t *testing.T) {
 }
 
 func TestCoreLoadFromHistory(t *testing.T) {
+	t.Parallel()
+
 	base := aggregate.NewCore("user-123", event.AggregateType("User"))
 
 	evt, err := event.NewEvent("UserCreated", "user-123", "User", 1, nil)
