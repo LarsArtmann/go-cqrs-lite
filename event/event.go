@@ -169,7 +169,7 @@ func WithCorrelationID(correlationID id.CorrelationID) EventOption {
 func WithCausationID(causationID id.CausationID) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.CausationID = causationID
 	}
@@ -179,7 +179,7 @@ func WithCausationID(causationID id.CausationID) EventOption {
 func WithUserID(userID id.UserID) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.UserID = userID
 	}
@@ -189,7 +189,7 @@ func WithUserID(userID id.UserID) EventOption {
 func WithRequestID(requestID id.RequestID) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.RequestID = requestID
 	}
@@ -199,7 +199,7 @@ func WithRequestID(requestID id.RequestID) EventOption {
 func WithSource(source Source) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.Source = source
 	}
@@ -209,7 +209,7 @@ func WithSource(source Source) EventOption {
 func WithIPAddress(ip IPAddress) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.IPAddress = ip
 	}
@@ -219,7 +219,7 @@ func WithIPAddress(ip IPAddress) EventOption {
 func WithUserAgent(ua UserAgent) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		e.metadata.UserAgent = ua
 	}
@@ -231,7 +231,7 @@ type MetadataKey string
 func WithCustom(key MetadataKey, value string) EventOption {
 	return func(e *Core) {
 		if e.metadata == nil {
-			e.metadata = &EventMetadata{}
+			e.metadata = NewMetadata()
 		}
 		if e.metadata.Custom == nil {
 			e.metadata.Custom = make(map[MetadataKey]string)
