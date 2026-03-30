@@ -12,6 +12,8 @@ func TestEventBuilder(t *testing.T) {
 	t.Parallel()
 
 	t.Run("builds event with type safety", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		aggregateType := event.AggregateType("TestAggregate")
 
@@ -35,6 +37,8 @@ func TestEventBuilder(t *testing.T) {
 	})
 
 	t.Run("errors on empty aggregate ID", func(t *testing.T) {
+		t.Parallel()
+
 		var emptyID id.AggregateID
 
 		_, err := NewEventBuilder(
@@ -50,6 +54,8 @@ func TestEventBuilder(t *testing.T) {
 	})
 
 	t.Run("errors on negative version", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 
 		_, err := NewEventBuilder(
@@ -69,6 +75,8 @@ func TestTypedCommand(t *testing.T) {
 	t.Parallel()
 
 	t.Run("creates typed command", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		cmd := NewTypedCommand("CreateTest", aggregateID)
 
@@ -85,6 +93,8 @@ func TestTypedAggregate(t *testing.T) {
 	t.Parallel()
 
 	t.Run("creates typed aggregate", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
@@ -100,6 +110,8 @@ func TestTypedAggregate(t *testing.T) {
 	})
 
 	t.Run("applies event", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
@@ -121,6 +133,8 @@ func TestTypedAggregate(t *testing.T) {
 	})
 
 	t.Run("loads from history", func(t *testing.T) {
+		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
