@@ -2,25 +2,23 @@ package event
 
 import (
 	"context"
-	"sync"
 
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 // MemoryStore is an in-memory implementation of Store for testing and development
 type MemoryStore struct {
-	mu     sync.RWMutex
+	dispatcher.LifecycleMixin
 	events map[string][]Event
-	closed bool
 }
 
 // NewMemoryStore creates a new in-memory event store
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		mu:     sync.RWMutex{},
-		events: make(map[string][]Event),
-		closed: false,
+		LifecycleMixin: dispatcher.LifecycleMixin{},
+		events:         make(map[string][]Event),
 	}
 }
 
@@ -36,11 +34,8 @@ func (s *MemoryStore) Save(
 	events []Event,
 	expectedVersion Version,
 ) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.closed {
-		return ErrStoreClosed
+	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+		return err
 	}
 
 	key := s.streamKey(aggregateType, aggregateID)
@@ -61,11 +56,8 @@ func (s *MemoryStore) Load(
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) ([]Event, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.closed {
-		return nil, ErrStoreClosed
+	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+		return nil, err
 	}
 
 	key := s.streamKey(aggregateType, aggregateID)
@@ -84,11 +76,8 @@ func (s *MemoryStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version Version,
 ) ([]Event, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.closed {
-		return nil, ErrStoreClosed
+	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+		return nil, err
 	}
 
 	key := s.streamKey(aggregateType, aggregateID)
@@ -110,11 +99,8 @@ func (s *MemoryStore) Delete(
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.closed {
-		return ErrStoreClosed
+	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+		return err
 	}
 
 	key := s.streamKey(aggregateType, aggregateID)
@@ -124,8 +110,5 @@ func (s *MemoryStore) Delete(
 
 // Close marks the store as closed
 func (s *MemoryStore) Close() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.closed = true
-	return nil
+	return s.LifecycleMixin.Close()
 }

@@ -7,10 +7,40 @@ import (
 	"sync"
 )
 
-// Lifecycle manages the closed state of a dispatcher with thread-safe access.
-type Lifecycle struct {
+// LifecycleMixin provides thread-safe closed state management for composable types.
+type LifecycleMixin struct {
 	mu     sync.RWMutex
 	closed bool
+}
+
+// Close marks the lifecycle as closed. It is safe to call multiple times.
+func (m *LifecycleMixin) Close() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.closed = true
+	return nil
+}
+
+// IsClosed returns true if the lifecycle has been closed.
+func (m *LifecycleMixin) IsClosed() bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.closed
+}
+
+// CheckClosed returns an error if the lifecycle is closed, or nil otherwise.
+func (m *LifecycleMixin) CheckClosed(closedErr error) error {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if m.closed {
+		return closedErr
+	}
+	return nil
+}
+
+// Lifecycle manages the closed state of a dispatcher with thread-safe access.
+type Lifecycle struct {
+	LifecycleMixin
 }
 
 // Close marks the lifecycle as closed. It is safe to call multiple times.
@@ -84,8 +114,10 @@ func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
 		Handlers: make(map[string]H),
 		Lifecycle: Lifecycle{
-			mu:     sync.RWMutex{},
-			closed: false,
+			LifecycleMixin: LifecycleMixin{
+				mu:     sync.RWMutex{},
+				closed: false,
+			},
 		},
 		Middleware: MiddlewareChain[H, M]{
 			mu:         sync.RWMutex{},
