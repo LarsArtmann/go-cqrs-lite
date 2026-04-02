@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -129,4 +130,63 @@ func TestMemoryBus_Closed(t *testing.T) {
 	if err == nil {
 		t.Error("expected bus closed error")
 	}
+}
+
+func TestMemoryBus_HandlerError(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewMemoryBus()
+	ctx := context.Background()
+
+	handlerErr := func(_ context.Context, _ event.Event) error {
+		return fmt.Errorf("handler failed")
+	}
+
+	_ = bus.Subscribe("TestEvent", handlerErr)
+
+	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	err := bus.Publish(ctx, evt)
+	if err == nil {
+		t.Error("expected handler error to propagate")
+	}
+}
+
+func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewMemoryBus()
+	ctx := context.Background()
+
+	handlerErr := func(_ context.Context, _ event.Event) error {
+		return fmt.Errorf("all-handler failed")
+	}
+
+	_ = bus.SubscribeAll(handlerErr)
+
+	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	err := bus.Publish(ctx, evt)
+	if err == nil {
+		t.Error("expected all-handler error to propagate")
+	}
+}
+
+func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewMemoryBus()
+	ctx := context.Background()
+
+	callCount := 0
+	_ = bus.Subscribe("FailEvent", func(_ context.Context, _ event.Event) error {
+		return fmt.Errorf("fail")
+	})
+
+	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)
+	evt2, _ := event.NewEvent("FailEvent", "test-1", "Test", 1, nil)
+
+	err := bus.Publish(ctx, evt1, evt2)
+	if err == nil {
+		t.Error("expected error when second event fails")
+	}
+	_ = callCount
 }

@@ -174,3 +174,43 @@ func TestEventOptions(t *testing.T) {
 		t.Errorf("expected custom key1=value1, got %s", m.Custom["key1"])
 	}
 }
+
+func TestNewMetadata(t *testing.T) {
+	t.Parallel()
+
+	m := event.NewMetadata()
+	if m == nil {
+		t.Fatal("NewMetadata() should return non-nil")
+	}
+	if m.Custom == nil {
+		t.Error("Custom map should be initialized")
+	}
+	if m.CorrelationID != "" {
+		t.Errorf("CorrelationID should be empty, got %s", m.CorrelationID)
+	}
+}
+
+func TestEventAccessors(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		"user-123",
+		"User",
+		1,
+		[]byte(`{"name":"John"}`),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Payload() == nil || string(evt.Payload()) != `{"name":"John"}` {
+		t.Errorf("expected payload, got %v", evt.Payload())
+	}
+	if evt.OccurredAt().IsZero() {
+		t.Error("OccurredAt should not be zero")
+	}
+	if evt.Metadata() == nil {
+		t.Error("Metadata should not be nil")
+	}
+}

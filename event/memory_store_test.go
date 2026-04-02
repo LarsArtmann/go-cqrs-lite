@@ -121,3 +121,72 @@ func TestMemoryStore_Closed(t *testing.T) {
 		t.Error("expected store closed error")
 	}
 }
+
+func TestMemoryStore_ClosedLoad(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+	_ = store.Close()
+
+	_, err := store.Load(ctx, "User", "user-1")
+	if err == nil {
+		t.Error("expected store closed error on Load")
+	}
+}
+
+func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+	_ = store.Close()
+
+	_, err := store.LoadFromVersion(ctx, "User", "user-1", 0)
+	if err == nil {
+		t.Error("expected store closed error on LoadFromVersion")
+	}
+}
+
+func TestMemoryStore_ClosedDelete(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+	_ = store.Close()
+
+	err := store.Delete(ctx, "User", "user-1")
+	if err == nil {
+		t.Error("expected store closed error on Delete")
+	}
+}
+
+func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+
+	_, err := store.LoadFromVersion(ctx, "User", "nonexistent", 0)
+	if err == nil {
+		t.Error("expected aggregate not found error")
+	}
+}
+
+func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+
+	evt, _ := event.NewEvent("UserCreated", "user-4", "User", 0, nil)
+	_ = store.Save(ctx, "User", "user-4", []event.Event{evt}, 0)
+
+	events, err := store.LoadFromVersion(ctx, "User", "user-4", 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(events) != 0 {
+		t.Errorf("expected 0 events past end, got %d", len(events))
+	}
+}
