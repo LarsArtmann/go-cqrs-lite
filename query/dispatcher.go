@@ -46,7 +46,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 		return nil, errors.Wrapf(err, "dispatching query %s", query.Type())
 	}
 
-	handler, ok := d.inner.Handlers[string(query.Type())]
+	handler, ok := d.inner.GetHandler(string(query.Type()))
 	if !ok {
 		return nil, errors.Wrapf(ErrQueryNotSupported, "query type: %s", query.Type())
 	}

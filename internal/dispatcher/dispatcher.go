@@ -104,7 +104,8 @@ func (c *MiddlewareChain[H, M]) Middleware() []M {
 
 // Dispatcher is a generic dispatcher that routes requests to their handlers.
 type Dispatcher[H any, M any] struct {
-	Handlers   map[string]H
+	handlers   map[string]H
+	handlersMu sync.RWMutex
 	Lifecycle  Lifecycle
 	Middleware MiddlewareChain[H, M]
 }
@@ -112,7 +113,7 @@ type Dispatcher[H any, M any] struct {
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		Handlers: make(map[string]H),
+		handlers: make(map[string]H),
 		Lifecycle: Lifecycle{
 			LifecycleMixin: LifecycleMixin{
 				mu:     sync.RWMutex{},
@@ -136,8 +137,18 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 	if err := d.Lifecycle.CheckClosed(ErrHandlerNotFound); err != nil {
 		return fmt.Errorf("dispatcher is closed: %w", err)
 	}
-	d.Handlers[t] = handler
+	d.handlersMu.Lock()
+	defer d.handlersMu.Unlock()
+	d.handlers[t] = handler
 	return nil
+}
+
+// GetHandler returns the handler for a type and whether it exists.
+func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
+	d.handlersMu.RLock()
+	defer d.handlersMu.RUnlock()
+	h, ok := d.handlers[t]
+	return h, ok
 }
 
 // Dispatch sends a request to its registered handler and returns the wrapped handler.
@@ -148,7 +159,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error)
 		return zero, fmt.Errorf("dispatcher is closed: %w", err)
 	}
 
-	h, ok := d.Handlers[t]
+	h, ok := d.GetHandler(t)
 	if !ok {
 		var zero H
 		return zero, fmt.Errorf("handler not found for type: %s", t)

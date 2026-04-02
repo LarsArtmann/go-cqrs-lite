@@ -163,8 +163,8 @@ func TestNewDispatcher(t *testing.T) {
 	if d == nil {
 		t.Fatal("NewDispatcher() returned nil")
 	}
-	if d.Handlers == nil {
-		t.Error("Handlers map should be initialized")
+	if _, ok := d.GetHandler("nonexistent"); ok {
+		t.Error("should not find handler for unregistered type")
 	}
 }
 
@@ -191,7 +191,7 @@ func TestDispatcher_Register(t *testing.T) {
 	if err := d.Register("test", handler); err != nil {
 		t.Errorf("Register() error = %v", err)
 	}
-	if d.Handlers["test"] == nil {
+	if h, ok := d.GetHandler("test"); !ok || h == nil {
 		t.Error("handler should be registered")
 	}
 }

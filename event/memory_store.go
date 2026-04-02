@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"sync"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
@@ -11,6 +12,7 @@ import (
 // MemoryStore is an in-memory implementation of Store for testing and development
 type MemoryStore struct {
 	dispatcher.LifecycleMixin
+	mu     sync.RWMutex
 	events map[string][]Event
 }
 
@@ -40,6 +42,9 @@ func (s *MemoryStore) Save(
 		return err
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	key := s.streamKey(aggregateType, aggregateID)
 	existing := s.events[key]
 
@@ -62,13 +67,16 @@ func (s *MemoryStore) Load(
 		return nil, err
 	}
 
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	key := s.streamKey(aggregateType, aggregateID)
 	events, exists := s.events[key]
 	if !exists {
 		return nil, ErrAggregateNotFound
 	}
 
-	return events[Version(0).Int():], nil
+	return events, nil
 }
 
 // LoadFromVersion retrieves events starting from a specific version
@@ -81,6 +89,9 @@ func (s *MemoryStore) LoadFromVersion(
 	if err := s.CheckClosed(ErrStoreClosed); err != nil {
 		return nil, err
 	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	key := s.streamKey(aggregateType, aggregateID)
 	events, exists := s.events[key]
@@ -104,6 +115,9 @@ func (s *MemoryStore) Delete(
 	if err := s.CheckClosed(ErrStoreClosed); err != nil {
 		return err
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	key := s.streamKey(aggregateType, aggregateID)
 	delete(s.events, key)

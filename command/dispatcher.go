@@ -43,7 +43,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		return errors.Wrapf(err, "dispatching command %s", cmd.Type())
 	}
 
-	handler, ok := d.inner.Handlers[string(cmd.Type())]
+	handler, ok := d.inner.GetHandler(string(cmd.Type()))
 	if !ok {
 		return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
 	}
