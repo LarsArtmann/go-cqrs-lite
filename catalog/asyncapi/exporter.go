@@ -79,7 +79,7 @@ func (e *Exporter) addCommand(doc *Document, svcID string, msg catalog.Message) 
 	ref := "#/components/messages/" + id
 
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.commands.%s", svcID, toSnakeCase(id)),
+		Address:     fmt.Sprintf("%s.commands.%s", svcID, toDotAddress(id)),
 		Title:       msg.Name + " Command Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{"command": {Ref: ref}},
@@ -112,7 +112,7 @@ func (e *Exporter) addEvent(doc *Document, svcID string, msg catalog.Message) {
 	ref := "#/components/messages/" + id
 
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.events.%s", svcID, toSnakeCase(id)),
+		Address:     fmt.Sprintf("%s.events.%s", svcID, toDotAddress(id)),
 		Title:       msg.Name + " Event Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{"event": {Ref: ref}},
@@ -145,7 +145,7 @@ func (e *Exporter) addQuery(doc *Document, svcID string, msg catalog.Message) {
 	ref := "#/components/messages/" + id
 
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.queries.%s", svcID, toSnakeCase(id)),
+		Address:     fmt.Sprintf("%s.queries.%s", svcID, toDotAddress(id)),
 		Title:       msg.Name + " Query Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{"query": {Ref: ref}},
@@ -214,7 +214,7 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent((*alias)(d), "", "  ")
 }
 
-func toSnakeCase(s string) string {
+func toDotAddress(s string) string {
 	var result []byte
 	for i, c := range s {
 		if c >= 'A' && c <= 'Z' {

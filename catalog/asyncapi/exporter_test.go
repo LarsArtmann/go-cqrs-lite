@@ -342,7 +342,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	}
 }
 
-func TestToSnakeCase(t *testing.T) {
+func TestToDotAddress(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		input string
@@ -354,9 +354,9 @@ func TestToSnakeCase(t *testing.T) {
 		{"GetProductByID", "get.product.by.i.d"},
 	}
 	for _, tt := range tests {
-		got := toSnakeCase(tt.input)
+		got := toDotAddress(tt.input)
 		if got != tt.want {
-			t.Errorf("toSnakeCase(%q) = %q, want %q", tt.input, got, tt.want)
+			t.Errorf("toDotAddress(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }
