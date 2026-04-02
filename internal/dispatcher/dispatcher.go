@@ -133,8 +133,8 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 
 // Register binds a handler to a type.
 func (d *Dispatcher[H, M]) Register(t string, handler H) error {
-	if err := d.Lifecycle.CheckClosed(nil); err != nil {
-		return err
+	if err := d.Lifecycle.CheckClosed(ErrHandlerNotFound); err != nil {
+		return fmt.Errorf("dispatcher is closed: %w", err)
 	}
 	d.Handlers[t] = handler
 	return nil
@@ -143,9 +143,9 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 // Dispatch sends a request to its registered handler and returns the wrapped handler.
 // The caller is responsible for invoking the wrapped handler with appropriate arguments.
 func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error) {
-	if err := d.Lifecycle.CheckClosed(nil); err != nil {
+	if err := d.Lifecycle.CheckClosed(ErrHandlerNotFound); err != nil {
 		var zero H
-		return zero, err
+		return zero, fmt.Errorf("dispatcher is closed: %w", err)
 	}
 
 	h, ok := d.Handlers[t]
