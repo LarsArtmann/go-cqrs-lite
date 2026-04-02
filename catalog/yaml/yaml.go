@@ -173,9 +173,6 @@ type structField struct {
 func marshalFields(fields []structField, indent int) ([]byte, error) {
 	prefix := strings.Repeat("  ", indent)
 	var buf []byte
-	sort.Slice(fields, func(i, j int) bool {
-		return fields[i].name < fields[j].name
-	})
 	for _, f := range fields {
 		valBytes, err := marshalValue(f.value, indent+1)
 		if err != nil {
