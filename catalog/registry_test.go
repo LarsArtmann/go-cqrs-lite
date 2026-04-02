@@ -40,7 +40,9 @@ func TestRegistry_AddCommand(t *testing.T) {
 		Version:   "1.0.0",
 		Summary:   "Creates a new user",
 		Direction: catalog.Receives,
-		Schema:    catalog.SchemaFromType[struct{ Email string `json:"email"` }](),
+		Schema: catalog.SchemaFromType[struct {
+			Email string `json:"email"`
+		}](),
 	})
 
 	cat := reg.Build()

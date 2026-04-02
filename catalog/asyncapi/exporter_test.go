@@ -232,7 +232,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 	t.Parallel()
 	type CreateOrder struct {
-		OrderID string `json:"orderId" doc:"Unique order identifier"`
+		OrderID string  `json:"orderId" doc:"Unique order identifier"`
 		Amount  float64 `json:"amount" doc:"Total amount"`
 	}
 

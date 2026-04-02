@@ -1,14 +1,14 @@
 package asyncapi
 
 type Document struct {
-	AsyncAPI           string              `yaml:"asyncapi" json:"asyncapi"`
-	ID                 string              `yaml:"id,omitempty" json:"id,omitempty"`
-	Info               Info                `yaml:"info" json:"info"`
-	DefaultContentType string              `yaml:"defaultContentType,omitempty" json:"defaultContentType,omitempty"`
-	Servers            map[string]Server   `yaml:"servers,omitempty" json:"servers,omitempty"`
-	Channels           map[string]Channel  `yaml:"channels" json:"channels"`
+	AsyncAPI           string               `yaml:"asyncapi" json:"asyncapi"`
+	ID                 string               `yaml:"id,omitempty" json:"id,omitempty"`
+	Info               Info                 `yaml:"info" json:"info"`
+	DefaultContentType string               `yaml:"defaultContentType,omitempty" json:"defaultContentType,omitempty"`
+	Servers            map[string]Server    `yaml:"servers,omitempty" json:"servers,omitempty"`
+	Channels           map[string]Channel   `yaml:"channels" json:"channels"`
 	Operations         map[string]Operation `yaml:"operations" json:"operations"`
-	Components         Components          `yaml:"components" json:"components"`
+	Components         Components           `yaml:"components" json:"components"`
 }
 
 type Info struct {
@@ -18,11 +18,11 @@ type Info struct {
 }
 
 type Server struct {
-	Host            string   `yaml:"host" json:"host"`
-	Protocol        string   `yaml:"protocol" json:"protocol"`
-	ProtocolVersion string   `yaml:"protocolVersion,omitempty" json:"protocolVersion,omitempty"`
-	Description     string   `yaml:"description,omitempty" json:"description,omitempty"`
-	Tags            []Tag    `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Host            string `yaml:"host" json:"host"`
+	Protocol        string `yaml:"protocol" json:"protocol"`
+	ProtocolVersion string `yaml:"protocolVersion,omitempty" json:"protocolVersion,omitempty"`
+	Description     string `yaml:"description,omitempty" json:"description,omitempty"`
+	Tags            []Tag  `yaml:"tags,omitempty" json:"tags,omitempty"`
 }
 
 type Tag struct {
@@ -30,10 +30,10 @@ type Tag struct {
 }
 
 type Channel struct {
-	Address     string            `yaml:"address" json:"address"`
-	Title       string            `yaml:"title,omitempty" json:"title,omitempty"`
-	Description string            `yaml:"description,omitempty" json:"description,omitempty"`
-	Messages    map[string]Ref    `yaml:"messages" json:"messages"`
+	Address     string         `yaml:"address" json:"address"`
+	Title       string         `yaml:"title,omitempty" json:"title,omitempty"`
+	Description string         `yaml:"description,omitempty" json:"description,omitempty"`
+	Messages    map[string]Ref `yaml:"messages" json:"messages"`
 }
 
 type Ref struct {
@@ -41,13 +41,13 @@ type Ref struct {
 }
 
 type Operation struct {
-	Title       string  `yaml:"title,omitempty" json:"title,omitempty"`
-	Summary     string  `yaml:"summary,omitempty" json:"summary,omitempty"`
-	Action      string  `yaml:"action" json:"action"`
-	Channel     Ref     `yaml:"channel" json:"channel"`
-	Messages    []Ref   `yaml:"messages" json:"messages"`
-	Tags        []Tag   `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Reply       *Reply  `yaml:"reply,omitempty" json:"reply,omitempty"`
+	Title    string `yaml:"title,omitempty" json:"title,omitempty"`
+	Summary  string `yaml:"summary,omitempty" json:"summary,omitempty"`
+	Action   string `yaml:"action" json:"action"`
+	Channel  Ref    `yaml:"channel" json:"channel"`
+	Messages []Ref  `yaml:"messages" json:"messages"`
+	Tags     []Tag  `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Reply    *Reply `yaml:"reply,omitempty" json:"reply,omitempty"`
 }
 
 type Reply struct {
@@ -61,7 +61,7 @@ type ReplyAddress struct {
 }
 
 type Components struct {
-	Schemas  map[string]any    `yaml:"schemas" json:"schemas"`
+	Schemas  map[string]any     `yaml:"schemas" json:"schemas"`
 	Messages map[string]Message `yaml:"messages" json:"messages"`
 }
 

@@ -20,10 +20,10 @@ type OrderItem struct {
 }
 
 type CreateOrder struct {
-	Items      []OrderItem `json:"items"`
-	Total      float64     `json:"total"`
-	Active     bool        `json:"active"`
-	External   any         `json:"external,omitempty"`
+	Items    []OrderItem `json:"items"`
+	Total    float64     `json:"total"`
+	Active   bool        `json:"active"`
+	External any         `json:"external,omitempty"`
 }
 
 func TestSchemaFromType_Struct(t *testing.T) {
@@ -131,9 +131,9 @@ func TestSchemaFromType_PrimitiveTypes(t *testing.T) {
 	t.Parallel()
 
 	type Primitives struct {
-		Str    string `json:"str"`
-		IntVal int    `json:"intVal"`
-		BoolV  bool   `json:"boolV"`
+		Str    string  `json:"str"`
+		IntVal int     `json:"intVal"`
+		BoolV  bool    `json:"boolV"`
 		Flt    float64 `json:"flt"`
 	}
 
@@ -163,7 +163,7 @@ func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
 		Value string `json:"value"`
 	}
 	type Outer struct {
-		Inner Inner `json:"inner"`
+		Inner Inner  `json:"inner"`
 		Name  string `json:"name"`
 	}
 

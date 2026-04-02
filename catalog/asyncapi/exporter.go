@@ -86,10 +86,10 @@ func (e *Exporter) addCommand(doc *Document, svcID string, msg catalog.Message) 
 	}
 
 	doc.Operations["receive"+id] = Operation{
-		Title:   "Receive " + msg.Name,
-		Summary: msg.Summary,
-		Action:  "receive",
-		Channel: Ref{Ref: "#/channels/" + channelKey},
+		Title:    "Receive " + msg.Name,
+		Summary:  msg.Summary,
+		Action:   "receive",
+		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
 		Tags:     []Tag{{Name: "commands"}, {Name: svcID}},
 	}
@@ -124,10 +124,10 @@ func (e *Exporter) addEvent(doc *Document, svcID string, msg catalog.Message) {
 	}
 
 	doc.Operations[opName] = Operation{
-		Title:   opName,
-		Summary: msg.Summary,
-		Action:  action,
-		Channel: Ref{Ref: "#/channels/" + channelKey},
+		Title:    opName,
+		Summary:  msg.Summary,
+		Action:   action,
+		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
 		Tags:     []Tag{{Name: "events"}, {Name: svcID}},
 	}
@@ -152,10 +152,10 @@ func (e *Exporter) addQuery(doc *Document, svcID string, msg catalog.Message) {
 	}
 
 	doc.Operations["handle"+id] = Operation{
-		Title:   "Handle " + msg.Name,
-		Summary: msg.Summary,
-		Action:  "receive",
-		Channel: Ref{Ref: "#/channels/" + channelKey},
+		Title:    "Handle " + msg.Name,
+		Summary:  msg.Summary,
+		Action:   "receive",
+		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
 		Tags:     []Tag{{Name: "queries"}, {Name: svcID}},
 	}

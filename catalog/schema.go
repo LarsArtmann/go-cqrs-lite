@@ -22,7 +22,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	}
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		return &Schema{
-			Type: "array",
+			Type:  "array",
 			Items: propertyFromReflect(t.Elem()),
 		}
 	}
@@ -132,7 +132,7 @@ func parseJSONTag(tag string) (name string, omit bool) {
 	parts := strings.Split(tag, ",")
 	name = parts[0]
 	omit = len(parts) > 1 && parts[1] == "omitempty"
-	return
+	return name, omit
 }
 
 func SchemaToJSON(schema *Schema) ([]byte, error) {
