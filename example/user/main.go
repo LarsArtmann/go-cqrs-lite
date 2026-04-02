@@ -1,0 +1,52 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
+)
+
+func main() {
+	ctx := context.Background()
+
+	store := event.NewMemoryStore()
+	bus := event.NewMemoryBus()
+	cmdDispatcher := command.NewDispatcher()
+	repo := NewRepository(store, bus)
+
+	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+		fmt.Printf("  [Event] %s (%s) v%d\n", evt.Type(), evt.AggregateID(), evt.Version())
+		return nil
+	})
+
+	RegisterHandlers(cmdDispatcher, repo)
+
+	userID := id.NewAggregateID()
+	fmt.Println("=== Creating User ===")
+	if err := cmdDispatcher.Dispatch(ctx, NewCreateUser(userID, "Alice", "alice@example.com")); err != nil {
+		log.Fatalf("create user: %v", err)
+	}
+
+	fmt.Println("\n=== Changing Email ===")
+	if err := cmdDispatcher.Dispatch(ctx, NewChangeUserEmail(userID, "alice.new@example.com")); err != nil {
+		log.Fatalf("change email: %v", err)
+	}
+
+	fmt.Println("\n=== Rebuilding from Events ===")
+	user, err := repo.Load(ctx, userID)
+	if err != nil {
+		log.Fatalf("load user: %v", err)
+	}
+	fmt.Printf("  ID: %s\n", user.ID())
+	fmt.Printf("  Name: %s\n", user.Name())
+	fmt.Printf("  Email: %s\n", user.Email())
+	fmt.Printf("  Version: %d\n", user.Version())
+
+	cmdDispatcher.Close()
+	bus.Close()
+	store.Close()
+}
