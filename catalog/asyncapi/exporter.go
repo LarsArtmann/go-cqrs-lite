@@ -15,15 +15,37 @@ type Exporter struct {
 	Description string
 	Protocol    string
 	Host        string
+	ServerName  string
 }
 
-func NewExporter(serviceName, version string) *Exporter {
-	return &Exporter{
+type Option func(*Exporter)
+
+func WithServer(name, host, protocol string) Option {
+	return func(e *Exporter) {
+		e.ServerName = name
+		e.Host = host
+		e.Protocol = protocol
+	}
+}
+
+func WithDescription(desc string) Option {
+	return func(e *Exporter) {
+		e.Description = desc
+	}
+}
+
+func NewExporter(serviceName, version string, opts ...Option) *Exporter {
+	e := &Exporter{
 		ServiceName: serviceName,
 		Version:     version,
 		Protocol:    "kafka",
 		Host:        "localhost:9092",
+		ServerName:  "production",
 	}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e
 }
 
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
@@ -46,7 +68,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 	if e.Host != "" {
 		doc.Servers = map[string]Server{
-			"production": {
+			e.ServerName: {
 				Host:        e.Host,
 				Protocol:    e.Protocol,
 				Description: "Message broker",

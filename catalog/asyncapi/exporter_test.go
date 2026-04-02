@@ -193,6 +193,28 @@ func TestExporter_Export_Servers(t *testing.T) {
 	}
 }
 
+func TestExporter_WithOptions(t *testing.T) {
+	t.Parallel()
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	exp := NewExporter("Test", "1.0.0",
+		WithServer("staging", "kafka.staging:9092", "kafka"),
+		WithDescription("Staging API"),
+	)
+
+	doc := exp.Export(reg.Build())
+
+	srv, ok := doc.Servers["staging"]
+	if !ok {
+		t.Fatal("missing staging server")
+	}
+	if srv.Host != "kafka.staging:9092" {
+		t.Errorf("server host = %q", srv.Host)
+	}
+	if doc.Info.Description != "Staging API" {
+		t.Errorf("description = %q", doc.Info.Description)
+	}
+}
+
 func TestExporter_Export_NoHost(t *testing.T) {
 	t.Parallel()
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
