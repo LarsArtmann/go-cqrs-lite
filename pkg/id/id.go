@@ -196,9 +196,9 @@ func (id *Of[T]) UnmarshalText(data []byte) error {
 }
 
 var (
-	_ encoding.BinaryMarshaler   = Of[struct{}]( "")
+	_ encoding.BinaryMarshaler   = Of[struct{}]("")
 	_ encoding.BinaryUnmarshaler = (*Of[struct{}])(nil)
-	_ encoding.TextMarshaler     = Of[struct{}]( "")
+	_ encoding.TextMarshaler     = Of[struct{}]("")
 	_ encoding.TextUnmarshaler   = (*Of[struct{}])(nil)
 )
 
