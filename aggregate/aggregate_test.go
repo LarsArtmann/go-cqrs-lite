@@ -9,6 +9,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
+type testRoot struct {
+	*aggregate.Core
+	applied []event.Event
+}
+
+func (r *testRoot) Apply(evt event.Event) error {
+	r.applied = append(r.applied, evt)
+	return nil
+}
+
+var _ aggregate.Root = (*testRoot)(nil)
+
 func TestCore(t *testing.T) {
 	t.Parallel()
 
@@ -28,19 +40,23 @@ func TestCoreLoadFromHistory(t *testing.T) {
 	t.Parallel()
 
 	core := aggregate.NewCore("user-123", event.AggregateType("User"))
+	root := &testRoot{Core: core}
 
 	evt, err := event.NewEvent("UserCreated", "user-123", "User", 1, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = core.LoadFromHistory([]event.Event{evt})
+	err = core.LoadFromHistory(root, []event.Event{evt})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	if core.Version() != 1 {
 		t.Errorf("expected version 1 after loading history, got %d", core.Version())
+	}
+	if len(root.applied) != 1 {
+		t.Errorf("expected 1 applied event, got %d", len(root.applied))
 	}
 }
 
@@ -58,7 +74,9 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 		events[i] = evt
 	}
 
-	err := core.LoadFromHistory(events)
+	root := &testRoot{Core: core}
+
+	err := core.LoadFromHistory(root, events)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -73,7 +91,7 @@ func TestCoreLoadFromHistory_Empty(t *testing.T) {
 
 	core := aggregate.NewCore("user-123", event.AggregateType("User"))
 
-	err := core.LoadFromHistory(nil)
+	err := core.LoadFromHistory(&testRoot{Core: core}, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

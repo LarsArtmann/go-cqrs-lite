@@ -4,9 +4,18 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
+
+type testRoot struct {
+	*aggregate.Core
+}
+
+func (r *testRoot) Apply(_ event.Event) error { return nil }
+
+var _ aggregate.Root = (*testRoot)(nil)
 
 func TestEventBuilder(t *testing.T) {
 	t.Parallel()
@@ -329,7 +338,7 @@ func TestTypedAggregate(t *testing.T) {
 		evt1, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
 		evt2, _ := NewEventBuilder("TestUpdated", aggregateID, "TestAggregate", 2).Build()
 
-		err := agg.LoadFromHistory([]event.Event{evt1.Event(), evt2.Event()})
+		err := agg.LoadFromHistory(&testRoot{agg.Core()}, []event.Event{evt1.Event(), evt2.Event()})
 		if err != nil {
 			t.Fatalf("LoadFromHistory() error = %v", err)
 		}

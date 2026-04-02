@@ -45,13 +45,7 @@ func (r *Repository) Load(ctx context.Context, userID id.AggregateID) (*User, er
 		return nil, fmt.Errorf("load events: %w", err)
 	}
 
-	for _, evt := range events {
-		if err := user.Apply(evt); err != nil {
-			return nil, fmt.Errorf("apply event %s: %w", evt.Type(), err)
-		}
-	}
-
-	if err := user.LoadFromHistory(events); err != nil {
+	if err := user.LoadFromHistory(user, events); err != nil {
 		return nil, fmt.Errorf("load from history: %w", err)
 	}
 

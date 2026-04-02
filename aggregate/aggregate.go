@@ -3,6 +3,7 @@ package aggregate
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
@@ -61,9 +62,13 @@ func (a *Core) MarkChangesAsCommitted() {
 	a.changes = make([]event.Event, 0)
 }
 
-// LoadFromHistory rebuilds aggregate state from events
-func (a *Core) LoadFromHistory(events []event.Event) error {
-	for range events {
+// LoadFromHistory rebuilds aggregate state by applying each event via the
+// provided Root's Apply method and incrementing the version.
+func (a *Core) LoadFromHistory(root Root, events []event.Event) error {
+	for _, evt := range events {
+		if err := root.Apply(evt); err != nil {
+			return fmt.Errorf("apply event %s: %w", evt.Type(), err)
+		}
 		a.version = a.version.Increment()
 	}
 	return nil
