@@ -101,7 +101,7 @@ func TestCoreLoadFromHistory_Empty(t *testing.T) {
 	}
 }
 
-func TestCoreApplyEvent(t *testing.T) {
+func TestCoreRecordEvent(t *testing.T) {
 	t.Parallel()
 
 	core := aggregate.NewCore("user-456", event.AggregateType("User"))
@@ -115,14 +115,14 @@ func TestCoreApplyEvent(t *testing.T) {
 		t.Fatalf("expected initial version 0, got %d", core.Version())
 	}
 
-	core.ApplyEvent(context.Background(), evt)
+	core.RecordEvent(context.Background(), evt)
 
 	if core.Version() != 1 {
 		t.Errorf("expected version 1 after applying event, got %d", core.Version())
 	}
 }
 
-func TestCoreApplyEvent_Multiple(t *testing.T) {
+func TestCoreRecordEvent_Multiple(t *testing.T) {
 	t.Parallel()
 
 	core := aggregate.NewCore("user-789", event.AggregateType("User"))
@@ -132,7 +132,7 @@ func TestCoreApplyEvent_Multiple(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
-		core.ApplyEvent(context.Background(), evt)
+		core.RecordEvent(context.Background(), evt)
 	}
 
 	if core.Version() != 3 {
@@ -159,13 +159,13 @@ func TestCoreUncommittedChanges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	core.ApplyEvent(context.Background(), evt1)
+	core.RecordEvent(context.Background(), evt1)
 
 	evt2, err := event.NewEvent("UserUpdated", "user-abc", "User", 2, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	core.ApplyEvent(context.Background(), evt2)
+	core.RecordEvent(context.Background(), evt2)
 
 	changes = core.UncommittedChanges()
 	if len(changes) != 2 {
@@ -189,7 +189,7 @@ func TestCoreMarkChangesAsCommitted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	core.ApplyEvent(context.Background(), evt)
+	core.RecordEvent(context.Background(), evt)
 
 	if len(core.UncommittedChanges()) != 1 {
 		t.Fatalf("expected 1 uncommitted change before marking, got %d", len(core.UncommittedChanges()))
@@ -225,7 +225,7 @@ func TestCoreDoesNotImplementRootDirectly(t *testing.T) {
 	t.Parallel()
 
 	// Core provides ID, Type, Version, UncommittedChanges, MarkChangesAsCommitted,
-	// but Root requires Apply(event.Event) error — Core has ApplyEvent(ctx, evt) instead.
+	// but Root requires Apply(event.Event) error — Core has RecordEvent(ctx, evt) instead.
 	// This is intentional: domain aggregates embed Core and add their own Apply method.
 	core := aggregate.NewCore("user-embed", event.AggregateType("User"))
 	_ = core
@@ -254,13 +254,13 @@ func TestCoreFullLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	core.ApplyEvent(context.Background(), evt1)
+	core.RecordEvent(context.Background(), evt1)
 
 	evt2, err := event.NewEvent("PriceChanged", "product-1", "Product", 2, []byte(`{"price":9.99}`))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	core.ApplyEvent(context.Background(), evt2)
+	core.RecordEvent(context.Background(), evt2)
 
 	if core.Version() != 2 {
 		t.Errorf("expected version 2, got %d", core.Version())

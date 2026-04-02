@@ -72,7 +72,7 @@ func (u *User) Create(ctx context.Context, name, email string) error {
 
 	u.name = name
 	u.email = email
-	u.ApplyEvent(ctx, evt)
+	u.RecordEvent(ctx, evt)
 	return nil
 }
 
@@ -104,6 +104,6 @@ func (u *User) ChangeEmail(ctx context.Context, newEmail string) error {
 	}
 
 	u.email = newEmail
-	u.ApplyEvent(ctx, evt)
+	u.RecordEvent(ctx, evt)
 	return nil
 }

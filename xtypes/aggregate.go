@@ -48,9 +48,9 @@ func (a *TypedAggregate) Core() *aggregate.Core {
 	return a.core
 }
 
-// ApplyEvent records a typed event and increments version.
-func (a *TypedAggregate) ApplyEvent(ctx context.Context, evt *TypedEvent) {
-	a.core.ApplyEvent(ctx, evt.Event())
+// RecordEvent records a typed event and increments version.
+func (a *TypedAggregate) RecordEvent(ctx context.Context, evt *TypedEvent) {
+	a.core.RecordEvent(ctx, evt.Event())
 }
 
 // UncommittedChanges returns pending events.

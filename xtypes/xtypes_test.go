@@ -321,7 +321,7 @@ func TestTypedAggregate(t *testing.T) {
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 		evt, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
-		agg.ApplyEvent(context.Background(), evt)
+		agg.RecordEvent(context.Background(), evt)
 
 		if agg.Version() != 1 {
 			t.Errorf("Version should be 1, got %d", agg.Version())
@@ -352,7 +352,7 @@ func TestTypedAggregate(t *testing.T) {
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 		evt, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
-		agg.ApplyEvent(context.Background(), evt)
+		agg.RecordEvent(context.Background(), evt)
 
 		if len(agg.UncommittedChanges()) != 1 {
 			t.Fatalf("expected 1 change before commit")

@@ -46,8 +46,8 @@ func (a *Core) Type() event.AggregateType { return a.aggregateType }
 // Version returns the current version.
 func (a *Core) Version() int { return a.version.Int() }
 
-// ApplyEvent records an event and increments version
-func (a *Core) ApplyEvent(_ context.Context, evt event.Event) {
+// RecordEvent records an event and increments version.
+func (a *Core) RecordEvent(_ context.Context, evt event.Event) {
 	a.changes = append(a.changes, evt)
 	a.version = a.version.Increment()
 }
