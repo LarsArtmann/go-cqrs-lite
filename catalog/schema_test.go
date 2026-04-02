@@ -179,3 +179,118 @@ func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
 		t.Error("expected inner.value property")
 	}
 }
+
+func TestSchemaFromType_PointerField(t *testing.T) {
+	t.Parallel()
+
+	type WithPtr struct {
+		Name *string `json:"name"`
+	}
+
+	schema := catalog.SchemaFromType[WithPtr]()
+	prop, ok := schema.Properties["name"]
+	if !ok {
+		t.Fatal("expected name property")
+	}
+	if prop.Type != "string" {
+		t.Errorf("expected string, got %s", prop.Type)
+	}
+}
+
+func TestSchemaFromType_MapField(t *testing.T) {
+	t.Parallel()
+
+	type WithMap struct {
+		Meta map[string]string `json:"meta"`
+	}
+
+	schema := catalog.SchemaFromType[WithMap]()
+	prop, ok := schema.Properties["meta"]
+	if !ok {
+		t.Fatal("expected meta property")
+	}
+	if prop.Type != "object" {
+		t.Errorf("expected object, got %s", prop.Type)
+	}
+}
+
+func TestSchemaFromType_FormatTag(t *testing.T) {
+	t.Parallel()
+
+	type WithFormat struct {
+		Email     string `json:"email" format:"email"`
+		CreatedAt string `json:"createdAt" format:"date-time"`
+	}
+
+	schema := catalog.SchemaFromType[WithFormat]()
+	if schema.Properties["email"].Format != "email" {
+		t.Errorf("expected format email, got %q", schema.Properties["email"].Format)
+	}
+	if schema.Properties["createdAt"].Format != "date-time" {
+		t.Errorf("expected format date-time, got %q", schema.Properties["createdAt"].Format)
+	}
+}
+
+func TestSchemaFromType_DescriptionTag(t *testing.T) {
+	t.Parallel()
+
+	type WithDesc struct {
+		Name string `json:"name" description:"The name"`
+	}
+
+	schema := catalog.SchemaFromType[WithDesc]()
+	if schema.Properties["name"].Description != "The name" {
+		t.Errorf("expected description 'The name', got %q", schema.Properties["name"].Description)
+	}
+}
+
+func TestSchemaFromType_SkipsUnexportedAndIgnored(t *testing.T) {
+	t.Parallel()
+
+	type Mixed struct {
+		Name    string `json:"name"`
+		private string
+		Ignored string `json:"-"`
+	}
+
+	schema := catalog.SchemaFromType[Mixed]()
+	if _, ok := schema.Properties["private"]; ok {
+		t.Error("unexported field should be skipped")
+	}
+	if _, ok := schema.Properties["Ignored"]; ok {
+		t.Error("json:'-' field should be skipped")
+	}
+	if len(schema.Properties) != 1 {
+		t.Errorf("expected 1 property, got %d", len(schema.Properties))
+	}
+}
+
+func TestSchemaFromType_ArrayField(t *testing.T) {
+	t.Parallel()
+
+	type WithArray struct {
+		IDs [3]string `json:"ids"`
+	}
+
+	schema := catalog.SchemaFromType[WithArray]()
+	prop, ok := schema.Properties["ids"]
+	if !ok {
+		t.Fatal("expected ids property")
+	}
+	if prop.Type != "array" {
+		t.Errorf("expected array, got %s", prop.Type)
+	}
+}
+
+func TestSchemaFromType_EmptyTag(t *testing.T) {
+	t.Parallel()
+
+	type NoJSON struct {
+		Name string
+	}
+
+	schema := catalog.SchemaFromType[NoJSON]()
+	if _, ok := schema.Properties["Name"]; !ok {
+		t.Error("expected Name property (no json tag uses field name)")
+	}
+}

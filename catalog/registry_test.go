@@ -228,3 +228,22 @@ func TestRegistry_ServiceMerge(t *testing.T) {
 		t.Errorf("expected 1 event, got %d", len(cat.Services[0].Events))
 	}
 }
+
+func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "svc", Name: "Service", Version: "1.0.0",
+		Queries: []catalog.Message{{ID: "Q1", Name: "Q1", Version: "1.0.0"}},
+	})
+	reg.AddService(catalog.Service{
+		ID: "svc", Name: "Service", Version: "1.0.0",
+		Queries: []catalog.Message{{ID: "Q2", Name: "Q2", Version: "1.0.0"}},
+	})
+
+	cat := reg.Build()
+	if len(cat.Services[0].Queries) != 2 {
+		t.Errorf("expected 2 queries after merge, got %d", len(cat.Services[0].Queries))
+	}
+}
