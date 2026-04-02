@@ -2,6 +2,8 @@ package event
 
 import (
 	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
 // Store defines the interface for event persistence
@@ -10,24 +12,24 @@ type Store interface {
 	Save(
 		ctx context.Context,
 		aggregateType AggregateType,
-		aggregateID string,
+		aggregateID id.AggregateID,
 		events []Event,
-		expectedVersion int,
+		expectedVersion Version,
 	) error
 
 	// Load retrieves all events for an aggregate
-	Load(ctx context.Context, aggregateType AggregateType, aggregateID string) ([]Event, error)
+	Load(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting from a specific version
 	LoadFromVersion(
 		ctx context.Context,
 		aggregateType AggregateType,
-		aggregateID string,
+		aggregateID id.AggregateID,
 		version Version,
 	) ([]Event, error)
 
 	// Delete removes all events for an aggregate (for testing/snapshots)
-	Delete(ctx context.Context, aggregateType AggregateType, aggregateID string) error
+	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }
 
 // StreamOptions configures event streaming

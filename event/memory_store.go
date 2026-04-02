@@ -14,6 +14,8 @@ type MemoryStore struct {
 	events map[string][]Event
 }
 
+var _ Store = (*MemoryStore)(nil)
+
 // NewMemoryStore creates a new in-memory event store
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
