@@ -29,9 +29,9 @@ func marshalValue(v reflect.Value, indent int) ([]byte, error) {
 	case reflect.String:
 		return marshalString(v.String())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return []byte(fmt.Sprintf("%d\n", v.Int())), nil
+		return fmt.Appendf(nil, "%d\n", v.Int()), nil
 	case reflect.Float32, reflect.Float64:
-		return []byte(fmt.Sprintf("%g\n", v.Float())), nil
+		return fmt.Appendf(nil, "%g\n", v.Float()), nil
 	case reflect.Bool:
 		if v.Bool() {
 			return []byte("true\n"), nil

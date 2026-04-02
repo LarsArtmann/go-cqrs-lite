@@ -170,9 +170,10 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	}
 
 	tagName := "commands"
-	if msg.Kind == catalog.EventMessage {
+	switch msg.Kind {
+	case catalog.EventMessage:
 		tagName = "events"
-	} else if msg.Kind == catalog.QueryMessage {
+	case catalog.QueryMessage:
 		tagName = "queries"
 	}
 
