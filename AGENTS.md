@@ -38,6 +38,10 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 | `query/`     | Query handling   | `Dispatcher`, `Base`, `Query`   |
 | `event/`     | Event sourcing   | `Store`, `Bus`, `BaseEvent`     |
 | `aggregate/` | Aggregate roots  | `Aggregate`, `Base`             |
+| `catalog/`   | Auto-documentation registry, schema reflection | `Registry`, `Catalog`, `SchemaFromType[T]` |
+| `catalog/asyncapi/`    | AsyncAPI 3.0 YAML exporter   | `Exporter`, `Document` |
+| `catalog/eventcatalog/` | EventCatalog MDX generator | `Exporter` |
+| `catalog/yaml/`        | Zero-dependency YAML marshaler | `Marshal` |
 
 ## Design Principles
 
@@ -125,6 +129,53 @@ event, err := event.NewEvent(
 | Branching flow | `branching-flow all .`                           |
 
 **Note:** The `--dupl-threshold 50` flag is required due to intentional code duplication in dispatcher Use()/Close() methods (different typed middleware).
+
+## Catalog System Architecture
+
+The `catalog` package provides automatic documentation generation from Go CQRS types to AsyncAPI 3.0 and EventCatalog formats.
+
+### Three-Layer Design
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   catalog (core)                      │
+│  types.go — Message, Service, Domain, Channel, Schema │
+│  schema.go — SchemaFromType[T]() via reflect          │
+│  registry.go — Thread-safe Registry, Build() → Catalog│
+└──────────────────────┬───────────────────────────────┘
+                       │ Catalog (immutable IR)
+           ┌───────────┴───────────┐
+           ▼                       ▼
+┌─────────────────────┐  ┌─────────────────────────┐
+│ catalog/asyncapi/   │  │ catalog/eventcatalog/   │
+│ AsyncAPI 3.0 YAML   │  │ MDX files on disk       │
+│ Document.MarshalYAML│  │ services/{id}/index.mdx │
+│ Document.MarshalJSON│  │ schemas/schema.json     │
+└─────────────────────┘  └─────────────────────────┘
+```
+
+### Key Design Decisions
+
+1. **Custom YAML marshaler** (`catalog/yaml/yaml.go`) — Zero new dependencies. Uses `reflect` to handle structs (via `marshalFields` with `[]structField`), maps, slices, primitives. Structs must use `marshalFields` not `marshalMap` to avoid `reflect.Value` being treated as a terminal type.
+
+2. **Reflection-based schema generation** — `SchemaFromType[T any]() *Schema` uses `reflect.TypeOf` to inspect struct fields. Reads `json` (name + omitempty), `doc`/`description` (description), and `format` (format) struct tags. Returns `*Schema` with no error.
+
+3. **Type alias for MarshalJSON** — AsyncAPI `Document.MarshalJSON()` uses `type alias Document` to break infinite recursion when calling `json.MarshalIndent`.
+
+4. **Registry pattern** — Thread-safe with `sync.RWMutex`. `AddService` merges messages into existing services. `Build()` produces an immutable `*Catalog`.
+
+5. **AsyncAPI mapping** — Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive`. Channel addresses via `toSnakeCase` (CamelCase → dot.separated).
+
+6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. `eventcatalog.config.js` generated at root.
+
+### CRITICAL: GOWORK=off
+
+All `go` commands must use `GOWORK=off` prefix because `/Users/larsartmann/go.work` exists but does not include go-cqrs-lite.
+
+```
+GOWORK=off go test ./... -count=1
+GOWORK=off go build ./...
+```
 
 ## References
 

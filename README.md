@@ -91,15 +91,19 @@ aggregateID := aggregate_id.New()
 
 ## Package Structure
 
-| Package       | Purpose                                | Status     |
-| ------------- | -------------------------------------- | ---------- |
-| `command/`    | Command types, dispatcher, handlers    | ✅ Ready   |
-| `query/`      | Query types, dispatcher, handlers      | ✅ Ready   |
-| `event/`      | Domain events, store interface, bus    | ✅ Ready   |
-| `aggregate/`  | Aggregate root, repository patterns    | ✅ Ready   |
-| `pkg/id/`     | Strongly-typed branded identifiers     | ✅ Ready   |
-| `xtypes/`     | Type-safe command/query/event wrappers | ✅ Ready   |
-| `middleware/` | Logging, metrics, validation (planned) | 🔜 Planned |
+| Package                    | Purpose                                    | Status     |
+| -------------------------- | ------------------------------------------ | ---------- |
+| `command/`                 | Command types, dispatcher, handlers        | ✅ Ready   |
+| `query/`                   | Query types, dispatcher, handlers          | ✅ Ready   |
+| `event/`                   | Domain events, store interface, bus        | ✅ Ready   |
+| `aggregate/`               | Aggregate root, repository patterns        | ✅ Ready   |
+| `pkg/id/`                  | Strongly-typed branded identifiers         | ✅ Ready   |
+| `xtypes/`                  | Type-safe command/query/event wrappers     | ✅ Ready   |
+| `catalog/`                 | Schema reflection, registry, catalog types | ✅ Ready   |
+| `catalog/asyncapi/`        | AsyncAPI 3.0 YAML exporter                 | ✅ Ready   |
+| `catalog/eventcatalog/`    | EventCatalog MDX documentation generator   | ✅ Ready   |
+| `catalog/yaml/`            | Zero-dependency YAML marshaler             | ✅ Ready   |
+| `middleware/`               | Logging, metrics, validation (planned)     | 🔜 Planned |
 
 ## Design Principles
 
@@ -167,6 +171,135 @@ func main() {
 }
 ```
 
+## Catalog Integration
+
+Automatically generate [AsyncAPI 3.0](https://www.asyncapi.com/) specs and [EventCatalog](https://www.eventcatalog.dev/) documentation from your Go CQRS types — zero manual documentation effort.
+
+### How It Works
+
+```
+Go Structs ──► SchemaFromType[T]() ──► Registry ──► Catalog
+                                                      │
+                                          ┌───────────┴───────────┐
+                                          ▼                       ▼
+                                   AsyncAPI 3.0 YAML      EventCatalog MDX
+```
+
+1. Define your commands, events, and queries as Go structs
+2. `SchemaFromType[T]()` auto-generates JSON Schema via reflection
+3. Register services and messages in a `Registry`
+4. Export to AsyncAPI YAML or EventCatalog MDX files
+
+### Usage
+
+```go
+package main
+
+import (
+    "github.com/larsartmann/go-cqrs-lite/catalog"
+    "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+)
+
+type CreateOrder struct {
+    ProductID string `json:"product_id" doc:"ID of the product to order"`
+    Quantity  int    `json:"quantity" doc:"Number of items"`
+}
+
+type OrderCreated struct {
+    OrderID string `json:"order_id" doc:"The new order ID"`
+}
+
+func main() {
+    reg := catalog.NewRegistry("Order Service", "1.0.0")
+
+    reg.AddService(catalog.Service{ID: "order-service", Name: "Order Service"})
+    reg.AddCommand("order-service", catalog.Message{
+        ID: "create-order", Name: "CreateOrder", Version: "1.0.0",
+        Summary:   "Place a new order",
+        Schema:    catalog.SchemaFromType[CreateOrder](),
+        Direction: catalog.Receives,
+    })
+    reg.AddEvent("order-service", catalog.Message{
+        ID: "order-created", Name: "OrderCreated", Version: "1.0.0",
+        Summary:   "An order was placed",
+        Schema:    catalog.SchemaFromType[OrderCreated](),
+        Direction: catalog.Sends,
+    })
+
+    c := reg.Build()
+
+    // Export AsyncAPI 3.0 YAML
+    doc := asyncapi.Exporter{}.Export(c)
+    yamlBytes, _ := doc.MarshalYAML()
+
+    // Export EventCatalog MDX files
+    ec := eventcatalog.Exporter{OutputDir: "./eventcatalog"}
+    _ = ec.Export(c)
+    // Creates: services/order-service/index.mdx
+    //          services/order-service/commands/create-order/index.mdx
+    //          services/order-service/events/order-created/index.mdx
+}
+```
+
+### Schema Reflection
+
+`SchemaFromType[T]()` inspects Go struct fields and produces JSON Schema. It reads `json`, `doc`/`description`, and `format` struct tags:
+
+```go
+type User struct {
+    Email string `json:"email" doc:"User email" format:"email"`
+    Age   int    `json:"age" doc:"User age"`
+}
+
+schema := catalog.SchemaFromType[User]()
+// {"type":"object","properties":{"email":{"type":"string","description":"User email","format":"email"},...}}
+```
+
+### Registry API
+
+| Method | Description |
+| ------ | ----------- |
+| `NewRegistry(title, version)` | Create a new registry |
+| `AddService(svc)` | Register a service (merges if exists) |
+| `AddCommand(serviceID, msg)` | Add a command to a service |
+| `AddEvent(serviceID, msg)` | Add an event to a service |
+| `AddQuery(serviceID, msg)` | Add a query to a service |
+| `AddDomain(domain)` | Register a domain |
+| `AddServiceToDomain(serviceID, domainID)` | Link service to domain |
+| `AddChannel(ch)` | Register a channel |
+| `Build()` | Produce immutable `*Catalog` |
+
+### AsyncAPI 3.0 Output
+
+The AsyncAPI exporter maps CQRS types to AsyncAPI 3.0 operations:
+- Commands → `action: receive` (service receives commands)
+- Events with `Sends` → `action: send`
+- Events with `Receives` → `action: receive`
+- Queries → `action: receive`
+
+Default server: `kafka` at `localhost:9092`. Channel addresses use dot-separated lowercase (e.g., `CreateOrder` → `create.order`).
+
+### EventCatalog Output
+
+Writes an EventCatalog project directory structure with MDX files containing YAML frontmatter:
+
+```
+eventcatalog/
+├── eventcatalog.config.js
+├── services/
+│   └── order-service/
+│       ├── index.mdx
+│       ├── commands/
+│       │   └── create-order/
+│       │       ├── index.mdx
+│       │       └── schema.json
+│       └── events/
+│           └── order-created/
+│               ├── index.mdx
+│               └── schema.json
+```
+
 ## Comparison
 
 | Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
@@ -176,6 +309,7 @@ func main() {
 | Event Bus       | ✅           | ✅      | ❌      |
 | Strong IDs      | ✅           | ❌      | ❌      |
 | Context support | ✅           | ❌      | ✅      |
+| Auto-docs       | ✅           | ❌      | ❌      |
 
 ## Project Status
 
