@@ -5,7 +5,7 @@ import "github.com/larsartmann/go-cqrs-lite/event"
 const (
 	AggregateType event.AggregateType = "user"
 
-	EventUserCreated     event.Type = "user.created"
+	EventUserCreated      event.Type = "user.created"
 	EventUserEmailChanged event.Type = "user.email_changed"
 )
 
