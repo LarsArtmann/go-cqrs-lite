@@ -32,16 +32,16 @@ A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) l
 
 ## Package Overview
 
-| Package      | Purpose          | Key Types                       |
-| ------------ | ---------------- | ------------------------------- |
-| `command/`   | Command handling | `Dispatcher`, `Base`, `Handler` |
-| `query/`     | Query handling   | `Dispatcher`, `Base`, `Query`   |
-| `event/`     | Event sourcing   | `Store`, `Bus`, `BaseEvent`     |
-| `aggregate/` | Aggregate roots  | `Aggregate`, `Base`             |
-| `catalog/`   | Auto-documentation registry, schema reflection | `Registry`, `Catalog`, `SchemaFromType[T]` |
-| `catalog/asyncapi/`    | AsyncAPI 3.0 YAML exporter   | `Exporter`, `Document` |
-| `catalog/eventcatalog/` | EventCatalog MDX generator | `Exporter` |
-| `catalog/yaml/`        | Zero-dependency YAML marshaler | `Marshal` |
+| Package                 | Purpose                                        | Key Types                                  |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------ |
+| `command/`              | Command handling                               | `Dispatcher`, `Base`, `Handler`            |
+| `query/`                | Query handling                                 | `Dispatcher`, `Base`, `Query`              |
+| `event/`                | Event sourcing                                 | `Store`, `Bus`, `BaseEvent`                |
+| `aggregate/`            | Aggregate roots                                | `Aggregate`, `Base`                        |
+| `catalog/`              | Auto-documentation registry, schema reflection | `Registry`, `Catalog`, `SchemaFromType[T]` |
+| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                     | `Exporter`, `Document`                     |
+| `catalog/eventcatalog/` | EventCatalog MDX generator                     | `Exporter`                                 |
+| `catalog/yaml/`         | Zero-dependency YAML marshaler                 | `Marshal`                                  |
 
 ## Design Principles
 

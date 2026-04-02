@@ -18,7 +18,7 @@
 - [ ] Add benchmarks for ID operations and dispatcher throughput
 - [ ] Add fuzzing for Parse functions
 - [ ] Update README.md with xtypes usage
-- [ ] Refactor With* methods in event/event.go
+- [ ] Refactor With\* methods in event/event.go
 - [ ] Add AppendBatch to Store
 - [ ] Add snapshot store interface
 - [ ] Add query/pagination.go

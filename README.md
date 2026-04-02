@@ -91,19 +91,19 @@ aggregateID := aggregate_id.New()
 
 ## Package Structure
 
-| Package                    | Purpose                                    | Status     |
-| -------------------------- | ------------------------------------------ | ---------- |
-| `command/`                 | Command types, dispatcher, handlers        | ✅ Ready   |
-| `query/`                   | Query types, dispatcher, handlers          | ✅ Ready   |
-| `event/`                   | Domain events, store interface, bus        | ✅ Ready   |
-| `aggregate/`               | Aggregate root, repository patterns        | ✅ Ready   |
-| `pkg/id/`                  | Strongly-typed branded identifiers         | ✅ Ready   |
-| `xtypes/`                  | Type-safe command/query/event wrappers     | ✅ Ready   |
-| `catalog/`                 | Schema reflection, registry, catalog types | ✅ Ready   |
-| `catalog/asyncapi/`        | AsyncAPI 3.0 YAML exporter                 | ✅ Ready   |
-| `catalog/eventcatalog/`    | EventCatalog MDX documentation generator   | ✅ Ready   |
-| `catalog/yaml/`            | Zero-dependency YAML marshaler             | ✅ Ready   |
-| `middleware/`               | Logging, metrics, validation (planned)     | 🔜 Planned |
+| Package                 | Purpose                                    | Status     |
+| ----------------------- | ------------------------------------------ | ---------- |
+| `command/`              | Command types, dispatcher, handlers        | ✅ Ready   |
+| `query/`                | Query types, dispatcher, handlers          | ✅ Ready   |
+| `event/`                | Domain events, store interface, bus        | ✅ Ready   |
+| `aggregate/`            | Aggregate root, repository patterns        | ✅ Ready   |
+| `pkg/id/`               | Strongly-typed branded identifiers         | ✅ Ready   |
+| `xtypes/`               | Type-safe command/query/event wrappers     | ✅ Ready   |
+| `catalog/`              | Schema reflection, registry, catalog types | ✅ Ready   |
+| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                 | ✅ Ready   |
+| `catalog/eventcatalog/` | EventCatalog MDX documentation generator   | ✅ Ready   |
+| `catalog/yaml/`         | Zero-dependency YAML marshaler             | ✅ Ready   |
+| `middleware/`           | Logging, metrics, validation (planned)     | 🔜 Planned |
 
 ## Design Principles
 
@@ -258,21 +258,22 @@ schema := catalog.SchemaFromType[User]()
 
 ### Registry API
 
-| Method | Description |
-| ------ | ----------- |
-| `NewRegistry(title, version)` | Create a new registry |
-| `AddService(svc)` | Register a service (merges if exists) |
-| `AddCommand(serviceID, msg)` | Add a command to a service |
-| `AddEvent(serviceID, msg)` | Add an event to a service |
-| `AddQuery(serviceID, msg)` | Add a query to a service |
-| `AddDomain(domain)` | Register a domain |
-| `AddServiceToDomain(serviceID, domainID)` | Link service to domain |
-| `AddChannel(ch)` | Register a channel |
-| `Build()` | Produce immutable `*Catalog` |
+| Method                                    | Description                           |
+| ----------------------------------------- | ------------------------------------- |
+| `NewRegistry(title, version)`             | Create a new registry                 |
+| `AddService(svc)`                         | Register a service (merges if exists) |
+| `AddCommand(serviceID, msg)`              | Add a command to a service            |
+| `AddEvent(serviceID, msg)`                | Add an event to a service             |
+| `AddQuery(serviceID, msg)`                | Add a query to a service              |
+| `AddDomain(domain)`                       | Register a domain                     |
+| `AddServiceToDomain(serviceID, domainID)` | Link service to domain                |
+| `AddChannel(ch)`                          | Register a channel                    |
+| `Build()`                                 | Produce immutable `*Catalog`          |
 
 ### AsyncAPI 3.0 Output
 
 The AsyncAPI exporter maps CQRS types to AsyncAPI 3.0 operations:
+
 - Commands → `action: receive` (service receives commands)
 - Events with `Sends` → `action: send`
 - Events with `Receives` → `action: receive`
