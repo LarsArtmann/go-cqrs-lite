@@ -61,6 +61,33 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	if svc.Summary != "" {
 		fmt.Fprintf(&md, "summary: %q\n", svc.Summary)
 	}
+
+	var sends, receives []string
+	for _, msg := range svc.Events {
+		id := msg.ID
+		if id == "" {
+			id = string(msg.Name)
+		}
+		if msg.Direction == catalog.Sends {
+			sends = append(sends, fmt.Sprintf("%s/%s", id, msg.Version))
+		} else if msg.Direction == catalog.Receives {
+			receives = append(receives, fmt.Sprintf("%s/%s", id, msg.Version))
+		}
+	}
+
+	if len(sends) > 0 {
+		md.WriteString("sends:\n")
+		for _, s := range sends {
+			fmt.Fprintf(&md, "  - %s\n", s)
+		}
+	}
+	if len(receives) > 0 {
+		md.WriteString("receives:\n")
+		for _, r := range receives {
+			fmt.Fprintf(&md, "  - %s\n", r)
+		}
+	}
+
 	md.WriteString("---\n\n")
 	fmt.Fprintf(&md, "# %s\n\n%s\n", svc.Name, svc.Summary)
 
@@ -85,6 +112,9 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	fmt.Fprintf(&md, "version: %s\n", msg.Version)
 	if msg.Summary != "" {
 		fmt.Fprintf(&md, "summary: %q\n", msg.Summary)
+	}
+	if msg.Schema != nil {
+		md.WriteString("schemaPath: schemas/schema.json\n")
 	}
 	fmt.Fprintf(&md, "owners:\n  - %s\n", svcID)
 	md.WriteString("---\n\n")

@@ -263,6 +263,110 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	}
 }
 
+func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Schema:  &catalog.Schema{Type: "object"},
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	if !strings.Contains(content, "schemaPath: schemas/schema.json") {
+		t.Errorf("message frontmatter missing schemaPath: %s", content)
+	}
+}
+
+func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "NoSchema",
+		Name:    "NoSchema",
+		Version: "1.0.0",
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "schemaPath") {
+		t.Error("schemaPath should not appear when no schema provided")
+	}
+}
+
+func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        "OrderCreated",
+		Name:      "OrderCreated",
+		Version:   "1.0.0",
+		Direction: catalog.Sends,
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        "PaymentProcessed",
+		Name:      "PaymentProcessed",
+		Version:   "2.0.0",
+		Direction: catalog.Receives,
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	if !strings.Contains(content, "sends:") {
+		t.Errorf("service frontmatter missing sends: %s", content)
+	}
+	if !strings.Contains(content, "- OrderCreated/1.0.0") {
+		t.Errorf("service frontmatter missing sends entry: %s", content)
+	}
+	if !strings.Contains(content, "receives:") {
+		t.Errorf("service frontmatter missing receives: %s", content)
+	}
+	if !strings.Contains(content, "- PaymentProcessed/2.0.0") {
+		t.Errorf("service frontmatter missing receives entry: %s", content)
+	}
+}
+
 func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
