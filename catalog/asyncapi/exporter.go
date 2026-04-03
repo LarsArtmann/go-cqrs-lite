@@ -50,8 +50,11 @@ func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	doc := &Document{
-		AsyncAPI:           "3.0.0",
-		ID:                 fmt.Sprintf("urn:%s:api", strings.ToLower(strings.ReplaceAll(e.ServiceName, " ", ""))),
+		AsyncAPI: "3.0.0",
+		ID: fmt.Sprintf(
+			"urn:%s:api",
+			strings.ToLower(strings.ReplaceAll(e.ServiceName, " ", "")),
+		),
 		DefaultContentType: "application/json",
 		Info: Info{
 			Title:       e.ServiceName,

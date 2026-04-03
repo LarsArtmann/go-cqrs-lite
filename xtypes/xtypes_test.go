@@ -110,7 +110,11 @@ func TestEventBuilder(t *testing.T) {
 		}
 
 		if evt.Event().Metadata().CorrelationID != correlationID {
-			t.Errorf("expected correlation ID %s, got %s", correlationID, evt.Event().Metadata().CorrelationID)
+			t.Errorf(
+				"expected correlation ID %s, got %s",
+				correlationID,
+				evt.Event().Metadata().CorrelationID,
+			)
 		}
 	})
 
@@ -128,7 +132,11 @@ func TestEventBuilder(t *testing.T) {
 		}
 
 		if evt.Event().Metadata().CausationID != causationID {
-			t.Errorf("expected causation ID %s, got %s", causationID, evt.Event().Metadata().CausationID)
+			t.Errorf(
+				"expected causation ID %s, got %s",
+				causationID,
+				evt.Event().Metadata().CausationID,
+			)
 		}
 	})
 
@@ -164,7 +172,11 @@ func TestEventBuilder(t *testing.T) {
 		}
 
 		if evt.Event().Metadata().CorrelationID != correlationID {
-			t.Errorf("expected correlation ID %s, got %s", correlationID, evt.Event().Metadata().CorrelationID)
+			t.Errorf(
+				"expected correlation ID %s, got %s",
+				correlationID,
+				evt.Event().Metadata().CorrelationID,
+			)
 		}
 	})
 

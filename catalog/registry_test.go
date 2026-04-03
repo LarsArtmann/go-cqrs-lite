@@ -188,8 +188,19 @@ func TestRegistry_Build_MultipleServices(t *testing.T) {
 	reg := catalog.NewRegistry("E-Commerce", "2.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddService(catalog.Service{ID: "user-svc", Name: "User Service", Version: "1.0.0"})
-	reg.AddCommand("order-svc", catalog.Message{ID: "CreateOrder", Name: "Create Order", Version: "1.0.0"})
-	reg.AddEvent("order-svc", catalog.Message{ID: "OrderCreated", Name: "Order Created", Version: "1.0.0", Direction: catalog.Sends})
+	reg.AddCommand(
+		"order-svc",
+		catalog.Message{ID: "CreateOrder", Name: "Create Order", Version: "1.0.0"},
+	)
+	reg.AddEvent(
+		"order-svc",
+		catalog.Message{
+			ID:        "OrderCreated",
+			Name:      "Order Created",
+			Version:   "1.0.0",
+			Direction: catalog.Sends,
+		},
+	)
 	reg.AddQuery("user-svc", catalog.Message{ID: "GetUser", Name: "Get User", Version: "1.0.0"})
 
 	cat := reg.Build()

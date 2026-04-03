@@ -192,7 +192,10 @@ func TestCoreMarkChangesAsCommitted(t *testing.T) {
 	core.RecordEvent(context.Background(), evt)
 
 	if len(core.UncommittedChanges()) != 1 {
-		t.Fatalf("expected 1 uncommitted change before marking, got %d", len(core.UncommittedChanges()))
+		t.Fatalf(
+			"expected 1 uncommitted change before marking, got %d",
+			len(core.UncommittedChanges()),
+		)
 	}
 
 	core.MarkChangesAsCommitted()
@@ -215,7 +218,10 @@ func TestCoreMarkChangesAsCommitted_Empty(t *testing.T) {
 	core.MarkChangesAsCommitted()
 
 	if len(core.UncommittedChanges()) != 0 {
-		t.Errorf("expected 0 uncommitted changes on empty aggregate, got %d", len(core.UncommittedChanges()))
+		t.Errorf(
+			"expected 0 uncommitted changes on empty aggregate, got %d",
+			len(core.UncommittedChanges()),
+		)
 	}
 }
 
@@ -250,7 +256,13 @@ func TestCoreFullLifecycle(t *testing.T) {
 
 	core := aggregate.NewCore("product-1", event.AggregateType("Product"))
 
-	evt1, err := event.NewEvent("ProductCreated", "product-1", "Product", 1, []byte(`{"name":"Widget"}`))
+	evt1, err := event.NewEvent(
+		"ProductCreated",
+		"product-1",
+		"Product",
+		1,
+		[]byte(`{"name":"Widget"}`),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

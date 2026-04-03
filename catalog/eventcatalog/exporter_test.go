@@ -54,7 +54,14 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		t.Errorf("service file missing heading: %s", content)
 	}
 
-	cmdPath := filepath.Join(tmpDir, "services", "order-svc", "commands", "CreateOrder", "index.mdx")
+	cmdPath := filepath.Join(
+		tmpDir,
+		"services",
+		"order-svc",
+		"commands",
+		"CreateOrder",
+		"index.mdx",
+	)
 	data, err = os.ReadFile(cmdPath)
 	if err != nil {
 		t.Fatalf("read command file: %v", err)
@@ -67,7 +74,15 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		t.Errorf("command file missing owners: %s", content)
 	}
 
-	schemaPath := filepath.Join(tmpDir, "services", "order-svc", "commands", "CreateOrder", "schemas", "schema.json")
+	schemaPath := filepath.Join(
+		tmpDir,
+		"services",
+		"order-svc",
+		"commands",
+		"CreateOrder",
+		"schemas",
+		"schema.json",
+	)
 	data, err = os.ReadFile(schemaPath)
 	if err != nil {
 		t.Fatalf("read schema file: %v", err)
@@ -103,7 +118,14 @@ func TestExporter_Export_Event(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	evtPath := filepath.Join(tmpDir, "services", "payment-svc", "events", "PaymentCompleted", "index.mdx")
+	evtPath := filepath.Join(
+		tmpDir,
+		"services",
+		"payment-svc",
+		"events",
+		"PaymentCompleted",
+		"index.mdx",
+	)
 	data, err := os.ReadFile(evtPath)
 	if err != nil {
 		t.Fatalf("read event file: %v", err)
@@ -257,7 +279,15 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	schemaPath := filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "schemas", "schema.json")
+	schemaPath := filepath.Join(
+		tmpDir,
+		"services",
+		"svc",
+		"commands",
+		"NoSchema",
+		"schemas",
+		"schema.json",
+	)
 	if _, err := os.Stat(schemaPath); !os.IsNotExist(err) {
 		t.Error("schema.json should not exist when no schema is provided")
 	}
@@ -283,7 +313,9 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx"))
+	data, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx"),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -312,7 +344,9 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"))
+	data, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

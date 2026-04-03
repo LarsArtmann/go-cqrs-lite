@@ -161,7 +161,8 @@ func TestMarshal_SortedMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := string(b)
-	if !strings.Contains(got, "a: 2") || !strings.Contains(got, "m: 3") || !strings.Contains(got, "z: 1") {
+	if !strings.Contains(got, "a: 2") || !strings.Contains(got, "m: 3") ||
+		!strings.Contains(got, "z: 1") {
 		t.Errorf("map keys not sorted:\n%s", got)
 	}
 	lines := strings.Split(strings.TrimSpace(got), "\n")
@@ -173,7 +174,7 @@ func TestMarshal_SortedMap(t *testing.T) {
 type testStruct struct {
 	Name  string `yaml:"name"`
 	Age   int    `yaml:"age"`
-	Email string `json:"email"`
+	Email string `            json:"email"`
 }
 
 func TestMarshal_Struct(t *testing.T) {

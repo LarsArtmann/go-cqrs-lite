@@ -25,7 +25,13 @@ func (r *Repository) Save(ctx context.Context, user *User) error {
 	}
 
 	aggregateID := id.MustParseAggregateID(user.ID())
-	if err := r.store.Save(ctx, user.Type(), aggregateID, changes, event.Version(user.Version()-len(changes))); err != nil {
+	if err := r.store.Save(
+		ctx,
+		user.Type(),
+		aggregateID,
+		changes,
+		event.Version(user.Version()-len(changes)),
+	); err != nil {
 		return fmt.Errorf("save events: %w", err)
 	}
 
@@ -62,15 +68,18 @@ func RegisterHandlers(dispatcher *command.Dispatcher, repo *Repository) {
 		return repo.Save(ctx, user)
 	})
 
-	dispatcher.Register(CommandChangeUserEmail, func(ctx context.Context, cmd command.Command) error {
-		changeCmd := cmd.(*ChangeUserEmail)
-		user, err := repo.Load(ctx, id.MustParseAggregateID(cmd.AggregateID()))
-		if err != nil {
-			return fmt.Errorf("load user: %w", err)
-		}
-		if err := user.ChangeEmail(ctx, changeCmd.NewEmail); err != nil {
-			return fmt.Errorf("change email: %w", err)
-		}
-		return repo.Save(ctx, user)
-	})
+	dispatcher.Register(
+		CommandChangeUserEmail,
+		func(ctx context.Context, cmd command.Command) error {
+			changeCmd := cmd.(*ChangeUserEmail)
+			user, err := repo.Load(ctx, id.MustParseAggregateID(cmd.AggregateID()))
+			if err != nil {
+				return fmt.Errorf("load user: %w", err)
+			}
+			if err := user.ChangeEmail(ctx, changeCmd.NewEmail); err != nil {
+				return fmt.Errorf("change email: %w", err)
+			}
+			return repo.Save(ctx, user)
+		},
+	)
 }

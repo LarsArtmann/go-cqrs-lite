@@ -57,8 +57,14 @@ func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
 	reg := catalog.NewRegistry("BenchCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "CreateOrder", Version: "1.0.0",
-		Schema: &catalog.Schema{Type: "object", Properties: map[string]catalog.Property{"id": {Type: "string"}}},
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Schema: &catalog.Schema{
+			Type:       "object",
+			Properties: map[string]catalog.Property{"id": {Type: "string"}},
+		},
 	})
 	cat := reg.Build()
 	doc := asyncapi.NewExporter("Bench", "1.0.0").Export(cat)

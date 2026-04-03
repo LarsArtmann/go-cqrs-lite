@@ -18,7 +18,11 @@ type Store interface {
 	) error
 
 	// Load retrieves all events for an aggregate
-	Load(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) ([]Event, error)
+	Load(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID id.AggregateID,
+	) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting from a specific version
 	LoadFromVersion(

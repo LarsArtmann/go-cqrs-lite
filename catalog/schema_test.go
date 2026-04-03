@@ -8,13 +8,13 @@ import (
 )
 
 type CreateUser struct {
-	Email string `json:"email" doc:"User email address"`
+	Email string `json:"email"         doc:"User email address"`
 	Name  string `json:"name"`
 	Age   int    `json:"age,omitempty"`
 }
 
 type OrderItem struct {
-	ProductID string  `json:"productId" doc:"Product identifier"`
+	ProductID string  `json:"productId"       doc:"Product identifier"`
 	Quantity  int     `json:"quantity"`
 	Price     float64 `json:"price,omitempty"`
 }
@@ -218,7 +218,7 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 	t.Parallel()
 
 	type WithFormat struct {
-		Email     string `json:"email" format:"email"`
+		Email     string `json:"email"     format:"email"`
 		CreatedAt string `json:"createdAt" format:"date-time"`
 	}
 

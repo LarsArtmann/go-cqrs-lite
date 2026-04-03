@@ -27,12 +27,18 @@ func main() {
 
 	userID := id.NewAggregateID()
 	fmt.Println("=== Creating User ===")
-	if err := cmdDispatcher.Dispatch(ctx, NewCreateUser(userID, "Alice", "alice@example.com")); err != nil {
+	if err := cmdDispatcher.Dispatch(
+		ctx,
+		NewCreateUser(userID, "Alice", "alice@example.com"),
+	); err != nil {
 		log.Fatalf("create user: %v", err)
 	}
 
 	fmt.Println("\n=== Changing Email ===")
-	if err := cmdDispatcher.Dispatch(ctx, NewChangeUserEmail(userID, "alice.new@example.com")); err != nil {
+	if err := cmdDispatcher.Dispatch(
+		ctx,
+		NewChangeUserEmail(userID, "alice.new@example.com"),
+	); err != nil {
 		log.Fatalf("change email: %v", err)
 	}
 

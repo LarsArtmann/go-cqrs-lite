@@ -120,7 +120,11 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	md.WriteString("---\n\n")
 	fmt.Fprintf(&md, "# %s\n\n%s\n", msg.Name, msg.Summary)
 
-	if err := os.WriteFile(filepath.Join(dir, "index.mdx"), []byte(md.String()), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "index.mdx"),
+		[]byte(md.String()),
+		0o644,
+	); err != nil {
 		return fmt.Errorf("write message file: %w", err)
 	}
 
@@ -182,5 +186,9 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	cfg.WriteString("  landingPage: { content: '' },\n")
 	cfg.WriteString("};\n")
 
-	return os.WriteFile(filepath.Join(e.OutputDir, "eventcatalog.config.js"), []byte(cfg.String()), 0o644)
+	return os.WriteFile(
+		filepath.Join(e.OutputDir, "eventcatalog.config.js"),
+		[]byte(cfg.String()),
+		0o644,
+	)
 }

@@ -73,7 +73,12 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		t.Errorf("service ID = %q", svc.ID)
 	}
 	if len(svc.Commands) != 1 || len(svc.Events) != 1 || len(svc.Queries) != 1 {
-		t.Errorf("commands=%d events=%d queries=%d", len(svc.Commands), len(svc.Events), len(svc.Queries))
+		t.Errorf(
+			"commands=%d events=%d queries=%d",
+			len(svc.Commands),
+			len(svc.Events),
+			len(svc.Queries),
+		)
 	}
 
 	asyncExp := asyncapi.NewExporter("E-Commerce API", "1.0.0")
@@ -128,7 +133,14 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		t.Errorf("service frontmatter missing sends: %s", content)
 	}
 
-	cmdIndex := filepath.Join(ecDir, "services", "order-service", "commands", "CreateOrder", "index.mdx")
+	cmdIndex := filepath.Join(
+		ecDir,
+		"services",
+		"order-service",
+		"commands",
+		"CreateOrder",
+		"index.mdx",
+	)
 	data, err = os.ReadFile(cmdIndex)
 	if err != nil {
 		t.Fatalf("read command index: %v", err)
@@ -137,7 +149,15 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		t.Errorf("command missing schemaPath: %s", string(data))
 	}
 
-	schemaFile := filepath.Join(ecDir, "services", "order-service", "commands", "CreateOrder", "schemas", "schema.json")
+	schemaFile := filepath.Join(
+		ecDir,
+		"services",
+		"order-service",
+		"commands",
+		"CreateOrder",
+		"schemas",
+		"schema.json",
+	)
 	data, err = os.ReadFile(schemaFile)
 	if err != nil {
 		t.Fatalf("read schema: %v", err)

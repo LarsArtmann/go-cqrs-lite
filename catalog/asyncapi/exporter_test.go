@@ -237,7 +237,11 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		Kind: catalog.CommandMessage, ID: "DoA", Name: "DoA", Version: "1.0.0",
 	})
 	reg.AddEvent("svc-b", catalog.Message{
-		Kind: catalog.EventMessage, ID: "DoneB", Name: "DoneB", Version: "1.0.0", Direction: catalog.Sends,
+		Kind:      catalog.EventMessage,
+		ID:        "DoneB",
+		Name:      "DoneB",
+		Version:   "1.0.0",
+		Direction: catalog.Sends,
 	})
 
 	cat := reg.Build()
@@ -255,7 +259,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 	t.Parallel()
 	type CreateOrder struct {
 		OrderID string  `json:"orderId" doc:"Unique order identifier"`
-		Amount  float64 `json:"amount" doc:"Total amount"`
+		Amount  float64 `json:"amount"  doc:"Total amount"`
 	}
 
 	schema := catalog.SchemaFromType[CreateOrder]()
@@ -309,7 +313,8 @@ func TestDocument_MarshalYAML(t *testing.T) {
 		t.Fatal(err)
 	}
 	output := string(b)
-	if !strings.Contains(output, "asyncapi: \"3.0.0\"") && !strings.Contains(output, "asyncapi: 3.0.0") {
+	if !strings.Contains(output, "asyncapi: \"3.0.0\"") &&
+		!strings.Contains(output, "asyncapi: 3.0.0") {
 		t.Errorf("YAML missing asyncapi version:\n%s", output)
 	}
 	if !strings.Contains(output, "channels:") {
