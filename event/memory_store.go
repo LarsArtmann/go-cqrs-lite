@@ -60,6 +60,27 @@ func (s *MemoryStore) Save(
 	return nil
 }
 
+// AppendBatch appends events without optimistic concurrency checks.
+func (s *MemoryStore) AppendBatch(
+	_ context.Context,
+	aggregateType AggregateType,
+	aggregateID id.AggregateID,
+	events []Event,
+) error {
+	err := s.CheckClosed(ErrStoreClosed)
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	key := s.streamKey(aggregateType, aggregateID)
+	s.events[key] = append(s.events[key], events...)
+
+	return nil
+}
+
 // Load retrieves all events for an aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,

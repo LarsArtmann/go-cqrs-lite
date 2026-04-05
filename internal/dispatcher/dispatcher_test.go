@@ -45,6 +45,7 @@ func TestLifecycleMixin_CheckClosed(t *testing.T) {
 	}
 
 	_ = m.Close()
+
 	err = m.CheckClosed(closedErr)
 	if !errors.Is(err, closedErr) {
 		t.Errorf("CheckClosed() on closed mixin should return closedErr, got %v", err)
@@ -81,6 +82,7 @@ func TestLifecycle_CheckClosed(t *testing.T) {
 	}
 
 	_ = l.Close()
+
 	err = l.CheckClosed(closedErr)
 	if !errors.Is(err, closedErr) {
 		t.Errorf("CheckClosed() on closed lifecycle should return closedErr, got %v", err)
@@ -205,6 +207,7 @@ func TestDispatcher_Register(t *testing.T) {
 	d := NewDispatcher[testHandler, testMiddleware]()
 
 	handler := func(s string) string { return s }
+
 	err := d.Register("test", handler)
 	if err != nil {
 		t.Errorf("Register() error = %v", err)
@@ -222,6 +225,7 @@ func TestDispatcher_Register_Closed(t *testing.T) {
 	_ = d.Close()
 
 	handler := func(s string) string { return s }
+
 	err := d.Register("test", handler)
 	if err == nil {
 		t.Error("expected error when registering on closed dispatcher")
@@ -332,6 +336,7 @@ func TestDispatcher_Close(t *testing.T) {
 	t.Parallel()
 
 	d := NewDispatcher[testHandler, testMiddleware]()
+
 	err := d.Close()
 	if err != nil {
 		t.Errorf("Close() error = %v", err)

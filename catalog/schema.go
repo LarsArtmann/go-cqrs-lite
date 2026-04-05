@@ -48,7 +48,6 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	var required []string
 
 	for field := range t.Fields() {
-		field := field
 		if !field.IsExported() {
 			continue
 		}

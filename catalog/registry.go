@@ -49,18 +49,42 @@ func (r *Registry) AddService(svc Service) {
 }
 
 func (r *Registry) AddCommand(serviceID string, msg Message) {
-	r.addMessage(serviceID, CommandMessage, func(s *Service) []Message { return s.Commands }, func(s *Service, m []Message) { s.Commands = m }, msg)
+	r.addMessage(
+		serviceID,
+		CommandMessage,
+		func(s *Service) []Message { return s.Commands },
+		func(s *Service, m []Message) { s.Commands = m },
+		msg,
+	)
 }
 
 func (r *Registry) AddEvent(serviceID string, msg Message) {
-	r.addMessage(serviceID, EventMessage, func(s *Service) []Message { return s.Events }, func(s *Service, m []Message) { s.Events = m }, msg)
+	r.addMessage(
+		serviceID,
+		EventMessage,
+		func(s *Service) []Message { return s.Events },
+		func(s *Service, m []Message) { s.Events = m },
+		msg,
+	)
 }
 
 func (r *Registry) AddQuery(serviceID string, msg Message) {
-	r.addMessage(serviceID, QueryMessage, func(s *Service) []Message { return s.Queries }, func(s *Service, m []Message) { s.Queries = m }, msg)
+	r.addMessage(
+		serviceID,
+		QueryMessage,
+		func(s *Service) []Message { return s.Queries },
+		func(s *Service, m []Message) { s.Queries = m },
+		msg,
+	)
 }
 
-func (r *Registry) addMessage(serviceID string, kind MessageKind, getter func(*Service) []Message, setter func(*Service, []Message), msg Message) {
+func (r *Registry) addMessage(
+	serviceID string,
+	kind MessageKind,
+	getter func(*Service) []Message,
+	setter func(*Service, []Message),
+	msg Message,
+) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

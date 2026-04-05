@@ -268,6 +268,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -307,6 +308,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)

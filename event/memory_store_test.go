@@ -194,3 +194,69 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 		t.Errorf("expected 0 events past end, got %d", len(events))
 	}
 }
+
+func TestMemoryStore_AppendBatch(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+
+	evt1, _ := event.NewEvent("UserCreated", "user-batch", "User", 0, nil)
+	evt2, _ := event.NewEvent("UserUpdated", "user-batch", "User", 1, nil)
+	evt3, _ := event.NewEvent("UserDeleted", "user-batch", "User", 2, nil)
+
+	err := store.AppendBatch(ctx, "User", "user-batch", []event.Event{evt1, evt2, evt3})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	events, err := store.Load(ctx, "User", "user-batch")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(events) != 3 {
+		t.Errorf("expected 3 events, got %d", len(events))
+	}
+}
+
+func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	ctx := context.Background()
+
+	evt1, _ := event.NewEvent("UserCreated", "user-batch2", "User", 0, nil)
+	_ = store.Save(ctx, "User", "user-batch2", []event.Event{evt1}, 0)
+
+	evt2, _ := event.NewEvent("UserUpdated", "user-batch2", "User", 1, nil)
+	evt3, _ := event.NewEvent("UserDeleted", "user-batch2", "User", 2, nil)
+
+	err := store.AppendBatch(ctx, "User", "user-batch2", []event.Event{evt2, evt3})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	events, err := store.Load(ctx, "User", "user-batch2")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(events) != 3 {
+		t.Errorf("expected 3 events total, got %d", len(events))
+	}
+}
+
+func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := event.NewMemoryStore()
+	_ = store.Close()
+
+	evt, _ := event.NewEvent("UserCreated", "user-batch3", "User", 0, nil)
+
+	err := store.AppendBatch(context.Background(), "User", "user-batch3", []event.Event{evt})
+	if err == nil {
+		t.Error("expected store closed error")
+	}
+}

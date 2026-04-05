@@ -424,6 +424,7 @@ func TestBinaryEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.UnmarshalBinary([]byte("test-binary"))
 		if err != nil {
 			t.Fatalf("UnmarshalBinary() error = %v", err)
@@ -438,6 +439,7 @@ func TestBinaryEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.UnmarshalBinary([]byte(""))
 		if err == nil {
 			t.Error("UnmarshalBinary() should error on empty")
@@ -476,6 +478,7 @@ func TestTextEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.UnmarshalText([]byte("test-text"))
 		if err != nil {
 			t.Fatalf("UnmarshalText() error = %v", err)
@@ -490,6 +493,7 @@ func TestTextEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.UnmarshalText([]byte(""))
 		if err == nil {
 			t.Error("UnmarshalText() should error on empty")
@@ -547,6 +551,7 @@ func TestSQLScan(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.Scan("scan-test")
 		if err != nil {
 			t.Fatalf("Scan() error = %v", err)
@@ -561,6 +566,7 @@ func TestSQLScan(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.Scan([]byte("scan-bytes"))
 		if err != nil {
 			t.Fatalf("Scan() error = %v", err)
@@ -575,6 +581,7 @@ func TestSQLScan(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.Scan("")
 		if err == nil {
 			t.Error("Scan() should error on empty string")
@@ -585,6 +592,7 @@ func TestSQLScan(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.Scan([]byte(""))
 		if err == nil {
 			t.Error("Scan() should error on empty bytes")
@@ -595,6 +603,7 @@ func TestSQLScan(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		err := id.Scan(123)
 		if err == nil {
 			t.Error("Scan() should error on unsupported type")

@@ -132,3 +132,15 @@ formatters:
 issues:
     max-issues-per-linter: 50
     max-same-issues: 10
+
+linters-settings:
+  depguard:
+    rules:
+      Main:
+        allow:
+          - $STD
+          - $GORM
+          - $GOLANG_ORG
+          - github.com/cockroachdb/errors
+          - github.com/google/uuid
+          - github.com/larsartmann/go-cqrs-lite

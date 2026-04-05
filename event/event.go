@@ -173,6 +173,13 @@ func NewEvent(
 // Option configures event creation.
 type Option func(*Core)
 
+// ensureMetadata initializes metadata if nil.
+func (e *Core) ensureMetadata() {
+	if e.metadata == nil {
+		e.metadata = NewMetadata()
+	}
+}
+
 // WithMetadata sets custom metadata.
 func WithMetadata(m *Metadata) Option {
 	return func(e *Core) { e.metadata = m }
@@ -181,10 +188,7 @@ func WithMetadata(m *Metadata) Option {
 // WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(correlationID id.CorrelationID) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.CorrelationID = correlationID
 	}
 }
@@ -192,10 +196,7 @@ func WithCorrelationID(correlationID id.CorrelationID) Option {
 // WithCausationID sets the causation ID (indicates what triggered this event).
 func WithCausationID(causationID id.CausationID) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.CausationID = causationID
 	}
 }
@@ -203,10 +204,7 @@ func WithCausationID(causationID id.CausationID) Option {
 // WithUserID sets the user ID who triggered the event.
 func WithUserID(userID id.UserID) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.UserID = userID
 	}
 }
@@ -214,10 +212,7 @@ func WithUserID(userID id.UserID) Option {
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(requestID id.RequestID) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.RequestID = requestID
 	}
 }
@@ -225,10 +220,7 @@ func WithRequestID(requestID id.RequestID) Option {
 // WithSource sets the source of the event.
 func WithSource(source Source) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.Source = source
 	}
 }
@@ -236,10 +228,7 @@ func WithSource(source Source) Option {
 // WithIPAddress sets the client IP address.
 func WithIPAddress(ip IPAddress) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.IPAddress = ip
 	}
 }
@@ -247,10 +236,7 @@ func WithIPAddress(ip IPAddress) Option {
 // WithUserAgent sets the client user agent.
 func WithUserAgent(ua UserAgent) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
+		e.ensureMetadata()
 		e.metadata.UserAgent = ua
 	}
 }
@@ -261,9 +247,7 @@ type MetadataKey string
 // WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) Option {
 	return func(e *Core) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
+		e.ensureMetadata()
 
 		if e.metadata.Custom == nil {
 			e.metadata.Custom = make(map[MetadataKey]string)

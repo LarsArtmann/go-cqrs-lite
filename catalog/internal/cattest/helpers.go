@@ -30,7 +30,12 @@ func AddService(t testing.TB, r *catalog.Registry, id, name, version string) *ca
 }
 
 // AddCommand adds a command message to a service.
-func AddCommand(t testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
+func AddCommand(
+	t testing.TB,
+	r *catalog.Registry,
+	svcID string,
+	msg catalog.Message,
+) *catalog.Registry {
 	t.Helper()
 
 	r.AddCommand(svcID, msg)
@@ -39,7 +44,12 @@ func AddCommand(t testing.TB, r *catalog.Registry, svcID string, msg catalog.Mes
 }
 
 // AddEvent adds an event message to a service.
-func AddEvent(t testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
+func AddEvent(
+	t testing.TB,
+	r *catalog.Registry,
+	svcID string,
+	msg catalog.Message,
+) *catalog.Registry {
 	t.Helper()
 
 	r.AddEvent(svcID, msg)
@@ -48,7 +58,12 @@ func AddEvent(t testing.TB, r *catalog.Registry, svcID string, msg catalog.Messa
 }
 
 // AddQuery adds a query message to a service.
-func AddQuery(t testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
+func AddQuery(
+	t testing.TB,
+	r *catalog.Registry,
+	svcID string,
+	msg catalog.Message,
+) *catalog.Registry {
 	t.Helper()
 
 	r.AddQuery(svcID, msg)
@@ -64,10 +79,15 @@ func Build(t testing.TB, r *catalog.Registry) *catalog.Catalog {
 }
 
 // MustExport exports the catalog using the given exporter and fails on error.
-func MustExport(t testing.TB, exp interface{ Export(*catalog.Catalog) error }, cat *catalog.Catalog) {
+func MustExport(
+	t testing.TB,
+	exp interface{ Export(*catalog.Catalog) error },
+	cat *catalog.Catalog,
+) {
 	t.Helper()
 
-	if err := exp.Export(cat); err != nil {
+	err := exp.Export(cat)
+	if err != nil {
 		t.Fatalf("export catalog: %v", err)
 	}
 }

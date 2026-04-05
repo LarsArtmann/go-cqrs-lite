@@ -59,6 +59,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.OutputDir, "services", svc.ID)
+
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return fmt.Errorf("create service dir: %w", err)
@@ -113,6 +114,7 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	id := messageID(msg)
 
 	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
+
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return fmt.Errorf("create message dir: %w", err)
@@ -171,6 +173,7 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	dir := filepath.Join(e.OutputDir, "domains", domain.ID)
+
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return fmt.Errorf("create domain dir: %w", err)

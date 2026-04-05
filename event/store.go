@@ -17,6 +17,15 @@ type Store interface {
 		expectedVersion Version,
 	) error
 
+	// AppendBatch appends events without optimistic concurrency checks.
+	// Useful for bulk imports, event replay, and migrations.
+	AppendBatch(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID id.AggregateID,
+		events []Event,
+	) error
+
 	// Load retrieves all events for an aggregate
 	Load(
 		ctx context.Context,

@@ -19,3 +19,6 @@ var ErrStoreClosed = errors.New("event store is closed")
 
 // ErrBusClosed is returned when the event bus is closed.
 var ErrBusClosed = errors.New("event bus is closed")
+
+// ErrSnapshotNotFound is returned when a snapshot is not found.
+var ErrSnapshotNotFound = errors.New("snapshot not found")

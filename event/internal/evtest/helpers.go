@@ -24,7 +24,13 @@ func NewTestEvent(t testing.TB, eventType event.Type) event.Event {
 }
 
 // NewTestEventWithAggregate creates a new test event with specific aggregate.
-func NewTestEventWithAggregate(t testing.TB, eventType event.Type, aggregateID id.AggregateID, aggregateType event.AggregateType, version int) event.Event {
+func NewTestEventWithAggregate(
+	t testing.TB,
+	eventType event.Type,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
+	version int,
+) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(eventType, aggregateID, aggregateType, version, nil)
