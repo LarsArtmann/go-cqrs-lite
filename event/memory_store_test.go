@@ -33,6 +33,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(events) != 2 {
 		t.Errorf("expected 2 events, got %d", len(events))
 	}
@@ -82,6 +83,7 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(events) != 2 {
 		t.Errorf("expected 2 events from version 1, got %d", len(events))
 	}
@@ -116,6 +118,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 	_ = store.Close()
 
 	evt, _ := event.NewEvent("UserCreated", "user-1", "User", 0, nil)
+
 	err := store.Save(ctx, "User", "user-1", []event.Event{evt}, 0)
 	if err == nil {
 		t.Error("expected store closed error")
@@ -186,6 +189,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(events) != 0 {
 		t.Errorf("expected 0 events past end, got %d", len(events))
 	}

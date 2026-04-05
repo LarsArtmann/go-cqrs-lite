@@ -44,8 +44,10 @@ func NewWithPrefix[T any](prefix PrefixString) Of[T] {
 func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
+
 		return zero, fmt.Errorf("cannot parse empty string as %T (input: %q)", zero, s)
 	}
+
 	return Of[T](s), nil
 }
 
@@ -62,6 +64,7 @@ func MustParse[T any](s string) Of[T] {
 	if err != nil {
 		panic(fmt.Sprintf("id.MustParse: %v (input: %q)", err, s))
 	}
+
 	return id
 }
 
@@ -91,9 +94,11 @@ func (id Of[T]) Compare(other Of[T]) int {
 	if id < other {
 		return -1
 	}
+
 	if id > other {
 		return 1
 	}
+
 	return 0
 }
 
@@ -102,6 +107,7 @@ func (id Of[T]) Or(fallback Of[T]) Of[T] {
 	if id.IsEmpty() {
 		return fallback
 	}
+
 	return id
 }
 
@@ -121,8 +127,10 @@ func (id Of[T]) Format(f fmt.State, verb rune) {
 	case 'v':
 		if f.Flag('#') {
 			_, _ = fmt.Fprint(f, id.GoString())
+
 			return
 		}
+
 		_, _ = fmt.Fprint(f, id.String())
 	case 's':
 		_, _ = fmt.Fprint(f, id.String())
@@ -139,10 +147,12 @@ func (id Of[T]) MarshalJSON() ([]byte, error) {
 	if id.IsEmpty() {
 		return []byte("null"), nil
 	}
+
 	data, err := json.Marshal(id.String())
 	if err != nil {
 		return nil, fmt.Errorf("marshal ID to JSON: %w", err)
 	}
+
 	return data, nil
 }
 
@@ -151,17 +161,22 @@ func (id Of[T]) MarshalJSON() ([]byte, error) {
 func (id *Of[T]) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		*id = ""
+
 		return nil
 	}
+
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return fmt.Errorf("unmarshal ID: %w (input: %q)", err, string(data))
 	}
+
 	parsed, err := Parse[T](s)
 	if err != nil {
 		return fmt.Errorf("parse ID from JSON %q: %w", s, err)
 	}
+
 	*id = parsed
+
 	return nil
 }
 
@@ -176,7 +191,9 @@ func (id *Of[T]) UnmarshalBinary(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("unmarshal ID from binary: %w", err)
 	}
+
 	*id = parsed
+
 	return nil
 }
 
@@ -191,7 +208,9 @@ func (id *Of[T]) UnmarshalText(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("unmarshal ID from text: %w", err)
 	}
+
 	*id = parsed
+
 	return nil
 }
 
@@ -215,14 +234,18 @@ func (id *Of[T]) Scan(src any) error {
 		if err != nil {
 			return fmt.Errorf("scan ID from string: %w (input: %q, src: %T)", err, v, src)
 		}
+
 		*id = parsed
+
 		return nil
 	case []byte:
 		parsed, err := Parse[T](string(v))
 		if err != nil {
 			return fmt.Errorf("scan ID from bytes: %w (input: %q, src: %T)", err, string(v), src)
 		}
+
 		*id = parsed
+
 		return nil
 	default:
 		return fmt.Errorf("cannot scan %T into %T", src, id)

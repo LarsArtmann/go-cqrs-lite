@@ -9,16 +9,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// MemoryStore is an in-memory implementation of Store for testing and development
+// MemoryStore is an in-memory implementation of Store for testing and development.
 type MemoryStore struct {
 	dispatcher.LifecycleMixin
+
 	mu     sync.RWMutex
 	events map[string][]Event
 }
 
 var _ Store = (*MemoryStore)(nil)
 
-// NewMemoryStore creates a new in-memory event store
+// NewMemoryStore creates a new in-memory event store.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		LifecycleMixin: dispatcher.LifecycleMixin{},
@@ -30,7 +31,7 @@ func (s *MemoryStore) streamKey(aggregateType AggregateType, aggregateID id.Aggr
 	return string(aggregateType) + ":" + aggregateID.String()
 }
 
-// Save appends events to the aggregate's event stream
+// Save appends events to the aggregate's event stream.
 func (s *MemoryStore) Save(
 	_ context.Context,
 	aggregateType AggregateType,
@@ -38,7 +39,8 @@ func (s *MemoryStore) Save(
 	events []Event,
 	expectedVersion Version,
 ) error {
-	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+	err := s.CheckClosed(ErrStoreClosed)
+	if err != nil {
 		return err
 	}
 
@@ -54,16 +56,18 @@ func (s *MemoryStore) Save(
 	}
 
 	s.events[key] = append(existing, events...)
+
 	return nil
 }
 
-// Load retrieves all events for an aggregate
+// Load retrieves all events for an aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) ([]Event, error) {
-	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+	err := s.CheckClosed(ErrStoreClosed)
+	if err != nil {
 		return nil, err
 	}
 
@@ -71,6 +75,7 @@ func (s *MemoryStore) Load(
 	defer s.mu.RUnlock()
 
 	key := s.streamKey(aggregateType, aggregateID)
+
 	events, exists := s.events[key]
 	if !exists {
 		return nil, ErrAggregateNotFound
@@ -79,14 +84,15 @@ func (s *MemoryStore) Load(
 	return events, nil
 }
 
-// LoadFromVersion retrieves events starting from a specific version
+// LoadFromVersion retrieves events starting from a specific version.
 func (s *MemoryStore) LoadFromVersion(
 	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 	version Version,
 ) ([]Event, error) {
-	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+	err := s.CheckClosed(ErrStoreClosed)
+	if err != nil {
 		return nil, err
 	}
 
@@ -94,6 +100,7 @@ func (s *MemoryStore) LoadFromVersion(
 	defer s.mu.RUnlock()
 
 	key := s.streamKey(aggregateType, aggregateID)
+
 	events, exists := s.events[key]
 	if !exists {
 		return nil, ErrAggregateNotFound
@@ -106,13 +113,14 @@ func (s *MemoryStore) LoadFromVersion(
 	return events[version.Int():], nil
 }
 
-// Delete removes all events for an aggregate
+// Delete removes all events for an aggregate.
 func (s *MemoryStore) Delete(
 	_ context.Context,
 	aggregateType AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	if err := s.CheckClosed(ErrStoreClosed); err != nil {
+	err := s.CheckClosed(ErrStoreClosed)
+	if err != nil {
 		return err
 	}
 
@@ -121,10 +129,11 @@ func (s *MemoryStore) Delete(
 
 	key := s.streamKey(aggregateType, aggregateID)
 	delete(s.events, key)
+
 	return nil
 }
 
-// Close marks the store as closed
+// Close marks the store as closed.
 func (s *MemoryStore) Close() error {
 	return s.LifecycleMixin.Close()
 }

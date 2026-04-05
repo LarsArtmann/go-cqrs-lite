@@ -14,10 +14,12 @@ type Source string
 // Returns an error if the source is empty or contains invalid characters.
 func ParseSource(s string) (Source, error) {
 	original := s
+
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return "", fmt.Errorf("source cannot be empty (input: %q)", original)
 	}
+
 	return Source(s), nil
 }
 
@@ -38,10 +40,12 @@ func ParseIPAddress(s string) (IPAddress, error) {
 	if s == "" {
 		return "", nil // Empty is allowed (optional field)
 	}
+
 	addr, err := netip.ParseAddr(s)
 	if err != nil {
 		return "", fmt.Errorf("invalid IP address %q: %w", s, err)
 	}
+
 	return IPAddress(addr.String()), nil
 }
 
@@ -77,6 +81,7 @@ func ParseVersion(v int) (Version, error) {
 	if v < 0 {
 		return 0, fmt.Errorf("version cannot be negative: %d", v)
 	}
+
 	return Version(v), nil
 }
 

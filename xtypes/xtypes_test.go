@@ -40,6 +40,7 @@ func TestEventBuilder(t *testing.T) {
 		if evt.AggregateID() != aggregateID {
 			t.Error("AggregateID mismatch")
 		}
+
 		if evt.Event().Type() != event.Type("TestCreated") {
 			t.Error("EventType mismatch")
 		}
@@ -56,7 +57,6 @@ func TestEventBuilder(t *testing.T) {
 			"TestAggregate",
 			1,
 		).Build()
-
 		if err == nil {
 			t.Error("Build() should error on empty aggregate ID")
 		}
@@ -73,7 +73,6 @@ func TestEventBuilder(t *testing.T) {
 			"",
 			1,
 		).Build()
-
 		if err == nil {
 			t.Error("Build() should error on empty aggregate type")
 		}
@@ -90,7 +89,6 @@ func TestEventBuilder(t *testing.T) {
 			"TestAggregate",
 			-1,
 		).Build()
-
 		if err == nil {
 			t.Error("Build() should error on negative version")
 		}
@@ -215,6 +213,7 @@ func TestTypedEvent(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
+
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).Build()
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -224,6 +223,7 @@ func TestTypedEvent(t *testing.T) {
 		if core == nil {
 			t.Error("Core() should return non-nil")
 		}
+
 		if core.Type() != event.Type("TestEvent") {
 			t.Errorf("expected event type TestEvent, got %s", core.Type())
 		}
@@ -233,6 +233,7 @@ func TestTypedEvent(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
+
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).Build()
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -242,6 +243,7 @@ func TestTypedEvent(t *testing.T) {
 		if e == nil {
 			t.Error("Event() should return non-nil")
 		}
+
 		if e.AggregateID() != aggregateID.String() {
 			t.Errorf("expected aggregate ID %s, got %s", aggregateID.String(), e.AggregateID())
 		}
@@ -251,6 +253,7 @@ func TestTypedEvent(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
+
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).Build()
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -274,6 +277,7 @@ func TestTypedCommand(t *testing.T) {
 		if cmd.Type() != "CreateTest" {
 			t.Error("Type mismatch")
 		}
+
 		if cmd.AggregateID() != aggregateID {
 			t.Error("AggregateID mismatch")
 		}
@@ -289,6 +293,7 @@ func TestTypedCommand(t *testing.T) {
 		if c == nil {
 			t.Error("Command() should return non-nil")
 		}
+
 		if c.Type() != "CreateTest" {
 			t.Errorf("expected command type CreateTest, got %s", c.Type())
 		}
@@ -300,15 +305,18 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("creates typed aggregate", func(t *testing.T) {
 		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
 		if agg.ID() != aggregateID {
 			t.Error("ID mismatch")
 		}
+
 		if agg.Type() != "TestAggregate" {
 			t.Error("Type mismatch")
 		}
+
 		if agg.Version() != 0 {
 			t.Error("Version should start at 0")
 		}
@@ -316,6 +324,7 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("Core returns underlying aggregate.Core", func(t *testing.T) {
 		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 
@@ -323,6 +332,7 @@ func TestTypedAggregate(t *testing.T) {
 		if core == nil {
 			t.Error("Core() should return non-nil")
 		}
+
 		if core.ID() != aggregateID.String() {
 			t.Errorf("expected core ID %s, got %s", aggregateID.String(), core.ID())
 		}
@@ -330,6 +340,7 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("applies event", func(t *testing.T) {
 		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 		evt, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
@@ -338,6 +349,7 @@ func TestTypedAggregate(t *testing.T) {
 		if agg.Version() != 1 {
 			t.Errorf("Version should be 1, got %d", agg.Version())
 		}
+
 		if len(agg.UncommittedChanges()) != 1 {
 			t.Error("Should have 1 uncommitted change")
 		}
@@ -345,6 +357,7 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("loads from history", func(t *testing.T) {
 		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 		evt1, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
@@ -354,6 +367,7 @@ func TestTypedAggregate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("LoadFromHistory() error = %v", err)
 		}
+
 		if agg.Version() != 2 {
 			t.Errorf("Version should be 2, got %d", agg.Version())
 		}
@@ -361,6 +375,7 @@ func TestTypedAggregate(t *testing.T) {
 
 	t.Run("marks changes as committed", func(t *testing.T) {
 		t.Parallel()
+
 		aggregateID := id.NewAggregateID()
 		agg := NewTypedAggregate(aggregateID, "TestAggregate")
 		evt, _ := NewEventBuilder("TestCreated", aggregateID, "TestAggregate", 1).Build()
@@ -375,6 +390,7 @@ func TestTypedAggregate(t *testing.T) {
 		if len(agg.UncommittedChanges()) != 0 {
 			t.Errorf("expected 0 changes after commit, got %d", len(agg.UncommittedChanges()))
 		}
+
 		if agg.Version() != 1 {
 			t.Errorf("version should remain 1 after commit, got %d", agg.Version())
 		}
@@ -400,6 +416,7 @@ func TestCommandID(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if parsed.String() != "cmd-123" {
 			t.Errorf("expected cmd-123, got %s", parsed.String())
 		}

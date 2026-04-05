@@ -28,13 +28,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// Type is a type identifier for domain events
+// Type is a type identifier for domain events.
 type Type string
 
-// AggregateType is a type identifier for aggregate roots
+// AggregateType is a type identifier for aggregate roots.
 type AggregateType string
 
-// Event represents a domain event with rich metadata
+// Event represents a domain event with rich metadata.
 type Event interface {
 	ID() string
 	Type() Type
@@ -46,7 +46,7 @@ type Event interface {
 	OccurredAt() time.Time
 }
 
-// Metadata contains tracing and contextual information for events
+// Metadata contains tracing and contextual information for events.
 type Metadata struct {
 	CorrelationID id.CorrelationID
 	CausationID   id.CausationID
@@ -58,7 +58,7 @@ type Metadata struct {
 	Custom        map[MetadataKey]string
 }
 
-// Core provides a default implementation of Event interface
+// Core provides a default implementation of Event interface.
 type Core struct {
 	id            id.EventID
 	eventType     Type
@@ -108,7 +108,7 @@ func (e *Core) Metadata() *Metadata { return e.metadata }
 // OccurredAt returns when the event occurred.
 func (e *Core) OccurredAt() time.Time { return e.occurredAt }
 
-// NewEvent creates a new event with validation
+// NewEvent creates a new event with validation.
 func NewEvent(
 	eventType Type,
 	aggregateID id.AggregateID,
@@ -129,6 +129,7 @@ func NewEvent(
 			err,
 		)
 	}
+
 	if aggregateID.IsEmpty() {
 		return nil, fmt.Errorf(
 			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
@@ -139,6 +140,7 @@ func NewEvent(
 			len(opts),
 		)
 	}
+
 	if aggregateType == "" {
 		return nil, fmt.Errorf(
 			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d, opts count: %d",
@@ -168,80 +170,87 @@ func NewEvent(
 	return event, nil
 }
 
-// Option configures event creation
+// Option configures event creation.
 type Option func(*Core)
 
-// WithMetadata sets custom metadata
+// WithMetadata sets custom metadata.
 func WithMetadata(m *Metadata) Option {
 	return func(e *Core) { e.metadata = m }
 }
 
-// WithCorrelationID sets the correlation ID for distributed tracing
+// WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(correlationID id.CorrelationID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.CorrelationID = correlationID
 	}
 }
 
-// WithCausationID sets the causation ID (indicates what triggered this event)
+// WithCausationID sets the causation ID (indicates what triggered this event).
 func WithCausationID(causationID id.CausationID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.CausationID = causationID
 	}
 }
 
-// WithUserID sets the user ID who triggered the event
+// WithUserID sets the user ID who triggered the event.
 func WithUserID(userID id.UserID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.UserID = userID
 	}
 }
 
-// WithRequestID sets the request ID for debugging
+// WithRequestID sets the request ID for debugging.
 func WithRequestID(requestID id.RequestID) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.RequestID = requestID
 	}
 }
 
-// WithSource sets the source of the event
+// WithSource sets the source of the event.
 func WithSource(source Source) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.Source = source
 	}
 }
 
-// WithIPAddress sets the client IP address
+// WithIPAddress sets the client IP address.
 func WithIPAddress(ip IPAddress) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.IPAddress = ip
 	}
 }
 
-// WithUserAgent sets the client user agent
+// WithUserAgent sets the client user agent.
 func WithUserAgent(ua UserAgent) Option {
 	return func(e *Core) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		e.metadata.UserAgent = ua
 	}
 }
@@ -255,9 +264,11 @@ func WithCustom(key MetadataKey, value string) Option {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		if e.metadata.Custom == nil {
 			e.metadata.Custom = make(map[MetadataKey]string)
 		}
+
 		e.metadata.Custom[key] = value
 	}
 }

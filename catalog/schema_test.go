@@ -8,15 +8,15 @@ import (
 )
 
 type CreateUser struct {
-	Email string `json:"email"         doc:"User email address"`
-	Name  string `json:"name"`
-	Age   int    `json:"age,omitempty"`
+	Email string `doc:"User email address" json:"email"`
+	Name  string `                         json:"name"`
+	Age   int    `                         json:"age,omitempty"`
 }
 
 type OrderItem struct {
-	ProductID string  `json:"productId"       doc:"Product identifier"`
-	Quantity  int     `json:"quantity"`
-	Price     float64 `json:"price,omitempty"`
+	ProductID string  `doc:"Product identifier" json:"productId"`
+	Quantity  int     `                         json:"quantity"`
+	Price     float64 `                         json:"price,omitempty"`
 }
 
 type CreateOrder struct {
@@ -34,12 +34,15 @@ func TestSchemaFromType_Struct(t *testing.T) {
 	if schema.Type != "object" {
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
+
 	if _, ok := schema.Properties["email"]; !ok {
 		t.Error("expected email property")
 	}
+
 	if _, ok := schema.Properties["name"]; !ok {
 		t.Error("expected name property")
 	}
+
 	if len(schema.Required) != 2 {
 		t.Errorf("expected 2 required fields, got %d: %v", len(schema.Required), schema.Required)
 	}
@@ -57,12 +60,15 @@ func TestSchemaFromType_Slice(t *testing.T) {
 	if !ok {
 		t.Fatal("expected items property")
 	}
+
 	if items.Type != "array" {
 		t.Errorf("expected array, got %s", items.Type)
 	}
+
 	if items.Items == nil {
 		t.Fatal("expected items.Items to be set")
 	}
+
 	if items.Items.Type != "object" {
 		t.Errorf("expected object items, got %s", items.Items.Type)
 	}
@@ -72,6 +78,7 @@ func TestSchemaFromType_Description(t *testing.T) {
 	t.Parallel()
 
 	schema := catalog.SchemaFromType[CreateUser]()
+
 	email := schema.Properties["email"]
 	if email.Description != "User email address" {
 		t.Errorf("expected description 'User email address', got %q", email.Description)
@@ -92,8 +99,10 @@ func TestSchemaFromType_FieldTypes(t *testing.T) {
 		prop, ok := schema.Properties[field]
 		if !ok {
 			t.Errorf("missing property %s", field)
+
 			continue
 		}
+
 		if prop.Type != expected {
 			t.Errorf("property %s: expected type %s, got %s", field, expected, prop.Type)
 		}
@@ -104,6 +113,7 @@ func TestSchemaToJSON(t *testing.T) {
 	t.Parallel()
 
 	schema := catalog.SchemaFromType[CreateUser]()
+
 	data, err := catalog.SchemaToJSON(schema)
 	if err != nil {
 		t.Fatalf("SchemaToJSON() error = %v", err)
@@ -113,6 +123,7 @@ func TestSchemaToJSON(t *testing.T) {
 	if err := json.Unmarshal(data, &parsed); err != nil {
 		t.Fatalf("unmarshal result: %v", err)
 	}
+
 	if parsed["type"] != "object" {
 		t.Errorf("expected type object, got %v", parsed["type"])
 	}
@@ -138,6 +149,7 @@ func TestSchemaFromType_PrimitiveTypes(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[Primitives]()
+
 	expected := map[string]string{
 		"str":    "string",
 		"intVal": "integer",
@@ -148,8 +160,10 @@ func TestSchemaFromType_PrimitiveTypes(t *testing.T) {
 		prop, ok := schema.Properties[name]
 		if !ok {
 			t.Errorf("missing property %s", name)
+
 			continue
 		}
+
 		if prop.Type != exp {
 			t.Errorf("property %s: expected %s, got %s", name, exp, prop.Type)
 		}
@@ -162,19 +176,23 @@ func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
 	type Inner struct {
 		Value string `json:"value"`
 	}
+
 	type Outer struct {
 		Inner Inner  `json:"inner"`
 		Name  string `json:"name"`
 	}
 
 	schema := catalog.SchemaFromType[Outer]()
+
 	inner, ok := schema.Properties["inner"]
 	if !ok {
 		t.Fatal("expected inner property")
 	}
+
 	if inner.Type != "object" {
 		t.Errorf("expected object, got %s", inner.Type)
 	}
+
 	if _, ok := inner.Properties["value"]; !ok {
 		t.Error("expected inner.value property")
 	}
@@ -188,10 +206,12 @@ func TestSchemaFromType_PointerField(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithPtr]()
+
 	prop, ok := schema.Properties["name"]
 	if !ok {
 		t.Fatal("expected name property")
 	}
+
 	if prop.Type != "string" {
 		t.Errorf("expected string, got %s", prop.Type)
 	}
@@ -205,10 +225,12 @@ func TestSchemaFromType_MapField(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithMap]()
+
 	prop, ok := schema.Properties["meta"]
 	if !ok {
 		t.Fatal("expected meta property")
 	}
+
 	if prop.Type != "object" {
 		t.Errorf("expected object, got %s", prop.Type)
 	}
@@ -218,14 +240,15 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 	t.Parallel()
 
 	type WithFormat struct {
-		Email     string `json:"email"     format:"email"`
-		CreatedAt string `json:"createdAt" format:"date-time"`
+		Email     string `format:"email"     json:"email"`
+		CreatedAt string `format:"date-time" json:"createdAt"`
 	}
 
 	schema := catalog.SchemaFromType[WithFormat]()
 	if schema.Properties["email"].Format != "email" {
 		t.Errorf("expected format email, got %q", schema.Properties["email"].Format)
 	}
+
 	if schema.Properties["createdAt"].Format != "date-time" {
 		t.Errorf("expected format date-time, got %q", schema.Properties["createdAt"].Format)
 	}
@@ -235,7 +258,7 @@ func TestSchemaFromType_DescriptionTag(t *testing.T) {
 	t.Parallel()
 
 	type WithDesc struct {
-		Name string `json:"name" description:"The name"`
+		Name string `description:"The name" json:"name"`
 	}
 
 	schema := catalog.SchemaFromType[WithDesc]()
@@ -257,9 +280,11 @@ func TestSchemaFromType_SkipsUnexportedAndIgnored(t *testing.T) {
 	if _, ok := schema.Properties["private"]; ok {
 		t.Error("unexported field should be skipped")
 	}
+
 	if _, ok := schema.Properties["Ignored"]; ok {
 		t.Error("json:'-' field should be skipped")
 	}
+
 	if len(schema.Properties) != 1 {
 		t.Errorf("expected 1 property, got %d", len(schema.Properties))
 	}
@@ -273,10 +298,12 @@ func TestSchemaFromType_ArrayField(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithArray]()
+
 	prop, ok := schema.Properties["ids"]
 	if !ok {
 		t.Fatal("expected ids property")
 	}
+
 	if prop.Type != "array" {
 		t.Errorf("expected array, got %s", prop.Type)
 	}

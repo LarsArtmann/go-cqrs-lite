@@ -10,6 +10,7 @@ import (
 
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
@@ -33,12 +34,15 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	if doc.AsyncAPI != "3.0.0" {
 		t.Errorf("AsyncAPI version = %q, want %q", doc.AsyncAPI, "3.0.0")
 	}
+
 	if doc.Info.Title != "Order Service" {
 		t.Errorf("Info.Title = %q, want %q", doc.Info.Title, "Order Service")
 	}
+
 	if len(doc.Channels) == 0 {
 		t.Error("expected at least one channel")
 	}
+
 	if len(doc.Operations) == 0 {
 		t.Error("expected at least one operation")
 	}
@@ -47,6 +51,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	if !ok {
 		t.Fatal("missing commands.CreateOrder channel")
 	}
+
 	if ch.Address != "order-svc.commands.create.order" {
 		t.Errorf("channel address = %q, want %q", ch.Address, "order-svc.commands.create.order")
 	}
@@ -55,6 +60,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	if !ok {
 		t.Fatal("missing receiveCreateOrder operation")
 	}
+
 	if op.Action != "receive" {
 		t.Errorf("operation action = %q, want %q", op.Action, "receive")
 	}
@@ -63,9 +69,11 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	if !ok {
 		t.Fatal("missing CreateOrder message component")
 	}
+
 	if msg.ContentType != "application/json" {
 		t.Errorf("message content type = %q, want %q", msg.ContentType, "application/json")
 	}
+
 	if msg.Payload.Ref != "#/components/schemas/CreateOrder" {
 		t.Errorf("payload ref = %q, want %q", msg.Payload.Ref, "#/components/schemas/CreateOrder")
 	}
@@ -74,10 +82,12 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	if !ok {
 		t.Fatal("missing CreateOrder schema component")
 	}
+
 	schemaMap, ok := schema.(map[string]any)
 	if !ok {
 		t.Fatalf("schema is not a map: %T", schema)
 	}
+
 	if schemaMap["type"] != "object" {
 		t.Errorf("schema type = %v, want %q", schemaMap["type"], "object")
 	}
@@ -85,6 +95,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "payment-svc", Name: "Payment Service", Version: "1.0.0"})
 	reg.AddEvent("payment-svc", catalog.Message{
@@ -104,6 +115,7 @@ func TestExporter_Export_Event(t *testing.T) {
 	if !ok {
 		t.Fatal("missing events.PaymentProcessed channel")
 	}
+
 	if ch.Address != "payment-svc.events.payment.processed" {
 		t.Errorf("channel address = %q", ch.Address)
 	}
@@ -112,6 +124,7 @@ func TestExporter_Export_Event(t *testing.T) {
 	if !ok {
 		t.Fatal("missing publishPaymentProcessed operation")
 	}
+
 	if op.Action != "send" {
 		t.Errorf("event action = %q, want %q", op.Action, "send")
 	}
@@ -119,6 +132,7 @@ func TestExporter_Export_Event(t *testing.T) {
 
 func TestExporter_Export_EventReceive(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddEvent("svc", catalog.Message{
@@ -137,6 +151,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 	if !ok {
 		t.Fatal("missing receiveOrderCreated operation")
 	}
+
 	if op.Action != "receive" {
 		t.Errorf("action = %q, want %q", op.Action, "receive")
 	}
@@ -144,6 +159,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "catalog-svc", Name: "Catalog Service", Version: "1.0.0"})
 	reg.AddQuery("catalog-svc", catalog.Message{
@@ -167,6 +183,7 @@ func TestExporter_Export_Query(t *testing.T) {
 	if !ok {
 		t.Fatal("missing handleGetProduct operation")
 	}
+
 	if op.Action != "receive" {
 		t.Errorf("query action = %q, want %q", op.Action, "receive")
 	}
@@ -174,6 +191,7 @@ func TestExporter_Export_Query(t *testing.T) {
 
 func TestExporter_Export_Servers(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	exp := NewExporter("Test", "1.0.0")
 	exp.Protocol = "amqp"
@@ -185,9 +203,11 @@ func TestExporter_Export_Servers(t *testing.T) {
 	if !ok {
 		t.Fatal("missing production server")
 	}
+
 	if srv.Host != "rabbitmq.example.com:5672" {
 		t.Errorf("server host = %q", srv.Host)
 	}
+
 	if srv.Protocol != "amqp" {
 		t.Errorf("server protocol = %q", srv.Protocol)
 	}
@@ -195,6 +215,7 @@ func TestExporter_Export_Servers(t *testing.T) {
 
 func TestExporter_WithOptions(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	exp := NewExporter("Test", "1.0.0",
 		WithServer("staging", "kafka.staging:9092", "kafka"),
@@ -207,9 +228,11 @@ func TestExporter_WithOptions(t *testing.T) {
 	if !ok {
 		t.Fatal("missing staging server")
 	}
+
 	if srv.Host != "kafka.staging:9092" {
 		t.Errorf("server host = %q", srv.Host)
 	}
+
 	if doc.Info.Description != "Staging API" {
 		t.Errorf("description = %q", doc.Info.Description)
 	}
@@ -217,6 +240,7 @@ func TestExporter_WithOptions(t *testing.T) {
 
 func TestExporter_Export_NoHost(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	exp := NewExporter("Test", "1.0.0")
 	exp.Host = ""
@@ -230,6 +254,7 @@ func TestExporter_Export_NoHost(t *testing.T) {
 
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
@@ -250,6 +275,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	if len(doc.Channels) != 2 {
 		t.Errorf("expected 2 channels, got %d", len(doc.Channels))
 	}
+
 	if len(doc.Operations) != 2 {
 		t.Errorf("expected 2 operations, got %d", len(doc.Operations))
 	}
@@ -257,9 +283,10 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 
 func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 	t.Parallel()
+
 	type CreateOrder struct {
-		OrderID string  `json:"orderId" doc:"Unique order identifier"`
-		Amount  float64 `json:"amount"  doc:"Total amount"`
+		OrderID string  `doc:"Unique order identifier" json:"orderId"`
+		Amount  float64 `doc:"Total amount"            json:"amount"`
 	}
 
 	schema := catalog.SchemaFromType[CreateOrder]()
@@ -281,17 +308,21 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 	if !ok {
 		t.Fatal("missing schema")
 	}
+
 	schemaMap, ok := s.(map[string]any)
 	if !ok {
 		t.Fatalf("schema type = %T", s)
 	}
+
 	props, ok := schemaMap["properties"].(map[string]any)
 	if !ok {
 		t.Fatalf("properties type = %T", schemaMap["properties"])
 	}
+
 	if _, ok := props["orderId"]; !ok {
 		t.Error("missing orderId property in schema")
 	}
+
 	if _, ok := props["amount"]; !ok {
 		t.Error("missing amount property in schema")
 	}
@@ -299,6 +330,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 
 func TestDocument_MarshalYAML(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
@@ -312,11 +344,13 @@ func TestDocument_MarshalYAML(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	output := string(b)
 	if !strings.Contains(output, "asyncapi: \"3.0.0\"") &&
 		!strings.Contains(output, "asyncapi: 3.0.0") {
 		t.Errorf("YAML missing asyncapi version:\n%s", output)
 	}
+
 	if !strings.Contains(output, "channels:") {
 		t.Errorf("YAML missing channels:\n%s", output)
 	}
@@ -324,6 +358,7 @@ func TestDocument_MarshalYAML(t *testing.T) {
 
 func TestDocument_MarshalJSON(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	doc := NewExporter("Test", "1.0.0").Export(reg.Build())
 
@@ -331,10 +366,12 @@ func TestDocument_MarshalJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	var parsed map[string]any
 	if err := json.Unmarshal(b, &parsed); err != nil {
 		t.Fatalf("JSON parse error: %v", err)
 	}
+
 	if parsed["asyncapi"] != "3.0.0" {
 		t.Errorf("asyncapi = %v, want 3.0.0", parsed["asyncapi"])
 	}
@@ -342,6 +379,7 @@ func TestDocument_MarshalJSON(t *testing.T) {
 
 func TestExporter_Export_NoSchema(t *testing.T) {
 	t.Parallel()
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
@@ -355,6 +393,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	if !ok {
 		t.Fatal("missing schema for NoSchema")
 	}
+
 	switch v := s.(type) {
 	case map[string]any:
 		if v["type"] != "object" {
@@ -371,6 +410,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 func TestToDotAddress(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		input string
 		want  string

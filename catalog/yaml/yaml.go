@@ -22,6 +22,7 @@ func marshalValue(v reflect.Value, indent int) ([]byte, error) {
 		if v.IsNil() {
 			return []byte("null\n"), nil
 		}
+
 		return marshalValue(v.Elem(), indent)
 	}
 
@@ -36,6 +37,7 @@ func marshalValue(v reflect.Value, indent int) ([]byte, error) {
 		if v.Bool() {
 			return []byte("true\n"), nil
 		}
+
 		return []byte("false\n"), nil
 	case reflect.Slice, reflect.Array:
 		return marshalSlice(v, indent)
@@ -52,13 +54,16 @@ func marshalString(s string) ([]byte, error) {
 	if s == "" {
 		return []byte("\"\"\n"), nil
 	}
+
 	if needsQuoting(s) {
 		quoted, err := json.Marshal(s)
 		if err != nil {
 			return nil, fmt.Errorf("yaml: marshal string: %w", err)
 		}
+
 		return append(quoted, '\n'), nil
 	}
+
 	return []byte(s + "\n"), nil
 }
 
@@ -66,15 +71,18 @@ func needsQuoting(s string) bool {
 	if s == "" {
 		return true
 	}
+
 	special := ":{}[],&*?|->!%@`#'\"\\\n\r\t "
 	for _, c := range s {
 		if strings.ContainsRune(special, c) {
 			return true
 		}
 	}
+
 	if s == "true" || s == "false" || s == "null" {
 		return true
 	}
+
 	return false
 }
 
@@ -82,23 +90,30 @@ func marshalSlice(v reflect.Value, indent int) ([]byte, error) {
 	if v.Len() == 0 {
 		return []byte("[]\n"), nil
 	}
+
 	prefix := strings.Repeat("  ", indent)
+
 	var buf []byte
+
 	for i := range v.Len() {
 		elem, err := marshalValue(v.Index(i), indent+1)
 		if err != nil {
 			return nil, err
 		}
+
 		buf = append(buf, prefix+"- "...)
 		lines := strings.Split(strings.TrimRight(string(elem), "\n"), "\n")
+
 		buf = append(buf, lines[0]...)
 		for _, line := range lines[1:] {
 			buf = append(buf, '\n')
 			buf = append(buf, prefix+"  "...)
 			buf = append(buf, line...)
 		}
+
 		buf = append(buf, '\n')
 	}
+
 	return buf, nil
 }
 
@@ -106,49 +121,62 @@ func marshalMap(v reflect.Value, indent int) ([]byte, error) {
 	if v.Len() == 0 {
 		return []byte("{}\n"), nil
 	}
+
 	prefix := strings.Repeat("  ", indent)
+
 	var buf []byte
+
 	keys := v.MapKeys()
 	sort.Slice(keys, func(i, j int) bool {
 		return keys[i].String() < keys[j].String()
 	})
+
 	for _, key := range keys {
 		val := v.MapIndex(key)
 		keyStr := key.String()
+
 		valBytes, err := marshalValue(val, indent+1)
 		if err != nil {
 			return nil, err
 		}
+
 		lines := strings.Split(strings.TrimRight(string(valBytes), "\n"), "\n")
+
 		if needsQuoting(keyStr) {
 			quoted, _ := json.Marshal(keyStr)
 			buf = append(buf, prefix+string(quoted)+": "...)
 		} else {
 			buf = append(buf, prefix+keyStr+": "...)
 		}
+
 		buf = append(buf, lines[0]...)
 		for _, line := range lines[1:] {
 			buf = append(buf, '\n')
 			buf = append(buf, prefix+"  "...)
 			buf = append(buf, line...)
 		}
+
 		buf = append(buf, '\n')
 	}
+
 	return buf, nil
 }
 
 func marshalStruct(v reflect.Value, indent int) ([]byte, error) {
 	t := v.Type()
+
 	fields := make([]structField, 0, t.NumField())
 	for i := range t.NumField() {
 		field := t.Field(i)
 		if !field.IsExported() {
 			continue
 		}
+
 		tag := field.Tag.Get("yaml")
 		if tag == "-" {
 			continue
 		}
+
 		name := field.Name
 		if tag != "" {
 			name = strings.Split(tag, ",")[0]
@@ -160,8 +188,10 @@ func marshalStruct(v reflect.Value, indent int) ([]byte, error) {
 				}
 			}
 		}
+
 		fields = append(fields, structField{name: name, value: v.Field(i)})
 	}
+
 	return marshalFields(fields, indent)
 }
 
@@ -172,26 +202,33 @@ type structField struct {
 
 func marshalFields(fields []structField, indent int) ([]byte, error) {
 	prefix := strings.Repeat("  ", indent)
+
 	var buf []byte
+
 	for _, f := range fields {
 		valBytes, err := marshalValue(f.value, indent+1)
 		if err != nil {
 			return nil, err
 		}
+
 		lines := strings.Split(strings.TrimRight(string(valBytes), "\n"), "\n")
+
 		if needsQuoting(f.name) {
 			quoted, _ := json.Marshal(f.name)
 			buf = append(buf, prefix+string(quoted)+": "...)
 		} else {
 			buf = append(buf, prefix+f.name+": "...)
 		}
+
 		buf = append(buf, lines[0]...)
 		for _, line := range lines[1:] {
 			buf = append(buf, '\n')
 			buf = append(buf, prefix+"  "...)
 			buf = append(buf, line...)
 		}
+
 		buf = append(buf, '\n')
 	}
+
 	return buf, nil
 }

@@ -45,6 +45,7 @@ func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 	for _, opt := range opts {
 		opt(e)
 	}
+
 	return e
 }
 
@@ -83,9 +84,11 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 		for _, cmd := range svc.Commands {
 			e.addCommand(doc, svc.ID, cmd)
 		}
+
 		for _, evt := range svc.Events {
 			e.addEvent(doc, svc.ID, evt)
 		}
+
 		for _, q := range svc.Queries {
 			e.addQuery(doc, svc.ID, q)
 		}
@@ -95,10 +98,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 }
 
 func (e *Exporter) addCommand(doc *Document, svcID string, msg catalog.Message) {
-	id := msg.ID
-	if id == "" {
-		id = string(msg.Name)
-	}
+	id := messageID(msg)
 
 	channelKey := "commands." + id
 	ref := "#/components/messages/" + id
@@ -123,10 +123,7 @@ func (e *Exporter) addCommand(doc *Document, svcID string, msg catalog.Message) 
 }
 
 func (e *Exporter) addEvent(doc *Document, svcID string, msg catalog.Message) {
-	id := msg.ID
-	if id == "" {
-		id = string(msg.Name)
-	}
+	id := messageID(msg)
 
 	action := "send"
 	if msg.Direction == catalog.Receives {
@@ -161,10 +158,7 @@ func (e *Exporter) addEvent(doc *Document, svcID string, msg catalog.Message) {
 }
 
 func (e *Exporter) addQuery(doc *Document, svcID string, msg catalog.Message) {
-	id := msg.ID
-	if id == "" {
-		id = string(msg.Name)
-	}
+	id := messageID(msg)
 
 	channelKey := "queries." + id
 	ref := "#/components/messages/" + id
@@ -189,12 +183,10 @@ func (e *Exporter) addQuery(doc *Document, svcID string, msg catalog.Message) {
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	id := msg.ID
-	if id == "" {
-		id = string(msg.Name)
-	}
+	id := messageID(msg)
 
 	tagName := "commands"
+
 	switch msg.Kind {
 	case catalog.EventMessage:
 		tagName = "events"
@@ -222,12 +214,16 @@ func schemaToAny(s *catalog.Schema) any {
 	if s == nil {
 		return map[string]string{"type": "object"}
 	}
+
 	raw, err := json.Marshal(s)
 	if err != nil {
 		return map[string]string{"type": "object"}
 	}
+
 	var result any
+
 	_ = json.Unmarshal(raw, &result)
+
 	return result
 }
 
@@ -237,20 +233,32 @@ func (d *Document) MarshalYAML() ([]byte, error) {
 
 func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
+
 	return json.MarshalIndent((*alias)(d), "", "  ")
+}
+
+func messageID(msg catalog.Message) string {
+	if msg.ID != "" {
+		return msg.ID
+	}
+
+	return string(msg.Name)
 }
 
 func toDotAddress(s string) string {
 	var result []byte
+
 	for i, c := range s {
 		if c >= 'A' && c <= 'Z' {
 			if i > 0 {
 				result = append(result, '.')
 			}
+
 			result = append(result, byte(c+'a'-'A'))
 		} else {
 			result = append(result, byte(c))
 		}
 	}
+
 	return string(result)
 }

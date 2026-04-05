@@ -11,11 +11,13 @@ import (
 
 type testRoot struct {
 	*aggregate.Core
+
 	applied []event.Event
 }
 
 func (r *testRoot) Apply(evt event.Event) error {
 	r.applied = append(r.applied, evt)
+
 	return nil
 }
 
@@ -28,9 +30,11 @@ func TestCore(t *testing.T) {
 	if core.ID() != "user-123" {
 		t.Errorf("expected ID user-123, got %s", core.ID())
 	}
+
 	if core.Type() != "User" {
 		t.Errorf("expected type User, got %s", core.Type())
 	}
+
 	if core.Version() != 0 {
 		t.Errorf("expected version 0, got %d", core.Version())
 	}
@@ -55,6 +59,7 @@ func TestCoreLoadFromHistory(t *testing.T) {
 	if core.Version() != 1 {
 		t.Errorf("expected version 1 after loading history, got %d", core.Version())
 	}
+
 	if len(root.applied) != 1 {
 		t.Errorf("expected 1 applied event, got %d", len(root.applied))
 	}
@@ -66,11 +71,13 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 	core := aggregate.NewCore("order-1", event.AggregateType("Order"))
 
 	events := make([]event.Event, 5)
+
 	for i := range 5 {
 		evt, err := event.NewEvent("OrderUpdated", "order-1", "Order", i+1, nil)
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
+
 		events[i] = evt
 	}
 
@@ -132,6 +139,7 @@ func TestCoreRecordEvent_Multiple(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
+
 		core.RecordEvent(context.Background(), evt)
 	}
 
@@ -159,12 +167,14 @@ func TestCoreUncommittedChanges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	core.RecordEvent(context.Background(), evt1)
 
 	evt2, err := event.NewEvent("UserUpdated", "user-abc", "User", 2, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	core.RecordEvent(context.Background(), evt2)
 
 	changes = core.UncommittedChanges()
@@ -175,6 +185,7 @@ func TestCoreUncommittedChanges(t *testing.T) {
 	if changes[0].Type() != "UserCreated" {
 		t.Errorf("expected first event type UserCreated, got %s", changes[0].Type())
 	}
+
 	if changes[1].Type() != "UserUpdated" {
 		t.Errorf("expected second event type UserUpdated, got %s", changes[1].Type())
 	}
@@ -189,6 +200,7 @@ func TestCoreMarkChangesAsCommitted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	core.RecordEvent(context.Background(), evt)
 
 	if len(core.UncommittedChanges()) != 1 {
@@ -246,6 +258,7 @@ func TestCoreWithRealAggregateID(t *testing.T) {
 	if core.ID() != aggID.String() {
 		t.Errorf("expected ID %s, got %s", aggID.String(), core.ID())
 	}
+
 	if core.Type() != "Order" {
 		t.Errorf("expected type Order, got %s", core.Type())
 	}
@@ -266,17 +279,20 @@ func TestCoreFullLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	core.RecordEvent(context.Background(), evt1)
 
 	evt2, err := event.NewEvent("PriceChanged", "product-1", "Product", 2, []byte(`{"price":9.99}`))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	core.RecordEvent(context.Background(), evt2)
 
 	if core.Version() != 2 {
 		t.Errorf("expected version 2, got %d", core.Version())
 	}
+
 	if len(core.UncommittedChanges()) != 2 {
 		t.Errorf("expected 2 changes, got %d", len(core.UncommittedChanges()))
 	}
@@ -286,6 +302,7 @@ func TestCoreFullLifecycle(t *testing.T) {
 	if len(core.UncommittedChanges()) != 0 {
 		t.Errorf("expected 0 changes after commit, got %d", len(core.UncommittedChanges()))
 	}
+
 	if core.Version() != 2 {
 		t.Errorf("expected version still 2 after commit, got %d", core.Version())
 	}

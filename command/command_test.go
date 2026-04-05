@@ -51,12 +51,14 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	executed := false
 	handler := func(_ context.Context, _ command.Command) error {
 		executed = true
+
 		return nil
 	}
 
 	_ = dispatcher.Register("CreateUser", handler)
 
 	cmd := command.New("CreateUser", "user-123")
+
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -74,6 +76,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	ctx := context.Background()
 
 	cmd := command.New("UnknownCommand", "user-123")
+
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
 		t.Error("expected handler not found error")
@@ -85,6 +88,7 @@ func testMiddleware(callOrder *[]string, name string) func(h command.Handler) co
 	return func(h command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			*callOrder = append(*callOrder, name)
+
 			return h(ctx, cmd)
 		}
 	}
@@ -105,6 +109,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	_ = dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
 		callOrder = append(callOrder, "handler")
+
 		return nil
 	})
 
@@ -115,6 +120,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 	for i, v := range expected {
 		if i >= len(callOrder) || callOrder[i] != v {
 			t.Errorf("expected call order %v, got %v", expected, callOrder)
+
 			break
 		}
 	}
@@ -134,6 +140,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	}
 
 	cmd := command.New("TestCommand", "test-123")
+
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {
 		t.Error("expected dispatcher closed error on Dispatch")

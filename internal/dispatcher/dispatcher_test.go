@@ -18,14 +18,17 @@ func TestLifecycleMixin_Close(t *testing.T) {
 		t.Error("new mixin should not be closed")
 	}
 
-	if err := m.Close(); err != nil {
+	err := m.Close()
+	if err != nil {
 		t.Errorf("Close() error = %v", err)
 	}
+
 	if !m.IsClosed() {
 		t.Error("should be closed after Close()")
 	}
 
-	if err := m.Close(); err != nil {
+	err = m.Close()
+	if err != nil {
 		t.Errorf("second Close() error = %v", err)
 	}
 }
@@ -36,12 +39,14 @@ func TestLifecycleMixin_CheckClosed(t *testing.T) {
 	m := &LifecycleMixin{}
 	closedErr := errors.New("closed")
 
-	if err := m.CheckClosed(closedErr); err != nil {
+	err := m.CheckClosed(closedErr)
+	if err != nil {
 		t.Errorf("CheckClosed() on open mixin should return nil, got %v", err)
 	}
 
 	_ = m.Close()
-	if err := m.CheckClosed(closedErr); !errors.Is(err, closedErr) {
+	err = m.CheckClosed(closedErr)
+	if !errors.Is(err, closedErr) {
 		t.Errorf("CheckClosed() on closed mixin should return closedErr, got %v", err)
 	}
 }
@@ -54,9 +59,11 @@ func TestLifecycle_Close(t *testing.T) {
 		t.Error("new lifecycle should not be closed")
 	}
 
-	if err := l.Close(); err != nil {
+	err := l.Close()
+	if err != nil {
 		t.Errorf("Close() error = %v", err)
 	}
+
 	if !l.IsClosed() {
 		t.Error("should be closed after Close()")
 	}
@@ -68,12 +75,14 @@ func TestLifecycle_CheckClosed(t *testing.T) {
 	l := &Lifecycle{}
 	closedErr := errors.New("closed")
 
-	if err := l.CheckClosed(closedErr); err != nil {
+	err := l.CheckClosed(closedErr)
+	if err != nil {
 		t.Errorf("CheckClosed() on open lifecycle should return nil, got %v", err)
 	}
 
 	_ = l.Close()
-	if err := l.CheckClosed(closedErr); !errors.Is(err, closedErr) {
+	err = l.CheckClosed(closedErr)
+	if !errors.Is(err, closedErr) {
 		t.Errorf("CheckClosed() on closed lifecycle should return closedErr, got %v", err)
 	}
 }
@@ -87,11 +96,13 @@ func TestMiddlewareChain_Add(t *testing.T) {
 	mw := func(h testHandler) testHandler {
 		return func(s string) string {
 			count++
+
 			return h(s)
 		}
 	}
 
 	c.Add(mw, mw)
+
 	if len(c.Middleware()) != 2 {
 		t.Errorf("expected 2 middleware, got %d", len(c.Middleware()))
 	}
@@ -103,16 +114,19 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 	c := &MiddlewareChain[testHandler, testMiddleware]{}
 
 	var order []string
+
 	c.Add(
 		func(h testHandler) testHandler {
 			return func(s string) string {
 				order = append(order, "mw1")
+
 				return h(s)
 			}
 		},
 		func(h testHandler) testHandler {
 			return func(s string) string {
 				order = append(order, "mw2")
+
 				return h(s)
 			}
 		},
@@ -120,6 +134,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 
 	handler := func(s string) string {
 		order = append(order, "handler")
+
 		return s
 	}
 
@@ -136,6 +151,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 	for i, v := range expected {
 		if i >= len(order) || order[i] != v {
 			t.Errorf("expected order %v, got %v", expected, order)
+
 			break
 		}
 	}
@@ -163,6 +179,7 @@ func TestNewDispatcher(t *testing.T) {
 	if d == nil {
 		t.Fatal("NewDispatcher() returned nil")
 	}
+
 	if _, ok := d.GetHandler("nonexistent"); ok {
 		t.Error("should not find handler for unregistered type")
 	}
@@ -188,9 +205,11 @@ func TestDispatcher_Register(t *testing.T) {
 	d := NewDispatcher[testHandler, testMiddleware]()
 
 	handler := func(s string) string { return s }
-	if err := d.Register("test", handler); err != nil {
+	err := d.Register("test", handler)
+	if err != nil {
 		t.Errorf("Register() error = %v", err)
 	}
+
 	if h, ok := d.GetHandler("test"); !ok || h == nil {
 		t.Error("handler should be registered")
 	}
@@ -203,7 +222,8 @@ func TestDispatcher_Register_Closed(t *testing.T) {
 	_ = d.Close()
 
 	handler := func(s string) string { return s }
-	if err := d.Register("test", handler); err == nil {
+	err := d.Register("test", handler)
+	if err == nil {
 		t.Error("expected error when registering on closed dispatcher")
 	}
 }
@@ -224,6 +244,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
 	}
+
 	if result("x") != "handled:x" {
 		t.Errorf("expected handled:x, got %s", result("x"))
 	}
@@ -268,15 +289,18 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 	d := NewDispatcher[testHandler, testMiddleware]()
 
 	var order []string
+
 	d.Use(func(h testHandler) testHandler {
 		return func(s string) string {
 			order = append(order, "mw1")
+
 			return h(s)
 		}
 	})
 
 	handler := func(s string) string {
 		order = append(order, "handler")
+
 		return "result"
 	}
 	_ = d.Register("test", handler)
@@ -289,6 +313,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
 	}
+
 	if result("x") != "result" {
 		t.Error("unexpected result")
 	}
@@ -297,6 +322,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 	for i, v := range expected {
 		if i >= len(order) || order[i] != v {
 			t.Errorf("expected order %v, got %v", expected, order)
+
 			break
 		}
 	}
@@ -306,9 +332,11 @@ func TestDispatcher_Close(t *testing.T) {
 	t.Parallel()
 
 	d := NewDispatcher[testHandler, testMiddleware]()
-	if err := d.Close(); err != nil {
+	err := d.Close()
+	if err != nil {
 		t.Errorf("Close() error = %v", err)
 	}
+
 	if !d.Lifecycle.IsClosed() {
 		t.Error("dispatcher should be closed")
 	}
@@ -318,18 +346,18 @@ func TestLifecycleMixin_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
 	m := &LifecycleMixin{}
+
 	var wg sync.WaitGroup
 
-	for i := 0; i < 100; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 100 {
+		wg.Go(func() {
 			_ = m.IsClosed()
 			_ = m.CheckClosed(nil)
-		}()
+		})
 	}
 
 	_ = m.Close()
+
 	wg.Wait()
 }
 
@@ -337,18 +365,22 @@ func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
 	c := &MiddlewareChain[testHandler, testMiddleware]{}
+
 	var wg sync.WaitGroup
 
 	mw := func(h testHandler) testHandler { return h }
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		wg.Add(2)
+
 		go func() {
 			defer wg.Done()
+
 			c.Add(mw)
 		}()
 		go func() {
 			defer wg.Done()
+
 			_ = c.Middleware()
 		}()
 	}

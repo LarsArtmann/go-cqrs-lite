@@ -48,6 +48,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	})
 
 	q := query.New("GetUser")
+
 	result, err := dispatcher.Dispatch(context.Background(), q)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -64,6 +65,7 @@ func TestDispatcher_Dispatch_QueryNotSupported(t *testing.T) {
 	dispatcher := query.NewDispatcher()
 
 	q := query.New("UnknownQuery")
+
 	_, err := dispatcher.Dispatch(context.Background(), q)
 	if err == nil {
 		t.Error("expected query not supported error")
@@ -80,6 +82,7 @@ func TestDispatchTyped(t *testing.T) {
 	})
 
 	q := query.New("GetUserName")
+
 	result, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -100,6 +103,7 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 	})
 
 	q := query.New("GetCount")
+
 	_, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err == nil {
 		t.Error("expected unexpected result type error")
@@ -113,6 +117,7 @@ func makeTestMiddleware(
 	return func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
 		return func(q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)
+
 			return h(q)
 		}
 	}
@@ -132,6 +137,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	_ = dispatcher.Register("TestQuery", func(_ query.Query) (any, error) {
 		callOrder = append(callOrder, "handler")
+
 		return "result", nil
 	})
 
@@ -142,6 +148,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 	for i, v := range expected {
 		if i >= len(callOrder) || callOrder[i] != v {
 			t.Errorf("expected call order %v, got %v", expected, callOrder)
+
 			break
 		}
 	}
@@ -163,6 +170,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	}
 
 	q := query.New("TestQuery")
+
 	_, err = dispatcher.Dispatch(context.Background(), q)
 	if err == nil {
 		t.Error("expected dispatcher closed error on Dispatch")

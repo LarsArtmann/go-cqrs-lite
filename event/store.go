@@ -6,7 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// Store defines the interface for event persistence
+// Store defines the interface for event persistence.
 type Store interface {
 	// Save appends events to the aggregate's event stream
 	Save(
@@ -36,17 +36,17 @@ type Store interface {
 	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }
 
-// StreamOptions configures event streaming
+// StreamOptions configures event streaming.
 type StreamOptions struct {
 	FromVersion   Version
 	AggregateType AggregateType
 	BatchSize     BatchSize
 }
 
-// BatchSize represents the number of items in a batch
+// BatchSize represents the number of items in a batch.
 type BatchSize int
 
-// Streamer defines streaming capabilities for event stores
+// Streamer defines streaming capabilities for event stores.
 type Streamer interface {
 	Stream(ctx context.Context, opts StreamOptions) (<-chan Event, error)
 }

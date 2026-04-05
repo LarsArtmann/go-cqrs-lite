@@ -21,10 +21,12 @@ func TestRegistry_AddService(t *testing.T) {
 	if len(cat.Services) != 1 {
 		t.Fatalf("expected 1 service, got %d", len(cat.Services))
 	}
+
 	svc := cat.Services[0]
 	if svc.ID != "user-svc" {
 		t.Errorf("expected user-svc, got %s", svc.ID)
 	}
+
 	if svc.Name != "User Service" {
 		t.Errorf("expected User Service, got %s", svc.Name)
 	}
@@ -49,17 +51,21 @@ func TestRegistry_AddCommand(t *testing.T) {
 	if len(cat.Services) != 1 {
 		t.Fatalf("expected 1 service, got %d", len(cat.Services))
 	}
+
 	svc := cat.Services[0]
 	if len(svc.Commands) != 1 {
 		t.Fatalf("expected 1 command, got %d", len(svc.Commands))
 	}
+
 	cmd := svc.Commands[0]
 	if cmd.Kind != catalog.CommandMessage {
 		t.Errorf("expected command kind, got %s", cmd.Kind)
 	}
+
 	if cmd.ID != "CreateUser" {
 		t.Errorf("expected CreateUser, got %s", cmd.ID)
 	}
+
 	if cmd.Schema == nil {
 		t.Error("expected schema to be set")
 	}
@@ -79,10 +85,12 @@ func TestRegistry_AddEvent(t *testing.T) {
 	})
 
 	cat := reg.Build()
+
 	svc := cat.Services[0]
 	if len(svc.Events) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(svc.Events))
 	}
+
 	evt := svc.Events[0]
 	if evt.Kind != catalog.EventMessage {
 		t.Errorf("expected event kind, got %s", evt.Kind)
@@ -101,10 +109,12 @@ func TestRegistry_AddQuery(t *testing.T) {
 	})
 
 	cat := reg.Build()
+
 	svc := cat.Services[0]
 	if len(svc.Queries) != 1 {
 		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
 	}
+
 	q := svc.Queries[0]
 	if q.Kind != catalog.QueryMessage {
 		t.Errorf("expected query kind, got %s", q.Kind)
@@ -126,6 +136,7 @@ func TestRegistry_AddDomain(t *testing.T) {
 	if len(cat.Domains) != 1 {
 		t.Fatalf("expected 1 domain, got %d", len(cat.Domains))
 	}
+
 	if cat.Domains[0].ID != "orders" {
 		t.Errorf("expected orders, got %s", cat.Domains[0].ID)
 	}
@@ -147,6 +158,7 @@ func TestRegistry_AddServiceToDomain(t *testing.T) {
 	if len(cat.Domains[0].Services) != 1 {
 		t.Fatalf("expected 1 service in domain, got %d", len(cat.Domains[0].Services))
 	}
+
 	if cat.Domains[0].Services[0] != "order-svc" {
 		t.Errorf("expected order-svc, got %s", cat.Domains[0].Services[0])
 	}
@@ -156,6 +168,7 @@ func TestRegistry_AddServiceToDomain_NotFound(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
+
 	err := reg.AddServiceToDomain("svc", "nonexistent")
 	if err == nil {
 		t.Error("expected error for missing domain")
@@ -177,6 +190,7 @@ func TestRegistry_AddChannel(t *testing.T) {
 	if len(cat.Channels) != 1 {
 		t.Fatalf("expected 1 channel, got %d", len(cat.Channels))
 	}
+
 	if cat.Channels[0].Address != "orders.events" {
 		t.Errorf("expected orders.events, got %s", cat.Channels[0].Address)
 	}
@@ -207,9 +221,11 @@ func TestRegistry_Build_MultipleServices(t *testing.T) {
 	if cat.Title != "E-Commerce" {
 		t.Errorf("expected E-Commerce, got %s", cat.Title)
 	}
+
 	if cat.Version != "2.0.0" {
 		t.Errorf("expected 2.0.0, got %s", cat.Version)
 	}
+
 	if len(cat.Services) != 2 {
 		t.Fatalf("expected 2 services, got %d", len(cat.Services))
 	}
@@ -232,9 +248,11 @@ func TestRegistry_ServiceMerge(t *testing.T) {
 	if len(cat.Services) != 1 {
 		t.Fatalf("expected 1 service (merged), got %d", len(cat.Services))
 	}
+
 	if len(cat.Services[0].Commands) != 1 {
 		t.Errorf("expected 1 command, got %d", len(cat.Services[0].Commands))
 	}
+
 	if len(cat.Services[0].Events) != 1 {
 		t.Errorf("expected 1 event, got %d", len(cat.Services[0].Events))
 	}

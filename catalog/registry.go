@@ -27,78 +27,79 @@ func NewRegistry(title, version string) *Registry {
 func (r *Registry) AddService(svc Service) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	existing, ok := r.services[svc.ID]
 	if ok {
 		if len(svc.Commands) > 0 {
 			existing.Commands = append(existing.Commands, svc.Commands...)
 		}
+
 		if len(svc.Events) > 0 {
 			existing.Events = append(existing.Events, svc.Events...)
 		}
+
 		if len(svc.Queries) > 0 {
 			existing.Queries = append(existing.Queries, svc.Queries...)
 		}
+
 		return
 	}
+
 	r.services[svc.ID] = &svc
 }
 
 func (r *Registry) AddCommand(serviceID string, msg Message) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	msg.Kind = CommandMessage
-	svc, ok := r.services[serviceID]
-	if !ok {
-		svc = &Service{ID: serviceID, Name: serviceID}
-		r.services[serviceID] = svc
-	}
-	svc.Commands = append(svc.Commands, msg)
+	r.addMessage(serviceID, CommandMessage, func(s *Service) []Message { return s.Commands }, func(s *Service, m []Message) { s.Commands = m }, msg)
 }
 
 func (r *Registry) AddEvent(serviceID string, msg Message) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	msg.Kind = EventMessage
-	svc, ok := r.services[serviceID]
-	if !ok {
-		svc = &Service{ID: serviceID, Name: serviceID}
-		r.services[serviceID] = svc
-	}
-	svc.Events = append(svc.Events, msg)
+	r.addMessage(serviceID, EventMessage, func(s *Service) []Message { return s.Events }, func(s *Service, m []Message) { s.Events = m }, msg)
 }
 
 func (r *Registry) AddQuery(serviceID string, msg Message) {
+	r.addMessage(serviceID, QueryMessage, func(s *Service) []Message { return s.Queries }, func(s *Service, m []Message) { s.Queries = m }, msg)
+}
+
+func (r *Registry) addMessage(serviceID string, kind MessageKind, getter func(*Service) []Message, setter func(*Service, []Message), msg Message) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	msg.Kind = QueryMessage
+
+	msg.Kind = kind
+
 	svc, ok := r.services[serviceID]
 	if !ok {
 		svc = &Service{ID: serviceID, Name: serviceID}
 		r.services[serviceID] = svc
 	}
-	svc.Queries = append(svc.Queries, msg)
+
+	setter(svc, append(getter(svc), msg))
 }
 
 func (r *Registry) AddDomain(domain Domain) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	r.domains[domain.ID] = &domain
 }
 
 func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	d, ok := r.domains[domainID]
 	if !ok {
 		return fmt.Errorf("domain %q not found", domainID)
 	}
+
 	d.Services = append(d.Services, serviceID)
+
 	return nil
 }
 
 func (r *Registry) AddChannel(ch Channel) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	r.channels[ch.ID] = &ch
 }
 

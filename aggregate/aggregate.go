@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-// Root represents an aggregate root in DDD
+// Root represents an aggregate root in DDD.
 type Root interface {
 	ID() string
 	Type() event.AggregateType
@@ -19,7 +19,7 @@ type Root interface {
 	MarkChangesAsCommitted()
 }
 
-// Core provides common aggregate root functionality
+// Core provides common aggregate root functionality.
 type Core struct {
 	id            id.AggregateID
 	aggregateType event.AggregateType
@@ -27,7 +27,7 @@ type Core struct {
 	changes       []event.Event
 }
 
-// NewCore creates a new aggregate core
+// NewCore creates a new aggregate core.
 func NewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
 	return &Core{
 		id:            id,
@@ -52,12 +52,12 @@ func (a *Core) RecordEvent(_ context.Context, evt event.Event) {
 	a.version = a.version.Increment()
 }
 
-// UncommittedChanges returns pending events
+// UncommittedChanges returns pending events.
 func (a *Core) UncommittedChanges() []event.Event {
 	return a.changes
 }
 
-// MarkChangesAsCommitted clears pending events
+// MarkChangesAsCommitted clears pending events.
 func (a *Core) MarkChangesAsCommitted() {
 	a.changes = make([]event.Event, 0)
 }
@@ -66,10 +66,13 @@ func (a *Core) MarkChangesAsCommitted() {
 // provided Root's Apply method and incrementing the version.
 func (a *Core) LoadFromHistory(root Root, events []event.Event) error {
 	for _, evt := range events {
-		if err := root.Apply(evt); err != nil {
+		err := root.Apply(evt)
+		if err != nil {
 			return fmt.Errorf("apply event %s: %w", evt.Type(), err)
 		}
+
 		a.version = a.version.Increment()
 	}
+
 	return nil
 }

@@ -17,7 +17,9 @@ type LifecycleMixin struct {
 func (m *LifecycleMixin) Close() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.closed = true
+
 	return nil
 }
 
@@ -25,6 +27,7 @@ func (m *LifecycleMixin) Close() error {
 func (m *LifecycleMixin) IsClosed() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	return m.closed
 }
 
@@ -32,9 +35,11 @@ func (m *LifecycleMixin) IsClosed() bool {
 func (m *LifecycleMixin) CheckClosed(closedErr error) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	if m.closed {
 		return closedErr
 	}
+
 	return nil
 }
 
@@ -47,7 +52,9 @@ type Lifecycle struct {
 func (l *Lifecycle) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.closed = true
+
 	return nil
 }
 
@@ -55,6 +62,7 @@ func (l *Lifecycle) Close() error {
 func (l *Lifecycle) IsClosed() bool {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	return l.closed
 }
 
@@ -62,9 +70,11 @@ func (l *Lifecycle) IsClosed() bool {
 func (l *Lifecycle) CheckClosed(closedErr error) error {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	if l.closed {
 		return closedErr
 	}
+
 	return nil
 }
 
@@ -79,6 +89,7 @@ type MiddlewareChain[H, M any] struct {
 func (c *MiddlewareChain[H, M]) Add(middleware ...M) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	c.middleware = append(c.middleware, middleware...)
 }
 
@@ -92,6 +103,7 @@ func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	for i := len(c.middleware) - 1; i >= 0; i-- {
 		wrapped = wrap(c.middleware[i], wrapped)
 	}
+
 	return wrapped
 }
 
@@ -99,6 +111,7 @@ func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 func (c *MiddlewareChain[H, M]) Middleware() []M {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
 	return c.middleware
 }
 
@@ -134,12 +147,16 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 
 // Register binds a handler to a type.
 func (d *Dispatcher[H, M]) Register(t string, handler H) error {
-	if err := d.Lifecycle.CheckClosed(ErrHandlerNotFound); err != nil {
+	err := d.Lifecycle.CheckClosed(ErrHandlerNotFound)
+	if err != nil {
 		return fmt.Errorf("dispatcher is closed: %w", err)
 	}
+
 	d.handlersMu.Lock()
 	defer d.handlersMu.Unlock()
+
 	d.handlers[t] = handler
+
 	return nil
 }
 
@@ -147,25 +164,31 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 	d.handlersMu.RLock()
 	defer d.handlersMu.RUnlock()
+
 	h, ok := d.handlers[t]
+
 	return h, ok
 }
 
 // Dispatch sends a request to its registered handler and returns the wrapped handler.
 // The caller is responsible for invoking the wrapped handler with appropriate arguments.
 func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error) {
-	if err := d.Lifecycle.CheckClosed(ErrHandlerNotFound); err != nil {
+	err := d.Lifecycle.CheckClosed(ErrHandlerNotFound)
+	if err != nil {
 		var zero H
+
 		return zero, fmt.Errorf("dispatcher is closed: %w", err)
 	}
 
 	h, ok := d.GetHandler(t)
 	if !ok {
 		var zero H
+
 		return zero, fmt.Errorf("handler not found for type: %s", t)
 	}
 
 	wrapped := d.Middleware.Apply(h, wrap)
+
 	return wrapped, nil
 }
 

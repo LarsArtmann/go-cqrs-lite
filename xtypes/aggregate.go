@@ -65,8 +65,10 @@ func (a *TypedAggregate) MarkChangesAsCommitted() {
 
 // LoadFromHistory rebuilds aggregate state by applying each event via root.Apply.
 func (a *TypedAggregate) LoadFromHistory(root aggregate.Root, events []event.Event) error {
-	if err := a.core.LoadFromHistory(root, events); err != nil {
+	err := a.core.LoadFromHistory(root, events)
+	if err != nil {
 		return fmt.Errorf("load typed aggregate %s from history: %w", a.Type(), err)
 	}
+
 	return nil
 }

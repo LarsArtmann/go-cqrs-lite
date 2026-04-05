@@ -21,18 +21,23 @@ func TestNewEvent_Valid(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if evt.ID() == "" {
 		t.Error("event ID should not be empty")
 	}
+
 	if evt.Type() != "UserCreated" {
 		t.Errorf("expected type UserCreated, got %s", evt.Type())
 	}
+
 	if evt.AggregateID() != "user-123" {
 		t.Errorf("expected aggregate ID user-123, got %s", evt.AggregateID())
 	}
+
 	if evt.AggregateType() != "User" {
 		t.Errorf("expected aggregate type User, got %s", evt.AggregateType())
 	}
+
 	if evt.Version() != 1 {
 		t.Errorf("expected version 1, got %d", evt.Version())
 	}
@@ -105,6 +110,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			_, err := event.NewEvent(
 				tt.eventType,
 				tt.aggregateID,
@@ -152,24 +158,31 @@ func TestEventOptions(t *testing.T) {
 	if m.CorrelationID != id.CorrelationID("corr-123") {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
+
 	if m.CausationID != id.CausationID("cause-456") {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
+
 	if m.UserID != id.UserID("user-789") {
 		t.Errorf("expected user ID user-789, got %s", m.UserID)
 	}
+
 	if m.RequestID != id.RequestID("req-001") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
+
 	if m.Source.String() != "test-service" {
 		t.Errorf("expected source test-service, got %s", m.Source)
 	}
+
 	if m.IPAddress.String() != "127.0.0.1" {
 		t.Errorf("expected IP 127.0.0.1, got %s", m.IPAddress)
 	}
+
 	if m.UserAgent.String() != "test-agent" {
 		t.Errorf("expected user agent test-agent, got %s", m.UserAgent)
 	}
+
 	if m.Custom["key1"] != "value1" {
 		t.Errorf("expected custom key1=value1, got %s", m.Custom["key1"])
 	}
@@ -182,9 +195,11 @@ func TestNewMetadata(t *testing.T) {
 	if m == nil {
 		t.Fatal("NewMetadata() should return non-nil")
 	}
+
 	if m.Custom == nil {
 		t.Error("Custom map should be initialized")
 	}
+
 	if m.CorrelationID != "" {
 		t.Errorf("CorrelationID should be empty, got %s", m.CorrelationID)
 	}
@@ -207,9 +222,11 @@ func TestEventAccessors(t *testing.T) {
 	if evt.Payload() == nil || string(evt.Payload()) != `{"name":"John"}` {
 		t.Errorf("expected payload, got %v", evt.Payload())
 	}
+
 	if evt.OccurredAt().IsZero() {
 		t.Error("OccurredAt should not be zero")
 	}
+
 	if evt.Metadata() == nil {
 		t.Error("Metadata should not be nil")
 	}

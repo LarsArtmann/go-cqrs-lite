@@ -58,30 +58,35 @@ func NewEventBuilder(
 // WithPayload sets the event payload.
 func (b *EventBuilder) WithPayload(payload []byte) *EventBuilder {
 	b.payload = payload
+
 	return b
 }
 
 // WithMetadata adds event options (correlation ID, user ID, etc.).
 func (b *EventBuilder) WithMetadata(opts ...event.Option) *EventBuilder {
 	b.opts = append(b.opts, opts...)
+
 	return b
 }
 
 // WithCorrelationID adds a correlation ID for distributed tracing.
 func (b *EventBuilder) WithCorrelationID(correlationID id.CorrelationID) *EventBuilder {
 	b.opts = append(b.opts, event.WithCorrelationID(correlationID))
+
 	return b
 }
 
 // WithCausationID adds a causation ID (what triggered this event).
 func (b *EventBuilder) WithCausationID(causationID id.CausationID) *EventBuilder {
 	b.opts = append(b.opts, event.WithCausationID(causationID))
+
 	return b
 }
 
 // WithUserID adds the user ID who triggered the event.
 func (b *EventBuilder) WithUserID(userID id.UserID) *EventBuilder {
 	b.opts = append(b.opts, event.WithUserID(userID))
+
 	return b
 }
 
@@ -94,6 +99,7 @@ func (b *EventBuilder) Build() (*TypedEvent, error) {
 			b.aggregateType,
 		)
 	}
+
 	if b.aggregateType == "" {
 		return nil, fmt.Errorf(
 			"aggregate type is required for event type %q (aggregate ID %q)",
@@ -101,6 +107,7 @@ func (b *EventBuilder) Build() (*TypedEvent, error) {
 			b.aggregateID.String(),
 		)
 	}
+
 	if b.version.Int() < 0 {
 		return nil, fmt.Errorf(
 			"version must be non-negative but got %d for event type %q (aggregate %q of type %q)",
@@ -141,5 +148,6 @@ func (b *EventBuilder) MustBuild() *TypedEvent {
 	if err != nil {
 		panic(fmt.Sprintf("EventBuilder.MustBuild: %v", err))
 	}
+
 	return evt
 }

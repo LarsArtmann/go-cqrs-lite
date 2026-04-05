@@ -2,10 +2,10 @@ package event
 
 import "context"
 
-// Handler processes events
+// Handler processes events.
 type Handler func(ctx context.Context, event Event) error
 
-// Bus defines the interface for event publishing and subscription
+// Bus defines the interface for event publishing and subscription.
 type Bus interface {
 	// Publish sends events to all registered handlers
 	Publish(ctx context.Context, events ...Event) error
@@ -17,5 +17,5 @@ type Bus interface {
 	SubscribeAll(handler Handler) error
 }
 
-// Middleware wraps event handlers for cross-cutting concerns
+// Middleware wraps event handlers for cross-cutting concerns.
 type Middleware func(Handler) Handler

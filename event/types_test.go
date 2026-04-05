@@ -16,9 +16,11 @@ func TestParseSource(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if s.String() != "api" {
 			t.Errorf("expected api, got %s", s)
 		}
+
 		if s.IsEmpty() {
 			t.Error("source should not be empty")
 		}
@@ -31,6 +33,7 @@ func TestParseSource(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if s.String() != "scheduler" {
 			t.Errorf("expected scheduler, got %s", s)
 		}
@@ -74,9 +77,11 @@ func TestParseIPAddress(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if ip.String() != "192.168.1.1" {
 			t.Errorf("expected 192.168.1.1, got %s", ip)
 		}
+
 		if ip.IsEmpty() {
 			t.Error("IP should not be empty")
 		}
@@ -89,6 +94,7 @@ func TestParseIPAddress(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if ip.IsEmpty() {
 			t.Error("IP should not be empty")
 		}
@@ -101,6 +107,7 @@ func TestParseIPAddress(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if !ip.IsEmpty() {
 			t.Error("empty IP should be empty")
 		}
@@ -122,6 +129,7 @@ func TestParseIPAddress(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if ip.String() != "10.0.0.1" {
 			t.Errorf("expected 10.0.0.1, got %s", ip)
 		}
@@ -147,6 +155,7 @@ func TestParseUserAgent(t *testing.T) {
 		if ua.String() != "Mozilla/5.0" {
 			t.Errorf("expected Mozilla/5.0, got %s", ua)
 		}
+
 		if ua.IsEmpty() {
 			t.Error("user agent should not be empty")
 		}
@@ -199,9 +208,11 @@ func TestVersion(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if v.Int() != 5 {
 			t.Errorf("expected 5, got %d", v.Int())
 		}
+
 		if v.IsZero() {
 			t.Error("version 5 should not be zero")
 		}
@@ -229,10 +240,12 @@ func TestVersion(t *testing.T) {
 		t.Parallel()
 
 		v := event.Version(3)
+
 		v2 := v.Increment()
 		if v2.Int() != 4 {
 			t.Errorf("expected 4, got %d", v2.Int())
 		}
+
 		if v.Int() != 3 {
 			t.Errorf("original should be unchanged, got %d", v.Int())
 		}
@@ -245,6 +258,7 @@ func TestVersion(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if !v.IsZero() {
 			t.Error("version 0 should be zero")
 		}

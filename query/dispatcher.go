@@ -30,19 +30,25 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
 		return errors.Wrapf(err, "registering query type %s", queryType)
 	}
-	if err := d.inner.Register(string(queryType), handler); err != nil {
+
+	err = d.inner.Register(string(queryType), handler)
+	if err != nil {
 		return errors.Wrapf(err, "registering handler for query type %s", queryType)
 	}
+
 	return nil
 }
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	_ = ctx // Context available for tracing/logging but not required for basic dispatch
-	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
 		return nil, errors.Wrapf(err, "dispatching query %s", query.Type())
 	}
 
@@ -61,6 +67,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 // DispatchTyped sends a query and returns a typed result.
 func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, error) {
 	var zero T
+
 	result, err := d.Dispatch(ctx, query)
 	if err != nil {
 		return zero, errors.Wrapf(
@@ -70,6 +77,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 			zero,
 		)
 	}
+
 	typed, ok := result.(T)
 	if !ok {
 		return zero, errors.Newf(
@@ -79,6 +87,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 			zero,
 		)
 	}
+
 	return typed, nil
 }
 

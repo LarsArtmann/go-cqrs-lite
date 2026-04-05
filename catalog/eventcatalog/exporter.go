@@ -20,36 +20,47 @@ func NewExporter(outputDir string) *Exporter {
 
 func (e *Exporter) Export(cat *catalog.Catalog) error {
 	for _, svc := range cat.Services {
-		if err := e.writeService(svc); err != nil {
+		err := e.writeService(svc)
+		if err != nil {
 			return fmt.Errorf("write service %s: %w", svc.ID, err)
 		}
+
 		for _, cmd := range svc.Commands {
-			if err := e.writeMessage(svc.ID, "commands", cmd); err != nil {
+			err := e.writeMessage(svc.ID, "commands", cmd)
+			if err != nil {
 				return fmt.Errorf("write command %s: %w", cmd.ID, err)
 			}
 		}
+
 		for _, evt := range svc.Events {
-			if err := e.writeMessage(svc.ID, "events", evt); err != nil {
+			err := e.writeMessage(svc.ID, "events", evt)
+			if err != nil {
 				return fmt.Errorf("write event %s: %w", evt.ID, err)
 			}
 		}
+
 		for _, q := range svc.Queries {
-			if err := e.writeMessage(svc.ID, "queries", q); err != nil {
+			err := e.writeMessage(svc.ID, "queries", q)
+			if err != nil {
 				return fmt.Errorf("write query %s: %w", q.ID, err)
 			}
 		}
 	}
+
 	for _, domain := range cat.Domains {
-		if err := e.writeDomain(domain); err != nil {
+		err := e.writeDomain(domain)
+		if err != nil {
 			return fmt.Errorf("write domain %s: %w", domain.ID, err)
 		}
 	}
+
 	return e.writeConfig(cat)
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.OutputDir, "services", svc.ID)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
 		return fmt.Errorf("create service dir: %w", err)
 	}
 
@@ -58,31 +69,35 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	fmt.Fprintf(&md, "id: %s\n", svc.ID)
 	fmt.Fprintf(&md, "name: %s\n", svc.Name)
 	fmt.Fprintf(&md, "version: %s\n", svc.Version)
+
 	if svc.Summary != "" {
 		fmt.Fprintf(&md, "summary: %q\n", svc.Summary)
 	}
 
 	var sends, receives []string
+
 	for _, msg := range svc.Events {
-		id := msg.ID
-		if id == "" {
-			id = string(msg.Name)
-		}
-		if msg.Direction == catalog.Sends {
+		id := messageID(msg)
+
+		switch msg.Direction {
+		case catalog.Sends:
 			sends = append(sends, fmt.Sprintf("%s/%s", id, msg.Version))
-		} else if msg.Direction == catalog.Receives {
+		case catalog.Receives:
 			receives = append(receives, fmt.Sprintf("%s/%s", id, msg.Version))
 		}
 	}
 
 	if len(sends) > 0 {
 		md.WriteString("sends:\n")
+
 		for _, s := range sends {
 			fmt.Fprintf(&md, "  - %s\n", s)
 		}
 	}
+
 	if len(receives) > 0 {
 		md.WriteString("receives:\n")
+
 		for _, r := range receives {
 			fmt.Fprintf(&md, "  - %s\n", r)
 		}
@@ -95,13 +110,11 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 }
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
-	id := msg.ID
-	if id == "" {
-		id = string(msg.Name)
-	}
+	id := messageID(msg)
 
 	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
 		return fmt.Errorf("create message dir: %w", err)
 	}
 
@@ -110,26 +123,31 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	fmt.Fprintf(&md, "id: %s\n", id)
 	fmt.Fprintf(&md, "name: %s\n", msg.Name)
 	fmt.Fprintf(&md, "version: %s\n", msg.Version)
+
 	if msg.Summary != "" {
 		fmt.Fprintf(&md, "summary: %q\n", msg.Summary)
 	}
+
 	if msg.Schema != nil {
 		md.WriteString("schemaPath: schemas/schema.json\n")
 	}
+
 	fmt.Fprintf(&md, "owners:\n  - %s\n", svcID)
 	md.WriteString("---\n\n")
 	fmt.Fprintf(&md, "# %s\n\n%s\n", msg.Name, msg.Summary)
 
-	if err := os.WriteFile(
+	err = os.WriteFile(
 		filepath.Join(dir, "index.mdx"),
 		[]byte(md.String()),
 		0o644,
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("write message file: %w", err)
 	}
 
 	if msg.Schema != nil {
-		if err := e.writeSchema(dir, msg.Schema); err != nil {
+		err = e.writeSchema(dir, msg.Schema)
+		if err != nil {
 			return fmt.Errorf("write schema: %w", err)
 		}
 	}
@@ -153,7 +171,8 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	dir := filepath.Join(e.OutputDir, "domains", domain.ID)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
 		return fmt.Errorf("create domain dir: %w", err)
 	}
 
@@ -162,19 +181,31 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	fmt.Fprintf(&md, "id: %s\n", domain.ID)
 	fmt.Fprintf(&md, "name: %s\n", domain.Name)
 	fmt.Fprintf(&md, "version: %s\n", domain.Version)
+
 	if domain.Summary != "" {
 		fmt.Fprintf(&md, "summary: %q\n", domain.Summary)
 	}
+
 	if len(domain.Services) > 0 {
 		md.WriteString("services:\n")
+
 		for _, s := range domain.Services {
 			fmt.Fprintf(&md, "  - %s\n", s)
 		}
 	}
+
 	md.WriteString("---\n\n")
 	fmt.Fprintf(&md, "# %s\n\n%s\n", domain.Name, domain.Summary)
 
 	return os.WriteFile(filepath.Join(dir, "index.mdx"), []byte(md.String()), 0o644)
+}
+
+func messageID(msg catalog.Message) string {
+	if msg.ID != "" {
+		return msg.ID
+	}
+
+	return string(msg.Name)
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {

@@ -2,13 +2,14 @@ package catalog
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"reflect"
 	"strings"
 )
 
 func SchemaFromType[T any]() *Schema {
 	var zero T
+
 	return schemaFromReflect(reflect.TypeOf(zero))
 }
 
@@ -20,12 +21,14 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
+
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		return &Schema{
 			Type:  "array",
 			Items: propertyFromReflect(t.Elem()),
 		}
 	}
+
 	if t.Kind() == reflect.Map {
 		return &Schema{
 			Type: "object",
@@ -35,15 +38,17 @@ func schemaFromReflect(t reflect.Type) *Schema {
 			},
 		}
 	}
+
 	if t.Kind() != reflect.Struct {
 		return &Schema{Type: goTypeToJSON(t.Kind())}
 	}
 
 	props := make(map[string]Property)
+
 	var required []string
 
-	for i := range t.NumField() {
-		field := t.Field(i)
+	for field := range t.Fields() {
+		field := field
 		if !field.IsExported() {
 			continue
 		}
@@ -59,6 +64,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 		}
 
 		prop := *propertyFromReflect(field.Type)
+
 		prop.Description = field.Tag.Get("doc")
 		if prop.Description == "" {
 			prop.Description = field.Tag.Get("description")
@@ -85,26 +91,32 @@ func propertyFromReflect(t reflect.Type) *Property {
 	if t == nil {
 		return &Property{Type: "null"}
 	}
+
 	if t.Kind() == reflect.Ptr {
 		return propertyFromReflect(t.Elem())
 	}
+
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		return &Property{
 			Type:  "array",
 			Items: propertyFromReflect(t.Elem()),
 		}
 	}
+
 	if t.Kind() == reflect.Map {
 		return &Property{Type: "object"}
 	}
+
 	if t.Kind() == reflect.Struct {
 		schema := schemaFromReflect(t)
+
 		return &Property{
 			Type:       schema.Type,
 			Properties: schema.Properties,
 			Required:   schema.Required,
 		}
 	}
+
 	return &Property{Type: goTypeToJSON(t.Kind())}
 }
 
@@ -129,15 +141,18 @@ func parseJSONTag(tag string) (name string, omit bool) {
 	if tag == "" {
 		return "", false
 	}
+
 	parts := strings.Split(tag, ",")
 	name = parts[0]
 	omit = len(parts) > 1 && parts[1] == "omitempty"
+
 	return name, omit
 }
 
 func SchemaToJSON(schema *Schema) ([]byte, error) {
 	if schema == nil {
-		return nil, fmt.Errorf("schema is nil")
+		return nil, errors.New("schema is nil")
 	}
+
 	return json.MarshalIndent(schema, "", "  ")
 }
