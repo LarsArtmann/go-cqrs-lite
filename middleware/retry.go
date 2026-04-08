@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
@@ -76,7 +75,7 @@ func backoff(config RetryConfig, attempt int) time.Duration {
 func pow(base float64, exp int) float64 {
 	result := 1.0
 
-	for i := 0; i < exp; i++ {
+	for range exp {
 		result *= base
 	}
 

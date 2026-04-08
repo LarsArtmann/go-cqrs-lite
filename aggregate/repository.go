@@ -85,16 +85,31 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 	}
 
 	if loader, ok := root.(HistoryLoader); ok {
-		if err := loader.LoadEvents(events); err != nil {
-			return fmt.Errorf("replay %d events for %s %s: %w", len(events), root.Type(), root.ID(), err)
+		err := loader.LoadEvents(events)
+		if err != nil {
+			return fmt.Errorf(
+				"replay %d events for %s %s: %w",
+				len(events),
+				root.Type(),
+				root.ID(),
+				err,
+			)
 		}
 
 		return nil
 	}
 
 	for i, evt := range events {
-		if err := root.Apply(evt); err != nil {
-			return fmt.Errorf("apply event %d (%s) to %s %s: %w", i, evt.Type(), root.Type(), root.ID(), err)
+		err := root.Apply(evt)
+		if err != nil {
+			return fmt.Errorf(
+				"apply event %d (%s) to %s %s: %w",
+				i,
+				evt.Type(),
+				root.Type(),
+				root.ID(),
+				err,
+			)
 		}
 	}
 

@@ -150,7 +150,8 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 		CreatedAt:     time.Now(),
 	}
 
-	if err := store.Save(ctx, snapshot); err != nil {
+	err := store.Save(ctx, snapshot)
+	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 

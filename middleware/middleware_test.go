@@ -16,8 +16,8 @@ type testCommand struct {
 	aggregateID id.AggregateID
 }
 
-func (c *testCommand) Type() command.Type       { return "test.cmd" }
-func (c *testCommand) AggregateID() string      { return c.aggregateID.String() }
+func (c *testCommand) Type() command.Type  { return "test.cmd" }
+func (c *testCommand) AggregateID() string { return c.aggregateID.String() }
 
 type testLogger struct {
 	mu     sync.Mutex
@@ -28,24 +28,27 @@ type testLogger struct {
 func (l *testLogger) Info(msg string, keyvals ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.logs = append(l.logs, msg)
 }
 
 func (l *testLogger) Error(msg string, keyvals ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.errors = append(l.errors, msg)
 }
 
 type testMetrics struct {
-	mu       sync.Mutex
-	records  []string
+	mu        sync.Mutex
+	records   []string
 	durations []time.Duration
 }
 
 func (m *testMetrics) Observe(name string, duration time.Duration, labels ...string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.records = append(m.records, name)
 	m.durations = append(m.durations, duration)
 }
@@ -61,6 +64,7 @@ func TestCommandLogging_Success(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -82,6 +86,7 @@ func TestCommandLogging_Error(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error")
@@ -126,6 +131,7 @@ func TestCommandRecovery_NoPanic(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -141,6 +147,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error from recovered panic")
@@ -190,6 +197,7 @@ func TestCommandRetry_Success(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -215,6 +223,7 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error")
@@ -238,6 +247,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error")
@@ -262,6 +272,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -285,6 +296,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected validation error")
@@ -302,6 +314,7 @@ func TestCommandMetrics(t *testing.T) {
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
 	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

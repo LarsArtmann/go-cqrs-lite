@@ -83,6 +83,7 @@ func TestPagination_Validate(t *testing.T) {
 			t.Parallel()
 
 			p := Pagination{Page: tt.page, PageSize: tt.pageSz}
+
 			err := p.Validate()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)

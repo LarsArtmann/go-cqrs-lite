@@ -12,13 +12,16 @@ import (
 
 type order struct {
 	*aggregate.Core
+
 	status string
 }
 
 const orderAggregateType event.AggregateType = "Order"
 
-var _ aggregate.Root = (*order)(nil)
-var _ aggregate.HistoryLoader = (*order)(nil)
+var (
+	_ aggregate.Root          = (*order)(nil)
+	_ aggregate.HistoryLoader = (*order)(nil)
+)
 
 func newOrder(orderID id.AggregateID) *order {
 	return &order{Core: aggregate.NewCore(orderID, orderAggregateType)}
@@ -32,7 +35,9 @@ func (o *order) Apply(evt event.Event) error {
 		var p struct {
 			Status string `json:"status"`
 		}
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+
+		err := json.Unmarshal(evt.Payload(), &p)
+		if err != nil {
 			return err
 		}
 
@@ -45,7 +50,7 @@ func (o *order) Apply(evt event.Event) error {
 }
 
 func (o *order) LoadEvents(events []event.Event) error {
-	return o.Core.LoadFromHistory(o, events)
+	return o.LoadFromHistory(o, events)
 }
 
 func (o *order) Place(ctx context.Context) error {
@@ -53,7 +58,13 @@ func (o *order) Place(ctx context.Context) error {
 		Status string `json:"status"`
 	}{Status: "placed"})
 
-	evt, err := event.NewEvent("OrderPlaced", id.MustParseAggregateID(o.ID()), orderAggregateType, o.Version()+1, payload)
+	evt, err := event.NewEvent(
+		"OrderPlaced",
+		id.MustParseAggregateID(o.ID()),
+		orderAggregateType,
+		o.Version()+1,
+		payload,
+	)
 	if err != nil {
 		return err
 	}
@@ -65,7 +76,13 @@ func (o *order) Place(ctx context.Context) error {
 }
 
 func (o *order) Ship(ctx context.Context) error {
-	evt, err := event.NewEvent("OrderShipped", id.MustParseAggregateID(o.ID()), orderAggregateType, o.Version()+1, nil)
+	evt, err := event.NewEvent(
+		"OrderShipped",
+		id.MustParseAggregateID(o.ID()),
+		orderAggregateType,
+		o.Version()+1,
+		nil,
+	)
 	if err != nil {
 		return err
 	}
@@ -86,11 +103,13 @@ func TestEventSourcedRepository_Save(t *testing.T) {
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
 
-	if err := o.Place(context.Background()); err != nil {
+	err := o.Place(context.Background())
+	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
 
-	if err := repo.Save(context.Background(), o); err != nil {
+	err = repo.Save(context.Background(), o)
+	if err != nil {
 		t.Fatalf("save order: %v", err)
 	}
 
@@ -112,7 +131,8 @@ func TestEventSourcedRepository_Save_NoChanges(t *testing.T) {
 
 	o := newOrder(id.NewAggregateID())
 
-	if err := repo.Save(context.Background(), o); err != nil {
+	err := repo.Save(context.Background(), o)
+	if err != nil {
 		t.Fatalf("save with no changes should not error: %v", err)
 	}
 }
@@ -128,20 +148,26 @@ func TestEventSourcedRepository_Load(t *testing.T) {
 	ctx := context.Background()
 
 	o := newOrder(orderID)
-	if err := o.Place(ctx); err != nil {
+
+	err := o.Place(ctx)
+	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
 
-	if err := o.Ship(ctx); err != nil {
+	err = o.Ship(ctx)
+	if err != nil {
 		t.Fatalf("ship order: %v", err)
 	}
 
-	if err := repo.Save(ctx, o); err != nil {
+	err = repo.Save(ctx, o)
+	if err != nil {
 		t.Fatalf("save order: %v", err)
 	}
 
 	loaded := newOrder(orderID)
-	if err := repo.Load(ctx, loaded); err != nil {
+
+	err = repo.Load(ctx, loaded)
+	if err != nil {
 		t.Fatalf("load order: %v", err)
 	}
 
@@ -180,29 +206,38 @@ func TestEventSourcedRepository_Roundtrip(t *testing.T) {
 	ctx := context.Background()
 
 	o := newOrder(orderID)
-	if err := o.Place(ctx); err != nil {
+
+	err := o.Place(ctx)
+	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
 
-	if err := repo.Save(ctx, o); err != nil {
+	err = repo.Save(ctx, o)
+	if err != nil {
 		t.Fatalf("save order: %v", err)
 	}
 
 	loaded := newOrder(orderID)
-	if err := repo.Load(ctx, loaded); err != nil {
+
+	err = repo.Load(ctx, loaded)
+	if err != nil {
 		t.Fatalf("load order: %v", err)
 	}
 
-	if err := loaded.Ship(ctx); err != nil {
+	err = loaded.Ship(ctx)
+	if err != nil {
 		t.Fatalf("ship order: %v", err)
 	}
 
-	if err := repo.Save(ctx, loaded); err != nil {
+	err = repo.Save(ctx, loaded)
+	if err != nil {
 		t.Fatalf("save shipped order: %v", err)
 	}
 
 	final := newOrder(orderID)
-	if err := repo.Load(ctx, final); err != nil {
+
+	err = repo.Load(ctx, final)
+	if err != nil {
 		t.Fatalf("load final order: %v", err)
 	}
 
@@ -223,6 +258,7 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 	repo := aggregate.NewRepository(store, bus)
 
 	var received []event.Event
+
 	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
 
@@ -230,11 +266,14 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 	})
 
 	o := newOrder(id.NewAggregateID())
-	if err := o.Place(context.Background()); err != nil {
+
+	err := o.Place(context.Background())
+	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
 
-	if err := repo.Save(context.Background(), o); err != nil {
+	err = repo.Save(context.Background(), o)
+	if err != nil {
 		t.Fatalf("save order: %v", err)
 	}
 
