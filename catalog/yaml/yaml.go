@@ -18,7 +18,7 @@ func marshalValue(v reflect.Value, indent int) ([]byte, error) {
 	}
 
 	t := v.Type()
-	if t.Kind() == reflect.Ptr || t.Kind() == reflect.Interface {
+	if t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return []byte("null\n"), nil
 		}

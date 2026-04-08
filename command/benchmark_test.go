@@ -21,9 +21,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	cmd := command.New("bench.cmd", id.NewAggregateID())
 	ctx := context.Background()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		err := dispatcher.Dispatch(ctx, cmd)
 		if err != nil {
 			b.Fatalf("dispatch: %v", err)
@@ -56,9 +54,7 @@ func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 	cmd := command.New("bench.cmd", id.NewAggregateID())
 	ctx := context.Background()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		err := dispatcher.Dispatch(ctx, cmd)
 		if err != nil {
 			b.Fatalf("dispatch: %v", err)

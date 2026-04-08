@@ -5,13 +5,13 @@ import (
 )
 
 func BenchmarkNew(b *testing.B) {
-	for range b.N {
+	for b.Loop() {
 		New[AggregateID]()
 	}
 }
 
 func BenchmarkNewWithPrefix(b *testing.B) {
-	for range b.N {
+	for b.Loop() {
 		NewWithPrefix[AggregateID]("agg")
 	}
 }
@@ -19,17 +19,13 @@ func BenchmarkNewWithPrefix(b *testing.B) {
 func BenchmarkParse(b *testing.B) {
 	validID := "550e8400-e29b-41d4-a716-446655440000"
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = Parse[AggregateID](validID)
 	}
 }
 
 func BenchmarkParse_Invalid(b *testing.B) {
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = Parse[AggregateID]("")
 	}
 }
@@ -37,9 +33,7 @@ func BenchmarkParse_Invalid(b *testing.B) {
 func BenchmarkString(b *testing.B) {
 	aggregateID := New[AggregateID]()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_ = aggregateID.String()
 	}
 }
@@ -47,9 +41,7 @@ func BenchmarkString(b *testing.B) {
 func BenchmarkMarshalJSON(b *testing.B) {
 	aggregateID := New[AggregateID]()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = aggregateID.MarshalJSON()
 	}
 }
@@ -57,9 +49,7 @@ func BenchmarkMarshalJSON(b *testing.B) {
 func BenchmarkMarshalText(b *testing.B) {
 	aggregateID := New[AggregateID]()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = aggregateID.MarshalText()
 	}
 }

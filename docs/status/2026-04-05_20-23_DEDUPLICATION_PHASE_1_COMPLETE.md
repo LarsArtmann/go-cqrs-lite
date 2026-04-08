@@ -11,53 +11,53 @@
 
 ### 1. Production Code Deduplication (7 Tasks)
 
-| Task | File | Change | Impact |
-|------|------|--------|--------|
-| 1 | `catalog/asyncapi/exporter.go` | Extracted `messageID()` helper | 4 duplicate blocks → 1 function (lines 194-200) |
-| 2 | `catalog/eventcatalog/exporter.go` | Extracted `messageID()` helper | 2 duplicate blocks → 1 function (lines 211-217) |
-| 4/8 | `catalog/registry.go` | Unified `AddCommand/AddEvent/AddQuery` → `addMessage()` | 3 methods (51 lines) → 4 methods (26 lines), 49% reduction |
-| F1 | `command/dispatcher.go:36` | Fixed `:=` → `=` | Compile error fixed |
-| F2 | `query/dispatcher.go:38` | Fixed `:=` → `=` | Compile error fixed |
-| F3 | `catalog/eventcatalog/exporter.go:145` | Fixed `:=` → `=` | Compile error fixed |
-| F4 | `internal/dispatcher/dispatcher_test.go:30,48,84` | Fixed 3x `:=` → `=` | Compile errors fixed |
+| Task | File                                              | Change                                                  | Impact                                                     |
+| ---- | ------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------- |
+| 1    | `catalog/asyncapi/exporter.go`                    | Extracted `messageID()` helper                          | 4 duplicate blocks → 1 function (lines 194-200)            |
+| 2    | `catalog/eventcatalog/exporter.go`                | Extracted `messageID()` helper                          | 2 duplicate blocks → 1 function (lines 211-217)            |
+| 4/8  | `catalog/registry.go`                             | Unified `AddCommand/AddEvent/AddQuery` → `addMessage()` | 3 methods (51 lines) → 4 methods (26 lines), 49% reduction |
+| F1   | `command/dispatcher.go:36`                        | Fixed `:=` → `=`                                        | Compile error fixed                                        |
+| F2   | `query/dispatcher.go:38`                          | Fixed `:=` → `=`                                        | Compile error fixed                                        |
+| F3   | `catalog/eventcatalog/exporter.go:145`            | Fixed `:=` → `=`                                        | Compile error fixed                                        |
+| F4   | `internal/dispatcher/dispatcher_test.go:30,48,84` | Fixed 3x `:=` → `=`                                     | Compile errors fixed                                       |
 
 ### 2. Test Infrastructure (3 New Packages)
 
-| Package | File | Purpose | Lines |
-|---------|------|---------|-------|
-| `catalog/internal/cattest/` | `helpers.go` | Registry/catalog test helpers | 104 |
-| `event/internal/evtest/` | `helpers.go` | Event bus/store test helpers | 88 |
-| `internal/testutil/` | `assert.go` | Generic assertion helpers | 52 |
+| Package                     | File         | Purpose                       | Lines |
+| --------------------------- | ------------ | ----------------------------- | ----- |
+| `catalog/internal/cattest/` | `helpers.go` | Registry/catalog test helpers | 104   |
+| `event/internal/evtest/`    | `helpers.go` | Event bus/store test helpers  | 88    |
+| `internal/testutil/`        | `assert.go`  | Generic assertion helpers     | 52    |
 
 **Total New Code:** 244 lines of reusable test infrastructure
 
 ### 3. Documentation
 
-| File | Purpose | Status |
-|------|---------|--------|
+| File                    | Purpose                                  | Status      |
+| ----------------------- | ---------------------------------------- | ----------- |
 | `DEDUPLICATION_PLAN.md` | Comprehensive 31-task deduplication plan | ✅ Complete |
-| `AGENTS.md` | Project coding standards and patterns | ✅ Updated |
+| `AGENTS.md`             | Project coding standards and patterns    | ✅ Updated  |
 
 ---
 
 ## B) PARTIALLY DONE ⏳
 
-| Task | File | Status | Notes |
-|------|------|--------|-------|
-| 6 | `catalog/asyncapi/exporter.go` addCommand/addEvent/addQuery unification | ⏸️ POSTPONED | Complex, needs careful design to preserve semantics |
-| 7 | `catalog/eventcatalog/exporter.go` MDX frontmatter unification | ⏸️ POSTPONED | Needs template abstraction |
-| 9 | `catalog/yaml/yaml.go` marshalValue extraction | ⏸️ POSTPONED | Risk of breaking YAML output |
-| 15-31 | All test file refactoring | ⏸️ POSTPONED | Test helpers created, ready for future work |
+| Task  | File                                                                    | Status       | Notes                                               |
+| ----- | ----------------------------------------------------------------------- | ------------ | --------------------------------------------------- |
+| 6     | `catalog/asyncapi/exporter.go` addCommand/addEvent/addQuery unification | ⏸️ POSTPONED | Complex, needs careful design to preserve semantics |
+| 7     | `catalog/eventcatalog/exporter.go` MDX frontmatter unification          | ⏸️ POSTPONED | Needs template abstraction                          |
+| 9     | `catalog/yaml/yaml.go` marshalValue extraction                          | ⏸️ POSTPONED | Risk of breaking YAML output                        |
+| 15-31 | All test file refactoring                                               | ⏸️ POSTPONED | Test helpers created, ready for future work         |
 
 ---
 
 ## C) NOT STARTED ❌
 
-| Category | Tasks |
-|----------|-------|
-| Production | Task 3 (memory_bus.go), Task 5 (schema.go), Task 10-11 (id.go, aggregate.go) |
-| Test Refactoring | Tasks 15-31 (all test file deduplication) |
-| Integration | Full art-dupl verification, CI/CD integration |
+| Category         | Tasks                                                                        |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Production       | Task 3 (memory_bus.go), Task 5 (schema.go), Task 10-11 (id.go, aggregate.go) |
+| Test Refactoring | Tasks 15-31 (all test file deduplication)                                    |
+| Integration      | Full art-dupl verification, CI/CD integration                                |
 
 ---
 
@@ -67,11 +67,11 @@
 
 ### Known Technical Debt (Non-Critical)
 
-| Issue | Severity | Location | Mitigation |
-|-------|----------|----------|------------|
-| `addCommand/addEvent/addQuery` still duplicate | Medium | `catalog/asyncapi/exporter.go:100-192` | Intentionally kept — unification requires complex abstraction |
-| 187 lint warnings | Low | Across codebase | Mostly style (varnamelen, exhaustruct) — not functional |
-| Test duplication | Medium | 17 test files | Test helpers created, ready for incremental refactoring |
+| Issue                                          | Severity | Location                               | Mitigation                                                    |
+| ---------------------------------------------- | -------- | -------------------------------------- | ------------------------------------------------------------- |
+| `addCommand/addEvent/addQuery` still duplicate | Medium   | `catalog/asyncapi/exporter.go:100-192` | Intentionally kept — unification requires complex abstraction |
+| 187 lint warnings                              | Low      | Across codebase                        | Mostly style (varnamelen, exhaustruct) — not functional       |
+| Test duplication                               | Medium   | 17 test files                          | Test helpers created, ready for incremental refactoring       |
 
 ---
 
@@ -144,6 +144,7 @@
 ### The AsyncAPI Exporter Dilemma
 
 **Question:** How should I unify `addCommand`, `addEvent`, and `addQuery` in `catalog/asyncapi/exporter.go` while maintaining:
+
 1. Different channel prefixes (`commands.`, `events.`, `queries.`)
 2. Different operation actions (`receive` vs `send`)
 3. Different operation name prefixes (`receive`, `publish`, `handle`)
@@ -151,11 +152,13 @@
 5. Event-specific direction logic (events can be `Sends` or `Receives`)
 
 **Current State:**
+
 - 3 methods with ~27 lines each (81 total)
 - Structural similarity: ~80%
 - Semantic differences: ~20%
 
 **Options Considered:**
+
 1. **Parameterized function** — `addMessage(kind MessageKind, config MessageConfig)` — complex config struct
 2. **Strategy pattern** — `MessageStrategy` interface with 3 implementations — adds indirection
 3. **Template method** — Abstract base with hooks — overkill for 3 methods
@@ -168,13 +171,13 @@
 
 ## Metrics Summary
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Clone Groups | 75 | ~60 | -20% |
-| Compile Errors | 6 | 0 | -100% |
-| Production LOC (relevant) | ~180 | ~130 | -28% |
-| Test Helper Packages | 0 | 3 | +3 |
-| Test Helper LOC | 0 | 244 | +244 |
+| Metric                    | Before | After | Change |
+| ------------------------- | ------ | ----- | ------ |
+| Clone Groups              | 75     | ~60   | -20%   |
+| Compile Errors            | 6      | 0     | -100%  |
+| Production LOC (relevant) | ~180   | ~130  | -28%   |
+| Test Helper Packages      | 0      | 3     | +3     |
+| Test Helper LOC           | 0      | 244   | +244   |
 
 ---
 

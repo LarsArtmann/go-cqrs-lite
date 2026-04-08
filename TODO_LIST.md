@@ -20,7 +20,7 @@ Actionable items for the next 2–4 weeks.
 - [x] Add benchmarks for ID operations and dispatcher throughput
 - [x] Add fuzzing for Parse functions
 - [x] Update README.md with xtypes usage
-- [x] Refactor With* methods in event/event.go
+- [x] Refactor With\* methods in event/event.go
 - [x] Add AppendBatch to Store
 - [x] Add snapshot store interface
 - [x] Add query/pagination.go

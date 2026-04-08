@@ -18,7 +18,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 		return &Schema{Type: "null"}
 	}
 
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 
@@ -91,7 +91,7 @@ func propertyFromReflect(t reflect.Type) *Property {
 		return &Property{Type: "null"}
 	}
 
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		return propertyFromReflect(t.Elem())
 	}
 

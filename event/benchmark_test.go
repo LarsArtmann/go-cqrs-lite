@@ -11,9 +11,7 @@ import (
 func BenchmarkNewEvent(b *testing.B) {
 	aggregateID := id.NewAggregateID()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
 	}
 }
@@ -36,9 +34,7 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 
 	ctx := context.Background()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		err := bus.Publish(ctx, evt)
 		if err != nil {
 			b.Fatalf("publish: %v", err)
@@ -51,9 +47,7 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 	aggregateID := id.NewAggregateID()
 	ctx := context.Background()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		evt, _ := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
 		_ = store.Save(ctx, "Bench", aggregateID, []event.Event{evt}, 1)
 	}
@@ -69,9 +63,7 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 		_ = store.Save(ctx, "Bench", aggregateID, []event.Event{evt}, event.Version(i+1))
 	}
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_, _ = store.Load(ctx, "Bench", aggregateID)
 	}
 }

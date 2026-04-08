@@ -91,19 +91,19 @@ aggregateID := aggregate_id.New()
 
 ## Package Structure
 
-| Package                 | Purpose                                    | Status     |
-| ----------------------- | ------------------------------------------ | ---------- |
-| `command/`              | Command types, dispatcher, handlers        | ✅ Ready   |
-| `query/`                | Query types, dispatcher, handlers          | ✅ Ready   |
-| `event/`                | Domain events, store interface, bus        | ✅ Ready   |
-| `aggregate/`            | Aggregate root, repository patterns        | ✅ Ready   |
-| `pkg/id/`               | Strongly-typed branded identifiers         | ✅ Ready   |
-| `xtypes/`               | Type-safe command/query/event wrappers     | ✅ Ready   |
-| `catalog/`              | Schema reflection, registry, catalog types | ✅ Ready   |
-| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                 | ✅ Ready   |
-| `catalog/eventcatalog/` | EventCatalog MDX documentation generator   | ✅ Ready   |
-| `catalog/yaml/`         | Zero-dependency YAML marshaler             | ✅ Ready   |
-| `middleware/`           | Logging, metrics, retry, validation, recovery | ✅ Ready   |
+| Package                 | Purpose                                       | Status   |
+| ----------------------- | --------------------------------------------- | -------- |
+| `command/`              | Command types, dispatcher, handlers           | ✅ Ready |
+| `query/`                | Query types, dispatcher, handlers             | ✅ Ready |
+| `event/`                | Domain events, store interface, bus           | ✅ Ready |
+| `aggregate/`            | Aggregate root, repository patterns           | ✅ Ready |
+| `pkg/id/`               | Strongly-typed branded identifiers            | ✅ Ready |
+| `xtypes/`               | Type-safe command/query/event wrappers        | ✅ Ready |
+| `catalog/`              | Schema reflection, registry, catalog types    | ✅ Ready |
+| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                    | ✅ Ready |
+| `catalog/eventcatalog/` | EventCatalog MDX documentation generator      | ✅ Ready |
+| `catalog/yaml/`         | Zero-dependency YAML marshaler                | ✅ Ready |
+| `middleware/`           | Logging, metrics, retry, validation, recovery | ✅ Ready |
 
 ## Design Principles
 
@@ -372,8 +372,8 @@ agg.MarkChangesAsCommitted()
 | Event Layer   | ✅ Complete | Event store, event bus, in-memory implementations |
 | Command Layer | ✅ Complete | Command dispatcher with middleware support        |
 | Query Layer   | ✅ Complete | Query dispatcher with typed results               |
-| Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery    |
-| Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing        |
+| Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
+| Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Makefile, linting                 |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
