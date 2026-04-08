@@ -140,7 +140,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 
 	var busEvents []event.Event
-	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		busEvents = append(busEvents, evt)
 
 		return nil

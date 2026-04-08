@@ -272,7 +272,7 @@ func TestSchemaFromType_SkipsUnexportedAndIgnored(t *testing.T) {
 
 	type Mixed struct {
 		Name    string `json:"name"`
-		private string
+		_       string // intentionally private to test field skipping
 		Ignored string `json:"-"`
 	}
 

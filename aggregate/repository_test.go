@@ -259,7 +259,7 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 
 	var received []event.Event
 
-	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
 
 		return nil

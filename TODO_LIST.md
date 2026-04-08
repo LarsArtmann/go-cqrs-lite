@@ -6,21 +6,23 @@ Actionable items for the next 2–4 weeks.
 
 ## 🔴 HIGH Priority
 
-- [ ] Add aggregate Repository interface
-- [ ] Add integration test: full CQRS roundtrip (command → handler → event → store → bus → aggregate rebuild)
-- [ ] Create example/user/ with full CQRS flow (aggregate.go, commands.go, events.go, handlers.go, main.go)
+- [x] Add aggregate Repository interface
+- [x] Add integration test: full CQRS roundtrip (command → handler → event → store → bus → aggregate rebuild)
+- [x] Create example/user/ with full CQRS flow (aggregate.go, commands.go, events.go, handlers.go, main.go)
 
 ## 🟡 MEDIUM Priority
 
-- [ ] Add middleware/logging.go
-- [ ] Add middleware/recovery.go
-- [ ] Add middleware/retry.go
-- [ ] Add middleware/validation.go
-- [ ] Add middleware/metrics.go
-- [ ] Add benchmarks for ID operations and dispatcher throughput
-- [ ] Add fuzzing for Parse functions
-- [ ] Update README.md with xtypes usage
-- [ ] Refactor With\* methods in event/event.go
-- [ ] Add AppendBatch to Store
-- [ ] Add snapshot store interface
-- [ ] Add query/pagination.go
+- [x] Add middleware/logging.go
+- [x] Add middleware/recovery.go
+- [x] Add middleware/retry.go
+- [x] Add middleware/validation.go
+- [x] Add middleware/metrics.go
+- [x] Add benchmarks for ID operations and dispatcher throughput
+- [x] Add fuzzing for Parse functions
+- [x] Update README.md with xtypes usage
+- [x] Refactor With* methods in event/event.go
+- [x] Add AppendBatch to Store
+- [x] Add snapshot store interface
+- [x] Add query/pagination.go
+
+All TODO items complete. See [ROADMAP.md](ROADMAP.md) for future work.

@@ -1,0 +1,37 @@
+version: 2
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+issues:
+  exclude-rules:
+    # Exclude G301/G306 (directory/file permissions) in eventcatalog exporter
+    - path: "catalog/eventcatalog/exporter.go"
+      linters:
+        - gosec
+      text: "G301|G306"
+
+    # Exclude G304 (file reading) in test files
+    - path: "_test.go"
+      linters:
+        - gosec
+      text: "G304"
+
+    # Exclude G115 (integer overflow) in asyncapi exporter
+    - path: "catalog/asyncapi/exporter.go"
+      linters:
+        - gosec
+      text: "G115"
+
+  max-issues-per-linter: 0
+  max-same-issues: 0

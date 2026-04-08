@@ -76,7 +76,7 @@ func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		doc.MarshalYAML()
+		_, _ = doc.MarshalYAML()
 	}
 }
 
@@ -100,6 +100,6 @@ func BenchmarkEventCatalog_Export(b *testing.B) {
 
 	for b.Loop() {
 		exp := eventcatalog.NewExporter(b.TempDir())
-		exp.Export(cat)
+		_ = exp.Export(cat)
 	}
 }

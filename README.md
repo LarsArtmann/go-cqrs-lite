@@ -103,7 +103,7 @@ aggregateID := aggregate_id.New()
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                 | ✅ Ready   |
 | `catalog/eventcatalog/` | EventCatalog MDX documentation generator   | ✅ Ready   |
 | `catalog/yaml/`         | Zero-dependency YAML marshaler             | ✅ Ready   |
-| `middleware/`           | Logging, metrics, validation (planned)     | 🔜 Planned |
+| `middleware/`           | Logging, metrics, retry, validation, recovery | ✅ Ready   |
 
 ## Design Principles
 
@@ -301,6 +301,54 @@ eventcatalog/
 │               └── schema.json
 ```
 
+## xtypes (Extended Types)
+
+The `xtypes` package provides type-safe wrappers around core CQRS types, eliminating stringly-typed aggregate IDs and reducing boilerplate.
+
+### EventBuilder
+
+Fluent builder for events with compile-time type safety:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/xtypes"
+
+aggregateID := id.NewAggregateID()
+
+evt, err := xtypes.NewEventBuilder(
+    "order.created",
+    aggregateID,
+    "Order",
+    event.Version(1),
+).
+    WithPayload(jsonPayload).
+    WithCorrelationID(correlationID).
+    WithUserID(operatorID).
+    Build()
+```
+
+### TypedCommand
+
+Wrap commands with strongly-typed aggregate IDs:
+
+```go
+cmd := xtypes.NewTypedCommand("create.order", aggregateID)
+fmt.Println(cmd.Type())        // "create.order"
+fmt.Println(cmd.AggregateID()) // id.AggregateID
+```
+
+### TypedAggregate
+
+Aggregate roots with branded IDs and event replay:
+
+```go
+agg := xtypes.NewTypedAggregate(aggregateID, "Order")
+evt, _ := xtypes.NewEventBuilder("order.created", aggregateID, "Order", 1).Build()
+agg.RecordEvent(ctx, evt)
+
+events := agg.UncommittedChanges()
+agg.MarkChangesAsCommitted()
+```
+
 ## Comparison
 
 | Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
@@ -311,6 +359,8 @@ eventcatalog/
 | Strong IDs      | ✅           | ❌      | ❌      |
 | Context support | ✅           | ❌      | ✅      |
 | Auto-docs       | ✅           | ❌      | ❌      |
+| Middleware      | ✅           | ❌      | ❌      |
+| Benchmarks      | ✅           | ❌      | ❌      |
 
 ## Project Status
 
@@ -322,8 +372,8 @@ eventcatalog/
 | Event Layer   | ✅ Complete | Event store, event bus, in-memory implementations |
 | Command Layer | ✅ Complete | Command dispatcher with middleware support        |
 | Query Layer   | ✅ Complete | Query dispatcher with typed results               |
-| Middleware    | ✅ Complete | Infrastructure for command/event middleware       |
-| Tests         | ✅ Complete | Unit tests for all packages                       |
+| Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery    |
+| Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing        |
 | CI/CD         | ✅ Complete | GitHub Actions, Makefile, linting                 |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
