@@ -44,3 +44,9 @@ Thumbs.db
 *.log
 # Dependencies
 node_modules/
+# Build artifacts
+/go-cqrs-lite
+# Test coverage
+/coverage
+# Sensitive files
+*.db
