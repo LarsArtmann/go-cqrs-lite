@@ -118,16 +118,16 @@ type createProductCmd struct {
 	price       float64
 }
 
-func (c *createProductCmd) Type() command.Type      { return "product.create" }
-func (c *createProductCmd) AggregateID() string      { return c.aggregateID.String() }
+func (c *createProductCmd) Type() command.Type  { return "product.create" }
+func (c *createProductCmd) AggregateID() string { return c.aggregateID.String() }
 
 type restockProductCmd struct {
 	aggregateID id.AggregateID
 	quantity    int
 }
 
-func (c *restockProductCmd) Type() command.Type      { return "product.restock" }
-func (c *restockProductCmd) AggregateID() string      { return c.aggregateID.String() }
+func (c *restockProductCmd) Type() command.Type  { return "product.restock" }
+func (c *restockProductCmd) AggregateID() string { return c.aggregateID.String() }
 
 func TestCQRSRoundtrip(t *testing.T) {
 	t.Parallel()
@@ -146,37 +146,43 @@ func TestCQRSRoundtrip(t *testing.T) {
 		return nil
 	})
 
-	err := dispatcher.Register("product.create", func(_ context.Context, cmd command.Command) error {
-		c := cmd.(*createProductCmd)
+	err := dispatcher.Register(
+		"product.create",
+		func(_ context.Context, cmd command.Command) error {
+			c := cmd.(*createProductCmd)
 
-		p := newProduct(c.aggregateID)
-		err := p.Create(ctx, c.name, c.price)
-		if err != nil {
-			return err
-		}
+			p := newProduct(c.aggregateID)
+			err := p.Create(ctx, c.name, c.price)
+			if err != nil {
+				return err
+			}
 
-		return repo.Save(ctx, p)
-	})
+			return repo.Save(ctx, p)
+		},
+	)
 	if err != nil {
 		t.Fatalf("register create handler: %v", err)
 	}
 
-	err = dispatcher.Register("product.restock", func(_ context.Context, cmd command.Command) error {
-		c := cmd.(*restockProductCmd)
+	err = dispatcher.Register(
+		"product.restock",
+		func(_ context.Context, cmd command.Command) error {
+			c := cmd.(*restockProductCmd)
 
-		p := newProduct(c.aggregateID)
-		err := repo.Load(ctx, p)
-		if err != nil {
-			return err
-		}
+			p := newProduct(c.aggregateID)
+			err := repo.Load(ctx, p)
+			if err != nil {
+				return err
+			}
 
-		err = p.Restock(ctx, c.quantity)
-		if err != nil {
-			return err
-		}
+			err = p.Restock(ctx, c.quantity)
+			if err != nil {
+				return err
+			}
 
-		return repo.Save(ctx, p)
-	})
+			return repo.Save(ctx, p)
+		},
+	)
 	if err != nil {
 		t.Fatalf("register restock handler: %v", err)
 	}
