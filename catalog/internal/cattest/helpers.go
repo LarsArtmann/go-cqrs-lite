@@ -29,6 +29,23 @@ func AddService(t testing.TB, r *catalog.Registry, id, name, version string) *ca
 	return r
 }
 
+type addFunc func(string, catalog.Message)
+
+// AddMessage adds a command, event, or query message to a service.
+func AddMessage(
+	t testing.TB,
+	r *catalog.Registry,
+	svcID string,
+	msg catalog.Message,
+	add addFunc,
+) *catalog.Registry {
+	t.Helper()
+
+	add(svcID, msg)
+
+	return r
+}
+
 // AddCommand adds a command message to a service.
 func AddCommand(
 	t testing.TB,
@@ -36,11 +53,7 @@ func AddCommand(
 	svcID string,
 	msg catalog.Message,
 ) *catalog.Registry {
-	t.Helper()
-
-	r.AddCommand(svcID, msg)
-
-	return r
+	return AddMessage(t, r, svcID, msg, r.AddCommand)
 }
 
 // AddEvent adds an event message to a service.
@@ -50,11 +63,7 @@ func AddEvent(
 	svcID string,
 	msg catalog.Message,
 ) *catalog.Registry {
-	t.Helper()
-
-	r.AddEvent(svcID, msg)
-
-	return r
+	return AddMessage(t, r, svcID, msg, r.AddEvent)
 }
 
 // AddQuery adds a query message to a service.
@@ -64,11 +73,7 @@ func AddQuery(
 	svcID string,
 	msg catalog.Message,
 ) *catalog.Registry {
-	t.Helper()
-
-	r.AddQuery(svcID, msg)
-
-	return r
+	return AddMessage(t, r, svcID, msg, r.AddQuery)
 }
 
 // Build builds the catalog from the registry.

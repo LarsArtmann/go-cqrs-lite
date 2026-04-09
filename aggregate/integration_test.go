@@ -140,6 +140,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 
 	var busEvents []event.Event
+
 	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		busEvents = append(busEvents, evt)
 
@@ -152,6 +153,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 			c := cmd.(*createProductCmd)
 
 			p := newProduct(c.aggregateID)
+
 			err := p.Create(ctx, c.name, c.price)
 			if err != nil {
 				return err
@@ -170,6 +172,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 			c := cmd.(*restockProductCmd)
 
 			p := newProduct(c.aggregateID)
+
 			err := repo.Load(ctx, p)
 			if err != nil {
 				return err
@@ -219,6 +222,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 	}
 
 	loaded := newProduct(productID)
+
 	err = repo.Load(ctx, loaded)
 	if err != nil {
 		t.Fatalf("load product: %v", err)

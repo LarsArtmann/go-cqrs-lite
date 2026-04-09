@@ -53,9 +53,13 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
 	}
 
-	wrapped, err := d.inner.Dispatch(string(cmd.Type()), handler, func(m Middleware, h Handler) Handler {
-		return m(h)
-	})
+	wrapped, err := d.inner.Dispatch(
+		string(cmd.Type()),
+		handler,
+		func(m Middleware, h Handler) Handler {
+			return m(h)
+		},
+	)
 	if err != nil {
 		return errors.Wrapf(err, "wrapping handler for command %s", cmd.Type())
 	}

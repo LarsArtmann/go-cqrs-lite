@@ -6,9 +6,15 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
-func newTestSnapshot(tb testing.TB, aggregateID string, version int, status string) event.Snapshot {
+func newTestSnapshot(
+	tb testing.TB,
+	aggregateID id.AggregateID,
+	version int,
+	status string,
+) event.Snapshot {
 	tb.Helper()
 
 	return event.Snapshot{
@@ -26,14 +32,14 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, "order-1", 5, "shipped")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-1"), 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", "order-1")
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-1"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -56,7 +62,7 @@ func TestMemorySnapshotStore_Load_NotFound(t *testing.T) {
 
 	store := event.NewMemorySnapshotStore()
 
-	_, err := store.Load(context.Background(), "Order", "nonexistent")
+	_, err := store.Load(context.Background(), "Order", id.MustParseAggregateID("nonexistent"))
 	if err == nil {
 		t.Error("expected snapshot not found error")
 	}
@@ -68,19 +74,19 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV5 := newTestSnapshot(t, "order-2", 5, "shipped")
+	snapshotV5 := newTestSnapshot(t, id.MustParseAggregateID("order-2"), 5, "shipped")
 
 	if err := store.Save(ctx, snapshotV5); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV3 := newTestSnapshot(t, "order-2", 3, "placed")
+	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("order-2"), 3, "placed")
 
 	if err := store.Save(ctx, snapshotV3); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", "order-2")
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-2"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -96,19 +102,19 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV3 := newTestSnapshot(t, "order-3", 3, "placed")
+	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("order-3"), 3, "placed")
 
 	if err := store.Save(ctx, snapshotV3); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV7 := newTestSnapshot(t, "order-3", 7, "delivered")
+	snapshotV7 := newTestSnapshot(t, id.MustParseAggregateID("order-3"), 7, "delivered")
 
 	if err := store.Save(ctx, snapshotV7); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", "order-3")
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-3"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -124,7 +130,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, "order-4", 5, "shipped")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-4"), 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
@@ -134,7 +140,12 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	t.Run("at exact version", func(t *testing.T) {
 		t.Parallel()
 
-		loaded, err := store.LoadAtVersion(ctx, "Order", "order-4", event.Version(5))
+		loaded, err := store.LoadAtVersion(
+			ctx,
+			"Order",
+			id.MustParseAggregateID("order-4"),
+			event.Version(5),
+		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -147,7 +158,12 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	t.Run("after snapshot version", func(t *testing.T) {
 		t.Parallel()
 
-		loaded, err := store.LoadAtVersion(ctx, "Order", "order-4", event.Version(10))
+		loaded, err := store.LoadAtVersion(
+			ctx,
+			"Order",
+			id.MustParseAggregateID("order-4"),
+			event.Version(10),
+		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -160,7 +176,12 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	t.Run("before snapshot version", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := store.LoadAtVersion(ctx, "Order", "order-4", event.Version(3))
+		_, err := store.LoadAtVersion(
+			ctx,
+			"Order",
+			id.MustParseAggregateID("order-4"),
+			event.Version(3),
+		)
 		if err == nil {
 			t.Error("expected snapshot not found for version before snapshot")
 		}
@@ -173,17 +194,17 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, "order-5", 1, "")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-5"), 1, "")
 
 	if err := store.Save(ctx, snapshot); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if err := store.Delete(ctx, "Order", "order-5"); err != nil {
+	if err := store.Delete(ctx, "Order", id.MustParseAggregateID("order-5")); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	_, err := store.Load(ctx, "Order", "order-5")
+	_, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-5"))
 	if err == nil {
 		t.Error("expected snapshot not found after delete")
 	}

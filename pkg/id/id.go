@@ -200,7 +200,7 @@ func (id *Of[T]) UnmarshalText(data []byte) error {
 	return unmarshalID(id, string(data), "text")
 }
 
-func unmarshalID[T any](id *Of[T], data string, source string) error {
+func unmarshalID[T any](id *Of[T], data, source string) error {
 	parsed, err := Parse[T](data)
 	if err != nil {
 		return fmt.Errorf("unmarshal ID from %s: %w", source, err)

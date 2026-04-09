@@ -1,59 +1,37 @@
 package yaml
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 )
 
-func TestMarshal_String(t *testing.T) {
+func TestMarshal_Primitives(t *testing.T) {
 	t.Parallel()
 
-	b, err := Marshal("hello")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name  string
+		input any
+		want  string
+	}{
+		{"string", "hello", "hello"},
+		{"empty string", "", `""`},
+		{"int", 42, "42"},
+		{"float", 3.14, "3.14"},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	if got := strings.TrimSpace(string(b)); got != "hello" {
-		t.Errorf("got %q, want %q", got, "hello")
-	}
-}
+			b, err := Marshal(tc.input)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-func TestMarshal_EmptyString(t *testing.T) {
-	t.Parallel()
-
-	b, err := Marshal("")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got := strings.TrimSpace(string(b)); got != `""` {
-		t.Errorf("got %q, want %q", got, `""`)
-	}
-}
-
-func TestMarshal_Int(t *testing.T) {
-	t.Parallel()
-
-	b, err := Marshal(42)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got := strings.TrimSpace(string(b)); got != "42" {
-		t.Errorf("got %q, want %q", got, "42")
-	}
-}
-
-func TestMarshal_Float(t *testing.T) {
-	t.Parallel()
-
-	b, err := Marshal(3.14)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got := strings.TrimSpace(string(b)); got != "3.14" {
-		t.Errorf("got %q, want %q", got, "3.14")
+			if got := strings.TrimSpace(string(b)); got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 
@@ -67,15 +45,19 @@ func TestMarshal_Bool(t *testing.T) {
 		{true, "true"},
 		{false, "false"},
 	}
-	for _, tt := range tests {
-		b, err := Marshal(tt.input)
-		if err != nil {
-			t.Fatal(err)
-		}
+	for _, tc := range tests {
+		t.Run(strconv.FormatBool(tc.input), func(t *testing.T) {
+			t.Parallel()
 
-		if got := strings.TrimSpace(string(b)); got != tt.want {
-			t.Errorf("Marshal(%v) = %q, want %q", tt.input, got, tt.want)
-		}
+			b, err := Marshal(tc.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got := strings.TrimSpace(string(b)); got != tc.want {
+				t.Errorf("Marshal(%v) = %q, want %q", tc.input, got, tc.want)
+			}
+		})
 	}
 }
 
@@ -94,15 +76,19 @@ func TestMarshal_SpecialStrings(t *testing.T) {
 		{"a & b", `"a \u0026 b"`},
 		{"#comment", `"#comment"`},
 	}
-	for _, tt := range tests {
-		b, err := Marshal(tt.input)
-		if err != nil {
-			t.Fatal(err)
-		}
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
 
-		if got := strings.TrimSpace(string(b)); got != tt.want {
-			t.Errorf("Marshal(%q) = %q, want %q", tt.input, got, tt.want)
-		}
+			b, err := Marshal(tc.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got := strings.TrimSpace(string(b)); got != tc.want {
+				t.Errorf("Marshal(%q) = %q, want %q", tc.input, got, tc.want)
+			}
+		})
 	}
 }
 

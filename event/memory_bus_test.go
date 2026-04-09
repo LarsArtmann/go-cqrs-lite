@@ -7,6 +7,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/event/internal/evtest"
+	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 )
 
 func TestMemoryBus_Publish(t *testing.T) {
@@ -16,6 +17,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 	ctx := context.Background()
 
 	var received []event.Event
+
 	handler := evtest.CollectingHandler(t, &received)
 
 	err := bus.Subscribe("UserCreated", handler)
@@ -42,6 +44,7 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 	ctx := context.Background()
 
 	var received []event.Event
+
 	handler := evtest.CollectingHandler(t, &received)
 
 	err := bus.SubscribeAll(handler)
@@ -73,18 +76,6 @@ func testMiddleware(callOrder *[]string, name string) func(h event.Handler) even
 	}
 }
 
-func assertCallOrder(t *testing.T, callOrder []string, expected []string) {
-	t.Helper()
-
-	for i, v := range expected {
-		if i >= len(callOrder) || callOrder[i] != v {
-			t.Errorf("expected call order %v, got %v", expected, callOrder)
-
-			break
-		}
-	}
-}
-
 func TestMemoryBus_Middleware(t *testing.T) {
 	t.Parallel()
 
@@ -107,7 +98,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 	_ = bus.Publish(ctx, evt)
 
-	assertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
+	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
 }
 
 func TestMemoryBus_Closed(t *testing.T) {
@@ -142,11 +133,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	handlerErr := func(_ context.Context, _ event.Event) error {
-		return errors.New("handler failed")
-	}
-
-	_ = bus.Subscribe("TestEvent", handlerErr)
+	_ = bus.Subscribe("TestEvent", testErrorHandler("handler failed"))
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 
@@ -162,17 +149,19 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	handlerErr := func(_ context.Context, _ event.Event) error {
-		return errors.New("all-handler failed")
-	}
-
-	_ = bus.SubscribeAll(handlerErr)
+	_ = bus.SubscribeAll(testErrorHandler("all-handler failed"))
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 
 	err := bus.Publish(ctx, evt)
 	if err == nil {
 		t.Error("expected all-handler error to propagate")
+	}
+}
+
+func testErrorHandler(msg string) event.Handler {
+	return func(_ context.Context, _ event.Event) error {
+		return errors.New(msg)
 	}
 }
 

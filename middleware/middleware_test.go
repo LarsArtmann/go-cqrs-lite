@@ -75,15 +75,19 @@ func TestCommandLogging_Success(t *testing.T) {
 	}
 }
 
+func failingCommandHandler(msg string) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		return errors.New(msg)
+	}
+}
+
 func TestCommandLogging_Error(t *testing.T) {
 	t.Parallel()
 
 	logger := &testLogger{}
-	mw := CommandLogging(logger)
+	cmdMw := CommandLogging(logger)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return errors.New("boom")
-	})
+	handler := cmdMw(failingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -216,11 +220,9 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 	config.InitialDelay = time.Millisecond
 	config.IsRetryable = func(err error) bool { return true }
 
-	mw := CommandRetry(config)
+	cmdMw := CommandRetry(config)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return errors.New("always fail")
-	})
+	handler := cmdMw(failingCommandHandler("always fail"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 

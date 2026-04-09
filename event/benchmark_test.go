@@ -27,6 +27,7 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 	}
 
 	aggregateID := id.NewAggregateID()
+
 	evt, err := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
 	if err != nil {
 		b.Fatalf("new event: %v", err)

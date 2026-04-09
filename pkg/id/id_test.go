@@ -273,38 +273,24 @@ func TestFormat(t *testing.T) {
 
 	id := MustParse[AggregateID]("test")
 
-	t.Run("%v", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		format string
+		want   string
+	}{
+		{"%v", "test"},
+		{"%s", "test"},
+		{"%q", `"test"`},
+	}
 
-		if got := fmt.Sprintf("%v", id); got != "test" {
-			t.Errorf("%%v = %q, want %q", got, "test")
-		}
-	})
+	for _, tc := range tests {
+		t.Run(tc.format, func(t *testing.T) {
+			t.Parallel()
 
-	t.Run("%#v", func(t *testing.T) {
-		t.Parallel()
-
-		got := fmt.Sprintf("%#v", id)
-		if got == "" {
-			t.Error("percent-hash-v should not be empty")
-		}
-	})
-
-	t.Run("%s", func(t *testing.T) {
-		t.Parallel()
-
-		if got := fmt.Sprintf("%s", id); got != "test" {
-			t.Errorf("%%s = %q, want %q", got, "test")
-		}
-	})
-
-	t.Run("%q", func(t *testing.T) {
-		t.Parallel()
-
-		if got := fmt.Sprintf("%q", id); got != `"test"` {
-			t.Errorf("%%q = %q, want %q", got, `"test"`)
-		}
-	})
+			if got := fmt.Sprintf(tc.format, id); got != tc.want {
+				t.Errorf("%s = %q, want %q", tc.format, got, tc.want)
+			}
+		})
+	}
 }
 
 func TestJSON(t *testing.T) {

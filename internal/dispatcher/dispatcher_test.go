@@ -20,7 +20,7 @@ func testMW(order *[]string, name string) testMiddleware {
 	}
 }
 
-func assertCallOrder(t *testing.T, order []string, expected []string) {
+func assertCallOrder(t *testing.T, order, expected []string) {
 	t.Helper()
 
 	for i, v := range expected {

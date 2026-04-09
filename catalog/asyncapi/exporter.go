@@ -13,8 +13,8 @@ type messageKind string
 
 const (
 	kindCommand messageKind = "commands"
-	kindEvent  messageKind = "events"
-	kindQuery  messageKind = "queries"
+	kindEvent   messageKind = "events"
+	kindQuery   messageKind = "queries"
 )
 
 type Exporter struct {
@@ -98,6 +98,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 			if evt.Direction == catalog.Receives {
 				action = "receive"
 			}
+
 			e.addMessage(doc, svc.ID, evt, kindEvent, withAction(action))
 		}
 
@@ -121,7 +122,13 @@ func withAction(action string) messageOption {
 	}
 }
 
-func (e *Exporter) addMessage(doc *Document, svcID string, msg catalog.Message, kind messageKind, opts ...messageOption) {
+func (e *Exporter) addMessage(
+	doc *Document,
+	svcID string,
+	msg catalog.Message,
+	kind messageKind,
+	opts ...messageOption,
+) {
 	cfg := &messageConfig{action: "receive"}
 	for _, opt := range opts {
 		opt(cfg)
@@ -140,20 +147,23 @@ func (e *Exporter) addMessage(doc *Document, svcID string, msg catalog.Message, 
 
 	opTitle := "Handle " + msg.Name
 	opName := "handle" + id
-	if kind == kindEvent {
+
+	switch kind {
+	case kindEvent:
 		opTitle = "Publish " + msg.Name
+
 		opName = "publish" + id
 		if cfg.action == "receive" {
 			opName = "receive" + id
 		}
-	} else if kind == kindCommand {
+	case kindCommand:
 		opTitle = "Receive " + msg.Name
 		opName = "receive" + id
 	}
 
 	doc.Operations[opName] = Operation{
 		Title:    opTitle,
-		Summary: msg.Summary,
+		Summary:  msg.Summary,
 		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
