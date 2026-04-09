@@ -9,6 +9,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/yaml"
 )
 
+type messageKind string
+
+const (
+	kindCommand messageKind = "commands"
+	kindEvent  messageKind = "events"
+	kindQuery  messageKind = "queries"
+)
+
 type Exporter struct {
 	ServiceName string
 	Version     string
@@ -82,108 +90,81 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 	for _, svc := range cat.Services {
 		for _, cmd := range svc.Commands {
-			e.addCommand(doc, svc.ID, cmd)
+			e.addMessage(doc, svc.ID, cmd, kindCommand)
 		}
 
 		for _, evt := range svc.Events {
-			e.addEvent(doc, svc.ID, evt)
+			action := "send"
+			if evt.Direction == catalog.Receives {
+				action = "receive"
+			}
+			e.addMessage(doc, svc.ID, evt, kindEvent, withAction(action))
 		}
 
 		for _, q := range svc.Queries {
-			e.addQuery(doc, svc.ID, q)
+			e.addMessage(doc, svc.ID, q, kindQuery)
 		}
 	}
 
 	return doc
 }
 
-func (e *Exporter) addCommand(doc *Document, svcID string, msg catalog.Message) {
-	id := messageID(msg)
+type messageOption func(*messageConfig)
 
-	channelKey := "commands." + id
-	ref := "#/components/messages/" + id
-
-	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.commands.%s", svcID, toDotAddress(id)),
-		Title:       msg.Name + " Command Channel",
-		Description: msg.Summary,
-		Messages:    map[string]Ref{"command": {Ref: ref}},
-	}
-
-	doc.Operations["receive"+id] = Operation{
-		Title:    "Receive " + msg.Name,
-		Summary:  msg.Summary,
-		Action:   "receive",
-		Channel:  Ref{Ref: "#/channels/" + channelKey},
-		Messages: []Ref{{Ref: ref}},
-		Tags:     []Tag{{Name: "commands"}, {Name: svcID}},
-	}
-
-	e.addMessageSchema(doc, msg)
+type messageConfig struct {
+	action string
 }
 
-func (e *Exporter) addEvent(doc *Document, svcID string, msg catalog.Message) {
-	id := messageID(msg)
+func withAction(action string) messageOption {
+	return func(c *messageConfig) {
+		c.action = action
+	}
+}
 
-	action := "send"
-	if msg.Direction == catalog.Receives {
-		action = "receive"
+func (e *Exporter) addMessage(doc *Document, svcID string, msg catalog.Message, kind messageKind, opts ...messageOption) {
+	cfg := &messageConfig{action: "receive"}
+	for _, opt := range opts {
+		opt(cfg)
 	}
 
-	channelKey := "events." + id
+	id := MessageID(msg)
+	channelKey := string(kind) + "." + id
 	ref := "#/components/messages/" + id
 
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.events.%s", svcID, toDotAddress(id)),
-		Title:       msg.Name + " Event Channel",
+		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(id)),
+		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
-		Messages:    map[string]Ref{"event": {Ref: ref}},
+		Messages:    map[string]Ref{string(kind): {Ref: ref}},
 	}
 
-	opName := "publish" + id
-	if action == "receive" {
+	opTitle := "Handle " + msg.Name
+	opName := "handle" + id
+	if kind == kindEvent {
+		opTitle = "Publish " + msg.Name
+		opName = "publish" + id
+		if cfg.action == "receive" {
+			opName = "receive" + id
+		}
+	} else if kind == kindCommand {
+		opTitle = "Receive " + msg.Name
 		opName = "receive" + id
 	}
 
 	doc.Operations[opName] = Operation{
-		Title:    opName,
-		Summary:  msg.Summary,
-		Action:   action,
+		Title:    opTitle,
+		Summary: msg.Summary,
+		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
-		Tags:     []Tag{{Name: "events"}, {Name: svcID}},
-	}
-
-	e.addMessageSchema(doc, msg)
-}
-
-func (e *Exporter) addQuery(doc *Document, svcID string, msg catalog.Message) {
-	id := messageID(msg)
-
-	channelKey := "queries." + id
-	ref := "#/components/messages/" + id
-
-	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.queries.%s", svcID, toDotAddress(id)),
-		Title:       msg.Name + " Query Channel",
-		Description: msg.Summary,
-		Messages:    map[string]Ref{"query": {Ref: ref}},
-	}
-
-	doc.Operations["handle"+id] = Operation{
-		Title:    "Handle " + msg.Name,
-		Summary:  msg.Summary,
-		Action:   "receive",
-		Channel:  Ref{Ref: "#/channels/" + channelKey},
-		Messages: []Ref{{Ref: ref}},
-		Tags:     []Tag{{Name: "queries"}, {Name: svcID}},
+		Tags:     []Tag{{Name: string(kind)}, {Name: svcID}},
 	}
 
 	e.addMessageSchema(doc, msg)
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	id := messageID(msg)
+	id := MessageID(msg)
 
 	tagName := "commands"
 
@@ -204,13 +185,13 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	}
 
 	if msg.Schema != nil {
-		doc.Components.Schemas[id] = schemaToAny(msg.Schema)
+		doc.Components.Schemas[id] = SchemaToAny(msg.Schema)
 	} else {
 		doc.Components.Schemas[id] = map[string]string{"type": "object"}
 	}
 }
 
-func schemaToAny(s *catalog.Schema) any {
+func SchemaToAny(s *catalog.Schema) any {
 	if s == nil {
 		return map[string]string{"type": "object"}
 	}
@@ -227,6 +208,14 @@ func schemaToAny(s *catalog.Schema) any {
 	return result
 }
 
+func MessageID(msg catalog.Message) string {
+	if msg.ID != "" {
+		return msg.ID
+	}
+
+	return string(msg.Name)
+}
+
 func (d *Document) MarshalYAML() ([]byte, error) {
 	return yaml.Marshal(d)
 }
@@ -235,14 +224,6 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
 
 	return json.MarshalIndent((*alias)(d), "", "  ")
-}
-
-func messageID(msg catalog.Message) string {
-	if msg.ID != "" {
-		return msg.ID
-	}
-
-	return string(msg.Name)
 }
 
 func toDotAddress(s string) string {

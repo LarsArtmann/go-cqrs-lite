@@ -86,6 +86,17 @@ func needsQuoting(s string) bool {
 	return false
 }
 
+func appendContinuation(buf []byte, lines []string, prefix string) []byte {
+	buf = append(buf, lines[0]...)
+	for _, line := range lines[1:] {
+		buf = append(buf, '\n')
+		buf = append(buf, prefix+"  "...)
+		buf = append(buf, line...)
+	}
+
+	return append(buf, '\n')
+}
+
 func marshalSlice(v reflect.Value, indent int) ([]byte, error) {
 	if v.Len() == 0 {
 		return []byte("[]\n"), nil
@@ -104,14 +115,7 @@ func marshalSlice(v reflect.Value, indent int) ([]byte, error) {
 		buf = append(buf, prefix+"- "...)
 		lines := strings.Split(strings.TrimRight(string(elem), "\n"), "\n")
 
-		buf = append(buf, lines[0]...)
-		for _, line := range lines[1:] {
-			buf = append(buf, '\n')
-			buf = append(buf, prefix+"  "...)
-			buf = append(buf, line...)
-		}
-
-		buf = append(buf, '\n')
+		buf = appendContinuation(buf, lines, prefix)
 	}
 
 	return buf, nil
@@ -149,14 +153,7 @@ func marshalMap(v reflect.Value, indent int) ([]byte, error) {
 			buf = append(buf, prefix+keyStr+": "...)
 		}
 
-		buf = append(buf, lines[0]...)
-		for _, line := range lines[1:] {
-			buf = append(buf, '\n')
-			buf = append(buf, prefix+"  "...)
-			buf = append(buf, line...)
-		}
-
-		buf = append(buf, '\n')
+		buf = appendContinuation(buf, lines, prefix)
 	}
 
 	return buf, nil
@@ -220,14 +217,7 @@ func marshalFields(fields []structField, indent int) ([]byte, error) {
 			buf = append(buf, prefix+f.name+": "...)
 		}
 
-		buf = append(buf, lines[0]...)
-		for _, line := range lines[1:] {
-			buf = append(buf, '\n')
-			buf = append(buf, prefix+"  "...)
-			buf = append(buf, line...)
-		}
-
-		buf = append(buf, '\n')
+		buf = appendContinuation(buf, lines, prefix)
 	}
 
 	return buf, nil

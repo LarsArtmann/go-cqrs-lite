@@ -8,19 +8,25 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
+func newTestSnapshot(tb testing.TB, aggregateID string, version int, status string) event.Snapshot {
+	tb.Helper()
+
+	return event.Snapshot{
+		AggregateID:   aggregateID,
+		AggregateType: "Order",
+		Version:       event.Version(version),
+		State:         []byte(`{"status":"` + status + `"}`),
+		CreatedAt:     time.Now(),
+	}
+}
+
 func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := event.Snapshot{
-		AggregateID:   "order-1",
-		AggregateType: "Order",
-		Version:       event.Version(5),
-		State:         []byte(`{"status":"shipped"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshot := newTestSnapshot(t, "order-1", 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
@@ -62,25 +68,13 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV5 := event.Snapshot{
-		AggregateID:   "order-2",
-		AggregateType: "Order",
-		Version:       event.Version(5),
-		State:         []byte(`{"status":"shipped"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshotV5 := newTestSnapshot(t, "order-2", 5, "shipped")
 
 	if err := store.Save(ctx, snapshotV5); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV3 := event.Snapshot{
-		AggregateID:   "order-2",
-		AggregateType: "Order",
-		Version:       event.Version(3),
-		State:         []byte(`{"status":"placed"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshotV3 := newTestSnapshot(t, "order-2", 3, "placed")
 
 	if err := store.Save(ctx, snapshotV3); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -102,25 +96,13 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV3 := event.Snapshot{
-		AggregateID:   "order-3",
-		AggregateType: "Order",
-		Version:       event.Version(3),
-		State:         []byte(`{"status":"placed"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshotV3 := newTestSnapshot(t, "order-3", 3, "placed")
 
 	if err := store.Save(ctx, snapshotV3); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV7 := event.Snapshot{
-		AggregateID:   "order-3",
-		AggregateType: "Order",
-		Version:       event.Version(7),
-		State:         []byte(`{"status":"delivered"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshotV7 := newTestSnapshot(t, "order-3", 7, "delivered")
 
 	if err := store.Save(ctx, snapshotV7); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -142,13 +124,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := event.Snapshot{
-		AggregateID:   "order-4",
-		AggregateType: "Order",
-		Version:       event.Version(5),
-		State:         []byte(`{"status":"shipped"}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshot := newTestSnapshot(t, "order-4", 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
@@ -197,13 +173,7 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 	store := event.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := event.Snapshot{
-		AggregateID:   "order-5",
-		AggregateType: "Order",
-		Version:       event.Version(1),
-		State:         []byte(`{}`),
-		CreatedAt:     time.Now(),
-	}
+	snapshot := newTestSnapshot(t, "order-5", 1, "")
 
 	if err := store.Save(ctx, snapshot); err != nil {
 		t.Fatalf("unexpected error: %v", err)

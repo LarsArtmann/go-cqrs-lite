@@ -57,9 +57,12 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 		return nil, errors.Wrapf(ErrQueryNotSupported, "query type: %s", query.Type())
 	}
 
-	wrapped := d.inner.Middleware.Apply(handler, func(m Middleware, h Handler) Handler {
+	wrapped, err := d.inner.Dispatch(string(query.Type()), handler, func(m Middleware, h Handler) Handler {
 		return m(h)
 	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "wrapping handler for query %s", query.Type())
+	}
 
 	return wrapped(query)
 }

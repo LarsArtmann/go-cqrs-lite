@@ -123,6 +123,18 @@ func makeTestMiddleware(
 	}
 }
 
+func assertCallOrder(t *testing.T, callOrder []string, expected []string) {
+	t.Helper()
+
+	for i, v := range expected {
+		if i >= len(callOrder) || callOrder[i] != v {
+			t.Errorf("expected call order %v, got %v", expected, callOrder)
+
+			break
+		}
+	}
+}
+
 func TestDispatcher_Middleware(t *testing.T) {
 	t.Parallel()
 
@@ -144,14 +156,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 	q := query.New("TestQuery")
 	_, _ = dispatcher.Dispatch(context.Background(), q)
 
-	expected := []string{"middleware1", "middleware2", "handler"}
-	for i, v := range expected {
-		if i >= len(callOrder) || callOrder[i] != v {
-			t.Errorf("expected call order %v, got %v", expected, callOrder)
-
-			break
-		}
-	}
+	assertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
 }
 
 func TestDispatcher_Closed(t *testing.T) {

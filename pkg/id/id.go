@@ -187,14 +187,7 @@ func (id Of[T]) MarshalBinary() ([]byte, error) {
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
 func (id *Of[T]) UnmarshalBinary(data []byte) error {
-	parsed, err := Parse[T](string(data))
-	if err != nil {
-		return fmt.Errorf("unmarshal ID from binary: %w", err)
-	}
-
-	*id = parsed
-
-	return nil
+	return unmarshalID(id, string(data), "binary")
 }
 
 // MarshalText implements encoding.TextMarshaler.
@@ -204,9 +197,13 @@ func (id Of[T]) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (id *Of[T]) UnmarshalText(data []byte) error {
-	parsed, err := Parse[T](string(data))
+	return unmarshalID(id, string(data), "text")
+}
+
+func unmarshalID[T any](id *Of[T], data string, source string) error {
+	parsed, err := Parse[T](data)
 	if err != nil {
-		return fmt.Errorf("unmarshal ID from text: %w", err)
+		return fmt.Errorf("unmarshal ID from %s: %w", source, err)
 	}
 
 	*id = parsed

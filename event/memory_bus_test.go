@@ -6,6 +6,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/internal/evtest"
 )
 
 func TestMemoryBus_Publish(t *testing.T) {
@@ -14,12 +15,8 @@ func TestMemoryBus_Publish(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	received := make([]event.Event, 0)
-	handler := func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-
-		return nil
-	}
+	var received []event.Event
+	handler := evtest.CollectingHandler(t, &received)
 
 	err := bus.Subscribe("UserCreated", handler)
 	if err != nil {
@@ -44,12 +41,8 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	received := make([]event.Event, 0)
-	handler := func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-
-		return nil
-	}
+	var received []event.Event
+	handler := evtest.CollectingHandler(t, &received)
 
 	err := bus.SubscribeAll(handler)
 	if err != nil {
@@ -80,6 +73,18 @@ func testMiddleware(callOrder *[]string, name string) func(h event.Handler) even
 	}
 }
 
+func assertCallOrder(t *testing.T, callOrder []string, expected []string) {
+	t.Helper()
+
+	for i, v := range expected {
+		if i >= len(callOrder) || callOrder[i] != v {
+			t.Errorf("expected call order %v, got %v", expected, callOrder)
+
+			break
+		}
+	}
+}
+
 func TestMemoryBus_Middleware(t *testing.T) {
 	t.Parallel()
 
@@ -102,15 +107,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 	_ = bus.Publish(ctx, evt)
 
-	// Middleware is applied in order (first added is outermost wrapper)
-	expected := []string{"middleware1", "middleware2", "handler"}
-	for i, v := range expected {
-		if i >= len(callOrder) || callOrder[i] != v {
-			t.Errorf("expected call order %v, got %v", expected, callOrder)
-
-			break
-		}
-	}
+	assertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
 }
 
 func TestMemoryBus_Closed(t *testing.T) {

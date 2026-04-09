@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 )
 
 type Exporter struct {
@@ -204,11 +205,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 }
 
 func messageID(msg catalog.Message) string {
-	if msg.ID != "" {
-		return msg.ID
-	}
-
-	return string(msg.Name)
+	return asyncapi.MessageID(msg)
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {

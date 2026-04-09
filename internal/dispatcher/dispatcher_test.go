@@ -10,6 +10,28 @@ type testHandler func(string) string
 
 type testMiddleware func(testHandler) testHandler
 
+func testMW(order *[]string, name string) testMiddleware {
+	return func(h testHandler) testHandler {
+		return func(s string) string {
+			*order = append(*order, name)
+
+			return h(s)
+		}
+	}
+}
+
+func assertCallOrder(t *testing.T, order []string, expected []string) {
+	t.Helper()
+
+	for i, v := range expected {
+		if i >= len(order) || order[i] != v {
+			t.Errorf("expected order %v, got %v", expected, order)
+
+			break
+		}
+	}
+}
+
 func TestLifecycleMixin_Close(t *testing.T) {
 	t.Parallel()
 
@@ -117,22 +139,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 
 	var order []string
 
-	c.Add(
-		func(h testHandler) testHandler {
-			return func(s string) string {
-				order = append(order, "mw1")
-
-				return h(s)
-			}
-		},
-		func(h testHandler) testHandler {
-			return func(s string) string {
-				order = append(order, "mw2")
-
-				return h(s)
-			}
-		},
-	)
+	c.Add(testMW(&order, "mw1"), testMW(&order, "mw2"))
 
 	handler := func(s string) string {
 		order = append(order, "handler")
@@ -149,14 +156,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 		t.Errorf("expected test, got %s", result)
 	}
 
-	expected := []string{"mw1", "mw2", "handler"}
-	for i, v := range expected {
-		if i >= len(order) || order[i] != v {
-			t.Errorf("expected order %v, got %v", expected, order)
-
-			break
-		}
-	}
+	assertCallOrder(t, order, []string{"mw1", "mw2", "handler"})
 }
 
 func TestMiddlewareChain_Apply_NoMiddleware(t *testing.T) {
@@ -294,13 +294,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 
 	var order []string
 
-	d.Use(func(h testHandler) testHandler {
-		return func(s string) string {
-			order = append(order, "mw1")
-
-			return h(s)
-		}
-	})
+	d.Use(testMW(&order, "mw1"))
 
 	handler := func(s string) string {
 		order = append(order, "handler")
@@ -322,14 +316,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 		t.Error("unexpected result")
 	}
 
-	expected := []string{"mw1", "handler"}
-	for i, v := range expected {
-		if i >= len(order) || order[i] != v {
-			t.Errorf("expected order %v, got %v", expected, order)
-
-			break
-		}
-	}
+	assertCallOrder(t, order, []string{"mw1", "handler"})
 }
 
 func TestDispatcher_Close(t *testing.T) {
