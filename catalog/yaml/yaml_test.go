@@ -46,18 +46,7 @@ func TestMarshal_Bool(t *testing.T) {
 		{false, "false"},
 	}
 	for _, tc := range tests {
-		t.Run(strconv.FormatBool(tc.input), func(t *testing.T) {
-			t.Parallel()
-
-			b, err := Marshal(tc.input)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if got := strings.TrimSpace(string(b)); got != tc.want {
-				t.Errorf("Marshal(%v) = %q, want %q", tc.input, got, tc.want)
-			}
-		})
+		t.Run(strconv.FormatBool(tc.input), marshalTestFunc(tc.input, tc.want, "%v"))
 	}
 }
 
@@ -77,18 +66,23 @@ func TestMarshal_SpecialStrings(t *testing.T) {
 		{"#comment", `"#comment"`},
 	}
 	for _, tc := range tests {
-		t.Run(tc.input, func(t *testing.T) {
-			t.Parallel()
+		t.Run(tc.input, marshalTestFunc(tc.input, tc.want, "%q"))
+	}
+}
 
-			b, err := Marshal(tc.input)
-			if err != nil {
-				t.Fatal(err)
-			}
+// marshalTestFunc returns a test function that marshals an input and checks the result.
+func marshalTestFunc(input any, want, format string) func(*testing.T) {
+	return func(t *testing.T) {
+		t.Parallel()
 
-			if got := strings.TrimSpace(string(b)); got != tc.want {
-				t.Errorf("Marshal(%q) = %q, want %q", tc.input, got, tc.want)
-			}
-		})
+		b, err := Marshal(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if got := strings.TrimSpace(string(b)); got != want {
+			t.Errorf("Marshal("+format+") = %q, want %q", input, got, want)
+		}
 	}
 }
 

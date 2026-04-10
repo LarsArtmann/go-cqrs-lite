@@ -66,19 +66,24 @@ func (p *product) LoadEvents(events []event.Event) error {
 	return p.LoadFromHistory(p, events)
 }
 
+// newEvent creates a new event for the product aggregate.
+func (p *product) newEvent(eventType string, payload []byte) (*event.Core, error) {
+	return event.NewEvent(
+		event.Type(eventType),
+		id.MustParseAggregateID(p.ID()),
+		productType,
+		p.Version()+1,
+		payload,
+	)
+}
+
 func (p *product) Create(ctx context.Context, name string, price float64) error {
 	payload, _ := json.Marshal(struct {
 		Name  string  `json:"name"`
 		Price float64 `json:"price"`
 	}{Name: name, Price: price})
 
-	evt, err := event.NewEvent(
-		"ProductCreated",
-		id.MustParseAggregateID(p.ID()),
-		productType,
-		p.Version()+1,
-		payload,
-	)
+	evt, err := p.newEvent("ProductCreated", payload)
 	if err != nil {
 		return err
 	}
@@ -95,13 +100,7 @@ func (p *product) Restock(ctx context.Context, quantity int) error {
 		Quantity int `json:"quantity"`
 	}{Quantity: quantity})
 
-	evt, err := event.NewEvent(
-		"ProductRestocked",
-		id.MustParseAggregateID(p.ID()),
-		productType,
-		p.Version()+1,
-		payload,
-	)
+	evt, err := p.newEvent("ProductRestocked", payload)
 	if err != nil {
 		return err
 	}

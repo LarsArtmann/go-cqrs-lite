@@ -17,6 +17,15 @@ func (r *testRoot) Apply(_ event.Event) error { return nil }
 
 var _ aggregate.Root = (*testRoot)(nil)
 
+// assertMetadataID is a test helper that asserts a metadata ID matches the expected value.
+func assertMetadataID[T comparable](t *testing.T, got, expected T, label string) {
+	t.Helper()
+
+	if got != expected {
+		t.Errorf("expected %s %s, got %s", label, expected, got)
+	}
+}
+
 func TestEventBuilder(t *testing.T) {
 	t.Parallel()
 
@@ -107,13 +116,7 @@ func TestEventBuilder(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if evt.Event().Metadata().CorrelationID != correlationID {
-			t.Errorf(
-				"expected correlation ID %s, got %s",
-				correlationID,
-				evt.Event().Metadata().CorrelationID,
-			)
-		}
+		assertMetadataID(t, evt.Event().Metadata().CorrelationID, correlationID, "correlation ID")
 	})
 
 	t.Run("WithCausationID sets causation ID", func(t *testing.T) {
@@ -169,13 +172,7 @@ func TestEventBuilder(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if evt.Event().Metadata().CorrelationID != correlationID {
-			t.Errorf(
-				"expected correlation ID %s, got %s",
-				correlationID,
-				evt.Event().Metadata().CorrelationID,
-			)
-		}
+		assertMetadataID(t, evt.Event().Metadata().CorrelationID, correlationID, "correlation ID")
 	})
 
 	t.Run("MustBuild panics on error", func(t *testing.T) {

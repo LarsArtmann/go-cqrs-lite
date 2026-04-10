@@ -80,21 +80,23 @@ func AddQuery(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Mess
 	return addMessage(tb, r, svcID, msg, r.AddQuery)
 }
 
+
+
 // AddCommandSimple creates and adds a command message with minimal parameters.
 func AddCommandSimple(
 	tb testing.TB,
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
 ) *catalog.Registry {
-	tb.Helper()
-
-	return AddCommand(tb, r, svcID, catalog.Message{
+	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      id,
 		Name:    name,
 		Version: version,
 		Summary: summary,
-	})
+	}
+
+	return AddCommand(tb, r, svcID, msg)
 }
 
 // AddEventSimple creates and adds an event message with minimal parameters.
@@ -104,15 +106,15 @@ func AddEventSimple(
 	svcID, id, name, version string,
 	direction catalog.Direction,
 ) *catalog.Registry {
-	tb.Helper()
-
-	return AddEvent(tb, r, svcID, catalog.Message{
+	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        id,
 		Name:      name,
 		Version:   version,
 		Direction: direction,
-	})
+	}
+
+	return AddEvent(tb, r, svcID, msg)
 }
 
 // AddQuerySimple creates and adds a query message with minimal parameters.
@@ -121,15 +123,15 @@ func AddQuerySimple(
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
 ) *catalog.Registry {
-	tb.Helper()
-
-	return AddQuery(tb, r, svcID, catalog.Message{
+	msg := catalog.Message{
 		Kind:    catalog.QueryMessage,
 		ID:      id,
 		Name:    name,
 		Version: version,
 		Summary: summary,
-	})
+	}
+
+	return AddQuery(tb, r, svcID, msg)
 }
 
 // Build builds the catalog from the registry.

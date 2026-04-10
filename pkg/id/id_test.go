@@ -69,14 +69,23 @@ func TestParse(t *testing.T) {
 func TestMustParse(t *testing.T) {
 	t.Parallel()
 
-	t.Run("valid string", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"test-id", "test-id"},
+		{"my-id", "my-id"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
 
-		id := MustParse[AggregateID]("test-id")
-		if id.String() != "test-id" {
-			t.Errorf("MustParse() = %q, want %q", id.String(), "test-id")
-		}
-	})
+			id := MustParse[AggregateID](tc.input)
+			if id.String() != tc.expected {
+				t.Errorf("MustParse() = %q, want %q", id.String(), tc.expected)
+			}
+		})
+	}
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
@@ -89,15 +98,6 @@ func TestMustParse(t *testing.T) {
 
 		_ = MustParse[AggregateID]("")
 	})
-}
-
-func TestString(t *testing.T) {
-	t.Parallel()
-
-	id := MustParse[AggregateID]("my-id")
-	if id.String() != "my-id" {
-		t.Errorf("String() = %q, want %q", id.String(), "my-id")
-	}
 }
 
 func TestIsEmpty(t *testing.T) {
@@ -182,38 +182,28 @@ func TestEqual(t *testing.T) {
 func TestCompare(t *testing.T) {
 	t.Parallel()
 
-	t.Run("less than", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		name  string
+		aStr  string
+		bStr  string
+		want  int
+		desc  string
+	}{
+		{"less than", "a", "b", -1, "a should be less than b"},
+		{"equal", "same", "same", 0, "same IDs should compare equal"},
+		{"greater than", "b", "a", 1, "b should be greater than a"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		a := MustParse[AggregateID]("a")
-
-		b := MustParse[AggregateID]("b")
-		if a.Compare(b) != -1 {
-			t.Error("a should be less than b")
-		}
-	})
-
-	t.Run("equal", func(t *testing.T) {
-		t.Parallel()
-
-		a := MustParse[AggregateID]("same")
-
-		b := MustParse[AggregateID]("same")
-		if a.Compare(b) != 0 {
-			t.Error("same IDs should compare equal")
-		}
-	})
-
-	t.Run("greater than", func(t *testing.T) {
-		t.Parallel()
-
-		a := MustParse[AggregateID]("b")
-
-		b := MustParse[AggregateID]("a")
-		if a.Compare(b) != 1 {
-			t.Error("b should be greater than a")
-		}
-	})
+			a := MustParse[AggregateID](tc.aStr)
+			b := MustParse[AggregateID](tc.bStr)
+			if got := a.Compare(b); got != tc.want {
+				t.Error(tc.desc)
+			}
+		})
+	}
 }
 
 func TestOr(t *testing.T) {
@@ -563,36 +553,28 @@ func TestSQLScan(t *testing.T) {
 		}
 	})
 
-	t.Run("scan empty string errors", func(t *testing.T) {
+	t.Run("scan error cases", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
-
-		err := id.Scan("")
-		if err == nil {
-			t.Error("Scan() should error on empty string")
+		tests := []struct {
+			name  string
+			value any
+			desc  string
+		}{
+			{"empty string", "", "empty string"},
+			{"empty bytes", []byte(""), "empty bytes"},
+			{"unsupported type", 123, "unsupported type"},
 		}
-	})
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
 
-	t.Run("scan empty bytes errors", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-
-		err := id.Scan([]byte(""))
-		if err == nil {
-			t.Error("Scan() should error on empty bytes")
-		}
-	})
-
-	t.Run("scan unsupported type errors", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-
-		err := id.Scan(123)
-		if err == nil {
-			t.Error("Scan() should error on unsupported type")
+				var id AggregateID
+				err := id.Scan(tc.value)
+				if err == nil {
+					t.Errorf("Scan() should error on %s", tc.desc)
+				}
+			})
 		}
 	})
 }

@@ -32,14 +32,14 @@ func (u *User) Apply(evt event.Event) error {
 	case EventUserCreated:
 		var p UserCreatedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserCreated: %w", err)
+			return fmt.Errorf("unmarshal %s: %w", EventUserCreated, err)
 		}
 		u.name = p.Name
 		u.email = p.Email
 	case EventUserEmailChanged:
 		var p UserEmailChangedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserEmailChanged: %w", err)
+			return fmt.Errorf("unmarshal %s: %w", EventUserEmailChanged, err)
 		}
 		u.email = p.NewEmail
 	}

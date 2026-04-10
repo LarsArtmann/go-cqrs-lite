@@ -245,12 +245,16 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithFormat]()
-	if schema.Properties["email"].Format != "email" {
-		t.Errorf("expected format email, got %q", schema.Properties["email"].Format)
-	}
-
-	if schema.Properties["createdAt"].Format != "date-time" {
-		t.Errorf("expected format date-time, got %q", schema.Properties["createdAt"].Format)
+	for _, tc := range []struct {
+		prop  string
+		format string
+	}{
+		{"email", "email"},
+		{"createdAt", "date-time"},
+	} {
+		if schema.Properties[tc.prop].Format != tc.format {
+			t.Errorf("expected format %q, got %q", tc.format, schema.Properties[tc.prop].Format)
+		}
 	}
 }
 
