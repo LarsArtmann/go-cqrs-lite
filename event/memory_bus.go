@@ -67,7 +67,7 @@ func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 			return err
 		}
 
-		err := b.notifyHandlers(ctx, evt, b.handlers[evt.Type()], "handler")
+		err = b.notifyHandlers(ctx, evt, b.handlers[evt.Type()], "handler")
 		if err != nil {
 			return err
 		}
