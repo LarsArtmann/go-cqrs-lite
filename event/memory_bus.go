@@ -62,12 +62,16 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...Event) error {
 
 func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 	handler := func(ctx context.Context, evt Event) error {
-		if err := b.notifyHandlers(ctx, evt, b.allHandlers, "all-handler"); err != nil {
+		err := b.notifyHandlers(ctx, evt, b.allHandlers, "all-handler")
+		if err != nil {
 			return err
 		}
-		if err := b.notifyHandlers(ctx, evt, b.handlers[evt.Type()], "handler"); err != nil {
+
+		err := b.notifyHandlers(ctx, evt, b.handlers[evt.Type()], "handler")
+		if err != nil {
 			return err
 		}
+
 		return nil
 	}
 
@@ -85,10 +89,12 @@ func (b *MemoryBus) notifyHandlers(
 	prefix string,
 ) error {
 	for idx, h := range handlers {
-		if err := h(ctx, evt); err != nil {
+		err := h(ctx, evt)
+		if err != nil {
 			return errors.Wrapf(err, "%s %d failed for event %s", prefix, idx, evt.Type())
 		}
 	}
+
 	return nil
 }
 

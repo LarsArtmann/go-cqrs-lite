@@ -23,6 +23,7 @@ func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 		return func(ctx context.Context, cmd command.Command) error {
 			err := next(ctx, cmd)
 			recordMetrics(recorder, "command", err, string(cmd.Type()))
+
 			return err
 		}
 	}
@@ -34,6 +35,7 @@ func EventMetrics(recorder MetricsRecorder) event.Middleware {
 		return func(ctx context.Context, evt event.Event) error {
 			err := next(ctx, evt)
 			recordMetrics(recorder, "event", err, string(evt.Type()))
+
 			return err
 		}
 	}

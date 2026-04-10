@@ -18,6 +18,7 @@ func newCommand(id string) catalog.Message {
 		Name:    id,
 		Version: "1.0.0",
 	}
+
 	return msg
 }
 

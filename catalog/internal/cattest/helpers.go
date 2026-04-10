@@ -80,6 +80,7 @@ func AddMessage(
 		return addMessage(tb, r, svcID, msg, r.AddQuery)
 	default:
 		tb.Fatalf("unknown message kind: %v", msg.Kind)
+
 		return nil
 	}
 }

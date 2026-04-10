@@ -198,6 +198,7 @@ func TestCompare(t *testing.T) {
 			t.Parallel()
 
 			a := MustParse[AggregateID](tc.aStr)
+
 			b := MustParse[AggregateID](tc.bStr)
 			if got := a.Compare(b); got != tc.want {
 				t.Error(tc.desc)
@@ -570,6 +571,7 @@ func TestSQLScan(t *testing.T) {
 				t.Parallel()
 
 				var id AggregateID
+
 				err := id.Scan(tc.value)
 				if err == nil {
 					t.Errorf("Scan() should error on %s", tc.desc)
