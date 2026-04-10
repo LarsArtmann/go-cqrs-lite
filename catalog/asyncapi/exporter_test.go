@@ -9,6 +9,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
+func basicCommand(serviceID, id string) catalog.Message {
+	return catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      id,
+		Name:    id,
+		Version: "1.0.0",
+	}
+}
+
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
 
@@ -314,9 +323,7 @@ func TestDocument_MarshalYAML(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "DoStuff", Name: "DoStuff", Version: "1.0.0",
-	})
+	reg.AddCommand("svc", basicCommand("svc", "DoStuff"))
 
 	cat := reg.Build()
 	doc := NewExporter("Test", "1.0.0").Export(cat)
@@ -363,9 +370,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "NoSchema", Name: "NoSchema", Version: "1.0.0",
-	})
+	reg.AddCommand("svc", basicCommand("svc", "NoSchema"))
 
 	cat := reg.Build()
 	doc := NewExporter("Test", "1.0.0").Export(cat)

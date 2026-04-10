@@ -11,6 +11,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
+func basicCommand(serviceID, id string) catalog.Message {
+	return catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      id,
+		Name:    id,
+		Version: "1.0.0",
+	}
+}
+
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
@@ -256,9 +265,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
-	reg.AddCommand("svc-a", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CmdA", Name: "CmdA", Version: "1.0.0",
-	})
+	reg.AddCommand("svc-a", basicCommand("svc-a", "CmdA"))
 	reg.AddEvent("svc-b", catalog.Message{
 		Kind: catalog.EventMessage, ID: "EvtB", Name: "EvtB", Version: "1.0.0",
 	})
@@ -299,9 +306,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "NoSchema", Name: "NoSchema", Version: "1.0.0",
-	})
+	reg.AddCommand("svc", basicCommand("svc", "NoSchema"))
 
 	cat := reg.Build()
 
