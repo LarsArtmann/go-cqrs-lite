@@ -8,21 +8,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
+func recordMetrics(rec MetricsRecorder, operation string, err error, label string) {
+	start := time.Now()
+	if err != nil {
+		rec.Observe(operation+"_error", time.Since(start), "type", label)
+	} else {
+		rec.Observe(operation+"_success", time.Since(start), "type", label)
+	}
+}
+
 // CommandMetrics returns a middleware that records command handler metrics.
 func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			start := time.Now()
 			err := next(ctx, cmd)
-			duration := time.Since(start)
-
-			label := string(cmd.Type())
-			if err != nil {
-				recorder.Observe("command_error", duration, "type", label)
-			} else {
-				recorder.Observe("command_success", duration, "type", label)
-			}
-
+			recordMetrics(recorder, "command", err, string(cmd.Type()))
 			return err
 		}
 	}
@@ -32,17 +32,8 @@ func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 func EventMetrics(recorder MetricsRecorder) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			start := time.Now()
 			err := next(ctx, evt)
-			duration := time.Since(start)
-
-			label := string(evt.Type())
-			if err != nil {
-				recorder.Observe("event_error", duration, "type", label)
-			} else {
-				recorder.Observe("event_success", duration, "type", label)
-			}
-
+			recordMetrics(recorder, "event", err, string(evt.Type()))
 			return err
 		}
 	}

@@ -20,6 +20,10 @@ func testMW(order *[]string, name string) testMiddleware {
 	}
 }
 
+var wrapWithMiddleware = func(m testMiddleware, h testHandler) testHandler {
+	return m(h)
+}
+
 func assertCallOrder(t *testing.T, order, expected []string) {
 	t.Helper()
 
@@ -147,9 +151,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 		return s
 	}
 
-	wrapped := c.Apply(handler, func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	})
+	wrapped := c.Apply(handler, wrapWithMiddleware)
 
 	result := wrapped("test")
 	if result != "test" {
@@ -165,9 +167,7 @@ func TestMiddlewareChain_Apply_NoMiddleware(t *testing.T) {
 	c := &MiddlewareChain[testHandler, testMiddleware]{}
 
 	handler := func(s string) string { return "result:" + s }
-	wrapped := c.Apply(handler, func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	})
+	wrapped := c.Apply(handler, wrapWithMiddleware)
 
 	if wrapped("x") != "result:x" {
 		t.Error("handler should pass through without middleware")

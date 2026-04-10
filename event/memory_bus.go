@@ -61,22 +61,13 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...Event) error {
 }
 
 func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
-	handler := func(ctx context.Context, e Event) error {
-		for i, h := range b.allHandlers {
-			err := h(ctx, e)
-			if err != nil {
-				return errors.Wrapf(err, "all-handler %d failed for event %s", i, e.Type())
-			}
+	handler := func(ctx context.Context, evt Event) error {
+		if err := b.notifyHandlers(ctx, evt, b.allHandlers, "all-handler"); err != nil {
+			return err
 		}
-
-		handlers := b.handlers[e.Type()]
-		for i, h := range handlers {
-			err := h(ctx, e)
-			if err != nil {
-				return errors.Wrapf(err, "handler %d failed for event %s", i, e.Type())
-			}
+		if err := b.notifyHandlers(ctx, evt, b.handlers[evt.Type()], "handler"); err != nil {
+			return err
 		}
-
 		return nil
 	}
 
@@ -85,6 +76,15 @@ func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 	}
 
 	return handler(ctx, event)
+}
+
+func (b *MemoryBus) notifyHandlers(ctx context.Context, evt Event, handlers []Handler, prefix string) error {
+	for idx, h := range handlers {
+		if err := h(ctx, evt); err != nil {
+			return errors.Wrapf(err, "%s %d failed for event %s", prefix, idx, evt.Type())
+		}
+	}
+	return nil
 }
 
 // Subscribe registers a handler for specific event types.

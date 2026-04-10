@@ -47,34 +47,37 @@ func AddDomain(
 	})
 }
 
-// Add adds a command, event, or query message to a service using the provided add function.
-func Add(
+// addFunc is a function that adds a message to a service.
+type addFunc func(string, catalog.Message)
+
+// addMessage is a generic helper that adds a message to a service.
+func addMessage(
 	tb testing.TB,
 	r *catalog.Registry,
 	svcID string,
 	msg catalog.Message,
-	add func(string, catalog.Message),
+	fn addFunc,
 ) *catalog.Registry {
 	tb.Helper()
 
-	add(svcID, msg)
+	fn(svcID, msg)
 
 	return r
 }
 
 // AddCommand adds a command message to a service.
 func AddCommand(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return Add(tb, r, svcID, msg, r.AddCommand)
+	return addMessage(tb, r, svcID, msg, r.AddCommand)
 }
 
 // AddEvent adds an event message to a service.
 func AddEvent(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return Add(tb, r, svcID, msg, r.AddEvent)
+	return addMessage(tb, r, svcID, msg, r.AddEvent)
 }
 
 // AddQuery adds a query message to a service.
 func AddQuery(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return Add(tb, r, svcID, msg, r.AddQuery)
+	return addMessage(tb, r, svcID, msg, r.AddQuery)
 }
 
 // AddCommandSimple creates and adds a command message with minimal parameters.

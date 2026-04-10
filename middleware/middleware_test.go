@@ -53,15 +53,23 @@ func (m *testMetrics) Observe(name string, duration time.Duration, labels ...str
 	m.durations = append(m.durations, duration)
 }
 
+func withCommandMiddleware(mw command.Middleware, handler command.Handler) command.Handler {
+	return mw(handler)
+}
+
+func noopCommandHandler() command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		return nil
+	}
+}
+
 func TestCommandLogging_Success(t *testing.T) {
 	t.Parallel()
 
 	logger := &testLogger{}
 	mw := CommandLogging(logger)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := withCommandMiddleware(mw, noopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -130,9 +138,7 @@ func TestCommandRecovery_NoPanic(t *testing.T) {
 	t.Parallel()
 
 	mw := CommandRecovery()
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := withCommandMiddleware(mw, noopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -311,9 +317,7 @@ func TestCommandMetrics(t *testing.T) {
 	metrics := &testMetrics{}
 	mw := CommandMetrics(metrics)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := withCommandMiddleware(mw, noopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 

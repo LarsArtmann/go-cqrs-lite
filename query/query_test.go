@@ -8,6 +8,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
+func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
+	d.Register(query.Type(queryType), func(_ query.Query) (any, error) {
+		return result, nil
+	})
+}
+
 func TestNewQuery(t *testing.T) {
 	t.Parallel()
 
@@ -44,9 +50,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetUser", func(_ query.Query) (any, error) {
-		return "user-123", nil
-	})
+	registerHandler(dispatcher, "GetUser", "user-123")
 
 	q := query.New("GetUser")
 
@@ -78,9 +82,7 @@ func TestDispatchTyped(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetUserName", func(_ query.Query) (any, error) {
-		return "John Doe", nil
-	})
+	registerHandler(dispatcher, "GetUserName", "John Doe")
 
 	q := query.New("GetUserName")
 
@@ -99,9 +101,7 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	_ = dispatcher.Register("GetCount", func(_ query.Query) (any, error) {
-		return 42, nil
-	})
+	registerHandler(dispatcher, "GetCount", 42)
 
 	q := query.New("GetCount")
 
