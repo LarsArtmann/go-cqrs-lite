@@ -13,6 +13,12 @@ func SchemaFromType[T any]() *Schema {
 	return schemaFromReflect(reflect.TypeOf(zero))
 }
 
+// SchemaFromReflect creates a schema from a reflect.Type at runtime.
+// Useful for adapters that extract schemas from interface-typed values.
+func SchemaFromReflect(t reflect.Type) *Schema {
+	return schemaFromReflect(t)
+}
+
 func schemaFromReflect(t reflect.Type) *Schema {
 	if t == nil {
 		return &Schema{Type: "null"}

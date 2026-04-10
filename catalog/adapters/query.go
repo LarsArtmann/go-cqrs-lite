@@ -12,7 +12,7 @@ import (
 // The schema is auto-extracted from the query's request fields via reflection.
 func (b *CatalogBuilder) AddQuery(serviceID string, qry query.Catalogable) {
 	meta := qry.CatalogInfo()
-	schema := extractQuerySchema(qry)
+	schema := catalog.SchemaFromReflect(reflect.TypeOf(qry).Elem())
 
 	msg := catalog.Message{
 		Kind:    catalog.QueryMessage,
@@ -24,10 +24,4 @@ func (b *CatalogBuilder) AddQuery(serviceID string, qry query.Catalogable) {
 	}
 
 	b.addMessageToService(serviceID, catalog.QueryMessage, msg)
-}
-
-func extractQuerySchema(qry query.Catalogable) *catalog.Schema {
-	t := reflect.TypeOf(qry).Elem()
-
-	return schemaFromReflect(t)
 }

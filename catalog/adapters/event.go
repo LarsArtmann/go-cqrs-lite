@@ -12,7 +12,7 @@ import (
 // The schema is auto-extracted from the event's payload fields via reflection.
 func (b *CatalogBuilder) AddEvent(serviceID string, evt event.EventCatalogable) {
 	meta := evt.EventCatalogInfo()
-	schema := extractEventSchema(evt)
+	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
 
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
@@ -34,7 +34,7 @@ func (b *CatalogBuilder) AddEventWithDirection(
 	direction catalog.Direction,
 ) {
 	meta := evt.EventCatalogInfo()
-	schema := extractEventSchema(evt)
+	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
 
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
@@ -47,10 +47,4 @@ func (b *CatalogBuilder) AddEventWithDirection(
 	}
 
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
-}
-
-func extractEventSchema(evt event.EventCatalogable) *catalog.Schema {
-	t := reflect.TypeOf(evt).Elem()
-
-	return schemaFromReflect(t)
 }
