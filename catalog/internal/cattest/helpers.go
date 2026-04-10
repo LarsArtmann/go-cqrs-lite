@@ -47,16 +47,13 @@ func AddDomain(
 	})
 }
 
-// addFunc is a function that adds a message to a service.
-type addFunc func(string, catalog.Message)
-
 // addMessage is a generic helper that adds a message to a service.
 func addMessage(
 	tb testing.TB,
 	r *catalog.Registry,
 	svcID string,
 	msg catalog.Message,
-	fn addFunc,
+	fn func(string, catalog.Message),
 ) *catalog.Registry {
 	tb.Helper()
 
@@ -65,19 +62,21 @@ func addMessage(
 	return r
 }
 
-// AddCommand adds a command message to a service.
-func AddCommand(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return addMessage(tb, r, svcID, msg, r.AddCommand)
-}
+// AddMessage adds a message to a service by kind.
+func AddMessage(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
+	tb.Helper()
 
-// AddEvent adds an event message to a service.
-func AddEvent(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return addMessage(tb, r, svcID, msg, r.AddEvent)
-}
-
-// AddQuery adds a query message to a service.
-func AddQuery(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
-	return addMessage(tb, r, svcID, msg, r.AddQuery)
+	switch msg.Kind {
+	case catalog.CommandMessage:
+		return addMessage(tb, r, svcID, msg, r.AddCommand)
+	case catalog.EventMessage:
+		return addMessage(tb, r, svcID, msg, r.AddEvent)
+	case catalog.QueryMessage:
+		return addMessage(tb, r, svcID, msg, r.AddQuery)
+	default:
+		tb.Fatalf("unknown message kind: %v", msg.Kind)
+		return nil
+	}
 }
 
 
