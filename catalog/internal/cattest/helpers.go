@@ -88,7 +88,7 @@ func addMessageSimple(
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
 	kind catalog.MessageKind,
-	addFn func(string, catalog.Message) *catalog.Registry,
+	addFn func(string, catalog.Message),
 ) *catalog.Registry {
 	tb.Helper()
 
@@ -100,7 +100,9 @@ func addMessageSimple(
 		Summary: summary,
 	}
 
-	return addFn(svcID, msg)
+	addFn(svcID, msg)
+
+	return r
 }
 
 // AddCommandSimple creates and adds a command message with minimal parameters.
@@ -129,7 +131,9 @@ func AddEventSimple(
 		Direction: direction,
 	}
 
-	return r.AddEvent(svcID, msg)
+	r.AddEvent(svcID, msg)
+
+	return r
 }
 
 // AddQuerySimple creates and adds a query message with minimal parameters.
