@@ -341,9 +341,10 @@ func TestEventMetrics(t *testing.T) {
 	metrics := &testMetrics{}
 	mw := EventMetrics(metrics)
 
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		return errors.New("handler failed")
-	})
+	errHandler := func(ctx context.Context, evt event.Event) error {
+		return errors.New("middleware failure")
+	}
+	handler := mw(errHandler)
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {

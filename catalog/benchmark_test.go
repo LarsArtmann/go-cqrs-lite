@@ -66,8 +66,10 @@ func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 		Schema: &catalog.Schema{
-			Type:       "object",
-			Properties: map[string]catalog.Property{"id": {Type: "string"}},
+			Type: "object",
+			Properties: map[string]catalog.Property{
+				"name": {Type: "string"},
+			},
 		},
 	})
 	cat := reg.Build()

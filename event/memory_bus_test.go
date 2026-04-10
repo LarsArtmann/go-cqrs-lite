@@ -172,9 +172,12 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	ctx := context.Background()
 
 	callCount := 0
-	_ = bus.Subscribe("FailEvent", func(_ context.Context, _ event.Event) error {
-		return errors.New("fail")
-	})
+	failingHandler := func(ctx context.Context, evt event.Event) error {
+		_ = ctx
+		_ = evt
+		return errors.New("subscriber failure")
+	}
+	_ = bus.Subscribe("FailEvent", failingHandler)
 
 	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)
 	evt2, _ := event.NewEvent("FailEvent", "test-1", "Test", 1, nil)

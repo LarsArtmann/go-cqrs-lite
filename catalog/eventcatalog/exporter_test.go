@@ -11,13 +11,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
-func basicCommand(serviceID, id string) catalog.Message {
-	return catalog.Message{
+func newCommand(id string) catalog.Message {
+	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      id,
 		Name:    id,
 		Version: "1.0.0",
 	}
+	return msg
 }
 
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
@@ -37,7 +38,8 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		Schema: &catalog.Schema{
 			Type: "object",
 			Properties: map[string]catalog.Property{
-				"orderId": {Type: "string"},
+				"orderId":   {Type: "string"},
+				"timestamp": {Type: "string"},
 			},
 		},
 	})
@@ -265,7 +267,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
-	reg.AddCommand("svc-a", basicCommand("svc-a", "CmdA"))
+	reg.AddCommand("svc-a", newCommand("CmdA"))
 	reg.AddEvent("svc-b", catalog.Message{
 		Kind: catalog.EventMessage, ID: "EvtB", Name: "EvtB", Version: "1.0.0",
 	})
@@ -306,7 +308,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", basicCommand("svc", "NoSchema"))
+	reg.AddCommand("svc", newCommand("NoSchema"))
 
 	cat := reg.Build()
 
