@@ -22,8 +22,7 @@ func NewDispatcher() *Dispatcher {
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	// Access the Middleware field directly through the inner dispatcher
-	d.inner.Middleware.Add(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a command type.

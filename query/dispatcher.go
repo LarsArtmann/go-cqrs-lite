@@ -25,7 +25,7 @@ func NewDispatcher() *Dispatcher {
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.inner.Middleware.Add(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a query type.

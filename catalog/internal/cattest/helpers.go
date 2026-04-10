@@ -82,21 +82,34 @@ func AddQuery(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Mess
 
 
 
-// AddCommandSimple creates and adds a command message with minimal parameters.
-func AddCommandSimple(
+// addMessageSimple creates a message with common fields and adds it via the provided function.
+func addMessageSimple(
 	tb testing.TB,
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
+	kind catalog.MessageKind,
+	addFn func(string, catalog.Message) *catalog.Registry,
 ) *catalog.Registry {
+	tb.Helper()
+
 	msg := catalog.Message{
-		Kind:    catalog.CommandMessage,
+		Kind:    kind,
 		ID:      id,
 		Name:    name,
 		Version: version,
 		Summary: summary,
 	}
 
-	return AddCommand(tb, r, svcID, msg)
+	return addFn(svcID, msg)
+}
+
+// AddCommandSimple creates and adds a command message with minimal parameters.
+func AddCommandSimple(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID, id, name, version, summary string,
+) *catalog.Registry {
+	return addMessageSimple(tb, r, svcID, id, name, version, summary, catalog.CommandMessage, r.AddCommand)
 }
 
 // AddEventSimple creates and adds an event message with minimal parameters.
@@ -106,6 +119,8 @@ func AddEventSimple(
 	svcID, id, name, version string,
 	direction catalog.Direction,
 ) *catalog.Registry {
+	tb.Helper()
+
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        id,
@@ -114,7 +129,7 @@ func AddEventSimple(
 		Direction: direction,
 	}
 
-	return AddEvent(tb, r, svcID, msg)
+	return r.AddEvent(svcID, msg)
 }
 
 // AddQuerySimple creates and adds a query message with minimal parameters.
@@ -123,15 +138,7 @@ func AddQuerySimple(
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
 ) *catalog.Registry {
-	msg := catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      id,
-		Name:    name,
-		Version: version,
-		Summary: summary,
-	}
-
-	return AddQuery(tb, r, svcID, msg)
+	return addMessageSimple(tb, r, svcID, id, name, version, summary, catalog.QueryMessage, r.AddQuery)
 }
 
 // Build builds the catalog from the registry.
