@@ -183,11 +183,11 @@ func TestCompare(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name  string
-		aStr  string
-		bStr  string
-		want  int
-		desc  string
+		name string
+		aStr string
+		bStr string
+		want int
+		desc string
 	}{
 		{"less than", "a", "b", -1, "a should be less than b"},
 		{"equal", "same", "same", 0, "same IDs should compare equal"},

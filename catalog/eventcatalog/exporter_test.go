@@ -205,7 +205,15 @@ func TestExporter_Export_Domain(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddDomain(t, reg, "ordering", "Ordering", "1.0.0", "Order management domain", []string{"order-svc"})
+	cattest.AddDomain(
+		t,
+		reg,
+		"ordering",
+		"Ordering",
+		"1.0.0",
+		"Order management domain",
+		[]string{"order-svc"},
+	)
 
 	cat := cattest.Build(t, reg)
 

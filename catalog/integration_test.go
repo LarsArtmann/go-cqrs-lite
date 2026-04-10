@@ -56,7 +56,15 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		Summary: "Get order by ID",
 	})
 
-	cattest.AddDomain(t, reg, "ordering", "Ordering", "1.0.0", "Order management domain", []string{"order-service"})
+	cattest.AddDomain(
+		t,
+		reg,
+		"ordering",
+		"Ordering",
+		"1.0.0",
+		"Order management domain",
+		[]string{"order-service"},
+	)
 
 	cat := reg.Build()
 

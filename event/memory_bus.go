@@ -78,7 +78,12 @@ func (b *MemoryBus) publishEvent(ctx context.Context, event Event) error {
 	return handler(ctx, event)
 }
 
-func (b *MemoryBus) notifyHandlers(ctx context.Context, evt Event, handlers []Handler, prefix string) error {
+func (b *MemoryBus) notifyHandlers(
+	ctx context.Context,
+	evt Event,
+	handlers []Handler,
+	prefix string,
+) error {
 	for idx, h := range handlers {
 		if err := h(ctx, evt); err != nil {
 			return errors.Wrapf(err, "%s %d failed for event %s", prefix, idx, evt.Type())

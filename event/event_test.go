@@ -53,16 +53,40 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		aggregateType event.AggregateType
 		version       int
 	}{
-		{name: "missing aggregate ID", eventType: "UserCreated", aggregateID: "", aggregateType: "User", version: 1},
-		{name: "missing aggregate type", eventType: "UserCreated", aggregateID: "user-123", aggregateType: "", version: 1},
-		{name: "negative version", eventType: "UserCreated", aggregateID: "user-123", aggregateType: "User", version: -1},
+		{
+			name:          "missing aggregate ID",
+			eventType:     "UserCreated",
+			aggregateID:   "",
+			aggregateType: "User",
+			version:       1,
+		},
+		{
+			name:          "missing aggregate type",
+			eventType:     "UserCreated",
+			aggregateID:   "user-123",
+			aggregateType: "",
+			version:       1,
+		},
+		{
+			name:          "negative version",
+			eventType:     "UserCreated",
+			aggregateID:   "user-123",
+			aggregateType: "User",
+			version:       -1,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := event.NewEvent(tt.eventType, tt.aggregateID, tt.aggregateType, tt.version, nil)
+			_, err := event.NewEvent(
+				tt.eventType,
+				tt.aggregateID,
+				tt.aggregateType,
+				tt.version,
+				nil,
+			)
 			if err == nil {
 				t.Errorf("expected error for %s", tt.name)
 			}

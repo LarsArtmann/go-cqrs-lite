@@ -141,12 +141,16 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 		t.Parallel()
 
 		tests := []struct {
-			name         string
-			loadVersion  event.Version
+			name        string
+			loadVersion event.Version
 			expectVers  event.Version
 		}{
 			{name: "at exact version", loadVersion: event.Version(5), expectVers: event.Version(5)},
-			{name: "after snapshot version", loadVersion: event.Version(10), expectVers: event.Version(5)},
+			{
+				name:        "after snapshot version",
+				loadVersion: event.Version(10),
+				expectVers:  event.Version(5),
+			},
 		}
 
 		orderID := id.MustParseAggregateID("order-4")

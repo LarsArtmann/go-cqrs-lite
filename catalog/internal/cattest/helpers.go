@@ -63,7 +63,12 @@ func addMessage(
 }
 
 // AddMessage adds a message to a service by kind.
-func AddMessage(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Message) *catalog.Registry {
+func AddMessage(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID string,
+	msg catalog.Message,
+) *catalog.Registry {
 	tb.Helper()
 
 	switch msg.Kind {
@@ -78,8 +83,6 @@ func AddMessage(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Me
 		return nil
 	}
 }
-
-
 
 // AddMessageSimple creates a message with common fields and adds it via the provided function.
 func AddMessageSimple(

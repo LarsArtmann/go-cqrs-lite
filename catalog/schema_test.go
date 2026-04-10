@@ -246,7 +246,7 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 
 	schema := catalog.SchemaFromType[WithFormat]()
 	for _, tc := range []struct {
-		prop  string
+		prop   string
 		format string
 	}{
 		{"email", "email"},

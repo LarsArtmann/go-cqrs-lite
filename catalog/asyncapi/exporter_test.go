@@ -166,7 +166,17 @@ func TestExporter_Export_Query(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
-	cattest.AddMessageSimple(t, reg, "catalog-svc", "GetProduct", "GetProduct", "1.0.0", "Get product details", catalog.QueryMessage, reg.AddQuery)
+	cattest.AddMessageSimple(
+		t,
+		reg,
+		"catalog-svc",
+		"GetProduct",
+		"GetProduct",
+		"1.0.0",
+		"Get product details",
+		catalog.QueryMessage,
+		reg.AddQuery,
+	)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Catalog Service", "1.0.0")
@@ -256,7 +266,17 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "svc-a", "Service A", "1.0.0")
 	cattest.AddService(t, reg, "svc-b", "Service B", "1.0.0")
-	cattest.AddMessageSimple(t, reg, "svc-a", "DoA", "DoA", "1.0.0", "", catalog.CommandMessage, reg.AddCommand)
+	cattest.AddMessageSimple(
+		t,
+		reg,
+		"svc-a",
+		"DoA",
+		"DoA",
+		"1.0.0",
+		"",
+		catalog.CommandMessage,
+		reg.AddCommand,
+	)
 	cattest.AddEventSimple(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)
