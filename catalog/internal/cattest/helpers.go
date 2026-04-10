@@ -81,8 +81,8 @@ func AddMessage(tb testing.TB, r *catalog.Registry, svcID string, msg catalog.Me
 
 
 
-// addMessageSimple creates a message with common fields and adds it via the provided function.
-func addMessageSimple(
+// AddMessageSimple creates a message with common fields and adds it via the provided function.
+func AddMessageSimple(
 	tb testing.TB,
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
@@ -102,15 +102,6 @@ func addMessageSimple(
 	addFn(svcID, msg)
 
 	return r
-}
-
-// AddCommandSimple creates and adds a command message with minimal parameters.
-func AddCommandSimple(
-	tb testing.TB,
-	r *catalog.Registry,
-	svcID, id, name, version, summary string,
-) *catalog.Registry {
-	return addMessageSimple(tb, r, svcID, id, name, version, summary, catalog.CommandMessage, r.AddCommand)
 }
 
 // AddEventSimple creates and adds an event message with minimal parameters.
@@ -133,15 +124,6 @@ func AddEventSimple(
 	r.AddEvent(svcID, msg)
 
 	return r
-}
-
-// AddQuerySimple creates and adds a query message with minimal parameters.
-func AddQuerySimple(
-	tb testing.TB,
-	r *catalog.Registry,
-	svcID, id, name, version, summary string,
-) *catalog.Registry {
-	return addMessageSimple(tb, r, svcID, id, name, version, summary, catalog.QueryMessage, r.AddQuery)
 }
 
 // Build builds the catalog from the registry.
