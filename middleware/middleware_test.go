@@ -63,6 +63,31 @@ func noopCommandHandler() command.Handler {
 	}
 }
 
+func noopEventHandler() event.Handler {
+	return func(_ context.Context, _ event.Event) error {
+		return nil
+	}
+}
+
+func panicCommandHandler(msg string) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		panic(msg)
+	}
+}
+
+func panicEventHandler(msg string) event.Handler {
+	return func(_ context.Context, _ event.Event) error {
+		panic(msg)
+	}
+}
+
+func callbackCommandHandler(called *bool) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		*called = true
+		return nil
+	}
+}
+
 func TestCommandLogging_Success(t *testing.T) {
 	t.Parallel()
 
@@ -115,9 +140,7 @@ func TestEventLogging_Success(t *testing.T) {
 	logger := &testLogger{}
 	mw := EventLogging(logger)
 
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		return nil
-	})
+	handler := mw(noopEventHandler())
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -152,9 +175,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 	t.Parallel()
 
 	mw := CommandRecovery()
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		panic("boom")
-	})
+	handler := mw(panicCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -172,9 +193,7 @@ func TestEventRecovery_Panic(t *testing.T) {
 	t.Parallel()
 
 	mw := EventRecovery()
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		panic("event boom")
-	})
+	handler := mw(panicEventHandler("event boom"))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -273,11 +292,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 	mw := CommandValidation(validate)
 
 	called := false
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		called = true
-
-		return nil
-	})
+	handler := mw(callbackCommandHandler(&called))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -297,11 +312,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 	validate := func(_ any) error { return errors.New("invalid") }
 	mw := CommandValidation(validate)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		t.Fatal("handler should not be called")
-
-		return nil
-	})
+	handler := mw(failingCommandHandler("should not be called"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 

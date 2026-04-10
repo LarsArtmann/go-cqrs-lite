@@ -75,21 +75,18 @@ func ErrorHandler(t testing.TB, err error) event.Handler {
 	}
 }
 
-// MustBeNil fails if err is not nil.
-func MustBeNil(t testing.TB, err error) {
-	t.Helper()
-
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+// NoopHandler returns a handler that does nothing.
+func NoopHandler() event.Handler {
+	return func(_ context.Context, _ event.Event) error {
+		return nil
 	}
 }
 
-// MustBeError fails if err is nil.
-func MustBeError(t testing.TB, err error) {
-	t.Helper()
-
-	if err == nil {
-		t.Fatal("expected error, got nil")
+// CallbackHandler returns a handler that calls the provided function.
+func CallbackHandler(fn func()) event.Handler {
+	return func(_ context.Context, _ event.Event) error {
+		fn()
+		return nil
 	}
 }
 

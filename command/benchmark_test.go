@@ -20,6 +20,14 @@ func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
 	}
 }
 
+func passThroughMiddleware() command.Middleware {
+	return func(next command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			return next(ctx, cmd)
+		}
+	}
+}
+
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	dispatcher := command.NewDispatcher()
 
@@ -31,14 +39,8 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 	dispatcher := command.NewDispatcher()
 
-	passThroughMiddleware := func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			return next(ctx, cmd)
-		}
-	}
-
-	dispatcher.Use(passThroughMiddleware)
-	dispatcher.Use(passThroughMiddleware)
+	dispatcher.Use(passThroughMiddleware())
+	dispatcher.Use(passThroughMiddleware())
 
 	registerBenchCmd(b, dispatcher)
 

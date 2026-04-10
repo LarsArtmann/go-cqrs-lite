@@ -89,11 +89,9 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		testMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
+	_ = bus.Subscribe("TestEvent", evtest.CallbackHandler(func() {
 		callOrder = append(callOrder, "handler")
-
-		return nil
-	})
+	}))
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 	_ = bus.Publish(ctx, evt)
@@ -107,7 +105,7 @@ func TestMemoryBus_Closed(t *testing.T) {
 	bus := event.NewMemoryBus()
 	_ = bus.Close()
 
-	handler := func(_ context.Context, _ event.Event) error { return nil }
+	handler := evtest.NoopHandler()
 
 	err := bus.Subscribe("TestEvent", handler)
 	if err == nil {
