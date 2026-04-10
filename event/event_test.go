@@ -43,30 +43,30 @@ func TestNewEvent_Valid(t *testing.T) {
 	}
 }
 
-func TestNewEvent_MissingAggregateID(t *testing.T) {
+func TestNewEvent_InvalidInputErrors(t *testing.T) {
 	t.Parallel()
 
-	_, err := event.NewEvent("UserCreated", "", "User", 1, nil)
-	if err == nil {
-		t.Error("expected error for missing aggregate ID")
+	tests := []struct {
+		name          string
+		eventType     event.Type
+		aggregateID   id.AggregateID
+		aggregateType event.AggregateType
+		version       int
+	}{
+		{name: "missing aggregate ID", eventType: "UserCreated", aggregateID: "", aggregateType: "User", version: 1},
+		{name: "missing aggregate type", eventType: "UserCreated", aggregateID: "user-123", aggregateType: "", version: 1},
+		{name: "negative version", eventType: "UserCreated", aggregateID: "user-123", aggregateType: "User", version: -1},
 	}
-}
 
-func TestNewEvent_MissingAggregateType(t *testing.T) {
-	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err := event.NewEvent("UserCreated", "user-123", "", 1, nil)
-	if err == nil {
-		t.Error("expected error for missing aggregate type")
-	}
-}
-
-func TestNewEvent_NegativeVersion(t *testing.T) {
-	t.Parallel()
-
-	_, err := event.NewEvent("UserCreated", "user-123", "User", -1, nil)
-	if err == nil {
-		t.Error("expected error for negative version")
+			_, err := event.NewEvent(tt.eventType, tt.aggregateID, tt.aggregateType, tt.version, nil)
+			if err == nil {
+				t.Errorf("expected error for %s", tt.name)
+			}
+		})
 	}
 }
 

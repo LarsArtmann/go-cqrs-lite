@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestExporter_Export_BasicCommand(t *testing.T) {
@@ -133,17 +134,11 @@ func TestExporter_Export_Event(t *testing.T) {
 func TestExporter_Export_EventReceive(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
-	reg.AddEvent("svc", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "OrderCreated",
-		Name:      "OrderCreated",
-		Version:   "1.0.0",
-		Direction: catalog.Receives,
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
+	cattest.AddEventSimple(t, reg, "svc", "OrderCreated", "OrderCreated", "1.0.0", catalog.Receives)
 
-	cat := reg.Build()
+	cat := cattest.Build(t, reg)
 	exp := NewExporter("Service", "1.0.0")
 	doc := exp.Export(cat)
 
@@ -160,17 +155,11 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "catalog-svc", Name: "Catalog Service", Version: "1.0.0"})
-	reg.AddQuery("catalog-svc", catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      "GetProduct",
-		Name:    "GetProduct",
-		Version: "1.0.0",
-		Summary: "Get product details",
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
+	cattest.AddQuerySimple(t, reg, "catalog-svc", "GetProduct", "GetProduct", "1.0.0", "Get product details")
 
-	cat := reg.Build()
+	cat := cattest.Build(t, reg)
 	exp := NewExporter("Catalog Service", "1.0.0")
 	doc := exp.Export(cat)
 
@@ -255,21 +244,13 @@ func TestExporter_Export_NoHost(t *testing.T) {
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
-	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
-	reg.AddCommand("svc-a", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "DoA", Name: "DoA", Version: "1.0.0",
-	})
-	reg.AddEvent("svc-b", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "DoneB",
-		Name:      "DoneB",
-		Version:   "1.0.0",
-		Direction: catalog.Sends,
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc-a", "Service A", "1.0.0")
+	cattest.AddService(t, reg, "svc-b", "Service B", "1.0.0")
+	cattest.AddCommandSimple(t, reg, "svc-a", "DoA", "DoA", "1.0.0", "")
+	cattest.AddEventSimple(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
 
-	cat := reg.Build()
+	cat := cattest.Build(t, reg)
 	doc := NewExporter("Multi", "1.0.0").Export(cat)
 
 	if len(doc.Channels) != 2 {

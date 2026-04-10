@@ -137,39 +137,32 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	t.Run("at exact version", func(t *testing.T) {
+	t.Run("load at version returns correct version", func(t *testing.T) {
 		t.Parallel()
 
-		loaded, err := store.LoadAtVersion(
-			ctx,
-			"Order",
-			id.MustParseAggregateID("order-4"),
-			event.Version(5),
-		)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
+		tests := []struct {
+			name         string
+			loadVersion  event.Version
+			expectVers  event.Version
+		}{
+			{name: "at exact version", loadVersion: event.Version(5), expectVers: event.Version(5)},
+			{name: "after snapshot version", loadVersion: event.Version(10), expectVers: event.Version(5)},
 		}
 
-		if loaded.Version.Int() != 5 {
-			t.Errorf("expected version 5, got %d", loaded.Version.Int())
-		}
-	})
+		orderID := id.MustParseAggregateID("order-4")
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 
-	t.Run("after snapshot version", func(t *testing.T) {
-		t.Parallel()
+				loaded, err := store.LoadAtVersion(ctx, "Order", orderID, tt.loadVersion)
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
 
-		loaded, err := store.LoadAtVersion(
-			ctx,
-			"Order",
-			id.MustParseAggregateID("order-4"),
-			event.Version(10),
-		)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if loaded.Version.Int() != 5 {
-			t.Errorf("expected version 5, got %d", loaded.Version.Int())
+				if loaded.Version.Int() != int(tt.expectVers) {
+					t.Errorf("expected version %d, got %d", tt.expectVers, loaded.Version.Int())
+				}
+			})
 		}
 	})
 

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 type CreateOrderPayload struct {
@@ -55,10 +56,7 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		Summary: "Get order by ID",
 	})
 
-	reg.AddDomain(catalog.Domain{
-		ID: "ordering", Name: "Ordering", Version: "1.0.0", Summary: "Order management domain",
-		Services: []string{"order-service"},
-	})
+	cattest.AddDomain(t, reg, "ordering", "Ordering", "1.0.0", "Order management domain", []string{"order-service"})
 
 	cat := reg.Build()
 

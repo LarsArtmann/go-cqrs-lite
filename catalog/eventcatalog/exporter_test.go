@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
@@ -192,13 +193,10 @@ func TestExporter_Export_Domain(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddDomain(catalog.Domain{
-		ID: "ordering", Name: "Ordering", Version: "1.0.0", Summary: "Order management domain",
-		Services: []string{"order-svc"},
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddDomain(t, reg, "ordering", "Ordering", "1.0.0", "Order management domain", []string{"order-svc"})
 
-	cat := reg.Build()
+	cat := cattest.Build(t, reg)
 
 	exp := NewExporter(tmpDir)
 	if err := exp.Export(cat); err != nil {

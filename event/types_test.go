@@ -39,21 +39,26 @@ func TestParseSource(t *testing.T) {
 		}
 	})
 
-	t.Run("empty source errors", func(t *testing.T) {
+	t.Run("invalid sources return error", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := event.ParseSource("")
-		if err == nil {
-			t.Error("expected error for empty source")
+		tests := []struct {
+			name   string
+			source string
+		}{
+			{name: "empty", source: ""},
+			{name: "whitespace-only", source: "   "},
 		}
-	})
 
-	t.Run("whitespace-only source errors", func(t *testing.T) {
-		t.Parallel()
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 
-		_, err := event.ParseSource("   ")
-		if err == nil {
-			t.Error("expected error for whitespace-only source")
+				_, err := event.ParseSource(tt.source)
+				if err == nil {
+					t.Errorf("expected error for %s source", tt.name)
+				}
+			})
 		}
 	})
 }
@@ -170,21 +175,26 @@ func TestParseUserAgent(t *testing.T) {
 		}
 	})
 
-	t.Run("empty returns empty", func(t *testing.T) {
+	t.Run("empty and whitespace sources return empty", func(t *testing.T) {
 		t.Parallel()
 
-		ua := event.ParseUserAgent("")
-		if !ua.IsEmpty() {
-			t.Error("empty user agent should be empty")
+		tests := []struct {
+			name     string
+			uaString string
+		}{
+			{name: "empty", uaString: ""},
+			{name: "whitespace-only", uaString: "   "},
 		}
-	})
 
-	t.Run("whitespace-only returns empty", func(t *testing.T) {
-		t.Parallel()
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 
-		ua := event.ParseUserAgent("   ")
-		if !ua.IsEmpty() {
-			t.Error("whitespace-only user agent should be empty")
+				ua := event.ParseUserAgent(tt.uaString)
+				if !ua.IsEmpty() {
+					t.Errorf("%s user agent should be empty", tt.name)
+				}
+			})
 		}
 	})
 }

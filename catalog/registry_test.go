@@ -263,12 +263,13 @@ func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
 	reg.AddService(catalog.Service{
-		ID: "svc", Name: "Service", Version: "1.0.0",
-		Queries: []catalog.Message{{ID: "Q1", Name: "Q1", Version: "1.0.0"}},
-	})
-	reg.AddService(catalog.Service{
-		ID: "svc", Name: "Service", Version: "1.0.0",
-		Queries: []catalog.Message{{ID: "Q2", Name: "Q2", Version: "1.0.0"}},
+		ID:      "svc",
+		Name:    "Service",
+		Version: "1.0.0",
+		Queries: []catalog.Message{
+			{ID: "Q1", Name: "Q1", Version: "1.0.0"},
+			{ID: "Q2", Name: "Q2", Version: "1.0.0"},
+		},
 	})
 
 	cat := reg.Build()

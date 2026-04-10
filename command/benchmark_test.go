@@ -23,12 +23,7 @@ func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	dispatcher := command.NewDispatcher()
 
-	err := dispatcher.Register("bench.cmd", func(_ context.Context, _ command.Command) error {
-		return nil
-	})
-	if err != nil {
-		b.Fatalf("register: %v", err)
-	}
+	registerBenchCmd(b, dispatcher)
 
 	benchmarkDispatch(b, dispatcher)
 }
@@ -45,12 +40,16 @@ func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 	dispatcher.Use(passThroughMiddleware)
 	dispatcher.Use(passThroughMiddleware)
 
+	registerBenchCmd(b, dispatcher)
+
+	benchmarkDispatch(b, dispatcher)
+}
+
+func registerBenchCmd(b *testing.B, dispatcher *command.Dispatcher) {
 	err := dispatcher.Register("bench.cmd", func(_ context.Context, _ command.Command) error {
 		return nil
 	})
 	if err != nil {
 		b.Fatalf("register: %v", err)
 	}
-
-	benchmarkDispatch(b, dispatcher)
 }
