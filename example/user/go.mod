@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/user
 
-go 1.26.0
+go 1.26.2
 
 require github.com/larsartmann/go-cqrs-lite v0.0.0
 
@@ -16,7 +16,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 )
 

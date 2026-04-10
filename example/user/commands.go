@@ -11,27 +11,45 @@ const (
 )
 
 type CreateUser struct {
-	*command.Core
-	Name  string
-	Email string
+	*command.CatalogCore
+
+	Name  string `json:"name" doc:"Full name of the user"`
+	Email string `json:"email" doc:"Email address of the user"`
 }
 
 func NewCreateUser(aggregateID id.AggregateID, name, email string) *CreateUser {
 	return &CreateUser{
-		Core:  command.New(CommandCreateUser, aggregateID),
+		CatalogCore: command.NewCatalogCore(
+			CommandCreateUser,
+			aggregateID,
+			command.CatalogMeta{
+				Name:    "CreateUser",
+				Version: "1.0.0",
+				Summary: "Creates a new user in the system",
+			},
+		),
 		Name:  name,
 		Email: email,
 	}
 }
 
 type ChangeUserEmail struct {
-	*command.Core
-	NewEmail string
+	*command.CatalogCore
+
+	NewEmail string `json:"newEmail" doc:"The new email address"`
 }
 
 func NewChangeUserEmail(aggregateID id.AggregateID, newEmail string) *ChangeUserEmail {
 	return &ChangeUserEmail{
-		Core:     command.New(CommandChangeUserEmail, aggregateID),
+		CatalogCore: command.NewCatalogCore(
+			CommandChangeUserEmail,
+			aggregateID,
+			command.CatalogMeta{
+				Name:    "ChangeUserEmail",
+				Version: "1.0.0",
+				Summary: "Updates a user's email address",
+			},
+		),
 		NewEmail: newEmail,
 	}
 }
