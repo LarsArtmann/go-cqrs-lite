@@ -54,7 +54,63 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 	}
 
-	return e.writeConfig(cat)
+	if err := e.writeConfig(cat); err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
+	return e.writeLLMsTxt(cat)
+}
+
+func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
+	var buf strings.Builder
+
+	fmt.Fprintf(&buf, "# %s\n\n", cat.Title)
+	buf.WriteString("> Auto-generated catalog summary for LLM consumption.\n\n")
+
+	for _, svc := range cat.Services {
+		fmt.Fprintf(&buf, "## %s (%s)\n", svc.Name, svc.ID)
+
+		if svc.Summary != "" {
+			fmt.Fprintf(&buf, "%s\n", svc.Summary)
+		}
+
+		if len(svc.Commands) > 0 {
+			buf.WriteString("\n### Commands\n")
+
+			for _, cmd := range svc.Commands {
+				fmt.Fprintf(&buf, "- %s (v%s): %s\n", cmd.Name, cmd.Version, cmd.Summary)
+			}
+		}
+
+		if len(svc.Events) > 0 {
+			buf.WriteString("\n### Events\n")
+
+			for _, evt := range svc.Events {
+				dir := "receives"
+				if evt.Direction == catalog.Sends {
+					dir = "sends"
+				}
+
+				fmt.Fprintf(&buf, "- %s (v%s) [%s]: %s\n", evt.Name, evt.Version, dir, evt.Summary)
+			}
+		}
+
+		if len(svc.Queries) > 0 {
+			buf.WriteString("\n### Queries\n")
+
+			for _, q := range svc.Queries {
+				fmt.Fprintf(&buf, "- %s (v%s): %s\n", q.Name, q.Version, q.Summary)
+			}
+		}
+
+		buf.WriteString("\n")
+	}
+
+	return os.WriteFile(
+		filepath.Join(e.OutputDir, "llms.txt"),
+		[]byte(buf.String()),
+		0o644,
+	)
 }
 
 type frontmatterWriter struct {

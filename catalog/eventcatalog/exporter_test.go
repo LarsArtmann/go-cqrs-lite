@@ -540,3 +540,80 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		t.Errorf("service frontmatter missing query entry: %s", content)
 	}
 }
+
+func TestExporter_Export_LLMsTxt(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("MyCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
+	})
+	reg.AddCommand("order-svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Summary: "Create a new order",
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        "OrderCreated",
+		Name:      "OrderCreated",
+		Version:   "1.0.0",
+		Summary:   "Order was created",
+		Direction: catalog.Sends,
+	})
+	reg.AddQuery("order-svc", catalog.Message{
+		Kind:    catalog.QueryMessage,
+		ID:      "GetOrder",
+		Name:    "GetOrder",
+		Version: "1.0.0",
+		Summary: "Get order by ID",
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "llms.txt"))
+	if err != nil {
+		t.Fatalf("read llms.txt: %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "# MyCatalog") {
+		t.Errorf("llms.txt missing title: %s", content)
+	}
+
+	if !strings.Contains(content, "## Order Service (order-svc)") {
+		t.Errorf("llms.txt missing service heading: %s", content)
+	}
+
+	if !strings.Contains(content, "### Commands") {
+		t.Errorf("llms.txt missing commands section: %s", content)
+	}
+
+	if !strings.Contains(content, "- CreateOrder (v1.0.0): Create a new order") {
+		t.Errorf("llms.txt missing command entry: %s", content)
+	}
+
+	if !strings.Contains(content, "### Events") {
+		t.Errorf("llms.txt missing events section: %s", content)
+	}
+
+	if !strings.Contains(content, "[sends]") {
+		t.Errorf("llms.txt missing sends direction: %s", content)
+	}
+
+	if !strings.Contains(content, "### Queries") {
+		t.Errorf("llms.txt missing queries section: %s", content)
+	}
+
+	if !strings.Contains(content, "- GetOrder (v1.0.0): Get order by ID") {
+		t.Errorf("llms.txt missing query entry: %s", content)
+	}
+}
