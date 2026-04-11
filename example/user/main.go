@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
@@ -55,4 +56,14 @@ func main() {
 	cmdDispatcher.Close()
 	bus.Close()
 	store.Close()
+
+	fmt.Println("\n=== Generating Catalog ===")
+	builder := adapters.NewBuilder("User Service API", "1.0.0")
+	builder.AddService("user-service", "User Service", "1.0.0", "Manages user accounts")
+
+	builder.AddCommand("user-service", NewCreateUser(userID, "Alice", "alice@example.com"))
+	builder.AddCommand("user-service", NewChangeUserEmail(userID, "alice.new@example.com"))
+
+	cat := builder.Build()
+	fmt.Printf("  Catalog: %d services, %d total commands\n", len(cat.Services), len(cat.Services[0].Commands))
 }
