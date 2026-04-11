@@ -664,3 +664,39 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 		t.Errorf("examples.json missing amount: %s", content)
 	}
 }
+
+func TestExporter_Export_PackageJSON(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("My Catalog", "2.0.0")
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	pkgPath := filepath.Join(tmpDir, "package.json")
+	data, err := os.ReadFile(pkgPath)
+	if err != nil {
+		t.Fatalf("read package.json: %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, `"name": "my-catalog"`) {
+		t.Errorf("package.json missing name: %s", content)
+	}
+
+	if !strings.Contains(content, `"version": "2.0.0"`) {
+		t.Errorf("package.json missing version: %s", content)
+	}
+
+	if !strings.Contains(content, `"private": true`) {
+		t.Errorf("package.json missing private: %s", content)
+	}
+
+	if !strings.Contains(content, "@eventcatalog/core") {
+		t.Errorf("package.json missing eventcatalog dependency: %s", content)
+	}
+}

@@ -305,9 +305,37 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	cfg.WriteString("  landingPage: { content: '' },\n")
 	cfg.WriteString("};\n")
 
-	return os.WriteFile(
+	err := os.WriteFile(
 		filepath.Join(e.OutputDir, "eventcatalog.config.js"),
 		[]byte(cfg.String()),
+		0o644,
+	)
+	if err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
+	return e.writePackageJSON(cat)
+}
+
+func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
+	pkg := map[string]any{
+		"name":         strings.ToLower(strings.ReplaceAll(cat.Title, " ", "-")),
+		"version":      cat.Version,
+		"private":      true,
+		"description":  cat.Title + " event catalog",
+		"dependencies": map[string]string{
+			"@eventcatalog/core": "latest",
+		},
+	}
+
+	data, err := json.MarshalIndent(pkg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal package.json: %w", err)
+	}
+
+	return os.WriteFile(
+		filepath.Join(e.OutputDir, "package.json"),
+		data,
 		0o644,
 	)
 }
