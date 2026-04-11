@@ -489,3 +489,54 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 		t.Error("MDX file should have content after frontmatter with heading")
 	}
 }
+
+func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
+	})
+	reg.AddCommand("order-svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+	})
+	reg.AddQuery("order-svc", catalog.Message{
+		Kind:    catalog.QueryMessage,
+		ID:      "GetOrder",
+		Name:    "GetOrder",
+		Version: "1.0.0",
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "commands:") {
+		t.Errorf("service frontmatter missing commands: %s", content)
+	}
+
+	if !strings.Contains(content, "- CreateOrder/1.0.0") {
+		t.Errorf("service frontmatter missing command entry: %s", content)
+	}
+
+	if !strings.Contains(content, "queries:") {
+		t.Errorf("service frontmatter missing queries: %s", content)
+	}
+
+	if !strings.Contains(content, "- GetOrder/1.0.0") {
+		t.Errorf("service frontmatter missing query entry: %s", content)
+	}
+}
