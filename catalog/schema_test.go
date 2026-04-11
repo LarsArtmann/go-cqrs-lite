@@ -3,6 +3,7 @@ package catalog_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
@@ -376,5 +377,56 @@ func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
 
 	if len(schema.Properties) != 1 {
 		t.Errorf("expected 1 property, got %d: %v", len(schema.Properties), schema.Properties)
+	}
+}
+
+func TestSchemaFromType_TimeTime(t *testing.T) {
+	t.Parallel()
+
+	type WithTime struct {
+		Name      string    `json:"name"`
+		CreatedAt time.Time `json:"createdAt"`
+	}
+
+	schema := catalog.SchemaFromType[WithTime]()
+
+	createdAt, ok := schema.Properties["createdAt"]
+	if !ok {
+		t.Fatal("expected createdAt property")
+	}
+
+	if createdAt.Type != "string" {
+		t.Errorf("expected type string for time.Time, got %q", createdAt.Type)
+	}
+
+	if createdAt.Format != "date-time" {
+		t.Errorf("expected format date-time for time.Time, got %q", createdAt.Format)
+	}
+
+	if len(createdAt.Properties) != 0 {
+		t.Errorf("time.Time should not have nested properties, got %v", createdAt.Properties)
+	}
+}
+
+func TestSchemaFromType_PointerTimeTime(t *testing.T) {
+	t.Parallel()
+
+	type WithPtrTime struct {
+		UpdatedAt *time.Time `json:"updatedAt"`
+	}
+
+	schema := catalog.SchemaFromType[WithPtrTime]()
+
+	prop, ok := schema.Properties["updatedAt"]
+	if !ok {
+		t.Fatal("expected updatedAt property")
+	}
+
+	if prop.Type != "string" {
+		t.Errorf("expected type string for *time.Time, got %q", prop.Type)
+	}
+
+	if prop.Format != "date-time" {
+		t.Errorf("expected format date-time for *time.Time, got %q", prop.Format)
 	}
 }

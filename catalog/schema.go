@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"time"
 )
 
 func SchemaFromType[T any]() *Schema {
@@ -47,6 +48,10 @@ func schemaFromReflect(t reflect.Type) *Schema {
 
 	if t.Kind() != reflect.Struct {
 		return &Schema{Type: goTypeToJSON(t.Kind())}
+	}
+
+	if t == reflect.TypeOf(time.Time{}) {
+		return &Schema{Type: "string", Properties: map[string]Property{}}
 	}
 
 	props := make(map[string]Property)
@@ -117,6 +122,10 @@ func propertyFromReflect(t reflect.Type) *Property {
 	}
 
 	if t.Kind() == reflect.Struct {
+		if t == reflect.TypeOf(time.Time{}) {
+			return &Property{Type: "string", Format: "date-time"}
+		}
+
 		schema := schemaFromReflect(t)
 
 		return &Property{
