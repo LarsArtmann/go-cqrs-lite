@@ -1,6 +1,7 @@
 package eventcatalog
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -227,10 +228,25 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	}
 
 	if msg.Schema != nil {
-		return e.writeSchema(dir, msg.Schema)
+		if err := e.writeSchema(dir, msg.Schema); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return e.writeExamples(dir, msg.Examples)
+}
+
+func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
+	if len(examples) == 0 {
+		return nil
+	}
+
+	data, err := json.MarshalIndent(examples, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal examples: %w", err)
+	}
+
+	return os.WriteFile(filepath.Join(dir, "examples.json"), data, 0o644)
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {

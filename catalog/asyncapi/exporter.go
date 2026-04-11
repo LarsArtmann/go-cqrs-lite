@@ -192,6 +192,7 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		ContentType: "application/json",
 		Payload:     Ref{Ref: "#/components/schemas/" + id},
 		Tags:        []Tag{{Name: tagName}},
+		Examples:    toExamples(msg.Examples),
 	}
 
 	if msg.Schema != nil {
@@ -252,4 +253,18 @@ func toDotAddress(s string) string {
 	}
 
 	return string(result)
+}
+
+func toExamples(raw []json.RawMessage) []Example {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	examples := make([]Example, len(raw))
+
+	for i, r := range raw {
+		examples[i] = Example{Payload: json.RawMessage(r)}
+	}
+
+	return examples
 }

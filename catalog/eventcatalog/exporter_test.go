@@ -617,3 +617,50 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		t.Errorf("llms.txt missing query entry: %s", content)
 	}
 }
+
+func TestExporter_Export_ExamplesFile(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Examples: []json.RawMessage{
+			[]byte(`{"orderId":"abc-123","amount":42.5}`),
+		},
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	examplesPath := filepath.Join(
+		tmpDir,
+		"services",
+		"svc",
+		"commands",
+		"CreateOrder",
+		"examples.json",
+	)
+
+	data, err := os.ReadFile(examplesPath)
+	if err != nil {
+		t.Fatalf("read examples.json: %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "orderId") {
+		t.Errorf("examples.json missing orderId: %s", content)
+	}
+
+	if !strings.Contains(content, "42.5") {
+		t.Errorf("examples.json missing amount: %s", content)
+	}
+}

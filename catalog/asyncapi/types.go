@@ -66,10 +66,16 @@ type Components struct {
 }
 
 type Message struct {
-	Name        string `json:"name"              yaml:"name"`
-	Title       string `json:"title"             yaml:"title"`
-	Summary     string `json:"summary,omitempty" yaml:"summary,omitempty"`
-	ContentType string `json:"contentType"       yaml:"contentType"`
-	Payload     Ref    `json:"payload"           yaml:"payload"`
-	Tags        []Tag  `json:"tags,omitempty"    yaml:"tags,omitempty"`
+	Name        string    `json:"name"              yaml:"name"`
+	Title       string    `json:"title"             yaml:"title"`
+	Summary     string    `json:"summary,omitempty" yaml:"summary,omitempty"`
+	ContentType string    `json:"contentType"       yaml:"contentType"`
+	Payload     Ref       `json:"payload"           yaml:"payload"`
+	Tags        []Tag     `json:"tags,omitempty"    yaml:"tags,omitempty"`
+	Examples    []Example `json:"examples,omitempty" yaml:"examples,omitempty"`
+}
+
+type Example struct {
+	Summary string `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Payload any    `json:"payload,omitempty" yaml:"payload,omitempty"`
 }

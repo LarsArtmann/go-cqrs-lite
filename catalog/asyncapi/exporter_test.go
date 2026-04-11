@@ -433,3 +433,40 @@ func TestToDotAddress(t *testing.T) {
 		}
 	}
 }
+
+func TestExporter_Export_Examples(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Examples: []json.RawMessage{
+			[]byte(`{"orderId":"abc","amount":42.5}`),
+		},
+	})
+
+	cat := reg.Build()
+	doc := NewExporter("Test", "1.0.0").Export(cat)
+
+	msg, ok := doc.Components.Messages["CreateOrder"]
+	if !ok {
+		t.Fatal("missing CreateOrder message")
+	}
+
+	if len(msg.Examples) != 1 {
+		t.Fatalf("expected 1 example, got %d", len(msg.Examples))
+	}
+
+	exampleJSON, err := json.Marshal(msg.Examples[0].Payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(string(exampleJSON), "orderId") {
+		t.Errorf("example payload = %q, want orderId", string(exampleJSON))
+	}
+}
