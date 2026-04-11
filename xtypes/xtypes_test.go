@@ -22,7 +22,7 @@ func assertMetadataID[T comparable](t *testing.T, got, expected T, label string)
 	t.Helper()
 
 	if got != expected {
-		t.Errorf("expected %s %s, got %s", label, expected, got)
+		t.Errorf("expected %s %v, got %v", label, expected, got)
 	}
 }
 
