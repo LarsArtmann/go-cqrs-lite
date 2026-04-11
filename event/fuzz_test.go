@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -76,13 +77,5 @@ func FuzzParseVersion(f *testing.F) {
 }
 
 func trimSpaces(s string) string {
-	for len(s) > 0 && (s[0] == ' ' || s[0] == '\t' || s[0] == '\n' || s[0] == '\r') {
-		s = s[1:]
-	}
-
-	for len(s) > 0 && (s[len(s)-1] == ' ' || s[len(s)-1] == '\t' || s[len(s)-1] == '\n' || s[len(s)-1] == '\r') {
-		s = s[:len(s)-1]
-	}
-
-	return s
+	return strings.TrimSpace(s)
 }
