@@ -54,25 +54,14 @@ func (u *User) Create(ctx context.Context, name, email string) error {
 		return fmt.Errorf("email is required")
 	}
 
-	payload, err := json.Marshal(UserCreatedPayload{Name: name, Email: email})
-	if err != nil {
-		return fmt.Errorf("marshal payload: %w", err)
-	}
-
-	evt, err := event.NewEvent(
-		EventUserCreated,
-		id.MustParseAggregateID(u.ID()),
-		AggregateType,
-		u.Version()+1,
-		payload,
-	)
+	catEvt, err := NewUserCreated(id.MustParseAggregateID(u.ID()), UserCreatedPayload{Name: name, Email: email})
 	if err != nil {
 		return fmt.Errorf("create event: %w", err)
 	}
 
 	u.name = name
 	u.email = email
-	u.RecordEvent(ctx, evt)
+	u.RecordEvent(ctx, catEvt)
 	return nil
 }
 
@@ -84,26 +73,15 @@ func (u *User) ChangeEmail(ctx context.Context, newEmail string) error {
 		return fmt.Errorf("new email must differ from current email")
 	}
 
-	payload, err := json.Marshal(UserEmailChangedPayload{
+	catEvt, err := NewUserEmailChanged(id.MustParseAggregateID(u.ID()), UserEmailChangedPayload{
 		OldEmail: u.email,
 		NewEmail: newEmail,
 	})
-	if err != nil {
-		return fmt.Errorf("marshal payload: %w", err)
-	}
-
-	evt, err := event.NewEvent(
-		EventUserEmailChanged,
-		id.MustParseAggregateID(u.ID()),
-		AggregateType,
-		u.Version()+1,
-		payload,
-	)
 	if err != nil {
 		return fmt.Errorf("create event: %w", err)
 	}
 
 	u.email = newEmail
-	u.RecordEvent(ctx, evt)
+	u.RecordEvent(ctx, catEvt)
 	return nil
 }

@@ -39,9 +39,10 @@ func NewUserCreated(
 		1,
 		marshalPayload(payload),
 		event.EventCatalogMeta{
-			Name:    "UserCreated",
-			Version: "1.0.0",
-			Summary: "Emitted when a new user is created",
+			Name:          "UserCreated",
+			Version:       "1.0.0",
+			Summary:       "Emitted when a new user is created",
+			AggregateType: AggregateType,
 		},
 	)
 	if err != nil {
@@ -66,9 +67,10 @@ func NewUserEmailChanged(
 		1,
 		marshalPayload(payload),
 		event.EventCatalogMeta{
-			Name:    "UserEmailChanged",
-			Version: "1.0.0",
-			Summary: "Emitted when a user's email is changed",
+			Name:          "UserEmailChanged",
+			Version:       "1.0.0",
+			Summary:       "Emitted when a user's email is changed",
+			AggregateType: AggregateType,
 		},
 	)
 	if err != nil {
