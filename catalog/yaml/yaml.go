@@ -121,8 +121,8 @@ func marshalSlice(v reflect.Value, indent int) ([]byte, error) {
 	return buf, nil
 }
 
-func marshalMap(v reflect.Value, indent int) ([]byte, error) {
-	if v.Len() == 0 {
+func marshalKeyContainer(indent int, fields []structField) ([]byte, error) {
+	if len(fields) == 0 {
 		return []byte("{}\n"), nil
 	}
 
@@ -130,33 +130,43 @@ func marshalMap(v reflect.Value, indent int) ([]byte, error) {
 
 	var buf []byte
 
-	keys := v.MapKeys()
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i].String() < keys[j].String()
-	})
-
-	for _, key := range keys {
-		val := v.MapIndex(key)
-		keyStr := key.String()
-
-		valBytes, err := marshalValue(val, indent+1)
+	for _, f := range fields {
+		valBytes, err := marshalValue(f.value, indent+1)
 		if err != nil {
 			return nil, err
 		}
 
 		lines := strings.Split(strings.TrimRight(string(valBytes), "\n"), "\n")
 
-		if needsQuoting(keyStr) {
-			quoted, _ := json.Marshal(keyStr)
+		if needsQuoting(f.name) {
+			quoted, _ := json.Marshal(f.name)
 			buf = append(buf, prefix+string(quoted)+": "...)
 		} else {
-			buf = append(buf, prefix+keyStr+": "...)
+			buf = append(buf, prefix+f.name+": "...)
 		}
 
 		buf = appendContinuation(buf, lines, prefix)
 	}
 
 	return buf, nil
+}
+
+func marshalMap(v reflect.Value, indent int) ([]byte, error) {
+	if v.Len() == 0 {
+		return []byte("{}\n"), nil
+	}
+
+	keys := v.MapKeys()
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].String() < keys[j].String()
+	})
+
+	fields := make([]structField, 0, len(keys))
+	for _, key := range keys {
+		fields = append(fields, structField{name: key.String(), value: v.MapIndex(key)})
+	}
+
+	return marshalKeyContainer(indent, fields)
 }
 
 func marshalStruct(v reflect.Value, indent int) ([]byte, error) {
@@ -189,36 +199,10 @@ func marshalStruct(v reflect.Value, indent int) ([]byte, error) {
 		fields = append(fields, structField{name: name, value: v.Field(i)})
 	}
 
-	return marshalFields(fields, indent)
+	return marshalKeyContainer(indent, fields)
 }
 
 type structField struct {
 	name  string
 	value reflect.Value
-}
-
-func marshalFields(fields []structField, indent int) ([]byte, error) {
-	prefix := strings.Repeat("  ", indent)
-
-	var buf []byte
-
-	for _, f := range fields {
-		valBytes, err := marshalValue(f.value, indent+1)
-		if err != nil {
-			return nil, err
-		}
-
-		lines := strings.Split(strings.TrimRight(string(valBytes), "\n"), "\n")
-
-		if needsQuoting(f.name) {
-			quoted, _ := json.Marshal(f.name)
-			buf = append(buf, prefix+string(quoted)+": "...)
-		} else {
-			buf = append(buf, prefix+f.name+": "...)
-		}
-
-		buf = appendContinuation(buf, lines, prefix)
-	}
-
-	return buf, nil
 }

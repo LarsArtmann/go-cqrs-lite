@@ -8,12 +8,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func recordMetrics(rec MetricsRecorder, operation string, err error, label string) {
-	start := time.Now()
+func recordMetrics(rec MetricsRecorder, operation string, err error, label string, elapsed time.Duration) {
 	if err != nil {
-		rec.Observe(operation+"_error", time.Since(start), "type", label)
+		rec.Observe(operation+"_error", elapsed, "type", label)
 	} else {
-		rec.Observe(operation+"_success", time.Since(start), "type", label)
+		rec.Observe(operation+"_success", elapsed, "type", label)
 	}
 }
 
@@ -21,8 +20,9 @@ func recordMetrics(rec MetricsRecorder, operation string, err error, label strin
 func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
+			start := time.Now()
 			err := next(ctx, cmd)
-			recordMetrics(recorder, "command", err, string(cmd.Type()))
+			recordMetrics(recorder, "command", err, string(cmd.Type()), time.Since(start))
 
 			return err
 		}
@@ -33,8 +33,9 @@ func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 func EventMetrics(recorder MetricsRecorder) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
+			start := time.Now()
 			err := next(ctx, evt)
-			recordMetrics(recorder, "event", err, string(evt.Type()))
+			recordMetrics(recorder, "event", err, string(evt.Type()), time.Since(start))
 
 			return err
 		}

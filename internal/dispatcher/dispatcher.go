@@ -44,39 +44,13 @@ func (m *LifecycleMixin) CheckClosed(closedErr error) error {
 }
 
 // Lifecycle manages the closed state of a dispatcher with thread-safe access.
+// It embeds LifecycleMixin for reusable closed state management.
 type Lifecycle struct {
 	LifecycleMixin
 }
 
-// Close marks the lifecycle as closed. It is safe to call multiple times.
-func (l *Lifecycle) Close() error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	l.closed = true
-
-	return nil
-}
-
-// IsClosed returns true if the lifecycle has been closed.
-func (l *Lifecycle) IsClosed() bool {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-
-	return l.closed
-}
-
-// CheckClosed returns an error if the lifecycle is closed, or nil otherwise.
-func (l *Lifecycle) CheckClosed(closedErr error) error {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-
-	if l.closed {
-		return closedErr
-	}
-
-	return nil
-}
+// ErrHandlerNotFound is returned when no handler is registered for a type.
+var ErrHandlerNotFound = errors.New("handler not found")
 
 // MiddlewareChain stores and applies middleware in a thread-safe manner.
 // H is the handler type, and M is the middleware type that wraps handlers.
@@ -191,9 +165,6 @@ func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error)
 
 	return wrapped, nil
 }
-
-// ErrHandlerNotFound is returned when no handler is registered for a type.
-var ErrHandlerNotFound = errors.New("handler not found")
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher[H, M]) Close() error {

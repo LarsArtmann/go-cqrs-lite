@@ -1,7 +1,6 @@
 package eventcatalog
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -58,6 +57,39 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 	return e.writeConfig(cat)
 }
 
+type frontmatterWriter struct {
+	*strings.Builder
+}
+
+func newFrontmatterWriter() *frontmatterWriter {
+	f := &frontmatterWriter{Builder: new(strings.Builder)}
+	f.WriteString("---\n")
+	return f
+}
+
+func (f *frontmatterWriter) addField(key, value string) {
+	fmt.Fprintf(f, "%s: %s\n", key, value)
+}
+
+func (f *frontmatterWriter) addQuotedField(key, value string) {
+	fmt.Fprintf(f, "%s: %q\n", key, value)
+}
+
+func (f *frontmatterWriter) addListField(key string, values []string) {
+	if len(values) == 0 {
+		return
+	}
+	fmt.Fprintf(f, "%s:\n", key)
+	for _, v := range values {
+		fmt.Fprintf(f, "  - %s\n", v)
+	}
+}
+
+func (f *frontmatterWriter) finish(title, summary string) {
+	f.WriteString("---\n\n")
+	fmt.Fprintf(f, "# %s\n\n%s\n", title, summary)
+}
+
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.OutputDir, "services", svc.ID)
 
@@ -66,49 +98,29 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		return fmt.Errorf("create service dir: %w", err)
 	}
 
-	var md strings.Builder
-	md.WriteString("---\n")
-	fmt.Fprintf(&md, "id: %s\n", svc.ID)
-	fmt.Fprintf(&md, "name: %s\n", svc.Name)
-	fmt.Fprintf(&md, "version: %s\n", svc.Version)
-
+	md := newFrontmatterWriter()
+	md.addField("id", svc.ID)
+	md.addField("name", svc.Name)
+	md.addField("version", svc.Version)
 	if svc.Summary != "" {
-		fmt.Fprintf(&md, "summary: %q\n", svc.Summary)
+		md.addQuotedField("summary", svc.Summary)
 	}
 
 	var sends, receives []string
-
 	for _, msg := range svc.Events {
 		id := messageID(msg)
-
-		switch msg.Direction {
-		case catalog.Sends:
-			sends = append(sends, fmt.Sprintf("%s/%s", id, msg.Version))
-		case catalog.Receives:
-			receives = append(receives, fmt.Sprintf("%s/%s", id, msg.Version))
+		entry := fmt.Sprintf("%s/%s", id, msg.Version)
+		if msg.Direction == catalog.Sends {
+			sends = append(sends, entry)
+		} else {
+			receives = append(receives, entry)
 		}
 	}
+	md.addListField("sends", sends)
+	md.addListField("receives", receives)
+	md.finish(svc.Name, svc.Summary)
 
-	if len(sends) > 0 {
-		md.WriteString("sends:\n")
-
-		for _, s := range sends {
-			fmt.Fprintf(&md, "  - %s\n", s)
-		}
-	}
-
-	if len(receives) > 0 {
-		md.WriteString("receives:\n")
-
-		for _, r := range receives {
-			fmt.Fprintf(&md, "  - %s\n", r)
-		}
-	}
-
-	md.WriteString("---\n\n")
-	fmt.Fprintf(&md, "# %s\n\n%s\n", svc.Name, svc.Summary)
-
-	return os.WriteFile(filepath.Join(dir, "index.mdx"), []byte(md.String()), 0o644)
+	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
@@ -121,55 +133,28 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 		return fmt.Errorf("create message dir: %w", err)
 	}
 
-	var md strings.Builder
-	md.WriteString("---\n")
-	fmt.Fprintf(&md, "id: %s\n", id)
-	fmt.Fprintf(&md, "name: %s\n", msg.Name)
-	fmt.Fprintf(&md, "version: %s\n", msg.Version)
-
+	md := newFrontmatterWriter()
+	md.addField("id", id)
+	md.addField("name", msg.Name)
+	md.addField("version", msg.Version)
 	if msg.Summary != "" {
-		fmt.Fprintf(&md, "summary: %q\n", msg.Summary)
+		md.addQuotedField("summary", msg.Summary)
 	}
-
 	if msg.Schema != nil {
 		md.WriteString("schemaPath: schemas/schema.json\n")
 	}
+	fmt.Fprintf(md, "owners:\n  - %s\n", svcID)
+	md.finish(msg.Name, msg.Summary)
 
-	fmt.Fprintf(&md, "owners:\n  - %s\n", svcID)
-	md.WriteString("---\n\n")
-	fmt.Fprintf(&md, "# %s\n\n%s\n", msg.Name, msg.Summary)
-
-	err = os.WriteFile(
-		filepath.Join(dir, "index.mdx"),
-		[]byte(md.String()),
-		0o644,
-	)
-	if err != nil {
+	if err := e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String()); err != nil {
 		return fmt.Errorf("write message file: %w", err)
 	}
 
 	if msg.Schema != nil {
-		err = e.writeSchema(dir, msg.Schema)
-		if err != nil {
-			return fmt.Errorf("write schema: %w", err)
-		}
+		return e.writeSchema(dir, msg.Schema)
 	}
 
 	return nil
-}
-
-func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
-	schemaDir := filepath.Join(dir, "schemas")
-	if err := os.MkdirAll(schemaDir, 0o755); err != nil {
-		return fmt.Errorf("create schema dir: %w", err)
-	}
-
-	data, err := json.MarshalIndent(schema, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal schema: %w", err)
-	}
-
-	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, 0o644)
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
@@ -180,28 +165,35 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 		return fmt.Errorf("create domain dir: %w", err)
 	}
 
-	var md strings.Builder
-	md.WriteString("---\n")
-	fmt.Fprintf(&md, "id: %s\n", domain.ID)
-	fmt.Fprintf(&md, "name: %s\n", domain.Name)
-	fmt.Fprintf(&md, "version: %s\n", domain.Version)
-
+	md := newFrontmatterWriter()
+	md.addField("id", domain.ID)
+	md.addField("name", domain.Name)
+	md.addField("version", domain.Version)
 	if domain.Summary != "" {
-		fmt.Fprintf(&md, "summary: %q\n", domain.Summary)
+		md.addQuotedField("summary", domain.Summary)
+	}
+	md.addListField("services", domain.Services)
+	md.finish(domain.Name, domain.Summary)
+
+	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+}
+
+func (e *Exporter) writeMDXFile(path, content string) error {
+	return os.WriteFile(path, []byte(content), 0o644)
+}
+
+func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
+	schemaDir := filepath.Join(dir, "schemas")
+	if err := os.MkdirAll(schemaDir, 0o755); err != nil {
+		return fmt.Errorf("create schema dir: %w", err)
 	}
 
-	if len(domain.Services) > 0 {
-		md.WriteString("services:\n")
-
-		for _, s := range domain.Services {
-			fmt.Fprintf(&md, "  - %s\n", s)
-		}
+	data, err := catalog.SchemaToJSON(schema)
+	if err != nil {
+		return fmt.Errorf("marshal schema: %w", err)
 	}
 
-	md.WriteString("---\n\n")
-	fmt.Fprintf(&md, "# %s\n\n%s\n", domain.Name, domain.Summary)
-
-	return os.WriteFile(filepath.Join(dir, "index.mdx"), []byte(md.String()), 0o644)
+	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, 0o644)
 }
 
 func messageID(msg catalog.Message) string {

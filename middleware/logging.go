@@ -8,39 +8,57 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
+// logContext holds common logging context for middleware.
+type logContext struct {
+	prefix       string
+	msgType      string
+	aggregateID  string
+}
+
+func logWithContext(logger Logger, lc logContext, fn func() error) error {
+	start := time.Now()
+
+	logger.Info(lc.prefix+" dispatching",
+		"type", lc.msgType,
+		"aggregateID", lc.aggregateID,
+	)
+
+	err := fn()
+	duration := time.Since(start)
+
+	if err != nil {
+		logger.Error(lc.prefix+" failed",
+			"type", lc.msgType,
+			"aggregateID", lc.aggregateID,
+			"duration", duration,
+			"error", err,
+		)
+
+		return err
+	}
+
+	logger.Info(lc.prefix+" succeeded",
+		"type", lc.msgType,
+		"aggregateID", lc.aggregateID,
+		"duration", duration,
+	)
+
+	return nil
+}
+
 // CommandLogging returns a command middleware that logs dispatch details with timing.
 func CommandLogging(logger Logger) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			start := time.Now()
-			cmdType := cmd.Type()
-
-			logger.Info("command dispatching",
-				"type", cmdType,
-				"aggregateID", cmd.AggregateID(),
-			)
-
-			err := next(ctx, cmd)
-			duration := time.Since(start)
-
-			if err != nil {
-				logger.Error("command failed",
-					"type", cmdType,
-					"aggregateID", cmd.AggregateID(),
-					"duration", duration,
-					"error", err,
-				)
-
-				return err
+			lc := logContext{
+				prefix:      "command",
+				msgType:     string(cmd.Type()),
+				aggregateID: cmd.AggregateID(),
 			}
 
-			logger.Info("command succeeded",
-				"type", cmdType,
-				"aggregateID", cmd.AggregateID(),
-				"duration", duration,
-			)
-
-			return nil
+			return logWithContext(logger, lc, func() error {
+				return next(ctx, cmd)
+			})
 		}
 	}
 }
@@ -49,36 +67,15 @@ func CommandLogging(logger Logger) command.Middleware {
 func EventLogging(logger Logger) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			start := time.Now()
-			evtType := evt.Type()
-
-			logger.Info("event handling",
-				"type", evtType,
-				"aggregateID", evt.AggregateID(),
-				"version", evt.Version(),
-			)
-
-			err := next(ctx, evt)
-			duration := time.Since(start)
-
-			if err != nil {
-				logger.Error("event handler failed",
-					"type", evtType,
-					"aggregateID", evt.AggregateID(),
-					"duration", duration,
-					"error", err,
-				)
-
-				return err
+			lc := logContext{
+				prefix:      "event",
+				msgType:     string(evt.Type()),
+				aggregateID: evt.AggregateID(),
 			}
 
-			logger.Info("event handled",
-				"type", evtType,
-				"aggregateID", evt.AggregateID(),
-				"duration", duration,
-			)
-
-			return nil
+			return logWithContext(logger, lc, func() error {
+				return next(ctx, evt)
+			})
 		}
 	}
 }
