@@ -325,3 +325,56 @@ func TestSchemaFromType_EmptyTag(t *testing.T) {
 		t.Error("expected Name property (no json tag uses field name)")
 	}
 }
+
+func TestSchemaFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
+	t.Parallel()
+
+	type Embed struct {
+		ID string `json:"id"`
+	}
+
+	type WithEmbed struct {
+		Embed
+
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	schema := catalog.SchemaFromType[WithEmbed]()
+
+	if _, ok := schema.Properties["Embed"]; ok {
+		t.Error("anonymous embedded field 'Embed' should be skipped")
+	}
+
+	if _, ok := schema.Properties["id"]; ok {
+		t.Error("promoted fields from anonymous embed should not appear")
+	}
+
+	if len(schema.Properties) != 2 {
+		t.Errorf("expected 2 properties, got %d: %v", len(schema.Properties), schema.Properties)
+	}
+}
+
+func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
+	t.Parallel()
+
+	type Core struct {
+		ID string `json:"id"`
+	}
+
+	type WithPtrEmbed struct {
+		*Core
+
+		Name string `json:"name"`
+	}
+
+	schema := catalog.SchemaFromType[WithPtrEmbed]()
+
+	if _, ok := schema.Properties["Core"]; ok {
+		t.Error("anonymous embedded pointer field 'Core' should be skipped")
+	}
+
+	if len(schema.Properties) != 1 {
+		t.Errorf("expected 1 property, got %d: %v", len(schema.Properties), schema.Properties)
+	}
+}

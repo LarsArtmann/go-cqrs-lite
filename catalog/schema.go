@@ -58,6 +58,10 @@ func schemaFromReflect(t reflect.Type) *Schema {
 			continue
 		}
 
+		if field.Anonymous {
+			continue
+		}
+
 		jsonTag := field.Tag.Get("json")
 		if jsonTag == "-" {
 			continue
