@@ -430,3 +430,102 @@ func TestSchemaFromType_PointerTimeTime(t *testing.T) {
 		t.Errorf("expected format date-time for *time.Time, got %q", prop.Format)
 	}
 }
+
+func TestSchemaFromType_EnumTag(t *testing.T) {
+	t.Parallel()
+
+	type WithEnum struct {
+		Status string `json:"status" enum:"active,inactive,pending"`
+	}
+
+	schema := catalog.SchemaFromType[WithEnum]()
+	prop := schema.Properties["status"]
+	if len(prop.Enum) != 3 {
+		t.Fatalf("expected 3 enum values, got %d", len(prop.Enum))
+	}
+
+	expected := []string{"active", "inactive", "pending"}
+	for i, v := range expected {
+		if prop.Enum[i] != v {
+			t.Errorf("enum[%d] = %q, want %q", i, prop.Enum[i], v)
+		}
+	}
+}
+
+func TestSchemaFromType_DefaultTag(t *testing.T) {
+	t.Parallel()
+
+	type WithDefault struct {
+		Role string `json:"role" default:"viewer"`
+	}
+
+	schema := catalog.SchemaFromType[WithDefault]()
+	prop := schema.Properties["role"]
+	if prop.Default != "viewer" {
+		t.Errorf("default = %q, want %q", prop.Default, "viewer")
+	}
+}
+
+func TestSchemaFromType_NullableTag(t *testing.T) {
+	t.Parallel()
+
+	type WithNullable struct {
+		Email string `json:"email" nullable:"true"`
+	}
+
+	schema := catalog.SchemaFromType[WithNullable]()
+	prop := schema.Properties["email"]
+	if !prop.Nullable {
+		t.Error("expected nullable=true")
+	}
+}
+
+func TestSchemaFromType_DeprecatedTag(t *testing.T) {
+	t.Parallel()
+
+	type WithDeprecated struct {
+		OldField string `json:"oldField" deprecated:"true"`
+	}
+
+	schema := catalog.SchemaFromType[WithDeprecated]()
+	prop := schema.Properties["oldField"]
+	if !prop.Deprecated {
+		t.Error("expected deprecated=true")
+	}
+}
+
+func TestSchemaFromType_PatternTag(t *testing.T) {
+	t.Parallel()
+
+	type WithPattern struct {
+		Slug string `json:"slug" pattern:"^[a-z0-9-]+$"`
+	}
+
+	schema := catalog.SchemaFromType[WithPattern]()
+	prop := schema.Properties["slug"]
+	if prop.Pattern != "^[a-z0-9-]+$" {
+		t.Errorf("pattern = %q, want ^[a-z0-9-]+$", prop.Pattern)
+	}
+}
+
+func TestSchemaFromType_AllTagsCombined(t *testing.T) {
+	t.Parallel()
+
+	type RichField struct {
+		Status string `json:"status" doc:"Current status" enum:"active,inactive" default:"active"`
+	}
+
+	schema := catalog.SchemaFromType[RichField]()
+	prop := schema.Properties["status"]
+	if prop.Description != "Current status" {
+		t.Errorf("description = %q", prop.Description)
+	}
+
+	if len(prop.Enum) != 2 {
+		t.Errorf("enum = %v", prop.Enum)
+	}
+
+	if prop.Default != "active" {
+		t.Errorf("default = %q", prop.Default)
+	}
+}

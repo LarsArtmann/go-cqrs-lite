@@ -42,6 +42,11 @@ type Property struct {
 	Properties  map[string]Property `json:"properties,omitempty"`
 	Items       *Property           `json:"items,omitempty"`
 	Required    []string            `json:"required,omitempty"`
+	Default     string              `json:"default,omitempty"`
+	Enum        []string            `json:"enum,omitempty"`
+	Nullable    bool                `json:"nullable,omitempty"`
+	Deprecated  bool                `json:"deprecated,omitempty"`
+	Pattern     string              `json:"pattern,omitempty"`
 }
 
 type Service struct {

@@ -88,6 +88,26 @@ func schemaFromReflect(t reflect.Type) *Schema {
 			prop.Format = format
 		}
 
+		if v := field.Tag.Get("default"); v != "" {
+			prop.Default = v
+		}
+
+		if v := field.Tag.Get("enum"); v != "" {
+			prop.Enum = strings.Split(v, ",")
+		}
+
+		if _, ok := field.Tag.Lookup("nullable"); ok {
+			prop.Nullable = true
+		}
+
+		if _, ok := field.Tag.Lookup("deprecated"); ok {
+			prop.Deprecated = true
+		}
+
+		if v := field.Tag.Get("pattern"); v != "" {
+			prop.Pattern = v
+		}
+
 		props[name] = prop
 		if !omit {
 			required = append(required, name)
