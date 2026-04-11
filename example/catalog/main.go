@@ -39,7 +39,7 @@ func main() {
 	aggID := id.NewAggregateID()
 
 	builder := adapters.NewBuilder("User Service API", "1.0.0")
-	builder.AddService("user-service", "User Service", "Manages user accounts")
+	builder.AddService("user-service", "User Service", "1.0.0", "Manages user accounts")
 	builder.AddDomain("identity", "Identity", "User identity management", []string{"user-service"})
 
 	builder.AddCommand("user-service", &CreateUser{

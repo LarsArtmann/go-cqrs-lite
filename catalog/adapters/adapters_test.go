@@ -37,7 +37,7 @@ func TestBuilder_AddCommand(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "Manages users")
+	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users")
 
 	aggID := id.NewAggregateID()
 	cmd := &testCreateUser{
@@ -99,7 +99,7 @@ func TestBuilder_AddEvent(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
 	evtCore, err := event.NewEventCatalogCore(
 		"order.created",
@@ -159,7 +159,7 @@ func TestBuilder_AddQuery(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
 
 	qry := &testGetUser{
 		CatalogCore: query.NewCatalogCore("user.get", query.CatalogMeta{
@@ -199,7 +199,7 @@ func TestBuilder_AddDomain(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "Manages orders")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders")
 	builder.AddDomain("ordering", "Ordering", "Order management", []string{"order-svc"})
 
 	cat := builder.Build()
@@ -222,7 +222,7 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "Manages orders")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders")
 
 	aggID := id.NewAggregateID()
 	cmd := &testCreateUser{
@@ -256,7 +256,7 @@ func TestBuilder_ExportAsyncAPI(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
 	aggID := id.NewAggregateID()
 	cmd := &testCreateUser{
@@ -295,7 +295,7 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "Manages users")
+	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users")
 
 	aggID := id.NewAggregateID()
 	builder.AddCommand("user-svc", &testCreateUser{
@@ -320,7 +320,7 @@ func TestBuilder_AddCommandFromType(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
 	adapters.AddCommandFromType[testCreateUser](
 		builder,
 		"user-svc",
@@ -360,7 +360,7 @@ func TestBuilder_AddQueryFromType(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
 	adapters.AddQueryFromType[testGetUser](
 		builder,
 		"user-svc",

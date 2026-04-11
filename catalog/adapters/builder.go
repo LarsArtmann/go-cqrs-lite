@@ -85,9 +85,13 @@ func (b *CatalogBuilder) addMessageToService(
 	b.services[serviceID] = svc
 }
 
-// AddService registers a service with optional summary.
-func (b *CatalogBuilder) AddService(id, name, summary string) {
-	b.ensureService(id, name)
+func (b *CatalogBuilder) AddService(id, name, version, summary string) {
+	if _, ok := b.services[id]; !ok {
+		b.services[id] = catalog.Service{
+			ID: id, Name: name, Version: version,
+		}
+	}
+
 	if summary != "" {
 		svc := b.services[id]
 		svc.Summary = summary
@@ -114,10 +118,4 @@ func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) {
 	}
 	d.Services = append(d.Services, serviceID)
 	b.domains[domainID] = d
-}
-
-func (b *CatalogBuilder) ensureService(id, name string) {
-	if _, ok := b.services[id]; !ok {
-		b.services[id] = catalog.Service{ID: id, Name: name}
-	}
 }
