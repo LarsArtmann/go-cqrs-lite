@@ -315,3 +315,70 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 		t.Errorf("expected 2 commands, got %d", len(svc.Commands))
 	}
 }
+
+func TestBuilder_AddCommandFromType(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "")
+	adapters.AddCommandFromType[testCreateUser](
+		builder,
+		"user-svc",
+		"user.create",
+		command.CatalogMeta{
+			Name:    "CreateUser",
+			Version: "1.0.0",
+			Summary: "Creates a new user",
+		},
+	)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	if len(svc.Commands) != 1 {
+		t.Fatalf("expected 1 command, got %d", len(svc.Commands))
+	}
+
+	cmdMsg := svc.Commands[0]
+	if cmdMsg.Name != "CreateUser" {
+		t.Errorf("name = %q, want CreateUser", cmdMsg.Name)
+	}
+
+	if cmdMsg.Schema == nil {
+		t.Fatal("schema should not be nil")
+	}
+
+	if _, ok := cmdMsg.Schema.Properties["name"]; !ok {
+		t.Error("schema missing 'name' property")
+	}
+
+	if _, ok := cmdMsg.Schema.Properties["CatalogCore"]; ok {
+		t.Error("schema should NOT contain embedded CatalogCore")
+	}
+}
+
+func TestBuilder_AddQueryFromType(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "")
+	adapters.AddQueryFromType[testGetUser](
+		builder,
+		"user-svc",
+		"user.get",
+		query.CatalogMeta{
+			Name:    "GetUser",
+			Version: "1.0.0",
+			Summary: "Gets a user",
+		},
+	)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	if len(svc.Queries) != 1 {
+		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
+	}
+
+	if _, ok := svc.Queries[0].Schema.Properties["userId"]; !ok {
+		t.Error("schema missing 'userId' property")
+	}
+}

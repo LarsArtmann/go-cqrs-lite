@@ -7,9 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 )
 
-// AddCommand registers a command instance with the catalog builder.
-// The command must implement command.Catalogable (embed command.CatalogCore).
-// The schema is auto-extracted from the command's payload fields via reflection.
 func (b *CatalogBuilder) AddCommand(serviceID string, cmd command.Catalogable) {
 	meta := cmd.CatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(cmd).Elem())
@@ -27,7 +24,6 @@ func (b *CatalogBuilder) AddCommand(serviceID string, cmd command.Catalogable) {
 	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }
 
-// AddCommandWithSchema registers a command with an explicit schema override.
 func (b *CatalogBuilder) AddCommandWithSchema(
 	serviceID string,
 	cmd command.Catalogable,
@@ -38,6 +34,26 @@ func (b *CatalogBuilder) AddCommandWithSchema(
 	msg := catalog.Message{
 		Kind:      catalog.CommandMessage,
 		ID:        string(cmd.Type()),
+		Name:      meta.Name,
+		Version:   meta.Version,
+		Summary:   meta.Summary,
+		Schema:    schema,
+		Direction: catalog.Receives,
+	}
+
+	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
+}
+
+func AddCommandFromType[T command.Catalogable](
+	b *CatalogBuilder,
+	serviceID, cmdType string,
+	meta command.CatalogMeta,
+) {
+	schema := catalog.SchemaFromType[T]()
+
+	msg := catalog.Message{
+		Kind:      catalog.CommandMessage,
+		ID:        cmdType,
 		Name:      meta.Name,
 		Version:   meta.Version,
 		Summary:   meta.Summary,
