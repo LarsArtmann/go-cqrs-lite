@@ -170,3 +170,44 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Dispatch")
 	}
 }
+
+func TestDispatcher_RegisterCatalogEntry(t *testing.T) {
+	t.Parallel()
+
+	dispatcher := query.NewDispatcher()
+	meta := query.CatalogMeta{
+		Name:    "GetUser",
+		Version: "1.0.0",
+		Summary: "Gets a user by ID",
+	}
+
+	dispatcher.RegisterCatalogEntry("user.get", meta)
+
+	entries := dispatcher.CatalogEntries()
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+
+	got, ok := entries["user.get"]
+	if !ok {
+		t.Fatal("missing user.get entry")
+	}
+
+	if got.Name != "GetUser" {
+		t.Errorf("name = %q, want GetUser", got.Name)
+	}
+}
+
+func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
+	t.Parallel()
+
+	dispatcher := query.NewDispatcher()
+	dispatcher.RegisterCatalogEntry("q.a", query.CatalogMeta{Name: "A"})
+
+	entries := dispatcher.CatalogEntries()
+	entries["q.b"] = query.CatalogMeta{Name: "B"}
+
+	if len(dispatcher.CatalogEntries()) != 1 {
+		t.Error("CatalogEntries should return a copy, not a reference")
+	}
+}

@@ -10,13 +10,15 @@ import (
 
 // Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	inner *dispatcher.Dispatcher[Handler, Middleware]
+	inner           *dispatcher.Dispatcher[Handler, Middleware]
+	catalogEntries  map[Type]CatalogMeta
 }
 
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		inner: dispatcher.NewDispatcher[Handler, Middleware](),
+		inner:          dispatcher.NewDispatcher[Handler, Middleware](),
+		catalogEntries: make(map[Type]CatalogMeta),
 	}
 }
 
@@ -74,4 +76,20 @@ func (d *Dispatcher) Close() error {
 	}
 
 	return nil
+}
+
+// RegisterCatalogEntry stores catalog metadata for a command type.
+// This is a side channel that doesn't affect dispatch behavior.
+func (d *Dispatcher) RegisterCatalogEntry(cmdType Type, meta CatalogMeta) {
+	d.catalogEntries[cmdType] = meta
+}
+
+// CatalogEntries returns all registered catalog entries.
+func (d *Dispatcher) CatalogEntries() map[Type]CatalogMeta {
+	entries := make(map[Type]CatalogMeta, len(d.catalogEntries))
+	for k, v := range d.catalogEntries {
+		entries[k] = v
+	}
+
+	return entries
 }
