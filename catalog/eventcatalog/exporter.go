@@ -167,6 +167,8 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		md.addQuotedField("summary", svc.Summary)
 	}
 
+	md.addListField("owners", svc.Owners)
+
 	var sends, receives, commands, queries []string
 
 	for _, msg := range svc.Events {

@@ -54,6 +54,7 @@ type Service struct {
 	Name     string    `json:"name"`
 	Version  string    `json:"version"`
 	Summary  string    `json:"summary,omitempty"`
+	Owners   []string  `json:"owners,omitempty"`
 	Commands []Message `json:"commands,omitempty"`
 	Events   []Message `json:"events,omitempty"`
 	Queries  []Message `json:"queries,omitempty"`
