@@ -256,6 +256,47 @@ schema := catalog.SchemaFromType[User]()
 // {"type":"object","properties":{"email":{"type":"string","description":"User email","format":"email"},...}}
 ```
 
+Supported struct tags:
+
+| Tag            | Example                        | Effect                              |
+| -------------- | ------------------------------ | ----------------------------------- |
+| `json`         | `json:"name,omitempty"`        | Field name + required/optional      |
+| `doc`          | `doc:"User email"`             | Description                         |
+| `description`  | `description:"User email"`     | Alias for `doc`                     |
+| `format`       | `format:"email"`               | JSON Schema format                  |
+| `enum`         | `enum:"active,inactive"`       | Enum values (comma-separated)       |
+| `default`      | `default:"active"`             | Default value                       |
+| `nullable`     | `nullable`                     | Marks field as nullable             |
+| `deprecated`   | `deprecated`                   | Marks field as deprecated           |
+| `pattern`      | `pattern:"^[a-z]+$"`           | Regex pattern                       |
+
+### Catalog Adapters
+
+The `catalog/adapters` package provides a fluent builder API:
+
+```go
+builder := adapters.NewBuilder("My API", "1.0.0")
+builder.AddService("user-svc", "User Service", "1.0.0", "Manages users")
+
+// Instance-based: requires a constructed command with CatalogCore
+builder.AddCommand("user-svc", myCmd)
+
+// Generic zero-instance: no construction needed, uses reflection on type T
+adapters.AddCommandFromType[CreateUser](
+    builder, "user-svc", "user.create",
+    command.CatalogMeta{Name: "CreateUser", Version: "1.0.0", Summary: "Create a user"},
+)
+
+// Auto-discover from dispatcher entries
+cmdDispatcher.RegisterCatalogEntry("user.create", command.CatalogMeta{...})
+adapters.FromCommandDispatcher(builder, "user-svc", cmdDispatcher)
+
+// Export
+cat := builder.Build()
+builder.ExportEventCatalog("./eventcatalog")
+doc, _ := builder.ExportAsyncAPI("My API", "1.0.0")
+```
+
 ### Registry API
 
 | Method                                    | Description                           |

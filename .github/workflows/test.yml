@@ -62,5 +62,13 @@ jobs:
       - name: Build
         run: go build ./...
 
+      - name: Build examples
+        run: |
+          for dir in example/*/; do
+            if [ -f "$dir/go.mod" ]; then
+              (cd "$dir" && go build ./...)
+            fi
+          done
+
       - name: Vet
         run: go vet ./...

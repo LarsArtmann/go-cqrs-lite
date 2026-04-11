@@ -12,6 +12,7 @@ type CatalogBuilder struct {
 	version  string
 	services map[string]catalog.Service
 	domains  map[string]catalog.Domain
+	channels map[string]catalog.Channel
 }
 
 // NewBuilder creates a new catalog builder with the given title and version.
@@ -21,6 +22,7 @@ func NewBuilder(title, version string) *CatalogBuilder {
 		version:  version,
 		services: make(map[string]catalog.Service),
 		domains:  make(map[string]catalog.Domain),
+		channels: make(map[string]catalog.Channel),
 	}
 }
 
@@ -36,11 +38,17 @@ func (b *CatalogBuilder) Build() *catalog.Catalog {
 		domains = append(domains, d)
 	}
 
+	channels := make([]catalog.Channel, 0, len(b.channels))
+	for _, ch := range b.channels {
+		channels = append(channels, ch)
+	}
+
 	return &catalog.Catalog{
 		Title:    b.title,
 		Version:  b.version,
 		Services: services,
 		Domains:  domains,
+		Channels: channels,
 	}
 }
 
@@ -125,4 +133,9 @@ func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) {
 
 	d.Services = append(d.Services, serviceID)
 	b.domains[domainID] = d
+}
+
+// AddChannel registers a channel in the catalog.
+func (b *CatalogBuilder) AddChannel(ch catalog.Channel) {
+	b.channels[ch.ID] = ch
 }
