@@ -64,6 +64,7 @@ type frontmatterWriter struct {
 func newFrontmatterWriter() *frontmatterWriter {
 	f := &frontmatterWriter{Builder: new(strings.Builder)}
 	f.WriteString("---\n")
+
 	return f
 }
 
@@ -79,7 +80,9 @@ func (f *frontmatterWriter) addListField(key string, values []string) {
 	if len(values) == 0 {
 		return
 	}
+
 	fmt.Fprintf(f, "%s:\n", key)
+
 	for _, v := range values {
 		fmt.Fprintf(f, "  - %s\n", v)
 	}
@@ -102,13 +105,16 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	md.addField("id", svc.ID)
 	md.addField("name", svc.Name)
 	md.addField("version", svc.Version)
+
 	if svc.Summary != "" {
 		md.addQuotedField("summary", svc.Summary)
 	}
 
-	var sends, receives []string
+	var sends, receives, commands, queries []string
+
 	for _, msg := range svc.Events {
 		id := messageID(msg)
+
 		entry := fmt.Sprintf("%s/%s", id, msg.Version)
 		if msg.Direction == catalog.Sends {
 			sends = append(sends, entry)
@@ -117,12 +123,10 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		}
 	}
 
-	var commands []string
 	for _, cmd := range svc.Commands {
 		commands = append(commands, fmt.Sprintf("%s/%s", messageID(cmd), cmd.Version))
 	}
 
-	var queries []string
 	for _, q := range svc.Queries {
 		queries = append(queries, fmt.Sprintf("%s/%s", messageID(q), q.Version))
 	}
@@ -150,12 +154,15 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	md.addField("id", id)
 	md.addField("name", msg.Name)
 	md.addField("version", msg.Version)
+
 	if msg.Summary != "" {
 		md.addQuotedField("summary", msg.Summary)
 	}
+
 	if msg.Schema != nil {
 		md.WriteString("schemaPath: schemas/schema.json\n")
 	}
+
 	fmt.Fprintf(md, "owners:\n  - %s\n", svcID)
 	md.finish(msg.Name, msg.Summary)
 
@@ -182,9 +189,11 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	md.addField("id", domain.ID)
 	md.addField("name", domain.Name)
 	md.addField("version", domain.Version)
+
 	if domain.Summary != "" {
 		md.addQuotedField("summary", domain.Summary)
 	}
+
 	md.addListField("services", domain.Services)
 	md.finish(domain.Name, domain.Summary)
 

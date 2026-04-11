@@ -35,54 +35,56 @@ Migrate `go-cqrs-lite` from Makefile + ad-hoc tooling to **Nix Flakes** as the s
 
 The following table catalogs every tool and configuration currently used, with its source and pinning status.
 
-| Tool / Config | Purpose | Source | Pinned? |
-|---|---|---|---|
-| Go 1.26.2 | Compiler & runtime | `go.mod` | Partial (go.mod declares `go 1.26.2`) |
-| golangci-lint v2 | Linting (126 linters enabled) | `.golangci.yml` | No — CI uses `@latest`, local varies |
-| gofumpt | Code formatting | `.golangci.yml` formatters | No |
-| goimports | Import ordering | `.golangci.yml` formatters | No |
-| golines | Line length formatting | `.golangci.yml` formatters | No |
-| gci | Import grouping | `.golangci.yml` formatters | No |
-| go vet | Static analysis | Makefile | Via Go toolchain |
-| buildflow | Semantic code analysis | `.buildflow.yml` | No — custom tool |
-| branching-flow | Git workflow automation | AGENTS.md reference | No — custom tool |
-| trash | Safe file deletion (replaces `rm`) | Makefile `clean` target | No |
-| Makefile | Build orchestration | `Makefile` (85 lines) | N/A |
-| codecov | Coverage upload | `.github/workflows/test.yml` | No — CI action |
+| Tool / Config    | Purpose                            | Source                       | Pinned?                               |
+| ---------------- | ---------------------------------- | ---------------------------- | ------------------------------------- |
+| Go 1.26.2        | Compiler & runtime                 | `go.mod`                     | Partial (go.mod declares `go 1.26.2`) |
+| golangci-lint v2 | Linting (126 linters enabled)      | `.golangci.yml`              | No — CI uses `@latest`, local varies  |
+| gofumpt          | Code formatting                    | `.golangci.yml` formatters   | No                                    |
+| goimports        | Import ordering                    | `.golangci.yml` formatters   | No                                    |
+| golines          | Line length formatting             | `.golangci.yml` formatters   | No                                    |
+| gci              | Import grouping                    | `.golangci.yml` formatters   | No                                    |
+| go vet           | Static analysis                    | Makefile                     | Via Go toolchain                      |
+| buildflow        | Semantic code analysis             | `.buildflow.yml`             | No — custom tool                      |
+| branching-flow   | Git workflow automation            | AGENTS.md reference          | No — custom tool                      |
+| trash            | Safe file deletion (replaces `rm`) | Makefile `clean` target      | No                                    |
+| Makefile         | Build orchestration                | `Makefile` (85 lines)        | N/A                                   |
+| codecov          | Coverage upload                    | `.github/workflows/test.yml` | No — CI action                        |
 
 ### 2.2 Makefile Targets (Current)
 
 The `Makefile` provides 15 targets. All must be represented in the Nix flake.
 
-| Target | Command | Nix Equivalent |
-|---|---|---|
-| `all` | `fmt lint test build` | `nix flake check` + `nix build` |
-| `build` | `go build ./...` | `nix build` |
-| `test` | `go test ./... -v` | `nix develop --run "go test ./... -v"` |
-| `test-race` | `go test ./... -race` | devShell alias |
-| `test-short` | `go test ./... -short` | devShell alias |
-| `coverage` | `go test ./... -coverprofile=coverage.out` | devShell alias |
-| `coverage-html` | `coverage` + `go tool cover -html` | devShell alias |
-| `lint` | `golangci-lint run` | `nix develop --run "golangci-lint run"` |
-| `fmt` | `gofmt -w .` | `nix fmt` (via treefmt-nix) |
-| `imports` | `goimports -w .` | Part of `nix fmt` |
-| `vet` | `go vet ./...` | Part of `nix flake check` |
-| `mod-tidy` | `go mod tidy` | devShell alias |
-| `mod-verify` | `go mod verify` | devShell alias |
-| `clean` | `trash coverage.*` + `go clean -testcache` | devShell alias |
-| `check` | `fmt vet lint test` | `nix flake check` |
-| `ci` | `build test-race lint` | `nix flake check` |
+| Target          | Command                                    | Nix Equivalent                          |
+| --------------- | ------------------------------------------ | --------------------------------------- |
+| `all`           | `fmt lint test build`                      | `nix flake check` + `nix build`         |
+| `build`         | `go build ./...`                           | `nix build`                             |
+| `test`          | `go test ./... -v`                         | `nix develop --run "go test ./... -v"`  |
+| `test-race`     | `go test ./... -race`                      | devShell alias                          |
+| `test-short`    | `go test ./... -short`                     | devShell alias                          |
+| `coverage`      | `go test ./... -coverprofile=coverage.out` | devShell alias                          |
+| `coverage-html` | `coverage` + `go tool cover -html`         | devShell alias                          |
+| `lint`          | `golangci-lint run`                        | `nix develop --run "golangci-lint run"` |
+| `fmt`           | `gofmt -w .`                               | `nix fmt` (via treefmt-nix)             |
+| `imports`       | `goimports -w .`                           | Part of `nix fmt`                       |
+| `vet`           | `go vet ./...`                             | Part of `nix flake check`               |
+| `mod-tidy`      | `go mod tidy`                              | devShell alias                          |
+| `mod-verify`    | `go mod verify`                            | devShell alias                          |
+| `clean`         | `trash coverage.*` + `go clean -testcache` | devShell alias                          |
+| `check`         | `fmt vet lint test`                        | `nix flake check`                       |
+| `ci`            | `build test-race lint`                     | `nix flake check`                       |
 
 ### 2.3 GitHub Actions Workflows
 
 Two workflows exist:
 
 **`.github/workflows/lint.yml`** — 3 jobs:
+
 - `golangci`: golangci-lint via `golangci-lint-action@v6`
 - `fmt`: `gofmt -l .` diff check
 - `imports`: `goimports -l .` diff check
 
 **`.github/workflows/test.yml`** — 2 jobs:
+
 - `test`: test + race + coverage + codecov upload
 - `build`: `go build ./...` + `go vet ./...`
 
@@ -90,15 +92,15 @@ Both use `actions/setup-go@v5` with Go 1.26 and `actions/cache@v4` for module ca
 
 ### 2.4 Special Considerations
 
-| Concern | Detail | Impact on Nix |
-|---|---|---|
-| **GOWORK=off** | `~/go.work` exists but excludes this project; all `go` commands need `GOWORK=off` | Must set in `shellHook` |
-| **Go experiment flags** | `.golangci.yml` uses build tags: `goexperiment.goroutineleakprofile`, `goexperiment.jsonv2`, `goexperiment.simd` | Must pass `GOFLAGS=-tags=...` or set in shell |
-| **Multi-module** | `example/user/` has its own `go.mod` with `replace` directive back to root | Must handle as separate Nix package |
-| **buildflow** | Custom tool (github.com/larsartmann/buildflow), not in nixpkgs | Need custom derivation or `pkgs.buildGoModule` |
-| **branching-flow** | Custom tool, likely same source as buildflow | Same approach |
-| **trash** | Used in Makefile `clean` target (safe delete) | Available in nixpkgs |
-| **Zero-dependency philosophy** | Only stdlib + `google/uuid` + `cockroachdb/errors` + `go-json-experiment/json` | Small `vendorHash`, fast builds |
+| Concern                        | Detail                                                                                                           | Impact on Nix                                  |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **GOWORK=off**                 | `~/go.work` exists but excludes this project; all `go` commands need `GOWORK=off`                                | Must set in `shellHook`                        |
+| **Go experiment flags**        | `.golangci.yml` uses build tags: `goexperiment.goroutineleakprofile`, `goexperiment.jsonv2`, `goexperiment.simd` | Must pass `GOFLAGS=-tags=...` or set in shell  |
+| **Multi-module**               | `example/user/` has its own `go.mod` with `replace` directive back to root                                       | Must handle as separate Nix package            |
+| **buildflow**                  | Custom tool (github.com/larsartmann/buildflow), not in nixpkgs                                                   | Need custom derivation or `pkgs.buildGoModule` |
+| **branching-flow**             | Custom tool, likely same source as buildflow                                                                     | Same approach                                  |
+| **trash**                      | Used in Makefile `clean` target (safe delete)                                                                    | Available in nixpkgs                           |
+| **Zero-dependency philosophy** | Only stdlib + `google/uuid` + `cockroachdb/errors` + `go-json-experiment/json`                                   | Small `vendorHash`, fast builds                |
 
 ### 2.5 Dependencies (go.mod)
 
@@ -119,14 +121,14 @@ Minimal dependency tree — ideal for Nix.
 
 ### 3.1 Problems Solved
 
-| Problem | Current Impact | Nix Solution |
-|---|---|---|
-| **Tool version drift** | CI uses `@latest`, developers use whatever's installed | `flake.lock` pins exact hashes |
-| **Onboarding friction** | "Install Go 1.26, golangci-lint, gofumpt, goimports, golines, buildflow, trash..." | `nix develop` — one command |
-| **CI inconsistency** | `setup-go@v5` + `golangci-lint-action@v6` diverge from local tools | Same `flake.nix` in CI and local |
-| **Format checker mismatch** | `gofmt` in CI vs `gofumpt` locally | `nix fmt` uses exact same versions |
-| **Reproducibility** | No guarantee build works with different tool versions | Hash-locked, bit-for-bit reproducible |
-| **macOS ↔ Linux parity** | Developers on macOS, CI on Ubuntu | Multi-system `flake.nix` |
+| Problem                     | Current Impact                                                                     | Nix Solution                          |
+| --------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
+| **Tool version drift**      | CI uses `@latest`, developers use whatever's installed                             | `flake.lock` pins exact hashes        |
+| **Onboarding friction**     | "Install Go 1.26, golangci-lint, gofumpt, goimports, golines, buildflow, trash..." | `nix develop` — one command           |
+| **CI inconsistency**        | `setup-go@v5` + `golangci-lint-action@v6` diverge from local tools                 | Same `flake.nix` in CI and local      |
+| **Format checker mismatch** | `gofmt` in CI vs `gofumpt` locally                                                 | `nix fmt` uses exact same versions    |
+| **Reproducibility**         | No guarantee build works with different tool versions                              | Hash-locked, bit-for-bit reproducible |
+| **macOS ↔ Linux parity**    | Developers on macOS, CI on Ubuntu                                                  | Multi-system `flake.nix`              |
 
 ### 3.2 What Nix Flakes Give This Project
 
@@ -139,13 +141,13 @@ Minimal dependency tree — ideal for Nix.
 
 ### 3.3 Trade-offs
 
-| Pro | Con |
-|---|---|
-| Reproducibility | Learning curve for Nix |
-| One-command onboarding | `flake.lock` binary (occasional updates) |
+| Pro                    | Con                                              |
+| ---------------------- | ------------------------------------------------ |
+| Reproducibility        | Learning curve for Nix                           |
+| One-command onboarding | `flake.lock` binary (occasional updates)         |
 | Single source of truth | Custom tools (buildflow) need custom derivations |
-| Cross-platform parity | Nix itself must be installed |
-| Replaces Makefile | Makefile is simpler for non-Nix users |
+| Cross-platform parity  | Nix itself must be installed                     |
+| Replaces Makefile      | Makefile is simpler for non-Nix users            |
 
 ---
 
@@ -178,15 +180,16 @@ go-cqrs-lite/
 
 ### 4.2 Flake Inputs
 
-| Input | URL | Purpose | `follows` |
-|---|---|---|---|
-| `nixpkgs` | `github:NixOS/nixpkgs/nixos-unstable` | Package set | — |
-| `flake-parts` | `github:hercules-ci/flake-parts` | Modular flake outputs | `nixpkgs` |
-| `treefmt-nix` | `github:numtide/treefmt-nix` | Formatter orchestration | `nixpkgs` |
-| `git-hooks` | `github:cachix/git-hooks.nix` | Pre-commit hooks | `nixpkgs` |
-| `systems` | `github:nix-systems/default` | System matrix | — |
+| Input         | URL                                   | Purpose                 | `follows` |
+| ------------- | ------------------------------------- | ----------------------- | --------- |
+| `nixpkgs`     | `github:NixOS/nixpkgs/nixos-unstable` | Package set             | —         |
+| `flake-parts` | `github:hercules-ci/flake-parts`      | Modular flake outputs   | `nixpkgs` |
+| `treefmt-nix` | `github:numtide/treefmt-nix`          | Formatter orchestration | `nixpkgs` |
+| `git-hooks`   | `github:cachix/git-hooks.nix`         | Pre-commit hooks        | `nixpkgs` |
+| `systems`     | `github:nix-systems/default`          | System matrix           | —         |
 
 **Not included (deliberate):**
+
 - `gomod2nix` — Overkill for 3 direct dependencies. `buildGoModule` with `vendorHash` is simpler and sufficient.
 - `flake-utils` — `flake-parts` subsumes its functionality.
 
@@ -510,48 +513,48 @@ result-*
 
 ### Phase 1: Foundation (Day 1)
 
-| Step | Action | Verification |
-|---|---|---|
-| 1.1 | Create `flake.nix` (initial draft with `fakeHash`) | `nix flake check` shows hash mismatch error |
-| 1.2 | Run `nix build` to get real `vendorHash` values | Build succeeds |
-| 1.3 | Update `vendorHash` in `flake.nix` | `nix build` succeeds |
-| 1.4 | Verify `nix develop` works | `nix develop --run "go test ./..."` passes |
-| 1.5 | Verify `nix fmt` works | `nix fmt -- --check` reports correctly |
-| 1.6 | Create `.envrc` with `use flake` | `direnv allow` loads shell |
+| Step | Action                                             | Verification                                |
+| ---- | -------------------------------------------------- | ------------------------------------------- |
+| 1.1  | Create `flake.nix` (initial draft with `fakeHash`) | `nix flake check` shows hash mismatch error |
+| 1.2  | Run `nix build` to get real `vendorHash` values    | Build succeeds                              |
+| 1.3  | Update `vendorHash` in `flake.nix`                 | `nix build` succeeds                        |
+| 1.4  | Verify `nix develop` works                         | `nix develop --run "go test ./..."` passes  |
+| 1.5  | Verify `nix fmt` works                             | `nix fmt -- --check` reports correctly      |
+| 1.6  | Create `.envrc` with `use flake`                   | `direnv allow` loads shell                  |
 
 ### Phase 2: Buildflow Integration (Day 1-2)
 
-| Step | Action | Verification |
-|---|---|---|
-| 2.1 | Create `buildflow` derivation in flake | `nix build .#buildflow` succeeds |
-| 2.2 | Test `nix run .#buildflow -- --semantic --dupl-threshold 50` | Output matches manual buildflow |
-| 2.3 | Pin buildflow to specific commit hash | Reproducible builds |
+| Step | Action                                                       | Verification                     |
+| ---- | ------------------------------------------------------------ | -------------------------------- |
+| 2.1  | Create `buildflow` derivation in flake                       | `nix build .#buildflow` succeeds |
+| 2.2  | Test `nix run .#buildflow -- --semantic --dupl-threshold 50` | Output matches manual buildflow  |
+| 2.3  | Pin buildflow to specific commit hash                        | Reproducible builds              |
 
 ### Phase 3: Checks & Hooks (Day 2)
 
-| Step | Action | Verification |
-|---|---|---|
-| 3.1 | Add `treefmt-nix` formatter config | `nix fmt` formats all Go files |
-| 3.2 | Add `git-hooks` pre-commit config | `.git/hooks/pre-commit` installed |
-| 3.3 | Add all `checks` (build, vet, test, test-race, lint) | `nix flake check` passes |
+| Step | Action                                               | Verification                      |
+| ---- | ---------------------------------------------------- | --------------------------------- |
+| 3.1  | Add `treefmt-nix` formatter config                   | `nix fmt` formats all Go files    |
+| 3.2  | Add `git-hooks` pre-commit config                    | `.git/hooks/pre-commit` installed |
+| 3.3  | Add all `checks` (build, vet, test, test-race, lint) | `nix flake check` passes          |
 
 ### Phase 4: CI Migration (Day 2-3)
 
-| Step | Action | Verification |
-|---|---|---|
-| 4.1 | Create `.github/workflows/ci.yml` | CI passes on branch |
-| 4.2 | Verify coverage upload still works | Codecov receives report |
-| 4.3 | Rename old workflows with `.yml.bak` suffix | Old workflows disabled |
+| Step | Action                                      | Verification            |
+| ---- | ------------------------------------------- | ----------------------- |
+| 4.1  | Create `.github/workflows/ci.yml`           | CI passes on branch     |
+| 4.2  | Verify coverage upload still works          | Codecov receives report |
+| 4.3  | Rename old workflows with `.yml.bak` suffix | Old workflows disabled  |
 
 ### Phase 5: Documentation & Cleanup (Day 3)
 
-| Step | Action | Verification |
-|---|---|---|
-| 5.1 | Update `AGENTS.md` with Nix commands | Commands reference correct targets |
-| 5.2 | Update `CONTRIBUTING.md` with `nix develop` onboarding | New contributors can onboard |
-| 5.3 | Update `.gitignore` with Nix entries | `result` and `.direnv` ignored |
-| 5.4 | Add Nix section to `README.md` | Documented for visitors |
-| 5.5 | Decide fate of `Makefile` (see §6.4) | Decision recorded |
+| Step | Action                                                 | Verification                       |
+| ---- | ------------------------------------------------------ | ---------------------------------- |
+| 5.1  | Update `AGENTS.md` with Nix commands                   | Commands reference correct targets |
+| 5.2  | Update `CONTRIBUTING.md` with `nix develop` onboarding | New contributors can onboard       |
+| 5.3  | Update `.gitignore` with Nix entries                   | `result` and `.direnv` ignored     |
+| 5.4  | Add Nix section to `README.md`                         | Documented for visitors            |
+| 5.5  | Decide fate of `Makefile` (see §6.4)                   | Decision recorded                  |
 
 ### 6.4 Makefile: Keep or Remove?
 
@@ -588,23 +591,23 @@ This gives a graceful degradation path.
 
 ### 7.1 Current vs Proposed
 
-| Aspect | Current | Proposed |
-|---|---|---|
-| Workflows | 2 files (lint.yml, test.yml) | 1 file (ci.yml) |
-| Jobs | 5 (golangci, fmt, imports, test, build) | 1-2 (check, optionally split) |
-| Go setup | `setup-go@v5` + version string | Via `flake.nix` — single source of truth |
-| Module cache | `actions/cache@v4` with `go.sum` hash | Nix store (automatic) |
-| Lint action | `golangci-lint-action@v6` | Direct binary from nixpkgs |
-| Format check | `gofmt -l .` + `goimports -l .` | `nix fmt -- --check` |
-| Coverage | `codecov-action@v4` | Unchanged |
+| Aspect       | Current                                 | Proposed                                 |
+| ------------ | --------------------------------------- | ---------------------------------------- |
+| Workflows    | 2 files (lint.yml, test.yml)            | 1 file (ci.yml)                          |
+| Jobs         | 5 (golangci, fmt, imports, test, build) | 1-2 (check, optionally split)            |
+| Go setup     | `setup-go@v5` + version string          | Via `flake.nix` — single source of truth |
+| Module cache | `actions/cache@v4` with `go.sum` hash   | Nix store (automatic)                    |
+| Lint action  | `golangci-lint-action@v6`               | Direct binary from nixpkgs               |
+| Format check | `gofmt -l .` + `goimports -l .`         | `nix fmt -- --check`                     |
+| Coverage     | `codecov-action@v4`                     | Unchanged                                |
 
 ### 7.2 CI Caching Strategy
 
-| Option | Pros | Cons |
-|---|---|---|
-| **DeterminateSystems/nix-action** with `cache: true` | Simplest setup, uses GitHub Actions cache | External dependency |
-| **Cachix** (cachix-action) | Shared cache across branches/repos | Requires Cachix account + secrets |
-| **GitHub Actions cache** (nix-community/cache-nix-action) | No external service | More config |
+| Option                                                    | Pros                                      | Cons                              |
+| --------------------------------------------------------- | ----------------------------------------- | --------------------------------- |
+| **DeterminateSystems/nix-action** with `cache: true`      | Simplest setup, uses GitHub Actions cache | External dependency               |
+| **Cachix** (cachix-action)                                | Shared cache across branches/repos        | Requires Cachix account + secrets |
+| **GitHub Actions cache** (nix-community/cache-nix-action) | No external service                       | More config                       |
 
 **Recommendation:** Start with `DeterminateSystems/nix-action` for simplicity. Migrate to Cachix if/when build times warrant it.
 
@@ -612,16 +615,16 @@ This gives a graceful degradation path.
 
 ## 8. Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| **buildflow not in nixpkgs** | High | Medium | Package as custom `buildGoModule` derivation; pin to commit hash |
-| **Go 1.26 not yet in nixpkgs-unstable** | Low | High | Use `go_1_26` or fall back to `master` nixpkgs; Go versions land quickly |
-| **golangci-lint v2 config format** | Low | Low | `.golangci.yml` is tool-config, not Nix concern |
-| **Team unfamiliar with Nix** | Medium | Medium | Keep Makefile as fallback; document common workflows |
-| **Nix build slower than bare `go test`** | Low | Low | First build downloads; subsequent builds use Nix store cache |
-| **Go experiment flags not passing through** | Medium | Medium | Test in `shellHook` and `checks` with explicit `-tags=` flags |
-| **flake.lock churn** | Low | Low | Monthly update cadence; `nix flake update` is explicit |
-| **Multi-module complexity** | Low | Low | `example/user` is a separate package; main module is primary |
+| Risk                                        | Likelihood | Impact | Mitigation                                                               |
+| ------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------ |
+| **buildflow not in nixpkgs**                | High       | Medium | Package as custom `buildGoModule` derivation; pin to commit hash         |
+| **Go 1.26 not yet in nixpkgs-unstable**     | Low        | High   | Use `go_1_26` or fall back to `master` nixpkgs; Go versions land quickly |
+| **golangci-lint v2 config format**          | Low        | Low    | `.golangci.yml` is tool-config, not Nix concern                          |
+| **Team unfamiliar with Nix**                | Medium     | Medium | Keep Makefile as fallback; document common workflows                     |
+| **Nix build slower than bare `go test`**    | Low        | Low    | First build downloads; subsequent builds use Nix store cache             |
+| **Go experiment flags not passing through** | Medium     | Medium | Test in `shellHook` and `checks` with explicit `-tags=` flags            |
+| **flake.lock churn**                        | Low        | Low    | Monthly update cadence; `nix flake update` is explicit                   |
+| **Multi-module complexity**                 | Low        | Low    | `example/user` is a separate package; main module is primary             |
 
 ---
 
@@ -631,43 +634,43 @@ Key decisions the team needs to make:
 
 ### 9.1 Go Dependency Management
 
-| Option | Description | Recommendation |
-|---|---|---|
-| **A. `buildGoModule` + `vendorHash`** | Nix fetches deps, hashes vendor dir | ✅ **Recommended** — 3 direct deps, simple, no extra tooling |
-| B. `gomod2nix` | Generates `gomod2nix.toml` from `go.sum` | Overkill for this project's small dependency tree |
-| C. Vendored (`go mod vendor`) | Commit `vendor/` to git | Against project philosophy ("zero external dependencies") |
+| Option                                | Description                              | Recommendation                                               |
+| ------------------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| **A. `buildGoModule` + `vendorHash`** | Nix fetches deps, hashes vendor dir      | ✅ **Recommended** — 3 direct deps, simple, no extra tooling |
+| B. `gomod2nix`                        | Generates `gomod2nix.toml` from `go.sum` | Overkill for this project's small dependency tree            |
+| C. Vendored (`go mod vendor`)         | Commit `vendor/` to git                  | Against project philosophy ("zero external dependencies")    |
 
 ### 9.2 Flake Framework
 
-| Option | Description | Recommendation |
-|---|---|---|
-| **A. `flake-parts`** | Modular flake with imports | ✅ **Recommended** — Cleaner, supports modules |
-| B. Raw `outputs` function | Manual `forEachSystem` mapping | More boilerplate, but simpler to understand |
-| C. `flake-utils` | Lightweight system mapper | Superseded by `flake-parts` for this use case |
+| Option                    | Description                    | Recommendation                                 |
+| ------------------------- | ------------------------------ | ---------------------------------------------- |
+| **A. `flake-parts`**      | Modular flake with imports     | ✅ **Recommended** — Cleaner, supports modules |
+| B. Raw `outputs` function | Manual `forEachSystem` mapping | More boilerplate, but simpler to understand    |
+| C. `flake-utils`          | Lightweight system mapper      | Superseded by `flake-parts` for this use case  |
 
 ### 9.3 Formatter Strategy
 
-| Option | Description | Recommendation |
-|---|---|---|
-| **A. `treefmt-nix`** | Orchestrates multiple formatters via `nix fmt` | ✅ **Recommended** — Single command, Nix-pinned versions |
-| B. `golangci-lint` formatters only | Already configured in `.golangci.yml` | Fragmented — doesn't cover `nix fmt` |
-| C. Manual (gofumpt + goimports separately) | Current approach | No version pinning, multiple commands |
+| Option                                     | Description                                    | Recommendation                                           |
+| ------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------- |
+| **A. `treefmt-nix`**                       | Orchestrates multiple formatters via `nix fmt` | ✅ **Recommended** — Single command, Nix-pinned versions |
+| B. `golangci-lint` formatters only         | Already configured in `.golangci.yml`          | Fragmented — doesn't cover `nix fmt`                     |
+| C. Manual (gofumpt + goimports separately) | Current approach                               | No version pinning, multiple commands                    |
 
 ### 9.4 Pre-commit Hooks
 
-| Option | Description | Recommendation |
-|---|---|---|
-| **A. `git-hooks.nix` (cachix)** | Nix-native hook management | ✅ **Recommended** — Integrated with devShell |
-| B. `pre-commit` framework (Python) | Industry standard | Adds Python dependency; defeats purpose |
-| C. None | Skip pre-commit | Acceptable if CI catches everything |
+| Option                             | Description                | Recommendation                                |
+| ---------------------------------- | -------------------------- | --------------------------------------------- |
+| **A. `git-hooks.nix` (cachix)**    | Nix-native hook management | ✅ **Recommended** — Integrated with devShell |
+| B. `pre-commit` framework (Python) | Industry standard          | Adds Python dependency; defeats purpose       |
+| C. None                            | Skip pre-commit            | Acceptable if CI catches everything           |
 
 ### 9.5 CI Migration Strategy
 
-| Option | Description | Recommendation |
-|---|---|---|
-| **A. Full Nix CI** | Single `nix flake check` or `ci.yml` with Nix | ✅ **Recommended** — Ultimate parity |
-| B. Hybrid (Nix install + make) | Use Nix to install tools, then run Makefile | Transitional approach |
-| C. Keep current CI + add Nix check | Add a third workflow | Redundant, confusing |
+| Option                             | Description                                   | Recommendation                       |
+| ---------------------------------- | --------------------------------------------- | ------------------------------------ |
+| **A. Full Nix CI**                 | Single `nix flake check` or `ci.yml` with Nix | ✅ **Recommended** — Ultimate parity |
+| B. Hybrid (Nix install + make)     | Use Nix to install tools, then run Makefile   | Transitional approach                |
+| C. Keep current CI + add Nix check | Add a third workflow                          | Redundant, confusing                 |
 
 ---
 
@@ -696,22 +699,22 @@ Day 3  ── Phase 5: Documentation & Cleanup
 
 ## Appendix A: Command Reference
 
-| Old Command | New Command |
-|---|---|
-| `make all` | `nix flake check && nix fmt` |
-| `make build` | `nix build` |
-| `make test` | `nix develop --run "go test ./... -v"` |
-| `make test-race` | `nix develop --run "go test ./... -race"` |
-| `make lint` | `nix develop --run "golangci-lint run"` |
-| `make fmt` | `nix fmt` |
-| `make imports` | (included in `nix fmt`) |
-| `make vet` | `nix develop --run "go vet ./..."` |
-| `make coverage` | `nix develop --run "go test ./... -coverprofile=coverage.out"` |
-| `make check` | `nix flake check` |
-| `make ci` | `nix flake check` |
-| `make clean` | `nix develop --run "trash coverage.* && go clean -testcache"` |
-| `buildflow --semantic --fix --dupl-threshold 50` | `nix run .#buildflow -- --semantic --fix --dupl-threshold 50` |
-| (new contributor setup) | `nix develop` |
+| Old Command                                      | New Command                                                    |
+| ------------------------------------------------ | -------------------------------------------------------------- |
+| `make all`                                       | `nix flake check && nix fmt`                                   |
+| `make build`                                     | `nix build`                                                    |
+| `make test`                                      | `nix develop --run "go test ./... -v"`                         |
+| `make test-race`                                 | `nix develop --run "go test ./... -race"`                      |
+| `make lint`                                      | `nix develop --run "golangci-lint run"`                        |
+| `make fmt`                                       | `nix fmt`                                                      |
+| `make imports`                                   | (included in `nix fmt`)                                        |
+| `make vet`                                       | `nix develop --run "go vet ./..."`                             |
+| `make coverage`                                  | `nix develop --run "go test ./... -coverprofile=coverage.out"` |
+| `make check`                                     | `nix flake check`                                              |
+| `make ci`                                        | `nix flake check`                                              |
+| `make clean`                                     | `nix develop --run "trash coverage.* && go clean -testcache"`  |
+| `buildflow --semantic --fix --dupl-threshold 50` | `nix run .#buildflow -- --semantic --fix --dupl-threshold 50`  |
+| (new contributor setup)                          | `nix develop`                                                  |
 
 ## Appendix B: First-Time Setup Commands
 

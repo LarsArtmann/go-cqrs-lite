@@ -10,9 +10,9 @@ import (
 
 // logContext holds common logging context for middleware.
 type logContext struct {
-	prefix       string
-	msgType      string
-	aggregateID  string
+	prefix      string
+	msgType     string
+	aggregateID string
 }
 
 func logWithContext(logger Logger, lc logContext, fn func() error) error {

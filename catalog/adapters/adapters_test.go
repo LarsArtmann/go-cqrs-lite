@@ -17,20 +17,20 @@ import (
 type testCreateUser struct {
 	*command.CatalogCore
 
-	Name  string `json:"name" doc:"Full name of the user"`
-	Email string `json:"email" doc:"Email address"`
+	Name  string `doc:"Full name of the user" json:"name"`
+	Email string `doc:"Email address"         json:"email"`
 }
 
 type testChangeEmail struct {
 	*command.CatalogCore
 
-	NewEmail string `json:"newEmail" doc:"New email address"`
+	NewEmail string `doc:"New email address" json:"newEmail"`
 }
 
 type testGetUser struct {
 	*query.CatalogCore
 
-	UserID string `json:"userId" doc:"ID of the user to retrieve"`
+	UserID string `doc:"ID of the user to retrieve" json:"userId"`
 }
 
 func TestBuilder_AddCommand(t *testing.T) {
@@ -120,14 +120,15 @@ func TestBuilder_AddEvent(t *testing.T) {
 	type orderCreated struct {
 		*event.EventCatalogCore
 
-		OrderID string  `json:"orderId" doc:"Unique order ID"`
-		Amount  float64 `json:"amount" doc:"Total amount"`
+		OrderID string  `doc:"Unique order ID" json:"orderId"`
+		Amount  float64 `doc:"Total amount"    json:"amount"`
 	}
 
 	evt := &orderCreated{EventCatalogCore: evtCore}
 	builder.AddEvent("order-svc", evt)
 
 	cat := builder.Build()
+
 	svc := cat.Services[0]
 	if len(svc.Events) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(svc.Events))
@@ -172,6 +173,7 @@ func TestBuilder_AddQuery(t *testing.T) {
 	builder.AddQuery("user-svc", qry)
 
 	cat := builder.Build()
+
 	svc := cat.Services[0]
 	if len(svc.Queries) != 1 {
 		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
@@ -232,7 +234,8 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	}
 	builder.AddCommand("order-svc", cmd)
 
-	if err := builder.ExportEventCatalog(tmpDir); err != nil {
+	err := builder.ExportEventCatalog(tmpDir)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -241,7 +244,14 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 		t.Error("service index.mdx not created")
 	}
 
-	cmdPath := filepath.Join(tmpDir, "services", "order-svc", "commands", "order.create", "index.mdx")
+	cmdPath := filepath.Join(
+		tmpDir,
+		"services",
+		"order-svc",
+		"commands",
+		"order.create",
+		"index.mdx",
+	)
 	if _, err := os.Stat(cmdPath); os.IsNotExist(err) {
 		t.Errorf("command index.mdx not created at %s", cmdPath)
 	}
@@ -310,6 +320,7 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 	})
 
 	cat := builder.Build()
+
 	svc := cat.Services[0]
 	if len(svc.Commands) != 2 {
 		t.Errorf("expected 2 commands, got %d", len(svc.Commands))

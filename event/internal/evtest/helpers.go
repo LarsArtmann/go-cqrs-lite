@@ -86,6 +86,7 @@ func NoopHandler() event.Handler {
 func CallbackHandler(fn func()) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
 		fn()
+
 		return nil
 	}
 }

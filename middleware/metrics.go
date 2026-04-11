@@ -8,7 +8,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func recordMetrics(rec MetricsRecorder, operation string, err error, label string, elapsed time.Duration) {
+func recordMetrics(
+	rec MetricsRecorder,
+	operation string,
+	err error,
+	label string,
+	elapsed time.Duration,
+) {
 	if err != nil {
 		rec.Observe(operation+"_error", elapsed, "type", label)
 	} else {

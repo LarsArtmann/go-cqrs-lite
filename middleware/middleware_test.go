@@ -84,6 +84,7 @@ func panicEventHandler(msg string) event.Handler {
 func callbackCommandHandler(called *bool) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
 		*called = true
+
 		return nil
 	}
 }

@@ -13,7 +13,7 @@ const (
 type CreateUser struct {
 	*command.CatalogCore
 
-	Name  string `json:"name" doc:"Full name of the user"`
+	Name  string `json:"name"  doc:"Full name of the user"`
 	Email string `json:"email" doc:"Email address of the user"`
 }
 
