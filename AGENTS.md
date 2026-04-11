@@ -158,7 +158,7 @@ The `catalog` package provides automatic documentation generation from Go CQRS t
 
 1. **Custom YAML marshaler** (`catalog/yaml/yaml.go`) — Zero new dependencies. Uses `reflect` to handle structs (via `marshalFields` with `[]structField`), maps, slices, primitives. Structs must use `marshalFields` not `marshalMap` to avoid `reflect.Value` being treated as a terminal type.
 
-2. **Reflection-based schema generation** — `SchemaFromType[T any]() *Schema` uses `reflect.TypeOf` to inspect struct fields. Reads `json` (name + omitempty), `doc`/`description` (description), and `format` (format) struct tags. Returns `*Schema` with no error.
+2. **Reflection-based schema generation** — `SchemaFromType[T any]() *Schema` uses `reflect.TypeOf` to inspect struct fields. Reads `json` (name + omitempty), `doc`/`description` (description), and `format` (format) struct tags. Returns `*Schema` with no error. **Anonymous (embedded) fields are automatically skipped** — structs embedding `*CatalogCore` or `*Core` won't leak internal fields into schemas.
 
 3. **Type alias for MarshalJSON** — AsyncAPI `Document.MarshalJSON()` uses `type alias Document` to break infinite recursion when calling `json.MarshalIndent`.
 
@@ -166,7 +166,9 @@ The `catalog` package provides automatic documentation generation from Go CQRS t
 
 5. **AsyncAPI mapping** — Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive`. Channel addresses via `toDotAddress` (CamelCase → dot.separated).
 
-6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. `eventcatalog.config.js` generated at root.
+6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. `eventcatalog.config.js` generated at root. Service frontmatter includes `sends`, `receives`, `commands`, and `queries` lists.
+
+7. **Catalog adapters** (`catalog/adapters`) — `CatalogBuilder` provides instance-based methods (`AddCommand`, `AddEvent`, `AddQuery`) and generic zero-instance methods (`AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`). Generic methods use `SchemaFromType[T]()` for compile-time safety without needing a constructed instance. `AddService` takes `(id, name, version, summary)`.
 
 ### CRITICAL: GOWORK=off
 
