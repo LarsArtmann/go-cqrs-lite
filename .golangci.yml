@@ -124,6 +124,16 @@ linters:
     - wsl_v5
     - zerologlint
   default: none
+  settings:
+    depguard:
+      rules:
+        Main:
+          allow:
+            - $gostd
+            - github.com/larsartmann/go-cqrs-lite
+            - github.com/google/uuid
+            - github.com/cockroachdb/errors
+            - github.com/go-json-experiment/json
 formatters:
   enable:
     - gci
