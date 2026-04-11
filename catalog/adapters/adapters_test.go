@@ -393,3 +393,79 @@ func TestBuilder_AddQueryFromType(t *testing.T) {
 		t.Error("schema missing 'userId' property")
 	}
 }
+
+func TestBuilder_FromCommandDispatcher(t *testing.T) {
+	t.Parallel()
+
+	d := command.NewDispatcher()
+	d.RegisterCatalogEntry("user.create", command.CatalogMeta{
+		Name:    "CreateUser",
+		Version: "1.0.0",
+		Summary: "Creates a new user",
+	})
+	d.RegisterCatalogEntry("user.change_email", command.CatalogMeta{
+		Name:    "ChangeEmail",
+		Version: "1.0.0",
+		Summary: "Changes user email",
+	})
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users")
+	adapters.FromCommandDispatcher(builder, "user-svc", d)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	if len(svc.Commands) != 2 {
+		t.Fatalf("expected 2 commands, got %d", len(svc.Commands))
+	}
+
+	found := map[string]bool{}
+	for _, cmd := range svc.Commands {
+		found[cmd.ID] = true
+		if cmd.Kind != catalog.CommandMessage {
+			t.Errorf("kind = %v, want command", cmd.Kind)
+		}
+
+		if cmd.Direction != catalog.Receives {
+			t.Errorf("direction = %v, want receives", cmd.Direction)
+		}
+	}
+
+	if !found["user.create"] {
+		t.Error("missing user.create command")
+	}
+
+	if !found["user.change_email"] {
+		t.Error("missing user.change_email command")
+	}
+}
+
+func TestBuilder_FromQueryDispatcher(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+	d.RegisterCatalogEntry("user.get", query.CatalogMeta{
+		Name:    "GetUser",
+		Version: "1.0.0",
+		Summary: "Gets a user by ID",
+	})
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
+	adapters.FromQueryDispatcher(builder, "user-svc", d)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	if len(svc.Queries) != 1 {
+		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
+	}
+
+	qry := svc.Queries[0]
+	if qry.ID != "user.get" {
+		t.Errorf("ID = %q, want user.get", qry.ID)
+	}
+
+	if qry.Name != "GetUser" {
+		t.Errorf("name = %q, want GetUser", qry.Name)
+	}
+}
