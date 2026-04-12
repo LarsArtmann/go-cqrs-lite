@@ -40,32 +40,32 @@ ok  xtypes                   0.002s   ← FIXED (was build failure)
 
 ## a) FULLY DONE
 
-| # | Task | Files | Impact |
-|---|------|-------|--------|
-| 1 | Skip anonymous embedded fields in schema generation | `catalog/schema.go:61`, `catalog/schema_test.go` | `*CatalogCore`/`*Core` no longer leak internal fields into JSON schemas. Anonymous fields are now silently skipped. |
-| 2 | Add generic `AddCommandFromType[T]()` method | `catalog/adapters/command.go:50-69` | Zero-instance, compile-time-safe command registration. Uses `SchemaFromType[T]()` instead of requiring a constructed value. |
-| 3 | Add generic `AddEventFromType[T]()` method | `catalog/adapters/event.go:58-80` | Same for events. Accepts explicit `direction` parameter. |
-| 4 | Add generic `AddQueryFromType[T]()` method | `catalog/adapters/query.go:30-48` | Same for queries. |
-| 5 | Add version parameter to `AddService()` | `catalog/adapters/builder.go:89` | `AddService(id, name, version, summary)` — services now have proper version metadata in generated catalogs. |
-| 6 | Add commands/queries to EventCatalog service frontmatter | `catalog/eventcatalog/exporter.go:122-134` | Service `index.mdx` now lists `commands:` and `queries:` alongside `sends:`/`receives:`. |
-| 7 | Fix xtypes build failure (`%s` → `%v` for generic T) | `xtypes/xtypes_test.go:25` | `assertMetadataID[T]` used `%s` format verb which doesn't work with arbitrary comparable types. |
-| 8 | Fix event fuzz test failure (vertical tab handling) | `event/fuzz_test.go:78-80` | Replaced manual `trimSpaces` with `strings.TrimSpace` which handles `\v`, `\f`, and unicode spaces. |
-| 9 | Fix depguard linter config (51+ → 0 warnings) | `.golangci.yml:128-137` | Added allow-rules for `$gostd`, internal packages, and all 3 declared dependencies. |
-| 10 | Add tests for generic FromType methods | `catalog/adapters/adapters_test.go` | `TestBuilder_AddCommandFromType`, `TestBuilder_AddQueryFromType` — verify schema extraction and embedded field skipping. |
-| 11 | Add test for commands/queries in frontmatter | `catalog/eventcatalog/exporter_test.go` | `TestExporter_Export_CommandsAndQueriesInServiceFrontmatter` — verifies frontmatter contains both lists. |
-| 12 | Add schema tests for anonymous embedded fields | `catalog/schema_test.go` | `TestSchemaFromType_SkipsAnonymousEmbeddedFields`, `TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields` |
-| 13 | Update AGENTS.md | `AGENTS.md` | Documented anonymous field filtering, generic adapter API, and EventCatalog frontmatter fields. |
-| 14 | Update example/catalog for new AddService signature | `example/catalog/main.go:42` | `AddService("user-service", "User Service", "1.0.0", "Manages user accounts")` |
+| #   | Task                                                     | Files                                            | Impact                                                                                                                      |
+| --- | -------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Skip anonymous embedded fields in schema generation      | `catalog/schema.go:61`, `catalog/schema_test.go` | `*CatalogCore`/`*Core` no longer leak internal fields into JSON schemas. Anonymous fields are now silently skipped.         |
+| 2   | Add generic `AddCommandFromType[T]()` method             | `catalog/adapters/command.go:50-69`              | Zero-instance, compile-time-safe command registration. Uses `SchemaFromType[T]()` instead of requiring a constructed value. |
+| 3   | Add generic `AddEventFromType[T]()` method               | `catalog/adapters/event.go:58-80`                | Same for events. Accepts explicit `direction` parameter.                                                                    |
+| 4   | Add generic `AddQueryFromType[T]()` method               | `catalog/adapters/query.go:30-48`                | Same for queries.                                                                                                           |
+| 5   | Add version parameter to `AddService()`                  | `catalog/adapters/builder.go:89`                 | `AddService(id, name, version, summary)` — services now have proper version metadata in generated catalogs.                 |
+| 6   | Add commands/queries to EventCatalog service frontmatter | `catalog/eventcatalog/exporter.go:122-134`       | Service `index.mdx` now lists `commands:` and `queries:` alongside `sends:`/`receives:`.                                    |
+| 7   | Fix xtypes build failure (`%s` → `%v` for generic T)     | `xtypes/xtypes_test.go:25`                       | `assertMetadataID[T]` used `%s` format verb which doesn't work with arbitrary comparable types.                             |
+| 8   | Fix event fuzz test failure (vertical tab handling)      | `event/fuzz_test.go:78-80`                       | Replaced manual `trimSpaces` with `strings.TrimSpace` which handles `\v`, `\f`, and unicode spaces.                         |
+| 9   | Fix depguard linter config (51+ → 0 warnings)            | `.golangci.yml:128-137`                          | Added allow-rules for `$gostd`, internal packages, and all 3 declared dependencies.                                         |
+| 10  | Add tests for generic FromType methods                   | `catalog/adapters/adapters_test.go`              | `TestBuilder_AddCommandFromType`, `TestBuilder_AddQueryFromType` — verify schema extraction and embedded field skipping.    |
+| 11  | Add test for commands/queries in frontmatter             | `catalog/eventcatalog/exporter_test.go`          | `TestExporter_Export_CommandsAndQueriesInServiceFrontmatter` — verifies frontmatter contains both lists.                    |
+| 12  | Add schema tests for anonymous embedded fields           | `catalog/schema_test.go`                         | `TestSchemaFromType_SkipsAnonymousEmbeddedFields`, `TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields`                 |
+| 13  | Update AGENTS.md                                         | `AGENTS.md`                                      | Documented anonymous field filtering, generic adapter API, and EventCatalog frontmatter fields.                             |
+| 14  | Update example/catalog for new AddService signature      | `example/catalog/main.go:42`                     | `AddService("user-service", "User Service", "1.0.0", "Manages user accounts")`                                              |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Task | Status | What's Missing |
-|---|------|--------|----------------|
-| 1 | Wire `example/user` aggregate to use catalog-aware event constructors | Constructors `NewUserCreated`/`NewUserEmailChanged` exist in `events.go` but `aggregate.go:62,95` still uses raw `event.NewEvent()`. | The aggregate should call `NewUserCreated(payload)` / `NewUserEmailChanged(payload)` instead of manual `json.Marshal` + `event.NewEvent()`. |
-| 2 | `example/user/events.go` missing `AggregateType` in catalog meta | `EventCatalogMeta` at lines 41-44, 68-71 has `Name`, `Version`, `Summary` but omits `AggregateType` field (which exists on the struct). | Should set `AggregateType: AggregateType` in both event constructors for completeness. |
-| 3 | Schema generation for `time.Time` fields | `schemaFromReflect` at line 48 checks `t.Kind() != reflect.Struct` but doesn't special-case `time.Time` → generates `{"type":"object","properties":{...}}` with all internal time fields instead of `{"type":"string","format":"date-time"}`. | Need a type-path check: if `t.String() == "time.Time"` or `t.PkgPath() == "time"`, return `{type:"string", format:"date-time"}`. |
+| #   | Task                                                                  | Status                                                                                                                                                                                                                                        | What's Missing                                                                                                                              |
+| --- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Wire `example/user` aggregate to use catalog-aware event constructors | Constructors `NewUserCreated`/`NewUserEmailChanged` exist in `events.go` but `aggregate.go:62,95` still uses raw `event.NewEvent()`.                                                                                                          | The aggregate should call `NewUserCreated(payload)` / `NewUserEmailChanged(payload)` instead of manual `json.Marshal` + `event.NewEvent()`. |
+| 2   | `example/user/events.go` missing `AggregateType` in catalog meta      | `EventCatalogMeta` at lines 41-44, 68-71 has `Name`, `Version`, `Summary` but omits `AggregateType` field (which exists on the struct).                                                                                                       | Should set `AggregateType: AggregateType` in both event constructors for completeness.                                                      |
+| 3   | Schema generation for `time.Time` fields                              | `schemaFromReflect` at line 48 checks `t.Kind() != reflect.Struct` but doesn't special-case `time.Time` → generates `{"type":"object","properties":{...}}` with all internal time fields instead of `{"type":"string","format":"date-time"}`. | Need a type-path check: if `t.String() == "time.Time"` or `t.PkgPath() == "time"`, return `{type:"string", format:"date-time"}`.            |
 
 ---
 
@@ -73,57 +73,57 @@ ok  xtypes                   0.002s   ← FIXED (was build failure)
 
 ### High Priority
 
-| # | Task | Priority | Effort | Est |
-|---|------|----------|--------|-----|
-| 1 | Fix `time.Time` → `{type:"string", format:"date-time"}` in schema gen | HIGH | LOW | 8m |
-| 2 | Wire `example/user/aggregate.go` to use `NewUserCreated`/`NewUserEmailChanged` | HIGH | LOW | 10m |
-| 3 | Add `AggregateType` to example/user event catalog meta | HIGH | LOW | 4m |
-| 4 | Add `enum` struct tag support to Schema/Property | MED | LOW | 10m |
-| 5 | Add `default` struct tag support to Schema/Property | MED | LOW | 6m |
-| 6 | Add `Examples` field to AsyncAPI Message type | MED | LOW | 4m |
-| 7 | Wire `catalog.Message.Examples` → AsyncAPI export | MED | LOW | 6m |
-| 8 | Wire `catalog.Message.Examples` → EventCatalog export | MED | LOW | 6m |
+| #   | Task                                                                           | Priority | Effort | Est |
+| --- | ------------------------------------------------------------------------------ | -------- | ------ | --- |
+| 1   | Fix `time.Time` → `{type:"string", format:"date-time"}` in schema gen          | HIGH     | LOW    | 8m  |
+| 2   | Wire `example/user/aggregate.go` to use `NewUserCreated`/`NewUserEmailChanged` | HIGH     | LOW    | 10m |
+| 3   | Add `AggregateType` to example/user event catalog meta                         | HIGH     | LOW    | 4m  |
+| 4   | Add `enum` struct tag support to Schema/Property                               | MED      | LOW    | 10m |
+| 5   | Add `default` struct tag support to Schema/Property                            | MED      | LOW    | 6m  |
+| 6   | Add `Examples` field to AsyncAPI Message type                                  | MED      | LOW    | 4m  |
+| 7   | Wire `catalog.Message.Examples` → AsyncAPI export                              | MED      | LOW    | 6m  |
+| 8   | Wire `catalog.Message.Examples` → EventCatalog export                          | MED      | LOW    | 6m  |
 
 ### Medium Priority
 
-| # | Task | Priority | Effort | Est |
-|---|------|----------|--------|-----|
-| 9 | Generate `llms.txt` alongside EventCatalog output | MED | LOW | 10m |
-| 10 | Add `RegisterCatalogEntry()` to command.Dispatcher (option B) | MED | MED | 10m |
-| 11 | Add `CatalogEntries()` accessor to command.Dispatcher | MED | MED | 8m |
-| 12 | Add `RegisterCatalogEntry()` to query.Dispatcher | MED | MED | 8m |
-| 13 | Add `CatalogEntries()` accessor to query.Dispatcher | MED | MED | 6m |
-| 14 | Add `FromDispatcher()` to CatalogBuilder | MED | LOW | 8m |
-| 15 | Wire `example/user/main.go` to catalog builder | MED | LOW | 6m |
-| 16 | Test `example/catalog` runs in CI (`go run .`) | MED | LOW | 6m |
+| #   | Task                                                          | Priority | Effort | Est |
+| --- | ------------------------------------------------------------- | -------- | ------ | --- |
+| 9   | Generate `llms.txt` alongside EventCatalog output             | MED      | LOW    | 10m |
+| 10  | Add `RegisterCatalogEntry()` to command.Dispatcher (option B) | MED      | MED    | 10m |
+| 11  | Add `CatalogEntries()` accessor to command.Dispatcher         | MED      | MED    | 8m  |
+| 12  | Add `RegisterCatalogEntry()` to query.Dispatcher              | MED      | MED    | 8m  |
+| 13  | Add `CatalogEntries()` accessor to query.Dispatcher           | MED      | MED    | 6m  |
+| 14  | Add `FromDispatcher()` to CatalogBuilder                      | MED      | LOW    | 8m  |
+| 15  | Wire `example/user/main.go` to catalog builder                | MED      | LOW    | 6m  |
+| 16  | Test `example/catalog` runs in CI (`go run .`)                | MED      | LOW    | 6m  |
 
 ### Low Priority
 
-| # | Task | Priority | Effort | Est |
-|---|------|----------|--------|-----|
-| 17 | Add `catalog/adapters` to cattest helpers | LOW | LOW | 8m |
-| 18 | Add `AddChannel()` to CatalogBuilder | LOW | LOW | 8m |
-| 19 | Add README section for generic FromType methods | LOW | LOW | 8m |
-| 20 | Add benchmarks for adapters package | LOW | LOW | 8m |
-| 21 | EventCatalog: custom MDX body content via Message field | LOW | MED | 10m |
-| 22 | EventCatalog: generate `package.json` for deployment | LOW | MED | 10m |
-| 23 | YAML frontmatter: versioned message paths | LOW | LOW | 8m |
-| 24 | YAML frontmatter: configurable owners list | LOW | LOW | 6m |
-| 25 | Schema: support `nullable`, `deprecated`, `pattern`, `minimum`/`maximum` tags | LOW | MED | 20m |
-| 26 | Add `gofumpt`/`goimports` to pre-commit hook | LOW | LOW | 6m |
-| 27 | Update ROADMAP.md with catalog improvements | LOW | LOW | 4m |
-| 28 | Research jsonschema libs vs. our reflect approach | LOW | MED | 12m |
-| 29 | Add GoDoc package examples for catalog/adapters | LOW | LOW | 10m |
+| #   | Task                                                                          | Priority | Effort | Est |
+| --- | ----------------------------------------------------------------------------- | -------- | ------ | --- |
+| 17  | Add `catalog/adapters` to cattest helpers                                     | LOW      | LOW    | 8m  |
+| 18  | Add `AddChannel()` to CatalogBuilder                                          | LOW      | LOW    | 8m  |
+| 19  | Add README section for generic FromType methods                               | LOW      | LOW    | 8m  |
+| 20  | Add benchmarks for adapters package                                           | LOW      | LOW    | 8m  |
+| 21  | EventCatalog: custom MDX body content via Message field                       | LOW      | MED    | 10m |
+| 22  | EventCatalog: generate `package.json` for deployment                          | LOW      | MED    | 10m |
+| 23  | YAML frontmatter: versioned message paths                                     | LOW      | LOW    | 8m  |
+| 24  | YAML frontmatter: configurable owners list                                    | LOW      | LOW    | 6m  |
+| 25  | Schema: support `nullable`, `deprecated`, `pattern`, `minimum`/`maximum` tags | LOW      | MED    | 20m |
+| 26  | Add `gofumpt`/`goimports` to pre-commit hook                                  | LOW      | LOW    | 6m  |
+| 27  | Update ROADMAP.md with catalog improvements                                   | LOW      | LOW    | 4m  |
+| 28  | Research jsonschema libs vs. our reflect approach                             | LOW      | MED    | 12m |
+| 29  | Add GoDoc package examples for catalog/adapters                               | LOW      | LOW    | 10m |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | Issue | Severity | Status |
-|---|-------|----------|--------|
-| 1 | `time.Time` fields produce `{type:"object"}` instead of `{type:"string",format:"date-time"}` in schemas | HIGH | **NOT FIXED** — affects any event/command with timestamp fields. `schemaFromReflect` has no special-case for `time.Time`. |
-| 2 | `example/user/aggregate.go` ignores catalog-aware constructors | LOW | Catalog constructors exist but aggregate still uses raw `event.NewEvent()`. Example is misleading. |
-| 3 | ~200 golangci-lint warnings remain | COSMETIC | exhaustruct, revive, wsl_v5, tagalign — all non-blocking but noisy. Root cause: aggressive linter config (60+ linters enabled). |
+| #   | Issue                                                                                                   | Severity | Status                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `time.Time` fields produce `{type:"object"}` instead of `{type:"string",format:"date-time"}` in schemas | HIGH     | **NOT FIXED** — affects any event/command with timestamp fields. `schemaFromReflect` has no special-case for `time.Time`.       |
+| 2   | `example/user/aggregate.go` ignores catalog-aware constructors                                          | LOW      | Catalog constructors exist but aggregate still uses raw `event.NewEvent()`. Example is misleading.                              |
+| 3   | ~200 golangci-lint warnings remain                                                                      | COSMETIC | exhaustruct, revive, wsl_v5, tagalign — all non-blocking but noisy. Root cause: aggressive linter config (60+ linters enabled). |
 
 ---
 
@@ -147,33 +147,33 @@ ok  xtypes                   0.002s   ← FIXED (was build failure)
 
 Sorted by impact × effort (highest first):
 
-| # | Task | Impact | Effort | Est | Category |
-|---|------|--------|--------|-----|----------|
-| 1 | Fix `time.Time` → `{type:"string",format:"date-time"}` in schemas | HIGH | LOW | 8m | Bug |
-| 2 | Wire `example/user/aggregate.go` to catalog-aware constructors | HIGH | LOW | 10m | Fix |
-| 3 | Add `AggregateType` to example/user event catalog meta | MED | LOW | 4m | Fix |
-| 4 | Add `enum` struct tag to Schema/Property + parsing + tests | MED | LOW | 18m | Feature |
-| 5 | Add `default` struct tag to Schema/Property + parsing + tests | MED | LOW | 10m | Feature |
-| 6 | Add `Examples` to AsyncAPI Message + wire from catalog | MED | LOW | 10m | Feature |
-| 7 | Wire `Message.Examples` → EventCatalog export | MED | LOW | 6m | Feature |
-| 8 | Generate `llms.txt` alongside EventCatalog output + test | MED | LOW | 18m | Feature |
-| 9 | Add `RegisterCatalogEntry()` to command.Dispatcher + test | MED | MED | 20m | Feature |
-| 10 | Add `CatalogEntries()` accessor to command.Dispatcher | MED | MED | 8m | Feature |
-| 11 | Add `RegisterCatalogEntry()` to query.Dispatcher + test | MED | MED | 16m | Feature |
-| 12 | Add `FromDispatcher()` to CatalogBuilder + integration test | MED | LOW | 18m | Feature |
-| 13 | Wire `example/user/main.go` to catalog builder | MED | LOW | 6m | Example |
-| 14 | Test `example/catalog` runs in CI | MED | LOW | 6m | CI |
-| 15 | Add `catalog/adapters` to cattest helpers | LOW | LOW | 8m | Refactor |
-| 16 | Add `AddChannel()` to CatalogBuilder + test | LOW | LOW | 14m | Feature |
-| 17 | Add README section for generic FromType methods | LOW | LOW | 8m | Docs |
-| 18 | Add benchmarks for adapters package | LOW | LOW | 8m | Perf |
-| 19 | EventCatalog: custom MDX body content | LOW | MED | 10m | Feature |
-| 20 | EventCatalog: generate `package.json` for deployment | LOW | MED | 10m | Feature |
-| 21 | YAML frontmatter: versioned paths + configurable owners | LOW | LOW | 14m | Feature |
-| 22 | Schema: `nullable`/`deprecated`/`pattern`/`min-max` tags | LOW | MED | 20m | Feature |
-| 23 | Research jsonschema libs vs. reflect approach | LOW | MED | 12m | Research |
-| 24 | Update ROADMAP.md | LOW | LOW | 4m | Docs |
-| 25 | Add GoDoc package examples for catalog/adapters | LOW | LOW | 10m | Docs |
+| #   | Task                                                              | Impact | Effort | Est | Category |
+| --- | ----------------------------------------------------------------- | ------ | ------ | --- | -------- |
+| 1   | Fix `time.Time` → `{type:"string",format:"date-time"}` in schemas | HIGH   | LOW    | 8m  | Bug      |
+| 2   | Wire `example/user/aggregate.go` to catalog-aware constructors    | HIGH   | LOW    | 10m | Fix      |
+| 3   | Add `AggregateType` to example/user event catalog meta            | MED    | LOW    | 4m  | Fix      |
+| 4   | Add `enum` struct tag to Schema/Property + parsing + tests        | MED    | LOW    | 18m | Feature  |
+| 5   | Add `default` struct tag to Schema/Property + parsing + tests     | MED    | LOW    | 10m | Feature  |
+| 6   | Add `Examples` to AsyncAPI Message + wire from catalog            | MED    | LOW    | 10m | Feature  |
+| 7   | Wire `Message.Examples` → EventCatalog export                     | MED    | LOW    | 6m  | Feature  |
+| 8   | Generate `llms.txt` alongside EventCatalog output + test          | MED    | LOW    | 18m | Feature  |
+| 9   | Add `RegisterCatalogEntry()` to command.Dispatcher + test         | MED    | MED    | 20m | Feature  |
+| 10  | Add `CatalogEntries()` accessor to command.Dispatcher             | MED    | MED    | 8m  | Feature  |
+| 11  | Add `RegisterCatalogEntry()` to query.Dispatcher + test           | MED    | MED    | 16m | Feature  |
+| 12  | Add `FromDispatcher()` to CatalogBuilder + integration test       | MED    | LOW    | 18m | Feature  |
+| 13  | Wire `example/user/main.go` to catalog builder                    | MED    | LOW    | 6m  | Example  |
+| 14  | Test `example/catalog` runs in CI                                 | MED    | LOW    | 6m  | CI       |
+| 15  | Add `catalog/adapters` to cattest helpers                         | LOW    | LOW    | 8m  | Refactor |
+| 16  | Add `AddChannel()` to CatalogBuilder + test                       | LOW    | LOW    | 14m | Feature  |
+| 17  | Add README section for generic FromType methods                   | LOW    | LOW    | 8m  | Docs     |
+| 18  | Add benchmarks for adapters package                               | LOW    | LOW    | 8m  | Perf     |
+| 19  | EventCatalog: custom MDX body content                             | LOW    | MED    | 10m | Feature  |
+| 20  | EventCatalog: generate `package.json` for deployment              | LOW    | MED    | 10m | Feature  |
+| 21  | YAML frontmatter: versioned paths + configurable owners           | LOW    | LOW    | 14m | Feature  |
+| 22  | Schema: `nullable`/`deprecated`/`pattern`/`min-max` tags          | LOW    | MED    | 20m | Feature  |
+| 23  | Research jsonschema libs vs. reflect approach                     | LOW    | MED    | 12m | Research |
+| 24  | Update ROADMAP.md                                                 | LOW    | LOW    | 4m  | Docs     |
+| 25  | Add GoDoc package examples for catalog/adapters                   | LOW    | LOW    | 10m | Docs     |
 
 ---
 
@@ -182,6 +182,7 @@ Sorted by impact × effort (highest first):
 **Should we add `time.Time` handling as a hardcoded special-case in `schemaFromReflect`, or should we design a general "type override" registry?**
 
 Options:
+
 - **A)** Hardcode `if t.String() == "time.Time"` → `{type:"string", format:"date-time"}`. Simple, covers 99% of cases.
 - **B)** Add a `SchemaOverride func(reflect.Type) *Schema` option to `SchemaFromType` / `SchemaFromReflect`. Users can register overrides for custom types. More flexible but more complex API.
 - **C)** Check for `encoding.TextMarshaler` / `json.Marshaler` interface — if a type implements these, treat it as `string` with the struct tag's `format`. Most general but may produce unexpected results for complex marshalers.

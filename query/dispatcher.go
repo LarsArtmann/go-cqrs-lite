@@ -3,7 +3,6 @@ package query
 
 import (
 	"context"
-	"maps"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
@@ -14,16 +13,17 @@ type Handler = func(Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
 type Dispatcher struct {
-	inner          *dispatcher.Dispatcher[Handler, Middleware]
-	catalogEntries map[Type]CatalogMeta
+	dispatcher.CatalogDispatcher[Type, CatalogMeta]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 // NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {
-	return &Dispatcher{
-		inner:          dispatcher.NewDispatcher[Handler, Middleware](),
-		catalogEntries: make(map[Type]CatalogMeta),
+	d := &Dispatcher{
+		inner: dispatcher.NewDispatcher[Handler, Middleware](),
 	}
+	d.InitCatalogDispatcher()
+	return d
 }
 
 // Use adds middleware to the dispatcher.
@@ -104,18 +104,4 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
 	return d.inner.Lifecycle.Close()
-}
-
-// RegisterCatalogEntry stores catalog metadata for a query type.
-// This is a side channel that doesn't affect dispatch behavior.
-func (d *Dispatcher) RegisterCatalogEntry(queryType Type, meta CatalogMeta) {
-	d.catalogEntries[queryType] = meta
-}
-
-// CatalogEntries returns all registered catalog entries.
-func (d *Dispatcher) CatalogEntries() map[Type]CatalogMeta {
-	entries := make(map[Type]CatalogMeta, len(d.catalogEntries))
-	maps.Copy(entries, d.catalogEntries)
-
-	return entries
 }

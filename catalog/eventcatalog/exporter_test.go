@@ -172,15 +172,8 @@ func TestExporter_Export_Query(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
-		ID: "catalog-svc", Name: "Catalog Service", Version: "1.0.0",
-	})
-	reg.AddQuery("catalog-svc", catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      "GetProduct",
-		Name:    "GetProduct",
-		Version: "1.0.0",
-	})
+	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
+	cattest.AddMessageSimple(t, reg, "catalog-svc", "GetProduct", "GetProduct", "1.0.0", "", catalog.QueryMessage, reg.AddQuery)
 
 	cat := reg.Build()
 
@@ -504,12 +497,7 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 	})
-	reg.AddQuery("order-svc", catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      "GetOrder",
-		Name:    "GetOrder",
-		Version: "1.0.0",
-	})
+	cattest.AddMessageSimple(t, reg, "order-svc", "GetOrder", "GetOrder", "1.0.0", "", catalog.QueryMessage, reg.AddQuery)
 
 	cat := reg.Build()
 

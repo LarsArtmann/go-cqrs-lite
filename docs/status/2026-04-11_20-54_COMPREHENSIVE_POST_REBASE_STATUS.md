@@ -15,50 +15,50 @@ The repository is in **GOOD HEALTH** following a successful rebase of a feature 
 
 ## a) FULLY DONE ✅
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Core CQRS packages (command, query, event, aggregate) | ✅ COMPLETE | Stable, tested |
-| Catalog system with AsyncAPI 3.0 export | ✅ COMPLETE | Production-ready |
-| EventCatalog MDX export | ✅ COMPLETE | Service frontmatter includes commands/queries |
-| Catalog adapters (generic & instance-based) | ✅ COMPLETE | `AddCommandFromType[T]()`, `AddEventFromType[T]()`, etc. |
-| Schema reflection from Go types | ✅ COMPLETE | `SchemaFromType[T]()` with struct tag support |
-| Middleware (logging, recovery, retry, validation, metrics) | ✅ COMPLETE | Full suite implemented |
-| Strong ID system (pkg/id) | ✅ COMPLETE | AggregateID, EventID, CorrelationID, CausationID, etc. |
-| Pagination utilities | ✅ COMPLETE | query/pagination.go |
-| Event store with snapshots | ✅ COMPLETE | Memory implementation |
-| BDD-style integration tests | ✅ COMPLETE | Full CQRS roundtrip tested |
-| Example implementations | ✅ COMPLETE | example/user/, example/catalog/ |
-| Benchmarks | ✅ COMPLETE | ID operations, dispatcher throughput |
-| Fuzz tests | ✅ COMPLETE | pkg/id/ parse functions |
-| Zero-dependency YAML marshaler | ✅ COMPLETE | catalog/yaml/ package |
-| Git rebase conflict resolution | ✅ COMPLETE | builder.go & exporter.go conflicts resolved |
-| All TODO items (TODO_LIST.md) | ✅ COMPLETE | As of 2026-04-05 |
+| Item                                                       | Status      | Notes                                                    |
+| ---------------------------------------------------------- | ----------- | -------------------------------------------------------- |
+| Core CQRS packages (command, query, event, aggregate)      | ✅ COMPLETE | Stable, tested                                           |
+| Catalog system with AsyncAPI 3.0 export                    | ✅ COMPLETE | Production-ready                                         |
+| EventCatalog MDX export                                    | ✅ COMPLETE | Service frontmatter includes commands/queries            |
+| Catalog adapters (generic & instance-based)                | ✅ COMPLETE | `AddCommandFromType[T]()`, `AddEventFromType[T]()`, etc. |
+| Schema reflection from Go types                            | ✅ COMPLETE | `SchemaFromType[T]()` with struct tag support            |
+| Middleware (logging, recovery, retry, validation, metrics) | ✅ COMPLETE | Full suite implemented                                   |
+| Strong ID system (pkg/id)                                  | ✅ COMPLETE | AggregateID, EventID, CorrelationID, CausationID, etc.   |
+| Pagination utilities                                       | ✅ COMPLETE | query/pagination.go                                      |
+| Event store with snapshots                                 | ✅ COMPLETE | Memory implementation                                    |
+| BDD-style integration tests                                | ✅ COMPLETE | Full CQRS roundtrip tested                               |
+| Example implementations                                    | ✅ COMPLETE | example/user/, example/catalog/                          |
+| Benchmarks                                                 | ✅ COMPLETE | ID operations, dispatcher throughput                     |
+| Fuzz tests                                                 | ✅ COMPLETE | pkg/id/ parse functions                                  |
+| Zero-dependency YAML marshaler                             | ✅ COMPLETE | catalog/yaml/ package                                    |
+| Git rebase conflict resolution                             | ✅ COMPLETE | builder.go & exporter.go conflicts resolved              |
+| All TODO items (TODO_LIST.md)                              | ✅ COMPLETE | As of 2026-04-05                                         |
 
 ---
 
 ## b) PARTIALLY DONE 🟡
 
-| Item | Status | What's Missing |
-|------|--------|----------------|
-| Documentation | 🟡 IN PROGRESS | AGENTS.md updated, but needs architecture docs, GoDoc examples |
-| Code deduplication | 🟡 PHASE 1 COMPLETE | DEDUPLICATION_PLAN.md shows phase 1 done, phases 2+ pending |
-| Build tooling | 🟡 PARTIAL | .buildflow.yml exists, needs re-run per ROADMAP |
-| Nix Flakes migration | 🟡 PROPOSED | MIGRATION_TO_NIX_FLAKES_PROPOSAL.md created, not implemented |
+| Item                 | Status              | What's Missing                                                 |
+| -------------------- | ------------------- | -------------------------------------------------------------- |
+| Documentation        | 🟡 IN PROGRESS      | AGENTS.md updated, but needs architecture docs, GoDoc examples |
+| Code deduplication   | 🟡 PHASE 1 COMPLETE | DEDUPLICATION_PLAN.md shows phase 1 done, phases 2+ pending    |
+| Build tooling        | 🟡 PARTIAL          | .buildflow.yml exists, needs re-run per ROADMAP                |
+| Nix Flakes migration | 🟡 PROPOSED         | MIGRATION_TO_NIX_FLAKES_PROPOSAL.md created, not implemented   |
 
 ---
 
 ## c) NOT STARTED ⏳
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Coverage tracking | ⏳ PENDING | ROADMAP item |
-| Error assertion tests | ⏳ PENDING | ROADMAP item |
-| Code of Conduct | ⏳ PENDING | File exists but needs content |
-| GoDoc package examples | ⏳ PENDING | ROADMAP item |
+| Item                               | Priority   | Notes                                |
+| ---------------------------------- | ---------- | ------------------------------------ |
+| Coverage tracking                  | ⏳ PENDING | ROADMAP item                         |
+| Error assertion tests              | ⏳ PENDING | ROADMAP item                         |
+| Code of Conduct                    | ⏳ PENDING | File exists but needs content        |
+| GoDoc package examples             | ⏳ PENDING | ROADMAP item                         |
 | Performance benchmarks for catalog | ⏳ PENDING | Only ID & dispatcher have benchmarks |
-| PostgreSQL/SQL event store | ⏳ PENDING | Only memory store exists |
-| gRPC adapters | ⏳ PENDING | Not in current scope |
-| NATS/JetStream bus | ⏳ PENDING | Only memory bus exists |
+| PostgreSQL/SQL event store         | ⏳ PENDING | Only memory store exists             |
+| gRPC adapters                      | ⏳ PENDING | Not in current scope                 |
+| NATS/JetStream bus                 | ⏳ PENDING | Only memory bus exists               |
 
 ---
 
@@ -67,6 +67,7 @@ The repository is in **GOOD HEALTH** following a successful rebase of a feature 
 **NONE** - Repository is in excellent condition.
 
 Known non-issues:
+
 - LSP warnings about `<<` are **stale cache artifacts** from resolved merge conflicts
 - `go.mod`/`go.sum` show minor dependency updates (sentry-go 0.44.1 → 0.45.0) - **this is normal**
 
@@ -142,6 +143,7 @@ Known non-issues:
 > **Is the `report/` directory intentionally empty? Should it be removed, or is it meant to hold generated reports (coverage, benchmarks) that should be gitignored?**
 
 **Context:**
+
 - Directory exists at repo root
 - Contains no files
 - No reference in AGENTS.md, README.md, or build scripts
@@ -151,6 +153,7 @@ Known non-issues:
   - Supposed to contain benchmark/coverage reports but never populated?
 
 **I need user input to resolve this.** Options:
+
 1. Delete it (if unused)
 2. Add `.gitkeep` + document purpose
 3. Update `.gitignore` + add generation scripts
@@ -160,20 +163,20 @@ Known non-issues:
 
 ## Project Metrics Snapshot
 
-| Metric | Value |
-|--------|-------|
-| Go Files | 90 |
-| Test Files | 28 |
-| Go Module Graph Edges | 109 |
-| Direct Dependencies | 3 (uuid, errors, go-json-experiment) |
-| Indirect Dependencies | 9 |
-| Lines of Code (est.) | ~8,000-10,000 |
-| Test Coverage | Unknown (not tracked) |
-| Packages with Tests | 16/16 (100%) |
-| Benchmark Files | 3 (pkg/id, command, catalog) |
-| Fuzz Tests | Yes (pkg/id) |
-| CI Workflows | 2 (test.yml, lint.yml) |
-| Status Reports | 18 (some likely stale) |
+| Metric                | Value                                |
+| --------------------- | ------------------------------------ |
+| Go Files              | 90                                   |
+| Test Files            | 28                                   |
+| Go Module Graph Edges | 109                                  |
+| Direct Dependencies   | 3 (uuid, errors, go-json-experiment) |
+| Indirect Dependencies | 9                                    |
+| Lines of Code (est.)  | ~8,000-10,000                        |
+| Test Coverage         | Unknown (not tracked)                |
+| Packages with Tests   | 16/16 (100%)                         |
+| Benchmark Files       | 3 (pkg/id, command, catalog)         |
+| Fuzz Tests            | Yes (pkg/id)                         |
+| CI Workflows          | 2 (test.yml, lint.yml)               |
+| Status Reports        | 18 (some likely stale)               |
 
 ---
 
@@ -197,10 +200,12 @@ a9344e3 refactor: reduce code duplication and improve maintainability across mul
 ## Files Modified in Rebase
 
 ### Resolved Conflicts (2)
+
 - `catalog/adapters/builder.go` - AddService signature merged (kept version param, added ensureService helper)
 - `catalog/eventcatalog/exporter.go` - Commands/queries slice building merged
 
 ### Updated Dependencies
+
 - `go.mod` / `go.sum` - sentry-go v0.44.1 → v0.45.0, x/text v0.35.0 → v0.36.0
 
 ---
@@ -210,7 +215,8 @@ a9344e3 refactor: reduce code duplication and improve maintainability across mul
 **Status: HEALTHY** ✅  
 The rebase was successful. All conflicts were resolved cleanly. The codebase is stable, well-tested, and ready for continued development.
 
-**Immediate Action Required:**  
+**Immediate Action Required:**
+
 1. Answer question about `report/` directory
 2. Consider running `buildflow --semantic --fix` per ROADMAP
 3. Restart LSP to clear stale diagnostics

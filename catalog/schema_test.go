@@ -8,6 +8,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+func assertPropertyCount(t *testing.T, schema *catalog.Schema, expected int) {
+	t.Helper()
+	if len(schema.Properties) != expected {
+		t.Errorf("expected %d properties, got %d: %v", expected, len(schema.Properties), schema.Properties)
+	}
+}
+
 type CreateUser struct {
 	Email string `doc:"User email address" json:"email"`
 	Name  string `                         json:"name"`
@@ -351,9 +358,7 @@ func TestSchemaFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
 		t.Error("promoted fields from anonymous embed should not appear")
 	}
 
-	if len(schema.Properties) != 2 {
-		t.Errorf("expected 2 properties, got %d: %v", len(schema.Properties), schema.Properties)
-	}
+	assertPropertyCount(t, schema, 2)
 }
 
 func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
@@ -375,9 +380,7 @@ func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
 		t.Error("anonymous embedded pointer field 'Core' should be skipped")
 	}
 
-	if len(schema.Properties) != 1 {
-		t.Errorf("expected 1 property, got %d: %v", len(schema.Properties), schema.Properties)
-	}
+	assertPropertyCount(t, schema, 1)
 }
 
 func TestSchemaFromType_TimeTime(t *testing.T) {

@@ -319,10 +319,10 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 
 func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	pkg := map[string]any{
-		"name":         strings.ToLower(strings.ReplaceAll(cat.Title, " ", "-")),
-		"version":      cat.Version,
-		"private":      true,
-		"description":  cat.Title + " event catalog",
+		"name":        strings.ToLower(strings.ReplaceAll(cat.Title, " ", "-")),
+		"version":     cat.Version,
+		"private":     true,
+		"description": cat.Title + " event catalog",
 		"dependencies": map[string]string{
 			"@eventcatalog/core": "latest",
 		},

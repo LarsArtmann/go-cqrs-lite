@@ -258,17 +258,17 @@ schema := catalog.SchemaFromType[User]()
 
 Supported struct tags:
 
-| Tag            | Example                        | Effect                              |
-| -------------- | ------------------------------ | ----------------------------------- |
-| `json`         | `json:"name,omitempty"`        | Field name + required/optional      |
-| `doc`          | `doc:"User email"`             | Description                         |
-| `description`  | `description:"User email"`     | Alias for `doc`                     |
-| `format`       | `format:"email"`               | JSON Schema format                  |
-| `enum`         | `enum:"active,inactive"`       | Enum values (comma-separated)       |
-| `default`      | `default:"active"`             | Default value                       |
-| `nullable`     | `nullable`                     | Marks field as nullable             |
-| `deprecated`   | `deprecated`                   | Marks field as deprecated           |
-| `pattern`      | `pattern:"^[a-z]+$"`           | Regex pattern                       |
+| Tag           | Example                    | Effect                         |
+| ------------- | -------------------------- | ------------------------------ |
+| `json`        | `json:"name,omitempty"`    | Field name + required/optional |
+| `doc`         | `doc:"User email"`         | Description                    |
+| `description` | `description:"User email"` | Alias for `doc`                |
+| `format`      | `format:"email"`           | JSON Schema format             |
+| `enum`        | `enum:"active,inactive"`   | Enum values (comma-separated)  |
+| `default`     | `default:"active"`         | Default value                  |
+| `nullable`    | `nullable`                 | Marks field as nullable        |
+| `deprecated`  | `deprecated`               | Marks field as deprecated      |
+| `pattern`     | `pattern:"^[a-z]+$"`       | Regex pattern                  |
 
 ### Catalog Adapters
 

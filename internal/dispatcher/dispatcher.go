@@ -4,6 +4,7 @@ package dispatcher
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 )
 
@@ -169,4 +170,36 @@ func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error)
 // Close marks the dispatcher as closed.
 func (d *Dispatcher[H, M]) Close() error {
 	return d.Lifecycle.Close()
+}
+
+// CopyCatalogEntries copies entries from src to dest and returns dest.
+func CopyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
+	if dest == nil {
+		dest = make(map[KT]VT, len(src))
+	}
+	maps.Copy(dest, src)
+	return dest
+}
+
+// CatalogDispatcher is a mixin that provides catalog entry management.
+// KT is the type key (e.g., command.Type or query.Type).
+// VT is the catalog metadata type (e.g., command.CatalogMeta or query.CatalogMeta).
+type CatalogDispatcher[KT comparable, VT any] struct {
+	catalogEntries map[KT]VT
+}
+
+// InitCatalogDispatcher initializes the catalog entries map.
+func (c *CatalogDispatcher[KT, VT]) InitCatalogDispatcher() {
+	c.catalogEntries = make(map[KT]VT)
+}
+
+// RegisterCatalogEntry stores catalog metadata for a type.
+// This is a side channel that doesn't affect dispatch behavior.
+func (c *CatalogDispatcher[KT, VT]) RegisterCatalogEntry(key KT, meta VT) {
+	c.catalogEntries[key] = meta
+}
+
+// CatalogEntries returns a copy of all registered catalog entries.
+func (c *CatalogDispatcher[KT, VT]) CatalogEntries() map[KT]VT {
+	return CopyCatalogEntries(nil, c.catalogEntries)
 }
