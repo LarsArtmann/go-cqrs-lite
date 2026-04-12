@@ -33,6 +33,12 @@ type testGetUser struct {
 	UserID string `doc:"ID of the user to retrieve" json:"userId"`
 }
 
+func newTestCreateUser(tp command.Type, meta command.CatalogMeta) *testCreateUser {
+	return &testCreateUser{
+		CatalogCore: command.NewCatalogCore(tp, id.NewAggregateID(), meta),
+	}
+}
+
 func TestBuilder_AddCommand(t *testing.T) {
 	t.Parallel()
 

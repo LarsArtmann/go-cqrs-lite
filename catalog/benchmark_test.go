@@ -30,15 +30,7 @@ func benchmarkRegistryWithCommand() (*catalog.Registry, *catalog.Catalog) {
 
 func BenchmarkRegistry_Build(b *testing.B) {
 	for b.Loop() {
-		reg := newBenchRegistry()
-		reg.AddCommand("svc", catalog.Message{
-			Kind:    catalog.CommandMessage,
-			ID:      "CreateOrder",
-			Name:    "CreateOrder",
-			Version: "1.0.0",
-			Schema:  &catalog.Schema{Type: "object"},
-		})
-		reg.Build()
+		benchmarkRegistryWithCommand()
 	}
 }
 
