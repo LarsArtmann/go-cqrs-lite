@@ -1,13 +1,13 @@
 package adapters_test
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
@@ -58,14 +58,10 @@ func TestBuilder_AddCommand(t *testing.T) {
 	builder.AddCommand("user-svc", cmd)
 
 	cat := builder.Build()
-	if len(cat.Services) != 1 {
-		t.Fatalf("expected 1 service, got %d", len(cat.Services))
-	}
+	cattest.AssertSliceLen(t, "cat.Services", cat.Services, 1)
 
 	svc := cat.Services[0]
-	if len(svc.Commands) != 1 {
-		t.Fatalf("expected 1 command, got %d", len(svc.Commands))
-	}
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
 
 	cmdMsg := svc.Commands[0]
 	if cmdMsg.Kind != catalog.CommandMessage {
@@ -92,13 +88,8 @@ func TestBuilder_AddCommand(t *testing.T) {
 		t.Errorf("schema type = %q, want object", cmdMsg.Schema.Type)
 	}
 
-	if _, ok := cmdMsg.Schema.Properties["name"]; !ok {
-		t.Error("schema missing 'name' property")
-	}
-
-	if _, ok := cmdMsg.Schema.Properties["email"]; !ok {
-		t.Error("schema missing 'email' property")
-	}
+	cattest.AssertSchemaProperty(t, cmdMsg.Schema, "name")
+	cattest.AssertSchemaProperty(t, cmdMsg.Schema, "email")
 }
 
 func TestBuilder_AddEvent(t *testing.T) {
@@ -136,9 +127,7 @@ func TestBuilder_AddEvent(t *testing.T) {
 	cat := builder.Build()
 
 	svc := cat.Services[0]
-	if len(svc.Events) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(svc.Events))
-	}
+	cattest.AssertSliceLen(t, "svc.Events", svc.Events, 1)
 
 	evtMsg := svc.Events[0]
 	if evtMsg.Kind != catalog.EventMessage {
@@ -157,9 +146,7 @@ func TestBuilder_AddEvent(t *testing.T) {
 		t.Fatal("schema should not be nil")
 	}
 
-	if _, ok := evtMsg.Schema.Properties["orderId"]; !ok {
-		t.Error("schema missing 'orderId' property")
-	}
+	cattest.AssertSchemaProperty(t, evtMsg.Schema, "orderId")
 }
 
 func TestBuilder_AddQuery(t *testing.T) {
@@ -181,9 +168,7 @@ func TestBuilder_AddQuery(t *testing.T) {
 	cat := builder.Build()
 
 	svc := cat.Services[0]
-	if len(svc.Queries) != 1 {
-		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
-	}
+	cattest.AssertSliceLen(t, "svc.Queries", svc.Queries, 1)
 
 	qryMsg := svc.Queries[0]
 	if qryMsg.Kind != catalog.QueryMessage {
@@ -198,9 +183,7 @@ func TestBuilder_AddQuery(t *testing.T) {
 		t.Fatal("schema should not be nil")
 	}
 
-	if _, ok := qryMsg.Schema.Properties["userId"]; !ok {
-		t.Error("schema missing 'userId' property")
-	}
+	cattest.AssertSchemaProperty(t, qryMsg.Schema, "userId")
 }
 
 func TestBuilder_AddDomain(t *testing.T) {
@@ -211,9 +194,7 @@ func TestBuilder_AddDomain(t *testing.T) {
 	builder.AddDomain("ordering", "Ordering", "Order management", []string{"order-svc"})
 
 	cat := builder.Build()
-	if len(cat.Domains) != 1 {
-		t.Fatalf("expected 1 domain, got %d", len(cat.Domains))
-	}
+	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 1)
 
 	d := cat.Domains[0]
 	if d.ID != "ordering" {
@@ -241,9 +222,7 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	}
 
 	svcPath := filepath.Join(tmpDir, "services", "order-svc", "index.mdx")
-	if _, err := os.Stat(svcPath); os.IsNotExist(err) {
-		t.Error("service index.mdx not created")
-	}
+	cattest.AssertFileExists(t, svcPath)
 
 	cmdPath := filepath.Join(
 		tmpDir,
@@ -253,14 +232,10 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 		"order.create",
 		"index.mdx",
 	)
-	if _, err := os.Stat(cmdPath); os.IsNotExist(err) {
-		t.Errorf("command index.mdx not created at %s", cmdPath)
-	}
+	cattest.AssertFileExists(t, cmdPath)
 
 	cfgPath := filepath.Join(tmpDir, "eventcatalog.config.js")
-	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
-		t.Error("eventcatalog.config.js not created")
-	}
+	cattest.AssertFileExists(t, cfgPath)
 }
 
 func TestBuilder_ExportAsyncAPI(t *testing.T) {
@@ -341,9 +316,7 @@ func TestBuilder_AddCommandFromType(t *testing.T) {
 
 	cat := builder.Build()
 	svc := cat.Services[0]
-	if len(svc.Commands) != 1 {
-		t.Fatalf("expected 1 command, got %d", len(svc.Commands))
-	}
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
 
 	cmdMsg := svc.Commands[0]
 	if cmdMsg.Name != "CreateUser" {
@@ -354,9 +327,7 @@ func TestBuilder_AddCommandFromType(t *testing.T) {
 		t.Fatal("schema should not be nil")
 	}
 
-	if _, ok := cmdMsg.Schema.Properties["name"]; !ok {
-		t.Error("schema missing 'name' property")
-	}
+	cattest.AssertSchemaProperty(t, cmdMsg.Schema, "name")
 
 	if _, ok := cmdMsg.Schema.Properties["CatalogCore"]; ok {
 		t.Error("schema should NOT contain embedded CatalogCore")
@@ -381,9 +352,7 @@ func TestBuilder_AddQueryFromType(t *testing.T) {
 
 	cat := builder.Build()
 	svc := cat.Services[0]
-	if len(svc.Queries) != 1 {
-		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
-	}
+	cattest.AssertSliceLen(t, "svc.Queries", svc.Queries, 1)
 
 	if _, ok := svc.Queries[0].Schema.Properties["userId"]; !ok {
 		t.Error("schema missing 'userId' property")
@@ -411,9 +380,7 @@ func TestBuilder_FromCommandDispatcher(t *testing.T) {
 
 	cat := builder.Build()
 	svc := cat.Services[0]
-	if len(svc.Commands) != 2 {
-		t.Fatalf("expected 2 commands, got %d", len(svc.Commands))
-	}
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 2)
 
 	found := map[string]bool{}
 	for _, cmd := range svc.Commands {
@@ -452,9 +419,7 @@ func TestBuilder_FromQueryDispatcher(t *testing.T) {
 
 	cat := builder.Build()
 	svc := cat.Services[0]
-	if len(svc.Queries) != 1 {
-		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
-	}
+	cattest.AssertSliceLen(t, "svc.Queries", svc.Queries, 1)
 
 	qry := svc.Queries[0]
 	if qry.ID != "user.get" {

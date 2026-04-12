@@ -2,7 +2,6 @@ package catalog_test
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -72,23 +71,16 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		t.Errorf("title = %q", cat.Title)
 	}
 
-	if len(cat.Services) != 1 {
-		t.Fatalf("services = %d, want 1", len(cat.Services))
-	}
+	cattest.AssertSliceLen(t, "cat.Services", cat.Services, 1)
 
 	svc := cat.Services[0]
 	if svc.ID != "order-service" {
 		t.Errorf("service ID = %q", svc.ID)
 	}
 
-	if len(svc.Commands) != 1 || len(svc.Events) != 1 || len(svc.Queries) != 1 {
-		t.Errorf(
-			"commands=%d events=%d queries=%d",
-			len(svc.Commands),
-			len(svc.Events),
-			len(svc.Queries),
-		)
-	}
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
+	cattest.AssertSliceLen(t, "svc.Events", svc.Events, 1)
+	cattest.AssertSliceLen(t, "svc.Queries", svc.Queries, 1)
 
 	asyncExp := asyncapi.NewExporter("E-Commerce API", "1.0.0")
 	doc := asyncExp.Export(cat)
@@ -97,17 +89,11 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		t.Errorf("asyncapi version = %q", doc.AsyncAPI)
 	}
 
-	if len(doc.Channels) != 3 {
-		t.Errorf("channels = %d, want 3", len(doc.Channels))
-	}
+	cattest.AssertMapLen(t, "doc.Channels", doc.Channels, 3)
 
-	if len(doc.Operations) != 3 {
-		t.Errorf("operations = %d, want 3", len(doc.Operations))
-	}
+	cattest.AssertMapLen(t, "doc.Operations", doc.Operations, 3)
 
-	if len(doc.Components.Messages) != 3 {
-		t.Errorf("messages = %d, want 3", len(doc.Components.Messages))
-	}
+	cattest.AssertMapLen(t, "doc.Components.Messages", doc.Components.Messages, 3)
 
 	yamlBytes, err := doc.MarshalYAML()
 	if err != nil {
@@ -141,12 +127,7 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 
 	svcIndex := filepath.Join(ecDir, "services", "order-service", "index.mdx")
 
-	data, err := os.ReadFile(svcIndex)
-	if err != nil {
-		t.Fatalf("read service index: %v", err)
-	}
-
-	content := string(data)
+	content := cattest.MustReadFile(t, svcIndex)
 	if !containsAll(content, "sends:", "- OrderCreated/1.0.0") {
 		t.Errorf("service frontmatter missing sends: %s", content)
 	}
@@ -160,13 +141,9 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		"index.mdx",
 	)
 
-	data, err = os.ReadFile(cmdIndex)
-	if err != nil {
-		t.Fatalf("read command index: %v", err)
-	}
-
-	if !containsAll(string(data), "schemaPath: schemas/schema.json") {
-		t.Errorf("command missing schemaPath: %s", string(data))
+	cmdContent := cattest.MustReadFile(t, cmdIndex)
+	if !containsAll(cmdContent, "schemaPath: schemas/schema.json") {
+		t.Errorf("command missing schemaPath: %s", cmdContent)
 	}
 
 	schemaFile := filepath.Join(
@@ -179,13 +156,9 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		"schema.json",
 	)
 
-	data, err = os.ReadFile(schemaFile)
-	if err != nil {
-		t.Fatalf("read schema: %v", err)
-	}
-
+	schemaContent := cattest.MustReadFile(t, schemaFile)
 	var schemaMap map[string]any
-	if err := json.Unmarshal(data, &schemaMap); err != nil {
+	if err := json.Unmarshal([]byte(schemaContent), &schemaMap); err != nil {
 		t.Fatalf("parse schema: %v", err)
 	}
 
@@ -194,14 +167,10 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	}
 
 	domainIndex := filepath.Join(ecDir, "domains", "ordering", "index.mdx")
-	if _, err := os.Stat(domainIndex); os.IsNotExist(err) {
-		t.Error("domain index not created")
-	}
+	cattest.AssertFileExists(t, domainIndex)
 
 	cfgFile := filepath.Join(ecDir, "eventcatalog.config.js")
-	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-		t.Error("eventcatalog.config.js not created")
-	}
+	cattest.AssertFileExists(t, cfgFile)
 }
 
 func containsAll(s string, substrs ...string) bool {

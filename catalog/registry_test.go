@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestRegistry_AddService(t *testing.T) {
@@ -48,14 +49,10 @@ func TestRegistry_AddCommand(t *testing.T) {
 	})
 
 	cat := reg.Build()
-	if len(cat.Services) != 1 {
-		t.Fatalf("expected 1 service, got %d", len(cat.Services))
-	}
+	cattest.AssertSliceLen(t, "cat.Services", cat.Services, 1)
 
 	svc := cat.Services[0]
-	if len(svc.Commands) != 1 {
-		t.Fatalf("expected 1 command, got %d", len(svc.Commands))
-	}
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
 
 	cmd := svc.Commands[0]
 	if cmd.Kind != catalog.CommandMessage {
@@ -87,9 +84,7 @@ func TestRegistry_AddEvent(t *testing.T) {
 	cat := reg.Build()
 
 	svc := cat.Services[0]
-	if len(svc.Events) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(svc.Events))
-	}
+	cattest.AssertSliceLen(t, "svc.Events", svc.Events, 1)
 
 	evt := svc.Events[0]
 	if evt.Kind != catalog.EventMessage {
@@ -111,9 +106,7 @@ func TestRegistry_AddQuery(t *testing.T) {
 	cat := reg.Build()
 
 	svc := cat.Services[0]
-	if len(svc.Queries) != 1 {
-		t.Fatalf("expected 1 query, got %d", len(svc.Queries))
-	}
+	cattest.AssertSliceLen(t, "svc.Queries", svc.Queries, 1)
 
 	q := svc.Queries[0]
 	if q.Kind != catalog.QueryMessage {
@@ -133,9 +126,7 @@ func TestRegistry_AddDomain(t *testing.T) {
 	})
 
 	cat := reg.Build()
-	if len(cat.Domains) != 1 {
-		t.Fatalf("expected 1 domain, got %d", len(cat.Domains))
-	}
+	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 1)
 
 	if cat.Domains[0].ID != "orders" {
 		t.Errorf("expected orders, got %s", cat.Domains[0].ID)
@@ -155,9 +146,7 @@ func TestRegistry_AddServiceToDomain(t *testing.T) {
 	}
 
 	cat := reg.Build()
-	if len(cat.Domains[0].Services) != 1 {
-		t.Fatalf("expected 1 service in domain, got %d", len(cat.Domains[0].Services))
-	}
+	cattest.AssertSliceLen(t, "cat.Domains[0].Services", cat.Domains[0].Services, 1)
 
 	if cat.Domains[0].Services[0] != "order-svc" {
 		t.Errorf("expected order-svc, got %s", cat.Domains[0].Services[0])
@@ -187,9 +176,7 @@ func TestRegistry_AddChannel(t *testing.T) {
 	})
 
 	cat := reg.Build()
-	if len(cat.Channels) != 1 {
-		t.Fatalf("expected 1 channel, got %d", len(cat.Channels))
-	}
+	cattest.AssertSliceLen(t, "cat.Channels", cat.Channels, 1)
 
 	if cat.Channels[0].Address != "orders.events" {
 		t.Errorf("expected orders.events, got %s", cat.Channels[0].Address)
@@ -245,9 +232,7 @@ func TestRegistry_ServiceMerge(t *testing.T) {
 	})
 
 	cat := reg.Build()
-	if len(cat.Services) != 1 {
-		t.Fatalf("expected 1 service (merged), got %d", len(cat.Services))
-	}
+	cattest.AssertSliceLen(t, "cat.Services", cat.Services, 1)
 
 	if len(cat.Services[0].Commands) != 1 {
 		t.Errorf("expected 1 command, got %d", len(cat.Services[0].Commands))
