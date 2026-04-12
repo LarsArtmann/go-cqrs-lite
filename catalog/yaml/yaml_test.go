@@ -94,6 +94,16 @@ func assertTrimmedEq(t *testing.T, b []byte, want string) {
 	}
 }
 
+func assertContains(t *testing.T, got, desc string, substrs ...string) {
+	t.Helper()
+
+	for _, sub := range substrs {
+		if !strings.Contains(got, sub) {
+			t.Errorf("%s missing %q, got:\n%s", desc, sub, got)
+		}
+	}
+}
+
 func TestMarshal_Nil(t *testing.T) {
 	t.Parallel()
 
@@ -198,17 +208,11 @@ func TestMarshal_Struct(t *testing.T) {
 	}
 
 	got := string(b)
-	if !strings.Contains(got, "name: Alice") {
-		t.Errorf("missing name field in:\n%s", got)
-	}
-
-	if !strings.Contains(got, "age: 30") {
-		t.Errorf("missing age field in:\n%s", got)
-	}
-
-	if !strings.Contains(got, "email:") {
-		t.Errorf("missing email field (json tag fallback) in:\n%s", got)
-	}
+	assertContains(t, got, "struct",
+		"name: Alice",
+		"age: 30",
+		"email:",
+	)
 }
 
 func TestMarshal_StructYamlTag(t *testing.T) {
@@ -247,17 +251,11 @@ func TestMarshal_NestedStruct(t *testing.T) {
 	}
 
 	got := string(b)
-	if !strings.Contains(got, "name: test") {
-		t.Errorf("missing name in:\n%s", got)
-	}
-
-	if !strings.Contains(got, "inner:") {
-		t.Errorf("missing inner in:\n%s", got)
-	}
-
-	if !strings.Contains(got, "value: nested") {
-		t.Errorf("missing nested value in:\n%s", got)
-	}
+	assertContains(t, got, "nested struct",
+		"name: test",
+		"inner:",
+		"value: nested",
+	)
 }
 
 func TestMarshal_SliceOfStructs(t *testing.T) {

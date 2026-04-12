@@ -269,3 +269,40 @@ func AddServiceWithSummary(
 
 	return r
 }
+
+// ReadFileAndAssert reads a file and asserts it contains all substrings.
+func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) string {
+	tb.Helper()
+
+	content := MustReadFile(tb, path)
+	AssertContentContains(tb, content, desc, substrs...)
+
+	return content
+}
+
+// AssertServiceFrontmatter asserts a service frontmatter contains expected fields.
+func AssertServiceFrontmatter(tb testing.TB, content string, svcID, svcName string) {
+	tb.Helper()
+
+	AssertContentContains(tb, content, "service frontmatter",
+		"id: "+svcID,
+		"name: "+svcName,
+		"# "+svcName,
+	)
+}
+
+// AssertMessageFrontmatter asserts a message frontmatter contains expected fields.
+func AssertMessageFrontmatter(tb testing.TB, content, msgID string, checkHeading bool) {
+	tb.Helper()
+
+	tb.Helper()
+
+	AssertContentContains(tb, content, "message frontmatter",
+		"id: "+msgID,
+	)
+	if checkHeading {
+		AssertContentContains(tb, content, "message frontmatter heading",
+			"# "+msgID,
+		)
+	}
+}

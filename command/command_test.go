@@ -33,11 +33,7 @@ func TestDispatcher_Register(t *testing.T) {
 
 	dispatcher := command.NewDispatcher()
 
-	handler := func(_ context.Context, _ command.Command) error {
-		return nil
-	}
-
-	err := dispatcher.Register("CreateUser", handler)
+	err := dispatcher.Register("CreateUser", testhelpers.NoopCommandHandler())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -84,17 +80,6 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	}
 }
 
-// testMiddleware creates a middleware that records its name in callOrder.
-func testMiddleware(callOrder *[]string, name string) func(h command.Handler) command.Handler {
-	return func(h command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			*callOrder = append(*callOrder, name)
-
-			return h(ctx, cmd)
-		}
-	}
-}
-
 func TestDispatcher_Middleware(t *testing.T) {
 	t.Parallel()
 
@@ -104,8 +89,8 @@ func TestDispatcher_Middleware(t *testing.T) {
 	var callOrder []string
 
 	dispatcher.Use(
-		testMiddleware(&callOrder, "middleware1"),
-		testMiddleware(&callOrder, "middleware2"),
+		testhelpers.CommandMiddleware(&callOrder, "middleware1"),
+		testhelpers.CommandMiddleware(&callOrder, "middleware2"),
 	)
 
 	_ = dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
@@ -126,9 +111,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	_ = dispatcher.Close()
 
-	handler := func(_ context.Context, _ command.Command) error { return nil }
-
-	err := dispatcher.Register("TestCommand", handler)
+	err := dispatcher.Register("TestCommand", testhelpers.NoopCommandHandler())
 	if err == nil {
 		t.Error("expected dispatcher closed error on Register")
 	}

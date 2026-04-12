@@ -64,13 +64,10 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		t.Errorf("service file missing id: %s", content)
 	}
 
-	if !strings.Contains(content, "name: Order Service") {
-		t.Errorf("service file missing name: %s", content)
-	}
-
-	if !strings.Contains(content, "# Order Service") {
-		t.Errorf("service file missing heading: %s", content)
-	}
+	cattest.ReadFileAndAssert(t, svcPath, "service file",
+		"name: Order Service",
+		"# Order Service",
+	)
 
 	cmdPath := filepath.Join(
 		tmpDir,
@@ -87,13 +84,10 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	}
 
 	content = string(data)
-	if !strings.Contains(content, "id: CreateOrder") {
-		t.Errorf("command file missing id: %s", content)
-	}
-
-	if !strings.Contains(content, "owners:") {
-		t.Errorf("command file missing owners: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "command file",
+		"id: CreateOrder",
+		"owners:",
+	)
 
 	schemaPath := filepath.Join(
 		tmpDir,
@@ -158,13 +152,10 @@ func TestExporter_Export_Event(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "id: PaymentCompleted") {
-		t.Errorf("event file missing id: %s", content)
-	}
-
-	if !strings.Contains(content, "# PaymentCompleted") {
-		t.Errorf("event file missing heading: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "event file",
+		"id: PaymentCompleted",
+		"# PaymentCompleted",
+	)
 }
 
 func TestExporter_Export_Query(t *testing.T) {
@@ -224,17 +215,11 @@ func TestExporter_Export_Domain(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "id: ordering") {
-		t.Errorf("domain file missing id: %s", content)
-	}
-
-	if !strings.Contains(content, "services:") {
-		t.Errorf("domain file missing services list: %s", content)
-	}
-
-	if !strings.Contains(content, "- order-svc") {
-		t.Errorf("domain file missing service reference: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "domain file",
+		"id: ordering",
+		"services:",
+		"- order-svc",
+	)
 }
 
 func TestExporter_Export_Config(t *testing.T) {
@@ -435,21 +420,13 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "sends:") {
-		t.Errorf("service frontmatter missing sends: %s", content)
-	}
-
-	if !strings.Contains(content, "- OrderCreated/1.0.0") {
-		t.Errorf("service frontmatter missing sends entry: %s", content)
-	}
-
-	if !strings.Contains(content, "receives:") {
-		t.Errorf("service frontmatter missing receives: %s", content)
-	}
-
-	if !strings.Contains(content, "- PaymentProcessed/2.0.0") {
-		t.Errorf("service frontmatter missing receives entry: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "service file",
+		"id: order-svc",
+		"sends:",
+		"- OrderCreated/1.0.0",
+		"receives:",
+		"- PaymentProcessed/2.0.0",
+	)
 }
 
 func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
@@ -512,21 +489,12 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "commands:") {
-		t.Errorf("service frontmatter missing commands: %s", content)
-	}
-
-	if !strings.Contains(content, "- CreateOrder/1.0.0") {
-		t.Errorf("service frontmatter missing command entry: %s", content)
-	}
-
-	if !strings.Contains(content, "queries:") {
-		t.Errorf("service frontmatter missing queries: %s", content)
-	}
-
-	if !strings.Contains(content, "- GetOrder/1.0.0") {
-		t.Errorf("service frontmatter missing query entry: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "service file",
+		"commands:",
+		"- CreateOrder/1.0.0",
+		"queries:",
+		"- GetOrder/1.0.0",
+	)
 }
 
 func TestExporter_Export_LLMsTxt(t *testing.T) {
@@ -573,37 +541,16 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "# MyCatalog") {
-		t.Errorf("llms.txt missing title: %s", content)
-	}
-
-	if !strings.Contains(content, "## Order Service (order-svc)") {
-		t.Errorf("llms.txt missing service heading: %s", content)
-	}
-
-	if !strings.Contains(content, "### Commands") {
-		t.Errorf("llms.txt missing commands section: %s", content)
-	}
-
-	if !strings.Contains(content, "- CreateOrder (v1.0.0): Create a new order") {
-		t.Errorf("llms.txt missing command entry: %s", content)
-	}
-
-	if !strings.Contains(content, "### Events") {
-		t.Errorf("llms.txt missing events section: %s", content)
-	}
-
-	if !strings.Contains(content, "[sends]") {
-		t.Errorf("llms.txt missing sends direction: %s", content)
-	}
-
-	if !strings.Contains(content, "### Queries") {
-		t.Errorf("llms.txt missing queries section: %s", content)
-	}
-
-	if !strings.Contains(content, "- GetOrder (v1.0.0): Get order by ID") {
-		t.Errorf("llms.txt missing query entry: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "llms.txt",
+		"# MyCatalog",
+		"## Order Service (order-svc)",
+		"### Commands",
+		"- CreateOrder (v1.0.0): Create a new order",
+		"### Events",
+		"[sends]",
+		"### Queries",
+		"- GetOrder (v1.0.0): Get order by ID",
+	)
 }
 
 func TestExporter_Export_ExamplesFile(t *testing.T) {
@@ -644,13 +591,10 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "orderId") {
-		t.Errorf("examples.json missing orderId: %s", content)
-	}
-
-	if !strings.Contains(content, "42.5") {
-		t.Errorf("examples.json missing amount: %s", content)
-	}
+	cattest.AssertContentContains(t, content, "examples.json",
+		"orderId",
+		"42.5",
+	)
 }
 
 func TestExporter_Export_PackageJSON(t *testing.T) {
