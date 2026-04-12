@@ -10,17 +10,7 @@ import (
 func (b *CatalogBuilder) AddEvent(serviceID string, evt event.EventCatalogable) {
 	meta := evt.EventCatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
-
-	msg := catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        string(evt.Type()),
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: catalog.Sends,
-	}
-
+	msg := buildEventMessage(string(evt.Type()), meta, schema, catalog.Sends)
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
 }
 
@@ -31,37 +21,17 @@ func (b *CatalogBuilder) AddEventWithDirection(
 ) {
 	meta := evt.EventCatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
-
-	msg := catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        string(evt.Type()),
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: direction,
-	}
-
+	msg := buildEventMessage(string(evt.Type()), meta, schema, direction)
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
 }
 
 func AddEventFromType[T event.EventCatalogable](
-	b *CatalogBuilder,
+	builder *CatalogBuilder,
 	serviceID, eventType string,
 	meta event.EventCatalogMeta,
 	direction catalog.Direction,
 ) {
 	schema := catalog.SchemaFromType[T]()
-
-	msg := catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        eventType,
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: direction,
-	}
-
-	b.addMessageToService(serviceID, catalog.EventMessage, msg)
+	msg := buildEventMessage(eventType, meta, schema, direction)
+	builder.addMessageToService(serviceID, catalog.EventMessage, msg)
 }

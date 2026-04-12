@@ -3,6 +3,7 @@ package command
 
 import (
 	"context"
+	"maps"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/internal/dispatcher"
@@ -87,9 +88,7 @@ func (d *Dispatcher) RegisterCatalogEntry(cmdType Type, meta CatalogMeta) {
 // CatalogEntries returns all registered catalog entries.
 func (d *Dispatcher) CatalogEntries() map[Type]CatalogMeta {
 	entries := make(map[Type]CatalogMeta, len(d.catalogEntries))
-	for k, v := range d.catalogEntries {
-		entries[k] = v
-	}
+	maps.Copy(entries, d.catalogEntries)
 
 	return entries
 }

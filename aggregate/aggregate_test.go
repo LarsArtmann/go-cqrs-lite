@@ -23,6 +23,28 @@ func (r *testRoot) Apply(evt event.Event) error {
 
 var _ aggregate.Root = (*testRoot)(nil)
 
+func assertUncommittedChanges(t *testing.T, core *aggregate.Core, want int) {
+	t.Helper()
+
+	got := len(core.UncommittedChanges())
+	if got != want {
+		t.Errorf("uncommitted changes: got %d, want %d", got, want)
+	}
+}
+
+func assertEventTypeAt(t *testing.T, changes []event.Event, index int, want string) {
+	t.Helper()
+
+	if index >= len(changes) {
+		t.Fatalf("index %d out of bounds for %d changes", index, len(changes))
+	}
+
+	got := string(changes[index].Type())
+	if got != want {
+		t.Errorf("event type at index %d: got %s, want %s", index, got, want)
+	}
+}
+
 func TestCore(t *testing.T) {
 	t.Parallel()
 
@@ -182,13 +204,8 @@ func TestCoreUncommittedChanges(t *testing.T) {
 		t.Fatalf("expected 2 uncommitted changes, got %d", len(changes))
 	}
 
-	if changes[0].Type() != "UserCreated" {
-		t.Errorf("expected first event type UserCreated, got %s", changes[0].Type())
-	}
-
-	if changes[1].Type() != "UserUpdated" {
-		t.Errorf("expected second event type UserUpdated, got %s", changes[1].Type())
-	}
+	assertEventTypeAt(t, changes, 0, "UserCreated")
+	assertEventTypeAt(t, changes, 1, "UserUpdated")
 }
 
 func TestCoreMarkChangesAsCommitted(t *testing.T) {
@@ -229,12 +246,7 @@ func TestCoreMarkChangesAsCommitted_Empty(t *testing.T) {
 
 	core.MarkChangesAsCommitted()
 
-	if len(core.UncommittedChanges()) != 0 {
-		t.Errorf(
-			"expected 0 uncommitted changes on empty aggregate, got %d",
-			len(core.UncommittedChanges()),
-		)
-	}
+	assertUncommittedChanges(t, core, 0)
 }
 
 // Core is a base struct for embedding, not a direct Root implementation.
@@ -293,15 +305,11 @@ func TestCoreFullLifecycle(t *testing.T) {
 		t.Errorf("expected version 2, got %d", core.Version())
 	}
 
-	if len(core.UncommittedChanges()) != 2 {
-		t.Errorf("expected 2 changes, got %d", len(core.UncommittedChanges()))
-	}
+	assertUncommittedChanges(t, core, 2)
 
 	core.MarkChangesAsCommitted()
 
-	if len(core.UncommittedChanges()) != 0 {
-		t.Errorf("expected 0 changes after commit, got %d", len(core.UncommittedChanges()))
-	}
+	assertUncommittedChanges(t, core, 0)
 
 	if core.Version() != 2 {
 		t.Errorf("expected version still 2 after commit, got %d", core.Version())

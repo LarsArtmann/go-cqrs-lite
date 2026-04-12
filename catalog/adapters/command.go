@@ -1,26 +1,13 @@
 package adapters
 
 import (
-	"reflect"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/command"
 )
 
 func (b *CatalogBuilder) AddCommand(serviceID string, cmd command.Catalogable) {
 	meta := cmd.CatalogInfo()
-	schema := catalog.SchemaFromReflect(reflect.TypeOf(cmd).Elem())
-
-	msg := catalog.Message{
-		Kind:      catalog.CommandMessage,
-		ID:        string(cmd.Type()),
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: catalog.Receives,
-	}
-
+	msg := buildCommandMessageFromReflect(string(cmd.Type()), meta, cmd)
 	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }
 
@@ -30,36 +17,16 @@ func (b *CatalogBuilder) AddCommandWithSchema(
 	schema *catalog.Schema,
 ) {
 	meta := cmd.CatalogInfo()
-
-	msg := catalog.Message{
-		Kind:      catalog.CommandMessage,
-		ID:        string(cmd.Type()),
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: catalog.Receives,
-	}
-
+	msg := buildCommandMessage(string(cmd.Type()), meta, schema)
 	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }
 
 func AddCommandFromType[T command.Catalogable](
-	b *CatalogBuilder,
+	builder *CatalogBuilder,
 	serviceID, cmdType string,
 	meta command.CatalogMeta,
 ) {
 	schema := catalog.SchemaFromType[T]()
-
-	msg := catalog.Message{
-		Kind:      catalog.CommandMessage,
-		ID:        cmdType,
-		Name:      meta.Name,
-		Version:   meta.Version,
-		Summary:   meta.Summary,
-		Schema:    schema,
-		Direction: catalog.Receives,
-	}
-
-	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
+	msg := buildCommandMessage(cmdType, meta, schema)
+	builder.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }

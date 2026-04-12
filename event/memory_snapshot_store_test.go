@@ -26,6 +26,18 @@ func newTestSnapshot(
 	}
 }
 
+func assertVersion(t *testing.T, got event.Version, want int, msg ...string) {
+	t.Helper()
+
+	if got.Int() != want {
+		if len(msg) > 0 {
+			t.Errorf("version mismatch: %s (got %d, want %d)", msg[0], got.Int(), want)
+		} else {
+			t.Errorf("expected version %d, got %d", want, got.Int())
+		}
+	}
+}
+
 func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
@@ -48,9 +60,7 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Errorf("expected aggregate ID %s, got %s", snapshot.AggregateID, loaded.AggregateID)
 	}
 
-	if loaded.Version.Int() != 5 {
-		t.Errorf("expected version 5, got %d", loaded.Version.Int())
-	}
+	assertVersion(t, loaded.Version, 5)
 
 	if string(loaded.State) != `{"status":"shipped"}` {
 		t.Errorf("unexpected state: %s", string(loaded.State))
@@ -91,9 +101,7 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if loaded.Version.Int() != 5 {
-		t.Errorf("expected version 5, got %d (should not downgrade)", loaded.Version.Int())
-	}
+	assertVersion(t, loaded.Version, 5, "should not downgrade")
 }
 
 func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
@@ -119,9 +127,7 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if loaded.Version.Int() != 7 {
-		t.Errorf("expected version 7, got %d", loaded.Version.Int())
-	}
+	assertVersion(t, loaded.Version, 7)
 }
 
 func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {

@@ -86,6 +86,14 @@ func marshalTestFunc(input any, want, format string) func(*testing.T) {
 	}
 }
 
+func assertTrimmedEq(t *testing.T, b []byte, want string) {
+	t.Helper()
+
+	if got := strings.TrimSpace(string(b)); got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
 func TestMarshal_Nil(t *testing.T) {
 	t.Parallel()
 
@@ -96,9 +104,7 @@ func TestMarshal_Nil(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got := strings.TrimSpace(string(b)); got != "null" {
-		t.Errorf("got %q, want %q", got, "null")
-	}
+	assertTrimmedEq(t, b, "null")
 }
 
 func TestMarshal_Slice(t *testing.T) {
@@ -123,9 +129,7 @@ func TestMarshal_EmptySlice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got := strings.TrimSpace(string(b)); got != "[]" {
-		t.Errorf("got %q, want %q", got, "[]")
-	}
+	assertTrimmedEq(t, b, "[]")
 }
 
 func TestMarshal_Map(t *testing.T) {
@@ -152,9 +156,7 @@ func TestMarshal_EmptyMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got := strings.TrimSpace(string(b)); got != "{}" {
-		t.Errorf("got %q, want %q", got, "{}")
-	}
+	assertTrimmedEq(t, b, "{}")
 }
 
 func TestMarshal_SortedMap(t *testing.T) {
