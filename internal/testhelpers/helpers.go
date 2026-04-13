@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
@@ -120,5 +122,13 @@ func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler)
 
 			return h(ctx, cmd)
 		}
+	}
+}
+
+// BenchmarkEventCatalogExport benchmarks exporting a catalog to EventCatalog format.
+func BenchmarkEventCatalogExport(b *testing.B, cat *catalog.Catalog) {
+	for b.Loop() {
+		exp := eventcatalog.NewExporter(b.TempDir())
+		_ = exp.Export(cat)
 	}
 }

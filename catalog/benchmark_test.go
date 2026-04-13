@@ -5,7 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 )
 
 func newBenchRegistry() *catalog.Registry {
@@ -83,8 +83,5 @@ func BenchmarkEventCatalog_Export(b *testing.B) {
 
 	b.ResetTimer()
 
-	for b.Loop() {
-		exp := eventcatalog.NewExporter(b.TempDir())
-		_ = exp.Export(cat)
-	}
+	testhelpers.BenchmarkEventCatalogExport(b, cat)
 }
