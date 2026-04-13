@@ -6,6 +6,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
+// Deleter interface for deleting aggregate data.
+type Deleter interface {
+	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
+}
+
 // Store defines the interface for event persistence.
 type Store interface {
 	// Save appends events to the aggregate's event stream
@@ -41,8 +46,7 @@ type Store interface {
 		version Version,
 	) ([]Event, error)
 
-	// Delete removes all events for an aggregate (for testing/snapshots)
-	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
+	Deleter
 }
 
 // StreamOptions configures event streaming.

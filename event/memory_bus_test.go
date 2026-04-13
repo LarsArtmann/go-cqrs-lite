@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cockroachdb/errors"
+
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/event/internal/evtest"
 	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
@@ -94,7 +94,7 @@ func TestMemoryBus_Closed(t *testing.T) {
 	bus := event.NewMemoryBus()
 	_ = bus.Close()
 
-	handler := evtest.NoopHandler()
+	handler := testhelpers.NoopEventHandler()
 
 	err := bus.Subscribe("TestEvent", handler)
 	if err == nil {
@@ -120,7 +120,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	_ = bus.Subscribe("TestEvent", testErrorHandler("handler failed"))
+	_ = bus.Subscribe("TestEvent", testhelpers.FailingEventHandler("handler failed"))
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 
@@ -136,7 +136,7 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	_ = bus.SubscribeAll(testErrorHandler("all-handler failed"))
+	_ = bus.SubscribeAll(testhelpers.FailingEventHandler("all-handler failed"))
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
 
@@ -146,25 +146,13 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	}
 }
 
-func testErrorHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		return errors.New(msg)
-	}
-}
-
 func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	t.Parallel()
 
 	bus := event.NewMemoryBus()
 	ctx := context.Background()
 
-	callCount := 0
-	failingHandler := func(ctx context.Context, evt event.Event) error {
-		_ = ctx
-		_ = evt
-
-		return errors.New("subscriber failure")
-	}
+	failingHandler := testhelpers.FailingEventHandler("subscriber failure")
 	_ = bus.Subscribe("FailEvent", failingHandler)
 
 	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)
@@ -174,6 +162,4 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	if err == nil {
 		t.Error("expected error when second event fails")
 	}
-
-	_ = callCount
 }

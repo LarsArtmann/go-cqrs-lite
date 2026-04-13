@@ -121,6 +121,17 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	}
 }
 
+func collectionSchema(t reflect.Type) *Property {
+	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+		return &Property{
+			Type:  "array",
+			Items: propertyFromReflect(t.Elem()),
+		}
+	}
+
+	return &Property{Type: "object"}
+}
+
 func propertyFromReflect(t reflect.Type) *Property {
 	if t == nil {
 		return &Property{Type: "null"}
@@ -131,10 +142,7 @@ func propertyFromReflect(t reflect.Type) *Property {
 	}
 
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
-		return &Property{
-			Type:  "array",
-			Items: propertyFromReflect(t.Elem()),
-		}
+		return collectionSchema(t)
 	}
 
 	if t.Kind() == reflect.Map {

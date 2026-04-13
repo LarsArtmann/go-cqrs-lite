@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/internal/evtest"
+	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
@@ -20,7 +20,7 @@ func BenchmarkNewEvent(b *testing.B) {
 func BenchmarkMemoryBus_Publish(b *testing.B) {
 	bus := event.NewMemoryBus()
 
-	err := bus.Subscribe("BenchEvent", evtest.NoopHandler())
+	err := bus.Subscribe("BenchEvent", testhelpers.NoopEventHandler())
 	if err != nil {
 		b.Fatalf("subscribe: %v", err)
 	}

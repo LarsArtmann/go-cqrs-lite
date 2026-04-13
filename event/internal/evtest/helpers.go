@@ -75,13 +75,6 @@ func ErrorHandler(t testing.TB, err error) event.Handler {
 	}
 }
 
-// NoopHandler returns a handler that does nothing.
-func NoopHandler() event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		return nil
-	}
-}
-
 // CallbackHandler returns a handler that calls the provided function.
 func CallbackHandler(fn func()) event.Handler {
 	return func(_ context.Context, _ event.Event) error {

@@ -240,11 +240,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	handler := func(s string) string { return "handled:" + s }
 	_ = d.Register("test", handler)
 
-	wrap := func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	}
-
-	result, err := d.Dispatch("test", handler, wrap)
+	result, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
 	}
@@ -260,11 +256,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	d := NewDispatcher[testHandler, testMiddleware]()
 
 	handler := func(s string) string { return s }
-	wrap := func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	}
-
-	_, err := d.Dispatch("missing", handler, wrap)
+	_, err := d.Dispatch("missing", handler, wrapWithMiddleware)
 	if err == nil {
 		t.Error("expected error for missing handler")
 	}
@@ -277,11 +269,7 @@ func TestDispatcher_Dispatch_Closed(t *testing.T) {
 	_ = d.Close()
 
 	handler := func(s string) string { return s }
-	wrap := func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	}
-
-	_, err := d.Dispatch("test", handler, wrap)
+	_, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err == nil {
 		t.Error("expected error when dispatching on closed dispatcher")
 	}
@@ -303,11 +291,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 	}
 	_ = d.Register("test", handler)
 
-	wrap := func(m testMiddleware, h testHandler) testHandler {
-		return m(h)
-	}
-
-	result, err := d.Dispatch("test", handler, wrap)
+	result, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
 	}
