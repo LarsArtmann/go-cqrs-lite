@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
@@ -105,6 +103,7 @@ func FailingEventHandler(msg string) event.Handler {
 	}
 }
 
+// EventMiddleware creates middleware that tracks call order for event handlers.
 func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) event.Handler {
 	return func(h event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
@@ -115,6 +114,7 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 	}
 }
 
+// CommandMiddleware creates middleware that tracks call order for command handlers.
 func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler) command.Handler {
 	return func(h command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
@@ -122,13 +122,5 @@ func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler)
 
 			return h(ctx, cmd)
 		}
-	}
-}
-
-// BenchmarkEventCatalogExport benchmarks exporting a catalog to EventCatalog format.
-func BenchmarkEventCatalogExport(b *testing.B, cat *catalog.Catalog) {
-	for b.Loop() {
-		exp := eventcatalog.NewExporter(b.TempDir())
-		_ = exp.Export(cat)
 	}
 }

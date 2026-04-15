@@ -1,12 +1,14 @@
 package cattest
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 )
 
 // NewRegistry creates a new test registry with the given title and version.
@@ -305,4 +307,46 @@ func AssertMessageFrontmatter(tb testing.TB, content, msgID string, checkHeading
 			"# "+msgID,
 		)
 	}
+}
+
+// AddCommandWithSchema creates and adds a command message with a schema.
+func AddCommandWithSchema(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	schema *catalog.Schema,
+) *catalog.Registry {
+	tb.Helper()
+
+	testhelpers.AddCommandWithSchema(r, svcID, id, name, version, schema)
+
+	return r
+}
+
+// AddEventWithSummary creates and adds an event message with summary and direction.
+func AddEventWithSummary(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID, id, name, version, summary string,
+	direction catalog.Direction,
+) *catalog.Registry {
+	tb.Helper()
+
+	testhelpers.AddEventWithSummary(r, svcID, id, name, version, summary, direction)
+
+	return r
+}
+
+// AddCommandWithExamples creates and adds a command message with examples.
+func AddCommandWithExamples(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	examples ...json.RawMessage,
+) *catalog.Registry {
+	tb.Helper()
+
+	testhelpers.AddCommandWithExamples(r, svcID, id, name, version, examples...)
+
+	return r
 }

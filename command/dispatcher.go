@@ -19,7 +19,7 @@ type Dispatcher struct {
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{}
 	d.InitCatalogDispatcher()
-	d.base.InitBaseDispatcher(dispatcher.NewDispatcher[Handler, Middleware]())
+	d.base = dispatcher.NewBaseDispatcher[Handler, Middleware]()
 
 	return d
 }

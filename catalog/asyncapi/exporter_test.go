@@ -106,16 +106,9 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "payment-svc", Name: "Payment Service", Version: "1.0.0"})
-	reg.AddEvent("payment-svc", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "PaymentProcessed",
-		Name:      "PaymentProcessed",
-		Version:   "1.0.0",
-		Summary:   "Payment was processed",
-		Direction: catalog.Sends,
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "payment-svc", "Payment Service", "1.0.0")
+	cattest.AddEventWithSummary(t, reg, "payment-svc", "PaymentProcessed", "PaymentProcessed", "1.0.0", "Payment was processed", catalog.Sends)
 
 	cat := reg.Build()
 	exp := NewExporter("Payment Service", "1.0.0")
@@ -437,17 +430,11 @@ func TestToDotAddress(t *testing.T) {
 func TestExporter_Export_Examples(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Examples: []json.RawMessage{
-			[]byte(`{"orderId":"abc","amount":42.5}`),
-		},
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddCommandWithExamples(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+		json.RawMessage(`{"orderId":"abc","amount":42.5}`),
+	)
 
 	cat := reg.Build()
 	doc := NewExporter("Test", "1.0.0").Export(cat)

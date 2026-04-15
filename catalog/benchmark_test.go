@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 )
 
@@ -17,13 +18,7 @@ func newBenchRegistry() *catalog.Registry {
 
 func benchmarkRegistryWithCommand() (*catalog.Registry, *catalog.Catalog) {
 	reg := newBenchRegistry()
-	reg.AddCommand("svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Schema:  &catalog.Schema{Type: "object"},
-	})
+	testhelpers.AddCommandWithSchema(reg, "svc", "CreateOrder", "CreateOrder", "1.0.0", &catalog.Schema{Type: "object"})
 
 	return reg, reg.Build()
 }
@@ -83,5 +78,8 @@ func BenchmarkEventCatalog_Export(b *testing.B) {
 
 	b.ResetTimer()
 
-	testhelpers.BenchmarkEventCatalogExport(b, cat)
+	for b.Loop() {
+		exp := eventcatalog.NewExporter(b.TempDir())
+		_ = exp.Export(cat)
+	}
 }

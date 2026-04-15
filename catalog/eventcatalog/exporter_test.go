@@ -324,15 +324,9 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Schema:  &catalog.Schema{Type: "object"},
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddCommandWithSchema(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0", &catalog.Schema{Type: "object"})
 
 	cat := reg.Build()
 
@@ -512,14 +506,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		Version: "1.0.0",
 		Summary: "Create a new order",
 	})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "OrderCreated",
-		Name:      "OrderCreated",
-		Version:   "1.0.0",
-		Summary:   "Order was created",
-		Direction: catalog.Sends,
-	})
+	cattest.AddEventWithSummary(t, reg, "order-svc", "OrderCreated", "OrderCreated", "1.0.0", "Order was created", catalog.Sends)
 	reg.AddQuery("order-svc", catalog.Message{
 		Kind:    catalog.QueryMessage,
 		ID:      "GetOrder",
@@ -557,17 +544,11 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	reg.AddCommand("svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Examples: []json.RawMessage{
-			[]byte(`{"orderId":"abc-123","amount":42.5}`),
-		},
-	})
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddCommandWithExamples(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+		json.RawMessage(`{"orderId":"abc-123","amount":42.5}`),
+	)
 
 	cat := reg.Build()
 

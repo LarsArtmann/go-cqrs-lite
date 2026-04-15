@@ -35,3 +35,10 @@ func (b *BaseDispatcher[H, M]) GetHandler(t string) (H, bool) {
 func (b *BaseDispatcher[H, M]) Dispatch(t string, handler H, wrap func(M, H) H) (H, error) {
 	return b.inner.Dispatch(t, handler, wrap)
 }
+
+// NewBaseDispatcher creates and initializes a new BaseDispatcher with a new inner Dispatcher.
+func NewBaseDispatcher[H any, M any]() BaseDispatcher[H, M] {
+	return BaseDispatcher[H, M]{
+		inner: NewDispatcher[H, M](),
+	}
+}

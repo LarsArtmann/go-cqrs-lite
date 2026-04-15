@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/pkg/id"
 )
 
@@ -63,5 +63,8 @@ func BenchmarkBuilder_ExportEventCatalog(b *testing.B) {
 
 	b.ResetTimer()
 
-	testhelpers.BenchmarkEventCatalogExport(b, cat)
+	for b.Loop() {
+		exp := eventcatalog.NewExporter(b.TempDir())
+		_ = exp.Export(cat)
+	}
 }
