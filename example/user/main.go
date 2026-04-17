@@ -65,5 +65,9 @@ func main() {
 	builder.AddCommand("user-service", NewChangeUserEmail(userID, "alice.new@example.com"))
 
 	cat := builder.Build()
-	fmt.Printf("  Catalog: %d services, %d total commands\n", len(cat.Services), len(cat.Services[0].Commands))
+	fmt.Printf(
+		"  Catalog: %d services, %d total commands\n",
+		len(cat.Services),
+		len(cat.Services[0].Commands),
+	)
 }

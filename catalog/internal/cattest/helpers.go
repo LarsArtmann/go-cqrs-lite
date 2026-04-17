@@ -185,7 +185,7 @@ func Join(elem ...string) string {
 }
 
 // AssertLenEqual fails if the actual length doesn't match the expected length.
-func AssertLenEqual[T any](tb testing.TB, name string, actual int, expected int, slice []T) {
+func AssertLenEqual[T any](tb testing.TB, name string, actual, expected int, slice []T) {
 	tb.Helper()
 
 	if actual != expected {
@@ -283,7 +283,7 @@ func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) stri
 }
 
 // AssertServiceFrontmatter asserts a service frontmatter contains expected fields.
-func AssertServiceFrontmatter(tb testing.TB, content string, svcID, svcName string) {
+func AssertServiceFrontmatter(tb testing.TB, content, svcID, svcName string) {
 	tb.Helper()
 
 	AssertContentContains(tb, content, "service frontmatter",

@@ -108,7 +108,16 @@ func TestExporter_Export_Event(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "payment-svc", "Payment Service", "1.0.0")
-	cattest.AddEventWithSummary(t, reg, "payment-svc", "PaymentProcessed", "PaymentProcessed", "1.0.0", "Payment was processed", catalog.Sends)
+	cattest.AddEventWithSummary(
+		t,
+		reg,
+		"payment-svc",
+		"PaymentProcessed",
+		"PaymentProcessed",
+		"1.0.0",
+		"Payment was processed",
+		catalog.Sends,
+	)
 
 	cat := reg.Build()
 	exp := NewExporter("Payment Service", "1.0.0")

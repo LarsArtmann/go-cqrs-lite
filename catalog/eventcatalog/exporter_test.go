@@ -164,7 +164,17 @@ func TestExporter_Export_Query(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
-	cattest.AddMessageSimple(t, reg, "catalog-svc", "GetProduct", "GetProduct", "1.0.0", "", catalog.QueryMessage, reg.AddQuery)
+	cattest.AddMessageSimple(
+		t,
+		reg,
+		"catalog-svc",
+		"GetProduct",
+		"GetProduct",
+		"1.0.0",
+		"",
+		catalog.QueryMessage,
+		reg.AddQuery,
+	)
 
 	cat := reg.Build()
 
@@ -326,7 +336,15 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
-	cattest.AddCommandWithSchema(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0", &catalog.Schema{Type: "object"})
+	cattest.AddCommandWithSchema(
+		t,
+		reg,
+		"svc",
+		"CreateOrder",
+		"CreateOrder",
+		"1.0.0",
+		&catalog.Schema{Type: "object"},
+	)
 
 	cat := reg.Build()
 
@@ -468,7 +486,17 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 	})
-	cattest.AddMessageSimple(t, reg, "order-svc", "GetOrder", "GetOrder", "1.0.0", "", catalog.QueryMessage, reg.AddQuery)
+	cattest.AddMessageSimple(
+		t,
+		reg,
+		"order-svc",
+		"GetOrder",
+		"GetOrder",
+		"1.0.0",
+		"",
+		catalog.QueryMessage,
+		reg.AddQuery,
+	)
 
 	cat := reg.Build()
 
@@ -506,7 +534,16 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		Version: "1.0.0",
 		Summary: "Create a new order",
 	})
-	cattest.AddEventWithSummary(t, reg, "order-svc", "OrderCreated", "OrderCreated", "1.0.0", "Order was created", catalog.Sends)
+	cattest.AddEventWithSummary(
+		t,
+		reg,
+		"order-svc",
+		"OrderCreated",
+		"OrderCreated",
+		"1.0.0",
+		"Order was created",
+		catalog.Sends,
+	)
 	reg.AddQuery("order-svc", catalog.Message{
 		Kind:    catalog.QueryMessage,
 		ID:      "GetOrder",

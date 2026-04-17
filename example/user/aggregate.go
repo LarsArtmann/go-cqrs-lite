@@ -54,7 +54,10 @@ func (u *User) Create(ctx context.Context, name, email string) error {
 		return fmt.Errorf("email is required")
 	}
 
-	catEvt, err := NewUserCreated(id.MustParseAggregateID(u.ID()), UserCreatedPayload{Name: name, Email: email})
+	catEvt, err := NewUserCreated(
+		id.MustParseAggregateID(u.ID()),
+		UserCreatedPayload{Name: name, Email: email},
+	)
 	if err != nil {
 		return fmt.Errorf("create event: %w", err)
 	}

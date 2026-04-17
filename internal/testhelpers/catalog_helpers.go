@@ -7,7 +7,11 @@ import (
 )
 
 // AddCommandWithSchema adds a command with a schema to the registry.
-func AddCommandWithSchema(r *catalog.Registry, svcID, id, name, version string, schema *catalog.Schema) {
+func AddCommandWithSchema(
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	schema *catalog.Schema,
+) {
 	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      id,
@@ -19,7 +23,11 @@ func AddCommandWithSchema(r *catalog.Registry, svcID, id, name, version string, 
 }
 
 // AddEventWithSummary adds an event with summary and direction to the registry.
-func AddEventWithSummary(r *catalog.Registry, svcID, id, name, version, summary string, direction catalog.Direction) {
+func AddEventWithSummary(
+	r *catalog.Registry,
+	svcID, id, name, version, summary string,
+	direction catalog.Direction,
+) {
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        id,
@@ -32,7 +40,11 @@ func AddEventWithSummary(r *catalog.Registry, svcID, id, name, version, summary 
 }
 
 // AddCommandWithExamples adds a command with examples to the registry.
-func AddCommandWithExamples(r *catalog.Registry, svcID, id, name, version string, examples ...json.RawMessage) {
+func AddCommandWithExamples(
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	examples ...json.RawMessage,
+) {
 	msg := catalog.Message{
 		Kind:     catalog.CommandMessage,
 		ID:       id,

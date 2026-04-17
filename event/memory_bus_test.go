@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/event/internal/evtest"
 	"github.com/larsartmann/go-cqrs-lite/internal/testhelpers"

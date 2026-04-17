@@ -11,7 +11,12 @@ import (
 func assertPropertyCount(t *testing.T, schema *catalog.Schema, expected int) {
 	t.Helper()
 	if len(schema.Properties) != expected {
-		t.Errorf("expected %d properties, got %d: %v", expected, len(schema.Properties), schema.Properties)
+		t.Errorf(
+			"expected %d properties, got %d: %v",
+			expected,
+			len(schema.Properties),
+			schema.Properties,
+		)
 	}
 }
 

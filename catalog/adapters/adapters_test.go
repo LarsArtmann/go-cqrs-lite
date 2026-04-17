@@ -213,7 +213,10 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders")
 
-	cmd := newTestCreateUser("order.create", command.CatalogMeta{Name: "CreateOrder", Version: "1.0.0", Summary: "Create an order"})
+	cmd := newTestCreateUser(
+		"order.create",
+		command.CatalogMeta{Name: "CreateOrder", Version: "1.0.0", Summary: "Create an order"},
+	)
 	builder.AddCommand("order-svc", cmd)
 
 	err := builder.ExportEventCatalog(tmpDir)
@@ -244,7 +247,10 @@ func TestBuilder_ExportAsyncAPI(t *testing.T) {
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	cmd := newTestCreateUser("order.create", command.CatalogMeta{Name: "CreateOrder", Version: "1.0.0", Summary: "Create an order"})
+	cmd := newTestCreateUser(
+		"order.create",
+		command.CatalogMeta{Name: "CreateOrder", Version: "1.0.0", Summary: "Create an order"},
+	)
 	builder.AddCommand("order-svc", cmd)
 
 	doc, err := builder.ExportAsyncAPI("E-Commerce API", "1.0.0",

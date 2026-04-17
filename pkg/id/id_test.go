@@ -379,51 +379,89 @@ func TestJSON(t *testing.T) {
 	})
 }
 
-func TestBinaryEncoding(t *testing.T) {
+func TestEncoding(t *testing.T) {
 	t.Parallel()
 
-	t.Run("marshal", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		name          string
+		testValue     string
+		marshal       func(string) ([]byte, error)
+		unmarshal     func(*AggregateID, []byte) error
+		marshalName   string
+		unmarshalName string
+	}{
+		{
+			name:      "binary",
+			testValue: "test-binary",
+			marshal: func(id string) ([]byte, error) {
+				return MustParseAggregateID(id).MarshalBinary()
+			},
+			unmarshal: func(id *AggregateID, data []byte) error {
+				return id.UnmarshalBinary(data)
+			},
+			marshalName:   "MarshalBinary",
+			unmarshalName: "UnmarshalBinary",
+		},
+		{
+			name:      "text",
+			testValue: "test-text",
+			marshal: func(id string) ([]byte, error) {
+				return MustParseAggregateID(id).MarshalText()
+			},
+			unmarshal: func(id *AggregateID, data []byte) error {
+				return id.UnmarshalText(data)
+			},
+			marshalName:   "MarshalText",
+			unmarshalName: "UnmarshalText",
+		},
+	}
 
-		id := MustParse[AggregateID]("test-binary")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		data, err := id.MarshalBinary()
-		if err != nil {
-			t.Fatalf("MarshalBinary() error = %v", err)
-		}
+			t.Run("marshal", func(t *testing.T) {
+				t.Parallel()
 
-		if string(data) != "test-binary" {
-			t.Errorf("MarshalBinary() = %q, want %q", string(data), "test-binary")
-		}
-	})
+				data, err := tc.marshal(tc.testValue)
+				if err != nil {
+					t.Fatalf("%s() error = %v", tc.marshalName, err)
+				}
 
-	t.Run("unmarshal", func(t *testing.T) {
-		t.Parallel()
+				if string(data) != tc.testValue {
+					t.Errorf("%s() = %q, want %q", tc.marshalName, string(data), tc.testValue)
+				}
+			})
 
-		var id AggregateID
+			t.Run("unmarshal", func(t *testing.T) {
+				t.Parallel()
 
-		err := id.UnmarshalBinary([]byte("test-binary"))
-		if err != nil {
-			t.Fatalf("UnmarshalBinary() error = %v", err)
-		}
+				var id AggregateID
 
-		if id.String() != "test-binary" {
-			t.Errorf("UnmarshalBinary() = %q, want %q", id.String(), "test-binary")
-		}
-	})
+				err := tc.unmarshal(&id, []byte(tc.testValue))
+				if err != nil {
+					t.Fatalf("%s() error = %v", tc.unmarshalName, err)
+				}
 
-	t.Run("unmarshal empty errors", func(t *testing.T) {
-		t.Parallel()
+				if id.String() != tc.testValue {
+					t.Errorf("%s() = %q, want %q", tc.unmarshalName, id.String(), tc.testValue)
+				}
+			})
 
-		var id AggregateID
+			t.Run("unmarshal empty errors", func(t *testing.T) {
+				t.Parallel()
 
-		err := id.UnmarshalBinary([]byte(""))
-		if err == nil {
-			t.Error("UnmarshalBinary() should error on empty")
-		}
-	})
+				var id AggregateID
 
-	t.Run("interface compliance", func(t *testing.T) {
+				err := tc.unmarshal(&id, []byte(""))
+				if err == nil {
+					t.Error("unmarshal should error on empty")
+				}
+			})
+		})
+	}
+
+	t.Run("binary interface compliance", func(t *testing.T) {
 		t.Parallel()
 
 		var (
@@ -431,53 +469,8 @@ func TestBinaryEncoding(t *testing.T) {
 			_ encoding.BinaryUnmarshaler = (*AggregateID)(nil)
 		)
 	})
-}
 
-func TestTextEncoding(t *testing.T) {
-	t.Parallel()
-
-	t.Run("marshal", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParse[AggregateID]("test-text")
-
-		data, err := id.MarshalText()
-		if err != nil {
-			t.Fatalf("MarshalText() error = %v", err)
-		}
-
-		if string(data) != "test-text" {
-			t.Errorf("MarshalText() = %q, want %q", string(data), "test-text")
-		}
-	})
-
-	t.Run("unmarshal", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-
-		err := id.UnmarshalText([]byte("test-text"))
-		if err != nil {
-			t.Fatalf("UnmarshalText() error = %v", err)
-		}
-
-		if id.String() != "test-text" {
-			t.Errorf("UnmarshalText() = %q, want %q", id.String(), "test-text")
-		}
-	})
-
-	t.Run("unmarshal empty errors", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-
-		err := id.UnmarshalText([]byte(""))
-		if err == nil {
-			t.Error("UnmarshalText() should error on empty")
-		}
-	})
-
-	t.Run("interface compliance", func(t *testing.T) {
+	t.Run("text interface compliance", func(t *testing.T) {
 		t.Parallel()
 
 		var (
