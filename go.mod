@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite
 
-go 1.26.2
+go 1.26
 
 require (
 	github.com/cockroachdb/errors v1.12.0
