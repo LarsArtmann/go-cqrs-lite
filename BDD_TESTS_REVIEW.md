@@ -11,10 +11,10 @@
 | File | Specs | Focus |
 |---|---|---|
 | `event/event_sourcing_bdd_test.go` | 22 | Event Store, Event Bus, Event Creation |
-| `aggregate/cqrs_bdd_test.go` | 11 | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants |
+| `aggregate/cqrs_bdd_test.go` | 12 | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants, middleware |
 | `query/query_bdd_test.go` | 6 | Query dispatch, typed results, middleware |
 
-**Total: 39 specs**
+**Total: 40 specs**
 
 ### Supporting files
 
@@ -53,7 +53,7 @@ go test ./...
 - Load events from a specific version onward (partial replay)
 - Load from a version beyond current state → empty slice
 - Delete an aggregate's entire event history
-- `AppendBatch` for bulk imports without version checks
+- `AppendBatch` for bulk imports — preserves original event versions on load
 - Reject operations on a closed store
 
 ### Event Bus (`event/event_sourcing_bdd_test.go`)
@@ -66,8 +66,8 @@ go test ./...
 - Handler failure stops processing and returns wrapped error
 - Publishing to a closed bus → `ErrBusClosed`
 - Subscribing to a closed bus → `ErrBusClosed`
-- **Subscribe + SubscribeAll on same event** → event delivered twice (once per subscription)
-- **Subscribe to wrong type** → no event received
+- Subscribe + SubscribeAll on same event → event delivered twice (once per subscription)
+- Subscribe to wrong type → no event received
 
 ### Event Creation (`event/event_sourcing_bdd_test.go`)
 
@@ -89,6 +89,7 @@ Uses a real `expense` aggregate with Submit → Approve → Pay workflow:
 - Replay state from event store alone (no cached state)
 - Dispatch unregistered command → handler not found error
 - Close dispatcher → reject registration and dispatch
+- Command middleware wraps handler in order (audit → handler)
 
 ### Repository Lifecycle (`aggregate/cqrs_bdd_test.go`)
 
@@ -97,14 +98,14 @@ Uses a real `expense` aggregate with Submit → Approve → Pay workflow:
 - Save aggregate with no changes → no-op
 - Load non-existent aggregate → error
 - Multiple save/load cycles accumulate events correctly, clear uncommitted changes
-- **Re-creation after delete** — delete events, submit new → version 1
-- **Pay without approve** — aggregate allows pay (no approval invariant enforced)
+- Re-creation after delete — delete events, submit new → version 1
+- Pay without approve — aggregate allows pay (no approval invariant enforced)
 
 ### CQRS Concurrency (`aggregate/cqrs_bdd_test.go`)
 
 **Persona:** "As a developer verifying domain correctness"
 
-- **Concurrent saves on same aggregate** — 20 goroutines race, version conflicts detected, final state consistent
+- Concurrent saves on same aggregate — 20 goroutines race, version conflicts detected, final state consistent
 
 ### Query Dispatcher (`query/query_bdd_test.go`)
 

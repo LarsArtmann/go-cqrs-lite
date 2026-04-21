@@ -243,6 +243,39 @@ var _ = Describe("CQRS Flow", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
+		Context("when I add command middleware", func() {
+			It("should wrap the handler in order", func() {
+				var callOrder []string
+
+				dispatcher.Use(func(next command.Handler) command.Handler {
+					return func(ctx context.Context, cmd command.Command) error {
+						callOrder = append(callOrder, "audit")
+						return next(ctx, cmd)
+					}
+				})
+
+				expenseID := id.NewAggregateID()
+
+				Expect(dispatcher.Register("expense.submit", func(_ context.Context, cmd command.Command) error {
+					c := cmd.(*submitExpenseCmd)
+					e := newExpense(c.id)
+					Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
+					callOrder = append(callOrder, "handler")
+					return repo.Save(ctx, e)
+				})).To(Succeed())
+
+				Expect(dispatcher.Dispatch(ctx, &submitExpenseCmd{
+					id: expenseID, description: "Audited expense", amount: 42.00,
+				})).To(Succeed())
+
+				Expect(callOrder).To(Equal([]string{"audit", "handler"}))
+
+				loaded := newExpense(expenseID)
+				Expect(repo.Load(ctx, loaded)).To(Succeed())
+				Expect(loaded.description).To(Equal("Audited expense"))
+			})
+		})
 	})
 })
 

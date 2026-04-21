@@ -133,7 +133,7 @@ var _ = Describe("Event Store", func() {
 		})
 
 		Context("when I use AppendBatch for bulk imports", func() {
-			It("should append all events without version checks", func() {
+			It("should append all events without version checks and preserve versions on load", func() {
 				events := []event.Event{
 					createTestEvent("BatchEvent1", aggID, 1, nil),
 					createTestEvent("BatchEvent2", aggID, 2, nil),
@@ -145,6 +145,11 @@ var _ = Describe("Event Store", func() {
 				loaded, err := store.Load(ctx, aggType, aggID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(3))
+				Expect(loaded[0].Version()).To(Equal(1))
+				Expect(loaded[1].Version()).To(Equal(2))
+				Expect(loaded[2].Version()).To(Equal(3))
+				Expect(loaded[0].Type()).To(Equal(event.Type("BatchEvent1")))
+				Expect(loaded[2].Type()).To(Equal(event.Type("BatchEvent3")))
 			})
 		})
 
