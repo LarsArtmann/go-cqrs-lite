@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func basicCommand(id string) catalog.Message {

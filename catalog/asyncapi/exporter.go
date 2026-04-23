@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-faster/yaml"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
 type messageKind string

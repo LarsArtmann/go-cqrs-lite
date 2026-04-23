@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/adapters"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )

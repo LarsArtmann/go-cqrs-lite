@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 )
 
 type Exporter struct {

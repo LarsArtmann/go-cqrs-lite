@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
 func assertPropertyCount(t *testing.T, schema *catalog.Schema, expected int) {

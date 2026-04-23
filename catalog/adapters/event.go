@@ -3,7 +3,7 @@ package adapters
 import (
 	"reflect"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 

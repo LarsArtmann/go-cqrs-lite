@@ -1,7 +1,7 @@
 package adapters
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 )
 

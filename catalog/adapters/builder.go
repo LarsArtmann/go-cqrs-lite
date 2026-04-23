@@ -1,9 +1,9 @@
 package adapters
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 )
 
 // CatalogBuilder accumulates services and their messages, then builds a catalog.

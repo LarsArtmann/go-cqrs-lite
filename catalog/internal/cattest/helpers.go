@@ -7,8 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
 // NewRegistry creates a new test registry with the given title and version.
@@ -319,7 +318,7 @@ func AddCommandWithSchema(
 ) *catalog.Registry {
 	tb.Helper()
 
-	testhelpers.AddCommandWithSchema(r, svcID, id, name, version, schema)
+	addCommandWithSchema(r, svcID, id, name, version, schema)
 
 	return r
 }
@@ -333,7 +332,7 @@ func AddEventWithSummary(
 ) *catalog.Registry {
 	tb.Helper()
 
-	testhelpers.AddEventWithSummary(r, svcID, id, name, version, summary, direction)
+	addEventWithSummary(r, svcID, id, name, version, summary, direction)
 
 	return r
 }
@@ -347,7 +346,53 @@ func AddCommandWithExamples(
 ) *catalog.Registry {
 	tb.Helper()
 
-	testhelpers.AddCommandWithExamples(r, svcID, id, name, version, examples...)
+	addCommandWithExamples(r, svcID, id, name, version, examples...)
 
 	return r
+}
+
+func addCommandWithSchema(
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	schema *catalog.Schema,
+) {
+	msg := catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      id,
+		Name:    name,
+		Version: version,
+		Schema:  schema,
+	}
+	r.AddCommand(svcID, msg)
+}
+
+func addEventWithSummary(
+	r *catalog.Registry,
+	svcID, id, name, version, summary string,
+	direction catalog.Direction,
+) {
+	msg := catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        id,
+		Name:      name,
+		Version:   version,
+		Summary:   summary,
+		Direction: direction,
+	}
+	r.AddEvent(svcID, msg)
+}
+
+func addCommandWithExamples(
+	r *catalog.Registry,
+	svcID, id, name, version string,
+	examples ...json.RawMessage,
+) {
+	msg := catalog.Message{
+		Kind:     catalog.CommandMessage,
+		ID:       id,
+		Name:     name,
+		Version:  version,
+		Examples: examples,
+	}
+	r.AddCommand(svcID, msg)
 }

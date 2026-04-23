@@ -3,9 +3,9 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/core/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 )
 
