@@ -6,7 +6,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
-	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 )
 
 func newBenchRegistry() *catalog.Registry {
@@ -18,14 +17,13 @@ func newBenchRegistry() *catalog.Registry {
 
 func benchmarkRegistryWithCommand() (*catalog.Registry, *catalog.Catalog) {
 	reg := newBenchRegistry()
-	testhelpers.AddCommandWithSchema(
-		reg,
-		"svc",
-		"CreateOrder",
-		"CreateOrder",
-		"1.0.0",
-		&catalog.Schema{Type: "object"},
-	)
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
+		Version: "1.0.0",
+		Schema:  &catalog.Schema{Type: "object"},
+	})
 
 	return reg, reg.Build()
 }
