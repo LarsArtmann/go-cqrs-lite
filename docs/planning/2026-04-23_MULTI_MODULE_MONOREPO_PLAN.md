@@ -141,7 +141,7 @@ use (
 ```
 
 `*` core keeps cockroachdb/errors + oklog/ulid.
-`sql` uses sqlc for type-safe, multi-engine code generation (postgres, mysql, sqlite).
+`storage` uses sqlc for type-safe, multi-engine code generation (postgres, mysql, sqlite).
 
 ## What Users Import
 
@@ -150,9 +150,9 @@ use (
 | CQRS types only | `core/...` | ulid, errors |
 | + in-memory testing | `memory/...` | + core |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
-|| + SQL store (postgres) | `sql` | + core, pgx, sqlc |
-|| + SQL store (mysql) | `sql` | + core, database/sql |
-|| + SQL store (sqlite) | `sql` | + core, database/sql |
+|| + SQL store (postgres) | `storage` | + core, pgx, sqlc |
+|| + SQL store (mysql) | `storage` | + core, database/sql |
+|| + SQL store (sqlite) | `storage` | + core, database/sql |
 || + NATS bus | `nats` | + core, nats.go |
 | Everything | all modules | all deps |
 
@@ -359,8 +359,7 @@ No page fragmentation from random UUID inserts.
 
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + oklog/ulid. Could vendor ID generation and use stdlib errors. Tradeoff: lose branded error types and ULID's time-sortability + collision resistance.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
-3. **Backend module priorities?** `storage/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.
-4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
+3. **Backend module priorities?** `storage/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
 5. **sqlc query sharing?** Event store queries (Save, Load, LoadFromVersion, Delete) are identical across SQL engines. Consider sharing a single `queries/` dir with engine-specific overrides only for DDL differences.
 
 ## storage/ Module Design

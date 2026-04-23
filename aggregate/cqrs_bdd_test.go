@@ -94,16 +94,20 @@ func (e *expense) Pay(ctx context.Context) error {
 }
 
 // Command types.
-type submitExpenseCmd struct{ id id.AggregateID; description string; amount float64 }
+type submitExpenseCmd struct {
+	id          id.AggregateID
+	description string
+	amount      float64
+}
 type approveExpenseCmd struct{ id id.AggregateID }
 type payExpenseCmd struct{ id id.AggregateID }
 
-func (c *submitExpenseCmd) Type() command.Type       { return "expense.submit" }
-func (c *submitExpenseCmd) AggregateID() string      { return c.id.String() }
-func (c *approveExpenseCmd) Type() command.Type       { return "expense.approve" }
-func (c *approveExpenseCmd) AggregateID() string      { return c.id.String() }
-func (c *payExpenseCmd) Type() command.Type           { return "expense.pay" }
-func (c *payExpenseCmd) AggregateID() string          { return c.id.String() }
+func (c *submitExpenseCmd) Type() command.Type   { return "expense.submit" }
+func (c *submitExpenseCmd) AggregateID() string  { return c.id.String() }
+func (c *approveExpenseCmd) Type() command.Type  { return "expense.approve" }
+func (c *approveExpenseCmd) AggregateID() string { return c.id.String() }
+func (c *payExpenseCmd) Type() command.Type      { return "expense.pay" }
+func (c *payExpenseCmd) AggregateID() string     { return c.id.String() }
 
 var _ = Describe("CQRS Flow", func() {
 	var (
@@ -385,7 +389,7 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 				var versionConflicts atomic.Int32
 
 				wg.Add(goroutines)
-				for i := 0; i < goroutines; i++ {
+				for range goroutines {
 					go func() {
 						defer wg.Done()
 						local := newExpense(expenseID)
