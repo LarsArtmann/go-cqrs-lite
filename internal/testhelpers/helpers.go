@@ -93,12 +93,14 @@ func PanicEventHandler(msg string) event.Handler {
 
 func FailingCommandHandler(msg string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
+		//nolint:err113
 		return errors.New(msg)
 	}
 }
 
 func FailingEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
+		//nolint:err113
 		return errors.New(msg)
 	}
 }

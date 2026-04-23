@@ -131,6 +131,7 @@ func NewEvent(
 	}
 
 	if aggregateID.IsEmpty() {
+		//nolint:err113 // dynamic error required to include event details for debugging
 		return nil, fmt.Errorf(
 			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
 			eventType,
@@ -142,6 +143,7 @@ func NewEvent(
 	}
 
 	if aggregateType == "" {
+		//nolint:err113 // dynamic error required to include event details for debugging
 		return nil, fmt.Errorf(
 			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d, opts count: %d",
 			aggregateID,

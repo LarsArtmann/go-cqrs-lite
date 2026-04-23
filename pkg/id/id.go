@@ -45,6 +45,7 @@ func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
 
+		//nolint:err113 // dynamic error required to include type name for debugging
 		return zero, fmt.Errorf("cannot parse empty string as %T (input: %q)", zero, s)
 	}
 
@@ -245,6 +246,7 @@ func (id *Of[T]) Scan(src any) error {
 
 		return nil
 	default:
+		//nolint:err113 // dynamic error required to include actual types for debugging
 		return fmt.Errorf("cannot scan %T into %T", src, id)
 	}
 }

@@ -74,14 +74,17 @@ func (r PaginatedResult[T]) HasPrev() bool {
 // Validate checks pagination values are within bounds.
 func (p Pagination) Validate() error {
 	if p.Page < 1 {
+		//nolint:err113 // dynamic error required to include actual page value
 		return fmt.Errorf("page must be >= 1, got %d", p.Page)
 	}
 
 	if p.PageSize < 1 {
+		//nolint:err113 // dynamic error required to include actual page size value
 		return fmt.Errorf("page size must be >= 1, got %d", p.PageSize)
 	}
 
 	if p.PageSize > maxPageSize {
+		//nolint:err113 // dynamic error required to include actual page size value
 		return fmt.Errorf("page size must be <= %d, got %d", maxPageSize, p.PageSize)
 	}
 

@@ -44,6 +44,7 @@ func NewStoreFromConfig(cfg StoreConfig) (Store, error) {
 	case BackendMemory:
 		return NewMemoryStore(), nil
 	default:
+		//nolint:err113 // dynamic error required to include backend name
 		return nil, fmt.Errorf("unknown event store backend: %q", cfg.Backend)
 	}
 }

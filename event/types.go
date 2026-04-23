@@ -17,6 +17,7 @@ func ParseSource(s string) (Source, error) {
 
 	s = strings.TrimSpace(s)
 	if s == "" {
+		//nolint:err113 // dynamic error required to include original input
 		return "", fmt.Errorf("source cannot be empty (input: %q)", original)
 	}
 
@@ -79,6 +80,7 @@ type Version int
 // Returns an error if the version is negative.
 func ParseVersion(v int) (Version, error) {
 	if v < 0 {
+		//nolint:err113 // dynamic error required to include the invalid version number
 		return 0, fmt.Errorf("version cannot be negative: %d", v)
 	}
 
