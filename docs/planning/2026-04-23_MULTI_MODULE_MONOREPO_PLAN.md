@@ -140,8 +140,8 @@ If you want truly zero, vendor uuid generation and use fmt.Errorf.
 | CQRS types only | `core/...` | uuid, errors |
 | + in-memory testing | `memory/...` | + core |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
-| + PostgreSQL store | `integrations/postgres` | + core, pgx |
-| + NATS bus | `integrations/nats` | + core, nats.go |
+|| + PostgreSQL store | `postgres` | + core, pgx |
+|| + NATS bus | `nats` | + core, nats.go |
 | Everything | all modules | all deps |
 
 Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
