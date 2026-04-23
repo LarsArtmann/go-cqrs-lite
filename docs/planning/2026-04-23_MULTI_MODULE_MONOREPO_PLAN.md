@@ -51,7 +51,7 @@ go-cqrs-lite/
 ├── go.work
 │
 ├── core/                           # github.com/larsartmann/go-cqrs-lite/core
-│   └── go.mod                      # deps: ONLY cockroachdb/errors, google/uuid
+│   └── go.mod                      # deps: cockroachdb/errors, oklog/ulid
 │   ├── command/
 │   ├── query/
 │   ├── event/                      # interfaces only (Store, Bus — no MemoryStore)
@@ -130,14 +130,14 @@ use (
              memory  catalog  middleware  xtypes  postgres  nats  redis
 ```
 
-`*` core keeps cockroachdb/errors + google/uuid — acceptable for a Go SDK.
-If you want truly zero, vendor uuid generation and use fmt.Errorf.
+`*` core keeps cockroachdb/errors + oklog/ulid — acceptable for a Go SDK.
+ULID replaces google/uuid for time-sortable IDs (see rationale below).
 
 ## What Users Import
 
 | Use Case | Import | Gets These Deps |
 |---|---|---|
-| CQRS types only | `core/...` | uuid, errors |
+| CQRS types only | `core/...` | ulid, errors |
 | + in-memory testing | `memory/...` | + core |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
 || + PostgreSQL store | `postgres` | + core, pgx |
@@ -312,9 +312,29 @@ Each module tests independently. CI catches cross-module breakage via go.work.
 | Lost git history from moves | Use `git mv` — GitHub tracks history across renames |
 | Examples break | They're in go.work, tested in CI |
 
+## ID Strategy: ULID
+
+All IDs (EventID, AggregateID, CorrelationID, etc.) use **ULID** (`github.com/oklog/ulid`)
+instead of UUID v4 (`github.com/google/uuid`).
+
+**Why ULID for event sourcing:**
+
+| Property | UUID v4 | ULID |
+|---|---|---|
+| Sortable | Random — no sort guarantee | Lexicographic (millisecond precision) |
+| DB index inserts | Random page splits | Append-right (fast) |
+| Timestamp extraction | No | Yes — from the ID itself |
+| String length | 36 chars | 26 chars |
+| Encoding | Hex with dashes | Crockford Base32 (no 0/O, 1/I/l) |
+| Cross-language spec | RFC 4122 | Formal spec, 40+ implementations |
+| Collision risk | Negligible | Negligible (80 random bits per ms) |
+
+The killer property: time-sortable IDs mean event store indexes are append-only.
+No page fragmentation from random UUID inserts.
+
 ## Open Questions
 
-1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + google/uuid. Could vendor UUID generation and use stdlib errors. Tradeoff: lose branded error types and UUID v4 quality.
+1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + oklog/ulid. Could vendor ID generation and use stdlib errors. Tradeoff: lose branded error types and ULID's time-sortability + collision resistance.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
 3. **Backend module priorities?** PostgreSQL store is the highest-value. NATS bus second. Redis optional.
 4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
