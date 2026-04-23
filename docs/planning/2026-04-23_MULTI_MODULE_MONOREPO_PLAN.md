@@ -137,7 +137,7 @@ use (
                     core (ulid + errors)
                    /  |  \  \  \  \  \
                   /   |   \  \  \  \  \
-             memory  catalog  middleware  xtypes  sql  nats  redis
+             memory  catalog  middleware  xtypes  storage  nats  redis
 ```
 
 `*` core keeps cockroachdb/errors + oklog/ulid.
@@ -243,8 +243,9 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 1. Tag `core/v1.0.0`
 2. Tag `memory/v1.0.0`
-3. Tag `catalog/v1.0.0`
-4. Tag other modules as ready
+3. Tag `storage/v1.0.0`
+4. Tag `catalog/v1.0.0`
+5. Tag other modules as ready
 
 ## Module Path Convention
 
@@ -294,12 +295,12 @@ or a custom landing page):
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite sql">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/nats mod https://github.com/larsartmann/go-cqrs-lite nats">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/redis mod https://github.com/larsartmann/go-cqrs-lite redis">
 ```
 
-This tells `go get` that `go-cqrs-lite/postgres` lives in the `postgres/` subdirectory of
+This tells `go get` that `go-cqrs-lite/storage` lives in the `storage/` subdirectory of
 the `go-cqrs-lite` repo — no separate repo needed.
 
 ## CI Changes
@@ -314,7 +315,7 @@ strategy:
       - catalog
       - middleware
       - xtypes
-      - sql
+      - storage
       - nats
       - redis
 
