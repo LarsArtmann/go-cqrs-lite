@@ -120,7 +120,6 @@ linters:
     - varnamelen
     - wastedassign
     - whitespace
-    - wrapcheck
     - wsl_v5
     - zerologlint
   default: none

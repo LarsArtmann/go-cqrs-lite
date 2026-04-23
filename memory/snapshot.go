@@ -1,0 +1,97 @@
+package memory
+
+import (
+	"context"
+	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
+
+type MemorySnapshotStore struct {
+	mu        sync.RWMutex
+	snapshots map[string]*event.Snapshot
+}
+
+var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
+
+func NewMemorySnapshotStore() *MemorySnapshotStore {
+	return &MemorySnapshotStore{
+		snapshots: make(map[string]*event.Snapshot),
+	}
+}
+
+func snapshotKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
+	return string(aggregateType) + ":" + aggregateID.String()
+}
+
+func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	key := snapshotKey(snapshot.AggregateType, snapshot.AggregateID)
+
+	existing, exists := s.snapshots[key]
+	if exists && existing.Version.Int() > snapshot.Version.Int() {
+		return nil
+	}
+
+	s.snapshots[key] = &snapshot
+
+	return nil
+}
+
+func (s *MemorySnapshotStore) Load(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) (*event.Snapshot, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := snapshotKey(aggregateType, aggregateID)
+
+	snapshot, exists := s.snapshots[key]
+	if !exists {
+		return nil, event.ErrSnapshotNotFound
+	}
+
+	return snapshot, nil
+}
+
+func (s *MemorySnapshotStore) LoadAtVersion(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	version event.Version,
+) (*event.Snapshot, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := snapshotKey(aggregateType, aggregateID)
+
+	snapshot, exists := s.snapshots[key]
+	if !exists {
+		return nil, event.ErrSnapshotNotFound
+	}
+
+	if snapshot.Version.Int() > version.Int() {
+		return nil, event.ErrSnapshotNotFound
+	}
+
+	return snapshot, nil
+}
+
+func (s *MemorySnapshotStore) Delete(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	key := snapshotKey(aggregateType, aggregateID)
+	delete(s.snapshots, key)
+
+	return nil
+}
