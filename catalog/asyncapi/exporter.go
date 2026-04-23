@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-faster/yaml"
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/yaml"
 )
 
 type messageKind string
