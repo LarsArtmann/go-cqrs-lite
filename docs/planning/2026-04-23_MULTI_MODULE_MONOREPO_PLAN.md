@@ -44,6 +44,21 @@ Restructure go-cqrs-lite as a multi-module monorepo so users only pay for what t
 > Each module has its own `go.mod` with **only the dependencies it needs**.
 > A root `go.work` ties them together for development.
 
+## The Four Storage Concerns
+
+CQRS event sourcing has four distinct storage needs. Each has different access patterns,
+different backends, and different scaling characteristics. They must be independent modules:
+
+| Concern | Access Pattern | Module | Backend |
+|---|---|---|---|
+| **Event Store** | Append-only, optimistic concurrency, ordered scans | `storage/` | PostgreSQL, MySQL, SQLite (sqlc) |
+| **PubSub** | Fan-out, consumer groups, at-least-once delivery | `watermill/` | Redis Streams, NATS, Kafka, Google PubSub |
+| **Projections** | Subscribe to events → write to query-optimized tables | `projection/` | Any SQL database |
+| **Snapshots** | Key-value by aggregate ID, infrequent writes | `snapshot/` | Any SQL database, Redis |
+
+Each is independently replaceable. Use PostgreSQL for event store, Redis Streams for pub/sub,
+SQLite for projections, Redis for snapshots? Fine. Swap one without touching the others.
+
 ## Module Layout
 
 ```
@@ -52,21 +67,56 @@ go-cqrs-lite/
 │
 ├── core/                           # github.com/larsartmann/go-cqrs-lite/core
 │   └── go.mod                      # deps: cockroachdb/errors, oklog/ulid
-│   ├── command/
-│   ├── query/
-│   ├── event/                      # interfaces only (Store, Bus — no MemoryStore)
-│   ├── aggregate/
+│   ├── command/                    # command dispatch, types, handler interface
+│   ├── query/                      # query dispatch, types (WITH context.Context)
+│   ├── event/                      # interfaces: Store, Bus, Streamer, Codec
+│   ├── aggregate/                  # Root, Repository interfaces
+│   ├── projection/                 # Projection, Handler interfaces
+│   ├── snapshot/                   # SnapshotStore interface
+│   ├── upcasting/                  # Upcaster interface, version registry
 │   └── pkg/
-│       ├── id/                     # branded IDs
-│       └── errors/                 # delete — unused, dead code
+│       └── id/                     # branded IDs (ULID-backed)
 │
 ├── memory/                         # github.com/larsartmann/go-cqrs-lite/memory
 │   └── go.mod                      # deps: core
-│   ├── store/                      # MemoryStore, MemorySnapshotStore
-│   └── bus/                        # MemoryBus
+│   ├── store.go                    # MemoryStore
+│   ├── bus.go                      # MemoryBus
+│   ├── snapshot.go                 # MemorySnapshotStore
+│   └── projection.go               # MemoryProjectionStore (for testing)
+│
+├── storage/                        # github.com/larsartmann/go-cqrs-lite/storage
+│   └── go.mod                      # deps: core, pgx/v5, sqlc
+│   └── sqlc.yaml                   # multi-engine: postgres, mysql, sqlite
+│   └── sql/
+│       ├── postgres/               # schema + queries
+│       ├── mysql/                  # schema + queries (shared queries, engine-specific DDL)
+│       └── sqlite/                 # schema + queries
+│   └── internal/db/               # generated code (build-tagged per engine)
+│       ├── postgres/
+│       ├── mysql/
+│       └── sqlite/
+│   └── eventstore.go              # implements core/event.Store
+│   └── outbox.go                  # transactional outbox pattern
+│   └── migration.go               # schema management
+│
+├── watermill/                      # github.com/larsartmann/go-cqrs-lite/watermill
+│   └── go.mod                      # deps: core, watermill
+│   └── bus.go                      # implements core/event.Bus via Watermill
+│   └── config.go                   # backend configuration helpers
+│
+├── projection/                     # github.com/larsartmann/go-cqrs-lite/projection
+│   └── go.mod                      # deps: core, storage
+│   └── runner.go                   # subscribes to events, dispatches to handlers
+│   └── handler.go                  # Handler interface, checkpoint tracking
+│   └── checkpoint.go               # stores projection position (SQL-backed)
+│
+├── snapshot/                       # github.com/larsartmann/go-cqrs-lite/snapshot
+│   └── go.mod                      # deps: core, storage
+│   └── store.go                    # implements core/snapshot.SnapshotStore
+│   └── strategy.go                 # snapshot strategies (every N events, time-based)
 │
 ├── catalog/                        # github.com/larsartmann/go-cqrs-lite/catalog
-│   └── go.mod                      # deps: core, go-faster/yaml (delete custom marshaler)
+│   └── go.mod                      # deps: core, go-faster/yaml
 │   ├── types.go
 │   ├── registry.go
 │   ├── schema.go
@@ -85,31 +135,11 @@ go-cqrs-lite/
 ├── xtypes/                         # github.com/larsartmann/go-cqrs-lite/xtypes
 │   └── go.mod                      # deps: core
 │
-├── storage/                            # github.com/larsartmann/go-cqrs-lite/storage
-│   └── go.mod                      # deps: core, sqlc-dev/sqlc, pgx/v5
-│   └── sqlc.yaml                   # multi-engine: postgres, mysql, sqlite
-│   └── sql/
-│       ├── postgres/               # schema + queries
-│       ├── mysql/                  # schema + queries (shared queries, engine-specific DDL)
-│       └── sqlite/                 # schema + queries
-│   └── internal/db/               # generated code (build-tagged per engine)
-│       ├── postgres/
-│       ├── mysql/
-│       └── sqlite/
-│   └── eventstore.go              # adapter: implements core/event.Store
-│   └── migration.go               # schema management
-├── nats/                           # github.com/larsartmann/go-cqrs-lite/nats
-│   └── go.mod                      # deps: core, nats.go
-│   └── eventbus.go
-├── redis/                          # github.com/larsartmann/go-cqrs-lite/redis
-│   └── go.mod                      # deps: core, go-redis
-│   └── eventstore.go
-├── ro/                             # github.com/larsartmann/go-cqrs-lite/ro
-│   └── go.mod                      # deps: core, samber/ro
-│   ├── bus.go                      # ObservableBus — event.Bus backed by PublishSubject
-│   ├── store.go                    # ReplayStore — event.Store backed by ReplaySubject
-│   ├── streamer.go                 # ObservableStreamer — event.Streamer via Observable
-│   └── projection.go              # Projection helpers using ro operators
+├── testutil/                       # github.com/larsartmann/go-cqrs-lite/testutil
+│   └── go.mod                      # deps: core, memory
+│   ├── aggregate_tester.go         # given events → when command → then events
+│   ├── projection_tester.go        # given events → then read model state
+│   └── bus_tester.go               # publish → assert handler called
 │
 └── examples/                       # separate modules, CI-tested
     ├── user/
@@ -126,12 +156,14 @@ go 1.26
 use (
     ./core
     ./memory
+    ./storage
+    ./watermill
+    ./projection
+    ./snapshot
     ./catalog
     ./middleware
     ./xtypes
-    ./storage
-    ./nats
-    ./redis
+    ./testutil
     ./examples/user
     ./examples/catalog
 )
@@ -140,14 +172,21 @@ use (
 ## Dependency Graph
 
 ```
-                    core (ulid + errors)
-                   /  |  \  \  \  \  \
-                  /   |   \  \  \  \  \
-             memory  catalog  middleware  xtypes  storage  nats  redis
+                              core (ulid + errors)
+                             / | \  \  \  \  \  \
+                            /  |  \  \  \  \  \  \
+                       memory  catalog  middleware  xtypes  testutil
+                                  |
+                          ┌───┬───┴───┬────────┐
+                          │   │       │        │
+                      storage  watermill  projection  snapshot
+                          │              │        │
+                          └──────────────┴────────┘
+                              (projection + snapshot depend on storage)
 ```
 
-`*` core keeps cockroachdb/errors + oklog/ulid.
-`storage` uses sqlc for type-safe, multi-engine code generation (postgres, mysql, sqlite).
+All storage modules depend on `core` interfaces, **not on each other**.
+`projection/` and `snapshot/` may optionally depend on `storage/` for SQL-backed persistence.
 
 ## What Users Import
 
@@ -155,14 +194,16 @@ use (
 |---|---|---|
 | CQRS types only | `core/...` | ulid, errors |
 | + in-memory testing | `memory/...` | + core |
+| + SQL event store (postgres) | `storage` | + core, pgx, sqlc |
+| + SQL event store (mysql/sqlite) | `storage` | + core, database/sql |
+| + pub/sub (any backend) | `watermill` | + core, watermill |
+| + projections | `projection` | + core, storage |
+| + snapshots | `snapshot` | + core, storage |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
-|| + SQL store (postgres) | `storage` | + core, pgx, sqlc |
-|| + SQL store (mysql) | `storage` | + core, database/sql |
-|| + SQL store (sqlite) | `storage` | + core, database/sql |
-|| + NATS bus | `nats` | + core, nats.go |
+| + test utilities | `testutil` | + core, memory |
 | Everything | all modules | all deps |
 
-Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
+Nobody who just wants CQRS types pulls in pgx, watermill, or a YAML library.
 
 ## What Gets Deleted
 
@@ -170,9 +211,9 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 |---|---|
 | `catalog/yaml/` (~180 lines) | Replaced by `go-faster/yaml` in catalog's go.mod |
 | `pkg/errors/` (~30 lines) | Dead code — never used anywhere |
-| `event/memory_store.go` | Moves to `memory/store/` |
-| `event/memory_bus.go` | Moves to `memory/bus/` |
-| `event/memory_snapshot_store.go` | Moves to `memory/store/` |
+| `event/memory_store.go` | Moves to `memory/store.go` |
+| `event/memory_bus.go` | Moves to `memory/bus.go` |
+| `event/memory_snapshot_store.go` | Moves to `memory/snapshot.go` |
 
 ## What Gets Fixed (Existing Issues)
 
@@ -186,13 +227,13 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 ## Migration Phases
 
-### Phase 0: Preparation (no breaking changes) ✅
+### Phase 0: Preparation (no breaking changes)
 
-1. ~~Fix query handler signature to include `context.Context`~~ ✅
-2. ~~Delete `pkg/errors/` (dead code)~~ ✅
-3. ~~Replace custom YAML marshaler with `go-faster/yaml`~~ ✅ (done in prior commit 3c09f0b)
-4. ~~Fix all `err113` linter warnings~~ ✅
-5. ~~Ensure all tests pass clean~~ ✅
+1. Fix query handler signature to include `context.Context`
+2. Delete `pkg/errors/` (dead code)
+3. Replace custom YAML marshaler with `go-faster/yaml`
+4. Fix all `err113` linter warnings
+5. Ensure all tests pass clean
 
 ### Phase 1: Create go.work + move into subdirectories
 
@@ -227,35 +268,61 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 1. Same pattern — own go.mod, depends on core
 2. Run tests, fix until green
 
-### Phase 5: SQL store module (new)
+### Phase 5: Storage module (event store)
 
 1. Create `storage/` with its own `go.mod`
 2. Add `sqlc.yaml` (based on template-sqlc pattern)
 3. Write engine-specific schemas: `sql/postgres/schema/`, `sql/mysql/schema/`, `sql/sqlite/schema/`
-4. Write shared event store queries: `sql/*/queries/` (Save, Load, LoadFromVersion, Delete, AppendBatch)
+4. Write shared event store queries: Save, Load, LoadFromVersion, Delete, AppendBatch
 5. Run `sqlc generate` to produce type-safe Go code in `internal/db/`
-6. Write `eventstore.go` adapter implementing `core/event.Store` using generated queries
-7. Use build tags per engine (`postgres`, `mysql`, `sqlite`) so users only compile what they need
-8. Add to go.work
+6. Write `eventstore.go` adapter implementing `core/event.Store`
+7. Implement outbox pattern in `outbox.go` (same-transaction event write + relay)
+8. Use build tags per engine (`postgres`, `mysql`, `sqlite`)
+9. Add to go.work
 
-### Phase 6: Message bus modules (new)
+### Phase 6: Watermill module (pub/sub)
 
-1. Create `nats/` — implement `event.Bus` backed by nats.go
-2. Create `redis/` — implement `event.Store` backed by go-redis (optional, low priority)
-3. Each has its own go.mod with only its backend dependency
+1. Create `watermill/` with its own `go.mod`
+2. Implement `core/event.Bus` via Watermill's Publisher/Subscriber interface
+3. Support Redis Streams, NATS, Kafka, Google Cloud PubSub — all free from one module
 4. Add to go.work
 
-### Phase 6: Tag releases
+### Phase 7: Projection module (read models)
+
+1. Create `projection/` with its own `go.mod`
+2. Define `Projection` interface in `core/projection/`
+3. Implement `Runner` that subscribes to events and dispatches to projection handlers
+4. Implement checkpoint tracking (SQL-backed, knows where each projection left off)
+5. Add to go.work
+
+### Phase 8: Snapshot module
+
+1. Create `snapshot/` with its own `go.mod`
+2. Move `core/snapshot/` interface from core
+3. Implement SQL-backed `SnapshotStore` via `storage/`
+4. Implement strategies: every N events, time-based, on-demand
+5. Add to go.work
+
+### Phase 9: Test utilities module
+
+1. Create `testutil/` with its own `go.mod`
+2. Implement `AggregateTester` — given events, when command, then events
+3. Implement `ProjectionTester` — given events, then read model state
+4. Implement `BusTester` — publish, assert handler called
+5. Add to go.work
+
+### Phase 10: Tag releases
 
 1. Tag `core/v1.0.0`
 2. Tag `memory/v1.0.0`
 3. Tag `storage/v1.0.0`
-4. Tag `catalog/v1.0.0`
-5. Tag other modules as ready
+4. Tag `watermill/v1.0.0`
+5. Tag `projection/v1.0.0`
+6. Tag `snapshot/v1.0.0`
+7. Tag `catalog/v1.0.0`
+8. Tag other modules as ready
 
 ## Module Path Convention
-
-### Module Path Convention
 
 Before Go 1.25, multi-module repos required either:
 - Separate repos per module (fragmented)
@@ -268,12 +335,14 @@ Every module lives as a top-level directory with its own `go.mod`:
 ```
 github.com/larsartmann/go-cqrs-lite/core
 github.com/larsartmann/go-cqrs-lite/memory
+github.com/larsartmann/go-cqrs-lite/storage
+github.com/larsartmann/go-cqrs-lite/watermill
+github.com/larsartmann/go-cqrs-lite/projection
+github.com/larsartmann/go-cqrs-lite/snapshot
 github.com/larsartmann/go-cqrs-lite/catalog
 github.com/larsartmann/go-cqrs-lite/middleware
 github.com/larsartmann/go-cqrs-lite/xtypes
-github.com/larsartmann/go-cqrs-lite/storage
-github.com/larsartmann/go-cqrs-lite/nats
-github.com/larsartmann/go-cqrs-lite/redis
+github.com/larsartmann/go-cqrs-lite/testutil
 ```
 
 Same repo, one source of truth, subdirectory resolution via Go 1.25.
@@ -285,8 +354,10 @@ This is the pattern used by OpenTelemetry and gRPC.
 import (
     "github.com/larsartmann/go-cqrs-lite/core/command"
     "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/memory/store"
-    "github.com/larsartmann/go-cqrs-lite/storage"          // SQL-backed event store
+    "github.com/larsartmann/go-cqrs-lite/memory"               // testing
+    "github.com/larsartmann/go-cqrs-lite/storage"              // SQL event store
+    "github.com/larsartmann/go-cqrs-lite/watermill"            // pub/sub
+    "github.com/larsartmann/go-cqrs-lite/projection"           // read models
 )
 ```
 
@@ -298,12 +369,14 @@ or a custom landing page):
 ```html
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/watermill mod https://github.com/larsartmann/go-cqrs-lite watermill">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/projection mod https://github.com/larsartmann/go-cqrs-lite projection">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/snapshot mod https://github.com/larsartmann/go-cqrs-lite snapshot">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/nats mod https://github.com/larsartmann/go-cqrs-lite nats">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/redis mod https://github.com/larsartmann/go-cqrs-lite redis">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/testutil mod https://github.com/larsartmann/go-cqrs-lite testutil">
 ```
 
 This tells `go get` that `go-cqrs-lite/storage` lives in the `storage/` subdirectory of
@@ -318,12 +391,14 @@ strategy:
     module:
       - core
       - memory
+      - storage
+      - watermill
+      - projection
+      - snapshot
       - catalog
       - middleware
       - xtypes
-      - storage
-      - nats
-      - redis
+      - testutil
 
 steps:
   - name: Test ${{ matrix.module }}
@@ -366,8 +441,12 @@ No page fragmentation from random UUID inserts.
 
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + oklog/ulid. Could vendor ID generation and use stdlib errors. Tradeoff: lose branded error types and ULID's time-sortability + collision resistance.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
-3. **Backend module priorities?** `storage/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
+3. **Module priorities?** `storage/` (postgres primary) is highest-value. `watermill/` second. `projection/` third. Rest follow.
+4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
 5. **sqlc query sharing?** Event store queries (Save, Load, LoadFromVersion, Delete) are identical across SQL engines. Consider sharing a single `queries/` dir with engine-specific overrides only for DDL differences.
+6. **Event Codec?** Payload is `[]byte`. Need a pluggable `Codec` interface in core (JSON, protobuf, msgpack). Should this be in `core/event/` or its own module?
+7. **Event Upcasting?** Events evolve (`UserCreatedV1` → `V2`). Need an upcasting mechanism. Interface in `core/upcasting/`, implementation in storage module?
+8. **Schema migration tool?** `storage/migration.go` needs a concrete strategy. golang-migrate? goose? Raw SQL?
 
 ## storage/ Module Design
 
@@ -385,9 +464,9 @@ from a single `sqlc.yaml` config (based on the template-sqlc pattern).
 ### Structure
 
 ```
-sql/
+storage/
 ├── sqlc.yaml                       # multi-engine config
-├── storage/
+├── sql/
 │   ├── postgres/
 │   │   ├── schema/
 │   │   │   └── 001_events.sql      # CREATE TABLE events (...)
@@ -417,6 +496,7 @@ sql/
 │       ├── models.go
 │       └── querier.go
 ├── eventstore.go                   # implements core/event.Store
+├── outbox.go                       # transactional outbox pattern
 ├── migration.go                    # schema creation/management
 └── go.mod
 ```
@@ -484,6 +564,28 @@ CREATE TABLE events (
 CREATE INDEX idx_events_aggregate ON events (aggregate_type, aggregate_id, version);
 ```
 
+### Outbox Schema
+
+```sql
+CREATE TABLE outbox (
+    id             TEXT NOT NULL PRIMARY KEY,  -- ULID
+    event_id       TEXT NOT NULL,
+    aggregate_type TEXT NOT NULL,
+    aggregate_id   TEXT NOT NULL,
+    event_type     TEXT NOT NULL,
+    payload        BYTEA,
+    metadata       JSONB,
+    occurred_at    TIMESTAMPTZ NOT NULL,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    published      BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_outbox_unpublished ON outbox (created_at) WHERE NOT published;
+```
+
+Events are written to both `events` and `outbox` in the same transaction.
+A background relay publishes from outbox to the message bus, then marks published.
+
 ### Build Tags
 
 Users compile only the engine they need:
@@ -504,4 +606,126 @@ The `eventstore.go` adapter uses build-tagged files:
 eventstore_postgres.go   //go:build postgres
 eventstore_mysql.go      //go:build mysql
 eventstore_sqlite.go     //go:build sqlite
+```
+
+## watermill/ Module Design
+
+A single module that provides `event.Bus` via Watermill, giving users
+access to all pub/sub backends without maintaining N separate modules.
+
+### Supported Backends (all free from Watermill)
+
+- Redis Streams
+- NATS / NATS JetStream
+- Apache Kafka
+- Google Cloud PubSub
+- AMQP (RabbitMQ)
+- SQL (fallback)
+- HTTP (testing)
+- Go channel (in-process — but `memory/` is better for this)
+
+### Why Watermill
+
+| Approach | Problem |
+|---|---|
+| Hand-rolled per backend | N modules to maintain, N sets of bugs |
+| **Watermill** | Battle-tested, all backends, maintained by community |
+| NATS-only | Locks users into one transport |
+
+### Tradeoff
+
+Watermill is a heavier dependency than hand-rolling one backend.
+But one dependency for all backends > N dependencies for N backends.
+Users who don't want Watermill can use `memory/` for testing or implement `event.Bus` themselves.
+
+## projection/ Module Design
+
+Builds read models by subscribing to the event stream and writing to
+query-optimized tables. This is the "Q" in CQRS — currently missing entirely.
+
+### Core Concepts
+
+- **Projection** — a function that handles events and updates a read model
+- **Checkpoint** — tracks which events each projection has processed
+- **Runner** — subscribes to events, dispatches to projections, updates checkpoints
+
+### Flow
+
+```
+Event Store → Runner → Projection Handler → Read Model Table
+                    └→ Checkpoint Store (position tracking)
+```
+
+### Example
+
+```go
+// User defines a projection:
+projector.On("user.created", func(ctx context.Context, evt event.Event) error {
+    return updateUserReadModel(ctx, evt)
+})
+
+projector.On("user.email_changed", func(ctx context.Context, evt event.Event) error {
+    return updateUserReadModel(ctx, evt)
+})
+
+// Runner handles subscription, checkpointing, and error recovery
+runner := projection.NewRunner(store, bus, projector, checkpointStore)
+go runner.Run(ctx)
+```
+
+## snapshot/ Module Design
+
+Materializes aggregate state to avoid replaying thousands of events on every load.
+
+### Core Concepts
+
+- **SnapshotStore** — saves/loads serialized aggregate state by ID + version
+- **Strategy** — decides when to snapshot (every N events, time-based, on-demand)
+
+### Flow
+
+```
+Load aggregate:
+  1. Check SnapshotStore for latest snapshot
+  2. Load events after snapshot version
+  3. Apply only the delta events
+
+Save aggregate:
+  1. Persist events to EventStore (as usual)
+  2. If strategy says "snapshot now", save current aggregate state
+```
+
+### Schema
+
+```sql
+CREATE TABLE snapshots (
+    aggregate_type TEXT NOT NULL,
+    aggregate_id   TEXT NOT NULL,
+    version        INTEGER NOT NULL,
+    state          BYTEA NOT NULL,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);
+```
+
+## testutil/ Module Design
+
+Testing utilities that every user of the SDK would otherwise build themselves.
+
+### AggregateTester
+
+```go
+tester := testutil.NewAggregateTester(store, bus)
+tester.Given(events...)                    // seed history
+result := tester.When(createUserCmd)       // execute command
+result.ThenShouldEmit("user.created")      // assert events
+result.ThenShouldSucceed()                 // assert no error
+```
+
+### ProjectionTester
+
+```go
+tester := testutil.NewProjectionTester(handler)
+tester.GivenEvents(events...)              // feed events
+tester.ThenReadModel(userID, &expected)    // assert read model state
 ```
