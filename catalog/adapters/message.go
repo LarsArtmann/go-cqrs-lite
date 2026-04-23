@@ -82,6 +82,7 @@ func buildCommandMessageFromReflect(
 	instance any,
 ) catalog.Message {
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(instance).Elem())
+
 	return buildCommandMessage(id, meta, schema)
 }
 
@@ -117,6 +118,7 @@ func buildQueryMessageFromReflect(
 	instance any,
 ) catalog.Message {
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(instance).Elem())
+
 	return buildQueryMessage(id, meta, schema)
 }
 
@@ -154,5 +156,6 @@ func buildEventMessageFromReflect(
 	direction catalog.Direction,
 ) catalog.Message {
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(instance).Elem())
+
 	return buildEventMessage(id, meta, schema, direction)
 }

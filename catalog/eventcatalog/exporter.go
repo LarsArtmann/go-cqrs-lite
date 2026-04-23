@@ -55,7 +55,8 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 	}
 
-	if err := e.writeConfig(cat); err != nil {
+	err := e.writeConfig(cat)
+	if err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 
@@ -230,7 +231,8 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	}
 
 	if msg.Schema != nil {
-		if err := e.writeSchema(dir, msg.Schema); err != nil {
+		err := e.writeSchema(dir, msg.Schema)
+		if err != nil {
 			return err
 		}
 	}

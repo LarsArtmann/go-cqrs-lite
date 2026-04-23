@@ -178,7 +178,9 @@ func CopyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 	if dest == nil {
 		dest = make(map[KT]VT, len(src))
 	}
+
 	maps.Copy(dest, src)
+
 	return dest
 }
 

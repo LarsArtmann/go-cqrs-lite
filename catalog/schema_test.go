@@ -10,6 +10,7 @@ import (
 
 func assertPropertyCount(t *testing.T, schema *catalog.Schema, expected int) {
 	t.Helper()
+
 	if len(schema.Properties) != expected {
 		t.Errorf(
 			"expected %d properties, got %d: %v",
@@ -443,10 +444,11 @@ func TestSchemaFromType_EnumTag(t *testing.T) {
 	t.Parallel()
 
 	type WithEnum struct {
-		Status string `json:"status" enum:"active,inactive,pending"`
+		Status string `enum:"active,inactive,pending" json:"status"`
 	}
 
 	schema := catalog.SchemaFromType[WithEnum]()
+
 	prop := schema.Properties["status"]
 	if len(prop.Enum) != 3 {
 		t.Fatalf("expected 3 enum values, got %d", len(prop.Enum))
@@ -464,10 +466,11 @@ func TestSchemaFromType_DefaultTag(t *testing.T) {
 	t.Parallel()
 
 	type WithDefault struct {
-		Role string `json:"role" default:"viewer"`
+		Role string `default:"viewer" json:"role"`
 	}
 
 	schema := catalog.SchemaFromType[WithDefault]()
+
 	prop := schema.Properties["role"]
 	if prop.Default != "viewer" {
 		t.Errorf("default = %q, want %q", prop.Default, "viewer")
@@ -482,6 +485,7 @@ func TestSchemaFromType_NullableTag(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithNullable]()
+
 	prop := schema.Properties["email"]
 	if !prop.Nullable {
 		t.Error("expected nullable=true")
@@ -492,10 +496,11 @@ func TestSchemaFromType_DeprecatedTag(t *testing.T) {
 	t.Parallel()
 
 	type WithDeprecated struct {
-		OldField string `json:"oldField" deprecated:"true"`
+		OldField string `deprecated:"true" json:"oldField"`
 	}
 
 	schema := catalog.SchemaFromType[WithDeprecated]()
+
 	prop := schema.Properties["oldField"]
 	if !prop.Deprecated {
 		t.Error("expected deprecated=true")
@@ -510,6 +515,7 @@ func TestSchemaFromType_PatternTag(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithPattern]()
+
 	prop := schema.Properties["slug"]
 	if prop.Pattern != "^[a-z0-9-]+$" {
 		t.Errorf("pattern = %q, want ^[a-z0-9-]+$", prop.Pattern)
@@ -520,10 +526,11 @@ func TestSchemaFromType_AllTagsCombined(t *testing.T) {
 	t.Parallel()
 
 	type RichField struct {
-		Status string `json:"status" doc:"Current status" enum:"active,inactive" default:"active"`
+		Status string `default:"active" doc:"Current status" enum:"active,inactive" json:"status"`
 	}
 
 	schema := catalog.SchemaFromType[RichField]()
+
 	prop := schema.Properties["status"]
 	if prop.Description != "Current status" {
 		t.Errorf("description = %q", prop.Description)

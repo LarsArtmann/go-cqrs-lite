@@ -628,6 +628,7 @@ func TestExporter_Export_PackageJSON(t *testing.T) {
 	}
 
 	pkgPath := filepath.Join(tmpDir, "package.json")
+
 	data, err := os.ReadFile(pkgPath)
 	if err != nil {
 		t.Fatalf("read package.json: %v", err)

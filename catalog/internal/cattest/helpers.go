@@ -302,6 +302,7 @@ func AssertMessageFrontmatter(tb testing.TB, content, msgID string, checkHeading
 	AssertContentContains(tb, content, "message frontmatter",
 		"id: "+msgID,
 	)
+
 	if checkHeading {
 		AssertContentContains(tb, content, "message frontmatter heading",
 			"# "+msgID,

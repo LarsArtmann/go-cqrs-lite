@@ -26,8 +26,10 @@ type expense struct {
 
 const expenseType event.AggregateType = "Expense"
 
-var _ aggregate.Root = (*expense)(nil)
-var _ aggregate.HistoryLoader = (*expense)(nil)
+var (
+	_ aggregate.Root          = (*expense)(nil)
+	_ aggregate.HistoryLoader = (*expense)(nil)
+)
 
 func newExpense(expenseID id.AggregateID) *expense {
 	return &expense{Core: aggregate.NewCore(expenseID, expenseType)}
@@ -40,9 +42,11 @@ func (e *expense) Apply(evt event.Event) error {
 			Description string  `json:"description"`
 			Amount      float64 `json:"amount"`
 		}
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		err := json.Unmarshal(evt.Payload(), &p)
+		if err != nil {
 			return err
 		}
+
 		e.description = p.Description
 		e.amount = p.Amount
 	case "ExpenseApproved":
@@ -50,6 +54,7 @@ func (e *expense) Apply(evt event.Event) error {
 	case "ExpensePaid":
 		e.paid = true
 	}
+
 	return nil
 }
 
@@ -63,33 +68,57 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 		Amount      float64 `json:"amount"`
 	}{Description: description, Amount: amount})
 
-	evt, err := event.NewEvent("ExpenseSubmitted", id.MustParseAggregateID(e.ID()), expenseType, e.Version()+1, payload)
+	evt, err := event.NewEvent(
+		"ExpenseSubmitted",
+		id.MustParseAggregateID(e.ID()),
+		expenseType,
+		e.Version()+1,
+		payload,
+	)
 	if err != nil {
 		return err
 	}
+
 	e.description = description
 	e.amount = amount
 	e.RecordEvent(ctx, evt)
+
 	return nil
 }
 
 func (e *expense) Approve(ctx context.Context) error {
-	evt, err := event.NewEvent("ExpenseApproved", id.MustParseAggregateID(e.ID()), expenseType, e.Version()+1, nil)
+	evt, err := event.NewEvent(
+		"ExpenseApproved",
+		id.MustParseAggregateID(e.ID()),
+		expenseType,
+		e.Version()+1,
+		nil,
+	)
 	if err != nil {
 		return err
 	}
+
 	e.approved = true
 	e.RecordEvent(ctx, evt)
+
 	return nil
 }
 
 func (e *expense) Pay(ctx context.Context) error {
-	evt, err := event.NewEvent("ExpensePaid", id.MustParseAggregateID(e.ID()), expenseType, e.Version()+1, nil)
+	evt, err := event.NewEvent(
+		"ExpensePaid",
+		id.MustParseAggregateID(e.ID()),
+		expenseType,
+		e.Version()+1,
+		nil,
+	)
 	if err != nil {
 		return err
 	}
+
 	e.paid = true
 	e.RecordEvent(ctx, evt)
+
 	return nil
 }
 
@@ -99,8 +128,10 @@ type submitExpenseCmd struct {
 	description string
 	amount      float64
 }
-type approveExpenseCmd struct{ id id.AggregateID }
-type payExpenseCmd struct{ id id.AggregateID }
+type (
+	approveExpenseCmd struct{ id id.AggregateID }
+	payExpenseCmd     struct{ id id.AggregateID }
+)
 
 func (c *submitExpenseCmd) Type() command.Type   { return "expense.submit" }
 func (c *submitExpenseCmd) AggregateID() string  { return c.id.String() }
@@ -129,6 +160,7 @@ var _ = Describe("CQRS Flow", func() {
 
 		_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 			busEvents = append(busEvents, evt)
+
 			return nil
 		})
 	})
@@ -138,12 +170,18 @@ var _ = Describe("CQRS Flow", func() {
 			It("should persist the event and publish it to the bus", func() {
 				expenseID := id.NewAggregateID()
 
-				Expect(dispatcher.Register("expense.submit", func(_ context.Context, cmd command.Command) error {
-					c := cmd.(*submitExpenseCmd)
-					e := newExpense(c.id)
-					Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
-					return repo.Save(ctx, e)
-				})).To(Succeed())
+				Expect(
+					dispatcher.Register(
+						"expense.submit",
+						func(_ context.Context, cmd command.Command) error {
+							c := cmd.(*submitExpenseCmd)
+							e := newExpense(c.id)
+							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
+
+							return repo.Save(ctx, e)
+						},
+					),
+				).To(Succeed())
 
 				Expect(dispatcher.Dispatch(ctx, &submitExpenseCmd{
 					id: expenseID, description: "Flight to Berlin", amount: 349.50,
@@ -166,28 +204,46 @@ var _ = Describe("CQRS Flow", func() {
 			BeforeEach(func() {
 				expenseID = id.NewAggregateID()
 
-				Expect(dispatcher.Register("expense.submit", func(_ context.Context, cmd command.Command) error {
-					c := cmd.(*submitExpenseCmd)
-					e := newExpense(c.id)
-					Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
-					return repo.Save(ctx, e)
-				})).To(Succeed())
+				Expect(
+					dispatcher.Register(
+						"expense.submit",
+						func(_ context.Context, cmd command.Command) error {
+							c := cmd.(*submitExpenseCmd)
+							e := newExpense(c.id)
+							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
 
-				Expect(dispatcher.Register("expense.approve", func(_ context.Context, cmd command.Command) error {
-					c := cmd.(*approveExpenseCmd)
-					e := newExpense(c.id)
-					Expect(repo.Load(ctx, e)).To(Succeed())
-					Expect(e.Approve(ctx)).To(Succeed())
-					return repo.Save(ctx, e)
-				})).To(Succeed())
+							return repo.Save(ctx, e)
+						},
+					),
+				).To(Succeed())
 
-				Expect(dispatcher.Register("expense.pay", func(_ context.Context, cmd command.Command) error {
-					c := cmd.(*payExpenseCmd)
-					e := newExpense(c.id)
-					Expect(repo.Load(ctx, e)).To(Succeed())
-					Expect(e.Pay(ctx)).To(Succeed())
-					return repo.Save(ctx, e)
-				})).To(Succeed())
+				Expect(
+					dispatcher.Register(
+						"expense.approve",
+						func(_ context.Context, cmd command.Command) error {
+							c := cmd.(*approveExpenseCmd)
+							e := newExpense(c.id)
+							Expect(repo.Load(ctx, e)).To(Succeed())
+							Expect(e.Approve(ctx)).To(Succeed())
+
+							return repo.Save(ctx, e)
+						},
+					),
+				).To(Succeed())
+
+				Expect(
+					dispatcher.Register(
+						"expense.pay",
+						func(_ context.Context, cmd command.Command) error {
+							c := cmd.(*payExpenseCmd)
+							e := newExpense(c.id)
+							Expect(repo.Load(ctx, e)).To(Succeed())
+							Expect(e.Pay(ctx)).To(Succeed())
+
+							return repo.Save(ctx, e)
+						},
+					),
+				).To(Succeed())
 			})
 
 			It("should maintain a complete audit trail through events", func() {
@@ -238,9 +294,12 @@ var _ = Describe("CQRS Flow", func() {
 			It("should reject registration and dispatch", func() {
 				Expect(dispatcher.Close()).To(Succeed())
 
-				err := dispatcher.Register("expense.submit", func(_ context.Context, cmd command.Command) error {
-					return nil
-				})
+				err := dispatcher.Register(
+					"expense.submit",
+					func(_ context.Context, cmd command.Command) error {
+						return nil
+					},
+				)
 				Expect(err).To(HaveOccurred())
 
 				err = dispatcher.Dispatch(ctx, &submitExpenseCmd{id: id.NewAggregateID()})
@@ -255,19 +314,27 @@ var _ = Describe("CQRS Flow", func() {
 				dispatcher.Use(func(next command.Handler) command.Handler {
 					return func(ctx context.Context, cmd command.Command) error {
 						callOrder = append(callOrder, "audit")
+
 						return next(ctx, cmd)
 					}
 				})
 
 				expenseID := id.NewAggregateID()
 
-				Expect(dispatcher.Register("expense.submit", func(_ context.Context, cmd command.Command) error {
-					c := cmd.(*submitExpenseCmd)
-					e := newExpense(c.id)
-					Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
-					callOrder = append(callOrder, "handler")
-					return repo.Save(ctx, e)
-				})).To(Succeed())
+				Expect(
+					dispatcher.Register(
+						"expense.submit",
+						func(_ context.Context, cmd command.Command) error {
+							c := cmd.(*submitExpenseCmd)
+							e := newExpense(c.id)
+							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
+
+							callOrder = append(callOrder, "handler")
+
+							return repo.Save(ctx, e)
+						},
+					),
+				).To(Succeed())
 
 				Expect(dispatcher.Dispatch(ctx, &submitExpenseCmd{
 					id: expenseID, description: "Audited expense", amount: 42.00,
@@ -385,23 +452,32 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 				Expect(repo.Save(ctx, e)).To(Succeed())
 
 				const goroutines = 20
-				var wg sync.WaitGroup
-				var versionConflicts atomic.Int32
+
+				var (
+					wg               sync.WaitGroup
+					versionConflicts atomic.Int32
+				)
 
 				wg.Add(goroutines)
+
 				for range goroutines {
 					go func() {
 						defer wg.Done()
+
 						local := newExpense(expenseID)
-						if err := repo.Load(ctx, local); err != nil {
+						err := repo.Load(ctx, local)
+						if err != nil {
 							return
 						}
+
 						_ = local.Approve(ctx)
-						if err := repo.Save(ctx, local); err != nil {
+						err := repo.Save(ctx, local)
+						if err != nil {
 							versionConflicts.Add(1)
 						}
 					}()
 				}
+
 				wg.Wait()
 
 				final := newExpense(expenseID)
@@ -410,7 +486,7 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 
 				events, err := store.Load(ctx, expenseType, expenseID)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(len(events)).To(Equal(final.Version()))
+				Expect(events).To(HaveLen(final.Version()))
 
 				Expect(int(versionConflicts.Load())).To(BeNumerically(">", 0))
 			})

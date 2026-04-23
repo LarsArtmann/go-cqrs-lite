@@ -157,6 +157,7 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	)
 
 	schemaContent := cattest.MustReadFile(t, schemaFile)
+
 	var schemaMap map[string]any
 	if err := json.Unmarshal([]byte(schemaContent), &schemaMap); err != nil {
 		t.Fatalf("parse schema: %v", err)

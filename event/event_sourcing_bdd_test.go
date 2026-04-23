@@ -11,7 +11,12 @@ import (
 )
 
 // createTestEvent creates a test event with the given type and version.
-func createTestEvent(eventType event.Type, aggID id.AggregateID, version int, payload []byte) event.Event {
+func createTestEvent(
+	eventType event.Type,
+	aggID id.AggregateID,
+	version int,
+	payload []byte,
+) event.Event {
 	if payload == nil {
 		payload = []byte(`{"test":true}`)
 	}
@@ -133,24 +138,27 @@ var _ = Describe("Event Store", func() {
 		})
 
 		Context("when I use AppendBatch for bulk imports", func() {
-			It("should append all events without version checks and preserve versions on load", func() {
-				events := []event.Event{
-					createTestEvent("BatchEvent1", aggID, 1, nil),
-					createTestEvent("BatchEvent2", aggID, 2, nil),
-					createTestEvent("BatchEvent3", aggID, 3, nil),
-				}
+			It(
+				"should append all events without version checks and preserve versions on load",
+				func() {
+					events := []event.Event{
+						createTestEvent("BatchEvent1", aggID, 1, nil),
+						createTestEvent("BatchEvent2", aggID, 2, nil),
+						createTestEvent("BatchEvent3", aggID, 3, nil),
+					}
 
-				Expect(store.AppendBatch(ctx, aggType, aggID, events)).To(Succeed())
+					Expect(store.AppendBatch(ctx, aggType, aggID, events)).To(Succeed())
 
-				loaded, err := store.Load(ctx, aggType, aggID)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded).To(HaveLen(3))
-				Expect(loaded[0].Version()).To(Equal(1))
-				Expect(loaded[1].Version()).To(Equal(2))
-				Expect(loaded[2].Version()).To(Equal(3))
-				Expect(loaded[0].Type()).To(Equal(event.Type("BatchEvent1")))
-				Expect(loaded[2].Type()).To(Equal(event.Type("BatchEvent3")))
-			})
+					loaded, err := store.Load(ctx, aggType, aggID)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(loaded).To(HaveLen(3))
+					Expect(loaded[0].Version()).To(Equal(1))
+					Expect(loaded[1].Version()).To(Equal(2))
+					Expect(loaded[2].Version()).To(Equal(3))
+					Expect(loaded[0].Type()).To(Equal(event.Type("BatchEvent1")))
+					Expect(loaded[2].Type()).To(Equal(event.Type("BatchEvent3")))
+				},
+			)
 		})
 
 		Context("when the store is closed", func() {
@@ -166,9 +174,9 @@ var _ = Describe("Event Store", func() {
 
 var _ = Describe("Event Bus", func() {
 	var (
-		ctx       context.Context
-		bus       *event.MemoryBus
-		received  []event.Event
+		ctx      context.Context
+		bus      *event.MemoryBus
+		received []event.Event
 	)
 
 	BeforeEach(func() {
@@ -180,10 +188,16 @@ var _ = Describe("Event Bus", func() {
 	Describe("As a developer reacting to domain events", func() {
 		Context("when I subscribe to a specific event type", func() {
 			It("should receive only events of that type", func() {
-				Expect(bus.Subscribe(event.Type("OrderPlaced"), func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
-					return nil
-				})).To(Succeed())
+				Expect(
+					bus.Subscribe(
+						event.Type("OrderPlaced"),
+						func(_ context.Context, evt event.Event) error {
+							received = append(received, evt)
+
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderPlaced", aggID, 1, nil)
@@ -197,6 +211,7 @@ var _ = Describe("Event Bus", func() {
 			It("should receive every published event regardless of type", func() {
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 					received = append(received, evt)
+
 					return nil
 				})).To(Succeed())
 
@@ -215,12 +230,14 @@ var _ = Describe("Event Bus", func() {
 				bus.Use(func(next event.Handler) event.Handler {
 					return func(ctx context.Context, evt event.Event) error {
 						callOrder = append(callOrder, "middleware1")
+
 						return next(ctx, evt)
 					}
 				})
 				bus.Use(func(next event.Handler) event.Handler {
 					return func(ctx context.Context, evt event.Event) error {
 						callOrder = append(callOrder, "middleware2")
+
 						return next(ctx, evt)
 					}
 				})
@@ -228,6 +245,7 @@ var _ = Describe("Event Bus", func() {
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 					callOrder = append(callOrder, "handler")
 					received = append(received, evt)
+
 					return nil
 				})).To(Succeed())
 
@@ -241,9 +259,14 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when a handler fails during publish", func() {
 			It("should stop processing and return the wrapped error", func() {
-				Expect(bus.Subscribe(event.Type("BadEvent"), func(_ context.Context, _ event.Event) error {
-					return context.DeadlineExceeded
-				})).To(Succeed())
+				Expect(
+					bus.Subscribe(
+						event.Type("BadEvent"),
+						func(_ context.Context, _ event.Event) error {
+							return context.DeadlineExceeded
+						},
+					),
+				).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("BadEvent", aggID, 1, nil)
@@ -268,20 +291,30 @@ var _ = Describe("Event Bus", func() {
 			It("should return ErrBusClosed", func() {
 				Expect(bus.Close()).To(Succeed())
 
-				err := bus.Subscribe(event.Type("Test"), func(_ context.Context, _ event.Event) error { return nil })
+				err := bus.Subscribe(
+					event.Type("Test"),
+					func(_ context.Context, _ event.Event) error { return nil },
+				)
 				Expect(err).To(MatchError(event.ErrBusClosed))
 			})
 		})
 
 		Context("when I subscribe to a specific type AND subscribe to all events", func() {
 			It("should deliver the event twice — once per subscription", func() {
-				Expect(bus.Subscribe(event.Type("OrderPlaced"), func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
-					return nil
-				})).To(Succeed())
+				Expect(
+					bus.Subscribe(
+						event.Type("OrderPlaced"),
+						func(_ context.Context, evt event.Event) error {
+							received = append(received, evt)
+
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 					received = append(received, evt)
+
 					return nil
 				})).To(Succeed())
 
@@ -297,10 +330,16 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when I subscribe to a specific type but publish a different type", func() {
 			It("should not receive the event", func() {
-				Expect(bus.Subscribe(event.Type("OrderPlaced"), func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
-					return nil
-				})).To(Succeed())
+				Expect(
+					bus.Subscribe(
+						event.Type("OrderPlaced"),
+						func(_ context.Context, evt event.Event) error {
+							received = append(received, evt)
+
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderCancelled", aggID, 1, nil)
@@ -349,7 +388,14 @@ var _ = Describe("Event Creation", func() {
 		Context("when I create an event with an empty aggregate ID", func() {
 			It("should reject it with a descriptive error", func() {
 				var emptyID id.AggregateID
-				_, err := event.NewEvent(event.Type("BadEvent"), emptyID, event.AggregateType("User"), 1, nil)
+
+				_, err := event.NewEvent(
+					event.Type("BadEvent"),
+					emptyID,
+					event.AggregateType("User"),
+					1,
+					nil,
+				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
 			})
@@ -358,7 +404,13 @@ var _ = Describe("Event Creation", func() {
 		Context("when I create an event with an empty aggregate type", func() {
 			It("should reject it with a descriptive error", func() {
 				aggID := id.NewAggregateID()
-				_, err := event.NewEvent(event.Type("BadEvent"), aggID, event.AggregateType(""), 1, nil)
+				_, err := event.NewEvent(
+					event.Type("BadEvent"),
+					aggID,
+					event.AggregateType(""),
+					1,
+					nil,
+				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate type is required"))
 			})
@@ -367,7 +419,13 @@ var _ = Describe("Event Creation", func() {
 		Context("when I create an event with a negative version", func() {
 			It("should reject it with a descriptive error", func() {
 				aggID := id.NewAggregateID()
-				_, err := event.NewEvent(event.Type("BadEvent"), aggID, event.AggregateType("User"), -1, nil)
+				_, err := event.NewEvent(
+					event.Type("BadEvent"),
+					aggID,
+					event.AggregateType("User"),
+					-1,
+					nil,
+				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("version"))
 			})
@@ -387,8 +445,12 @@ var _ = Describe("Event Creation", func() {
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(evt.Metadata().Custom).To(HaveKeyWithValue(event.MetadataKey("tenant"), "acme-corp"))
-				Expect(evt.Metadata().Custom).To(HaveKeyWithValue(event.MetadataKey("region"), "us-east-1"))
+				Expect(
+					evt.Metadata().Custom,
+				).To(HaveKeyWithValue(event.MetadataKey("tenant"), "acme-corp"))
+				Expect(
+					evt.Metadata().Custom,
+				).To(HaveKeyWithValue(event.MetadataKey("region"), "us-east-1"))
 			})
 		})
 	})

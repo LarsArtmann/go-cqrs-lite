@@ -19,6 +19,7 @@ type benchCreateUser struct {
 
 func benchCommand() *benchCreateUser {
 	aggID := id.NewAggregateID()
+
 	return &benchCreateUser{
 		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
 			Name: "CreateUser", Version: "1.0.0",
@@ -30,6 +31,7 @@ func benchBuilderWithCommand() *adapters.CatalogBuilder {
 	builder := adapters.NewBuilder("Bench API", "1.0.0")
 	builder.AddService("svc", "Service", "1.0.0", "")
 	builder.AddCommand("svc", benchCommand())
+
 	return builder
 }
 
