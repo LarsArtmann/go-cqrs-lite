@@ -85,7 +85,7 @@ go-cqrs-lite/
 ├── xtypes/                         # github.com/larsartmann/go-cqrs-lite/xtypes
 │   └── go.mod                      # deps: core
 │
-├── sql/                            # github.com/larsartmann/go-cqrs-lite/sql
+├── storage/                            # github.com/larsartmann/go-cqrs-lite/storage
 │   └── go.mod                      # deps: core, sqlc-dev/sqlc, pgx/v5
 │   └── sqlc.yaml                   # multi-engine: postgres, mysql, sqlite
 │   └── sql/
@@ -123,7 +123,7 @@ use (
     ./catalog
     ./middleware
     ./xtypes
-    ./sql
+    ./storage
     ./nats
     ./redis
     ./examples/user
@@ -180,13 +180,13 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 ## Migration Phases
 
-### Phase 0: Preparation (no breaking changes)
+### Phase 0: Preparation (no breaking changes) ✅
 
-1. Fix query handler signature to include `context.Context`
-2. Delete `pkg/errors/` (dead code)
-3. Replace custom YAML marshaler with `go-faster/yaml`
-4. Fix all `err113` linter warnings
-5. Ensure all tests pass clean
+1. ~~Fix query handler signature to include `context.Context`~~ ✅
+2. ~~Delete `pkg/errors/` (dead code)~~ ✅
+3. ~~Replace custom YAML marshaler with `go-faster/yaml`~~ ✅ (done in prior commit 3c09f0b)
+4. ~~Fix all `err113` linter warnings~~ ✅
+5. ~~Ensure all tests pass clean~~ ✅
 
 ### Phase 1: Create go.work + move into subdirectories
 
@@ -223,7 +223,7 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 ### Phase 5: SQL store module (new)
 
-1. Create `sql/` with its own `go.mod`
+1. Create `storage/` with its own `go.mod`
 2. Add `sqlc.yaml` (based on template-sqlc pattern)
 3. Write engine-specific schemas: `sql/postgres/schema/`, `sql/mysql/schema/`, `sql/sqlite/schema/`
 4. Write shared event store queries: `sql/*/queries/` (Save, Load, LoadFromVersion, Delete, AppendBatch)
@@ -264,7 +264,7 @@ github.com/larsartmann/go-cqrs-lite/memory
 github.com/larsartmann/go-cqrs-lite/catalog
 github.com/larsartmann/go-cqrs-lite/middleware
 github.com/larsartmann/go-cqrs-lite/xtypes
-github.com/larsartmann/go-cqrs-lite/sql
+github.com/larsartmann/go-cqrs-lite/storage
 github.com/larsartmann/go-cqrs-lite/nats
 github.com/larsartmann/go-cqrs-lite/redis
 ```
@@ -279,7 +279,7 @@ import (
     "github.com/larsartmann/go-cqrs-lite/core/command"
     "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/memory/store"
-    "github.com/larsartmann/go-cqrs-lite/sql"          // SQL-backed event store
+    "github.com/larsartmann/go-cqrs-lite/storage"          // SQL-backed event store
 )
 ```
 
@@ -294,7 +294,7 @@ or a custom landing page):
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/sql mod https://github.com/larsartmann/go-cqrs-lite sql">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite sql">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/nats mod https://github.com/larsartmann/go-cqrs-lite nats">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/redis mod https://github.com/larsartmann/go-cqrs-lite redis">
 ```
@@ -359,13 +359,13 @@ No page fragmentation from random UUID inserts.
 
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + oklog/ulid. Could vendor ID generation and use stdlib errors. Tradeoff: lose branded error types and ULID's time-sortability + collision resistance.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
-3. **Backend module priorities?** `sql/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.
+3. **Backend module priorities?** `storage/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.
 4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
 5. **sqlc query sharing?** Event store queries (Save, Load, LoadFromVersion, Delete) are identical across SQL engines. Consider sharing a single `queries/` dir with engine-specific overrides only for DDL differences.
 
-## sql/ Module Design
+## storage/ Module Design
 
-The `sql/` module uses **sqlc** to generate type-safe Go code for PostgreSQL, MySQL, and SQLite
+The `storage/` module uses **sqlc** to generate type-safe Go code for PostgreSQL, MySQL, and SQLite
 from a single `sqlc.yaml` config (based on the template-sqlc pattern).
 
 ### Why sqlc
@@ -381,7 +381,7 @@ from a single `sqlc.yaml` config (based on the template-sqlc pattern).
 ```
 sql/
 ├── sqlc.yaml                       # multi-engine config
-├── sql/
+├── storage/
 │   ├── postgres/
 │   │   ├── schema/
 │   │   │   └── 001_events.sql      # CREATE TABLE events (...)
