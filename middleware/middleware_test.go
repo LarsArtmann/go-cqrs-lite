@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -185,7 +184,6 @@ func TestCommandRecovery_Panic(t *testing.T) {
     if err == nil {
         t.Fatal("expected error from recovered panic")
     }
-}
 
     if err.Error() != "panic recovered in command test.cmd: boom" {
         t.Errorf("unexpected error message: %s", err.Error())
@@ -213,7 +211,7 @@ func TestCommandRetry_Success(t *testing.T) {
     t.Parallel()
 
     config := DefaultRetryConfig()
-    config.MaxAttempts = 1
+    config.MaxAttempts = 3
     config.IsRetryable = func(err error) bool { return true }
 
     mw := CommandRetry(config)
@@ -282,7 +280,6 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
     if err == nil {
         t.Fatal("expected error")
     }
-}
 
     if callCount != 1 {
         t.Errorf("expected 1 call (no retry), got %d", callCount)
