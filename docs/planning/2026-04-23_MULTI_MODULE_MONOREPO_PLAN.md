@@ -269,10 +269,14 @@ Nobody who just wants CQRS types pulls in pgx, watermill, or a YAML library.
 5. Update `go.work`
 6. Run tests, fix until green
 
-### Phase 4: Extract middleware + xtypes
+### Phase 4: Extract middleware + xtypes ✅ DONE
 
 1. Same pattern — own go.mod, depends on core
-2. Run tests, fix until green
+2. Middleware: inlined testhelpers (cross-module internal packages not importable)
+3. Xtypes: clean extraction, no internal deps
+4. Core go.mod cleaned: removed go-faster/yaml + transitive deps
+5. Empty dirs removed: core/middleware/, core/xtypes/, core/catalog/
+6. All tests green across all modules
 
 ### Phase 5: Storage module (event store)
 

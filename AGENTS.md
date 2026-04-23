@@ -7,8 +7,8 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 | Item          | Value                                  |
 | ------------- | -------------------------------------- |
 | Language      | Go 1.26                                |
-| Modules       | `core`, `memory`, `catalog`            |
-| Build         | `make build` or `go build ./core/... ./memory/... ./catalog/...` |
+| Modules       | `core`, `memory`, `catalog`, `middleware`, `xtypes` |
+| Build         | `make build` or `go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...` |
 | Test          | `make test` or see "Testing" below     |
 | Lint          | `make lint` or `golangci-lint run ./...` |
 | Format        | `gofumpt -w .`                         |
@@ -17,28 +17,26 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 3 independent modules:
+Multi-module Go workspace with 5 independent modules:
 
 ```
 go-cqrs-lite/
 ├── go.work                          # ties modules together
 │
 ├── core/                            # github.com/larsartmann/go-cqrs-lite/core
-│   └── go.mod                       # deps: cockroachdb/errors, google/uuid, go-faster/yaml,
+│   └── go.mod                       # deps: cockroachdb/errors, google/uuid,
 │                                    #       go-json-experiment/json, ginkgo/gomega (test)
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
 │   ├── aggregate/                   # Root, Repository, Core
-│   ├── middleware/                   # logging, retry, validation, recovery, metrics
-│   ├── xtypes/                      # typed wrappers (TypedCommand, TypedEvent, TypedAggregate, branded IDs)
 │   ├── pkg/
 │   │   ├── id/                      # branded IDs: id.Of[T] (AggregateID, EventID, UserID, etc.)
 │   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin
 │   ├── internal/
 │   │   ├── testutil/                # shared test assertions
 │   │   └── testhelpers/             # test helpers (internal, not importable)
-│   └── catalog/                     # (symlinked to ../catalog during migration)
+│   └── event/store_config.go       # vestigial config (returns error, points to memory module)
 │
 ├── memory/                          # github.com/larsartmann/go-cqrs-lite/memory
 │   └── go.mod                       # deps: core
@@ -56,6 +54,21 @@ go-cqrs-lite/
 │   ├── eventcatalog/                # EventCatalog MDX file generator
 │   └── internal/cattest/            # test helpers
 │
+├── middleware/                       # github.com/larsartmann/go-cqrs-lite/middleware
+│   └── go.mod                       # deps: core, cockroachdb/errors
+│   ├── logging.go                   # CommandLogging, EventLogging
+│   ├── metrics.go                   # CommandMetrics, EventMetrics
+│   ├── recovery.go                  # CommandRecovery, EventRecovery
+│   ├── retry.go                     # CommandRetry, EventRetry (exponential backoff)
+│   └── validation.go                # CommandValidation, QueryValidation
+│
+├── xtypes/                          # github.com/larsartmann/go-cqrs-lite/xtypes
+│   └── go.mod                       # deps: core
+│   ├── command.go                   # TypedCommand with branded ID
+│   ├── event.go                     # TypedEvent, EventBuilder
+│   ├── aggregate.go                 # TypedAggregate
+│   └── id.go                        # Re-exports id types, CommandID
+│
 ├── example/                         # standalone example modules
 │   ├── user/
 │   └── catalog/
@@ -69,7 +82,7 @@ go-cqrs-lite/
 
 From root with go.work:
 ```bash
-go test ./core/... ./memory/... ./catalog/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -100,23 +113,31 @@ make check         # fmt + imports + lint + build + test
                               ▼
 ┌────────────────────────────────────────────────────────────────┐
 │                         CORE MODULE                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │   Command    │  │    Query     │  │    Event     │          │
-│  │  Dispatcher  │  │  Dispatcher  │  │  Store+Bus   │         │
-│  └──────────────┘  └──────────────┘  └──────────────┘         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │  Aggregate   │  │  Middleware  │  │   xtypes     │          │
-│  │  Repository  │  │              │  │              │         │
-│  └──────────────┘  └──────────────┘  └──────────────┘         │
+│  ┌──────────────┐  ┌──────────────┐
+│  │   Command    │  │    Query     │
+│  │  Dispatcher  │  │  Dispatcher  │
+│  └──────────────┘  └──────────────┘
+│  ┌──────────────┐  ┌──────────────┐
+│  │    Event     │  │  Aggregate   │
+│  │  Store+Bus   │  │  Repository  │
+│  └──────────────┘  └──────────────┘
 └────────────────────────────────────────────────────────────────┘
-          │                    │                    │
-          ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│  memory module  │  │ catalog module  │  │  (planned)       │
-│  MemoryStore    │  │ AsyncAPI 3.0    │  │  storage/        │
-│  MemoryBus      │  │ EventCatalog    │  │  watermill/      │
-│  MemorySnapshot │  │ Schema reflect  │  │  projection/     │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
+         │           │           │           │
+         ▼           ▼           ▼           ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  memory      │ │  catalog     │ │  middleware   │ │  xtypes      │
+│  MemoryStore │ │  AsyncAPI    │ │  Logging      │ │  TypedCmd    │
+│  MemoryBus   │ │  EventCat    │ │  Retry        │ │  TypedEvt    │
+│  Snapshot    │ │  Schema      │ │  Recovery     │ │  TypedAgg    │
+└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+                                       │
+                                       ▼
+                              ┌─────────────────┐
+                              │  (planned)       │
+                              │  storage/        │
+                              │  watermill/      │
+                              │  projection/     │
+                              └─────────────────┘
 ```
 
 ## Package Overview
@@ -129,8 +150,6 @@ make check         # fmt + imports + lint + build + test
 | `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]` |
 | `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata` |
 | `core/aggregate/`          | Aggregate roots and repository                 | `Root`, `Repository`, `Core`, `EventSourcedRepository`  |
-| `core/middleware/`         | Cross-cutting middleware                        | `Logging`, `Retry`, `Validation`, `Recovery`, `Metrics` |
-| `core/xtypes/`             | Typed wrappers with branded IDs                | `TypedCommand`, `TypedEvent`, `TypedAggregate`, `EventBuilder` |
 | `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID` |
 | `core/pkg/dispatcher/`     | Generic internal dispatcher                     | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin` |
 
@@ -149,9 +168,21 @@ make check         # fmt + imports + lint + build + test
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export   | `Exporter`, `Document`, `MarshalYAML`        |
 | `catalog/eventcatalog/` | EventCatalog MDX generator       | `Exporter`                                   |
 
+### Middleware Module (`middleware/`)
+
+| Package        | Purpose                          | Key Types                                    |
+| -------------- | -------------------------------- | -------------------------------------------- |
+| `middleware/`   | Cross-cutting CQRS middleware     | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `CommandMetrics` |
+
+### Xtypes Module (`xtypes/`)
+
+| Package   | Purpose                          | Key Types                                    |
+| --------- | -------------------------------- | -------------------------------------------- |
+| `xtypes/` | Typed wrappers with branded IDs  | `TypedCommand`, `TypedEvent`, `TypedAggregate`, `EventBuilder`, `CommandID` |
+
 ## Design Principles
 
-1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `google/uuid`, `go-faster/yaml`, `go-json-experiment/json`
+1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `google/uuid`, `go-json-experiment/json`
 2. **Composition over inheritance** — Per Go best practices
 3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 4. **Context-aware** — All handlers accept `context.Context`
@@ -251,7 +282,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Dependency              | Version  | Purpose              | Module   |
 | ----------------------- | -------- | -------------------- | -------- |
-| `cockroachdb/errors`   | v1.12.0  | Error wrapping       | core     |
+| `cockroachdb/errors`   | v1.12.0  | Error wrapping       | core, middleware |
 | `google/uuid`           | v1.6.0   | UUID generation      | core     |
 | `go-faster/yaml`        | v0.4.6   | YAML marshaling      | catalog  |
 | `go-json-experiment/json` | v0.0.0 | JSON v2             | core, catalog |
@@ -335,11 +366,11 @@ The monorepo is mid-migration from a single module to multi-module. Current stat
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 0 | Fix query handler ctx, delete pkg/errors, replace custom YAML | Partially done (query ctx fixed, YAML replaced) |
+| 0 | Fix query handler ctx, delete pkg/errors, replace custom YAML | Done |
 | 1 | go.work + move into `core/` subdirectory | Done |
 | 2 | Extract `memory/` module | Done |
 | 3 | Extract `catalog/` module | Done |
-| 4 | Extract middleware + xtypes | Pending (still in core) |
+| 4 | Extract middleware + xtypes | Done |
 | 5 | Storage module (sqlc event store) | Planned |
 | 6 | Watermill module (pub/sub) | Planned |
 | 7 | Projection module (samber/ro internally) | Planned |
