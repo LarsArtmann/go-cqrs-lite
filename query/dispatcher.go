@@ -93,6 +93,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	typed, ok := result.(T)
 	if !ok {
+		//nolint:wrapcheck // Newf creates a new error with context
 		return zero, errors.Newf(
 			"unexpected result type for query %q: got %T, expected: %T",
 			query.Type(),
@@ -106,5 +107,6 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
+	//nolint:wrapcheck // Close returns lifecycle error; caller handles it
 	return d.base.Lifecycle().Close()
 }

@@ -228,12 +228,13 @@ func MessageID(msg catalog.Message) string {
 }
 
 func (d *Document) MarshalYAML() ([]byte, error) {
+	//nolint:wrapcheck // MarshalYAML returns bytes; caller handles error
 	return yaml.Marshal(d)
 }
 
 func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
-
+	//nolint:wrapcheck // MarshalJSON returns bytes; caller handles error
 	return json.MarshalIndent((*alias)(d), "", "  ")
 }
 

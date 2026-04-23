@@ -201,5 +201,6 @@ func SchemaToJSON(schema *Schema) ([]byte, error) {
 		return nil, errors.New("schema is nil")
 	}
 
+	//nolint:wrapcheck // MarshalIndent returns bytes, error from json.MarshalIndent
 	return json.MarshalIndent(schema, "", "  ")
 }

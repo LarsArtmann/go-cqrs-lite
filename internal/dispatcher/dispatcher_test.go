@@ -20,10 +20,6 @@ func testMW(order *[]string, name string) testMiddleware {
 	}
 }
 
-var wrapWithMiddleware = func(m testMiddleware, h testHandler) testHandler {
-	return m(h)
-}
-
 func assertCallOrder(t *testing.T, order, expected []string) {
 	t.Helper()
 
@@ -123,7 +119,7 @@ func TestMiddlewareChain_Add(t *testing.T) {
 	c := &MiddlewareChain[testHandler, testMiddleware]{}
 
 	count := 0
-	mw := func(h testHandler) testHandler {
+	middleware := func(h testHandler) testHandler {
 		return func(s string) string {
 			count++
 
@@ -131,7 +127,7 @@ func TestMiddlewareChain_Add(t *testing.T) {
 		}
 	}
 
-	c.Add(mw, mw)
+	c.Add(middleware, middleware)
 
 	if len(c.Middleware()) != 2 {
 		t.Errorf("expected 2 middleware, got %d", len(c.Middleware()))
@@ -153,6 +149,9 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 		return s
 	}
 
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	wrapped := c.Apply(handler, wrapWithMiddleware)
 
 	result := wrapped("test")
@@ -169,6 +168,9 @@ func TestMiddlewareChain_Apply_NoMiddleware(t *testing.T) {
 	c := &MiddlewareChain[testHandler, testMiddleware]{}
 
 	handler := func(s string) string { return "result:" + s }
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	wrapped := c.Apply(handler, wrapWithMiddleware)
 
 	if wrapped("x") != "result:x" {
@@ -242,6 +244,9 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	handler := func(s string) string { return "handled:" + s }
 	_ = d.Register("test", handler)
 
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	result, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
@@ -259,6 +264,9 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 
 	handler := func(s string) string { return s }
 
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	_, err := d.Dispatch("missing", handler, wrapWithMiddleware)
 	if err == nil {
 		t.Error("expected error for missing handler")
@@ -273,6 +281,9 @@ func TestDispatcher_Dispatch_Closed(t *testing.T) {
 
 	handler := func(s string) string { return s }
 
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	_, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err == nil {
 		t.Error("expected error when dispatching on closed dispatcher")
@@ -295,6 +306,9 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 	}
 	_ = d.Register("test", handler)
 
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
 	result, err := d.Dispatch("test", handler, wrapWithMiddleware)
 	if err != nil {
 		t.Fatalf("Dispatch() error = %v", err)
@@ -348,7 +362,7 @@ func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	mw := func(h testHandler) testHandler { return h }
+	middleware := func(h testHandler) testHandler { return h }
 
 	for range 50 {
 		wg.Add(2)
@@ -356,7 +370,7 @@ func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			c.Add(mw)
+			c.Add(middleware)
 		}()
 		go func() {
 			defer wg.Done()

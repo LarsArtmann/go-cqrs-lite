@@ -69,6 +69,7 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(ErrStoreClosed)
 	if err != nil {
+		//nolint:wrapcheck // CheckClosed is a guard; returning its error is intentional
 		return err
 	}
 
@@ -89,6 +90,7 @@ func (s *MemoryStore) Load(
 ) ([]Event, error) {
 	err := s.CheckClosed(ErrStoreClosed)
 	if err != nil {
+		//nolint:wrapcheck // CheckClosed is a guard; returning its error is intentional
 		return nil, err
 	}
 
@@ -114,6 +116,7 @@ func (s *MemoryStore) LoadFromVersion(
 ) ([]Event, error) {
 	err := s.CheckClosed(ErrStoreClosed)
 	if err != nil {
+		//nolint:wrapcheck // CheckClosed is a guard; returning its error is intentional
 		return nil, err
 	}
 
@@ -142,6 +145,7 @@ func (s *MemoryStore) Delete(
 ) error {
 	err := s.CheckClosed(ErrStoreClosed)
 	if err != nil {
+		//nolint:wrapcheck // CheckClosed is a guard; returning its error is intentional
 		return err
 	}
 
@@ -156,5 +160,6 @@ func (s *MemoryStore) Delete(
 
 // Close marks the store as closed.
 func (s *MemoryStore) Close() error {
+	//nolint:wrapcheck // Close returns lifecycle error; caller handles it
 	return s.LifecycleMixin.Close()
 }

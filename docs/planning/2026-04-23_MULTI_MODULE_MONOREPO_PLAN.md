@@ -105,10 +105,14 @@ go-cqrs-lite/
 │   └── config.go                   # backend configuration helpers
 │
 ├── projection/                     # github.com/larsartmann/go-cqrs-lite/projection
-│   └── go.mod                      # deps: core, storage
+│   └── go.mod                      # deps: core, storage, samber/ro
 │   └── runner.go                   # subscribes to events, dispatches to handlers
 │   └── handler.go                  # Handler interface, checkpoint tracking
 │   └── checkpoint.go               # stores projection position (SQL-backed)
+│   └── internal/stream/            # samber/ro operators (encapsulated, not public)
+│       ├── pipeline.go             # ro.Pipe wrappers for event stream processing
+│       ├── filters.go              # FilterType, FilterAggregate via ro.Filter
+│       └── windows.go              # time-windowed aggregation via ro.BufferWhen
 │
 ├── snapshot/                       # github.com/larsartmann/go-cqrs-lite/snapshot
 │   └── go.mod                      # deps: core, storage
@@ -183,6 +187,8 @@ use (
                           │              │        │
                           └──────────────┴────────┘
                               (projection + snapshot depend on storage)
+
+projection ──→ samber/ro (internal, encapsulated behind CQRS interfaces)
 ```
 
 All storage modules depend on `core` interfaces, **not on each other**.
@@ -197,7 +203,7 @@ All storage modules depend on `core` interfaces, **not on each other**.
 | + SQL event store (postgres) | `storage` | + core, pgx, sqlc |
 | + SQL event store (mysql/sqlite) | `storage` | + core, database/sql |
 | + pub/sub (any backend) | `watermill` | + core, watermill |
-| + projections | `projection` | + core, storage |
+| + projections | `projection` | + core, storage, samber/ro |
 | + snapshots | `snapshot` | + core, storage |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
 | + test utilities | `testutil` | + core, memory |
@@ -642,6 +648,10 @@ Users who don't want Watermill can use `memory/` for testing or implement `event
 
 Builds read models by subscribing to the event stream and writing to
 query-optimized tables. This is the "Q" in CQRS — currently missing entirely.
+
+Uses **samber/ro** internally as the stream processing engine. Users never see
+Observable types — they just call `projector.On()`. See `docs/planning/2026-04-24_SAMBER_RO_PRO_CONTRA.md`
+for the rationale behind encapsulating ro as an implementation detail.
 
 ### Core Concepts
 

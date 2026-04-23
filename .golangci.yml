@@ -135,12 +135,9 @@ linters:
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
             - github.com/go-faster/yaml
-formatters:
-  enable:
-    - gci
-    - goimports
-    - gofumpt
-    - golines
+    wrapcheck:
+      local-prefixes:
+        - github.com/larsartmann/go-cqrs-lite
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
@@ -148,3 +145,7 @@ issues:
     - linters:
         - err113
       path: _test\.go$
+    - linters:
+        - wrapcheck
+      path: _test\.go$
+formatters:

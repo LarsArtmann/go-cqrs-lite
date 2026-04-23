@@ -57,6 +57,7 @@ func (b *CatalogBuilder) ExportEventCatalog(outputDir string) error {
 	cat := b.Build()
 	exp := eventcatalog.NewExporter(outputDir)
 
+	//nolint:wrapcheck // Export is called in a wrapper; caller handles error
 	return exp.Export(cat)
 }
 
