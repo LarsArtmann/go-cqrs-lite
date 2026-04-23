@@ -85,9 +85,19 @@ go-cqrs-lite/
 ├── xtypes/                         # github.com/larsartmann/go-cqrs-lite/xtypes
 │   └── go.mod                      # deps: core
 │
-├── postgres/                       # github.com/larsartmann/go-cqrs-lite/postgres
-│   └── go.mod                      # deps: core, pgx
-│   └── eventstore.go
+├── sql/                            # github.com/larsartmann/go-cqrs-lite/sql
+│   └── go.mod                      # deps: core, sqlc-dev/sqlc, pgx/v5
+│   └── sqlc.yaml                   # multi-engine: postgres, mysql, sqlite
+│   └── sql/
+│       ├── postgres/               # schema + queries
+│       ├── mysql/                  # schema + queries (shared queries, engine-specific DDL)
+│       └── sqlite/                 # schema + queries
+│   └── internal/db/               # generated code (build-tagged per engine)
+│       ├── postgres/
+│       ├── mysql/
+│       └── sqlite/
+│   └── eventstore.go              # adapter: implements core/event.Store
+│   └── migration.go               # schema management
 ├── nats/                           # github.com/larsartmann/go-cqrs-lite/nats
 │   └── go.mod                      # deps: core, nats.go
 │   └── eventbus.go
@@ -113,7 +123,7 @@ use (
     ./catalog
     ./middleware
     ./xtypes
-    ./postgres
+    ./sql
     ./nats
     ./redis
     ./examples/user
@@ -124,14 +134,14 @@ use (
 ## Dependency Graph
 
 ```
-                    core (zero deps*)
+                    core (ulid + errors)
                    /  |  \  \  \  \  \
                   /   |   \  \  \  \  \
-             memory  catalog  middleware  xtypes  postgres  nats  redis
+             memory  catalog  middleware  xtypes  sql  nats  redis
 ```
 
-`*` core keeps cockroachdb/errors + oklog/ulid — acceptable for a Go SDK.
-ULID replaces google/uuid for time-sortable IDs (see rationale below).
+`*` core keeps cockroachdb/errors + oklog/ulid.
+`sql` uses sqlc for type-safe, multi-engine code generation (postgres, mysql, sqlite).
 
 ## What Users Import
 
@@ -140,7 +150,9 @@ ULID replaces google/uuid for time-sortable IDs (see rationale below).
 | CQRS types only | `core/...` | ulid, errors |
 | + in-memory testing | `memory/...` | + core |
 | + API docs | `catalog/...` | + core, go-faster/yaml |
-|| + PostgreSQL store | `postgres` | + core, pgx |
+|| + SQL store (postgres) | `sql` | + core, pgx, sqlc |
+|| + SQL store (mysql) | `sql` | + core, database/sql |
+|| + SQL store (sqlite) | `sql` | + core, database/sql |
 || + NATS bus | `nats` | + core, nats.go |
 | Everything | all modules | all deps |
 
@@ -209,10 +221,21 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 1. Same pattern — own go.mod, depends on core
 2. Run tests, fix until green
 
-### Phase 5: Backend modules (new)
+### Phase 5: SQL store module (new)
 
-1. Create `postgres/` — implement `event.Store` backed by pgx
-2. Create `nats/` — implement `event.Bus` backed by nats.go
+1. Create `sql/` with its own `go.mod`
+2. Add `sqlc.yaml` (based on template-sqlc pattern)
+3. Write engine-specific schemas: `sql/postgres/schema/`, `sql/mysql/schema/`, `sql/sqlite/schema/`
+4. Write shared event store queries: `sql/*/queries/` (Save, Load, LoadFromVersion, Delete, AppendBatch)
+5. Run `sqlc generate` to produce type-safe Go code in `internal/db/`
+6. Write `eventstore.go` adapter implementing `core/event.Store` using generated queries
+7. Use build tags per engine (`postgres`, `mysql`, `sqlite`) so users only compile what they need
+8. Add to go.work
+
+### Phase 6: Message bus modules (new)
+
+1. Create `nats/` — implement `event.Bus` backed by nats.go
+2. Create `redis/` — implement `event.Store` backed by go-redis (optional, low priority)
 3. Each has its own go.mod with only its backend dependency
 4. Add to go.work
 
@@ -241,7 +264,7 @@ github.com/larsartmann/go-cqrs-lite/memory
 github.com/larsartmann/go-cqrs-lite/catalog
 github.com/larsartmann/go-cqrs-lite/middleware
 github.com/larsartmann/go-cqrs-lite/xtypes
-github.com/larsartmann/go-cqrs-lite/postgres
+github.com/larsartmann/go-cqrs-lite/sql
 github.com/larsartmann/go-cqrs-lite/nats
 github.com/larsartmann/go-cqrs-lite/redis
 ```
@@ -256,7 +279,7 @@ import (
     "github.com/larsartmann/go-cqrs-lite/core/command"
     "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/memory/store"
-    "github.com/larsartmann/go-cqrs-lite/postgres"
+    "github.com/larsartmann/go-cqrs-lite/sql"          // SQL-backed event store
 )
 ```
 
@@ -271,7 +294,7 @@ or a custom landing page):
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/postgres mod https://github.com/larsartmann/go-cqrs-lite postgres">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/sql mod https://github.com/larsartmann/go-cqrs-lite sql">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/nats mod https://github.com/larsartmann/go-cqrs-lite nats">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/redis mod https://github.com/larsartmann/go-cqrs-lite redis">
 ```
@@ -291,7 +314,7 @@ strategy:
       - catalog
       - middleware
       - xtypes
-      - postgres
+      - sql
       - nats
       - redis
 
@@ -336,5 +359,143 @@ No page fragmentation from random UUID inserts.
 
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + oklog/ulid. Could vendor ID generation and use stdlib errors. Tradeoff: lose branded error types and ULID's time-sortability + collision resistance.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
-3. **Backend module priorities?** PostgreSQL store is the highest-value. NATS bus second. Redis optional.
+3. **Backend module priorities?** `sql/` (postgres primary, mysql/sqlite follow) is highest-value. NATS bus second. Redis optional.
 4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.
+5. **sqlc query sharing?** Event store queries (Save, Load, LoadFromVersion, Delete) are identical across SQL engines. Consider sharing a single `queries/` dir with engine-specific overrides only for DDL differences.
+
+## sql/ Module Design
+
+The `sql/` module uses **sqlc** to generate type-safe Go code for PostgreSQL, MySQL, and SQLite
+from a single `sqlc.yaml` config (based on the template-sqlc pattern).
+
+### Why sqlc
+
+| Approach | Problem |
+|---|---|
+| Hand-written SQL | Runtime errors, no type safety, string concatenation |
+| ORM (GORM, Ent) | Abstraction leak, event store needs raw SQL control |
+| **sqlc** | Write SQL, get type-safe Go. No runtime reflection. |
+
+### Structure
+
+```
+sql/
+├── sqlc.yaml                       # multi-engine config
+├── sql/
+│   ├── postgres/
+│   │   ├── schema/
+│   │   │   └── 001_events.sql      # CREATE TABLE events (...)
+│   │   └── queries/
+│   │       └── events.sql          # -- name: Save :exec
+│   ├── mysql/
+│   │   ├── schema/
+│   │   │   └── 001_events.sql
+│   │   └── queries/
+│   │       └── events.sql
+│   └── sqlite/
+│       ├── schema/
+│       │   └── 001_events.sql
+│       └── queries/
+│           └── events.sql
+├── internal/db/                    # generated (committed, build-tagged)
+│   ├── postgres/
+│   │   ├── db.go
+│   │   ├── models.go
+│   │   └── querier.go
+│   ├── mysql/
+│   │   ├── db.go
+│   │   ├── models.go
+│   │   └── querier.go
+│   └── sqlite/
+│       ├── db.go
+│       ├── models.go
+│       └── querier.go
+├── eventstore.go                   # implements core/event.Store
+├── migration.go                    # schema creation/management
+└── go.mod
+```
+
+### sqlc.yaml Key Settings
+
+```yaml
+sql:
+  - name: "postgres"
+    engine: "postgresql"
+    queries: ["sql/postgres/queries"]
+    schema: ["sql/postgres/schema"]
+    gen:
+      go:
+        package: "postgres"
+        out: "internal/db/postgres"
+        sql_package: "pgx/v5"
+        emit_interface: true
+        emit_result_struct_pointers: true
+        emit_empty_slices: true
+        emit_sql_as_comment: true
+
+  - name: "mysql"
+    engine: "mysql"
+    queries: ["sql/mysql/queries"]
+    schema: ["sql/mysql/schema"]
+    gen:
+      go:
+        package: "mysql"
+        out: "internal/db/mysql"
+        sql_package: "database/sql"
+        emit_interface: true
+        emit_result_struct_pointers: true
+        emit_empty_slices: true
+
+  - name: "sqlite"
+    engine: "sqlite"
+    queries: ["sql/sqlite/queries"]
+    schema: ["sql/sqlite/schema"]
+    gen:
+      go:
+        package: "sqlite"
+        out: "internal/db/sqlite"
+        sql_package: "database/sql"
+        emit_interface: true
+        emit_result_struct_pointers: true
+        emit_empty_slices: true
+```
+
+### Event Store Schema (PostgreSQL)
+
+```sql
+CREATE TABLE events (
+    event_id       TEXT NOT NULL PRIMARY KEY,  -- ULID, time-sortable
+    event_type     TEXT NOT NULL,
+    aggregate_id   TEXT NOT NULL,
+    aggregate_type TEXT NOT NULL,
+    version        INTEGER NOT NULL,
+    payload        BYTEA,
+    metadata       JSONB,
+    occurred_at    TIMESTAMPTZ NOT NULL,
+    UNIQUE (aggregate_type, aggregate_id, version)
+);
+
+CREATE INDEX idx_events_aggregate ON events (aggregate_type, aggregate_id, version);
+```
+
+### Build Tags
+
+Users compile only the engine they need:
+
+```bash
+# PostgreSQL (default)
+go build -tags postgres ./...
+
+# MySQL
+go build -tags mysql ./...
+
+# SQLite
+go build -tags sqlite ./...
+```
+
+The `eventstore.go` adapter uses build-tagged files:
+```
+eventstore_postgres.go   //go:build postgres
+eventstore_mysql.go      //go:build mysql
+eventstore_sqlite.go     //go:build sqlite
+```
