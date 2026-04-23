@@ -85,16 +85,15 @@ go-cqrs-lite/
 ├── xtypes/                         # github.com/larsartmann/go-cqrs-lite/xtypes
 │   └── go.mod                      # deps: core
 │
-├── integrations/                   # NEW — one go.mod per backend
-│   ├── postgres/                   # github.com/larsartmann/go-cqrs-lite/integrations/postgres
-│   │   └── go.mod                  # deps: core, pgx
-│   │   └── eventstore.go
-│   ├── nats/                       # github.com/larsartmann/go-cqrs-lite/integrations/nats
-│   │   └── go.mod                  # deps: core, nats.go
-│   │   └── eventbus.go
-│   └── redis/                      # github.com/larsartmann/go-cqrs-lite/integrations/redis
-│       └── go.mod                  # deps: core, go-redis
-│       └── eventstore.go
+├── postgres/                       # github.com/larsartmann/go-cqrs-lite/postgres
+│   └── go.mod                      # deps: core, pgx
+│   └── eventstore.go
+├── nats/                           # github.com/larsartmann/go-cqrs-lite/nats
+│   └── go.mod                      # deps: core, nats.go
+│   └── eventbus.go
+├── redis/                          # github.com/larsartmann/go-cqrs-lite/redis
+│   └── go.mod                      # deps: core, go-redis
+│   └── eventstore.go
 │
 └── examples/                       # separate modules, CI-tested
     ├── user/
@@ -114,9 +113,9 @@ use (
     ./catalog
     ./middleware
     ./xtypes
-    ./integrations/postgres
-    ./integrations/nats
-    ./integrations/redis
+    ./postgres
+    ./nats
+    ./redis
     ./examples/user
     ./examples/catalog
 )
@@ -126,11 +125,9 @@ use (
 
 ```
                     core (zero deps*)
-                   /  |  \  \
-                  /   |   \  \
-             memory  catalog  middleware  xtypes
-                                  \
-                         integrations/*
+                   /  |  \  \  \  \  \
+                  /   |   \  \  \  \  \
+             memory  catalog  middleware  xtypes  postgres  nats  redis
 ```
 
 `*` core keeps cockroachdb/errors + google/uuid — acceptable for a Go SDK.
@@ -212,10 +209,10 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 1. Same pattern — own go.mod, depends on core
 2. Run tests, fix until green
 
-### Phase 5: Integration modules (new)
+### Phase 5: Backend modules (new)
 
-1. Create `integrations/postgres/` — implement `event.Store` backed by pgx
-2. Create `integrations/nats/` — implement `event.Bus` backed by nats.go
+1. Create `postgres/` — implement `event.Store` backed by pgx
+2. Create `nats/` — implement `event.Bus` backed by nats.go
 3. Each has its own go.mod with only its backend dependency
 4. Add to go.work
 
@@ -228,7 +225,7 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 ## Module Path Convention
 
-### Why Go 1.25 Matters Here
+### Module Path Convention
 
 Before Go 1.25, multi-module repos required either:
 - Separate repos per module (fragmented)
@@ -236,33 +233,30 @@ Before Go 1.25, multi-module repos required either:
 - Accepting that subdirectory modules couldn't resolve from their import path
 
 Now, `go-import` meta tags map import paths to subdirectories natively.
-This makes Style A (below) fully supported with zero workarounds.
-
-### Two Styles
+Every module lives as a top-level directory with its own `go.mod`:
 
 ```
-# Style A: subdirectory modules (recommended — Go 1.25+)
 github.com/larsartmann/go-cqrs-lite/core
 github.com/larsartmann/go-cqrs-lite/memory
 github.com/larsartmann/go-cqrs-lite/catalog
-github.com/larsartmann/go-cqrs-lite/integrations/postgres
-
-# Style B: separate repos
-github.com/larsartmann/go-cqrs-lite-core
-github.com/larsartmann/go-cqrs-lite-memory
+github.com/larsartmann/go-cqrs-lite/middleware
+github.com/larsartmann/go-cqrs-lite/xtypes
+github.com/larsartmann/go-cqrs-lite/postgres
+github.com/larsartmann/go-cqrs-lite/nats
+github.com/larsartmann/go-cqrs-lite/redis
 ```
 
-**Recommendation: Style A.** Same repo, one source of truth, subdirectory resolution
-via Go 1.25. This is the pattern used by OpenTelemetry and gRPC.
+Same repo, one source of truth, subdirectory resolution via Go 1.25.
+This is the pattern used by OpenTelemetry and gRPC.
 
-### Import Example (Style A)
+### Import Example
 
 ```go
 import (
     "github.com/larsartmann/go-cqrs-lite/core/command"
     "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/memory/store"
-    "github.com/larsartmann/go-cqrs-lite/integrations/postgres"
+    "github.com/larsartmann/go-cqrs-lite/postgres"
 )
 ```
 
@@ -277,10 +271,12 @@ or a custom landing page):
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
 <meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/integrations/postgres mod https://github.com/larsartmann/go-cqrs-lite integrations/postgres">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/postgres mod https://github.com/larsartmann/go-cqrs-lite postgres">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/nats mod https://github.com/larsartmann/go-cqrs-lite nats">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/redis mod https://github.com/larsartmann/go-cqrs-lite redis">
 ```
 
-This tells `go get` that `go-cqrs-lite/core` lives in the `core/` subdirectory of
+This tells `go get` that `go-cqrs-lite/postgres` lives in the `postgres/` subdirectory of
 the `go-cqrs-lite` repo — no separate repo needed.
 
 ## CI Changes
@@ -295,8 +291,9 @@ strategy:
       - catalog
       - middleware
       - xtypes
-      - integrations/postgres
-      - integrations/nats
+      - postgres
+      - nats
+      - redis
 
 steps:
   - name: Test ${{ matrix.module }}
@@ -319,5 +316,5 @@ Each module tests independently. CI catches cross-module breakage via go.work.
 
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + google/uuid. Could vendor UUID generation and use stdlib errors. Tradeoff: lose branded error types and UUID v4 quality.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
-3. **Integration module priorities?** PostgreSQL store is the highest-value integration. NATS bus second. Redis optional.
+3. **Backend module priorities?** PostgreSQL store is the highest-value. NATS bus second. Redis optional.
 4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.

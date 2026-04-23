@@ -144,6 +144,7 @@ func TestCommandRetry_Success(t *testing.T) {
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		callCount++
 		if callCount < 2 {
+			//nolint:err113
 			return errors.New("transient")
 		}
 
@@ -195,6 +196,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		callCount++
 
+		//nolint:err113
 		return errors.New("non-retryable")
 	})
 
@@ -234,7 +236,10 @@ func TestCommandValidation_Pass(t *testing.T) {
 func TestCommandValidation_Fail(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error { return errors.New("invalid") }
+	validate := func(_ any) error {
+		//nolint:err113
+		return errors.New("invalid")
+	}
 	mw := CommandValidation(validate)
 
 	handler := mw(testhelpers.FailingCommandHandler("should not be called"))

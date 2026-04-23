@@ -14,6 +14,7 @@ func CommandRecovery() command.Middleware {
 		return func(ctx context.Context, cmd command.Command) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
+					//nolint:err113
 					err = fmt.Errorf("panic recovered in command %s: %v", cmd.Type(), r)
 				}
 			}()
@@ -29,6 +30,7 @@ func EventRecovery() event.Middleware {
 		return func(ctx context.Context, evt event.Event) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
+					//nolint:err113
 					err = fmt.Errorf("panic recovered in event %s: %v", evt.Type(), r)
 				}
 			}()
