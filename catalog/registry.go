@@ -112,6 +112,7 @@ func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 
 	d, ok := r.domains[domainID]
 	if !ok {
+		//nolint:err113 // dynamic error required to include domainID in message
 		return fmt.Errorf("domain %q not found", domainID)
 	}
 

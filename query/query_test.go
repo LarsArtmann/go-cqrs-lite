@@ -9,7 +9,7 @@ import (
 )
 
 func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
-	d.Register(query.Type(queryType), func(_ query.Query) (any, error) {
+	d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
 		return result, nil
 	})
 }
@@ -35,7 +35,7 @@ func TestDispatcher_Register(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	handler := func(_ query.Query) (any, error) {
+	handler := func(_ context.Context, _ query.Query) (any, error) {
 		return "result", nil
 	}
 
@@ -114,12 +114,12 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 func makeTestMiddleware(
 	callOrder *[]string,
 	name string,
-) func(func(query.Query) (any, error)) func(query.Query) (any, error) {
-	return func(h func(query.Query) (any, error)) func(query.Query) (any, error) {
-		return func(q query.Query) (any, error) {
+) func(func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(_ context.Context, q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)
 
-			return h(q)
+			return h(context.Background(), q)
 		}
 	}
 }
@@ -136,7 +136,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		makeTestMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = dispatcher.Register("TestQuery", func(_ query.Query) (any, error) {
+	_ = dispatcher.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
 		callOrder = append(callOrder, "handler")
 
 		return "result", nil
@@ -154,7 +154,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	dispatcher := query.NewDispatcher()
 	_ = dispatcher.Close()
 
-	handler := func(_ query.Query) (any, error) {
+	handler := func(_ context.Context, _ query.Query) (any, error) {
 		return nil, query.ErrQueryValidation
 	}
 

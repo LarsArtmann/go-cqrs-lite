@@ -2,6 +2,38 @@
 
 **Date:** 2026-04-23
 **Status:** Draft
+**Minimum Go Version:** 1.25 (for subdirectory module root support)
+
+## Go 1.25+ Foundations
+
+Go 1.25 introduced two features that make this monorepo structure first-class:
+
+### Subdirectory Module Roots
+
+The `go` command now supports using a **subdirectory of a repository** as the module root.
+This is configured via the `go-import` meta tag:
+
+```html
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core">
+```
+
+This means `github.com/larsartmann/go-cqrs-lite/core` resolves to the `core/` subdirectory
+of the repo — not a separate repo. No more `replace` directives for development,
+no more multi-repo confusion.
+
+### The `ignore` Directive
+
+A new `go.mod` `ignore` directive tells the `go` command to skip directories
+(e.g., examples, docs, scripts) during package pattern matching like `./...`.
+This keeps `go test ./...` fast and focused.
+
+### The `work` Package Pattern
+
+The new `work` pattern matches all packages in workspace modules — replacing
+the older `main` pattern terminology. Useful for CI: `go test work./...`.
+
+**Bottom line:** Multi-module monorepos are now a first-class Go pattern, not a workaround.
+OpenTelemetry, gRPC, and prometheus already use this. We should too.
 
 ## Goal
 
@@ -152,9 +184,11 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 1. Create `go.work` at root pointing at current single module
 2. Verify everything still works (this is the safe checkpoint)
 3. Create `core/` directory, move `command/`, `query/`, `event/`, `aggregate/`, `pkg/` into it
-4. Update `core/go.mod` — module path becomes `github.com/larsartmann/go-cqrs-lite/core`
+4. Update `core/go.mod` — module path becomes `github.com/larsartmann/go-cqrs-lite/core`,
+   `go 1.25` minimum (required for subdirectory module root resolution)
 5. Update all internal import paths
-6. Run tests, fix until green
+6. Add `go-import` meta tags for the new module paths
+7. Run tests, fix until green
 
 ### Phase 2: Extract memory implementations
 
@@ -194,21 +228,35 @@ Nobody who just wants CQRS types pulls in pgx, nats, or a YAML library.
 
 ## Module Path Convention
 
-Go supports two styles for multi-module repos:
+### Why Go 1.25 Matters Here
+
+Before Go 1.25, multi-module repos required either:
+- Separate repos per module (fragmented)
+- `replace` directives in every go.mod (fragile)
+- Accepting that subdirectory modules couldn't resolve from their import path
+
+Now, `go-import` meta tags map import paths to subdirectories natively.
+This makes Style A (below) fully supported with zero workarounds.
+
+### Two Styles
 
 ```
-# Style A: prefixed (traditional)
+# Style A: subdirectory modules (recommended — Go 1.25+)
 github.com/larsartmann/go-cqrs-lite/core
 github.com/larsartmann/go-cqrs-lite/memory
+github.com/larsartmann/go-cqrs-lite/catalog
+github.com/larsartmann/go-cqrs-lite/integrations/postgres
 
-# Style B: independent (simpler imports)
+# Style B: separate repos
 github.com/larsartmann/go-cqrs-lite-core
 github.com/larsartmann/go-cqrs-lite-memory
 ```
 
-**Recommendation: Style A.** Same repo, clear ownership, standard pattern used by OpenTelemetry and gRPC.
+**Recommendation: Style A.** Same repo, one source of truth, subdirectory resolution
+via Go 1.25. This is the pattern used by OpenTelemetry and gRPC.
 
-Import example:
+### Import Example (Style A)
+
 ```go
 import (
     "github.com/larsartmann/go-cqrs-lite/core/command"
@@ -217,6 +265,23 @@ import (
     "github.com/larsartmann/go-cqrs-lite/integrations/postgres"
 )
 ```
+
+### go-import Configuration
+
+For each module, add a `go-import` meta tag to the GitHub HTML (via `godoc.org`
+or a custom landing page):
+
+```html
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
+<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/integrations/postgres mod https://github.com/larsartmann/go-cqrs-lite integrations/postgres">
+```
+
+This tells `go get` that `go-cqrs-lite/core` lives in the `core/` subdirectory of
+the `go-cqrs-lite` repo — no separate repo needed.
 
 ## CI Changes
 
@@ -255,3 +320,4 @@ Each module tests independently. CI catches cross-module breakage via go.work.
 1. **Should core be truly zero-dep?** Currently depends on cockroachdb/errors + google/uuid. Could vendor UUID generation and use stdlib errors. Tradeoff: lose branded error types and UUID v4 quality.
 2. **Should middleware/ be split further?** e.g., `middleware/tracing` with OTel dep vs `middleware/retry` with no deps. Low priority.
 3. **Integration module priorities?** PostgreSQL store is the highest-value integration. NATS bus second. Redis optional.
+4. **go-import hosting strategy?** Need to decide how to serve the meta tags — GitHub Pages, godoc.org, or a custom domain. GitHub Pages via a static `index.html` in the repo is simplest.

@@ -24,14 +24,14 @@ func CommandValidation(validate Validator) command.Middleware {
 
 // QueryValidation returns a middleware that validates queries before dispatch.
 func QueryValidation(validate Validator) query.Middleware {
-	return func(next func(query.Query) (any, error)) func(query.Query) (any, error) {
-		return func(q query.Query) (any, error) {
+	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
 			err := validate(q)
 			if err != nil {
 				return nil, fmt.Errorf("validation failed for query %s: %w", q.Type(), err)
 			}
 
-			return next(q)
+			return next(ctx, q)
 		}
 	}
 }

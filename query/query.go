@@ -1,5 +1,7 @@
 package query
 
+import "context"
+
 // Type identifies a query type.
 type Type string
 
@@ -28,4 +30,4 @@ type Result[T any] struct {
 }
 
 // Middleware wraps query handlers for cross-cutting concerns.
-type Middleware func(func(Query) (any, error)) func(Query) (any, error)
+type Middleware func(func(context.Context, Query) (any, error)) func(context.Context, Query) (any, error)

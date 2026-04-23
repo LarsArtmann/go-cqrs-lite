@@ -9,7 +9,7 @@ import (
 )
 
 // Handler processes a query and returns a result.
-type Handler = func(Query) (any, error)
+type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
 type Dispatcher struct {
@@ -73,7 +73,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 		return nil, errors.Wrapf(err, "wrapping handler for query %s", query.Type())
 	}
 
-	return wrapped(query)
+	return wrapped(ctx, query)
 }
 
 // DispatchTyped sends a query and returns a typed result.

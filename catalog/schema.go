@@ -197,6 +197,7 @@ func parseJSONTag(tag string) (name string, omit bool) {
 
 func SchemaToJSON(schema *Schema) ([]byte, error) {
 	if schema == nil {
+		//nolint:err113 // nil check must return specific error
 		return nil, errors.New("schema is nil")
 	}
 
