@@ -119,4 +119,97 @@ samber/ro is a legitimate, well-designed library from a proven author that maps 
 
 **Recommended: Option B (document as companion).** Don't add it as a dependency, but provide a documented example showing how `event.Bus` subscriptions can be lifted into samber/ro observables. This gives users the reactive toolkit without committing to it as a dependency — and the adapter code is trivial (~20 lines).
 
-Revisit Option A once samber/ro hits v1.0 and if user demand emerges. The library is clearly on a trajectory to become a standard Go reactive toolkit.
+## Decision: Integrate as a separate module in the multi-module monorepo
+
+samber/ro will be added as a new `ro/` module alongside `storage/`, `nats/`, etc. in the existing multi-module plan.
+
+## Integration Plan
+
+### Where it fits in the monorepo
+
+```
+go-cqrs-lite/
+├── core/              # interfaces only (Store, Bus — no MemoryStore)
+├── memory/            # MemoryStore, MemoryBus (current behavior)
+├── ro/                # NEW — samber/ro-backed implementations
+│   └── go.mod         # deps: core, samber/ro
+│   ├── bus.go         # ObservableBus  — implements event.Bus
+│   ├── store.go       # ReplayStore    — implements event.Store
+│   ├── streamer.go    # ObservableStreamer — implements event.Streamer
+│   └── projection.go  # Helper functions for building projections with ro operators
+├── storage/           # SQL-backed event store
+├── nats/              # NATS-backed event bus
+└── ...
+```
+
+### What each file implements
+
+#### `ro/bus.go` — ObservableBus
+
+Implements `event.Bus` backed by `PublishSubject[event.Event]`:
+- `Publish()` → calls `subject.Next(event)` for each event
+- `Subscribe(type, handler)` → creates a filtered observable (`ro.Filter` by event type), subscribes handler as observer
+- `SubscribeAll(handler)` → subscribes handler directly to subject
+- `Observable()` → returns the underlying `ro.Observable[event.Event]` for users who want composable operators
+- `Use(middleware)` — still supports existing `event.Middleware` chain
+
+#### `ro/store.go` — ReplayStore
+
+Implements `event.Store` backed by per-aggregate `ReplaySubject[event.Event]`:
+- `Save()` → validates expected version, calls `subject.Next(event)` for each new event
+- `Load()` → collects all events from the ReplaySubject (replays history)
+- `LoadFromVersion()` → filters replayed events by version
+- `AppendBatch()` → appends without OCC check
+- `Delete()` → completes and removes the subject
+- ReplaySubject gives us event replay for free — new subscribers get all past events
+
+#### `ro/streamer.go` — ObservableStreamer
+
+Implements `event.Streamer` (currently defined but unimplemented):
+- `Stream()` → returns `<-chan Event` derived from a filtered observable
+- Uses `ro.Filter` for `StreamOptions.AggregateType`
+- Uses `ro.Skip` for `StreamOptions.FromVersion`
+- Uses `ro.BufferWhen` for `StreamOptions.BatchSize`
+
+#### `ro/projection.go` — Projection helpers
+
+Utility functions for building projections with ro operators:
+- `FilterType(observable, eventType)` — filter events by type
+- `FilterAggregate(observable, aggType, aggID)` — filter by aggregate
+- `Project(observable, fn)` — map events to a read model, maintaining state
+- `Window(observable, duration)` — time-windowed aggregation
+- These are thin wrappers around ro operators with CQRS-friendly signatures
+
+### What this replaces from the current codebase
+
+| Current code                       | What ro module replaces              | Savings          |
+| ---------------------------------- | ------------------------------------ | ---------------- |
+| `middleware/retry.go` (~83 lines)  | `ro.Retry` / `ro.RetryWhen` operator | Delete           |
+| `MemoryBus` replay (doesn't exist) | `ReplaySubject` built-in             | Don't have to write |
+| `Streamer` (unimplemented)         | Observable → channel adapter         | ~60 lines        |
+| Hand-written projection loops      | `ro.Pipe(filter, map, groupBy, ...)` | Per projection   |
+
+### Dependency impact
+
+Only users who `go get github.com/larsartmann/go-cqrs-lite/ro` pull in samber/ro.
+Core remains zero-dep. Memory module remains as-is for simple use cases.
+
+### Migration path for existing users
+
+No breaking changes. Users can:
+1. Keep using `memory/` — nothing changes
+2. Switch to `ro/` for reactive capabilities
+3. Mix: `memory/` for Store, `ro/` for Bus (they're independent)
+
+### Phased implementation
+
+1. **Phase 1** — `ro/bus.go` (ObservableBus) + tests
+2. **Phase 2** — `ro/store.go` (ReplayStore) + tests
+3. **Phase 3** — `ro/streamer.go` (ObservableStreamer) + tests
+4. **Phase 4** — `ro/projection.go` helpers + tests
+5. **Phase 5** — Evaluate replacing `middleware/retry.go` with ro operators
+6. **Phase 6** — Update examples to show ro usage alongside memory
+
+### Prerequisite
+
+Depends on the multi-module monorepo migration (Phase 1–2 of `2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md`) being at least partially complete — we need `core/` and `memory/` as separate modules first. The `ro/` module then follows the same pattern as `storage/` and `nats/`.

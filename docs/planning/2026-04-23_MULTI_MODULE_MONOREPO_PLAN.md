@@ -104,6 +104,12 @@ go-cqrs-lite/
 ├── redis/                          # github.com/larsartmann/go-cqrs-lite/redis
 │   └── go.mod                      # deps: core, go-redis
 │   └── eventstore.go
+├── ro/                             # github.com/larsartmann/go-cqrs-lite/ro
+│   └── go.mod                      # deps: core, samber/ro
+│   ├── bus.go                      # ObservableBus — event.Bus backed by PublishSubject
+│   ├── store.go                    # ReplayStore — event.Store backed by ReplaySubject
+│   ├── streamer.go                 # ObservableStreamer — event.Streamer via Observable
+│   └── projection.go              # Projection helpers using ro operators
 │
 └── examples/                       # separate modules, CI-tested
     ├── user/

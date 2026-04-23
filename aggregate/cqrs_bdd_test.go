@@ -42,6 +42,7 @@ func (e *expense) Apply(evt event.Event) error {
 			Description string  `json:"description"`
 			Amount      float64 `json:"amount"`
 		}
+
 		err := json.Unmarshal(evt.Payload(), &p)
 		if err != nil {
 			return err
@@ -465,6 +466,7 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 						defer wg.Done()
 
 						local := newExpense(expenseID)
+
 						err := repo.Load(ctx, local)
 						if err != nil {
 							return

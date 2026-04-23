@@ -116,10 +116,10 @@ func makeTestMiddleware(
 	name string,
 ) func(func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
 	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
-		return func(_ context.Context, q query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)
 
-			return h(context.Background(), q)
+			return h(ctx, q)
 		}
 	}
 }
