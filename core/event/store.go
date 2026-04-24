@@ -48,18 +48,3 @@ type Store interface {
 
 	Deleter
 }
-
-// StreamOptions configures event streaming.
-type StreamOptions struct {
-	FromVersion   Version
-	AggregateType AggregateType
-	BatchSize     BatchSize
-}
-
-// BatchSize represents the number of items in a batch.
-type BatchSize int
-
-// Streamer defines streaming capabilities for event stores.
-type Streamer interface {
-	Stream(ctx context.Context, opts StreamOptions) (<-chan Event, error)
-}
