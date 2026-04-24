@@ -51,4 +51,5 @@ node_modules/
 # Sensitive files
 *.db
 Copy/paste detection report
-/report/jscpd-report.json
+/report/jscpd-report.jsonexample/*/catalog
+example/*/user
