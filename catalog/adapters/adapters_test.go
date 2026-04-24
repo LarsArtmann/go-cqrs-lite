@@ -409,6 +409,203 @@ func TestBuilder_FromCommandDispatcher(t *testing.T) {
 	}
 }
 
+func TestBuilder_AddCommandWithSchema(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
+
+	aggID := id.NewAggregateID()
+	cmd := &testCreateUser{
+		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
+			Name: "CreateUser", Version: "1.0.0", Summary: "Creates a user",
+		}),
+	}
+	explicitSchema := &catalog.Schema{
+		Type: "object",
+		Properties: map[string]catalog.Property{
+			"email": {Type: "string"},
+		},
+	}
+
+	builder.AddCommandWithSchema("user-svc", cmd, explicitSchema)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
+
+	cmdMsg := svc.Commands[0]
+	if cmdMsg.Name != "CreateUser" {
+		t.Errorf("name = %q, want CreateUser", cmdMsg.Name)
+	}
+
+	if cmdMsg.Schema != explicitSchema {
+		t.Error("schema should be the explicitly provided schema")
+	}
+
+	if cmdMsg.Direction != catalog.Receives {
+		t.Errorf("direction = %v, want receives", cmdMsg.Direction)
+	}
+}
+
+func TestBuilder_AddEventWithDirection(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "")
+
+	evtCore, err := event.NewEventCatalogCore(
+		"order.shipped",
+		id.NewAggregateID(),
+		"Order",
+		1,
+		nil,
+		event.EventCatalogMeta{
+			Name:    "OrderShipped",
+			Version: "1.0.0",
+			Summary: "Order was shipped",
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type orderShipped struct {
+		*event.EventCatalogCore
+		TrackingNumber string `doc:"Tracking number" json:"trackingNumber"`
+	}
+
+	evt := &orderShipped{EventCatalogCore: evtCore}
+	builder.AddEventWithDirection("order-svc", evt, catalog.Receives)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	cattest.AssertSliceLen(t, "svc.Events", svc.Events, 1)
+
+	evtMsg := svc.Events[0]
+	if evtMsg.Name != "OrderShipped" {
+		t.Errorf("name = %q, want OrderShipped", evtMsg.Name)
+	}
+
+	if evtMsg.Direction != catalog.Receives {
+		t.Errorf("direction = %v, want receives", evtMsg.Direction)
+	}
+
+	cattest.AssertSchemaProperty(t, evtMsg.Schema, "trackingNumber")
+}
+
+func TestBuilder_AddEventFromType(t *testing.T) {
+	t.Parallel()
+
+	type userDeleted struct {
+		*event.EventCatalogCore
+		Reason string `doc:"Deletion reason" json:"reason"`
+	}
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("user-svc", "User Service", "1.0.0", "")
+
+	adapters.AddEventFromType[userDeleted](
+		builder,
+		"user-svc",
+		"user.deleted",
+		event.EventCatalogMeta{
+			Name:    "UserDeleted",
+			Version: "1.0.0",
+			Summary: "User was deleted",
+		},
+		catalog.Sends,
+	)
+
+	cat := builder.Build()
+	svc := cat.Services[0]
+	cattest.AssertSliceLen(t, "svc.Events", svc.Events, 1)
+
+	evtMsg := svc.Events[0]
+	if evtMsg.Name != "UserDeleted" {
+		t.Errorf("name = %q, want UserDeleted", evtMsg.Name)
+	}
+
+	if evtMsg.Direction != catalog.Sends {
+		t.Errorf("direction = %v, want sends", evtMsg.Direction)
+	}
+
+	if evtMsg.Schema == nil {
+		t.Fatal("schema should not be nil")
+	}
+
+	cattest.AssertSchemaProperty(t, evtMsg.Schema, "reason")
+
+	if _, ok := evtMsg.Schema.Properties["EventCatalogCore"]; ok {
+		t.Error("schema should NOT contain embedded EventCatalogCore")
+	}
+}
+
+func TestBuilder_AddServiceToDomain(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "")
+	builder.AddService("payment-svc", "Payment Service", "1.0.0", "")
+	builder.AddDomain("ecommerce", "E-Commerce", "Online store", []string{"order-svc"})
+
+	builder.AddServiceToDomain("payment-svc", "ecommerce")
+
+	cat := builder.Build()
+	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 1)
+
+	d := cat.Domains[0]
+	if len(d.Services) != 2 {
+		t.Errorf("expected 2 services in domain, got %d", len(d.Services))
+	}
+
+	found := map[string]bool{}
+	for _, sid := range d.Services {
+		found[sid] = true
+	}
+	if !found["order-svc"] || !found["payment-svc"] {
+		t.Errorf("domain services = %v, want both order-svc and payment-svc", d.Services)
+	}
+}
+
+func TestBuilder_AddServiceToDomain_NonexistentDomain(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("svc", "Service", "1.0.0", "")
+
+	builder.AddServiceToDomain("svc", "nonexistent")
+
+	cat := builder.Build()
+	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 0)
+}
+
+func TestBuilder_AddChannel(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+
+	ch := catalog.Channel{
+		ID:      "order-events",
+		Name:    "Order Events Channel",
+		Version: "1.0.0",
+		Address: "orders.events",
+	}
+	builder.AddChannel(ch)
+
+	cat := builder.Build()
+	cattest.AssertSliceLen(t, "cat.Channels", cat.Channels, 1)
+
+	got := cat.Channels[0]
+	if got.ID != "order-events" {
+		t.Errorf("channel ID = %q, want order-events", got.ID)
+	}
+
+	if got.Address != "orders.events" {
+		t.Errorf("channel address = %q, want orders.events", got.Address)
+	}
+}
+
 func TestBuilder_FromQueryDispatcher(t *testing.T) {
 	t.Parallel()
 
