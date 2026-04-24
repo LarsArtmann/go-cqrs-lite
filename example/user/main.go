@@ -6,16 +6,17 @@ import (
 	"log"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 func main() {
 	ctx := context.Background()
 
-	store := event.NewMemoryStore()
-	bus := event.NewMemoryBus()
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
 	cmdDispatcher := command.NewDispatcher()
 	repo := NewRepository(store, bus)
 

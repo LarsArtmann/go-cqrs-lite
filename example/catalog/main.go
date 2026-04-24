@@ -8,8 +8,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 const (

@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 type Repository struct {
-	store *event.MemoryStore
-	bus   *event.MemoryBus
+	store *memory.MemoryStore
+	bus   *memory.MemoryBus
 }
 
-func NewRepository(store *event.MemoryStore, bus *event.MemoryBus) *Repository {
+func NewRepository(store *memory.MemoryStore, bus *memory.MemoryBus) *Repository {
 	return &Repository{store: store, bus: bus}
 }
 
