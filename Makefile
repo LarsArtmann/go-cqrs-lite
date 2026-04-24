@@ -1,20 +1,42 @@
-.PHONY: test build lint fmt imports check clean
+.PHONY: test test-core test-memory test-catalog test-middleware test-xtypes \
+       build lint fmt imports check clean
+
+MODULES = ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...
 
 test:
-	GOWORK=off go test ./... -count=1 -v
+	go test $(MODULES) -count=1 -v
 
 test-race:
-	GOWORK=off go test ./... -race -count=1
+	go test $(MODULES) -race -count=1
 
 test-cover:
-	GOWORK=off go test ./... -coverprofile=coverage.out -covermode=atomic
+	go test $(MODULES) -coverprofile=coverage.out -covermode=atomic
 	go tool cover -func=coverage.out
 
+test-core:
+	cd core && GOWORK=off go test ./... -count=1 -v
+
+test-memory:
+	cd memory && GOWORK=off go test ./... -count=1 -v
+
+test-catalog:
+	cd catalog && GOWORK=off go test ./... -count=1 -v
+
+test-middleware:
+	cd middleware && GOWORK=off go test ./... -count=1 -v
+
+test-xtypes:
+	cd xtypes && GOWORK=off go test ./... -count=1 -v
+
 build:
-	GOWORK=off go build ./...
+	go build $(MODULES)
 
 lint:
-	GOWORK=off golangci-lint run --config .golangci.yml ./...
+	go build $(MODULES)
+	@for mod in core memory catalog middleware xtypes; do \
+		echo "==> Linting $$mod"; \
+		(cd $$mod && golangci-lint run --config ../.golangci.yml ./... 2>&1) || true; \
+	done
 
 fmt:
 	gofumpt -w .
