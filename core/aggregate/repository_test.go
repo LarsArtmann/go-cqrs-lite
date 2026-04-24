@@ -55,7 +55,7 @@ func (o *order) LoadEvents(events []event.Event) error {
 }
 
 func (o *order) Place(ctx context.Context) error {
-	payload, _ := json.Marshal(struct {
+	payload, err := json.Marshal(struct {
 		Status string `json:"status"`
 	}{Status: "placed"})
 

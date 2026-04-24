@@ -65,7 +65,7 @@ func (e *expense) LoadEvents(events []event.Event) error {
 }
 
 func (e *expense) Submit(ctx context.Context, description string, amount float64) error {
-	payload, _ := json.Marshal(struct {
+	payload, err := json.Marshal(struct {
 		Description string  `json:"description"`
 		Amount      float64 `json:"amount"`
 	}{Description: description, Amount: amount})

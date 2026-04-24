@@ -172,12 +172,26 @@ func goTypeToJSON(k reflect.Kind) string {
 		return "string"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return "integer"
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return "integer"
 	case reflect.Float32, reflect.Float64:
 		return "number"
 	case reflect.Bool:
 		return "boolean"
 	case reflect.Interface:
 		return "object"
+	case reflect.Complex64, reflect.Complex128:
+		return "string"
+	case reflect.Array, reflect.Slice:
+		return "array"
+	case reflect.Map, reflect.Struct:
+		return "object"
+	case reflect.Ptr:
+		return "object"
+	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
+		return "string"
+	case reflect.Invalid:
+		return "null"
 	default:
 		return "string"
 	}

@@ -79,7 +79,7 @@ func (p *product) newEvent(eventType string, payload []byte) (*event.Core, error
 }
 
 func (p *product) Create(ctx context.Context, name string, price float64) error {
-	payload, _ := json.Marshal(struct {
+	payload, err := json.Marshal(struct {
 		Name  string  `json:"name"`
 		Price float64 `json:"price"`
 	}{Name: name, Price: price})
@@ -97,7 +97,7 @@ func (p *product) Create(ctx context.Context, name string, price float64) error 
 }
 
 func (p *product) Restock(ctx context.Context, quantity int) error {
-	payload, _ := json.Marshal(struct {
+	payload, err := json.Marshal(struct {
 		Quantity int `json:"quantity"`
 	}{Quantity: quantity})
 

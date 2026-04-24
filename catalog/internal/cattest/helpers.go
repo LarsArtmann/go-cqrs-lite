@@ -235,6 +235,8 @@ func AssertSchemaProperty(tb testing.TB, schema *catalog.Schema, propName string
 
 	if schema == nil {
 		tb.Fatal("schema should not be nil")
+
+		return
 	}
 
 	if _, ok := schema.Properties[propName]; !ok {

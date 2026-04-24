@@ -159,6 +159,9 @@ func (e *Exporter) addMessage(
 	case kindCommand:
 		opTitle = "Receive " + msg.Name
 		opName = "receive" + id
+	case kindQuery:
+		opTitle = "Handle " + msg.Name
+		opName = "handle" + id
 	}
 
 	doc.Operations[opName] = Operation{
@@ -183,6 +186,8 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		tagName = "events"
 	case catalog.QueryMessage:
 		tagName = "queries"
+	case catalog.CommandMessage:
+		tagName = "commands"
 	}
 
 	doc.Components.Messages[id] = Message{
@@ -224,7 +229,7 @@ func MessageID(msg catalog.Message) string {
 		return msg.ID
 	}
 
-	return string(msg.Name)
+	return msg.Name
 }
 
 func (d *Document) MarshalYAML() ([]byte, error) {
@@ -248,7 +253,7 @@ func toDotAddress(s string) string {
 			}
 
 			result = append(result, byte(c+'a'-'A'))
-		} else {
+		} else if c >= 0 && c <= 127 {
 			result = append(result, byte(c))
 		}
 	}
@@ -264,7 +269,7 @@ func toExamples(raw []json.RawMessage) []Example {
 	examples := make([]Example, len(raw))
 
 	for i, r := range raw {
-		examples[i] = Example{Payload: json.RawMessage(r)}
+		examples[i] = Example{Payload: r}
 	}
 
 	return examples

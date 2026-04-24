@@ -54,7 +54,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 
 	svcPath := filepath.Join(tmpDir, "services", "order-svc", "index.mdx")
 
-	data, err := os.ReadFile(svcPath)
+	data, err := os.ReadFile(svcPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read service file: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		"index.mdx",
 	)
 
-	data, err = os.ReadFile(cmdPath)
+	data, err = os.ReadFile(cmdPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read command file: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		"schema.json",
 	)
 
-	data, err = os.ReadFile(schemaPath)
+	data, err = os.ReadFile(schemaPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read schema file: %v", err)
 	}
@@ -146,7 +146,7 @@ func TestExporter_Export_Event(t *testing.T) {
 		"index.mdx",
 	)
 
-	data, err := os.ReadFile(evtPath)
+	data, err := os.ReadFile(evtPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read event file: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestExporter_Export_Query(t *testing.T) {
 
 	qPath := filepath.Join(tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx")
 
-	data, err := os.ReadFile(qPath)
+	data, err := os.ReadFile(qPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read query file: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestExporter_Export_Domain(t *testing.T) {
 
 	domainPath := filepath.Join(tmpDir, "domains", "ordering", "index.mdx")
 
-	data, err := os.ReadFile(domainPath)
+	data, err := os.ReadFile(domainPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read domain file: %v", err)
 	}
@@ -246,7 +246,7 @@ func TestExporter_Export_Config(t *testing.T) {
 
 	cfgPath := filepath.Join(tmpDir, "eventcatalog.config.js")
 
-	data, err := os.ReadFile(cfgPath)
+	data, err := os.ReadFile(cfgPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read config file: %v", err)
 	}
@@ -353,7 +353,7 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(
+	data, err := os.ReadFile( //nolint:gosec
 		filepath.Join(tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx"),
 	)
 	if err != nil {
@@ -386,7 +386,7 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(
+	data, err := os.ReadFile( //nolint:gosec
 		filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"),
 	)
 	if err != nil {
@@ -426,7 +426,7 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "order-svc", "index.mdx"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -457,7 +457,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "svc", "index.mdx"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +505,7 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "order-svc", "index.mdx"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -559,7 +559,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "llms.txt"))
+	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "llms.txt"))
 	if err != nil {
 		t.Fatalf("read llms.txt: %v", err)
 	}

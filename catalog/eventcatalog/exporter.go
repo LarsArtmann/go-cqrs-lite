@@ -11,6 +11,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 )
 
+const (
+	filePerm = 0o600
+	dirPerm  = 0o750
+)
+
 type Exporter struct {
 	OutputDir string
 }
@@ -111,7 +116,7 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 	return os.WriteFile(
 		filepath.Join(e.OutputDir, "llms.txt"),
 		[]byte(buf.String()),
-		0o644,
+		filePerm,
 	)
 }
 
@@ -121,7 +126,7 @@ type frontmatterWriter struct {
 
 func newFrontmatterWriter() *frontmatterWriter {
 	f := &frontmatterWriter{Builder: new(strings.Builder)}
-	f.WriteString("---\n")
+	_, _ = f.WriteString("---\n")
 
 	return f
 }
@@ -147,14 +152,14 @@ func (f *frontmatterWriter) addListField(key string, values []string) {
 }
 
 func (f *frontmatterWriter) finish(title, summary string) {
-	f.WriteString("---\n\n")
+	_, _ = f.WriteString("---\n\n")
 	_, _ = fmt.Fprintf(f, "# %s\n\n%s\n", title, summary)
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.OutputDir, "services", svc.ID)
 
-	err := os.MkdirAll(dir, 0o755)
+	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create service dir: %w", err)
 	}
@@ -205,7 +210,7 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 
 	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
 
-	err := os.MkdirAll(dir, 0o755)
+	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create message dir: %w", err)
 	}
@@ -220,7 +225,7 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	}
 
 	if msg.Schema != nil {
-		md.WriteString("schemaPath: schemas/schema.json\n")
+		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
 	}
 
 	_, _ = fmt.Fprintf(md, "owners:\n  - %s\n", svcID)
@@ -250,13 +255,13 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 		return fmt.Errorf("marshal examples: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(dir, "examples.json"), data, 0o644)
+	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm)
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	dir := filepath.Join(e.OutputDir, "domains", domain.ID)
 
-	err := os.MkdirAll(dir, 0o755)
+	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create domain dir: %w", err)
 	}
@@ -277,12 +282,12 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 }
 
 func (e *Exporter) writeMDXFile(path, content string) error {
-	return os.WriteFile(path, []byte(content), 0o644)
+	return os.WriteFile(path, []byte(content), filePerm)
 }
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	schemaDir := filepath.Join(dir, "schemas")
-	if err := os.MkdirAll(schemaDir, 0o755); err != nil {
+	if err := os.MkdirAll(schemaDir, dirPerm); err != nil {
 		return fmt.Errorf("create schema dir: %w", err)
 	}
 
@@ -291,7 +296,7 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 		return fmt.Errorf("marshal schema: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, 0o644)
+	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm)
 }
 
 func messageID(msg catalog.Message) string {
@@ -310,7 +315,7 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	err := os.WriteFile(
 		filepath.Join(e.OutputDir, "eventcatalog.config.js"),
 		[]byte(cfg.String()),
-		0o644,
+		filePerm,
 	)
 	if err != nil {
 		return fmt.Errorf("write config: %w", err)
@@ -338,6 +343,6 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	return os.WriteFile(
 		filepath.Join(e.OutputDir, "package.json"),
 		data,
-		0o644,
+		filePerm,
 	)
 }
