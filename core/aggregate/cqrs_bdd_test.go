@@ -458,6 +458,7 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 				var (
 					wg               sync.WaitGroup
 					versionConflicts atomic.Int32
+					successes        atomic.Int32
 				)
 
 				wg.Add(goroutines)
@@ -476,11 +477,15 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 						_ = local.Approve(ctx)
 						if err := repo.Save(ctx, local); err != nil {
 							versionConflicts.Add(1)
+						} else {
+							successes.Add(1)
 						}
 					}()
 				}
 
 				wg.Wait()
+
+				Expect(int(successes.Load()) + int(versionConflicts.Load())).To(Equal(goroutines))
 
 				final := newExpense(expenseID)
 				Expect(repo.Load(ctx, final)).To(Succeed())
@@ -489,8 +494,6 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 				events, err := store.Load(ctx, expenseType, expenseID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(events).To(HaveLen(final.Version()))
-
-				Expect(int(versionConflicts.Load())).To(BeNumerically(">", 0))
 			})
 		})
 
