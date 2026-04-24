@@ -23,14 +23,14 @@ func assertPropertyCount(t *testing.T, schema *catalog.Schema, expected int) {
 
 type CreateUser struct {
 	Email string `doc:"User email address" json:"email"`
-	Name  string `                         json:"name"`
-	Age   int    `                         json:"age,omitempty"`
+	Name  string `json:"name"`
+	Age   int    `json:"age,omitempty"`
 }
 
 type OrderItem struct {
 	ProductID string  `doc:"Product identifier" json:"productId"`
-	Quantity  int     `                         json:"quantity"`
-	Price     float64 `                         json:"price,omitempty"`
+	Quantity  int     `json:"quantity"`
+	Price     float64 `json:"price,omitempty"`
 }
 
 type CreateOrder struct {

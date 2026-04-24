@@ -50,6 +50,8 @@ node_modules/
 /coverage
 # Sensitive files
 *.db
-Copy/paste detection report
-/report/jscpd-report.jsonexample/*/catalog
+/report/jscpd-report.json
+
+# Example binaries
+example/*/catalog
 example/*/user

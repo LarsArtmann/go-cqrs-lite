@@ -19,6 +19,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 
 	handler := func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
+
 		return nil
 	}
 
@@ -49,6 +50,7 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 
 	handler := func(_ context.Context, evt event.Event) error {
 		received = append(received, evt)
+
 		return nil
 	}
 
@@ -82,12 +84,14 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		func(next event.Handler) event.Handler {
 			return func(ctx context.Context, evt event.Event) error {
 				callOrder = append(callOrder, "middleware1")
+
 				return next(ctx, evt)
 			}
 		},
 		func(next event.Handler) event.Handler {
 			return func(ctx context.Context, evt event.Event) error {
 				callOrder = append(callOrder, "middleware2")
+
 				return next(ctx, evt)
 			}
 		},
@@ -95,6 +99,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 
 	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
 		callOrder = append(callOrder, "handler")
+
 		return nil
 	})
 
@@ -146,7 +151,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
-		return fmt.Errorf("handler failed")
+		return errors.New("handler failed")
 	})
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
@@ -164,7 +169,7 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error {
-		return fmt.Errorf("all-handler failed")
+		return errors.New("all-handler failed")
 	})
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
@@ -182,7 +187,7 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.Subscribe("FailEvent", func(_ context.Context, _ event.Event) error {
-		return fmt.Errorf("subscriber failure")
+		return errors.New("subscriber failure")
 	})
 
 	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)
