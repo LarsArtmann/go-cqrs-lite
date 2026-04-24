@@ -2,7 +2,7 @@ package memory_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"

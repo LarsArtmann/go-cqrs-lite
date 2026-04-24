@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -56,11 +56,11 @@ func retry(config RetryConfig, opName string, fn func() error) error {
 		case <-context.Background().Done():
 			timer.Stop()
 
-			return errors.Wrapf(err, "retry canceled for %s", opName)
+			return fmt.Errorf("retry canceled for %s: %w", opName, err)
 		}
 	}
 
-	return errors.Wrapf(err, "all %d attempts failed for %s", config.MaxAttempts, opName)
+	return fmt.Errorf("all %d attempts failed for %s: %w", config.MaxAttempts, opName, err)
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {
