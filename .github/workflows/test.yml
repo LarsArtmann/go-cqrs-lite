@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         go-version: ["1.26"]
+        module: [core, memory, catalog, middleware, xtypes]
 
     steps:
       - name: Checkout code
@@ -31,22 +32,27 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Download dependencies
+        working-directory: ${{ matrix.module }}
         run: go mod download
 
       - name: Run tests
-        run: go test ./... -v
+        working-directory: ${{ matrix.module }}
+        run: go test ./... -v -count=1
 
       - name: Run tests with race detector
-        run: go test ./... -race
+        working-directory: ${{ matrix.module }}
+        run: go test ./... -race -count=1
 
       - name: Generate coverage report
+        working-directory: ${{ matrix.module }}
         run: go test ./... -coverprofile=coverage.out -covermode=atomic
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: coverage.out
+          files: ${{ matrix.module }}/coverage.out
           fail_ci_if_error: false
+          flags: ${{ matrix.module }}
 
   build:
     runs-on: ubuntu-latest
@@ -59,16 +65,24 @@ jobs:
         with:
           go-version: "1.26"
 
-      - name: Build
-        run: go build ./...
+      - name: Build all modules
+        run: |
+          for mod in core memory catalog middleware xtypes; do
+            echo "==> Building $mod"
+            (cd $mod && go build ./...)
+          done
 
       - name: Build examples
         run: |
           for dir in example/*/; do
             if [ -f "$dir/go.mod" ]; then
+              echo "==> Building $dir"
               (cd "$dir" && go build ./...)
             fi
           done
 
       - name: Vet
-        run: go vet ./...
+        run: |
+          for mod in core memory catalog middleware xtypes; do
+            (cd $mod && go vet ./...)
+          done

@@ -10,6 +10,9 @@ jobs:
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [core, memory, catalog, middleware, xtypes]
 
     steps:
       - name: Checkout code
@@ -25,6 +28,7 @@ jobs:
         with:
           version: latest
           args: --timeout=5m
+          working-directory: ${{ matrix.module }}
 
   fmt:
     name: gofmt
@@ -41,9 +45,9 @@ jobs:
 
       - name: Check formatting
         run: |
-          if [ -n "$(gofmt -l .)" ]; then
+          if [ -n "$(gofmt -l core memory catalog middleware xtypes)" ]; then
             echo "The following files need formatting:"
-            gofmt -l .
+            gofmt -l core memory catalog middleware xtypes
             exit 1
           fi
 
@@ -63,8 +67,8 @@ jobs:
       - name: Check imports
         run: |
           go install golang.org/x/tools/cmd/goimports@latest
-          if [ -n "$(goimports -l .)" ]; then
+          if [ -n "$(goimports -l core memory catalog middleware xtypes)" ]; then
             echo "The following files need import formatting:"
-            goimports -l .
+            goimports -l core memory catalog middleware xtypes
             exit 1
           fi
