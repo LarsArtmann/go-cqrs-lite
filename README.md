@@ -1,6 +1,8 @@
 # go-cqrs-lite
 
-A lightweight, zero-dependency CQRS (Command Query Responsibility Segregation) library for Go with support for Event Sourcing and strongly-typed domain identifiers.
+A lightweight CQRS (Command Query Responsibility Segregation) library for Go with support for Event Sourcing, strongly-typed domain identifiers, and auto-documentation generation.
+
+**Multi-module monorepo** — import only what you need. Each module has its own `go.mod` with minimal dependencies.
 
 ## What It Does
 
@@ -19,17 +21,34 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 ### Installation
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite
+# Core CQRS types (commands, queries, events, aggregates, IDs)
+go get github.com/larsartmann/go-cqrs-lite/core
+
+# In-memory implementations (testing)
+go get github.com/larsartmann/go-cqrs-lite/memory
+
+# API documentation generation (AsyncAPI 3.0 + EventCatalog)
+go get github.com/larsartmann/go-cqrs-lite/catalog
+
+# Cross-cutting middleware (logging, retry, validation, recovery, metrics)
+go get github.com/larsartmann/go-cqrs-lite/middleware
+
+# Type-safe wrappers with branded IDs
+go get github.com/larsartmann/go-cqrs-lite/xtypes
 ```
 
 ### Requirements
 
-- Go 1.22+
+- Go 1.26+
 
-### Dependencies
+### Core Dependencies
 
-- `github.com/google/uuid` - UUID generation
-- `github.com/cockroachdb/errors` - Error handling with context
+| Dependency | Purpose | Module |
+|---|---|---|
+| `cockroachdb/errors` | Error wrapping | core |
+| `google/uuid` | UUID generation | core |
+| `go-json-experiment/json` | JSON v2 | core |
+| `go-faster/yaml` | YAML marshaling | catalog only |
 
 ## Core Concepts
 
@@ -89,30 +108,24 @@ aggregateID := aggregate_id.New()
 // store.GetByID(ctx, userID)  // expects AggregateID, got UserID
 ```
 
-## Package Structure
+## Module Structure
 
-| Package                 | Purpose                                       | Status   |
-| ----------------------- | --------------------------------------------- | -------- |
-| `command/`              | Command types, dispatcher, handlers           | ✅ Ready |
-| `query/`                | Query types, dispatcher, handlers             | ✅ Ready |
-| `event/`                | Domain events, store interface, bus           | ✅ Ready |
-| `aggregate/`            | Aggregate root, repository patterns           | ✅ Ready |
-| `pkg/id/`               | Strongly-typed branded identifiers            | ✅ Ready |
-| `xtypes/`               | Type-safe command/query/event wrappers        | ✅ Ready |
-| `catalog/`              | Schema reflection, registry, catalog types    | ✅ Ready |
-| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML exporter                    | ✅ Ready |
-| `catalog/eventcatalog/` | EventCatalog MDX documentation generator      | ✅ Ready |
-| `catalog/yaml/`         | Zero-dependency YAML marshaler                | ✅ Ready |
-| `middleware/`           | Logging, metrics, retry, validation, recovery | ✅ Ready |
+| Module | Import Path | Purpose | Dependencies |
+|---|---|---|---|
+| **core** | `.../core/...` | CQRS types, dispatchers, event sourcing | errors, uuid, json |
+| **memory** | `.../memory` | In-memory store/bus/snapshot (testing) | core |
+| **catalog** | `.../catalog/...` | AsyncAPI + EventCatalog generation | core, yaml |
+| **middleware** | `.../middleware` | Logging, retry, validation, recovery, metrics | core |
+| **xtypes** | `.../xtypes` | Typed wrappers with branded IDs | core |
 
 ## Design Principles
 
-1. **Minimal dependencies** - Only uuid and cockroachdb/errors
-2. **Composition over inheritance** - Per Go best practices
-3. **Interface-first design** - All core types are interfaces
-4. **Context-aware** - All operations accept `context.Context`
-5. **Errors as values** - No panics, explicit error returns
-6. **File size limits** - Max 250 lines per file
+1. **Pay for what you import** — Each module has its own `go.mod` with only needed dependencies
+2. **Composition over inheritance** — Per Go best practices
+3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
+4. **Context-aware** — All operations accept `context.Context`
+5. **Errors as values** — No panics, explicit error returns
+6. **File size limits** — Max 250 lines per file
 
 ## Architecture
 
@@ -145,25 +158,25 @@ package main
 
 import (
     "context"
-    "github.com/larsartmann/go-cqrs-lite/command"
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/pkg/id"
+
+    "github.com/larsartmann/go-cqrs-lite/core/command"
+    "github.com/larsartmann/go-cqrs-lite/core/event"
+    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 func main() {
     ctx := context.Background()
 
-    // Create in-memory event store
-    store := event.NewMemoryStore()
-
-    // Create event bus for publish/subscribe
-    bus := event.NewMemoryBus()
+    // Create in-memory event store and bus (testing)
+    store := memory.NewMemoryStore()
+    bus := memory.NewMemoryBus()
 
     // Register command dispatcher
     cmdDispatcher := command.NewDispatcher()
 
     // Use strongly-typed IDs
-    userID := id.NewUserID()
+    userID := id.NewAggregateID()
 
     // Create and dispatch command
     cmd := command.New("user.create", userID.String())
@@ -351,7 +364,10 @@ The `xtypes` package provides type-safe wrappers around core CQRS types, elimina
 Fluent builder for events with compile-time type safety:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/xtypes"
+import (
+    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/xtypes"
+)
 
 aggregateID := id.NewAggregateID()
 
@@ -359,7 +375,7 @@ evt, err := xtypes.NewEventBuilder(
     "order.created",
     aggregateID,
     "Order",
-    event.Version(1),
+    1,
 ).
     WithPayload(jsonPayload).
     WithCorrelationID(correlationID).
