@@ -180,7 +180,7 @@ var _ = Describe("CQRS Flow", func() {
 					dispatcher.Register(
 						"expense.submit",
 						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*submitExpenseCmd)
+							c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
 							e := newExpense(c.id)
 							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
 
@@ -214,7 +214,7 @@ var _ = Describe("CQRS Flow", func() {
 					dispatcher.Register(
 						"expense.submit",
 						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*submitExpenseCmd)
+							c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
 							e := newExpense(c.id)
 							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
 
@@ -227,7 +227,7 @@ var _ = Describe("CQRS Flow", func() {
 					dispatcher.Register(
 						"expense.approve",
 						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*approveExpenseCmd)
+							c := cmd.(*approveExpenseCmd) //nolint:forcetypeassert
 							e := newExpense(c.id)
 							Expect(repo.Load(ctx, e)).To(Succeed())
 							Expect(e.Approve(ctx)).To(Succeed())
@@ -241,7 +241,7 @@ var _ = Describe("CQRS Flow", func() {
 					dispatcher.Register(
 						"expense.pay",
 						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*payExpenseCmd)
+							c := cmd.(*payExpenseCmd) //nolint:forcetypeassert
 							e := newExpense(c.id)
 							Expect(repo.Load(ctx, e)).To(Succeed())
 							Expect(e.Pay(ctx)).To(Succeed())
@@ -302,7 +302,7 @@ var _ = Describe("CQRS Flow", func() {
 
 				err := dispatcher.Register(
 					"expense.submit",
-					func(_ context.Context, cmd command.Command) error {
+					func(_ context.Context, _ command.Command) error {
 						return nil
 					},
 				)
@@ -331,7 +331,7 @@ var _ = Describe("CQRS Flow", func() {
 					dispatcher.Register(
 						"expense.submit",
 						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*submitExpenseCmd)
+							c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
 							e := newExpense(c.id)
 							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
 

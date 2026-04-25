@@ -157,7 +157,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 	err := dispatcher.Register(
 		"product.create",
 		func(_ context.Context, cmd command.Command) error {
-			c := cmd.(*createProductCmd)
+			c := cmd.(*createProductCmd) //nolint:forcetypeassert
 
 			p := newProduct(c.aggregateID)
 
@@ -176,7 +176,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 	err = dispatcher.Register(
 		"product.restock",
 		func(_ context.Context, cmd command.Command) error {
-			c := cmd.(*restockProductCmd)
+			c := cmd.(*restockProductCmd) //nolint:forcetypeassert
 
 			p := newProduct(c.aggregateID)
 

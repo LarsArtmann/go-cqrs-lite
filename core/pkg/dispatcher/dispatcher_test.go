@@ -302,7 +302,7 @@ func TestDispatcher_Dispatch_WithMiddleware(t *testing.T) {
 
 	d.Use(testMW(&order, "mw1"))
 
-	handler := func(s string) string {
+	handler := func(_ string) string {
 		order = append(order, "handler")
 
 		return "result"

@@ -27,11 +27,13 @@ func (b *BaseDispatcher[H, M]) Register(t string, handler H) error {
 }
 
 // GetHandler returns the handler for a type and whether it exists.
+//nolint:ireturn // generic interface return by design
 func (b *BaseDispatcher[H, M]) GetHandler(t string) (H, bool) {
 	return b.inner.GetHandler(t)
 }
 
 // Dispatch wraps the handler for a type with middleware and returns the wrapped handler.
+//nolint:ireturn // generic interface return by design
 func (b *BaseDispatcher[H, M]) Dispatch(t string, handler H, wrap func(M, H) H) (H, error) {
 	return b.inner.Dispatch(t, handler, wrap)
 }

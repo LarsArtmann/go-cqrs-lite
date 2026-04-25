@@ -156,7 +156,7 @@ func MustExport(
 func FileContains(tb testing.TB, path, substring string) {
 	tb.Helper()
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		tb.Fatalf("read file %s: %v", path, err)
 	}
@@ -170,7 +170,7 @@ func FileContains(tb testing.TB, path, substring string) {
 func MustReadFile(tb testing.TB, path string) string {
 	tb.Helper()
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		tb.Fatalf("read file %s: %v", path, err)
 	}
@@ -184,7 +184,7 @@ func Join(elem ...string) string {
 }
 
 // AssertLenEqual fails if the actual length doesn't match the expected length.
-func AssertLenEqual[T any](tb testing.TB, name string, actual, expected int, slice []T) {
+func AssertLenEqual[T any](tb testing.TB, name string, actual, expected int, _ []T) {
 	tb.Helper()
 
 	if actual != expected {

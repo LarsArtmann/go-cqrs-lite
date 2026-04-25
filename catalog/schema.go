@@ -8,6 +8,16 @@ import (
 	"time"
 )
 
+const (
+	jsonTypeString  = "string"
+	jsonTypeObject  = "object"
+	jsonTypeInteger = "integer"
+	jsonTypeNumber  = "number"
+	jsonTypeBoolean = "boolean"
+	jsonTypeArray   = "array"
+	jsonTypeNull    = "null"
+)
+
 func SchemaFromType[T any]() *Schema {
 	var zero T
 
@@ -22,7 +32,7 @@ func SchemaFromReflect(t reflect.Type) *Schema {
 
 func schemaFromReflect(t reflect.Type) *Schema {
 	if t == nil {
-		return &Schema{Type: "null"}
+		return &Schema{Type: jsonTypeNull}
 	}
 
 	if t.Kind() == reflect.Pointer {
@@ -38,7 +48,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 
 	if t.Kind() == reflect.Map {
 		return &Schema{
-			Type: "object",
+			Type: jsonTypeObject,
 			Properties: map[string]Property{
 				"(key)":   *propertyFromReflect(t.Key()),
 				"(value)": *propertyFromReflect(t.Elem()),
@@ -51,7 +61,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	}
 
 	if t == reflect.TypeFor[time.Time]() {
-		return &Schema{Type: "string", Properties: map[string]Property{}}
+		return &Schema{Type: jsonTypeString, Properties: map[string]Property{}}
 	}
 
 	props := make(map[string]Property)
@@ -129,12 +139,12 @@ func collectionSchema(t reflect.Type) *Property {
 		}
 	}
 
-	return &Property{Type: "object"}
+	return &Property{Type: jsonTypeObject}
 }
 
 func propertyFromReflect(t reflect.Type) *Property {
 	if t == nil {
-		return &Property{Type: "null"}
+		return &Property{Type: jsonTypeNull}
 	}
 
 	if t.Kind() == reflect.Pointer {
@@ -146,12 +156,12 @@ func propertyFromReflect(t reflect.Type) *Property {
 	}
 
 	if t.Kind() == reflect.Map {
-		return &Property{Type: "object"}
+		return &Property{Type: jsonTypeObject}
 	}
 
 	if t.Kind() == reflect.Struct {
 		if t == reflect.TypeFor[time.Time]() {
-			return &Property{Type: "string", Format: "date-time"}
+			return &Property{Type: jsonTypeString, Format: "date-time"}
 		}
 
 		schema := schemaFromReflect(t)
@@ -169,31 +179,31 @@ func propertyFromReflect(t reflect.Type) *Property {
 func goTypeToJSON(k reflect.Kind) string {
 	switch k {
 	case reflect.String:
-		return "string"
+		return jsonTypeString
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return "integer"
+		return jsonTypeInteger
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return "integer"
+		return jsonTypeInteger
 	case reflect.Float32, reflect.Float64:
-		return "number"
+		return jsonTypeNumber
 	case reflect.Bool:
-		return "boolean"
+		return jsonTypeBoolean
 	case reflect.Interface:
-		return "object"
+		return jsonTypeObject
 	case reflect.Complex64, reflect.Complex128:
-		return "string"
+		return jsonTypeString
 	case reflect.Array, reflect.Slice:
-		return "array"
+		return jsonTypeArray
 	case reflect.Map, reflect.Struct:
-		return "object"
+		return jsonTypeObject
 	case reflect.Ptr:
-		return "object"
+		return jsonTypeObject
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-		return "string"
+		return jsonTypeString
 	case reflect.Invalid:
-		return "null"
+		return jsonTypeNull
 	default:
-		return "string"
+		return jsonTypeString
 	}
 }
 

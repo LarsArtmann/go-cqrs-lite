@@ -37,7 +37,6 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exhaustruct
     - exptostd
     - fatcontext
     - forbidigo
@@ -56,7 +55,6 @@ linters:
     - godot
     - godox
     - goheader
-    - gomoddirectives
     - gomodguard
     - goprintffuncname
     - gosec
@@ -70,7 +68,6 @@ linters:
     - interfacebloat
     - intrange
     - iotamixing
-    - ireturn
     - loggercheck
     - maintidx
     - makezero
@@ -90,7 +87,6 @@ linters:
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
-    - paralleltest
     - perfsprint
     - prealloc
     - predeclared
@@ -108,8 +104,6 @@ linters:
     - tagliatelle
     - testableexamples
     - testifylint
-    - testpackage
-    - thelper
     - tparallel
     - unconvert
     - unparam
@@ -124,6 +118,13 @@ linters:
     - zerologlint
   default: none
   settings:
+    cyclop:
+      max-complexity: 25
+    funlen:
+      lines: 200
+      statements: 100
+    gocognit:
+      min-complexity: 35
     depguard:
       rules:
         Main:
@@ -134,6 +135,52 @@ linters:
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
             - github.com/go-faster/yaml
+            - github.com/onsi/ginkgo
+            - github.com/onsi/gomega
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: unused-parameter
+          disabled: false
+    varnamelen:
+      check-return: false
+      check-receiver: false
+      ignore-names:
+        - id
+        - r
+        - t
+        - tb
+        - tt
+        - ip
+        - i
+        - ok
+        - wg
+        - err
+        - d
+        - p
+        - m
+        - v
+        - e
+        - s
+        - o
+        - c
+        - k
+        - b
+        - f
+        - n
+        - ctx
+        - tc
+        - op
+        - md
+        - ch
+        - l
+        - lc
+        - h
+        - q
+        - fn
     wrapcheck:
       local-prefixes:
         - github.com/larsartmann/go-cqrs-lite
@@ -141,9 +188,6 @@ issues:
   max-issues-per-linter: 50
   max-same-issues: 10
   exclude-rules:
-    - linters:
-        - gomoddirectives
-      path: go\.mod$
     - linters:
         - err113
       path: _test\.go$

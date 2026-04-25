@@ -45,7 +45,7 @@ func TestSchemaFromType_Struct(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateUser]()
 
-	if schema.Type != "object" {
+	if schema.Type != "object" { //nolint:goconst
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
 
@@ -228,7 +228,7 @@ func TestSchemaFromType_PointerField(t *testing.T) {
 		t.Fatal("expected name property")
 	}
 
-	if prop.Type != "string" {
+	if prop.Type != "string" { //nolint:goconst
 		t.Errorf("expected string, got %s", prop.Type)
 	}
 }

@@ -92,7 +92,7 @@ func panicEventHandler(msg string) event.Handler {
 }
 
 func callbackCommandHandler(called *bool) command.Handler {
-	return func(_ context.Context, cmd command.Command) error {
+	return func(_ context.Context, _ command.Command) error {
 		*called = true
 
 		return nil
@@ -216,7 +216,7 @@ func TestCommandRetry_Success(t *testing.T) {
 
 	config := DefaultRetryConfig()
 	config.MaxAttempts = 3
-	config.IsRetryable = func(err error) bool { return true }
+	config.IsRetryable = func(_ error) bool { return true }
 
 	mw := CommandRetry(config)
 
@@ -268,7 +268,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 
 	config := DefaultRetryConfig()
 	config.MaxAttempts = 3
-	config.IsRetryable = func(err error) bool { return false }
+	config.IsRetryable = func(_ error) bool { return false }
 
 	mw := CommandRetry(config)
 
@@ -294,7 +294,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 func TestCommandValidation_Pass(t *testing.T) {
 	t.Parallel()
 
-	validate := func(msg any) error { return nil }
+	validate := func(_ any) error { return nil }
 	mw := CommandValidation(validate)
 
 	called := false

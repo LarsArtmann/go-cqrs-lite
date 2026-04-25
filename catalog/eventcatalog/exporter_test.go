@@ -639,7 +639,7 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 		"examples.json",
 	)
 
-	data, err := os.ReadFile(examplesPath)
+	data, err := os.ReadFile(examplesPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read examples.json: %v", err)
 	}
@@ -667,7 +667,7 @@ func TestExporter_Export_PackageJSON(t *testing.T) {
 
 	pkgPath := filepath.Join(tmpDir, "package.json")
 
-	data, err := os.ReadFile(pkgPath)
+	data, err := os.ReadFile(pkgPath) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read package.json: %v", err)
 	}
