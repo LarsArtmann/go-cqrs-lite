@@ -110,7 +110,8 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	}
 
 	var jsonDoc map[string]any
-	if err := json.Unmarshal(jsonBytes, &jsonDoc); err != nil {
+	err = json.Unmarshal(jsonBytes, &jsonDoc)
+	if err != nil {
 		t.Fatalf("unmarshal json: %v", err)
 	}
 
@@ -121,7 +122,8 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	ecDir := filepath.Join(tmpDir, "eventcatalog")
 
 	ecExp := eventcatalog.NewExporter(ecDir)
-	if err := ecExp.Export(cat); err != nil {
+	err = ecExp.Export(cat)
+	if err != nil {
 		t.Fatalf("eventcatalog export: %v", err)
 	}
 
@@ -159,7 +161,8 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	schemaContent := cattest.MustReadFile(t, schemaFile)
 
 	var schemaMap map[string]any
-	if err := json.Unmarshal([]byte(schemaContent), &schemaMap); err != nil {
+	err = json.Unmarshal([]byte(schemaContent), &schemaMap)
+	if err != nil {
 		t.Fatalf("parse schema: %v", err)
 	}
 

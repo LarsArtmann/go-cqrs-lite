@@ -231,7 +231,8 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	_, _ = fmt.Fprintf(md, "owners:\n  - %s\n", svcID)
 	md.finish(msg.Name, msg.Summary)
 
-	if err := e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String()); err != nil {
+	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	if err != nil {
 		return fmt.Errorf("write message file: %w", err)
 	}
 
@@ -287,7 +288,8 @@ func (e *Exporter) writeMDXFile(path, content string) error {
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	schemaDir := filepath.Join(dir, "schemas")
-	if err := os.MkdirAll(schemaDir, dirPerm); err != nil {
+	err := os.MkdirAll(schemaDir, dirPerm)
+	if err != nil {
 		return fmt.Errorf("create schema dir: %w", err)
 	}
 

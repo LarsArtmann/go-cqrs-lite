@@ -196,7 +196,8 @@ func AssertLenEqual[T any](tb testing.TB, name string, actual, expected int, sli
 func AssertFileExists(tb testing.TB, path string) {
 	tb.Helper()
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
 		tb.Errorf("file does not exist: %s", path)
 	}
 }

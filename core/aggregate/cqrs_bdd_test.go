@@ -479,7 +479,8 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 						}
 
 						_ = local.Approve(ctx)
-						if err := repo.Save(ctx, local); err != nil {
+						err = repo.Save(ctx, local)
+						if err != nil {
 							versionConflicts.Add(1)
 						} else {
 							successes.Add(1)

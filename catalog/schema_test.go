@@ -134,7 +134,8 @@ func TestSchemaToJSON(t *testing.T) {
 	}
 
 	var parsed map[string]any
-	if err := json.Unmarshal(data, &parsed); err != nil {
+	err = json.Unmarshal(data, &parsed)
+	if err != nil {
 		t.Fatalf("unmarshal result: %v", err)
 	}
 
