@@ -48,6 +48,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -106,6 +107,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	}
 
 	var schema map[string]any
+
 	err = json.Unmarshal(data, &schema)
 	if err != nil {
 		t.Fatalf("parse schema JSON: %v", err)
@@ -135,6 +137,7 @@ func TestExporter_Export_Event(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -182,6 +185,7 @@ func TestExporter_Export_Query(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -217,6 +221,7 @@ func TestExporter_Export_Domain(t *testing.T) {
 	cat := cattest.Build(t, reg)
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -245,6 +250,7 @@ func TestExporter_Export_Config(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -285,24 +291,28 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	}
 
 	svcA := filepath.Join(tmpDir, "services", "svc-a", "index.mdx")
+
 	_, err = os.Stat(svcA)
 	if os.IsNotExist(err) {
 		t.Error("svc-a directory not created")
 	}
 
 	svcB := filepath.Join(tmpDir, "services", "svc-b", "index.mdx")
+
 	_, err = os.Stat(svcB)
 	if os.IsNotExist(err) {
 		t.Error("svc-b directory not created")
 	}
 
 	cmdA := filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx")
+
 	_, err = os.Stat(cmdA)
 	if os.IsNotExist(err) {
 		t.Error("CmdA command file not created")
 	}
 
 	evtB := filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx")
+
 	_, err = os.Stat(evtB)
 	if os.IsNotExist(err) {
 		t.Error("EvtB event file not created")
@@ -335,6 +345,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 		"schemas",
 		"schema.json",
 	)
+
 	_, err = os.Stat(schemaPath)
 	if !os.IsNotExist(err) {
 		t.Error("schema.json should not exist when no schema is provided")
@@ -360,6 +371,7 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -394,6 +406,7 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -435,6 +448,7 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -467,6 +481,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -516,6 +531,7 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -571,6 +587,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -607,6 +624,7 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
@@ -641,6 +659,7 @@ func TestExporter_Export_PackageJSON(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)

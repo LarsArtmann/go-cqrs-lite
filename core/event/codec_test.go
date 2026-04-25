@@ -69,7 +69,9 @@ func TestJSONCodec_Roundtrip(t *testing.T) {
 	}
 
 	var decoded userCreated
-	if err := codec.Decode(data, &decoded); err != nil {
+
+	err = codec.Decode(data, &decoded)
+	if err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
 

@@ -288,6 +288,7 @@ func (e *Exporter) writeMDXFile(path, content string) error {
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	schemaDir := filepath.Join(dir, "schemas")
+
 	err := os.MkdirAll(schemaDir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create schema dir: %w", err)

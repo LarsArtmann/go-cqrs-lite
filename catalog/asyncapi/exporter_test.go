@@ -378,6 +378,7 @@ func TestDocument_MarshalJSON(t *testing.T) {
 	}
 
 	var parsed map[string]any
+
 	err = json.Unmarshal(b, &parsed)
 	if err != nil {
 		t.Fatalf("JSON parse error: %v", err)
