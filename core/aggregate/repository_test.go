@@ -3,6 +3,7 @@ package aggregate_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
@@ -58,6 +59,9 @@ func (o *order) Place(ctx context.Context) error {
 	payload, err := json.Marshal(struct {
 		Status string `json:"status"`
 	}{Status: "placed"})
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	evt, err := event.NewEvent(
 		"OrderPlaced",

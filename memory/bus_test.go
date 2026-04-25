@@ -9,6 +9,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
+var errHandlerFailed = errors.New("handler failed")
+
+var errAllHandlerFailed = errors.New("all-handler failed")
+
+var errSubscriberFailure = errors.New("subscriber failure")
+
 func TestMemoryBus_Publish(t *testing.T) {
 	t.Parallel()
 
@@ -151,7 +157,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
-		return errors.New("handler failed")
+		return errHandlerFailed
 	})
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
@@ -169,7 +175,7 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error {
-		return errors.New("all-handler failed")
+		return errAllHandlerFailed
 	})
 
 	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
@@ -187,7 +193,7 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	ctx := context.Background()
 
 	_ = bus.Subscribe("FailEvent", func(_ context.Context, _ event.Event) error {
-		return errors.New("subscriber failure")
+		return errSubscriberFailure
 	})
 
 	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)

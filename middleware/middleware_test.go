@@ -60,7 +60,7 @@ func noopCommandHandler() command.Handler {
 }
 
 func panicCommandHandler(msg string) command.Handler {
-	return func(_ context.Context, _ command.Command) (err error) {
+	return func(_ context.Context, _ command.Command) error {
 		panic(msg)
 	}
 }
@@ -86,7 +86,7 @@ func failingEventHandler(msg string) event.Handler {
 }
 
 func panicEventHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) (err error) {
+	return func(_ context.Context, _ event.Event) error {
 		panic(msg)
 	}
 }

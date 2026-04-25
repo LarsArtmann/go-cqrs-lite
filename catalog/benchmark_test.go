@@ -15,7 +15,7 @@ func newBenchRegistry() *catalog.Registry {
 	return reg
 }
 
-func benchmarkRegistryWithCommand() (*catalog.Registry, *catalog.Catalog) {
+func benchmarkRegistryWithCommand() *catalog.Catalog {
 	reg := newBenchRegistry()
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
@@ -25,7 +25,7 @@ func benchmarkRegistryWithCommand() (*catalog.Registry, *catalog.Catalog) {
 		Schema:  &catalog.Schema{Type: "object"},
 	})
 
-	return reg, reg.Build()
+	return reg.Build()
 }
 
 func BenchmarkRegistry_Build(b *testing.B) {
@@ -46,7 +46,7 @@ func BenchmarkSchemaFromType(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_Export(b *testing.B) {
-	_, cat := benchmarkRegistryWithCommand()
+	cat := benchmarkRegistryWithCommand()
 
 	b.ResetTimer()
 
@@ -56,7 +56,7 @@ func BenchmarkAsyncAPI_Export(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
-	_, cat := benchmarkRegistryWithCommand()
+	cat := benchmarkRegistryWithCommand()
 	doc := asyncapi.NewExporter("Bench", "1.0.0").Export(cat)
 
 	b.ResetTimer()

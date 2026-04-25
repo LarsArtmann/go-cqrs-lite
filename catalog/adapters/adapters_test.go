@@ -472,6 +472,7 @@ func TestBuilder_AddEventWithDirection(t *testing.T) {
 
 	type orderShipped struct {
 		*event.EventCatalogCore
+
 		TrackingNumber string `doc:"Tracking number" json:"trackingNumber"`
 	}
 
@@ -499,6 +500,7 @@ func TestBuilder_AddEventFromType(t *testing.T) {
 
 	type userDeleted struct {
 		*event.EventCatalogCore
+
 		Reason string `doc:"Deletion reason" json:"reason"`
 	}
 
@@ -563,6 +565,7 @@ func TestBuilder_AddServiceToDomain(t *testing.T) {
 	for _, sid := range d.Services {
 		found[sid] = true
 	}
+
 	if !found["order-svc"] || !found["payment-svc"] {
 		t.Errorf("domain services = %v, want both order-svc and payment-svc", d.Services)
 	}

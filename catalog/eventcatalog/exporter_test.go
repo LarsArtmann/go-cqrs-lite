@@ -426,7 +426,7 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "order-svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx")) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -457,7 +457,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "index.mdx")) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +505,7 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "services", "order-svc", "index.mdx"))
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx")) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -559,7 +559,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir //nolint:gosec, "llms.txt"))
+	data, err := os.ReadFile(filepath.Join(tmpDir, "llms.txt")) //nolint:gosec
 	if err != nil {
 		t.Fatalf("read llms.txt: %v", err)
 	}

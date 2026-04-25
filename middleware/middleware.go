@@ -23,13 +23,20 @@ type RetryConfig struct {
 	IsRetryable  func(error) bool
 }
 
+const (
+	defaultMaxRetryAttempts = 3
+	defaultRetryInitDelay   = 100 * time.Millisecond
+	defaultRetryMaxDelay    = 5 * time.Second
+	defaultRetryMultiplier  = 2.0
+)
+
 // DefaultRetryConfig returns sensible defaults for retry.
 func DefaultRetryConfig() RetryConfig {
 	return RetryConfig{
-		MaxAttempts:  3,
-		InitialDelay: 100 * time.Millisecond,
-		MaxDelay:     5 * time.Second,
-		Multiplier:   2.0,
+		MaxAttempts:  defaultMaxRetryAttempts,
+		InitialDelay: defaultRetryInitDelay,
+		MaxDelay:     defaultRetryMaxDelay,
+		Multiplier:   defaultRetryMultiplier,
 		IsRetryable:  func(error) bool { return false },
 	}
 }

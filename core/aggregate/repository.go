@@ -57,11 +57,13 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 
 	expectedVersion := event.Version(root.Version() - len(changes))
 
-	if err := r.store.Save(ctx, root.Type(), aggregateID, changes, expectedVersion); err != nil {
+	err = r.store.Save(ctx, root.Type(), aggregateID, changes, expectedVersion)
+	if err != nil {
 		return fmt.Errorf("save %s %s: %w", root.Type(), root.ID(), err)
 	}
 
-	if err := r.bus.Publish(ctx, changes...); err != nil {
+	err = r.bus.Publish(ctx, changes...)
+	if err != nil {
 		return fmt.Errorf("publish events for %s %s: %w", root.Type(), root.ID(), err)
 	}
 

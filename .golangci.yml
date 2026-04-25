@@ -142,6 +142,9 @@ issues:
   max-same-issues: 10
   exclude-rules:
     - linters:
+        - gomoddirectives
+      path: go\.mod$
+    - linters:
         - err113
       path: _test\.go$
     - linters:

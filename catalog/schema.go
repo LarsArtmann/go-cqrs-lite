@@ -197,14 +197,14 @@ func goTypeToJSON(k reflect.Kind) string {
 	}
 }
 
-func parseJSONTag(tag string) (name string, omit bool) {
+func parseJSONTag(tag string) (string, bool) {
 	if tag == "" {
 		return "", false
 	}
 
 	parts := strings.Split(tag, ",")
-	name = parts[0]
-	omit = len(parts) > 1 && parts[1] == "omitempty"
+	name := parts[0]
+	omit := len(parts) > 1 && parts[1] == "omitempty"
 
 	return name, omit
 }

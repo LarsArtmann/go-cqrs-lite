@@ -369,7 +369,9 @@ func TestJSON(t *testing.T) {
 		}
 
 		var restored AggregateID
-		if err := json.Unmarshal(data, &restored); err != nil {
+
+		err = json.Unmarshal(data, &restored)
+		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 

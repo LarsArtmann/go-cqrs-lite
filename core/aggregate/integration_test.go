@@ -3,6 +3,7 @@ package aggregate_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
@@ -83,6 +84,9 @@ func (p *product) Create(ctx context.Context, name string, price float64) error 
 		Name  string  `json:"name"`
 		Price float64 `json:"price"`
 	}{Name: name, Price: price})
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	evt, err := p.newEvent("ProductCreated", payload)
 	if err != nil {
@@ -100,6 +104,9 @@ func (p *product) Restock(ctx context.Context, quantity int) error {
 	payload, err := json.Marshal(struct {
 		Quantity int `json:"quantity"`
 	}{Quantity: quantity})
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	evt, err := p.newEvent("ProductRestocked", payload)
 	if err != nil {

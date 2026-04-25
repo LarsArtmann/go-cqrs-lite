@@ -3,6 +3,7 @@ package aggregate_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -69,6 +70,9 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 		Description string  `json:"description"`
 		Amount      float64 `json:"amount"`
 	}{Description: description, Amount: amount})
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	evt, err := event.NewEvent(
 		"ExpenseSubmitted",

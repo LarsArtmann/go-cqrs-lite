@@ -14,7 +14,7 @@ type Root interface {
 	ID() string
 	Type() event.AggregateType
 	Version() int
-	Apply(event.Event) error
+	Apply(evt event.Event) error
 	UncommittedChanges() []event.Event
 	MarkChangesAsCommitted()
 }

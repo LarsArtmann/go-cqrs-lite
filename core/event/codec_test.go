@@ -99,6 +99,7 @@ func TestJSONCodec_Decode_InvalidJSON(t *testing.T) {
 	codec := event.JSONCodec{}
 
 	var v any
+
 	err := codec.Decode([]byte(`{invalid`), &v)
 	if err == nil {
 		t.Error("expected error for invalid JSON")
