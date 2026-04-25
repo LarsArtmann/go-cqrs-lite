@@ -13,7 +13,7 @@ func TestNewEvent_Valid(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		"user-123",
+		id.MustParseAggregateID("user-123"),
 		"User",
 		1,
 		[]byte(`{"name":"John"}`),
@@ -56,21 +56,21 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		{
 			name:          "missing aggregate ID",
 			eventType:     "UserCreated",
-			aggregateID:   "",
+			aggregateID:   id.AggregateID{},
 			aggregateType: "User",
 			version:       1,
 		},
 		{
 			name:          "missing aggregate type",
 			eventType:     "UserCreated",
-			aggregateID:   "user-123",
+			aggregateID:   id.MustParseAggregateID("user-123"),
 			aggregateType: "",
 			version:       1,
 		},
 		{
 			name:          "negative version",
 			eventType:     "UserCreated",
-			aggregateID:   "user-123",
+			aggregateID:   id.MustParseAggregateID("user-123"),
 			aggregateType: "User",
 			version:       -1,
 		},
@@ -108,7 +108,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "missing aggregate ID includes event type",
 			eventType:     "TestEvent",
-			aggregateID:   "",
+			aggregateID:   id.AggregateID{},
 			aggregateType: "User",
 			version:       1,
 			wantContains:  []string{"aggregate ID is required", "TestEvent"},
@@ -116,7 +116,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "missing aggregate type includes aggregate ID and event type",
 			eventType:     "OrderCreated",
-			aggregateID:   id.AggregateID("order-456"),
+			aggregateID:   id.MustParseAggregateID("order-456"),
 			aggregateType: "",
 			version:       1,
 			wantContains:  []string{"aggregate type is required", "order-456", "OrderCreated"},
@@ -124,7 +124,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "negative version includes version, aggregate ID and event type",
 			eventType:     "PaymentProcessed",
-			aggregateID:   id.AggregateID("payment-789"),
+			aggregateID:   id.MustParseAggregateID("payment-789"),
 			aggregateType: "Payment",
 			version:       -5,
 			wantContains:  []string{"version -5 invalid", "payment-789", "PaymentProcessed"},
@@ -161,14 +161,14 @@ func TestEventOptions(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.AggregateID("agg-123"),
+		id.MustParseAggregateID("agg-123"),
 		"TestAggregate",
 		1,
 		nil,
-		event.WithCorrelationID(id.CorrelationID("corr-123")),
-		event.WithCausationID(id.CausationID("cause-456")),
-		event.WithUserID(id.UserID("user-789")),
-		event.WithRequestID(id.RequestID("req-001")),
+		event.WithCorrelationID(id.MustParseCorrelationID("corr-123")),
+		event.WithCausationID(id.MustParseCausationID("cause-456")),
+		event.WithUserID(id.MustParseUserID("user-789")),
+		event.WithRequestID(id.MustParseRequestID("req-001")),
 		event.WithSource(event.Source("test-service")),
 		event.WithIPAddress(event.IPAddress("127.0.0.1")),
 		event.WithUserAgent(event.UserAgent("test-agent")),
@@ -179,19 +179,19 @@ func TestEventOptions(t *testing.T) {
 	}
 
 	m := evt.Metadata()
-	if m.CorrelationID != id.CorrelationID("corr-123") {
+	if m.CorrelationID != id.MustParseCorrelationID("corr-123") {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
 
-	if m.CausationID != id.CausationID("cause-456") {
+	if m.CausationID != id.MustParseCausationID("cause-456") {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
 
-	if m.UserID != id.UserID("user-789") {
+	if m.UserID != id.MustParseUserID("user-789") {
 		t.Errorf("expected user ID user-789, got %s", m.UserID)
 	}
 
-	if m.RequestID != id.RequestID("req-001") {
+	if m.RequestID != id.MustParseRequestID("req-001") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
 
@@ -224,8 +224,8 @@ func TestNewMetadata(t *testing.T) {
 		t.Error("Custom map should be initialized")
 	}
 
-	if m.CorrelationID != "" {
-		t.Errorf("CorrelationID should be empty, got %s", m.CorrelationID)
+	if !m.CorrelationID.IsZero() {
+		t.Errorf("CorrelationID should be zero, got %s", m.CorrelationID)
 	}
 }
 
@@ -234,7 +234,7 @@ func TestEventAccessors(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		"user-123",
+		id.MustParseAggregateID("user-123"),
 		"User",
 		1,
 		[]byte(`{"name":"John"}`),

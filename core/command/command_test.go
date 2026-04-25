@@ -6,12 +6,13 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	cmd := command.New("CreateUser", "user-123")
+	cmd := command.New("CreateUser", id.MustParseAggregateID("user-123"))
 
 	if cmd.Type() != "CreateUser" {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
@@ -25,7 +26,7 @@ func TestNewCommand(t *testing.T) {
 func TestBaseCommand_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ command.Command = command.New("TestCommand", "test-id")
+	var _ command.Command = command.New("TestCommand", id.MustParseAggregateID("test-id"))
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -54,7 +55,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	_ = dispatcher.Register("CreateUser", handler)
 
-	cmd := command.New("CreateUser", "user-123")
+	cmd := command.New("CreateUser", id.MustParseAggregateID("user-123"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
@@ -72,7 +73,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := command.New("UnknownCommand", "user-123")
+	cmd := command.New("UnknownCommand", id.MustParseAggregateID("user-123"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
@@ -99,7 +100,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		return nil
 	})
 
-	cmd := command.New("TestCommand", "test-123")
+	cmd := command.New("TestCommand", id.MustParseAggregateID("test-123"))
 	_ = dispatcher.Dispatch(ctx, cmd)
 
 	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -116,7 +117,7 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	cmd := command.New("TestCommand", "test-123")
+	cmd := command.New("TestCommand", id.MustParseAggregateID("test-123"))
 
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {

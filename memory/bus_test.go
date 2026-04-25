@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
@@ -34,7 +35,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	evt, _ := event.NewEvent("UserCreated", "user-1", "User", 0, nil)
+	evt, _ := event.NewEvent("UserCreated", id.MustParseAggregateID("user-1"), "User", 0, nil)
 
 	err = bus.Publish(ctx, evt)
 	if err != nil {
@@ -65,8 +66,8 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	evt1, _ := event.NewEvent("UserCreated", "user-1", "User", 0, nil)
-	evt2, _ := event.NewEvent("OrderPlaced", "order-1", "Order", 0, nil)
+	evt1, _ := event.NewEvent("UserCreated", id.MustParseAggregateID("user-1"), "User", 0, nil)
+	evt2, _ := event.NewEvent("OrderPlaced", id.MustParseAggregateID("order-1"), "Order", 0, nil)
 
 	err = bus.Publish(ctx, evt1, evt2)
 	if err != nil {
@@ -109,7 +110,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		return nil
 	})
 
-	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	evt, _ := event.NewEvent("TestEvent", id.MustParseAggregateID("test-1"), "Test", 0, nil)
 	_ = bus.Publish(ctx, evt)
 
 	expected := []string{"middleware1", "middleware2", "handler"}
@@ -142,7 +143,7 @@ func TestMemoryBus_Closed(t *testing.T) {
 		t.Error("expected bus closed error")
 	}
 
-	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	evt, _ := event.NewEvent("TestEvent", id.MustParseAggregateID("test-1"), "Test", 0, nil)
 
 	err = bus.Publish(context.Background(), evt)
 	if err == nil {
@@ -160,7 +161,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 		return errHandlerFailed
 	})
 
-	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	evt, _ := event.NewEvent("TestEvent", id.MustParseAggregateID("test-1"), "Test", 0, nil)
 
 	err := bus.Publish(ctx, evt)
 	if err == nil {
@@ -178,7 +179,7 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 		return errAllHandlerFailed
 	})
 
-	evt, _ := event.NewEvent("TestEvent", "test-1", "Test", 0, nil)
+	evt, _ := event.NewEvent("TestEvent", id.MustParseAggregateID("test-1"), "Test", 0, nil)
 
 	err := bus.Publish(ctx, evt)
 	if err == nil {
@@ -196,8 +197,8 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 		return errSubscriberFailure
 	})
 
-	evt1, _ := event.NewEvent("OKEvent", "test-1", "Test", 0, nil)
-	evt2, _ := event.NewEvent("FailEvent", "test-1", "Test", 1, nil)
+	evt1, _ := event.NewEvent("OKEvent", id.MustParseAggregateID("test-1"), "Test", 0, nil)
+	evt2, _ := event.NewEvent("FailEvent", id.MustParseAggregateID("test-1"), "Test", 1, nil)
 
 	err := bus.Publish(ctx, evt1, evt2)
 	if err == nil {

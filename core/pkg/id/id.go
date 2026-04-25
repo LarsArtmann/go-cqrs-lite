@@ -14,29 +14,34 @@
 package id
 
 import (
-	"database/sql/driver"
-	"encoding"
+	"crypto/rand"
 	"fmt"
+	"math"
+	"time"
 
-	"github.com/go-json-experiment/json"
-	"github.com/google/uuid"
+	cbid "github.com/larsartmann/go-composable-business-types/id"
+	"github.com/oklog/ulid/v2"
 )
 
 // Of is a branded type for strongly-typed identifiers.
 // The type parameter T is a phantom type used only for type differentiation.
-type Of[T any] string
-
-// New generates a new random ID using UUID v4.
-func New[T any]() Of[T] {
-	return Of[T](uuid.New().String())
-}
+type Of[T any] = cbid.ID[T, string]
 
 // PrefixString is a string type for human-readable ID prefixes.
 type PrefixString string
 
+func newULID() string {
+	return ulid.MustNew(ulid.Timestamp(time.Now()), rand.Reader).String()
+}
+
+// New generates a new random ID using ULID.
+func New[T any]() Of[T] {
+	return cbid.NewID[T, string](newULID())
+}
+
 // NewWithPrefix generates a new ID with a human-readable prefix.
 func NewWithPrefix[T any](prefix PrefixString) Of[T] {
-	return Of[T](string(prefix) + "_" + uuid.New().String())
+	return cbid.NewID[T, string](string(prefix) + "_" + newULID())
 }
 
 // Parse converts a string to a strongly-typed ID.
@@ -45,11 +50,10 @@ func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
 
-		//nolint:err113 // dynamic error required to include type name for debugging
-		return zero, fmt.Errorf("cannot parse empty string as %T (input: %q)", zero, s)
+		return zero, fmt.Errorf("cannot parse empty string as %T", zero)
 	}
 
-	return Of[T](s), nil
+	return cbid.NewID[T, string](s), nil
 }
 
 // MustParse converts a string to a strongly-typed ID, panicking on error.
@@ -61,194 +65,24 @@ func Parse[T any](s string) (Of[T], error) {
 //
 // For production code, prefer Parse[T]() which returns an error.
 func MustParse[T any](s string) Of[T] {
-	id, err := Parse[T](s)
+	parsed, err := Parse[T](s)
 	if err != nil {
 		panic(fmt.Sprintf("id.MustParse: %v (input: %q)", err, s))
 	}
 
-	return id
+	return parsed
 }
 
-// String returns the underlying string value.
-func (id Of[T]) String() string {
-	return string(id)
-}
-
-// IsEmpty returns true if the ID is empty.
-func (id Of[T]) IsEmpty() bool {
-	return id == ""
-}
-
-// IsValid returns true if the ID is not empty.
-func (id Of[T]) IsValid() bool {
-	return id != ""
-}
-
-// Equal returns true if this ID equals another.
-func (id Of[T]) Equal(other Of[T]) bool {
-	return id == other
-}
-
-// Compare returns -1, 0, or 1 depending on whether id is less than, equal to,
-// or greater than other.
-func (id Of[T]) Compare(other Of[T]) int {
-	if id < other {
-		return -1
-	}
-
-	if id > other {
-		return 1
-	}
-
-	return 0
-}
-
-// Or returns the first non-empty ID. If id is empty, returns fallback.
-func (id Of[T]) Or(fallback Of[T]) Of[T] {
-	if id.IsEmpty() {
-		return fallback
-	}
-
-	return id
-}
-
-// Reset clears the ID to its zero value.
-func (id *Of[T]) Reset() {
-	*id = ""
-}
-
-// GoString returns a Go-syntax representation of the ID for use in %#v formatting.
-func (id Of[T]) GoString() string {
-	return fmt.Sprintf("id.Of[%T](%q)", id, id.String())
-}
-
-// Format implements fmt.Formatter for custom formatting.
-func (id Of[T]) Format(f fmt.State, verb rune) {
-	switch verb {
-	case 'v':
-		if f.Flag('#') {
-			_, _ = fmt.Fprint(f, id.GoString())
-
-			return
-		}
-
-		_, _ = fmt.Fprint(f, id.String())
-	case 's':
-		_, _ = fmt.Fprint(f, id.String())
-	case 'q':
-		_, _ = fmt.Fprintf(f, "%q", id.String())
-	default:
-		_, _ = fmt.Fprintf(f, "%%!%c(id.Of=%s)", verb, id.String())
-	}
-}
-
-// MarshalJSON implements json.Marshaler.
-// Zero-value IDs serialize to null.
-func (id Of[T]) MarshalJSON() ([]byte, error) {
-	if id.IsEmpty() {
-		return []byte("null"), nil
-	}
-
-	data, err := json.Marshal(id.String())
+// ULID returns the timestamp encoded in the ID, if it is a valid ULID.
+// Returns an error if the ID string is not a valid ULID.
+func ULID(id Of[struct{}]) (time.Time, error) {
+	parsed, err := ulid.Parse(id.String())
 	if err != nil {
-		return nil, fmt.Errorf("marshal ID to JSON: %w", err)
+		return time.Time{}, fmt.Errorf("parse ULID: %w", err)
 	}
 
-	return data, nil
+	return ulid.Time(parsed.Time()), nil
 }
 
-// UnmarshalJSON implements json.Unmarshaler.
-// Supports both null and string values.
-func (id *Of[T]) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		*id = ""
-
-		return nil
-	}
-
-	var s string
-
-	err := json.Unmarshal(data, &s)
-	if err != nil {
-		return fmt.Errorf("unmarshal ID: %w (input: %q)", err, string(data))
-	}
-
-	parsed, err := Parse[T](s)
-	if err != nil {
-		return fmt.Errorf("parse ID from JSON %q: %w", s, err)
-	}
-
-	*id = parsed
-
-	return nil
-}
-
-// MarshalBinary implements encoding.BinaryMarshaler.
-func (id Of[T]) MarshalBinary() ([]byte, error) {
-	return []byte(id.String()), nil
-}
-
-// UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (id *Of[T]) UnmarshalBinary(data []byte) error {
-	return unmarshalID(id, string(data), "binary")
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (id Of[T]) MarshalText() ([]byte, error) {
-	return []byte(id.String()), nil
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (id *Of[T]) UnmarshalText(data []byte) error {
-	return unmarshalID(id, string(data), "text")
-}
-
-func unmarshalID[T any](id *Of[T], data, source string) error {
-	parsed, err := Parse[T](data)
-	if err != nil {
-		return fmt.Errorf("unmarshal ID from %s: %w", source, err)
-	}
-
-	*id = parsed
-
-	return nil
-}
-
-var (
-	_ encoding.BinaryMarshaler   = Of[struct{}]("")
-	_ encoding.BinaryUnmarshaler = (*Of[struct{}])(nil)
-	_ encoding.TextMarshaler     = Of[struct{}]("")
-	_ encoding.TextUnmarshaler   = (*Of[struct{}])(nil)
-)
-
-// Value implements driver.Valuer for database storage.
-func (id Of[T]) Value() (driver.Value, error) {
-	return id.String(), nil
-}
-
-// Scan implements sql.Scanner for database retrieval.
-func (id *Of[T]) Scan(src any) error {
-	switch v := src.(type) {
-	case string:
-		parsed, err := Parse[T](v)
-		if err != nil {
-			return fmt.Errorf("scan ID from string: %w (input: %q, src: %T)", err, v, src)
-		}
-
-		*id = parsed
-
-		return nil
-	case []byte:
-		parsed, err := Parse[T](string(v))
-		if err != nil {
-			return fmt.Errorf("scan ID from bytes: %w (input: %q, src: %T)", err, string(v), src)
-		}
-
-		*id = parsed
-
-		return nil
-	default:
-		//nolint:err113 // dynamic error required to include actual types for debugging
-		return fmt.Errorf("cannot scan %T into %T", src, id)
-	}
-}
+// MaxULIDsPerMs is exported for testing/benchmarking.
+const MaxULIDsPerMs = math.MaxInt

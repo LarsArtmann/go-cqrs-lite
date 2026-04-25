@@ -1,17 +1,21 @@
 module github.com/larsartmann/go-cqrs-lite/core
 
-go 1.26
+go 1.26.0
 
 require (
 	github.com/cockroachdb/errors v1.12.0
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
-	github.com/google/uuid v1.6.0
+	github.com/larsartmann/go-composable-business-types v0.0.0
 	github.com/larsartmann/go-cqrs-lite/memory v0.0.0
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
 )
 
-replace github.com/larsartmann/go-cqrs-lite/memory => ../memory
+replace (
+	github.com/larsartmann/go-composable-business-types => ../../go-composable-business-types
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+)
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
@@ -28,10 +32,10 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.34.0 // indirect
-	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 )

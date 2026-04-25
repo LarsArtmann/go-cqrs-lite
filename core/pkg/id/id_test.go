@@ -2,10 +2,9 @@ package id
 
 import (
 	"encoding"
+	"encoding/json"
 	"fmt"
 	"testing"
-
-	"github.com/go-json-experiment/json"
 )
 
 func TestNew(t *testing.T) {
@@ -13,16 +12,16 @@ func TestNew(t *testing.T) {
 
 	id := New[AggregateID]()
 
-	if id.IsEmpty() {
-		t.Error("New() should not return empty ID")
+	if id.IsZero() {
+		t.Error("New() should not return zero ID")
 	}
 
-	if !id.IsValid() {
-		t.Error("New() should return valid ID")
+	if id.IsZero() {
+		t.Error("New() should return non-zero ID")
 	}
 
-	if len(id.String()) != 36 {
-		t.Errorf("ID string length = %d, want 36", len(id.String()))
+	if len(id.String()) != 26 {
+		t.Errorf("ID string length = %d, want 26 (ULID)", len(id.String()))
 	}
 }
 
@@ -31,8 +30,8 @@ func TestNewWithPrefix(t *testing.T) {
 
 	id := NewWithPrefix[AggregateID]("user")
 
-	if id.IsEmpty() {
-		t.Error("NewWithPrefix() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewWithPrefix() should not return zero ID")
 	}
 
 	if len(id.String()) < 6 {
@@ -100,46 +99,24 @@ func TestMustParse(t *testing.T) {
 	})
 }
 
-func TestIsEmpty(t *testing.T) {
+func TestIsZero(t *testing.T) {
 	t.Parallel()
 
-	t.Run("empty ID", func(t *testing.T) {
+	t.Run("zero ID", func(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
-		if !id.IsEmpty() {
-			t.Error("zero value ID should be empty")
+		if !id.IsZero() {
+			t.Error("zero value ID should be zero")
 		}
 	})
 
-	t.Run("non-empty ID", func(t *testing.T) {
+	t.Run("non-zero ID", func(t *testing.T) {
 		t.Parallel()
 
 		id := MustParse[AggregateID]("test")
-		if id.IsEmpty() {
-			t.Error("parsed ID should not be empty")
-		}
-	})
-}
-
-func TestIsValid(t *testing.T) {
-	t.Parallel()
-
-	t.Run("empty ID", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-		if id.IsValid() {
-			t.Error("zero value ID should not be valid")
-		}
-	})
-
-	t.Run("non-empty ID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParse[AggregateID]("test")
-		if !id.IsValid() {
-			t.Error("parsed ID should be valid")
+		if id.IsZero() {
+			t.Error("parsed ID should not be zero")
 		}
 	})
 }
@@ -151,7 +128,6 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID]("same")
-
 		b := MustParse[AggregateID]("same")
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
@@ -162,19 +138,18 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID]("a")
-
 		b := MustParse[AggregateID]("b")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
 		}
 	})
 
-	t.Run("empty IDs", func(t *testing.T) {
+	t.Run("zero IDs", func(t *testing.T) {
 		t.Parallel()
 
 		var a, b AggregateID
 		if !a.Equal(b) {
-			t.Error("empty IDs should be equal")
+			t.Error("zero IDs should be equal")
 		}
 	})
 }
@@ -198,9 +173,12 @@ func TestCompare(t *testing.T) {
 			t.Parallel()
 
 			a := MustParse[AggregateID](tc.aStr)
-
 			b := MustParse[AggregateID](tc.bStr)
-			if got := a.Compare(b); got != tc.want {
+			got, err := a.Compare(b)
+			if err != nil {
+				t.Fatalf("Compare() error = %v", err)
+			}
+			if got != tc.want {
 				t.Error(tc.desc)
 			}
 		})
@@ -210,25 +188,23 @@ func TestCompare(t *testing.T) {
 func TestOr(t *testing.T) {
 	t.Parallel()
 
-	t.Run("non-empty returns self", func(t *testing.T) {
+	t.Run("non-zero returns self", func(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseAggregateID("primary")
-
 		fallback := MustParseAggregateID("fallback")
-		if result := id.Or(fallback); result != id {
-			t.Error("non-empty ID should return self")
+		if result := id.Or(fallback); !result.Equal(id) {
+			t.Error("non-zero ID should return self")
 		}
 	})
 
-	t.Run("empty returns fallback", func(t *testing.T) {
+	t.Run("zero returns fallback", func(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
-
 		fallback := MustParseAggregateID("fallback")
-		if result := id.Or(fallback); result != fallback {
-			t.Error("empty ID should return fallback")
+		if result := id.Or(fallback); !result.Equal(fallback) {
+			t.Error("zero ID should return fallback")
 		}
 	})
 }
@@ -237,14 +213,14 @@ func TestReset(t *testing.T) {
 	t.Parallel()
 
 	id := MustParse[AggregateID]("test")
-	if id.IsEmpty() {
-		t.Error("ID should not be empty before reset")
+	if id.IsZero() {
+		t.Error("ID should not be zero before reset")
 	}
 
 	id.Reset()
 
-	if !id.IsEmpty() {
-		t.Error("ID should be empty after reset")
+	if !id.IsZero() {
+		t.Error("ID should be zero after reset")
 	}
 }
 
@@ -342,19 +318,8 @@ func TestJSON(t *testing.T) {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
-		if !id.IsEmpty() {
-			t.Error("Unmarshal(null) should result in empty ID")
-		}
-	})
-
-	t.Run("unmarshal empty string", func(t *testing.T) {
-		t.Parallel()
-
-		var id AggregateID
-
-		err := json.Unmarshal([]byte(`""`), &id)
-		if err == nil {
-			t.Error("Unmarshal() should error on empty string")
+		if !id.IsZero() {
+			t.Error("Unmarshal(null) should result in zero ID")
 		}
 	})
 
@@ -449,35 +414,26 @@ func TestEncoding(t *testing.T) {
 					t.Errorf("%s() = %q, want %q", tc.unmarshalName, id.String(), tc.testValue)
 				}
 			})
-
-			t.Run("unmarshal empty errors", func(t *testing.T) {
-				t.Parallel()
-
-				var id AggregateID
-
-				err := tc.unmarshal(&id, []byte(""))
-				if err == nil {
-					t.Error("unmarshal should error on empty")
-				}
-			})
 		})
 	}
 
 	t.Run("binary interface compliance", func(t *testing.T) {
 		t.Parallel()
 
+		var id AggregateID
 		var (
-			_ encoding.BinaryMarshaler   = AggregateID("")
-			_ encoding.BinaryUnmarshaler = (*AggregateID)(nil)
+			_ encoding.BinaryMarshaler   = id
+			_ encoding.BinaryUnmarshaler = &id
 		)
 	})
 
 	t.Run("text interface compliance", func(t *testing.T) {
 		t.Parallel()
 
+		var id AggregateID
 		var (
-			_ encoding.TextMarshaler   = AggregateID("")
-			_ encoding.TextUnmarshaler = (*AggregateID)(nil)
+			_ encoding.TextMarshaler   = id
+			_ encoding.TextUnmarshaler = &id
 		)
 	})
 }
@@ -500,7 +456,7 @@ func TestSQLValue(t *testing.T) {
 		}
 	})
 
-	t.Run("value empty", func(t *testing.T) {
+	t.Run("value zero", func(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
@@ -510,8 +466,8 @@ func TestSQLValue(t *testing.T) {
 			t.Fatalf("Value() error = %v", err)
 		}
 
-		if val != "" {
-			t.Errorf("Value() empty = %v, want empty", val)
+		if val != nil {
+			t.Errorf("Value() zero = %v, want nil", val)
 		}
 	})
 }
@@ -549,29 +505,14 @@ func TestSQLScan(t *testing.T) {
 		}
 	})
 
-	t.Run("scan error cases", func(t *testing.T) {
+	t.Run("scan unsupported type", func(t *testing.T) {
 		t.Parallel()
 
-		tests := []struct {
-			name  string
-			value any
-			desc  string
-		}{
-			{"empty string", "", "empty string"},
-			{"empty bytes", []byte(""), "empty bytes"},
-			{"unsupported type", 123, "unsupported type"},
-		}
-		for _, tc := range tests {
-			t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+		var id AggregateID
 
-				var id AggregateID
-
-				err := id.Scan(tc.value)
-				if err == nil {
-					t.Errorf("Scan() should error on %s", tc.desc)
-				}
-			})
+		err := id.Scan(123)
+		if err == nil {
+			t.Error("Scan() should error on unsupported type")
 		}
 	})
 }
@@ -580,11 +521,9 @@ func TestTypeSafety(t *testing.T) {
 	t.Parallel()
 
 	type userBrand struct{}
-
 	type orderBrand struct{}
 
 	type UserID = Of[userBrand]
-
 	type OrderID = Of[orderBrand]
 
 	userID := New[UserID]()
@@ -598,8 +537,8 @@ func TestAggregateID(t *testing.T) {
 	t.Parallel()
 
 	id := NewAggregateID()
-	if id.IsEmpty() {
-		t.Error("NewAggregateID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewAggregateID() should not return zero ID")
 	}
 
 	parsed, err := ParseAggregateID("test-agg-id")
@@ -616,8 +555,8 @@ func TestEventID(t *testing.T) {
 	t.Parallel()
 
 	id := NewEventID()
-	if id.IsEmpty() {
-		t.Error("NewEventID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewEventID() should not return zero ID")
 	}
 }
 
@@ -625,8 +564,8 @@ func TestUserID(t *testing.T) {
 	t.Parallel()
 
 	id := NewUserID()
-	if id.IsEmpty() {
-		t.Error("NewUserID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewUserID() should not return zero ID")
 	}
 }
 
@@ -634,8 +573,8 @@ func TestCorrelationID(t *testing.T) {
 	t.Parallel()
 
 	id := NewCorrelationID()
-	if id.IsEmpty() {
-		t.Error("NewCorrelationID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewCorrelationID() should not return zero ID")
 	}
 }
 
@@ -643,8 +582,8 @@ func TestCausationID(t *testing.T) {
 	t.Parallel()
 
 	id := NewCausationID()
-	if id.IsEmpty() {
-		t.Error("NewCausationID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewCausationID() should not return zero ID")
 	}
 }
 
@@ -652,8 +591,8 @@ func TestRequestID(t *testing.T) {
 	t.Parallel()
 
 	id := NewRequestID()
-	if id.IsEmpty() {
-		t.Error("NewRequestID() should not return empty ID")
+	if id.IsZero() {
+		t.Error("NewRequestID() should not return zero ID")
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 func FuzzParse(f *testing.F) {
-	f.Add("550e8400-e29b-41d4-a716-446655440000")
+	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
 	f.Add("")
 	f.Add("not-a-uuid")
 	f.Add(strings.Repeat("x", 256))

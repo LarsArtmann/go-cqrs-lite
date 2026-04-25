@@ -92,7 +92,7 @@ func (b *EventBuilder) WithUserID(userID id.UserID) *EventBuilder {
 
 // Build creates the typed event.
 func (b *EventBuilder) Build() (*TypedEvent, error) {
-	if b.aggregateID.IsEmpty() {
+	if b.aggregateID.IsZero() {
 		//nolint:err113 // dynamic error required to include event and aggregate type
 		return nil, fmt.Errorf(
 			"aggregate ID is required for event type %q (aggregate type %q)",

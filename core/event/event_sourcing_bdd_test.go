@@ -363,10 +363,10 @@ var _ = Describe("Event Creation", func() {
 					event.AggregateType("User"),
 					1,
 					[]byte(`{"email":"alice@example.com"}`),
-					event.WithCorrelationID("corr-123"),
-					event.WithCausationID("cause-456"),
-					event.WithUserID("user-789"),
-					event.WithRequestID("req-abc"),
+					event.WithCorrelationID(id.MustParseCorrelationID("corr-123")),
+					event.WithCausationID(id.MustParseCausationID("cause-456")),
+					event.WithUserID(id.MustParseUserID("user-789")),
+					event.WithRequestID(id.MustParseRequestID("req-abc")),
 					event.WithSource("api"),
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -376,10 +376,10 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
 				Expect(evt.Version()).To(Equal(1))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
-				Expect(evt.Metadata().CorrelationID).To(Equal(id.CorrelationID("corr-123")))
-				Expect(evt.Metadata().CausationID).To(Equal(id.CausationID("cause-456")))
-				Expect(evt.Metadata().UserID).To(Equal(id.UserID("user-789")))
-				Expect(evt.Metadata().RequestID).To(Equal(id.RequestID("req-abc")))
+				Expect(evt.Metadata().CorrelationID).To(Equal(id.MustParseCorrelationID("corr-123")))
+				Expect(evt.Metadata().CausationID).To(Equal(id.MustParseCausationID("cause-456")))
+				Expect(evt.Metadata().UserID).To(Equal(id.MustParseUserID("user-789")))
+				Expect(evt.Metadata().RequestID).To(Equal(id.MustParseRequestID("req-abc")))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api")))
 				Expect(evt.OccurredAt()).To(BeTemporally("<", time.Now().Add(time.Second)))
 				Expect(evt.ID()).ToNot(BeEmpty())

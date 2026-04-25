@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -93,7 +92,7 @@ func NewEventID(t testing.TB) id.EventID {
 	return id.NewEventID()
 }
 
-// GenerateUUID generates a new UUID string.
+// GenerateUUID generates a new ULID string.
 func GenerateUUID() string {
-	return uuid.New().String()
+	return id.New[struct{}]().String()
 }

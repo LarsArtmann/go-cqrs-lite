@@ -401,7 +401,7 @@ func TestCommandID(t *testing.T) {
 		t.Parallel()
 
 		cmdID := NewCommandID()
-		if cmdID.IsEmpty() {
+		if cmdID.IsZero() {
 			t.Error("NewCommandID() should not return empty ID")
 		}
 	})

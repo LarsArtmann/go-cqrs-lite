@@ -48,7 +48,7 @@ func assertEventTypeAt(t *testing.T, changes []event.Event, index int, want stri
 func TestCore(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-123", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-123"), event.AggregateType("User"))
 	if core.ID() != "user-123" {
 		t.Errorf("expected ID user-123, got %s", core.ID())
 	}
@@ -65,10 +65,10 @@ func TestCore(t *testing.T) {
 func TestCoreLoadFromHistory(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-123", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-123"), event.AggregateType("User"))
 	root := &testRoot{Core: core}
 
-	evt, err := event.NewEvent("UserCreated", "user-123", "User", 1, nil)
+	evt, err := event.NewEvent("UserCreated", id.MustParseAggregateID("user-123"), "User", 1, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -90,12 +90,12 @@ func TestCoreLoadFromHistory(t *testing.T) {
 func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("order-1", event.AggregateType("Order"))
+	core := aggregate.NewCore(id.MustParseAggregateID("order-1"), event.AggregateType("Order"))
 
 	events := make([]event.Event, 5)
 
 	for i := range 5 {
-		evt, err := event.NewEvent("OrderUpdated", "order-1", "Order", i+1, nil)
+		evt, err := event.NewEvent("OrderUpdated", id.MustParseAggregateID("order-1"), "Order", i+1, nil)
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
@@ -118,7 +118,7 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 func TestCoreLoadFromHistory_Empty(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-123", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-123"), event.AggregateType("User"))
 
 	err := core.LoadFromHistory(&testRoot{Core: core}, nil)
 	if err != nil {
@@ -133,9 +133,9 @@ func TestCoreLoadFromHistory_Empty(t *testing.T) {
 func TestCoreRecordEvent(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-456", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-456"), event.AggregateType("User"))
 
-	evt, err := event.NewEvent("UserNameChanged", "user-456", "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent("UserNameChanged", id.MustParseAggregateID("user-456"), "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -154,10 +154,10 @@ func TestCoreRecordEvent(t *testing.T) {
 func TestCoreRecordEvent_Multiple(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-789", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-789"), event.AggregateType("User"))
 
 	for i := range 3 {
-		evt, err := event.NewEvent("UserUpdated", "user-789", "User", i+1, nil)
+		evt, err := event.NewEvent("UserUpdated", id.MustParseAggregateID("user-789"), "User", i+1, nil)
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
@@ -178,21 +178,21 @@ func TestCoreRecordEvent_Multiple(t *testing.T) {
 func TestCoreUncommittedChanges(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-abc", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-abc"), event.AggregateType("User"))
 
 	changes := core.UncommittedChanges()
 	if len(changes) != 0 {
 		t.Errorf("expected 0 uncommitted changes initially, got %d", len(changes))
 	}
 
-	evt1, err := event.NewEvent("UserCreated", "user-abc", "User", 1, nil)
+	evt1, err := event.NewEvent("UserCreated", id.MustParseAggregateID("user-abc"), "User", 1, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	core.RecordEvent(context.Background(), evt1)
 
-	evt2, err := event.NewEvent("UserUpdated", "user-abc", "User", 2, nil)
+	evt2, err := event.NewEvent("UserUpdated", id.MustParseAggregateID("user-abc"), "User", 2, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -211,9 +211,9 @@ func TestCoreUncommittedChanges(t *testing.T) {
 func TestCoreMarkChangesAsCommitted(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-def", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-def"), event.AggregateType("User"))
 
-	evt, err := event.NewEvent("UserCreated", "user-def", "User", 1, nil)
+	evt, err := event.NewEvent("UserCreated", id.MustParseAggregateID("user-def"), "User", 1, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -242,7 +242,7 @@ func TestCoreMarkChangesAsCommitted(t *testing.T) {
 func TestCoreMarkChangesAsCommitted_Empty(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("user-ghi", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-ghi"), event.AggregateType("User"))
 
 	core.MarkChangesAsCommitted()
 
@@ -257,7 +257,7 @@ func TestCoreDoesNotImplementRootDirectly(t *testing.T) {
 	// Core provides ID, Type, Version, UncommittedChanges, MarkChangesAsCommitted,
 	// but Root requires Apply(event.Event) error — Core has RecordEvent(ctx, evt) instead.
 	// This is intentional: domain aggregates embed Core and add their own Apply method.
-	core := aggregate.NewCore("user-embed", event.AggregateType("User"))
+	core := aggregate.NewCore(id.MustParseAggregateID("user-embed"), event.AggregateType("User"))
 	_ = core
 }
 
@@ -279,11 +279,11 @@ func TestCoreWithRealAggregateID(t *testing.T) {
 func TestCoreFullLifecycle(t *testing.T) {
 	t.Parallel()
 
-	core := aggregate.NewCore("product-1", event.AggregateType("Product"))
+	core := aggregate.NewCore(id.MustParseAggregateID("product-1"), event.AggregateType("Product"))
 
 	evt1, err := event.NewEvent(
 		"ProductCreated",
-		"product-1",
+		id.MustParseAggregateID("product-1"),
 		"Product",
 		1,
 		[]byte(`{"name":"Widget"}`),
@@ -294,7 +294,7 @@ func TestCoreFullLifecycle(t *testing.T) {
 
 	core.RecordEvent(context.Background(), evt1)
 
-	evt2, err := event.NewEvent("PriceChanged", "product-1", "Product", 2, []byte(`{"price":9.99}`))
+	evt2, err := event.NewEvent("PriceChanged", id.MustParseAggregateID("product-1"), "Product", 2, []byte(`{"price":9.99}`))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

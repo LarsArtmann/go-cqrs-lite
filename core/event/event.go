@@ -73,14 +73,10 @@ type Core struct {
 // NewMetadata creates a Metadata with all fields initialized.
 func NewMetadata() *Metadata {
 	return &Metadata{
-		CorrelationID: "",
-		CausationID:   "",
-		UserID:        "",
-		RequestID:     "",
-		Source:        "",
-		IPAddress:     "",
-		UserAgent:     "",
-		Custom:        make(map[MetadataKey]string),
+		Source:    "",
+		IPAddress: "",
+		UserAgent: "",
+		Custom:   make(map[MetadataKey]string),
 	}
 }
 
@@ -130,7 +126,7 @@ func NewEvent(
 		)
 	}
 
-	if aggregateID.IsEmpty() {
+	if aggregateID.IsZero() {
 		//nolint:err113 // dynamic error required to include event details for debugging
 		return nil, fmt.Errorf(
 			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
