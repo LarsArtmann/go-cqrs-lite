@@ -13,7 +13,7 @@ import (
 func CommandRetry(config RetryConfig) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			return retry(config, string(cmd.Type()), func() error {
+			return retry(ctx, config, string(cmd.Type()), func() error {
 				return next(ctx, cmd)
 			})
 		}
@@ -24,14 +24,14 @@ func CommandRetry(config RetryConfig) command.Middleware {
 func EventRetry(config RetryConfig) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			return retry(config, string(evt.Type()), func() error {
+			return retry(ctx, config, string(evt.Type()), func() error {
 				return next(ctx, evt)
 			})
 		}
 	}
 }
 
-func retry(config RetryConfig, opName string, fn func() error) error {
+func retry(ctx context.Context, config RetryConfig, opName string, fn func() error) error {
 	var err error
 
 	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
@@ -53,7 +53,7 @@ func retry(config RetryConfig, opName string, fn func() error) error {
 
 		select {
 		case <-timer.C:
-		case <-context.Background().Done():
+		case <-ctx.Done():
 			timer.Stop()
 
 			return fmt.Errorf("retry canceled for %s: %w", opName, err)
