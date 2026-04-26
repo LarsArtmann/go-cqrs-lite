@@ -98,7 +98,10 @@ func (s *MemoryStore) Load(
 		return nil, event.ErrAggregateNotFound
 	}
 
-	return events, nil
+	result := make([]event.Event, len(events))
+	copy(result, events)
+
+	return result, nil
 }
 
 func (s *MemoryStore) LoadFromVersion(
@@ -126,7 +129,11 @@ func (s *MemoryStore) LoadFromVersion(
 		return []event.Event{}, nil
 	}
 
-	return events[version.Int():], nil
+	sub := events[version.Int():]
+	result := make([]event.Event, len(sub))
+	copy(result, sub)
+
+	return result, nil
 }
 
 func (s *MemoryStore) Delete(
