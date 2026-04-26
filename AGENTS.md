@@ -34,6 +34,8 @@ go-cqrs-lite/
 │   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository
 │   ├── pkg/
 │   │   ├── id/                      # branded IDs: id.Of[T] (AggregateID, EventID, UserID, etc.)
+│   │   │   ├── id.go               # Core type, constructors, comparisons
+│   │   │   └── id_encoding.go      # JSON/binary/text/SQL marshaling
 │   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin, CheckClosed
 │   ├── internal/
 │   │   └── testhelpers/             # test helpers (internal, not importable)
@@ -399,7 +401,7 @@ Interfaces now return branded ID types instead of `string`:
 | `go.work` version mismatch | LOW | go.work says `go 1.26` but modules require `go 1.26.0`; run `go work use` |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
-| `pkg/id` coverage dropped | LOW | 73.1% — ULID migration removed NewWithPrefix tests, new marshaling methods need coverage |
+| `pkg/id` coverage | LOW | 73.1% — missing tests for `ULID()`, `Get()`, `Parse`/`MustParse` on `CausationID`, `CorrelationID`, `EventID`, `RequestID` |
 
 ## Cleanup Done (Post-Migration)
 
@@ -416,6 +418,7 @@ Interfaces now return branded ID types instead of `string`:
 - Unified lifecycle: `MemoryBus` and `MemorySnapshotStore` use `LifecycleMixin` (no more manual `closed bool`)
 - Extracted `MessageID()` from `asyncapi`/`eventcatalog` to `catalog` package (removes eventcatalog→asyncapi coupling)
 - Split `event/event.go` under 250 lines (extracted `options.go`)
+- Split `id/id.go` under 250 lines (extracted `id_encoding.go` — JSON/binary/text/SQL marshaling)
 - Added `EventValidation` middleware for API symmetry
 - Removed dead `reflect.Ptr` case in `catalog/schema.go`
 - Removed unused `handler` parameter from `dispatcher.Dispatch()`
