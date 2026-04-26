@@ -89,6 +89,7 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 
 	loader, ok := root.(HistoryLoader)
 	if !ok {
+		//nolint:err113 // dynamic error required to include aggregate type details
 		return fmt.Errorf(
 			"aggregate %s %s must implement HistoryLoader for proper version tracking; "+
 				"embed Core and delegate: func (a *%s) LoadEvents(events []event.Event) error { return a.Core.LoadFromHistory(a, events) }",

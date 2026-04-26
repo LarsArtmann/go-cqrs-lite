@@ -128,6 +128,7 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID]("same")
+
 		b := MustParse[AggregateID]("same")
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
@@ -138,6 +139,7 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID]("a")
+
 		b := MustParse[AggregateID]("b")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
@@ -174,10 +176,12 @@ func TestCompare(t *testing.T) {
 
 			a := MustParse[AggregateID](tc.aStr)
 			b := MustParse[AggregateID](tc.bStr)
+
 			got, err := a.Compare(b)
 			if err != nil {
 				t.Fatalf("Compare() error = %v", err)
 			}
+
 			if got != tc.want {
 				t.Error(tc.desc)
 			}
@@ -192,6 +196,7 @@ func TestOr(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseAggregateID("primary")
+
 		fallback := MustParseAggregateID("fallback")
 		if result := id.Or(fallback); !result.Equal(id) {
 			t.Error("non-zero ID should return self")
@@ -202,6 +207,7 @@ func TestOr(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		fallback := MustParseAggregateID("fallback")
 		if result := id.Or(fallback); !result.Equal(fallback) {
 			t.Error("zero ID should return fallback")
@@ -421,6 +427,7 @@ func TestEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		var (
 			_ encoding.BinaryMarshaler   = id
 			_ encoding.BinaryUnmarshaler = &id
@@ -431,6 +438,7 @@ func TestEncoding(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		var (
 			_ encoding.TextMarshaler   = id
 			_ encoding.TextUnmarshaler = &id
@@ -521,9 +529,11 @@ func TestTypeSafety(t *testing.T) {
 	t.Parallel()
 
 	type userBrand struct{}
+
 	type orderBrand struct{}
 
 	type UserID = Of[userBrand]
+
 	type OrderID = Of[orderBrand]
 
 	userID := New[UserID]()

@@ -336,6 +336,7 @@ func TestEventValidation_Pass(t *testing.T) {
 	called := false
 	handler := mw(func(_ context.Context, _ event.Event) error {
 		called = true
+
 		return nil
 	})
 

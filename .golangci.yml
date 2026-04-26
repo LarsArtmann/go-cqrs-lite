@@ -131,10 +131,12 @@ linters:
           allow:
             - $gostd
             - github.com/larsartmann/go-cqrs-lite
+            - github.com/larsartmann/go-composable-business-types
             - github.com/google/uuid
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
             - github.com/go-faster/yaml
+            - github.com/oklog/ulid
             - github.com/onsi/ginkgo
             - github.com/onsi/gomega
     revive:

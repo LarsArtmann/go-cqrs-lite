@@ -50,6 +50,7 @@ func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
 
+		//nolint:err113 // dynamic error required to include type information
 		return zero, fmt.Errorf("cannot parse empty string as %T", zero)
 	}
 
