@@ -158,7 +158,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	_ = dispatcher.Close()
 
 	handler := func(_ context.Context, _ query.Query) (any, error) {
-		return nil, query.ErrQueryValidation
+		return nil, query.ErrQueryNotSupported
 	}
 
 	err := dispatcher.Register("TestQuery", handler)

@@ -92,7 +92,3 @@ func NewEventID(t testing.TB) id.EventID {
 	return id.NewEventID()
 }
 
-// GenerateUUID generates a new ULID string.
-func GenerateUUID() string {
-	return id.New[struct{}]().String()
-}
