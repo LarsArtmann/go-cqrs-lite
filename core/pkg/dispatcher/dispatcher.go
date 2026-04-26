@@ -53,6 +53,9 @@ type Lifecycle struct {
 // ErrHandlerNotFound is returned when no handler is registered for a type.
 var ErrHandlerNotFound = errors.New("handler not found")
 
+// ErrDispatcherClosed is returned when the dispatcher is closed.
+var ErrDispatcherClosed = errors.New("dispatcher is closed")
+
 // MiddlewareChain stores and applies middleware in a thread-safe manner.
 // H is the handler type, and M is the middleware type that wraps handlers.
 type MiddlewareChain[H, M any] struct {
@@ -123,7 +126,7 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 
 // Register binds a handler to a type.
 func (d *Dispatcher[H, M]) Register(t string, handler H) error {
-	err := d.Lifecycle.CheckClosed(ErrHandlerNotFound)
+	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return fmt.Errorf("dispatcher is closed: %w", err)
 	}
@@ -151,7 +154,7 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 // The caller is responsible for invoking the wrapped handler with appropriate arguments.
 //nolint:ireturn // generic interface return by design
 func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error) {
-	err := d.Lifecycle.CheckClosed(ErrHandlerNotFound)
+	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		var zero H
 
