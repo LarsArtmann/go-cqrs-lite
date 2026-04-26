@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 func BenchmarkNewEvent(b *testing.B) {

@@ -95,7 +95,13 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 	events := make([]event.Event, 5)
 
 	for i := range 5 {
-		evt, err := event.NewEvent("OrderUpdated", id.MustParseAggregateID("order-1"), "Order", i+1, nil)
+		evt, err := event.NewEvent(
+			"OrderUpdated",
+			id.MustParseAggregateID("order-1"),
+			"Order",
+			i+1,
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
@@ -135,7 +141,13 @@ func TestCoreRecordEvent(t *testing.T) {
 
 	core := aggregate.NewCore(id.MustParseAggregateID("user-456"), event.AggregateType("User"))
 
-	evt, err := event.NewEvent("UserNameChanged", id.MustParseAggregateID("user-456"), "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent(
+		"UserNameChanged",
+		id.MustParseAggregateID("user-456"),
+		"User",
+		1,
+		[]byte(`{"name":"Alice"}`),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -157,7 +169,13 @@ func TestCoreRecordEvent_Multiple(t *testing.T) {
 	core := aggregate.NewCore(id.MustParseAggregateID("user-789"), event.AggregateType("User"))
 
 	for i := range 3 {
-		evt, err := event.NewEvent("UserUpdated", id.MustParseAggregateID("user-789"), "User", i+1, nil)
+		evt, err := event.NewEvent(
+			"UserUpdated",
+			id.MustParseAggregateID("user-789"),
+			"User",
+			i+1,
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("unexpected error creating event %d: %v", i, err)
 		}
@@ -294,7 +312,13 @@ func TestCoreFullLifecycle(t *testing.T) {
 
 	core.RecordEvent(context.Background(), evt1)
 
-	evt2, err := event.NewEvent("PriceChanged", id.MustParseAggregateID("product-1"), "Product", 2, []byte(`{"price":9.99}`))
+	evt2, err := event.NewEvent(
+		"PriceChanged",
+		id.MustParseAggregateID("product-1"),
+		"Product",
+		2,
+		[]byte(`{"price":9.99}`),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

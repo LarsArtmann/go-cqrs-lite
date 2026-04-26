@@ -73,6 +73,7 @@ func (c *MiddlewareChain[H, M]) Add(middleware ...M) {
 
 // Apply wraps a handler with all middleware in reverse order (last added runs first).
 // The wrap function converts a middleware and handler into a wrapped handler.
+//
 //nolint:ireturn // generic interface return by design
 func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	c.mu.RLock()
@@ -140,6 +141,7 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 }
 
 // GetHandler returns the handler for a type and whether it exists.
+//
 //nolint:ireturn // generic interface return by design
 func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 	d.handlersMu.RLock()
@@ -152,6 +154,7 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 
 // Dispatch sends a request to its registered handler and returns the wrapped handler.
 // The caller is responsible for invoking the wrapped handler with appropriate arguments.
+//
 //nolint:ireturn // generic interface return by design
 func (d *Dispatcher[H, M]) Dispatch(t string, wrap func(M, H) H) (H, error) {
 	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)

@@ -76,7 +76,7 @@ func NewMetadata() *Metadata {
 		Source:    "",
 		IPAddress: "",
 		UserAgent: "",
-		Custom:   make(map[MetadataKey]string),
+		Custom:    make(map[MetadataKey]string),
 	}
 }
 

@@ -141,7 +141,9 @@ func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 // MustExport exports the catalog using the given exporter and fails on error.
 func MustExport(
 	tb testing.TB,
-	exp interface{ Export(cat *catalog.Catalog) error },
+	exp interface {
+		Export(cat *catalog.Catalog) error
+	},
 	cat *catalog.Catalog,
 ) {
 	tb.Helper()

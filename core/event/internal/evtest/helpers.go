@@ -9,6 +9,7 @@ import (
 )
 
 // NewTestEvent creates a new test event with default values.
+//
 //nolint:ireturn // test helper returns interface by design
 func NewTestEvent(t testing.TB, eventType event.Type) event.Event {
 	t.Helper()
@@ -24,6 +25,7 @@ func NewTestEvent(t testing.TB, eventType event.Type) event.Event {
 }
 
 // NewTestEventWithAggregate creates a new test event with specific aggregate.
+//
 //nolint:ireturn // test helper returns interface by design
 func NewTestEventWithAggregate(
 	t testing.TB,
@@ -91,4 +93,3 @@ func NewEventID(t testing.TB) id.EventID {
 
 	return id.NewEventID()
 }
-

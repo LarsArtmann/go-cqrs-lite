@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/memory"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -376,7 +376,9 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
 				Expect(evt.Version()).To(Equal(1))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
-				Expect(evt.Metadata().CorrelationID).To(Equal(id.MustParseCorrelationID("corr-123")))
+				Expect(
+					evt.Metadata().CorrelationID,
+				).To(Equal(id.MustParseCorrelationID("corr-123")))
 				Expect(evt.Metadata().CausationID).To(Equal(id.MustParseCausationID("cause-456")))
 				Expect(evt.Metadata().UserID).To(Equal(id.MustParseUserID("user-789")))
 				Expect(evt.Metadata().RequestID).To(Equal(id.MustParseRequestID("req-abc")))

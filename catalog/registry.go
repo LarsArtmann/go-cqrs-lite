@@ -25,7 +25,7 @@ func copyService(s *Service) Service {
 		Owners:   copySlice(s.Owners),
 		Commands: copySlice(s.Commands),
 		Events:   copySlice(s.Events),
-		Queries:   copySlice(s.Queries),
+		Queries:  copySlice(s.Queries),
 	}
 }
 

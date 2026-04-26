@@ -454,7 +454,9 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx")) //nolint:gosec
+	data, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "order-svc", "index.mdx"),
+	) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -537,7 +539,9 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "order-svc", "index.mdx")) //nolint:gosec
+	data, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "order-svc", "index.mdx"),
+	) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}

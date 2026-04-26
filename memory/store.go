@@ -26,7 +26,10 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) streamKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
+func (s *MemoryStore) streamKey(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) string {
 	return string(aggregateType) + ":" + aggregateID.String()
 }
 
