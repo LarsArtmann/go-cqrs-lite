@@ -158,7 +158,7 @@ func MustExport(
 func FileContains(tb testing.TB, path, substring string) {
 	tb.Helper()
 
-	data, err := os.ReadFile(path) //nolint:gosec
+	data, err := os.ReadFile(path)
 	if err != nil {
 		tb.Fatalf("read file %s: %v", path, err)
 	}
@@ -172,7 +172,7 @@ func FileContains(tb testing.TB, path, substring string) {
 func MustReadFile(tb testing.TB, path string) string {
 	tb.Helper()
 
-	data, err := os.ReadFile(path) //nolint:gosec
+	data, err := os.ReadFile(path)
 	if err != nil {
 		tb.Fatalf("read file %s: %v", path, err)
 	}

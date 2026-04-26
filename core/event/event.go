@@ -74,10 +74,14 @@ type Core struct {
 // NewMetadata creates a Metadata with all fields initialized.
 func NewMetadata() *Metadata {
 	return &Metadata{
-		Source:    "",
-		IPAddress: "",
-		UserAgent: "",
-		Custom:    make(map[MetadataKey]string),
+		CorrelationID: id.CorrelationID{},
+		CausationID:   id.CausationID{},
+		UserID:        id.UserID{},
+		RequestID:     id.RequestID{},
+		Source:        "",
+		IPAddress:     "",
+		UserAgent:     "",
+		Custom:        make(map[MetadataKey]string),
 	}
 }
 
@@ -114,15 +118,15 @@ func (e *Core) Metadata() *Metadata {
 		return nil
 	}
 
-	cp := *e.metadata
+	metadataCopy := *e.metadata
 
 	if e.metadata.Custom != nil {
-		cp.Custom = make(map[MetadataKey]string, len(e.metadata.Custom))
+		metadataCopy.Custom = make(map[MetadataKey]string, len(e.metadata.Custom))
 
-		maps.Copy(cp.Custom, e.metadata.Custom)
+		maps.Copy(metadataCopy.Custom, e.metadata.Custom)
 	}
 
-	return &cp
+	return &metadataCopy
 }
 
 // OccurredAt returns when the event occurred.

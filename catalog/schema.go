@@ -1,5 +1,7 @@
 package catalog
 
+//lint:exhaustruct This package creates partial schemas via helper functions.
+
 import (
 	"encoding/json"
 	"errors"

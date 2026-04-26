@@ -21,6 +21,8 @@ func FromCommandDispatcher(
 			Version:   meta.Version,
 			Summary:   meta.Summary,
 			Direction: catalog.Receives,
+			Schema:    nil,
+			Examples:  nil,
 		}
 
 		builder.addMessageToService(serviceID, catalog.CommandMessage, msg)

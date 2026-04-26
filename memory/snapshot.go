@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -22,6 +23,7 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{
 		LifecycleMixin: dispatcher.LifecycleMixin{},
 		snapshots:      make(map[string]*event.Snapshot),
+		mu:             sync.RWMutex{},
 	}
 }
 
@@ -32,7 +34,7 @@ func snapshotKey(aggregateType event.AggregateType, aggregateID id.AggregateID) 
 func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "snapshot store save")
 	}
 
 	s.mu.Lock()
@@ -57,7 +59,7 @@ func (s *MemorySnapshotStore) Load(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "snapshot store load")
 	}
 
 	s.mu.RLock()
@@ -81,7 +83,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "snapshot store load at version")
 	}
 
 	s.mu.RLock()
@@ -108,7 +110,7 @@ func (s *MemorySnapshotStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "snapshot store delete")
 	}
 
 	s.mu.Lock()
@@ -121,5 +123,5 @@ func (s *MemorySnapshotStore) Delete(
 }
 
 func (s *MemorySnapshotStore) Close() error {
-	return s.LifecycleMixin.Close()
+	return s.LifecycleMixin.Close() //nolint:wrapcheck
 }

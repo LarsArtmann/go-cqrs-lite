@@ -17,7 +17,7 @@ type Dispatcher struct {
 
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
-	d := &Dispatcher{}
+	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
 	d.InitCatalogDispatcher()
 	d.base = dispatcher.NewBaseDispatcher[Handler, Middleware]()
 

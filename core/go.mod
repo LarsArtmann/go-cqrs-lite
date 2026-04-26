@@ -13,7 +13,7 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-composable-business-types => ../../go-composable-business-types
+	github.com/larsartmann/go-composable-business-types => github.com/larsartmann/go-composable-business-types v0.1.0
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 )
 

@@ -23,6 +23,7 @@ func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		LifecycleMixin: dispatcher.LifecycleMixin{},
 		events:         make(map[string][]event.Event),
+		mu:             sync.RWMutex{},
 	}
 }
 
@@ -42,7 +43,7 @@ func (s *MemoryStore) Save(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "memory store save")
 	}
 
 	s.mu.Lock()
@@ -69,7 +70,7 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "memory store append batch")
 	}
 
 	s.mu.Lock()
@@ -88,7 +89,7 @@ func (s *MemoryStore) Load(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "memory store load")
 	}
 
 	s.mu.RLock()
@@ -115,7 +116,7 @@ func (s *MemoryStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "memory store load from version")
 	}
 
 	s.mu.RLock()
@@ -146,7 +147,7 @@ func (s *MemoryStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "memory store delete")
 	}
 
 	s.mu.Lock()
@@ -159,5 +160,5 @@ func (s *MemoryStore) Delete(
 }
 
 func (s *MemoryStore) Close() error {
-	return s.LifecycleMixin.Close()
+	return s.LifecycleMixin.Close() //nolint:wrapcheck
 }

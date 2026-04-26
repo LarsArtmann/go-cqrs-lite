@@ -16,7 +16,7 @@ type testCommand struct {
 	aggregateID id.AggregateID
 }
 
-func (c *testCommand) Type() command.Type  { return "test.cmd" }
+func (c *testCommand) Type() command.Type          { return "test.cmd" }
 func (c *testCommand) AggregateID() id.AggregateID { return c.aggregateID }
 
 type testLogger struct {

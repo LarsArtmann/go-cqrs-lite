@@ -15,11 +15,14 @@ func FromQueryDispatcher(
 ) {
 	for queryType, meta := range dispatcher.CatalogEntries() {
 		msg := catalog.Message{
-			Kind:    catalog.QueryMessage,
-			ID:      string(queryType),
-			Name:    meta.Name,
-			Version: meta.Version,
-			Summary: meta.Summary,
+			Kind:      catalog.QueryMessage,
+			ID:        string(queryType),
+			Name:      meta.Name,
+			Version:   meta.Version,
+			Summary:   meta.Summary,
+			Direction: catalog.Receives,
+			Schema:    nil,
+			Examples:  nil,
 		}
 
 		builder.addMessageToService(serviceID, catalog.QueryMessage, msg)

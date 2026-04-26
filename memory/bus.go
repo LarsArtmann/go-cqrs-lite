@@ -24,6 +24,9 @@ func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
 		LifecycleMixin: dispatcher.LifecycleMixin{},
 		handlers:       make(map[event.Type][]event.Handler),
+		mu:             sync.RWMutex{},
+		allHandlers:    nil,
+		middleware:     nil,
 	}
 }
 
@@ -37,7 +40,7 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) {
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "bus publish")
 	}
 
 	b.mu.RLock()
@@ -100,7 +103,7 @@ func (b *MemoryBus) notifyHandlers(
 func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "bus subscribe")
 	}
 
 	if handler == nil {
@@ -118,7 +121,7 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "bus subscribe all")
 	}
 
 	if handler == nil {
@@ -134,5 +137,5 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 }
 
 func (b *MemoryBus) Close() error {
-	return b.LifecycleMixin.Close()
+	return b.LifecycleMixin.Close() //nolint:wrapcheck
 }

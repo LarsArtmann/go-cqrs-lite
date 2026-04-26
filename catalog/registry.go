@@ -62,6 +62,7 @@ type Registry struct {
 
 func NewRegistry(title, version string) *Registry {
 	return &Registry{
+		mu:       sync.RWMutex{},
 		title:    title,
 		version:  version,
 		services: make(map[string]*Service),
@@ -138,7 +139,16 @@ func (r *Registry) addMessage(
 
 	svc, ok := r.services[serviceID]
 	if !ok {
-		svc = &Service{ID: serviceID, Name: serviceID}
+		svc = &Service{
+			ID:       serviceID,
+			Name:     serviceID,
+			Version:  "",
+			Summary:  "",
+			Owners:   nil,
+			Commands: []Message{},
+			Events:   []Message{},
+			Queries:  []Message{},
+		}
 		r.services[serviceID] = svc
 	}
 

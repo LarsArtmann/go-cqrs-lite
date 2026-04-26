@@ -139,11 +139,11 @@ type (
 	payExpenseCmd     struct{ id id.AggregateID }
 )
 
-func (c *submitExpenseCmd) Type() command.Type   { return "expense.submit" }
+func (c *submitExpenseCmd) Type() command.Type           { return "expense.submit" }
 func (c *submitExpenseCmd) AggregateID() id.AggregateID  { return c.id }
-func (c *approveExpenseCmd) Type() command.Type  { return "expense.approve" }
+func (c *approveExpenseCmd) Type() command.Type          { return "expense.approve" }
 func (c *approveExpenseCmd) AggregateID() id.AggregateID { return c.id }
-func (c *payExpenseCmd) Type() command.Type      { return "expense.pay" }
+func (c *payExpenseCmd) Type() command.Type              { return "expense.pay" }
 func (c *payExpenseCmd) AggregateID() id.AggregateID     { return c.id }
 
 var _ = Describe("CQRS Flow", func() {

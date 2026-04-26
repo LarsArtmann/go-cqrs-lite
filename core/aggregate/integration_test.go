@@ -125,7 +125,7 @@ type createProductCmd struct {
 	price       float64
 }
 
-func (c *createProductCmd) Type() command.Type  { return "product.create" }
+func (c *createProductCmd) Type() command.Type          { return "product.create" }
 func (c *createProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type restockProductCmd struct {
@@ -133,7 +133,7 @@ type restockProductCmd struct {
 	quantity    int
 }
 
-func (c *restockProductCmd) Type() command.Type  { return "product.restock" }
+func (c *restockProductCmd) Type() command.Type          { return "product.restock" }
 func (c *restockProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 func TestCQRSRoundtrip(t *testing.T) {

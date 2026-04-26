@@ -20,7 +20,7 @@ type Dispatcher struct {
 
 // NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {
-	d := &Dispatcher{}
+	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
 	d.InitCatalogDispatcher()
 
 	base := dispatcher.NewBaseDispatcher[Handler, Middleware]()

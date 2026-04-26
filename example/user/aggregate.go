@@ -59,7 +59,7 @@ func (u *User) Create(ctx context.Context, name, email string) error {
 	}
 
 	catEvt, err := NewUserCreated(
-		id.MustParseAggregateID(u.ID()),
+		u.ID(),
 		UserCreatedPayload{Name: name, Email: email},
 	)
 	if err != nil {
@@ -80,7 +80,7 @@ func (u *User) ChangeEmail(ctx context.Context, newEmail string) error {
 		return fmt.Errorf("new email must differ from current email")
 	}
 
-	catEvt, err := NewUserEmailChanged(id.MustParseAggregateID(u.ID()), UserEmailChangedPayload{
+	catEvt, err := NewUserEmailChanged(u.ID(), UserEmailChangedPayload{
 		OldEmail: u.email,
 		NewEmail: newEmail,
 	})

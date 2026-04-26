@@ -79,7 +79,16 @@ func (b *CatalogBuilder) addMessageToService(
 ) {
 	svc, ok := b.services[serviceID]
 	if !ok {
-		svc = catalog.Service{ID: serviceID, Name: serviceID}
+		svc = catalog.Service{
+			ID:       serviceID,
+			Name:     serviceID,
+			Version:  "",
+			Summary:  "",
+			Owners:   nil,
+			Commands: []catalog.Message{},
+			Events:   []catalog.Message{},
+			Queries:  []catalog.Message{},
+		}
 	}
 
 	switch kind {
@@ -97,7 +106,16 @@ func (b *CatalogBuilder) addMessageToService(
 // ensureService creates the service entry if it doesn't exist.
 func (b *CatalogBuilder) ensureService(id, name string) {
 	if _, ok := b.services[id]; !ok {
-		b.services[id] = catalog.Service{ID: id, Name: name}
+		b.services[id] = catalog.Service{
+			ID:       id,
+			Name:     name,
+			Version:  "",
+			Summary:  "",
+			Owners:   nil,
+			Commands: []catalog.Message{},
+			Events:   []catalog.Message{},
+			Queries:  []catalog.Message{},
+		}
 	}
 }
 

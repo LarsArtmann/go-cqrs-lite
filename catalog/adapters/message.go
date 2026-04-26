@@ -23,6 +23,7 @@ func buildCatalogMessage(
 		Summary:   summary,
 		Schema:    schema,
 		Direction: direction,
+		Examples:  nil,
 	}
 }
 

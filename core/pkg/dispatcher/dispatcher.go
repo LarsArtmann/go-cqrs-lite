@@ -106,7 +106,8 @@ type Dispatcher[H any, M any] struct {
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		handlers: make(map[string]H),
+		handlers:   make(map[string]H),
+		handlersMu: sync.RWMutex{},
 		Lifecycle: Lifecycle{
 			LifecycleMixin: LifecycleMixin{
 				mu:     sync.RWMutex{},
@@ -203,6 +204,14 @@ type CatalogDispatcher[KT comparable, VT any] struct {
 // InitCatalogDispatcher initializes the catalog entries map.
 func (c *CatalogDispatcher[KT, VT]) InitCatalogDispatcher() {
 	c.catalogEntries = make(map[KT]VT)
+}
+
+// NewCatalogDispatcher creates a new initialized CatalogDispatcher.
+func NewCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
+	c := CatalogDispatcher[KT, VT]{} //nolint:exhaustruct // unexported field requires Init method
+	c.InitCatalogDispatcher()
+
+	return c
 }
 
 // RegisterCatalogEntry stores catalog metadata for a type.

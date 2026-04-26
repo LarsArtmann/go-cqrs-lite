@@ -112,7 +112,7 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 		buf.WriteString("\n")
 	}
 
-	return os.WriteFile(
+	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
 		filepath.Join(e.OutputDir, "llms.txt"),
 		[]byte(buf.String()),
 		filePerm,
@@ -255,7 +255,7 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 		return fmt.Errorf("marshal examples: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm)
+	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm) //nolint:wrapcheck
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
@@ -282,7 +282,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 }
 
 func (e *Exporter) writeMDXFile(path, content string) error {
-	return os.WriteFile(path, []byte(content), filePerm)
+	return os.WriteFile(path, []byte(content), filePerm) //nolint:wrapcheck
 }
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
@@ -298,7 +298,7 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 		return fmt.Errorf("marshal schema: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm)
+	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm) //nolint:wrapcheck
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
@@ -338,7 +338,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 		return fmt.Errorf("marshal package.json: %w", err)
 	}
 
-	return os.WriteFile(
+	return os.WriteFile( //nolint:wrapcheck
 		filepath.Join(e.OutputDir, "package.json"),
 		data,
 		filePerm,

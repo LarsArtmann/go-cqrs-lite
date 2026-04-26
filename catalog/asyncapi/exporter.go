@@ -46,6 +46,7 @@ func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 	e := &Exporter{
 		ServiceName: serviceName,
 		Version:     version,
+		Description: "",
 		Protocol:    "kafka",
 		Host:        "localhost:9092",
 		ServerName:  "production",
@@ -65,6 +66,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 			strings.ToLower(strings.ReplaceAll(e.ServiceName, " ", "")),
 		),
 		DefaultContentType: "application/json",
+		Servers:            nil,
 		Info: Info{
 			Title:       e.ServiceName,
 			Version:     e.Version,
@@ -81,9 +83,11 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	if e.Host != "" {
 		doc.Servers = map[string]Server{
 			e.ServerName: {
-				Host:        e.Host,
-				Protocol:    e.Protocol,
-				Description: "Message broker",
+				Host:            e.Host,
+				Protocol:        e.Protocol,
+				ProtocolVersion: "",
+				Description:     "Message broker",
+				Tags:            nil,
 			},
 		}
 	}
@@ -171,6 +175,7 @@ func (e *Exporter) addMessage(
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
 		Tags:     []Tag{{Name: string(kind)}, {Name: svcID}},
+		Reply:    nil,
 	}
 
 	e.addMessageSchema(doc, msg)
@@ -261,7 +266,7 @@ func toExamples(raw []json.RawMessage) []Example {
 	examples := make([]Example, len(raw))
 
 	for i, r := range raw {
-		examples[i] = Example{Payload: r}
+		examples[i] = Example{Payload: r, Summary: ""}
 	}
 
 	return examples
