@@ -196,8 +196,6 @@ func goTypeToJSON(k reflect.Kind) string {
 		return jsonTypeArray
 	case reflect.Map, reflect.Struct:
 		return jsonTypeObject
-	case reflect.Ptr:
-		return jsonTypeObject
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		return jsonTypeString
 	case reflect.Invalid:
