@@ -29,12 +29,13 @@ go-cqrs-lite/
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
-│   ├── aggregate/                   # Root, Repository, Core
+│   │   ├── event.go                # Core struct, NewEvent constructor
+│   │   └── options.go              # Option func, With* metadata helpers
+│   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository
 │   ├── pkg/
 │   │   ├── id/                      # branded IDs: id.Of[T] (AggregateID, EventID, UserID, etc.)
-│   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin
+│   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin, CheckClosed
 │   ├── internal/
-│   │   ├── testutil/                # shared test assertions
 │   │   └── testhelpers/             # test helpers (internal, not importable)
 │   └── event/store_config.go       # vestigial config (returns error, points to memory module)
 │
@@ -46,12 +47,12 @@ go-cqrs-lite/
 │
 ├── catalog/                         # github.com/larsartmann/go-cqrs-lite/catalog
 │   └── go.mod                       # deps: core, go-faster/yaml, go-json-experiment/json
-│   ├── types.go                     # Message, Service, Domain, Channel, Schema
+│   ├── types.go                     # Message, Service, Domain, Channel, Schema, MessageID()
 │   ├── schema.go                    # SchemaFromType[T]() via reflect
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
 │   ├── adapters/                    # CatalogBuilder, FromDispatcher adapters
-│   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter
-│   ├── eventcatalog/                # EventCatalog MDX file generator
+│   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter (uses catalog.MessageID)
+│   ├── eventcatalog/                # EventCatalog MDX file generator (uses catalog.MessageID)
 │   └── internal/cattest/            # test helpers
 │
 ├── middleware/                       # github.com/larsartmann/go-cqrs-lite/middleware
@@ -60,7 +61,7 @@ go-cqrs-lite/
 │   ├── metrics.go                   # CommandMetrics, EventMetrics
 │   ├── recovery.go                  # CommandRecovery, EventRecovery
 │   ├── retry.go                     # CommandRetry, EventRetry (exponential backoff)
-│   └── validation.go                # CommandValidation, QueryValidation
+│   └── validation.go                # CommandValidation, EventValidation, QueryValidation
 │
 ├── xtypes/                          # github.com/larsartmann/go-cqrs-lite/xtypes
 │   └── go.mod                       # deps: core
@@ -148,7 +149,7 @@ make check         # fmt + imports + lint + build + test
 | -------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
 | `core/command/`            | Command dispatch and handling                  | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core` |
 | `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware` |
-| `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata` |
+| `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option` |
 | `core/aggregate/`          | Aggregate roots and repository                 | `Root`, `Repository`, `Core`, `EventSourcedRepository`  |
 | `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID` |
 | `core/pkg/dispatcher/`     | Generic internal dispatcher                     | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin` |
@@ -163,7 +164,7 @@ make check         # fmt + imports + lint + build + test
 
 | Package                 | Purpose                          | Key Types                                    |
 | ----------------------- | -------------------------------- | -------------------------------------------- |
-| `catalog/`              | Registry and schema reflection   | `Registry`, `Catalog`, `SchemaFromType[T]`   |
+| `catalog/`              | Registry, schema reflection, MessageID | `Registry`, `Catalog`, `SchemaFromType[T]`, `MessageID()` |
 | `catalog/adapters/`     | Builder and dispatcher adapters  | `CatalogBuilder`, `FromCommandDispatcher`     |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export   | `Exporter`, `Document`, `MarshalYAML`        |
 | `catalog/eventcatalog/` | EventCatalog MDX generator       | `Exporter`                                   |
@@ -172,7 +173,7 @@ make check         # fmt + imports + lint + build + test
 
 | Package        | Purpose                          | Key Types                                    |
 | -------------- | -------------------------------- | -------------------------------------------- |
-| `middleware/`   | Cross-cutting CQRS middleware     | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `CommandMetrics` |
+| `middleware/`   | Cross-cutting CQRS middleware     | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics` |
 
 ### Xtypes Module (`xtypes/`)
 
@@ -352,6 +353,29 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 7. **Catalog adapters** (`catalog/adapters`) — `CatalogBuilder` provides instance-based methods (`AddCommand`, `AddEvent`, `AddQuery`) and generic zero-instance methods (`AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`). Generic methods use `SchemaFromType[T]()` for compile-time safety. `FromCommandDispatcher` and `FromQueryDispatcher` extract catalog entries from dispatchers.
 
+## Bug Fixes (Sessions 1–2)
+
+| Bug | Fix | Commit |
+|-----|-----|-------|
+| Retry dead cancellation | `context.Background().Done()` → `ctx.Done()` in `middleware/retry.go` | `5ad0356` |
+| Aggregate version desync | Removed fallback loop; `Load()` requires `HistoryLoader` | `1862eae` |
+| Wrong error sentinel (dispatcher) | `CheckClosed` used `ErrHandlerNotFound` → `ErrDispatcherClosed` | `5ad0356` |
+| Slice mutation (MemoryStore) | `Load()`/`LoadFromVersion()` return defensive copies | `d5ea811` |
+| Wrong error sentinel (snapshot) | `CheckClosed` used `ErrSnapshotNotFound` → `ErrSnapshotStoreClosed` | `8e5150c` |
+
+## Code Quality Improvements (Sessions 1–2)
+
+| Improvement | Detail | Commit |
+|-------------|--------|-------|
+| Dead code removal | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation` | `1862eae` |
+| Lifecycle unification | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin` | `8e5150c` |
+| EventValidation middleware | API symmetry: Command/Query/Event all have validation | `4fdd447` |
+| MessageID extraction | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()` | `c1bc261` |
+| event.go split | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines) | `699d247` |
+| Dead reflect.Ptr case | Removed unreachable branch in `goTypeToJSON` | `b23a781` |
+| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter | `e84e3a1` |
+| Example simplification | `example/user/` uses `aggregate.EventSourcedRepository` | `6815ef3` |
+
 ## Known Issues
 
 | Issue | Severity | Detail |
@@ -360,17 +384,29 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
 | LSP noise from examples | LOW | gopls loads example/ modules not in go.work, producing diagnostic errors |
+| `go.work` version mismatch | LOW | go.work says `go 1.26` but modules require `go 1.26.0`; run `go work use` |
+| `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
+| No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
 
 ## Cleanup Done (Post-Migration)
 
 - Removed `query.Result[T]` (dead code, zero callers)
-- Removed unused error sentinels: `ErrEventNotFound`, `ErrInvalidEventType`, `ErrCommandValidation`
+- Removed unused error sentinels: `ErrEventNotFound`, `ErrInvalidEventType`, `ErrCommandValidation`, `ErrQueryValidation`
 - Removed unused `Streamer` interface
 - Removed vestigial `store_config.go`
+- Removed `internal/testutil` package (unused)
+- Removed `evtest.GenerateUUID` (unused)
 - Fixed `.golangci.yml` v2 schema errors (removed stale `wrapcheck`, `formatters`, migrated `exclude-rules` to `exclusions.rules`)
 - Removed redundant `//nolint:err113` from test files (now excluded via config)
 - Added CONTRIBUTING.md for multi-module workflow
 - Added CI badges to README.md
+- Unified lifecycle: `MemoryBus` and `MemorySnapshotStore` use `LifecycleMixin` (no more manual `closed bool`)
+- Extracted `MessageID()` from `asyncapi`/`eventcatalog` to `catalog` package (removes eventcatalog→asyncapi coupling)
+- Split `event/event.go` under 250 lines (extracted `options.go`)
+- Added `EventValidation` middleware for API symmetry
+- Removed dead `reflect.Ptr` case in `catalog/schema.go`
+- Removed unused `handler` parameter from `dispatcher.Dispatch()`
+- Simplified `example/user/` to use `aggregate.EventSourcedRepository`
 - Replace directives in go.mod files are NOT stale — `memory` replace needed for transitive test deps (core tests import memory)
 
 ## Migration State
@@ -392,6 +428,19 @@ The monorepo is mid-migration from a single module to multi-module. Current stat
 | 10 | Tag releases | Planned |
 
 See `docs/planning/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md` for the full migration plan.
+
+## Deferred Changes
+
+These were identified but explicitly deferred because they affect all consumers or require external coordination:
+
+| Change | Reason |
+|--------|--------|
+| `Root.ID()` → return `id.AggregateID` instead of `string` | Breaking API change |
+| `Event.AggregateID()` → return `id.AggregateID` | Breaking API change |
+| `Event.ID()` → return `id.EventID` | Breaking API change |
+| `Command.AggregateID()` → return `id.AggregateID` | Breaking API change |
+| Stale `replace` directives in `middleware/go.mod`, `xtypes/go.mod` | Requires sibling `go-composable-business-types` repo |
+| `event.go:129` `aggregateID.IsZero` | Needs branded ID migration first |
 
 ## References
 
