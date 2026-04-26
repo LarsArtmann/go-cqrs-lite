@@ -73,8 +73,9 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 }
 
 // Load replays event history into the aggregate.
-// If the aggregate implements HistoryLoader, it uses that for proper version tracking.
-// Otherwise, it applies each event via Root.Apply.
+// The aggregate MUST implement HistoryLoader for proper version tracking.
+// If it does not, Load returns an error — aggregates embedding Core should
+// delegate to Core.LoadFromHistory via the HistoryLoader interface.
 func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 	aggregateID, err := id.ParseAggregateID(root.ID())
 	if err != nil {
@@ -86,33 +87,26 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 		return fmt.Errorf("load events for %s %s: %w", root.Type(), root.ID(), err)
 	}
 
-	if loader, ok := root.(HistoryLoader); ok {
-		err := loader.LoadEvents(events)
-		if err != nil {
-			return fmt.Errorf(
-				"replay %d events for %s %s: %w",
-				len(events),
-				root.Type(),
-				root.ID(),
-				err,
-			)
-		}
-
-		return nil
+	loader, ok := root.(HistoryLoader)
+	if !ok {
+		return fmt.Errorf(
+			"aggregate %s %s must implement HistoryLoader for proper version tracking; "+
+				"embed Core and delegate: func (a *%s) LoadEvents(events []event.Event) error { return a.Core.LoadFromHistory(a, events) }",
+			root.Type(),
+			root.ID(),
+			root.Type(),
+		)
 	}
 
-	for i, evt := range events {
-		err := root.Apply(evt)
-		if err != nil {
-			return fmt.Errorf(
-				"apply event %d (%s) to %s %s: %w",
-				i,
-				evt.Type(),
-				root.Type(),
-				root.ID(),
-				err,
-			)
-		}
+	err = loader.LoadEvents(events)
+	if err != nil {
+		return fmt.Errorf(
+			"replay %d events for %s %s: %w",
+			len(events),
+			root.Type(),
+			root.ID(),
+			err,
+		)
 	}
 
 	return nil
