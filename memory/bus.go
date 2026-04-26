@@ -6,25 +6,24 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
 type MemoryBus struct {
+	dispatcher.LifecycleMixin
+
 	mu          sync.RWMutex
 	handlers    map[event.Type][]event.Handler
 	allHandlers []event.Handler
 	middleware  []event.Middleware
-	closed      bool
 }
 
 var _ event.Bus = (*MemoryBus)(nil)
 
 func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
-		mu:          sync.RWMutex{},
-		handlers:    make(map[event.Type][]event.Handler),
-		allHandlers: nil,
-		middleware:  nil,
-		closed:      false,
+		LifecycleMixin: dispatcher.LifecycleMixin{},
+		handlers:       make(map[event.Type][]event.Handler),
 	}
 }
 
@@ -36,12 +35,13 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) {
 }
 
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
+	err := b.CheckClosed(event.ErrBusClosed)
+	if err != nil {
+		return err
+	}
+
 	b.mu.RLock()
 	defer b.mu.RUnlock()
-
-	if b.closed {
-		return errors.Wrap(event.ErrBusClosed, "cannot publish events")
-	}
 
 	for i, evt := range events {
 		err := b.publishEvent(ctx, evt)
@@ -98,12 +98,13 @@ func (b *MemoryBus) notifyHandlers(
 }
 
 func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
+	err := b.CheckClosed(event.ErrBusClosed)
+	if err != nil {
+		return err
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
-
-	if b.closed {
-		return event.ErrBusClosed
-	}
 
 	b.handlers[eventType] = append(b.handlers[eventType], handler)
 
@@ -111,12 +112,13 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 }
 
 func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
+	err := b.CheckClosed(event.ErrBusClosed)
+	if err != nil {
+		return err
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
-
-	if b.closed {
-		return event.ErrBusClosed
-	}
 
 	b.allHandlers = append(b.allHandlers, handler)
 
@@ -124,10 +126,5 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 }
 
 func (b *MemoryBus) Close() error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.closed = true
-
-	return nil
+	return b.LifecycleMixin.Close()
 }

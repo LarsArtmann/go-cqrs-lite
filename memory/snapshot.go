@@ -5,10 +5,13 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 type MemorySnapshotStore struct {
+	dispatcher.LifecycleMixin
+
 	mu        sync.RWMutex
 	snapshots map[string]*event.Snapshot
 }
@@ -17,7 +20,8 @@ var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
 
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{
-		snapshots: make(map[string]*event.Snapshot),
+		LifecycleMixin: dispatcher.LifecycleMixin{},
+		snapshots:      make(map[string]*event.Snapshot),
 	}
 }
 
@@ -26,6 +30,11 @@ func snapshotKey(aggregateType event.AggregateType, aggregateID id.AggregateID) 
 }
 
 func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
+	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+	if err != nil {
+		return err
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -46,6 +55,11 @@ func (s *MemorySnapshotStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (*event.Snapshot, error) {
+	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+	if err != nil {
+		return nil, err
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -65,6 +79,11 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) (*event.Snapshot, error) {
+	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+	if err != nil {
+		return nil, err
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -87,6 +106,11 @@ func (s *MemorySnapshotStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
+	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+	if err != nil {
+		return err
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -94,4 +118,8 @@ func (s *MemorySnapshotStore) Delete(
 	delete(s.snapshots, key)
 
 	return nil
+}
+
+func (s *MemorySnapshotStore) Close() error {
+	return s.LifecycleMixin.Close()
 }
