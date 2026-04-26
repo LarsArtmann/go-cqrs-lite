@@ -242,9 +242,9 @@ typed, err := query.DispatchTyped[User](ctx, dispatcher, query)
 ### Event Creation
 
 ```go
-event, err := event.NewEvent(
+evt, err := event.NewEvent(
     "user.created",
-    aggregateID,
+    userID,                     // id.AggregateID (branded, no string conversion)
     "User",
     1,
     payload,
@@ -353,6 +353,19 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 7. **Catalog adapters** (`catalog/adapters`) — `CatalogBuilder` provides instance-based methods (`AddCommand`, `AddEvent`, `AddQuery`) and generic zero-instance methods (`AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`). Generic methods use `SchemaFromType[T]()` for compile-time safety. `FromCommandDispatcher` and `FromQueryDispatcher` extract catalog entries from dispatchers.
 
+## Branded Return Types Migration (Session 3)
+
+Interfaces now return branded ID types instead of `string`:
+
+| Interface | Method | Old Return | New Return |
+| --------- | ------ | ---------- | ---------- |
+| `Event` | `ID()` | `string` | `id.EventID` |
+| `Event` | `AggregateID()` | `string` | `id.AggregateID` |
+| `Root` | `ID()` | `string` | `id.AggregateID` |
+| `Command` | `AggregateID()` | `string` | `id.AggregateID` |
+
+**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). All `cmd.AggregateID()` and `root.ID()` comparisons use branded types. `repository.go` eliminated redundant `id.ParseAggregateID()` re-parses. `middleware/logging.go` adds `.String()` when formatting IDs for log output. Commit: `cee6c50`
+
 ## Bug Fixes (Sessions 1–2)
 
 | Bug | Fix | Commit |
@@ -383,7 +396,7 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 | `catalog/adapters` coverage | LOW | Was 66%, now 98.8% after adding adapter tests |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
-| LSP noise from examples | LOW | gopls loads example/ modules not in go.work, producing diagnostic errors |
+| LSP diagnostics stale | LOW | gopls cache shows errors from before interface changes; `go build` is authoritative (compiles cleanly). Restart LSP or use `gopls` diagnostic refresh. |
 | `go.work` version mismatch | LOW | go.work says `go 1.26` but modules require `go 1.26.0`; run `go work use` |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
@@ -407,6 +420,7 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 - Removed dead `reflect.Ptr` case in `catalog/schema.go`
 - Removed unused `handler` parameter from `dispatcher.Dispatch()`
 - Simplified `example/user/` to use `aggregate.EventSourcedRepository`
+- **Branded return types** (this session): `Event.ID()` → `id.EventID`, `Event.AggregateID()` → `id.AggregateID`, `Root.ID()` → `id.AggregateID`, `Command.AggregateID()` → `id.AggregateID`. All callers updated, redundant re-parses eliminated.
 - Replace directives in go.mod files are NOT stale — `memory` replace needed for transitive test deps (core tests import memory)
 
 ## Migration State
