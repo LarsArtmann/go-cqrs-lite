@@ -95,11 +95,36 @@ func (e *Core) AggregateType() AggregateType { return e.aggregateType }
 // Version returns the event version.
 func (e *Core) Version() int { return e.version.Int() }
 
-// Payload returns the event payload.
-func (e *Core) Payload() []byte { return e.payload }
+// Payload returns a copy of the event payload.
+func (e *Core) Payload() []byte {
+	if e.payload == nil {
+		return nil
+	}
 
-// Metadata returns the event metadata.
-func (e *Core) Metadata() *Metadata { return e.metadata }
+	cp := make([]byte, len(e.payload))
+	copy(cp, e.payload)
+
+	return cp
+}
+
+// Metadata returns a copy of the event metadata.
+func (e *Core) Metadata() *Metadata {
+	if e.metadata == nil {
+		return nil
+	}
+
+	cp := *e.metadata
+
+	if e.metadata.Custom != nil {
+		cp.Custom = make(map[MetadataKey]string, len(e.metadata.Custom))
+
+		for k, v := range e.metadata.Custom {
+			cp.Custom[k] = v
+		}
+	}
+
+	return &cp
+}
 
 // OccurredAt returns when the event occurred.
 func (e *Core) OccurredAt() time.Time { return e.occurredAt }
