@@ -107,7 +107,7 @@ func TestEventBuilder(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
-		correlationID := id.MustParseCorrelationID("corr-123")
+		correlationID := id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
 
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).
 			WithCorrelationID(correlationID).
@@ -123,7 +123,7 @@ func TestEventBuilder(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
-		causationID := id.MustParseCausationID("cause-456")
+		causationID := id.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
 
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).
 			WithCausationID(causationID).
@@ -145,7 +145,7 @@ func TestEventBuilder(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
-		userID := id.MustParseUserID("user-789")
+		userID := id.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")
 
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).
 			WithUserID(userID).
@@ -163,7 +163,7 @@ func TestEventBuilder(t *testing.T) {
 		t.Parallel()
 
 		aggregateID := id.NewAggregateID()
-		correlationID := id.MustParseCorrelationID("corr-meta")
+		correlationID := id.MustParseCorrelationID("01HK1542VGZX7VW38CS2WSRXBX")
 
 		evt, err := NewEventBuilder("TestEvent", aggregateID, "TestAggregate", 1).
 			WithMetadata(event.WithCorrelationID(correlationID)).
@@ -409,12 +409,12 @@ func TestCommandID(t *testing.T) {
 	t.Run("ParseCommandID parses valid string", func(t *testing.T) {
 		t.Parallel()
 
-		parsed, err := ParseCommandID("cmd-123")
+		parsed, err := ParseCommandID("01HK1549P84T9XF8R94E960633")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if parsed.String() != "cmd-123" {
+		if parsed.String() != "01HK1549P84T9XF8R94E960633" {
 			t.Errorf("expected cmd-123, got %s", parsed.String())
 		}
 	})

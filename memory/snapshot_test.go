@@ -45,14 +45,14 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-1"), 5, "shipped")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"), 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-1"))
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestMemorySnapshotStore_Load_NotFound(t *testing.T) {
 
 	store := memory.NewMemorySnapshotStore()
 
-	_, err := store.Load(context.Background(), "Order", id.MustParseAggregateID("nonexistent"))
+	_, err := store.Load(context.Background(), "Order", id.MustParseAggregateID("01HK154ME034FVHK95R554AKSE"))
 	if err == nil {
 		t.Error("expected snapshot not found error")
 	}
@@ -85,21 +85,21 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV5 := newTestSnapshot(t, id.MustParseAggregateID("order-2"), 5, "shipped")
+	snapshotV5 := newTestSnapshot(t, id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"), 5, "shipped")
 
 	err := store.Save(ctx, snapshotV5)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("order-2"), 3, "placed")
+	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"), 3, "placed")
 
 	err = store.Save(ctx, snapshotV3)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-2"))
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -113,21 +113,21 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("order-3"), 3, "placed")
+	snapshotV3 := newTestSnapshot(t, id.MustParseAggregateID("01HK154W80KZSKN04HJMMDCJDW"), 3, "placed")
 
 	err := store.Save(ctx, snapshotV3)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	snapshotV7 := newTestSnapshot(t, id.MustParseAggregateID("order-3"), 7, "delivered")
+	snapshotV7 := newTestSnapshot(t, id.MustParseAggregateID("01HK154W80KZSKN04HJMMDCJDW"), 7, "delivered")
 
 	err = store.Save(ctx, snapshotV7)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("order-3"))
+	loaded, err := store.Load(ctx, "Order", id.MustParseAggregateID("01HK154W80KZSKN04HJMMDCJDW"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-4"), 5, "shipped")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("01HK154X784RCKJT5QZC6MNJTS"), 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
@@ -164,7 +164,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 			},
 		}
 
-		orderID := id.MustParseAggregateID("order-4")
+		orderID := id.MustParseAggregateID("01HK154X784RCKJT5QZC6MNJTS")
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 		_, err := store.LoadAtVersion(
 			ctx,
 			"Order",
-			id.MustParseAggregateID("order-4"),
+			id.MustParseAggregateID("01HK154X784RCKJT5QZC6MNJTS"),
 			event.Version(3),
 		)
 		if err == nil {
@@ -203,19 +203,19 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	snapshot := newTestSnapshot(t, id.MustParseAggregateID("order-5"), 1, "")
+	snapshot := newTestSnapshot(t, id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"), 1, "")
 
 	err := store.Save(ctx, snapshot)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = store.Delete(ctx, "Order", id.MustParseAggregateID("order-5"))
+	err = store.Delete(ctx, "Order", id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	_, err = store.Load(ctx, "Order", id.MustParseAggregateID("order-5"))
+	_, err = store.Load(ctx, "Order", id.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB"))
 	if err == nil {
 		t.Error("expected snapshot not found after delete")
 	}

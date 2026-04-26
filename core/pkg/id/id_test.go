@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/oklog/ulid/v2"
 )
+
+const testULID = "01HK1549P84T9XF8R94E960633"
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -16,12 +20,8 @@ func TestNew(t *testing.T) {
 		t.Error("New() should not return zero ID")
 	}
 
-	if id.IsZero() {
-		t.Error("New() should return non-zero ID")
-	}
-
-	if len(id.String()) != 26 {
-		t.Errorf("ID string length = %d, want 26 (ULID)", len(id.String()))
+	if len(id.String()) != ulid.EncodedSize {
+		t.Errorf("ID string length = %d, want %d", len(id.String()), ulid.EncodedSize)
 	}
 }
 
@@ -45,13 +45,13 @@ func TestParse(t *testing.T) {
 	t.Run("valid string", func(t *testing.T) {
 		t.Parallel()
 
-		id, err := Parse[AggregateID]("test-id-123")
+		id, err := Parse[AggregateID](testULID)
 		if err != nil {
 			t.Fatalf("Parse() error = %v", err)
 		}
 
-		if id.String() != "test-id-123" {
-			t.Errorf("Parse() = %q, want %q", id.String(), "test-id-123")
+		if id.String() != testULID {
+			t.Errorf("Parse() = %q, want %q", id.String(), testULID)
 		}
 	})
 
@@ -72,8 +72,8 @@ func TestMustParse(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"test-id", "test-id"},
-		{"my-id", "my-id"},
+		{testULID, testULID},
+		{"01HK154ANGZHV2ZW0X3SKSNEN2", "01HK154ANGZHV2ZW0X3SKSNEN2"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
@@ -114,7 +114,7 @@ func TestIsZero(t *testing.T) {
 	t.Run("non-zero ID", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParse[AggregateID]("test")
+		id := MustParse[AggregateID](testULID)
 		if id.IsZero() {
 			t.Error("parsed ID should not be zero")
 		}
@@ -127,9 +127,8 @@ func TestEqual(t *testing.T) {
 	t.Run("equal IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := MustParse[AggregateID]("same")
-
-		b := MustParse[AggregateID]("same")
+		a := MustParse[AggregateID](testULID)
+		b := MustParse[AggregateID](testULID)
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
 		}
@@ -138,9 +137,8 @@ func TestEqual(t *testing.T) {
 	t.Run("different IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := MustParse[AggregateID]("a")
-
-		b := MustParse[AggregateID]("b")
+		a := MustParse[AggregateID]("01HK153X00WRE0FHNC52TH9Y1A")
+		b := MustParse[AggregateID]("01HK153YYGPZ1D26JE8FR0H6AS")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
 		}
@@ -166,9 +164,27 @@ func TestCompare(t *testing.T) {
 		want int
 		desc string
 	}{
-		{"less than", "a", "b", -1, "a should be less than b"},
-		{"equal", "same", "same", 0, "same IDs should compare equal"},
-		{"greater than", "b", "a", 1, "b should be greater than a"},
+		{
+			name: "less than",
+			aStr: "01HK153X00WRE0FHNC52TH9Y1A",
+			bStr: "01HK153YYGPZ1D26JE8FR0H6AS",
+			want: -1,
+			desc: "first ULID should be less than second",
+		},
+		{
+			name: "equal",
+			aStr: testULID,
+			bStr: testULID,
+			want: 0,
+			desc: "same IDs should compare equal",
+		},
+		{
+			name: "greater than",
+			aStr: "01HK153YYGPZ1D26JE8FR0H6AS",
+			bStr: "01HK153X00WRE0FHNC52TH9Y1A",
+			want: 1,
+			desc: "second ULID should be greater than first",
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -195,9 +211,8 @@ func TestOr(t *testing.T) {
 	t.Run("non-zero returns self", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParseAggregateID("primary")
-
-		fallback := MustParseAggregateID("fallback")
+		id := MustParseAggregateID(testULID)
+		fallback := MustParseAggregateID("01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(id) {
 			t.Error("non-zero ID should return self")
 		}
@@ -207,8 +222,7 @@ func TestOr(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
-
-		fallback := MustParseAggregateID("fallback")
+		fallback := MustParseAggregateID("01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(fallback) {
 			t.Error("zero ID should return fallback")
 		}
@@ -218,7 +232,7 @@ func TestOr(t *testing.T) {
 func TestReset(t *testing.T) {
 	t.Parallel()
 
-	id := MustParse[AggregateID]("test")
+	id := MustParse[AggregateID](testULID)
 	if id.IsZero() {
 		t.Error("ID should not be zero before reset")
 	}
@@ -233,7 +247,7 @@ func TestReset(t *testing.T) {
 func TestGoString(t *testing.T) {
 	t.Parallel()
 
-	id := MustParse[AggregateID]("test")
+	id := MustParse[AggregateID](testULID)
 
 	gs := id.GoString()
 	if gs == "" {
@@ -244,15 +258,15 @@ func TestGoString(t *testing.T) {
 func TestFormat(t *testing.T) {
 	t.Parallel()
 
-	id := MustParse[AggregateID]("test")
+	id := MustParse[AggregateID](testULID)
 
 	tests := []struct {
 		format string
 		want   string
 	}{
-		{"%v", "test"},
-		{"%s", "test"},
-		{"%q", `"test"`},
+		{"%v", testULID},
+		{"%s", testULID},
+		{"%q", `"` + testULID + `"`},
 	}
 
 	for _, tc := range tests {
@@ -272,15 +286,15 @@ func TestJSON(t *testing.T) {
 	t.Run("marshal", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParse[AggregateID]("test-id")
+		id := MustParse[AggregateID](testULID)
 
 		data, err := json.Marshal(id)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
-		if string(data) != `"test-id"` {
-			t.Errorf("Marshal() = %s, want %q", data, `"test-id"`)
+		if string(data) != `"`+testULID+`"` {
+			t.Errorf("Marshal() = %s, want %q", data, `"`+testULID+`"`)
 		}
 	})
 
@@ -289,13 +303,13 @@ func TestJSON(t *testing.T) {
 
 		var id AggregateID
 
-		err := json.Unmarshal([]byte(`"test-id"`), &id)
+		err := json.Unmarshal([]byte(`"`+testULID+`"`), &id)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
-		if id.String() != "test-id" {
-			t.Errorf("Unmarshal() = %q, want %q", id.String(), "test-id")
+		if id.String() != testULID {
+			t.Errorf("Unmarshal() = %q, want %q", id.String(), testULID)
 		}
 	})
 
@@ -306,7 +320,7 @@ func TestJSON(t *testing.T) {
 
 		data, err := json.Marshal(id)
 		if err != nil {
-			t.Fatalf("Marshal() error = %v", err)
+			t.Fatalf("Marshal() empty error = %v", err)
 		}
 
 		if string(data) != "null" {
@@ -317,7 +331,7 @@ func TestJSON(t *testing.T) {
 	t.Run("unmarshal null", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParse[AggregateID]("existing")
+		id := MustParse[AggregateID](testULID)
 
 		err := json.Unmarshal([]byte("null"), &id)
 		if err != nil {
@@ -365,7 +379,7 @@ func TestEncoding(t *testing.T) {
 	}{
 		{
 			name:      "binary",
-			testValue: "test-binary",
+			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
 				return MustParseAggregateID(id).MarshalBinary()
 			},
@@ -377,7 +391,7 @@ func TestEncoding(t *testing.T) {
 		},
 		{
 			name:      "text",
-			testValue: "test-text",
+			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
 				return MustParseAggregateID(id).MarshalText()
 			},
@@ -401,7 +415,11 @@ func TestEncoding(t *testing.T) {
 					t.Fatalf("%s() error = %v", tc.marshalName, err)
 				}
 
-				if string(data) != tc.testValue {
+				if tc.name == "binary" {
+					if len(data) != ulid.EncodedSize {
+						t.Errorf("%s() len = %d, want %d", tc.marshalName, len(data), ulid.EncodedSize)
+					}
+				} else if string(data) != tc.testValue {
 					t.Errorf("%s() = %q, want %q", tc.marshalName, string(data), tc.testValue)
 				}
 			})
@@ -411,7 +429,14 @@ func TestEncoding(t *testing.T) {
 
 				var id AggregateID
 
-				err := tc.unmarshal(&id, []byte(tc.testValue))
+				var data []byte
+				if tc.name == "binary" {
+					data, _ = MustParseAggregateID(tc.testValue).MarshalBinary()
+				} else {
+					data = []byte(tc.testValue)
+				}
+
+				err := tc.unmarshal(&id, data)
 				if err != nil {
 					t.Fatalf("%s() error = %v", tc.unmarshalName, err)
 				}
@@ -452,15 +477,20 @@ func TestSQLValue(t *testing.T) {
 	t.Run("value", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParse[AggregateID]("sql-test")
+		id := MustParse[AggregateID](testULID)
 
 		val, err := id.Value()
 		if err != nil {
 			t.Fatalf("Value() error = %v", err)
 		}
 
-		if val != "sql-test" {
-			t.Errorf("Value() = %v, want %q", val, "sql-test")
+		data, ok := val.([]byte)
+		if !ok {
+			t.Fatalf("Value() type = %T, want []byte", val)
+		}
+
+		if len(data) != ulid.EncodedSize {
+			t.Errorf("Value() len = %d, want %d", len(data), ulid.EncodedSize)
 		}
 	})
 
@@ -488,13 +518,13 @@ func TestSQLScan(t *testing.T) {
 
 		var id AggregateID
 
-		err := id.Scan("scan-test")
+		err := id.Scan(testULID)
 		if err != nil {
 			t.Fatalf("Scan() error = %v", err)
 		}
 
-		if id.String() != "scan-test" {
-			t.Errorf("Scan() = %q, want %q", id.String(), "scan-test")
+		if id.String() != testULID {
+			t.Errorf("Scan() = %q, want %q", id.String(), testULID)
 		}
 	})
 
@@ -503,13 +533,13 @@ func TestSQLScan(t *testing.T) {
 
 		var id AggregateID
 
-		err := id.Scan([]byte("scan-bytes"))
+		err := id.Scan([]byte("01HK154ANGZHV2ZW0X3SKSNEN2"))
 		if err != nil {
 			t.Fatalf("Scan() error = %v", err)
 		}
 
-		if id.String() != "scan-bytes" {
-			t.Errorf("Scan() = %q, want %q", id.String(), "scan-bytes")
+		if id.String() != "01HK154ANGZHV2ZW0X3SKSNEN2" {
+			t.Errorf("Scan() = %q, want %q", id.String(), "01HK154ANGZHV2ZW0X3SKSNEN2")
 		}
 	})
 
@@ -551,13 +581,13 @@ func TestAggregateID(t *testing.T) {
 		t.Error("NewAggregateID() should not return zero ID")
 	}
 
-	parsed, err := ParseAggregateID("test-agg-id")
+	parsed, err := ParseAggregateID(testULID)
 	if err != nil {
 		t.Fatalf("ParseAggregateID() error = %v", err)
 	}
 
-	if parsed.String() != "test-agg-id" {
-		t.Errorf("ParseAggregateID() = %q, want %q", parsed.String(), "test-agg-id")
+	if parsed.String() != testULID {
+		t.Errorf("ParseAggregateID() = %q, want %q", parsed.String(), testULID)
 	}
 }
 
@@ -612,27 +642,27 @@ func TestMustParseID(t *testing.T) {
 	t.Run("AggregateID", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParseAggregateID("agg-1")
-		if id.String() != "agg-1" {
-			t.Errorf("got %q, want %q", id.String(), "agg-1")
+		id := MustParseAggregateID(testULID)
+		if id.String() != testULID {
+			t.Errorf("got %q, want %q", id.String(), testULID)
 		}
 	})
 
 	t.Run("EventID", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParseEventID("evt-1")
-		if id.String() != "evt-1" {
-			t.Errorf("got %q, want %q", id.String(), "evt-1")
+		id := MustParseEventID("01HK1541W8PVV4E88DV993TP2A")
+		if id.String() != "01HK1541W8PVV4E88DV993TP2A" {
+			t.Errorf("got %q, want %q", id.String(), "01HK1541W8PVV4E88DV993TP2A")
 		}
 	})
 
 	t.Run("UserID", func(t *testing.T) {
 		t.Parallel()
 
-		id := MustParseUserID("usr-1")
-		if id.String() != "usr-1" {
-			t.Errorf("got %q, want %q", id.String(), "usr-1")
+		id := MustParseUserID("01HK1542VGZX7VW38CS2WSRXBX")
+		if id.String() != "01HK1542VGZX7VW38CS2WSRXBX" {
+			t.Errorf("got %q, want %q", id.String(), "01HK1542VGZX7VW38CS2WSRXBX")
 		}
 	})
 }
