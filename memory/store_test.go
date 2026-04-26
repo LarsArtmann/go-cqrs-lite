@@ -147,7 +147,9 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Close()
 
-	_, err := store.LoadFromVersion(ctx, "User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"), 0)
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	_, err := store.LoadFromVersion(ctx, "User", aggID, 0)
 	if err == nil {
 		t.Error("expected store closed error on LoadFromVersion")
 	}
@@ -172,7 +174,9 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	_, err := store.LoadFromVersion(ctx, "User", id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E"), 0)
+	aggID := id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E")
+
+	_, err := store.LoadFromVersion(ctx, "User", aggID, 0)
 	if err == nil {
 		t.Error("expected aggregate not found error")
 	}
