@@ -145,7 +145,9 @@ func (id Of[T]) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	return []byte(id.String()), nil
+	// Manually construct JSON string to avoid json.Marshal double-encoding.
+	// ULID uses Crockford Base32 (0-9, A-Z except I/L/O/U) — no JSON escaping needed.
+	return []byte(`"` + id.String() + `"`), nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler, parsing from a JSON string.
@@ -242,7 +244,7 @@ func (id *Of[T]) UnmarshalBinary(data []byte) error {
 		return nil
 	}
 
-	if len(data) != ulid.EncodedSize {
+	if len(data) != 16 {
 		return fmt.Errorf("id: insufficient data for ULID: %w", ulid.ErrDataSize)
 	}
 

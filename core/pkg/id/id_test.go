@@ -416,8 +416,8 @@ func TestEncoding(t *testing.T) {
 				}
 
 				if tc.name == "binary" {
-					if len(data) != ulid.EncodedSize {
-						t.Errorf("%s() len = %d, want %d", tc.marshalName, len(data), ulid.EncodedSize)
+					if len(data) != 16 {
+						t.Errorf("%s() len = %d, want 16", tc.marshalName, len(data))
 					}
 				} else if string(data) != tc.testValue {
 					t.Errorf("%s() = %q, want %q", tc.marshalName, string(data), tc.testValue)
@@ -489,8 +489,8 @@ func TestSQLValue(t *testing.T) {
 			t.Fatalf("Value() type = %T, want []byte", val)
 		}
 
-		if len(data) != ulid.EncodedSize {
-			t.Errorf("Value() len = %d, want %d", len(data), ulid.EncodedSize)
+		if len(data) != 16 {
+			t.Errorf("Value() len = %d, want 16", len(data))
 		}
 	})
 
