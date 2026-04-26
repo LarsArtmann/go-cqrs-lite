@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 // logContext holds common logging context for middleware.
@@ -76,6 +77,37 @@ func EventLogging(logger Logger) event.Middleware {
 			return logWithContext(logger, lc, func() error {
 				return next(ctx, evt)
 			})
+		}
+	}
+}
+
+// QueryLogging returns a query middleware that logs dispatch details with timing.
+func QueryLogging(logger Logger) query.Middleware {
+	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			start := time.Now()
+
+			logger.Info("query dispatching", "type", string(q.Type()))
+
+			result, err := next(ctx, q)
+			duration := time.Since(start)
+
+			if err != nil {
+				logger.Error("query failed",
+					"type", string(q.Type()),
+					"duration", duration,
+					"error", err,
+				)
+
+				return nil, err
+			}
+
+			logger.Info("query succeeded",
+				"type", string(q.Type()),
+				"duration", duration,
+			)
+
+			return result, nil
 		}
 	}
 }

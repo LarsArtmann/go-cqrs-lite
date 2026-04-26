@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 func recordMetrics(
@@ -44,6 +45,19 @@ func EventMetrics(recorder MetricsRecorder) event.Middleware {
 			recordMetrics(recorder, "event", err, string(evt.Type()), time.Since(start))
 
 			return err
+		}
+	}
+}
+
+// QueryMetrics returns a middleware that records query handler metrics.
+func QueryMetrics(recorder MetricsRecorder) query.Middleware {
+	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			start := time.Now()
+			result, err := next(ctx, q)
+			recordMetrics(recorder, "query", err, string(q.Type()), time.Since(start))
+
+			return result, err
 		}
 	}
 }
