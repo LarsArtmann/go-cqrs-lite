@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 // CommandRecovery returns a command middleware that recovers from panics.
@@ -36,6 +37,23 @@ func EventRecovery() event.Middleware {
 			}()
 
 			return next(ctx, evt)
+		}
+	}
+}
+
+// QueryRecovery returns a query middleware that recovers from panics.
+func QueryRecovery() query.Middleware {
+	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		//nolint:nonamedreturns // required for defer/recover to modify return values
+		return func(ctx context.Context, q query.Query) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					//nolint:err113
+					err = fmt.Errorf("panic recovered in query %s: %v", q.Type(), r)
+				}
+			}()
+
+			return next(ctx, q)
 		}
 	}
 }

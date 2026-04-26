@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 // CommandRetry returns a command middleware that retries on retryable errors.
@@ -27,6 +28,25 @@ func EventRetry(config RetryConfig) event.Middleware {
 			return retry(ctx, config, string(evt.Type()), func() error {
 				return next(ctx, evt)
 			})
+		}
+	}
+}
+
+// QueryRetry returns a query middleware that retries on retryable errors.
+func QueryRetry(config RetryConfig) query.Middleware {
+	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			var result any
+
+			err := retry(ctx, config, string(q.Type()), func() error {
+				var err error
+
+				result, err = next(ctx, q)
+
+				return err
+			})
+
+			return result, err
 		}
 	}
 }
