@@ -134,7 +134,7 @@ func (e *Exporter) addMessage(
 		opt(cfg)
 	}
 
-	id := MessageID(msg)
+	id := catalog.MessageID(msg)
 	channelKey := string(kind) + "." + id
 	ref := "#/components/messages/" + id
 
@@ -177,7 +177,7 @@ func (e *Exporter) addMessage(
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	id := MessageID(msg)
+	id := catalog.MessageID(msg)
 
 	tagName := "commands"
 
@@ -222,14 +222,6 @@ func SchemaToAny(s *catalog.Schema) any {
 	_ = json.Unmarshal(raw, &result)
 
 	return result
-}
-
-func MessageID(msg catalog.Message) string {
-	if msg.ID != "" {
-		return msg.ID
-	}
-
-	return msg.Name
 }
 
 func (d *Document) MarshalYAML() ([]byte, error) {

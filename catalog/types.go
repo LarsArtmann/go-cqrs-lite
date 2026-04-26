@@ -85,3 +85,12 @@ type Catalog struct {
 	Domains  []Domain  `json:"domains,omitempty"`
 	Channels []Channel `json:"channels,omitempty"`
 }
+
+// MessageID returns the ID of a message, falling back to its Name if ID is empty.
+func MessageID(msg Message) string {
+	if msg.ID != "" {
+		return msg.ID
+	}
+
+	return msg.Name
+}

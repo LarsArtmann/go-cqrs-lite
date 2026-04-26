@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 )
 
 const (
@@ -178,7 +177,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	var sends, receives, commands, queries []string
 
 	for _, msg := range svc.Events {
-		id := messageID(msg)
+		id := catalog.MessageID(msg)
 
 		entry := fmt.Sprintf("%s/%s", id, msg.Version)
 		if msg.Direction == catalog.Sends {
@@ -189,11 +188,11 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, fmt.Sprintf("%s/%s", messageID(cmd), cmd.Version))
+		commands = append(commands, fmt.Sprintf("%s/%s", catalog.MessageID(cmd), cmd.Version))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, fmt.Sprintf("%s/%s", messageID(q), q.Version))
+		queries = append(queries, fmt.Sprintf("%s/%s", catalog.MessageID(q), q.Version))
 	}
 
 	md.addListField("sends", sends)
@@ -206,7 +205,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 }
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
-	id := messageID(msg)
+	id := catalog.MessageID(msg)
 
 	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
 
@@ -300,10 +299,6 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	}
 
 	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm)
-}
-
-func messageID(msg catalog.Message) string {
-	return asyncapi.MessageID(msg)
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
