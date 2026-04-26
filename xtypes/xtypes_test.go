@@ -415,7 +415,7 @@ func TestCommandID(t *testing.T) {
 		}
 
 		if parsed.String() != "01HK1549P84T9XF8R94E960633" {
-			t.Errorf("expected cmd-123, got %s", parsed.String())
+			t.Errorf("expected 01HK1549P84T9XF8R94E960633, got %s", parsed.String())
 		}
 	})
 

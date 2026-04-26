@@ -119,7 +119,11 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 			aggregateID:   id.MustParseAggregateID("01HK154BMRQFY6Q98RCCEJDZ74"),
 			aggregateType: "",
 			version:       1,
-			wantContains:  []string{"aggregate type is required", "01HK154BMRQFY6Q98RCCEJDZ74", "OrderCreated"},
+			wantContains: []string{
+				"aggregate type is required",
+				"01HK154BMRQFY6Q98RCCEJDZ74",
+				"OrderCreated",
+			},
 		},
 		{
 			name:          "negative version includes version, aggregate ID and event type",
@@ -127,7 +131,11 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 			aggregateID:   id.MustParseAggregateID("01HK154CM00YYJAJGC0GE589E2"),
 			aggregateType: "Payment",
 			version:       -5,
-			wantContains:  []string{"version -5 invalid", "01HK154CM00YYJAJGC0GE589E2", "PaymentProcessed"},
+			wantContains: []string{
+				"version -5 invalid",
+				"01HK154CM00YYJAJGC0GE589E2",
+				"PaymentProcessed",
+			},
 		},
 	}
 

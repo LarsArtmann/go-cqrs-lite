@@ -41,9 +41,6 @@ type Of[T any] struct {
 	wrapped cbid.ID[T, ulid.ULID]
 }
 
-// PrefixString is a string type for human-readable ID prefixes.
-type PrefixString string
-
 func newULID() ulid.ULID {
 	return ulid.MustNew(ulid.Timestamp(time.Now()), rand.Reader)
 }
@@ -51,14 +48,6 @@ func newULID() ulid.ULID {
 // New generates a new random ULID-backed ID.
 func New[T any]() Of[T] {
 	return Of[T]{wrapped: cbid.NewID[T, ulid.ULID](newULID())}
-}
-
-// NewWithPrefix generates a new ID.
-// The ULID is encoded for sortability.
-func NewWithPrefix[T any](_ PrefixString) Of[T] {
-	id := newULID()
-
-	return Of[T]{wrapped: cbid.NewID[T, ulid.ULID](id)}
 }
 
 // Parse converts a ULID string to a strongly-typed ID.
@@ -208,18 +197,13 @@ func (id *Of[T]) Scan(src any) error {
 	return nil
 }
 
-// Value implements driver.Valuer, returning 16-byte binary representation.
+// Value implements driver.Valuer, returning the ULID as a string for SQL storage.
 func (id Of[T]) Value() (driver.Value, error) {
 	if id.IsZero() {
-		return nil, nil
+		return nil, nil //nolint:nilnil // SQL NULL is represented as (nil, nil) per database/sql convention
 	}
 
-	val, err := id.wrapped.Get().MarshalBinary()
-	if err != nil {
-		return nil, fmt.Errorf("id: Value: %w", err)
-	}
-
-	return val, nil
+	return id.String(), nil
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler, returning 16-byte big-endian ULID.
@@ -236,6 +220,9 @@ func (id Of[T]) MarshalBinary() ([]byte, error) {
 	return val, nil
 }
 
+// ulidBinarySize is the size in bytes of a ULID in binary form.
+const ulidBinarySize = 16
+
 // UnmarshalBinary implements encoding.BinaryUnmarshaler, parsing 16-byte big-endian ULID.
 func (id *Of[T]) UnmarshalBinary(data []byte) error {
 	if len(data) == 0 {
@@ -244,7 +231,7 @@ func (id *Of[T]) UnmarshalBinary(data []byte) error {
 		return nil
 	}
 
-	if len(data) != 16 {
+	if len(data) != ulidBinarySize {
 		return fmt.Errorf("id: insufficient data for ULID: %w", ulid.ErrDataSize)
 	}
 

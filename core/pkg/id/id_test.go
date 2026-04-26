@@ -25,20 +25,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewWithPrefix(t *testing.T) {
-	t.Parallel()
-
-	id := NewWithPrefix[AggregateID]("user")
-
-	if id.IsZero() {
-		t.Error("NewWithPrefix() should not return zero ID")
-	}
-
-	if len(id.String()) < 6 {
-		t.Error("NewWithPrefix() should return ID longer than prefix")
-	}
-}
-
 func TestParse(t *testing.T) {
 	t.Parallel()
 
@@ -128,6 +114,7 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID](testULID)
+
 		b := MustParse[AggregateID](testULID)
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
@@ -138,6 +125,7 @@ func TestEqual(t *testing.T) {
 		t.Parallel()
 
 		a := MustParse[AggregateID]("01HK153X00WRE0FHNC52TH9Y1A")
+
 		b := MustParse[AggregateID]("01HK153YYGPZ1D26JE8FR0H6AS")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
@@ -212,6 +200,7 @@ func TestOr(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseAggregateID(testULID)
+
 		fallback := MustParseAggregateID("01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(id) {
 			t.Error("non-zero ID should return self")
@@ -222,6 +211,7 @@ func TestOr(t *testing.T) {
 		t.Parallel()
 
 		var id AggregateID
+
 		fallback := MustParseAggregateID("01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(fallback) {
 			t.Error("zero ID should return fallback")
@@ -484,13 +474,8 @@ func TestSQLValue(t *testing.T) {
 			t.Fatalf("Value() error = %v", err)
 		}
 
-		data, ok := val.([]byte)
-		if !ok {
-			t.Fatalf("Value() type = %T, want []byte", val)
-		}
-
-		if len(data) != 16 {
-			t.Errorf("Value() len = %d, want 16", len(data))
+		if val != testULID {
+			t.Errorf("Value() = %v, want %q", val, testULID)
 		}
 	})
 

@@ -10,14 +10,8 @@ func BenchmarkNew(b *testing.B) {
 	}
 }
 
-func BenchmarkNewWithPrefix(b *testing.B) {
-	for b.Loop() {
-		NewWithPrefix[AggregateID]("agg")
-	}
-}
-
 func BenchmarkParse(b *testing.B) {
-	validID := "550e8400-e29b-41d4-a716-446655440000"
+	validID := "01HK1549P84T9XF8R94E960633"
 
 	for b.Loop() {
 		_, _ = Parse[AggregateID](validID)

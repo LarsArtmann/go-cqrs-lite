@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/catalog
 
-go 1.26
+go 1.26.0
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog v0.0.0
@@ -17,9 +17,10 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/larsartmann/go-composable-business-types v0.0.0 // indirect
+	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -29,6 +30,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-composable-business-types => github.com/larsartmann/go-composable-business-types v0.1.0
 	github.com/larsartmann/go-cqrs-lite/catalog => ../../catalog
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory

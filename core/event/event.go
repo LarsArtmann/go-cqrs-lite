@@ -14,7 +14,7 @@
 //   - No `any` types
 //   - Context as first parameter
 //   - Sentinels for common error states
-//   - No external dependencies (except google/uuid, cockroachdb/errors)
+//   - No external dependencies (except oklog/ulid, cockroachdb/errors)
 //   - Files under 250 lines
 //   - All exported types have Go doc comments
 //   - Use errors.Is for error comparison (not assertions)
