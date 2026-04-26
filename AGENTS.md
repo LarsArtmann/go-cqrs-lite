@@ -24,7 +24,7 @@ go-cqrs-lite/
 ├── go.work                          # ties modules together
 │
 ├── core/                            # github.com/larsartmann/go-cqrs-lite/core
-│   └── go.mod                       # deps: cockroachdb/errors, google/uuid,
+│   └── go.mod                       # deps: cockroachdb/errors, oklog/ulid,
 │                                    #       go-json-experiment/json, ginkgo/gomega (test)
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
@@ -183,7 +183,7 @@ make check         # fmt + imports + lint + build + test
 
 ## Design Principles
 
-1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `google/uuid`, `go-json-experiment/json`
+1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-composable-business-types`, `go-json-experiment/json`
 2. **Composition over inheritance** — Per Go best practices
 3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 4. **Context-aware** — All handlers accept `context.Context`
@@ -284,7 +284,8 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | Dependency              | Version  | Purpose              | Module   |
 | ----------------------- | -------- | -------------------- | -------- |
 | `cockroachdb/errors`   | v1.12.0  | Error wrapping       | core, middleware |
-| `google/uuid`           | v1.6.0   | UUID generation      | core     |
+| `oklog/ulid/v2`             | v2.1.0   | ULID generation (binary-sortable) | core     |
+| `go-composable-business-types` | v0.1.0 | Branded ID type backing | core |
 | `go-faster/yaml`        | v0.4.6   | YAML marshaling      | catalog  |
 | `go-json-experiment/json` | v0.0.0 | JSON v2             | core, catalog |
 
@@ -307,7 +308,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `query`                  | 91.5%    |
 | `catalog/eventcatalog`   | 89.7%    |
 | `event`                  | 89.0%    |
-| `pkg/id`                 | 85.4%    |
+| `pkg/id`                 | 73.1%    |
 | `middleware`              | 84.6%    |
 | `command`                | 84.4%    |
 | `internal/dispatcher`    | 77.4%    |
@@ -393,13 +394,12 @@ Interfaces now return branded ID types instead of `string`:
 
 | Issue | Severity | Detail |
 |-------|----------|--------|
-| `catalog/adapters` coverage | LOW | Was 66%, now 98.8% after adding adapter tests |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
-| LSP diagnostics stale | LOW | gopls cache shows errors from before interface changes; `go build` is authoritative (compiles cleanly). Restart LSP or use `gopls` diagnostic refresh. |
 | `go.work` version mismatch | LOW | go.work says `go 1.26` but modules require `go 1.26.0`; run `go work use` |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
+| `pkg/id` coverage dropped | LOW | 73.1% — ULID migration removed NewWithPrefix tests, new marshaling methods need coverage |
 
 ## Cleanup Done (Post-Migration)
 
@@ -420,7 +420,9 @@ Interfaces now return branded ID types instead of `string`:
 - Removed dead `reflect.Ptr` case in `catalog/schema.go`
 - Removed unused `handler` parameter from `dispatcher.Dispatch()`
 - Simplified `example/user/` to use `aggregate.EventSourcedRepository`
-- **Branded return types** (this session): `Event.ID()` → `id.EventID`, `Event.AggregateID()` → `id.AggregateID`, `Root.ID()` → `id.AggregateID`, `Command.AggregateID()` → `id.AggregateID`. All callers updated, redundant re-parses eliminated.
+- **Branded return types**: `Event.ID()` → `id.EventID`, `Event.AggregateID()` → `id.AggregateID`, `Root.ID()` → `id.AggregateID`, `Command.AggregateID()` → `id.AggregateID`. All callers updated, redundant re-parses eliminated.
+- **ULID migration**: `id.Of[T]` now wraps `cbid.ID[T, ulid.ULID]` instead of `cbid.ID[T, string]`. IDs are binary-sortable, time-ordered, 16-byte binary form. All serialization reimplemented locally. ~120 test fixtures migrated to valid ULIDs.
+- Removed `NewWithPrefix` and `PrefixString` — prefix incompatible with ULID format, function silently discarded the prefix parameter
 - Replace directives in go.mod files are NOT stale — `memory` replace needed for transitive test deps (core tests import memory)
 
 ## Migration State
@@ -449,12 +451,12 @@ These were identified but explicitly deferred because they affect all consumers 
 
 | Change | Reason |
 |--------|--------|
-| `Root.ID()` → return `id.AggregateID` instead of `string` | Breaking API change |
-| `Event.AggregateID()` → return `id.AggregateID` | Breaking API change |
-| `Event.ID()` → return `id.EventID` | Breaking API change |
-| `Command.AggregateID()` → return `id.AggregateID` | Breaking API change |
+| ~~`Root.ID()` → return `id.AggregateID` instead of `string`~~ | ✅ Done (commit `7cc3e20`) |
+| ~~`Event.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
+| ~~`Event.ID()` → return `id.EventID`~~ | ✅ Done (commit `7cc3e20`) |
+| ~~`Command.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
+| ~~`event.go:129` `aggregateID.IsZero`~~ | ✅ Done (now uses branded `id.AggregateID.IsZero()`) |
 | Stale `replace` directives in `middleware/go.mod`, `xtypes/go.mod` | Requires sibling `go-composable-business-types` repo |
-| `event.go:129` `aggregateID.IsZero` | Needs branded ID migration first |
 
 ## References
 

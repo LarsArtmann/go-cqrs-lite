@@ -50,7 +50,8 @@ go get github.com/larsartmann/go-cqrs-lite/xtypes
 | Dependency | Purpose | Module |
 |---|---|---|
 | `cockroachdb/errors` | Error wrapping | core |
-| `google/uuid` | UUID generation | core |
+| `oklog/ulid/v2` | ULID generation (binary-sortable, time-ordered) | core |
+| `go-composable-business-types` | Branded ID type backing | core |
 | `go-json-experiment/json` | JSON v2 | core |
 | `go-faster/yaml` | YAML marshaling | catalog only |
 
@@ -116,7 +117,7 @@ aggregateID := aggregate_id.New()
 
 | Module | Import Path | Purpose | Dependencies |
 |---|---|---|---|
-| **core** | `.../core/...` | CQRS types, dispatchers, event sourcing | errors, uuid, json |
+| **core** | `.../core/...` | CQRS types, dispatchers, event sourcing | errors, ulid, json |
 | **memory** | `.../memory` | In-memory store/bus/snapshot (testing) | core |
 | **catalog** | `.../catalog/...` | AsyncAPI + EventCatalog generation | core, yaml |
 | **middleware** | `.../middleware` | Logging, retry, validation, recovery, metrics | core |
