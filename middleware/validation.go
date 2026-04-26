@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -18,6 +19,20 @@ func CommandValidation(validate Validator) command.Middleware {
 			}
 
 			return next(ctx, cmd)
+		}
+	}
+}
+
+// EventValidation returns a middleware that validates events before handling.
+func EventValidation(validate Validator) event.Middleware {
+	return func(next event.Handler) event.Handler {
+		return func(ctx context.Context, evt event.Event) error {
+			err := validate(evt)
+			if err != nil {
+				return fmt.Errorf("validation failed for event %s: %w", evt.Type(), err)
+			}
+
+			return next(ctx, evt)
 		}
 	}
 }

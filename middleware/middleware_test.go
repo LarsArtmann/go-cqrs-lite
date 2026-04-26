@@ -327,6 +327,54 @@ func TestCommandValidation_Fail(t *testing.T) {
 	}
 }
 
+func TestEventValidation_Pass(t *testing.T) {
+	t.Parallel()
+
+	validate := func(_ any) error { return nil }
+	mw := EventValidation(validate)
+
+	called := false
+	handler := mw(func(_ context.Context, _ event.Event) error {
+		called = true
+		return nil
+	})
+
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	err = handler(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !called {
+		t.Error("handler was not called")
+	}
+}
+
+func TestEventValidation_Fail(t *testing.T) {
+	t.Parallel()
+
+	validate := func(_ any) error {
+		return errors.New("invalid event")
+	}
+	mw := EventValidation(validate)
+
+	handler := mw(failingEventHandler("should not be called"))
+
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	err = handler(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+}
+
 func TestCommandMetrics(t *testing.T) {
 	t.Parallel()
 
