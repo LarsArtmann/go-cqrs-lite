@@ -72,7 +72,7 @@ func (p *product) LoadEvents(events []event.Event) error {
 func (p *product) newEvent(eventType string, payload []byte) (*event.Core, error) {
 	return event.NewEvent(
 		event.Type(eventType),
-		id.MustParseAggregateID(p.ID()),
+		p.ID(),
 		productType,
 		p.Version()+1,
 		payload,
@@ -126,7 +126,7 @@ type createProductCmd struct {
 }
 
 func (c *createProductCmd) Type() command.Type  { return "product.create" }
-func (c *createProductCmd) AggregateID() string { return c.aggregateID.String() }
+func (c *createProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type restockProductCmd struct {
 	aggregateID id.AggregateID
@@ -134,7 +134,7 @@ type restockProductCmd struct {
 }
 
 func (c *restockProductCmd) Type() command.Type  { return "product.restock" }
-func (c *restockProductCmd) AggregateID() string { return c.aggregateID.String() }
+func (c *restockProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 func TestCQRSRoundtrip(t *testing.T) {
 	t.Parallel()

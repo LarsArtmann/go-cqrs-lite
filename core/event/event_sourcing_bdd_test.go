@@ -57,7 +57,7 @@ var _ = Describe("Event Store", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
-				Expect(loaded[0].AggregateID()).To(Equal(aggID.String()))
+				Expect(loaded[0].AggregateID()).To(Equal(aggID))
 				Expect(loaded[0].Version()).To(Equal(1))
 			})
 		})
@@ -372,7 +372,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
-				Expect(evt.AggregateID()).To(Equal(aggID.String()))
+				Expect(evt.AggregateID()).To(Equal(aggID))
 				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
 				Expect(evt.Version()).To(Equal(1))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
@@ -384,7 +384,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.Metadata().RequestID).To(Equal(id.MustParseRequestID("req-abc")))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api")))
 				Expect(evt.OccurredAt()).To(BeTemporally("<", time.Now().Add(time.Second)))
-				Expect(evt.ID()).ToNot(BeEmpty())
+				Expect(evt.ID().IsZero()).To(BeFalse())
 			})
 		})
 

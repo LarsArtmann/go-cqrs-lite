@@ -10,7 +10,7 @@ type Type string
 // Command represents a domain command.
 type Command interface {
 	Type() Type
-	AggregateID() string
+	AggregateID() id.AggregateID
 }
 
 // Core provides a default implementation.
@@ -23,7 +23,7 @@ type Core struct {
 func (c *Core) Type() Type { return c.commandType }
 
 // AggregateID returns the aggregate ID.
-func (c *Core) AggregateID() string { return c.aggregateID.String() }
+func (c *Core) AggregateID() id.AggregateID { return c.aggregateID }
 
 // New creates a new command.
 func New(commandType Type, aggregateID id.AggregateID) *Core {

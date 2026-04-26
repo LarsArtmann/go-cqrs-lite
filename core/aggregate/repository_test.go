@@ -65,7 +65,7 @@ func (o *order) Place(ctx context.Context) error {
 
 	evt, err := event.NewEvent(
 		"OrderPlaced",
-		id.MustParseAggregateID(o.ID()),
+		o.ID(),
 		orderAggregateType,
 		o.Version()+1,
 		payload,
@@ -83,7 +83,7 @@ func (o *order) Place(ctx context.Context) error {
 func (o *order) Ship(ctx context.Context) error {
 	evt, err := event.NewEvent(
 		"OrderShipped",
-		id.MustParseAggregateID(o.ID()),
+		o.ID(),
 		orderAggregateType,
 		o.Version()+1,
 		nil,

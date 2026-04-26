@@ -76,7 +76,7 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 
 	evt, err := event.NewEvent(
 		"ExpenseSubmitted",
-		id.MustParseAggregateID(e.ID()),
+		e.ID(),
 		expenseType,
 		e.Version()+1,
 		payload,
@@ -95,7 +95,7 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 func (e *expense) Approve(ctx context.Context) error {
 	evt, err := event.NewEvent(
 		"ExpenseApproved",
-		id.MustParseAggregateID(e.ID()),
+		e.ID(),
 		expenseType,
 		e.Version()+1,
 		nil,
@@ -113,7 +113,7 @@ func (e *expense) Approve(ctx context.Context) error {
 func (e *expense) Pay(ctx context.Context) error {
 	evt, err := event.NewEvent(
 		"ExpensePaid",
-		id.MustParseAggregateID(e.ID()),
+		e.ID(),
 		expenseType,
 		e.Version()+1,
 		nil,
@@ -140,11 +140,11 @@ type (
 )
 
 func (c *submitExpenseCmd) Type() command.Type   { return "expense.submit" }
-func (c *submitExpenseCmd) AggregateID() string  { return c.id.String() }
+func (c *submitExpenseCmd) AggregateID() id.AggregateID  { return c.id }
 func (c *approveExpenseCmd) Type() command.Type  { return "expense.approve" }
-func (c *approveExpenseCmd) AggregateID() string { return c.id.String() }
+func (c *approveExpenseCmd) AggregateID() id.AggregateID { return c.id }
 func (c *payExpenseCmd) Type() command.Type      { return "expense.pay" }
-func (c *payExpenseCmd) AggregateID() string     { return c.id.String() }
+func (c *payExpenseCmd) AggregateID() id.AggregateID     { return c.id }
 
 var _ = Describe("CQRS Flow", func() {
 	var (

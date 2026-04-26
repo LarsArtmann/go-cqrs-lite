@@ -49,8 +49,8 @@ func TestCore(t *testing.T) {
 	t.Parallel()
 
 	core := aggregate.NewCore(id.MustParseAggregateID("user-123"), event.AggregateType("User"))
-	if core.ID() != "user-123" {
-		t.Errorf("expected ID user-123, got %s", core.ID())
+	if core.ID() != id.MustParseAggregateID("user-123") {
+		t.Errorf("expected ID user-123, got %s", core.ID().String())
 	}
 
 	if core.Type() != "User" {
@@ -285,8 +285,8 @@ func TestCoreWithRealAggregateID(t *testing.T) {
 	aggID := id.NewAggregateID()
 	core := aggregate.NewCore(aggID, event.AggregateType("Order"))
 
-	if core.ID() != aggID.String() {
-		t.Errorf("expected ID %s, got %s", aggID.String(), core.ID())
+	if core.ID() != aggID {
+		t.Errorf("expected ID %s, got %s", aggID.String(), core.ID().String())
 	}
 
 	if core.Type() != "Order" {

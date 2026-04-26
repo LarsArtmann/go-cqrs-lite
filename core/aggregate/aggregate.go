@@ -11,7 +11,7 @@ import (
 
 // Root represents an aggregate root in DDD.
 type Root interface {
-	ID() string
+	ID() id.AggregateID
 	Type() event.AggregateType
 	Version() int
 	Apply(evt event.Event) error
@@ -37,8 +37,8 @@ func NewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
 	}
 }
 
-// ID returns the aggregate ID as a string.
-func (a *Core) ID() string { return a.id.String() }
+// ID returns the aggregate ID.
+func (a *Core) ID() id.AggregateID { return a.id }
 
 // Type returns the aggregate type.
 func (a *Core) Type() event.AggregateType { return a.aggregateType }

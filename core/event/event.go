@@ -37,9 +37,9 @@ type AggregateType string
 
 // Event represents a domain event with rich metadata.
 type Event interface {
-	ID() string
+	ID() id.EventID
 	Type() Type
-	AggregateID() string
+	AggregateID() id.AggregateID
 	AggregateType() AggregateType
 	Version() int
 	Payload() []byte
@@ -82,13 +82,13 @@ func NewMetadata() *Metadata {
 }
 
 // ID returns the event ID.
-func (e *Core) ID() string { return e.id.String() }
+func (e *Core) ID() id.EventID { return e.id }
 
 // Type returns the event type.
 func (e *Core) Type() Type { return e.eventType }
 
 // AggregateID returns the aggregate ID.
-func (e *Core) AggregateID() string { return e.aggregateID.String() }
+func (e *Core) AggregateID() id.AggregateID { return e.aggregateID }
 
 // AggregateType returns the aggregate type.
 func (e *Core) AggregateType() AggregateType { return e.aggregateType }

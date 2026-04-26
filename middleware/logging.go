@@ -54,7 +54,7 @@ func CommandLogging(logger Logger) command.Middleware {
 			lc := logContext{
 				prefix:      "command",
 				msgType:     string(cmd.Type()),
-				aggregateID: cmd.AggregateID(),
+				aggregateID: cmd.AggregateID().String(),
 			}
 
 			return logWithContext(logger, lc, func() error {
@@ -71,7 +71,7 @@ func EventLogging(logger Logger) event.Middleware {
 			lc := logContext{
 				prefix:      "event",
 				msgType:     string(evt.Type()),
-				aggregateID: evt.AggregateID(),
+				aggregateID: evt.AggregateID().String(),
 			}
 
 			return logWithContext(logger, lc, func() error {

@@ -241,8 +241,8 @@ func TestTypedEvent(t *testing.T) {
 			t.Error("Event() should return non-nil")
 		}
 
-		if e.AggregateID() != aggregateID.String() {
-			t.Errorf("expected aggregate ID %s, got %s", aggregateID.String(), e.AggregateID())
+		if e.AggregateID() != aggregateID {
+			t.Errorf("expected aggregate ID %s, got %s", aggregateID, e.AggregateID())
 		}
 	})
 
@@ -330,8 +330,8 @@ func TestTypedAggregate(t *testing.T) {
 			t.Error("Core() should return non-nil")
 		}
 
-		if core.ID() != aggregateID.String() {
-			t.Errorf("expected core ID %s, got %s", aggregateID.String(), core.ID())
+		if core.ID() != aggregateID {
+			t.Errorf("expected core ID %s, got %s", aggregateID, core.ID())
 		}
 	})
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // Repository loads and saves aggregate roots.
@@ -50,21 +49,18 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 		return nil
 	}
 
-	aggregateID, err := id.ParseAggregateID(root.ID())
-	if err != nil {
-		return fmt.Errorf("parse aggregate ID for save: %w", err)
-	}
+	aggregateID := root.ID()
 
 	expectedVersion := event.Version(root.Version() - len(changes))
 
-	err = r.store.Save(ctx, root.Type(), aggregateID, changes, expectedVersion)
+	err := r.store.Save(ctx, root.Type(), aggregateID, changes, expectedVersion)
 	if err != nil {
-		return fmt.Errorf("save %s %s: %w", root.Type(), root.ID(), err)
+		return fmt.Errorf("save %s %s: %w", root.Type(), root.ID().String(), err)
 	}
 
 	err = r.bus.Publish(ctx, changes...)
 	if err != nil {
-		return fmt.Errorf("publish events for %s %s: %w", root.Type(), root.ID(), err)
+		return fmt.Errorf("publish events for %s %s: %w", root.Type(), root.ID().String(), err)
 	}
 
 	root.MarkChangesAsCommitted()
@@ -77,14 +73,11 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 // If it does not, Load returns an error — aggregates embedding Core should
 // delegate to Core.LoadFromHistory via the HistoryLoader interface.
 func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
-	aggregateID, err := id.ParseAggregateID(root.ID())
-	if err != nil {
-		return fmt.Errorf("parse aggregate ID for load: %w", err)
-	}
+	aggregateID := root.ID()
 
 	events, err := r.store.Load(ctx, root.Type(), aggregateID)
 	if err != nil {
-		return fmt.Errorf("load events for %s %s: %w", root.Type(), root.ID(), err)
+		return fmt.Errorf("load events for %s %s: %w", root.Type(), root.ID().String(), err)
 	}
 
 	loader, ok := root.(HistoryLoader)
@@ -94,7 +87,7 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 			"aggregate %s %s must implement HistoryLoader for proper version tracking; "+
 				"embed Core and delegate: func (a *%s) LoadEvents(events []event.Event) error { return a.Core.LoadFromHistory(a, events) }",
 			root.Type(),
-			root.ID(),
+			root.ID().String(),
 			root.Type(),
 		)
 	}
@@ -105,7 +98,7 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 			"replay %d events for %s %s: %w",
 			len(events),
 			root.Type(),
-			root.ID(),
+			root.ID().String(),
 			err,
 		)
 	}

@@ -17,7 +17,7 @@ type testCommand struct {
 }
 
 func (c *testCommand) Type() command.Type  { return "test.cmd" }
-func (c *testCommand) AggregateID() string { return c.aggregateID.String() }
+func (c *testCommand) AggregateID() id.AggregateID { return c.aggregateID }
 
 type testLogger struct {
 	mu     sync.Mutex

@@ -22,7 +22,7 @@ func TestNewEvent_Valid(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if evt.ID() == "" {
+	if evt.ID().IsZero() {
 		t.Error("event ID should not be empty")
 	}
 
@@ -30,7 +30,7 @@ func TestNewEvent_Valid(t *testing.T) {
 		t.Errorf("expected type UserCreated, got %s", evt.Type())
 	}
 
-	if evt.AggregateID() != "user-123" {
+	if evt.AggregateID() != id.MustParseAggregateID("user-123") {
 		t.Errorf("expected aggregate ID user-123, got %s", evt.AggregateID())
 	}
 
