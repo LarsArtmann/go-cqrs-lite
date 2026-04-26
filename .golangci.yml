@@ -181,17 +181,11 @@ linters:
         - h
         - q
         - fn
-    wrapcheck:
-      local-prefixes:
-        - github.com/larsartmann/go-cqrs-lite
+  exclusions:
+    rules:
+      - linters:
+          - err113
+        path: _test\.go$
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
-  exclude-rules:
-    - linters:
-        - err113
-      path: _test\.go$
-    - linters:
-        - wrapcheck
-      path: _test\.go$
-formatters:

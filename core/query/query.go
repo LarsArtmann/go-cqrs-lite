@@ -23,11 +23,5 @@ func New(queryType Type) *Core {
 	return &Core{queryType: queryType}
 }
 
-// Result contains query results.
-type Result[T any] struct {
-	Data  T
-	Error error
-}
-
 // Middleware wraps query handlers for cross-cutting concerns.
 type Middleware func(func(context.Context, Query) (any, error)) func(context.Context, Query) (any, error)

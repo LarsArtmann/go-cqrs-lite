@@ -147,7 +147,7 @@ make check         # fmt + imports + lint + build + test
 | Package                    | Purpose                                        | Key Types                                               |
 | -------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
 | `core/command/`            | Command dispatch and handling                  | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core` |
-| `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]` |
+| `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware` |
 | `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata` |
 | `core/aggregate/`          | Aggregate roots and repository                 | `Root`, `Repository`, `Core`, `EventSourcedRepository`  |
 | `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID` |
@@ -298,18 +298,19 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                  | Coverage |
 | ------------------------ | -------- |
+| `catalog/adapters`       | 98.8%    |
+| `memory`                 | 99.2%    |
 | `catalog/asyncapi`       | 96.3%    |
 | `xtypes`                 | 95.7%    |
-| `event`                  | 95.4%    |
-| `query`                  | 91.5%    |
 | `catalog`                | 91.2%    |
+| `query`                  | 91.5%    |
 | `catalog/eventcatalog`   | 89.7%    |
+| `event`                  | 89.0%    |
 | `pkg/id`                 | 85.4%    |
 | `middleware`              | 84.6%    |
 | `command`                | 84.4%    |
-| `aggregate`              | 77.3%    |
 | `internal/dispatcher`    | 77.4%    |
-| `catalog/adapters`       | 66.0%    |
+| `aggregate`              | 77.3%    |
 
 ## Catalog System Architecture
 
@@ -355,10 +356,22 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 | Issue | Severity | Detail |
 |-------|----------|--------|
-| `pkg/errors` dead code | LOW | Defined in core but never imported anywhere |
-| `catalog/adapters` coverage 66% | LOW | Lowest tested package |
+| `catalog/adapters` coverage | LOW | Was 66%, now 98.8% after adding adapter tests |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
+| LSP noise from examples | LOW | gopls loads example/ modules not in go.work, producing diagnostic errors |
+
+## Cleanup Done (Post-Migration)
+
+- Removed `query.Result[T]` (dead code, zero callers)
+- Removed unused error sentinels: `ErrEventNotFound`, `ErrInvalidEventType`, `ErrCommandValidation`
+- Removed unused `Streamer` interface
+- Removed vestigial `store_config.go`
+- Fixed `.golangci.yml` v2 schema errors (removed stale `wrapcheck`, `formatters`, migrated `exclude-rules` to `exclusions.rules`)
+- Removed redundant `//nolint:err113` from test files (now excluded via config)
+- Added CONTRIBUTING.md for multi-module workflow
+- Added CI badges to README.md
+- Replace directives in go.mod files are NOT stale — `memory` replace needed for transitive test deps (core tests import memory)
 
 ## Migration State
 

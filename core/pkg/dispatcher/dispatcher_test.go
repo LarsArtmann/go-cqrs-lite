@@ -59,7 +59,6 @@ func TestLifecycleMixin_CheckClosed(t *testing.T) {
 	t.Parallel()
 
 	m := &LifecycleMixin{}
-	//nolint:err113
 	closedErr := errors.New("closed")
 
 	err := m.CheckClosed(closedErr)
@@ -97,7 +96,6 @@ func TestLifecycle_CheckClosed(t *testing.T) {
 	t.Parallel()
 
 	l := &Lifecycle{}
-	//nolint:err113
 	closedErr := errors.New("closed")
 
 	err := l.CheckClosed(closedErr)

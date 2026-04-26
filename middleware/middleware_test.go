@@ -67,7 +67,6 @@ func panicCommandHandler(msg string) command.Handler {
 
 func failingCommandHandler(msg string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
-		//nolint:err113
 		return errors.New(msg)
 	}
 }
@@ -80,7 +79,6 @@ func noopEventHandler() event.Handler {
 
 func failingEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
-		//nolint:err113
 		return errors.New(msg)
 	}
 }
@@ -224,7 +222,6 @@ func TestCommandRetry_Success(t *testing.T) {
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		callCount++
 		if callCount < 2 {
-			//nolint:err113
 			return errors.New("transient")
 		}
 
@@ -275,7 +272,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	callCount := 0
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		callCount++
-		//nolint:err113
+
 		return errors.New("non-retryable")
 	})
 
@@ -316,7 +313,6 @@ func TestCommandValidation_Fail(t *testing.T) {
 	t.Parallel()
 
 	validate := func(_ any) error {
-		//nolint:err113
 		return errors.New("invalid")
 	}
 	mw := CommandValidation(validate)
