@@ -23,6 +23,7 @@ package event
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -118,9 +119,7 @@ func (e *Core) Metadata() *Metadata {
 	if e.metadata.Custom != nil {
 		cp.Custom = make(map[MetadataKey]string, len(e.metadata.Custom))
 
-		for k, v := range e.metadata.Custom {
-			cp.Custom[k] = v
-		}
+		maps.Copy(cp.Custom, e.metadata.Custom)
 	}
 
 	return &cp
