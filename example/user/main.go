@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
+	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -18,7 +19,7 @@ func main() {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	cmdDispatcher := command.NewDispatcher()
-	repo := NewRepository(store, bus)
+	repo := aggregate.NewRepository(store, bus)
 
 	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		fmt.Printf("  [Event] %s (%s) v%d\n", evt.Type(), evt.AggregateID(), evt.Version())
@@ -45,8 +46,8 @@ func main() {
 	}
 
 	fmt.Println("\n=== Rebuilding from Events ===")
-	user, err := repo.Load(ctx, userID)
-	if err != nil {
+	user := NewUser(userID)
+	if err := repo.Load(ctx, user); err != nil {
 		log.Fatalf("load user: %v", err)
 	}
 	fmt.Printf("  ID: %s\n", user.ID())

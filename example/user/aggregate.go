@@ -46,6 +46,10 @@ func (u *User) Apply(evt event.Event) error {
 	return nil
 }
 
+func (u *User) LoadEvents(events []event.Event) error {
+	return u.Core.LoadFromHistory(u, events)
+}
+
 func (u *User) Create(ctx context.Context, name, email string) error {
 	if name == "" {
 		return fmt.Errorf("name is required")
