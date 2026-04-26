@@ -51,27 +51,24 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	_ = ctx // Context available for tracing/logging but not required for basic dispatch
-
 	err := d.base.Lifecycle().CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return nil, errors.Wrapf(err, "dispatching query %s", query.Type())
 	}
 
-	handler, ok := d.base.GetHandler(string(query.Type()))
+	_, ok := d.base.GetHandler(string(query.Type()))
 	if !ok {
 		return nil, errors.Wrapf(ErrQueryNotSupported, "query type: %s", query.Type())
 	}
 
 	wrapped, err := d.base.Dispatch(
 		string(query.Type()),
-		handler,
 		func(m Middleware, h Handler) Handler {
 			return m(h)
 		},
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "wrapping handler for query %s", query.Type())
+		return nil, errors.Wrapf(err, "query type: %s", query.Type())
 	}
 
 	return wrapped(ctx, query)

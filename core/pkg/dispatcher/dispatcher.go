@@ -153,7 +153,7 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 // Dispatch sends a request to its registered handler and returns the wrapped handler.
 // The caller is responsible for invoking the wrapped handler with appropriate arguments.
 //nolint:ireturn // generic interface return by design
-func (d *Dispatcher[H, M]) Dispatch(t string, _ H, wrap func(M, H) H) (H, error) {
+func (d *Dispatcher[H, M]) Dispatch(t string, wrap func(M, H) H) (H, error) {
 	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		var zero H
