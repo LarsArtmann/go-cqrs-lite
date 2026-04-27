@@ -7,7 +7,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 | Item          | Value                                  |
 | ------------- | -------------------------------------- |
 | Language      | Go 1.26                                |
-| Modules       | `core`, `memory`, `catalog`, `middleware`, `xtypes` |
+| Modules       | `core`, `memory`, `catalog`, `middleware`, `xtypes`, `testhelpers` |
 | Build         | `make build` or `go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...` |
 | Test          | `make test` or see "Testing" below     |
 | Lint          | `make lint` or `golangci-lint run ./...` |
@@ -17,7 +17,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 5 independent modules:
+Multi-module Go workspace with 6 independent modules:
 
 ```
 go-cqrs-lite/
@@ -72,6 +72,10 @@ go-cqrs-lite/
 │   ├── aggregate.go                 # TypedAggregate
 │   └── id.go                        # Re-exports id types, CommandID
 │
+├── testhelpers/                     # github.com/larsartmann/go-cqrs-lite/testhelpers
+│   └── go.mod                       # deps: core
+│   └── helpers.go                   # Shared test utilities (AppendEventsHandler, Noop*, Failing*, etc.)
+│
 ├── example/                         # standalone example modules
 │   ├── user/
 │   └── catalog/
@@ -85,7 +89,7 @@ go-cqrs-lite/
 
 From root with go.work:
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... ./testhelpers/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -182,6 +186,20 @@ make check         # fmt + imports + lint + build + test
 | Package   | Purpose                          | Key Types                                    |
 | --------- | -------------------------------- | -------------------------------------------- |
 | `xtypes/` | Typed wrappers with branded IDs  | `TypedCommand`, `TypedEvent`, `TypedAggregate`, `EventBuilder`, `CommandID` |
+
+### Testhelpers Module (`testhelpers/`)
+
+| Helper | Purpose |
+|--------|----------|
+| `AppendEventsHandler` | Bus handler that collects events into a slice |
+| `NoopCommandHandler` / `NoopEventHandler` | No-op handlers for middleware tests |
+| `FailingCommandHandler` / `FailingEventHandler` | Handlers that always error |
+| `PanicCommandHandler` / `PanicEventHandler` | Handlers that panic |
+| `CallbackCommandHandler` | Handler that sets a bool flag |
+| `CommandMiddleware` / `EventMiddleware` | Call-order tracking middleware |
+| `TestMetrics` | Metrics collector for testing |
+
+`core/internal/testhelpers` re-exports from this module for backward compatibility.
 
 ## Design Principles
 
@@ -316,6 +334,17 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `internal/dispatcher`    | 77.4%    |
 | `aggregate`              | 77.3%    |
 
+## Module Dependency Graph
+
+```
+testhelpers → core
+memory      → core + testhelpers
+middleware  → core + testhelpers
+catalog    → core (via cattest internal helpers)
+core       → memory + testhelpers
+xtypes     → standalone
+```
+
 ## Catalog System Architecture
 
 The `catalog` module provides automatic documentation generation from Go CQRS types to AsyncAPI 3.0 and EventCatalog formats.
@@ -398,7 +427,7 @@ Interfaces now return branded ID types instead of `string`:
 |-------|----------|--------|
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
-| `go.work` version mismatch | LOW | go.work says `go 1.26` but modules require `go 1.26.0`; run `go work use` |
+| `go.work` version mismatch | LOW | FIXED — go.work now tracked in VCS |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
 | `pkg/id` coverage | LOW | 73.1% — missing tests for `ULID()`, `Get()`, `Parse`/`MustParse` on `CausationID`, `CorrelationID`, `EventID`, `RequestID` |
@@ -426,7 +455,10 @@ Interfaces now return branded ID types instead of `string`:
 - **Branded return types**: `Event.ID()` → `id.EventID`, `Event.AggregateID()` → `id.AggregateID`, `Root.ID()` → `id.AggregateID`, `Command.AggregateID()` → `id.AggregateID`. All callers updated, redundant re-parses eliminated.
 - **ULID migration**: `id.Of[T]` now wraps `cbid.ID[T, ulid.ULID]` instead of `cbid.ID[T, string]`. IDs are binary-sortable, time-ordered, 16-byte binary form. All serialization reimplemented locally. ~120 test fixtures migrated to valid ULIDs.
 - Removed `NewWithPrefix` and `PrefixString` — prefix incompatible with ULID format, function silently discarded the prefix parameter
-- Replace directives in go.mod files are NOT stale — `memory` replace needed for transitive test deps (core tests import memory)
+- **Deduplication campaign**: Resolved ALL code duplication. 16 → 0 clone groups (art-dupl -t 27). Created shared `testhelpers/` module at repo root to break `internal` package boundary. `core/internal/testhelpers` now re-exports from shared module.
+- **go.work tracked in VCS**: Removed from .gitignore — multi-module workspace needs reproducible structure.
+- **Lint-clean**: All 22 lint issues resolved across core, catalog. Added `gochecknoglobals` exclusion for testhelpers re-export shim.
+- **query.Handler type alias**: Middleware uses `query.Handler` type alias for consistency.
 
 ## Migration State
 
@@ -443,7 +475,7 @@ The monorepo is mid-migration from a single module to multi-module. Current stat
 | 6 | Watermill module (pub/sub) | Planned |
 | 7 | Projection module (samber/ro internally) | Planned |
 | 8 | Snapshot module (SQL-backed) | Planned |
-| 9 | Test utilities module | Planned |
+| 9 | Test utilities module | Done — `testhelpers/` at repo root |
 | 10 | Tag releases | Planned |
 
 See `docs/planning/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md` for the full migration plan.
