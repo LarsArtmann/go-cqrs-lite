@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 var errHandlerFailed = errors.New("handler failed")
@@ -25,15 +26,6 @@ var testBusUserAggID = id.MustParseAggregateID( //nolint:gochecknoglobals
 var testBusOrderAggID = id.MustParseAggregateID( //nolint:gochecknoglobals
 	"01HK1541W8PVV4E88DV993TP2A",
 )
-
-// appendEventsHandler returns a handler that appends received events to *events.
-func appendEventsHandler(events *[]event.Event) event.Handler {
-	return func(_ context.Context, evt event.Event) error {
-		*events = append(*events, evt)
-
-		return nil
-	}
-}
 
 // busMiddleware returns middleware that tracks call order for event bus handlers.
 func busMiddleware(callOrder *[]string, name string) func(next event.Handler) event.Handler {
@@ -54,7 +46,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 
 	var received []event.Event
 
-	err := bus.Subscribe("UserCreated", appendEventsHandler(&received))
+	err := bus.Subscribe("UserCreated", testhelpers.AppendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -79,7 +71,7 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 
 	var received []event.Event
 
-	err := bus.SubscribeAll(appendEventsHandler(&received))
+	err := bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

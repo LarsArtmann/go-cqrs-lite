@@ -1,52 +1,29 @@
 package testhelpers
 
 import (
-	"context"
-	"errors"
-	"sync"
 	"testing"
-	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	th "github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-// TestLogger is a logger for testing that captures log messages.
-type TestLogger struct {
-	mu     sync.Mutex
-	Logs   []string
-	Errors []string
-}
+// Re-export types from shared testhelpers module.
+type TestMetrics = th.TestMetrics
 
-func (l *TestLogger) Info(msg string, _ ...any) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+// Re-export functions from shared testhelpers module.
+var (
+	AppendEventsHandler       = th.AppendEventsHandler
+	NoopCommandHandler        = th.NoopCommandHandler
+	NoopEventHandler          = th.NoopEventHandler
+	FailingCommandHandler     = th.FailingCommandHandler
+	FailingEventHandler       = th.FailingEventHandler
+	PanicCommandHandler       = th.PanicCommandHandler
+	PanicEventHandler         = th.PanicEventHandler
+	CallbackCommandHandler    = th.CallbackCommandHandler
+	CommandMiddleware         = th.CommandMiddleware
+	EventMiddleware           = th.EventMiddleware
+)
 
-	l.Logs = append(l.Logs, msg)
-}
-
-func (l *TestLogger) Error(msg string, _ ...any) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	l.Errors = append(l.Errors, msg)
-}
-
-// TestMetrics is a metrics collector for testing.
-type TestMetrics struct {
-	mu        sync.Mutex
-	Records   []string
-	Durations []time.Duration
-}
-
-func (m *TestMetrics) Observe(name string, duration time.Duration, _ ...string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.Records = append(m.Records, name)
-	m.Durations = append(m.Durations, duration)
-}
-
+// AssertCallOrder asserts the call order matches expected.
 func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 	t.Helper()
 
@@ -56,83 +33,5 @@ func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 
 			break
 		}
-	}
-}
-
-func NoopCommandHandler() command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		return nil
-	}
-}
-
-func NoopEventHandler() event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		return nil
-	}
-}
-
-func CallbackCommandHandler(called *bool) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		*called = true
-
-		return nil
-	}
-}
-
-func PanicCommandHandler(msg string) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		panic(msg)
-	}
-}
-
-func PanicEventHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		panic(msg)
-	}
-}
-
-func FailingCommandHandler(msg string) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		//nolint:err113
-		return errors.New(msg)
-	}
-}
-
-func FailingEventHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		//nolint:err113
-		return errors.New(msg)
-	}
-}
-
-// EventMiddleware creates middleware that tracks call order for event handlers.
-func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) event.Handler {
-	return func(h event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			*callOrder = append(*callOrder, name)
-
-			return h(ctx, evt)
-		}
-	}
-}
-
-// CommandMiddleware creates middleware that tracks call order for command handlers.
-func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler) command.Handler {
-	return func(h command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			*callOrder = append(*callOrder, name)
-
-			return h(ctx, cmd)
-		}
-	}
-}
-
-// AppendEventsHandler returns a bus handler that appends received events to *events.
-// Use as: var evts []event.Event; bus.SubscribeAll(testhelpers.AppendEventsHandler(&evts))
-func AppendEventsHandler(events *[]event.Event) event.Handler {
-	return func(_ context.Context, evt event.Event) error {
-		*events = append(*events, evt)
-
-		return nil
 	}
 }

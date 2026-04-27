@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/cockroachdb/errors v1.12.0
 	github.com/larsartmann/go-cqrs-lite/core v0.0.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0
 )
 
 require (
@@ -26,4 +27,5 @@ require (
 replace (
 	github.com/larsartmann/go-composable-business-types => github.com/larsartmann/go-composable-business-types v0.1.0
 	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

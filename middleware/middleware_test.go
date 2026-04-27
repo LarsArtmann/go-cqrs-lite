@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type testCommand struct {
@@ -39,71 +40,13 @@ func (l *testLogger) Error(msg string, _ ...any) {
 	l.Errors = append(l.Errors, msg)
 }
 
-type testMetrics struct {
-	mu        sync.Mutex
-	Records   []string
-	Durations []time.Duration
-}
-
-func (m *testMetrics) Observe(name string, duration time.Duration, _ ...string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.Records = append(m.Records, name)
-	m.Durations = append(m.Durations, duration)
-}
-
-func noopCommandHandler() command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		return nil
-	}
-}
-
-func panicCommandHandler(msg string) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		panic(msg)
-	}
-}
-
-func failingCommandHandler(msg string) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		return errors.New(msg)
-	}
-}
-
-func noopEventHandler() event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		return nil
-	}
-}
-
-func failingEventHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		return errors.New(msg)
-	}
-}
-
-func panicEventHandler(msg string) event.Handler {
-	return func(_ context.Context, _ event.Event) error {
-		panic(msg)
-	}
-}
-
-func callbackCommandHandler(called *bool) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		*called = true
-
-		return nil
-	}
-}
-
 func TestCommandLogging_Success(t *testing.T) {
 	t.Parallel()
 
 	logger := &testLogger{}
 	mw := CommandLogging(logger)
 
-	handler := mw(noopCommandHandler())
+	handler := mw(testhelpers.NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -123,7 +66,7 @@ func TestCommandLogging_Error(t *testing.T) {
 	logger := &testLogger{}
 	cmdMw := CommandLogging(logger)
 
-	handler := cmdMw(failingCommandHandler("boom"))
+	handler := cmdMw(testhelpers.FailingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -143,7 +86,7 @@ func TestEventLogging_Success(t *testing.T) {
 	logger := &testLogger{}
 	mw := EventLogging(logger)
 
-	handler := mw(noopEventHandler())
+	handler := mw(testhelpers.NoopEventHandler())
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -164,7 +107,7 @@ func TestCommandRecovery_NoPanic(t *testing.T) {
 	t.Parallel()
 
 	mw := CommandRecovery()
-	handler := mw(noopCommandHandler())
+	handler := mw(testhelpers.NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -178,7 +121,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 	t.Parallel()
 
 	mw := CommandRecovery()
-	handler := mw(panicCommandHandler("boom"))
+	handler := mw(testhelpers.PanicCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -196,7 +139,7 @@ func TestEventRecovery_Panic(t *testing.T) {
 	t.Parallel()
 
 	mw := EventRecovery()
-	handler := mw(panicEventHandler("event boom"))
+	handler := mw(testhelpers.PanicEventHandler("event boom"))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -250,7 +193,7 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 
 	cmdMw := CommandRetry(config)
 
-	handler := cmdMw(failingCommandHandler("always fail"))
+	handler := cmdMw(testhelpers.FailingCommandHandler("always fail"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -295,7 +238,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 	mw := CommandValidation(validate)
 
 	called := false
-	handler := mw(callbackCommandHandler(&called))
+	handler := mw(testhelpers.CallbackCommandHandler(&called))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -317,7 +260,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 	}
 	mw := CommandValidation(validate)
 
-	handler := mw(failingCommandHandler("should not be called"))
+	handler := mw(testhelpers.FailingCommandHandler("should not be called"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -363,7 +306,7 @@ func TestEventValidation_Fail(t *testing.T) {
 	}
 	mw := EventValidation(validate)
 
-	handler := mw(failingEventHandler("should not be called"))
+	handler := mw(testhelpers.FailingEventHandler("should not be called"))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -379,10 +322,10 @@ func TestEventValidation_Fail(t *testing.T) {
 func TestCommandMetrics(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testMetrics{}
+	metrics := &testhelpers.TestMetrics{}
 	mw := CommandMetrics(metrics)
 
-	handler := mw(noopCommandHandler())
+	handler := mw(testhelpers.NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -403,10 +346,10 @@ func TestCommandMetrics(t *testing.T) {
 func TestEventMetrics(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testMetrics{}
+	metrics := &testhelpers.TestMetrics{}
 	mw := EventMetrics(metrics)
 
-	handler := mw(failingEventHandler("middleware failure"))
+	handler := mw(testhelpers.FailingEventHandler("middleware failure"))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
