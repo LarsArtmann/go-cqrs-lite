@@ -39,25 +39,28 @@ func newExpense(expenseID id.AggregateID) *expense {
 }
 
 // setupCQRSComponents creates fresh store, bus, and repository for testing.
-func setupCQRSComponents() (context.Context, *memory.MemoryStore, *memory.MemoryBus, *aggregate.EventSourcedRepository) {
-	ctx := context.Background()
+func setupCQRSComponents() (*memory.MemoryStore, *aggregate.EventSourcedRepository) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	repo := aggregate.NewRepository(store, bus)
 
-	return ctx, store, bus, repo
+	return store, repo
 }
 
 // registerSubmitExpenseHandler registers the expense.submit command handler.
-func registerSubmitExpenseHandler(dispatcher *command.Dispatcher, repo *aggregate.EventSourcedRepository) {
-	dispatcher.Register(
+func registerSubmitExpenseHandler(
+	ctx context.Context,
+	dispatcher *command.Dispatcher,
+	repo *aggregate.EventSourcedRepository,
+) {
+	_ = dispatcher.Register(
 		"expense.submit",
 		func(_ context.Context, cmd command.Command) error {
 			c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
 			e := newExpense(c.id)
-			Expect(e.Submit(context.Background(), c.description, c.amount)).To(Succeed())
+			Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
 
-			return repo.Save(context.Background(), e)
+			return repo.Save(ctx, e)
 		},
 	)
 }
@@ -196,7 +199,8 @@ var _ = Describe("CQRS Flow", func() {
 		Context("when I submit a new expense", func() {
 			It("should persist the event and publish it to the bus", func() {
 				expenseID := id.NewAggregateID()
-				registerSubmitExpenseHandler(dispatcher, repo)
+
+				registerSubmitExpenseHandler(ctx, dispatcher, repo)
 
 				Expect(dispatcher.Dispatch(ctx, &submitExpenseCmd{
 					id: expenseID, description: "Flight to Berlin", amount: 349.50,
@@ -218,7 +222,8 @@ var _ = Describe("CQRS Flow", func() {
 
 			BeforeEach(func() {
 				expenseID = id.NewAggregateID()
-				registerSubmitExpenseHandler(dispatcher, repo)
+
+				registerSubmitExpenseHandler(ctx, dispatcher, repo)
 
 				Expect(
 					dispatcher.Register(
@@ -361,7 +366,8 @@ var _ = Describe("Aggregate Repository", func() {
 	)
 
 	BeforeEach(func() {
-		ctx, store, _, repo = setupCQRSComponents()
+		ctx = context.Background()
+		store, repo = setupCQRSComponents()
 	})
 
 	Describe("As a developer managing aggregate lifecycle", func() {
@@ -434,7 +440,8 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 	)
 
 	BeforeEach(func() {
-		ctx, store, _, repo = setupCQRSComponents()
+		ctx = context.Background()
+		store, repo = setupCQRSComponents()
 	})
 
 	Describe("As a developer verifying domain correctness", func() {
