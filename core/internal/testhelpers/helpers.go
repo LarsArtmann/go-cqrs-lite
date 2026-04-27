@@ -6,21 +6,20 @@ import (
 	th "github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-// Re-export types from shared testhelpers module.
+// TestMetrics is a type alias re-exported from the shared testhelpers module.
 type TestMetrics = th.TestMetrics
 
-// Re-export functions from shared testhelpers module.
 var (
-	AppendEventsHandler       = th.AppendEventsHandler
-	NoopCommandHandler        = th.NoopCommandHandler
-	NoopEventHandler          = th.NoopEventHandler
-	FailingCommandHandler     = th.FailingCommandHandler
-	FailingEventHandler       = th.FailingEventHandler
-	PanicCommandHandler       = th.PanicCommandHandler
-	PanicEventHandler         = th.PanicEventHandler
-	CallbackCommandHandler    = th.CallbackCommandHandler
-	CommandMiddleware         = th.CommandMiddleware
-	EventMiddleware           = th.EventMiddleware
+	AppendEventsHandler    = th.AppendEventsHandler
+	NoopCommandHandler     = th.NoopCommandHandler
+	NoopEventHandler       = th.NoopEventHandler
+	FailingCommandHandler  = th.FailingCommandHandler
+	FailingEventHandler    = th.FailingEventHandler
+	PanicCommandHandler    = th.PanicCommandHandler
+	PanicEventHandler      = th.PanicEventHandler
+	CallbackCommandHandler = th.CallbackCommandHandler
+	CommandMiddleware      = th.CommandMiddleware
+	EventMiddleware        = th.EventMiddleware
 )
 
 // AssertCallOrder asserts the call order matches expected.

@@ -208,6 +208,9 @@ linters:
                 - thelper
                 - exhaustruct
                 - gosec
+            - path: internal/testhelpers/helpers\.go$
+              linters:
+                - gochecknoglobals
             - path: schema\.go$
               linters:
                 - exhaustruct
