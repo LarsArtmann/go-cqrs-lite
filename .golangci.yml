@@ -200,6 +200,7 @@ linters:
                 - wrapcheck
                 - tagalign
                 - gosec
+                - goconst
             - path: internal/evtest/
               linters:
                 - thelper

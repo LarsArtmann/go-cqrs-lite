@@ -71,7 +71,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 		t.Fatal("missing receiveCreateOrder operation")
 	}
 
-	if op.Action != "receive" { //nolint:goconst
+	if op.Action != "receive" {
 		t.Errorf("operation action = %q, want %q", op.Action, "receive")
 	}
 
@@ -98,7 +98,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 		t.Fatalf("schema is not a map: %T", schema)
 	}
 
-	if schemaMap["type"] != "object" { //nolint:goconst
+	if schemaMap["type"] != "object" {
 		t.Errorf("schema type = %v, want %q", schemaMap["type"], "object")
 	}
 }

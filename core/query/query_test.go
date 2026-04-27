@@ -17,7 +17,9 @@ func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
 	}
 }
 
-func registerCallOrderHandler[T any](d *query.Dispatcher, queryType string, callOrder *[]string, result T) {
+func registerCallOrderHandler[T any](
+	d *query.Dispatcher, queryType string, callOrder *[]string, result T,
+) {
 	err := d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
 		*callOrder = append(*callOrder, "handler")
 

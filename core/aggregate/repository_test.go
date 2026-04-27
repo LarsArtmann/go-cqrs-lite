@@ -46,7 +46,7 @@ func (o *order) Apply(evt event.Event) error {
 
 		o.status = p.Status
 	case "OrderShipped":
-		o.status = "shipped" //nolint:goconst
+		o.status = "shipped"
 	}
 
 	return nil

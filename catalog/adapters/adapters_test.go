@@ -68,7 +68,7 @@ func TestBuilder_AddCommand(t *testing.T) {
 		t.Errorf("kind = %v, want command", cmdMsg.Kind)
 	}
 
-	if cmdMsg.Name != "CreateUser" { //nolint:goconst
+	if cmdMsg.Name != "CreateUser" {
 		t.Errorf("name = %q, want CreateUser", cmdMsg.Name)
 	}
 
