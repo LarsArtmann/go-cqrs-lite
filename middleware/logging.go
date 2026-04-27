@@ -83,7 +83,7 @@ func EventLogging(logger Logger) event.Middleware {
 
 // QueryLogging returns a query middleware that logs dispatch details with timing.
 func QueryLogging(logger Logger) query.Middleware {
-	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			start := time.Now()
 

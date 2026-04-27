@@ -51,7 +51,7 @@ func EventMetrics(recorder MetricsRecorder) event.Middleware {
 
 // QueryMetrics returns a middleware that records query handler metrics.
 func QueryMetrics(recorder MetricsRecorder) query.Middleware {
-	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			start := time.Now()
 			result, err := next(ctx, q)

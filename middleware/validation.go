@@ -39,7 +39,7 @@ func EventValidation(validate Validator) event.Middleware {
 
 // QueryValidation returns a middleware that validates queries before dispatch.
 func QueryValidation(validate Validator) query.Middleware {
-	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			err := validate(q)
 			if err != nil {

@@ -34,7 +34,7 @@ func EventRetry(config RetryConfig) event.Middleware {
 
 // QueryRetry returns a query middleware that retries on retryable errors.
 func QueryRetry(config RetryConfig) query.Middleware {
-	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			var result any
 

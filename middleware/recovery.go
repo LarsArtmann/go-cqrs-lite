@@ -43,7 +43,7 @@ func EventRecovery() event.Middleware {
 
 // QueryRecovery returns a query middleware that recovers from panics.
 func QueryRecovery() query.Middleware {
-	return func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(next query.Handler) query.Handler {
 		//nolint:nonamedreturns // required for defer/recover to modify return values
 		return func(ctx context.Context, q query.Query) (result any, err error) {
 			defer func() {
