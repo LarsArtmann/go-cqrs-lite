@@ -14,8 +14,8 @@
 # Dependency directories
 vendor/
 
-# Go workspace file
-go.work
+# Go workspace file (local only)
+go.work.sum
 
 # Build directories
 /bin/
