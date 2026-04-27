@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
@@ -148,11 +149,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 
 	var busEvents []event.Event
 
-	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		busEvents = append(busEvents, evt)
-
-		return nil
-	})
+	_ = bus.SubscribeAll(testhelpers.AppendEventsHandler(&busEvents))
 
 	err := dispatcher.Register(
 		"product.create",

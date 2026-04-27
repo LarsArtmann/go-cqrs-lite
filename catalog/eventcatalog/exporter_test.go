@@ -580,13 +580,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		"Order was created",
 		catalog.Sends,
 	)
-	reg.AddQuery("order-svc", catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      "GetOrder",
-		Name:    "GetOrder",
-		Version: "1.0.0",
-		Summary: "Get order by ID",
-	})
+	cattest.AddQuerySimple(t, reg, "order-svc", "GetOrder", "GetOrder", "1.0.0", "Get order by ID")
 
 	cat := reg.Build()
 

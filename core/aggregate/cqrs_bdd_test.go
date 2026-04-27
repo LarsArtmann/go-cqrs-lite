@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	. "github.com/onsi/ginkgo/v2"
@@ -35,6 +36,30 @@ var (
 
 func newExpense(expenseID id.AggregateID) *expense {
 	return &expense{Core: aggregate.NewCore(expenseID, expenseType)}
+}
+
+// setupCQRSComponents creates fresh store, bus, and repository for testing.
+func setupCQRSComponents() (context.Context, *memory.MemoryStore, *memory.MemoryBus, *aggregate.EventSourcedRepository) {
+	ctx := context.Background()
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	repo := aggregate.NewRepository(store, bus)
+
+	return ctx, store, bus, repo
+}
+
+// registerSubmitExpenseHandler registers the expense.submit command handler.
+func registerSubmitExpenseHandler(dispatcher *command.Dispatcher, repo *aggregate.EventSourcedRepository) {
+	dispatcher.Register(
+		"expense.submit",
+		func(_ context.Context, cmd command.Command) error {
+			c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
+			e := newExpense(c.id)
+			Expect(e.Submit(context.Background(), c.description, c.amount)).To(Succeed())
+
+			return repo.Save(context.Background(), e)
+		},
+	)
 }
 
 func (e *expense) Apply(evt event.Event) error {
@@ -164,30 +189,14 @@ var _ = Describe("CQRS Flow", func() {
 		dispatcher = command.NewDispatcher()
 		busEvents = nil
 
-		_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-			busEvents = append(busEvents, evt)
-
-			return nil
-		})
+		_ = bus.SubscribeAll(testhelpers.AppendEventsHandler(&busEvents))
 	})
 
 	Describe("As a developer building a CQRS application", func() {
 		Context("when I submit a new expense", func() {
 			It("should persist the event and publish it to the bus", func() {
 				expenseID := id.NewAggregateID()
-
-				Expect(
-					dispatcher.Register(
-						"expense.submit",
-						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
-							e := newExpense(c.id)
-							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
-
-							return repo.Save(ctx, e)
-						},
-					),
-				).To(Succeed())
+				registerSubmitExpenseHandler(dispatcher, repo)
 
 				Expect(dispatcher.Dispatch(ctx, &submitExpenseCmd{
 					id: expenseID, description: "Flight to Berlin", amount: 349.50,
@@ -209,19 +218,7 @@ var _ = Describe("CQRS Flow", func() {
 
 			BeforeEach(func() {
 				expenseID = id.NewAggregateID()
-
-				Expect(
-					dispatcher.Register(
-						"expense.submit",
-						func(_ context.Context, cmd command.Command) error {
-							c := cmd.(*submitExpenseCmd) //nolint:forcetypeassert
-							e := newExpense(c.id)
-							Expect(e.Submit(ctx, c.description, c.amount)).To(Succeed())
-
-							return repo.Save(ctx, e)
-						},
-					),
-				).To(Succeed())
+				registerSubmitExpenseHandler(dispatcher, repo)
 
 				Expect(
 					dispatcher.Register(
@@ -360,15 +357,11 @@ var _ = Describe("Aggregate Repository", func() {
 	var (
 		ctx   context.Context
 		store *memory.MemoryStore
-		bus   *memory.MemoryBus
 		repo  *aggregate.EventSourcedRepository
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
-		store = memory.NewMemoryStore()
-		bus = memory.NewMemoryBus()
-		repo = aggregate.NewRepository(store, bus)
+		ctx, store, _, repo = setupCQRSComponents()
 	})
 
 	Describe("As a developer managing aggregate lifecycle", func() {
@@ -437,15 +430,11 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 	var (
 		ctx   context.Context
 		store *memory.MemoryStore
-		bus   *memory.MemoryBus
 		repo  *aggregate.EventSourcedRepository
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
-		store = memory.NewMemoryStore()
-		bus = memory.NewMemoryBus()
-		repo = aggregate.NewRepository(store, bus)
+		ctx, store, _, repo = setupCQRSComponents()
 	})
 
 	Describe("As a developer verifying domain correctness", func() {

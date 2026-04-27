@@ -404,6 +404,27 @@ func addCommandWithExamples(
 	r.AddCommand(svcID, msg)
 }
 
+// AddQuerySimple creates and adds a query message with minimal parameters.
+func AddQuerySimple(
+	tb testing.TB,
+	r *catalog.Registry,
+	svcID, id, name, version, summary string,
+) *catalog.Registry {
+	tb.Helper()
+
+	msg := catalog.Message{
+		Kind:    catalog.QueryMessage,
+		ID:      id,
+		Name:    name,
+		Version: version,
+		Summary: summary,
+	}
+
+	r.AddQuery(svcID, msg)
+
+	return r
+}
+
 // NewEventCatalogCore creates an event catalog core with defaults for testing.
 func NewEventCatalogCore(
 	tb testing.TB,
