@@ -98,12 +98,8 @@ func TestBuilder_AddEvent(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := event.NewEventCatalogCore(
+	evtCore, err := cattest.NewEventCatalogCore(t,
 		"order.created",
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
 		event.EventCatalogMeta{
 			Name:    "OrderCreated",
 			Version: "1.0.0",
@@ -454,12 +450,8 @@ func TestBuilder_AddEventWithDirection(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := event.NewEventCatalogCore(
+	evtCore, err := cattest.NewEventCatalogCore(t,
 		"order.shipped",
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
 		event.EventCatalogMeta{
 			Name:    "OrderShipped",
 			Version: "1.0.0",

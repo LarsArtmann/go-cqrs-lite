@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // NewRegistry creates a new test registry with the given title and version.
@@ -400,4 +402,22 @@ func addCommandWithExamples(
 		Examples: examples,
 	}
 	r.AddCommand(svcID, msg)
+}
+
+// NewEventCatalogCore creates an event catalog core with defaults for testing.
+func NewEventCatalogCore(
+	tb testing.TB,
+	eventType string,
+	meta event.EventCatalogMeta,
+) (*event.EventCatalogCore, error) {
+	tb.Helper()
+
+	return event.NewEventCatalogCore(
+		event.Type(eventType),
+		id.NewAggregateID(),
+		"Order",
+		1,
+		nil,
+		meta,
+	)
 }

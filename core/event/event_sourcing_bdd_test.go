@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/internal/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	. "github.com/onsi/ginkgo/v2"
@@ -192,11 +193,7 @@ var _ = Describe("Event Bus", func() {
 				Expect(
 					bus.Subscribe(
 						event.Type("OrderPlaced"),
-						func(_ context.Context, evt event.Event) error {
-							received = append(received, evt)
-
-							return nil
-						},
+						testhelpers.AppendEventsHandler(&received),
 					),
 				).To(Succeed())
 
@@ -210,11 +207,7 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when I subscribe to all events", func() {
 			It("should receive every published event regardless of type", func() {
-				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
-
-					return nil
-				})).To(Succeed())
+				Expect(bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt1 := createTestEvent("UserCreated", aggID, 1, nil)
@@ -228,20 +221,8 @@ var _ = Describe("Event Bus", func() {
 			It("should wrap handlers in the correct order", func() {
 				var callOrder []string
 
-				bus.Use(func(next event.Handler) event.Handler {
-					return func(ctx context.Context, evt event.Event) error {
-						callOrder = append(callOrder, "middleware1")
-
-						return next(ctx, evt)
-					}
-				})
-				bus.Use(func(next event.Handler) event.Handler {
-					return func(ctx context.Context, evt event.Event) error {
-						callOrder = append(callOrder, "middleware2")
-
-						return next(ctx, evt)
-					}
-				})
+				bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware1"))
+				bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware2"))
 
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 					callOrder = append(callOrder, "handler")
@@ -305,19 +286,11 @@ var _ = Describe("Event Bus", func() {
 				Expect(
 					bus.Subscribe(
 						event.Type("OrderPlaced"),
-						func(_ context.Context, evt event.Event) error {
-							received = append(received, evt)
-
-							return nil
-						},
+						testhelpers.AppendEventsHandler(&received),
 					),
 				).To(Succeed())
 
-				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
-
-					return nil
-				})).To(Succeed())
+				Expect(bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderPlaced", aggID, 1, nil)
@@ -334,11 +307,7 @@ var _ = Describe("Event Bus", func() {
 				Expect(
 					bus.Subscribe(
 						event.Type("OrderPlaced"),
-						func(_ context.Context, evt event.Event) error {
-							received = append(received, evt)
-
-							return nil
-						},
+						testhelpers.AppendEventsHandler(&received),
 					),
 				).To(Succeed())
 

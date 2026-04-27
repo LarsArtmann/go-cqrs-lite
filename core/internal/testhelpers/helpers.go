@@ -126,3 +126,13 @@ func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler)
 		}
 	}
 }
+
+// AppendEventsHandler returns a bus handler that appends received events to *events.
+// Use as: var evts []event.Event; bus.SubscribeAll(testhelpers.AppendEventsHandler(&evts))
+func AppendEventsHandler(events *[]event.Event) event.Handler {
+	return func(_ context.Context, evt event.Event) error {
+		*events = append(*events, evt)
+
+		return nil
+	}
+}

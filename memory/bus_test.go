@@ -26,6 +26,26 @@ var testBusOrderAggID = id.MustParseAggregateID( //nolint:gochecknoglobals
 	"01HK1541W8PVV4E88DV993TP2A",
 )
 
+// appendEventsHandler returns a handler that appends received events to *events.
+func appendEventsHandler(events *[]event.Event) event.Handler {
+	return func(_ context.Context, evt event.Event) error {
+		*events = append(*events, evt)
+
+		return nil
+	}
+}
+
+// busMiddleware returns middleware that tracks call order for event bus handlers.
+func busMiddleware(callOrder *[]string, name string) func(next event.Handler) event.Handler {
+	return func(next event.Handler) event.Handler {
+		return func(ctx context.Context, evt event.Event) error {
+			*callOrder = append(*callOrder, name)
+
+			return next(ctx, evt)
+		}
+	}
+}
+
 func TestMemoryBus_Publish(t *testing.T) {
 	t.Parallel()
 
