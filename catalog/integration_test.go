@@ -47,7 +47,10 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 		Direction: catalog.Sends,
 		Schema:    schema,
 	})
-	cattest.AddQuerySimple(t, reg, "order-service", "GetOrder", "GetOrder", "1.0.0", "Get order by ID")
+	cattest.AddQuerySimple(
+		t, reg, "order-service",
+		"GetOrder", "GetOrder", "1.0.0", "Get order by ID",
+	)
 
 	cattest.AddDomain(
 		t,

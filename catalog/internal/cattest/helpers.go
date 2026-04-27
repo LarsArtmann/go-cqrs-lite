@@ -2,6 +2,7 @@ package cattest
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -433,7 +434,7 @@ func NewEventCatalogCore(
 ) (*event.EventCatalogCore, error) {
 	tb.Helper()
 
-	return event.NewEventCatalogCore(
+	core, err := event.NewEventCatalogCore(
 		event.Type(eventType),
 		id.NewAggregateID(),
 		"Order",
@@ -441,4 +442,9 @@ func NewEventCatalogCore(
 		nil,
 		meta,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("new event catalog core: %w", err)
+	}
+
+	return core, nil
 }
