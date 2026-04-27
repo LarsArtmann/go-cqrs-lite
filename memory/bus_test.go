@@ -54,13 +54,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 
 	var received []event.Event
 
-	handler := func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-
-		return nil
-	}
-
-	err := bus.Subscribe("UserCreated", handler)
+	err := bus.Subscribe("UserCreated", appendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -85,13 +79,7 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 
 	var received []event.Event
 
-	handler := func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-
-		return nil
-	}
-
-	err := bus.SubscribeAll(handler)
+	err := bus.SubscribeAll(appendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -118,20 +106,8 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	var callOrder []string
 
 	bus.Use(
-		func(next event.Handler) event.Handler {
-			return func(ctx context.Context, evt event.Event) error {
-				callOrder = append(callOrder, "middleware1")
-
-				return next(ctx, evt)
-			}
-		},
-		func(next event.Handler) event.Handler {
-			return func(ctx context.Context, evt event.Event) error {
-				callOrder = append(callOrder, "middleware2")
-
-				return next(ctx, evt)
-			}
-		},
+		busMiddleware(&callOrder, "middleware1"),
+		busMiddleware(&callOrder, "middleware2"),
 	)
 
 	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
