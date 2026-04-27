@@ -36,14 +36,7 @@ var _ = Describe("Query Dispatcher", func() {
 	Describe("As a developer building read-side queries", func() {
 		Context("when I register a handler and dispatch the matching query", func() {
 			It("should return the typed result", func() {
-				Expect(
-					dispatcher.Register(
-						"query.user.name",
-						func(_ context.Context, _ query.Query) (any, error) {
-							return "Alice", nil
-						},
-					),
-				).To(Succeed())
+				registerHandler(dispatcher, "query.user.name", "Alice")
 
 				result, err := dispatcher.Dispatch(ctx, &getUserName{})
 				Expect(err).ToNot(HaveOccurred())
@@ -53,14 +46,7 @@ var _ = Describe("Query Dispatcher", func() {
 
 		Context("when I use DispatchTyped with the correct result type", func() {
 			It("should return the strongly typed result", func() {
-				Expect(
-					dispatcher.Register(
-						"query.active.count",
-						func(_ context.Context, _ query.Query) (any, error) {
-							return 42, nil
-						},
-					),
-				).To(Succeed())
+				registerHandler(dispatcher, "query.active.count", 42)
 
 				result, err := query.DispatchTyped[int](ctx, dispatcher, &getActiveCount{})
 				Expect(err).ToNot(HaveOccurred())
@@ -70,14 +56,7 @@ var _ = Describe("Query Dispatcher", func() {
 
 		Context("when I use DispatchTyped with the wrong result type", func() {
 			It("should return a type mismatch error", func() {
-				Expect(
-					dispatcher.Register(
-						"query.active.count",
-						func(_ context.Context, _ query.Query) (any, error) {
-							return 42, nil
-						},
-					),
-				).To(Succeed())
+				registerHandler(dispatcher, "query.active.count", 42)
 
 				_, err := query.DispatchTyped[string](ctx, dispatcher, &getActiveCount{})
 				Expect(err).To(HaveOccurred())
@@ -124,16 +103,7 @@ var _ = Describe("Query Dispatcher", func() {
 					},
 				)
 
-				Expect(
-					dispatcher.Register(
-						"query.user.name",
-						func(_ context.Context, _ query.Query) (any, error) {
-							callOrder = append(callOrder, "handler")
-
-							return "Bob", nil
-						},
-					),
-				).To(Succeed())
+				registerCallOrderHandler(dispatcher, "query.user.name", &callOrder, "Bob")
 
 				result, err := dispatcher.Dispatch(ctx, &getUserName{})
 				Expect(err).ToNot(HaveOccurred())
