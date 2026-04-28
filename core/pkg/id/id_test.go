@@ -662,6 +662,7 @@ func TestULID_Function(t *testing.T) {
 	t.Parallel()
 
 	id := New[struct{}]()
+
 	ts, err := ULID(id)
 	if err != nil {
 		t.Fatalf("ULID() error = %v", err)
@@ -676,6 +677,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 
 	id := New[AggregateID]()
+
 	ulidVal := id.Get()
 	if ulidVal.String() != id.String() {
 		t.Errorf("Get() = %q, want %q", ulidVal.String(), id.String())

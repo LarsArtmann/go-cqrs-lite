@@ -65,17 +65,17 @@ func TestNewCatalogCore_Success(t *testing.T) {
 		Summary: "Creates a new user",
 	}
 
-	cc, err := command.NewCatalogCore("user.create", aggID, meta)
+	catalog, err := command.NewCatalogCore("user.create", aggID, meta)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if cc.Type() != command.Type("user.create") {
-		t.Errorf("Type() = %q, want %q", cc.Type(), "user.create")
+	if catalog.Type() != command.Type("user.create") {
+		t.Errorf("Type() = %q, want %q", catalog.Type(), "user.create")
 	}
 
-	if cc.AggregateID() != aggID {
-		t.Errorf("AggregateID() = %v, want %v", cc.AggregateID(), aggID)
+	if catalog.AggregateID() != aggID {
+		t.Errorf("AggregateID() = %v, want %v", catalog.AggregateID(), aggID)
 	}
 }
 
@@ -141,6 +141,7 @@ func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
 	})
 
 	cmd := command.MustNew("FailCommand", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
 		t.Fatal("expected error from handler")
@@ -158,6 +159,7 @@ func TestDispatcher_Dispatch_HandlerNotFound_ErrorChain(t *testing.T) {
 	ctx := context.Background()
 
 	cmd := command.MustNew("UnknownCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
 		t.Fatal("expected error for unregistered command")
@@ -191,6 +193,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 	_ = d.Close()
 
 	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
 	err := d.Dispatch(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error on closed dispatcher")

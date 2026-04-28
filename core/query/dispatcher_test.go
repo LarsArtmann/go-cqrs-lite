@@ -39,13 +39,13 @@ func TestNewCatalogCore_Success(t *testing.T) {
 		Summary: "Gets a user",
 	}
 
-	cc, err := query.NewCatalogCore("user.get", meta)
+	catalog, err := query.NewCatalogCore("user.get", meta)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if cc.Type() != query.Type("user.get") {
-		t.Errorf("Type() = %q, want %q", cc.Type(), "user.get")
+	if catalog.Type() != query.Type("user.get") {
+		t.Errorf("Type() = %q, want %q", catalog.Type(), "user.get")
 	}
 }
 
@@ -107,6 +107,7 @@ func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
 	})
 
 	q := query.MustNew("FailQuery")
+
 	_, err := d.Dispatch(ctx, q)
 	if err == nil {
 		t.Fatal("expected error from handler")
@@ -123,6 +124,7 @@ func TestDispatcher_Dispatch_QueryNotSupported_ErrorChain(t *testing.T) {
 	d := query.NewDispatcher()
 
 	q := query.MustNew("UnknownQuery")
+
 	_, err := d.Dispatch(context.Background(), q)
 	if err == nil {
 		t.Fatal("expected error for unregistered query")
@@ -138,7 +140,9 @@ func TestDispatcher_Register_Duplicate(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	handler := func(_ context.Context, _ query.Query) (any, error) { return nil, nil }
+	handler := func(_ context.Context, _ query.Query) (any, error) {
+		return "", nil
+	}
 
 	err := d.Register("GetUser", handler)
 	if err != nil {
@@ -158,6 +162,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 	_ = d.Close()
 
 	q := query.MustNew("TestQuery")
+
 	_, err := d.Dispatch(context.Background(), q)
 	if err == nil {
 		t.Fatal("expected error on closed dispatcher")
@@ -175,7 +180,7 @@ func TestDispatcher_Closed_RegisterErrorChain(t *testing.T) {
 	_ = d.Close()
 
 	err := d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return nil, nil
+		return "", nil
 	})
 	if err == nil {
 		t.Fatal("expected error on closed dispatcher")
@@ -192,6 +197,7 @@ func TestDispatchTyped_DispatchError(t *testing.T) {
 	d := query.NewDispatcher()
 
 	q := query.MustNew("UnknownQuery")
+
 	_, err := query.DispatchTyped[string](context.Background(), d, q)
 	if err == nil {
 		t.Fatal("expected error from DispatchTyped when Dispatch fails")
