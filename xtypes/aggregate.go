@@ -11,9 +11,7 @@ import (
 
 // TypedAggregate provides type-safe aggregate roots with branded IDs.
 type TypedAggregate struct {
-	core          *aggregate.Core
-	aggregateID   id.AggregateID
-	aggregateType event.AggregateType
+	core *aggregate.Core
 }
 
 // NewTypedAggregate creates a new typed aggregate root.
@@ -22,20 +20,18 @@ func NewTypedAggregate(
 	aggregateType event.AggregateType,
 ) *TypedAggregate {
 	return &TypedAggregate{
-		core:          aggregate.NewCore(aggregateID, aggregateType),
-		aggregateID:   aggregateID,
-		aggregateType: aggregateType,
+		core: aggregate.NewCore(aggregateID, aggregateType),
 	}
 }
 
 // ID returns the strongly-typed aggregate ID.
 func (a *TypedAggregate) ID() id.AggregateID {
-	return a.aggregateID
+	return a.core.ID()
 }
 
 // Type returns the aggregate type.
 func (a *TypedAggregate) Type() event.AggregateType {
-	return a.aggregateType
+	return a.core.Type()
 }
 
 // Version returns the current version.
