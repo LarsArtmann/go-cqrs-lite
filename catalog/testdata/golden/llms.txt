@@ -1,0 +1,16 @@
+# E-Commerce
+
+> Auto-generated catalog summary for LLM consumption.
+
+## Order Service (order-svc)
+Manages orders
+
+### Commands
+- Create Order (v1.0.0): Create a new order
+
+### Events
+- Order Created (v1.0.0) [sends]: Order was created
+
+### Queries
+- Get Order (v1.0.0): Get order by ID
+

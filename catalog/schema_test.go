@@ -2,6 +2,7 @@ package catalog_test
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -544,5 +545,136 @@ func TestSchemaFromType_AllTagsCombined(t *testing.T) {
 
 	if prop.Default != "active" {
 		t.Errorf("default = %q", prop.Default)
+	}
+}
+
+func TestSchemaFromReflect(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil_type", func(t *testing.T) {
+		t.Parallel()
+
+		schema := catalog.SchemaFromReflect(nil)
+		if schema.Type != "null" {
+			t.Errorf("expected null, got %s", schema.Type)
+		}
+	})
+
+	t.Run("primitive_string", func(t *testing.T) {
+		t.Parallel()
+
+		schema := catalog.SchemaFromReflect(reflect.TypeOf(""))
+		if schema.Type != "string" {
+			t.Errorf("expected string, got %s", schema.Type)
+		}
+	})
+
+	t.Run("uint_type", func(t *testing.T) {
+		t.Parallel()
+
+		type WithUint struct {
+			Count uint `json:"count"`
+		}
+
+		schema := catalog.SchemaFromType[WithUint]()
+		if schema.Properties["count"].Type != "integer" {
+			t.Errorf("expected integer for uint, got %s", schema.Properties["count"].Type)
+		}
+	})
+}
+
+func TestSchemaFromType_ComplexAndChannelTypes(t *testing.T) {
+	t.Parallel()
+
+	type WeirdTypes struct {
+		Complex complex128 `json:"c"`
+		Ch      chan int   `json:"ch"`
+	}
+
+	schema := catalog.SchemaFromType[WeirdTypes]()
+
+	if schema.Properties["c"].Type != "string" {
+		t.Errorf("expected string for complex128, got %s", schema.Properties["c"].Type)
+	}
+
+	if schema.Properties["ch"].Type != "string" {
+		t.Errorf("expected string for chan, got %s", schema.Properties["ch"].Type)
+	}
+}
+
+func TestSchemaFromType_InterfaceField(t *testing.T) {
+	t.Parallel()
+
+	type WithInterface struct {
+		Val any `json:"val"`
+	}
+
+	schema := catalog.SchemaFromType[WithInterface]()
+	if schema.Properties["val"].Type != "object" {
+		t.Errorf("expected object for any/interface, got %s", schema.Properties["val"].Type)
+	}
+}
+
+func TestSchemaFromType_SliceOfPrimitives(t *testing.T) {
+	t.Parallel()
+
+	type WithSlice struct {
+		Tags []string `json:"tags"`
+	}
+
+	schema := catalog.SchemaFromType[WithSlice]()
+
+	prop := schema.Properties["tags"]
+	if prop.Type != "array" {
+		t.Fatalf("expected array, got %s", prop.Type)
+	}
+
+	if prop.Items == nil || prop.Items.Type != "string" {
+		t.Errorf("expected string items, got %v", prop.Items)
+	}
+}
+
+func TestSchemaFromType_MapWithNonStringKey(t *testing.T) {
+	t.Parallel()
+
+	type WithMap struct {
+		Counts map[int]string `json:"counts"`
+	}
+
+	schema := catalog.SchemaFromType[WithMap]()
+	prop := schema.Properties["counts"]
+	if prop.Type != "object" {
+		t.Errorf("expected object, got %s", prop.Type)
+	}
+}
+
+func TestSchemaFromType_TopLevelSlice(t *testing.T) {
+	t.Parallel()
+
+	schema := catalog.SchemaFromType[[]string]()
+	if schema.Type != "array" {
+		t.Errorf("expected array, got %s", schema.Type)
+	}
+
+	if schema.Items == nil || schema.Items.Type != "string" {
+		t.Errorf("expected string items, got %v", schema.Items)
+	}
+}
+
+func TestSchemaFromType_TopLevelMap(t *testing.T) {
+	t.Parallel()
+
+	schema := catalog.SchemaFromType[map[string]int]()
+	if schema.Type != "object" {
+		t.Errorf("expected object, got %s", schema.Type)
+	}
+}
+
+func TestSchemaFromType_TopLevelTime(t *testing.T) {
+	t.Parallel()
+
+	schema := catalog.SchemaFromType[time.Time]()
+	if schema.Type != "string" {
+		t.Errorf("expected string for time.Time, got %s", schema.Type)
 	}
 }

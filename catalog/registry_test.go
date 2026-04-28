@@ -262,3 +262,63 @@ func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
 		t.Errorf("expected 2 queries after merge, got %d", len(cat.Services[0].Queries))
 	}
 }
+
+func TestMessageID_FallbackToName(t *testing.T) {
+	t.Parallel()
+
+	msg := catalog.Message{Name: "CreateUser"}
+	if catalog.MessageID(msg) != "CreateUser" {
+		t.Errorf("expected CreateUser, got %s", catalog.MessageID(msg))
+	}
+}
+
+func TestMessageID_UsesID(t *testing.T) {
+	t.Parallel()
+
+	msg := catalog.Message{ID: "cmd-123", Name: "CreateUser"}
+	if catalog.MessageID(msg) != "cmd-123" {
+		t.Errorf("expected cmd-123, got %s", catalog.MessageID(msg))
+	}
+}
+
+func TestRegistry_AddServiceMergeNoCommands(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg.AddService(catalog.Service{
+		ID:       "svc",
+		Name:     "Service",
+		Version:  "1.0.0",
+		Commands: []catalog.Message{{ID: "Cmd1", Name: "Cmd1", Version: "1.0.0"}},
+	})
+
+	cat := reg.Build()
+	if len(cat.Services[0].Commands) != 1 {
+		t.Errorf("expected 1 command after merge, got %d", len(cat.Services[0].Commands))
+	}
+}
+
+func TestRegistry_BuildWithChannels(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg.AddChannel(catalog.Channel{
+		ID:        "ch1",
+		Name:      "Channel 1",
+		Version:   "1.0.0",
+		Address:   "topic1",
+		Protocols: []string{"kafka"},
+		Messages:  []string{"msg1"},
+		Summary:   "A test channel",
+	})
+
+	cat := reg.Build()
+	if len(cat.Channels) != 1 {
+		t.Fatalf("expected 1 channel, got %d", len(cat.Channels))
+	}
+
+	if cat.Channels[0].Summary != "A test channel" {
+		t.Errorf("expected summary, got %s", cat.Channels[0].Summary)
+	}
+}

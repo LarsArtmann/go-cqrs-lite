@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@eventcatalog/core": "latest"
+  },
+  "description": "E-Commerce event catalog",
+  "name": "e-commerce",
+  "private": true,
+  "version": "1.0.0"
+}

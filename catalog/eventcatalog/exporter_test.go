@@ -649,6 +649,302 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	)
 }
 
+func TestExporter_Export_WriteServiceError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+
+	cat := reg.Build()
+
+	svcDir := filepath.Join(tmpDir, "services")
+	if err := os.MkdirAll(svcDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(svcDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when service dir is read-only")
+	}
+}
+
+func TestExporter_Export_WriteMessageError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind: catalog.CommandMessage, ID: "Cmd", Name: "Cmd", Version: "1.0.0",
+	})
+
+	cat := reg.Build()
+
+	svcDir := filepath.Join(tmpDir, "services", "svc")
+	if err := os.MkdirAll(svcDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(svcDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when message dir is read-only")
+	}
+}
+
+func TestExporter_Export_WriteDomainError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddDomain(
+		catalog.Domain{ID: "dom", Name: "Dom", Version: "1.0.0", Services: []string{"svc"}},
+	)
+
+	cat := reg.Build()
+
+	domDir := filepath.Join(tmpDir, "domains")
+	if err := os.MkdirAll(domDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(domDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(domDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when domain dir is read-only")
+	}
+}
+
+func TestExporter_Export_WriteConfigError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	cat := reg.Build()
+
+	if err := os.Chmod(tmpDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when output dir is read-only for config write")
+	}
+}
+
+func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "Cmd",
+		Name:    "Cmd",
+		Version: "1.0.0",
+		Schema:  &catalog.Schema{Type: "object"},
+	})
+
+	cat := reg.Build()
+
+	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
+	if err := os.MkdirAll(cmdDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(cmdDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(cmdDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when schema dir creation fails")
+	}
+}
+
+func TestExporter_Export_LLMsTxtWriteError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	cat := reg.Build()
+
+	if err := os.Chmod(tmpDir, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when llms.txt write fails")
+	}
+}
+
+func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddCommandWithExamples(t, reg, "svc", "Cmd", "Cmd", "1.0.0",
+		json.RawMessage(`{invalid json !!!`),
+	)
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when examples contain invalid JSON")
+	}
+}
+
+func TestExporter_Export_SchemaDirPermissionError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "Cmd",
+		Name:    "Cmd",
+		Version: "1.0.0",
+		Schema: &catalog.Schema{
+			Type:       "object",
+			Properties: map[string]catalog.Property{"x": {Type: "string"}},
+		},
+	})
+
+	cat := reg.Build()
+
+	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
+	if err := os.MkdirAll(cmdDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(cmdDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(cmdDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when schema dir creation fails")
+	}
+}
+
+func TestExporter_Export_EventWriteError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddEvent("svc", catalog.Message{
+		Kind: catalog.EventMessage, ID: "Evt", Name: "Evt", Version: "1.0.0",
+	})
+
+	cat := reg.Build()
+
+	svcDir := filepath.Join(tmpDir, "services", "svc")
+	if err := os.MkdirAll(svcDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(svcDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when event dir is read-only")
+	}
+}
+
+func TestExporter_Export_QueryWriteError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddQuery("svc", catalog.Message{
+		Kind: catalog.QueryMessage, ID: "Qry", Name: "Qry", Version: "1.0.0",
+	})
+
+	cat := reg.Build()
+
+	svcDir := filepath.Join(tmpDir, "services", "svc")
+	if err := os.MkdirAll(svcDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(svcDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when query dir is read-only")
+	}
+}
+
+func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg.AddCommand("svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "Cmd",
+		Name:    "Cmd",
+		Version: "1.0.0",
+		Summary: "A command with summary and schema",
+		Schema:  &catalog.Schema{Type: "object"},
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "svc", "commands", "Cmd", "index.mdx"),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "summary:") {
+		t.Errorf("message frontmatter missing summary: %s", content)
+	}
+}
+
 func TestExporter_Export_PackageJSON(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
