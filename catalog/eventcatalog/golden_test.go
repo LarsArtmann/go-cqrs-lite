@@ -45,8 +45,11 @@ func exportToTempDir(t *testing.T, cat *catalog.Catalog) string {
 	t.Helper()
 
 	tmpDir := t.TempDir()
+
 	exp := eventcatalog.NewExporter(tmpDir)
-	if err := exp.Export(cat); err != nil {
+
+	err := exp.Export(cat)
+	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
 
@@ -57,7 +60,8 @@ func readOrWriteGolden(t *testing.T, goldenPath string, actualContent string) {
 	t.Helper()
 
 	if *update {
-		if err := os.WriteFile(goldenPath, []byte(actualContent), 0o644); err != nil {
+		err := os.WriteFile(goldenPath, []byte(actualContent), 0o644)
+		if err != nil {
 			t.Fatalf("write golden %s: %v", goldenPath, err)
 		}
 

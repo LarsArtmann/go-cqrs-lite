@@ -54,7 +54,8 @@ func TestGolden_AsyncAPIJSON(t *testing.T) {
 	goldenPath := filepath.Join(goldenDir(), "asyncapi.json")
 
 	if *update {
-		if err := os.WriteFile(goldenPath, got, 0o644); err != nil {
+		err := os.WriteFile(goldenPath, got, 0o644)
+		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}
 
@@ -84,7 +85,8 @@ func TestGolden_AsyncAPIYAML(t *testing.T) {
 	goldenPath := filepath.Join(goldenDir(), "asyncapi.yaml")
 
 	if *update {
-		if err := os.WriteFile(goldenPath, got, 0o644); err != nil {
+		err := os.WriteFile(goldenPath, got, 0o644)
+		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}
 

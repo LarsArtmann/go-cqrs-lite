@@ -642,6 +642,7 @@ func TestSchemaFromType_MapWithNonStringKey(t *testing.T) {
 	}
 
 	schema := catalog.SchemaFromType[WithMap]()
+
 	prop := schema.Properties["counts"]
 	if prop.Type != "object" {
 		t.Errorf("expected object, got %s", prop.Type)

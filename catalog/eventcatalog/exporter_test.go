@@ -25,11 +25,13 @@ func newCommand(id string) catalog.Message {
 func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, readOnlyDir string) {
 	t.Helper()
 
-	if err := os.MkdirAll(readOnlyDir, 0o750); err != nil {
+	err := os.MkdirAll(readOnlyDir, 0o750)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.Chmod(readOnlyDir, 0o000); err != nil {
+	err = os.Chmod(readOnlyDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -37,7 +39,7 @@ func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, re
 
 	exp := NewExporter(tmpDir)
 
-	err := exp.Export(cat)
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when dir is read-only")
 	}
@@ -680,16 +682,21 @@ func TestExporter_Export_WriteServiceError(t *testing.T) {
 	cat := reg.Build()
 
 	svcDir := filepath.Join(tmpDir, "services")
-	if err := os.MkdirAll(svcDir, 0o750); err != nil {
+
+	err := os.MkdirAll(svcDir, 0o750)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chmod(svcDir, 0o000); err != nil {
+
+	err = os.Chmod(svcDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when service dir is read-only")
 	}
@@ -721,16 +728,21 @@ func TestExporter_Export_WriteDomainError(t *testing.T) {
 	cat := reg.Build()
 
 	domDir := filepath.Join(tmpDir, "domains")
-	if err := os.MkdirAll(domDir, 0o750); err != nil {
+
+	err := os.MkdirAll(domDir, 0o750)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chmod(domDir, 0o000); err != nil {
+
+	err = os.Chmod(domDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(domDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when domain dir is read-only")
 	}
@@ -743,13 +755,15 @@ func TestExporter_Export_WriteConfigError(t *testing.T) {
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	cat := reg.Build()
 
-	if err := os.Chmod(tmpDir, 0o000); err != nil {
+	err := os.Chmod(tmpDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when output dir is read-only for config write")
 	}
@@ -772,16 +786,21 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 	cat := reg.Build()
 
 	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
-	if err := os.MkdirAll(cmdDir, 0o750); err != nil {
+
+	err := os.MkdirAll(cmdDir, 0o750)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chmod(cmdDir, 0o000); err != nil {
+
+	err = os.Chmod(cmdDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(cmdDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when schema dir creation fails")
 	}
@@ -794,13 +813,15 @@ func TestExporter_Export_LLMsTxtWriteError(t *testing.T) {
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	cat := reg.Build()
 
-	if err := os.Chmod(tmpDir, 0o500); err != nil {
+	err := os.Chmod(tmpDir, 0o500)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when llms.txt write fails")
 	}
@@ -819,6 +840,7 @@ func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when examples contain invalid JSON")
@@ -845,16 +867,21 @@ func TestExporter_Export_SchemaDirPermissionError(t *testing.T) {
 	cat := reg.Build()
 
 	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
-	if err := os.MkdirAll(cmdDir, 0o750); err != nil {
+
+	err := os.MkdirAll(cmdDir, 0o750)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chmod(cmdDir, 0o000); err != nil {
+
+	err = os.Chmod(cmdDir, 0o000)
+	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(cmdDir, 0o750) //nolint:errcheck // cleanup
 
 	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
+
+	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when schema dir creation fails")
 	}
@@ -906,6 +933,7 @@ func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
+
 	err := exp.Export(cat)
 	if err != nil {
 		t.Fatal(err)
