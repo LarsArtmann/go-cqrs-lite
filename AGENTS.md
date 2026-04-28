@@ -317,21 +317,21 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ## Test Coverage Summary
 
-| Package                  | Coverage |
-| ------------------------ | -------- |
-| `core/command`           | 100.0%   |
-| `core/query`             | 100.0%   |
-| `memory`                 | 99.4%    |
-| `middleware`              | 99.2%    |
-| `core/pkg/id`            | 97.1%    |
-| `catalog/adapters`       | 98.8%    |
-| `catalog/asyncapi`       | 97.6%    |
-| `catalog/eventcatalog`   | 89.7%    |
-| `core/aggregate`         | 87.8%    |
-| `core/event`             | 88.3%    |
-| `catalog`                | 87.0%    |
-| `xtypes`                 | 88.6%    |
-| `core/pkg/dispatcher`    | 75.4%    |
+| Package                  | Coverage | Session 8 Delta |
+| ------------------------ | -------- | ---------------- |
+| `core/command`           | 100.0%   | —                |
+| `core/query`             | 100.0%   | —                |
+| `core/pkg/dispatcher`    | 100.0%   | +24.6%           |
+| `memory`                 | 99.4%    | —                |
+| `middleware`              | 99.2%    | —                |
+| `catalog/adapters`       | 98.8%    | —                |
+| `core/event`             | 97.9%    | +9.6%            |
+| `core/pkg/id`            | 97.1%    | —                |
+| `catalog/asyncapi`       | 97.6%    | —                |
+| `xtypes`                 | 97.7%    | +9.1%            |
+| `catalog/eventcatalog`   | 95.5%    | +5.8%            |
+| `core/aggregate`         | 95.1%    | +4.9%            |
+| `catalog`                | 94.2%    | +7.2%            |
 
 ## Module Dependency Graph
 
@@ -427,7 +427,7 @@ Interfaces now return branded ID types instead of `string`:
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
-| `core/pkg/dispatcher` coverage | LOW | 75.4% — `BaseDispatcher` delegators tested indirectly via command/query dispatchers |
+| ~~`core/pkg/dispatcher` coverage~~ | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8) |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` shares same retry logic as CommandRetry |
 
 ## Cleanup Done (Post-Migration)
@@ -474,6 +474,21 @@ Interfaces now return branded ID types instead of `string`:
   - Removed orphaned doc comment in dispatcher.go
   - Removed broken `example/` modules (81+ LSP false positives)
   - Zero lint issues across all 6 modules
+
+- **Session 8 (Coverage + Benchmarks + Golden Tests)**:
+  - `core/pkg/dispatcher`: 75.4% → 100% (BaseDispatcher, CatalogDispatcher direct tests)
+  - `core/event`: 88.3% → 97.9% (NewEventCatalogCore, WithMetadata, defensive copy tests)
+  - `core/aggregate`: 90.2% → 95.1% (error paths, failingStore, HistoryLoader check)
+  - `catalog`: 87.0% → 94.2% (SchemaFromReflect, collection types, MessageID fallback)
+  - `catalog/eventcatalog`: 89.7% → 95.5% (I/O error paths, examples marshal error)
+  - `xtypes`: 88.6% → 97.7% (MustCommand panic/success paths)
+  - Split `cattest/helpers.go` (450 → 277 + 167 `assertions.go`)
+  - Added golden-file tests for AsyncAPI JSON/YAML and EventCatalog outputs
+  - Added benchmarks for query dispatch and aggregate operations
+  - Added `NoopQueryHandler` to shared testhelpers
+  - Removed stale `go-composable-business-types` replace directives
+  - Archived 41 stale status reports to `docs/status/archive/`
+  - Zero lint issues in core modules (catalog has pre-existing dupl/noinlineerr)
 
 ## Migration State
 
