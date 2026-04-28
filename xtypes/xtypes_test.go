@@ -299,6 +299,34 @@ func TestTypedCommand(t *testing.T) {
 			t.Errorf("expected command type CreateTest, got %s", c.Type())
 		}
 	})
+
+	t.Run("MustCommand succeeds on valid input", func(t *testing.T) {
+		t.Parallel()
+
+		aggregateID := id.NewAggregateID()
+		cmd := NewTypedCommand("CreateTest", aggregateID)
+
+		c := cmd.MustCommand()
+		if c == nil {
+			t.Error("MustCommand() should return non-nil")
+		}
+	})
+
+	t.Run("MustCommand panics on empty command type", func(t *testing.T) {
+		t.Parallel()
+
+		aggregateID := id.NewAggregateID()
+		cmd := NewTypedCommand("", aggregateID)
+
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Error("MustCommand() should panic on empty command type")
+			}
+		}()
+
+		cmd.MustCommand()
+	})
 }
 
 func TestTypedAggregate(t *testing.T) {
