@@ -563,7 +563,7 @@ func TestSchemaFromReflect(t *testing.T) {
 	t.Run("primitive_string", func(t *testing.T) {
 		t.Parallel()
 
-		schema := catalog.SchemaFromReflect(reflect.TypeOf(""))
+		schema := catalog.SchemaFromReflect(reflect.TypeFor[string]())
 		if schema.Type != "string" {
 			t.Errorf("expected string, got %s", schema.Type)
 		}

@@ -22,6 +22,27 @@ func newCommand(id string) catalog.Message {
 	return msg
 }
 
+func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, readOnlyDir string) {
+	t.Helper()
+
+	if err := os.MkdirAll(readOnlyDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Chmod(readOnlyDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+
+	defer os.Chmod(readOnlyDir, 0o750) //nolint:errcheck // cleanup
+
+	exp := NewExporter(tmpDir)
+
+	err := exp.Export(cat)
+	if err == nil {
+		t.Error("expected error when dir is read-only")
+	}
+}
+
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
@@ -685,21 +706,7 @@ func TestExporter_Export_WriteMessageError(t *testing.T) {
 	})
 
 	cat := reg.Build()
-
-	svcDir := filepath.Join(tmpDir, "services", "svc")
-	if err := os.MkdirAll(svcDir, 0o750); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(svcDir, 0o000); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
-
-	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when message dir is read-only")
-	}
+	requireExportPermissionError(t, cat, tmpDir, filepath.Join(tmpDir, "services", "svc"))
 }
 
 func TestExporter_Export_WriteDomainError(t *testing.T) {
@@ -864,21 +871,7 @@ func TestExporter_Export_EventWriteError(t *testing.T) {
 	})
 
 	cat := reg.Build()
-
-	svcDir := filepath.Join(tmpDir, "services", "svc")
-	if err := os.MkdirAll(svcDir, 0o750); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(svcDir, 0o000); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
-
-	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when event dir is read-only")
-	}
+	requireExportPermissionError(t, cat, tmpDir, filepath.Join(tmpDir, "services", "svc"))
 }
 
 func TestExporter_Export_QueryWriteError(t *testing.T) {
@@ -892,21 +885,7 @@ func TestExporter_Export_QueryWriteError(t *testing.T) {
 	})
 
 	cat := reg.Build()
-
-	svcDir := filepath.Join(tmpDir, "services", "svc")
-	if err := os.MkdirAll(svcDir, 0o750); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(svcDir, 0o000); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(svcDir, 0o750) //nolint:errcheck // cleanup
-
-	exp := NewExporter(tmpDir)
-	err := exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when query dir is read-only")
-	}
+	requireExportPermissionError(t, cat, tmpDir, filepath.Join(tmpDir, "services", "svc"))
 }
 
 func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {

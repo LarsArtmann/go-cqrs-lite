@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 )
 
+//nolint:gochecknoglobals // golden test pattern requires package-level flag
 var update = flag.Bool("update", false, "update golden files")
 
 func goldenDir() string {
