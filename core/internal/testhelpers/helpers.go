@@ -13,6 +13,7 @@ var (
 	AppendEventsHandler    = th.AppendEventsHandler
 	NoopCommandHandler     = th.NoopCommandHandler
 	NoopEventHandler       = th.NoopEventHandler
+	NoopQueryHandler       = th.NoopQueryHandler
 	FailingCommandHandler  = th.FailingCommandHandler
 	FailingEventHandler    = th.FailingEventHandler
 	PanicCommandHandler    = th.PanicCommandHandler

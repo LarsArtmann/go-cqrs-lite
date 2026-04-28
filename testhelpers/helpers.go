@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 // AppendEventsHandler returns a bus handler that appends received events to *events.
@@ -48,6 +49,13 @@ func NoopCommandHandler() command.Handler {
 func NoopEventHandler() event.Handler {
 	return func(_ context.Context, _ event.Event) error {
 		return nil
+	}
+}
+
+// NoopQueryHandler returns a handler that does nothing and returns nil.
+func NoopQueryHandler() func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		return nil, nil
 	}
 }
 
