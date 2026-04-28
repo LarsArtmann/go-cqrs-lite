@@ -65,10 +65,5 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	err := d.base.Lifecycle().Close()
-	if err != nil {
-		return errors.Wrapf(err, "close command dispatcher")
-	}
-
-	return nil
+	return d.base.Lifecycle().Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
 }

@@ -54,6 +54,13 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		version       int
 	}{
 		{
+			name:          "empty event type",
+			eventType:     "",
+			aggregateID:   id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+			aggregateType: "User",
+			version:       1,
+		},
+		{
 			name:          "missing aggregate ID",
 			eventType:     "UserCreated",
 			aggregateID:   id.AggregateID{},
