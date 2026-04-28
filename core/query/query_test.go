@@ -33,7 +33,7 @@ func registerCallOrderHandler[T any](
 func TestNewQuery(t *testing.T) {
 	t.Parallel()
 
-	q := query.New("GetUser")
+	q := query.MustNew("GetUser")
 
 	if q.Type() != "GetUser" {
 		t.Errorf("expected type GetUser, got %s", q.Type())
@@ -43,7 +43,7 @@ func TestNewQuery(t *testing.T) {
 func TestBaseQuery_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ query.Query = query.New("TestQuery")
+	var _ query.Query = query.MustNew("TestQuery")
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -68,7 +68,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	registerHandler(dispatcher, "GetUser", "user-123")
 
-	q := query.New("GetUser")
+	q := query.MustNew("GetUser")
 
 	result, err := dispatcher.Dispatch(context.Background(), q)
 	if err != nil {
@@ -85,7 +85,7 @@ func TestDispatcher_Dispatch_QueryNotSupported(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	q := query.New("UnknownQuery")
+	q := query.MustNew("UnknownQuery")
 
 	_, err := dispatcher.Dispatch(context.Background(), q)
 	if err == nil {
@@ -100,7 +100,7 @@ func TestDispatchTyped(t *testing.T) {
 
 	registerHandler(dispatcher, "GetUserName", "John Doe")
 
-	q := query.New("GetUserName")
+	q := query.MustNew("GetUserName")
 
 	result, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err != nil {
@@ -119,7 +119,7 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 
 	registerHandler(dispatcher, "GetCount", 42)
 
-	q := query.New("GetCount")
+	q := query.MustNew("GetCount")
 
 	_, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err == nil {
@@ -154,7 +154,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result")
 
-	q := query.New("TestQuery")
+	q := query.MustNew("TestQuery")
 	_, _ = dispatcher.Dispatch(context.Background(), q)
 
 	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -175,7 +175,7 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	q := query.New("TestQuery")
+	q := query.MustNew("TestQuery")
 
 	_, err = dispatcher.Dispatch(context.Background(), q)
 	if err == nil {

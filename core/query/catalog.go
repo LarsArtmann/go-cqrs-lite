@@ -1,5 +1,7 @@
 package query
 
+import "fmt"
+
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 type CatalogMeta struct {
 	Name    string
@@ -30,11 +32,27 @@ type CatalogCore struct {
 }
 
 // NewCatalogCore creates a CatalogCore with query metadata.
-func NewCatalogCore(qtype Type, meta CatalogMeta) *CatalogCore {
-	return &CatalogCore{
-		Core: New(qtype),
-		Meta: meta,
+func NewCatalogCore(qtype Type, meta CatalogMeta) (*CatalogCore, error) {
+	core, err := New(qtype)
+	if err != nil {
+		return nil, err
 	}
+
+	return &CatalogCore{
+		Core: core,
+		Meta: meta,
+	}, nil
+}
+
+// MustNewCatalogCore creates a CatalogCore or panics on validation failure.
+// Use only in tests where inputs are guaranteed valid.
+func MustNewCatalogCore(qtype Type, meta CatalogMeta) *CatalogCore {
+	cc, err := NewCatalogCore(qtype, meta)
+	if err != nil {
+		panic(fmt.Sprintf("query.MustNewCatalogCore: %v", err))
+	}
+
+	return cc
 }
 
 // CatalogInfo returns the catalog metadata for this query.

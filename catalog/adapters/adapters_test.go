@@ -35,7 +35,7 @@ type testGetUser struct {
 
 func newTestCreateUser(tp command.Type, meta command.CatalogMeta) *testCreateUser {
 	return &testCreateUser{
-		CatalogCore: command.NewCatalogCore(tp, id.NewAggregateID(), meta),
+		CatalogCore: command.MustNewCatalogCore(tp, id.NewAggregateID(), meta),
 	}
 }
 
@@ -47,7 +47,7 @@ func TestBuilder_AddCommand(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	cmd := &testCreateUser{
-		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore("user.create", aggID, command.CatalogMeta{
 			Name:    "CreateUser",
 			Version: "1.0.0",
 			Summary: "Creates a new user",
@@ -152,7 +152,7 @@ func TestBuilder_AddQuery(t *testing.T) {
 	builder.AddService("user-svc", "User Service", "1.0.0", "")
 
 	qry := &testGetUser{
-		CatalogCore: query.NewCatalogCore("user.get", query.CatalogMeta{
+		CatalogCore: query.MustNewCatalogCore("user.get", query.CatalogMeta{
 			Name:    "GetUser",
 			Version: "1.0.0",
 			Summary: "Retrieves a user by ID",
@@ -282,12 +282,12 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	builder.AddCommand("user-svc", &testCreateUser{
-		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore("user.create", aggID, command.CatalogMeta{
 			Name: "CreateUser", Version: "1.0.0", Summary: "Create user",
 		}),
 	})
 	builder.AddCommand("user-svc", &testChangeEmail{
-		CatalogCore: command.NewCatalogCore("user.change_email", aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore("user.change_email", aggID, command.CatalogMeta{
 			Name: "ChangeEmail", Version: "1.0.0", Summary: "Change email",
 		}),
 	})
@@ -413,7 +413,7 @@ func TestBuilder_AddCommandWithSchema(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	cmd := &testCreateUser{
-		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore("user.create", aggID, command.CatalogMeta{
 			Name: "CreateUser", Version: "1.0.0", Summary: "Creates a user",
 		}),
 	}

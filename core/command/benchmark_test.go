@@ -10,7 +10,7 @@ import (
 )
 
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
-	cmd := command.New("bench.cmd", id.NewAggregateID())
+	cmd := command.MustNew("bench.cmd", id.NewAggregateID())
 	ctx := context.Background()
 
 	for b.Loop() {

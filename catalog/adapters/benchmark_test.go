@@ -21,7 +21,7 @@ func benchCommand() *benchCreateUser {
 	aggID := id.NewAggregateID()
 
 	return &benchCreateUser{
-		CatalogCore: command.NewCatalogCore("user.create", aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore("user.create", aggID, command.CatalogMeta{
 			Name: "CreateUser", Version: "1.0.0",
 		}),
 	}

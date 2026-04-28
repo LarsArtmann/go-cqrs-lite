@@ -1,6 +1,10 @@
 package command
 
-import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+import (
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
 
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 type CatalogMeta struct {
@@ -33,11 +37,27 @@ type CatalogCore struct {
 }
 
 // NewCatalogCore creates a CatalogCore with command metadata.
-func NewCatalogCore(cmdType Type, aggregateID id.AggregateID, meta CatalogMeta) *CatalogCore {
-	return &CatalogCore{
-		Core: New(cmdType, aggregateID),
-		Meta: meta,
+func NewCatalogCore(cmdType Type, aggregateID id.AggregateID, meta CatalogMeta) (*CatalogCore, error) {
+	core, err := New(cmdType, aggregateID)
+	if err != nil {
+		return nil, err
 	}
+
+	return &CatalogCore{
+		Core: core,
+		Meta: meta,
+	}, nil
+}
+
+// MustNewCatalogCore creates a CatalogCore or panics on validation failure.
+// Use only in tests where inputs are guaranteed valid.
+func MustNewCatalogCore(cmdType Type, aggregateID id.AggregateID, meta CatalogMeta) *CatalogCore {
+	cc, err := NewCatalogCore(cmdType, aggregateID, meta)
+	if err != nil {
+		panic(fmt.Sprintf("command.MustNewCatalogCore: %v", err))
+	}
+
+	return cc
 }
 
 // CatalogInfo returns the catalog metadata for this command.

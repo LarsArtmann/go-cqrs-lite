@@ -1,6 +1,8 @@
 package xtypes
 
 import (
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -22,8 +24,18 @@ func (c *TypedCommand) AggregateID() id.AggregateID {
 }
 
 // Command returns the underlying command.Command interface.
-func (c *TypedCommand) Command() command.Command {
+func (c *TypedCommand) Command() (command.Command, error) {
 	return command.New(c.commandType, c.aggregateID)
+}
+
+// MustCommand returns the underlying command.Command or panics.
+func (c *TypedCommand) MustCommand() command.Command {
+	cmd, err := c.Command()
+	if err != nil {
+		panic(fmt.Sprintf("TypedCommand.MustCommand: %v", err))
+	}
+
+	return cmd
 }
 
 // NewTypedCommand creates a new typed command.

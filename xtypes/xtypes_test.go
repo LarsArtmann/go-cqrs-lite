@@ -286,7 +286,10 @@ func TestTypedCommand(t *testing.T) {
 		aggregateID := id.NewAggregateID()
 		cmd := NewTypedCommand("CreateTest", aggregateID)
 
-		c := cmd.Command()
+		c, err := cmd.Command()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 		if c == nil {
 			t.Error("Command() should return non-nil")
 		}

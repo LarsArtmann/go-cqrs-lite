@@ -12,7 +12,7 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	cmd := command.New("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := command.MustNew("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	if cmd.Type() != "CreateUser" {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
@@ -26,7 +26,7 @@ func TestNewCommand(t *testing.T) {
 func TestBaseCommand_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ command.Command = command.New("TestCommand", id.MustParseAggregateID("01HK1549P84T9XF8R94E960633"))
+	var _ command.Command = command.MustNew("TestCommand", id.MustParseAggregateID("01HK1549P84T9XF8R94E960633"))
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -55,7 +55,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	_ = dispatcher.Register("CreateUser", handler)
 
-	cmd := command.New("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := command.MustNew("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
@@ -73,7 +73,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := command.New("UnknownCommand", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := command.MustNew("UnknownCommand", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
@@ -100,7 +100,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		return nil
 	})
 
-	cmd := command.New("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 	_ = dispatcher.Dispatch(ctx, cmd)
 
 	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -117,7 +117,7 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	cmd := command.New("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {
