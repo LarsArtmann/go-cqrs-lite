@@ -141,6 +141,15 @@ func NewEvent(
 	payload []byte,
 	opts ...Option,
 ) (*Core, error) {
+	if eventType == "" {
+		//nolint:err113 // dynamic error required for validation
+		return nil, fmt.Errorf(
+			"event type is required (got empty) for aggregate %q of type %q",
+			aggregateID,
+			aggregateType,
+		)
+	}
+
 	v, err := ParseVersion(version)
 	if err != nil {
 		return nil, fmt.Errorf(
