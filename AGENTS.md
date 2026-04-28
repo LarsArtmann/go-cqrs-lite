@@ -477,7 +477,7 @@ Interfaces now return branded ID types instead of `string`:
 
 - **Session 8 (Coverage + Benchmarks + Golden Tests)**:
   - `core/pkg/dispatcher`: 75.4% → 100% (BaseDispatcher, CatalogDispatcher direct tests)
-  - `core/event`: 88.3% → 97.9% (NewEventCatalogCore, WithMetadata, defensive copy tests)
+  - `core/event`: 88.3% → 97.9% (NewCatalogCore, WithMetadata, defensive copy tests)
   - `core/aggregate`: 90.2% → 95.1% (error paths, failingStore, HistoryLoader check)
   - `catalog`: 87.0% → 94.2% (SchemaFromReflect, collection types, MessageID fallback)
   - `catalog/eventcatalog`: 89.7% → 95.5% (I/O error paths, examples marshal error)
@@ -486,9 +486,19 @@ Interfaces now return branded ID types instead of `string`:
   - Added golden-file tests for AsyncAPI JSON/YAML and EventCatalog outputs
   - Added benchmarks for query dispatch and aggregate operations
   - Added `NoopQueryHandler` to shared testhelpers
-  - Removed stale `go-composable-business-types` replace directives
   - Archived 41 stale status reports to `docs/status/archive/`
-  - Zero lint issues in core modules (catalog has pre-existing dupl/noinlineerr)
+
+- **Session 9 (Code Quality + Consistency)**:
+  - Fixed 20 remaining catalog lint issues — **zero lint across all 6 modules**
+  - Removed stale `go-composable-business-types` replace from core, memory, catalog
+  - Removed unused `memory` replace from middleware, catalog, testhelpers
+  - Fixed `query.Middleware` type to reference `Handler` alias (matches command/event pattern)
+  - Renamed `EventCatalogMeta` → `CatalogMeta`, `EventCatalogable` → `Catalogable`, `EventCatalogCore` → `CatalogCore`, `NewEventCatalogCore` → `NewCatalogCore` for consistency with command/query (BREAKING)
+  - Split `eventcatalog/exporter.go` (346 → 179 + 176 `writer.go`)
+  - Split `asyncapi/exporter.go` (273 → 213 + 69 `helpers.go`)
+  - Extracted `schemaFromReflect` into `schema_reflect.go` with focused functions
+  - Split test files: `eventcatalog/exporter_test.go` (992 → 673 + 332), `schema_test.go` (681 → 444 + 249), `adapters_test.go` (630 → 239 + 265 + 156)
+  - Updated `.golangci.yml` exhaustruct exclusion for `schema_reflect.go`
 
 ## Migration State
 
@@ -521,7 +531,8 @@ These were identified but explicitly deferred because they affect all consumers 
 | ~~`Event.ID()` → return `id.EventID`~~ | ✅ Done (commit `7cc3e20`) |
 | ~~`Command.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
 | ~~`event.go:129` `aggregateID.IsZero`~~ | ✅ Done (now uses branded `id.AggregateID.IsZero()`) |
-| Stale `replace` directives in `middleware/go.mod`, `xtypes/go.mod` | Requires sibling `go-composable-business-types` repo |
+| ~~`EventCatalogMeta` → `CatalogMeta` naming~~ | ✅ Done (session 9, breaking change) |
+| Stale `replace` directives in `middleware/go.mod`, `xtypes/go.mod` | ✅ Done (session 9, removed all unused replaces) |
 
 ## References
 
