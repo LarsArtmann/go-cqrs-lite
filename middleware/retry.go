@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -84,20 +86,13 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {
-	delay := time.Duration(float64(config.InitialDelay) * pow(config.Multiplier, attempt-1))
+	delay := time.Duration(float64(config.InitialDelay) * math.Pow(config.Multiplier, float64(attempt-1)))
 	if delay > config.MaxDelay {
-		return config.MaxDelay
+		delay = config.MaxDelay
 	}
+
+	jitter := time.Duration(rand.Int64N(int64(delay) / 2))
+	delay += jitter
 
 	return delay
-}
-
-func pow(base float64, exp int) float64 {
-	result := 1.0
-
-	for range exp {
-		result *= base
-	}
-
-	return result
 }
