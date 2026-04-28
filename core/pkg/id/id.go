@@ -99,8 +99,8 @@ func (id Of[T]) Equal(other Of[T]) bool { return id.wrapped.Equal(other.wrapped)
 
 // Compare returns -1 if id < other, 0 if equal, 1 if id > other.
 // Uses ULID's Compare method for lexicographic byte comparison.
-func (id Of[T]) Compare(other Of[T]) (int, error) {
-	return id.wrapped.Get().Compare(other.wrapped.Get()), nil
+func (id Of[T]) Compare(other Of[T]) int {
+	return id.wrapped.Get().Compare(other.wrapped.Get())
 }
 
 // Get returns the underlying ULID value.

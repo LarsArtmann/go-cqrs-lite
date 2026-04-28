@@ -181,10 +181,7 @@ func TestCompare(t *testing.T) {
 			a := MustParse[AggregateID](tc.aStr)
 			b := MustParse[AggregateID](tc.bStr)
 
-			got, err := a.Compare(b)
-			if err != nil {
-				t.Fatalf("Compare() error = %v", err)
-			}
+			got := a.Compare(b)
 
 			if got != tc.want {
 				t.Error(tc.desc)

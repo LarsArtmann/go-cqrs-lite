@@ -44,8 +44,6 @@ func (m *LifecycleMixin) CheckClosed(closedErr error) error {
 	return nil
 }
 
-// LifecycleMixin provides thread-safe closed state management for composable types.
-
 // ErrHandlerNotFound is returned when no handler is registered for a type.
 var ErrHandlerNotFound = errors.New("handler not found")
 
