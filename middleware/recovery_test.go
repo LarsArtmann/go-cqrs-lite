@@ -1,0 +1,118 @@
+package middleware
+
+import (
+	"context"
+	"strings"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
+)
+
+func TestCommandRecovery_NoPanic(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandRecovery()
+	handler := mw(testhelpers.NoopCommandHandler())
+
+	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
+	err := handler(context.Background(), cmd)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCommandRecovery_Panic(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandRecovery()
+	handler := mw(testhelpers.PanicCommandHandler("boom"))
+
+	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
+	err := handler(context.Background(), cmd)
+	if err == nil {
+		t.Fatal("expected error from recovered panic")
+	}
+
+	if !strings.Contains(err.Error(), "panic recovered in command test.cmd: boom") {
+		t.Errorf("unexpected error message: %s", err.Error())
+	}
+}
+
+func TestEventRecovery_NoPanic(t *testing.T) {
+	t.Parallel()
+
+	mw := EventRecovery()
+	handler := mw(testhelpers.NoopEventHandler())
+
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	err = handler(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestEventRecovery_Panic(t *testing.T) {
+	t.Parallel()
+
+	mw := EventRecovery()
+	handler := mw(testhelpers.PanicEventHandler("event boom"))
+
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	err = handler(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error from recovered panic")
+	}
+
+	if !strings.Contains(err.Error(), "panic recovered in event test.evt: event boom") {
+		t.Errorf("unexpected error message: %s", err.Error())
+	}
+}
+
+func TestQueryRecovery_NoPanic(t *testing.T) {
+	t.Parallel()
+
+	mw := QueryRecovery()
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		return "ok", nil
+	})
+
+	result, err := handler(context.Background(), &testQuery{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result != "ok" {
+		t.Errorf("expected ok, got %v", result)
+	}
+}
+
+func TestQueryRecovery_Panic(t *testing.T) {
+	t.Parallel()
+
+	mw := QueryRecovery()
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		panic("query boom")
+	})
+
+	_, err := handler(context.Background(), &testQuery{})
+	if err == nil {
+		t.Fatal("expected error from recovered panic")
+	}
+
+	if !strings.Contains(err.Error(), "panic recovered in query test.query: query boom") {
+		t.Errorf("unexpected error message: %s", err.Error())
+	}
+}
