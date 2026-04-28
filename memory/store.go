@@ -21,9 +21,7 @@ var _ event.Store = (*MemoryStore)(nil)
 
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		LifecycleMixin: dispatcher.LifecycleMixin{},
-		events:         make(map[string][]event.Event),
-		mu:             sync.RWMutex{},
+		events: make(map[string][]event.Event),
 	}
 }
 

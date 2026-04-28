@@ -83,12 +83,15 @@ func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	return wrapped
 }
 
-// Middleware returns the middleware slice for read access.
+// Middleware returns a copy of the middleware slice for read access.
 func (c *MiddlewareChain[H, M]) Middleware() []M {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	return c.middleware
+	result := make([]M, len(c.middleware))
+	copy(result, c.middleware)
+
+	return result
 }
 
 // Dispatcher is a generic dispatcher that routes requests to their handlers.

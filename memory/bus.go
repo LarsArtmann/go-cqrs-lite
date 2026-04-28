@@ -22,11 +22,7 @@ var _ event.Bus = (*MemoryBus)(nil)
 
 func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
-		LifecycleMixin: dispatcher.LifecycleMixin{},
-		handlers:       make(map[event.Type][]event.Handler),
-		mu:             sync.RWMutex{},
-		allHandlers:    nil,
-		middleware:     nil,
+		handlers: make(map[event.Type][]event.Handler),
 	}
 }
 

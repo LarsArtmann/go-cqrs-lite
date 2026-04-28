@@ -92,7 +92,7 @@ func (id Of[T]) Value() (driver.Value, error) {
 // MarshalBinary implements encoding.BinaryMarshaler, returning 16-byte big-endian ULID.
 func (id Of[T]) MarshalBinary() ([]byte, error) {
 	if id.IsZero() {
-		return nil, nil
+		return nil, nil //nolint:nilnil // consistent with Value() — SQL NULL convention
 	}
 
 	val, err := id.wrapped.Get().MarshalBinary()
@@ -133,7 +133,7 @@ func (id *Of[T]) UnmarshalBinary(data []byte) error {
 // MarshalText implements encoding.TextMarshaler, returning the ULID string.
 func (id Of[T]) MarshalText() ([]byte, error) {
 	if id.IsZero() {
-		return nil, nil
+		return nil, nil //nolint:nilnil // consistent with Value() — SQL NULL convention
 	}
 
 	return []byte(id.String()), nil

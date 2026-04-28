@@ -157,24 +157,20 @@ func NewEvent(
 	if aggregateID.IsZero() {
 		//nolint:err113 // dynamic error required to include event details for debugging
 		return nil, fmt.Errorf(
-			"aggregate ID is required (got empty) for event type %q, aggregate type %q, version %d, payload size %d, opts count: %d",
+			"aggregate ID is required for event type %q, aggregate type %q, version %d",
 			eventType,
 			aggregateType,
 			version,
-			len(payload),
-			len(opts),
 		)
 	}
 
 	if aggregateType == "" {
 		//nolint:err113 // dynamic error required to include event details for debugging
 		return nil, fmt.Errorf(
-			"aggregate type is required (got empty) for aggregate %q, event type %q, version %d, payload size %d, opts count: %d",
+			"aggregate type is required for aggregate %q, event type %q, version %d",
 			aggregateID,
 			eventType,
 			version,
-			len(payload),
-			len(opts),
 		)
 	}
 

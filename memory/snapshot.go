@@ -21,13 +21,11 @@ var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
 
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{
-		LifecycleMixin: dispatcher.LifecycleMixin{},
-		snapshots:      make(map[string]*event.Snapshot),
-		mu:             sync.RWMutex{},
+		snapshots: make(map[string]*event.Snapshot),
 	}
 }
 
-func snapshotKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
+func (s *MemorySnapshotStore) streamKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
 	return string(aggregateType) + ":" + aggregateID.String()
 }
 
@@ -40,7 +38,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := snapshotKey(snapshot.AggregateType, snapshot.AggregateID)
+	key := s.streamKey(snapshot.AggregateType, snapshot.AggregateID)
 
 	existing, exists := s.snapshots[key]
 	if exists && existing.Version.Int() > snapshot.Version.Int() {
@@ -65,7 +63,7 @@ func (s *MemorySnapshotStore) Load(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := snapshotKey(aggregateType, aggregateID)
+	key := s.streamKey(aggregateType, aggregateID)
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -91,7 +89,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := snapshotKey(aggregateType, aggregateID)
+	key := s.streamKey(aggregateType, aggregateID)
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -120,7 +118,7 @@ func (s *MemorySnapshotStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := snapshotKey(aggregateType, aggregateID)
+	key := s.streamKey(aggregateType, aggregateID)
 	delete(s.snapshots, key)
 
 	return nil

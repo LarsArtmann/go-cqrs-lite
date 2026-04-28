@@ -52,9 +52,12 @@ func (a *Core) RecordEvent(_ context.Context, evt event.Event) {
 	a.version = a.version.Increment()
 }
 
-// UncommittedChanges returns pending events.
+// UncommittedChanges returns a copy of pending events.
 func (a *Core) UncommittedChanges() []event.Event {
-	return a.changes
+	result := make([]event.Event, len(a.changes))
+	copy(result, a.changes)
+
+	return result
 }
 
 // MarkChangesAsCommitted clears pending events.
