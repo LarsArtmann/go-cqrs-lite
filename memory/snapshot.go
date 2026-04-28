@@ -26,13 +26,6 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 	}
 }
 
-func (s *MemorySnapshotStore) streamKey(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) string {
-	return string(aggregateType) + ":" + aggregateID.String()
-}
-
 func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
@@ -42,7 +35,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := s.streamKey(snapshot.AggregateType, snapshot.AggregateID)
+	key := streamKey(snapshot.AggregateType, snapshot.AggregateID)
 
 	existing, exists := s.snapshots[key]
 	if exists && existing.Version.Int() > snapshot.Version.Int() {
@@ -67,7 +60,7 @@ func (s *MemorySnapshotStore) Load(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -93,7 +86,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -122,7 +115,7 @@ func (s *MemorySnapshotStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 	delete(s.snapshots, key)
 
 	return nil

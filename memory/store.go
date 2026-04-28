@@ -26,13 +26,6 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) streamKey(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) string {
-	return string(aggregateType) + ":" + aggregateID.String()
-}
-
 func (s *MemoryStore) Save(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -48,7 +41,7 @@ func (s *MemoryStore) Save(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 	existing := s.events[key]
 
 	if len(existing) != expectedVersion.Int() {
@@ -75,7 +68,7 @@ func (s *MemoryStore) AppendBatch(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -94,7 +87,7 @@ func (s *MemoryStore) Load(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 
 	events, exists := s.events[key]
 	if !exists {
@@ -121,7 +114,7 @@ func (s *MemoryStore) LoadFromVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 
 	events, exists := s.events[key]
 	if !exists {
@@ -152,7 +145,7 @@ func (s *MemoryStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := s.streamKey(aggregateType, aggregateID)
+	key := streamKey(aggregateType, aggregateID)
 	delete(s.events, key)
 
 	return nil
