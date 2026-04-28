@@ -71,7 +71,7 @@ func buildQueryMessage(
 
 func buildEventMessage(
 	id string,
-	meta event.EventCatalogMeta,
+	meta event.CatalogMeta,
 	schema *catalog.Schema,
 	direction catalog.Direction,
 ) catalog.Message {

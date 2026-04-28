@@ -383,16 +383,16 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 	}
 }
 
-func TestNewEventCatalogCore(t *testing.T) {
+func TestNewCatalogCore(t *testing.T) {
 	t.Parallel()
 
-	core, err := event.NewEventCatalogCore(
+	core, err := event.NewCatalogCore(
 		"OrderCreated",
 		id.NewAggregateID(),
 		"Order",
 		1,
 		nil,
-		event.EventCatalogMeta{
+		event.CatalogMeta{
 			Name:          "OrderCreated",
 			Version:       "1.0.0",
 			Summary:       "An order was created",
@@ -407,7 +407,7 @@ func TestNewEventCatalogCore(t *testing.T) {
 		t.Errorf("expected type OrderCreated, got %s", core.Type())
 	}
 
-	meta := core.EventCatalogInfo()
+	meta := core.CatalogInfo()
 	if meta.Name != "OrderCreated" {
 		t.Errorf("expected catalog name OrderCreated, got %s", meta.Name)
 	}
@@ -417,16 +417,16 @@ func TestNewEventCatalogCore(t *testing.T) {
 	}
 }
 
-func TestNewEventCatalogCore_Error(t *testing.T) {
+func TestNewCatalogCore_Error(t *testing.T) {
 	t.Parallel()
 
-	_, err := event.NewEventCatalogCore(
+	_, err := event.NewCatalogCore(
 		"",
 		id.NewAggregateID(),
 		"Order",
 		1,
 		nil,
-		event.EventCatalogMeta{},
+		event.CatalogMeta{},
 	)
 	if err == nil {
 		t.Error("expected error for empty event type")

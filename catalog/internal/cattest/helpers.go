@@ -281,15 +281,15 @@ func AddQuerySimple(
 	return r
 }
 
-// NewEventCatalogCore creates an event catalog core with defaults for testing.
-func NewEventCatalogCore(
+// NewCatalogCore creates an event catalog core with defaults for testing.
+func NewCatalogCore(
 	tb testing.TB,
 	eventType string,
-	meta event.EventCatalogMeta,
-) (*event.EventCatalogCore, error) {
+	meta event.CatalogMeta,
+) (*event.CatalogCore, error) {
 	tb.Helper()
 
-	core, err := event.NewEventCatalogCore(
+	core, err := event.NewCatalogCore(
 		event.Type(eventType),
 		id.NewAggregateID(),
 		"Order",

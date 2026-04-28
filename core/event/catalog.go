@@ -2,59 +2,44 @@ package event
 
 import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 
-// EventCatalogMeta contains documentation metadata for auto-catalog generation.
-type EventCatalogMeta struct {
+type CatalogMeta struct {
 	Name          string
 	Version       string
 	Summary       string
 	AggregateType AggregateType
 }
 
-// EventCatalogable is implemented by events that want to be auto-documented
-// by the catalog/adapters package.
-type EventCatalogable interface {
+type Catalogable interface {
 	Event
-	EventCatalogInfo() EventCatalogMeta
+	CatalogInfo() CatalogMeta
 }
 
-// EventCatalogCore combines event.Core with catalog metadata.
-// Embed this struct in your event to make it auto-catalogable.
-//
-// Example:
-//
-//	type UserCreated struct {
-//	    *EventCatalogCore
-//	    Name  string `json:"name"`
-//	    Email string `json:"email"`
-//	}
-type EventCatalogCore struct {
+type CatalogCore struct {
 	*Core
 
-	Meta EventCatalogMeta
+	Meta CatalogMeta
 }
 
-// NewEventCatalogCore creates an EventCatalogCore with event metadata.
-func NewEventCatalogCore(
+func NewCatalogCore(
 	eventType Type,
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	version int,
 	payload []byte,
-	meta EventCatalogMeta,
+	meta CatalogMeta,
 	opts ...Option,
-) (*EventCatalogCore, error) {
+) (*CatalogCore, error) {
 	base, err := NewEvent(eventType, aggregateID, aggregateType, version, payload, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &EventCatalogCore{
+	return &CatalogCore{
 		Core: base,
 		Meta: meta,
 	}, nil
 }
 
-// EventCatalogInfo returns the catalog metadata for this event.
-func (c *EventCatalogCore) EventCatalogInfo() EventCatalogMeta {
+func (c *CatalogCore) CatalogInfo() CatalogMeta {
 	return c.Meta
 }

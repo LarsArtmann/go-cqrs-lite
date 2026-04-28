@@ -7,8 +7,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-func (b *CatalogBuilder) AddEvent(serviceID string, evt event.EventCatalogable) {
-	meta := evt.EventCatalogInfo()
+func (b *CatalogBuilder) AddEvent(serviceID string, evt event.Catalogable) {
+	meta := evt.CatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
 	msg := buildEventMessage(string(evt.Type()), meta, schema, catalog.Sends)
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
@@ -16,19 +16,19 @@ func (b *CatalogBuilder) AddEvent(serviceID string, evt event.EventCatalogable) 
 
 func (b *CatalogBuilder) AddEventWithDirection(
 	serviceID string,
-	evt event.EventCatalogable,
+	evt event.Catalogable,
 	direction catalog.Direction,
 ) {
-	meta := evt.EventCatalogInfo()
+	meta := evt.CatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
 	msg := buildEventMessage(string(evt.Type()), meta, schema, direction)
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
 }
 
-func AddEventFromType[T event.EventCatalogable](
+func AddEventFromType[T event.Catalogable](
 	builder *CatalogBuilder,
 	serviceID, eventType string,
-	meta event.EventCatalogMeta,
+	meta event.CatalogMeta,
 	direction catalog.Direction,
 ) {
 	schema := catalog.SchemaFromType[T]()

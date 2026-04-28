@@ -98,9 +98,9 @@ func TestBuilder_AddEvent(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := cattest.NewEventCatalogCore(t,
+	evtCore, err := cattest.NewCatalogCore(t,
 		"order.created",
-		event.EventCatalogMeta{
+		event.CatalogMeta{
 			Name:    "OrderCreated",
 			Version: "1.0.0",
 			Summary: "Order was created",
@@ -111,13 +111,13 @@ func TestBuilder_AddEvent(t *testing.T) {
 	}
 
 	type orderCreated struct {
-		*event.EventCatalogCore
+		*event.CatalogCore
 
 		OrderID string  `doc:"Unique order ID" json:"orderId"`
 		Amount  float64 `doc:"Total amount"    json:"amount"`
 	}
 
-	evt := &orderCreated{EventCatalogCore: evtCore}
+	evt := &orderCreated{CatalogCore: evtCore}
 	builder.AddEvent("order-svc", evt)
 
 	cat := builder.Build()
@@ -450,9 +450,9 @@ func TestBuilder_AddEventWithDirection(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := cattest.NewEventCatalogCore(t,
+	evtCore, err := cattest.NewCatalogCore(t,
 		"order.shipped",
-		event.EventCatalogMeta{
+		event.CatalogMeta{
 			Name:    "OrderShipped",
 			Version: "1.0.0",
 			Summary: "Order was shipped",
@@ -463,12 +463,12 @@ func TestBuilder_AddEventWithDirection(t *testing.T) {
 	}
 
 	type orderShipped struct {
-		*event.EventCatalogCore
+		*event.CatalogCore
 
 		TrackingNumber string `doc:"Tracking number" json:"trackingNumber"`
 	}
 
-	evt := &orderShipped{EventCatalogCore: evtCore}
+	evt := &orderShipped{CatalogCore: evtCore}
 	builder.AddEventWithDirection("order-svc", evt, catalog.Receives)
 
 	cat := builder.Build()
@@ -491,7 +491,7 @@ func TestBuilder_AddEventFromType(t *testing.T) {
 	t.Parallel()
 
 	type userDeleted struct {
-		*event.EventCatalogCore
+		*event.CatalogCore
 
 		Reason string `doc:"Deletion reason" json:"reason"`
 	}
@@ -503,7 +503,7 @@ func TestBuilder_AddEventFromType(t *testing.T) {
 		builder,
 		"user-svc",
 		"user.deleted",
-		event.EventCatalogMeta{
+		event.CatalogMeta{
 			Name:    "UserDeleted",
 			Version: "1.0.0",
 			Summary: "User was deleted",
@@ -530,8 +530,8 @@ func TestBuilder_AddEventFromType(t *testing.T) {
 
 	cattest.AssertSchemaProperty(t, evtMsg.Schema, "reason")
 
-	if _, ok := evtMsg.Schema.Properties["EventCatalogCore"]; ok {
-		t.Error("schema should NOT contain embedded EventCatalogCore")
+	if _, ok := evtMsg.Schema.Properties["CatalogCore"]; ok {
+		t.Error("schema should NOT contain embedded CatalogCore")
 	}
 }
 
