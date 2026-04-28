@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -130,7 +131,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 		t.Fatal("expected error from recovered panic")
 	}
 
-	if err.Error() != "panic recovered in command test.cmd: boom" {
+	if !strings.Contains(err.Error(), "panic recovered in command test.cmd: boom") {
 		t.Errorf("unexpected error message: %s", err.Error())
 	}
 }

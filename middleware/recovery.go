@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -12,11 +13,12 @@ import (
 // CommandRecovery returns a command middleware that recovers from panics.
 func CommandRecovery() command.Middleware {
 	return func(next command.Handler) command.Handler {
+		//nolint:nonamedreturns // required for defer/recover to modify return values
 		return func(ctx context.Context, cmd command.Command) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
 					//nolint:err113
-					err = fmt.Errorf("panic recovered in command %s: %v", cmd.Type(), r)
+					err = fmt.Errorf("panic recovered in command %s: %v\n%s", cmd.Type(), r, debug.Stack())
 				}
 			}()
 
@@ -28,11 +30,12 @@ func CommandRecovery() command.Middleware {
 // EventRecovery returns an event middleware that recovers from panics.
 func EventRecovery() event.Middleware {
 	return func(next event.Handler) event.Handler {
+		//nolint:nonamedreturns // required for defer/recover to modify return values
 		return func(ctx context.Context, evt event.Event) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
 					//nolint:err113
-					err = fmt.Errorf("panic recovered in event %s: %v", evt.Type(), r)
+					err = fmt.Errorf("panic recovered in event %s: %v\n%s", evt.Type(), r, debug.Stack())
 				}
 			}()
 
@@ -49,7 +52,7 @@ func QueryRecovery() query.Middleware {
 			defer func() {
 				if r := recover(); r != nil {
 					//nolint:err113
-					err = fmt.Errorf("panic recovered in query %s: %v", q.Type(), r)
+					err = fmt.Errorf("panic recovered in query %s: %v\n%s", q.Type(), r, debug.Stack())
 				}
 			}()
 
