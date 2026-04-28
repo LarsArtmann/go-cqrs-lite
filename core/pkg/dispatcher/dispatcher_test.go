@@ -77,7 +77,7 @@ func TestLifecycleMixin_CheckClosed(t *testing.T) {
 func TestLifecycle_Close(t *testing.T) {
 	t.Parallel()
 
-	l := &Lifecycle{}
+	l := &LifecycleMixin{}
 	if l.IsClosed() {
 		t.Error("new lifecycle should not be closed")
 	}
@@ -95,7 +95,7 @@ func TestLifecycle_Close(t *testing.T) {
 func TestLifecycle_CheckClosed(t *testing.T) {
 	t.Parallel()
 
-	l := &Lifecycle{}
+	l := &LifecycleMixin{}
 	closedErr := errors.New("closed")
 
 	err := l.CheckClosed(closedErr)

@@ -17,7 +17,7 @@ func (b *BaseDispatcher[H, M]) Use(middleware ...M) {
 }
 
 // Lifecycle returns the lifecycle manager for the dispatcher.
-func (b *BaseDispatcher[H, M]) Lifecycle() *Lifecycle {
+func (b *BaseDispatcher[H, M]) Lifecycle() *LifecycleMixin {
 	return &b.inner.Lifecycle
 }
 

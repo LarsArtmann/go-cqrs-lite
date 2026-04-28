@@ -44,11 +44,7 @@ func (m *LifecycleMixin) CheckClosed(closedErr error) error {
 	return nil
 }
 
-// Lifecycle manages the closed state of a dispatcher with thread-safe access.
-// It embeds LifecycleMixin for reusable closed state management.
-type Lifecycle struct {
-	LifecycleMixin
-}
+// LifecycleMixin provides thread-safe closed state management for composable types.
 
 // ErrHandlerNotFound is returned when no handler is registered for a type.
 var ErrHandlerNotFound = errors.New("handler not found")
@@ -99,25 +95,16 @@ func (c *MiddlewareChain[H, M]) Middleware() []M {
 type Dispatcher[H any, M any] struct {
 	handlers   map[string]H
 	handlersMu sync.RWMutex
-	Lifecycle  Lifecycle
+	Lifecycle  LifecycleMixin
 	Middleware MiddlewareChain[H, M]
 }
 
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		handlers:   make(map[string]H),
-		handlersMu: sync.RWMutex{},
-		Lifecycle: Lifecycle{
-			LifecycleMixin: LifecycleMixin{
-				mu:     sync.RWMutex{},
-				closed: false,
-			},
-		},
-		Middleware: MiddlewareChain[H, M]{
-			mu:         sync.RWMutex{},
-			middleware: nil,
-		},
+		handlers: make(map[string]H),
+		Lifecycle: LifecycleMixin{},
+		Middleware: MiddlewareChain[H, M]{},
 	}
 }
 
