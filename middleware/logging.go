@@ -85,29 +85,19 @@ func EventLogging(logger Logger) event.Middleware {
 func QueryLogging(logger Logger) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
-			start := time.Now()
-
-			logger.Info("query dispatching", "type", string(q.Type()))
-
-			result, err := next(ctx, q)
-			duration := time.Since(start)
-
-			if err != nil {
-				logger.Error("query failed",
-					"type", string(q.Type()),
-					"duration", duration,
-					"error", err,
-				)
-
-				return nil, err
+			lc := logContext{
+				prefix:  "query",
+				msgType: string(q.Type()),
 			}
 
-			logger.Info("query succeeded",
-				"type", string(q.Type()),
-				"duration", duration,
-			)
+			var result any
+			err := logWithContext(logger, lc, func() error {
+				var e error
+				result, e = next(ctx, q)
+				return e
+			})
 
-			return result, nil
+			return result, err
 		}
 	}
 }
