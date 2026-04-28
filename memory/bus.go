@@ -30,11 +30,18 @@ func NewMemoryBus() *MemoryBus {
 	}
 }
 
-func (b *MemoryBus) Use(middleware ...event.Middleware) {
+func (b *MemoryBus) Use(middleware ...event.Middleware) error {
+	err := b.CheckClosed(event.ErrBusClosed)
+	if err != nil {
+		return errors.Wrap(err, "bus use middleware")
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	b.middleware = append(b.middleware, middleware...)
+
+	return nil
 }
 
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
