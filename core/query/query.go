@@ -1,7 +1,6 @@
 package query
 
 import (
-	"context"
 	"errors"
 	"fmt"
 )
@@ -44,4 +43,4 @@ func MustNew(queryType Type) *Core {
 }
 
 // Middleware wraps query handlers for cross-cutting concerns.
-type Middleware func(func(context.Context, Query) (any, error)) func(context.Context, Query) (any, error)
+type Middleware func(Handler) Handler
