@@ -212,7 +212,7 @@ linters:
             - path: internal/testhelpers/helpers\.go$
               linters:
                 - gochecknoglobals
-            - path: schema\.go$
+            - path: schema.*\.go$
               linters:
                 - exhaustruct
 formatters:
