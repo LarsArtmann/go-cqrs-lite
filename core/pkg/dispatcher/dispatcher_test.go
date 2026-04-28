@@ -401,3 +401,197 @@ func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestNewBaseDispatcher(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+	if b.Lifecycle() == nil {
+		t.Error("Lifecycle() should not return nil after NewBaseDispatcher")
+	}
+
+	if b.Lifecycle().IsClosed() {
+		t.Error("new BaseDispatcher should not be closed")
+	}
+}
+
+func TestBaseDispatcher_InitBaseDispatcher(t *testing.T) {
+	t.Parallel()
+
+	var b BaseDispatcher[testHandler, testMiddleware]
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+	b.InitBaseDispatcher(d)
+
+	if b.Lifecycle() == nil {
+		t.Error("Lifecycle() should not return nil after InitBaseDispatcher")
+	}
+}
+
+func TestBaseDispatcher_Use(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+
+	var order []string
+	b.Use(testMW(&order, "mw1"))
+
+	if len(b.inner.Middleware.Middleware()) != 1 {
+		t.Errorf("expected 1 middleware after Use(), got %d", len(b.inner.Middleware.Middleware()))
+	}
+}
+
+func TestBaseDispatcher_Register(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+	handler := func(s string) string { return s }
+
+	err := b.Register("test", handler)
+	if err != nil {
+		t.Errorf("Register() error = %v", err)
+	}
+
+	h, ok := b.GetHandler("test")
+	if !ok || h == nil {
+		t.Error("handler should be registered via BaseDispatcher")
+	}
+}
+
+func TestBaseDispatcher_Register_Closed(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+	_ = b.Lifecycle().Close()
+
+	handler := func(s string) string { return s }
+
+	err := b.Register("test", handler)
+	if err == nil {
+		t.Error("expected error when registering on closed BaseDispatcher")
+	}
+}
+
+func TestBaseDispatcher_GetHandler_NotFound(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+
+	_, ok := b.GetHandler("missing")
+	if ok {
+		t.Error("should not find handler for unregistered type")
+	}
+}
+
+func TestBaseDispatcher_Dispatch(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+	handler := func(s string) string { return "handled:" + s }
+	_ = b.Register("test", handler)
+
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
+
+	result, err := b.Dispatch("test", wrapWithMiddleware)
+	if err != nil {
+		t.Fatalf("Dispatch() error = %v", err)
+	}
+
+	if result("x") != "handled:x" {
+		t.Errorf("expected handled:x, got %s", result("x"))
+	}
+}
+
+func TestBaseDispatcher_Dispatch_Closed(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+	_ = b.Lifecycle().Close()
+
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
+
+	_, err := b.Dispatch("test", wrapWithMiddleware)
+	if err == nil {
+		t.Error("expected error when dispatching on closed BaseDispatcher")
+	}
+}
+
+func TestBaseDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseDispatcher[testHandler, testMiddleware]()
+
+	wrapWithMiddleware := func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	}
+
+	_, err := b.Dispatch("missing", wrapWithMiddleware)
+	if err == nil {
+		t.Error("expected error for missing handler")
+	}
+}
+
+func TestCopyCatalogEntries(t *testing.T) {
+	t.Parallel()
+
+	src := map[string]int{"a": 1, "b": 2}
+
+	dest := CopyCatalogEntries(nil, src)
+	if len(dest) != 2 {
+		t.Errorf("expected 2 entries, got %d", len(dest))
+	}
+
+	if dest["a"] != 1 || dest["b"] != 2 {
+		t.Errorf("expected a=1, b=2, got a=%d, b=%d", dest["a"], dest["b"])
+	}
+
+	existing := map[string]int{"c": 3}
+
+	merged := CopyCatalogEntries(existing, src)
+	if len(merged) != 3 {
+		t.Errorf("expected 3 entries after merge, got %d", len(merged))
+	}
+}
+
+func TestNewCatalogDispatcher(t *testing.T) {
+	t.Parallel()
+
+	catalogDisp := NewCatalogDispatcher[string, int]()
+	if catalogDisp.CatalogEntries() == nil {
+		t.Error("CatalogEntries() should not return nil after NewCatalogDispatcher")
+	}
+
+	if len(catalogDisp.CatalogEntries()) != 0 {
+		t.Errorf("expected 0 entries, got %d", len(catalogDisp.CatalogEntries()))
+	}
+}
+
+func TestCatalogDispatcher_RegisterCatalogEntry(t *testing.T) {
+	t.Parallel()
+
+	catalogDisp := NewCatalogDispatcher[string, int]()
+	catalogDisp.RegisterCatalogEntry("cmd1", 42)
+
+	entries := catalogDisp.CatalogEntries()
+	if entries["cmd1"] != 42 {
+		t.Errorf("expected 42 for cmd1, got %d", entries["cmd1"])
+	}
+}
+
+func TestCatalogDispatcher_CatalogEntries_Copy(t *testing.T) {
+	t.Parallel()
+
+	catalogDisp := NewCatalogDispatcher[string, int]()
+	catalogDisp.RegisterCatalogEntry("cmd1", 1)
+
+	entries := catalogDisp.CatalogEntries()
+	entries["cmd1"] = 999
+
+	if catalogDisp.CatalogEntries()["cmd1"] != 1 {
+		t.Error("CatalogEntries() should return a copy, not a reference")
+	}
+}

@@ -3,6 +3,7 @@ package aggregate_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -285,5 +286,153 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 
 	if received[0].Type() != "OrderPlaced" {
 		t.Errorf("expected event type OrderPlaced, got %s", received[0].Type())
+	}
+}
+
+type rootWithoutHistoryLoader struct {
+	*aggregate.Core
+}
+
+func (r *rootWithoutHistoryLoader) Apply(_ event.Event) error { return nil }
+
+var _ aggregate.Root = (*rootWithoutHistoryLoader)(nil)
+
+func TestEventSourcedRepository_Load_WithoutHistoryLoader(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	repo := aggregate.NewRepository(store, bus)
+
+	orderID := id.NewAggregateID()
+	r := &rootWithoutHistoryLoader{Core: aggregate.NewCore(orderID, "Test")}
+
+	err := repo.Load(context.Background(), r)
+	if err == nil {
+		t.Error("expected error when root does not implement HistoryLoader")
+	}
+}
+
+type failingApplyRoot struct {
+	*aggregate.Core
+}
+
+func (r *failingApplyRoot) Apply(_ event.Event) error {
+	return errors.New("apply failed")
+}
+
+var (
+	_ aggregate.Root          = (*failingApplyRoot)(nil)
+	_ aggregate.HistoryLoader = (*failingApplyRoot)(nil)
+)
+
+func (r *failingApplyRoot) LoadEvents(events []event.Event) error {
+	return r.LoadFromHistory(r, events)
+}
+
+func TestCore_LoadFromHistory_ApplyError(t *testing.T) {
+	t.Parallel()
+
+	orderID := id.NewAggregateID()
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+
+	o := newOrder(orderID)
+	ctx := context.Background()
+
+	err := o.Place(ctx)
+	if err != nil {
+		t.Fatalf("place order: %v", err)
+	}
+
+	repo := aggregate.NewRepository(store, bus)
+
+	err = repo.Save(ctx, o)
+	if err != nil {
+		t.Fatalf("save order: %v", err)
+	}
+
+	failing := &failingApplyRoot{Core: aggregate.NewCore(orderID, orderAggregateType)}
+
+	err = repo.Load(ctx, failing)
+	if err == nil {
+		t.Error("expected error when Apply fails")
+	}
+}
+
+type failingStore struct{}
+
+func (f *failingStore) Save(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+	_ event.Version,
+) error {
+	return errors.New("store save failed")
+}
+
+func (f *failingStore) AppendBatch(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+) error {
+	return errors.New("store append batch failed")
+}
+
+func (f *failingStore) Load(
+	_ context.Context,
+	_ event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	return nil, fmt.Errorf("store load failed for %s", aggregateID)
+}
+
+func (f *failingStore) LoadFromVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, errors.New("store load from version failed")
+}
+
+func (f *failingStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {
+	return errors.New("store delete failed")
+}
+
+func (f *failingStore) Close() error { return nil }
+
+func TestEventSourcedRepository_Save_StoreError(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	repo := aggregate.NewRepository(&failingStore{}, bus)
+
+	o := newOrder(id.NewAggregateID())
+
+	err := o.Place(context.Background())
+	if err != nil {
+		t.Fatalf("place order: %v", err)
+	}
+
+	err = repo.Save(context.Background(), o)
+	if err == nil {
+		t.Error("expected error when store.Save fails")
+	}
+}
+
+func TestEventSourcedRepository_Load_StoreError(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	repo := aggregate.NewRepository(&failingStore{}, bus)
+
+	o := newOrder(id.NewAggregateID())
+
+	err := repo.Load(context.Background(), o)
+	if err == nil {
+		t.Error("expected error when store.Load fails")
 	}
 }

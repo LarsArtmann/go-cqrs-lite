@@ -270,3 +270,165 @@ func TestEventAccessors(t *testing.T) {
 		t.Error("Metadata should not be nil")
 	}
 }
+
+func TestEvent_PayloadNil(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Payload() != nil {
+		t.Errorf("expected nil payload, got %v", evt.Payload())
+	}
+}
+
+func TestEvent_PayloadDefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		[]byte("original"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	payload := evt.Payload()
+	payload[0] = 'X'
+
+	if string(evt.Payload()) != "original" {
+		t.Error("Payload() should return a defensive copy")
+	}
+}
+
+func TestEvent_MetadataDefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithCustom("key1", "value1"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	m1 := evt.Metadata()
+	m1.Custom["key1"] = "modified"
+
+	m2 := evt.Metadata()
+	if m2.Custom["key1"] != "value1" {
+		t.Error("Metadata() should return a defensive copy")
+	}
+}
+
+func TestWithMetadata(t *testing.T) {
+	t.Parallel()
+
+	custom := event.NewMetadata()
+	custom.CorrelationID = id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithMetadata(custom),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Metadata().CorrelationID != custom.CorrelationID {
+		t.Errorf(
+			"expected WithMetadata to set correlation ID, got %s",
+			evt.Metadata().CorrelationID,
+		)
+	}
+}
+
+func TestWithCustom_NilCustomMap(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithMetadata(&event.Metadata{}),
+		event.WithCustom("key1", "value1"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Metadata().Custom["key1"] != "value1" {
+		t.Errorf("expected key1=value1, got %s", evt.Metadata().Custom["key1"])
+	}
+}
+
+func TestNewEventCatalogCore(t *testing.T) {
+	t.Parallel()
+
+	core, err := event.NewEventCatalogCore(
+		"OrderCreated",
+		id.NewAggregateID(),
+		"Order",
+		1,
+		nil,
+		event.EventCatalogMeta{
+			Name:          "OrderCreated",
+			Version:       "1.0.0",
+			Summary:       "An order was created",
+			AggregateType: "Order",
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if core.Type() != "OrderCreated" {
+		t.Errorf("expected type OrderCreated, got %s", core.Type())
+	}
+
+	meta := core.EventCatalogInfo()
+	if meta.Name != "OrderCreated" {
+		t.Errorf("expected catalog name OrderCreated, got %s", meta.Name)
+	}
+
+	if meta.Version != "1.0.0" {
+		t.Errorf("expected catalog version 1.0.0, got %s", meta.Version)
+	}
+}
+
+func TestNewEventCatalogCore_Error(t *testing.T) {
+	t.Parallel()
+
+	_, err := event.NewEventCatalogCore(
+		"",
+		id.NewAggregateID(),
+		"Order",
+		1,
+		nil,
+		event.EventCatalogMeta{},
+	)
+	if err == nil {
+		t.Error("expected error for empty event type")
+	}
+}
