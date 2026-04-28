@@ -156,8 +156,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string, wrap func(M, H) H) (H, error) {
 	if !ok {
 		var zero H
 
-		//nolint:err113 // dynamic error required to include type name for debugging
-		return zero, fmt.Errorf("handler not found for type: %s", t)
+		return zero, fmt.Errorf("handler not found for type %s: %w", t, ErrHandlerNotFound)
 	}
 
 	wrapped := d.Middleware.Apply(h, wrap)

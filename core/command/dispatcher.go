@@ -46,16 +46,6 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 
 // Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
-	err := d.base.Lifecycle().CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errors.Wrapf(err, "dispatching command %s", cmd.Type())
-	}
-
-	_, ok := d.base.GetHandler(string(cmd.Type()))
-	if !ok {
-		return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
-	}
-
 	wrapped, err := d.base.Dispatch(
 		string(cmd.Type()),
 		func(m Middleware, h Handler) Handler {
@@ -63,6 +53,10 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		},
 	)
 	if err != nil {
+		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
+			return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
+		}
+
 		return errors.Wrapf(err, "command type: %s", cmd.Type())
 	}
 
