@@ -9,8 +9,7 @@ import (
 
 // TypedEvent wraps event.Event with a strongly-typed aggregate ID.
 type TypedEvent struct {
-	base        *event.Core
-	aggregateID id.AggregateID
+	base *event.Core
 }
 
 // Core returns the underlying event.Core.
@@ -25,7 +24,7 @@ func (e *TypedEvent) Event() event.Event {
 
 // AggregateID returns the strongly-typed aggregate ID.
 func (e *TypedEvent) AggregateID() id.AggregateID {
-	return e.aggregateID
+	return e.base.AggregateID()
 }
 
 // EventBuilder constructs events with compile-time type safety.
@@ -50,8 +49,6 @@ func NewEventBuilder(
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
 		version:       version,
-		payload:       nil,
-		opts:          nil,
 	}
 }
 
@@ -133,10 +130,7 @@ func (b *EventBuilder) Build() (*TypedEvent, error) {
 		return nil, fmt.Errorf("build typed event %s: %w", b.eventType, err)
 	}
 
-	return &TypedEvent{
-		base:        base,
-		aggregateID: b.aggregateID,
-	}, nil
+	return &TypedEvent{base: base}, nil
 }
 
 // MustBuild creates the typed event or panics on error.
