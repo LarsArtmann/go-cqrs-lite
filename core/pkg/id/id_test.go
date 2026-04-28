@@ -648,3 +648,262 @@ func TestMustParseID(t *testing.T) {
 		}
 	})
 }
+
+func TestParse_InvalidULID(t *testing.T) {
+	t.Parallel()
+
+	_, err := Parse[AggregateID]("not-a-valid-ulid")
+	if err == nil {
+		t.Error("Parse() should error on invalid ULID string")
+	}
+}
+
+func TestULID_Function(t *testing.T) {
+	t.Parallel()
+
+	id := New[struct{}]()
+	ts, err := ULID(id)
+	if err != nil {
+		t.Fatalf("ULID() error = %v", err)
+	}
+
+	if ts.IsZero() {
+		t.Error("ULID() should return non-zero time")
+	}
+}
+
+func TestGet(t *testing.T) {
+	t.Parallel()
+
+	id := New[AggregateID]()
+	ulidVal := id.Get()
+	if ulidVal.String() != id.String() {
+		t.Errorf("Get() = %q, want %q", ulidVal.String(), id.String())
+	}
+}
+
+func TestParseConvenienceFuncs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("CausationID", func(t *testing.T) {
+		t.Parallel()
+
+		parsed, err := ParseCausationID(testULID)
+		if err != nil {
+			t.Fatalf("ParseCausationID() error = %v", err)
+		}
+
+		if parsed.String() != testULID {
+			t.Errorf("ParseCausationID() = %q, want %q", parsed.String(), testULID)
+		}
+	})
+
+	t.Run("CorrelationID", func(t *testing.T) {
+		t.Parallel()
+
+		parsed, err := ParseCorrelationID(testULID)
+		if err != nil {
+			t.Fatalf("ParseCorrelationID() error = %v", err)
+		}
+
+		if parsed.String() != testULID {
+			t.Errorf("ParseCorrelationID() = %q, want %q", parsed.String(), testULID)
+		}
+	})
+
+	t.Run("EventID", func(t *testing.T) {
+		t.Parallel()
+
+		parsed, err := ParseEventID(testULID)
+		if err != nil {
+			t.Fatalf("ParseEventID() error = %v", err)
+		}
+
+		if parsed.String() != testULID {
+			t.Errorf("ParseEventID() = %q, want %q", parsed.String(), testULID)
+		}
+	})
+
+	t.Run("RequestID", func(t *testing.T) {
+		t.Parallel()
+
+		parsed, err := ParseRequestID(testULID)
+		if err != nil {
+			t.Fatalf("ParseRequestID() error = %v", err)
+		}
+
+		if parsed.String() != testULID {
+			t.Errorf("ParseRequestID() = %q, want %q", parsed.String(), testULID)
+		}
+	})
+
+	t.Run("UserID", func(t *testing.T) {
+		t.Parallel()
+
+		parsed, err := ParseUserID(testULID)
+		if err != nil {
+			t.Fatalf("ParseUserID() error = %v", err)
+		}
+
+		if parsed.String() != testULID {
+			t.Errorf("ParseUserID() = %q, want %q", parsed.String(), testULID)
+		}
+	})
+}
+
+func TestMustParseConvenienceFuncs_Panic(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		fn   func()
+	}{
+		{"CausationID", func() { _ = MustParseCausationID("") }},
+		{"CorrelationID", func() { _ = MustParseCorrelationID("") }},
+		{"RequestID", func() { _ = MustParseRequestID("") }},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			defer func() {
+				if r := recover(); r == nil {
+					t.Error("expected panic")
+				}
+			}()
+
+			tc.fn()
+		})
+	}
+}
+
+func TestUnmarshalJSON_InvalidData(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	err := json.Unmarshal([]byte("12345"), &id)
+	if err == nil {
+		t.Error("UnmarshalJSON() should error on non-string JSON")
+	}
+}
+
+func TestUnmarshalJSON_InvalidULID(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	err := json.Unmarshal([]byte(`"not-a-ulid"`), &id)
+	if err == nil {
+		t.Error("UnmarshalJSON() should error on invalid ULID string")
+	}
+}
+
+func TestScan_Nil(t *testing.T) {
+	t.Parallel()
+
+	id := MustParse[AggregateID](testULID)
+
+	err := id.Scan(nil)
+	if err != nil {
+		t.Fatalf("Scan(nil) error = %v", err)
+	}
+
+	if !id.IsZero() {
+		t.Error("Scan(nil) should reset ID to zero")
+	}
+}
+
+func TestScan_InvalidString(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	err := id.Scan("not-a-ulid")
+	if err == nil {
+		t.Error("Scan() should error on invalid ULID string")
+	}
+}
+
+func TestMarshalBinary_Zero(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	data, err := id.MarshalBinary()
+	if err != nil {
+		t.Fatalf("MarshalBinary() error = %v", err)
+	}
+
+	if data != nil {
+		t.Errorf("MarshalBinary() zero = %v, want nil", data)
+	}
+}
+
+func TestUnmarshalBinary_EmptyData(t *testing.T) {
+	t.Parallel()
+
+	id := MustParse[AggregateID](testULID)
+
+	err := id.UnmarshalBinary([]byte{})
+	if err != nil {
+		t.Fatalf("UnmarshalBinary() error = %v", err)
+	}
+
+	if !id.IsZero() {
+		t.Error("UnmarshalBinary(empty) should reset ID to zero")
+	}
+}
+
+func TestUnmarshalBinary_InvalidSize(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	err := id.UnmarshalBinary([]byte{1, 2, 3})
+	if err == nil {
+		t.Error("UnmarshalBinary() should error on wrong size data")
+	}
+}
+
+func TestMarshalText_Zero(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	data, err := id.MarshalText()
+	if err != nil {
+		t.Fatalf("MarshalText() error = %v", err)
+	}
+
+	if data != nil {
+		t.Errorf("MarshalText() zero = %v, want nil", data)
+	}
+}
+
+func TestUnmarshalText_InvalidData(t *testing.T) {
+	t.Parallel()
+
+	var id AggregateID
+
+	err := id.UnmarshalText([]byte("not-a-ulid"))
+	if err == nil {
+		t.Error("UnmarshalText() should error on invalid ULID string")
+	}
+}
+
+func TestUnmarshalText_EmptyData(t *testing.T) {
+	t.Parallel()
+
+	id := MustParse[AggregateID](testULID)
+
+	err := id.UnmarshalText([]byte{})
+	if err != nil {
+		t.Fatalf("UnmarshalText() error = %v", err)
+	}
+
+	if !id.IsZero() {
+		t.Error("UnmarshalText(empty) should reset ID to zero")
+	}
+}
