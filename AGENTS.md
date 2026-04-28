@@ -319,19 +319,19 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                  | Coverage |
 | ------------------------ | -------- |
-| `catalog/adapters`       | 98.8%    |
+| `core/command`           | 100.0%   |
+| `core/query`             | 100.0%   |
 | `memory`                 | 99.4%    |
-| `catalog/asyncapi`       | 97.6%    |
 | `middleware`              | 99.2%    |
-| `xtypes`                 | 88.0%    |
-| `catalog`                | 87.0%    |
+| `core/pkg/id`            | 97.1%    |
+| `catalog/adapters`       | 98.8%    |
+| `catalog/asyncapi`       | 97.6%    |
 | `catalog/eventcatalog`   | 89.7%    |
-| `core/aggregate`         | 90.2%    |
-| `core/event`             | 88.0%    |
-| `core/query`             | 80.6%    |
+| `core/aggregate`         | 87.8%    |
+| `core/event`             | 88.3%    |
+| `catalog`                | 87.0%    |
+| `xtypes`                 | 88.6%    |
 | `core/pkg/dispatcher`    | 75.4%    |
-| `core/pkg/id`            | 73.1%    |
-| `core/command`           | 67.4%    |
 
 ## Module Dependency Graph
 
@@ -427,8 +427,8 @@ Interfaces now return branded ID types instead of `string`:
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
-| `pkg/id` coverage | LOW | 73.1% — missing tests for `ULID()`, `Get()`, `Parse`/`MustParse` on `CausationID`, `CorrelationID`, `EventID`, `RequestID` |
-| `core/command` coverage | LOW | 67.4% — lowest in project, needs MustNew panic tests, NewCatalogCore error paths |
+| `core/pkg/dispatcher` coverage | LOW | 75.4% — `BaseDispatcher` delegators tested indirectly via command/query dispatchers |
+| No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` shares same retry logic as CommandRetry |
 
 ## Cleanup Done (Post-Migration)
 
@@ -457,6 +457,11 @@ Interfaces now return branded ID types instead of `string`:
 - **go.work tracked in VCS**: Removed from .gitignore — multi-module workspace needs reproducible structure.
 - **Lint-clean**: All 22 lint issues resolved across core, catalog. Added `gochecknoglobals` exclusion for testhelpers re-export shim.
 - **query.Handler type alias**: Middleware uses `query.Handler` type alias for consistency.
+- **command.Dispatcher.Close()**: Simplified to return lifecycle error directly (matches query.Dispatcher pattern).
+- **command/query 100% coverage**: Error path tests for New, MustNew, NewCatalogCore, MustNewCatalogCore, CatalogInfo, handler error propagation, error chain verification, duplicate registration.
+- **id package 97.1%**: Parse* convenience functions, MustParse* panic paths, encoding error paths (JSON, binary, text, SQL).
+- **middleware test split**: 827-line `middleware_test.go` split into per-source files (logging, recovery, validation, metrics, retry, helpers).
+- **event type validation**: `event.NewEvent()` now validates empty eventType (consistent with command/query).
 - **Session 4 (Nix migration)**: Replaced Makefile with `flake.nix`. Unified CI into single `ci.yml`. Added dev shell with pinned Go 1.26.2, golangci-lint, gofumpt, golines.
 - **Session 5 (Tests + Lint)**:
   - Middleware coverage: 64.8% → 99.2% (30 tests covering all functions in all files)
