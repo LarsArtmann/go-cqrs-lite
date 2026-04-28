@@ -86,12 +86,15 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {
-	delay := time.Duration(float64(config.InitialDelay) * math.Pow(config.Multiplier, float64(attempt-1)))
-	if delay > config.MaxDelay {
-		delay = config.MaxDelay
-	}
+	delay := time.Duration(
+		float64(config.InitialDelay) * math.Pow(config.Multiplier, float64(attempt-1)),
+	)
+	delay = min(delay, config.MaxDelay)
 
-	jitter := time.Duration(rand.Int64N(int64(delay) / 2))
+	jitter := time.Duration(
+		//nolint:gosec // math/rand/v2 is sufficient for backoff jitter
+		rand.Int64N(int64(delay) / 2), //nolint:mnd // jitter divisor
+	)
 	delay += jitter
 
 	return delay

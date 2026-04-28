@@ -234,6 +234,28 @@ func TestDispatcher_Register_Closed(t *testing.T) {
 	}
 }
 
+func TestDispatcher_Register_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+
+	handler := func(s string) string { return s }
+
+	err := d.Register("test", handler)
+	if err != nil {
+		t.Fatalf("first Register() error = %v", err)
+	}
+
+	err = d.Register("test", handler)
+	if err == nil {
+		t.Error("expected error when registering duplicate handler")
+	}
+
+	if !errors.Is(err, ErrHandlerAlreadyRegistered) {
+		t.Errorf("expected ErrHandlerAlreadyRegistered, got %v", err)
+	}
+}
+
 func TestDispatcher_Dispatch(t *testing.T) {
 	t.Parallel()
 

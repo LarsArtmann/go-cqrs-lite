@@ -21,6 +21,7 @@ type MemoryBus struct {
 var _ event.Bus = (*MemoryBus)(nil)
 
 func NewMemoryBus() *MemoryBus {
+	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemoryBus{
 		handlers: make(map[event.Type][]event.Handler),
 	}

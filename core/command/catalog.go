@@ -37,7 +37,11 @@ type CatalogCore struct {
 }
 
 // NewCatalogCore creates a CatalogCore with command metadata.
-func NewCatalogCore(cmdType Type, aggregateID id.AggregateID, meta CatalogMeta) (*CatalogCore, error) {
+func NewCatalogCore(
+	cmdType Type,
+	aggregateID id.AggregateID,
+	meta CatalogMeta,
+) (*CatalogCore, error) {
 	core, err := New(cmdType, aggregateID)
 	if err != nil {
 		return nil, err

@@ -54,14 +54,14 @@ func NoopEventHandler() event.Handler {
 // FailingCommandHandler returns a handler that returns an error.
 func FailingCommandHandler(msg string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
-		return errors.New(msg)
+		return errors.New(msg) //nolint:err113 // test helper with dynamic message
 	}
 }
 
 // FailingEventHandler returns a handler that returns an error.
 func FailingEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
-		return errors.New(msg)
+		return errors.New(msg) //nolint:err113 // test helper with dynamic message
 	}
 }
 
@@ -82,6 +82,15 @@ func PanicEventHandler(msg string) event.Handler {
 // CallbackCommandHandler returns a handler that sets *called to true.
 func CallbackCommandHandler(called *bool) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
+		*called = true
+
+		return nil
+	}
+}
+
+// CallbackEventHandler returns a handler that sets *called to true.
+func CallbackEventHandler(called *bool) event.Handler {
+	return func(_ context.Context, _ event.Event) error {
 		*called = true
 
 		return nil

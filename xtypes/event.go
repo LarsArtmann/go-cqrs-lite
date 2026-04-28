@@ -49,6 +49,8 @@ func NewEventBuilder(
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
 		version:       version,
+		payload:       nil,
+		opts:          nil,
 	}
 }
 

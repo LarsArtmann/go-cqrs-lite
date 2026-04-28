@@ -207,6 +207,56 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	})
 }
 
+func TestMemorySnapshotStore_Save_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	_ = store.Close()
+
+	snapshot := newTestSnapshot(t, id.NewAggregateID(), 1, "test")
+
+	err := store.Save(context.Background(), snapshot)
+	if err == nil {
+		t.Error("expected error when saving to closed store")
+	}
+}
+
+func TestMemorySnapshotStore_Load_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	_ = store.Close()
+
+	_, err := store.Load(context.Background(), "Order", id.NewAggregateID())
+	if err == nil {
+		t.Error("expected error when loading from closed store")
+	}
+}
+
+func TestMemorySnapshotStore_LoadAtVersion_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	_ = store.Close()
+
+	_, err := store.LoadAtVersion(context.Background(), "Order", id.NewAggregateID(), 1)
+	if err == nil {
+		t.Error("expected error when loading from closed store")
+	}
+}
+
+func TestMemorySnapshotStore_Delete_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	_ = store.Close()
+
+	err := store.Delete(context.Background(), "Order", id.NewAggregateID())
+	if err == nil {
+		t.Error("expected error when deleting from closed store")
+	}
+}
+
 func TestMemorySnapshotStore_Delete(t *testing.T) {
 	t.Parallel()
 

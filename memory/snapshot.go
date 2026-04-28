@@ -20,12 +20,16 @@ type MemorySnapshotStore struct {
 var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
 
 func NewMemorySnapshotStore() *MemorySnapshotStore {
+	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemorySnapshotStore{
 		snapshots: make(map[string]*event.Snapshot),
 	}
 }
 
-func (s *MemorySnapshotStore) streamKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
+func (s *MemorySnapshotStore) streamKey(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) string {
 	return string(aggregateType) + ":" + aggregateID.String()
 }
 

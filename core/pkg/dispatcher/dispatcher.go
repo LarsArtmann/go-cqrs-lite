@@ -105,9 +105,10 @@ type Dispatcher[H any, M any] struct {
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		handlers: make(map[string]H),
-		Lifecycle: LifecycleMixin{},
-		Middleware: MiddlewareChain[H, M]{},
+		handlers:   make(map[string]H),
+		handlersMu: sync.RWMutex{},
+		Lifecycle:  LifecycleMixin{mu: sync.RWMutex{}, closed: false},
+		Middleware: MiddlewareChain[H, M]{mu: sync.RWMutex{}, middleware: nil},
 	}
 }
 
@@ -115,6 +116,9 @@ func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 func (d *Dispatcher[H, M]) Use(middleware ...M) {
 	d.Middleware.Add(middleware...)
 }
+
+// ErrHandlerAlreadyRegistered is returned when a handler is already registered for a type.
+var ErrHandlerAlreadyRegistered = errors.New("handler already registered for type")
 
 // Register binds a handler to a type.
 func (d *Dispatcher[H, M]) Register(t string, handler H) error {
@@ -125,6 +129,14 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 
 	d.handlersMu.Lock()
 	defer d.handlersMu.Unlock()
+
+	if _, exists := d.handlers[t]; exists {
+		return fmt.Errorf(
+			"handler already registered for type %s: %w",
+			t,
+			ErrHandlerAlreadyRegistered,
+		)
+	}
 
 	d.handlers[t] = handler
 

@@ -436,7 +436,7 @@ agg.MarkChangesAsCommitted()
 | Query Layer   | ✅ Complete | Query dispatcher with typed results               |
 | Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
-| CI/CD         | ✅ Complete | GitHub Actions, Makefile, linting                 |
+| CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
 See [TODO_LIST.md](TODO_LIST.md) for detailed status.

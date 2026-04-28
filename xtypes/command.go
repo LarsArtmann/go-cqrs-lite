@@ -25,7 +25,7 @@ func (c *TypedCommand) AggregateID() id.AggregateID {
 
 // Command returns the underlying command.Command interface.
 func (c *TypedCommand) Command() (command.Command, error) {
-	return command.New(c.commandType, c.aggregateID)
+	return command.New(c.commandType, c.aggregateID) //nolint:wrapcheck // same monorepo
 }
 
 // MustCommand returns the underlying command.Command or panics.

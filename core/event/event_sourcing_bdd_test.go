@@ -221,8 +221,12 @@ var _ = Describe("Event Bus", func() {
 			It("should wrap handlers in the correct order", func() {
 				var callOrder []string
 
-				bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware1"))
-				bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware2"))
+				Expect(
+					bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware1")),
+				).To(Succeed())
+				Expect(
+					bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware2")),
+				).To(Succeed())
 
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 					callOrder = append(callOrder, "handler")

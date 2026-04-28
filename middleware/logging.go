@@ -85,15 +85,18 @@ func EventLogging(logger Logger) event.Middleware {
 func QueryLogging(logger Logger) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
-			lc := logContext{
+			lc := logContext{ //nolint:exhaustruct // queries have no aggregateID
 				prefix:  "query",
 				msgType: string(q.Type()),
 			}
 
 			var result any
+
 			err := logWithContext(logger, lc, func() error {
 				var e error
+
 				result, e = next(ctx, q)
+
 				return e
 			})
 

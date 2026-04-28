@@ -55,3 +55,8 @@ node_modules/
 # Example binaries
 example/*/catalog
 example/*/user
+
+# Nix
+result
+result-*
+.direnv/

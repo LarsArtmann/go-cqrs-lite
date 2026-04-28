@@ -108,7 +108,7 @@
 - [ ] Extract common middleware test helpers to reduce command/query duplication (source: 2026-04-05_20-23)
 - [ ] Create more comprehensive example (e-commerce domain) (source: 2026-04-11_20-54)
 - [ ] Add metrics endpoint example (source: 2026-04-11_20-54)
-- [x] Create `Makefile` with build/test/lint targets ✅ 2026-04
+- [x] Create `flake.nix` with build/test/lint apps ✅ 2026-04
 - [ ] Archive old status reports (keep 3 most recent) (source: 2026-04-11_20-54)
 - [x] Remove unused `Dispatcher.Dispatch` handler parameter ✅ 2026-04
 - [ ] Remove redundant state in `TypedAggregate` (source: 2026-04-02_23-02, 2026-04-02_22-58)

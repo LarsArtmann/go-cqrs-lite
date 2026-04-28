@@ -16,25 +16,48 @@ This is a multi-module Go workspace with 5 independent modules:
 
 ## Prerequisites
 
-- Go 1.26+
-- `golangci-lint` v2+ (for linting)
-- `gofumpt` (for formatting)
+- [Nix](https://nixos.org/download.html) with flakes enabled
+- Go 1.26+ (provided by the Nix dev shell)
 
 ## Development Workflow
 
-### Workspace Mode (Recommended)
+### Nix Dev Shell (Recommended)
+
+Enter the development environment with all tools pinned:
+
+```bash
+nix develop
+```
+
+Or with [direnv](https://direnv.net/):
+
+```bash
+echo "use flake" > .envrc
+direnv allow
+```
+
+### Workspace Mode
 
 From the repo root, the `go.work` file ties all modules together:
 
 ```bash
 # Build all modules
-go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...
+nix run .#build
 
 # Test all modules
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... -count=1
+nix run .#test
 
 # Test with race detection
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... -race -count=1
+nix run .#test-race
+
+# Lint all modules
+nix run .#lint
+
+# Format all Go files
+nix fmt
+
+# Coverage report
+nix run .#coverage
 ```
 
 ### Per-Module Isolation
@@ -47,19 +70,6 @@ cd memory && GOWORK=off go test ./... -count=1
 cd catalog && GOWORK=off go test ./... -count=1
 cd middleware && GOWORK=off go test ./... -count=1
 cd xtypes && GOWORK=off go test ./... -count=1
-```
-
-### Makefile Targets
-
-```bash
-make build       # Build all modules
-make test        # Test all modules (verbose)
-make test-race   # Test with race detection
-make test-cover  # Coverage report
-make lint        # Lint all modules
-make fmt         # Format with gofumpt
-make imports     # Sort imports with goimports
-make check       # fmt + imports + lint + build + test
 ```
 
 ## Code Style
@@ -85,9 +95,8 @@ replace (
 ```
 
 3. Add the module to `go.work`
-4. Add the module path to the `MODULES` variable in the `Makefile`
-5. Add the module to CI matrix in `.github/workflows/test.yml` and `lint.yml`
-6. Update `AGENTS.md` with the new module's info
+4. Add the module to the `testModules` list in `flake.nix`
+5. Update `AGENTS.md` with the new module's info
 
 ## Replace Directives
 
@@ -105,7 +114,7 @@ Examples live in `example/` and use `GOWORK=off` with their own `go.mod` files. 
 
 ## Pull Request Checklist
 
-- [ ] `make check` passes
+- [ ] `nix run .#build && nix run .#test && nix run .#lint` passes
 - [ ] New code has tests
 - [ ] No `any` types introduced
 - [ ] Error messages include context

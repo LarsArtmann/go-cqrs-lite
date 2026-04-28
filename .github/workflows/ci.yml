@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  check:
+    name: Nix Flake Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check formatting
+        run: nix fmt -- --fail-on-change
+
+      - name: Build
+        run: nix run .#build
+
+      - name: Vet
+        run: nix run .#vet
+
+      - name: Test
+        run: nix run .#test
+
+      - name: Test with race detector
+        run: nix run .#test-race
+
+      - name: Lint
+        run: nix run .#lint
+
+      - name: Generate coverage
+        run: nix run .#coverage
+
+      - uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+          fail_ci_if_error: false

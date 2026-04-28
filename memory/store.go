@@ -20,6 +20,7 @@ type MemoryStore struct {
 var _ event.Store = (*MemoryStore)(nil)
 
 func NewMemoryStore() *MemoryStore {
+	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemoryStore{
 		events: make(map[string][]event.Event),
 	}

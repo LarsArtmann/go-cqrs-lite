@@ -97,10 +97,13 @@ func TestMemoryBus_Middleware(t *testing.T) {
 
 	var callOrder []string
 
-	bus.Use(
+	err := bus.Use(
 		busMiddleware(&callOrder, "middleware1"),
 		busMiddleware(&callOrder, "middleware2"),
 	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	_ = bus.Subscribe("TestEvent", func(_ context.Context, _ event.Event) error {
 		callOrder = append(callOrder, "handler")
@@ -182,6 +185,40 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	err := bus.Publish(ctx, evt)
 	if err == nil {
 		t.Error("expected all-handler error to propagate")
+	}
+}
+
+func TestMemoryBus_Use_Closed(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	_ = bus.Close()
+
+	err := bus.Use(func(next event.Handler) event.Handler { return next })
+	if err == nil {
+		t.Error("expected bus closed error when calling Use on closed bus")
+	}
+}
+
+func TestMemoryBus_Subscribe_NilHandler(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+
+	err := bus.Subscribe("TestEvent", nil)
+	if err == nil {
+		t.Error("expected error for nil handler")
+	}
+}
+
+func TestMemoryBus_SubscribeAll_NilHandler(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+
+	err := bus.SubscribeAll(nil)
+	if err == nil {
+		t.Error("expected error for nil handler")
 	}
 }
 

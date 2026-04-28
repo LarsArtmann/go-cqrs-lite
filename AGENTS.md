@@ -8,12 +8,12 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 | ------------- | -------------------------------------- |
 | Language      | Go 1.26                                |
 | Modules       | `core`, `memory`, `catalog`, `middleware`, `xtypes`, `testhelpers` |
-| Build         | `make build` or `go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...` |
-| Test          | `make test` or see "Testing" below     |
-| Lint          | `make lint` or `golangci-lint run ./...` |
-| Format        | `gofumpt -w .`                         |
-| Imports       | `goimports -w .`                       |
-| CI            | GitHub Actions: test.yml + lint.yml    |
+| Build         | `nix run .#build`                     |
+| Test          | `nix run .#test` or see "Testing" below |
+| Lint          | `nix run .#lint`                      |
+| Format        | `nix fmt`                             |
+| Dev shell     | `nix develop`                         |
+| CI            | GitHub Actions: ci.yml (Nix-based)    |
 
 ## Monorepo Structure
 
@@ -99,14 +99,17 @@ cd memory && GOWORK=off go test ./... -count=1
 cd catalog && GOWORK=off go test ./... -count=1
 ```
 
-Makefile targets (run from root, use `GOWORK=off`):
+Nix flake apps (run from root):
 ```bash
-make test          # all tests verbose
-make test-race     # race detector
-make test-cover    # coverage report
-make build         # go build
-make lint          # golangci-lint
-make check         # fmt + imports + lint + build + test
+nix run .#test          # all tests
+nix run .#test-race     # race detector
+nix run .#coverage      # coverage report
+nix run .#build         # go build
+nix run .#vet           # go vet
+nix run .#lint          # golangci-lint
+nix fmt                 # format all Go files
+nix flake check         # formatting check
+nix develop             # enter dev shell
 ```
 
 ## Architecture

@@ -31,12 +31,18 @@ func (c *Core) AggregateID() id.AggregateID { return c.aggregateID }
 func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
 	if commandType == "" {
 		//nolint:err113 // dynamic error required to include aggregate ID
-		return nil, fmt.Errorf("command type is required (got empty) for aggregate %q", aggregateID.String())
+		return nil, fmt.Errorf(
+			"command type is required (got empty) for aggregate %q",
+			aggregateID.String(),
+		)
 	}
 
 	if aggregateID.IsZero() {
 		//nolint:err113 // dynamic error required to include command type
-		return nil, fmt.Errorf("aggregate ID is required (got zero) for command type %q", commandType)
+		return nil, fmt.Errorf(
+			"aggregate ID is required (got zero) for command type %q",
+			commandType,
+		)
 	}
 
 	return &Core{

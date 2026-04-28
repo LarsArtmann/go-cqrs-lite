@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -25,7 +26,7 @@ func (q *Core) Type() Type { return q.queryType }
 func New(queryType Type) (*Core, error) {
 	if queryType == "" {
 		//nolint:err113 // dynamic error required for validation
-		return nil, fmt.Errorf("query type is required (got empty)")
+		return nil, errors.New("query type is required (got empty)")
 	}
 
 	return &Core{queryType: queryType}, nil
