@@ -43,12 +43,12 @@ func main() {
 	builder.AddDomain("identity", "Identity", "User identity management", []string{"user-service"})
 
 	builder.AddCommand("user-service", &CreateUser{
-		CatalogCore: command.NewCatalogCore(CmdCreateUser, aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore(CmdCreateUser, aggID, command.CatalogMeta{
 			Name: "CreateUser", Version: "1.0.0", Summary: "Creates a new user account",
 		}),
 	})
 	builder.AddCommand("user-service", &ChangeUserEmail{
-		CatalogCore: command.NewCatalogCore(CmdChangeUserEmail, aggID, command.CatalogMeta{
+		CatalogCore: command.MustNewCatalogCore(CmdChangeUserEmail, aggID, command.CatalogMeta{
 			Name: "ChangeUserEmail", Version: "1.0.0", Summary: "Updates a user's email address",
 		}),
 	})

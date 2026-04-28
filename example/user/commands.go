@@ -19,7 +19,7 @@ type CreateUser struct {
 
 func NewCreateUser(aggregateID id.AggregateID, name, email string) *CreateUser {
 	return &CreateUser{
-		CatalogCore: command.NewCatalogCore(
+		CatalogCore: command.MustNewCatalogCore(
 			CommandCreateUser,
 			aggregateID,
 			command.CatalogMeta{
@@ -41,7 +41,7 @@ type ChangeUserEmail struct {
 
 func NewChangeUserEmail(aggregateID id.AggregateID, newEmail string) *ChangeUserEmail {
 	return &ChangeUserEmail{
-		CatalogCore: command.NewCatalogCore(
+		CatalogCore: command.MustNewCatalogCore(
 			CommandChangeUserEmail,
 			aggregateID,
 			command.CatalogMeta{
