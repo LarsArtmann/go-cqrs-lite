@@ -76,10 +76,6 @@ go-cqrs-lite/
 │   └── go.mod                       # deps: core
 │   └── helpers.go                   # Shared test utilities (AppendEventsHandler, Noop*, Failing*, etc.)
 │
-├── example/                         # standalone example modules
-│   ├── user/
-│   └── catalog/
-│
 └── docs/
     ├── status/                      # periodic status reports
     └── planning/                    # architectural decisions and migration plans
@@ -324,18 +320,18 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | Package                  | Coverage |
 | ------------------------ | -------- |
 | `catalog/adapters`       | 98.8%    |
-| `memory`                 | 99.2%    |
-| `catalog/asyncapi`       | 96.3%    |
-| `xtypes`                 | 95.7%    |
-| `catalog`                | 91.2%    |
-| `query`                  | 91.5%    |
+| `memory`                 | 99.4%    |
+| `catalog/asyncapi`       | 97.6%    |
+| `middleware`              | 99.2%    |
+| `xtypes`                 | 88.0%    |
+| `catalog`                | 87.0%    |
 | `catalog/eventcatalog`   | 89.7%    |
-| `event`                  | 89.0%    |
-| `pkg/id`                 | 73.1%    |
-| `middleware`              | 84.6%    |
-| `command`                | 84.4%    |
-| `internal/dispatcher`    | 77.4%    |
-| `aggregate`              | 77.3%    |
+| `core/aggregate`         | 90.2%    |
+| `core/event`             | 88.0%    |
+| `core/query`             | 80.6%    |
+| `core/pkg/dispatcher`    | 75.4%    |
+| `core/pkg/id`            | 73.1%    |
+| `core/command`           | 67.4%    |
 
 ## Module Dependency Graph
 
@@ -430,10 +426,9 @@ Interfaces now return branded ID types instead of `string`:
 |-------|----------|--------|
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
 | `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
-| `go.work` version mismatch | LOW | FIXED — go.work now tracked in VCS |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
-| No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` still needs test coverage |
 | `pkg/id` coverage | LOW | 73.1% — missing tests for `ULID()`, `Get()`, `Parse`/`MustParse` on `CausationID`, `CorrelationID`, `EventID`, `RequestID` |
+| `core/command` coverage | LOW | 67.4% — lowest in project, needs MustNew panic tests, NewCatalogCore error paths |
 
 ## Cleanup Done (Post-Migration)
 
@@ -462,6 +457,18 @@ Interfaces now return branded ID types instead of `string`:
 - **go.work tracked in VCS**: Removed from .gitignore — multi-module workspace needs reproducible structure.
 - **Lint-clean**: All 22 lint issues resolved across core, catalog. Added `gochecknoglobals` exclusion for testhelpers re-export shim.
 - **query.Handler type alias**: Middleware uses `query.Handler` type alias for consistency.
+- **Session 4 (Nix migration)**: Replaced Makefile with `flake.nix`. Unified CI into single `ci.yml`. Added dev shell with pinned Go 1.26.2, golangci-lint, gofumpt, golines.
+- **Session 5 (Tests + Lint)**:
+  - Middleware coverage: 64.8% → 99.2% (30 tests covering all functions in all files)
+  - Memory coverage: 99.2% → 99.4% (snapshot closed-state + bus tests)
+  - Duplicate handler guard: `dispatcher.Register()` returns `ErrHandlerAlreadyRegistered`
+  - `NewEvent` now validates `eventType` is non-empty (consistent with `command.New`/`query.New`)
+  - Removed duplicate validation in `EventBuilder.Build` — delegates to `NewEvent`
+  - `id.Compare()` simplified: removed unused error return (was always nil)
+  - Extracted shared `streamKey` helper in memory module (was duplicated in store.go + snapshot.go)
+  - Removed orphaned doc comment in dispatcher.go
+  - Removed broken `example/` modules (81+ LSP false positives)
+  - Zero lint issues across all 6 modules
 
 ## Migration State
 
