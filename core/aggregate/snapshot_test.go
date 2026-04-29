@@ -97,11 +97,10 @@ func TestEventSourcedRepository_Load_WithSnapshot(t *testing.T) {
 		t.Errorf("expected version 1 after snapshot load, got %d", loaded.Version())
 	}
 
-	// Snapshot state is opaque bytes; the application must deserialize it.
-	// The repository only sets the version from the snapshot and replays
-	// events from snapshot.Version onward. No events exist after v1 here.
-	if loaded.Status() != "" {
-		t.Errorf("expected empty status (snapshot state not auto-applied), got %q", loaded.Status())
+	// Snapshot state is applied via Root.ApplySnapshot, then events from
+	// snapshot.Version onward are replayed. No events exist after v1 here.
+	if loaded.Status() != "placed" {
+		t.Errorf("expected status 'placed' from snapshot, got %q", loaded.Status())
 	}
 }
 

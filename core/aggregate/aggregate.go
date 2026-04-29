@@ -16,6 +16,7 @@ type Root interface {
 	Version() int
 	SetVersion(v event.Version)
 	Apply(evt event.Event) error
+	ApplySnapshot(state []byte) error
 	UncommittedChanges() []event.Event
 	MarkChangesAsCommitted()
 	LoadEvents(events []event.Event) error
@@ -68,9 +69,9 @@ func (a *Core) UncommittedChanges() []event.Event {
 	return result
 }
 
-// MarkChangesAsCommitted clears pending events.
+// MarkChangesAsCommitted clears pending events while reusing the backing array.
 func (a *Core) MarkChangesAsCommitted() {
-	a.changes = make([]event.Event, 0)
+	a.changes = a.changes[:0]
 }
 
 // LoadFromHistory rebuilds aggregate state by applying each event via the

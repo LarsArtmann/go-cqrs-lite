@@ -50,6 +50,21 @@ func (o *order) Apply(evt event.Event) error {
 	return nil
 }
 
+func (o *order) ApplySnapshot(state []byte) error {
+	var s struct {
+		Status string `json:"status"`
+	}
+
+	err := json.Unmarshal(state, &s)
+	if err != nil {
+		return err
+	}
+
+	o.status = s.Status
+
+	return nil
+}
+
 func (o *order) LoadEvents(events []event.Event) error {
 	return o.LoadFromHistory(o, events)
 }
@@ -292,6 +307,10 @@ type failingApplyRoot struct {
 
 func (r *failingApplyRoot) Apply(_ event.Event) error {
 	return errors.New("apply failed")
+}
+
+func (r *failingApplyRoot) ApplySnapshot(_ []byte) error {
+	return nil
 }
 
 var _ aggregate.Root = (*failingApplyRoot)(nil)

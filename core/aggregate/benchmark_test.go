@@ -70,6 +70,8 @@ type benchRoot struct {
 
 func (r *benchRoot) Apply(_ event.Event) error { return nil }
 
+func (r *benchRoot) ApplySnapshot(_ []byte) error { return nil }
+
 func (r *benchRoot) LoadEvents(events []event.Event) error {
 	return r.LoadFromHistory(r, events)
 }

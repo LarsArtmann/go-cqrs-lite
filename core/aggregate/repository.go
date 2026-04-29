@@ -124,6 +124,16 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 		if snapErr == nil && snapshot != nil {
 			root.SetVersion(snapshot.Version)
 
+			err = root.ApplySnapshot(snapshot.State)
+			if err != nil {
+				return fmt.Errorf(
+					"apply snapshot for %s %s: %w",
+					aggregateType,
+					aggregateID.String(),
+					err,
+				)
+			}
+
 			events, err = r.store.LoadFromVersion(ctx, aggregateType, aggregateID, snapshot.Version)
 			if err != nil {
 				return fmt.Errorf(

@@ -21,6 +21,10 @@ func (r *testRoot) Apply(evt event.Event) error {
 	return nil
 }
 
+func (r *testRoot) ApplySnapshot(_ []byte) error {
+	return nil
+}
+
 func (r *testRoot) LoadEvents(events []event.Event) error {
 	return r.LoadFromHistory(r, events)
 }

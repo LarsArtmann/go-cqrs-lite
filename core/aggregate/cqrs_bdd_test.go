@@ -86,6 +86,10 @@ func (e *expense) Apply(evt event.Event) error {
 	return nil
 }
 
+func (e *expense) ApplySnapshot(_ []byte) error {
+	return nil
+}
+
 func (e *expense) LoadEvents(events []event.Event) error {
 	return e.LoadFromHistory(e, events)
 }

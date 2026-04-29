@@ -62,6 +62,10 @@ func (p *product) Apply(evt event.Event) error {
 	return nil
 }
 
+func (p *product) ApplySnapshot(_ []byte) error {
+	return nil
+}
+
 func (p *product) LoadEvents(events []event.Event) error {
 	return p.LoadFromHistory(p, events)
 }
