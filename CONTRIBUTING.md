@@ -12,7 +12,7 @@ This is a multi-module Go workspace with 5 independent modules:
 | `memory/` | `github.com/larsartmann/go-cqrs-lite/memory` | In-memory test implementations |
 | `catalog/` | `github.com/larsartmann/go-cqrs-lite/catalog` | AsyncAPI + EventCatalog generators |
 | `middleware/` | `github.com/larsartmann/go-cqrs-lite/middleware` | Cross-cutting middleware (logging, retry, recovery) |
-| `xtypes/` | `github.com/larsartmann/go-cqrs-lite/xtypes` | Typed wrappers with branded IDs |
+| `testhelpers/` | `github.com/larsartmann/go-cqrs-lite/testhelpers` | Shared test utilities |
 
 ## Prerequisites
 
@@ -69,7 +69,7 @@ cd core && GOWORK=off go test ./... -count=1
 cd memory && GOWORK=off go test ./... -count=1
 cd catalog && GOWORK=off go test ./... -count=1
 cd middleware && GOWORK=off go test ./... -count=1
-cd xtypes && GOWORK=off go test ./... -count=1
+cd testhelpers && GOWORK=off go test ./... -count=1
 ```
 
 ## Code Style

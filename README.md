@@ -121,8 +121,6 @@ aggregateID := aggregate_id.New()
 | **memory** | `.../memory` | In-memory store/bus/snapshot (testing) | core |
 | **catalog** | `.../catalog/...` | AsyncAPI + EventCatalog generation | core, yaml |
 | **middleware** | `.../middleware` | Logging, retry, validation, recovery, metrics | core |
-| **xtypes** | `.../xtypes` | Typed wrappers with branded IDs | core |
-
 ## Design Principles
 
 1. **Pay for what you import** — Each module has its own `go.mod` with only needed dependencies
@@ -360,23 +358,19 @@ eventcatalog/
 │               └── schema.json
 ```
 
-## xtypes (Extended Types)
-
-The `xtypes` package provides type-safe wrappers around core CQRS types, eliminating stringly-typed aggregate IDs and reducing boilerplate.
-
-### EventBuilder
+## Event Builder
 
 Fluent builder for events with compile-time type safety:
 
 ```go
 import (
+    "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-    "github.com/larsartmann/go-cqrs-lite/xtypes"
 )
 
 aggregateID := id.NewAggregateID()
 
-evt, err := xtypes.NewEventBuilder(
+evt, err := event.NewBuilder(
     "order.created",
     aggregateID,
     "Order",
@@ -386,31 +380,6 @@ evt, err := xtypes.NewEventBuilder(
     WithCorrelationID(correlationID).
     WithUserID(operatorID).
     Build()
-```
-
-### TypedCommand
-
-Wrap commands with strongly-typed aggregate IDs:
-
-```go
-cmd := xtypes.NewTypedCommand("create.order", aggregateID)
-fmt.Println(cmd.Type())        // "create.order"
-fmt.Println(cmd.AggregateID()) // id.AggregateID
-```
-
-### TypedAggregate
-
-Aggregate roots with branded IDs and event replay:
-
-```go
-agg := xtypes.NewTypedAggregate(aggregateID, "Order")
-evt, _ := xtypes.NewEventBuilder("order.created", aggregateID, "Order", 1).Build()
-agg.RecordEvent(ctx, evt)
-
-events := agg.UncommittedChanges()
-agg.MarkChangesAsCommitted()
-```
-
 ## Comparison
 
 | Feature         | go-cqrs-lite | go-cqrs | cqrs-go |

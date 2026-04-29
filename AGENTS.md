@@ -7,7 +7,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 | Item          | Value                                  |
 | ------------- | -------------------------------------- |
 | Language      | Go 1.26                                |
-| Modules       | `core`, `memory`, `catalog`, `middleware`, `xtypes`, `testhelpers` |
+| Modules       | `core`, `memory`, `catalog`, `middleware`, `testhelpers` |
 | Build         | `nix run .#build`                     |
 | Test          | `nix run .#test` or see "Testing" below |
 | Lint          | `nix run .#lint`                      |
@@ -65,13 +65,6 @@ go-cqrs-lite/
 │   ├── retry.go                     # CommandRetry, EventRetry (exponential backoff)
 │   └── validation.go                # CommandValidation, EventValidation, QueryValidation
 │
-├── xtypes/                          # github.com/larsartmann/go-cqrs-lite/xtypes
-│   └── go.mod                       # deps: core
-│   ├── command.go                   # TypedCommand with branded ID
-│   ├── event.go                     # TypedEvent, EventBuilder
-│   ├── aggregate.go                 # TypedAggregate
-│   └── id.go                        # Re-exports id types, CommandID
-│
 ├── testhelpers/                     # github.com/larsartmann/go-cqrs-lite/testhelpers
 │   └── go.mod                       # deps: core
 │   └── helpers.go                   # Shared test utilities (AppendEventsHandler, Noop*, Failing*, etc.)
@@ -85,7 +78,7 @@ go-cqrs-lite/
 
 From root with go.work:
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/... ./testhelpers/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -131,7 +124,7 @@ nix develop             # enter dev shell
          │           │           │           │
          ▼           ▼           ▼           ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│  memory      │ │  catalog     │ │  middleware   │ │  xtypes      │
+│  memory      │ │  catalog     │ │  middleware   │              │
 │  MemoryStore │ │  AsyncAPI    │ │  Logging      │ │  TypedCmd    │
 │  MemoryBus   │ │  EventCat    │ │  Retry        │ │  TypedEvt    │
 │  Snapshot    │ │  Schema      │ │  Recovery     │ │  TypedAgg    │
@@ -179,12 +172,6 @@ nix develop             # enter dev shell
 | Package        | Purpose                          | Key Types                                    |
 | -------------- | -------------------------------- | -------------------------------------------- |
 | `middleware/`   | Cross-cutting CQRS middleware     | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics` |
-
-### Xtypes Module (`xtypes/`)
-
-| Package   | Purpose                          | Key Types                                    |
-| --------- | -------------------------------- | -------------------------------------------- |
-| `xtypes/` | Typed wrappers with branded IDs  | `TypedCommand`, `TypedEvent`, `TypedAggregate`, `EventBuilder`, `CommandID` |
 
 ### Testhelpers Module (`testhelpers/`)
 
@@ -328,7 +315,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/event`             | 97.9%    | +9.6%            |
 | `core/pkg/id`            | 97.1%    | —                |
 | `catalog/asyncapi`       | 97.6%    | —                |
-| `xtypes`                 | 97.7%    | +9.1%            |
+| `testhelpers`            | —        | —                |
 | `catalog/eventcatalog`   | 95.5%    | +5.8%            |
 | `core/aggregate`         | 95.1%    | +4.9%            |
 | `catalog`                | 94.2%    | +7.2%            |
@@ -341,7 +328,7 @@ memory      → core + testhelpers
 middleware  → core + testhelpers
 catalog    → core (via cattest internal helpers)
 core       → memory + testhelpers
-xtypes     → standalone
+testhelpers → core
 ```
 
 ## Catalog System Architecture
@@ -425,7 +412,7 @@ Interfaces now return branded ID types instead of `string`:
 | Issue | Severity | Detail |
 |-------|----------|--------|
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
-| `xtypes.TypedCommand.Command()` allocates on every call | LOW | Creates new `command.Core` each time |
+| `MemorySnapshotStore` deep copy of `State []byte` | LOW | Load returns shallow copy; shared mutable state |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | ~~`core/pkg/dispatcher` coverage~~ | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8) |
 | No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` shares same retry logic as CommandRetry |
@@ -481,8 +468,7 @@ Interfaces now return branded ID types instead of `string`:
   - `core/aggregate`: 90.2% → 95.1% (error paths, failingStore, HistoryLoader check)
   - `catalog`: 87.0% → 94.2% (SchemaFromReflect, collection types, MessageID fallback)
   - `catalog/eventcatalog`: 89.7% → 95.5% (I/O error paths, examples marshal error)
-  - `xtypes`: 88.6% → 97.7% (MustCommand panic/success paths)
-  - Split `cattest/helpers.go` (450 → 277 + 167 `assertions.go`)
+    - Split `cattest/helpers.go` (450 → 277 + 167 `assertions.go`)
   - Added golden-file tests for AsyncAPI JSON/YAML and EventCatalog outputs
   - Added benchmarks for query dispatch and aggregate operations
   - Added `NoopQueryHandler` to shared testhelpers
@@ -532,7 +518,7 @@ These were identified but explicitly deferred because they affect all consumers 
 | ~~`Command.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
 | ~~`event.go:129` `aggregateID.IsZero`~~ | ✅ Done (now uses branded `id.AggregateID.IsZero()`) |
 | ~~`EventCatalogMeta` → `CatalogMeta` naming~~ | ✅ Done (session 9, breaking change) |
-| Stale `replace` directives in `middleware/go.mod`, `xtypes/go.mod` | ✅ Done (session 9, removed all unused replaces) |
+| Stale `replace` directives in `middleware/go.mod` | ✅ Done (session 9, removed all unused replaces) |
 
 ## References
 

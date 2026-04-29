@@ -33,9 +33,7 @@
 - [ ] Improve `pkg/id` and `xtypes` test coverage to 80% (source: 2026-03-30_20-34)
 - [ ] Re-run full benchmark suite and update results (source: 2026-04-11_20-54)
 - [ ] Refactor test files to use helpers: `catalog/eventcatalog/exporter_test.go`, `catalog/asyncapi/exporter_test.go`, `internal/dispatcher/dispatcher_test.go`, `event/memory_bus_test.go`, `event/memory_store_test.go`, `aggregate/aggregate_test.go` (source: 2026-04-05_20-23)
-- [ ] Update `example/user/` to use xtypes and middleware (source: 2026-04-08_19-45) — repository now uses aggregate.EventSourcedRepository
 - [ ] Review and update CHANGELOG.md (source: 2026-04-11_20-54)
-- [ ] Fix `TypedCommand` to implement `command.Command` interface (source: 2026-04-02_23-02, 2026-04-02_22-58)
 - [ ] Fix `Payload()`/`Metadata()` immutability by returning copies (source: 2026-04-02_23-02)
 - [x] Create/update CONTRIBUTING.md ✅ 2026-04
 - [ ] Create/update CODE_OF_CONDUCT.md (source: 2026-04-08_19-45, ROADMAP.md)
@@ -57,12 +55,12 @@
 - [x] Remove unused sentinels: `ErrCommandValidation`, `ErrQueryValidation`, `ErrInvalidEventType` ✅ 2026-04
 - [ ] Commit `RecordEvent` rename (source: 2026-04-02_22-58)
 - [x] Remove duplicated `Lifecycle` methods — MemoryBus/MemorySnapshotStore now use LifecycleMixin ✅ 2026-04
-- [ ] Standardize errors: replace `fmt.Errorf` with `cockroachdb/errors` in `event/event.go`, `event/types.go`, `xtypes/event.go` (source: 2026-04-02_22-58)
+- [ ] Standardize errors: replace `fmt.Errorf` with `cockroachdb/errors` in `event/event.go`, `event/types.go` (source: 2026-04-02_22-58)
 - [x] Wire `example/user/aggregate.go` to use catalog-aware event constructors ✅ 2026-04
 - [ ] Add `AggregateType` field to example/user event catalog metadata (source: 2026-04-12_00-57)
 - [ ] Filter embedded `*Core`/`*CatalogCore` from schema output (source: 2026-04-10_12-14)
-- [ ] Add tests for `EventRetry()` and `EventValidation()` middleware functions (source: 2026-04-08_19-45) — EventValidation tests added, EventRetry still needs tests
-- [ ] Add tests for `QueryValidation()` middleware function (source: 2026-04-08_19-45)
+- [x] Add tests for `EventRetry()` and `EventValidation()` middleware functions (source: 2026-04-08_19-45) ✅ 2026-04-29
+- [x] Add tests for `QueryValidation()` middleware function (source: 2026-04-08_19-45) ✅ 2026-04-29
 - [ ] Split `TestTypedAggregate` into smaller functions (source: 2026-03-30_20-34)
 - [ ] Add `t.Parallel()` to all subtests (source: 2026-03-30_20-34)
 - [ ] Add Ginkgo + Gomega dependencies and create BDD test files: `command/command_bdd_test.go`, `query/query_bdd_test.go`, `event/event_bdd_test.go`, `integration_bdd_test.go` (source: BDD_TESTS_REVIEW)
@@ -73,7 +71,6 @@
 - [x] Create `example/main.go` working example ✅ 2026-04
 - [ ] Add validation to `command.New()`, `query.New()`, `NewEvent()` constructors (source: 2026-04-02_23-02)
 - [ ] Standardize errors globally: replace `fmt.Errorf` with `cockroachdb/errors` (source: 2026-04-02_23-02)
-- [ ] Deduplicate validation in `EventBuilder.Build()` (source: 2026-04-02_22-58)
 - [ ] Add `Dispatcher.CatalogEntries()`, `EventBus.CatalogEntries()`, and `QueryDispatcher.CatalogEntries()` for auto-discovery (source: 2026-04-10_12-14)
 - [ ] Add `enum` and `default` struct tag support to Schema/Property (source: 2026-04-12_00-57)
 - [ ] Add `Examples` field to AsyncAPI Message type and wire from catalog (source: 2026-04-12_00-57)
@@ -93,13 +90,12 @@
 - [ ] Implement circuit breaker middleware (source: 2026-04-11_20-54)
 - [ ] Add tests for `Parse*` ID variants (ParseCausationID, ParseCorrelationID, etc.) (source: 2026-04-08_19-45)
 - [ ] Add tests for nil-metadata branches and `WithMetadata` in event options (source: 2026-04-02_23-02)
-- [ ] Add `LoadFromHistory` error path tests for aggregate and xtypes (source: 2026-04-02_23-02)
+- [ ] Add `LoadFromHistory` error path tests for aggregate (source: 2026-04-02_23-02)
 - [ ] Add full CQRS roundtrip integration test (source: 2026-04-02_23-02, 2026-04-02_22-58)
 - [ ] Add benchmarks for ID generation, dispatcher throughput, event store operations (source: 2026-04-02_22-58)
 - [ ] Add integration tests for catalog adapters (source: 2026-04-11_20-54)
 - [ ] Create performance benchmarks for catalog system (source: 2026-04-11_20-54)
 - [ ] Table-drive `pkg/id/id_test.go` and `event/types_test.go` (source: 2026-04-05_20-23, DEDUPLICATION_PLAN)
-- [ ] Extract `newTestEvent()` in `xtypes/xtypes_test.go` (source: 2026-04-05_20-23)
 - [ ] Add `assertYAML()` helper to `catalog/yaml/yaml_test.go` (source: 2026-04-05_20-23)
 - [ ] Extract `ensureService()` helper in `catalog/registry.go` (source: 2026-04-05_20-23)
 - [ ] Unify Ptr-unwrapping in `catalog/schema.go` (source: 2026-04-05_20-23)
@@ -111,7 +107,6 @@
 - [x] Create `flake.nix` with build/test/lint apps ✅ 2026-04
 - [ ] Archive old status reports (keep 3 most recent) (source: 2026-04-11_20-54)
 - [x] Remove unused `Dispatcher.Dispatch` handler parameter ✅ 2026-04
-- [ ] Remove redundant state in `TypedAggregate` (source: 2026-04-02_23-02, 2026-04-02_22-58)
 - [ ] Snapshot support for aggregates (source: 2026-03-15_16-02, 2026-03-30_20-34)
 - [ ] SQL/database event store implementation (source: 2026-04-08_19-45)
 - [ ] Projection/read-model support (source: 2026-04-08_19-45)
