@@ -44,7 +44,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return errors.Wrapf(err, "register handler for command type %s", cmdType)
+		return errors.Wrapf(err, "registering handler for command type %s", cmdType)
 	}
 
 	return nil
