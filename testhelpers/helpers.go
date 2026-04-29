@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -112,6 +113,19 @@ func CommandMiddleware(callOrder *[]string, name string) func(h command.Handler)
 			*callOrder = append(*callOrder, name)
 
 			return h(ctx, cmd)
+		}
+	}
+}
+
+// AssertCallOrder asserts the call order matches expected.
+func AssertCallOrder(t *testing.T, callOrder, expected []string) {
+	t.Helper()
+
+	for i, v := range expected {
+		if i >= len(callOrder) || callOrder[i] != v {
+			t.Errorf("expected call order %v, got %v", expected, callOrder)
+
+			break
 		}
 	}
 }
