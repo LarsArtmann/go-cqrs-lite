@@ -18,7 +18,7 @@ func TestEventSourcedRepository_Save_WithOutbox(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	outbox := memory.NewMemoryOutboxStore()
 
-	repo := aggregate.NewRepositoryWithOutbox(store, bus, outbox)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -56,7 +56,7 @@ func TestEventSourcedRepository_Save_WithOutbox_NoChanges(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	outbox := memory.NewMemoryOutboxStore()
 
-	repo := aggregate.NewRepositoryWithOutbox(store, bus, outbox)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)

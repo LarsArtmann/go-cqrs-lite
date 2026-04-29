@@ -29,14 +29,14 @@ func TestSetVersion(t *testing.T) {
 	}
 }
 
-func TestNewRepositoryWithSnapshot(t *testing.T) {
+func TestNewRepository_WithSnapshotStore(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
 
-	repo := aggregate.NewRepositoryWithSnapshot(store, bus, snapshotStore)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 	if repo == nil {
 		t.Fatal("expected non-nil repository")
 	}
@@ -49,7 +49,7 @@ func TestEventSourcedRepository_Load_WithSnapshot(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepositoryWithSnapshot(store, bus, snapshotStore)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -111,7 +111,7 @@ func TestEventSourcedRepository_Load_WithSnapshotAndReplay(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepositoryWithSnapshot(store, bus, snapshotStore)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -188,7 +188,7 @@ func TestEventSourcedRepository_Load_SnapshotNotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepositoryWithSnapshot(store, bus, snapshotStore)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -228,7 +228,7 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepositoryWithSnapshot(store, bus, snapshotStore)
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 

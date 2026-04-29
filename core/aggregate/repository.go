@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // Repository loads and saves aggregate roots.
@@ -27,45 +28,44 @@ type EventSourcedRepository struct {
 
 var _ Repository = (*EventSourcedRepository)(nil)
 
-// NewRepository creates a new event-sourced repository.
-func NewRepository(store event.Store, bus event.Bus) *EventSourcedRepository {
-	return &EventSourcedRepository{
-		store:         store,
-		bus:           bus,
-		snapshotStore: nil,
-		outbox:        nil,
+// RepositoryOption configures an EventSourcedRepository.
+type RepositoryOption func(*EventSourcedRepository)
+
+// WithSnapshotStore enables snapshot support for the repository.
+func WithSnapshotStore(store event.SnapshotStore) RepositoryOption {
+	return func(r *EventSourcedRepository) {
+		r.snapshotStore = store
 	}
 }
 
-// NewRepositoryWithSnapshot creates a new event-sourced repository with snapshot support.
-func NewRepositoryWithSnapshot(
-	store event.Store,
-	bus event.Bus,
-	snapshotStore event.SnapshotStore,
-) *EventSourcedRepository {
-	return &EventSourcedRepository{
-		store:         store,
-		bus:           bus,
-		snapshotStore: snapshotStore,
-		outbox:        nil,
-	}
-}
-
-// NewRepositoryWithOutbox creates a new event-sourced repository with outbox support.
-// When outbox is configured, Save appends events to the outbox instead of
+// WithOutbox enables outbox support for reliable event publishing.
+// When configured, Save appends events to the outbox instead of
 // publishing directly to the bus. The caller must run an OutboxPublisher
 // background process to drain the outbox.
-func NewRepositoryWithOutbox(
+func WithOutbox(outbox event.Outbox) RepositoryOption {
+	return func(r *EventSourcedRepository) {
+		r.outbox = outbox
+	}
+}
+
+// NewRepository creates a new event-sourced repository.
+func NewRepository(
 	store event.Store,
 	bus event.Bus,
-	outbox event.Outbox,
+	opts ...RepositoryOption,
 ) *EventSourcedRepository {
-	return &EventSourcedRepository{
+	r := &EventSourcedRepository{
 		store:         store,
 		bus:           bus,
 		snapshotStore: nil,
-		outbox:        outbox,
+		outbox:        nil,
 	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 // Save persists uncommitted events. If an outbox is configured, events are
@@ -115,43 +115,9 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 	aggregateID := root.ID()
 	aggregateType := root.Type()
 
-	var events []event.Event
-
-	var err error
-
-	if r.snapshotStore != nil {
-		snapshot, snapErr := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
-		if snapErr == nil && snapshot != nil {
-			root.SetVersion(snapshot.Version)
-
-			err = root.ApplySnapshot(snapshot.State)
-			if err != nil {
-				return fmt.Errorf(
-					"apply snapshot for %s %s: %w",
-					aggregateType,
-					aggregateID.String(),
-					err,
-				)
-			}
-
-			events, err = r.store.LoadFromVersion(ctx, aggregateType, aggregateID, snapshot.Version)
-			if err != nil {
-				return fmt.Errorf(
-					"load events from version %d for %s %s: %w",
-					snapshot.Version,
-					aggregateType,
-					aggregateID.String(),
-					err,
-				)
-			}
-		}
-	}
-
-	if events == nil {
-		events, err = r.store.Load(ctx, aggregateType, aggregateID)
-		if err != nil {
-			return fmt.Errorf("load events for %s %s: %w", aggregateType, aggregateID.String(), err)
-		}
+	events, err := r.loadEvents(ctx, root, aggregateType, aggregateID)
+	if err != nil {
+		return err
 	}
 
 	err = root.LoadEvents(events)
@@ -166,4 +132,68 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 	}
 
 	return nil
+}
+
+// loadEvents returns events for the aggregate, using a snapshot if available.
+func (r *EventSourcedRepository) loadEvents(
+	ctx context.Context,
+	root Root,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	if r.snapshotStore == nil {
+		events, err := r.store.Load(ctx, aggregateType, aggregateID)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"load events for %s %s: %w",
+				aggregateType,
+				aggregateID.String(),
+				err,
+			)
+		}
+
+		return events, nil
+	}
+
+	snapshot, snapErr := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
+	if snapErr != nil || snapshot == nil {
+		events, err := r.store.Load(ctx, aggregateType, aggregateID)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"load events for %s %s: %w",
+				aggregateType,
+				aggregateID.String(),
+				err,
+			)
+		}
+
+		return events, nil
+	}
+
+	root.SetVersion(snapshot.Version)
+
+	var err error
+
+	err = root.ApplySnapshot(snapshot.State)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"apply snapshot for %s %s: %w",
+			aggregateType,
+			aggregateID.String(),
+			err,
+		)
+	}
+
+	events, err := r.store.LoadFromVersion(ctx, aggregateType, aggregateID, snapshot.Version)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"load events from version %d for %s %s: %w",
+			snapshot.Version,
+			aggregateType,
+			aggregateID.String(),
+			err,
+		)
+	}
+
+	return events, nil
 }
