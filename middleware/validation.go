@@ -10,7 +10,7 @@ import (
 )
 
 // CommandValidation returns a middleware that validates commands before dispatch.
-func CommandValidation(validate Validator) command.Middleware {
+func CommandValidation(validate CommandValidator) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			err := validate(cmd)
@@ -24,7 +24,7 @@ func CommandValidation(validate Validator) command.Middleware {
 }
 
 // EventValidation returns a middleware that validates events before handling.
-func EventValidation(validate Validator) event.Middleware {
+func EventValidation(validate EventValidator) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			err := validate(evt)
@@ -38,7 +38,7 @@ func EventValidation(validate Validator) event.Middleware {
 }
 
 // QueryValidation returns a middleware that validates queries before dispatch.
-func QueryValidation(validate Validator) query.Middleware {
+func QueryValidation(validate QueryValidator) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			err := validate(q)

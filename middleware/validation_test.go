@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -14,7 +15,7 @@ import (
 func TestCommandValidation_Pass(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error { return nil }
+	validate := func(_ command.Command) error { return nil }
 	mw := CommandValidation(validate)
 
 	called := false
@@ -35,7 +36,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 func TestCommandValidation_Fail(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error {
+	validate := func(_ command.Command) error {
 		return errors.New("invalid")
 	}
 	mw := CommandValidation(validate)
@@ -53,7 +54,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 func TestEventValidation_Pass(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error { return nil }
+	validate := func(_ event.Event) error { return nil }
 	mw := EventValidation(validate)
 
 	called := false
@@ -81,7 +82,7 @@ func TestEventValidation_Pass(t *testing.T) {
 func TestEventValidation_Fail(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error {
+	validate := func(_ event.Event) error {
 		return errors.New("invalid event")
 	}
 	mw := EventValidation(validate)
@@ -102,7 +103,7 @@ func TestEventValidation_Fail(t *testing.T) {
 func TestQueryValidation_Pass(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error { return nil }
+	validate := func(_ query.Query) error { return nil }
 	mw := QueryValidation(validate)
 
 	called := false
@@ -125,7 +126,7 @@ func TestQueryValidation_Pass(t *testing.T) {
 func TestQueryValidation_Fail(t *testing.T) {
 	t.Parallel()
 
-	validate := func(_ any) error {
+	validate := func(_ query.Query) error {
 		return errors.New("invalid")
 	}
 	mw := QueryValidation(validate)

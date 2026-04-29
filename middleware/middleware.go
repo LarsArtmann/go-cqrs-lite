@@ -1,7 +1,13 @@
 // Package middleware provides cross-cutting concerns for CQRS handlers.
 package middleware
 
-import "time"
+import (
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
+)
 
 // Logger provides structured logging for middleware.
 type Logger interface {
@@ -41,5 +47,11 @@ func DefaultRetryConfig() RetryConfig {
 	}
 }
 
-// Validator checks a message and returns an error if invalid.
-type Validator func(any) error
+// CommandValidator checks a command and returns an error if invalid.
+type CommandValidator func(command.Command) error
+
+// EventValidator checks an event and returns an error if invalid.
+type EventValidator func(event.Event) error
+
+// QueryValidator checks a query and returns an error if invalid.
+type QueryValidator func(query.Query) error
