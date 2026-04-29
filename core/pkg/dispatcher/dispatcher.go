@@ -125,8 +125,10 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 // ErrHandlerAlreadyRegistered is returned when a handler is already registered for a type.
 var ErrHandlerAlreadyRegistered = errors.New("handler already registered for type")
 
-// Register binds a handler to a type.
-func (d *Dispatcher[H, M]) Register(t string, handler H) error {
+// Register binds a handler to a type, applying middleware immediately.
+// The wrap function converts middleware and handler into a wrapped handler.
+// Middleware must be configured via Use() before Register() is called.
+func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) error {
 	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return fmt.Errorf("dispatcher is closed: %w", err)
@@ -143,7 +145,7 @@ func (d *Dispatcher[H, M]) Register(t string, handler H) error {
 		)
 	}
 
-	d.handlers[t] = handler
+	d.handlers[t] = d.Middleware.Apply(handler, wrap)
 
 	return nil
 }
@@ -160,11 +162,11 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 	return h, ok
 }
 
-// Dispatch sends a request to its registered handler and returns the wrapped handler.
-// The caller is responsible for invoking the wrapped handler with appropriate arguments.
+// Dispatch returns the wrapped handler for a type.
+// The caller is responsible for invoking the returned handler with appropriate arguments.
 //
 //nolint:ireturn // generic interface return by design
-func (d *Dispatcher[H, M]) Dispatch(t string, wrap func(M, H) H) (H, error) {
+func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
 	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		var zero H
@@ -179,9 +181,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string, wrap func(M, H) H) (H, error) {
 		return zero, fmt.Errorf("handler not found for type %s: %w", t, ErrHandlerNotFound)
 	}
 
-	wrapped := d.Middleware.Apply(h, wrap)
-
-	return wrapped, nil
+	return h, nil
 }
 
 // Close marks the dispatcher as closed.
