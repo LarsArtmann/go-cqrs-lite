@@ -16,7 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Event catalog system** (`catalog/`): Three-layer architecture with reflection-based schema generation, custom YAML marshaler, AsyncAPI and EventCatalog exporters. Packages: `catalog/`, `catalog/asyncapi/`, `catalog/eventcatalog/`, `catalog/yaml/`
 - **ID type methods**: `Equal`, `Compare`, `Or`, `Reset`, `GoString`, `Format` (fmt.Formatter), `MarshalBinary`/`UnmarshalBinary`, `MarshalText`/`UnmarshalText`
-- **Comprehensive test suites**: `internal/dispatcher/` (0%→100%), `pkg/id/` (48%→88%), `aggregate/` (64%→100%), `xtypes/` (53%→95.6%), `event/` (75%→92.8%), `catalog/` (91.9%), `catalog/asyncapi/` (92.6%)
+- **Comprehensive test suites**: `internal/dispatcher/` (0%→100%), `pkg/id/` (48%→88%), `aggregate/` (64%→100%), `event/` (75%→92.8%), `catalog/` (91.9%), `catalog/asyncapi/` (92.6%)
+- **EventBuilder migration**: Moved from deleted `xtypes/` module to `core/event.Builder` with fluent API
 - **EventCatalog frontmatter**: `schemaPath` in message frontmatter when schema exists; `sends`/`receives` arrays in service frontmatter
 - **AsyncAPI functional options**: `WithServer()` and `WithDescription()` for configurable server name, host, and protocol
 - **Integration test**: full E2E flow (Registry → Build → AsyncAPI + EventCatalog export)

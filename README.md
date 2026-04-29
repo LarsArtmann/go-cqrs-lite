@@ -37,8 +37,8 @@ go get github.com/larsartmann/go-cqrs-lite/catalog
 # Cross-cutting middleware (logging, retry, validation, recovery, metrics)
 go get github.com/larsartmann/go-cqrs-lite/middleware
 
-# Type-safe wrappers with branded IDs
-go get github.com/larsartmann/go-cqrs-lite/xtypes
+# In-memory implementations for testing
+go get github.com/larsartmann/go-cqrs-lite/memory
 ```
 
 ### Requirements

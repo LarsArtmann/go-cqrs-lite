@@ -1,5 +1,7 @@
 # go-composable-business-types/id Integration Plan
 
+> **SUPERSEDED — 2026-04-29**: The branded ID migration described in this document is **complete**. `core/pkg/id` now provides `id.Of[T]` with ULID backing. The `xtypes` module referenced in this document was deleted in commit `51b1d95` because its interface was as complex as the underlying implementation. This document is retained for historical reference only.
+
 ## Executive Summary
 
 This document outlines how `go-composable-business-types/id` should be integrated into `go-cqrs-lite` to replace plain string identifiers with branded, type-safe IDs. The integration provides compile-time safety against mixing different entity IDs while maintaining backward compatibility through gradual adoption.
