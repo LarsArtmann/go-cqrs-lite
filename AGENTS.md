@@ -520,6 +520,29 @@ These were identified but explicitly deferred because they affect all consumers 
 | ~~`EventCatalogMeta` → `CatalogMeta` naming~~ | ✅ Done (session 9, breaking change) |
 | Stale `replace` directives in `middleware/go.mod` | ✅ Done (session 9, removed all unused replaces) |
 
+## Known Architectural Constraints
+
+### Circular Module Dependency: core ↔ memory/testhelpers
+
+`core/go.mod` lists `memory` and `testhelpers` as dependencies (for tests).
+`memory/go.mod` and `testhelpers/go.mod` both depend on `core`.
+
+This is resolved locally via `replace` directives in `core/go.mod`:
+```go
+replace (
+    github.com/larsartmann/go-cqrs-lite/memory => ../memory
+    github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
+)
+```
+
+**Impact:** `core` cannot be `go get`-d independently without the sibling modules also being published. All 12 test files in `core` that import `memory`/`testhelpers` are external test packages (`*_test`), so they *could* be moved to an `integration/` module to break the cycle.
+
+**Recommended approach:** Coordinated monorepo releases. Publish all modules together with matching versions. The `replace` pattern is standard for Go monorepos (see Kubernetes, CockroachDB). Independent publishability is a nice-to-have, not a requirement.
+
+**If independent publishability becomes required:** Create `integration/` module, move 12 test files, remove `memory`/`testhelpers` from `core/go.mod`.
+
+---
+
 ## References
 
 - [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards
