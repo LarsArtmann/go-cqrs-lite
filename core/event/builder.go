@@ -28,6 +28,8 @@ func NewBuilder(
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
 		version:       version,
+		payload:       nil,
+		opts:          nil,
 	}
 }
 

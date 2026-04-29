@@ -28,7 +28,11 @@ var _ Repository = (*EventSourcedRepository)(nil)
 
 // NewRepository creates a new event-sourced repository.
 func NewRepository(store event.Store, bus event.Bus) *EventSourcedRepository {
-	return &EventSourcedRepository{store: store, bus: bus}
+	return &EventSourcedRepository{
+		store:         store,
+		bus:           bus,
+		snapshotStore: nil,
+	}
 }
 
 // NewRepositoryWithSnapshot creates a new event-sourced repository with snapshot support.

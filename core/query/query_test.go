@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {

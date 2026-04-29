@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {

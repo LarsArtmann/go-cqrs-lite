@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {

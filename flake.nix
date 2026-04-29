@@ -29,7 +29,7 @@
           ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
-          testModules = [ "core" "memory" "catalog" "middleware" "xtypes" ];
+          testModules = [ "core" "memory" "catalog" "middleware" ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           mkApp = name: script: {

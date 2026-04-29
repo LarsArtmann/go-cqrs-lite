@@ -22,7 +22,7 @@ func (r *testRoot) Apply(evt event.Event) error {
 }
 
 func (r *testRoot) LoadEvents(events []event.Event) error {
-	return r.Core.LoadFromHistory(r, events)
+	return r.LoadFromHistory(r, events)
 }
 
 var _ aggregate.Root = (*testRoot)(nil)

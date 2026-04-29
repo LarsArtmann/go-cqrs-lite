@@ -9,9 +9,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type order struct {
@@ -22,10 +22,7 @@ type order struct {
 
 const orderAggregateType event.AggregateType = "Order"
 
-var (
-	_ aggregate.Root          = (*order)(nil)
-
-)
+var _ aggregate.Root = (*order)(nil)
 
 func newOrder(orderID id.AggregateID) *order {
 	return &order{Core: aggregate.NewCore(orderID, orderAggregateType)}
@@ -297,10 +294,7 @@ func (r *failingApplyRoot) Apply(_ event.Event) error {
 	return errors.New("apply failed")
 }
 
-var (
-	_ aggregate.Root          = (*failingApplyRoot)(nil)
-
-)
+var _ aggregate.Root = (*failingApplyRoot)(nil)
 
 func (r *failingApplyRoot) LoadEvents(events []event.Event) error {
 	return r.LoadFromHistory(r, events)
