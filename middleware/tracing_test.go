@@ -9,29 +9,25 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
 )
 
-func setupTestTracer() (*tracetest.SpanRecorder, func()) {
+func testTracerWithRecorder() (trace.Tracer, *tracetest.SpanRecorder) {
 	recorder := tracetest.NewSpanRecorder()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
-	SetTracerProvider(provider)
 
-	return recorder, func() {
-		SetTracerProvider(otel.GetTracerProvider())
-	}
+	return provider.Tracer(instrumentationName), recorder
 }
 
 func TestCommandTracing_Success(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := CommandTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := CommandTracing(tracer)
 	handler := mw(testhelpers.NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
@@ -62,11 +58,10 @@ func TestCommandTracing_Success(t *testing.T) {
 }
 
 func TestCommandTracing_Error(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := CommandTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := CommandTracing(tracer)
 	handler := mw(testhelpers.FailingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
@@ -88,11 +83,10 @@ func TestCommandTracing_Error(t *testing.T) {
 }
 
 func TestEventTracing_Success(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := EventTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := EventTracing(tracer)
 	handler := mw(testhelpers.NoopEventHandler())
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
@@ -122,11 +116,10 @@ func TestEventTracing_Success(t *testing.T) {
 }
 
 func TestEventTracing_Error(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := EventTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := EventTracing(tracer)
 	handler := mw(testhelpers.FailingEventHandler("boom"))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
@@ -151,11 +144,10 @@ func TestEventTracing_Error(t *testing.T) {
 }
 
 func TestQueryTracing_Success(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := QueryTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := QueryTracing(tracer)
 	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
 		return "result", nil
 	})
@@ -186,11 +178,10 @@ func TestQueryTracing_Success(t *testing.T) {
 }
 
 func TestQueryTracing_Error(t *testing.T) {
-	// Not parallel: shares global tracerProvider
-	recorder, cleanup := setupTestTracer()
-	defer cleanup()
+	t.Parallel()
 
-	mw := QueryTracing()
+	tracer, recorder := testTracerWithRecorder()
+	mw := QueryTracing(tracer)
 	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
 		return nil, errors.New("boom")
 	})

@@ -6,7 +6,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -14,24 +13,16 @@ import (
 
 const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"
 
-// tracerProvider allows overriding the global tracer provider for testing.
-//
-//nolint:gochecknoglobals // package-level tracer override for testing
-var tracerProvider = otel.GetTracerProvider()
-
-// SetTracerProvider overrides the tracer provider used by all tracing middleware.
-// Call before constructing dispatchers. Defaults to otel.GetTracerProvider().
-func SetTracerProvider(tp trace.TracerProvider) {
-	tracerProvider = tp
-}
-
 // CommandTracing creates an OpenTelemetry span for each command handled.
-func CommandTracing() command.Middleware {
+// The tracer is typically obtained from a trace.TracerProvider:
+//
+//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	mw := middleware.CommandTracing(tracer)
+func CommandTracing(tracer trace.Tracer) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			tr := tracerProvider.Tracer(instrumentationName)
-
-			ctx, span := tr.Start(ctx, "command.handle",
+			ctx, span := tracer.Start(ctx, "command.handle",
+				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "command"),
 					attribute.String("cqrs.command.type", string(cmd.Type())),
@@ -51,12 +42,15 @@ func CommandTracing() command.Middleware {
 }
 
 // EventTracing creates an OpenTelemetry span for each event handled.
-func EventTracing() event.Middleware {
+// The tracer is typically obtained from a trace.TracerProvider:
+//
+//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	mw := middleware.EventTracing(tracer)
+func EventTracing(tracer trace.Tracer) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			tr := tracerProvider.Tracer(instrumentationName)
-
-			ctx, span := tr.Start(ctx, "event.handle",
+			ctx, span := tracer.Start(ctx, "event.handle",
+				trace.WithSpanKind(trace.SpanKindConsumer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "event"),
 					attribute.String("cqrs.event.type", string(evt.Type())),
@@ -76,12 +70,15 @@ func EventTracing() event.Middleware {
 }
 
 // QueryTracing creates an OpenTelemetry span for each query handled.
-func QueryTracing() query.Middleware {
+// The tracer is typically obtained from a trace.TracerProvider:
+//
+//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	mw := middleware.QueryTracing(tracer)
+func QueryTracing(tracer trace.Tracer) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, qry query.Query) (any, error) {
-			tr := tracerProvider.Tracer(instrumentationName)
-
-			ctx, span := tr.Start(ctx, "query.handle",
+			ctx, span := tracer.Start(ctx, "query.handle",
+				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "query"),
 					attribute.String("cqrs.query.type", string(qry.Type())),
