@@ -51,6 +51,8 @@ func copyChannel(ch *Channel) Channel {
 	}
 }
 
+// Registry is a thread-safe catalog builder that accumulates services,
+// domains, and channels before producing an immutable Catalog.
 type Registry struct {
 	mu       sync.RWMutex
 	title    string
@@ -60,6 +62,7 @@ type Registry struct {
 	channels map[string]*Channel
 }
 
+// NewRegistry creates a new catalog registry with the given title and version.
 func NewRegistry(title, version string) *Registry {
 	return &Registry{
 		mu:       sync.RWMutex{},
@@ -71,6 +74,7 @@ func NewRegistry(title, version string) *Registry {
 	}
 }
 
+// AddService registers a service or merges messages into an existing service.
 func (r *Registry) AddService(svc Service) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -95,6 +99,7 @@ func (r *Registry) AddService(svc Service) {
 	r.services[svc.ID] = &svc
 }
 
+// AddCommand adds a command message to a service, creating the service if needed.
 func (r *Registry) AddCommand(serviceID string, msg Message) {
 	r.addMessage(
 		serviceID,
@@ -105,6 +110,7 @@ func (r *Registry) AddCommand(serviceID string, msg Message) {
 	)
 }
 
+// AddEvent adds an event message to a service, creating the service if needed.
 func (r *Registry) AddEvent(serviceID string, msg Message) {
 	r.addMessage(
 		serviceID,
@@ -115,6 +121,7 @@ func (r *Registry) AddEvent(serviceID string, msg Message) {
 	)
 }
 
+// AddQuery adds a query message to a service, creating the service if needed.
 func (r *Registry) AddQuery(serviceID string, msg Message) {
 	r.addMessage(
 		serviceID,
@@ -155,6 +162,7 @@ func (r *Registry) addMessage(
 	setter(svc, append(getter(svc), msg))
 }
 
+// AddDomain registers a domain in the catalog.
 func (r *Registry) AddDomain(domain Domain) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -162,6 +170,7 @@ func (r *Registry) AddDomain(domain Domain) {
 	r.domains[domain.ID] = &domain
 }
 
+// AddServiceToDomain associates an existing service with an existing domain.
 func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -177,6 +186,7 @@ func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 	return nil
 }
 
+// AddChannel registers a channel in the catalog.
 func (r *Registry) AddChannel(ch Channel) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -184,6 +194,7 @@ func (r *Registry) AddChannel(ch Channel) {
 	r.channels[ch.ID] = &ch
 }
 
+// Build returns an immutable Catalog with all registered entries.
 func (r *Registry) Build() *Catalog {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
