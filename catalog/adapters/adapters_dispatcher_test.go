@@ -66,7 +66,10 @@ func TestBuilder_AddServiceToDomain(t *testing.T) {
 	builder.AddService("payment-svc", "Payment Service", "1.0.0", "")
 	builder.AddDomain("ecommerce", "E-Commerce", "Online store", []string{"order-svc"})
 
-	builder.AddServiceToDomain("payment-svc", "ecommerce")
+	err := builder.AddServiceToDomain("payment-svc", "ecommerce")
+	if err != nil {
+		t.Fatalf("add service to domain: %v", err)
+	}
 
 	cat := builder.Build()
 	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 1)
@@ -92,10 +95,10 @@ func TestBuilder_AddServiceToDomain_NonexistentDomain(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("svc", "Service", "1.0.0", "")
 
-	builder.AddServiceToDomain("svc", "nonexistent")
-
-	cat := builder.Build()
-	cattest.AssertSliceLen(t, "cat.Domains", cat.Domains, 0)
+	err := builder.AddServiceToDomain("svc", "nonexistent")
+	if err == nil {
+		t.Fatal("expected error when adding service to nonexistent domain")
+	}
 }
 
 func TestBuilder_AddChannel(t *testing.T) {

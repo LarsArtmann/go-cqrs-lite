@@ -1,6 +1,8 @@
 package adapters
 
 import (
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
@@ -144,14 +146,17 @@ func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string
 }
 
 // AddServiceToDomain associates an existing service with a domain.
-func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) {
+func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
 	d, ok := b.domains[domainID]
 	if !ok {
-		return
+		//nolint:err113 // dynamic error required to include domainID in message
+		return fmt.Errorf("domain %q not found", domainID)
 	}
 
 	d.Services = append(d.Services, serviceID)
 	b.domains[domainID] = d
+
+	return nil
 }
 
 // AddChannel registers a channel in the catalog.
