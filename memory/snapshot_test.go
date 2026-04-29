@@ -318,7 +318,11 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 	}
 
 	if string(reloaded.State) != string(originalState) {
-		t.Errorf("original state corrupted after modifying loaded copy: got %q, want %q", reloaded.State, originalState)
+		t.Errorf(
+			"original state corrupted after modifying loaded copy: got %q, want %q",
+			reloaded.State,
+			originalState,
+		)
 	}
 }
 
@@ -358,6 +362,10 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 	}
 
 	if string(reloaded.State) != string(originalState) {
-		t.Errorf("original state corrupted after modifying loaded copy: got %q, want %q", reloaded.State, originalState)
+		t.Errorf(
+			"original state corrupted after modifying loaded copy: got %q, want %q",
+			reloaded.State,
+			originalState,
+		)
 	}
 }

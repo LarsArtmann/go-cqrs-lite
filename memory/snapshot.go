@@ -103,14 +103,14 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 }
 
 func copySnapshot(snapshot *event.Snapshot) *event.Snapshot {
-	cp := *snapshot
+	snapshotCopy := *snapshot
 
 	if snapshot.State != nil {
-		cp.State = make([]byte, len(snapshot.State))
-		copy(cp.State, snapshot.State)
+		snapshotCopy.State = make([]byte, len(snapshot.State))
+		copy(snapshotCopy.State, snapshot.State)
 	}
 
-	return &cp
+	return &snapshotCopy
 }
 
 func (s *MemorySnapshotStore) Delete(

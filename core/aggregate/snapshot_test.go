@@ -67,7 +67,11 @@ func TestEventSourcedRepository_Load_WithSnapshot(t *testing.T) {
 	}
 
 	// Save a snapshot at version 1
-	snapshotPayload, _ := json.Marshal(map[string]string{"status": "placed"})
+	snapshotPayload, err := json.Marshal(map[string]string{"status": "placed"})
+	if err != nil {
+		t.Fatalf("marshal snapshot payload: %v", err)
+	}
+
 	snapshot := event.Snapshot{
 		AggregateID:   orderID,
 		AggregateType: orderAggregateType,
@@ -83,6 +87,7 @@ func TestEventSourcedRepository_Load_WithSnapshot(t *testing.T) {
 
 	// Load the order back via repository (should use snapshot)
 	loaded := newOrder(orderID)
+
 	err = repo.Load(ctx, loaded)
 	if err != nil {
 		t.Fatalf("load order with snapshot: %v", err)
@@ -124,7 +129,11 @@ func TestEventSourcedRepository_Load_WithSnapshotAndReplay(t *testing.T) {
 	}
 
 	// Save snapshot at version 1
-	snapshotPayload, _ := json.Marshal(map[string]string{"status": "placed"})
+	snapshotPayload, err := json.Marshal(map[string]string{"status": "placed"})
+	if err != nil {
+		t.Fatalf("marshal snapshot payload: %v", err)
+	}
+
 	snapshot := event.Snapshot{
 		AggregateID:   orderID,
 		AggregateType: orderAggregateType,
@@ -139,24 +148,26 @@ func TestEventSourcedRepository_Load_WithSnapshotAndReplay(t *testing.T) {
 	}
 
 	// Ship order (version 2) — saved AFTER snapshot
-	o2 := newOrder(orderID)
-	err = repo.Load(ctx, o2)
+	orderForShipping := newOrder(orderID)
+
+	err = repo.Load(ctx, orderForShipping)
 	if err != nil {
 		t.Fatalf("load order for shipping: %v", err)
 	}
 
-	err = o2.Ship(ctx)
+	err = orderForShipping.Ship(ctx)
 	if err != nil {
 		t.Fatalf("ship order: %v", err)
 	}
 
-	err = repo.Save(ctx, o2)
+	err = repo.Save(ctx, orderForShipping)
 	if err != nil {
 		t.Fatalf("save shipped order: %v", err)
 	}
 
 	// Load again — should use snapshot at v1 + replay v2
 	loaded := newOrder(orderID)
+
 	err = repo.Load(ctx, loaded)
 	if err != nil {
 		t.Fatalf("load order with snapshot+replay: %v", err)
@@ -196,6 +207,7 @@ func TestEventSourcedRepository_Load_SnapshotNotFound(t *testing.T) {
 
 	// Load — snapshot store is empty, should fallback to loading all events
 	loaded := newOrder(orderID)
+
 	err = repo.Load(ctx, loaded)
 	if err != nil {
 		t.Fatalf("load order without snapshot: %v", err)
@@ -223,7 +235,11 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 
 	// Manually save 3 events (versions 1, 2, 3)
 	for i := 1; i <= 3; i++ {
-		payload, _ := json.Marshal(map[string]string{"status": "placed"})
+		payload, err := json.Marshal(map[string]string{"status": "placed"})
+		if err != nil {
+			t.Fatalf("marshal payload for event %d: %v", i, err)
+		}
+
 		evt, err := event.NewEvent("OrderPlaced", orderID, orderAggregateType, i, payload)
 		if err != nil {
 			t.Fatalf("create event %d: %v", i, err)
@@ -236,7 +252,11 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 	}
 
 	// Save snapshot at version 2
-	snapshotPayload, _ := json.Marshal(map[string]string{"status": "placed"})
+	snapshotPayload, err := json.Marshal(map[string]string{"status": "placed"})
+	if err != nil {
+		t.Fatalf("marshal snapshot payload: %v", err)
+	}
+
 	snapshot := event.Snapshot{
 		AggregateID:   orderID,
 		AggregateType: orderAggregateType,
@@ -245,13 +265,14 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 		CreatedAt:     time.Now(),
 	}
 
-	err := snapshotStore.Save(ctx, snapshot)
+	err = snapshotStore.Save(ctx, snapshot)
 	if err != nil {
 		t.Fatalf("save snapshot: %v", err)
 	}
 
 	// Load — should start from snapshot v2 and replay only event v3
 	loaded := newOrder(orderID)
+
 	err = repo.Load(ctx, loaded)
 	if err != nil {
 		t.Fatalf("load with snapshot from version: %v", err)
