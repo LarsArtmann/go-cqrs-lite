@@ -1,136 +1,153 @@
-# TODO List
+# TODO List — go-cqrs-lite
 
-**Generated:** 2026-04-11
-**Files Processed:** 125
+**Last Updated:** 2026-04-29 23:07 UTC  
+**Current Branch:** master (13 commits ahead of origin)  
+**Build Status:** ✅ All tests passing, zero lint issues
 
-## 🔴 HIGH Priority
+---
 
-- [ ] Fix Go toolchain cache corruption blocking test execution (source: 2026-04-02_21-22)
-- [ ] Breaking: `Root.ID()` to return `id.AggregateID` instead of `string` (source: 2026-04-02_23-02, 2026-04-02_22-58)
-- [ ] Breaking: `Event.AggregateID()` to return `id.AggregateID` instead of `string` (source: 2026-04-02_23-02, 2026-04-02_22-58)
-- [ ] Breaking: Make `Command.AggregateID()` optional or remove from interface (source: 2026-04-02_23-02, 2026-04-02_22-58)
-- [ ] Fuzz tests for critical parsing functions (source: 2026-03-15_16-02)
+## Philosophy
 
-## 🟡 MEDIUM Priority
+> "Perfect is the enemy of shipped — but sloppy is the enemy of trust."
 
-- [ ] Fix `query.Handler` to accept `context.Context` parameter and convert type alias to type definition (source: 2026-04-02_23-02, 2026-04-02_22-58)
-- [ ] Fix `catalog/registry.go` Build() shared backing array corruption and non-deterministic map iteration (source: 2026-04-02_23-02)
-- [x] Fix `Register()` error semantics to use `ErrDispatcherClosed` ✅ 2026-04
-- [ ] Fix `time.Time` schema generation to use `{type:"string", format:"date-time"}` (source: 2026-04-12_00-57)
-- [ ] Fix paralleltest warnings in `pkg/id/id_test.go` (source: 2026-03-30_20-34)
-- [ ] Fix `nilnil` warning in `query_test.go` (source: 2026-03-30_20-34)
-- [ ] Improve aggregate test coverage to 80%+ (source: 2026-03-15_16-02)
-- [ ] Fix `.golangci.yaml` depguard configuration (source: 2026-04-08_19-45)
-- [ ] Run `buildflow --semantic --fix` (source: 2026-04-08_19-45, 2026-04-11_20-54, ROADMAP.md)
-- [ ] Update `.golangci.yml` (source: 2026-04-11_20-54, ROADMAP.md)
-- [ ] Fix `varnamelen` warnings in production code (source: 2026-04-05_20-23)
-- [ ] Fix stale LSP diagnostics (source: 2026-04-11_20-54)
-- [ ] Fix `MemoryBus.Subscribe` nil handler check + error wrapping consistency (source: 2026-04-02_23-02)
-- [ ] Fix asyncapi component message key collision when command/event share same ID (source: 2026-04-02_23-02)
-- [x] Fix `MemoryStore.LoadFromVersion` to copy slice instead of returning sub-slice ✅ 2026-04
-- [ ] Add error path tests for aggregate repo to improve coverage from 75% to 85%+ (source: 2026-04-08_19-45)
-- [ ] Run `golangci-lint run` and `dupl` to find and fix code duplication (source: 2026-04-02_21-22)
-- [ ] Improve `pkg/id` and `xtypes` test coverage to 80% (source: 2026-03-30_20-34)
-- [ ] Re-run full benchmark suite and update results (source: 2026-04-11_20-54)
-- [ ] Refactor test files to use helpers: `catalog/eventcatalog/exporter_test.go`, `catalog/asyncapi/exporter_test.go`, `internal/dispatcher/dispatcher_test.go`, `event/memory_bus_test.go`, `event/memory_store_test.go`, `aggregate/aggregate_test.go` (source: 2026-04-05_20-23)
-- [ ] Review and update CHANGELOG.md (source: 2026-04-11_20-54)
-- [ ] Fix `Payload()`/`Metadata()` immutability by returning copies (source: 2026-04-02_23-02)
-- [x] Create/update CONTRIBUTING.md ✅ 2026-04
-- [ ] Create/update CODE_OF_CONDUCT.md (source: 2026-04-08_19-45, ROADMAP.md)
-- [ ] Update README.md with test helper usage examples (source: 2026-04-05_20-23)
-- [ ] Update AGENTS.md with auto-catalog pattern (source: 2026-04-10_12-14)
-- [ ] Improve `catalog/yaml` coverage from 79.8% to 90%+ (source: 2026-04-02_22-58)
-- [ ] Improve `catalog/eventcatalog` coverage from 86.4% to 90%+ (source: 2026-04-02_22-58)
-- [ ] Refactor remaining test files: `catalog/registry_test.go`, `catalog/benchmark_test.go`, `catalog/integration_test.go`, `catalog/schema_test.go`, `event/event_test.go`, `command/command_test.go`, `query/query_test.go` (source: DEDUPLICATION_PLAN)
+This list is ruthlessly prioritized by **impact/effort ratio**. Each task includes:
+- **Effort** estimate (in minutes or hours)
+- **Impact** on the codebase
+- **Customer value** (why it matters)
+- **Honest blockers** (what might stop us)
 
-## 🟢 LOW Priority
+---
 
-- [ ] Document testing approach in AGENTS.md (source: 2026-04-08_19-45, 2026-04-11_20-54, ROADMAP.md)
-- [ ] Consider Nix Flakes migration (source: 2026-04-11_20-54)
+## Tier 1: Must Do (P0 — Blocks Production Use)
 
-## ⚪ Unknown Priority
+### 1.1 Fix core→memory/testhelpers Circular Dependency
+- **Status:** Not started
+- **Effort:** ~2 hours
+- **Impact:** CRITICAL — blocks publishing core module independently
+- **Customer value:** Users can't `go get github.com/larsartmann/go-cqrs-lite/core` without replace directives
+- **Approach:** Create `integration/` module at repo root. Move memory-dependent core tests into it.
+- **Files:** `core/go.mod`, all `core/*/*_test.go` that import `memory` or `testhelpers`
+- **Blocker:** Need to decide — is independent publishability required, or are coordinated releases acceptable?
 
-- [x] Add `aggregate.Repository` interface ✅ 2026-04
-- [x] Remove dead exports: `query.Result[T]`, `event.StreamOptions`, `BatchSize`, `Streamer` ✅ 2026-04
-- [x] Remove unused sentinels: `ErrCommandValidation`, `ErrQueryValidation`, `ErrInvalidEventType` ✅ 2026-04
-- [ ] Commit `RecordEvent` rename (source: 2026-04-02_22-58)
-- [x] Remove duplicated `Lifecycle` methods — MemoryBus/MemorySnapshotStore now use LifecycleMixin ✅ 2026-04
-- [ ] Standardize errors: replace `fmt.Errorf` with `cockroachdb/errors` in `event/event.go`, `event/types.go` (source: 2026-04-02_22-58)
-- [x] Wire `example/user/aggregate.go` to use catalog-aware event constructors ✅ 2026-04
-- [ ] Add `AggregateType` field to example/user event catalog metadata (source: 2026-04-12_00-57)
-- [ ] Filter embedded `*Core`/`*CatalogCore` from schema output (source: 2026-04-10_12-14)
-- [x] Add tests for `EventRetry()` and `EventValidation()` middleware functions (source: 2026-04-08_19-45) ✅ 2026-04-29
-- [x] Add tests for `QueryValidation()` middleware function (source: 2026-04-08_19-45) ✅ 2026-04-29
-- [ ] Split `TestTypedAggregate` into smaller functions (source: 2026-03-30_20-34)
-- [ ] Add `t.Parallel()` to all subtests (source: 2026-03-30_20-34)
-- [ ] Add Ginkgo + Gomega dependencies and create BDD test files: `command/command_bdd_test.go`, `query/query_bdd_test.go`, `event/event_bdd_test.go`, `integration_bdd_test.go` (source: BDD_TESTS_REVIEW)
-- [x] Create `.github/workflows/test.yml` and `.github/workflows/lint.yml` CI workflows ✅ 2026-04
-- [ ] Add pre-commit hook with `go test ./...` validation (source: 2026-04-08_19-45)
-- [ ] Create justfile with `build`, `test`, `lint`, `fd` targets (source: 2026-04-02_21-22)
-- [x] Create `example/user/` directory structure ✅ 2026-04
-- [x] Create `example/main.go` working example ✅ 2026-04
-- [ ] Add validation to `command.New()`, `query.New()`, `NewEvent()` constructors (source: 2026-04-02_23-02)
-- [ ] Standardize errors globally: replace `fmt.Errorf` with `cockroachdb/errors` (source: 2026-04-02_23-02)
-- [ ] Add `Dispatcher.CatalogEntries()`, `EventBus.CatalogEntries()`, and `QueryDispatcher.CatalogEntries()` for auto-discovery (source: 2026-04-10_12-14)
-- [ ] Add `enum` and `default` struct tag support to Schema/Property (source: 2026-04-12_00-57)
-- [ ] Add `Examples` field to AsyncAPI Message type and wire from catalog (source: 2026-04-12_00-57)
-- [ ] Export `SchemaFromType` via generic adapter method (source: 2026-04-10_12-14)
-- [x] Add `AddCommandFromType[T]()` generic helpers ✅ 2026-04
-- [ ] Make asyncapi/eventcatalog exporter fields unexported (source: 2026-04-02_23-02)
-- [ ] Implement catalog deduplication Phase 2+ (source: 2026-04-11_20-54)
-- [ ] Unify addCommand/addEvent/addQuery into `addMessage(kind)` in `catalog/asyncapi/exporter.go` (source: DEDUPLICATION_PLAN)
-- [ ] Unify MDX frontmatter writing in `catalog/eventcatalog/exporter.go` (source: DEDUPLICATION_PLAN)
-- [ ] Deduplicate `catalog/yaml/yaml.go` by extracting `marshalValue()` (source: DEDUPLICATION_PLAN)
-- [ ] Add `context.Context` to MemoryStore operations (source: 2026-04-02_23-02)
-- [ ] Add PostgreSQL event store implementation (source: 2026-04-11_20-54)
-- [ ] Add NATS/JetStream event bus (source: 2026-04-11_20-54)
-- [x] Add `middleware/logging.go` and `middleware/recovery.go` implementations ✅ 2026-04
-- [x] Create pre-built retry middleware with backoff ✅ 2026-04
-- [ ] Add distributed tracing middleware (source: 2026-04-11_20-54)
-- [ ] Implement circuit breaker middleware (source: 2026-04-11_20-54)
-- [ ] Add tests for `Parse*` ID variants (ParseCausationID, ParseCorrelationID, etc.) (source: 2026-04-08_19-45)
-- [ ] Add tests for nil-metadata branches and `WithMetadata` in event options (source: 2026-04-02_23-02)
-- [ ] Add `LoadFromHistory` error path tests for aggregate (source: 2026-04-02_23-02)
-- [ ] Add full CQRS roundtrip integration test (source: 2026-04-02_23-02, 2026-04-02_22-58)
-- [ ] Add benchmarks for ID generation, dispatcher throughput, event store operations (source: 2026-04-02_22-58)
-- [ ] Add integration tests for catalog adapters (source: 2026-04-11_20-54)
-- [ ] Create performance benchmarks for catalog system (source: 2026-04-11_20-54)
-- [ ] Table-drive `pkg/id/id_test.go` and `event/types_test.go` (source: 2026-04-05_20-23, DEDUPLICATION_PLAN)
-- [ ] Add `assertYAML()` helper to `catalog/yaml/yaml_test.go` (source: 2026-04-05_20-23)
-- [ ] Extract `ensureService()` helper in `catalog/registry.go` (source: 2026-04-05_20-23)
-- [ ] Unify Ptr-unwrapping in `catalog/schema.go` (source: 2026-04-05_20-23)
-- [ ] Extract validation helper in `pkg/id/id.go` (source: 2026-04-05_20-23, DEDUPLICATION_PLAN)
-- [ ] Unify Apply pattern in `example/user/aggregate.go` (source: 2026-04-05_20-23, DEDUPLICATION_PLAN)
-- [ ] Extract common middleware test helpers to reduce command/query duplication (source: 2026-04-05_20-23)
-- [ ] Create more comprehensive example (e-commerce domain) (source: 2026-04-11_20-54)
-- [ ] Add metrics endpoint example (source: 2026-04-11_20-54)
-- [x] Create `flake.nix` with build/test/lint apps ✅ 2026-04
-- [ ] Archive old status reports (keep 3 most recent) (source: 2026-04-11_20-54)
-- [x] Remove unused `Dispatcher.Dispatch` handler parameter ✅ 2026-04
-- [ ] Snapshot support for aggregates (source: 2026-03-15_16-02, 2026-03-30_20-34)
-- [ ] SQL/database event store implementation (source: 2026-04-08_19-45)
-- [ ] Projection/read-model support (source: 2026-04-08_19-45)
-- [ ] Saga/process manager support (source: 2026-04-08_19-45)
-- [ ] Event upcasting/schema evolution (source: 2026-04-08_19-45)
-- [ ] Dead letter queue for failed events (source: 2026-04-08_19-45)
-- [ ] Health check endpoints (source: 2026-04-08_19-45)
-- [ ] gRPC and HTTP transport adapters (source: 2026-03-30_20-34, 2026-04-11_20-54)
-- [ ] Add `middleware/tracing.go` OpenTelemetry-compatible tracing middleware (source: 2026-04-02_22-58)
-- [x] Add `middleware/metrics.go` metrics collection middleware ✅ 2026-04
-- [ ] Add typed command dispatcher helper (source: 2026-04-02_22-58)
-- [ ] Context propagation through middleware chain (source: 2026-04-08_19-45)
-- [ ] OpenTelemetry integration (source: 2026-04-08_19-45, 2026-04-11_20-54)
-- [ ] CLI tool for catalog generation (source: 2026-04-11_20-54)
-- [ ] Web UI for browsing EventCatalog (source: 2026-04-11_20-54)
-- [x] Generate `llms.txt` alongside EventCatalog output ✅ 2026-04
-- [ ] YAML frontmatter improvements (versioned paths, owners) (source: 2026-04-10_12-14)
-- [ ] Create architecture documentation (source: 2026-04-08_19-45, 2026-04-11_20-54, ROADMAP.md)
-- [ ] Add GoDoc package examples for core packages (source: 2026-04-08_19-45, 2026-04-11_20-54, ROADMAP.md)
-- [ ] Add version constants to all packages (source: 2026-04-02_22-58)
-- [ ] Add semantic versioning tags and create release workflow (source: 2026-04-02_22-58)
-- [ ] Add coverage tracking (codecov/coveralls) (source: 2026-04-08_19-45, ROADMAP.md)
-- [ ] Add error assertion tests (source: 2026-04-08_19-45, ROADMAP.md)
-- [ ] Benchmark tests for hot paths (source: 2026-03-15_16-02)
-- [ ] Add Go report card badge to README (source: 2026-04-02_22-58)
-- [ ] Add missing `t.Parallel()` to existing tests (source: BDD_TESTS_REVIEW)
-- [ ] Add art-dupl to CI pipeline with threshold enforcement (source: 2026-04-05_20-23)
+---
+
+## Tier 2: Should Do (P1 — High Value, Low Risk)
+
+### 2.1 Add EventRetry Middleware Tests
+- **Status:** Not started
+- **Effort:** ~20 minutes
+- **Impact:** MEDIUM — closes last coverage gap in retry logic
+- **Customer value:** Confidence that event retry behaves identically to command retry
+- **Approach:** Extract shared retry test harness from `middleware/retry_test.go`, add EventRetry test cases
+- **Files:** `middleware/retry_test.go` (extend), or `middleware/retry_event_test.go` (new)
+- **Blocker:** None
+
+### 2.2 Add OpenTelemetry Tracing Middleware
+- **Status:** Not started
+- **Effort:** ~1 hour
+- **Impact:** MEDIUM — production observability
+- **Customer value:** Distributed tracing across command dispatch, event publish, query handling
+- **Approach:** Add `middleware/tracing.go` with `CommandTracing`, `EventTracing`, `QueryTracing`
+- **Files:** `middleware/tracing.go`, `middleware/tracing_test.go`
+- **Blocker:** None (Go OTel SDK is stable)
+
+### 2.3 Remove Empty `core/internal/` Directory
+- **Status:** Not started
+- **Effort:** ~1 minute
+- **Impact:** LOW — cosmetic cleanup
+- **Customer value:** Cleaner repo structure
+- **Approach:** `rmdir core/internal/`
+- **Blocker:** None
+
+### 2.4 Update Stale Planning Docs (xtypes References)
+- **Status:** Not started
+- **Effort:** ~15 minutes
+- **Impact:** LOW — prevents contributor confusion
+- **Customer value:** Accurate documentation
+- **Files:** `docs/planning/go-composable-business-types-usage.md`, `CHANGELOG.md`
+- **Blocker:** None
+
+---
+
+## Tier 3: Could Do (P2 — Future Architecture)
+
+### 3.1 Design Doc: SQL Event Store Module
+- **Status:** Not started
+- **Effort:** ~1 hour
+- **Impact:** HIGH — next major module
+- **Customer value:** Persistent event storage (current memory store loses data on restart)
+- **Approach:** Research sqlc + PostgreSQL patterns. Design `storage/` module with `SQLStore`.
+- **Files:** `docs/planning/2026-04-29_SQL_STORE_DESIGN.md`
+- **Blocker:** Need to evaluate sqlc vs raw SQL vs gorm
+
+### 3.2 Design Doc: Saga / Process Manager
+- **Status:** Not started
+- **Effort:** ~1 hour
+- **Impact:** HIGH — enables complex multi-aggregate workflows
+- **Customer value:** Orchestrate long-running business processes across aggregates
+- **Approach:** Research saga patterns (choreography vs orchestration). Design `saga/` module.
+- **Files:** `docs/planning/2026-04-29_SAGA_DESIGN.md`
+- **Blocker:** Need to understand if this library's scope should include sagas
+
+### 3.3 Design Doc: Event Upcasting
+- **Status:** Not started
+- **Effort:** ~45 minutes
+- **Impact:** MEDIUM — event schema evolution
+- **Customer value:** Migrate old event payloads to new schema versions without data loss
+- **Approach:** Design `event.Upcaster` interface and registry
+- **Files:** `docs/planning/2026-04-29_UPCASTING_DESIGN.md`
+- **Blocker:** None
+
+---
+
+## Tier 4: Explicitly Skipped (with rationale)
+
+### 4.1 Generic Middleware Core (Task 2.1)
+- **Skipped because:** Go's defined handler types (`command.Handler`, `event.Handler`) prevent clean generic unification. Adapter boilerplate equals original code length.
+- **Verdict:** Complexity > value.
+
+### 4.2 Query Generic Result Types (Task 3.1)
+- **Skipped because:** `DispatchTyped[T]` already works. The runtime type assertion is one line. Making `Query` generic would break all handlers and require type erasure at the registry anyway.
+- **Verdict:** Marginal benefit for massive breakage.
+
+### 4.3 CatalogBuilder Wraps Registry (Task 2.4)
+- **Skipped because:** Behavioral divergence. `Registry.AddService` merges messages; `CatalogBuilder.AddService` overwrites metadata. Unification requires breaking changes or adding adapter methods that increase API surface.
+- **Verdict:** Two builders with different semantics is better than one with surprising behavior.
+
+---
+
+## Quality Gates (check before declaring "done")
+
+- [ ] All tests pass (`nix run .#test`)
+- [ ] No lint issues (`nix run .#lint`)
+- [ ] Build compiles (`nix run .#build`)
+- [ ] Format clean (`nix fmt` produces no changes)
+- [ ] Coverage maintained or improved
+- [ ] AGENTS.md updated with new patterns
+- [ ] Commit history is clean and descriptive
+
+---
+
+## Execution Strategy
+
+1. **Start with Tier 1** — The circular dependency is the only thing blocking real-world adoption.
+2. **Batch Tier 2** — EventRetry tests + OTel tracing + cleanup can be done in a single focused session.
+3. **Defer Tier 3** until after Tier 1 and Tier 2 are complete. Design docs are valuable but not urgent.
+4. **Never revisit Tier 4** without new evidence. The skip decisions were made with thorough analysis.
+
+---
+
+## Done (for reference)
+
+See `docs/status/archive/` for complete history.
+
+| Task | Commit | Date |
+|------|--------|------|
+| Type-safe validators | `d3b27c3` | 2026-04-29 |
+| EventBuilder migration | `a6755ab` | 2026-04-29 |
+| Typed interface (dispatcher) | `f3532ad` | 2026-04-29 |
+| Remove internal/testhelpers shim | `63b39a5` | 2026-04-29 |
+| Delete xtypes module | `51b1d95` | 2026-04-29 |
+| Snapshot integration tests | `b6aaa4a` | 2026-04-29 |
+| Deep copy fix (snapshot) | `ae0b088` | 2026-04-29 |
+| Outbox seam | `2c1de1f` | 2026-04-29 |
