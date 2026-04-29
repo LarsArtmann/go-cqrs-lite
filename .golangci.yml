@@ -140,6 +140,13 @@ linters:
                         - github.com/oklog/ulid
                         - github.com/onsi/ginkgo
                         - github.com/onsi/gomega
+                        - go.opentelemetry.io/otel
+        gci:
+            sections:
+                - standard
+                - default
+                - prefix(github.com/larsartmann/go-cqrs-lite)
+            custom-order: true
         funlen:
             lines: 200
             statements: 100
