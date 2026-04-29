@@ -1,7 +1,7 @@
 # TODO List — go-cqrs-lite
 
-**Last Updated:** 2026-04-29 23:07 UTC  
-**Current Branch:** master (13 commits ahead of origin)  
+**Last Updated:** 2026-04-30 00:00 UTC  
+**Current Branch:** master (19 commits ahead of origin)  
 **Build Status:** ✅ All tests passing, zero lint issues
 
 ---
@@ -21,51 +21,40 @@ This list is ruthlessly prioritized by **impact/effort ratio**. Each task includ
 ## Tier 1: Must Do (P0 — Blocks Production Use)
 
 ### 1.1 Fix core→memory/testhelpers Circular Dependency
-- **Status:** Not started
-- **Effort:** ~2 hours
+- **Status:** Documented in AGENTS.md — coordinated releases recommended
+- **Effort:** ~2 hours (or 0 if coordinated releases accepted)
 - **Impact:** CRITICAL — blocks publishing core module independently
 - **Customer value:** Users can't `go get github.com/larsartmann/go-cqrs-lite/core` without replace directives
 - **Approach:** Create `integration/` module at repo root. Move memory-dependent core tests into it.
 - **Files:** `core/go.mod`, all `core/*/*_test.go` that import `memory` or `testhelpers`
-- **Blocker:** Need to decide — is independent publishability required, or are coordinated releases acceptable?
+- **Blocker:** Decision needed — is independent publishability required?
+- **Workaround:** `go mod tidy` now works in all modules with replace directives (commit `a819c86`)
 
 ---
 
 ## Tier 2: Should Do (P1 — High Value, Low Risk)
 
 ### 2.1 Add EventRetry Middleware Tests
-- **Status:** Not started
-- **Effort:** ~20 minutes
-- **Impact:** MEDIUM — closes last coverage gap in retry logic
-- **Customer value:** Confidence that event retry behaves identically to command retry
-- **Approach:** Extract shared retry test harness from `middleware/retry_test.go`, add EventRetry test cases
-- **Files:** `middleware/retry_test.go` (extend), or `middleware/retry_event_test.go` (new)
-- **Blocker:** None
+- **Status:** ✅ DONE (commit `b8c0aa9`)
+- **Delivered:** Split retry_test.go into 3 files, added EventRetry non-retryable + context cancellation tests
 
 ### 2.2 Add OpenTelemetry Tracing Middleware
-- **Status:** Not started
-- **Effort:** ~1 hour
-- **Impact:** MEDIUM — production observability
-- **Customer value:** Distributed tracing across command dispatch, event publish, query handling
-- **Approach:** Add `middleware/tracing.go` with `CommandTracing`, `EventTracing`, `QueryTracing`
-- **Files:** `middleware/tracing.go`, `middleware/tracing_test.go`
-- **Blocker:** None (Go OTel SDK is stable)
+- **Status:** ✅ DONE (commits `1e70bfc`, `c7771cb`)
+- **Delivered:** CommandTracing, EventTracing, QueryTracing with injectable tracer, span kinds
 
-### 2.3 Remove Empty `core/internal/` Directory
-- **Status:** Not started
-- **Effort:** ~1 minute
-- **Impact:** LOW — cosmetic cleanup
-- **Customer value:** Cleaner repo structure
-- **Approach:** `rmdir core/internal/`
-- **Blocker:** None
+### 2.3 Add slog Structured Logging Adapter
+- **Status:** ✅ DONE (commit `e6bde18`)
+- **Delivered:** `middleware.SlogAdapter` wraps `*slog.Logger` for the `Logger` interface
 
-### 2.4 Update Stale Planning Docs (xtypes References)
-- **Status:** Not started
-- **Effort:** ~15 minutes
-- **Impact:** LOW — prevents contributor confusion
-- **Customer value:** Accurate documentation
-- **Files:** `docs/planning/go-composable-business-types-usage.md`, `CHANGELOG.md`
-- **Blocker:** None
+### 2.4 Remove Empty `core/internal/` Directory
+- **Status:** ✅ DONE (directory removed during session)
+
+### 2.5 Update Stale Planning Docs (xtypes References)
+- **Status:** ✅ DONE (commit `fd51837`)
+
+### 2.6 Fix `go mod tidy` Across All Modules
+- **Status:** ✅ DONE (commit `a819c86`)
+- **Delivered:** Added replace directives for memory/testhelpers to catalog, middleware, testhelpers go.mod files
 
 ---
 
@@ -98,6 +87,14 @@ This list is ruthlessly prioritized by **impact/effort ratio**. Each task includ
 - **Files:** `docs/planning/2026-04-29_UPCASTING_DESIGN.md`
 - **Blocker:** None
 
+### 3.4 Outbox Background Publisher
+- **Status:** Partially done — interface exists, no publisher implementation
+- **Effort:** ~1 hour
+- **Impact:** MEDIUM — completes the outbox pattern
+- **Customer value:** Automatic reliable event publishing from outbox
+- **Approach:** Design `OutboxPublisher` that polls outbox and publishes to bus
+- **Blocker:** None
+
 ---
 
 ## Tier 4: Explicitly Skipped (with rationale)
@@ -118,36 +115,41 @@ This list is ruthlessly prioritized by **impact/effort ratio**. Each task includ
 
 ## Quality Gates (check before declaring "done")
 
-- [ ] All tests pass (`nix run .#test`)
-- [ ] No lint issues (`nix run .#lint`)
-- [ ] Build compiles (`nix run .#build`)
-- [ ] Format clean (`nix fmt` produces no changes)
-- [ ] Coverage maintained or improved
-- [ ] AGENTS.md updated with new patterns
-- [ ] Commit history is clean and descriptive
+- [x] All tests pass (`nix run .#test`)
+- [x] No lint issues (`nix run .#lint`)
+- [x] Build compiles (`nix run .#build`)
+- [x] Format clean (`nix fmt` produces no changes)
+- [x] Coverage maintained or improved
+- [x] AGENTS.md updated with new patterns
+- [x] Commit history is clean and descriptive
 
 ---
 
 ## Execution Strategy
 
-1. **Start with Tier 1** — The circular dependency is the only thing blocking real-world adoption.
-2. **Batch Tier 2** — EventRetry tests + OTel tracing + cleanup can be done in a single focused session.
-3. **Defer Tier 3** until after Tier 1 and Tier 2 are complete. Design docs are valuable but not urgent.
-4. **Never revisit Tier 4** without new evidence. The skip decisions were made with thorough analysis.
+1. **Tier 1 decision needed** — Confirm whether independent publishability is a requirement.
+2. **Tier 2 is COMPLETE** — All P1 tasks finished in this session.
+3. **Tier 3 deferred** — Design docs for SQL store, saga, upcasting, outbox publisher.
+4. **Tier 4 remains closed** — Skip decisions stand.
 
 ---
 
-## Done (for reference)
-
-See `docs/status/archive/` for complete history.
+## Done (this session)
 
 | Task | Commit | Date |
 |------|--------|------|
+| Fix go mod tidy in all modules | `a819c86` | 2026-04-29 |
+| Make tracer injectable (refactor OTel) | `c7771cb` | 2026-04-29 |
+| Add slog adapter | `e6bde18` | 2026-04-29 |
+| Document circular dependency | `62849df` | 2026-04-29 |
+| Remove stale xtypes refs | `fd51837` | 2026-04-29 |
+| OTel tracing middleware | `1e70bfc` | 2026-04-29 |
+| Retry test split + missing coverage | `b8c0aa9` | 2026-04-29 |
+| Outbox seam | `2c1de1f` | 2026-04-29 |
+| Snapshot integration tests | `b6aaa4a` | 2026-04-29 |
+| Deep copy fix (snapshot) | `ae0b088` | 2026-04-29 |
 | Type-safe validators | `d3b27c3` | 2026-04-29 |
 | EventBuilder migration | `a6755ab` | 2026-04-29 |
 | Typed interface (dispatcher) | `f3532ad` | 2026-04-29 |
 | Remove internal/testhelpers shim | `63b39a5` | 2026-04-29 |
 | Delete xtypes module | `51b1d95` | 2026-04-29 |
-| Snapshot integration tests | `b6aaa4a` | 2026-04-29 |
-| Deep copy fix (snapshot) | `ae0b088` | 2026-04-29 |
-| Outbox seam | `2c1de1f` | 2026-04-29 |
