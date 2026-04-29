@@ -14,9 +14,11 @@ type Root interface {
 	ID() id.AggregateID
 	Type() event.AggregateType
 	Version() int
+	SetVersion(v event.Version)
 	Apply(evt event.Event) error
 	UncommittedChanges() []event.Event
 	MarkChangesAsCommitted()
+	LoadEvents(events []event.Event) error
 }
 
 // Core provides common aggregate root functionality.
@@ -45,6 +47,12 @@ func (a *Core) Type() event.AggregateType { return a.aggregateType }
 
 // Version returns the current version.
 func (a *Core) Version() int { return a.version.Int() }
+
+// SetVersion sets the aggregate version directly.
+// Used by repositories when loading aggregates from snapshots.
+func (a *Core) SetVersion(v event.Version) {
+	a.version = v
+}
 
 // RecordEvent records an event and increments version.
 func (a *Core) RecordEvent(_ context.Context, evt event.Event) {

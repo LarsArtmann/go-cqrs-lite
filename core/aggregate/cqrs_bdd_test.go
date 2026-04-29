@@ -29,10 +29,7 @@ type expense struct {
 
 const expenseType event.AggregateType = "Expense"
 
-var (
-	_ aggregate.Root          = (*expense)(nil)
-	_ aggregate.HistoryLoader = (*expense)(nil)
-)
+var _ aggregate.Root = (*expense)(nil)
 
 func newExpense(expenseID id.AggregateID) *expense {
 	return &expense{Core: aggregate.NewCore(expenseID, expenseType)}

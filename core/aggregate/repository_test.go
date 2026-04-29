@@ -24,7 +24,7 @@ const orderAggregateType event.AggregateType = "Order"
 
 var (
 	_ aggregate.Root          = (*order)(nil)
-	_ aggregate.HistoryLoader = (*order)(nil)
+
 )
 
 func newOrder(orderID id.AggregateID) *order {
@@ -289,30 +289,6 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 	}
 }
 
-type rootWithoutHistoryLoader struct {
-	*aggregate.Core
-}
-
-func (r *rootWithoutHistoryLoader) Apply(_ event.Event) error { return nil }
-
-var _ aggregate.Root = (*rootWithoutHistoryLoader)(nil)
-
-func TestEventSourcedRepository_Load_WithoutHistoryLoader(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
-
-	orderID := id.NewAggregateID()
-	r := &rootWithoutHistoryLoader{Core: aggregate.NewCore(orderID, "Test")}
-
-	err := repo.Load(context.Background(), r)
-	if err == nil {
-		t.Error("expected error when root does not implement HistoryLoader")
-	}
-}
-
 type failingApplyRoot struct {
 	*aggregate.Core
 }
@@ -323,7 +299,7 @@ func (r *failingApplyRoot) Apply(_ event.Event) error {
 
 var (
 	_ aggregate.Root          = (*failingApplyRoot)(nil)
-	_ aggregate.HistoryLoader = (*failingApplyRoot)(nil)
+
 )
 
 func (r *failingApplyRoot) LoadEvents(events []event.Event) error {

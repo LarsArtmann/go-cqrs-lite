@@ -15,6 +15,10 @@ type testRoot struct {
 
 func (r *testRoot) Apply(_ event.Event) error { return nil }
 
+func (r *testRoot) LoadEvents(events []event.Event) error {
+	return r.Core.LoadFromHistory(r, events)
+}
+
 var _ aggregate.Root = (*testRoot)(nil)
 
 // assertMetadataID is a test helper that asserts a metadata ID matches the expected value.

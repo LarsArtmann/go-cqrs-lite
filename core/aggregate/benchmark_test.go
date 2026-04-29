@@ -70,6 +70,10 @@ type benchRoot struct {
 
 func (r *benchRoot) Apply(_ event.Event) error { return nil }
 
+func (r *benchRoot) LoadEvents(events []event.Event) error {
+	return r.Core.LoadFromHistory(r, events)
+}
+
 func BenchmarkRepository_Save(b *testing.B) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()

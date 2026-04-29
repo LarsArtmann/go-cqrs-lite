@@ -21,6 +21,10 @@ func (r *testRoot) Apply(evt event.Event) error {
 	return nil
 }
 
+func (r *testRoot) LoadEvents(events []event.Event) error {
+	return r.Core.LoadFromHistory(r, events)
+}
+
 var _ aggregate.Root = (*testRoot)(nil)
 
 func assertUncommittedChanges(t *testing.T, core *aggregate.Core, want int) {

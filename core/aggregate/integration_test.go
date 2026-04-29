@@ -24,10 +24,7 @@ type product struct {
 
 const productType event.AggregateType = "Product"
 
-var (
-	_ aggregate.Root          = (*product)(nil)
-	_ aggregate.HistoryLoader = (*product)(nil)
-)
+var _ aggregate.Root = (*product)(nil)
 
 func newProduct(productID id.AggregateID) *product {
 	return &product{Core: aggregate.NewCore(productID, productType)}
