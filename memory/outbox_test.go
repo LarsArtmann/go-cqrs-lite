@@ -118,6 +118,68 @@ func TestMemoryOutboxStore_PollPendingLimit(t *testing.T) {
 	}
 }
 
+func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	outbox := memory.NewMemoryOutboxStore()
+
+	// Append first event
+	aggID1 := id.NewAggregateID()
+
+	evt1, err := event.NewEvent("Event1", aggID1, "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("create event 1: %v", err)
+	}
+
+	err = outbox.Append(ctx, []event.Event{evt1})
+	if err != nil {
+		t.Fatalf("append event 1: %v", err)
+	}
+
+	entries1, err := outbox.PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("poll pending 1: %v", err)
+	}
+
+	if len(entries1) != 1 {
+		t.Fatalf("expected 1 pending entry, got %d", len(entries1))
+	}
+
+	// Ack the first event
+	err = outbox.Ack(ctx, []event.OutboxID{entries1[0].ID})
+	if err != nil {
+		t.Fatalf("ack entry 1: %v", err)
+	}
+
+	// Append second event after ack
+	aggID2 := id.NewAggregateID()
+
+	evt2, err := event.NewEvent("Event2", aggID2, "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("create event 2: %v", err)
+	}
+
+	err = outbox.Append(ctx, []event.Event{evt2})
+	if err != nil {
+		t.Fatalf("append event 2: %v", err)
+	}
+
+	// Should only see the second event, proving first was removed
+	entries2, err := outbox.PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("poll pending 2: %v", err)
+	}
+
+	if len(entries2) != 1 {
+		t.Fatalf("expected 1 pending entry after ack+append, got %d", len(entries2))
+	}
+
+	if entries2[0].Events[0].Type() != "Event2" {
+		t.Errorf("expected Event2, got %s", entries2[0].Events[0].Type())
+	}
+}
+
 func TestMemoryOutboxStore_AckEmptyIDs(t *testing.T) {
 	t.Parallel()
 

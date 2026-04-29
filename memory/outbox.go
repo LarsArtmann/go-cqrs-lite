@@ -31,7 +31,6 @@ type outboxEntry struct {
 	id        event.OutboxID
 	events    []event.Event
 	createdAt time.Time
-	acked     bool
 }
 
 // Append writes events to the outbox.
@@ -45,7 +44,6 @@ func (o *MemoryOutboxStore) Append(_ context.Context, events []event.Event) erro
 		id:        event.OutboxID(fmt.Sprintf("outbox-%d", o.nextID)),
 		events:    append([]event.Event(nil), events...),
 		createdAt: time.Now(),
-		acked:     false,
 	}
 
 	o.entries = append(o.entries, entry)
@@ -61,10 +59,6 @@ func (o *MemoryOutboxStore) PollPending(_ context.Context, limit int) ([]event.O
 	result := make([]event.OutboxEntry, 0, limit)
 
 	for _, entry := range o.entries {
-		if entry.acked {
-			continue
-		}
-
 		result = append(result, event.OutboxEntry{
 			ID:     entry.id,
 			Events: append([]event.Event(nil), entry.events...),
@@ -92,11 +86,15 @@ func (o *MemoryOutboxStore) Ack(_ context.Context, ids []event.OutboxID) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	for i := range o.entries {
-		if _, ok := idSet[o.entries[i].id]; ok {
-			o.entries[i].acked = true
+	filtered := make([]outboxEntry, 0, len(o.entries))
+
+	for _, entry := range o.entries {
+		if _, ok := idSet[entry.id]; !ok {
+			filtered = append(filtered, entry)
 		}
 	}
+
+	o.entries = filtered
 
 	return nil
 }
