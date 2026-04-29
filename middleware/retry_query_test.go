@@ -1,0 +1,120 @@
+package middleware
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/query"
+)
+
+func TestQueryRetry_Success(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 3
+	config.IsRetryable = func(_ error) bool { return true }
+
+	mw := QueryRetry(config)
+
+	callCount := 0
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		callCount++
+		if callCount < 2 {
+			return nil, errors.New("transient")
+		}
+
+		return "ok", nil
+	})
+
+	result, err := handler(context.Background(), &testQuery{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result != "ok" {
+		t.Errorf("expected ok, got %v", result)
+	}
+
+	if callCount != 2 {
+		t.Errorf("expected 2 calls, got %d", callCount)
+	}
+}
+
+func TestQueryRetry_AllAttemptsFail(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 3
+	config.InitialDelay = time.Millisecond
+	config.IsRetryable = func(_ error) bool { return true }
+
+	mw := QueryRetry(config)
+
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		return nil, errors.New("always fail")
+	})
+
+	_, err := handler(context.Background(), &testQuery{})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestQueryRetry_NonRetryable(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 3
+	config.IsRetryable = func(_ error) bool { return false }
+
+	mw := QueryRetry(config)
+
+	callCount := 0
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		callCount++
+
+		return nil, errors.New("non-retryable")
+	})
+
+	_, err := handler(context.Background(), &testQuery{})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if callCount != 1 {
+		t.Errorf("expected 1 call (no retry), got %d", callCount)
+	}
+}
+
+func TestQueryRetry_ContextCancellation(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 5
+	config.InitialDelay = 50 * time.Millisecond
+	config.IsRetryable = func(_ error) bool { return true }
+
+	mw := QueryRetry(config)
+
+	callCount := 0
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+		callCount++
+
+		return nil, errors.New("transient")
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := handler(ctx, &testQuery{})
+	if err == nil {
+		t.Fatal("expected error from canceled context")
+	}
+
+	if !strings.Contains(err.Error(), "retry canceled") {
+		t.Errorf("expected retry canceled error, got: %s", err.Error())
+	}
+}

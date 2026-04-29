@@ -7,22 +7,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-func TestCommandRetry_Success(t *testing.T) {
+func TestEventRetry_Success(t *testing.T) {
 	t.Parallel()
 
 	config := DefaultRetryConfig()
 	config.MaxAttempts = 3
 	config.IsRetryable = func(_ error) bool { return true }
 
-	mw := CommandRetry(config)
+	mw := EventRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ command.Command) error {
+	handler := mw(func(_ context.Context, _ event.Event) error {
 		callCount++
 		if callCount < 2 {
 			return errors.New("transient")
@@ -31,9 +31,12 @@ func TestCommandRetry_Success(t *testing.T) {
 		return nil
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	err := handler(context.Background(), cmd)
+	err = handler(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -43,7 +46,7 @@ func TestCommandRetry_Success(t *testing.T) {
 	}
 }
 
-func TestCommandRetry_AllAttemptsFail(t *testing.T) {
+func TestEventRetry_AllAttemptsFail(t *testing.T) {
 	t.Parallel()
 
 	config := DefaultRetryConfig()
@@ -51,37 +54,43 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 	config.InitialDelay = time.Millisecond
 	config.IsRetryable = func(_ error) bool { return true }
 
-	cmdMw := CommandRetry(config)
+	mw := EventRetry(config)
 
-	handler := cmdMw(testhelpers.FailingCommandHandler("always fail"))
+	handler := mw(testhelpers.FailingEventHandler("always fail"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	err := handler(context.Background(), cmd)
+	err = handler(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
-func TestCommandRetry_NonRetryable(t *testing.T) {
+func TestEventRetry_NonRetryable(t *testing.T) {
 	t.Parallel()
 
 	config := DefaultRetryConfig()
 	config.MaxAttempts = 3
 	config.IsRetryable = func(_ error) bool { return false }
 
-	mw := CommandRetry(config)
+	mw := EventRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ command.Command) error {
+	handler := mw(func(_ context.Context, _ event.Event) error {
 		callCount++
 
 		return errors.New("non-retryable")
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	err := handler(context.Background(), cmd)
+	err = handler(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -91,7 +100,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	}
 }
 
-func TestCommandRetry_ContextCancellation(t *testing.T) {
+func TestEventRetry_ContextCancellation(t *testing.T) {
 	t.Parallel()
 
 	config := DefaultRetryConfig()
@@ -99,10 +108,10 @@ func TestCommandRetry_ContextCancellation(t *testing.T) {
 	config.InitialDelay = 50 * time.Millisecond
 	config.IsRetryable = func(_ error) bool { return true }
 
-	mw := CommandRetry(config)
+	mw := EventRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ command.Command) error {
+	handler := mw(func(_ context.Context, _ event.Event) error {
 		callCount++
 
 		return errors.New("transient")
@@ -111,36 +120,17 @@ func TestCommandRetry_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	err := handler(ctx, cmd)
+	err = handler(ctx, evt)
 	if err == nil {
 		t.Fatal("expected error from canceled context")
 	}
 
 	if !strings.Contains(err.Error(), "retry canceled") {
 		t.Errorf("expected retry canceled error, got: %s", err.Error())
-	}
-}
-
-func TestDefaultRetryConfig(t *testing.T) {
-	t.Parallel()
-
-	config := DefaultRetryConfig()
-
-	if config.MaxAttempts != 3 {
-		t.Errorf("expected MaxAttempts 3, got %d", config.MaxAttempts)
-	}
-
-	if config.InitialDelay != 100*time.Millisecond {
-		t.Errorf("expected InitialDelay 100ms, got %v", config.InitialDelay)
-	}
-
-	if config.MaxDelay != 5*time.Second {
-		t.Errorf("expected MaxDelay 5s, got %v", config.MaxDelay)
-	}
-
-	if config.Multiplier != 2.0 {
-		t.Errorf("expected Multiplier 2.0, got %f", config.Multiplier)
 	}
 }
