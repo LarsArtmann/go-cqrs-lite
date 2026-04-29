@@ -8,6 +8,13 @@ import (
 	"sync"
 )
 
+// Typed is implemented by any message that has a type identifier.
+// Command, Event, and Query all satisfy this interface implicitly
+// because their Type() methods return string-backed types.
+type Typed interface {
+	Type() string
+}
+
 // LifecycleMixin provides thread-safe closed state management for composable types.
 type LifecycleMixin struct {
 	mu     sync.RWMutex
