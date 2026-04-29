@@ -1,9 +1,0 @@
-go 1.26
-
-use (
-	./catalog
-	./core
-	./memory
-	./middleware
-	./xtypes
-)
