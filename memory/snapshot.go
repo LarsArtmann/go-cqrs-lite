@@ -67,9 +67,9 @@ func (s *MemorySnapshotStore) Load(
 		return nil, event.ErrSnapshotNotFound
 	}
 
-	cp := *snapshot
+	cp := copySnapshot(snapshot)
 
-	return &cp, nil
+	return cp, nil
 }
 
 func (s *MemorySnapshotStore) LoadAtVersion(
@@ -97,9 +97,20 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 		return nil, event.ErrSnapshotNotFound
 	}
 
+	cp := copySnapshot(snapshot)
+
+	return cp, nil
+}
+
+func copySnapshot(snapshot *event.Snapshot) *event.Snapshot {
 	cp := *snapshot
 
-	return &cp, nil
+	if snapshot.State != nil {
+		cp.State = make([]byte, len(snapshot.State))
+		copy(cp.State, snapshot.State)
+	}
+
+	return &cp
 }
 
 func (s *MemorySnapshotStore) Delete(

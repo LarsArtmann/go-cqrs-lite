@@ -281,3 +281,83 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 		t.Error("expected snapshot not found after delete")
 	}
 }
+
+func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	originalState := []byte(`{"status":"placed"}`)
+	snapshot := event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Order",
+		Version:       1,
+		State:         originalState,
+		CreatedAt:     time.Now(),
+	}
+
+	err := store.Save(ctx, snapshot)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	loaded, err := store.Load(ctx, "Order", aggID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Modify the loaded snapshot's state
+	loaded.State[10] = 'x'
+
+	// Reload and verify original is unchanged
+	reloaded, err := store.Load(ctx, "Order", aggID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if string(reloaded.State) != string(originalState) {
+		t.Errorf("original state corrupted after modifying loaded copy: got %q, want %q", reloaded.State, originalState)
+	}
+}
+
+func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	originalState := []byte(`{"status":"shipped"}`)
+	snapshot := event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Order",
+		Version:       5,
+		State:         originalState,
+		CreatedAt:     time.Now(),
+	}
+
+	err := store.Save(ctx, snapshot)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	loaded, err := store.LoadAtVersion(ctx, "Order", aggID, 5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Modify the loaded snapshot's state
+	loaded.State[10] = 'x'
+
+	// Reload and verify original is unchanged
+	reloaded, err := store.LoadAtVersion(ctx, "Order", aggID, 5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if string(reloaded.State) != string(originalState) {
+		t.Errorf("original state corrupted after modifying loaded copy: got %q, want %q", reloaded.State, originalState)
+	}
+}
