@@ -22,6 +22,7 @@ type EventSourcedRepository struct {
 	store         event.Store
 	bus           event.Bus
 	snapshotStore event.SnapshotStore
+	outbox        event.Outbox
 }
 
 var _ Repository = (*EventSourcedRepository)(nil)
@@ -32,6 +33,7 @@ func NewRepository(store event.Store, bus event.Bus) *EventSourcedRepository {
 		store:         store,
 		bus:           bus,
 		snapshotStore: nil,
+		outbox:        nil,
 	}
 }
 
@@ -45,10 +47,30 @@ func NewRepositoryWithSnapshot(
 		store:         store,
 		bus:           bus,
 		snapshotStore: snapshotStore,
+		outbox:        nil,
 	}
 }
 
-// Save persists uncommitted events and publishes them to the bus.
+// NewRepositoryWithOutbox creates a new event-sourced repository with outbox support.
+// When outbox is configured, Save appends events to the outbox instead of
+// publishing directly to the bus. The caller must run an OutboxPublisher
+// background process to drain the outbox.
+func NewRepositoryWithOutbox(
+	store event.Store,
+	bus event.Bus,
+	outbox event.Outbox,
+) *EventSourcedRepository {
+	return &EventSourcedRepository{
+		store:         store,
+		bus:           bus,
+		snapshotStore: nil,
+		outbox:        outbox,
+	}
+}
+
+// Save persists uncommitted events. If an outbox is configured, events are
+// appended to the outbox for reliable eventual publishing. Otherwise, they
+// are published directly to the bus.
 func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	changes := root.UncommittedChanges()
 	if len(changes) == 0 {
@@ -64,9 +86,21 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 		return fmt.Errorf("save %s %s: %w", root.Type(), root.ID().String(), err)
 	}
 
-	err = r.bus.Publish(ctx, changes...)
-	if err != nil {
-		return fmt.Errorf("publish events for %s %s: %w", root.Type(), root.ID().String(), err)
+	if r.outbox != nil {
+		err = r.outbox.Append(ctx, changes)
+		if err != nil {
+			return fmt.Errorf(
+				"stage events in outbox for %s %s: %w",
+				root.Type(),
+				root.ID().String(),
+				err,
+			)
+		}
+	} else {
+		err = r.bus.Publish(ctx, changes...)
+		if err != nil {
+			return fmt.Errorf("publish events for %s %s: %w", root.Type(), root.ID().String(), err)
+		}
 	}
 
 	root.MarkChangesAsCommitted()
