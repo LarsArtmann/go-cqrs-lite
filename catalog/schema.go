@@ -31,7 +31,7 @@ func SchemaFromReflect(t reflect.Type) *Schema {
 }
 
 func collectionSchema(t reflect.Type) *Property {
-	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+	if isCollectionKind(t.Kind()) {
 		return &Property{
 			Type:  "array",
 			Items: propertyFromReflect(t.Elem()),
@@ -39,6 +39,10 @@ func collectionSchema(t reflect.Type) *Property {
 	}
 
 	return &Property{Type: jsonTypeObject}
+}
+
+func isCollectionKind(k reflect.Kind) bool {
+	return k == reflect.Slice || k == reflect.Array
 }
 
 func propertyFromReflect(t reflect.Type) *Property {
@@ -50,7 +54,7 @@ func propertyFromReflect(t reflect.Type) *Property {
 		return propertyFromReflect(t.Elem())
 	}
 
-	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+	if isCollectionKind(t.Kind()) {
 		return collectionSchema(t)
 	}
 

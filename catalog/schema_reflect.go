@@ -16,7 +16,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 		t = t.Elem()
 	}
 
-	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+	if isCollectionKind(t.Kind()) {
 		return &Schema{
 			Type:  "array",
 			Items: propertyFromReflect(t.Elem()),
