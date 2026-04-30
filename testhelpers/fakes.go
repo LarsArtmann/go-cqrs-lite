@@ -178,7 +178,9 @@ var _ event.Bus = (*FakeBus)(nil)
 type FakeSnapshotStore struct {
 	mu       sync.RWMutex
 	snapshot *event.Snapshot
+	saved    []event.Snapshot
 	loadErr  error
+	saveErr  error
 }
 
 // NewFakeStore creates a FakeSnapshotStore with no snapshot.
@@ -202,8 +204,33 @@ func (s *FakeSnapshotStore) SetLoadError(err error) {
 	s.loadErr = err
 }
 
-// Save is a no-op for testing.
-func (s *FakeSnapshotStore) Save(_ context.Context, _ event.Snapshot) error {
+// SetSaveError configures an error returned by Save.
+func (s *FakeSnapshotStore) SetSaveError(err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.saveErr = err
+}
+
+// Saved returns a copy of all snapshots saved via Save.
+func (s *FakeSnapshotStore) Saved() []event.Snapshot {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return append([]event.Snapshot{}, s.saved...)
+}
+
+// Save records the snapshot for later verification.
+func (s *FakeSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.saveErr != nil {
+		return s.saveErr
+	}
+
+	s.saved = append(s.saved, snap)
+
 	return nil
 }
 
