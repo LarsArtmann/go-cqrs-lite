@@ -6,5 +6,6 @@ use (
 	./integration
 	./memory
 	./middleware
+	./storage
 	./testhelpers
 )
