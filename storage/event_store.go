@@ -267,12 +267,19 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 			return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
 		}
 
+		parsedEventID, err := id.ParseEventID(idStr)
+		if err != nil {
+			return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
+		}
+
 		evt, err := event.NewEvent(
 			event.Type(eventType),
 			parsedAggID,
 			event.AggregateType(aggType),
 			version,
 			payload,
+			event.WithEventID(parsedEventID),
+			event.WithOccurredAt(occurredAt),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
