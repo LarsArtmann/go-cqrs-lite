@@ -113,7 +113,7 @@ func opError(
 	aggregateID id.AggregateID,
 	err error,
 ) error {
-	return fmt.Errorf("%s for %s %s: %w", op, aggregateType, aggregateID.String(), err)
+	return fmt.Errorf("%s for %s %s: %w", op, aggregateType, aggregateID, err)
 }
 
 // Save persists uncommitted events. If an outbox is configured, events are
@@ -177,7 +177,7 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 			"replay %d events for %s %s: %w",
 			len(events),
 			aggregateType,
-			aggregateID.String(),
+			aggregateID,
 			err,
 		)
 	}
@@ -214,7 +214,7 @@ func (r *EventSourcedRepository) loadEvents(
 			"load events from version %d for %s %s: %w",
 			snapshot.Version,
 			aggregateType,
-			aggregateID.String(),
+			aggregateID,
 			err,
 		)
 	}

@@ -33,7 +33,7 @@ func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
 		//nolint:err113 // dynamic error required to include aggregate ID
 		return nil, fmt.Errorf(
 			"command type is required (got empty) for aggregate %q",
-			aggregateID.String(),
+			aggregateID,
 		)
 	}
 

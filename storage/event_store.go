@@ -237,7 +237,7 @@ func (s *SQLEventStore) Delete(
 
 	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID.String())
 	if err != nil {
-		return fmt.Errorf("delete events for %s %s: %w", aggregateType, aggregateID.String(), err)
+		return fmt.Errorf("delete events for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
 	return nil
