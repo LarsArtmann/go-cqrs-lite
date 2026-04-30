@@ -14,6 +14,7 @@ func apply[T any](field metadataOption[T], value T) Option {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
+
 		field(e.metadata, value)
 	}
 }

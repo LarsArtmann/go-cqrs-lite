@@ -133,6 +133,7 @@ linters:
                         - $gostd
                         - github.com/larsartmann/go-cqrs-lite
                         - github.com/larsartmann/go-composable-business-types
+                        - github.com/larsartmann/go-branded-id
                         - github.com/google/uuid
                         - github.com/cockroachdb/errors
                         - github.com/go-json-experiment/json
@@ -208,17 +209,11 @@ linters:
                 - tagalign
                 - gosec
                 - goconst
-            - path: internal/evtest/
-              linters:
-                - thelper
             - path: internal/cattest/
               linters:
                 - thelper
                 - exhaustruct
                 - gosec
-            - path: internal/testhelpers/helpers\.go$
-              linters:
-                - gochecknoglobals
             - path: schema.*\.go$
               linters:
                 - exhaustruct

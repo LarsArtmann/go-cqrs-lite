@@ -38,6 +38,7 @@ func FromCommandDispatcher(
 			Examples:  nil,
 		})
 	}
+
 	addMessagesToService(builder, serviceID, catalog.CommandMessage, msgs)
 }
 
@@ -62,5 +63,6 @@ func FromQueryDispatcher(
 			Examples:  nil,
 		})
 	}
+
 	addMessagesToService(builder, serviceID, catalog.QueryMessage, msgs)
 }

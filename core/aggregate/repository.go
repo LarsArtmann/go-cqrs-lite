@@ -69,7 +69,12 @@ func NewRepository(
 }
 
 // opError formats an error for aggregate operations.
-func opError(op string, aggregateType event.AggregateType, aggregateID id.AggregateID, err error) error {
+func opError(
+	op string,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	err error,
+) error {
 	return fmt.Errorf("%s for %s %s: %w", op, aggregateType, aggregateID.String(), err)
 }
 
