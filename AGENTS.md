@@ -153,7 +153,7 @@ nix develop             # enter dev shell
 | `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware` |
 | `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option` |
 | `core/aggregate/`          | Aggregate roots and repository                 | `Root`, `Repository`, `Core`, `EventSourcedRepository`  |
-| `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID` |
+| `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
 | `core/pkg/dispatcher/`     | Generic internal dispatcher                     | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin` |
 
 ### Memory Module (`memory/`)
@@ -517,6 +517,15 @@ Interfaces now return branded ID types instead of `string`:
   - **Round 3 (20%→80%)**: Created `storage/` module with `SQLEventStore` (PostgreSQL, optimistic concurrency). Created `example/user/` demonstrating full CQRS lifecycle. Updated CHANGELOG.
   - All 9 modules in workspace: core, memory, catalog, middleware, testhelpers, integration, storage, example/user
   - Zero lint, zero races, all tests pass across all modules
+
+- **Session 15 (go-branded-id Audit + Bug Fixes)**:
+  - **Delegation refactor**: `id_encoding.go` 175→32 lines — all 8 serialization methods now delegate to `cbid.ID[T, ulid.ULID]` instead of re-implementing
+  - **Dead code removal**: Removed `errNilReceiver`, `errUnsupportedType`, `MaxULIDsPerMs`, `math` import from `id.go`
+  - **CRITICAL FIX**: `storage/scanEvents` now preserves original event IDs and timestamps from DB (was silently discarding them via `event.NewEvent()` which auto-generates new IDs). Added `WithEventID` and `WithOccurredAt` options to `event` package.
+  - **Storage type safety**: SQL params use branded IDs directly via `driver.Valuer` instead of manual `.String()` calls
+  - **API completeness**: Forwarded `Ptr()`, `FromPtr()`, `fmt.Formatter` from `go-branded-id` to `id.Of[T]`
+  - Removed 5 unnecessary `.String()` calls in `fmt.Errorf` across `core/aggregate`, `core/command`, `storage`
+  - Zero lint, all tests pass
 
 ## Migration State
 

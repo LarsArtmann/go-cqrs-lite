@@ -127,7 +127,7 @@ func (id Of[T]) Ptr() *Of[T] { return &id }
 // FromPtr dereferences a pointer-to-ID, returning the zero value if the pointer is nil.
 func FromPtr[T any](p *Of[T]) Of[T] {
 	if p == nil {
-		return Of[T]{}
+		return Of[T]{wrapped: cbid.ID[T, ulid.ULID]{}}
 	}
 
 	return *p
