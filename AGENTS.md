@@ -1,6 +1,8 @@
 # Project: go-cqrs-lite
 
-A lightweight CQRS (Command Query Responsibility Segregation) library for Go with Event Sourcing support, branded IDs, and auto-documentation generation.
+A lightweight CQRS **library/SDK** for Go with Event Sourcing support, branded IDs, and auto-documentation generation.
+
+Consumers import what they need and compose their own stack. Not a framework — no opinionated transport, message broker, or SQL driver.
 
 ## Quick Reference
 
@@ -194,13 +196,14 @@ nix develop             # enter dev shell
 
 ## Design Principles
 
-1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
-2. **Composition over inheritance** — Per Go best practices
-3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
-4. **Context-aware** — All handlers accept `context.Context`
-5. **Errors as values** — No panics, explicit error returns, sentinel errors + wrapping
-6. **File size limits** — Max 250 lines per file
-7. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps
+1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
+2. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
+3. **Composition over inheritance** — Per Go best practices
+4. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
+5. **Context-aware** — All handlers accept `context.Context`
+6. **Errors as values** — No panics, explicit error returns, sentinel errors + wrapping
+7. **File size limits** — Max 250 lines per file
+8. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps
 
 ## Code Conventions
 
