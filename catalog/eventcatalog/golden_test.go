@@ -33,7 +33,7 @@ func exportToTempDir(t *testing.T, cat *catalog.Catalog) string {
 	return tmpDir
 }
 
-func readOrWriteGolden(t *testing.T, goldenPath string, actualContent string) {
+func readOrWriteGolden(t *testing.T, goldenPath, actualContent string) {
 	t.Helper()
 
 	if *update {

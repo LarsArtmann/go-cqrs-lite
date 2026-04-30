@@ -10,12 +10,12 @@ A well-structured, zero-dependency CQRS library for Go (~14,600 LOC across 70+ f
 
 The layered design is clean and idiomatic:
 
-| Layer | Packages | Verdict |
-|---|---|---|
-| **Core** | `command`, `query`, `event`, `aggregate` | Clean separation, interface-first |
-| **Infrastructure** | `internal/dispatcher`, `middleware`, `pkg/id` | Properly internalized, generic-based |
-| **Catalog** | `catalog/*` | Impressive auto-doc generation (AsyncAPI + EventCatalog) |
-| **Extensions** | `xtypes` | Type-safe wrappers for compile-time safety |
+| Layer              | Packages                                      | Verdict                                                  |
+| ------------------ | --------------------------------------------- | -------------------------------------------------------- |
+| **Core**           | `command`, `query`, `event`, `aggregate`      | Clean separation, interface-first                        |
+| **Infrastructure** | `internal/dispatcher`, `middleware`, `pkg/id` | Properly internalized, generic-based                     |
+| **Catalog**        | `catalog/*`                                   | Impressive auto-doc generation (AsyncAPI + EventCatalog) |
+| **Extensions**     | `xtypes`                                      | Type-safe wrappers for compile-time safety               |
 
 The generic `internal/dispatcher.Dispatcher[H, M]` eliminates boilerplate across command/query dispatchers — a smart refactoring. The `LifecycleMixin` / `CatalogDispatcher` composition pattern is elegant.
 
@@ -47,22 +47,22 @@ Dispatch benchmarks at ~60ns/0 allocs, event creation at ~240ns, memory store lo
 
 ## Test Coverage
 
-| Package | Coverage |
-|---|---|
-| `event` | 95.4% |
-| `xtypes` | 95.7% |
-| `catalog/asyncapi` | 96.3% |
-| `query` | 91.5% |
-| `catalog` | 91.2% |
-| `catalog/eventcatalog` | 89.5% |
-| `pkg/id` | 85.4% |
-| `catalog/yaml` | 84.4% |
-| `command` | 84.4% |
-| `middleware` | 84.6% |
-| `internal/dispatcher` | 77.4% |
-| `aggregate` | 77.3% |
-| `catalog/adapters` | 66.0% |
-| `pkg/errors` | 0.0% (no tests) |
+| Package                | Coverage        |
+| ---------------------- | --------------- |
+| `event`                | 95.4%           |
+| `xtypes`               | 95.7%           |
+| `catalog/asyncapi`     | 96.3%           |
+| `query`                | 91.5%           |
+| `catalog`              | 91.2%           |
+| `catalog/eventcatalog` | 89.5%           |
+| `pkg/id`               | 85.4%           |
+| `catalog/yaml`         | 84.4%           |
+| `command`              | 84.4%           |
+| `middleware`           | 84.6%           |
+| `internal/dispatcher`  | 77.4%           |
+| `aggregate`            | 77.3%           |
+| `catalog/adapters`     | 66.0%           |
+| `pkg/errors`           | 0.0% (no tests) |
 
 ## Issues Found
 
@@ -109,16 +109,16 @@ Context is silently discarded. Middleware and handlers receive no context, makin
 
 ## Recommendations
 
-| Priority | Item | Rationale |
-|---|---|---|
-| **High** | Fix query handler signature to include `context.Context` | Blocks tracing, cancellation, timeout propagation |
-| **High** | Remove `pkg/errors` or integrate it | Dead code confuses users |
-| **Medium** | Create sentinel errors for `err113` violations | Consistency with project conventions |
-| **Medium** | Reduce `marshalValue` complexity | Split into type-specific marshalers |
-| **Medium** | Add tests for `catalog/adapters` to >80% | Critical for doc generation pipeline |
-| **Low** | Make `MemoryBus.Publish` drop the lock during handler execution | Better test isolation |
-| **Low** | Add CI step for `example/` modules | Prevent silent breakage |
-| **Low** | Consider making event `Core` truly immutable | Build it completely in `NewEvent`, return an interface with no mutators |
+| Priority   | Item                                                            | Rationale                                                               |
+| ---------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **High**   | Fix query handler signature to include `context.Context`        | Blocks tracing, cancellation, timeout propagation                       |
+| **High**   | Remove `pkg/errors` or integrate it                             | Dead code confuses users                                                |
+| **Medium** | Create sentinel errors for `err113` violations                  | Consistency with project conventions                                    |
+| **Medium** | Reduce `marshalValue` complexity                                | Split into type-specific marshalers                                     |
+| **Medium** | Add tests for `catalog/adapters` to >80%                        | Critical for doc generation pipeline                                    |
+| **Low**    | Make `MemoryBus.Publish` drop the lock during handler execution | Better test isolation                                                   |
+| **Low**    | Add CI step for `example/` modules                              | Prevent silent breakage                                                 |
+| **Low**    | Consider making event `Core` truly immutable                    | Build it completely in `NewEvent`, return an interface with no mutators |
 
 ## Verdict
 

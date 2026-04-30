@@ -22,28 +22,28 @@ The go-cqrs-lite monorepo has been **fully migrated to a 5-module Go workspace**
 
 ### Module Extraction (Phases 0–4)
 
-| Phase | What | Status |
-|-------|------|--------|
-| 0 | Fix query handler ctx, delete pkg/errors, replace custom YAML with go-faster/yaml | ✅ Done |
-| 1 | go.work + move into `core/` subdirectory | ✅ Done |
-| 2 | Extract `memory/` module | ✅ Done |
-| 3 | Extract `catalog/` module | ✅ Done |
-| 4a | Extract `middleware/` module (with inlined testhelpers) | ✅ Done |
-| 4b | Extract `xtypes/` module | ✅ Done |
-| 4c | Full verification (all modules build + test + race) | ✅ Done |
-| 4d | Clean up core (remove stale deps, empty dirs, vestigial store_config.go) | ✅ Done |
+| Phase | What                                                                              | Status  |
+| ----- | --------------------------------------------------------------------------------- | ------- |
+| 0     | Fix query handler ctx, delete pkg/errors, replace custom YAML with go-faster/yaml | ✅ Done |
+| 1     | go.work + move into `core/` subdirectory                                          | ✅ Done |
+| 2     | Extract `memory/` module                                                          | ✅ Done |
+| 3     | Extract `catalog/` module                                                         | ✅ Done |
+| 4a    | Extract `middleware/` module (with inlined testhelpers)                           | ✅ Done |
+| 4b    | Extract `xtypes/` module                                                          | ✅ Done |
+| 4c    | Full verification (all modules build + test + race)                               | ✅ Done |
+| 4d    | Clean up core (remove stale deps, empty dirs, vestigial store_config.go)          | ✅ Done |
 
 ### Infrastructure Updates
 
-| Item | What | Status |
-|------|------|--------|
-| Makefile | Updated for 5-module workspace with per-module test targets | ✅ Done |
-| CI test.yml | Matrix strategy per module (core, memory, catalog, middleware, xtypes) | ✅ Done |
-| CI lint.yml | Matrix strategy per module | ✅ Done |
-| Examples | Fixed import paths + go.mod for both user and catalog examples | ✅ Done |
-| .gitignore | Added example binary patterns | ✅ Done |
-| AGENTS.md | Updated to reflect 5-module structure | ✅ Done |
-| Migration plan | Phase 4 marked DONE | ✅ Done |
+| Item           | What                                                                   | Status  |
+| -------------- | ---------------------------------------------------------------------- | ------- |
+| Makefile       | Updated for 5-module workspace with per-module test targets            | ✅ Done |
+| CI test.yml    | Matrix strategy per module (core, memory, catalog, middleware, xtypes) | ✅ Done |
+| CI lint.yml    | Matrix strategy per module                                             | ✅ Done |
+| Examples       | Fixed import paths + go.mod for both user and catalog examples         | ✅ Done |
+| .gitignore     | Added example binary patterns                                          | ✅ Done |
+| AGENTS.md      | Updated to reflect 5-module structure                                  | ✅ Done |
+| Migration plan | Phase 4 marked DONE                                                    | ✅ Done |
 
 ### Current Module Dependency Graph
 
@@ -61,13 +61,13 @@ xtypes/        (core)
 
 ### Production Dependencies per Module
 
-| Module | Direct Deps |
-|--------|-------------|
-| `core` | cockroachdb/errors, google/uuid, go-json-experiment/json |
-| `memory` | core, cockroachdb/errors |
-| `catalog` | core, go-faster/yaml, go-json-experiment/json |
-| `middleware` | core, cockroachdb/errors |
-| `xtypes` | core |
+| Module       | Direct Deps                                              |
+| ------------ | -------------------------------------------------------- |
+| `core`       | cockroachdb/errors, google/uuid, go-json-experiment/json |
+| `memory`     | core, cockroachdb/errors                                 |
+| `catalog`    | core, go-faster/yaml, go-json-experiment/json            |
+| `middleware` | core, cockroachdb/errors                                 |
+| `xtypes`     | core                                                     |
 
 ---
 
@@ -75,24 +75,25 @@ xtypes/        (core)
 
 ### Test Coverage
 
-| Package | Coverage | Note |
-|---------|----------|------|
-| `catalog/asyncapi` | 96.3% | ✅ Excellent |
-| `xtypes` | 95.7% | ✅ Excellent |
-| `event` | 95.4% | ✅ Excellent |
-| `query` | 91.5% | ✅ Good |
-| `catalog` | 91.2% | ✅ Good |
-| `catalog/eventcatalog` | 89.7% | ✅ Good |
-| `pkg/id` | 85.4% | ✅ Good |
-| `middleware` | 84.6% | ⚠️ Adequate |
-| `command` | 84.4% | ⚠️ Adequate |
-| `aggregate` | 77.3% | ⚠️ Could improve |
-| `pkg/dispatcher` | 77.4% | ⚠️ Could improve |
-| `catalog/adapters` | 66.0% | ❌ Lowest — needs attention |
+| Package                | Coverage | Note                        |
+| ---------------------- | -------- | --------------------------- |
+| `catalog/asyncapi`     | 96.3%    | ✅ Excellent                |
+| `xtypes`               | 95.7%    | ✅ Excellent                |
+| `event`                | 95.4%    | ✅ Excellent                |
+| `query`                | 91.5%    | ✅ Good                     |
+| `catalog`              | 91.2%    | ✅ Good                     |
+| `catalog/eventcatalog` | 89.7%    | ✅ Good                     |
+| `pkg/id`               | 85.4%    | ✅ Good                     |
+| `middleware`           | 84.6%    | ⚠️ Adequate                 |
+| `command`              | 84.4%    | ⚠️ Adequate                 |
+| `aggregate`            | 77.3%    | ⚠️ Could improve            |
+| `pkg/dispatcher`       | 77.4%    | ⚠️ Could improve            |
+| `catalog/adapters`     | 66.0%    | ❌ Lowest — needs attention |
 
 ### Linter State
 
 `golangci-lint` reports ~161 issues in core alone. Most are style preferences:
+
 - `varnamelen`: 50 (variable naming)
 - `exhaustruct`: 24 (struct exhaustiveness)
 - `revive`: 29 (various)
@@ -166,9 +167,11 @@ These are **not bugs** but indicate code quality could be improved.
 ### 1. .gitignore Line Corruption
 
 **Fixed in this session.** Line 54 of `.gitignore` had two entries merged into one:
+
 ```
 /report/jscpd-report.jsonexample/*/catalog
 ```
+
 Should have been two separate lines. Fixed and committed.
 
 ### 2. Example Binaries Committed
@@ -178,6 +181,7 @@ Should have been two separate lines. Fixed and committed.
 ### 3. Middleware Test Syntax Errors (From Prior Session)
 
 **Fixed in this session.** Commit `563f126` left two bugs:
+
 - Detached `if` blocks (premature closing `}` in two test functions)
 - Duplicate import of `errors` and `github.com/cockroachdb/errors`
 - Wrong `MaxAttempts=1` in retry test expecting 2 retries
@@ -222,33 +226,33 @@ The gitignore patterns (`example/*/catalog`, `example/*/user`) work for git trac
 
 Ranked by impact × feasibility:
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | Create `storage/` module with PostgreSQL event store (sqlc) | 🔥🔥🔥 | Large | New |
-| 2 | Define `projection/` interface in `core/projection/` | 🔥🔥🔥 | Small | core |
-| 3 | Update root README.md for 5-module structure | 🔥 | Small | docs |
-| 4 | Add `go.work.example` file for developer onboarding | 🔥 | Tiny | root |
-| 5 | Improve `catalog/adapters` test coverage (66% → 80%+) | 🔥🔥 | Medium | catalog |
-| 6 | Create `watermill/` module (implements event.Bus) | 🔥🔥🔥 | Large | New |
-| 7 | Create `projection/` module with samber/ro internally | 🔥🔥🔥 | Large | New |
-| 8 | Add Event Codec interface in `core/event/` | 🔥🔥 | Small | core |
-| 9 | Remove cockroachdb/errors from middleware (use fmt.Errorf) | 🔥 | Tiny | middleware |
-| 10 | Clean up linter warnings (thelper, varnamelen in core) | 🔥 | Medium | core |
-| 11 | Implement or remove `Streamer` interface | 🔥 | Small | core |
-| 12 | Add Event Upcasting interface in `core/event/` or `core/upcasting/` | 🔥🔥 | Medium | core |
-| 13 | Create `snapshot/` module (SQL-backed) | 🔥🔥 | Medium | New |
-| 14 | Create `testutil/` module (AggregateTester, etc.) | 🔥🔥 | Medium | New |
-| 15 | Remove core test-dep on memory (move to testutil/) | 🔥 | Medium | core |
-| 16 | Add `go-import` meta tags (GitHub Pages) | 🔥 | Small | infra |
-| 17 | Add example to go.work for development convenience | 🔥 | Tiny | root |
-| 18 | Update CONTRIBUTING.md for multi-module workflow | 🔥 | Small | docs |
-| 19 | Add SQLite support to storage/ module | 🔥🔥 | Medium | storage |
-| 20 | Add MySQL support to storage/ module | 🔥 | Medium | storage |
-| 21 | Tag releases (core/v1.0.0, memory/v1.0.0, etc.) | 🔥 | Small | infra |
-| 22 | Add outbox pattern to storage/ module | 🔥🔥 | Medium | storage |
-| 23 | Create benchmark suite for event store performance | 🔥 | Medium | storage |
-| 24 | Add schema migration tool (golang-migrate or goose) | 🔥 | Small | storage |
-| 25 | Add CI step to verify examples build | 🔥 | Tiny | CI |
+| #   | Task                                                                | Impact | Effort | Module     |
+| --- | ------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1   | Create `storage/` module with PostgreSQL event store (sqlc)         | 🔥🔥🔥 | Large  | New        |
+| 2   | Define `projection/` interface in `core/projection/`                | 🔥🔥🔥 | Small  | core       |
+| 3   | Update root README.md for 5-module structure                        | 🔥     | Small  | docs       |
+| 4   | Add `go.work.example` file for developer onboarding                 | 🔥     | Tiny   | root       |
+| 5   | Improve `catalog/adapters` test coverage (66% → 80%+)               | 🔥🔥   | Medium | catalog    |
+| 6   | Create `watermill/` module (implements event.Bus)                   | 🔥🔥🔥 | Large  | New        |
+| 7   | Create `projection/` module with samber/ro internally               | 🔥🔥🔥 | Large  | New        |
+| 8   | Add Event Codec interface in `core/event/`                          | 🔥🔥   | Small  | core       |
+| 9   | Remove cockroachdb/errors from middleware (use fmt.Errorf)          | 🔥     | Tiny   | middleware |
+| 10  | Clean up linter warnings (thelper, varnamelen in core)              | 🔥     | Medium | core       |
+| 11  | Implement or remove `Streamer` interface                            | 🔥     | Small  | core       |
+| 12  | Add Event Upcasting interface in `core/event/` or `core/upcasting/` | 🔥🔥   | Medium | core       |
+| 13  | Create `snapshot/` module (SQL-backed)                              | 🔥🔥   | Medium | New        |
+| 14  | Create `testutil/` module (AggregateTester, etc.)                   | 🔥🔥   | Medium | New        |
+| 15  | Remove core test-dep on memory (move to testutil/)                  | 🔥     | Medium | core       |
+| 16  | Add `go-import` meta tags (GitHub Pages)                            | 🔥     | Small  | infra      |
+| 17  | Add example to go.work for development convenience                  | 🔥     | Tiny   | root       |
+| 18  | Update CONTRIBUTING.md for multi-module workflow                    | 🔥     | Small  | docs       |
+| 19  | Add SQLite support to storage/ module                               | 🔥🔥   | Medium | storage    |
+| 20  | Add MySQL support to storage/ module                                | 🔥     | Medium | storage    |
+| 21  | Tag releases (core/v1.0.0, memory/v1.0.0, etc.)                     | 🔥     | Small  | infra      |
+| 22  | Add outbox pattern to storage/ module                               | 🔥🔥   | Medium | storage    |
+| 23  | Create benchmark suite for event store performance                  | 🔥     | Medium | storage    |
+| 24  | Add schema migration tool (golang-migrate or goose)                 | 🔥     | Small  | storage    |
+| 25  | Add CI step to verify examples build                                | 🔥     | Tiny   | CI         |
 
 ---
 
@@ -257,6 +261,7 @@ Ranked by impact × feasibility:
 **Should the `storage/` module use `pgx/v5` (native PostgreSQL driver) or `database/sql` (standard library) as its primary interface?**
 
 Arguments:
+
 - `pgx/v5`: Better performance, native PostgreSQL features (LISTEN/NOTIFY, COPY, batch), type mapping. But locks users into PostgreSQL.
 - `database/sql`: Standard, works with any driver. But loses PostgreSQL-specific optimizations.
 

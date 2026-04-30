@@ -1,18 +1,18 @@
 tags:
-    - go
-    - golang
-    - cqrs
-    - event-sourcing
-    - domain-driven-design
-    - library
-    - framework
-    - clean-architecture
-    - hexagonal-architecture
-    - event-driven
-    - typed-ids
-    - minimal-dependencies
-    - backend
-    - infrastructure
+  - go
+  - golang
+  - cqrs
+  - event-sourcing
+  - domain-driven-design
+  - library
+  - framework
+  - clean-architecture
+  - hexagonal-architecture
+  - event-driven
+  - typed-ids
+  - minimal-dependencies
+  - backend
+  - infrastructure
 importance: 70
 created_at: 2026-03-21T23:41:38.337543Z
 updated_at: 2026-03-25T17:55:10.553596Z

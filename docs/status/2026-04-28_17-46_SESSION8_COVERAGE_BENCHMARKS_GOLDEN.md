@@ -11,26 +11,26 @@
 
 ### Session 8 Commits (7 commits)
 
-| Commit | Description |
-|--------|-------------|
-| `91783ce` | test(core): dispatcher 75→100%, event 88→98%, aggregate 90→95%, benchmarks |
+| Commit    | Description                                                                          |
+| --------- | ------------------------------------------------------------------------------------ |
+| `91783ce` | test(core): dispatcher 75→100%, event 88→98%, aggregate 90→95%, benchmarks           |
 | `75301a9` | test(catalog): catalog 87→94%, eventcatalog 90→96%, golden-file tests, split cattest |
-| `5eb71e9` | test(xtypes): 89→98%, clean stale replace directives |
-| `6586e01` | chore: archive 41 stale status reports to docs/status/archive/ |
-| `afed58d` | feat(testhelpers): add NoopQueryHandler, use in query benchmarks |
-| `5b327c8` | docs: update AGENTS.md with session 8 coverage improvements |
-| (pending) | fix: dedup eventcatalog permission tests, lint clean new code |
+| `5eb71e9` | test(xtypes): 89→98%, clean stale replace directives                                 |
+| `6586e01` | chore: archive 41 stale status reports to docs/status/archive/                       |
+| `afed58d` | feat(testhelpers): add NoopQueryHandler, use in query benchmarks                     |
+| `5b327c8` | docs: update AGENTS.md with session 8 coverage improvements                          |
+| (pending) | fix: dedup eventcatalog permission tests, lint clean new code                        |
 
 ### Coverage Improvements
 
-| Package | Before | After | Delta |
-|---------|--------|-------|-------|
-| `core/pkg/dispatcher` | 75.4% | **100.0%** | +24.6% |
-| `core/event` | 88.3% | **97.9%** | +9.6% |
-| `xtypes` | 88.6% | **97.7%** | +9.1% |
-| `catalog` | 87.0% | **94.2%** | +7.2% |
-| `catalog/eventcatalog` | 89.7% | **95.5%** | +5.8% |
-| `core/aggregate` | 90.2% | **95.1%** | +4.9% |
+| Package                | Before | After      | Delta  |
+| ---------------------- | ------ | ---------- | ------ |
+| `core/pkg/dispatcher`  | 75.4%  | **100.0%** | +24.6% |
+| `core/event`           | 88.3%  | **97.9%**  | +9.6%  |
+| `xtypes`               | 88.6%  | **97.7%**  | +9.1%  |
+| `catalog`              | 87.0%  | **94.2%**  | +7.2%  |
+| `catalog/eventcatalog` | 89.7%  | **95.5%**  | +5.8%  |
+| `core/aggregate`       | 90.2%  | **95.1%**  | +4.9%  |
 
 ### New Infrastructure
 
@@ -43,21 +43,21 @@
 
 ### Test Coverage Summary (Post-Session 8)
 
-| Package | Coverage | Status |
-|---------|----------|--------|
-| `core/command` | **100.0%** | ✅ Perfect |
-| `core/query` | **100.0%** | ✅ Perfect |
-| `core/pkg/dispatcher` | **100.0%** | ✅ Perfect (was 75.4%) |
-| `memory` | **99.4%** | ✅ Near-perfect |
-| `middleware` | **99.2%** | ✅ Near-perfect |
-| `catalog/adapters` | **98.8%** | ✅ Excellent |
-| `core/event` | **97.9%** | ✅ Excellent (was 88.3%) |
-| `core/pkg/id` | **97.1%** | ✅ Excellent |
-| `catalog/asyncapi` | **97.6%** | ✅ Excellent |
-| `xtypes` | **97.7%** | ✅ Excellent (was 88.6%) |
-| `catalog/eventcatalog` | **95.5%** | ✅ Very good (was 89.7%) |
-| `core/aggregate` | **95.1%** | ✅ Very good (was 90.2%) |
-| `catalog` | **94.2%** | ✅ Very good (was 87.0%) |
+| Package                | Coverage   | Status                   |
+| ---------------------- | ---------- | ------------------------ |
+| `core/command`         | **100.0%** | ✅ Perfect               |
+| `core/query`           | **100.0%** | ✅ Perfect               |
+| `core/pkg/dispatcher`  | **100.0%** | ✅ Perfect (was 75.4%)   |
+| `memory`               | **99.4%**  | ✅ Near-perfect          |
+| `middleware`           | **99.2%**  | ✅ Near-perfect          |
+| `catalog/adapters`     | **98.8%**  | ✅ Excellent             |
+| `core/event`           | **97.9%**  | ✅ Excellent (was 88.3%) |
+| `core/pkg/id`          | **97.1%**  | ✅ Excellent             |
+| `catalog/asyncapi`     | **97.6%**  | ✅ Excellent             |
+| `xtypes`               | **97.7%**  | ✅ Excellent (was 88.6%) |
+| `catalog/eventcatalog` | **95.5%**  | ✅ Very good (was 89.7%) |
+| `core/aggregate`       | **95.1%**  | ✅ Very good (was 90.2%) |
+| `catalog`              | **94.2%**  | ✅ Very good (was 87.0%) |
 
 **Weighted average: ~97%** (up from ~93%)
 
@@ -76,6 +76,7 @@
 ### Catalog Lint (20 pre-existing issues)
 
 All 20 remaining lint issues are in pre-existing catalog code:
+
 - `noinlineerr`: 10 (catalog test assertions using `if err != nil` inline)
 - `wsl_v5`: 10 (whitespace style in existing test code)
 
@@ -141,6 +142,7 @@ Not started. Need to evaluate samber/ro, samber/do for potential integration.
 ### NOTHING IS FUCKED UP.
 
 The codebase is in its cleanest state ever:
+
 - 7 packages at 97%+ coverage (up from 3)
 - 0 lint issues in 4 of 6 modules
 - All tests green with race detector
@@ -150,13 +152,13 @@ The codebase is in its cleanest state ever:
 
 **Self-criticism for this session:**
 
-| # | Mistake | Fix |
-|---|---------|-----|
-| 1 | Added test code without running lint first — 19 issues | Fixed all 19 before committing |
-| 2 | Initially committed as one giant batch | Re-split into 6 logical commits |
-| 3 | Used local `noopQueryHandler` instead of fixing root cause | Added `NoopQueryHandler` to shared testhelpers |
-| 4 | Introduced dupl in eventcatalog permission tests | Extracted `requireExportPermissionError` helper |
-| 5 | Didn't reflect on architecture before executing | Documented reflections in status report |
+| #   | Mistake                                                    | Fix                                             |
+| --- | ---------------------------------------------------------- | ----------------------------------------------- |
+| 1   | Added test code without running lint first — 19 issues     | Fixed all 19 before committing                  |
+| 2   | Initially committed as one giant batch                     | Re-split into 6 logical commits                 |
+| 3   | Used local `noopQueryHandler` instead of fixing root cause | Added `NoopQueryHandler` to shared testhelpers  |
+| 4   | Introduced dupl in eventcatalog permission tests           | Extracted `requireExportPermissionError` helper |
+| 5   | Didn't reflect on architecture before executing            | Documented reflections in status report         |
 
 ---
 
@@ -196,14 +198,14 @@ The codebase is in its cleanest state ever:
 
 ### Library Evaluation
 
-| Library | Assessment | Verdict |
-|---------|------------|---------|
-| **samber/lo** | Map/Filter helpers | Overkill — codebase is small, stdlib sufficient |
-| **samber/do** | DI container | Interesting for Phase 5+ wiring, premature now |
-| **samber/ro** | Projections | Planned for Phase 7 — evaluate after Phase 5 |
-| **open-telemetry/opentelemetry-go** | Observability | Should replace custom TestMetrics in middleware |
-| **pgx + sqlc** | PostgreSQL | Correct choices for Phase 5 |
-| **ThreeDotsLabs/watermill** | Pub/sub | Correct choice for Phase 6 |
+| Library                             | Assessment         | Verdict                                         |
+| ----------------------------------- | ------------------ | ----------------------------------------------- |
+| **samber/lo**                       | Map/Filter helpers | Overkill — codebase is small, stdlib sufficient |
+| **samber/do**                       | DI container       | Interesting for Phase 5+ wiring, premature now  |
+| **samber/ro**                       | Projections        | Planned for Phase 7 — evaluate after Phase 5    |
+| **open-telemetry/opentelemetry-go** | Observability      | Should replace custom TestMetrics in middleware |
+| **pgx + sqlc**                      | PostgreSQL         | Correct choices for Phase 5                     |
+| **ThreeDotsLabs/watermill**         | Pub/sub            | Correct choice for Phase 6                      |
 
 ---
 
@@ -211,33 +213,33 @@ The codebase is in its cleanest state ever:
 
 Priority-sorted by **impact × effort⁻¹**:
 
-| # | Task | Effort | Impact | Module |
-|---|------|--------|--------|--------|
-| 1 | **Design storage module (Phase 5)** — schema, sqlc, interface | 1 day | CRITICAL | storage/ |
-| 2 | **Add integration test** — full CQRS flow across all modules | 2 hr | HIGH | testhelpers/ |
-| 3 | **Evaluate samber/ro, samber/do** for projections/DI | 3 hr | HIGH | Planning |
-| 4 | **Write getting-started guide** with working example | 2 hr | HIGH | docs/ |
-| 5 | **Add working example app** (user CRUD with event sourcing) | 2 hr | MEDIUM | example/ |
-| 6 | **Add OpenTelemetry metrics middleware** | 2 hr | HIGH | middleware/ |
-| 7 | **Fix `query.Handler` generic return type** | 1 hr | HIGH | core/query |
-| 8 | **Split `event.Store` god interface** into Writer/Reader/Deleter | 1 hr | HIGH | core/event |
-| 9 | **Add health check interface** for Store/Bus/Dispatcher | 1 hr | MEDIUM | core/ |
-| 10 | **Tag v0.1.0-alpha releases** for all 6 modules | 30 min | MEDIUM | Release |
-| 11 | **Fix 20 pre-existing catalog lint issues** | 30 min | LOW | catalog/ |
-| 12 | **Split eventcatalog/exporter.go** (346→250 lines) | 30 min | LOW | catalog/ |
-| 13 | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta | 30 min | LOW | xtypes/ |
-| 14 | **Add fuzz tests** for command types, event types, schemas | 1 hr | LOW | core/ |
-| 15 | **Add graceful shutdown** — drain in-flight ops on Close() | 2 hr | MEDIUM | core/ |
-| 16 | **Implement persistent event store** (Phase 5 core) | 3 days | CRITICAL | storage/ |
-| 17 | **Add benchmarks** for catalog operations | 30 min | LOW | catalog/ |
-| 18 | **Implement Watermill module** (Phase 6) | 3 days | HIGH | watermill/ |
-| 19 | **Implement projection module** (Phase 7) | 2 days | HIGH | projection/ |
-| 20 | **Add aggregate saga/process manager** pattern | 2 days | HIGH | core/ |
-| 21 | **Implement SQL snapshot store** (Phase 8) | 1 day | MEDIUM | sqlsnapshot/ |
-| 22 | **Fix `catalog.Message` discriminated union** — generics over Kind | 2 hr | MEDIUM | catalog/ |
-| 23 | **Unify Type generics** — `Type[T]` instead of string aliases | 2 hr | MEDIUM | core/ |
-| 24 | **Add CI badge + pkg.go.dev links** to README | 15 min | LOW | docs/ |
-| 25 | **Add middleware composition builder** | 1 hr | MEDIUM | core/ |
+| #   | Task                                                               | Effort | Impact   | Module       |
+| --- | ------------------------------------------------------------------ | ------ | -------- | ------------ |
+| 1   | **Design storage module (Phase 5)** — schema, sqlc, interface      | 1 day  | CRITICAL | storage/     |
+| 2   | **Add integration test** — full CQRS flow across all modules       | 2 hr   | HIGH     | testhelpers/ |
+| 3   | **Evaluate samber/ro, samber/do** for projections/DI               | 3 hr   | HIGH     | Planning     |
+| 4   | **Write getting-started guide** with working example               | 2 hr   | HIGH     | docs/        |
+| 5   | **Add working example app** (user CRUD with event sourcing)        | 2 hr   | MEDIUM   | example/     |
+| 6   | **Add OpenTelemetry metrics middleware**                           | 2 hr   | HIGH     | middleware/  |
+| 7   | **Fix `query.Handler` generic return type**                        | 1 hr   | HIGH     | core/query   |
+| 8   | **Split `event.Store` god interface** into Writer/Reader/Deleter   | 1 hr   | HIGH     | core/event   |
+| 9   | **Add health check interface** for Store/Bus/Dispatcher            | 1 hr   | MEDIUM   | core/        |
+| 10  | **Tag v0.1.0-alpha releases** for all 6 modules                    | 30 min | MEDIUM   | Release      |
+| 11  | **Fix 20 pre-existing catalog lint issues**                        | 30 min | LOW      | catalog/     |
+| 12  | **Split eventcatalog/exporter.go** (346→250 lines)                 | 30 min | LOW      | catalog/     |
+| 13  | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta      | 30 min | LOW      | xtypes/      |
+| 14  | **Add fuzz tests** for command types, event types, schemas         | 1 hr   | LOW      | core/        |
+| 15  | **Add graceful shutdown** — drain in-flight ops on Close()         | 2 hr   | MEDIUM   | core/        |
+| 16  | **Implement persistent event store** (Phase 5 core)                | 3 days | CRITICAL | storage/     |
+| 17  | **Add benchmarks** for catalog operations                          | 30 min | LOW      | catalog/     |
+| 18  | **Implement Watermill module** (Phase 6)                           | 3 days | HIGH     | watermill/   |
+| 19  | **Implement projection module** (Phase 7)                          | 2 days | HIGH     | projection/  |
+| 20  | **Add aggregate saga/process manager** pattern                     | 2 days | HIGH     | core/        |
+| 21  | **Implement SQL snapshot store** (Phase 8)                         | 1 day  | MEDIUM   | sqlsnapshot/ |
+| 22  | **Fix `catalog.Message` discriminated union** — generics over Kind | 2 hr   | MEDIUM   | catalog/     |
+| 23  | **Unify Type generics** — `Type[T]` instead of string aliases      | 2 hr   | MEDIUM   | core/        |
+| 24  | **Add CI badge + pkg.go.dev links** to README                      | 15 min | LOW      | docs/        |
+| 25  | **Add middleware composition builder**                             | 1 hr   | MEDIUM   | core/        |
 
 ---
 
@@ -252,6 +254,7 @@ This single question drives every architectural decision going forward:
 - If this is a **competing library to go-cockroachdb-eventstore, watermill, etc.** → Need Phase 5–8 plus comprehensive docs, benchmarks, migration guides, and a clear differentiation story.
 
 The answer determines whether we invest in:
+
 - Storage/Persistence (Phases 5, 8)
 - Pub/Sub (Phase 6)
 - Projections (Phase 7)

@@ -8,25 +8,25 @@
 
 A Go implementation of the **ReactiveX specification** by [Samuel Berthe](https://github.com/samber) — the same author behind **samber/lo** (~18k stars, one of the most popular Go libraries). Reactive/stream programming with composable operators for handling asynchronous data streams.
 
-| Aspect        | Detail                                                       |
-| ------------- | ------------------------------------------------------------ |
-| Author        | samber (samber/lo ~18k★, samber/do, samber/mo)              |
-| License       | Apache 2.0 (core), custom license (enterprise `ee/`)        |
-| Version       | v0.3.0 (pre-1.0, follows SemVer strictly)                   |
-| Stars         | ~641                                                         |
-| Dependencies  | Minimal beyond stdlib                                        |
-| Plugin system | HTTP, WebSocket, Redis, Cron, JSON, CSV, Sentry, Zap, etc.  |
+| Aspect        | Detail                                                     |
+| ------------- | ---------------------------------------------------------- |
+| Author        | samber (samber/lo ~18k★, samber/do, samber/mo)             |
+| License       | Apache 2.0 (core), custom license (enterprise `ee/`)       |
+| Version       | v0.3.0 (pre-1.0, follows SemVer strictly)                  |
+| Stars         | ~641                                                       |
+| Dependencies  | Minimal beyond stdlib                                      |
+| Plugin system | HTTP, WebSocket, Redis, Cron, JSON, CSV, Sentry, Zap, etc. |
 
 ### Core Concepts
 
-| Concept       | Description                                                    |
-| ------------- | -------------------------------------------------------------- |
-| Observable    | Stream of values emitted over time                             |
-| Observer      | Consumes values (`onNext`, `onError`, `onComplete`)            |
+| Concept         | Description                                                      |
+| --------------- | ---------------------------------------------------------------- |
+| Observable      | Stream of values emitted over time                               |
+| Observer        | Consumes values (`onNext`, `onError`, `onComplete`)              |
 | BehaviorSubject | Maintains current value — new subscribers get latest immediately |
-| ReplaySubject  | Replays N past values to new subscribers — mirrors event replay |
-| PublishSubject | Broadcasts to all current subscribers — fire-and-forget        |
-| Operators     | Map, Filter, Merge, Zip, BufferWhen, GroupBy, Retry, etc.     |
+| ReplaySubject   | Replays N past values to new subscribers — mirrors event replay  |
+| PublishSubject  | Broadcasts to all current subscribers — fire-and-forget          |
+| Operators       | Map, Filter, Merge, Zip, BufferWhen, GroupBy, Retry, etc.        |
 
 ### Why it's more than "RxJava for Go"
 
@@ -83,14 +83,15 @@ No references to `samber/ro` or any reactive/stream programming library exist in
 
 ## Comparison with Alternatives
 
-| Option                   | Event Replay | Projections | Distribution | Maturity | Complexity |
-| ------------------------ | ------------ | ----------- | ------------ | -------- | ---------- |
-| Status quo (in-memory)   | Manual       | Manual      | ❌            | ✅        | Low        |
-| samber/ro                | ReplaySubject | Operators   | Via Redis plugin | ⚠️ v0.3 | Medium     |
-| Go channels              | Manual       | Manual      | ❌            | ✅        | Medium     |
-| Watermill                | Manual       | Manual      | ✅ Kafka/NATS/etc | ✅   | High       |
+| Option                 | Event Replay  | Projections | Distribution      | Maturity | Complexity |
+| ---------------------- | ------------- | ----------- | ----------------- | -------- | ---------- |
+| Status quo (in-memory) | Manual        | Manual      | ❌                | ✅       | Low        |
+| samber/ro              | ReplaySubject | Operators   | Via Redis plugin  | ⚠️ v0.3  | Medium     |
+| Go channels            | Manual        | Manual      | ❌                | ✅       | Medium     |
+| Watermill              | Manual        | Manual      | ✅ Kafka/NATS/etc | ✅       | High       |
 
 samber/ro and Watermill are **complements, not competitors**:
+
 - **samber/ro** — In-process reactive stream processing (how you transform/react to events)
 - **Watermill** — Inter-process message transport (how events move between services)
 
@@ -117,7 +118,7 @@ Users who want reactive streams can figure it out themselves. Go channels suffic
 
 samber/ro is **not** a user-facing module. It's an internal engine for modules that need reactive stream processing.
 Users don't wake up wanting "reactive streams" — they want working projections, streaming, and event replay.
-samber/ro is *how* we build those, not *what* users import.
+samber/ro is _how_ we build those, not _what_ users import.
 
 ## Integration Plan
 
@@ -156,6 +157,7 @@ projection/
 ```
 
 Users call:
+
 ```go
 projector.On("user.created", func(ctx context.Context, evt event.Event) error {
     return updateUserReadModel(ctx, evt)
@@ -163,6 +165,7 @@ projector.On("user.created", func(ctx context.Context, evt event.Event) error {
 ```
 
 Internally, the Runner uses samber/ro to:
+
 - `Filter` events by type before dispatching to handlers
 - `GroupBy` aggregate ID for partitioned processing
 - `BufferWhen` for batched projection writes
@@ -171,19 +174,19 @@ Internally, the Runner uses samber/ro to:
 
 #### Potential future consumers
 
-| Module | What ro would power | Priority |
-| ------ | ------------------- | -------- |
-| `projection/` | Event stream → read model pipeline | **Now** |
-| `core/event/` Streamer impl | `Stream() (<-chan Event)` via Observable → channel | Later |
-| `memory/` bus upgrade | ReplaySubject for in-memory event replay | Low priority |
+| Module                      | What ro would power                                | Priority     |
+| --------------------------- | -------------------------------------------------- | ------------ |
+| `projection/`               | Event stream → read model pipeline                 | **Now**      |
+| `core/event/` Streamer impl | `Stream() (<-chan Event)` via Observable → channel | Later        |
+| `memory/` bus upgrade       | ReplaySubject for in-memory event replay           | Low priority |
 
 ### What this replaces from the current codebase
 
-| Current code                       | What ro replaces internally            | Savings          |
-| ---------------------------------- | ------------------------------------ | ---------------- |
-| `middleware/retry.go` (~83 lines)  | `ro.Retry` / `ro.RetryWhen` operator | Delete           |
-| Hand-written projection loops      | `ro.Pipe(filter, map, groupBy, ...)` | Per projection   |
-| `Streamer` (unimplemented)         | Observable → channel adapter         | ~60 lines        |
+| Current code                      | What ro replaces internally          | Savings        |
+| --------------------------------- | ------------------------------------ | -------------- |
+| `middleware/retry.go` (~83 lines) | `ro.Retry` / `ro.RetryWhen` operator | Delete         |
+| Hand-written projection loops     | `ro.Pipe(filter, map, groupBy, ...)` | Per projection |
+| `Streamer` (unimplemented)        | Observable → channel adapter         | ~60 lines      |
 
 ### Dependency impact
 

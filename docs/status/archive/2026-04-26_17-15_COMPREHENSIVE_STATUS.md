@@ -13,6 +13,7 @@
 **Commit `a9c833a`** rewrote `core/pkg/id/id.go` from a string-alias type (`cbid.ID[T, string]`) to a ULID-backed struct (`Of[T]{wrapped cbid.ID[T, ulid.ULID]}`).
 
 **What changed in `id.go`:**
+
 - `Of[T]` is now a struct wrapping `cbid.ID[T, ulid.ULID]` (not a string alias)
 - `Parse[T]()` now validates ULID format via `ulid.Parse()`
 - `MustParse[T]()` panics on invalid ULID (not just empty string)
@@ -24,6 +25,7 @@
 - `MarshalBinary` returns 16-byte binary ULID, `MarshalText` returns 26-char string
 
 **Bug fix (uncommitted):**
+
 - `MarshalJSON` was double-encoding: `json.Marshal(id.String())` produced `"\"01HK...\""` — fixed to `[]byte('"' + id.String() + '"')`
 - `UnmarshalBinary` used `ulid.EncodedSize` (26) but binary ULID is 16 bytes — fixed to `16`
 
@@ -34,12 +36,12 @@ All 9 test files updated to use ULID-format strings instead of human-readable ID
 
 The comprehensive linting commit addressed many issues but **11 remain**:
 
-| Category | Count | Files |
-|----------|-------|-------|
-| `golines` | 6 | aggregate_test, event_test, event_sourcing_bdd_test, bus_test, snapshot_test, store_test |
-| `wsl_v5` | 4 | id_test.go (blank line issues) |
-| `mnd` | 1 | id.go:247 magic number 16 |
-| `nilnil` | 1 | id.go:214 `return nil, nil` in Value() |
+| Category  | Count | Files                                                                                    |
+| --------- | ----- | ---------------------------------------------------------------------------------------- |
+| `golines` | 6     | aggregate_test, event_test, event_sourcing_bdd_test, bus_test, snapshot_test, store_test |
+| `wsl_v5`  | 4     | id_test.go (blank line issues)                                                           |
+| `mnd`     | 1     | id.go:247 magic number 16                                                                |
+| `nilnil`  | 1     | id.go:214 `return nil, nil` in Value()                                                   |
 
 **Root cause of golines:** ULID strings are 26 chars, pushing lines over 120-char limit. The `golines` formatter was not available to auto-fix these.
 
@@ -74,27 +76,28 @@ Updated `fuzz_test.go` to only use valid ULID seed inputs. Invalid inputs now co
 ## C. BUILD & TEST STATUS
 
 ### Build — ✅ CLEAN
+
 ```
 go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...  ✅
 ```
 
 ### Test Suite — ✅ ALL 14 PASSING
 
-| Package | Status | Coverage |
-|---------|--------|----------|
-| `core/aggregate` | ✅ | 89.7% |
-| `core/command` | ✅ | 84.4% |
-| `core/event` | ✅ | 88.0% |
-| `core/pkg/dispatcher` | ✅ | 73.8% |
-| `core/pkg/id` | ✅ | 73.4% |
-| `core/query` | ✅ | 91.4% |
-| `memory` | ✅ | 94.7% |
-| `catalog` | ✅ | 87.0% |
-| `catalog/adapters` | ✅ | 98.8% |
-| `catalog/asyncapi` | ✅ | 97.6% |
-| `catalog/eventcatalog` | ✅ | 89.7% |
-| `middleware` | ✅ | 64.8% |
-| `xtypes` | ✅ | 95.7% |
+| Package                | Status | Coverage |
+| ---------------------- | ------ | -------- |
+| `core/aggregate`       | ✅     | 89.7%    |
+| `core/command`         | ✅     | 84.4%    |
+| `core/event`           | ✅     | 88.0%    |
+| `core/pkg/dispatcher`  | ✅     | 73.8%    |
+| `core/pkg/id`          | ✅     | 73.4%    |
+| `core/query`           | ✅     | 91.4%    |
+| `memory`               | ✅     | 94.7%    |
+| `catalog`              | ✅     | 87.0%    |
+| `catalog/adapters`     | ✅     | 98.8%    |
+| `catalog/asyncapi`     | ✅     | 97.6%    |
+| `catalog/eventcatalog` | ✅     | 89.7%    |
+| `middleware`           | ✅     | 64.8%    |
+| `xtypes`               | ✅     | 95.7%    |
 
 ### Lint — ⚠️ 11 ISSUES REMAINING
 
@@ -136,33 +139,33 @@ go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...  �
 
 ## E. TOP #25 THINGS TO GET DONE NEXT
 
-| # | Item | Priority | Effort | Category |
-|---|------|----------|--------|----------|
-| 1 | Commit id.go/id_test.go bug fixes (MarshalJSON, UnmarshalBinary) | 🔴 NOW | 5min | Bug Fix |
-| 2 | Fix `NewWithPrefix` — implement prefix or delete function | 🔴 HIGH | 30min | Architecture |
-| 3 | Publish `go-composable-business-types` or inline ULID logic | 🔴 HIGH | 2h | Infrastructure |
-| 4 | Split `id.go` under 250 lines → `id_encoding.go` | 🟡 MED | 15min | Code Quality |
-| 5 | Fix `nilnil` lint in `Value()` properly | 🟡 MED | 10min | Lint |
-| 6 | Replace magic number 16 with `ulidBinarySize` constant | 🟡 MED | 5min | Lint |
-| 7 | Fix 6 `golines` formatting issues in test files | 🟡 MED | 15min | Lint |
-| 8 | Fix 4 `wsl_v5` formatting issues in id_test.go | 🟡 MED | 10min | Lint |
-| 9 | Restore `core/pkg/id` coverage to 85%+ | 🟡 MED | 30min | Testing |
-| 10 | Add `EventRetry` tests in middleware | 🟡 MED | 30min | Testing |
-| 11 | Fix `example/user` module (blocked by go-composable-business-types) | 🟡 MED | 30min | Migration |
-| 12 | Consider `Value()` returning text (26-char) instead of binary (16-byte) | 🟡 MED | 1h | Architecture |
-| 13 | Add `t.Parallel()` to BDD suite tests (3 `paralleltest` issues) | 🟢 LOW | 10min | Lint |
-| 14 | Delete or implement `event/store_config.go` | 🟢 LOW | 15min | Cleanup |
-| 15 | Fix `go.work` version mismatch (1.26 vs 1.26.0) | 🟢 LOW | 5min | Config |
-| 16 | Fix `toDotAddress` number handling bug | 🟢 LOW | 1h | Bug |
-| 17 | Add performance benchmarks for event store | 🟢 LOW | 1h | Performance |
-| 18 | Phase 5: Storage module (sqlc event store) | 🔴 HIGH | 4-8h | Migration |
-| 19 | Phase 6: Watermill module (pub/sub) | 🟡 MED | 4-8h | Migration |
-| 20 | Phase 7: Projection module (samber/ro) | 🟡 MED | 4-8h | Migration |
-| 21 | Phase 8: Snapshot module (SQL-backed) | 🟡 MED | 4h | Migration |
-| 22 | Phase 9: Test utilities module | 🟡 MED | 2h | Migration |
-| 23 | Phase 10: Tag releases | 🟡 MED | 1h | Release |
-| 24 | Update README with full migration status | 🟢 LOW | 15min | Docs |
-| 25 | Add `goimports`/`gofumpt` to CI pipeline | 🟢 LOW | 30min | CI |
+| #   | Item                                                                    | Priority | Effort | Category       |
+| --- | ----------------------------------------------------------------------- | -------- | ------ | -------------- |
+| 1   | Commit id.go/id_test.go bug fixes (MarshalJSON, UnmarshalBinary)        | 🔴 NOW   | 5min   | Bug Fix        |
+| 2   | Fix `NewWithPrefix` — implement prefix or delete function               | 🔴 HIGH  | 30min  | Architecture   |
+| 3   | Publish `go-composable-business-types` or inline ULID logic             | 🔴 HIGH  | 2h     | Infrastructure |
+| 4   | Split `id.go` under 250 lines → `id_encoding.go`                        | 🟡 MED   | 15min  | Code Quality   |
+| 5   | Fix `nilnil` lint in `Value()` properly                                 | 🟡 MED   | 10min  | Lint           |
+| 6   | Replace magic number 16 with `ulidBinarySize` constant                  | 🟡 MED   | 5min   | Lint           |
+| 7   | Fix 6 `golines` formatting issues in test files                         | 🟡 MED   | 15min  | Lint           |
+| 8   | Fix 4 `wsl_v5` formatting issues in id_test.go                          | 🟡 MED   | 10min  | Lint           |
+| 9   | Restore `core/pkg/id` coverage to 85%+                                  | 🟡 MED   | 30min  | Testing        |
+| 10  | Add `EventRetry` tests in middleware                                    | 🟡 MED   | 30min  | Testing        |
+| 11  | Fix `example/user` module (blocked by go-composable-business-types)     | 🟡 MED   | 30min  | Migration      |
+| 12  | Consider `Value()` returning text (26-char) instead of binary (16-byte) | 🟡 MED   | 1h     | Architecture   |
+| 13  | Add `t.Parallel()` to BDD suite tests (3 `paralleltest` issues)         | 🟢 LOW   | 10min  | Lint           |
+| 14  | Delete or implement `event/store_config.go`                             | 🟢 LOW   | 15min  | Cleanup        |
+| 15  | Fix `go.work` version mismatch (1.26 vs 1.26.0)                         | 🟢 LOW   | 5min   | Config         |
+| 16  | Fix `toDotAddress` number handling bug                                  | 🟢 LOW   | 1h     | Bug            |
+| 17  | Add performance benchmarks for event store                              | 🟢 LOW   | 1h     | Performance    |
+| 18  | Phase 5: Storage module (sqlc event store)                              | 🔴 HIGH  | 4-8h   | Migration      |
+| 19  | Phase 6: Watermill module (pub/sub)                                     | 🟡 MED   | 4-8h   | Migration      |
+| 20  | Phase 7: Projection module (samber/ro)                                  | 🟡 MED   | 4-8h   | Migration      |
+| 21  | Phase 8: Snapshot module (SQL-backed)                                   | 🟡 MED   | 4h     | Migration      |
+| 22  | Phase 9: Test utilities module                                          | 🟡 MED   | 2h     | Migration      |
+| 23  | Phase 10: Tag releases                                                  | 🟡 MED   | 1h     | Release        |
+| 24  | Update README with full migration status                                | 🟢 LOW   | 15min  | Docs           |
+| 25  | Add `goimports`/`gofumpt` to CI pipeline                                | 🟢 LOW   | 30min  | CI             |
 
 ---
 
@@ -179,6 +182,7 @@ go build ./core/... ./memory/... ./catalog/... ./middleware/... ./xtypes/...  �
 3. **Implement prefix as metadata** — Store prefix in the `Of[T]` struct alongside the ULID. This adds complexity and changes the struct layout, but preserves ULID parsing while still showing the prefix in `String()`.
 
 **What I've tried:**
+
 - Checked all callers — only `TestNewWithPrefix` in `id_test.go`
 - Checked `example/user/` — doesn't use `NewWithPrefix`
 - Attempted to understand the original intent — it was for human-readable IDs like `user_123`, but ULID doesn't support this natively
@@ -195,9 +199,10 @@ ab12ecc fix: comprehensive linting and formatting improvements across all module
 ```
 
 **Uncommitted changes (bug fixes):**
+
 - `core/pkg/id/id.go`: Fix MarshalJSON double-encoding, fix UnmarshalBinary size check
 - `core/pkg/id/id_test.go`: Fix binary size assertions (26→16)
 
 ---
 
-*Report generated by Crush AI. All data verified against live `go build`, `go test`, and `golangci-lint run` output.*
+_Report generated by Crush AI. All data verified against live `go build`, `go test`, and `golangci-lint run` output._

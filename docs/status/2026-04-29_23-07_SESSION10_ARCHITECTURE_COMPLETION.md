@@ -14,14 +14,14 @@ Today's work completed the outbox seam (Task 3.2 from the architecture plan), fi
 
 ## Module Inventory
 
-| Module | Go Files | Test Files | Coverage | Lint |
-|--------|----------|------------|----------|------|
-| core | 34 | 28 | 96.1% avg | 0 issues |
-| memory | 5 | 4 | 99.5% | 0 issues |
-| catalog | 18 | 14 | 94.3% avg | 0 issues |
-| middleware | 6 | 6 | 99.2% | 0 issues |
-| testhelpers | 1 | 0 | — | — |
-| **Total** | **64** | **52** | **~97%** | **0 issues** |
+| Module      | Go Files | Test Files | Coverage  | Lint         |
+| ----------- | -------- | ---------- | --------- | ------------ |
+| core        | 34       | 28         | 96.1% avg | 0 issues     |
+| memory      | 5        | 4          | 99.5%     | 0 issues     |
+| catalog     | 18       | 14         | 94.3% avg | 0 issues     |
+| middleware  | 6        | 6          | 99.2%     | 0 issues     |
+| testhelpers | 1        | 0          | —         | —            |
+| **Total**   | **64**   | **52**     | **~97%**  | **0 issues** |
 
 ---
 
@@ -89,15 +89,15 @@ ok  middleware          0.149s  coverage: 99.2%
 
 See `docs/status/archive/` for detailed reports. Key highlights:
 
-| Session | Key Achievement |
-|---------|-----------------|
-| 9 | Zero lint across all modules, EventCatalog renaming, file splits |
-| 8 | Coverage improvements (dispatcher 75%→100%, event 88%→98%), benchmarks, golden tests |
-| 7 | Multi-module extraction complete (middleware, xtypes, testhelpers) |
-| 5 | Middleware 99.2% coverage, duplicate handler guard, event type validation |
-| 4 | Nix migration (flake.nix, dev shell, CI) |
-| 3 | Branded return types (Event.ID → id.EventID, etc.) |
-| 1–2 | Bug fixes, lifecycle unification, dead code removal |
+| Session | Key Achievement                                                                      |
+| ------- | ------------------------------------------------------------------------------------ |
+| 9       | Zero lint across all modules, EventCatalog renaming, file splits                     |
+| 8       | Coverage improvements (dispatcher 75%→100%, event 88%→98%), benchmarks, golden tests |
+| 7       | Multi-module extraction complete (middleware, xtypes, testhelpers)                   |
+| 5       | Middleware 99.2% coverage, duplicate handler guard, event type validation            |
+| 4       | Nix migration (flake.nix, dev shell, CI)                                             |
+| 3       | Branded return types (Event.ID → id.EventID, etc.)                                   |
+| 1–2     | Bug fixes, lifecycle unification, dead code removal                                  |
 
 ---
 
@@ -112,6 +112,7 @@ See `docs/status/archive/` for detailed reports. Key highlights:
 ### Task 3.1: Query Generic Result Types — SKIPPED ❌
 
 **Rationale:** `DispatchTyped[T]` already exists and works well. The runtime type assertion is exactly ONE line (`typed, ok := result.(T)`). Making `Query` generic would require:
+
 1. Breaking the `Query` interface (affects all consumers)
 2. Breaking the `Handler` type (affects all handlers)
 3. Breaking the `Dispatcher` registry (can't store `Handler[string]` and `Handler[int]` in same map)
@@ -122,10 +123,12 @@ See `docs/status/archive/` for detailed reports. Key highlights:
 ### Task 2.4: CatalogBuilder wraps Registry — SKIPPED ❌
 
 **Rationale:** After deep analysis, the two builders have **different semantics**:
+
 - `Registry.AddService` **merges messages** into existing services (append-only)
 - `CatalogBuilder.AddService` **overwrites metadata** (version, summary) on existing services
 
 Unifying them requires either:
+
 1. Breaking `Registry.AddService` behavior (breaks ~40 tests + production callers)
 2. Adding complex adapter methods to `Registry` (adds API surface, not reduces it)
 3. Making `CatalogBuilder` a thin wrapper that re-implements half the logic anyway
@@ -136,17 +139,17 @@ Unifying them requires either:
 
 ## Current State: What Works
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Tests | ✅ All passing | 12 packages, ~97% avg coverage |
-| Lint | ✅ Zero issues | All 4 linted modules clean |
-| Build | ✅ Compiles | `nix run .#build` passes |
-| Format | ✅ Clean | `nix fmt` produces no changes |
-| Coverage | ✅ Excellent | 4 packages at 100%, lowest is 94.3% |
-| Outbox | ✅ Implemented | `event.Outbox` + `memory.MemoryOutboxStore` |
-| Snapshot | ✅ Integrated | `EventSourcedRepository` with `NewRepositoryWithSnapshot` |
-| xtypes | ✅ Deleted | Removed from repo, docs updated |
-| internal/testhelpers | ✅ Deleted | Re-exports removed, imports updated |
+| Component            | Status         | Notes                                                     |
+| -------------------- | -------------- | --------------------------------------------------------- |
+| Tests                | ✅ All passing | 12 packages, ~97% avg coverage                            |
+| Lint                 | ✅ Zero issues | All 4 linted modules clean                                |
+| Build                | ✅ Compiles    | `nix run .#build` passes                                  |
+| Format               | ✅ Clean       | `nix fmt` produces no changes                             |
+| Coverage             | ✅ Excellent   | 4 packages at 100%, lowest is 94.3%                       |
+| Outbox               | ✅ Implemented | `event.Outbox` + `memory.MemoryOutboxStore`               |
+| Snapshot             | ✅ Integrated  | `EventSourcedRepository` with `NewRepositoryWithSnapshot` |
+| xtypes               | ✅ Deleted     | Removed from repo, docs updated                           |
+| internal/testhelpers | ✅ Deleted     | Re-exports removed, imports updated                       |
 
 ---
 
@@ -155,6 +158,7 @@ Unifying them requires either:
 ### 1. Circular Dependency: core → memory (BLOCKS PUBLISHING) ⚠️
 
 **Problem:** `core/go.mod` has:
+
 ```go
 require (
     github.com/larsartmann/go-cqrs-lite/memory v0.0.0
@@ -217,28 +221,28 @@ replace (
 
 ## Remaining Tasks (Prioritized)
 
-| Priority | Task | Effort | Impact | Status |
-|----------|------|--------|--------|--------|
-| P0 | Fix core→memory circular dependency | ~2h | CRITICAL | Not started |
-| P1 | Add EventRetry tests | ~20m | MEDIUM | Not started |
-| P1 | Add OpenTelemetry tracing middleware | ~1h | MEDIUM | Not started |
-| P2 | Remove empty `core/internal/` directory | ~1m | LOW | Not started |
-| P2 | Update stale planning docs (xtypes refs) | ~15m | LOW | Not started |
-| P3 | Design doc: SQL event store module | ~1h | HIGH (future) | Not started |
-| P3 | Design doc: Saga/Process manager | ~1h | HIGH (future) | Not started |
+| Priority | Task                                     | Effort | Impact        | Status      |
+| -------- | ---------------------------------------- | ------ | ------------- | ----------- |
+| P0       | Fix core→memory circular dependency      | ~2h    | CRITICAL      | Not started |
+| P1       | Add EventRetry tests                     | ~20m   | MEDIUM        | Not started |
+| P1       | Add OpenTelemetry tracing middleware     | ~1h    | MEDIUM        | Not started |
+| P2       | Remove empty `core/internal/` directory  | ~1m    | LOW           | Not started |
+| P2       | Update stale planning docs (xtypes refs) | ~15m   | LOW           | Not started |
+| P3       | Design doc: SQL event store module       | ~1h    | HIGH (future) | Not started |
+| P3       | Design doc: Saga/Process manager         | ~1h    | HIGH (future) | Not started |
 
 ---
 
 ## Ghost Systems Check
 
-| System | Status | Integration Value |
-|--------|--------|-------------------|
-| SnapshotStore | ✅ Integrated | Real — `EventSourcedRepository` uses it |
-| Outbox | ✅ Integrated | Real — `EventSourcedRepository` uses it |
-| `core/internal/testhelpers` | ✅ Deleted | No value — was pure re-export |
-| `xtypes` | ✅ Deleted | No value — interface as complex as implementation |
-| `CatalogBuilder` | ✅ Active | Used by adapters and tests |
-| `Registry` | ✅ Active | Used by eventcatalog, asyncapi exporters |
+| System                      | Status        | Integration Value                                 |
+| --------------------------- | ------------- | ------------------------------------------------- |
+| SnapshotStore               | ✅ Integrated | Real — `EventSourcedRepository` uses it           |
+| Outbox                      | ✅ Integrated | Real — `EventSourcedRepository` uses it           |
+| `core/internal/testhelpers` | ✅ Deleted    | No value — was pure re-export                     |
+| `xtypes`                    | ✅ Deleted    | No value — interface as complex as implementation |
+| `CatalogBuilder`            | ✅ Active     | Used by adapters and tests                        |
+| `Registry`                  | ✅ Active     | Used by eventcatalog, asyncapi exporters          |
 
 **Verdict:** Zero ghost systems remaining.
 
@@ -266,15 +270,15 @@ But if the goal is "zero legacy code" and "each module independently publishable
 
 ## Code Quality Metrics
 
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Test coverage | ~97% avg | >80% | ✅ Exceeds |
-| Lint issues | 0 | 0 | ✅ Clean |
-| Files >250 lines | 0 | 0 | ✅ Clean |
-| Functions >30 lines | <5% | <10% | ✅ Clean |
-| Circular deps | 1 (core↔memory) | 0 | ⚠️ Known |
-| Ghost systems | 0 | 0 | ✅ Clean |
-| Deprecated refs | 2 docs files | 0 | ⚠️ Minor |
+| Metric              | Value           | Target | Status     |
+| ------------------- | --------------- | ------ | ---------- |
+| Test coverage       | ~97% avg        | >80%   | ✅ Exceeds |
+| Lint issues         | 0               | 0      | ✅ Clean   |
+| Files >250 lines    | 0               | 0      | ✅ Clean   |
+| Functions >30 lines | <5%             | <10%   | ✅ Clean   |
+| Circular deps       | 1 (core↔memory) | 0      | ⚠️ Known   |
+| Ghost systems       | 0               | 0      | ✅ Clean   |
+| Deprecated refs     | 2 docs files    | 0      | ⚠️ Minor   |
 
 ---
 
@@ -299,6 +303,7 @@ Session 10 delivered significant architectural improvements: outbox seam, snapsh
 Three planned tasks were skipped after honest analysis: generic middleware core (Go type limitation), query generic types (marginal benefit), and CatalogBuilder→Registry consolidation (behavioral divergence). These were the right calls — the complexity would have exceeded the value.
 
 The highest-value remaining work is:
+
 1. **Decide on the core→memory circular dependency strategy**
 2. **Add EventRetry tests** (quick win)
 3. **Add OTel tracing middleware** (production readiness)

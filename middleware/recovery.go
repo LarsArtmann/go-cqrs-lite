@@ -11,7 +11,7 @@ import (
 )
 
 // panicError formats a recovered panic into an error message.
-func panicError(msgKind string, typeName string, r any) error {
+func panicError(msgKind, typeName string, r any) error {
 	return fmt.Errorf( //nolint:err113
 		"panic recovered in %s %s: %v\n%s",
 		msgKind,

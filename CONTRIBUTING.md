@@ -6,13 +6,13 @@ Thank you for your interest in contributing! This guide covers the multi-module 
 
 This is a multi-module Go workspace with 5 independent modules:
 
-| Module | Import Path | Purpose |
-|--------|------------|---------|
-| `core/` | `github.com/larsartmann/go-cqrs-lite/core` | Command, query, event, aggregate, IDs |
-| `memory/` | `github.com/larsartmann/go-cqrs-lite/memory` | In-memory test implementations |
-| `catalog/` | `github.com/larsartmann/go-cqrs-lite/catalog` | AsyncAPI + EventCatalog generators |
-| `middleware/` | `github.com/larsartmann/go-cqrs-lite/middleware` | Cross-cutting middleware (logging, retry, recovery) |
-| `testhelpers/` | `github.com/larsartmann/go-cqrs-lite/testhelpers` | Shared test utilities |
+| Module         | Import Path                                       | Purpose                                             |
+| -------------- | ------------------------------------------------- | --------------------------------------------------- |
+| `core/`        | `github.com/larsartmann/go-cqrs-lite/core`        | Command, query, event, aggregate, IDs               |
+| `memory/`      | `github.com/larsartmann/go-cqrs-lite/memory`      | In-memory test implementations                      |
+| `catalog/`     | `github.com/larsartmann/go-cqrs-lite/catalog`     | AsyncAPI + EventCatalog generators                  |
+| `middleware/`  | `github.com/larsartmann/go-cqrs-lite/middleware`  | Cross-cutting middleware (logging, retry, recovery) |
+| `testhelpers/` | `github.com/larsartmann/go-cqrs-lite/testhelpers` | Shared test utilities                               |
 
 ## Prerequisites
 

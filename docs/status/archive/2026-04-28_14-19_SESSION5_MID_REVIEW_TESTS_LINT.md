@@ -19,6 +19,7 @@ Session 5 continued the comprehensive code review from sessions 3-4. The primary
 ## a) FULLY DONE
 
 ### Test Coverage Additions
+
 - [x] **CallbackEventHandler** added to `testhelpers/helpers.go` (symmetry with CallbackCommandHandler)
 - [x] **30 middleware tests** — complete coverage of every function in every middleware file:
   - `TestCommandLogging_Success/Error`
@@ -44,6 +45,7 @@ Session 5 continued the comprehensive code review from sessions 3-4. The primary
 - [x] **Dispatcher duplicate handler test** — `TestDispatcher_Register_Duplicate`
 
 ### Lint Fixes
+
 - [x] **Zero lint issues** across all 6 modules (core, memory, catalog, middleware, xtypes, testhelpers)
 - [x] Fixed `errcheck` — bus.Use() return value unchecked in BDD test and bus_test
 - [x] Removed unused `//nolint:nonamedreturns` from CommandRecovery/EventRecovery
@@ -60,27 +62,28 @@ Session 5 continued the comprehensive code review from sessions 3-4. The primary
 
 ### Coverage Summary (after this session)
 
-| Package | Coverage | Change |
-|---------|----------|--------|
-| middleware | **99.2%** | ↑ from ~64.8% |
-| memory | **99.4%** | ↑ from 99.2% |
-| catalog/asyncapi | 97.6% | — |
-| catalog/adapters | 98.8% | — |
-| core/aggregate | 90.2% | — |
-| core/event | 88.0% | — |
-| xtypes | 88.0% | — |
-| catalog | 87.0% | — |
-| core/query | 80.6% | — |
-| core/pkg/dispatcher | 75.4% | ↑ (new test) |
-| core/pkg/id | 73.1% | — |
-| core/command | 67.4% | — |
-| catalog/eventcatalog | 89.7% | — |
+| Package              | Coverage  | Change        |
+| -------------------- | --------- | ------------- |
+| middleware           | **99.2%** | ↑ from ~64.8% |
+| memory               | **99.4%** | ↑ from 99.2%  |
+| catalog/asyncapi     | 97.6%     | —             |
+| catalog/adapters     | 98.8%     | —             |
+| core/aggregate       | 90.2%     | —             |
+| core/event           | 88.0%     | —             |
+| xtypes               | 88.0%     | —             |
+| catalog              | 87.0%     | —             |
+| core/query           | 80.6%     | —             |
+| core/pkg/dispatcher  | 75.4%     | ↑ (new test)  |
+| core/pkg/id          | 73.1%     | —             |
+| core/command         | 67.4%     | —             |
+| catalog/eventcatalog | 89.7%     | —             |
 
 ---
 
 ## b) PARTIALLY DONE
 
 ### Staged but not committed
+
 All changes listed above are **staged** and ready to commit. The unstaged deletions (old CI files + Makefile) were from the previous session's nix migration and should be staged too.
 
 ---
@@ -88,10 +91,12 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 ## c) NOT STARTED
 
 ### From original TODO list (sessions 3-4)
+
 - [ ] **AGENTS.md update** with new findings (duplicate handler guard, test coverage numbers, backoff min())
 - [ ] **TODO_LIST.md refresh** — remove completed items, add new items discovered
 
 ### From roadmap (AGENTS.md)
+
 - [ ] **Phase 5: Storage module** — sqlc event store
 - [ ] **Phase 6: Watermill module** — pub/sub integration
 - [ ] **Phase 7: Projection module** — samber/ro internally
@@ -99,6 +104,7 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 - [ ] **Phase 10: Tag releases**
 
 ### Test coverage gaps
+
 - [ ] `core/command` at 67.4% — needs more tests for MustNew, MustNewCatalogCore edge cases
 - [ ] `core/pkg/id` at 73.1% — missing tests for ULID(), Get(), Parse/MustParse on CausationID, CorrelationID, EventID, RequestID
 - [ ] `core/query` at 80.6% — missing tests for DispatchTyped type mismatch path
@@ -111,6 +117,7 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 **Nothing is fucked up.** Everything compiles, all tests pass with -race, zero lint issues.
 
 ### Minor concerns
+
 - **LSP false positives** — 81 compiler errors shown by gopls are from `example/` modules and catalog test files that have stale `go.mod`. These do NOT affect compilation (`go test ./...` passes clean). Root cause: LSP indexes all directories including broken example modules.
 - **19 commits ahead of origin** — needs `git push` when ready
 - **`middleware/middleware_test.go` is 827 lines** — approaching the 250-line guideline, but all tests are table-driven and well-organized by function
@@ -133,11 +140,13 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 ## f) Top 25 Things We Should Get Done Next
 
 ### Priority 1: Ship what we have
+
 1. `git push origin master` — push 19+ commits
 2. Commit current staged changes (this session's work)
 3. Stage and commit unstaged deletions (old CI/Makefile from nix migration)
 
 ### Priority 2: Close coverage gaps
+
 4. Add `command.MustNew` panic test
 5. Add `command.New` empty aggregateID test
 6. Add `query.MustNew` panic test
@@ -148,6 +157,7 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 11. Add `id.Of[T]` Parse/MustParse tests for CausationID, CorrelationID, EventID, RequestID
 
 ### Priority 3: Code quality
+
 12. Split `middleware_test.go` into per-source test files
 13. Fix or delete broken `example/` modules
 14. Add `.golangci.yml` exclude for example/ directory
@@ -159,6 +169,7 @@ All changes listed above are **staged** and ready to commit. The unstaged deleti
 20. Add `QueryRetry_ContextCancellation` test
 
 ### Priority 4: Roadmap
+
 21. Phase 5: Storage module — sqlc event store (PostgreSQL)
 22. Phase 6: Watermill module — pub/sub integration
 23. Phase 7: Projection module — read model projections

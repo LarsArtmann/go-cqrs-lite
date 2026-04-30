@@ -47,13 +47,13 @@ go get github.com/larsartmann/go-cqrs-lite/memory
 
 ### Core Dependencies
 
-| Dependency | Purpose | Module |
-|---|---|---|
-| `cockroachdb/errors` | Error wrapping | core |
-| `oklog/ulid/v2` | ULID generation (binary-sortable, time-ordered) | core |
-| `go-composable-business-types` | Branded ID type backing | core |
-| `go-json-experiment/json` | JSON v2 | core |
-| `go-faster/yaml` | YAML marshaling | catalog only |
+| Dependency                     | Purpose                                         | Module       |
+| ------------------------------ | ----------------------------------------------- | ------------ |
+| `cockroachdb/errors`           | Error wrapping                                  | core         |
+| `oklog/ulid/v2`                | ULID generation (binary-sortable, time-ordered) | core         |
+| `go-composable-business-types` | Branded ID type backing                         | core         |
+| `go-json-experiment/json`      | JSON v2                                         | core         |
+| `go-faster/yaml`               | YAML marshaling                                 | catalog only |
 
 ## Core Concepts
 
@@ -115,12 +115,13 @@ aggregateID := aggregate_id.New()
 
 ## Module Structure
 
-| Module | Import Path | Purpose | Dependencies |
-|---|---|---|---|
-| **core** | `.../core/...` | CQRS types, dispatchers, event sourcing | errors, ulid, json |
-| **memory** | `.../memory` | In-memory store/bus/snapshot (testing) | core |
-| **catalog** | `.../catalog/...` | AsyncAPI + EventCatalog generation | core, yaml |
-| **middleware** | `.../middleware` | Logging, retry, validation, recovery, metrics | core |
+| Module         | Import Path       | Purpose                                       | Dependencies       |
+| -------------- | ----------------- | --------------------------------------------- | ------------------ |
+| **core**       | `.../core/...`    | CQRS types, dispatchers, event sourcing       | errors, ulid, json |
+| **memory**     | `.../memory`      | In-memory store/bus/snapshot (testing)        | core               |
+| **catalog**    | `.../catalog/...` | AsyncAPI + EventCatalog generation            | core, yaml         |
+| **middleware** | `.../middleware`  | Logging, retry, validation, recovery, metrics | core               |
+
 ## Design Principles
 
 1. **Pay for what you import** — Each module has its own `go.mod` with only needed dependencies
@@ -418,3 +419,4 @@ MIT
 
 - [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards
 - [CQRS pattern](https://martinfowler.com/bliki/CQRS.html) - Martin Fowler
+```

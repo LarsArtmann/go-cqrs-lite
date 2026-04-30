@@ -14,7 +14,10 @@ The `go` command now supports using a **subdirectory of a repository** as the mo
 This is configured via the `go-import` meta tag:
 
 ```html
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core">
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
+/>
 ```
 
 This means `github.com/larsartmann/go-cqrs-lite/core` resolves to the `core/` subdirectory
@@ -49,12 +52,12 @@ Restructure go-cqrs-lite as a multi-module monorepo so users only pay for what t
 CQRS event sourcing has four distinct storage needs. Each has different access patterns,
 different backends, and different scaling characteristics. They must be independent modules:
 
-| Concern | Access Pattern | Module | Backend |
-|---|---|---|---|
-| **Event Store** | Append-only, optimistic concurrency, ordered scans | `storage/` | PostgreSQL, MySQL, SQLite (sqlc) |
-| **PubSub** | Fan-out, consumer groups, at-least-once delivery | `watermill/` | Redis Streams, NATS, Kafka, Google PubSub |
-| **Projections** | Subscribe to events → write to query-optimized tables | `projection/` | Any SQL database |
-| **Snapshots** | Key-value by aggregate ID, infrequent writes | `snapshot/` | Any SQL database, Redis |
+| Concern         | Access Pattern                                        | Module        | Backend                                   |
+| --------------- | ----------------------------------------------------- | ------------- | ----------------------------------------- |
+| **Event Store** | Append-only, optimistic concurrency, ordered scans    | `storage/`    | PostgreSQL, MySQL, SQLite (sqlc)          |
+| **PubSub**      | Fan-out, consumer groups, at-least-once delivery      | `watermill/`  | Redis Streams, NATS, Kafka, Google PubSub |
+| **Projections** | Subscribe to events → write to query-optimized tables | `projection/` | Any SQL database                          |
+| **Snapshots**   | Key-value by aggregate ID, infrequent writes          | `snapshot/`   | Any SQL database, Redis                   |
 
 Each is independently replaceable. Use PostgreSQL for event store, Redis Streams for pub/sub,
 SQLite for projections, Redis for snapshots? Fine. Swap one without touching the others.
@@ -196,40 +199,40 @@ All storage modules depend on `core` interfaces, **not on each other**.
 
 ## What Users Import
 
-| Use Case | Import | Gets These Deps |
-|---|---|---|
-| CQRS types only | `core/...` | ulid, errors |
-| + in-memory testing | `memory/...` | + core |
-| + SQL event store (postgres) | `storage` | + core, pgx, sqlc |
-| + SQL event store (mysql/sqlite) | `storage` | + core, database/sql |
-| + pub/sub (any backend) | `watermill` | + core, watermill |
-| + projections | `projection` | + core, storage, samber/ro |
-| + snapshots | `snapshot` | + core, storage |
-| + API docs | `catalog/...` | + core, go-faster/yaml |
-| + test utilities | `testutil` | + core, memory |
-| Everything | all modules | all deps |
+| Use Case                         | Import        | Gets These Deps            |
+| -------------------------------- | ------------- | -------------------------- |
+| CQRS types only                  | `core/...`    | ulid, errors               |
+| + in-memory testing              | `memory/...`  | + core                     |
+| + SQL event store (postgres)     | `storage`     | + core, pgx, sqlc          |
+| + SQL event store (mysql/sqlite) | `storage`     | + core, database/sql       |
+| + pub/sub (any backend)          | `watermill`   | + core, watermill          |
+| + projections                    | `projection`  | + core, storage, samber/ro |
+| + snapshots                      | `snapshot`    | + core, storage            |
+| + API docs                       | `catalog/...` | + core, go-faster/yaml     |
+| + test utilities                 | `testutil`    | + core, memory             |
+| Everything                       | all modules   | all deps                   |
 
 Nobody who just wants CQRS types pulls in pgx, watermill, or a YAML library.
 
 ## What Gets Deleted
 
-| What | Why |
-|---|---|
-| `catalog/yaml/` (~180 lines) | Replaced by `go-faster/yaml` in catalog's go.mod |
-| `pkg/errors/` (~30 lines) | Dead code — never used anywhere |
-| `event/memory_store.go` | Moves to `memory/store.go` |
-| `event/memory_bus.go` | Moves to `memory/bus.go` |
-| `event/memory_snapshot_store.go` | Moves to `memory/snapshot.go` |
+| What                             | Why                                              |
+| -------------------------------- | ------------------------------------------------ |
+| `catalog/yaml/` (~180 lines)     | Replaced by `go-faster/yaml` in catalog's go.mod |
+| `pkg/errors/` (~30 lines)        | Dead code — never used anywhere                  |
+| `event/memory_store.go`          | Moves to `memory/store.go`                       |
+| `event/memory_bus.go`            | Moves to `memory/bus.go`                         |
+| `event/memory_snapshot_store.go` | Moves to `memory/snapshot.go`                    |
 
 ## What Gets Fixed (Existing Issues)
 
-| Issue | Fix |
-|---|---|
-| Query handler missing `context.Context` | Fix in `core/query/` during migration |
-| `err113` sentinel errors | Fix in all modules |
-| `marshalValue` complexity (14) | Delete the whole file, use go-faster/yaml |
-| `catalog/adapters` coverage 66% | Add tests in `catalog/` module |
-| Examples not CI-tested | Add to workflow via `go.work` |
+| Issue                                   | Fix                                       |
+| --------------------------------------- | ----------------------------------------- |
+| Query handler missing `context.Context` | Fix in `core/query/` during migration     |
+| `err113` sentinel errors                | Fix in all modules                        |
+| `marshalValue` complexity (14)          | Delete the whole file, use go-faster/yaml |
+| `catalog/adapters` coverage 66%         | Add tests in `catalog/` module            |
+| Examples not CI-tested                  | Add to workflow via `go.work`             |
 
 ## Migration Phases
 
@@ -335,6 +338,7 @@ Nobody who just wants CQRS types pulls in pgx, watermill, or a YAML library.
 ## Module Path Convention
 
 Before Go 1.25, multi-module repos required either:
+
 - Separate repos per module (fragmented)
 - `replace` directives in every go.mod (fragile)
 - Accepting that subdirectory modules couldn't resolve from their import path
@@ -377,16 +381,46 @@ For each module, add a `go-import` meta tag to the GitHub HTML (via `godoc.org`
 or a custom landing page):
 
 ```html
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/watermill mod https://github.com/larsartmann/go-cqrs-lite watermill">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/projection mod https://github.com/larsartmann/go-cqrs-lite projection">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/snapshot mod https://github.com/larsartmann/go-cqrs-lite snapshot">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes">
-<meta name="go-import" content="github.com/larsartmann/go-cqrs-lite/testutil mod https://github.com/larsartmann/go-cqrs-lite testutil">
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/watermill mod https://github.com/larsartmann/go-cqrs-lite watermill"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/projection mod https://github.com/larsartmann/go-cqrs-lite projection"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/snapshot mod https://github.com/larsartmann/go-cqrs-lite snapshot"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes"
+/>
+<meta
+  name="go-import"
+  content="github.com/larsartmann/go-cqrs-lite/testutil mod https://github.com/larsartmann/go-cqrs-lite testutil"
+/>
 ```
 
 This tells `go get` that `go-cqrs-lite/storage` lives in the `storage/` subdirectory of
@@ -419,13 +453,13 @@ Each module tests independently. CI catches cross-module breakage via go.work.
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-|---|---|
+| Risk                                 | Mitigation                                                             |
+| ------------------------------------ | ---------------------------------------------------------------------- |
 | Import path churn for existing users | Provide a compatibility shim in root module that re-exports core types |
-| Cross-module refactoring pain | go.work makes IDE navigation seamless — same experience as today |
-| Version skew between modules | Use replace directives in go.work during dev; tag together initially |
-| Lost git history from moves | Use `git mv` — GitHub tracks history across renames |
-| Examples break | They're in go.work, tested in CI |
+| Cross-module refactoring pain        | go.work makes IDE navigation seamless — same experience as today       |
+| Version skew between modules         | Use replace directives in go.work during dev; tag together initially   |
+| Lost git history from moves          | Use `git mv` — GitHub tracks history across renames                    |
+| Examples break                       | They're in go.work, tested in CI                                       |
 
 ## ID Strategy: ULID
 
@@ -434,15 +468,15 @@ instead of UUID v4 (`github.com/google/uuid`).
 
 **Why ULID for event sourcing:**
 
-| Property | UUID v4 | ULID |
-|---|---|---|
-| Sortable | Random — no sort guarantee | Lexicographic (millisecond precision) |
-| DB index inserts | Random page splits | Append-right (fast) |
-| Timestamp extraction | No | Yes — from the ID itself |
-| String length | 36 chars | 26 chars |
-| Encoding | Hex with dashes | Crockford Base32 (no 0/O, 1/I/l) |
-| Cross-language spec | RFC 4122 | Formal spec, 40+ implementations |
-| Collision risk | Negligible | Negligible (80 random bits per ms) |
+| Property             | UUID v4                    | ULID                                  |
+| -------------------- | -------------------------- | ------------------------------------- |
+| Sortable             | Random — no sort guarantee | Lexicographic (millisecond precision) |
+| DB index inserts     | Random page splits         | Append-right (fast)                   |
+| Timestamp extraction | No                         | Yes — from the ID itself              |
+| String length        | 36 chars                   | 26 chars                              |
+| Encoding             | Hex with dashes            | Crockford Base32 (no 0/O, 1/I/l)      |
+| Cross-language spec  | RFC 4122                   | Formal spec, 40+ implementations      |
+| Collision risk       | Negligible                 | Negligible (80 random bits per ms)    |
 
 The killer property: time-sortable IDs mean event store indexes are append-only.
 No page fragmentation from random UUID inserts.
@@ -465,11 +499,11 @@ from a single `sqlc.yaml` config (based on the template-sqlc pattern).
 
 ### Why sqlc
 
-| Approach | Problem |
-|---|---|
+| Approach         | Problem                                              |
+| ---------------- | ---------------------------------------------------- |
 | Hand-written SQL | Runtime errors, no type safety, string concatenation |
-| ORM (GORM, Ent) | Abstraction leak, event store needs raw SQL control |
-| **sqlc** | Write SQL, get type-safe Go. No runtime reflection. |
+| ORM (GORM, Ent)  | Abstraction leak, event store needs raw SQL control  |
+| **sqlc**         | Write SQL, get type-safe Go. No runtime reflection.  |
 
 ### Structure
 
@@ -612,6 +646,7 @@ go build -tags sqlite ./...
 ```
 
 The `eventstore.go` adapter uses build-tagged files:
+
 ```
 eventstore_postgres.go   //go:build postgres
 eventstore_mysql.go      //go:build mysql
@@ -636,11 +671,11 @@ access to all pub/sub backends without maintaining N separate modules.
 
 ### Why Watermill
 
-| Approach | Problem |
-|---|---|
-| Hand-rolled per backend | N modules to maintain, N sets of bugs |
-| **Watermill** | Battle-tested, all backends, maintained by community |
-| NATS-only | Locks users into one transport |
+| Approach                | Problem                                              |
+| ----------------------- | ---------------------------------------------------- |
+| Hand-rolled per backend | N modules to maintain, N sets of bugs                |
+| **Watermill**           | Battle-tested, all backends, maintained by community |
+| NATS-only               | Locks users into one transport                       |
 
 ### Tradeoff
 

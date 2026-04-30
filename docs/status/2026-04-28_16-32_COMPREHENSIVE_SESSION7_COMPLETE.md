@@ -12,14 +12,14 @@
 
 ### Multi-Module Monorepo Migration (Phases 0–4, 9)
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 0 | Fix query handler ctx, delete pkg/errors, replace custom YAML | ✅ Done |
-| 1 | go.work + move into `core/` subdirectory | ✅ Done |
-| 2 | Extract `memory/` module | ✅ Done |
-| 3 | Extract `catalog/` module | ✅ Done |
-| 4 | Extract middleware + xtypes | ✅ Done |
-| 9 | Test utilities module (`testhelpers/`) | ✅ Done |
+| Phase | Description                                                   | Status  |
+| ----- | ------------------------------------------------------------- | ------- |
+| 0     | Fix query handler ctx, delete pkg/errors, replace custom YAML | ✅ Done |
+| 1     | go.work + move into `core/` subdirectory                      | ✅ Done |
+| 2     | Extract `memory/` module                                      | ✅ Done |
+| 3     | Extract `catalog/` module                                     | ✅ Done |
+| 4     | Extract middleware + xtypes                                   | ✅ Done |
+| 9     | Test utilities module (`testhelpers/`)                        | ✅ Done |
 
 ### Nix Migration (Session 4)
 
@@ -30,14 +30,14 @@
 
 ### Test Coverage Achievement (Sessions 5–7)
 
-| Package | Before | After | Delta |
-|---------|--------|-------|-------|
-| `core/command` | 67.5% | **100.0%** | +32.5% |
-| `core/query` | 80.6% | **100.0%** | +19.4% |
-| `core/pkg/id` | 73.1% | **97.1%** | +24.0% |
-| `middleware` | 64.8% | **99.2%** | +34.4% |
-| `memory` | 99.2% | **99.4%** | +0.2% |
-| `core/aggregate` | 87.8% | **90.2%** | +2.4% |
+| Package          | Before | After      | Delta  |
+| ---------------- | ------ | ---------- | ------ |
+| `core/command`   | 67.5%  | **100.0%** | +32.5% |
+| `core/query`     | 80.6%  | **100.0%** | +19.4% |
+| `core/pkg/id`    | 73.1%  | **97.1%**  | +24.0% |
+| `middleware`     | 64.8%  | **99.2%**  | +34.4% |
+| `memory`         | 99.2%  | **99.4%**  | +0.2%  |
+| `core/aggregate` | 87.8%  | **90.2%**  | +2.4%  |
 
 ### Code Quality
 
@@ -82,7 +82,7 @@
 - `reflect.Ptr` dead branch in `catalog/schema.go`
 - Unused `handler` parameter from `dispatcher.Dispatch()`
 - Redundant `//nolint:err113` from test files
-- Legacy CI files (Makefile, .github/workflows/*.yml)
+- Legacy CI files (Makefile, .github/workflows/\*.yml)
 
 ---
 
@@ -158,6 +158,7 @@ Semantic versioning for all 6 modules. Publishing to pkg.go.dev.
 ### samber Library Evaluation
 
 Not started. User asked to evaluate samber/ro, samber/do, and other samber libs for potential integration. This requires:
+
 - Research each library's API, maturity, license, dependencies
 - Evaluate fit with current architecture
 - Write up pros/cons with concrete code examples
@@ -182,6 +183,7 @@ TypedCommand/TypedEvent error paths, EventBuilder edge cases.
 ### NOTHING IS FUCKED UP.
 
 The codebase is in its cleanest state ever:
+
 - Zero lint issues
 - Zero race conditions
 - Zero code duplication
@@ -238,33 +240,33 @@ The codebase is in its cleanest state ever:
 
 Priority-sorted by **impact × effort⁻¹**:
 
-| # | Task | Effort | Impact | Module |
-|---|------|--------|--------|--------|
-| 1 | **Evaluate samber/ro, samber/do, and other samber libs** | 2-3 hr | HIGH | Planning |
-| 2 | **Design storage module (Phase 5)** — schema, sqlc, interface | 1 day | HIGH | storage/ |
-| 3 | **Add integration test across all modules** — full CQRS flow | 2 hr | HIGH | testhelpers/ |
-| 4 | **Add golden-file tests for catalog exports** (AsyncAPI, EventCatalog) | 1 hr | MEDIUM | catalog/ |
-| 5 | **Split `cattest/helpers.go`** (450 lines → ~180 + ~180) | 30 min | MEDIUM | catalog/ |
-| 6 | **Add benchmarks** for dispatch, event creation, ID generation | 1 hr | MEDIUM | core/ |
-| 7 | **Tag v0.1.0-alpha releases** for all 6 modules | 30 min | MEDIUM | Release |
-| 8 | **Write getting-started guide** with working example | 2 hr | HIGH | docs/ |
-| 9 | **Add working example app** (simple user CRUD with event sourcing) | 2 hr | MEDIUM | example/ |
-| 10 | **Implement persistent event store** (Phase 5 core) | 3 days | CRITICAL | storage/ |
-| 11 | **Add BaseDispatcher direct tests** (75.4% → 100%) | 30 min | LOW | core/pkg/dispatcher/ |
-| 12 | **Improve eventcatalog coverage** (89.7% → 95%+) | 1 hr | MEDIUM | catalog/eventcatalog/ |
-| 13 | **Add OpenTelemetry metrics middleware** | 2 hr | HIGH | middleware/ |
-| 14 | **Remove stale replace directives** in middleware/xtypes go.mod | 5 min | LOW | Build |
-| 15 | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta | 30 min | LOW | xtypes/ |
-| 16 | **Add health check interface** for Store/Bus/Dispatcher | 1 hr | MEDIUM | core/ |
-| 17 | **Add graceful shutdown** — drain in-flight ops on Close() | 2 hr | MEDIUM | core/ |
-| 18 | **Implement Watermill module** (Phase 6) | 3 days | HIGH | watermill/ |
-| 19 | **Implement projection module** (Phase 7) | 2 days | HIGH | projection/ |
-| 20 | **Add fuzz tests** for command types, event types, schemas | 1 hr | LOW | core/ |
-| 21 | **Implement SQL snapshot store** (Phase 8) | 1 day | MEDIUM | sqlsnapshot/ |
-| 22 | **Add CI badge + pkg.go.dev links** to README | 15 min | LOW | docs/ |
-| 23 | **Add aggregate saga/process manager** pattern | 2 days | HIGH | core/ |
-| 24 | **Clean up status report archive** (41 reports, many stale) | 30 min | LOW | docs/status/ |
-| 25 | **Add CONTRIBUTING.md** review guidelines, PR template | 1 hr | LOW | docs/ |
+| #   | Task                                                                   | Effort | Impact   | Module                |
+| --- | ---------------------------------------------------------------------- | ------ | -------- | --------------------- |
+| 1   | **Evaluate samber/ro, samber/do, and other samber libs**               | 2-3 hr | HIGH     | Planning              |
+| 2   | **Design storage module (Phase 5)** — schema, sqlc, interface          | 1 day  | HIGH     | storage/              |
+| 3   | **Add integration test across all modules** — full CQRS flow           | 2 hr   | HIGH     | testhelpers/          |
+| 4   | **Add golden-file tests for catalog exports** (AsyncAPI, EventCatalog) | 1 hr   | MEDIUM   | catalog/              |
+| 5   | **Split `cattest/helpers.go`** (450 lines → ~180 + ~180)               | 30 min | MEDIUM   | catalog/              |
+| 6   | **Add benchmarks** for dispatch, event creation, ID generation         | 1 hr   | MEDIUM   | core/                 |
+| 7   | **Tag v0.1.0-alpha releases** for all 6 modules                        | 30 min | MEDIUM   | Release               |
+| 8   | **Write getting-started guide** with working example                   | 2 hr   | HIGH     | docs/                 |
+| 9   | **Add working example app** (simple user CRUD with event sourcing)     | 2 hr   | MEDIUM   | example/              |
+| 10  | **Implement persistent event store** (Phase 5 core)                    | 3 days | CRITICAL | storage/              |
+| 11  | **Add BaseDispatcher direct tests** (75.4% → 100%)                     | 30 min | LOW      | core/pkg/dispatcher/  |
+| 12  | **Improve eventcatalog coverage** (89.7% → 95%+)                       | 1 hr   | MEDIUM   | catalog/eventcatalog/ |
+| 13  | **Add OpenTelemetry metrics middleware**                               | 2 hr   | HIGH     | middleware/           |
+| 14  | **Remove stale replace directives** in middleware/xtypes go.mod        | 5 min  | LOW      | Build                 |
+| 15  | **Fix naming inconsistency** — EventCatalogMeta → CatalogMeta          | 30 min | LOW      | xtypes/               |
+| 16  | **Add health check interface** for Store/Bus/Dispatcher                | 1 hr   | MEDIUM   | core/                 |
+| 17  | **Add graceful shutdown** — drain in-flight ops on Close()             | 2 hr   | MEDIUM   | core/                 |
+| 18  | **Implement Watermill module** (Phase 6)                               | 3 days | HIGH     | watermill/            |
+| 19  | **Implement projection module** (Phase 7)                              | 2 days | HIGH     | projection/           |
+| 20  | **Add fuzz tests** for command types, event types, schemas             | 1 hr   | LOW      | core/                 |
+| 21  | **Implement SQL snapshot store** (Phase 8)                             | 1 day  | MEDIUM   | sqlsnapshot/          |
+| 22  | **Add CI badge + pkg.go.dev links** to README                          | 15 min | LOW      | docs/                 |
+| 23  | **Add aggregate saga/process manager** pattern                         | 2 days | HIGH     | core/                 |
+| 24  | **Clean up status report archive** (41 reports, many stale)            | 30 min | LOW      | docs/status/          |
+| 25  | **Add CONTRIBUTING.md** review guidelines, PR template                 | 1 hr   | LOW      | docs/                 |
 
 ---
 
@@ -279,6 +281,7 @@ This single question drives every architectural decision going forward:
 - If this is a **competing library to go-cockroachdb-eventstore, watermill, etc.** → Need Phase 5–8 plus comprehensive docs, benchmarks, migration guides, and a clear differentiation story.
 
 The answer determines whether we invest in:
+
 - Storage/Persistence (Phases 5, 8)
 - Pub/Sub (Phase 6)
 - Projections (Phase 7)
@@ -288,21 +291,21 @@ The answer determines whether we invest in:
 
 ## Current Coverage Summary
 
-| Package | Coverage | Status |
-|---------|----------|--------|
-| `core/command` | **100.0%** | ✅ Perfect |
-| `core/query` | **100.0%** | ✅ Perfect |
-| `memory` | **99.4%** | ✅ Near-perfect |
-| `middleware` | **99.2%** | ✅ Near-perfect |
-| `core/pkg/id` | **97.1%** | ✅ Excellent |
-| `catalog/adapters` | **98.8%** | ✅ Excellent |
-| `catalog/asyncapi` | **97.6%** | ✅ Excellent |
-| `catalog/eventcatalog` | **89.7%** | 🔶 Good |
-| `core/aggregate` | **90.2%** | 🔶 Good |
-| `core/event` | **88.3%** | 🔶 Good |
-| `catalog` | **87.0%** | 🔶 Good |
-| `xtypes` | **88.6%** | 🔶 Good |
-| `core/pkg/dispatcher` | **75.4%** | 🔶 Adequate (indirect coverage) |
+| Package                | Coverage   | Status                          |
+| ---------------------- | ---------- | ------------------------------- |
+| `core/command`         | **100.0%** | ✅ Perfect                      |
+| `core/query`           | **100.0%** | ✅ Perfect                      |
+| `memory`               | **99.4%**  | ✅ Near-perfect                 |
+| `middleware`           | **99.2%**  | ✅ Near-perfect                 |
+| `core/pkg/id`          | **97.1%**  | ✅ Excellent                    |
+| `catalog/adapters`     | **98.8%**  | ✅ Excellent                    |
+| `catalog/asyncapi`     | **97.6%**  | ✅ Excellent                    |
+| `catalog/eventcatalog` | **89.7%**  | 🔶 Good                         |
+| `core/aggregate`       | **90.2%**  | 🔶 Good                         |
+| `core/event`           | **88.3%**  | 🔶 Good                         |
+| `catalog`              | **87.0%**  | 🔶 Good                         |
+| `xtypes`               | **88.6%**  | 🔶 Good                         |
+| `core/pkg/dispatcher`  | **75.4%**  | 🔶 Adequate (indirect coverage) |
 
 **Weighted average: ~93%**
 

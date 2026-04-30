@@ -4,16 +4,16 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 
 ## Quick Reference
 
-| Item          | Value                                  |
-| ------------- | -------------------------------------- |
-| Language      | Go 1.26                                |
-| Modules       | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration` |
-| Build         | `nix run .#build`                     |
-| Test          | `nix run .#test` or see "Testing" below |
-| Lint          | `nix run .#lint`                      |
-| Format        | `nix fmt`                             |
-| Dev shell     | `nix develop`                         |
-| CI            | GitHub Actions: ci.yml (Nix-based)    |
+| Item      | Value                                                                   |
+| --------- | ----------------------------------------------------------------------- |
+| Language  | Go 1.26                                                                 |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration` |
+| Build     | `nix run .#build`                                                       |
+| Test      | `nix run .#test` or see "Testing" below                                 |
+| Lint      | `nix run .#lint`                                                        |
+| Format    | `nix fmt`                                                               |
+| Dev shell | `nix develop`                                                           |
+| CI        | GitHub Actions: ci.yml (Nix-based)                                      |
 
 ## Monorepo Structure
 
@@ -74,11 +74,13 @@ go-cqrs-lite/
 ## Testing
 
 From root with go.work:
+
 ```bash
 go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... -count=1
 ```
 
 Per-module (isolated, no go.work):
+
 ```bash
 cd core && GOWORK=off go test ./... -count=1
 cd memory && GOWORK=off go test ./... -count=1
@@ -86,6 +88,7 @@ cd catalog && GOWORK=off go test ./... -count=1
 ```
 
 Nix flake apps (run from root):
+
 ```bash
 nix run .#test          # all tests
 nix run .#test-race     # race detector
@@ -147,49 +150,47 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                    | Purpose                                        | Key Types                                               |
-| -------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
-| `core/command/`            | Command dispatch and handling                  | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core` |
-| `core/query/`              | Query dispatch with pagination                 | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware` |
-| `core/event/`              | Event sourcing interfaces and types            | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option` |
-| `core/aggregate/`          | Aggregate roots and repository                 | `Root`, `Repository`, `Core`, `EventSourcedRepository`  |
-| `core/pkg/id/`             | Branded IDs via generics                       | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
-| `core/pkg/dispatcher/`     | Generic internal dispatcher                     | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin` |
+| Package                | Purpose                             | Key Types                                                                                              |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                               |
+| `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                              |
+| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                 |
+| `core/aggregate/`      | Aggregate roots and repository      | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                 |
+| `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
+| `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                          |
 
 ### Memory Module (`memory/`)
 
-| Package       | Purpose                      | Key Types             |
-| ------------- | ---------------------------- | --------------------- |
-| `memory/`     | In-memory test implementations | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore` |
+| Package   | Purpose                        | Key Types                                         |
+| --------- | ------------------------------ | ------------------------------------------------- |
+| `memory/` | In-memory test implementations | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore` |
 
 ### Catalog Module (`catalog/`)
 
-| Package                 | Purpose                          | Key Types                                    |
-| ----------------------- | -------------------------------- | -------------------------------------------- |
+| Package                 | Purpose                                | Key Types                                                 |
+| ----------------------- | -------------------------------------- | --------------------------------------------------------- |
 | `catalog/`              | Registry, schema reflection, MessageID | `Registry`, `Catalog`, `SchemaFromType[T]`, `MessageID()` |
-| `catalog/adapters/`     | Builder and dispatcher adapters  | `CatalogBuilder`, `FromCommandDispatcher`     |
-| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export   | `Exporter`, `Document`, `MarshalYAML`        |
-| `catalog/eventcatalog/` | EventCatalog MDX generator       | `Exporter`                                   |
+| `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                 |
+| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                     |
+| `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                |
 
 ### Middleware Module (`middleware/`)
 
-| Package        | Purpose                          | Key Types                                    |
-| -------------- | -------------------------------- | -------------------------------------------- |
-| `middleware/`   | Cross-cutting CQRS middleware     | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics` |
+| Package       | Purpose                       | Key Types                                                                                                                        |
+| ------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `middleware/` | Cross-cutting CQRS middleware | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics` |
 
 ### Testhelpers Module (`testhelpers/`)
 
-| Helper | Purpose |
-|--------|----------|
-| `AppendEventsHandler` | Bus handler that collects events into a slice |
-| `NoopCommandHandler` / `NoopEventHandler` | No-op handlers for middleware tests |
-| `FailingCommandHandler` / `FailingEventHandler` | Handlers that always error |
-| `PanicCommandHandler` / `PanicEventHandler` | Handlers that panic |
-| `CallbackCommandHandler` | Handler that sets a bool flag |
-| `CommandMiddleware` / `EventMiddleware` | Call-order tracking middleware |
-| `TestMetrics` | Metrics collector for testing |
-
-
+| Helper                                          | Purpose                                       |
+| ----------------------------------------------- | --------------------------------------------- |
+| `AppendEventsHandler`                           | Bus handler that collects events into a slice |
+| `NoopCommandHandler` / `NoopEventHandler`       | No-op handlers for middleware tests           |
+| `FailingCommandHandler` / `FailingEventHandler` | Handlers that always error                    |
+| `PanicCommandHandler` / `PanicEventHandler`     | Handlers that panic                           |
+| `CallbackCommandHandler`                        | Handler that sets a bool flag                 |
+| `CommandMiddleware` / `EventMiddleware`         | Call-order tracking middleware                |
+| `TestMetrics`                                   | Metrics collector for testing                 |
 
 ## Design Principles
 
@@ -291,37 +292,37 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ### Production
 
-| Dependency              | Version  | Purpose              | Module   |
-| ----------------------- | -------- | -------------------- | -------- |
-| `cockroachdb/errors`   | v1.12.0  | Error wrapping       | core, middleware |
-| `oklog/ulid/v2`             | v2.1.0   | ULID generation (binary-sortable) | core     |
-| `go-branded-id` | v0.1.0 | Branded ID type backing | core |
-| `go-faster/yaml`        | v0.4.6   | YAML marshaling      | catalog  |
-| `go-json-experiment/json` | v0.0.0 | JSON v2             | core, catalog |
+| Dependency                | Version | Purpose                           | Module           |
+| ------------------------- | ------- | --------------------------------- | ---------------- |
+| `cockroachdb/errors`      | v1.12.0 | Error wrapping                    | core, middleware |
+| `oklog/ulid/v2`           | v2.1.0  | ULID generation (binary-sortable) | core             |
+| `go-branded-id`           | v0.1.0  | Branded ID type backing           | core             |
+| `go-faster/yaml`          | v0.4.6  | YAML marshaling                   | catalog          |
+| `go-json-experiment/json` | v0.0.0  | JSON v2                           | core, catalog    |
 
 ### Test-only
 
-| Dependency          | Version  | Purpose          | Module |
-| ------------------- | -------- | ---------------- | ------ |
-| `onsi/ginkgo/v2`    | v2.28.1  | BDD testing      | core   |
-| `onsi/gomega`       | v1.39.1  | BDD matchers     | core   |
+| Dependency       | Version | Purpose      | Module |
+| ---------------- | ------- | ------------ | ------ |
+| `onsi/ginkgo/v2` | v2.28.1 | BDD testing  | core   |
+| `onsi/gomega`    | v1.39.1 | BDD matchers | core   |
 
 ## Test Coverage Summary
 
-| Package                  | Coverage |
-| ------------------------ | -------- |
-| `core/command`           | 100.0%   |
-| `core/query`             | 100.0%   |
-| `core/pkg/dispatcher`    | 100.0%   |
-| `middleware`              | 100.0%   |
-| `memory`                 | 98.9%    |
-| `catalog/adapters`       | 98.8%    |
-| `core/event`             | 99.1%    |
-| `core/pkg/id`            | 97.1%    |
-| `catalog/asyncapi`       | 97.6%    |
-| `catalog/eventcatalog`   | 95.5%    |
-| `core/aggregate`         | 95.7%    |
-| `catalog`                | 94.4%    |
+| Package                | Coverage |
+| ---------------------- | -------- |
+| `core/command`         | 100.0%   |
+| `core/query`           | 100.0%   |
+| `core/pkg/dispatcher`  | 100.0%   |
+| `middleware`           | 100.0%   |
+| `memory`               | 98.9%    |
+| `catalog/adapters`     | 98.8%    |
+| `core/event`           | 99.1%    |
+| `core/pkg/id`          | 97.1%    |
+| `catalog/asyncapi`     | 97.6%    |
+| `catalog/eventcatalog` | 95.5%    |
+| `core/aggregate`       | 95.7%    |
+| `catalog`              | 94.4%    |
 
 ## Module Dependency Graph
 
@@ -336,12 +337,12 @@ core        → (no internal deps — independently publishable)
 
 ### Integration Module (`integration/`)
 
-| Package | Purpose | Key Types |
-|---------|---------|-----------|
+| Package                  | Purpose                                                    | Key Types               |
+| ------------------------ | ---------------------------------------------------------- | ----------------------- |
 | `integration/aggregate/` | Aggregate integration tests (moved from `core/aggregate/`) | BDD + integration tests |
-| `integration/command/` | Command integration tests (moved from `core/command/`) | Middleware chain tests |
-| `integration/event/` | Event integration tests (moved from `core/event/`) | BDD + benchmark tests |
-| `integration/query/` | Query integration tests (moved from `core/query/`) | Middleware chain tests |
+| `integration/command/`   | Command integration tests (moved from `core/command/`)     | Middleware chain tests  |
+| `integration/event/`     | Event integration tests (moved from `core/event/`)         | BDD + benchmark tests   |
+| `integration/query/`     | Query integration tests (moved from `core/query/`)         | Middleware chain tests  |
 
 ## Catalog System Architecture
 
@@ -387,50 +388,50 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 Interfaces now return branded ID types instead of `string`:
 
-| Interface | Method | Old Return | New Return |
-| --------- | ------ | ---------- | ---------- |
-| `Event` | `ID()` | `string` | `id.EventID` |
-| `Event` | `AggregateID()` | `string` | `id.AggregateID` |
-| `Root` | `ID()` | `string` | `id.AggregateID` |
-| `Command` | `AggregateID()` | `string` | `id.AggregateID` |
+| Interface | Method          | Old Return | New Return       |
+| --------- | --------------- | ---------- | ---------------- |
+| `Event`   | `ID()`          | `string`   | `id.EventID`     |
+| `Event`   | `AggregateID()` | `string`   | `id.AggregateID` |
+| `Root`    | `ID()`          | `string`   | `id.AggregateID` |
+| `Command` | `AggregateID()` | `string`   | `id.AggregateID` |
 
 **Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). All `cmd.AggregateID()` and `root.ID()` comparisons use branded types. `repository.go` eliminated redundant `id.ParseAggregateID()` re-parses. `middleware/logging.go` adds `.String()` when formatting IDs for log output. Commit: `cee6c50`
 
 ## Bug Fixes (Sessions 1–2)
 
-| Bug | Fix | Commit |
-|-----|-----|-------|
-| Retry dead cancellation | `context.Background().Done()` → `ctx.Done()` in `middleware/retry.go` | `5ad0356` |
-| Aggregate version desync | Removed fallback loop; `Load()` requires `HistoryLoader` | `1862eae` |
-| Wrong error sentinel (dispatcher) | `CheckClosed` used `ErrHandlerNotFound` → `ErrDispatcherClosed` | `5ad0356` |
-| Slice mutation (MemoryStore) | `Load()`/`LoadFromVersion()` return defensive copies | `d5ea811` |
-| Wrong error sentinel (snapshot) | `CheckClosed` used `ErrSnapshotNotFound` → `ErrSnapshotStoreClosed` | `8e5150c` |
+| Bug                               | Fix                                                                   | Commit    |
+| --------------------------------- | --------------------------------------------------------------------- | --------- |
+| Retry dead cancellation           | `context.Background().Done()` → `ctx.Done()` in `middleware/retry.go` | `5ad0356` |
+| Aggregate version desync          | Removed fallback loop; `Load()` requires `HistoryLoader`              | `1862eae` |
+| Wrong error sentinel (dispatcher) | `CheckClosed` used `ErrHandlerNotFound` → `ErrDispatcherClosed`       | `5ad0356` |
+| Slice mutation (MemoryStore)      | `Load()`/`LoadFromVersion()` return defensive copies                  | `d5ea811` |
+| Wrong error sentinel (snapshot)   | `CheckClosed` used `ErrSnapshotNotFound` → `ErrSnapshotStoreClosed`   | `8e5150c` |
 
 ## Code Quality Improvements (Sessions 1–2)
 
-| Improvement | Detail | Commit |
-|-------------|--------|-------|
-| Dead code removal | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation` | `1862eae` |
-| Lifecycle unification | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin` | `8e5150c` |
-| EventValidation middleware | API symmetry: Command/Query/Event all have validation | `4fdd447` |
-| MessageID extraction | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()` | `c1bc261` |
-| event.go split | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines) | `699d247` |
-| Dead reflect.Ptr case | Removed unreachable branch in `goTypeToJSON` | `b23a781` |
-| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter | `e84e3a1` |
-| Example simplification | `example/user/` uses `aggregate.EventSourcedRepository` | `6815ef3` |
+| Improvement                  | Detail                                                                | Commit    |
+| ---------------------------- | --------------------------------------------------------------------- | --------- |
+| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation` | `1862eae` |
+| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`            | `8e5150c` |
+| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                 | `4fdd447` |
+| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`         | `c1bc261` |
+| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)     | `699d247` |
+| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                          | `b23a781` |
+| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                  | `e84e3a1` |
+| Example simplification       | `example/user/` uses `aggregate.EventSourcedRepository`               | `6815ef3` |
 
 ## Known Issues
 
-| Issue | Severity | Detail |
-|-------|----------|--------|
-| `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
-| `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
-| ~~`core/pkg/dispatcher` coverage~~ | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8) |
-| ~~`core/aggregate` coverage~~ | ✅ FIXED | 21.4% → 95.7% — repository unit tests with fakes (session 13) |
-| ~~`core/command` coverage~~ | ✅ FIXED | 95.0% → 100% — Use/Register tests (session 13) |
-| ~~`core/query` coverage~~ | ✅ FIXED | 91.0% → 100% — Use/Register/DispatchTyped tests (session 13) |
-| ~~`MemorySnapshotStore` deep copy~~ | ✅ FIXED | Deep copy in `copySnapshot` + defensive copy tests (session 10) |
-| ~~No `EventRetry` tests~~ | ✅ FIXED | Split retry tests, added EventRetry coverage (session 10) |
+| Issue                                                    | Severity | Detail                                                          |
+| -------------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)      |
+| `toDotAddress` number handling                           | LOW      | "Get3DView" → "get.3.d.view" instead of "get.3d.view"           |
+| ~~`core/pkg/dispatcher` coverage~~                       | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8)              |
+| ~~`core/aggregate` coverage~~                            | ✅ FIXED | 21.4% → 95.7% — repository unit tests with fakes (session 13)   |
+| ~~`core/command` coverage~~                              | ✅ FIXED | 95.0% → 100% — Use/Register tests (session 13)                  |
+| ~~`core/query` coverage~~                                | ✅ FIXED | 91.0% → 100% — Use/Register/DispatchTyped tests (session 13)    |
+| ~~`MemorySnapshotStore` deep copy~~                      | ✅ FIXED | Deep copy in `copySnapshot` + defensive copy tests (session 10) |
+| ~~No `EventRetry` tests~~                                | ✅ FIXED | Split retry tests, added EventRetry coverage (session 10)       |
 
 ## Cleanup Done (Post-Migration)
 
@@ -531,19 +532,19 @@ Interfaces now return branded ID types instead of `string`:
 
 The monorepo is mid-migration from a single module to multi-module. Current state:
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 0 | Fix query handler ctx, delete pkg/errors, replace custom YAML | Done |
-| 1 | go.work + move into `core/` subdirectory | Done |
-| 2 | Extract `memory/` module | Done |
-| 3 | Extract `catalog/` module | Done |
-| 4 | Extract middleware + xtypes | Done |
-| 5 | Storage module (SQLEventStore) | Done — `storage/` with PostgreSQL backend |
-| 6 | Watermill module (pub/sub) | Planned |
-| 7 | Projection module (samber/ro internally) | Done — `core/event/projection.go` + `runner.go` |
-| 8 | Snapshot module (SQL-backed) | Planned |
-| 9 | Test utilities module | Done — `testhelpers/` at repo root |
-| 10 | Tag releases | Planned |
+| Phase | Description                                                   | Status                                          |
+| ----- | ------------------------------------------------------------- | ----------------------------------------------- |
+| 0     | Fix query handler ctx, delete pkg/errors, replace custom YAML | Done                                            |
+| 1     | go.work + move into `core/` subdirectory                      | Done                                            |
+| 2     | Extract `memory/` module                                      | Done                                            |
+| 3     | Extract `catalog/` module                                     | Done                                            |
+| 4     | Extract middleware + xtypes                                   | Done                                            |
+| 5     | Storage module (SQLEventStore)                                | Done — `storage/` with PostgreSQL backend       |
+| 6     | Watermill module (pub/sub)                                    | Planned                                         |
+| 7     | Projection module (samber/ro internally)                      | Done — `core/event/projection.go` + `runner.go` |
+| 8     | Snapshot module (SQL-backed)                                  | Planned                                         |
+| 9     | Test utilities module                                         | Done — `testhelpers/` at repo root              |
+| 10    | Tag releases                                                  | Planned                                         |
 
 See `docs/planning/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md` for the full migration plan.
 
@@ -551,15 +552,15 @@ See `docs/planning/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md` for the full migrat
 
 These were identified but explicitly deferred because they affect all consumers or require external coordination:
 
-| Change | Reason |
-|--------|--------|
-| ~~`Root.ID()` → return `id.AggregateID` instead of `string`~~ | ✅ Done (commit `7cc3e20`) |
-| ~~`Event.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
-| ~~`Event.ID()` → return `id.EventID`~~ | ✅ Done (commit `7cc3e20`) |
-| ~~`Command.AggregateID()` → return `id.AggregateID`~~ | ✅ Done (commit `7cc3e20`) |
-| ~~`event.go:129` `aggregateID.IsZero`~~ | ✅ Done (now uses branded `id.AggregateID.IsZero()`) |
-| ~~`EventCatalogMeta` → `CatalogMeta` naming~~ | ✅ Done (session 9, breaking change) |
-| Stale `replace` directives in `middleware/go.mod` | ✅ Done (session 9, removed all unused replaces) |
+| Change                                                        | Reason                                               |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| ~~`Root.ID()` → return `id.AggregateID` instead of `string`~~ | ✅ Done (commit `7cc3e20`)                           |
+| ~~`Event.AggregateID()` → return `id.AggregateID`~~           | ✅ Done (commit `7cc3e20`)                           |
+| ~~`Event.ID()` → return `id.EventID`~~                        | ✅ Done (commit `7cc3e20`)                           |
+| ~~`Command.AggregateID()` → return `id.AggregateID`~~         | ✅ Done (commit `7cc3e20`)                           |
+| ~~`event.go:129` `aggregateID.IsZero`~~                       | ✅ Done (now uses branded `id.AggregateID.IsZero()`) |
+| ~~`EventCatalogMeta` → `CatalogMeta` naming~~                 | ✅ Done (session 9, breaking change)                 |
+| Stale `replace` directives in `middleware/go.mod`             | ✅ Done (session 9, removed all unused replaces)     |
 
 ## Known Architectural Constraints
 
@@ -572,6 +573,7 @@ These were identified but explicitly deferred because they affect all consumers 
 **Resolution:** Created `integration/` module at repo root. All `core` test files importing `memory` or `testhelpers` were moved to `integration/{aggregate,command,event,query}/`. `core/go.mod` now has no internal module dependencies.
 
 **Verification:**
+
 ```bash
 cd core && GOWORK=off go test ./... -count=1  # passes without replace directives
 ```

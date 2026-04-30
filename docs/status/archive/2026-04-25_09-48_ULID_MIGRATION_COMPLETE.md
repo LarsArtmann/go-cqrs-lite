@@ -9,6 +9,7 @@
 ## A) FULLY DONE ✅
 
 ### Core ID Type Rewrite (`core/pkg/id/id.go`)
+
 - `type Of[T any] = cbid.ID[T, string]` — type alias to composable-business-types
 - ULID generation via `ulid.MustNew(ulid.Timestamp(time.Now()), rand.Reader)` — thread-safe
 - `New[T]()`, `NewWithPrefix[T]()`, `Parse[T]()`, `MustParse[T]()` — thin wrappers preserved
@@ -17,42 +18,46 @@
 - Added `ULID()` helper for timestamp extraction
 
 ### Production Code Changes
-| File | Change |
-|------|--------|
-| `core/event/event.go` | Removed `""` assignments for zero-value ID fields; `IsEmpty()` → `IsZero()` |
-| `core/event/internal/evtest/helpers.go` | Replaced `google/uuid` with `id.New[struct{}]().String()` |
-| `xtypes/event.go` | `IsEmpty()` → `IsZero()` |
+
+| File                                    | Change                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `core/event/event.go`                   | Removed `""` assignments for zero-value ID fields; `IsEmpty()` → `IsZero()` |
+| `core/event/internal/evtest/helpers.go` | Replaced `google/uuid` with `id.New[struct{}]().String()`                   |
+| `xtypes/event.go`                       | `IsEmpty()` → `IsZero()`                                                    |
 
 ### Test File Fixes (String Literal → MustParse)
-| File | Status |
-|------|--------|
-| `core/aggregate/aggregate_test.go` | ✅ 9 edits, all string literals wrapped |
-| `core/command/command_test.go` | ✅ Fixed in previous session |
-| `core/event/event_test.go` | ✅ 6 edits: `""` → `AggregateID{}`, `id.AggregateID("x")` → `id.MustParseAggregateID("x")`, `id.CorrelationID("x")` → `id.MustParseCorrelationID("x")`, etc. |
-| `core/event/event_sourcing_bdd_test.go` | ✅ 2 edits: With* options and Equal assertions |
-| `core/pkg/id/id_test.go` | ✅ Complete rewrite for new API |
-| `core/pkg/id/fuzz_test.go` | ✅ ULID seed corpus |
-| `memory/bus_test.go` | ✅ Full rewrite with `id.MustParseAggregateID()` |
-| `memory/store_test.go` | ✅ Full rewrite with `id.MustParseAggregateID()` |
-| `xtypes/xtypes_test.go` | ✅ `IsEmpty()` → `IsZero()` |
+
+| File                                    | Status                                                                                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `core/aggregate/aggregate_test.go`      | ✅ 9 edits, all string literals wrapped                                                                                                                      |
+| `core/command/command_test.go`          | ✅ Fixed in previous session                                                                                                                                 |
+| `core/event/event_test.go`              | ✅ 6 edits: `""` → `AggregateID{}`, `id.AggregateID("x")` → `id.MustParseAggregateID("x")`, `id.CorrelationID("x")` → `id.MustParseCorrelationID("x")`, etc. |
+| `core/event/event_sourcing_bdd_test.go` | ✅ 2 edits: With\* options and Equal assertions                                                                                                              |
+| `core/pkg/id/id_test.go`                | ✅ Complete rewrite for new API                                                                                                                              |
+| `core/pkg/id/fuzz_test.go`              | ✅ ULID seed corpus                                                                                                                                          |
+| `memory/bus_test.go`                    | ✅ Full rewrite with `id.MustParseAggregateID()`                                                                                                             |
+| `memory/store_test.go`                  | ✅ Full rewrite with `id.MustParseAggregateID()`                                                                                                             |
+| `xtypes/xtypes_test.go`                 | ✅ `IsEmpty()` → `IsZero()`                                                                                                                                  |
 
 ### go.mod Updates
-| Module | Change |
-|--------|--------|
-| `core/go.mod` | Added `go-composable-business-types`, `oklog/ulid/v2`; removed `google/uuid` from direct deps |
-| `xtypes/go.mod` | Added `go-composable-business-types` replace directive |
-| `memory/go.mod` | Added `go-composable-business-types` replace directive |
-| `catalog/go.mod` | Added `go-composable-business-types` replace directive |
-| `middleware/go.mod` | Added `go-composable-business-types` replace directive |
+
+| Module              | Change                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `core/go.mod`       | Added `go-composable-business-types`, `oklog/ulid/v2`; removed `google/uuid` from direct deps |
+| `xtypes/go.mod`     | Added `go-composable-business-types` replace directive                                        |
+| `memory/go.mod`     | Added `go-composable-business-types` replace directive                                        |
+| `catalog/go.mod`    | Added `go-composable-business-types` replace directive                                        |
+| `middleware/go.mod` | Added `go-composable-business-types` replace directive                                        |
 
 ### Test Results (ALL GREEN)
-| Module | Packages | Status |
-|--------|----------|--------|
-| core | aggregate (76.1%), command (84.4%), event (89.0%), dispatcher (77.4%), id (63.6%), query (91.5%) | ✅ ALL PASS |
-| xtypes | xtypes | ✅ PASS |
-| memory | memory | ✅ PASS |
-| catalog | catalog, adapters, asyncapi, eventcatalog | ✅ ALL PASS |
-| middleware | middleware | ✅ PASS |
+
+| Module     | Packages                                                                                         | Status      |
+| ---------- | ------------------------------------------------------------------------------------------------ | ----------- |
+| core       | aggregate (76.1%), command (84.4%), event (89.0%), dispatcher (77.4%), id (63.6%), query (91.5%) | ✅ ALL PASS |
+| xtypes     | xtypes                                                                                           | ✅ PASS     |
+| memory     | memory                                                                                           | ✅ PASS     |
+| catalog    | catalog, adapters, asyncapi, eventcatalog                                                        | ✅ ALL PASS |
+| middleware | middleware                                                                                       | ✅ PASS     |
 
 ---
 
@@ -78,6 +83,7 @@ Nothing is partially done. The migration is complete.
 Nothing is fucked up. The migration went clean.
 
 **Past close calls (resolved):**
+
 - MonotonicEntropy was NOT thread-safe → fixed by using `rand.Reader` directly
 - macOS `sed` failed with obscure error → used `multiedit` tool instead
 - `go-composable-business-types v0.0.0` doesn't exist on remote → added `replace` directives in all modules
@@ -98,6 +104,7 @@ Nothing is fucked up. The migration went clean.
 ## F) Top 25 Things to Do Next
 
 ### High Priority
+
 1. Run `go test -race ./...` across all modules to verify thread safety
 2. Run `golangci-lint run` across all modules
 3. Verify root-level packages (`aggregate/`, `command/`, `event/`, `pkg/id/`) compile and pass tests
@@ -107,6 +114,7 @@ Nothing is fucked up. The migration went clean.
 7. Increase `core/pkg/id` test coverage from 63.6% to 80%+
 
 ### Medium Priority
+
 8. Add prefix-based ID generation examples to docs (e.g., `user_01HXYZ...`)
 9. Benchmark: ULID vs UUID generation throughput comparison
 10. Audit all `go.sum` files for consistency across modules
@@ -118,6 +126,7 @@ Nothing is fucked up. The migration went clean.
 16. Check if `core/pkg/id/benchmark_test.go` still benchmarks correctly with ULID
 
 ### Lower Priority
+
 17. Add migration guide (UUID → ULID) for downstream consumers
 18. Consider adding `id.MustParseOrGenerate()` helper for tests
 19. Document the cbid type alias architecture decision in ADR format
@@ -135,6 +144,7 @@ Nothing is fucked up. The migration went clean.
 **What is the relationship between root-level packages and `core/` sub-modules?**
 
 The repo has both:
+
 - `core/aggregate/`, `core/command/`, `core/event/`, `core/pkg/id/` — as part of the `core` Go module
 - `aggregate/`, `command/`, `event/`, `pkg/id/` — at the root level
 
@@ -144,16 +154,16 @@ Are the root-level packages deprecated relics from before the multi-module migra
 
 ## API Migration Quick Reference
 
-| Old | New |
-|-----|-----|
-| `id.New[T]()` (UUID, 36 chars) | `id.New[T]()` (ULID, 26 chars) |
-| `.IsEmpty()` | `.IsZero()` |
-| `.IsValid()` | `!.IsZero()` |
-| `.Compare(other) int` | `.Compare(other) (int, error)` |
-| `""` as zero ID | `var id AggregateID` (zero value) |
-| `"user-123"` as AggregateID | `id.MustParseAggregateID("user-123")` |
-| `id.AggregateID("x")` cast | `id.MustParseAggregateID("x")` |
-| `id.CorrelationID("x")` cast | `id.MustParseCorrelationID("x")` |
-| `google/uuid` direct dep | `oklog/ulid/v2` + `go-composable-business-types` |
+| Old                            | New                                              |
+| ------------------------------ | ------------------------------------------------ |
+| `id.New[T]()` (UUID, 36 chars) | `id.New[T]()` (ULID, 26 chars)                   |
+| `.IsEmpty()`                   | `.IsZero()`                                      |
+| `.IsValid()`                   | `!.IsZero()`                                     |
+| `.Compare(other) int`          | `.Compare(other) (int, error)`                   |
+| `""` as zero ID                | `var id AggregateID` (zero value)                |
+| `"user-123"` as AggregateID    | `id.MustParseAggregateID("user-123")`            |
+| `id.AggregateID("x")` cast     | `id.MustParseAggregateID("x")`                   |
+| `id.CorrelationID("x")` cast   | `id.MustParseCorrelationID("x")`                 |
+| `google/uuid` direct dep       | `oklog/ulid/v2` + `go-composable-business-types` |
 
 ## Files Changed: 23 files, +286 / -492 lines

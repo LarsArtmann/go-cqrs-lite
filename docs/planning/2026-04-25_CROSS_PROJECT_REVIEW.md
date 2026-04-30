@@ -8,12 +8,12 @@
 
 ## Projects at a Glance
 
-| Project | Role | Depends On |
-|---|---|---|
-| **go-cqrs-lite** | Foundational CQRS SDK (zero-dep) | cockroachdb/errors, google/uuid, go-faster/yaml |
-| **go-localfirst** | Local-first app framework | go-cqrs-lite, gin, pebble, casbin, gorilla/websocket, zap |
-| **go-localsync** | Provider data sync SDK | go-composable-business-types, modernc.org/sqlite, go-github |
-| **go-composable-business-types** | Shared business types (ID, Money, etc.) | bojanz/currency, sixafter/nanoid, golang.org/x/text |
+| Project                          | Role                                    | Depends On                                                  |
+| -------------------------------- | --------------------------------------- | ----------------------------------------------------------- |
+| **go-cqrs-lite**                 | Foundational CQRS SDK (zero-dep)        | cockroachdb/errors, google/uuid, go-faster/yaml             |
+| **go-localfirst**                | Local-first app framework               | go-cqrs-lite, gin, pebble, casbin, gorilla/websocket, zap   |
+| **go-localsync**                 | Provider data sync SDK                  | go-composable-business-types, modernc.org/sqlite, go-github |
+| **go-composable-business-types** | Shared business types (ID, Money, etc.) | bojanz/currency, sixafter/nanoid, golang.org/x/text         |
 
 ### Dependency Graph (Actual)
 
@@ -34,29 +34,31 @@ This is the most significant architectural tension across the projects.
 
 ### Comparison
 
-| Property | go-cqrs-lite `id.Of[T any] string` | go-composable-business-types `id.ID[B any, V comparable] struct{ value V }` |
-|---|---|---|
-| Underlying type | Type alias to `string` | Struct with private `value V` field |
-| Type parameters | 1 (brand only) | 2 (brand + value type) |
-| Value types | String only | string, int64, int, uint64, etc. |
-| Auto-generation | `id.New[T]()` → UUID v4 | `id.NewID[B, V](v)` → from explicit value |
-| Zero value | Empty string `""` | `struct{ value: zero }` |
-| JSON null | Supported (`""` → `null`) | Supported (zero → `null`) |
-| SQL Scan/Value | Supported | Supported |
-| Binary/Text encoding | Supported | Not implemented |
-| `fmt.Formatter` | Full (`%v`, `%#v`, `%s`, `%q`) | Partial (`%s`, `%d`, `%v`, `%#v`, `%q`) |
-| `Compare` | Returns int (always works) | Returns `(int, error)` (ordered types only) |
-| Dependencies | google/uuid, go-json-experiment/json | None (stdlib only) |
-| Used by | go-cqrs-lite, go-localfirst | go-localsync, go-composable-business-types |
+| Property             | go-cqrs-lite `id.Of[T any] string`   | go-composable-business-types `id.ID[B any, V comparable] struct{ value V }` |
+| -------------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| Underlying type      | Type alias to `string`               | Struct with private `value V` field                                         |
+| Type parameters      | 1 (brand only)                       | 2 (brand + value type)                                                      |
+| Value types          | String only                          | string, int64, int, uint64, etc.                                            |
+| Auto-generation      | `id.New[T]()` → UUID v4              | `id.NewID[B, V](v)` → from explicit value                                   |
+| Zero value           | Empty string `""`                    | `struct{ value: zero }`                                                     |
+| JSON null            | Supported (`""` → `null`)            | Supported (zero → `null`)                                                   |
+| SQL Scan/Value       | Supported                            | Supported                                                                   |
+| Binary/Text encoding | Supported                            | Not implemented                                                             |
+| `fmt.Formatter`      | Full (`%v`, `%#v`, `%s`, `%q`)       | Partial (`%s`, `%d`, `%v`, `%#v`, `%q`)                                     |
+| `Compare`            | Returns int (always works)           | Returns `(int, error)` (ordered types only)                                 |
+| Dependencies         | google/uuid, go-json-experiment/json | None (stdlib only)                                                          |
+| Used by              | go-cqrs-lite, go-localfirst          | go-localsync, go-composable-business-types                                  |
 
 ### Where Each Is Used
 
 **go-cqrs-lite `id.Of[T]`** in go-localfirst:
+
 - `internal/domain/ids.go` — `TodoID`, `PeerID`, `NodeID`, `OperationID`, `TargetID` (all via `id.Of[T]`)
 - `internal/cqrs/` — all command/aggregate/event types use `id.AggregateID`, `id.EventID`
 - `internal/cqrs/store/pebble_adapter.go` — `CQRSAdapter` uses `id.AggregateID`, `id.ParseAggregateID`
 
 **go-composable-business-types `id.ID[B, V]`** in go-localsync:
+
 - `pkg/types/ids.go` — `EventID = ID[EventBrand, int64]`, `ItemID = ID[ItemBrand, string]`, `ProviderID`, `ActorID`, `RepoID`, `EventTypeID`
 - `pkg/provider/provider.go` — `Item` struct uses `types.ItemID`
 - `pkg/storage/interface.go` — `Storage` interface uses `types.ItemID`
@@ -80,15 +82,15 @@ These two ID systems are **not interoperable at the type level**. If a future fe
 
 **Migration path for go-localsync:**
 
-| Current | Migration |
-|---|---|
-| `EventID = id.ID[EventBrand, int64]` | Keep as `int64` in storage layer only; use `id.Of[EventMarker] string` for domain types |
-| `ItemID = id.ID[ItemBrand, string]` | `id.Of[ItemMarker] string` |
-| `ProviderID = id.ID[ProviderBrand, string]` | `id.Of[ProviderMarker] string` |
-| `ActorID = id.ID[ActorBrand, string]` | `id.Of[ActorMarker] string` |
-| `RepoID = id.ID[RepoBrand, string]` | `id.Of[RepoMarker] string` |
-| `EventTypeID = id.ID[EventTypeBrand, string]` | `id.Of[EventTypeMarker] string` |
-| `GithubEventID = id.ID[GithubEventBrand, string]` | `id.Of[GithubEventMarker] string` |
+| Current                                           | Migration                                                                               |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `EventID = id.ID[EventBrand, int64]`              | Keep as `int64` in storage layer only; use `id.Of[EventMarker] string` for domain types |
+| `ItemID = id.ID[ItemBrand, string]`               | `id.Of[ItemMarker] string`                                                              |
+| `ProviderID = id.ID[ProviderBrand, string]`       | `id.Of[ProviderMarker] string`                                                          |
+| `ActorID = id.ID[ActorBrand, string]`             | `id.Of[ActorMarker] string`                                                             |
+| `RepoID = id.ID[RepoBrand, string]`               | `id.Of[RepoMarker] string`                                                              |
+| `EventTypeID = id.ID[EventTypeBrand, string]`     | `id.Of[EventTypeMarker] string`                                                         |
+| `GithubEventID = id.ID[GithubEventBrand, string]` | `id.Of[GithubEventMarker] string`                                                       |
 
 This adds `google/uuid` as a dependency to go-localsync (transitively through go-cqrs-lite/pkg/id). This is acceptable — `google/uuid` is ubiquitous and tiny.
 
@@ -102,15 +104,16 @@ This adds `google/uuid` as a dependency to go-localsync (transitively through go
 
 Both go-localfirst and go-localsync have a `pkg/sync` package, but they are **completely independent**:
 
-| | go-localfirst `pkg/sync` | go-localsync `pkg/sync` |
-|---|---|---|
-| **Purpose** | CRDT primitives (VectorClock, Operation, ConflictResolver) | Sync orchestration (Syncer, ConflictAwareSyncer) |
-| **Dependencies** | Zero (stdlib only) | go-localsync's own pkg/provider, pkg/storage |
-| **Used by** | go-localfirst internally | go-localsync internally |
-| **Generic?** | Yes (`Operation[T any]`, `LWWResolver[T]`) | No (operates on `provider.Item`) |
-| **LWW?** | `LWWResolver[T]` (generic, timestamp extractor) | Inline LWW in `ConflictAwareSyncer` (Item-specific) |
+|                  | go-localfirst `pkg/sync`                                   | go-localsync `pkg/sync`                             |
+| ---------------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| **Purpose**      | CRDT primitives (VectorClock, Operation, ConflictResolver) | Sync orchestration (Syncer, ConflictAwareSyncer)    |
+| **Dependencies** | Zero (stdlib only)                                         | go-localsync's own pkg/provider, pkg/storage        |
+| **Used by**      | go-localfirst internally                                   | go-localsync internally                             |
+| **Generic?**     | Yes (`Operation[T any]`, `LWWResolver[T]`)                 | No (operates on `provider.Item`)                    |
+| **LWW?**         | `LWWResolver[T]` (generic, timestamp extractor)            | Inline LWW in `ConflictAwareSyncer` (Item-specific) |
 
 These are **different abstractions at different levels**:
+
 - go-localfirst's `pkg/sync` = **CRDT primitives** (building blocks)
 - go-localsync's `pkg/sync` = **Sync orchestration** (fetch → store pipeline)
 
@@ -148,6 +151,7 @@ go-localsync's `pkg/sync` is **sync orchestration**, not CRDT primitives. It doe
 ### Current State
 
 go-localsync's `pkg/provider/` defines:
+
 - `Provider` interface (5 methods: Name, FetchAll, FetchByDateRange, FetchByID, HealthCheck)
 - `Item` struct (typed IDs, timestamps, metadata)
 - `RateLimitConfig`, `RetryConfig`
@@ -213,6 +217,7 @@ sync/                        # github.com/larsartmann/go-cqrs-lite/sync
 ### Current State
 
 go-localfirst's `internal/cqrs/` directory:
+
 - `commands/mixin.go` — `CommandHandlerMixin` wrapping go-cqrs-lite's command dispatcher
 - `commands/json.go` — JSON marshaling helpers for commands
 - `aggregate/todo.go` — Full CQRS aggregate using go-cqrs-lite's `aggregate.Core`
@@ -245,51 +250,51 @@ Provides `ID[B, V]`, `ActorChain`, `DataPoint`, `BoundedString`, `Money`, enums.
 
 ### Priority 1: ID System Convergence (High Impact, Medium Effort)
 
-| Step | Project | Action |
-|---|---|---|
-| 1.1 | go-localsync | Replace `go-composable-business-types/id` imports with `go-cqrs-lite/pkg/id` in `pkg/types/ids.go` |
-| 1.2 | go-localsync | Change `EventID = ID[EventBrand, int64]` to be storage-layer only; add `id.Of[EventMarker] string` for domain use |
-| 1.3 | go-localsync | Update all branded IDs to `id.Of[TMarker] string` |
-| 1.4 | go-localsync | Update `pkg/provider/`, `pkg/storage/` to use new ID types |
-| 1.5 | go-localsync | Remove `go-composable-business-types` from `go.mod` |
-| 1.6 | go-composable-business-types | Add deprecation notice to `id/` package doc |
+| Step | Project                      | Action                                                                                                            |
+| ---- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1.1  | go-localsync                 | Replace `go-composable-business-types/id` imports with `go-cqrs-lite/pkg/id` in `pkg/types/ids.go`                |
+| 1.2  | go-localsync                 | Change `EventID = ID[EventBrand, int64]` to be storage-layer only; add `id.Of[EventMarker] string` for domain use |
+| 1.3  | go-localsync                 | Update all branded IDs to `id.Of[TMarker] string`                                                                 |
+| 1.4  | go-localsync                 | Update `pkg/provider/`, `pkg/storage/` to use new ID types                                                        |
+| 1.5  | go-localsync                 | Remove `go-composable-business-types` from `go.mod`                                                               |
+| 1.6  | go-composable-business-types | Add deprecation notice to `id/` package doc                                                                       |
 
 ### Priority 2: Extract CRDT Primitives (High Impact, Low Effort)
 
-| Step | Project | Action |
-|---|---|---|
-| 2.1 | go-cqrs-lite | Create `pkg/sync/` directory, copy VectorClock, Operation, ConflictResolver, LWWResolver from go-localfirst |
-| 2.2 | go-cqrs-lite | Add tests for `pkg/sync/` (go-localfirst's `pkg/sync` tests should transfer) |
-| 2.3 | go-localfirst | Replace `pkg/sync/` with type aliases to `go-cqrs-lite/pkg/sync` (same pattern as previous `internal/sync` dedup) |
-| 2.4 | go-localfirst | Update `pkg/sync/doc.go` to reference go-cqrs-lite as canonical source |
-| 2.5 | go-cqrs-lite | Update multi-module monorepo plan to include `sync/` module |
+| Step | Project       | Action                                                                                                            |
+| ---- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 2.1  | go-cqrs-lite  | Create `pkg/sync/` directory, copy VectorClock, Operation, ConflictResolver, LWWResolver from go-localfirst       |
+| 2.2  | go-cqrs-lite  | Add tests for `pkg/sync/` (go-localfirst's `pkg/sync` tests should transfer)                                      |
+| 2.3  | go-localfirst | Replace `pkg/sync/` with type aliases to `go-cqrs-lite/pkg/sync` (same pattern as previous `internal/sync` dedup) |
+| 2.4  | go-localfirst | Update `pkg/sync/doc.go` to reference go-cqrs-lite as canonical source                                            |
+| 2.5  | go-cqrs-lite  | Update multi-module monorepo plan to include `sync/` module                                                       |
 
 ### Priority 3: Extract Provider (Medium Impact, Low Effort)
 
-| Step | Project | Action |
-|---|---|---|
-| 3.1 | new repo | Create `go-provider` with `Provider` interface, `Item` struct, `RateLimitConfig`, `RetryConfig` |
-| 3.2 | go-localsync | Replace internal `pkg/provider/` with import from `go-provider` |
-| 3.3 | go-localsync | Update `pkg/storage/` to accept `go-provider`'s `Item` type |
-| 3.4 | go-localsync | Update `PARTS.md` to mark extraction as complete |
+| Step | Project      | Action                                                                                          |
+| ---- | ------------ | ----------------------------------------------------------------------------------------------- |
+| 3.1  | new repo     | Create `go-provider` with `Provider` interface, `Item` struct, `RateLimitConfig`, `RetryConfig` |
+| 3.2  | go-localsync | Replace internal `pkg/provider/` with import from `go-provider`                                 |
+| 3.3  | go-localsync | Update `pkg/storage/` to accept `go-provider`'s `Item` type                                     |
+| 3.4  | go-localsync | Update `PARTS.md` to mark extraction as complete                                                |
 
 ### Priority 4: Multi-Module Monorepo Migration (High Impact, High Effort)
 
-| Step | Project | Action |
-|---|---|---|
-| 4.1 | go-cqrs-lite | Execute Phase 0 from the existing plan (fix query handler ctx, delete dead code, etc.) |
-| 4.2 | go-cqrs-lite | Execute Phases 1-2 (core + memory modules) |
-| 4.3 | go-cqrs-lite | Add `sync/` module during Phase 2 (it's zero-dep, easy to extract) |
-| 4.4 | go-cqrs-lite | Continue with remaining phases per existing plan |
-| 4.5 | go-localfirst | Update imports to `go-cqrs-lite/core/...` after module migration |
-| 4.6 | go-localsync | Update imports to `go-cqrs-lite/core/pkg/id` and `go-cqrs-lite/sync` |
+| Step | Project       | Action                                                                                 |
+| ---- | ------------- | -------------------------------------------------------------------------------------- |
+| 4.1  | go-cqrs-lite  | Execute Phase 0 from the existing plan (fix query handler ctx, delete dead code, etc.) |
+| 4.2  | go-cqrs-lite  | Execute Phases 1-2 (core + memory modules)                                             |
+| 4.3  | go-cqrs-lite  | Add `sync/` module during Phase 2 (it's zero-dep, easy to extract)                     |
+| 4.4  | go-cqrs-lite  | Continue with remaining phases per existing plan                                       |
+| 4.5  | go-localfirst | Update imports to `go-cqrs-lite/core/...` after module migration                       |
+| 4.6  | go-localsync  | Update imports to `go-cqrs-lite/core/pkg/id` and `go-cqrs-lite/sync`                   |
 
 ### Priority 5: Optional — go-localsync CRDT Integration (Low Priority)
 
-| Step | Project | Action |
-|---|---|---|
-| 5.1 | go-localsync | Consider replacing inline LWW in `ConflictAwareSyncer` with `sync.LWWResolver[*provider.Item]` from go-cqrs-lite |
-| 5.2 | go-localsync | Consider adding `VectorClock` to `Operation` for causal ordering of sync operations |
+| Step | Project      | Action                                                                                                           |
+| ---- | ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| 5.1  | go-localsync | Consider replacing inline LWW in `ConflictAwareSyncer` with `sync.LWWResolver[*provider.Item]` from go-cqrs-lite |
+| 5.2  | go-localsync | Consider adding `VectorClock` to `Operation` for causal ordering of sync operations                              |
 
 These are optional improvements, not blockers. The current code works correctly.
 
@@ -297,31 +302,31 @@ These are optional improvements, not blockers. The current code works correctly.
 
 ## What Should NOT Move
 
-| Code | Current Location | Why It Stays |
-|---|---|---|
-| Pebble `CQRSAdapter` | go-localfirst `internal/cqrs/store/` | Application-specific storage adapter |
-| SSE event bridge | go-localfirst `internal/handler/` | Application-specific HTTP layer |
-| Command handler mixin | go-localfirst `internal/cqrs/commands/` | Application-specific handler composition |
-| Sync orchestration (`Syncer`) | go-localsync `pkg/sync/` | Provider-data-specific pipeline, not CRDT primitives |
-| Storage interface (16 methods) | go-localsync `pkg/storage/` | SQLite-specific query patterns |
-| Business types (Money, etc.) | go-composable-business-types | Not CQRS-related |
+| Code                           | Current Location                        | Why It Stays                                         |
+| ------------------------------ | --------------------------------------- | ---------------------------------------------------- |
+| Pebble `CQRSAdapter`           | go-localfirst `internal/cqrs/store/`    | Application-specific storage adapter                 |
+| SSE event bridge               | go-localfirst `internal/handler/`       | Application-specific HTTP layer                      |
+| Command handler mixin          | go-localfirst `internal/cqrs/commands/` | Application-specific handler composition             |
+| Sync orchestration (`Syncer`)  | go-localsync `pkg/sync/`                | Provider-data-specific pipeline, not CRDT primitives |
+| Storage interface (16 methods) | go-localsync `pkg/storage/`             | SQLite-specific query patterns                       |
+| Business types (Money, etc.)   | go-composable-business-types            | Not CQRS-related                                     |
 
 ---
 
 ## Summary Decision Matrix
 
-| Concern | Canonical Home | Consumers |
-|---|---|---|
-| Branded IDs (`id.Of[T]`) | **go-cqrs-lite** `pkg/id/` | go-localfirst, go-localsync (after migration) |
-| CRDT primitives (VectorClock, LWWResolver) | **go-cqrs-lite** `pkg/sync/` → `sync/` module | go-localfirst, go-localsync (optional) |
-| Provider interface | **go-provider** (new repo) | go-localsync, future projects |
-| CQRS core (events, commands, aggregates) | **go-cqrs-lite** `core/` module | go-localfirst, any CQRS app |
-| Memory implementations | **go-cqrs-lite** `memory/` module | Tests everywhere |
-| SQL event store | **go-cqrs-lite** `storage/` module | Production apps |
-| Pub/Sub (Watermill) | **go-cqrs-lite** `watermill/` module | Production apps |
-| Projections | **go-cqrs-lite** `projection/` module | Read model apps |
-| Catalog/AsyncAPI | **go-cqrs-lite** `catalog/` module | Documentation generation |
-| Pebble event store adapter | **go-localfirst** `internal/cqrs/store/` | go-localfirst only |
-| Sync orchestration (fetch→store) | **go-localsync** `pkg/sync/` | go-localsync only |
-| SQLite storage | **go-localsync** `pkg/storage/` | go-localsync only |
-| Business types (Money, ActorChain) | **go-composable-business-types** | Any business domain app |
+| Concern                                    | Canonical Home                                | Consumers                                     |
+| ------------------------------------------ | --------------------------------------------- | --------------------------------------------- |
+| Branded IDs (`id.Of[T]`)                   | **go-cqrs-lite** `pkg/id/`                    | go-localfirst, go-localsync (after migration) |
+| CRDT primitives (VectorClock, LWWResolver) | **go-cqrs-lite** `pkg/sync/` → `sync/` module | go-localfirst, go-localsync (optional)        |
+| Provider interface                         | **go-provider** (new repo)                    | go-localsync, future projects                 |
+| CQRS core (events, commands, aggregates)   | **go-cqrs-lite** `core/` module               | go-localfirst, any CQRS app                   |
+| Memory implementations                     | **go-cqrs-lite** `memory/` module             | Tests everywhere                              |
+| SQL event store                            | **go-cqrs-lite** `storage/` module            | Production apps                               |
+| Pub/Sub (Watermill)                        | **go-cqrs-lite** `watermill/` module          | Production apps                               |
+| Projections                                | **go-cqrs-lite** `projection/` module         | Read model apps                               |
+| Catalog/AsyncAPI                           | **go-cqrs-lite** `catalog/` module            | Documentation generation                      |
+| Pebble event store adapter                 | **go-localfirst** `internal/cqrs/store/`      | go-localfirst only                            |
+| Sync orchestration (fetch→store)           | **go-localsync** `pkg/sync/`                  | go-localsync only                             |
+| SQLite storage                             | **go-localsync** `pkg/storage/`               | go-localsync only                             |
+| Business types (Money, ActorChain)         | **go-composable-business-types**              | Any business domain app                       |

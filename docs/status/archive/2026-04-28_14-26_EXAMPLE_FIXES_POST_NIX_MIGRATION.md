@@ -18,6 +18,7 @@ All systems green. The Nix flake migration is fully operational. The example mod
 ## a) FULLY DONE
 
 ### Infrastructure (from previous session, verified still operational)
+
 - [x] **Nix flake** — `flake.nix`, `flake.lock`, `flake-parts`, `treefmt-nix`
 - [x] **Unified CI** — `.github/workflows/ci.yml` replaces `lint.yml` + `test.yml`
 - [x] **Makefile removed** — all targets via `nix run .#<app>`
@@ -25,6 +26,7 @@ All systems green. The Nix flake migration is fully operational. The example mod
 - [x] **Formatter** — `nix fmt` runs `gofumpt` + `goimports` + `golines`
 
 ### Example Module Fixes (this session)
+
 - [x] **example/user/go.mod** — added `testhelpers` replace directive, reconciled `go-composable-business-types` version (`v0.0.0` → `v0.1.0`)
 - [x] **example/catalog/go.mod** — same fixes as above
 - [x] **example/user/commands.go** — switched `command.NewCatalogCore` → `command.MustNewCatalogCore` (2 call sites)
@@ -32,6 +34,7 @@ All systems green. The Nix flake migration is fully operational. The example mod
 - [x] **Verified compilation** — both examples build with `GOWORK=off go build ./...`
 
 ### Core Modules (all verified)
+
 - [x] **core/** — build, test, lint clean
 - [x] **memory/** — build, test, lint clean
 - [x] **catalog/** — build, test, lint clean
@@ -40,6 +43,7 @@ All systems green. The Nix flake migration is fully operational. The example mod
 - [x] **testhelpers/** — build, test clean (no lint needed — no main code)
 
 ### Code Quality
+
 - [x] **Zero lint issues** across all 5 linted modules
 - [x] **Zero TODO/FIXME/HACK/XXX/BUG** markers in codebase
 - [x] **Zero code duplication** (art-dupl -t 27)
@@ -50,12 +54,14 @@ All systems green. The Nix flake migration is fully operational. The example mod
 ## b) PARTIALLY DONE
 
 ### Test Coverage
+
 - **Overall:** 79.8% (unchanged from previous session)
 - **Strong:** memory 99.4%, middleware 99.2%, catalog/adapters 98.8%, catalog/asyncapi 97.6%
 - **Weak:** core/command 67.4%, core/pkg/dispatcher 75.4%, core/pkg/id 73.1%, core/query 80.6%
 - **Action needed:** Targeted tests for low-coverage packages. This is unchanged from the previous session.
 
 ### Nix Flake Purity
+
 - **Status:** `nix run .#<app>` works perfectly. `nix flake check` evaluates clean but has no sandboxed `checks`.
 - **Why:** Private repo `github.com/larsartmann/go-composable-business-types` cannot be fetched in a Nix sandbox.
 - **Impact:** Low for daily dev, medium for reproducibility purists.
@@ -94,6 +100,7 @@ Same as previous session — 20 items from the roadmap remain untouched:
 **Nothing is totally fucked up.**
 
 ### Remaining LSP False Positives (2 errors)
+
 These are **gopls workspace state issues**, not real errors:
 
 1. **`example/user/go.mod`** — gopls reports "updates to go.mod needed". The file was just `go mod tidy`-ed. The version `v0.1.0` is correct and matches the replace directive. Compilation succeeds.
@@ -108,9 +115,11 @@ These are **gopls workspace state issues**, not real errors:
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Immediate (This Week)
+
 1. **Restart gopls / update workspace** — The 2 remaining LSP false positives are cosmetic but confusing. They'll clear on next gopls restart.
 
 ### Short-Term (Next 2 Weeks)
+
 2. **Boost `core/command` test coverage** — 67.4%, the lowest package. Add edge case tests for `command.New()` validation.
 3. **Boost `pkg/id` coverage** — 73.1%. Add `Parse`/`MustParse` tests for `CausationID`, `CorrelationID`, `RequestID`, `CommandID`.
 4. **Boost `pkg/dispatcher` coverage** — 75.4%. Add concurrent registration and middleware chain edge case tests.
@@ -118,6 +127,7 @@ These are **gopls workspace state issues**, not real errors:
 6. **Resolve `go-composable-business-types` privacy** — Either make the repo public or vendor it as a fixed-output derivation for pure Nix builds.
 
 ### Medium-Term (Next Month)
+
 7. **SQL event store** — Most impactful missing feature. Production blocker.
 8. **Projection module design** — Using samber/ro. Start with interface design.
 9. **Tracing middleware** — OpenTelemetry-compatible. Straightforward.
@@ -128,33 +138,33 @@ These are **gopls workspace state issues**, not real errors:
 
 ## f) Top #25 Things To Get Done Next
 
-| # | Priority | Item | Module | Effort | Impact |
-|---|----------|------|--------|--------|--------|
-| 1 | 🔴 P0 | Restart gopls (clear false positives) | Workspace | 1min | Hygiene |
-| 2 | 🔴 P0 | Resolve `go-composable-business-types` privacy | Repo | 30min | Nix purity |
-| 3 | 🟡 P1 | Boost `core/command` coverage to >85% | `core/command` | 2h | Quality |
-| 4 | 🟡 P1 | Add `EventRetry` middleware tests | `middleware/` | 1h | Parity |
-| 5 | 🟡 P1 | Boost `pkg/id` coverage to >85% | `core/pkg/id` | 1h | Quality |
-| 6 | 🟡 P1 | Boost `pkg/dispatcher` coverage to >85% | `core/pkg/dispatcher` | 1.5h | Quality |
-| 7 | 🟡 P1 | Add `testhelpers/` to test/coverage apps | `flake.nix` | 5min | Completeness |
-| 8 | 🟢 P2 | SQL event store (`storage/` module) | New | 2d | **BLOCKER** |
-| 9 | 🟢 P2 | Design projection interface | New | 1d | Architecture |
-| 10 | 🟢 P2 | OpenTelemetry tracing middleware | `middleware/` | 4h | Observability |
-| 11 | 🟢 P2 | Tag v0.1.0 release | Repo | 30min | Milestone |
-| 12 | 🟢 P2 | Archive old status reports | `docs/status/` | 30min | Hygiene |
-| 13 | 🔵 P3 | SQL-backed snapshot store | New | 1d | Feature |
-| 14 | 🔵 P3 | Watermill pub/sub adapter | New | 2d | Integration |
-| 15 | 🔵 P3 | Projection/read-model implementation | New | 3d | Feature |
-| 16 | 🔵 P3 | gRPC transport adapter | New | 2d | Transport |
-| 17 | 🔵 P3 | HTTP transport adapter | New | 2d | Transport |
-| 18 | 🔵 P3 | Event upcasting/schema evolution | `core/event` | 3d | Long-term |
-| 19 | 🔵 P3 | Saga/process manager | New | 5d | Advanced |
-| 20 | 🔵 P3 | Dead letter queue | `middleware/` | 2d | Resilience |
-| 21 | 🔵 P3 | Health check endpoints | New | 1d | Ops |
-| 22 | 🔵 P3 | E-commerce example | `example/` | 3d | Documentation |
-| 23 | 🔵 P3 | Metrics endpoint example | `example/` | 1d | Documentation |
-| 24 | 🔵 P3 | Resolve `TypedCommand.Command()` validation | `xtypes/` | 2h | API design |
-| 25 | 🔵 P3 | Remove redundant state in `TypedAggregate` | `xtypes/` | 2h | Cleanup |
+| #   | Priority | Item                                           | Module                | Effort | Impact        |
+| --- | -------- | ---------------------------------------------- | --------------------- | ------ | ------------- |
+| 1   | 🔴 P0    | Restart gopls (clear false positives)          | Workspace             | 1min   | Hygiene       |
+| 2   | 🔴 P0    | Resolve `go-composable-business-types` privacy | Repo                  | 30min  | Nix purity    |
+| 3   | 🟡 P1    | Boost `core/command` coverage to >85%          | `core/command`        | 2h     | Quality       |
+| 4   | 🟡 P1    | Add `EventRetry` middleware tests              | `middleware/`         | 1h     | Parity        |
+| 5   | 🟡 P1    | Boost `pkg/id` coverage to >85%                | `core/pkg/id`         | 1h     | Quality       |
+| 6   | 🟡 P1    | Boost `pkg/dispatcher` coverage to >85%        | `core/pkg/dispatcher` | 1.5h   | Quality       |
+| 7   | 🟡 P1    | Add `testhelpers/` to test/coverage apps       | `flake.nix`           | 5min   | Completeness  |
+| 8   | 🟢 P2    | SQL event store (`storage/` module)            | New                   | 2d     | **BLOCKER**   |
+| 9   | 🟢 P2    | Design projection interface                    | New                   | 1d     | Architecture  |
+| 10  | 🟢 P2    | OpenTelemetry tracing middleware               | `middleware/`         | 4h     | Observability |
+| 11  | 🟢 P2    | Tag v0.1.0 release                             | Repo                  | 30min  | Milestone     |
+| 12  | 🟢 P2    | Archive old status reports                     | `docs/status/`        | 30min  | Hygiene       |
+| 13  | 🔵 P3    | SQL-backed snapshot store                      | New                   | 1d     | Feature       |
+| 14  | 🔵 P3    | Watermill pub/sub adapter                      | New                   | 2d     | Integration   |
+| 15  | 🔵 P3    | Projection/read-model implementation           | New                   | 3d     | Feature       |
+| 16  | 🔵 P3    | gRPC transport adapter                         | New                   | 2d     | Transport     |
+| 17  | 🔵 P3    | HTTP transport adapter                         | New                   | 2d     | Transport     |
+| 18  | 🔵 P3    | Event upcasting/schema evolution               | `core/event`          | 3d     | Long-term     |
+| 19  | 🔵 P3    | Saga/process manager                           | New                   | 5d     | Advanced      |
+| 20  | 🔵 P3    | Dead letter queue                              | `middleware/`         | 2d     | Resilience    |
+| 21  | 🔵 P3    | Health check endpoints                         | New                   | 1d     | Ops           |
+| 22  | 🔵 P3    | E-commerce example                             | `example/`            | 3d     | Documentation |
+| 23  | 🔵 P3    | Metrics endpoint example                       | `example/`            | 1d     | Documentation |
+| 24  | 🔵 P3    | Resolve `TypedCommand.Command()` validation    | `xtypes/`             | 2h     | API design    |
+| 25  | 🔵 P3    | Remove redundant state in `TypedAggregate`     | `xtypes/`             | 2h     | Cleanup       |
 
 ---
 
@@ -162,9 +172,10 @@ These are **gopls workspace state issues**, not real errors:
 
 > **How should we handle the `TypedCommand.Command()` validation impedance mismatch?**
 
-`TypedCommand` (in `xtypes/`) stores a raw `command.Type` and `id.AggregateID`. Its `Command()` method calls `command.New(c.commandType, c.aggregateID)`, which now validates that the type is non-empty and the aggregate ID is non-zero. This means `Command()` returns `(command.Command, error)` even though the caller created a `TypedCommand` — a type that *feels* like it should always be valid.
+`TypedCommand` (in `xtypes/`) stores a raw `command.Type` and `id.AggregateID`. Its `Command()` method calls `command.New(c.commandType, c.aggregateID)`, which now validates that the type is non-empty and the aggregate ID is non-zero. This means `Command()` returns `(command.Command, error)` even though the caller created a `TypedCommand` — a type that _feels_ like it should always be valid.
 
 **The tension:**
+
 - If `NewTypedCommand` validates and returns `(*TypedCommand, error)`, we break the current API (it's a constructor that doesn't error).
 - If `NewTypedCommand` panics on invalid input (like `MustNewCatalogCore`), we match `MustCommand` but lose the ability to validate at construction time in normal code paths.
 - If we store a pre-validated `*command.Core` inside `TypedCommand`, we change the struct layout and potentially break callers who set fields directly.
@@ -178,23 +189,23 @@ This is an API design decision with consumer-facing implications. I can implemen
 
 ## Appendix: Quick Stats
 
-| Metric | Value |
-|--------|-------|
-| Go files | 95 |
-| Lines of Go | 15,172 |
-| Test files | 34 |
-| Example files | 6 |
-| Modules | 6 |
-| Build | ✅ Clean |
-| Vet | ✅ Clean |
-| Test | ✅ All pass |
-| Test (race) | ✅ All pass |
-| Lint | ✅ 0 issues |
-| Coverage | 79.8% |
-| Examples compile | ✅ Both OK |
-| Nix flake | ✅ Evaluates clean |
-| LSP errors | 2 (stale gopls false positives) |
-| TODO/FIXME in code | 0 |
+| Metric             | Value                           |
+| ------------------ | ------------------------------- |
+| Go files           | 95                              |
+| Lines of Go        | 15,172                          |
+| Test files         | 34                              |
+| Example files      | 6                               |
+| Modules            | 6                               |
+| Build              | ✅ Clean                        |
+| Vet                | ✅ Clean                        |
+| Test               | ✅ All pass                     |
+| Test (race)        | ✅ All pass                     |
+| Lint               | ✅ 0 issues                     |
+| Coverage           | 79.8%                           |
+| Examples compile   | ✅ Both OK                      |
+| Nix flake          | ✅ Evaluates clean              |
+| LSP errors         | 2 (stale gopls false positives) |
+| TODO/FIXME in code | 0                               |
 
 ---
 
@@ -210,4 +221,4 @@ nothing to commit, working tree clean
 
 ---
 
-*End of report. Awaiting instructions.*
+_End of report. Awaiting instructions._

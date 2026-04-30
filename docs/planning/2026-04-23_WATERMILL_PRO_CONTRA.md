@@ -8,11 +8,11 @@
 
 go-cqrs-lite currently has **only in-memory implementations**:
 
-| Component       | Interface        | Implementation  | File                    |
-| --------------- | ---------------- | --------------- | ----------------------- |
-| Event Store     | `event.Store`    | `MemoryStore`   | `event/memory_store.go` |
-| Event Bus       | `event.Bus`      | `MemoryBus`     | `event/memory_bus.go`   |
-| Store Config    | `Backend` type   | `"memory"` only | `event/store_config.go` |
+| Component    | Interface      | Implementation  | File                    |
+| ------------ | -------------- | --------------- | ----------------------- |
+| Event Store  | `event.Store`  | `MemoryStore`   | `event/memory_store.go` |
+| Event Bus    | `event.Bus`    | `MemoryBus`     | `event/memory_bus.go`   |
+| Store Config | `Backend` type | `"memory"` only | `event/store_config.go` |
 
 Persistent backends (PostgreSQL event store, NATS/JetStream bus) are listed as unchecked TODOs in `TODO_LIST.md` and various status docs.
 
@@ -28,10 +28,10 @@ No Watermill or ThreeDotsLabs references exist anywhere in the codebase.
 
 ## CONTRA — Adding Watermill
 
-1. **Breaks zero-dependency principle** — Core selling point is *"Zero external dependencies — Only stdlib + google/uuid + cockroachdb/errors"*. Watermill is heavy.
+1. **Breaks zero-dependency principle** — Core selling point is _"Zero external dependencies — Only stdlib + google/uuid + cockroachdb/errors"_. Watermill is heavy.
 2. **Overlapping abstractions** — Watermill has its own CQRS types that may conflict with or duplicate go-cqrs-lite's `command.Dispatcher`, `query.Dispatcher`, `event.Bus`, `aggregate.Aggregate`. Users may ask: "why not just use Watermill directly?"
 3. **Module bloat** — Watermill brings transitive dependencies per broker. Even one backend adds significant module weight.
-4. **Scope creep** — go-cqrs-lite is a *library* for structuring apps. Watermill is a *framework* for message routing. Adding it shifts toward being a Watermill wrapper.
+4. **Scope creep** — go-cqrs-lite is a _library_ for structuring apps. Watermill is a _framework_ for message routing. Adding it shifts toward being a Watermill wrapper.
 5. **Alternative path exists** — Thin backends (PostgreSQL store, NATS bus) could be implemented directly with minimal code, maintaining the zero-dep philosophy. The `Backend` config system in `store_config.go` already anticipates this.
 
 ## Recommendation
