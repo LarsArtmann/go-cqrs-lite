@@ -7,7 +7,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 | Item          | Value                                  |
 | ------------- | -------------------------------------- |
 | Language      | Go 1.26                                |
-| Modules       | `core`, `memory`, `catalog`, `middleware`, `testhelpers` |
+| Modules       | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration` |
 | Build         | `nix run .#build`                     |
 | Test          | `nix run .#test` or see "Testing" below |
 | Lint          | `nix run .#lint`                      |
@@ -17,7 +17,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 6 independent modules:
+Multi-module Go workspace with 7 independent modules:
 
 ```
 go-cqrs-lite/
@@ -25,7 +25,7 @@ go-cqrs-lite/
 │
 ├── core/                            # github.com/larsartmann/go-cqrs-lite/core
 │   └── go.mod                       # deps: cockroachdb/errors, oklog/ulid,
-│                                    #       go-json-experiment/json, ginkgo/gomega (test)
+│                                    #       go-json-experiment/json
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
@@ -37,9 +37,6 @@ go-cqrs-lite/
 │   │   │   ├── id.go               # Core type, constructors, comparisons
 │   │   │   └── id_encoding.go      # JSON/binary/text/SQL marshaling
 │   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin, CheckClosed
-│   ├── internal/
-│   │   └── testhelpers/             # test helpers (internal, not importable)
-│   └── event/store_config.go       # vestigial config (returns error, points to memory module)
 │
 ├── memory/                          # github.com/larsartmann/go-cqrs-lite/memory
 │   └── go.mod                       # deps: core
@@ -78,7 +75,7 @@ go-cqrs-lite/
 
 From root with go.work:
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -123,12 +120,19 @@ nix develop             # enter dev shell
 └────────────────────────────────────────────────────────────────┘
          │           │           │           │
          ▼           ▼           ▼           ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│  memory      │ │  catalog     │ │  middleware   │              │
-│  MemoryStore │ │  AsyncAPI    │ │  Logging      │ │  TypedCmd    │
-│  MemoryBus   │ │  EventCat    │ │  Retry        │ │  TypedEvt    │
-│  Snapshot    │ │  Schema      │ │  Recovery     │ │  TypedAgg    │
-└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  memory      │ │  catalog     │ │  middleware   │
+│  MemoryStore │ │  AsyncAPI    │ │  Logging      │
+│  MemoryBus   │ │  EventCat    │ │  Retry        │
+│  Snapshot    │ │  Schema      │ │  Recovery     │
+└──────────────┘ └──────────────┘ └──────────────┘
+                                       │
+                                       ▼
+                              ┌─────────────────┐
+                              │  integration/    │
+                              │  Cross-module    │
+                              │  tests           │
+                              └─────────────────┘
                                        │
                                        ▼
                               ┌─────────────────┐
@@ -185,7 +189,7 @@ nix develop             # enter dev shell
 | `CommandMiddleware` / `EventMiddleware` | Call-order tracking middleware |
 | `TestMetrics` | Metrics collector for testing |
 
-`core/internal/testhelpers` re-exports from this module for backward compatibility.
+
 
 ## Design Principles
 
@@ -327,9 +331,18 @@ testhelpers → core
 memory      → core + testhelpers
 middleware  → core + testhelpers
 catalog    → core (via cattest internal helpers)
-core       → memory + testhelpers
-testhelpers → core
+integration → core + memory + testhelpers
+core        → (no internal deps — independently publishable)
 ```
+
+### Integration Module (`integration/`)
+
+| Package | Purpose | Key Types |
+|---------|---------|-----------|
+| `integration/aggregate/` | Aggregate integration tests (moved from `core/aggregate/`) | BDD + integration tests |
+| `integration/command/` | Command integration tests (moved from `core/command/`) | Middleware chain tests |
+| `integration/event/` | Event integration tests (moved from `core/event/`) | BDD + benchmark tests |
+| `integration/query/` | Query integration tests (moved from `core/query/`) | Middleware chain tests |
 
 ## Catalog System Architecture
 
@@ -522,24 +535,18 @@ These were identified but explicitly deferred because they affect all consumers 
 
 ## Known Architectural Constraints
 
-### Circular Module Dependency: core ↔ memory/testhelpers
+### Circular Module Dependency: core ↔ memory/testhelpers ✅ RESOLVED
 
-`core/go.mod` lists `memory` and `testhelpers` as dependencies (for tests).
-`memory/go.mod` and `testhelpers/go.mod` both depend on `core`.
+**Status:** Fixed — `integration/` module created, 15 test files moved from `core/`, `core/go.mod` no longer references `memory` or `testhelpers`.
 
-This is resolved locally via `replace` directives in `core/go.mod`:
-```go
-replace (
-    github.com/larsartmann/go-cqrs-lite/memory => ../memory
-    github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
-)
+**Previous state:** `core/go.mod` listed `memory` and `testhelpers` as test dependencies. `memory` and `testhelpers` both depended on `core`, creating a circular dependency that blocked independent publishing.
+
+**Resolution:** Created `integration/` module at repo root. All `core` test files importing `memory` or `testhelpers` were moved to `integration/{aggregate,command,event,query}/`. `core/go.mod` now has no internal module dependencies.
+
+**Verification:**
+```bash
+cd core && GOWORK=off go test ./... -count=1  # passes without replace directives
 ```
-
-**Impact:** `core` cannot be `go get`-d independently without the sibling modules also being published. All 12 test files in `core` that import `memory`/`testhelpers` are external test packages (`*_test`), so they *could* be moved to an `integration/` module to break the cycle.
-
-**Recommended approach:** Coordinated monorepo releases. Publish all modules together with matching versions. The `replace` pattern is standard for Go monorepos (see Kubernetes, CockroachDB). Independent publishability is a nice-to-have, not a requirement.
-
-**If independent publishability becomes required:** Create `integration/` module, move 12 test files, remove `memory`/`testhelpers` from `core/go.mod`.
 
 ---
 

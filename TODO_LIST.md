@@ -1,8 +1,8 @@
 # TODO List — go-cqrs-lite
 
-**Last Updated:** 2026-04-30 00:00 UTC  
-**Current Branch:** master (19 commits ahead of origin)  
-**Build Status:** ✅ All tests passing, zero lint issues
+**Last Updated:** 2026-04-30  
+**Current Branch:** master  
+**Build Status:** ✅ All tests passing, zero lint issues, circular dependency fixed
 
 ---
 
@@ -21,14 +21,13 @@ This list is ruthlessly prioritized by **impact/effort ratio**. Each task includ
 ## Tier 1: Must Do (P0 — Blocks Production Use)
 
 ### 1.1 Fix core→memory/testhelpers Circular Dependency
-- **Status:** Documented in AGENTS.md — coordinated releases recommended
-- **Effort:** ~2 hours (or 0 if coordinated releases accepted)
-- **Impact:** CRITICAL — blocks publishing core module independently
-- **Customer value:** Users can't `go get github.com/larsartmann/go-cqrs-lite/core` without replace directives
-- **Approach:** Create `integration/` module at repo root. Move memory-dependent core tests into it.
-- **Files:** `core/go.mod`, all `core/*/*_test.go` that import `memory` or `testhelpers`
-- **Blocker:** Decision needed — is independent publishability required?
-- **Workaround:** `go mod tidy` now works in all modules with replace directives (commit `a819c86`)
+- **Status:** ✅ DONE
+- **Effort:** ~2 hours
+- **Impact:** CRITICAL — core module now independently publishable
+- **Customer value:** Users can `go get github.com/larsartmann/go-cqrs-lite/core` without replace directives
+- **Approach:** Created `integration/` module at repo root. Moved 15 cross-module test files from `core/` into it.
+- **Files:** `integration/go.mod`, `integration/{aggregate,command,event,query}/`, `core/go.mod`
+- **Verification:** `cd core && GOWORK=off go test ./...` passes without any replace directives
 
 ---
 
@@ -127,8 +126,8 @@ This list is ruthlessly prioritized by **impact/effort ratio**. Each task includ
 
 ## Execution Strategy
 
-1. **Tier 1 decision needed** — Confirm whether independent publishability is a requirement.
-2. **Tier 2 is COMPLETE** — All P1 tasks finished in this session.
+1. **Tier 1 is COMPLETE** — Circular dependency broken via `integration/` module.
+2. **Tier 2 is COMPLETE** — All P1 tasks finished.
 3. **Tier 3 deferred** — Design docs for SQL store, saga, upcasting, outbox publisher.
 4. **Tier 4 remains closed** — Skip decisions stand.
 
