@@ -193,7 +193,7 @@ nix develop             # enter dev shell
 
 ## Design Principles
 
-1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-composable-business-types`, `go-json-experiment/json`
+1. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
 2. **Composition over inheritance** — Per Go best practices
 3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 4. **Context-aware** — All handlers accept `context.Context`
@@ -295,7 +295,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | ----------------------- | -------- | -------------------- | -------- |
 | `cockroachdb/errors`   | v1.12.0  | Error wrapping       | core, middleware |
 | `oklog/ulid/v2`             | v2.1.0   | ULID generation (binary-sortable) | core     |
-| `go-composable-business-types` | v0.1.0 | Branded ID type backing | core |
+| `go-branded-id` | v0.1.0 | Branded ID type backing | core |
 | `go-faster/yaml`        | v0.4.6   | YAML marshaling      | catalog  |
 | `go-json-experiment/json` | v0.0.0 | JSON v2             | core, catalog |
 
@@ -308,21 +308,20 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ## Test Coverage Summary
 
-| Package                  | Coverage | Session 8 Delta |
-| ------------------------ | -------- | ---------------- |
-| `core/command`           | 100.0%   | —                |
-| `core/query`             | 100.0%   | —                |
-| `core/pkg/dispatcher`    | 100.0%   | +24.6%           |
-| `memory`                 | 99.4%    | —                |
-| `middleware`              | 99.2%    | —                |
-| `catalog/adapters`       | 98.8%    | —                |
-| `core/event`             | 97.9%    | +9.6%            |
-| `core/pkg/id`            | 97.1%    | —                |
-| `catalog/asyncapi`       | 97.6%    | —                |
-| `testhelpers`            | —        | —                |
-| `catalog/eventcatalog`   | 95.5%    | +5.8%            |
-| `core/aggregate`         | 95.1%    | +4.9%            |
-| `catalog`                | 94.2%    | +7.2%            |
+| Package                  | Coverage |
+| ------------------------ | -------- |
+| `core/command`           | 100.0%   |
+| `core/query`             | 100.0%   |
+| `core/pkg/dispatcher`    | 100.0%   |
+| `middleware`              | 100.0%   |
+| `memory`                 | 98.9%    |
+| `catalog/adapters`       | 98.8%    |
+| `core/event`             | 99.1%    |
+| `core/pkg/id`            | 97.1%    |
+| `catalog/asyncapi`       | 97.6%    |
+| `catalog/eventcatalog`   | 95.5%    |
+| `core/aggregate`         | 95.7%    |
+| `catalog`                | 94.4%    |
 
 ## Module Dependency Graph
 
@@ -425,10 +424,13 @@ Interfaces now return branded ID types instead of `string`:
 | Issue | Severity | Detail |
 |-------|----------|--------|
 | `MemoryBus.Publish` holds RLock during handler execution | LOW | Subscribers block publishers (acceptable for test utility) |
-| `MemorySnapshotStore` deep copy of `State []byte` | LOW | Load returns shallow copy; shared mutable state |
 | `toDotAddress` number handling | LOW | "Get3DView" → "get.3.d.view" instead of "get.3d.view" |
 | ~~`core/pkg/dispatcher` coverage~~ | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8) |
-| No `EventRetry` tests | LOW | `EventValidation` tested, `EventRetry` shares same retry logic as CommandRetry |
+| ~~`core/aggregate` coverage~~ | ✅ FIXED | 21.4% → 95.7% — repository unit tests with fakes (session 13) |
+| ~~`core/command` coverage~~ | ✅ FIXED | 95.0% → 100% — Use/Register tests (session 13) |
+| ~~`core/query` coverage~~ | ✅ FIXED | 91.0% → 100% — Use/Register/DispatchTyped tests (session 13) |
+| ~~`MemorySnapshotStore` deep copy~~ | ✅ FIXED | Deep copy in `copySnapshot` + defensive copy tests (session 10) |
+| ~~No `EventRetry` tests~~ | ✅ FIXED | Split retry tests, added EventRetry coverage (session 10) |
 
 ## Cleanup Done (Post-Migration)
 
@@ -498,6 +500,16 @@ Interfaces now return branded ID types instead of `string`:
   - Extracted `schemaFromReflect` into `schema_reflect.go` with focused functions
   - Split test files: `eventcatalog/exporter_test.go` (992 → 673 + 332), `schema_test.go` (681 → 444 + 249), `adapters_test.go` (630 → 239 + 265 + 156)
   - Updated `.golangci.yml` exhaustruct exclusion for `schema_reflect.go`
+
+- **Session 13 (Coverage Recovery + Lint Cleanup)**:
+  - Fixed `core/aggregate` coverage: 21.4% → 95.7% — added `repository_test.go` with fake Store/Bus/SnapshotStore/Outbox implementations
+  - Fixed `core/command` coverage: 95.0% → 100% — added `Use` middleware test, closed dispatcher Register test
+  - Fixed `core/query` coverage: 91.0% → 100% — added `Use` middleware test, `DispatchTyped` success + type mismatch tests
+  - Updated `.golangci.yml`: added `go-branded-id` to depguard allow list, removed stale `evtest`/`testhelpers` exclusions
+  - Fixed wsl_v5 issues in `core/event/options.go`, `catalog/adapters/from_query_dispatcher.go`
+  - Fixed `nonamedreturns` nolint for `middleware/recovery.go` query recovery (named return required for defer)
+  - Added catalog schema tests for unsigned integers, complex types, interface types, array types
+  - Updated AGENTS.md: coverage table, known issues fixed, `go-composable-business-types` → `go-branded-id`
 
 ## Migration State
 
