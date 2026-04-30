@@ -13,6 +13,12 @@ import (
 
 const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"
 
+// recordError records an error on the span and sets error status.
+func recordError(span trace.Span, err error) {
+	span.RecordError(err)
+	span.SetStatus(codes.Error, err.Error())
+}
+
 // CommandTracing creates an OpenTelemetry span for each command handled.
 // The tracer is typically obtained from a trace.TracerProvider:
 //
@@ -32,8 +38,7 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 
 			err := next(ctx, cmd)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				recordError(span, err)
 			}
 
 			return err
@@ -60,8 +65,7 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 
 			err := next(ctx, evt)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				recordError(span, err)
 			}
 
 			return err
@@ -88,8 +92,7 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 
 			result, err := next(ctx, qry)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				recordError(span, err)
 			}
 
 			return result, err

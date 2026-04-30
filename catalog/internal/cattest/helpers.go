@@ -303,3 +303,28 @@ func NewCatalogCore(
 
 	return core, nil
 }
+
+// BuildTestCatalog creates a standard test catalog with order service for golden tests.
+func BuildTestCatalog() *catalog.Catalog {
+	reg := catalog.NewRegistry("E-Commerce", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
+	})
+	reg.AddCommand("order-svc", catalog.Message{
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order", Version: "1.0.0",
+		Summary: "Create a new order",
+		Schema: &catalog.Schema{Type: "object", Properties: map[string]catalog.Property{
+			"orderId": {Type: "string"},
+		}},
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created", Version: "1.0.0",
+		Summary: "Order was created", Direction: catalog.Sends,
+	})
+	reg.AddQuery("order-svc", catalog.Message{
+		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order", Version: "1.0.0",
+		Summary: "Get order by ID",
+	})
+
+	return reg.Build()
+}
