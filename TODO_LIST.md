@@ -1,169 +1,286 @@
-# TODO List — go-cqrs-lite
+# TODO List
 
-**Last Updated:** 2026-04-30  
-**Current Branch:** master  
-**Build Status:** ✅ All tests passing, zero lint issues, circular dependency fixed
+**Generated:** 2026-04-30
+**Files Processed:** 270
 
----
+## 🔴 HIGH Priority
 
-## Philosophy
+- [ ] Add security test for SQL injection in SQLEventStore (source: storage/)
+- [ ] Regenerate asyncapi + eventcatalog golden files (`-update` flag) — CI broken (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Fix or delete broken `example/` modules with stale `go.mod` (source: SESSION5_MID_REVIEW.md)
+- [ ] Add `command.MustNew` / `query.MustNew` panic tests (source: SESSION5_MID_REVIEW.md)
+- [ ] Write formal `CHANGELOG.md` tracking breaking changes per module (source: POST_MIGRATION_CLEANUP.md, SESSION8)
+- [ ] Write migration guide for ULID breaking changes (source: ULID_MIGRATION_COMPREHENSIVE_STATUS.md)
 
-> "Perfect is the enemy of shipped — but sloppy is the enemy of trust."
+## 🟡 MEDIUM Priority
 
-This list is ruthlessly prioritized by **impact/effort ratio**. Each task includes:
+- [ ] Fix `scanEvents` to preserve original event ID — data loss bug where events loaded from SQL get new IDs (source: storage/event_store.go:246-289)
+- [ ] Add `WithEventID` option or `ReconstructEvent` function to fix storage event ID preservation (source: core/event/event.go:187)
+- [ ] Fix `query.Handler` — add `context.Context`, remove `any` return type; use generic `Handler[T]` (source: PROJECT_REVIEW.md, SESSION8)
+- [ ] Fix `MarkChangesAsCommitted` slice reuse in `core/aggregate/aggregate.go` (source: SESSION-11-PLAN.md)
+- [ ] Fix `aggregate.Root.ID()` returns `string` — loses branded `id.AggregateID` type (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix MarshalJSON double-encoding bug (source: ULID_MIGRATION_STATUS.md)
+- [ ] Fix `TestSQLValue`/`value` — assertion checks bytes not string (source: ULID_MIGRATION_STATUS.md)
+- [ ] Fix `TestEncoding`/`binary` — unmarshal needs 16-byte binary input (source: ULID_MIGRATION_STATUS.md)
+- [ ] Fix `NewWithPrefix` — implement prefix or delete function (source: COMPREHENSIVE_STATUS.md)
+- [ ] Fix JSON null handling for zero-value IDs (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `time.Time` schema generation to produce `{type:"string", format:"date-time"}` instead of `{type:"object"}` (source: CATALOG_FIXES_AND_IMPROVEMENTS.md)
+- [ ] Filter embedded `*Core`/`*CatalogCore` from schema output — bug (source: CATALOG_AUTO_DISCOVERY.md)
+- [ ] Fix `Build()` shared backing array corruption + non-deterministic map iteration in `catalog/registry.go` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `catalog/benchmark_test.go` cross-module internal import (source: COMPREHENSIVE_STATUS.md)
+- [ ] Fix FuzzParse — normalize seed corpus or case-insensitive compare (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Fix core→memory circular dependency — replace directives block publishing core module (source: core/go.mod)
+- [ ] Fix `go.sum` missing entry for `go-composable-business-types` — blocks per-module tests (source: 2026-04-26_15-00_STATUS.md)
+- [ ] Fix `go mod tidy` in all modules — catalog, middleware, testhelpers fail due to missing replace directives (source: HONEST_SELF-ASSESSMENT.md)
+- [ ] Fix CI Go version matrix (1.21→1.26) (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Run `golangci-lint run` and fix findings across full codebase (source: multiple sessions)
+- [ ] Fix `err113` lint issues in `id.go` — 3 dynamic errors need sentinel patterns (source: 2026-04-26_15-00_STATUS.md)
+- [ ] Fix `noinlineerr` lint issues in `id.go:152,229` (source: 2026-04-26_15-00_STATUS.md)
+- [ ] Format test files — run `gofumpt -w .` to fix `golines`/`wsl_v5` violations (source: 2026-04-26_15-00_STATUS.md)
+- [ ] Fix `MemorySnapshotStore` deep copy — `Snapshot.State []byte` is shared on load (source: COMPREHENSIVE_EXECUTION_PLAN.md:7.1, ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Fix flaky aggregate concurrency BDD test (source: COMPREHENSIVE_STATUS.md)
+- [ ] Fix `toDotAddress` number handling — "Get3DView" → "get.3.d.view" instead of "get.3d.view" (source: AGENTS.md, multiple sessions)
+- [ ] Refactor `event.NewEvent` (66 lines → 2-3 functions) for function size compliance (source: core/event/event.go)
+- [ ] Refactor `asyncapi.addMessage` (54 lines → 2 functions) and `eventcatalog.writeService`/`writeLLMsTxt` (source: catalog/)
+- [ ] Fix naming inconsistency — `EventCatalogMeta` → `CatalogMeta` (source: SESSION8)
+- [ ] Fix `catalog/asyncapi/exporter.go` — component message key collision when command/event share same ID (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix 20 pre-existing catalog lint issues (`noinlineerr` + `wsl_v5`) (source: SESSION8)
+- [ ] Fix `AddServiceToDomain` returns error in builder (source: SESSION-11-PLAN.md)
+- [ ] Refactor `repository_test.go` (615 lines) into 3 files: fakes → testhelpers, save tests, load tests (source: SESSION14_ARCHITECTURE.md)
+- [ ] Update all go-localsync branded IDs to `id.Of[TMarker] string` format (source: CROSS_PROJECT_REVIEW.md:1.3-1.4)
+- [ ] Update go-localsync to import from `go-provider` (source: CROSS_PROJECT_REVIEW.md:3.2-3.3)
+- [ ] Tag go-branded-id v0.2.0 and update dependency (source: session-15b-execution.md)
+- [ ] Fix `go.work` version mismatch (`go 1.26` vs `go 1.26.0`) (source: COMPREHENSIVE_STATUS.md, multiple sessions)
+- [ ] Update CI matrix for new modules (storage, watermill, projection, snapshot) (source: COMPREHENSIVE_EXECUTION_PLAN.md:8.9)
+- [ ] Update `CHANGELOG.md` with sessions 10–14 changes (source: SESSION14_ARCHITECTURE.md)
+- [ ] Update README with new module structure (storage, watermill, projection) (source: COMPREHENSIVE_EXECUTION_PLAN.md:8.2)
+- [ ] Add nil handler check to `MemoryBus.Subscribe` + fix error wrapping inconsistency (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `MemoryStore.LoadFromVersion` — copy slice, don't return sub-slice (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `internal/dispatcher Register` uses wrong sentinel `ErrHandlerNotFound` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `nilnil` lint in `Value()` properly (source: COMPREHENSIVE_STATUS.md)
+- [ ] Fix `catalog.Message` discriminated union — generics over Kind (source: SESSION8)
+- [ ] Fix `query.Middleware` readability — use `Handler` type alias (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fix `exhaustruct` lint warnings (~30 issues, mostly `Of[struct{}]` literals) (source: 2026-04-26_15-00_STATUS.md)
+- [ ] Update stale planning docs referencing deleted xtypes module (source: docs/planning/)
+- [ ] Fix depguard linter config (add allow-rules) (source: CATALOG_AUTO_DISCOVERY.md)
+- [ ] Refactor `MemoryBus.Publish` to release lock before handler execution (source: LINT_CLEANUP_COMPLETE.md, PROJECT_REVIEW.md)
+- [ ] Fix `xtypes.TypedCommand.Command()` allocation per call (source: LINT_CLEANUP_COMPLETE.md, ULID_MIGRATION_FINAL.md)
 
-- **Effort** estimate (in minutes or hours)
-- **Impact** on the codebase
-- **Customer value** (why it matters)
-- **Honest blockers** (what might stop us)
+## 🟢 LOW Priority
 
----
+- [ ] Consider replacing inline LWW in `ConflictAwareSyncer` with `sync.LWWResolver[*provider.Item]` (source: CROSS_PROJECT_REVIEW.md:5.1)
+- [ ] Consider adding `VectorClock` to `Operation` for causal ordering (source: CROSS_PROJECT_REVIEW.md:5.2)
+- [ ] Document `MemoryBus.Publish` RLock behavior in godoc (source: COMPREHENSIVE_EXECUTION_PLAN.md:7.3)
+- [ ] Add `GoString()`/`Format()` to `Of[T]` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Consider `Value()` returning text (26-char) instead of binary (16-byte) (source: COMPREHENSIVE_STATUS.md)
+- [ ] Consider adding `ID[T, string]` variant for non-time-ordered IDs (source: ULID_MIGRATION_STATUS.md)
+- [ ] Explore `go-json-experiment/json` v2 for struct-level marshaling of `id.Of[T]` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Document middleware architecture decision and Go pattern limitations (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Investigate root-level packages (`aggregate/`, `command/`) vs `core/` (source: ULID_MIGRATION_COMPREHENSIVE_STATUS.md)
+- [ ] Investigate `go 1.26 ignore` directive for examples/ in go.work (source: POST_MIGRATION_CLEANUP.md)
 
-## Tier 1: Must Do (P0 — Blocks Production Use)
+## ⚪ Unknown Priority
 
-### 1.1 Fix core→memory/testhelpers Circular Dependency
-
-- **Status:** ✅ DONE
-- **Effort:** ~2 hours
-- **Impact:** CRITICAL — core module now independently publishable
-- **Customer value:** Users can `go get github.com/larsartmann/go-cqrs-lite/core` without replace directives
-- **Approach:** Created `integration/` module at repo root. Moved 15 cross-module test files from `core/` into it.
-- **Files:** `integration/go.mod`, `integration/{aggregate,command,event,query}/`, `core/go.mod`
-- **Verification:** `cd core && GOWORK=off go test ./...` passes without any replace directives
-
----
-
-## Tier 2: Should Do (P1 — High Value, Low Risk)
-
-### 2.1 Add EventRetry Middleware Tests
-
-- **Status:** ✅ DONE (commit `b8c0aa9`)
-- **Delivered:** Split retry_test.go into 3 files, added EventRetry non-retryable + context cancellation tests
-
-### 2.2 Add OpenTelemetry Tracing Middleware
-
-- **Status:** ✅ DONE (commits `1e70bfc`, `c7771cb`)
-- **Delivered:** CommandTracing, EventTracing, QueryTracing with injectable tracer, span kinds
-
-### 2.3 Add slog Structured Logging Adapter
-
-- **Status:** ✅ DONE (commit `e6bde18`)
-- **Delivered:** `middleware.SlogAdapter` wraps `*slog.Logger` for the `Logger` interface
-
-### 2.4 Remove Empty `core/internal/` Directory
-
-- **Status:** ✅ DONE (directory removed during session)
-
-### 2.5 Update Stale Planning Docs (xtypes References)
-
-- **Status:** ✅ DONE (commit `fd51837`)
-
-### 2.6 Fix `go mod tidy` Across All Modules
-
-- **Status:** ✅ DONE (commit `a819c86`)
-- **Delivered:** Added replace directives for memory/testhelpers to catalog, middleware, testhelpers go.mod files
-
----
-
-## Tier 3: Could Do (P2 — Future Architecture)
-
-### 3.1 Design Doc: SQL Event Store Module
-
-- **Status:** Not started
-- **Effort:** ~1 hour
-- **Impact:** HIGH — next major module
-- **Customer value:** Persistent event storage (current memory store loses data on restart)
-- **Approach:** Research sqlc + PostgreSQL patterns. Design `storage/` module with `SQLStore`.
-- **Files:** `docs/planning/2026-04-29_SQL_STORE_DESIGN.md`
-- **Blocker:** Need to evaluate sqlc vs raw SQL vs gorm
-
-### 3.2 Design Doc: Saga / Process Manager
-
-- **Status:** Not started
-- **Effort:** ~1 hour
-- **Impact:** HIGH — enables complex multi-aggregate workflows
-- **Customer value:** Orchestrate long-running business processes across aggregates
-- **Approach:** Research saga patterns (choreography vs orchestration). Design `saga/` module.
-- **Files:** `docs/planning/2026-04-29_SAGA_DESIGN.md`
-- **Blocker:** Need to understand if this library's scope should include sagas
-
-### 3.3 Design Doc: Event Upcasting
-
-- **Status:** Not started
-- **Effort:** ~45 minutes
-- **Impact:** MEDIUM — event schema evolution
-- **Customer value:** Migrate old event payloads to new schema versions without data loss
-- **Approach:** Design `event.Upcaster` interface and registry
-- **Files:** `docs/planning/2026-04-29_UPCASTING_DESIGN.md`
-- **Blocker:** None
-
-### 3.4 Outbox Background Publisher
-
-- **Status:** Partially done — interface exists, no publisher implementation
-- **Effort:** ~1 hour
-- **Impact:** MEDIUM — completes the outbox pattern
-- **Customer value:** Automatic reliable event publishing from outbox
-- **Approach:** Design `OutboxPublisher` that polls outbox and publishes to bus
-- **Blocker:** None
-
----
-
-## Tier 4: Explicitly Skipped (with rationale)
-
-### 4.1 Generic Middleware Core (Task 2.1)
-
-- **Skipped because:** Go's defined handler types (`command.Handler`, `event.Handler`) prevent clean generic unification. Adapter boilerplate equals original code length.
-- **Verdict:** Complexity > value.
-
-### 4.2 Query Generic Result Types (Task 3.1)
-
-- **Skipped because:** `DispatchTyped[T]` already works. The runtime type assertion is one line. Making `Query` generic would break all handlers and require type erasure at the registry anyway.
-- **Verdict:** Marginal benefit for massive breakage.
-
-### 4.3 CatalogBuilder Wraps Registry (Task 2.4)
-
-- **Skipped because:** Behavioral divergence. `Registry.AddService` merges messages; `CatalogBuilder.AddService` overwrites metadata. Unification requires breaking changes or adding adapter methods that increase API surface.
-- **Verdict:** Two builders with different semantics is better than one with surprising behavior.
-
----
-
-## Quality Gates (check before declaring "done")
-
-- [x] All tests pass (`nix run .#test`)
-- [x] No lint issues (`nix run .#lint`)
-- [x] Build compiles (`nix run .#build`)
-- [x] Format clean (`nix fmt` produces no changes)
-- [x] Coverage maintained or improved
-- [x] AGENTS.md updated with new patterns
-- [x] Commit history is clean and descriptive
-
----
-
-## Execution Strategy
-
-1. **Tier 1 is COMPLETE** — Circular dependency broken via `integration/` module.
-2. **Tier 2 is COMPLETE** — All P1 tasks finished.
-3. **Tier 3 deferred** — Design docs for SQL store, saga, upcasting, outbox publisher.
-4. **Tier 4 remains closed** — Skip decisions stand.
-
----
-
-## Done (this session)
-
-| Task                                   | Commit    | Date       |
-| -------------------------------------- | --------- | ---------- |
-| Fix go mod tidy in all modules         | `a819c86` | 2026-04-29 |
-| Make tracer injectable (refactor OTel) | `c7771cb` | 2026-04-29 |
-| Add slog adapter                       | `e6bde18` | 2026-04-29 |
-| Document circular dependency           | `62849df` | 2026-04-29 |
-| Remove stale xtypes refs               | `fd51837` | 2026-04-29 |
-| OTel tracing middleware                | `1e70bfc` | 2026-04-29 |
-| Retry test split + missing coverage    | `b8c0aa9` | 2026-04-29 |
-| Outbox seam                            | `2c1de1f` | 2026-04-29 |
-| Snapshot integration tests             | `b6aaa4a` | 2026-04-29 |
-| Deep copy fix (snapshot)               | `ae0b088` | 2026-04-29 |
-| Type-safe validators                   | `d3b27c3` | 2026-04-29 |
-| EventBuilder migration                 | `a6755ab` | 2026-04-29 |
-| Typed interface (dispatcher)           | `f3532ad` | 2026-04-29 |
-| Remove internal/testhelpers shim       | `63b39a5` | 2026-04-29 |
-| Delete xtypes module                   | `51b1d95` | 2026-04-29 |
+- [ ] Create `storage/` module with PostgreSQL event store using sqlc — Phase 5 (source: AGENTS.md, COMPREHENSIVE_EXECUTION_PLAN.md)
+- [ ] Create `storage/` module skeleton with `go.mod`, add to `go.work` (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.1-3.2)
+- [ ] Design PostgreSQL event store schema (events + outbox + checkpoints tables + indexes) (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Write sqlc queries for Save, Load, LoadFromVersion, Delete, AppendBatch (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.4-3.5)
+- [ ] Create `sqlc.yaml` config (PostgreSQL engine, pgx/v5) and run `sqlc generate` (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.6-3.7)
+- [ ] Implement `event.Store` SQL adapter wrapping sqlc-generated queries (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.8)
+- [ ] Implement transactional outbox (same-tx event write + outbox append) (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.9)
+- [ ] Add schema migration helpers to storage module (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.10)
+- [ ] Add SQL-backed SnapshotStore, CheckpointStore, and Outbox implementations (source: storage/)
+- [ ] Add PostgreSQL testcontainers integration tests — storage module has zero tests (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.11-3.12)
+- [ ] CI pipeline for storage module (needs PostgreSQL service) (source: .github)
+- [ ] Use `sql.Scanner`/`driver.Valuer` in storage module instead of manual `.String()` calls (source: storage/event_store.go)
+- [ ] Add `Projection` interface + `Runner` + `InMemoryRunner` to core (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Add `Upcaster` interface + `UpcasterRegistry` to core for event schema versioning (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Add `CheckpointStore` interface for projection position tracking (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Split `event.Store` 5-method god interface into `Writer/Reader/Deleter`; compose as `Store` for compat (source: SESSION-13, SESSION8)
+- [ ] Add publish-side event middleware (pre-publish interceptor) — events have no middleware chain on Publish() (source: core/event)
+- [ ] Make `InMemoryRunner` checkpoint-aware — currently processes all events instead of resuming (source: core/event)
+- [ ] Outbox seam interface + memory adapter in `core/event` (source: ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Add `ApplySnapshot` to `Root` interface (source: SESSION-11-PLAN.md)
+- [ ] Add aggregate `Repository` interface (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add `SnapshotStrategy` interface (every N events, time-based, on-demand) (source: SESSION14_ARCHITECTURE.md)
+- [ ] Backport Equal/Compare/Or/Reset to `Of[T]` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add BinaryMarshaler/TextMarshaler to `Of[T]` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Fill `pkg/id/` test coverage (48%→90%) (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Resolve `go-composable-business-types` dependency: publish as module or inline ULID logic (source: POST_ULID_CLEANUP, NIX_MIGRATION)
+- [ ] Replace `go-composable-business-types/id` imports with `go-cqrs-lite/pkg/id` (source: CROSS_PROJECT_REVIEW.md:1.1)
+- [ ] Publish `go-composable-business-types` as Go module or resolve for Nix purity (source: NIX_FLAKE_MIGRATION.md, COMPREHENSIVE_STATUS.md)
+- [ ] `MemoryBus.Publish` holds RLock during handler execution — subscribers block publishers (source: AGENTS.md:Known Issues)
+- [ ] Extract fake Store/Bus/SnapshotStore/Outbox to `testhelpers/` (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Add integration test: full CQRS roundtrip (command → aggregate → event → bus → projection) (source: testhelpers/) [TEST]
+- [ ] Write tests for `internal/dispatcher/` (0%→80%) (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add working `example/user/` demonstrating full CQRS lifecycle (source: SESSION-12, SESSION14_ARCHITECTURE.md)
+- [ ] Write getting-started guide / step-by-step tutorial (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Add `example/user/user` binary to `.gitignore` and remove from tracking (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Remove `pkg/errors` dead code or integrate it purposefully (source: PROJECT_REVIEW.md)
+- [ ] Remove core→memory replace directive (source: ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Add health check interface for Store/Bus/Dispatcher (source: SESSION8)
+- [ ] Add graceful shutdown — drain in-flight ops on Close() (source: SESSION8)
+- [ ] Add SQLite support to storage module (schema + queries) (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.13)
+- [ ] Add MySQL support to storage module (schema + queries) (source: COMPREHENSIVE_EXECUTION_PLAN.md:3.14)
+- [ ] Write storage module design doc (source: SESSION-13, COMPREHENSIVE_EXECUTION_PLAN.md:8.3)
+- [ ] Decide on schema migration tool (golang-migrate, goose, or raw SQL) (source: MULTI_MODULE_PLAN)
+- [ ] Add `DecodePayload[T]` helper to `core/event` using existing Codec interface (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Wire `Codec` into `EventSourcedRepository` for snapshot serialization instead of raw `[]byte` (source: SESSION-13, SESSION14_ARCHITECTURE.md)
+- [ ] Add `SnapshotStrategy` wired into `EventSourcedRepository.Save` (source: SESSION14_ARCHITECTURE.md)
+- [ ] Add `WithSnapshotStateFunc` option for repository (custom state extraction) (source: core/aggregate)
+- [ ] Add event store cursor-based streaming (load events in batches) (source: core/event)
+- [ ] Add `occurredAt` injectable option to `NewEvent` — currently uses `time.Now()`, not injectable (source: core/event/event.go:194)
+- [ ] `event.NewEvent` takes `event.Version` instead of `int` (source: core/event)
+- [ ] Add error sentinels for projection/upcaster packages — currently uses `fmt.Errorf` (source: core/event)
+- [ ] Brand OutboxID as `id.Of[outboxMarker]` for consistency (source: core/event/outbox.go)
+- [ ] Repository functional options (snapshot+outbox) (source: SESSION-11-PLAN.md)
+- [ ] Cache middleware chain at registration in `core/pkg/dispatcher/dispatcher.go` (source: SESSION-11-PLAN.md)
+- [ ] `CatalogBuilder` wraps `Registry` — consolidate duplication (source: ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Forward `Ptr()`/`FromPtr()` from cbid — enables optional ID fields (source: core/pkg/id)
+- [ ] Forward `fmt.Formatter` from cbid — enables `%#v` to show `id(01H...)` (source: core/pkg/id) [V]
+- [ ] Add `FromULID[T](ulid.ULID)` constructor for reconstruction from storage (source: core/pkg/id)
+- [ ] Remove 5 unnecessary `.String()` calls in `fmt.Errorf` — `Of[T]` implements `fmt.Stringer` (source: core/aggregate, core/command, storage)
+- [ ] Replace magic number 16 with `ulidBinarySize` constant (source: COMPREHENSIVE_STATUS.md)
+- [ ] Split `id.go` under 250 lines → `id_encoding.go` (source: COMPREHENSIVE_STATUS.md)
+- [ ] Create `projection/` module with Runner, Checkpoint SQL store, and Projector builder API (source: COMPREHENSIVE_EXECUTION_PLAN.md:5.1-5.6)
+- [ ] Implement `MemoryCheckpointStore` in `memory` (source: SESSION14_ARCHITECTURE.md)
+- [ ] Write projection runner integration test (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Persistent projection runner (SQL checkpoints) (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Create `sqlsnapshot/` module with SQL-backed SnapshotStore + snapshot strategies (source: COMPREHENSIVE_EXECUTION_PLAN.md:6.1-6.6)
+- [ ] Create `watermill/` module implementing `event.Bus` via Watermill Publisher — Phase 6 (source: AGENTS.md, COMPREHENSIVE_EXECUTION_PLAN.md)
+- [ ] Add Watermill module skeleton (pub/sub abstraction) (source: watermill/)
+- [ ] Add `enum` and `default` struct tag support to Schema/Property (source: CATALOG_FIXES_AND_IMPROVEMENTS.md)
+- [ ] Add `Examples` field to AsyncAPI Message type, wire from catalog (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c6-7)
+- [ ] Add `RegisterCatalogEntry()` to command/query Dispatchers (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c10-12)
+- [ ] Add `FromDispatcher()` / `FromEventBus()` to CatalogBuilder for auto-discovery (source: CATALOG_FIXES_AND_IMPROVEMENTS.md, CATALOG_AUTO_DISCOVERY.md)
+- [ ] Generate `llms.txt` alongside EventCatalog output (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c9)
+- [ ] Add `AddChannel()` to CatalogBuilder (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c18)
+- [ ] Add `version` field to `AddService()` (source: CATALOG_AUTO_DISCOVERY.md)
+- [ ] Wire `Message.Examples` → EventCatalog export or remove dead field (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:e2)
+- [ ] Add `FromEventBus` adapter in catalog/adapters (source: catalog/adapters)
+- [ ] Unify `addCommand/addEvent/addQuery` → `addMessage(kind)` in `catalog/asyncapi/exporter.go` (source: DEDUPLICATION_PLAN.md:6)
+- [ ] Unify MDX frontmatter writing in `catalog/eventcatalog/exporter.go` (source: DEDUPLICATION_PLAN.md:7)
+- [ ] Unify Ptr-unwrapping in `catalog/schema.go` (lines 21-23 and 95-97) (source: DEDUPLICATION_PLAN.md:5)
+- [ ] Reduce `marshalValue` cyclomatic complexity from 14 to ≤10 (source: PROJECT_REVIEW.md)
+- [ ] Split `eventcatalog/exporter.go` (346→250 lines) (source: SESSION8)
+- [ ] Split `cattest/helpers.go` (305→~200 + ~100) (source: catalog/internal/cattest/helpers.go)
+- [ ] Replace `TestMetrics` with OpenTelemetry SDK for production-ready observability (source: SESSION-13, SESSION8)
+- [ ] Add OpenTelemetry spans/tracing middleware to dispatchers (source: middleware/, SESSION8)
+- [ ] Add `EventRetry` direct tests — currently only tested indirectly via `CommandRetry` (source: COMPREHENSIVE_EXECUTION_PLAN.md:7.4, multiple sessions)
+- [ ] Generic ErrorRecovery + ErrorValidation in middleware (source: ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Type-safe `TypedValidator[T]` replacing `func(any) error` (source: IMPROVE_CODEBASE_ARCHITECTURE.md)
+- [ ] Circuit breaker middleware (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Dead letter queue mechanism (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Boost coverage: `core/command` → 85%, `pkg/id` → 85%, `pkg/dispatcher` → 85%, `aggregate` → 85%, `middleware` → 80% (source: multiple sessions)
+- [ ] Boost `catalog/adapters` coverage to >80% (source: PROJECT_REVIEW.md, LINT_CLEANUP.md)
+- [ ] Add BDD test for aggregate error paths (source: COMPREHENSIVE_EXECUTION_PLAN.md:7.5)
+- [ ] Test outbox failure after store success (source: SESSION-11-PLAN.md)
+- [ ] Memory outbox: remove acked entries (source: SESSION-11-PLAN.md)
+- [ ] Add `t.Parallel()` to BDD suite tests (source: COMPREHENSIVE_STATUS.md)
+- [ ] Split `middleware_test.go` (827 lines) into per-source test files (source: SESSION5_MID_REVIEW.md)
+- [ ] Run integration tests with race detector (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Add E2E throughput benchmarks (commands/sec, events/sec) (source: SESSION-13, SESSION8)
+- [ ] Add repository benchmarks for snapshot-aware Load and outbox-aware Save paths (source: SESSION-13)
+- [ ] Migrate go-localsync `EventID` to storage-layer only; add `id.Of[EventMarker] string` for domain use (source: CROSS_PROJECT_REVIEW.md:1.2)
+- [ ] Add deprecation notice to `go-composable-business-types/id/` (source: CROSS_PROJECT_REVIEW.md:1.6)
+- [ ] Extract go-localfirst `pkg/sync` (CRDT primitives) into `go-cqrs-lite/pkg/sync/` (source: CROSS_PROJECT_REVIEW.md:2.1-2.5)
+- [ ] Create `go-provider` standalone repo with Provider interface, Item struct, RateLimitConfig, RetryConfig (source: CROSS_PROJECT_REVIEW.md:3.1-3.4)
+- [ ] Tag `v0.1.0-alpha` releases for core, memory, catalog, middleware modules (source: SESSION-13, multiple sessions)
+- [ ] Add GitHub Pages `index.html` with go-import meta tags for subdirectory module resolution (source: SESSION-13)
+- [ ] Decide go-import hosting strategy (GitHub Pages, godoc.org, or custom domain) (source: MULTI_MODULE_PLAN)
+- [ ] Add `go work sync` to CI pipeline (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add CI coverage report upload (codecov/coveralls) (source: .github)
+- [ ] Add dependabot/renovate for dependency updates (source: .github)
+- [ ] Remove stale `replace memory` from middleware/xtypes/testhelpers go.mod files (source: POST_MIGRATION_CLEANUP.md)
+- [ ] Remove `example/user` from `go.work` — examples shouldn't be in workspace (source: go.work)
+- [ ] Write saga/process manager design doc (source: SESSION-13, ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Write event upcasting design doc (source: SESSION-12, ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] PostgreSQL event store design doc (source: ARCHITECTURE_EXECUTION_PLAN.md)
+- [ ] Evaluate `samber/do` for dependency injection in storage module (source: SESSION-13)
+- [ ] Decide whether `core` should be truly zero-dependency (source: MULTI_MODULE_PLAN)
+- [ ] Decide whether `middleware/` should be split further (source: MULTI_MODULE_PLAN)
+- [ ] Decide on Event Codec location (`core/event/` or own module) (source: MULTI_MODULE_PLAN)
+- [ ] Decide on Event Upcasting location (`core/upcasting/` or storage module) (source: MULTI_MODULE_PLAN)
+- [ ] Resolve `TypedCommand.Command()` validation impedance mismatch (source: NIX_MIGRATION, SESSION8)
+- [ ] Write `CONTRIBUTING.md` for multi-module workflow (source: POST_MIGRATION_CLEANUP.md, DEDUPLICATION_PHASE_1.md)
+- [ ] Add CI badges + Go Reference badge to README (source: POST_MIGRATION_CLEANUP.md, SESSION8)
+- [ ] Remove dead exports: `query.Result[T]`, `event.StreamOptions`/`BatchSize`/`Streamer` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Remove unused sentinels: `ErrCommandValidation`, `ErrQueryValidation`, `ErrInvalidEventType` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add validation to `command.New()`, `query.New()`, `NewEvent()` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Make `asyncapi`/`eventcatalog` exporter fields unexported (use options only) (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add `context.Context` to `MemoryStore.Save`/`Load` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add `Payload()`/`Metadata()` immutability — return copies (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Extract shared `Close()` pattern to `core/pkg/lifecycle/` (source: COMPREHENSIVE_EXECUTION_PLAN.md:2.6)
+- [ ] Extract shared `Use()` middleware pattern to `core/pkg/middleware/` (source: COMPREHENSIVE_EXECUTION_PLAN.md:2.7)
+- [ ] Add default JSON Codec implementation using `go-json-experiment/json` (source: COMPREHENSIVE_EXECUTION_PLAN.md:2.9)
+- [ ] Delete or implement `event/store_config.go` (source: COMPREHENSIVE_STATUS.md)
+- [ ] Delete dead `pkg/errors` package (source: COMPREHENSIVE_STATUS.md)
+- [ ] Archive old planning docs to `docs/status/archive/` (source: COMPREHENSIVE_EXECUTION_PLAN.md:8.12)
+- [ ] Add unified `MessageType` constraint (`type MessageType interface { ~string }`) for cross-kind generics (source: SESSION-13)
+- [ ] Add `AggregateID` generic type parameter to `aggregate.Core[T]` (source: SESSION-12)
+- [ ] Add `time.Time` support to YAML marshaler (source: ARCHIVED-2026-04-02)
+- [ ] Make AsyncAPI servers configurable instead of hardcoded (source: ARCHIVED-2026-04-02)
+- [ ] Unify `Type[T]` generics instead of string aliases (source: SESSION8)
+- [ ] Remove unused `_ H` parameter from `Dispatcher.Dispatch` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Unify `Lifecycle`/`LifecycleMixin` duplication in `internal/dispatcher` (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Remove `dispatcher.Typed` or build actual cross-kind utilities (source: core/pkg/dispatcher)
+- [ ] Add `UpcasterRegistry` cycle detection (source: core/event)
+- [ ] Add projection parallel processing (goroutine pool) (source: core/event)
+- [ ] Add schema support for `nullable`, `deprecated`, `pattern`, `minLength`/`maxLength`, `minimum`/`maximum` tags (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c25)
+- [ ] Research jsonschema libraries vs. custom reflect approach (source: CATALOG_FIXES_AND_IMPROVEMENTS.md:c28)
+- [ ] Add `Codec` integration to catalog system for schema generation of encoded payloads (source: SESSION-13)
+- [ ] EventCatalog: support custom MDX body content (source: CATALOG_AUTO_DISCOVERY.md)
+- [ ] EventCatalog: generate `package.json` for instant deployment (source: CATALOG_AUTO_DISCOVERY.md)
+- [ ] Add fuzz tests for event creation, ID parsing, schema reflection, `DecodePayload`, upcaster chain (source: SESSION-13, multiple sessions)
+- [ ] Add Go doc `Example*` test functions for command, event, query, aggregate, id packages (source: POST_ULID_CLEANUP.md, multiple sessions)
+- [ ] Add benchmarks for Codec, ULID IDs, projections, upcasters, snapshot strategy (source: POST_ULID_CLEANUP.md, core/)
+- [ ] Add snapshot tests for golden files to detect drift (source: SESSION8)
+- [ ] Add memory bus stress tests (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Add `tb.Helper()` calls to test helpers (source: LINT_CLEANUP_COMPLETE.md)
+- [ ] Migrate internal test packages to `_test` suffix (source: LINT_CLEANUP_COMPLETE.md)
+- [ ] Add `testutil` helpers for common `MustParse*()` patterns (source: ULID_MIGRATION_COMPREHENSIVE_STATUS.md)
+- [ ] Verify SQL NULL behavior with actual database driver (source: ULID_MIGRATION_COMPREHENSIVE_STATUS.md)
+- [ ] Add `.golangci.yml` with `unused`, `deadcode`, `depguard` linters (source: POST_MIGRATION_CLEANUP.md, LINT_CLEANUP.md)
+- [ ] Add `gofumpt`/`goimports` to pre-commit hook and CI pipeline (source: CATALOG_FIXES_AND_IMPROVEMENTS.md, COMPREHENSIVE_STATUS.md)
+- [ ] Add `golangci-lint` to CI pipeline with threshold enforcement (source: DEDUPLICATION_PHASE_1_COMPLETE.md)
+- [ ] Add `art-dupl` to CI pipeline with threshold enforcement (source: DEDUPLICATION_PHASE_1_COMPLETE.md)
+- [ ] Add coverage threshold enforcement in CI (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Create justfile with `build`, `test`, `lint`, `fd` targets (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add `.goreleaser.yml` for multi-module releases (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Remove unnecessary type args in `id.go` (6 `gopls infertypeargs` warnings) (source: COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Add `id.Of[T].MarshalJSONv2` support for `go-json-experiment/json` (source: core/pkg/id)
+- [ ] Forward `GobEncode`/`GobDecode` from cbid (source: session-15b-execution.md)
+- [ ] Add `CONTRIBUTING.md` with architecture diagrams (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Create ADR for code duplication tolerance threshold (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Write comprehensive testing guide (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Create FAQ for code duplication questions (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Documentation site (Docusaurus or similar) (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Add `example/ecommerce/` full-stack example (source: POST_MIGRATION_CLEANUP.md)
+- [ ] HTTP handler examples (chi/echo) (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] gRPC transport adapter (source: NIX_MIGRATION.md)
+- [ ] Health check endpoints (source: NIX_MIGRATION.md)
+- [ ] Metrics endpoint example (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Example microservice (multi-service demo) (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Example demonstrating middleware composition (source: SESSION_12_DEDUPLICATION_STATUS.md)
+- [ ] Remove dead `evtest` package from `core/event/internal/evtest/` — 0% coverage, not imported (source: COMPREHENSIVE_EXECUTION_PLAN.md:1.1)
+- [ ] Remove empty `core/internal/` directory (source: core/internal/)
+- [ ] Delete stale `go.work.example` (source: SESSION-11-PLAN.md)
+- [ ] Remove or reduce `//nolint:err113` directives (use sentinel errors) (source: POST_MIGRATION_CLEANUP.md)
+- [ ] Remove redundant state in `TypedAggregate` (source: NIX_MIGRATION.md)
+- [ ] Delete unused functions in `catalog/adapters/message.go` (source: COMPREHENSIVE_STATUS.md)
+- [ ] Clean up stale `docs/status/` (keep 3 most recent) (source: NIX_FLAKE_MIGRATION_COMPLETE.md)
+- [ ] Extract field-tag parsing from `schemaFromReflect` to reduce gocognit from 32→~15 (source: LINT_CLEANUP_COMPLETE.md)
+- [ ] Add doc comments to all exported catalog, asyncapi, and core types (source: LINT_CLEANUP_COMPLETE.md)
+- [ ] Polish godoc on all exported types in storage module (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Add saga/process manager interface to core (source: core/, NIX_MIGRATION.md)
+- [ ] Event upcasting/schema evolution (source: NIX_MIGRATION.md)
+- [ ] Event bus partitioning by aggregate ID (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] Migration CLI tool (schema versioning) (source: SESSION16_COMPREHENSIVE_STATUS.md)
+- [ ] `EventMetadataEnricher` middleware (source: SESSION14_ARCHITECTURE.md)
+- [ ] `EventCodec` integration with `NewEvent`/`EventBuilder` for automatic encoding (source: COMPREHENSIVE_EXECUTION_PLAN.md:2.8)
+- [ ] Add `contextEnricher` option to `NewEvent` for automatic metadata (source: core/event)
+- [ ] Add `encoding.BinaryMarshaler` usage in storage for payload (source: storage/)
+- [ ] Middleware composition builder (source: SESSION8)
+- [ ] Tag `v1.0.0` releases for all stable modules — Phase 10 (source: AGENTS.md, SESSION5_MID_REVIEW.md)
+- [ ] Extract `testutil` into standalone module — Phase 9 (source: POST_MIGRATION_CLEANUP.md, COMPREHENSIVE_STATUS_REPORT.md)
+- [ ] Split long test files: `id_test.go` (911), `dispatcher_test.go` (597), `asyncapi/exporter_test.go` (470) (source: core/pkg/id, core/pkg/dispatcher, catalog/asyncapi)
