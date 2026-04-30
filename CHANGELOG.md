@@ -8,7 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **TODO/ROADMAP/CHANGELOG split**: Extracted roadmap into separate files for better organization
+- **SnapshotStrategy** (`core/aggregate`): Interface for automatic snapshot creation with `EveryNEvents(n)` convenience implementation. Wired into `EventSourcedRepository.Save()` via `WithSnapshotStrategy()` option.
+- **Codec integration** (`core/aggregate`): `WithCodec()` option on `EventSourcedRepository` for automatic snapshot serialization via `event.Codec`.
+- **DecodePayload[T]** (`core/event`): Generic `DecodePayload[T any](evt Event, codec Codec) (T, error)` for type-safe event payload deserialization in handlers and projectors.
+- **ContextEnricher** (`core/event`): `ContextEnricher` type and `CompositeEnricher` for extracting metadata from context and injecting into events before persistence.
+- **Projection system** (`core/event`): `Projection` interface, `ProjectionFunc` convenience type, and `InMemoryRunner` that dispatches events to projections with checkpoint tracking. Can be used as `Bus.SubscribeAll` handler.
+- **CheckpointStore** (`core/event` + `memory`): Interface for tracking last processed event per projection. `MemoryCheckpointStore` in memory module.
+- **Upcaster system** (`core/event`): `Upcaster` interface, `UpcasterFunc` convenience type, and `UpcasterRegistry` with sorted chain application for schema evolution.
+- **SQL Event Store** (`storage`): New module with `SQLEventStore` implementing `event.Store` with optimistic concurrency, transactional Save, PostgreSQL-optimized schema DDL.
+- **Example app** (`example/user`): Working User aggregate demonstrating full CQRS + Event Sourcing lifecycle.
+- **FakeSnapshotStore** (`testhelpers`): `Saved()` method and `SetSaveError` for testing snapshot creation and failure paths.
+- **Exported fakes** (`testhelpers`): `FakeStore`, `FakeBus`, `FakeSnapshotStore`, `FakeOutbox` — reusable test doubles for all modules.
+
+### Changed
+
+- `FakeSnapshotStore.Save` now records snapshots for verification (was no-op)
+- Updated `dispatcher.Typed` documentation to clarify string-backed named types require explicit `string()` conversion
 
 ## [0.2.0] - 2026-04-05
 

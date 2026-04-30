@@ -17,7 +17,7 @@ A lightweight CQRS (Command Query Responsibility Segregation) library for Go wit
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 7 independent modules:
+Multi-module Go workspace with 9 modules:
 
 ```
 go-cqrs-lite/
@@ -511,6 +511,13 @@ Interfaces now return branded ID types instead of `string`:
   - Added catalog schema tests for unsigned integers, complex types, interface types, array types
   - Updated AGENTS.md: coverage table, known issues fixed, `go-composable-business-types` → `go-branded-id`
 
+- **Session 14 (Publishability + Architecture Seams)**:
+  - **Round 1 (1%→51%)**: Extracted fakes to `testhelpers/fakes.go`. Added `SnapshotStrategy` interface + `EveryNEvents`. Wired `Codec` into `EventSourcedRepository`. Added `DecodePayload[T]`, `ContextEnricher`, `CompositeEnricher`. Coverage: 95.5% aggregate, 97.9% event.
+  - **Round 2 (4%→64%)**: Added `Projection` interface, `InMemoryRunner`, `CheckpointStore`, `MemoryCheckpointStore`. Added `Upcaster` interface, `UpcasterRegistry` with sorted chain application. 12 new tests.
+  - **Round 3 (20%→80%)**: Created `storage/` module with `SQLEventStore` (PostgreSQL, optimistic concurrency). Created `example/user/` demonstrating full CQRS lifecycle. Updated CHANGELOG.
+  - All 9 modules in workspace: core, memory, catalog, middleware, testhelpers, integration, storage, example/user
+  - Zero lint, zero races, all tests pass across all modules
+
 ## Migration State
 
 The monorepo is mid-migration from a single module to multi-module. Current state:
@@ -522,9 +529,9 @@ The monorepo is mid-migration from a single module to multi-module. Current stat
 | 2 | Extract `memory/` module | Done |
 | 3 | Extract `catalog/` module | Done |
 | 4 | Extract middleware + xtypes | Done |
-| 5 | Storage module (sqlc event store) | Planned |
+| 5 | Storage module (SQLEventStore) | Done — `storage/` with PostgreSQL backend |
 | 6 | Watermill module (pub/sub) | Planned |
-| 7 | Projection module (samber/ro internally) | Planned |
+| 7 | Projection module (samber/ro internally) | Done — `core/event/projection.go` + `runner.go` |
 | 8 | Snapshot module (SQL-backed) | Planned |
 | 9 | Test utilities module | Done — `testhelpers/` at repo root |
 | 10 | Tag releases | Planned |
