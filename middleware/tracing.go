@@ -19,6 +19,41 @@ func recordError(span trace.Span, err error) {
 	span.SetStatus(codes.Error, err.Error())
 }
 
+// tracedHandler constrains H to types with a Type() string method.
+type tracedHandler interface {
+	~struct{}
+	Type() string
+}
+
+// withTracing wraps a handler with OpenTelemetry tracing.
+func withTracing[H tracedHandler](
+	tracer trace.Tracer,
+	spanName string,
+	spanKind trace.SpanKind,
+	msgKind string,
+	next func(context.Context, H) error,
+) func(context.Context, H) error {
+	return func(ctx context.Context, h H) error {
+		attrTypeKey := "cqrs." + msgKind + ".type"
+
+		ctx, span := tracer.Start(ctx, spanName,
+			trace.WithSpanKind(spanKind),
+			trace.WithAttributes(
+				attribute.String("cqrs.message.kind", msgKind),
+				attribute.String(attrTypeKey, h.Type()),
+			),
+		)
+		defer span.End()
+
+		err := next(ctx, h)
+		if err != nil {
+			recordError(span, err)
+		}
+
+		return err
+	}
+}
+
 // CommandTracing creates an OpenTelemetry span for each command handled.
 // The tracer is typically obtained from a trace.TracerProvider:
 //
@@ -26,23 +61,7 @@ func recordError(span trace.Span, err error) {
 //	mw := middleware.CommandTracing(tracer)
 func CommandTracing(tracer trace.Tracer) command.Middleware {
 	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			ctx, span := tracer.Start(ctx, "command.handle",
-				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(
-					attribute.String("cqrs.message.kind", "command"),
-					attribute.String("cqrs.command.type", string(cmd.Type())),
-				),
-			)
-			defer span.End()
-
-			err := next(ctx, cmd)
-			if err != nil {
-				recordError(span, err)
-			}
-
-			return err
-		}
+		return withTracing(tracer, "command.handle", trace.SpanKindServer, "command", next)
 	}
 }
 
@@ -53,23 +72,7 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 //	mw := middleware.EventTracing(tracer)
 func EventTracing(tracer trace.Tracer) event.Middleware {
 	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			ctx, span := tracer.Start(ctx, "event.handle",
-				trace.WithSpanKind(trace.SpanKindConsumer),
-				trace.WithAttributes(
-					attribute.String("cqrs.message.kind", "event"),
-					attribute.String("cqrs.event.type", string(evt.Type())),
-				),
-			)
-			defer span.End()
-
-			err := next(ctx, evt)
-			if err != nil {
-				recordError(span, err)
-			}
-
-			return err
-		}
+		return withTracing(tracer, "event.handle", trace.SpanKindConsumer, "event", next)
 	}
 }
 
@@ -85,7 +88,7 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "query"),
-					attribute.String("cqrs.query.type", string(qry.Type())),
+					attribute.String("cqrs.query.type", qry.Type()),
 				),
 			)
 			defer span.End()
