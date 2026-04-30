@@ -2,9 +2,10 @@ package middleware
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"math"
-	"math/rand/v2"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -91,11 +92,20 @@ func backoff(config RetryConfig, attempt int) time.Duration {
 	)
 	delay = min(delay, config.MaxDelay)
 
-	jitter := time.Duration(
-		//nolint:gosec // math/rand/v2 is sufficient for backoff jitter
-		rand.Int64N(int64(delay) / 2), //nolint:mnd // jitter divisor
-	)
-	delay += jitter
+	delay += time.Duration(randInt64N(int64(delay) / 2)) //nolint:mnd // jitter divisor
 
 	return delay
+}
+
+func randInt64N(n int64) int64 {
+	if n <= 0 {
+		return 0
+	}
+
+	var buf [8]byte
+
+	_, _ = rand.Read(buf[:])
+
+	//nolint:gosec // result always < n (positive int64), fits in int64
+	return int64(binary.BigEndian.Uint64(buf[:]) % uint64(n))
 }

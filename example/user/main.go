@@ -26,7 +26,7 @@ func newUser(email string) *User {
 	aggID := id.NewAggregateID()
 
 	return &User{
-		Core: aggregate.NewCore(aggID, event.AggregateType("User")),
+		Core:  aggregate.NewCore(aggID, event.AggregateType("User")),
 		email: email,
 	}
 }
