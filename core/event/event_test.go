@@ -432,3 +432,30 @@ func TestNewCatalogCore_Error(t *testing.T) {
 		t.Error("expected error for empty event type")
 	}
 }
+
+func TestCore_MetadataNil(t *testing.T) {
+	t.Parallel()
+
+	core := &event.Core{}
+
+	if core.Metadata() != nil {
+		t.Error("expected nil metadata for zero-value Core")
+	}
+}
+
+func TestEnsureMetadata_WhenNil(t *testing.T) {
+	t.Parallel()
+
+	core := &event.Core{}
+
+	opt := event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH"))
+	opt(core)
+
+	if core.Metadata() == nil {
+		t.Fatal("expected metadata to be initialized by ensureMetadata")
+	}
+
+	if core.Metadata().CorrelationID != id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
+		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)
+	}
+}
