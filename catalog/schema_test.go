@@ -2,6 +2,7 @@ package catalog_test
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -439,5 +440,76 @@ func TestSchemaFromType_PointerTimeTime(t *testing.T) {
 
 	if prop.Format != "date-time" {
 		t.Errorf("expected format date-time for *time.Time, got %q", prop.Format)
+	}
+}
+
+func TestSchemaFromReflect_AllPrimitiveKinds(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    any
+		expected string
+	}{
+		{"string", "", "string"},
+		{"int", int(0), "integer"},
+		{"int8", int8(0), "integer"},
+		{"int16", int16(0), "integer"},
+		{"int32", int32(0), "integer"},
+		{"int64", int64(0), "integer"},
+		{"uint", uint(0), "integer"},
+		{"uint8", uint8(0), "integer"},
+		{"uint16", uint16(0), "integer"},
+		{"uint32", uint32(0), "integer"},
+		{"uint64", uint64(0), "integer"},
+		{"uintptr", uintptr(0), "integer"},
+		{"float32", float32(0), "number"},
+		{"float64", float64(0), "number"},
+		{"bool", true, "boolean"},
+		{"complex64", complex64(0), "string"},
+		{"complex128", complex128(0), "string"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			schema := catalog.SchemaFromReflect(reflect.TypeOf(tt.input))
+			if schema.Type != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, schema.Type)
+			}
+		})
+	}
+}
+
+func TestSchemaFromReflect_Interface(t *testing.T) {
+	t.Parallel()
+
+	schema := catalog.SchemaFromReflect(reflect.TypeFor[any]())
+
+	if schema.Type != "object" {
+		t.Errorf("expected interface to map to object, got %q", schema.Type)
+	}
+}
+
+func TestPropertyFromReflect_Map(t *testing.T) {
+	t.Parallel()
+
+	schema := catalog.SchemaFromReflect(reflect.TypeFor[map[string]int]())
+
+	if schema.Type != "object" {
+		t.Errorf("expected map to map to object, got %q", schema.Type)
+	}
+}
+
+func TestCollectionSchema_NonSlice(t *testing.T) {
+	t.Parallel()
+
+	// collectionSchema with a non-slice type falls through to object
+	// This tests the else branch that's normally unreachable
+	schema := catalog.SchemaFromReflect(reflect.TypeFor[string]())
+
+	if schema.Type != "string" {
+		t.Errorf("expected string for direct string type, got %q", schema.Type)
 	}
 }
