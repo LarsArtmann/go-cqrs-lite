@@ -326,6 +326,36 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 	}
 }
 
+func TestMemorySnapshotStore_Load_NilState(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemorySnapshotStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	snapshot := event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Order",
+		Version:       1,
+		State:         nil,
+		CreatedAt:     time.Now(),
+	}
+
+	err := store.Save(ctx, snapshot)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	loaded, err := store.Load(ctx, "Order", aggID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.State != nil {
+		t.Errorf("expected nil state, got %v", loaded.State)
+	}
+}
+
 func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 	t.Parallel()
 
