@@ -20,7 +20,7 @@ import (
 	"math"
 	"time"
 
-	cbid "github.com/larsartmann/go-composable-business-types/id"
+	cbid "github.com/larsartmann/go-branded-id"
 	"github.com/oklog/ulid/v2"
 )
 

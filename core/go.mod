@@ -1,11 +1,11 @@
 module github.com/larsartmann/go-cqrs-lite/core
 
-go 1.26.0
+go 1.26.2
 
 require (
 	github.com/cockroachdb/errors v1.12.0
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
-	github.com/larsartmann/go-composable-business-types v0.1.0
+	github.com/larsartmann/go-branded-id v0.1.0
 	github.com/oklog/ulid/v2 v2.1.0
 )
 
