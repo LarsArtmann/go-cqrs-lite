@@ -1,6 +1,10 @@
 package event
 
-import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+import (
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
 
 // Option configures event creation.
 type Option func(*Core)
@@ -17,6 +21,18 @@ func apply[T any](field metadataOption[T], value T) Option {
 
 		field(e.metadata, value)
 	}
+}
+
+// WithEventID overrides the auto-generated event ID.
+// Use for reconstructing events from storage where the original ID must be preserved.
+func WithEventID(v id.EventID) Option {
+	return func(e *Core) { e.id = v }
+}
+
+// WithOccurredAt overrides the event timestamp.
+// Use for reconstructing events from storage where the original timestamp must be preserved.
+func WithOccurredAt(v time.Time) Option {
+	return func(e *Core) { e.occurredAt = v }
 }
 
 // WithMetadata sets custom metadata.
