@@ -118,8 +118,24 @@ func (id Of[T]) String() string { return id.wrapped.Get().String() }
 // GoString implements fmt.GoStringer for debugging.
 func (id Of[T]) GoString() string { return id.String() }
 
+// Format implements fmt.Formatter for custom formatting (%s, %v, %#v, %q).
+func (id Of[T]) Format(f fmt.State, verb rune) { id.wrapped.Format(f, verb) }
+
+// Ptr returns a pointer to the ID. Useful for optional ID fields in API payloads.
+func (id Of[T]) Ptr() *Of[T] { return &id }
+
+// FromPtr dereferences a pointer-to-ID, returning the zero value if the pointer is nil.
+func FromPtr[T any](p *Of[T]) Of[T] {
+	if p == nil {
+		return Of[T]{}
+	}
+
+	return *p
+}
+
 // Compile-time interface assertions for core interfaces.
 var (
 	_ fmt.Stringer   = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
 	_ fmt.GoStringer = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
+	_ fmt.Formatter  = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
 )
