@@ -21,7 +21,6 @@ func recordError(span trace.Span, err error) {
 
 // tracedHandler constrains H to types with a Type() string method.
 type tracedHandler interface {
-	~struct{}
 	Type() string
 }
 
