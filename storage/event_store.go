@@ -94,7 +94,7 @@ func (s *SQLEventStore) Save(
 
 	query := `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	err = tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID.String()).
+	err = tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
 		Scan(&currentVersion)
 	if err != nil {
 		return fmt.Errorf("check current version: %w", err)
@@ -106,7 +106,7 @@ func (s *SQLEventStore) Save(
 			expectedVersion.Int(),
 			currentVersion,
 			aggregateType,
-			aggregateID.String(),
+			aggregateID,
 		)
 	}
 
@@ -117,10 +117,10 @@ func (s *SQLEventStore) Save(
 		_, err = tx.ExecContext(
 			ctx,
 			insertQuery,
-			evt.ID().String(),
+			evt.ID(),
 			string(evt.Type()),
 			string(aggregateType),
-			aggregateID.String(),
+			aggregateID,
 			evt.Version(),
 			evt.Payload(),
 			nil,
@@ -157,10 +157,10 @@ func (s *SQLEventStore) AppendBatch(
 		_, err := s.db.ExecContext(
 			ctx,
 			insertQuery,
-			evt.ID().String(),
+			evt.ID(),
 			string(evt.Type()),
 			string(aggregateType),
-			aggregateID.String(),
+			aggregateID,
 			evt.Version(),
 			evt.Payload(),
 			nil,
@@ -185,7 +185,7 @@ func (s *SQLEventStore) Load(
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version ASC`
 
-	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID.String())
+	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("query events: %w", err)
 	}
@@ -213,7 +213,7 @@ func (s *SQLEventStore) LoadFromVersion(
 		ctx,
 		query,
 		string(aggregateType),
-		aggregateID.String(),
+		aggregateID,
 		version.Int(),
 	)
 	if err != nil {
@@ -235,7 +235,7 @@ func (s *SQLEventStore) Delete(
 ) error {
 	query := `DELETE FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID.String())
+	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
 		return fmt.Errorf("delete events for %s %s: %w", aggregateType, aggregateID, err)
 	}
