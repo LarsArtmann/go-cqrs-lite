@@ -42,7 +42,7 @@ func (id *Of[T]) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("id: cannot unmarshal %q as ULID: %w", s, err)
 	}
 
-	*id = Of[T]{wrapped: cbid.NewID[T, ulid.ULID](parsed)}
+	id.setFromULID(parsed)
 
 	return nil
 }
@@ -75,7 +75,7 @@ func (id *Of[T]) Scan(src any) error {
 		return fmt.Errorf("id: cannot scan %q as ULID: %w", s, err)
 	}
 
-	*id = Of[T]{wrapped: cbid.NewID[T, ulid.ULID](parsed)}
+	id.setFromULID(parsed)
 
 	return nil
 }
@@ -106,6 +106,11 @@ func (id Of[T]) MarshalBinary() ([]byte, error) {
 // ulidBinarySize is the size in bytes of a ULID in binary form.
 const ulidBinarySize = 16
 
+// setFromULID sets the ID from a parsed ULID value.
+func (id *Of[T]) setFromULID(inner ulid.ULID) {
+	*id = Of[T]{wrapped: cbid.NewID[T, ulid.ULID](inner)}
+}
+
 // UnmarshalBinary implements encoding.BinaryUnmarshaler, parsing 16-byte big-endian ULID.
 func (id *Of[T]) UnmarshalBinary(data []byte) error {
 	if len(data) == 0 {
@@ -125,7 +130,7 @@ func (id *Of[T]) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("id: cannot unmarshal binary as ULID: %w", err)
 	}
 
-	*id = Of[T]{wrapped: cbid.NewID[T, ulid.ULID](inner)}
+	id.setFromULID(inner)
 
 	return nil
 }
@@ -152,7 +157,7 @@ func (id *Of[T]) UnmarshalText(data []byte) error {
 		return fmt.Errorf("id: cannot unmarshal text as ULID: %w", err)
 	}
 
-	*id = Of[T]{wrapped: cbid.NewID[T, ulid.ULID](parsed)}
+	id.setFromULID(parsed)
 
 	return nil
 }
