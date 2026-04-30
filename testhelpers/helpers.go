@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -138,5 +139,29 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 
 			return h(ctx, evt)
 		}
+	}
+}
+
+// NewTestEvent creates a test event with standard test values.
+func NewTestEvent() (event.Event, error) {
+	return event.NewEvent(
+		"test.evt",
+		id.NewAggregateID(),
+		"Test",
+		1,
+		nil,
+	)
+}
+
+// AssertMetricRecord asserts the metrics recorder has exactly one record with the given name.
+func AssertMetricRecord(t *testing.T, m *TestMetrics, wantName string) {
+	t.Helper()
+
+	if len(m.Records) != 1 {
+		t.Fatalf("expected 1 metric record, got %d", len(m.Records))
+	}
+
+	if m.Records[0] != wantName {
+		t.Errorf("expected %s, got %s", wantName, m.Records[0])
 	}
 }
