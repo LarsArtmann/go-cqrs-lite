@@ -12,6 +12,12 @@ func (e *Core) ensureMetadata() {
 	}
 }
 
+// setMetadataField calls ensureMetadata and sets a metadata field.
+func (e *Core) setMetadataField(field func(*Metadata)) {
+	e.ensureMetadata()
+	field(e.metadata)
+}
+
 // WithMetadata sets custom metadata.
 func WithMetadata(m *Metadata) Option {
 	return func(e *Core) { e.metadata = m }
@@ -20,56 +26,49 @@ func WithMetadata(m *Metadata) Option {
 // WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(correlationID id.CorrelationID) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.CorrelationID = correlationID
+		e.setMetadataField(func(m *Metadata) { m.CorrelationID = correlationID })
 	}
 }
 
 // WithCausationID sets the causation ID (indicates what triggered this event).
 func WithCausationID(causationID id.CausationID) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.CausationID = causationID
+		e.setMetadataField(func(m *Metadata) { m.CausationID = causationID })
 	}
 }
 
 // WithUserID sets the user ID who triggered the event.
 func WithUserID(userID id.UserID) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.UserID = userID
+		e.setMetadataField(func(m *Metadata) { m.UserID = userID })
 	}
 }
 
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(requestID id.RequestID) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.RequestID = requestID
+		e.setMetadataField(func(m *Metadata) { m.RequestID = requestID })
 	}
 }
 
 // WithSource sets the source of the event.
 func WithSource(source Source) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.Source = source
+		e.setMetadataField(func(m *Metadata) { m.Source = source })
 	}
 }
 
 // WithIPAddress sets the client IP address.
 func WithIPAddress(ip IPAddress) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.IPAddress = ip
+		e.setMetadataField(func(m *Metadata) { m.IPAddress = ip })
 	}
 }
 
 // WithUserAgent sets the client user agent.
 func WithUserAgent(ua UserAgent) Option {
 	return func(e *Core) {
-		e.ensureMetadata()
-		e.metadata.UserAgent = ua
+		e.setMetadataField(func(m *Metadata) { m.UserAgent = ua })
 	}
 }
 

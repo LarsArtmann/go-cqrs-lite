@@ -99,6 +99,41 @@ func (r *Registry) AddService(svc Service) {
 	r.services[svc.ID] = &svc
 }
 
+// ensureServiceEntry returns a service entry for the given ID, creating it if needed.
+func (r *Registry) ensureServiceEntry(serviceID string) *Service {
+	svc, ok := r.services[serviceID]
+	if !ok {
+		svc = &Service{
+			ID:       serviceID,
+			Name:     serviceID,
+			Version:  "",
+			Summary:  "",
+			Owners:   nil,
+			Commands: []Message{},
+			Events:   []Message{},
+			Queries:  []Message{},
+		}
+		r.services[serviceID] = svc
+	}
+
+	return svc
+}
+
+func (r *Registry) addMessage(
+	serviceID string,
+	kind MessageKind,
+	getter func(*Service) []Message,
+	setter func(*Service, []Message),
+	msg Message,
+) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	msg.Kind = kind
+	svc := r.ensureServiceEntry(serviceID)
+	setter(svc, append(getter(svc), msg))
+}
+
 // AddCommand adds a command message to a service, creating the service if needed.
 func (r *Registry) AddCommand(serviceID string, msg Message) {
 	r.addMessage(
@@ -130,36 +165,6 @@ func (r *Registry) AddQuery(serviceID string, msg Message) {
 		func(s *Service, m []Message) { s.Queries = m },
 		msg,
 	)
-}
-
-func (r *Registry) addMessage(
-	serviceID string,
-	kind MessageKind,
-	getter func(*Service) []Message,
-	setter func(*Service, []Message),
-	msg Message,
-) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	msg.Kind = kind
-
-	svc, ok := r.services[serviceID]
-	if !ok {
-		svc = &Service{
-			ID:       serviceID,
-			Name:     serviceID,
-			Version:  "",
-			Summary:  "",
-			Owners:   nil,
-			Commands: []Message{},
-			Events:   []Message{},
-			Queries:  []Message{},
-		}
-		r.services[serviceID] = svc
-	}
-
-	setter(svc, append(getter(svc), msg))
 }
 
 // AddDomain registers a domain in the catalog.
