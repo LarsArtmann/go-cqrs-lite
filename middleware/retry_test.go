@@ -144,3 +144,17 @@ func TestDefaultRetryConfig(t *testing.T) {
 		t.Errorf("expected Multiplier 2.0, got %f", config.Multiplier)
 	}
 }
+
+func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+
+	if config.IsRetryable(errors.New("any error")) {
+		t.Error("default IsRetryable should return false for all errors")
+	}
+
+	if config.IsRetryable(nil) {
+		t.Error("default IsRetryable should return false for nil error")
+	}
+}

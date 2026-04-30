@@ -3,6 +3,7 @@ package aggregate_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -279,5 +280,94 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 
 	if loaded.Version() != 3 {
 		t.Errorf("expected version 3 (snapshot v2 + 1 replayed event), got %d", loaded.Version())
+	}
+}
+
+type failingSnapshotRoot struct {
+	*aggregate.Core
+}
+
+func (r *failingSnapshotRoot) Apply(_ event.Event) error { return nil }
+
+func (r *failingSnapshotRoot) ApplySnapshot(_ []byte) error {
+	return errors.New("apply snapshot failed")
+}
+
+func (r *failingSnapshotRoot) LoadEvents(events []event.Event) error {
+	return r.LoadFromHistory(r, events)
+}
+
+var _ aggregate.Root = (*failingSnapshotRoot)(nil)
+
+func TestEventSourcedRepository_Load_SnapshotApplyError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	snapshotStore := memory.NewMemorySnapshotStore()
+	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+
+	orderID := id.NewAggregateID()
+
+	// Save a snapshot
+	snapshot := event.Snapshot{
+		AggregateID:   orderID,
+		AggregateType: orderAggregateType,
+		Version:       event.Version(1),
+		State:         []byte(`{"status":"placed"}`),
+		CreatedAt:     time.Now(),
+	}
+
+	err := snapshotStore.Save(ctx, snapshot)
+	if err != nil {
+		t.Fatalf("save snapshot: %v", err)
+	}
+
+	// Load with a root that fails ApplySnapshot
+	loaded := &failingSnapshotRoot{Core: aggregate.NewCore(orderID, orderAggregateType)}
+
+	err = repo.Load(ctx, loaded)
+	if err == nil {
+		t.Fatal("expected error when ApplySnapshot fails")
+	}
+}
+
+func TestEventSourcedRepository_Load_LoadFromVersionError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	bus := memory.NewMemoryBus()
+	snapshotStore := memory.NewMemorySnapshotStore()
+
+	// Use failingStore for LoadFromVersion error
+	repo := aggregate.NewRepository(
+		&failingStore{},
+		bus,
+		aggregate.WithSnapshotStore(snapshotStore),
+	)
+
+	orderID := id.NewAggregateID()
+
+	// Save a snapshot
+	snapshot := event.Snapshot{
+		AggregateID:   orderID,
+		AggregateType: orderAggregateType,
+		Version:       event.Version(1),
+		State:         []byte(`{"status":"placed"}`),
+		CreatedAt:     time.Now(),
+	}
+
+	err := snapshotStore.Save(ctx, snapshot)
+	if err != nil {
+		t.Fatalf("save snapshot: %v", err)
+	}
+
+	// Load — snapshot succeeds but LoadFromVersion fails
+	loaded := newOrder(orderID)
+
+	err = repo.Load(ctx, loaded)
+	if err == nil {
+		t.Fatal("expected error when LoadFromVersion fails after snapshot")
 	}
 }
