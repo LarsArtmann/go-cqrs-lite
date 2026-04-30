@@ -203,3 +203,89 @@ func TestDispatchTyped_DispatchError(t *testing.T) {
 		t.Fatal("expected error from DispatchTyped when Dispatch fails")
 	}
 }
+
+func TestDispatcher_Use(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+	called := false
+
+	d.Use(func(next query.Handler) query.Handler {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			called = true
+
+			return next(ctx, q)
+		}
+	})
+
+	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
+		return "result", nil
+	})
+
+	q := query.MustNew("TestQuery")
+
+	result, err := d.Dispatch(context.Background(), q)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !called {
+		t.Error("expected middleware to be called")
+	}
+
+	if result != "result" {
+		t.Errorf("expected 'result', got %v", result)
+	}
+}
+
+func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+	_ = d.Close()
+
+	err := d.Register("Q", func(_ context.Context, _ query.Query) (any, error) {
+		return nil, errors.New("unreachable")
+	})
+	if err == nil {
+		t.Fatal("expected error registering on closed dispatcher")
+	}
+}
+
+func TestDispatchTyped_TypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+
+	_ = d.Register("IntQuery", func(_ context.Context, _ query.Query) (any, error) {
+		return 42, nil
+	})
+
+	q := query.MustNew("IntQuery")
+
+	_, err := query.DispatchTyped[string](context.Background(), d, q)
+	if err == nil {
+		t.Fatal("expected error from DispatchTyped when result type mismatches")
+	}
+}
+
+func TestDispatchTyped_Success(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+
+	_ = d.Register("StringQuery", func(_ context.Context, _ query.Query) (any, error) {
+		return "hello", nil
+	})
+
+	q := query.MustNew("StringQuery")
+
+	result, err := query.DispatchTyped[string](context.Background(), d, q)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result != "hello" {
+		t.Errorf("expected 'hello', got %q", result)
+	}
+}

@@ -219,3 +219,43 @@ func TestDispatcher_Closed_RegisterErrorChain(t *testing.T) {
 		t.Errorf("error should wrap ErrDispatcherClosed, got: %v", err)
 	}
 }
+
+func TestDispatcher_Use(t *testing.T) {
+	t.Parallel()
+
+	d := command.NewDispatcher()
+	called := false
+
+	d.Use(func(next command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			called = true
+
+			return next(ctx, cmd)
+		}
+	})
+
+	_ = d.Register("TestCmd", func(_ context.Context, _ command.Command) error { return nil })
+
+	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
+	err := d.Dispatch(context.Background(), cmd)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !called {
+		t.Error("expected middleware to be called")
+	}
+}
+
+func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
+	t.Parallel()
+
+	d := command.NewDispatcher()
+	_ = d.Close()
+
+	err := d.Register("Cmd", func(_ context.Context, _ command.Command) error { return nil })
+	if err == nil {
+		t.Fatal("expected error registering on closed dispatcher")
+	}
+}

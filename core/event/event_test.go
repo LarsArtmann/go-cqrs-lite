@@ -383,6 +383,31 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 	}
 }
 
+func TestWithCustom_ExistingCustomMap(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithCustom("key1", "value1"),
+		event.WithCustom("key2", "value2"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Metadata().Custom["key1"] != "value1" {
+		t.Errorf("expected key1=value1, got %s", evt.Metadata().Custom["key1"])
+	}
+
+	if evt.Metadata().Custom["key2"] != "value2" {
+		t.Errorf("expected key2=value2, got %s", evt.Metadata().Custom["key2"])
+	}
+}
+
 func TestNewCatalogCore(t *testing.T) {
 	t.Parallel()
 

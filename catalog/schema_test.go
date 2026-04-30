@@ -513,3 +513,92 @@ func TestCollectionSchema_NonSlice(t *testing.T) {
 		t.Errorf("expected string for direct string type, got %q", schema.Type)
 	}
 }
+
+func TestSchemaFromReflect_UnsignedIntegers(t *testing.T) {
+	t.Parallel()
+
+	type UnsignedTypes struct {
+		U8  uint8  `json:"u8"`
+		U16 uint16 `json:"u16"`
+		U32 uint32 `json:"u32"`
+		U64 uint64 `json:"u64"`
+	}
+
+	schema := catalog.SchemaFromType[UnsignedTypes]()
+
+	unsignedFields := []string{"u8", "u16", "u32", "u64"}
+	for _, name := range unsignedFields {
+		prop, ok := schema.Properties[name]
+		if !ok {
+			t.Errorf("missing property %s", name)
+
+			continue
+		}
+
+		if prop.Type != "integer" {
+			t.Errorf("property %s: expected integer, got %s", name, prop.Type)
+		}
+	}
+}
+
+func TestSchemaFromReflect_ComplexTypes(t *testing.T) {
+	t.Parallel()
+
+	type ComplexTypes struct {
+		C64  complex64  `json:"c64"`
+		C128 complex128 `json:"c128"`
+	}
+
+	schema := catalog.SchemaFromType[ComplexTypes]()
+
+	for _, name := range []string{"c64", "c128"} {
+		prop, ok := schema.Properties[name]
+		if !ok {
+			t.Errorf("missing property %s", name)
+
+			continue
+		}
+
+		if prop.Type != "string" {
+			t.Errorf("property %s: expected string (complex), got %s", name, prop.Type)
+		}
+	}
+}
+
+func TestSchemaFromReflect_InterfaceType(t *testing.T) {
+	t.Parallel()
+
+	type WithInterface struct {
+		Val any `json:"val"`
+	}
+
+	schema := catalog.SchemaFromType[WithInterface]()
+
+	prop, ok := schema.Properties["val"]
+	if !ok {
+		t.Fatal("missing property val")
+	}
+
+	if prop.Type != "object" {
+		t.Errorf("expected object for interface, got %s", prop.Type)
+	}
+}
+
+func TestCollectionSchema_ArrayType(t *testing.T) {
+	t.Parallel()
+
+	type WithArray struct {
+		Items [3]int `json:"items"`
+	}
+
+	schema := catalog.SchemaFromType[WithArray]()
+
+	prop, ok := schema.Properties["items"]
+	if !ok {
+		t.Fatal("missing property items")
+	}
+
+	if prop.Type != "array" {
+		t.Errorf("expected array for fixed-size array, got %s", prop.Type)
+	}
+}
