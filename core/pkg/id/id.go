@@ -17,7 +17,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
@@ -26,9 +25,7 @@ import (
 
 // Sentinel errors for id package.
 var (
-	errEmptyString     = errors.New("empty string")
-	errNilReceiver     = errors.New("nil receiver")
-	errUnsupportedType = errors.New("unsupported type")
+	errEmptyString = errors.New("empty string")
 )
 
 // Of is a branded type for strongly-typed identifiers backed by ULID.
@@ -87,9 +84,6 @@ func MustParse[T any](s string) Of[T] {
 func ULID(id Of[struct{}]) (time.Time, error) {
 	return ulid.Time(id.wrapped.Get().Time()), nil
 }
-
-// MaxULIDsPerMs is exported for testing/benchmarking.
-const MaxULIDsPerMs = math.MaxInt
 
 // IsZero returns true if the ID has its zero value.
 func (id Of[T]) IsZero() bool { return id.wrapped.IsZero() }
