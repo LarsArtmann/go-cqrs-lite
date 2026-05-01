@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -11,52 +11,39 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func TestNewOutboxPublisher_PanicsOnNilOutbox(t *testing.T) {
+func TestNewOutboxPublisher_NilOutbox(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
+	_, err := NewOutboxPublisher(nil, &stubBus{})
+	if err == nil {
+		t.Fatal("expected error for nil outbox")
+	}
 
-		if r == nil {
-			t.Fatal("expected panic for nil outbox")
-		}
-
-		want := "nil Outbox"
-		if msg := fmt.Sprint(r); !contains(msg, want) {
-			t.Fatalf("panic = %q, want containing %q", msg, want)
-		}
-	}()
-
-	bus := &stubBus{}
-
-	NewOutboxPublisher(nil, bus)
+	if !errors.Is(err, ErrNilOutbox) {
+		t.Errorf("error = %v, want ErrNilOutbox", err)
+	}
 }
 
-func TestNewOutboxPublisher_PanicsOnNilBus(t *testing.T) {
+func TestNewOutboxPublisher_NilBus(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
+	_, err := NewOutboxPublisher(&stubOutbox{}, nil)
+	if err == nil {
+		t.Fatal("expected error for nil bus")
+	}
 
-		if r == nil {
-			t.Fatal("expected panic for nil bus")
-		}
-
-		want := "nil Bus"
-		if msg := fmt.Sprint(r); !contains(msg, want) {
-			t.Fatalf("panic = %q, want containing %q", msg, want)
-		}
-	}()
-
-	outbox := &stubOutbox{}
-
-	NewOutboxPublisher(outbox, nil)
+	if !errors.Is(err, ErrNilBus) {
+		t.Errorf("error = %v, want ErrNilBus", err)
+	}
 }
 
 func TestNewOutboxPublisher_Defaults(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.interval != time.Second {
 		t.Fatalf("interval = %v, want 1s", p.interval)
@@ -70,7 +57,10 @@ func TestNewOutboxPublisher_Defaults(t *testing.T) {
 func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(50*time.Millisecond))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(50*time.Millisecond))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.interval != 50*time.Millisecond {
 		t.Fatalf("interval = %v, want 50ms", p.interval)
@@ -80,7 +70,10 @@ func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 func TestNewOutboxPublisher_WithBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(10))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(10))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.batchSize != 10 {
 		t.Fatalf("batchSize = %d, want 10", p.batchSize)
@@ -90,7 +83,10 @@ func TestNewOutboxPublisher_WithBatchSize(t *testing.T) {
 func TestNewOutboxPublisher_ZeroIntervalResetsToDefault(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(0))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(0))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.interval != time.Second {
 		t.Fatalf("interval = %v, want 1s (default)", p.interval)
@@ -100,7 +96,10 @@ func TestNewOutboxPublisher_ZeroIntervalResetsToDefault(t *testing.T) {
 func TestNewOutboxPublisher_ZeroBatchSizeResetsToDefault(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(0))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(0))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.batchSize != 100 {
 		t.Fatalf("batchSize = %d, want 100 (default)", p.batchSize)
@@ -110,9 +109,12 @@ func TestNewOutboxPublisher_ZeroBatchSizeResetsToDefault(t *testing.T) {
 func TestOutboxPublisher_StartStop(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(10*time.Millisecond))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithPollInterval(10*time.Millisecond))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
-	err := p.Start()
+	err = p.Start()
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -126,9 +128,12 @@ func TestOutboxPublisher_StartStop(t *testing.T) {
 func TestOutboxPublisher_DoubleStart(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
-	err := p.Start()
+	err = p.Start()
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -140,7 +145,7 @@ func TestOutboxPublisher_DoubleStart(t *testing.T) {
 		t.Fatal("expected error on double start")
 	}
 
-	if !contains(err.Error(), "already started") {
+	if !strings.Contains(err.Error(), "already started") {
 		t.Fatalf("error = %q, want containing 'already started'", err.Error())
 	}
 }
@@ -148,9 +153,12 @@ func TestOutboxPublisher_DoubleStart(t *testing.T) {
 func TestOutboxPublisher_CloseWithoutStart(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
-	err := p.Close()
+	err = p.Close()
 	if err != nil {
 		t.Fatalf("Close without start: %v", err)
 	}
@@ -159,7 +167,10 @@ func TestOutboxPublisher_CloseWithoutStart(t *testing.T) {
 func TestOutboxPublisher_DoubleClose(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	_ = p.Start()
 	_ = p.Close()
@@ -175,9 +186,12 @@ func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 	}}
 	bus := &stubBus{}
 
-	p := NewOutboxPublisher(outbox, bus, WithPollInterval(10*time.Millisecond))
+	p, err := NewOutboxPublisher(outbox, bus, WithPollInterval(10*time.Millisecond))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
-	err := p.Start()
+	err = p.Start()
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -216,11 +230,15 @@ func TestOutboxPublisher_PublishNow_Empty(t *testing.T) {
 
 	outbox := &stubOutbox{}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err != nil {
 		t.Fatalf("PublishNow empty: %v", err)
 	}
@@ -234,11 +252,15 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 		{ID: "entry-1", Events: []Event{evt}},
 	}}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err != nil {
 		t.Fatalf("PublishNow: %v", err)
 	}
@@ -272,11 +294,15 @@ func TestOutboxPublisher_PublishNow_MultipleEntries(t *testing.T) {
 		{ID: "entry-2", Events: []Event{evt2}},
 	}}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err != nil {
 		t.Fatalf("PublishNow: %v", err)
 	}
@@ -302,16 +328,20 @@ func TestOutboxPublisher_PublishNow_PollError(t *testing.T) {
 	wantErr := errors.New("poll failed")
 	outbox := &stubOutbox{pollErr: wantErr}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err == nil {
 		t.Fatal("expected error on poll failure")
 	}
 
-	if !contains(err.Error(), "poll pending") {
+	if !strings.Contains(err.Error(), "poll pending") {
 		t.Fatalf("error = %q, want containing 'poll pending'", err.Error())
 	}
 }
@@ -325,16 +355,20 @@ func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
 	}}
 	wantErr := errors.New("publish failed")
 	bus := &stubBus{publishErr: wantErr}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err == nil {
 		t.Fatal("expected error on publish failure")
 	}
 
-	if !contains(err.Error(), "publish events") {
+	if !strings.Contains(err.Error(), "publish events") {
 		t.Fatalf("error = %q, want containing 'publish events'", err.Error())
 	}
 }
@@ -359,11 +393,15 @@ func TestOutboxPublisher_PublishNow_PublishError_StopsAtFailure(t *testing.T) {
 
 		return nil
 	}}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err == nil {
 		t.Fatal("expected error on second publish failure")
 	}
@@ -385,16 +423,20 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 		ackErr:  errors.New("ack failed"),
 	}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	ctx := context.Background()
 
-	err := p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
 	if err == nil {
 		t.Fatal("expected error on ack failure")
 	}
 
-	if !contains(err.Error(), "ack entries") {
+	if !strings.Contains(err.Error(), "ack entries") {
 		t.Fatalf("error = %q, want containing 'ack entries'", err.Error())
 	}
 }
@@ -402,7 +444,10 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 func TestOutboxPublisher_PublishNow_RespectsBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(5))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubBus{}, WithBatchSize(5))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	if p.batchSize != 5 {
 		t.Fatalf("batchSize = %d, want 5", p.batchSize)
@@ -419,7 +464,11 @@ func TestOutboxPublisher_PublishNow_ContextCanceled(t *testing.T) {
 		{ID: "entry-1", Events: []Event{mustNewTestEvent("test")}},
 	}}
 	bus := &stubBus{}
-	p := NewOutboxPublisher(outbox, bus)
+
+	p, err := NewOutboxPublisher(outbox, bus)
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
 
 	_ = p.PublishNow(ctx)
 }
@@ -505,22 +554,8 @@ func mustNewTestEvent(eventType Type) Event {
 		[]byte(`{"key":"value"}`),
 	)
 	if err != nil {
-		panic(fmt.Sprintf("mustNewTestEvent: %v", err))
+		panic("mustNewTestEvent: " + err.Error())
 	}
 
 	return evt
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-
-	return false
 }

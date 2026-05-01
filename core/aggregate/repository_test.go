@@ -15,7 +15,7 @@ import (
 func newTestRoot() *testRoot {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	return &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	return &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 }
 
 func makeUserEvent(t *testing.T) *event.Core {
@@ -203,7 +203,7 @@ func TestRepository_Load(t *testing.T) {
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
 
-	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Load(context.Background(), root)
 	if err != nil {
@@ -248,7 +248,7 @@ func TestRepository_Load_WithSnapshot(t *testing.T) {
 		aggregate.WithSnapshotStore(snapStore),
 	)
 
-	root := &snapshotAwareRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &snapshotAwareRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Load(context.Background(), root)
 	if err != nil {
@@ -279,7 +279,7 @@ func TestRepository_Load_SnapshotNotFound(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
 	)
-	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Load(context.Background(), root)
 	if err != nil {
@@ -308,7 +308,7 @@ func TestRepository_Load_SnapshotApplyError(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
 	)
-	root := &failingSnapshotRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &failingSnapshotRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Load(context.Background(), root)
 	if err == nil {
@@ -418,7 +418,7 @@ func TestRepository_Load_LoadFromVersionError(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
 	)
-	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Load(context.Background(), root)
 	if err == nil {
@@ -638,7 +638,7 @@ func TestRepository_Delete(t *testing.T) {
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
 
 	repo := aggregate.NewRepository(store, testhelpers.NewFakeBus())
-	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+	root := &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Delete(context.Background(), root)
 	if err != nil {
