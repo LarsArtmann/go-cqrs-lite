@@ -45,7 +45,11 @@ func WithBatchSize(n int) OutboxPublisherOption {
 
 // NewOutboxPublisher creates a publisher that polls outbox and publishes to bus.
 // Returns an error if outbox or bus is nil.
-func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) (*OutboxPublisher, error) {
+func NewOutboxPublisher(
+	outbox Outbox,
+	bus Bus,
+	opts ...OutboxPublisherOption,
+) (*OutboxPublisher, error) {
 	if outbox == nil {
 		return nil, fmt.Errorf("%w", ErrNilOutbox)
 	}
