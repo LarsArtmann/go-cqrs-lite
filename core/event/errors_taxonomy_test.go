@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/cockroachdb/errors"
@@ -174,5 +175,43 @@ func TestIsRetryable(t *testing.T) {
 				t.Errorf("IsRetryable(%v) = %v, want %v", tc.err, got, tc.retry)
 			}
 		})
+	}
+}
+
+func TestError_Format(t *testing.T) {
+	t.Parallel()
+
+	err := event.NewTransient("db.timeout", "connection lost")
+
+	got := fmt.Sprintf("%v", err)
+	if got != "connection lost" {
+		t.Errorf("%%v = %q, want %q", got, "connection lost")
+	}
+
+	got = fmt.Sprintf("%s", err)
+	if got != "connection lost" {
+		t.Errorf("%%s = %q, want %q", got, "connection lost")
+	}
+
+	got = fmt.Sprintf("%+v", err)
+	want := "transient:db.timeout: connection lost"
+	if got != want {
+		t.Errorf("%%+v = %q, want %q", got, want)
+	}
+}
+
+func TestError_Format_withCause(t *testing.T) {
+	t.Parallel()
+
+	inner := errors.New("tcp reset")
+	err := event.NewTransient("db.timeout", "connection lost").WithCause(inner)
+
+	got := fmt.Sprintf("%+v", err)
+	if got == "" {
+		t.Error("detailed format should not be empty")
+	}
+
+	if !strings.Contains(got, "caused by:") {
+		t.Errorf("%%+v with cause should contain 'caused by:', got %q", got)
 	}
 }

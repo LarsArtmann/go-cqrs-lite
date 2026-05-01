@@ -95,3 +95,6 @@ func (v Version) IsZero() bool { return v == 0 }
 
 // Increment returns a new Version incremented by 1.
 func (v Version) Increment() Version { return v + 1 }
+
+// String returns the version as a decimal string.
+func (v Version) String() string { return fmt.Sprintf("%d", v) }

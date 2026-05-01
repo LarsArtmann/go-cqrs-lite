@@ -273,4 +273,13 @@ func TestVersion(t *testing.T) {
 			t.Error("version 0 should be zero")
 		}
 	})
+
+	t.Run("String", func(t *testing.T) {
+		t.Parallel()
+
+		v := event.Version(42)
+		if got := v.String(); got != "42" {
+			t.Errorf("String() = %q, want %q", got, "42")
+		}
+	})
 }

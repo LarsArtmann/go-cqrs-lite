@@ -781,6 +781,7 @@ func TestMustParseConvenienceFuncs_Panic(t *testing.T) {
 		{"CausationID", func() { _ = MustParseCausationID("") }},
 		{"CorrelationID", func() { _ = MustParseCorrelationID("") }},
 		{"RequestID", func() { _ = MustParseRequestID("") }},
+		{"ClientID", func() { _ = MustParseClientID("") }},
 	}
 
 	for _, tc := range tests {

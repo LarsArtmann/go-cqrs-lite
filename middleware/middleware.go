@@ -26,7 +26,7 @@ type RetryConfig struct {
 	InitialDelay time.Duration
 	MaxDelay     time.Duration
 	Multiplier   float64
-	IsRetryable  func(error) bool
+	IsRetryable  func(error) bool // defaults to event.IsRetryable (classifies via error taxonomy)
 }
 
 const (

@@ -1,6 +1,10 @@
 package event
 
-import "github.com/cockroachdb/errors"
+import (
+	"fmt"
+
+	"github.com/cockroachdb/errors"
+)
 
 // ErrVersionConflict is returned when there is a version conflict.
 var ErrVersionConflict = errors.New("version conflict")
@@ -91,6 +95,24 @@ type Error struct {
 
 func (e *Error) Error() string { return e.Message }
 func (e *Error) Unwrap() error { return e.cause }
+
+func (e *Error) Format(f fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		if f.Flag('+') {
+			_, _ = fmt.Fprintf(f, "%s:%s: %s", e.Family, e.Code, e.Message)
+			if e.cause != nil {
+				_, _ = fmt.Fprintf(f, "\ncaused by: %+v", e.cause)
+			}
+
+			return
+		}
+
+		fallthrough
+	default:
+		_, _ = fmt.Fprint(f, e.Message)
+	}
+}
 
 // WithCause sets the underlying cause and returns the error for chaining.
 func (e *Error) WithCause(cause error) *Error { e.cause = cause; return e }
