@@ -472,7 +472,6 @@ Interfaces now return branded types instead of primitives:
 
 | Issue                                                    | Severity | Detail                                                                                   |
 | -------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| **FakeStore/MemoryStore key separator mismatch**         | **HIGH** | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface. |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                               |
 | `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                     |
 | `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
