@@ -5,6 +5,7 @@ package testhelpers
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -202,5 +203,68 @@ func AssertMetricRecord(t *testing.T, m *TestMetrics, wantName string) {
 
 	if m.Records[0] != wantName {
 		t.Errorf("expected %s, got %s", wantName, m.Records[0])
+	}
+}
+
+// AssertLen asserts that the slice has the expected length.
+func AssertLen[T any](t *testing.T, name string, slice []T, want int) {
+	t.Helper()
+
+	if len(slice) != want {
+		t.Errorf("%s = %d, want %d", name, len(slice), want)
+	}
+}
+
+// AssertLenFatal asserts that the slice has the expected length, fataling on mismatch.
+func AssertLenFatal[T any](t *testing.T, name string, slice []T, want int) {
+	t.Helper()
+
+	if len(slice) != want {
+		t.Fatalf("%s = %d, want %d", name, len(slice), want)
+	}
+}
+
+// AssertNoError fails if err is not nil.
+func AssertNoError(t *testing.T, err error, msg string) {
+	t.Helper()
+
+	if err != nil {
+		t.Fatalf("%s: %v", msg, err)
+	}
+}
+
+// AssertError fails if err is nil.
+func AssertError(t *testing.T, err error, msg string) {
+	t.Helper()
+
+	if err == nil {
+		t.Error(msg)
+	}
+}
+
+// AssertEqual fails if got != want.
+func AssertEqual[T comparable](t *testing.T, got, want T, msg string) {
+	t.Helper()
+
+	if got != want {
+		t.Errorf("%s: got %v, want %v", msg, got, want)
+	}
+}
+
+// AssertContains fails if s does not contain substr.
+func AssertContains(t *testing.T, s, substr, msg string) {
+	t.Helper()
+
+	if !strings.Contains(s, substr) {
+		t.Error(msg)
+	}
+}
+
+// AssertNotContains fails if s contains substr.
+func AssertNotContains(t *testing.T, s, substr, msg string) {
+	t.Helper()
+
+	if strings.Contains(s, substr) {
+		t.Error(msg)
 	}
 }

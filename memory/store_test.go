@@ -35,10 +35,9 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Errorf("expected 2 events, got %d", len(events))
-	}
+	testhelpers.AssertLen(t, "events", events, 2)
 }
+
 
 func TestMemoryStore_VersionConflict(t *testing.T) {
 	t.Parallel()
@@ -85,10 +84,9 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Errorf("expected 2 events from version 1, got %d", len(events))
-	}
+	testhelpers.AssertLen(t, "events from version", events, 2)
 }
+
 
 func TestMemoryStore_Delete(t *testing.T) {
 	t.Parallel()
@@ -198,9 +196,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(events) != 0 {
-		t.Errorf("expected 0 events past end, got %d", len(events))
-	}
+	testhelpers.AssertLen(t, "events past end", events, 0)
 }
 
 func TestMemoryStore_AppendBatch(t *testing.T) {
@@ -224,9 +220,7 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(events) != 3 {
-		t.Errorf("expected 3 events, got %d", len(events))
-	}
+	testhelpers.AssertLen(t, "events", events, 3)
 }
 
 func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
@@ -252,9 +246,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(events) != 3 {
-		t.Errorf("expected 3 events total, got %d", len(events))
-	}
+	testhelpers.AssertLen(t, "events total", events, 3)
 }
 
 func TestMemoryStore_AppendBatch_Closed(t *testing.T) {

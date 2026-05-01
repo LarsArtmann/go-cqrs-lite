@@ -5,7 +5,7 @@
 **Date:** 2026-05-01
 **Companion to:** `2026-05-01_OFFLINE_FIRST_TIMING_ANALYSIS.md` and `2026-05-01_METADATA_AND_TIMING_DELAY_ANALYSIS.md`
 
-The timing analysis covers *when* things happen. This document covers everything else that breaks or changes when you go offline-first.
+The timing analysis covers _when_ things happen. This document covers everything else that breaks or changes when you go offline-first.
 
 ---
 
@@ -35,15 +35,15 @@ The existing analysis treats connectivity as binary: online or offline. Reality 
 
 ### 1.1 The Connectivity Spectrum
 
-| State | Latency | Packet Loss | Duration | Implication |
-|-------|---------|-------------|----------|-------------|
-| **Online** | <100ms | <1% | Stable | Normal operation |
-| **Degraded** | 500ms-5s | 5-20% | Minutes-hours | Timeouts, partial syncs |
-| **Intermittent** | Variable | 20-50% | Hours | Sync may start but not finish |
-| **Offline** | ∞ | 100% | Hours-days | Full offline mode |
-| **Metered** | Variable | Low | Days | User opts out of sync (roaming charges) |
+| State            | Latency  | Packet Loss | Duration      | Implication                             |
+| ---------------- | -------- | ----------- | ------------- | --------------------------------------- |
+| **Online**       | <100ms   | <1%         | Stable        | Normal operation                        |
+| **Degraded**     | 500ms-5s | 5-20%       | Minutes-hours | Timeouts, partial syncs                 |
+| **Intermittent** | Variable | 20-50%      | Hours         | Sync may start but not finish           |
+| **Offline**      | ∞        | 100%        | Hours-days    | Full offline mode                       |
+| **Metered**      | Variable | Low         | Days          | User opts out of sync (roaming charges) |
 
-**Implication:** The sync protocol must handle *partial* sync — a batch of 500 events where the connection drops after 200. The server has 200 events, the client doesn't know if they arrived. Idempotent push (can retry the same 200) + `Ack` per event or per batch is required.
+**Implication:** The sync protocol must handle _partial_ sync — a batch of 500 events where the connection drops after 200. The server has 200 events, the client doesn't know if they arrived. Idempotent push (can retry the same 200) + `Ack` per event or per batch is required.
 
 ### 1.2 Metered Connectivity
 
@@ -57,13 +57,13 @@ This is where `IsLocalOnly` matters: UI-only events never consume bandwidth.
 
 ### 1.3 Background vs Foreground Sync
 
-| | Background (push notification) | Foreground (user-initiated) |
-|--|-------------------------------|----------------------------|
-| **Latency tolerance** | High (seconds) | Low (must feel instant) |
-| **Battery budget** | Tight | Relaxed |
-| **User expectation** | "It'll sync eventually" | "I need this NOW" |
-| **Failure handling** | Silent retry later | Show error, offer retry |
-| **Priority** | Low-priority events first | User's current context first |
+|                       | Background (push notification) | Foreground (user-initiated)  |
+| --------------------- | ------------------------------ | ---------------------------- |
+| **Latency tolerance** | High (seconds)                 | Low (must feel instant)      |
+| **Battery budget**    | Tight                          | Relaxed                      |
+| **User expectation**  | "It'll sync eventually"        | "I need this NOW"            |
+| **Failure handling**  | Silent retry later             | Show error, offer retry      |
+| **Priority**          | Low-priority events first      | User's current context first |
 
 **Implication:** The sync protocol needs a priority field on events or the ability to push a subset based on the aggregate/type.
 
@@ -89,15 +89,15 @@ Saturday: User comes online.  Server expects v4.
           → Must handle v4 events from Friday.
 ```
 
-**The problem:** Both the client and the server can have multiple schema versions in flight simultaneously. The `SchemaVersion` field on events handles server-side upcasting, but it doesn't help the *client* when the server sends events in a format the old client doesn't understand.
+**The problem:** Both the client and the server can have multiple schema versions in flight simultaneously. The `SchemaVersion` field on events handles server-side upcasting, but it doesn't help the _client_ when the server sends events in a format the old client doesn't understand.
 
 ### 2.2 Forward vs Backward Compatibility
 
-| Direction | Who needs it | Example | go-cqrs-lite today |
-|-----------|-------------|---------|---------------------|
-| **Backward** | Server reading old client events | Server receives `v1.UserCreated` from outdated client | ✅ `UpcasterRegistry` handles this |
-| **Forward** | Client reading new server events | Old client receives `v2.UserCreated` with extra fields | ❌ No mechanism |
-| **Bidirectional** | Both simultaneously | Client on v3, server on v5, events flowing both ways | ❌ No mechanism |
+| Direction         | Who needs it                     | Example                                                | go-cqrs-lite today                 |
+| ----------------- | -------------------------------- | ------------------------------------------------------ | ---------------------------------- |
+| **Backward**      | Server reading old client events | Server receives `v1.UserCreated` from outdated client  | ✅ `UpcasterRegistry` handles this |
+| **Forward**       | Client reading new server events | Old client receives `v2.UserCreated` with extra fields | ❌ No mechanism                    |
+| **Bidirectional** | Both simultaneously              | Client on v3, server on v5, events flowing both ways   | ❌ No mechanism                    |
 
 **Forward compatibility on the client requires:**
 
@@ -125,12 +125,12 @@ If a schema change is non-backward-compatible, the server must reject events fro
 
 ### 3.1 Client-Side Storage Budget
 
-| Device | Typical Available | Events (1KB each) | Events (10KB each) |
-|--------|-------------------|-------------------|---------------------|
-| Phone | 100MB-1GB | 100K-1M | 10K-100K |
-| Tablet | 500MB-5GB | 500K-5M | 50K-500K |
-| Laptop | 5-50GB | 5M-50M | 500K-5M |
-| Browser tab | 50MB-500MB | 50K-500K | 5K-50K |
+| Device      | Typical Available | Events (1KB each) | Events (10KB each) |
+| ----------- | ----------------- | ----------------- | ------------------ |
+| Phone       | 100MB-1GB         | 100K-1M           | 10K-100K           |
+| Tablet      | 500MB-5GB         | 500K-5M           | 50K-500K           |
+| Laptop      | 5-50GB            | 5M-50M            | 500K-5M            |
+| Browser tab | 50MB-500MB        | 50K-500K          | 5K-50K             |
 
 A user offline for a week won't create millions of events, but **synced events from other users** (the full eventlog or subscription feed) can exhaust storage.
 
@@ -144,11 +144,11 @@ A user offline for a week won't create millions of events, but **synced events f
 
 On the server, replaying 10,000 events for an aggregate is fine (fast CPU, abundant RAM). On a phone:
 
-| Operation | Server | Phone |
-|-----------|--------|-------|
-| Replay 10K events | ~10ms | ~100-500ms |
-| Load snapshot | ~1ms | ~1-5ms |
-| Battery cost | N/A | Significant for replay |
+| Operation         | Server | Phone                  |
+| ----------------- | ------ | ---------------------- |
+| Replay 10K events | ~10ms  | ~100-500ms             |
+| Load snapshot     | ~1ms   | ~1-5ms                 |
+| Battery cost      | N/A    | Significant for replay |
 
 **Implication:** Client-side snapshots must be more aggressive than server-side. The `SnapshotStrategy` interface should be parameterized by device capability.
 
@@ -171,13 +171,13 @@ This is a **new concept** not in go-cqrs-lite today: the client needs a differen
 
 In server-only CQRS, the server validates commands and creates events. The client is a thin view layer. In offline-first, **the client creates events**. The server must decide: do I trust these events?
 
-| Trust Model | How | Tradeoff |
-|-------------|-----|----------|
-| **Full trust** | Client creates events, server stores them verbatim | Maximum offline capability; zero server-side validation |
-| **Command-only** | Client sends commands (not events), server validates and creates events | Server is authority; offline must queue commands, not events |
-| **Event with validation** | Client creates events, server validates and may reject | Balanced; server can reject invalid events |
-| **Event with transformation** | Client creates events, server may transform before storing | Server can fix/enrich; client must handle rebase after transformation |
-| **Hybrid** | Client creates optimistic events locally, server creates canonical events on sync | Two event streams; client must reconcile |
+| Trust Model                   | How                                                                               | Tradeoff                                                              |
+| ----------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Full trust**                | Client creates events, server stores them verbatim                                | Maximum offline capability; zero server-side validation               |
+| **Command-only**              | Client sends commands (not events), server validates and creates events           | Server is authority; offline must queue commands, not events          |
+| **Event with validation**     | Client creates events, server validates and may reject                            | Balanced; server can reject invalid events                            |
+| **Event with transformation** | Client creates events, server may transform before storing                        | Server can fix/enrich; client must handle rebase after transformation |
+| **Hybrid**                    | Client creates optimistic events locally, server creates canonical events on sync | Two event streams; client must reconcile                              |
 
 **Implication:** This is an **architectural decision** that affects everything. go-cqrs-lite currently assumes the server creates events. The `EventSourcedRepository.Save` calls `NewEvent` server-side. If clients create events, the server needs a different ingestion path.
 
@@ -227,12 +227,12 @@ Events on the client device may contain sensitive data (PII, financial data, hea
 
 Event sourcing's core principle: **events are immutable**. GDPR's core requirement: **users can delete their data**. These conflict.
 
-| Principle | Event Sourcing | GDPR / CCPA |
-|-----------|---------------|-------------|
-| Data retention | Forever (immutable log) | Right to erasure |
-| Data modification | Never (append only) | Right to rectification |
-| Data portability | Natural (export all events) | Right to portability ✅ |
-| Data access | Natural (replay user's events) | Right to access ✅ |
+| Principle         | Event Sourcing                 | GDPR / CCPA             |
+| ----------------- | ------------------------------ | ----------------------- |
+| Data retention    | Forever (immutable log)        | Right to erasure        |
+| Data modification | Never (append only)            | Right to rectification  |
+| Data portability  | Natural (export all events)    | Right to portability ✅ |
+| Data access       | Natural (replay user's events) | Right to access ✅      |
 
 **On the server:** You can use "right to be forgotten" events (tombstones) or crypto-shredding (encrypt per-user, delete the key).
 
@@ -270,14 +270,14 @@ The server sees TWO devices for the same user
 with DIFFERENT views of the same aggregates.
 ```
 
-This is different from the two-client conflict in the timing analysis because both devices belong to the *same user*. The resolution strategy may differ:
+This is different from the two-client conflict in the timing analysis because both devices belong to the _same user_. The resolution strategy may differ:
 
 - **Merge (git-like)** — Accept both, reorder
 - **Last-device-wins** — Accept the device that synced last
 - **User chooses** — Show both versions, let user pick
 - **Device authority** — Some devices are authoritative (laptop > phone for document editing)
 
-**Implication:** `ClientID` must distinguish *devices*, not just *users*. Two devices for the same user need different `ClientID` values.
+**Implication:** `ClientID` must distinguish _devices_, not just _users_. Two devices for the same user need different `ClientID` values.
 
 ### 6.2 Device Handoff
 
@@ -293,7 +293,7 @@ User starts editing on phone, puts phone in pocket, opens laptop. Laptop doesn't
 
 On the server, a 10,000-event aggregate is a performance concern. On the client, it's a **blocking concern** — replaying 10,000 events on a phone takes 100-500ms, during which the UI is frozen.
 
-**Implication:** Offline-first systems need *smaller* aggregates than server-only systems. Aggregate boundaries should be drawn to keep streams under ~100 events on the client.
+**Implication:** Offline-first systems need _smaller_ aggregates than server-only systems. Aggregate boundaries should be drawn to keep streams under ~100 events on the client.
 
 ### 7.2 Cross-Aggregate Transactions Don't Exist Offline
 
@@ -314,13 +314,13 @@ Who generates the `AggregateID`? Currently `id.New[AggregateID]()` generates a U
 
 ### 8.1 The Five UI States
 
-| State | Visual | Meaning | Event Status |
-|-------|--------|---------|--------------|
-| **Local** | Blue dot / spinner | Created locally, not yet attempted sync | In client outbox |
-| **In-flight** | Animated spinner | Sync in progress | Being pushed |
-| **Confirmed** | Green check | Server acknowledged | `SyncAckedAt` set |
-| **Conflict** | Red badge | Server rejected (concurrency or validation) | In client dead letter |
-| **Stale** | Gray / dimmed | Local read model is behind server | `SyncPulledAt` is old |
+| State         | Visual             | Meaning                                     | Event Status          |
+| ------------- | ------------------ | ------------------------------------------- | --------------------- |
+| **Local**     | Blue dot / spinner | Created locally, not yet attempted sync     | In client outbox      |
+| **In-flight** | Animated spinner   | Sync in progress                            | Being pushed          |
+| **Confirmed** | Green check        | Server acknowledged                         | `SyncAckedAt` set     |
+| **Conflict**  | Red badge          | Server rejected (concurrency or validation) | In client dead letter |
+| **Stale**     | Gray / dimmed      | Local read model is behind server           | `SyncPulledAt` is old |
 
 ### 8.2 The "How Fresh Is This?" Problem
 
@@ -333,6 +333,7 @@ When a user views a read model, they need to know how stale it is:
 ```
 
 This requires:
+
 - `SyncPulledAt` on the read model (last time we got server data)
 - Client outbox depth (how many events are pending)
 - Network status indicator
@@ -378,10 +379,10 @@ v3: ItemRemoved     (offline, undo of v2)
 **Option A: Event cancellation** — Remove v2 and v3 from the outbox (they cancel out). Only push v1.
 **Option B: Push all three** — Server sees the full history, including the undo.
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| Cancel pairs | Less bandwidth, simpler history | Projection logic must handle cancellation |
-| Push all | Full audit trail, server sees true history | Wasted bandwidth, more events to process |
+| Approach     | Pros                                       | Cons                                      |
+| ------------ | ------------------------------------------ | ----------------------------------------- |
+| Cancel pairs | Less bandwidth, simpler history            | Projection logic must handle cancellation |
+| Push all     | Full audit trail, server sees true history | Wasted bandwidth, more events to process  |
 
 **Implication:** The SDK should support both strategies. `IsLocalOnly` could be repurposed for cancelled pairs, or a new `CancelledBy` field links v3 to v2.
 
@@ -398,9 +399,9 @@ Server:  v1 → v2 (from other client)
 Local:   v1 → v2 (local, not yet pushed) → v3 (undo of local v2)
 ```
 
-When the local client syncs, it discovers its v2 conflicts with the server's v2. The undo (v3) may no longer make sense because the server's v2 is for a *different event*.
+When the local client syncs, it discovers its v2 conflicts with the server's v2. The undo (v3) may no longer make sense because the server's v2 is for a _different event_.
 
-**Implication:** Compensating events must reference the *specific event ID* they undo, not just the version. `CausationID` should point to the `EventID` being undone.
+**Implication:** Compensating events must reference the _specific event ID_ they undo, not just the version. `CausationID` should point to the `EventID` being undone.
 
 ---
 
@@ -438,14 +439,14 @@ The rebuild approach is simpler but requires all source events to be available. 
 
 ### 11.1 Testing Dimensions
 
-| Dimension | States | Combinatorial Explosion |
-|-----------|--------|------------------------|
-| Connectivity | Online, degraded, intermittent, offline | 4 |
-| Client schema version | v1, v2, ..., vN | N |
-| Server schema version | v1, v2, ..., vN | N |
-| Number of offline events | 0, 1, 10, 100, 1000 | 5 |
-| Number of concurrent clients | 1, 2, 5, 10 | 4 |
-| Conflict type | None, same-field, cross-aggregate, causal | 4 |
+| Dimension                    | States                                    | Combinatorial Explosion |
+| ---------------------------- | ----------------------------------------- | ----------------------- |
+| Connectivity                 | Online, degraded, intermittent, offline   | 4                       |
+| Client schema version        | v1, v2, ..., vN                           | N                       |
+| Server schema version        | v1, v2, ..., vN                           | N                       |
+| Number of offline events     | 0, 1, 10, 100, 1000                       | 5                       |
+| Number of concurrent clients | 1, 2, 5, 10                               | 4                       |
+| Conflict type                | None, same-field, cross-aggregate, causal | 4                       |
 
 Total: 4 × N × N × 5 × 4 × 4 = **320 × N²** test scenarios. For N=3 schema versions: 2,880 scenarios.
 
@@ -463,12 +464,12 @@ Total: 4 × N × N × 5 × 4 × 4 = **320 × N²** test scenarios. For N=3 schem
 
 ### 12.1 Binary vs JSON
 
-| Format | Size | Parse Speed | Schema Evolution | Debuggability |
-|--------|------|-------------|-----------------|---------------|
-| JSON | Large (2-5x) | Slow | Good (extra fields ignored) | Excellent |
-| Protobuf | Small | Fast | Excellent (field numbers) | Poor (binary) |
-| MessagePack | Medium | Fast | Good | Moderate |
-| FlatBuffers | Smallest | Zero-copy | Good | Poor |
+| Format      | Size         | Parse Speed | Schema Evolution            | Debuggability |
+| ----------- | ------------ | ----------- | --------------------------- | ------------- |
+| JSON        | Large (2-5x) | Slow        | Good (extra fields ignored) | Excellent     |
+| Protobuf    | Small        | Fast        | Excellent (field numbers)   | Poor (binary) |
+| MessagePack | Medium       | Fast        | Good                        | Moderate      |
+| FlatBuffers | Smallest     | Zero-copy   | Good                        | Poor          |
 
 For offline-first, **payload size matters** because it directly affects sync time and bandwidth cost. But schema evolution matters equally because clients will always be behind the server.
 
@@ -502,14 +503,14 @@ A single event with a 10MB payload (e.g., image attachment) on a metered connect
 
 go-cqrs-lite is a Go library. For client-side use:
 
-| Client Platform | Go Support | Feasibility |
-|----------------|-----------|-------------|
-| **Backend services** | Native | ✅ Already works |
-| **CLI tools** | Native | ✅ Already works |
-| **Desktop apps** | Native | ✅ Wails, Fyne, etc. |
-| **Mobile (iOS/Android)** | Gomobile | ⚠️ Possible but cumbersome |
-| **Web browser** | WASM | ⚠️ Limited storage APIs |
-| **React Native / Flutter** | Not Go | ❌ Need a TypeScript/Dart SDK |
+| Client Platform            | Go Support | Feasibility                   |
+| -------------------------- | ---------- | ----------------------------- |
+| **Backend services**       | Native     | ✅ Already works              |
+| **CLI tools**              | Native     | ✅ Already works              |
+| **Desktop apps**           | Native     | ✅ Wails, Fyne, etc.          |
+| **Mobile (iOS/Android)**   | Gomobile   | ⚠️ Possible but cumbersome    |
+| **Web browser**            | WASM       | ⚠️ Limited storage APIs       |
+| **React Native / Flutter** | Not Go     | ❌ Need a TypeScript/Dart SDK |
 
 **Implication:** If the target includes web or mobile-native clients, go-cqrs-lite can't run directly. Options:
 
@@ -519,26 +520,26 @@ go-cqrs-lite is a Go library. For client-side use:
 
 ### 13.2 What the Client SDK Must Include
 
-| Component | Purpose | go-cqrs-lite Equivalent |
-|-----------|---------|-------------------------|
-| Event creation | Typed event constructors | `NewEvent` + options |
-| Local event store | Durable offline storage | `MemoryStore` (not durable) |
-| Local projection runner | Build read model from events | `InMemoryRunner` |
-| Local outbox | Track unsynced events | `MemoryOutboxStore` |
-| Sync client | Push/pull/rebase protocol | ❌ Doesn't exist |
-| Conflict resolver | Domain-specific merge logic | ❌ Doesn't exist |
-| Auth token manager | Handle token refresh | ❌ Out of scope |
-| Network monitor | Detect connectivity changes | ❌ Out of scope |
+| Component               | Purpose                      | go-cqrs-lite Equivalent     |
+| ----------------------- | ---------------------------- | --------------------------- |
+| Event creation          | Typed event constructors     | `NewEvent` + options        |
+| Local event store       | Durable offline storage      | `MemoryStore` (not durable) |
+| Local projection runner | Build read model from events | `InMemoryRunner`            |
+| Local outbox            | Track unsynced events        | `MemoryOutboxStore`         |
+| Sync client             | Push/pull/rebase protocol    | ❌ Doesn't exist            |
+| Conflict resolver       | Domain-specific merge logic  | ❌ Doesn't exist            |
+| Auth token manager      | Handle token refresh         | ❌ Out of scope             |
+| Network monitor         | Detect connectivity changes  | ❌ Out of scope             |
 
 ### 13.3 The "Thick Client vs Thin Client" Decision
 
-| Approach | Client Creates | Server Creates | Offline Capability |
-|----------|---------------|----------------|-------------------|
-| **Thick client** | Events (with validation) | Confirms, enriches, stores | Full offline |
-| **Thin client** | Commands (intent only) | Events (after validation) | Queue commands offline |
-| **Hybrid** | Optimistic events + commands | Canonical events | Full offline with server authority |
+| Approach         | Client Creates               | Server Creates             | Offline Capability                 |
+| ---------------- | ---------------------------- | -------------------------- | ---------------------------------- |
+| **Thick client** | Events (with validation)     | Confirms, enriches, stores | Full offline                       |
+| **Thin client**  | Commands (intent only)       | Events (after validation)  | Queue commands offline             |
+| **Hybrid**       | Optimistic events + commands | Canonical events           | Full offline with server authority |
 
-The hybrid approach is the most common in practice: the client creates events for optimistic UI updates, but the server creates the *canonical* events. On sync, the client's optimistic events may be replaced by the server's canonical ones, requiring a UI update.
+The hybrid approach is the most common in practice: the client creates events for optimistic UI updates, but the server creates the _canonical_ events. On sync, the client's optimistic events may be replaced by the server's canonical ones, requiring a UI update.
 
 ---
 
@@ -601,20 +602,20 @@ go-cqrs-lite is explicitly "library, not framework." It provides building blocks
 
 ### 15.2 What Should Be in go-cqrs-lite
 
-| Concern | Belongs in go-cqrs-lite? | Why |
-|---------|--------------------------|-----|
-| Event/command types | ✅ Yes | Core domain types, already here |
-| ClientID, timezone metadata | ✅ Yes | Metadata on core types |
-| IdempotencyKey on Command | ✅ Yes | Command interface change |
-| Wire format for sync | ⚠️ Maybe | Could be a separate module |
-| Sync protocol (push/pull/rebase) | ❌ No | Consumer's responsibility; too opinionated |
-| Client-side event store | ❌ No | Platform-specific (SQLite, IndexedDB, etc.) |
-| Network monitor | ❌ No | Platform-specific |
-| Conflict resolver interface | ✅ Yes | `ConflictResolver[T]` interface (from `sync/` module) |
-| Vector clock | ✅ Yes | `sync/` module (zero deps, planned) |
-| Event signing | ❌ No | Security concern, consumer's responsibility |
-| Client-side encryption | ❌ No | Platform-specific |
-| Auth token management | ❌ No | Out of scope |
+| Concern                          | Belongs in go-cqrs-lite? | Why                                                   |
+| -------------------------------- | ------------------------ | ----------------------------------------------------- |
+| Event/command types              | ✅ Yes                   | Core domain types, already here                       |
+| ClientID, timezone metadata      | ✅ Yes                   | Metadata on core types                                |
+| IdempotencyKey on Command        | ✅ Yes                   | Command interface change                              |
+| Wire format for sync             | ⚠️ Maybe                 | Could be a separate module                            |
+| Sync protocol (push/pull/rebase) | ❌ No                    | Consumer's responsibility; too opinionated            |
+| Client-side event store          | ❌ No                    | Platform-specific (SQLite, IndexedDB, etc.)           |
+| Network monitor                  | ❌ No                    | Platform-specific                                     |
+| Conflict resolver interface      | ✅ Yes                   | `ConflictResolver[T]` interface (from `sync/` module) |
+| Vector clock                     | ✅ Yes                   | `sync/` module (zero deps, planned)                   |
+| Event signing                    | ❌ No                    | Security concern, consumer's responsibility           |
+| Client-side encryption           | ❌ No                    | Platform-specific                                     |
+| Auth token management            | ❌ No                    | Out of scope                                          |
 
 ### 15.3 The Minimal Viable Offline Addition
 

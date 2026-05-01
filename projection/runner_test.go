@@ -95,7 +95,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	go func() {
@@ -104,7 +104,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
 	err = bus.Publish(context.Background(), evt)
 	if err != nil {
@@ -126,10 +126,11 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 
 	done := make(chan struct{})
 
-	cp := memory.NewCheckpointStore()
-	t.Cleanup(func() { _ = cp.Close() })
+	checkpoint := memory.NewCheckpointStore()
 
-	runner, bus := newTestRunnerWithBusAndCheckpoint(t, cp)
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	runner, bus := newTestRunnerWithBusAndCheckpoint(t, checkpoint)
 
 	err := runner.Register(event.NewProjection("user-proj",
 		func(_ context.Context, _ event.Event) error {
@@ -143,7 +144,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	go func() {
@@ -152,7 +153,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
 	err = bus.Publish(context.Background(), evt)
 	if err != nil {
@@ -194,7 +195,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	go func() {
@@ -203,7 +204,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	otherEvt := mustNewEvent(t, "OrderPlaced", id.NewAggregateID(), "Order", 1)
+	otherEvt := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
 
 	_ = bus.Publish(context.Background(), otherEvt)
 
@@ -233,7 +234,7 @@ func TestRunner_WildcardProjection(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	go func() {
@@ -242,14 +243,8 @@ func TestRunner_WildcardProjection(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	_ = bus.Publish(
-		context.Background(),
-		mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1),
-	)
-	_ = bus.Publish(
-		context.Background(),
-		mustNewEvent(t, "OrderPlaced", id.NewAggregateID(), "Order", 1),
-	)
+	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
+	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
 
 	for i := range 2 {
 		select {
@@ -265,10 +260,11 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
+
 	t.Cleanup(func() { _ = store.Close() })
 
-	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
-	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
+	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
 	ctx := context.Background()
 
@@ -283,24 +279,29 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 	}
 
 	bus := memory.NewMemoryBus()
+
 	t.Cleanup(func() { _ = bus.Close() })
 
-	cp := memory.NewCheckpointStore()
-	t.Cleanup(func() { _ = cp.Close() })
+	checkpoint := memory.NewCheckpointStore()
 
-	runner, err := projection.NewRunner(store, bus, cp)
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	runner, err := projection.NewRunner(store, bus, checkpoint)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
 	var replayed []string
-	var mu sync.Mutex
+
+	var replayMu sync.Mutex
 
 	err = runner.Register(event.NewProjection("replay-proj",
 		func(_ context.Context, evt event.Event) error {
-			mu.Lock()
+			replayMu.Lock()
+
 			replayed = append(replayed, string(evt.Type()))
-			mu.Unlock()
+
+			replayMu.Unlock()
 
 			return nil
 		},
@@ -316,6 +317,7 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 
 	go func() {
 		_ = runner.Run(runCtx)
+
 		close(done)
 	}()
 
@@ -324,14 +326,14 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 
 	<-done
 
-	mu.Lock()
-	defer mu.Unlock()
+	replayMu.Lock()
+	defer replayMu.Unlock()
 
 	if len(replayed) != 2 {
 		t.Errorf("replayed %d events, want 2", len(replayed))
 	}
 
-	savedCP, err := cp.Load(ctx, "replay-proj")
+	savedCP, err := checkpoint.Load(ctx, "replay-proj")
 	if err != nil {
 		t.Fatalf("checkpoint load: %v", err)
 	}
@@ -373,7 +375,7 @@ func TestRunner_MultipleProjections(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	go func() {
@@ -382,14 +384,8 @@ func TestRunner_MultipleProjections(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	_ = bus.Publish(
-		context.Background(),
-		mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1),
-	)
-	_ = bus.Publish(
-		context.Background(),
-		mustNewEvent(t, "OrderPlaced", id.NewAggregateID(), "Order", 1),
-	)
+	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
+	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
 
 	select {
 	case h := <-userHandled:
@@ -414,10 +410,11 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
+
 	t.Cleanup(func() { _ = store.Close() })
 
-	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
-	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID(), "User", 1)
+	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
 	ctx := context.Background()
 
@@ -432,29 +429,34 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 	}
 
 	bus := memory.NewMemoryBus()
+
 	t.Cleanup(func() { _ = bus.Close() })
 
-	cp := memory.NewCheckpointStore()
-	t.Cleanup(func() { _ = cp.Close() })
+	checkpoint := memory.NewCheckpointStore()
 
-	err = cp.Save(ctx, "replay-proj", evt1.ID())
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	err = checkpoint.Save(ctx, "replay-proj", evt1.ID())
 	if err != nil {
 		t.Fatalf("Save checkpoint: %v", err)
 	}
 
-	runner, err := projection.NewRunner(store, bus, cp)
+	runner, err := projection.NewRunner(store, bus, checkpoint)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
 	var replayed []id.EventID
-	var mu sync.Mutex
+
+	var replayMu sync.Mutex
 
 	err = runner.Register(event.NewProjection("replay-proj",
 		func(_ context.Context, evt event.Event) error {
-			mu.Lock()
+			replayMu.Lock()
+
 			replayed = append(replayed, evt.ID())
-			mu.Unlock()
+
+			replayMu.Unlock()
 
 			return nil
 		},
@@ -470,6 +472,7 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	go func() {
 		_ = runner.Run(runCtx)
+
 		close(done)
 	}()
 
@@ -478,8 +481,8 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	<-done
 
-	mu.Lock()
-	defer mu.Unlock()
+	replayMu.Lock()
+	defer replayMu.Unlock()
 
 	if len(replayed) != 1 {
 		t.Errorf("replayed %d events, want 1 (skipped past checkpoint)", len(replayed))
@@ -502,14 +505,14 @@ func newTestRunnerWithBus(t *testing.T) (*projection.Runner, *memory.MemoryBus) 
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
-	cp := memory.NewCheckpointStore()
+	checkpoint := memory.NewCheckpointStore()
 
 	t.Cleanup(func() {
 		_ = bus.Close()
-		_ = cp.Close()
+		_ = checkpoint.Close()
 	})
 
-	runner, err := projection.NewRunner(nil, bus, cp)
+	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
@@ -519,14 +522,15 @@ func newTestRunnerWithBus(t *testing.T) (*projection.Runner, *memory.MemoryBus) 
 
 func newTestRunnerWithBusAndCheckpoint(
 	t *testing.T,
-	cp *memory.MemoryCheckpointStore,
+	checkpoint *memory.MemoryCheckpointStore,
 ) (*projection.Runner, *memory.MemoryBus) {
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
+
 	t.Cleanup(func() { _ = bus.Close() })
 
-	runner, err := projection.NewRunner(nil, bus, cp)
+	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
@@ -538,16 +542,14 @@ func mustNewEvent(
 	t *testing.T,
 	eventType string,
 	aggID id.AggregateID,
-	aggType string,
-	version int,
 ) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
 		aggID,
-		event.AggregateType(aggType),
-		version,
+		"User",
+		1,
 		nil,
 	)
 	if err != nil {

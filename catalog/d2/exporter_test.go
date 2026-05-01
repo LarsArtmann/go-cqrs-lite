@@ -8,6 +8,22 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
+func assertContains(t *testing.T, output, substr, msg string) {
+	t.Helper()
+
+	if !strings.Contains(output, substr) {
+		t.Error(msg)
+	}
+}
+
+func assertNotContains(t *testing.T, output, substr, msg string) {
+	t.Helper()
+
+	if strings.Contains(output, substr) {
+		t.Error(msg)
+	}
+}
+
 func TestExporter_Export_EmptyCatalog(t *testing.T) {
 	t.Parallel()
 
@@ -15,13 +31,8 @@ func TestExporter_Export_EmptyCatalog(t *testing.T) {
 	exp := NewExporter("Empty", "1.0.0")
 	output := exp.Export(reg.Build())
 
-	if !strings.Contains(output, "title:") {
-		t.Error("expected title in output")
-	}
-
-	if !strings.Contains(output, "classes:") {
-		t.Error("expected classes in output")
-	}
+	assertContains(t, output, "title:", "expected title in output")
+	assertContains(t, output, "classes:", "expected classes in output")
 }
 
 func TestExporter_Export_BasicCommand(t *testing.T) {
@@ -41,25 +52,11 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 	exp := NewExporter("Order Service", "1.0.0")
 	output := exp.Export(cat)
 
-	if !strings.Contains(output, "order_svc: {") {
-		t.Error("expected service node")
-	}
-
-	if !strings.Contains(output, "createorder:") {
-		t.Error("expected command node")
-	}
-
-	if !strings.Contains(output, "class: command") {
-		t.Error("expected command class")
-	}
-
-	if !strings.Contains(output, "CreateOrder") {
-		t.Error("expected command name in label")
-	}
-
-	if !strings.Contains(output, "receives") {
-		t.Error("expected receives connection")
-	}
+	assertContains(t, output, "order_svc: {", "expected service node")
+	assertContains(t, output, "createorder:", "expected command node")
+	assertContains(t, output, "class: command", "expected command class")
+	assertContains(t, output, "CreateOrder", "expected command name in label")
+	assertContains(t, output, "receives", "expected receives connection")
 }
 
 func TestExporter_Export_Event(t *testing.T) {
@@ -77,21 +74,10 @@ func TestExporter_Export_Event(t *testing.T) {
 	exp := NewExporter("Payment Service", "1.0.0")
 	output := exp.Export(cat)
 
-	if !strings.Contains(output, "paymentprocessed:") {
-		t.Error("expected event node")
-	}
-
-	if !strings.Contains(output, "class: event") {
-		t.Error("expected event class")
-	}
-
-	if !strings.Contains(output, "publishes") {
-		t.Error("expected publishes connection for Sends event")
-	}
-
-	if !strings.Contains(output, "shape: queue") {
-		t.Error("expected queue shape for events")
-	}
+	assertContains(t, output, "paymentprocessed:", "expected event node")
+	assertContains(t, output, "class: event", "expected event class")
+	assertContains(t, output, "publishes", "expected publishes connection for Sends event")
+	assertContains(t, output, "shape: queue", "expected queue shape for events")
 }
 
 func TestExporter_Export_EventReceive(t *testing.T) {
@@ -104,9 +90,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Svc", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "receives") {
-		t.Error("expected receives connection for Receives event")
-	}
+	assertContains(t, output, "receives", "expected receives connection for Receives event")
 }
 
 func TestExporter_Export_Query(t *testing.T) {
@@ -123,17 +107,9 @@ func TestExporter_Export_Query(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Catalog Service", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "getproduct:") {
-		t.Error("expected query node")
-	}
-
-	if !strings.Contains(output, "class: query") {
-		t.Error("expected query class")
-	}
-
-	if !strings.Contains(output, "handles") {
-		t.Error("expected handles connection")
-	}
+	assertContains(t, output, "getproduct:", "expected query node")
+	assertContains(t, output, "class: query", "expected query class")
+	assertContains(t, output, "handles", "expected handles connection")
 }
 
 func TestExporter_Export_MultipleServices(t *testing.T) {
@@ -151,13 +127,8 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Multi", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "svc_a: {") {
-		t.Error("expected svc_a node")
-	}
-
-	if !strings.Contains(output, "svc_b: {") {
-		t.Error("expected svc_b node")
-	}
+	assertContains(t, output, "svc_a: {", "expected svc_a node")
+	assertContains(t, output, "svc_b: {", "expected svc_b node")
 }
 
 func TestExporter_Export_DomainGrouping(t *testing.T) {
@@ -178,17 +149,9 @@ func TestExporter_Export_DomainGrouping(t *testing.T) {
 	cat := reg.Build()
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "domain_ecommerce:") {
-		t.Error("expected domain node")
-	}
-
-	if !strings.Contains(output, "E-Commerce") {
-		t.Error("expected domain name")
-	}
-
-	if !strings.Contains(output, "contains") {
-		t.Error("expected domain-service connection")
-	}
+	assertContains(t, output, "domain_ecommerce:", "expected domain node")
+	assertContains(t, output, "E-Commerce", "expected domain name")
+	assertContains(t, output, "contains", "expected domain-service connection")
 }
 
 func TestExporter_Export_WithDescription(t *testing.T) {
@@ -198,9 +161,7 @@ func TestExporter_Export_WithDescription(t *testing.T) {
 	exp := NewExporter("Test", "1.0.0", WithDescription("A test description"))
 	output := exp.Export(reg.Build())
 
-	if !strings.Contains(output, "A test description") {
-		t.Error("expected description in subtitle")
-	}
+	assertContains(t, output, "A test description", "expected description in subtitle")
 }
 
 func TestExporter_Export_SchemaTooltip(t *testing.T) {
@@ -226,17 +187,9 @@ func TestExporter_Export_SchemaTooltip(t *testing.T) {
 	cat := reg.Build()
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "Create a new order") {
-		t.Error("expected summary in tooltip")
-	}
-
-	if !strings.Contains(output, "orderId: string") {
-		t.Error("expected schema field in tooltip")
-	}
-
-	if !strings.Contains(output, "Unique order ID") {
-		t.Error("expected field description in tooltip")
-	}
+	assertContains(t, output, "Create a new order", "expected summary in tooltip")
+	assertContains(t, output, "orderId: string", "expected schema field in tooltip")
+	assertContains(t, output, "Unique order ID", "expected field description in tooltip")
 }
 
 func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
@@ -268,17 +221,19 @@ func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("E-Commerce", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "order_svc.ordercreated -> notification_svc.ordercreated") {
-		t.Error("expected cross-service event connection from publisher to receiver")
-	}
-
-	if !strings.Contains(output, "OrderCreated") {
-		t.Error("expected event name as connection label")
-	}
-
-	if !strings.Contains(output, "animated: true") {
-		t.Error("expected animated connection for cross-service events")
-	}
+	assertContains(
+		t,
+		output,
+		"order_svc.ordercreated -> notification_svc.ordercreated",
+		"expected cross-service event connection from publisher to receiver",
+	)
+	assertContains(t, output, "OrderCreated", "expected event name as connection label")
+	assertContains(
+		t,
+		output,
+		"animated: true",
+		"expected animated connection for cross-service events",
+	)
 }
 
 func TestExporter_Export_CrossService_NoSelfConnection(t *testing.T) {
@@ -292,9 +247,12 @@ func TestExporter_Export_CrossService_NoSelfConnection(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if strings.Contains(output, "svc.selfevent -> svc.selfevent") {
-		t.Error("should not create cross-service connection for same service")
-	}
+	assertNotContains(
+		t,
+		output,
+		"svc.selfevent -> svc.selfevent",
+		"should not create cross-service connection for same service",
+	)
 }
 
 func TestExporter_Export_CrossService_NoConnectionWithoutMatch(t *testing.T) {
@@ -307,9 +265,12 @@ func TestExporter_Export_CrossService_NoConnectionWithoutMatch(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if strings.Contains(output, "animated: true") {
-		t.Error("should not create cross-service connection when no receiver")
-	}
+	assertNotContains(
+		t,
+		output,
+		"animated: true",
+		"should not create cross-service connection when no receiver",
+	)
 }
 
 func TestExporter_Export_VersionInLabel(t *testing.T) {
@@ -327,9 +288,7 @@ func TestExporter_Export_VersionInLabel(t *testing.T) {
 	cat := reg.Build()
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "v2.0.0") {
-		t.Error("expected version in message label")
-	}
+	assertContains(t, output, "v2.0.0", "expected version in message label")
 }
 
 func TestSanitizeID(t *testing.T) {
@@ -370,9 +329,7 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Test Service", "1.0.0").Export(cat)
 
-	if strings.Contains(output, "nil") {
-		t.Error("output should not contain 'nil'")
-	}
+	assertNotContains(t, output, "nil", "output should not contain 'nil'")
 
 	for _, bad := range []string{"[]", "{}", "func"} {
 		if strings.Contains(output, bad) {

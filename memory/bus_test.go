@@ -40,9 +40,7 @@ func TestMemoryBus_Publish(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(received) != 1 {
-		t.Errorf("expected 1 event, got %d", len(received))
-	}
+	testhelpers.AssertLen(t, "events", received, 1)
 }
 
 func TestMemoryBus_SubscribeAll(t *testing.T) {
@@ -66,9 +64,7 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(received) != 2 {
-		t.Errorf("expected 2 events, got %d", len(received))
-	}
+	testhelpers.AssertLen(t, "events", received, 2)
 }
 
 func TestMemoryBus_Middleware(t *testing.T) {
