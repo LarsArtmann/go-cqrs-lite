@@ -176,6 +176,88 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	}
 }
 
+func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
+	t.Parallel()
+
+	registry := event.NewUpcasterRegistry()
+
+	var applied []int
+
+	registry.Register(event.NewUpcaster("UserCreated", 1,
+		func(evt event.Event) (*event.Core, error) {
+			applied = append(applied, 1)
+
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", 2, nil)
+		},
+	))
+
+	registry.Register(event.NewUpcaster("UserCreated", 2,
+		func(evt event.Event) (*event.Core, error) {
+			applied = append(applied, 2)
+
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", 3, nil)
+		},
+	))
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
+
+	result, err := registry.Upcast(evt)
+	if err != nil {
+		t.Fatalf("Upcast: %v", err)
+	}
+
+	if len(applied) != 0 {
+		t.Errorf("upcasters applied = %v, want none (event already at version 3)", applied)
+	}
+
+	if result.Version() != 3 {
+		t.Errorf("version = %d, want 3", result.Version())
+	}
+}
+
+func TestUpcasterRegistry_PartialChain(t *testing.T) {
+	t.Parallel()
+
+	registry := event.NewUpcasterRegistry()
+
+	var applied []int
+
+	registry.Register(event.NewUpcaster("UserCreated", 1,
+		func(evt event.Event) (*event.Core, error) {
+			applied = append(applied, 1)
+
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", 2, nil)
+		},
+	))
+
+	registry.Register(event.NewUpcaster("UserCreated", 2,
+		func(evt event.Event) (*event.Core, error) {
+			applied = append(applied, 2)
+
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", 3, nil)
+		},
+	))
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 2, nil)
+
+	result, err := registry.Upcast(evt)
+	if err != nil {
+		t.Fatalf("Upcast: %v", err)
+	}
+
+	if len(applied) != 1 || applied[0] != 2 {
+		t.Errorf("applied = %v, want [2] (only v2→v3 upcaster)", applied)
+	}
+
+	if result.Version() != 3 {
+		t.Errorf("version = %d, want 3", result.Version())
+	}
+}
+
 func TestNewProjection_WithDecode(t *testing.T) {
 	t.Parallel()
 

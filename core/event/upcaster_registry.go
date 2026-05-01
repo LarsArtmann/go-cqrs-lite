@@ -50,7 +50,7 @@ func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 	current := evt
 
 	for _, upcaster := range upcasters {
-		if current.Version() >= upcaster.SourceVersion() {
+		if current.Version() == upcaster.SourceVersion() {
 			next, err := upcaster.Upcast(current)
 			if err != nil {
 				return nil, fmt.Errorf(
