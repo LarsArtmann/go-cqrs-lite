@@ -1,5 +1,19 @@
 # Project: go-cqrs-lite
 
+> **THIS IS A LIBRARY/SDK — NOT AN APPLICATION.**
+>
+> Consumers import modules (`core`, `storage`, `memory`, `catalog`, etc.) into THEIR projects.
+> There is no "main app." Every module is independently importable.
+>
+> | Application Lens (WRONG)              | Library/SDK Lens (CORRECT)                                  |
+> | ------------------------------------- | ----------------------------------------------------------- |
+> | "Zero internal consumers = dead code" | "Zero internal consumers = correct isolation"               |
+> | "Module needs a service that uses it" | "Module needs tests + stable API, not an internal consumer" |
+> | "example/ should drive real traffic"  | "example/ is a usage demo, not a deployment"                |
+> | "Unused exports are waste"            | "Public API surface IS the product"                         |
+>
+> **The quality gate for every module: "Would a consumer trust this enough to import it?"**
+
 A lightweight CQRS **library/SDK** for Go with Event Sourcing support, branded IDs, and auto-documentation generation.
 
 Consumers import what they need and compose their own stack. Not a framework — no opinionated transport, message broker, or SQL driver.
@@ -9,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                   |
 | --------- | ----------------------------------------------------------------------- |
 | Language  | Go 1.26                                                                 |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration` |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage` |
 | Build     | `nix run .#build`                                                       |
 | Test      | `nix run .#test` or see "Testing" below                                 |
 | Lint      | `nix run .#lint`                                                        |
@@ -19,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 9 modules:
+Multi-module Go workspace with 8 modules (9 including example/user demo):
 
 ```
 go-cqrs-lite/
@@ -141,10 +155,10 @@ nix develop             # enter dev shell
                                        │
                                        ▼
                               ┌─────────────────┐
-                              │  (planned)       │
                               │  storage/        │
+                              │  (PostgreSQL)    │
                               │  watermill/      │
-                              │  projection/     │
+                              │  (planned)       │
                               └─────────────────┘
 ```
 
@@ -197,13 +211,14 @@ nix develop             # enter dev shell
 ## Design Principles
 
 1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
-2. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
-3. **Composition over inheritance** — Per Go best practices
-4. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
-5. **Context-aware** — All handlers accept `context.Context`
-6. **Errors as values** — No panics, explicit error returns, sentinel errors + wrapping
-7. **File size limits** — Max 250 lines per file
-8. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps
+2. **Every module must be trustworthy on its own** — Quality gate: "Would a consumer trust this enough to import it?" Means: tests, stable API, clear docs. Does NOT mean "another module in this repo uses it."
+3. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
+4. **Composition over inheritance** — Per Go best practices
+5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
+6. **Context-aware** — All handlers accept `context.Context`
+7. **Errors as values** — No panics, explicit error returns, sentinel errors + wrapping
+8. **File size limits** — Max 250 lines per file
+9. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps
 
 ## Code Conventions
 
@@ -414,29 +429,33 @@ Interfaces now return branded ID types instead of `string`:
 
 ## Code Quality Improvements (Sessions 1–2)
 
-| Improvement                  | Detail                                                                | Commit    |
-| ---------------------------- | --------------------------------------------------------------------- | --------- |
-| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation` | `1862eae` |
-| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`            | `8e5150c` |
-| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                 | `4fdd447` |
-| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`         | `c1bc261` |
-| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)     | `699d247` |
-| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                          | `b23a781` |
-| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                  | `e84e3a1` |
+| Improvement                  | Detail                                                                 | Commit    |
+| ---------------------------- | ---------------------------------------------------------------------- | --------- |
+| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`  | `1862eae` |
+| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`             | `8e5150c` |
+| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                  | `4fdd447` |
+| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`          | `c1bc261` |
+| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)      | `699d247` |
+| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                           | `b23a781` |
+| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                   | `e84e3a1` |
 | Example simplification       | `example/user/` demonstrates full CQRS lifecycle + EventCatalog export | `6815ef3` |
 
 ## Known Issues
 
-| Issue                                                    | Severity | Detail                                                          |
-| -------------------------------------------------------- | -------- | --------------------------------------------------------------- |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)      |
-| `toDotAddress` number handling                           | LOW      | "Get3DView" → "get.3.d.view" instead of "get.3d.view"           |
-| ~~`core/pkg/dispatcher` coverage~~                       | ✅ FIXED | 75.4% → 100% — direct unit tests added (session 8)              |
-| ~~`core/aggregate` coverage~~                            | ✅ FIXED | 21.4% → 95.7% — repository unit tests with fakes (session 13)   |
-| ~~`core/command` coverage~~                              | ✅ FIXED | 95.0% → 100% — Use/Register tests (session 13)                  |
-| ~~`core/query` coverage~~                                | ✅ FIXED | 91.0% → 100% — Use/Register/DispatchTyped tests (session 13)    |
-| ~~`MemorySnapshotStore` deep copy~~                      | ✅ FIXED | Deep copy in `copySnapshot` + defensive copy tests (session 10) |
-| ~~No `EventRetry` tests~~                                | ✅ FIXED | Split retry tests, added EventRetry coverage (session 10)       |
+| Issue                                                    | Severity   | Detail                                                                                      |
+| -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- |
+| **`storage/` has zero tests**                            | **HIGH**   | 346 lines of SQL with no test verification. Consumers cannot trust it.                      |
+| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface.    |
+| **JSON v1/v2 split in storage metadata**                 | **MEDIUM** | `json:"correlationId"` (v1 tags) in storage, v2 everywhere else. Silent corruption risk.    |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                                  |
+| `toDotAddress` number handling                           | LOW        | "Get3DView" → "get.3.d.view" instead of "get.3d.view"                                       |
+| `core/event` coverage dropped to 86.7%                   | MEDIUM     | Projection code tested in `integration/`, but some paths in `core/event` genuinely untested |
+| ~~`core/pkg/dispatcher` coverage~~                       | ✅ FIXED   | 75.4% → 100% — direct unit tests added (session 8)                                          |
+| ~~`core/aggregate` coverage~~                            | ✅ FIXED   | 21.4% → 95.7% — repository unit tests with fakes (session 13)                               |
+| ~~`core/command` coverage~~                              | ✅ FIXED   | 95.0% → 100% — Use/Register tests (session 13)                                              |
+| ~~`core/query` coverage~~                                | ✅ FIXED   | 91.0% → 100% — Use/Register/DispatchTyped tests (session 13)                                |
+| ~~`MemorySnapshotStore` deep copy~~                      | ✅ FIXED   | Deep copy in `copySnapshot` + defensive copy tests (session 10)                             |
+| ~~No `EventRetry` tests~~                                | ✅ FIXED   | Split retry tests, added EventRetry coverage (session 10)                                   |
 
 ## Cleanup Done (Post-Migration)
 
