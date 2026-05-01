@@ -36,12 +36,20 @@ type EventSourcedRepository struct {
 var _ Repository = (*EventSourcedRepository)(nil)
 
 // NewRepository creates a new event-sourced repository.
-// Both store and bus must be non-nil; passing nil causes a panic on first use.
+// Returns an error if store or bus is nil.
 func NewRepository(
 	store event.Store,
 	bus event.Bus,
 	opts ...RepositoryOption,
-) *EventSourcedRepository {
+) (*EventSourcedRepository, error) {
+	if store == nil {
+		return nil, fmt.Errorf("%w", ErrNilStore)
+	}
+
+	if bus == nil {
+		return nil, fmt.Errorf("%w", ErrNilBus)
+	}
+
 	r := &EventSourcedRepository{ //nolint:exhaustruct // options fill remaining fields
 		store: store,
 		bus:   bus,
@@ -51,7 +59,7 @@ func NewRepository(
 		opt(r)
 	}
 
-	return r
+	return r, nil
 }
 
 // opError formats an error for aggregate operations.

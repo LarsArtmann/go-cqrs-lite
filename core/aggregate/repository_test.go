@@ -34,10 +34,39 @@ func makeUserEvent(t *testing.T) *event.Core {
 func TestNewRepository(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
+	repo, err := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
 
 	if repo == nil {
 		t.Fatal("expected non-nil repository")
+	}
+}
+
+func TestNewRepository_NilStore(t *testing.T) {
+	t.Parallel()
+
+	_, err := aggregate.NewRepository(nil, testhelpers.NewFakeBus())
+	if err == nil {
+		t.Fatal("expected error for nil store")
+	}
+
+	if !errors.Is(err, aggregate.ErrNilStore) {
+		t.Errorf("error = %v, want ErrNilStore", err)
+	}
+}
+
+func TestNewRepository_NilBus(t *testing.T) {
+	t.Parallel()
+
+	_, err := aggregate.NewRepository(testhelpers.NewFakeStore(), nil)
+	if err == nil {
+		t.Fatal("expected error for nil bus")
+	}
+
+	if !errors.Is(err, aggregate.ErrNilBus) {
+		t.Errorf("error = %v, want ErrNilBus", err)
 	}
 }
 
@@ -47,7 +76,7 @@ func TestNewRepository_WithOptions(t *testing.T) {
 	snapStore := testhelpers.NewFakeSnapshotStore()
 	outbox := testhelpers.NewFakeOutbox()
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -62,7 +91,7 @@ func TestNewRepository_WithOptions(t *testing.T) {
 func TestRepository_Save_NoChanges(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
+	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
 
 	err := repo.Save(context.Background(), newTestRoot())
 	if err != nil {
@@ -74,7 +103,7 @@ func TestRepository_Save_PublishesToBus(t *testing.T) {
 	t.Parallel()
 
 	bus := testhelpers.NewFakeBus()
-	repo := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
+	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
 	root := newTestRoot()
 
 	root.RecordEvent(context.Background(), makeUserEvent(t))
@@ -109,7 +138,7 @@ func TestRepository_Save_StoreError(t *testing.T) {
 		return errors.New("store unavailable")
 	})
 
-	repo := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 	root := newTestRoot()
 
 	root.RecordEvent(context.Background(), makeUserEvent(t))
@@ -125,7 +154,7 @@ func TestRepository_Save_BusPublishError(t *testing.T) {
 
 	bus := testhelpers.NewFakeBus()
 	bus.PublishErr = errors.New("bus unavailable")
-	repo := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
+	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
 	root := newTestRoot()
 
 	root.RecordEvent(context.Background(), makeUserEvent(t))
@@ -147,7 +176,7 @@ func TestRepository_Save_WithOutbox(t *testing.T) {
 
 	bus := testhelpers.NewFakeBus()
 	outbox := testhelpers.NewFakeOutbox()
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		bus,
 		aggregate.WithOutbox(outbox),
@@ -178,7 +207,7 @@ func TestRepository_Save_OutboxAppendError(t *testing.T) {
 		return errors.New("outbox full")
 	})
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithOutbox(outbox),
@@ -197,7 +226,7 @@ func TestRepository_Load(t *testing.T) {
 	t.Parallel()
 
 	store := testhelpers.NewFakeStore()
-	repo := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
@@ -218,7 +247,7 @@ func TestRepository_Load(t *testing.T) {
 func TestRepository_Load_EmptyStore(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
+	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus())
 
 	err := repo.Load(context.Background(), newTestRoot())
 	if err != nil {
@@ -242,7 +271,7 @@ func TestRepository_Load_WithSnapshot(t *testing.T) {
 	evt, _ := event.NewEvent("UserUpdated", aggID, "User", 4, nil)
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 3)
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -275,7 +304,7 @@ func TestRepository_Load_SnapshotLoadError(t *testing.T) {
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -298,7 +327,7 @@ func TestRepository_Load_SnapshotNotFound(t *testing.T) {
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -327,7 +356,7 @@ func TestRepository_Load_SnapshotApplyError(t *testing.T) {
 		State:         []byte(`{}`),
 	})
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -437,7 +466,7 @@ func TestRepository_Load_LoadFromVersionError(t *testing.T) {
 		State:         []byte(`{}`),
 	})
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -483,7 +512,7 @@ func TestRepository_Save_CreatesSnapshot(t *testing.T) {
 
 	snapStore := testhelpers.NewFakeSnapshotStore()
 	store := testhelpers.NewFakeStore()
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -526,7 +555,7 @@ func TestRepository_Save_NoSnapshotWithoutStrategy(t *testing.T) {
 	t.Parallel()
 
 	snapStore := testhelpers.NewFakeSnapshotStore()
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -550,7 +579,7 @@ func TestRepository_Save_SnapshotWithCodec(t *testing.T) {
 	t.Parallel()
 
 	snapStore := testhelpers.NewFakeSnapshotStore()
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -587,7 +616,7 @@ func TestRepository_Save_SnapshotStoreError(t *testing.T) {
 	snapStore := testhelpers.NewFakeSnapshotStore()
 	snapStore.SetSaveError(errors.New("disk full"))
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -612,7 +641,7 @@ func TestRepository_Save_SnapshotStoreError(t *testing.T) {
 func TestRepository_Save_NoSnapshotWithoutStore(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
@@ -631,7 +660,7 @@ func TestRepository_Save_NoSnapshotWithoutCodec(t *testing.T) {
 	t.Parallel()
 
 	snapStore := testhelpers.NewFakeSnapshotStore()
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
@@ -661,7 +690,7 @@ func TestRepository_Delete(t *testing.T) {
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
 
-	repo := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
 
 	err := repo.Delete(context.Background(), root)
@@ -678,7 +707,7 @@ func TestRepository_Delete(t *testing.T) {
 func TestRepository_Delete_StoreError(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		&failingDeleteStore{FakeStore: testhelpers.NewFakeStore()},
 		testhelpers.NewFakeBus(),
 	)
@@ -705,7 +734,7 @@ func (s *failingDeleteStore) Delete(
 func TestNewRepository_WithCodec(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithCodec(event.JSONCodec{}),
@@ -719,7 +748,7 @@ func TestNewRepository_WithCodec(t *testing.T) {
 func TestNewRepository_WithSnapshotStrategy(t *testing.T) {
 	t.Parallel()
 
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(10)),

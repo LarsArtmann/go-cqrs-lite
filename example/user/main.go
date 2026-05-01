@@ -109,7 +109,7 @@ func main() {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	user := newUser("alice@example.com")
 

@@ -39,7 +39,7 @@ func newExpense(expenseID id.AggregateID) *expense {
 func setupCQRSComponents() (*memory.MemoryStore, *aggregate.EventSourcedRepository) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	return store, repo
 }
@@ -189,7 +189,7 @@ var _ = Describe("CQRS Flow", func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
 		bus = memory.NewMemoryBus()
-		repo = aggregate.NewRepository(store, bus)
+		repo, _ = aggregate.NewRepository(store, bus)
 		dispatcher = command.NewDispatcher()
 		busEvents = nil
 
