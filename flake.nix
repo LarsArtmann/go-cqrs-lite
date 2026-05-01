@@ -29,7 +29,7 @@
           ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
-          testModules = [ "core" "memory" "catalog" "middleware" "integration" "storage" ];
+          testModules = [ "core" "memory" "catalog" "middleware" "integration" "storage" "testhelpers" ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           examplePaths = "./example/user/...";
