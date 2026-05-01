@@ -33,6 +33,9 @@ func NewSQLEventStore(db *sql.DB) *SQLEventStore {
 // Alias of event.ErrVersionConflict for unified errors.Is checking.
 var ErrConcurrencyConflict = event.ErrVersionConflict
 
+const insertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+
 // Close releases the underlying database connection.
 // Caller must not use the *sql.DB passed to NewSQLEventStore after calling Close.
 func (s *SQLEventStore) Close() error {
@@ -81,8 +84,7 @@ func (s *SQLEventStore) Save(
 		)
 	}
 
-	insertQuery := `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	insertQuery := insertEventSQL
 
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
@@ -136,8 +138,7 @@ func (s *SQLEventStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	insertQuery := `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	insertQuery := insertEventSQL
 
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
