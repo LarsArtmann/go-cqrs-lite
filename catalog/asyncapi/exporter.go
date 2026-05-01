@@ -101,7 +101,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 		for _, evt := range svc.Events {
 			action := actionSend
-			if evt.Direction == catalog.Receives {
+			if !evt.IsSend() {
 				action = actionReceive
 			}
 

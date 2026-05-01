@@ -36,7 +36,7 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 
 			for _, evt := range svc.Events {
 				dir := "receives"
-				if evt.Direction == catalog.Sends {
+				if evt.IsSend() {
 					dir = "sends"
 				}
 

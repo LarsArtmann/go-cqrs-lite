@@ -94,3 +94,6 @@ func MessageID(msg Message) string {
 
 	return msg.Name
 }
+
+// IsSend reports whether the message direction is Sends.
+func (m Message) IsSend() bool { return m.Direction == Sends }

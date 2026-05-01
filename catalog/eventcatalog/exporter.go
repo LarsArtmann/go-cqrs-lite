@@ -89,7 +89,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	for _, msg := range svc.Events {
 		id := catalog.MessageID(msg)
 
-		if msg.Direction == catalog.Sends {
+		if msg.IsSend() {
 			sends = append(sends, id)
 		} else {
 			receives = append(receives, id)
