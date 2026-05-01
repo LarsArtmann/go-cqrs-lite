@@ -1,0 +1,11 @@
+package projection
+
+import "github.com/cockroachdb/errors"
+
+var (
+	ErrRunnerStopped    = errors.New("projection: runner stopped")
+	ErrNilHandler       = errors.New("projection: nil handler")
+	ErrDuplicateHandler = errors.New("projection: duplicate handler")
+	ErrCheckpointLoad   = errors.New("projection: checkpoint load failed")
+	ErrStoreLoad        = errors.New("projection: store load failed")
+)

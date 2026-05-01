@@ -7,6 +7,7 @@ use (
 	./integration
 	./memory
 	./middleware
+	./projection
 	./storage
 	./testhelpers
 )
