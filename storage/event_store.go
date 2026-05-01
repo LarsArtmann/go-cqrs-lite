@@ -19,17 +19,15 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	db      *sql.DB
-	codec   event.Codec
-	nowFunc func() time.Time
+	db    *sql.DB
+	codec event.Codec
 }
 
 // NewSQLEventStore creates a new SQL-backed event store.
 func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
 	s := &SQLEventStore{
-		db:      db,
-		codec:   event.JSONCodec{},
-		nowFunc: time.Now,
+		db:    db,
+		codec: event.JSONCodec{},
 	}
 
 	for _, opt := range opts {
@@ -47,6 +45,11 @@ func WithStoreCodec(codec event.Codec) SQLEventStoreOption {
 	return func(s *SQLEventStore) {
 		s.codec = codec
 	}
+}
+
+// Close releases the underlying database connection.
+func (s *SQLEventStore) Close() error {
+	return s.db.Close()
 }
 
 // Schema returns the SQL DDL for creating the events table.
