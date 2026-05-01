@@ -68,3 +68,5 @@ func MustNewCatalogCore(cmdType Type, aggregateID id.AggregateID, meta CatalogMe
 func (c *CatalogCore) CatalogInfo() CatalogMeta {
 	return c.Meta
 }
+
+var _ Catalogable = (*CatalogCore)(nil)

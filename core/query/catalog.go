@@ -59,3 +59,5 @@ func MustNewCatalogCore(qtype Type, meta CatalogMeta) *CatalogCore {
 func (c *CatalogCore) CatalogInfo() CatalogMeta {
 	return c.Meta
 }
+
+var _ Catalogable = (*CatalogCore)(nil)

@@ -73,3 +73,5 @@ func MustNewCatalogCore(
 func (c *CatalogCore) CatalogInfo() CatalogMeta {
 	return c.Meta
 }
+
+var _ Catalogable = (*CatalogCore)(nil)
