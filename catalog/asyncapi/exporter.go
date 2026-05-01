@@ -13,6 +13,9 @@ const (
 	kindCommand messageKind = "commands"
 	kindEvent   messageKind = "events"
 	kindQuery   messageKind = "queries"
+
+	actionSend    = "send"
+	actionReceive = "receive"
 )
 
 type Exporter struct {
@@ -132,7 +135,7 @@ func (e *Exporter) addMessage(
 	kind messageKind,
 	opts ...messageOption,
 ) {
-	cfg := &messageConfig{action: "receive"}
+	cfg := &messageConfig{action: actionReceive}
 
 	for _, opt := range opts {
 		opt(cfg)
@@ -194,13 +197,13 @@ func operationTitleAndName(
 	switch kind {
 	case kindEvent:
 		opName := "publish" + msgID
-		if cfg.action == "receive" {
-			opName = "receive" + msgID
+		if cfg.action == actionReceive {
+			opName = actionReceive + msgID
 		}
 
 		return "Publish " + msgName, opName
 	case kindCommand:
-		return "Receive " + msgName, "receive" + msgID
+		return "Receive " + msgName, actionReceive + msgID
 	case kindQuery:
 		return "Handle " + msgName, "handle" + msgID
 	default:
