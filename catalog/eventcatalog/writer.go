@@ -134,7 +134,7 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	var cfg strings.Builder
 	cfg.WriteString("/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n")
-	cfg.WriteString("module.exports = {\n")
+	cfg.WriteString("export default {\n")
 	fmt.Fprintf(&cfg, "  title: %q,\n", cat.Title)
 	fmt.Fprintf(&cfg, "  organizationName: %q,\n", cat.Title)
 	cfg.WriteString("  landingPage: { content: '' },\n")
@@ -154,6 +154,7 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 
 func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	pkg := map[string]any{
+		"type":        "module",
 		"name":        strings.ToLower(strings.ReplaceAll(cat.Title, " ", "-")),
 		"version":     cat.Version,
 		"private":     true,
