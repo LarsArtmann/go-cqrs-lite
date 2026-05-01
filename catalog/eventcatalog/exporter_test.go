@@ -690,7 +690,9 @@ func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
-	if err := exp.Export(cat); err != nil {
+
+	err := exp.Export(cat)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -719,7 +721,9 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 	cat := reg.Build()
 
 	exp := NewExporter(tmpDir)
-	if err := exp.Export(cat); err != nil {
+
+	err := exp.Export(cat)
+	if err != nil {
 		t.Fatal(err)
 	}
 

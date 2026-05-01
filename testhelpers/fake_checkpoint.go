@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"context"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -22,3 +23,5 @@ func (FakeCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error
 
 // Close is a no-op.
 func (FakeCheckpointStore) Close() error { return nil }
+
+var _ event.CheckpointStore = (*FakeCheckpointStore)(nil)

@@ -17,6 +17,8 @@ type Codec interface {
 // JSONCodec implements Codec using go-json-experiment/json (JSON v2).
 type JSONCodec struct{}
 
+var _ Codec = JSONCodec{}
+
 // Encode marshals a value to JSON bytes.
 func (JSONCodec) Encode(v any) ([]byte, error) {
 	//nolint:wrapcheck // thin wrapper over json.Marshal

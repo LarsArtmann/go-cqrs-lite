@@ -23,3 +23,5 @@ func (s *slogLogger) Info(msg string, keyvals ...any) {
 func (s *slogLogger) Error(msg string, keyvals ...any) {
 	s.logger.Error(msg, keyvals...)
 }
+
+var _ Logger = (*slogLogger)(nil)
