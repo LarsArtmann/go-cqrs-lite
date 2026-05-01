@@ -409,6 +409,50 @@ func TestWithCustom_ExistingCustomMap(t *testing.T) {
 	}
 }
 
+func TestWithClientID(t *testing.T) {
+	t.Parallel()
+
+	clientID := id.NewClientID()
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewAggregateID(),
+		"Test",
+		1,
+		nil,
+		event.WithClientID(clientID),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got := evt.Metadata().Custom["client.id"]
+	if got != clientID.String() {
+		t.Errorf("client.id = %q, want %q", got, clientID.String())
+	}
+}
+
+func TestWithClientOccurredAt(t *testing.T) {
+	t.Parallel()
+
+	ts := time.Date(2026, 5, 1, 12, 30, 0, 0, time.UTC)
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewAggregateID(),
+		"Test",
+		1,
+		nil,
+		event.WithClientOccurredAt(ts),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got := evt.Metadata().Custom["client.occurred_at"]
+	if got != ts.Format(time.RFC3339Nano) {
+		t.Errorf("client.occurred_at = %q, want %q", got, ts.Format(time.RFC3339Nano))
+	}
+}
+
 func TestNewCatalogCore(t *testing.T) {
 	t.Parallel()
 

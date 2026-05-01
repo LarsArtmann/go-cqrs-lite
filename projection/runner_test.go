@@ -493,6 +493,131 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 	}
 }
 
+func TestRunner_RetryOnTransientError(t *testing.T) {
+	t.Parallel()
+
+	attempts := make(chan int, 3)
+	callCount := 0
+
+	runner, bus := newTestRunnerWithOpts(t, projection.WithRetry(3, time.Millisecond))
+
+	err := runner.Register(event.NewProjection("retry-proj",
+		func(_ context.Context, _ event.Event) error {
+			callCount++
+			attempts <- callCount
+
+			if callCount < 3 {
+				return event.NewTransient("db.timeout", "connection timed out")
+			}
+
+			return nil
+		},
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	go func() {
+		_ = runner.Run(ctx)
+	}()
+
+	time.Sleep(20 * time.Millisecond)
+
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+
+	err = bus.Publish(context.Background(), evt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := range 3 {
+		select {
+		case a := <-attempts:
+			if a != i+1 {
+				t.Errorf("attempt %d, got call count %d", i+1, a)
+			}
+		case <-time.After(2 * time.Second):
+			t.Fatalf("timed out waiting for attempt %d", i+1)
+		}
+	}
+}
+
+func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
+	t.Parallel()
+
+	attempts := make(chan int, 2)
+	callCount := 0
+
+	runner, bus := newTestRunnerWithOpts(t, projection.WithRetry(3, time.Millisecond))
+
+	err := runner.Register(event.NewProjection("no-retry-proj",
+		func(_ context.Context, _ event.Event) error {
+			callCount++
+			attempts <- callCount
+
+			return event.NewConflict("already.exists", "duplicate entity")
+		},
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	go func() {
+		_ = runner.Run(ctx)
+	}()
+
+	time.Sleep(20 * time.Millisecond)
+
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+
+	err = bus.Publish(context.Background(), evt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case a := <-attempts:
+		if a != 1 {
+			t.Errorf("expected exactly 1 attempt, got call count %d", a)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for handler")
+	}
+
+	select {
+	case a := <-attempts:
+		t.Errorf("should not retry non-retryable error, got attempt %d", a)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func newTestRunnerWithOpts(t *testing.T, opts ...projection.RunnerOption) (*projection.Runner, *memory.MemoryBus) {
+	t.Helper()
+
+	bus := memory.NewMemoryBus()
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() {
+		_ = bus.Close()
+		_ = checkpoint.Close()
+	})
+
+	runner, err := projection.NewRunner(nil, bus, checkpoint, opts...)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	return runner, bus
+}
+
 func newTestRunner(t *testing.T) *projection.Runner {
 	t.Helper()
 

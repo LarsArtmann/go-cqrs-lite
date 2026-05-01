@@ -618,6 +618,24 @@ func TestRequestID(t *testing.T) {
 	}
 }
 
+func TestClientID(t *testing.T) {
+	t.Parallel()
+
+	id := NewClientID()
+	if id.IsZero() {
+		t.Error("NewClientID() should not return zero ID")
+	}
+
+	parsed, err := ParseClientID(testULID)
+	if err != nil {
+		t.Fatalf("ParseClientID() error = %v", err)
+	}
+
+	if parsed.String() != testULID {
+		t.Errorf("ParseClientID() = %q, want %q", parsed.String(), testULID)
+	}
+}
+
 func TestMustParseID(t *testing.T) {
 	t.Parallel()
 

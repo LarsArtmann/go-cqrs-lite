@@ -164,6 +164,7 @@ func TestIsRetryable(t *testing.T) {
 		{"corruption", event.NewCorruption("x", "msg"), false},
 		{"infrastructure", event.NewInfrastructure("i", "msg"), false},
 		{"ErrVersionConflict", event.ErrVersionConflict, false},
+		{"ErrDuplicateProjection", event.ErrDuplicateProjection, false},
 		{"ErrStoreClosed", event.ErrStoreClosed, false},
 	}
 	for _, tc := range cases {
