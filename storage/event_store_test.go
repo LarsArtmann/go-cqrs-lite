@@ -20,7 +20,12 @@ func newTestStore(t *testing.T) (*SQLEventStore, sqlmock.Sqlmock) {
 		t.Fatalf("create sqlmock: %v", err)
 	}
 
-	return NewSQLEventStore(db), mock
+	store, err := NewSQLEventStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLEventStore: %v", err)
+	}
+
+	return store, mock
 }
 
 func testEvent(t *testing.T) *event.Core {

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type slogTestCommand struct {
@@ -26,9 +27,7 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 	))
 
 	mw := middleware.CommandLogging(middleware.SlogAdapter(logger))
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := mw(testhelpers.NoopCommandHandler())
 
 	cmd := &slogTestCommand{
 		CatalogCore: command.MustNewCatalogCore(

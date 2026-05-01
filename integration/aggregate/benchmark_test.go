@@ -79,7 +79,7 @@ func (r *benchRoot) LoadEvents(events []event.Event) error {
 func BenchmarkRepository_Save(b *testing.B) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 	ctx := context.Background()
 
 	for b.Loop() {
@@ -100,7 +100,7 @@ func BenchmarkRepository_Save(b *testing.B) {
 func BenchmarkRepository_Load(b *testing.B) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 	ctx := context.Background()
 
 	orderID := id.NewAggregateID()

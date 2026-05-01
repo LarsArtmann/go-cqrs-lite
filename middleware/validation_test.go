@@ -58,11 +58,7 @@ func TestEventValidation_Pass(t *testing.T) {
 	mw := EventValidation(validate)
 
 	called := false
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		called = true
-
-		return nil
-	})
+	handler := mw(testhelpers.CallbackEventHandler(&called))
 
 	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMemoryOutboxStore_AppendAndPoll(t *testing.T) {
@@ -16,12 +17,9 @@ func TestMemoryOutboxStore_AppendAndPoll(t *testing.T) {
 	outbox := memory.NewMemoryOutboxStore()
 	aggID := id.NewAggregateID()
 
-	evt, err := event.NewEvent("TestEvent", aggID, "Test", 1, nil)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", 1, nil)
 
-	err = outbox.Append(ctx, []event.Event{evt})
+	err := outbox.Append(ctx, []event.Event{evt})
 	if err != nil {
 		t.Fatalf("append to outbox: %v", err)
 	}
@@ -51,12 +49,9 @@ func TestMemoryOutboxStore_AckRemovesFromPending(t *testing.T) {
 	outbox := memory.NewMemoryOutboxStore()
 	aggID := id.NewAggregateID()
 
-	evt, err := event.NewEvent("TestEvent", aggID, "Test", 1, nil)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", 1, nil)
 
-	err = outbox.Append(ctx, []event.Event{evt})
+	err := outbox.Append(ctx, []event.Event{evt})
 	if err != nil {
 		t.Fatalf("append to outbox: %v", err)
 	}
@@ -75,7 +70,6 @@ func TestMemoryOutboxStore_AckRemovesFromPending(t *testing.T) {
 		t.Fatalf("ack entry: %v", err)
 	}
 
-	// After ack, no pending entries
 	entries, err = outbox.PollPending(ctx, 10)
 	if err != nil {
 		t.Fatalf("poll pending after ack: %v", err)
@@ -92,22 +86,16 @@ func TestMemoryOutboxStore_PollPendingLimit(t *testing.T) {
 	ctx := context.Background()
 	outbox := memory.NewMemoryOutboxStore()
 
-	// Append 5 events
 	for i := range 5 {
 		aggID := id.NewAggregateID()
+		evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", i+1, nil)
 
-		evt, err := event.NewEvent("TestEvent", aggID, "Test", i+1, nil)
-		if err != nil {
-			t.Fatalf("create event %d: %v", i, err)
-		}
-
-		err = outbox.Append(ctx, []event.Event{evt})
+		err := outbox.Append(ctx, []event.Event{evt})
 		if err != nil {
 			t.Fatalf("append event %d: %v", i, err)
 		}
 	}
 
-	// Poll with limit 2
 	entries, err := outbox.PollPending(ctx, 2)
 	if err != nil {
 		t.Fatalf("poll pending: %v", err)
@@ -124,15 +112,10 @@ func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
 	ctx := context.Background()
 	outbox := memory.NewMemoryOutboxStore()
 
-	// Append first event
 	aggID1 := id.NewAggregateID()
+	evt1 := testhelpers.NewEvent(t, "Event1", aggID1, "Test", 1, nil)
 
-	evt1, err := event.NewEvent("Event1", aggID1, "Test", 1, nil)
-	if err != nil {
-		t.Fatalf("create event 1: %v", err)
-	}
-
-	err = outbox.Append(ctx, []event.Event{evt1})
+	err := outbox.Append(ctx, []event.Event{evt1})
 	if err != nil {
 		t.Fatalf("append event 1: %v", err)
 	}
@@ -146,26 +129,19 @@ func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
 		t.Fatalf("expected 1 pending entry, got %d", len(entries1))
 	}
 
-	// Ack the first event
 	err = outbox.Ack(ctx, []event.OutboxID{entries1[0].ID})
 	if err != nil {
 		t.Fatalf("ack entry 1: %v", err)
 	}
 
-	// Append second event after ack
 	aggID2 := id.NewAggregateID()
-
-	evt2, err := event.NewEvent("Event2", aggID2, "Test", 1, nil)
-	if err != nil {
-		t.Fatalf("create event 2: %v", err)
-	}
+	evt2 := testhelpers.NewEvent(t, "Event2", aggID2, "Test", 1, nil)
 
 	err = outbox.Append(ctx, []event.Event{evt2})
 	if err != nil {
 		t.Fatalf("append event 2: %v", err)
 	}
 
-	// Should only see the second event, proving first was removed
 	entries2, err := outbox.PollPending(ctx, 10)
 	if err != nil {
 		t.Fatalf("poll pending 2: %v", err)
@@ -199,12 +175,9 @@ func TestMemoryOutboxStore_DefensiveCopy(t *testing.T) {
 	outbox := memory.NewMemoryOutboxStore()
 	aggID := id.NewAggregateID()
 
-	evt, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`original`))
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", 1, []byte(`original`))
 
-	err = outbox.Append(ctx, []event.Event{evt})
+	err := outbox.Append(ctx, []event.Event{evt})
 	if err != nil {
 		t.Fatalf("append to outbox: %v", err)
 	}
@@ -218,10 +191,8 @@ func TestMemoryOutboxStore_DefensiveCopy(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	// Modify the returned event payload
 	entries[0].Events[0].Payload()[0] = 'X'
 
-	// Poll again and verify original is unchanged
 	entries2, err := outbox.PollPending(ctx, 10)
 	if err != nil {
 		t.Fatalf("poll pending again: %v", err)

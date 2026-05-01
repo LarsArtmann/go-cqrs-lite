@@ -117,7 +117,7 @@ func TestEventSourcedRepository_Save(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -146,7 +146,7 @@ func TestEventSourcedRepository_Save_NoChanges(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	o := newOrder(id.NewAggregateID())
 
@@ -161,7 +161,7 @@ func TestEventSourcedRepository_Load(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	orderID := id.NewAggregateID()
 	ctx := context.Background()
@@ -204,7 +204,7 @@ func TestEventSourcedRepository_Load_NotFound(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	o := newOrder(id.NewAggregateID())
 
@@ -219,7 +219,7 @@ func TestEventSourcedRepository_Roundtrip(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	orderID := id.NewAggregateID()
 	ctx := context.Background()
@@ -274,7 +274,7 @@ func TestEventSourcedRepository_EventsPublished(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	var received []event.Event
 
@@ -334,7 +334,7 @@ func TestCore_LoadFromHistory_ApplyError(t *testing.T) {
 		t.Fatalf("place order: %v", err)
 	}
 
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	err = repo.Save(ctx, o)
 	if err != nil {
@@ -397,7 +397,7 @@ func TestEventSourcedRepository_Save_StoreError(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(&failingStore{}, bus)
+	repo, _ := aggregate.NewRepository(&failingStore{}, bus)
 
 	o := newOrder(id.NewAggregateID())
 
@@ -416,7 +416,7 @@ func TestEventSourcedRepository_Load_StoreError(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(&failingStore{}, bus)
+	repo, _ := aggregate.NewRepository(&failingStore{}, bus)
 
 	o := newOrder(id.NewAggregateID())
 

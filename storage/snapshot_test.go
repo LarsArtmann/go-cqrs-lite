@@ -21,7 +21,12 @@ func newTestSnapshotStore(t *testing.T) (*SQLSnapshotStore, sqlmock.Sqlmock) {
 		t.Fatalf("create sqlmock: %v", err)
 	}
 
-	return NewSQLSnapshotStore(db), mock
+	store, err := NewSQLSnapshotStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLSnapshotStore: %v", err)
+	}
+
+	return store, mock
 }
 
 func TestSQLSnapshotStore_Close(t *testing.T) {

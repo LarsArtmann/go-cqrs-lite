@@ -17,8 +17,13 @@ type SQLCheckpointStore struct {
 
 // NewSQLCheckpointStore creates a new SQL-backed checkpoint store.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-func NewSQLCheckpointStore(db *sql.DB) *SQLCheckpointStore {
-	return &SQLCheckpointStore{db: db}
+// Returns an error if db is nil.
+func NewSQLCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
+	if db == nil {
+		return nil, fmt.Errorf("%w", ErrNilDB)
+	}
+
+	return &SQLCheckpointStore{db: db}, nil
 }
 
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.

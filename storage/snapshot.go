@@ -18,8 +18,13 @@ type SQLSnapshotStore struct {
 
 // NewSQLSnapshotStore creates a new SQL-backed snapshot store.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-func NewSQLSnapshotStore(db *sql.DB) *SQLSnapshotStore {
-	return &SQLSnapshotStore{db: db}
+// Returns an error if db is nil.
+func NewSQLSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
+	if db == nil {
+		return nil, fmt.Errorf("%w", ErrNilDB)
+	}
+
+	return &SQLSnapshotStore{db: db}, nil
 }
 
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.

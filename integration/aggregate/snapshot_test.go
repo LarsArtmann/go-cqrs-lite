@@ -37,7 +37,7 @@ func TestNewRepository_WithSnapshotStore(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
 
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 	if repo == nil {
 		t.Fatal("expected non-nil repository")
 	}
@@ -50,7 +50,7 @@ func TestEventSourcedRepository_Load_WithSnapshot(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -112,7 +112,7 @@ func TestEventSourcedRepository_Load_WithSnapshotAndReplay(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -189,7 +189,7 @@ func TestEventSourcedRepository_Load_SnapshotNotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -229,7 +229,7 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 
@@ -306,7 +306,7 @@ func TestEventSourcedRepository_Load_SnapshotApplyError(t *testing.T) {
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
 	snapshotStore := memory.NewMemorySnapshotStore()
-	repo := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithSnapshotStore(snapshotStore))
 
 	orderID := id.NewAggregateID()
 
@@ -341,7 +341,7 @@ func TestEventSourcedRepository_Load_LoadFromVersionError(t *testing.T) {
 	snapshotStore := memory.NewMemorySnapshotStore()
 
 	// Use failingStore for LoadFromVersion error
-	repo := aggregate.NewRepository(
+	repo, _ := aggregate.NewRepository(
 		&failingStore{},
 		bus,
 		aggregate.WithSnapshotStore(snapshotStore),

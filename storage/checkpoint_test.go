@@ -19,7 +19,12 @@ func newTestCheckpointStore(t *testing.T) (*SQLCheckpointStore, sqlmock.Sqlmock)
 		t.Fatalf("create sqlmock: %v", err)
 	}
 
-	return NewSQLCheckpointStore(db), mock
+	store, err := NewSQLCheckpointStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLCheckpointStore: %v", err)
+	}
+
+	return store, mock
 }
 
 func TestSQLCheckpointStore_Close(t *testing.T) {

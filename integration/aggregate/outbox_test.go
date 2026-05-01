@@ -19,7 +19,7 @@ func TestEventSourcedRepository_Save_WithOutbox(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	outbox := memory.NewMemoryOutboxStore()
 
-	repo := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -57,7 +57,7 @@ func TestEventSourcedRepository_Save_WithOutbox_NoChanges(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	outbox := memory.NewMemoryOutboxStore()
 
-	repo := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -102,7 +102,7 @@ func TestEventSourcedRepository_Save_OutboxFailure_AfterStoreSuccess(t *testing.
 	bus := memory.NewMemoryBus()
 	outbox := &failingOutbox{}
 
-	repo := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
+	repo, _ := aggregate.NewRepository(store, bus, aggregate.WithOutbox(outbox))
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)
@@ -154,7 +154,7 @@ func TestEventSourcedRepository_Save_WithoutOutbox_PublishesToBus(t *testing.T) 
 		t.Fatalf("subscribe to bus: %v", err)
 	}
 
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 
 	orderID := id.NewAggregateID()
 	o := newOrder(orderID)

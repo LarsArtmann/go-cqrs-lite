@@ -47,11 +47,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	ctx := context.Background()
 
 	executed := false
-	handler := func(_ context.Context, _ command.Command) error {
-		executed = true
-
-		return nil
-	}
+	handler := testhelpers.CallbackCommandHandler(&executed)
 
 	_ = dispatcher.Register("CreateUser", handler)
 

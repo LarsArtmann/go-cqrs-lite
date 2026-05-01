@@ -1,8 +1,6 @@
 package projection
 
 import (
-	"context"
-	"fmt"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -86,18 +84,4 @@ func (r *HandlerRegistry) HasHandlers() bool {
 	defer r.mu.RUnlock()
 
 	return len(r.handlers) > 0 || len(r.wildcard) > 0
-}
-
-// dispatch sends an event to all matching handlers.
-func (r *HandlerRegistry) dispatch(ctx context.Context, evt event.Event) error {
-	handlers := r.Lookup(evt.Type())
-
-	for _, h := range handlers {
-		err := h(ctx, evt)
-		if err != nil {
-			return fmt.Errorf("handler for event %s: %w", evt.Type(), err)
-		}
-	}
-
-	return nil
 }

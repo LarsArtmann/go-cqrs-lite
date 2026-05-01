@@ -142,6 +142,7 @@ linters:
             - github.com/DATA-DOG/go-sqlmock
             - github.com/onsi/ginkgo
             - github.com/onsi/gomega
+            - github.com/samber/ro
             - go.opentelemetry.io/otel
     gci:
       sections:
@@ -229,6 +230,13 @@ linters:
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct
+      - path: projection/
+        linters:
+          - exhaustruct
+      - path: projection/runner\.go$
+        linters:
+          - wrapcheck
+          - err113
 formatters:
   enable:
     - gci

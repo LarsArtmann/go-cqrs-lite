@@ -24,10 +24,13 @@ type SQLEventStore struct {
 
 // NewSQLEventStore creates a new SQL-backed event store.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-func NewSQLEventStore(db *sql.DB) *SQLEventStore {
-	return &SQLEventStore{
-		db: db,
+// Returns an error if db is nil.
+func NewSQLEventStore(db *sql.DB) (*SQLEventStore, error) {
+	if db == nil {
+		return nil, fmt.Errorf("%w", ErrNilDB)
 	}
+
+	return &SQLEventStore{db: db}, nil
 }
 
 // ErrConcurrencyConflict indicates an optimistic concurrency violation.

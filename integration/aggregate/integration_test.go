@@ -145,7 +145,7 @@ func TestCQRSRoundtrip(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	repo := aggregate.NewRepository(store, bus)
+	repo, _ := aggregate.NewRepository(store, bus)
 	dispatcher := command.NewDispatcher()
 
 	var busEvents []event.Event
