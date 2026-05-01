@@ -172,7 +172,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 		md.addQuotedField("summary", domain.Summary)
 	}
 
-	md.addListField("services", domain.Services)
+	md.addObjectIDsListField("services", domain.Services)
 	md.finish(domain.Name, domain.Summary)
 
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())

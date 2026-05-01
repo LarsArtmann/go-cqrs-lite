@@ -93,6 +93,18 @@ func (f *frontmatterWriter) addListField(key string, values []string) {
 	}
 }
 
+func (f *frontmatterWriter) addObjectIDsListField(key string, ids []string) {
+	if len(ids) == 0 {
+		return
+	}
+
+	_, _ = fmt.Fprintf(f, "%s:\n", key)
+
+	for _, id := range ids {
+		_, _ = fmt.Fprintf(f, "  - id: %s\n", id)
+	}
+}
+
 func (f *frontmatterWriter) finish(title, summary string) {
 	_, _ = f.WriteString("---\n\n")
 	_, _ = fmt.Fprintf(f, "# %s\n\n%s\n", title, summary)
