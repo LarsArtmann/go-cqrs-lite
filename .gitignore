@@ -63,3 +63,4 @@ example/*/user
 result
 result-*
 .direnv/
+user
