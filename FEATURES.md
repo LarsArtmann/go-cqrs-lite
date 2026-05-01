@@ -68,13 +68,13 @@
 | Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                       | ✅     |
 | Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                          | ✅     |
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
-| Event Bus interface   | `Bus`: `Publish`, `Subscribe(eventType, handler)`, `SubscribeAll(handler)`, `Use(middleware)`                                                                                        | ✅     |
-| Event Store interface | `Store`: `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                                         | ✅     |
+| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use`                                                                                                               | ✅     |
+| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                       | ✅     |
 | JSON Codec            | `JSONCodec` using `go-json-experiment/json` (JSON v2)                                                                                                                                | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
-**Coverage:** 96.3%
+**Coverage:** 96.5%
 
 ---
 
