@@ -119,6 +119,8 @@ nix develop             # enter dev shell
 
 ## Architecture
 
+**Visual diagram**: `docs/web-client-communication.d2` — render with `d2 docs/web-client-communication.d2 docs/web-client-communication.svg` or view `docs/web-client-communication.html`.
+
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │                        APPLICATION LAYER                        │

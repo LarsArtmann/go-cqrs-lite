@@ -97,6 +97,8 @@ Command → Dispatcher → Handler → Aggregate → Store + Bus
 Query   → Dispatcher → Handler              Projection
 ```
 
+For a detailed visual walkthrough of how a web client communicates with go-cqrs-lite, see the [Web Client Communication Diagram](web-client-communication.d2) (render with `d2` CLI or view [web-client-communication.html](web-client-communication.html)).
+
 ## Modules
 
 | Module | Import | Purpose |
