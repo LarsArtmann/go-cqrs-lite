@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/projection/internal/stream"
@@ -21,23 +22,23 @@ type Runner struct {
 
 // NewRunner creates a projection runner.
 // store is used for replay, bus for live events, checkpoint tracks position.
-// Panics if any dependency is nil.
+// Returns an error if any dependency is nil.
 func NewRunner(
 	store event.Store,
 	bus event.Bus,
 	checkpoint event.CheckpointStore,
 	opts ...RunnerOption,
-) *Runner {
+) (*Runner, error) {
 	if store == nil {
-		panic("projection: nil Store")
+		return nil, errors.Wrap(ErrNilStore, "create runner")
 	}
 
 	if bus == nil {
-		panic("projection: nil Bus")
+		return nil, errors.Wrap(ErrNilBus, "create runner")
 	}
 
 	if checkpoint == nil {
-		panic("projection: nil CheckpointStore")
+		return nil, errors.Wrap(ErrNilCheckpoint, "create runner")
 	}
 
 	o := runnerOptions{}
@@ -52,7 +53,7 @@ func NewRunner(
 		checkpoint: checkpoint,
 		registry:   NewHandlerRegistry(),
 		opts:       o,
-	}
+	}, nil
 }
 
 // On registers a handler for a specific event type.

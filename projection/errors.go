@@ -8,4 +8,7 @@ var (
 	ErrDuplicateHandler = errors.New("projection: duplicate handler")
 	ErrCheckpointLoad   = errors.New("projection: checkpoint load failed")
 	ErrStoreLoad        = errors.New("projection: store load failed")
+	ErrNilStore         = errors.New("projection: nil store")
+	ErrNilBus           = errors.New("projection: nil bus")
+	ErrNilCheckpoint    = errors.New("projection: nil checkpoint store")
 )

@@ -11,6 +11,33 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection"
 )
 
+func TestNewRunner_NilStore(t *testing.T) {
+	t.Parallel()
+
+	_, err := projection.NewRunner(nil, memory.NewMemoryBus(), memory.NewCheckpointStore())
+	if err == nil {
+		t.Fatal("expected error for nil store")
+	}
+}
+
+func TestNewRunner_NilBus(t *testing.T) {
+	t.Parallel()
+
+	_, err := projection.NewRunner(memory.NewMemoryStore(), nil, memory.NewCheckpointStore())
+	if err == nil {
+		t.Fatal("expected error for nil bus")
+	}
+}
+
+func TestNewRunner_NilCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	_, err := projection.NewRunner(memory.NewMemoryStore(), memory.NewMemoryBus(), nil)
+	if err == nil {
+		t.Fatal("expected error for nil checkpoint")
+	}
+}
+
 func TestRunner_On_RegistersHandler(t *testing.T) {
 	t.Parallel()
 
@@ -180,7 +207,10 @@ func newTestRunnerWithBus(t *testing.T) (*projection.Runner, *memory.MemoryBus) 
 		_ = checkpoint.Close()
 	})
 
-	runner := projection.NewRunner(store, bus, checkpoint)
+	runner, err := projection.NewRunner(store, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
 
 	return runner, bus
 }
