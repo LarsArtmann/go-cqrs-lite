@@ -139,6 +139,7 @@ linters:
             - github.com/go-json-experiment/json
             - github.com/go-faster/yaml
             - github.com/oklog/ulid
+            - github.com/DATA-DOG/go-sqlmock
             - github.com/onsi/ginkgo
             - github.com/onsi/gomega
             - go.opentelemetry.io/otel
@@ -197,6 +198,8 @@ linters:
         - h
         - q
         - fn
+        - tx
+        - ts
   exclusions:
     rules:
       - path: _test\.go$
@@ -215,6 +218,15 @@ linters:
           - exhaustruct
           - gosec
       - path: schema.*\.go$
+        linters:
+          - exhaustruct
+      - path: example/
+        linters:
+          - forbidigo
+          - exhaustruct
+          - wrapcheck
+          - noinlineerr
+      - path: testhelpers/fakes\.go$
         linters:
           - exhaustruct
 formatters:

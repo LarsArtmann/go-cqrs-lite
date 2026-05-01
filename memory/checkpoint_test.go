@@ -55,11 +55,13 @@ func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 	first := id.NewEventID()
 	second := id.NewEventID()
 
-	if err := store.Save(ctx, "proj", first); err != nil {
+	err := store.Save(ctx, "proj", first)
+	if err != nil {
 		t.Fatalf("Save first: %v", err)
 	}
 
-	if err := store.Save(ctx, "proj", second); err != nil {
+	err = store.Save(ctx, "proj", second)
+	if err != nil {
 		t.Fatalf("Save second: %v", err)
 	}
 

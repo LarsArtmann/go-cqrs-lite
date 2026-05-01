@@ -48,6 +48,7 @@ func (u *User) Apply(evt event.Event) error {
 	switch evt.Type() {
 	case "UserCreated":
 		var p UserCreatedPayload
+
 		err := json.Unmarshal(evt.Payload(), &p)
 		if err != nil {
 			return fmt.Errorf("unmarshal UserCreated: %w", err)
@@ -56,6 +57,7 @@ func (u *User) Apply(evt event.Event) error {
 		u.email = p.Email
 	case "UserNameChanged":
 		var p UserNameChangedPayload
+
 		err := json.Unmarshal(evt.Payload(), &p)
 		if err != nil {
 			return fmt.Errorf("unmarshal UserNameChanged: %w", err)

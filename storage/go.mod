@@ -4,12 +4,12 @@ go 1.26.2
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/cockroachdb/errors v1.12.0
 	github.com/go-json-experiment/json v0.0.0-20260430182902-b6187a392ed4
 	github.com/larsartmann/go-cqrs-lite/core v0.0.0
 )
 
 require (
-	github.com/cockroachdb/errors v1.12.0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/getsentry/sentry-go v0.45.1 // indirect

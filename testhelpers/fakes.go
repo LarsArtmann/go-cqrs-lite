@@ -183,7 +183,7 @@ type FakeSnapshotStore struct {
 	saveErr  error
 }
 
-// NewFakeStore creates a FakeSnapshotStore with no snapshot.
+// NewFakeSnapshotStore creates a FakeSnapshotStore with no snapshot.
 func NewFakeSnapshotStore() *FakeSnapshotStore {
 	return &FakeSnapshotStore{}
 }

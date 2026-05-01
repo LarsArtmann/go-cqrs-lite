@@ -2,7 +2,7 @@ package event
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -86,7 +86,8 @@ func TestInMemoryRunner_Handle_DispatchesToMatching(t *testing.T) {
 		[]Type{"UserCreated"},
 	)
 
-	if err := runner.Register(proj); err != nil {
+	err := runner.Register(proj)
+	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
 
@@ -95,7 +96,8 @@ func TestInMemoryRunner_Handle_DispatchesToMatching(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	if err := runner.Handle(context.Background(), evt); err != nil {
+	err = runner.Handle(context.Background(), evt)
+	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
 
@@ -121,7 +123,8 @@ func TestInMemoryRunner_Handle_SkipsNonMatching(t *testing.T) {
 		[]Type{"UserCreated"},
 	)
 
-	if err := runner.Register(proj); err != nil {
+	err := runner.Register(proj)
+	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
 
@@ -130,7 +133,8 @@ func TestInMemoryRunner_Handle_SkipsNonMatching(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	if err := runner.Handle(context.Background(), evt); err != nil {
+	err = runner.Handle(context.Background(), evt)
+	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
 
@@ -156,7 +160,8 @@ func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
 		nil,
 	)
 
-	if err := runner.Register(proj); err != nil {
+	err := runner.Register(proj)
+	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
 
@@ -165,7 +170,8 @@ func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	if err := runner.Handle(context.Background(), evt); err != nil {
+	err = runner.Handle(context.Background(), evt)
+	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
 
@@ -182,12 +188,13 @@ func TestInMemoryRunner_Handle_ProjectionError(t *testing.T) {
 	proj := NewProjection(
 		"failing",
 		func(_ context.Context, _ Event) error {
-			return fmt.Errorf("boom")
+			return errors.New("boom")
 		},
 		[]Type{"UserCreated"},
 	)
 
-	if err := runner.Register(proj); err != nil {
+	err := runner.Register(proj)
+	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
 

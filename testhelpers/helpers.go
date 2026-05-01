@@ -5,6 +5,7 @@ package testhelpers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -144,13 +145,18 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 
 // NewTestEvent creates a test event with standard test values.
 func NewTestEvent() (event.Event, error) {
-	return event.NewEvent(
+	evt, err := event.NewEvent(
 		"test.evt",
 		id.NewAggregateID(),
 		"Test",
 		1,
 		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("create test event: %w", err)
+	}
+
+	return evt, nil
 }
 
 // AssertMetricRecord asserts the metrics recorder has exactly one record with the given name.

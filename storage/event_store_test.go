@@ -28,7 +28,12 @@ func testEvent(t *testing.T, version int, opts ...event.Option) *event.Core {
 	return testEventWithAggID(t, id.NewAggregateID(), version, opts...)
 }
 
-func testEventWithAggID(t *testing.T, aggID id.AggregateID, version int, opts ...event.Option) *event.Core {
+func testEventWithAggID(
+	t *testing.T,
+	aggID id.AggregateID,
+	version int,
+	opts ...event.Option,
+) *event.Core {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -83,7 +88,8 @@ func TestSQLEventStore_Save_Success(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
+	err = mock.ExpectationsWereMet()
+	if err != nil {
 		t.Fatalf("unfulfilled expectations: %v", err)
 	}
 }
@@ -112,7 +118,8 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 		t.Fatal("expected concurrency conflict error")
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
+	err = mock.ExpectationsWereMet()
+	if err != nil {
 		t.Fatalf("unfulfilled expectations: %v", err)
 	}
 }
@@ -141,15 +148,21 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta(
 		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-	)).WithArgs(
-		evt1.ID(), "UserCreated", "User", evt1.AggregateID(), 1, evt1.Payload(), sqlmock.AnyArg(), evt1.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	),
+	).WithArgs(
+		evt1.ID(),
+		"UserCreated", "User", evt1.AggregateID(), 1, evt1.Payload(), sqlmock.AnyArg(), evt1.OccurredAt(),
+	).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(
 		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-	)).WithArgs(
-		evt2.ID(), "UserCreated", "User", evt2.AggregateID(), 2, evt2.Payload(), sqlmock.AnyArg(), evt2.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(2, 1))
+	),
+	).WithArgs(
+		evt2.ID(),
+		"UserCreated", "User", evt2.AggregateID(), 2, evt2.Payload(), sqlmock.AnyArg(), evt2.OccurredAt(),
+	).
+		WillReturnResult(sqlmock.NewResult(2, 1))
 	mock.ExpectCommit()
 
 	err := store.AppendBatch(
@@ -162,7 +175,8 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
+	err = mock.ExpectationsWereMet()
+	if err != nil {
 		t.Fatalf("unfulfilled expectations: %v", err)
 	}
 }
@@ -194,10 +208,22 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
-		).AddRow(
-			eventID.String(), "UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), nil, ts,
-		))
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
+		).
+			AddRow(
+				eventID.String(),
+				"UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), nil, ts,
+			),
+		)
 
 	events, err := store.Load(context.Background(), "User", aggID)
 	if err != nil {
@@ -220,7 +246,8 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		t.Errorf("OccurredAt = %v, want %v", events[0].OccurredAt(), ts)
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
+	err = mock.ExpectationsWereMet()
+	if err != nil {
 		t.Fatalf("unfulfilled expectations: %v", err)
 	}
 }
@@ -238,7 +265,16 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
 		))
 
 	events, err := store.Load(context.Background(), "User", aggID)
@@ -266,10 +302,22 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID, 2).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
-		).AddRow(
-			eventID.String(), "UserUpdated", "User", aggID.String(), 3, []byte(`{"name":"updated"}`), nil, ts,
-		))
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
+		).
+			AddRow(
+				eventID.String(),
+				"UserUpdated", "User", aggID.String(), 3, []byte(`{"name":"updated"}`), nil, ts,
+			),
+		)
 
 	events, err := store.LoadFromVersion(context.Background(), "User", aggID, event.Version(2))
 	if err != nil {
@@ -308,7 +356,8 @@ func TestSQLEventStore_Close(t *testing.T) {
 	store, mock := newTestStore(t)
 	mock.ExpectClose()
 
-	if err := store.Close(); err != nil {
+	err := store.Close()
+	if err != nil {
 		t.Fatalf("Close: %v", err)
 	}
 }
@@ -378,10 +427,22 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
-		).AddRow(
-			eventID.String(), "UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), metaJSON, ts,
-		))
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
+		).
+			AddRow(
+				eventID.String(),
+				"UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), metaJSON, ts,
+			),
+		)
 
 	loaded, err := store.Load(context.Background(), "User", aggID)
 	if err != nil {
