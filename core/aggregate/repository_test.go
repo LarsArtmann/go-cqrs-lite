@@ -264,6 +264,30 @@ func TestRepository_Load_WithSnapshot(t *testing.T) {
 	}
 }
 
+func TestRepository_Load_SnapshotLoadError(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	store := testhelpers.NewFakeStore()
+	snapStore := testhelpers.NewFakeSnapshotStore()
+	snapStore.SetLoadError(errors.New("db connection lost"))
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+
+	repo := aggregate.NewRepository(
+		store,
+		testhelpers.NewFakeBus(),
+		aggregate.WithSnapshotStore(snapStore),
+	)
+	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+
+	err := repo.Load(context.Background(), root)
+	if err == nil {
+		t.Fatal("expected error from snapshot load failure")
+	}
+}
+
 func TestRepository_Load_SnapshotNotFound(t *testing.T) {
 	t.Parallel()
 

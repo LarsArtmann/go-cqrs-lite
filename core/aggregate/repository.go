@@ -2,6 +2,7 @@ package aggregate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -156,7 +157,15 @@ func (r *EventSourcedRepository) loadEvents(
 	}
 
 	snapshot, snapErr := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
-	if snapErr != nil || snapshot == nil {
+	if snapErr != nil {
+		if !errors.Is(snapErr, event.ErrSnapshotNotFound) {
+			return nil, opError("load snapshot", aggregateType, aggregateID, snapErr)
+		}
+
+		return r.loadFromStore(ctx, aggregateType, aggregateID)
+	}
+
+	if snapshot == nil {
 		return r.loadFromStore(ctx, aggregateType, aggregateID)
 	}
 
