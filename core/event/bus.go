@@ -1,12 +1,18 @@
 package event
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 // Handler processes events.
 type Handler func(ctx context.Context, event Event) error
 
 // Bus defines the interface for event publishing and subscription.
+// All implementations must support lifecycle management via io.Closer.
 type Bus interface {
+	io.Closer
+
 	// Publish sends events to all registered handlers
 	Publish(ctx context.Context, events ...Event) error
 

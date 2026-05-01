@@ -138,6 +138,9 @@ func (s *FakeStore) Delete(
 	return nil
 }
 
+// Close is a no-op for testing.
+func (s *FakeStore) Close() error { return nil }
+
 var _ event.Store = (*FakeStore)(nil)
 
 // FakeBus implements event.Bus for testing.
@@ -171,6 +174,9 @@ func (b *FakeBus) Subscribe(_ event.Type, _ event.Handler) error { return nil }
 
 // SubscribeAll is a no-op for testing.
 func (b *FakeBus) SubscribeAll(_ event.Handler) error { return nil }
+
+// Close is a no-op for testing.
+func (b *FakeBus) Close() error { return nil }
 
 var _ event.Bus = (*FakeBus)(nil)
 
