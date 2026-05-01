@@ -2,7 +2,6 @@ package event_test
 
 import (
 	"context"
-	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -10,11 +9,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-func TestMetadataRoundtrip(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Event Metadata Roundtrip Suite")
-}
 
 var _ = Describe("Event Metadata Roundtrip", func() {
 	var (
