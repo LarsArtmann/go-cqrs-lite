@@ -106,6 +106,7 @@ func TestClassify_sentinelMapping(t *testing.T) {
 		{"nil outbox", event.ErrNilOutbox, event.Infrastructure},
 		{"nil bus", event.ErrNilBus, event.Infrastructure},
 		{"already started", event.ErrAlreadyStarted, event.Infrastructure},
+		{"duplicate projection", event.ErrDuplicateProjection, event.Conflict},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -144,8 +145,8 @@ func TestClassify_unknownDefaultsToTransient(t *testing.T) {
 
 func TestClassify_nilError(t *testing.T) {
 	t.Parallel()
-	if got := event.Classify(nil); got != event.Transient {
-		t.Errorf("Classify(nil) = %v, want %v (Transient)", got, event.Transient)
+	if got := event.Classify(nil); got != event.Rejection {
+		t.Errorf("Classify(nil) = %v, want %v (Rejection)", got, event.Rejection)
 	}
 }
 
@@ -157,7 +158,7 @@ func TestIsRetryable(t *testing.T) {
 		retry bool
 	}{
 		{"transient", event.NewTransient("t", "msg"), true},
-		{"unknown sentinel", errors.New("unknown"), true},
+		{"nil error", nil, false},
 		{"rejection", event.NewRejection("r", "msg"), false},
 		{"conflict", event.NewConflict("c", "msg"), false},
 		{"corruption", event.NewCorruption("x", "msg"), false},

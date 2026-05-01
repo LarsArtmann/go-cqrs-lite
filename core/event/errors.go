@@ -121,14 +121,25 @@ func NewInfrastructure(code, msg string) *Error {
 }
 
 // Classify returns the Family of an error by checking for *Error in the chain,
-// then mapping known sentinel errors. Defaults to Transient for unknowns.
+// then mapping known sentinel errors from the event package.
+// Returns Rejection for nil errors. Defaults to Transient for unknowns.
+//
+// Note: This only classifies sentinels from the event package.
+// Other packages (aggregate, projection, storage) define their own sentinels.
+// Consumers should wrap errors with event.Error types or check errors.Is directly.
 func Classify(err error) Family {
+	if err == nil {
+		return Rejection
+	}
+
 	var e *Error
 	if errors.As(err, &e) {
 		return e.Family
 	}
+
 	switch {
-	case errors.Is(err, ErrVersionConflict):
+	case errors.Is(err, ErrVersionConflict),
+		errors.Is(err, ErrDuplicateProjection):
 		return Conflict
 	case errors.Is(err, ErrAggregateNotFound),
 		errors.Is(err, ErrSnapshotNotFound):
