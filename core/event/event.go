@@ -49,14 +49,14 @@ type Event interface {
 
 // Metadata contains tracing and contextual information for events.
 type Metadata struct {
-	CorrelationID id.CorrelationID       `json:"correlationId,omitempty"`
-	CausationID   id.CausationID         `json:"causationId,omitempty"`
-	UserID        id.UserID              `json:"userId,omitempty"`
-	RequestID     id.RequestID           `json:"requestId,omitempty"`
-	Source        Source                  `json:"source,omitempty"`
-	IPAddress     IPAddress               `json:"ipAddress,omitempty"`
-	UserAgent     UserAgent               `json:"userAgent,omitempty"`
-	Custom        map[MetadataKey]string  `json:"custom,omitempty"`
+	CorrelationID id.CorrelationID       `json:"correlationId"`
+	CausationID   id.CausationID         `json:"causationId"`
+	UserID        id.UserID              `json:"userId"`
+	RequestID     id.RequestID           `json:"requestId"`
+	Source        Source                 `json:"source,omitempty"`
+	IPAddress     IPAddress              `json:"ipAddress,omitempty"`
+	UserAgent     UserAgent              `json:"userAgent,omitempty"`
+	Custom        map[MetadataKey]string `json:"custom,omitempty"`
 }
 
 // Core provides a default implementation of Event interface.

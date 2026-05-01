@@ -30,7 +30,8 @@ func toDotAddress(s string) string {
 	runes := []rune(s)
 
 	for i, c := range runes {
-		if c >= 'A' && c <= 'Z' {
+		switch {
+		case c >= 'A' && c <= 'Z':
 			if i > 0 {
 				prev := runes[i-1]
 				prevIsUpper := prev >= 'A' && prev <= 'Z'
@@ -43,7 +44,7 @@ func toDotAddress(s string) string {
 			}
 
 			result = append(result, byte(c+'a'-'A'))
-		} else if c >= '0' && c <= '9' {
+		case c >= '0' && c <= '9':
 			if i > 0 {
 				prev := runes[i-1]
 				if prev >= 'a' && prev <= 'z' {
@@ -52,7 +53,7 @@ func toDotAddress(s string) string {
 			}
 
 			result = append(result, byte(c))
-		} else if c >= 0 && c <= 127 {
+		case c >= 0 && c <= 127:
 			result = append(result, byte(c))
 		}
 	}

@@ -19,3 +19,9 @@ var ErrSnapshotNotFound = errors.New("snapshot not found")
 
 // ErrSnapshotStoreClosed is returned when the snapshot store is closed.
 var ErrSnapshotStoreClosed = errors.New("snapshot store is closed")
+
+// ErrNilProjection is returned when a nil projection is registered.
+var ErrNilProjection = errors.New("event: nil projection")
+
+// ErrDuplicateProjection is returned when a projection with the same name is already registered.
+var ErrDuplicateProjection = errors.New("event: duplicate projection")

@@ -75,7 +75,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 		t.Errorf("operation action = %q, want %q", op.Action, "receive")
 	}
 
-	msg, ok := doc.Components.Messages["CreateOrder"]
+	msg, ok := doc.Components.Messages["command.CreateOrder"]
 	if !ok {
 		t.Fatal("missing CreateOrder message component")
 	}
@@ -84,11 +84,15 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 		t.Errorf("message content type = %q, want %q", msg.ContentType, "application/json")
 	}
 
-	if msg.Payload.Ref != "#/components/schemas/CreateOrder" {
-		t.Errorf("payload ref = %q, want %q", msg.Payload.Ref, "#/components/schemas/CreateOrder")
+	if msg.Payload.Ref != "#/components/schemas/command.CreateOrder" {
+		t.Errorf(
+			"payload ref = %q, want %q",
+			msg.Payload.Ref,
+			"#/components/schemas/command.CreateOrder",
+		)
 	}
 
-	schema, ok := doc.Components.Schemas["CreateOrder"]
+	schema, ok := doc.Components.Schemas["command.CreateOrder"]
 	if !ok {
 		t.Fatal("missing CreateOrder schema component")
 	}
@@ -316,7 +320,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 	cat := reg.Build()
 	doc := NewExporter("Order Service", "1.0.0").Export(cat)
 
-	s, ok := doc.Components.Schemas["CreateOrder"]
+	s, ok := doc.Components.Schemas["command.CreateOrder"]
 	if !ok {
 		t.Fatal("missing schema")
 	}
@@ -399,7 +403,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	cat := reg.Build()
 	doc := NewExporter("Test", "1.0.0").Export(cat)
 
-	s, ok := doc.Components.Schemas["NoSchema"]
+	s, ok := doc.Components.Schemas["command.NoSchema"]
 	if !ok {
 		t.Fatal("missing schema for NoSchema")
 	}
@@ -455,7 +459,7 @@ func TestExporter_Export_Examples(t *testing.T) {
 	cat := reg.Build()
 	doc := NewExporter("Test", "1.0.0").Export(cat)
 
-	msg, ok := doc.Components.Messages["CreateOrder"]
+	msg, ok := doc.Components.Messages["command.CreateOrder"]
 	if !ok {
 		t.Fatal("missing CreateOrder message")
 	}

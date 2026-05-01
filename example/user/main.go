@@ -170,7 +170,9 @@ func main() {
 
 	fmt.Printf("EventCatalog written to %s\n", outputDir)
 	fmt.Println()
-	fmt.Println("Open it with EventCatalog (https://www.eventcatalog.dev/) to visualize your event-driven architecture.")
+	fmt.Println(
+		"Open it with EventCatalog (https://www.eventcatalog.dev/) to visualize your event-driven architecture.",
+	)
 }
 
 func generateEventCatalog(outputDir string) error {
@@ -180,7 +182,12 @@ func generateEventCatalog(outputDir string) error {
 	builder.AddEvent("user-svc", newUserCreatedEvent())
 	builder.AddEvent("user-svc", newUserNameChangedEvent())
 
-	builder.AddDomain("identity", "Identity", "User identity and account management", []string{"user-svc"})
+	builder.AddDomain(
+		"identity",
+		"Identity",
+		"User identity and account management",
+		[]string{"user-svc"},
+	)
 
 	cat := builder.Build()
 

@@ -51,7 +51,7 @@ func NewInMemoryRunner(checkpoint CheckpointStore) *InMemoryRunner {
 // the same name is already registered.
 func (r *InMemoryRunner) Register(projection Projection) error {
 	if projection == nil {
-		return fmt.Errorf("event: nil projection")
+		return fmt.Errorf("%w", ErrNilProjection)
 	}
 
 	r.mu.Lock()
@@ -59,7 +59,7 @@ func (r *InMemoryRunner) Register(projection Projection) error {
 
 	for _, existing := range r.projections {
 		if existing.Name() == projection.Name() {
-			return fmt.Errorf("event: projection %q already registered", projection.Name())
+			return fmt.Errorf("%w: %q", ErrDuplicateProjection, projection.Name())
 		}
 	}
 

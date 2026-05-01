@@ -267,17 +267,26 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 
 	for rows.Next() {
 		var (
-			idStr      string
-			eventType  string
-			aggType    string
-			aggIDStr   string
-			version    int
-			payload    []byte
+			idStr        string
+			eventType    string
+			aggType      string
+			aggIDStr     string
+			version      int
+			payload      []byte
 			metadataJSON []byte
-			occurredAt time.Time
+			occurredAt   time.Time
 		)
 
-		err := rows.Scan(&idStr, &eventType, &aggType, &aggIDStr, &version, &payload, &metadataJSON, &occurredAt)
+		err := rows.Scan(
+			&idStr,
+			&eventType,
+			&aggType,
+			&aggIDStr,
+			&version,
+			&payload,
+			&metadataJSON,
+			&occurredAt,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("scan event row: %w", err)
 		}
