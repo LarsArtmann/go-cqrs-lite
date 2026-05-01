@@ -185,10 +185,22 @@ func newTestRunnerWithBus(t *testing.T) (*projection.Runner, *memory.MemoryBus) 
 	return runner, bus
 }
 
-func mustNewEvent(t *testing.T, eventType string, aggID id.AggregateID, aggType string, version int) event.Event {
+func mustNewEvent(
+	t *testing.T,
+	eventType string,
+	aggID id.AggregateID,
+	aggType string,
+	version int,
+) event.Event {
 	t.Helper()
 
-	evt, err := event.NewEvent(event.Type(eventType), aggID, event.AggregateType(aggType), version, nil)
+	evt, err := event.NewEvent(
+		event.Type(eventType),
+		aggID,
+		event.AggregateType(aggType),
+		version,
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}

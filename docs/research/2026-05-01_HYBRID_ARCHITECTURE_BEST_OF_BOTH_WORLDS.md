@@ -5,6 +5,7 @@
 **Date**: May 2026
 **Status**: Architectural Proposal
 **Prerequisite Reading**:
+
 - `docs/research/2026-05-01_AGGREGATELESS_EVENT_SOURCING_DEEP_DIVE.md`
 - `docs/research/2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md`
 
@@ -53,10 +54,10 @@ This is a purely **additive** proposal. No existing interfaces change. No existi
 
 Aggregates and context queries are not competing architectures. They are **two ways to define a consistency boundary** over the same facts:
 
-| Boundary Type | Defined By | Scope | Best For |
-|---|---|---|---|
-| **Stream** | `(aggregate_type, aggregate_id)` | Single entity | CRUD-like operations on one entity |
-| **Context** | `EventFilter` (event types + payload predicates) | Arbitrary set of events | Cross-entity decisions |
+| Boundary Type | Defined By                                       | Scope                   | Best For                           |
+| ------------- | ------------------------------------------------ | ----------------------- | ---------------------------------- |
+| **Stream**    | `(aggregate_type, aggregate_id)`                 | Single entity           | CRUD-like operations on one entity |
+| **Context**   | `EventFilter` (event types + payload predicates) | Arbitrary set of events | Cross-entity decisions             |
 
 Both boundaries use the same events table. Both use optimistic concurrency (stream via version, context via max sequence). Both produce the same events. They differ only in **how they scope the consistency check**.
 
@@ -155,11 +156,11 @@ The current architecture handles single-entity operations well. What it **cannot
 
 **The problem**: An operation like "bind device to asset" touches two aggregates. Traditional approaches:
 
-| Approach | Complexity | Risk |
-|----------|-----------|------|
-| Domain service + dual-write | Low code, high risk | Inconsistency if second write fails |
-| Saga orchestrator | High code, medium risk | Complex state machine, compensation logic |
-| Process manager | High code, medium risk | Additional event handlers, ordering concerns |
+| Approach                    | Complexity             | Risk                                         |
+| --------------------------- | ---------------------- | -------------------------------------------- |
+| Domain service + dual-write | Low code, high risk    | Inconsistency if second write fails          |
+| Saga orchestrator           | High code, medium risk | Complex state machine, compensation logic    |
+| Process manager             | High code, medium risk | Additional event handlers, ordering concerns |
 
 **The aggregateless solution**: One query that spans both entities, one CTE that checks both. No saga, no dual-write, no process manager.
 
@@ -266,31 +267,31 @@ The hybrid design adds **one new capability** to the existing architecture: cont
 
 ### The Three New Abstractions
 
-| Abstraction | Interface | Purpose |
-|---|---|---|
-| **Filter** | Value type | Defines which events are relevant (event types + payload predicates) |
-| **ContextQuerier** | Interface | Queries events across streams using a Filter |
-| **ContextAppender** | Interface | Atomically appends events with context-based optimistic concurrency |
+| Abstraction         | Interface  | Purpose                                                              |
+| ------------------- | ---------- | -------------------------------------------------------------------- |
+| **Filter**          | Value type | Defines which events are relevant (event types + payload predicates) |
+| **ContextQuerier**  | Interface  | Queries events across streams using a Filter                         |
+| **ContextAppender** | Interface  | Atomically appends events with context-based optimistic concurrency  |
 
 These are **separate interfaces** in the `event` package. `SQLEventStore` implements both `event.Store` (existing) and the new interfaces (additive).
 
 ### What Does NOT Change
 
-| Component | Change Required |
-|---|---|
-| `event.Store` | **None** — stream-based Save/Load untouched |
-| `event.Bus` | **None** — push-based subscriptions untouched |
-| `event.Projection` | **None** — read model building untouched |
-| `event.SnapshotStore` | **None** — snapshotting untouched |
-| `event.Outbox` | **None** — reliable publishing untouched |
-| `event.Codec` | **None** — serialization untouched |
-| `aggregate.Root` | **None** — aggregate state management untouched |
-| `aggregate.Repository` | **None** — repository pattern untouched |
-| `command.Dispatcher` | **None** — command dispatch untouched |
-| `query.Dispatcher` | **None** — query dispatch untouched |
-| `catalog` | **None** — documentation generation untouched |
-| `middleware` | **None** — cross-cutting concerns untouched |
-| `memory` | **None** — test implementations untouched |
+| Component              | Change Required                                 |
+| ---------------------- | ----------------------------------------------- |
+| `event.Store`          | **None** — stream-based Save/Load untouched     |
+| `event.Bus`            | **None** — push-based subscriptions untouched   |
+| `event.Projection`     | **None** — read model building untouched        |
+| `event.SnapshotStore`  | **None** — snapshotting untouched               |
+| `event.Outbox`         | **None** — reliable publishing untouched        |
+| `event.Codec`          | **None** — serialization untouched              |
+| `aggregate.Root`       | **None** — aggregate state management untouched |
+| `aggregate.Repository` | **None** — repository pattern untouched         |
+| `command.Dispatcher`   | **None** — command dispatch untouched           |
+| `query.Dispatcher`     | **None** — query dispatch untouched             |
+| `catalog`              | **None** — documentation generation untouched   |
+| `middleware`           | **None** — cross-cutting concerns untouched     |
+| `memory`               | **None** — test implementations untouched       |
 
 ---
 
@@ -344,6 +345,7 @@ func (f *Filter) Predicates() []Predicate {
 ```
 
 **Design decisions**:
+
 - Builder pattern (`NewFilter().Where().Where()`) for readability
 - `Predicate.Value` is `any` — will be marshaled to JSON for `@>` operator
 - Immutable after construction (no mutation methods)
@@ -380,6 +382,7 @@ type ContextQuerier interface {
 ```
 
 **Design decisions**:
+
 - Separate interface from `Store` — existing implementations don't need to change
 - Returns `QueryResult` with `MaxSeq` — needed for subsequent `AppendContext` call
 - Uses existing `event.Event` type — no new event representation
@@ -419,10 +422,11 @@ var ErrContextChanged = errors.New("context changed between query and append")
 ```
 
 **Design decisions**:
+
 - `ErrContextChanged` is a sentinel error — works with `errors.Is()`, consistent with `event.ErrVersionConflict`
 - Same `event.Event` type — no special "context events"
 - Events appended this way still have `aggregate_type`, `aggregate_id`, `version` fields (they live in streams too)
-- The CTE check is over the *filter scope*, not individual streams
+- The CTE check is over the _filter scope_, not individual streams
 
 ### 7.4 ContextQuerierAppender — Combined Interface
 
@@ -1233,13 +1237,13 @@ func (h *BindDeviceToAssetHandler) Handle(ctx context.Context, cmd *BindDeviceTo
 
 ### Why This Is Better Than a Saga
 
-| Aspect | Saga Approach | Context Approach |
-|--------|--------------|-----------------|
-| **Classes needed** | 3-5 (orchestrator, steps, compensation) | 1 (handler with decide function) |
-| **Consistency** | Eventual (each step is a separate transaction) | Strong (single CTE atomic operation) |
-| **Compensation** | Must write explicit undo logic | Not needed — atomic success or failure |
-| **Testing** | Integration test with multiple services | Unit test of pure decide function |
-| **Debugging** | Distributed trace across services | Single CTE, single error point |
+| Aspect             | Saga Approach                                  | Context Approach                       |
+| ------------------ | ---------------------------------------------- | -------------------------------------- |
+| **Classes needed** | 3-5 (orchestrator, steps, compensation)        | 1 (handler with decide function)       |
+| **Consistency**    | Eventual (each step is a separate transaction) | Strong (single CTE atomic operation)   |
+| **Compensation**   | Must write explicit undo logic                 | Not needed — atomic success or failure |
+| **Testing**        | Integration test with multiple services        | Unit test of pure decide function      |
+| **Debugging**      | Distributed trace across services              | Single CTE, single error point         |
 
 ---
 
@@ -1471,17 +1475,17 @@ When writing a new command handler, use this decision tree:
 
 ### Rules of Thumb
 
-| Scenario | Pattern | Why |
-|----------|---------|-----|
-| Create order | Aggregate | Single entity |
-| Cancel order | Aggregate | Single entity |
-| Add item to order | Aggregate | Single entity |
-| Transfer between accounts | Context | Two entities, atomic |
-| Bind device to asset | Context | Two entity types, atomic |
-| Send welcome email | Eventual | Side effect, no consistency needed |
-| Update search index | Eventual | Read model, eventual is fine |
-| Process payment | Context | Payment + order, atomic |
-| Freeze account + notify | Aggregate + Eventual | Freeze is atomic, notification is eventual |
+| Scenario                  | Pattern              | Why                                        |
+| ------------------------- | -------------------- | ------------------------------------------ |
+| Create order              | Aggregate            | Single entity                              |
+| Cancel order              | Aggregate            | Single entity                              |
+| Add item to order         | Aggregate            | Single entity                              |
+| Transfer between accounts | Context              | Two entities, atomic                       |
+| Bind device to asset      | Context              | Two entity types, atomic                   |
+| Send welcome email        | Eventual             | Side effect, no consistency needed         |
+| Update search index       | Eventual             | Read model, eventual is fine               |
+| Process payment           | Context              | Payment + order, atomic                    |
+| Freeze account + notify   | Aggregate + Eventual | Freeze is atomic, notification is eventual |
 
 ---
 
@@ -1489,34 +1493,34 @@ When writing a new command handler, use this decision tree:
 
 ### Full Feature Comparison
 
-| Feature | Traditional Only | Aggregateless Only | Hybrid (This Proposal) |
-|---------|-----------------|-------------------|----------------------|
-| **Single-entity CRUD** | Excellent | Works (overkill) | Excellent (aggregate path) |
-| **Cross-entity atomic ops** | Poor (needs saga) | Excellent | Excellent (context path) |
-| **Push-based projections** | Excellent | Missing | Excellent (Bus + Projection) |
-| **Snapshotting** | Excellent | Missing | Excellent (SnapshotStore) |
-| **Strong typing** | Excellent (Go types) | Weak (JSONB) | Excellent (Go types everywhere) |
-| **Schema enforcement** | Compile-time | None | Compile-time |
-| **Event schema evolution** | Upcasting | Weak | Upcasting |
-| **Read model flexibility** | Projection-based | Per-feature fold | Both |
-| **Consistency model** | Stream version | Context CTE | Both |
-| **Auto-documentation** | Catalog (AsyncAPI) | None | Catalog (AsyncAPI) |
-| **Testing** | Aggregate unit tests | Pure function tests | Both |
-| **Performance (single entity)** | Fast (stream read) | Slower (filtered query) | Fast (stream read) |
-| **Performance (cross-entity)** | Slow (multi-read + saga) | Fast (single query) | Fast (single query) |
-| **Tooling maturity** | High | Low | High (extends existing) |
-| **Migration cost** | — | Complete rewrite | Additive (new interfaces only) |
-| **Learning curve** | DDD + ES | SQL + FP | Gradual (start with aggregates) |
+| Feature                         | Traditional Only         | Aggregateless Only      | Hybrid (This Proposal)          |
+| ------------------------------- | ------------------------ | ----------------------- | ------------------------------- |
+| **Single-entity CRUD**          | Excellent                | Works (overkill)        | Excellent (aggregate path)      |
+| **Cross-entity atomic ops**     | Poor (needs saga)        | Excellent               | Excellent (context path)        |
+| **Push-based projections**      | Excellent                | Missing                 | Excellent (Bus + Projection)    |
+| **Snapshotting**                | Excellent                | Missing                 | Excellent (SnapshotStore)       |
+| **Strong typing**               | Excellent (Go types)     | Weak (JSONB)            | Excellent (Go types everywhere) |
+| **Schema enforcement**          | Compile-time             | None                    | Compile-time                    |
+| **Event schema evolution**      | Upcasting                | Weak                    | Upcasting                       |
+| **Read model flexibility**      | Projection-based         | Per-feature fold        | Both                            |
+| **Consistency model**           | Stream version           | Context CTE             | Both                            |
+| **Auto-documentation**          | Catalog (AsyncAPI)       | None                    | Catalog (AsyncAPI)              |
+| **Testing**                     | Aggregate unit tests     | Pure function tests     | Both                            |
+| **Performance (single entity)** | Fast (stream read)       | Slower (filtered query) | Fast (stream read)              |
+| **Performance (cross-entity)**  | Slow (multi-read + saga) | Fast (single query)     | Fast (single query)             |
+| **Tooling maturity**            | High                     | Low                     | High (extends existing)         |
+| **Migration cost**              | —                        | Complete rewrite        | Additive (new interfaces only)  |
+| **Learning curve**              | DDD + ES                 | SQL + FP                | Gradual (start with aggregates) |
 
 ### Error Handling Comparison
 
-| Scenario | Traditional Error | Context Error |
-|----------|------------------|---------------|
-| Concurrent write to same entity | `ErrVersionConflict` | `ErrContextChanged` |
-| Concurrent write to same context | N/A | `ErrContextChanged` |
-| Entity not found | `root.Version() == 0` | `state.exists == false` |
-| Invalid command | Error from `Apply` | Error from `decide` |
-| Retry strategy | Caller retries | `ExecuteWithRetry` |
+| Scenario                         | Traditional Error     | Context Error           |
+| -------------------------------- | --------------------- | ----------------------- |
+| Concurrent write to same entity  | `ErrVersionConflict`  | `ErrContextChanged`     |
+| Concurrent write to same context | N/A                   | `ErrContextChanged`     |
+| Entity not found                 | `root.Version() == 0` | `state.exists == false` |
+| Invalid command                  | Error from `Apply`    | Error from `decide`     |
+| Retry strategy                   | Caller retries        | `ExecuteWithRetry`      |
 
 Both `ErrVersionConflict` and `ErrContextChanged` work with `errors.Is()`. Both are optimistic concurrency violations. The retry pattern is the same.
 
@@ -1526,42 +1530,42 @@ Both `ErrVersionConflict` and `ErrContextChanged` work with `errors.Is()`. Both 
 
 ### From Traditional ES (The Foundation)
 
-| What | Why |
-|------|-----|
-| `aggregate.Root` | Proven pattern for single-entity state management |
-| `aggregate.Repository` | Clean abstraction over load/decide/save cycle |
-| `event.Store` (stream-based) | Fast point lookups by aggregate identity |
-| `event.Bus` + `event.Projection` | Push-based real-time projections |
-| `event.SnapshotStore` | Performance optimization for large event streams |
-| `event.Outbox` | Reliable eventual publishing |
-| `event.Codec` + `DecodePayload[T]` | Type-safe serialization |
-| Branded IDs (`id.Of[T]`) | Compile-time identity safety |
-| Catalog (AsyncAPI, EventCatalog) | Auto-documentation and AI-ready metadata |
-| Middleware (logging, retry, recovery) | Cross-cutting concerns |
-| `InMemoryRunner` | Test and single-process projection execution |
+| What                                  | Why                                               |
+| ------------------------------------- | ------------------------------------------------- |
+| `aggregate.Root`                      | Proven pattern for single-entity state management |
+| `aggregate.Repository`                | Clean abstraction over load/decide/save cycle     |
+| `event.Store` (stream-based)          | Fast point lookups by aggregate identity          |
+| `event.Bus` + `event.Projection`      | Push-based real-time projections                  |
+| `event.SnapshotStore`                 | Performance optimization for large event streams  |
+| `event.Outbox`                        | Reliable eventual publishing                      |
+| `event.Codec` + `DecodePayload[T]`    | Type-safe serialization                           |
+| Branded IDs (`id.Of[T]`)              | Compile-time identity safety                      |
+| Catalog (AsyncAPI, EventCatalog)      | Auto-documentation and AI-ready metadata          |
+| Middleware (logging, retry, recovery) | Cross-cutting concerns                            |
+| `InMemoryRunner`                      | Test and single-process projection execution      |
 
 ### From Aggregateless ES (The Enhancement)
 
-| What | Why |
-|------|-----|
-| `event.Filter` | Explicit, readable consistency boundary definition |
-| Context queries (`Query`) | Cross-entity event loading without multiple aggregate loads |
-| CTE atomic append (`AppendContext`) | Cross-entity atomic writes without sagas |
-| Feature-specific fold functions | Only reconstruct the state each operation needs |
-| Pure `decide` functions | Testable business logic without mocks |
-| Transparent consistency | Filter is the boundary — visible at the call site |
+| What                                | Why                                                         |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `event.Filter`                      | Explicit, readable consistency boundary definition          |
+| Context queries (`Query`)           | Cross-entity event loading without multiple aggregate loads |
+| CTE atomic append (`AppendContext`) | Cross-entity atomic writes without sagas                    |
+| Feature-specific fold functions     | Only reconstruct the state each operation needs             |
+| Pure `decide` functions             | Testable business logic without mocks                       |
+| Transparent consistency             | Filter is the boundary — visible at the call site           |
 
 ### What We Explicitly Reject From Aggregateless
 
-| What | Why |
-|------|-----|
-| Single events table (no streams) | Lose aggregate identity, versioning, snapshots |
-| No `aggregate_type` / `aggregate_id` | Lose stream-based access pattern |
-| Raw JSONB without typed events | Lose compile-time safety |
-| No push-based subscriptions | Already have Bus + Projection |
-| No schema enforcement | Already have Codec + Go types |
-| No snapshotting | Already have SnapshotStore |
-| No admin tooling | Build on PostgreSQL's ecosystem instead |
+| What                                 | Why                                            |
+| ------------------------------------ | ---------------------------------------------- |
+| Single events table (no streams)     | Lose aggregate identity, versioning, snapshots |
+| No `aggregate_type` / `aggregate_id` | Lose stream-based access pattern               |
+| Raw JSONB without typed events       | Lose compile-time safety                       |
+| No push-based subscriptions          | Already have Bus + Projection                  |
+| No schema enforcement                | Already have Codec + Go types                  |
+| No snapshotting                      | Already have SnapshotStore                     |
+| No admin tooling                     | Build on PostgreSQL's ecosystem instead        |
 
 ---
 
@@ -1585,6 +1589,7 @@ Zero application changes. Zero risk. Just adds query capability to the existing 
 ### Phase 2: Add Interfaces (Code, No Behavior Change)
 
 Add to `core/event/`:
+
 - `filter.go` — `Filter`, `Predicate` types
 - `context.go` — `ContextQuerier`, `ContextAppender`, `ContextRepository`, `QueryResult`
 
@@ -1595,6 +1600,7 @@ These are pure interface definitions. No existing code changes. No implementatio
 Add `Query` and `AppendContext` methods to `storage.SQLEventStore`. These are new methods on an existing struct. Existing methods (`Save`, `Load`, etc.) are untouched.
 
 Add compile-time interface checks:
+
 ```go
 var _ event.ContextQuerier = (*SQLEventStore)(nil)
 var _ event.ContextAppender = (*SQLEventStore)(nil)
@@ -1607,6 +1613,7 @@ Add `event/context_repository.go` with `ContextRepository.Execute` and `ExecuteW
 ### Phase 5: Use In One Cross-Entity Handler
 
 Pick the most painful cross-entity operation. Replace its saga/process manager with a context-based handler. Measure:
+
 - Code reduction (expected: 3-5x fewer classes)
 - Performance (expected: faster — single CTE vs. multi-step saga)
 - Correctness (expected: stronger — atomic vs. eventual)
@@ -1617,18 +1624,18 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 
 ### Migration Order for go-cqrs-lite Itself
 
-| Phase | Module | Change |
-|-------|--------|--------|
-| 1 | `storage/` | Add GIN + event_type indexes |
-| 2 | `core/event/` | Add `Filter`, `Predicate` types |
-| 3 | `core/event/` | Add `ContextQuerier`, `ContextAppender`, `QueryResult` interfaces |
-| 4 | `storage/` | Implement `Query`, `AppendContext` on `SQLEventStore` |
-| 5 | `core/event/` | Add `ContextRepository` |
-| 6 | `memory/` | Implement `Query` on `MemoryStore` (for testing) |
-| 7 | `testhelpers/` | Add `NewTestContextRepository` helper |
-| 8 | `integration/` | Add integration tests for context mode |
-| 9 | `catalog/` | Document context-based operations in AsyncAPI |
-| 10 | `example/` | Add hybrid service example |
+| Phase | Module         | Change                                                            |
+| ----- | -------------- | ----------------------------------------------------------------- |
+| 1     | `storage/`     | Add GIN + event_type indexes                                      |
+| 2     | `core/event/`  | Add `Filter`, `Predicate` types                                   |
+| 3     | `core/event/`  | Add `ContextQuerier`, `ContextAppender`, `QueryResult` interfaces |
+| 4     | `storage/`     | Implement `Query`, `AppendContext` on `SQLEventStore`             |
+| 5     | `core/event/`  | Add `ContextRepository`                                           |
+| 6     | `memory/`      | Implement `Query` on `MemoryStore` (for testing)                  |
+| 7     | `testhelpers/` | Add `NewTestContextRepository` helper                             |
+| 8     | `integration/` | Add integration tests for context mode                            |
+| 9     | `catalog/`     | Document context-based operations in AsyncAPI                     |
+| 10    | `example/`     | Add hybrid service example                                        |
 
 ---
 
@@ -1639,6 +1646,7 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 **Impact**: Context queries may be slow on tables with hundreds of millions of events.
 
 **Mitigation**:
+
 - PostgreSQL's GIN index is highly optimized for JSONB containment
 - Partitioning by time range (monthly) keeps partitions manageable
 - For very large tables, consider materialized context views
@@ -1649,6 +1657,7 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 **Impact**: If many operations target the same context (e.g., a popular device being bound/unbound repeatedly), the CTE creates a serialization point.
 
 **Mitigation**:
+
 - This is the same problem as aggregate contention — not unique to context mode
 - For hot contexts, consider whether the operation truly needs strong consistency
 - Eventual consistency via Bus + Projection may be more appropriate for high-contention scenarios
@@ -1659,6 +1668,7 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 **Impact**: A wrong filter (missing event type, wrong predicate) means incorrect consistency — either too narrow (misses conflicts) or too wide (false conflicts).
 
 **Mitigation**:
+
 - Filters are explicit and reviewable at the call site
 - Integration tests should verify the exact events returned for a given filter
 - Consider adding filter validation (e.g., "filter must include at least one event type")
@@ -1669,6 +1679,7 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 **Impact**: Events appended via `AppendContext` still need valid `aggregate_type`, `aggregate_id`, and `version`. If these are wrong, stream-based reads break.
 
 **Mitigation**:
+
 - The `decide` function must correctly set these fields
 - This is no different from the responsibility of `aggregate.Root.RecordEvent` — the caller must provide correct metadata
 - Helper functions can compute the next version from the folded state
@@ -1678,6 +1689,7 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 **Impact**: Having both `ErrVersionConflict` (stream) and `ErrContextChanged` (context) might confuse developers about which to use.
 
 **Mitigation**:
+
 - Clear naming and documentation (this document)
 - The decision flowchart provides a simple rule: single entity → aggregate, cross-entity → context
 - Both errors are optimistic concurrency violations with the same retry strategy
@@ -1687,15 +1699,15 @@ If Phase 5 succeeds, apply the pattern to other cross-entity operations. If it d
 
 ## 22. Open Questions
 
-| Question | Options | Recommendation |
-|----------|---------|---------------|
-| Should `Filter` support OR between predicate groups? | Simple AND only vs. full boolean algebra | Start simple. Add complexity if real use cases demand it. |
-| Should `Query` support pagination? | Load all matching events vs. cursor-based | Start with load-all. Add pagination if performance requires it. |
-| Should `AppendContext` publish to Bus? | ContextRepository does it vs. caller does it | ContextRepository handles it — same pattern as aggregate.Repository. |
-| Should `MemoryStore` implement `ContextQuerier`? | Yes (for testing) vs. no (keep simple) | Yes — test coverage matters. Implement with in-memory filtering. |
-| Should events appended via context mode participate in snapshots? | Yes vs. no vs. automatic | Yes — events have stream identity, so existing snapshot infrastructure works. |
-| How does the catalog document context-based operations? | New channel type vs. special annotation | Use a special annotation in the catalog metadata. The catalog already supports custom metadata. |
-| Should context mode support outbox? | Yes vs. no | Yes — same reliability guarantees. `ContextRepository` should accept optional `Outbox`. |
+| Question                                                          | Options                                      | Recommendation                                                                                  |
+| ----------------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Should `Filter` support OR between predicate groups?              | Simple AND only vs. full boolean algebra     | Start simple. Add complexity if real use cases demand it.                                       |
+| Should `Query` support pagination?                                | Load all matching events vs. cursor-based    | Start with load-all. Add pagination if performance requires it.                                 |
+| Should `AppendContext` publish to Bus?                            | ContextRepository does it vs. caller does it | ContextRepository handles it — same pattern as aggregate.Repository.                            |
+| Should `MemoryStore` implement `ContextQuerier`?                  | Yes (for testing) vs. no (keep simple)       | Yes — test coverage matters. Implement with in-memory filtering.                                |
+| Should events appended via context mode participate in snapshots? | Yes vs. no vs. automatic                     | Yes — events have stream identity, so existing snapshot infrastructure works.                   |
+| How does the catalog document context-based operations?           | New channel type vs. special annotation      | Use a special annotation in the catalog metadata. The catalog already supports custom metadata. |
+| Should context mode support outbox?                               | Yes vs. no                                   | Yes — same reliability guarantees. `ContextRepository` should accept optional `Outbox`.         |
 
 ---
 

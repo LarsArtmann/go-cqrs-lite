@@ -450,14 +450,14 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity   | Detail                                                                                   |
-| -------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
-| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface. |
+| Issue                                                    | Severity   | Detail                                                                                           |
+| -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface.         |
 | **`Load()` empty semantics differ**                      | **MEDIUM** | `MemoryStore.Load()` returns `ErrAggregateNotFound`; `SQLEventStore.Load()` returns empty slice. |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                               |
-| `query.Handler` returns `any`                            | LOW        | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                    |
-| `CatalogMeta` duplicated across 3 packages               | LOW        | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW        | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`            |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                                       |
+| `query.Handler` returns `any`                            | LOW        | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                             |
+| `CatalogMeta` duplicated across 3 packages               | LOW        | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical               |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW        | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                    |
 
 - **Session 27 (No-Panic Convention + Code Quality)**:
   - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint. Added `ErrNilCheckpointStore` sentinel.
