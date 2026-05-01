@@ -89,26 +89,25 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	for _, msg := range svc.Events {
 		id := catalog.MessageID(msg)
 
-		entry := fmt.Sprintf("%s/%s", id, msg.Version)
 		if msg.Direction == catalog.Sends {
-			sends = append(sends, entry)
+			sends = append(sends, id)
 		} else {
-			receives = append(receives, entry)
+			receives = append(receives, id)
 		}
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, fmt.Sprintf("%s/%s", catalog.MessageID(cmd), cmd.Version))
+		commands = append(commands, catalog.MessageID(cmd))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, fmt.Sprintf("%s/%s", catalog.MessageID(q), q.Version))
+		queries = append(queries, catalog.MessageID(q))
 	}
 
-	md.addListField("sends", sends)
-	md.addListField("receives", receives)
-	md.addListField("commands", commands)
-	md.addListField("queries", queries)
+	md.addObjectIDsListField("sends", sends)
+	md.addObjectIDsListField("receives", receives)
+	md.addObjectIDsListField("commands", commands)
+	md.addObjectIDsListField("queries", queries)
 	md.finish(svc.Name, svc.Summary)
 
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
