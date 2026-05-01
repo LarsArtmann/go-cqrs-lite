@@ -101,14 +101,14 @@ For a detailed visual walkthrough of how a web client communicates with go-cqrs-
 
 ## Modules
 
-| Module | Import | Purpose |
-|--------|--------|---------|
-| core | `…/core/…` | CQRS primitives (command, event, query, aggregate, id) |
-| memory | `…/memory` | In-memory implementations (testing) |
-| catalog | `…/catalog/…` | Auto-documentation (AsyncAPI 3.0, EventCatalog) |
-| middleware | `…/middleware` | Logging, retry, recovery, validation, metrics |
-| storage | `…/storage` | PostgreSQL event store |
-| testhelpers | `…/testhelpers` | Test utilities (fakes, helpers) |
+| Module      | Import          | Purpose                                                |
+| ----------- | --------------- | ------------------------------------------------------ |
+| core        | `…/core/…`      | CQRS primitives (command, event, query, aggregate, id) |
+| memory      | `…/memory`      | In-memory implementations (testing)                    |
+| catalog     | `…/catalog/…`   | Auto-documentation (AsyncAPI 3.0, EventCatalog)        |
+| middleware  | `…/middleware`  | Logging, retry, recovery, validation, metrics          |
+| storage     | `…/storage`     | PostgreSQL event store                                 |
+| testhelpers | `…/testhelpers` | Test utilities (fakes, helpers)                        |
 
 ## Next Steps
 

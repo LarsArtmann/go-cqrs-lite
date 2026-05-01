@@ -191,7 +191,7 @@ nix develop             # enter dev shell
 | `catalog/`              | Registry, schema reflection, MessageID | `Registry`, `Catalog`, `SchemaFromType[T]`, `MessageID()` |
 | `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                 |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                     |
-| `catalog/d2/`           | D2 diagram text export                | `Exporter`, `Export()`, `NewExporter()`                       |
+| `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                   |
 | `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                |
 
 ### Middleware Module (`middleware/`)
@@ -450,14 +450,14 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity   | Detail                                                                                      |
-| -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- |
-| **`storage/` has zero tests**                            | **HIGH**   | 346 lines of SQL with no test verification. Consumers cannot trust it.                      |
-| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface.    |
-| **JSON v1/v2 split in storage metadata**                 | **MEDIUM** | `json:"correlationId"` (v1 tags) in storage, v2 everywhere else. Silent corruption risk.    |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                                  |
+| Issue                                                    | Severity   | Detail                                                                                   |
+| -------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| **`storage/` has zero tests**                            | **HIGH**   | 346 lines of SQL with no test verification. Consumers cannot trust it.                   |
+| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface. |
+| **JSON v1/v2 split in storage metadata**                 | **MEDIUM** | `json:"correlationId"` (v1 tags) in storage, v2 everywhere else. Silent corruption risk. |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                               |
 
-| `core/event` coverage dropped to 86.7%                   | MEDIUM     | Projection code tested in `integration/`, but some paths in `core/event` genuinely untested |
+| `core/event` coverage dropped to 86.7% | MEDIUM | Projection code tested in `integration/`, but some paths in `core/event` genuinely untested |
 
 - **Session 20 (Lint Fix + Comprehensive Plan Execution)**:
   - **Lint cleanup**: Fixed 48 lint issues → 0. Added `go-sqlmock` to depguard, `tx`/`ts` to varnamelen ignores, `example/` + `testhelpers/fakes.go` exclusions. Fixed `noinlineerr` (17), `err113` (1), `wrapcheck` (2), `godoclint` (1).

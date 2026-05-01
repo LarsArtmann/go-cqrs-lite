@@ -15,75 +15,75 @@ These are complete, tested, production-quality features with no known issues.
 
 ### Core CQRS (100% coverage across command/query/dispatcher)
 
-| Feature | Status | Coverage |
-|---------|--------|----------|
-| Command Dispatcher — dispatch, register, middleware, lifecycle, catalog | ✅ | 100.0% |
-| Query Dispatcher — dispatch, typed dispatch, pagination, catalog | ✅ | 100.0% |
-| Generic Dispatcher — shared internal `Dispatcher[H, M]` | ✅ | 100.0% |
-| Branded IDs — `id.Of[T]` wrapping ULID, full serialization, SQL support | ✅ | 100.0% |
-| Event types — NewEvent, Builder, Metadata, 12 options, ContextEnricher | ✅ | 96.6% |
-| Event interfaces — Store, Bus, SnapshotStore, Outbox, CheckpointStore (all io.Closer) | ✅ | 96.6% |
-| Aggregate — Root, Core, EventSourcedRepository, Codec, DecodePayload[T] | ✅ | 95.9% |
-| Projection — Projection interface, InMemoryRunner, HandleParallel | ✅ | (in core/event) |
-| Upcaster — UpcasterRegistry with sorted chain | ✅ | (in core/event) |
+| Feature                                                                               | Status | Coverage        |
+| ------------------------------------------------------------------------------------- | ------ | --------------- |
+| Command Dispatcher — dispatch, register, middleware, lifecycle, catalog               | ✅     | 100.0%          |
+| Query Dispatcher — dispatch, typed dispatch, pagination, catalog                      | ✅     | 100.0%          |
+| Generic Dispatcher — shared internal `Dispatcher[H, M]`                               | ✅     | 100.0%          |
+| Branded IDs — `id.Of[T]` wrapping ULID, full serialization, SQL support               | ✅     | 100.0%          |
+| Event types — NewEvent, Builder, Metadata, 12 options, ContextEnricher                | ✅     | 96.6%           |
+| Event interfaces — Store, Bus, SnapshotStore, Outbox, CheckpointStore (all io.Closer) | ✅     | 96.6%           |
+| Aggregate — Root, Core, EventSourcedRepository, Codec, DecodePayload[T]               | ✅     | 95.9%           |
+| Projection — Projection interface, InMemoryRunner, HandleParallel                     | ✅     | (in core/event) |
+| Upcaster — UpcasterRegistry with sorted chain                                         | ✅     | (in core/event) |
 
 ### Memory Module (98.0% coverage)
 
-| Feature | Status | Coverage |
-|---------|--------|----------|
-| MemoryStore — Save, AppendBatch, Load, LoadFromVersion, Delete | ✅ | 98.0% |
-| MemoryBus — Publish, Subscribe, SubscribeAll, Use | ✅ | 98.0% |
-| MemorySnapshotStore — Save, Load, Delete | ✅ | 98.0% |
-| MemoryOutboxStore — Append, Load, MarkPublished | ✅ | 98.0% |
+| Feature                                                        | Status | Coverage |
+| -------------------------------------------------------------- | ------ | -------- |
+| MemoryStore — Save, AppendBatch, Load, LoadFromVersion, Delete | ✅     | 98.0%    |
+| MemoryBus — Publish, Subscribe, SubscribeAll, Use              | ✅     | 98.0%    |
+| MemorySnapshotStore — Save, Load, Delete                       | ✅     | 98.0%    |
+| MemoryOutboxStore — Append, Load, MarkPublished                | ✅     | 98.0%    |
 
 ### Middleware Module (99.4% coverage)
 
-| Feature | Status | Coverage |
-|---------|--------|----------|
-| CommandLogging, EventLogging | ✅ | 99.4% |
-| CommandMetrics, EventMetrics | ✅ | 99.4% |
-| CommandRecovery, EventRecovery | ✅ | 99.4% |
-| CommandRetry, EventRetry (exponential backoff) | ✅ | 99.4% |
-| CommandValidation, EventValidation, QueryValidation | ✅ | 99.4% |
+| Feature                                             | Status | Coverage |
+| --------------------------------------------------- | ------ | -------- |
+| CommandLogging, EventLogging                        | ✅     | 99.4%    |
+| CommandMetrics, EventMetrics                        | ✅     | 99.4%    |
+| CommandRecovery, EventRecovery                      | ✅     | 99.4%    |
+| CommandRetry, EventRetry (exponential backoff)      | ✅     | 99.4%    |
+| CommandValidation, EventValidation, QueryValidation | ✅     | 99.4%    |
 
 ### Catalog Module (94.4%–96.8% coverage)
 
-| Feature | Status | Coverage |
-|---------|--------|----------|
-| Registry — thread-safe, Build() → immutable Catalog | ✅ | 94.4% |
-| Schema reflection — SchemaFromType[T]() with struct tag support | ✅ | 94.4% |
-| AsyncAPI 3.0 exporter — YAML + JSON | ✅ | 96.8% |
-| EventCatalog MDX exporter | ✅ | 95.5% |
-| Catalog adapters — CatalogBuilder, FromDispatcher | ✅ | 95.5% |
-| MessageID extraction — unified from catalog.MessageID() | ✅ | 94.4% |
+| Feature                                                         | Status | Coverage |
+| --------------------------------------------------------------- | ------ | -------- |
+| Registry — thread-safe, Build() → immutable Catalog             | ✅     | 94.4%    |
+| Schema reflection — SchemaFromType[T]() with struct tag support | ✅     | 94.4%    |
+| AsyncAPI 3.0 exporter — YAML + JSON                             | ✅     | 96.8%    |
+| EventCatalog MDX exporter                                       | ✅     | 95.5%    |
+| Catalog adapters — CatalogBuilder, FromDispatcher               | ✅     | 95.5%    |
+| MessageID extraction — unified from catalog.MessageID()         | ✅     | 94.4%    |
 
 ### Test Infrastructure
 
-| Feature | Status |
-|---------|--------|
-| testhelpers module — FakeStore, FakeBus, FakeSnapshotStore, FakeOutbox, FakeCheckpointStore | ✅ |
-| All fakes implement io.Closer | ✅ |
-| Integration module — BDD + middleware chain tests (4 packages) | ✅ |
-| Golden-file tests for AsyncAPI and EventCatalog | ✅ |
+| Feature                                                                                     | Status |
+| ------------------------------------------------------------------------------------------- | ------ |
+| testhelpers module — FakeStore, FakeBus, FakeSnapshotStore, FakeOutbox, FakeCheckpointStore | ✅     |
+| All fakes implement io.Closer                                                               | ✅     |
+| Integration module — BDD + middleware chain tests (4 packages)                              | ✅     |
+| Golden-file tests for AsyncAPI and EventCatalog                                             | ✅     |
 
 ### Storage Module (95.2% coverage)
 
-| Feature | Status | Coverage |
-|---------|--------|----------|
-| SQLEventStore — PostgreSQL, optimistic concurrency, metadata persistence | ✅ | 95.2% |
-| SQLCheckpointStore — borrowed DB pattern, io.Closer no-op | ✅ | 95.2% |
-| SQLSnapshotStore — borrowed DB pattern, io.Closer no-op | ✅ | 95.2% |
-| Sentinel error wrapping — ErrVersionConflict, ErrAggregateNotFound, ErrStoreClosed | ✅ | 95.2% |
-| Transactional AppendBatch | ✅ | 95.2% |
+| Feature                                                                            | Status | Coverage |
+| ---------------------------------------------------------------------------------- | ------ | -------- |
+| SQLEventStore — PostgreSQL, optimistic concurrency, metadata persistence           | ✅     | 95.2%    |
+| SQLCheckpointStore — borrowed DB pattern, io.Closer no-op                          | ✅     | 95.2%    |
+| SQLSnapshotStore — borrowed DB pattern, io.Closer no-op                            | ✅     | 95.2%    |
+| Sentinel error wrapping — ErrVersionConflict, ErrAggregateNotFound, ErrStoreClosed | ✅     | 95.2%    |
+| Transactional AppendBatch                                                          | ✅     | 95.2%    |
 
 ### Build & CI Infrastructure
 
-| Feature | Status |
-|---------|--------|
-| Nix flake — build, test, test-race, coverage, vet, lint, fmt, dev shell | ✅ |
-| Multi-module workspace — 8 modules in go.work | ✅ |
-| CI via GitHub Actions (ci.yml, Nix-based) | ✅ |
-| golangci-lint configured per-module | ✅ |
+| Feature                                                                 | Status |
+| ----------------------------------------------------------------------- | ------ |
+| Nix flake — build, test, test-race, coverage, vet, lint, fmt, dev shell | ✅     |
+| Multi-module workspace — 8 modules in go.work                           | ✅     |
+| CI via GitHub Actions (ci.yml, Nix-based)                               | ✅     |
+| golangci-lint configured per-module                                     | ✅     |
 
 ---
 
@@ -91,53 +91,53 @@ These are complete, tested, production-quality features with no known issues.
 
 ### D2 Diagram Exporter (96.7% coverage, 4 lint issues)
 
-| What works | What's missing |
-|------------|----------------|
-| Basic D2 diagram generation from Catalog | exhaustruct: `Exporter` missing `Description` field in constructor |
-| Full test coverage | 2 golines formatting violations |
-| | 1 wsl_v5 whitespace violation |
-| | Exporter is in `catalog/d2` but `ExportD2()` on CatalogBuilder is uncommitted |
+| What works                               | What's missing                                                                |
+| ---------------------------------------- | ----------------------------------------------------------------------------- |
+| Basic D2 diagram generation from Catalog | exhaustruct: `Exporter` missing `Description` field in constructor            |
+| Full test coverage                       | 2 golines formatting violations                                               |
+|                                          | 1 wsl_v5 whitespace violation                                                 |
+|                                          | Exporter is in `catalog/d2` but `ExportD2()` on CatalogBuilder is uncommitted |
 
 **Impact:** Low — compiles, tests pass, just lint hygiene.
 
 ### example/user/ (291 lines, 0 tests)
 
-| What works | What's missing |
-|------------|----------------|
-| Full CQRS lifecycle demo (commands, events, aggregate, repository) | Zero test coverage |
-| Catalog registration with AsyncAPI export | Not in CI test/lint pipeline |
-| Compiles and runs | No smoke test to verify it actually works |
+| What works                                                         | What's missing                            |
+| ------------------------------------------------------------------ | ----------------------------------------- |
+| Full CQRS lifecycle demo (commands, events, aggregate, repository) | Zero test coverage                        |
+| Catalog registration with AsyncAPI export                          | Not in CI test/lint pipeline              |
+| Compiles and runs                                                  | No smoke test to verify it actually works |
 
 **Impact:** Medium — it's demo code but broken demos erode trust.
 
 ### FEATURES.md
 
-| What's accurate | What's stale |
-|----------------|--------------|
-| Core CQRS features fully accurate | D2 exporter not yet documented |
-| Storage marked ⚠️ PARTIALLY_FUNCTIONAL (correct) | Coverage numbers may need refresh |
-| io.Closer lifecycle documented | Concrete `event.Version` type not mentioned |
+| What's accurate                                  | What's stale                                |
+| ------------------------------------------------ | ------------------------------------------- |
+| Core CQRS features fully accurate                | D2 exporter not yet documented              |
+| Storage marked ⚠️ PARTIALLY_FUNCTIONAL (correct) | Coverage numbers may need refresh           |
+| io.Closer lifecycle documented                   | Concrete `event.Version` type not mentioned |
 
 ### AGENTS.md
 
-| What's accurate | What's stale |
-|----------------|--------------|
-| Library/SDK header block | Coverage table doesn't include catalog/d2 (96.7%) |
-| Module structure and dependency graph | D2 exporter not in monorepo tree |
-| Known issues section | Sessions 23-25 changes (Version type, HandleParallel, OutboxPublisher, SQLSnapshotStore, SQLCheckpointStore, D2) not in cleanup history |
+| What's accurate                       | What's stale                                                                                                                            |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Library/SDK header block              | Coverage table doesn't include catalog/d2 (96.7%)                                                                                       |
+| Module structure and dependency graph | D2 exporter not in monorepo tree                                                                                                        |
+| Known issues section                  | Sessions 23-25 changes (Version type, HandleParallel, OutboxPublisher, SQLSnapshotStore, SQLCheckpointStore, D2) not in cleanup history |
 
 ---
 
 ## C) NOT STARTED 📐
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Watermill module — pub/sub adapter | Low | Design doc exists, no code |
-| Saga / Process Manager | Low | Design doc referenced in TODO_LIST.md |
-| Tag v0.1.0-alpha releases | Low | All modules are publishable but not tagged |
-| `Value()` returning text instead of binary | Low | SQL friendliness improvement for branded IDs |
-| SQL Snapshot module (dedicated) | Low | SQLSnapshotStore exists in storage/ already |
-| Real-world integration test (actual PostgreSQL) | Medium | Current tests use go-sqlmock only |
+| Item                                            | Priority | Notes                                        |
+| ----------------------------------------------- | -------- | -------------------------------------------- |
+| Watermill module — pub/sub adapter              | Low      | Design doc exists, no code                   |
+| Saga / Process Manager                          | Low      | Design doc referenced in TODO_LIST.md        |
+| Tag v0.1.0-alpha releases                       | Low      | All modules are publishable but not tagged   |
+| `Value()` returning text instead of binary      | Low      | SQL friendliness improvement for branded IDs |
+| SQL Snapshot module (dedicated)                 | Low      | SQLSnapshotStore exists in storage/ already  |
+| Real-world integration test (actual PostgreSQL) | Medium   | Current tests use go-sqlmock only            |
 
 ---
 
@@ -145,14 +145,14 @@ These are complete, tested, production-quality features with no known issues.
 
 ### Nothing is truly broken. But here's what's ugly:
 
-| Issue | Severity | Detail |
-|-------|----------|--------|
-| `catalog/d2` lint issues | LOW | 4 lint issues left from session 25. Trivial to fix but looks sloppy. |
-| `cattest/helpers.go` at 330 lines | LOW | Exceeds 250-line convention. Should split like fakes were. |
-| `example/user` has zero tests | MEDIUM | 291 lines of code, no verification. If it breaks, nobody notices. |
-| Untracked research doc | NONE | `docs/research/2026-05-01_LIVESTORE_DEEP_DIVE.md` — should be committed or .gitignored |
-| 2 commits not pushed | NONE | `eef8bcf` and `1bd2153` are ahead of origin — just needs `git push` |
-| `catalog/adapters` coverage dropped | LOW | 98.8% → 95.5% from new D2 export code added in session 25 |
+| Issue                               | Severity | Detail                                                                                 |
+| ----------------------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `catalog/d2` lint issues            | LOW      | 4 lint issues left from session 25. Trivial to fix but looks sloppy.                   |
+| `cattest/helpers.go` at 330 lines   | LOW      | Exceeds 250-line convention. Should split like fakes were.                             |
+| `example/user` has zero tests       | MEDIUM   | 291 lines of code, no verification. If it breaks, nobody notices.                      |
+| Untracked research doc              | NONE     | `docs/research/2026-05-01_LIVESTORE_DEEP_DIVE.md` — should be committed or .gitignored |
+| 2 commits not pushed                | NONE     | `eef8bcf` and `1bd2153` are ahead of origin — just needs `git push`                    |
+| `catalog/adapters` coverage dropped | LOW      | 98.8% → 95.5% from new D2 export code added in session 25                              |
 
 **Honest assessment:** The codebase is in excellent shape. No correctness bugs, no race conditions, no data loss risks, no broken tests. The "fucked up" items are hygiene, not fire.
 
@@ -191,33 +191,33 @@ These are complete, tested, production-quality features with no known issues.
 
 ## F) Top 25 Next Actions (Ranked)
 
-| # | Action | Effort | Impact | Category |
-|---|--------|--------|--------|----------|
-| 1 | Fix 4 catalog/d2 lint issues | 5 min | High | Hygiene |
-| 2 | Push 2 unpushed commits to origin | 10 sec | High | Ops |
-| 3 | Commit or .gitignore the research doc | 10 sec | Medium | Hygiene |
-| 4 | Add example/user smoke test | 15 min | High | Quality |
-| 5 | Add example/user to CI lint pipeline | 5 min | Medium | CI |
-| 6 | Update AGENTS.md with D2, Version, sessions 23-25 | 20 min | Medium | Docs |
-| 7 | Update FEATURES.md with D2 exporter + coverage | 15 min | Medium | Docs |
-| 8 | Split cattest/helpers.go under 250 lines | 15 min | Low | Code quality |
-| 9 | Add storage error path tests (scanEvents, marshalMetadata) | 20 min | Medium | Coverage |
-| 10 | Tag v0.1.0-alpha for core module | 30 min | High | Release |
-| 11 | Write ADR: event.Version concrete type | 15 min | Medium | Docs |
-| 12 | Write ADR: io.Closer on lifecycle interfaces | 15 min | Medium | Docs |
-| 13 | Add D2 golden test | 15 min | Low | Quality |
-| 14 | Catalog adapters coverage recovery (95.5% → 98%+) | 20 min | Low | Coverage |
-| 15 | Evaluate LiveStore patterns for go-cqrs-lite | 1 hr | TBD | Research |
-| 16 | Watermill module skeleton | 2 hr | Low | Feature |
-| 17 | Consider Value() returning text for SQL IDs | 30 min | Low | API |
-| 18 | Prune old status reports | 10 min | Low | Docs |
-| 19 | Add real PostgreSQL integration test | 2 hr | Medium | Quality |
-| 20 | Move example/user into integration test suite | 1 hr | Low | Architecture |
-| 21 | Saga design doc review | 1 hr | Low | Planning |
-| 22 | Tag remaining modules (memory, catalog, middleware, storage) | 30 min | Low | Release |
-| 23 | Evaluate go-json-experiment/json stability for v1 | 30 min | Low | Research |
-| 24 | Add CONTRIBUTING.md section on adding new modules | 15 min | Low | Docs |
-| 25 | Consider versioned module paths (e.g., /v2) for breaking changes | 1 hr | Low | Planning |
+| #   | Action                                                           | Effort | Impact | Category     |
+| --- | ---------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1   | Fix 4 catalog/d2 lint issues                                     | 5 min  | High   | Hygiene      |
+| 2   | Push 2 unpushed commits to origin                                | 10 sec | High   | Ops          |
+| 3   | Commit or .gitignore the research doc                            | 10 sec | Medium | Hygiene      |
+| 4   | Add example/user smoke test                                      | 15 min | High   | Quality      |
+| 5   | Add example/user to CI lint pipeline                             | 5 min  | Medium | CI           |
+| 6   | Update AGENTS.md with D2, Version, sessions 23-25                | 20 min | Medium | Docs         |
+| 7   | Update FEATURES.md with D2 exporter + coverage                   | 15 min | Medium | Docs         |
+| 8   | Split cattest/helpers.go under 250 lines                         | 15 min | Low    | Code quality |
+| 9   | Add storage error path tests (scanEvents, marshalMetadata)       | 20 min | Medium | Coverage     |
+| 10  | Tag v0.1.0-alpha for core module                                 | 30 min | High   | Release      |
+| 11  | Write ADR: event.Version concrete type                           | 15 min | Medium | Docs         |
+| 12  | Write ADR: io.Closer on lifecycle interfaces                     | 15 min | Medium | Docs         |
+| 13  | Add D2 golden test                                               | 15 min | Low    | Quality      |
+| 14  | Catalog adapters coverage recovery (95.5% → 98%+)                | 20 min | Low    | Coverage     |
+| 15  | Evaluate LiveStore patterns for go-cqrs-lite                     | 1 hr   | TBD    | Research     |
+| 16  | Watermill module skeleton                                        | 2 hr   | Low    | Feature      |
+| 17  | Consider Value() returning text for SQL IDs                      | 30 min | Low    | API          |
+| 18  | Prune old status reports                                         | 10 min | Low    | Docs         |
+| 19  | Add real PostgreSQL integration test                             | 2 hr   | Medium | Quality      |
+| 20  | Move example/user into integration test suite                    | 1 hr   | Low    | Architecture |
+| 21  | Saga design doc review                                           | 1 hr   | Low    | Planning     |
+| 22  | Tag remaining modules (memory, catalog, middleware, storage)     | 30 min | Low    | Release      |
+| 23  | Evaluate go-json-experiment/json stability for v1                | 30 min | Low    | Research     |
+| 24  | Add CONTRIBUTING.md section on adding new modules                | 15 min | Low    | Docs         |
+| 25  | Consider versioned module paths (e.g., /v2) for breaking changes | 1 hr   | Low    | Planning     |
 
 ---
 
@@ -236,50 +236,50 @@ I lean toward **keeping the current pattern** — the lint issue was a process f
 
 ## Coverage Summary (Live)
 
-| Package | Coverage | Lines |
-|---------|----------|-------|
-| `core/command` | 100.0% | — |
-| `core/query` | 100.0% | — |
-| `core/pkg/dispatcher` | 100.0% | — |
-| `core/pkg/id` | 100.0% | — |
-| `middleware` | 99.4% | — |
-| `memory` | 98.0% | — |
-| `catalog/asyncapi` | 96.8% | — |
-| `catalog/d2` | 96.7% | — |
-| `core/event` | 96.6% | — |
-| `catalog/adapters` | 95.5% | — |
-| `catalog/eventcatalog` | 95.5% | — |
-| `core/aggregate` | 95.9% | — |
-| `storage` | 95.2% | — |
-| `catalog` | 94.4% | — |
+| Package                | Coverage | Lines |
+| ---------------------- | -------- | ----- |
+| `core/command`         | 100.0%   | —     |
+| `core/query`           | 100.0%   | —     |
+| `core/pkg/dispatcher`  | 100.0%   | —     |
+| `core/pkg/id`          | 100.0%   | —     |
+| `middleware`           | 99.4%    | —     |
+| `memory`               | 98.0%    | —     |
+| `catalog/asyncapi`     | 96.8%    | —     |
+| `catalog/d2`           | 96.7%    | —     |
+| `core/event`           | 96.6%    | —     |
+| `catalog/adapters`     | 95.5%    | —     |
+| `catalog/eventcatalog` | 95.5%    | —     |
+| `core/aggregate`       | 95.9%    | —     |
+| `storage`              | 95.2%    | —     |
+| `catalog`              | 94.4%    | —     |
 
 **Average (weighted packages):** ~97.2%
 
 ## Module Inventory
 
-| Module | Go Path | Purpose |
-|--------|---------|---------|
-| core | `github.com/larsartmann/go-cqrs-lite/core` | CQRS primitives, branded IDs, aggregates |
-| memory | `github.com/larsartmann/go-cqrs-lite/memory` | In-memory implementations (test utility) |
-| catalog | `github.com/larsartmann/go-cqrs-lite/catalog` | AsyncAPI + EventCatalog + D2 doc generation |
-| middleware | `github.com/larsartmann/go-cqrs-lite/middleware` | Cross-cutting concerns (logging, retry, etc.) |
-| storage | `github.com/larsartmann/go-cqrs-lite/storage` | PostgreSQL event store, checkpoint, snapshot |
-| testhelpers | `github.com/larsartmann/go-cqrs-lite/testhelpers` | Fakes and shared test utilities |
-| integration | `github.com/larsartmann/go-cqrs-lite/integration` | Cross-module BDD/integration tests |
-| example/user | `github.com/larsartmann/go-cqrs-lite/example/user` | Demo application (no tests) |
+| Module       | Go Path                                            | Purpose                                       |
+| ------------ | -------------------------------------------------- | --------------------------------------------- |
+| core         | `github.com/larsartmann/go-cqrs-lite/core`         | CQRS primitives, branded IDs, aggregates      |
+| memory       | `github.com/larsartmann/go-cqrs-lite/memory`       | In-memory implementations (test utility)      |
+| catalog      | `github.com/larsartmann/go-cqrs-lite/catalog`      | AsyncAPI + EventCatalog + D2 doc generation   |
+| middleware   | `github.com/larsartmann/go-cqrs-lite/middleware`   | Cross-cutting concerns (logging, retry, etc.) |
+| storage      | `github.com/larsartmann/go-cqrs-lite/storage`      | PostgreSQL event store, checkpoint, snapshot  |
+| testhelpers  | `github.com/larsartmann/go-cqrs-lite/testhelpers`  | Fakes and shared test utilities               |
+| integration  | `github.com/larsartmann/go-cqrs-lite/integration`  | Cross-module BDD/integration tests            |
+| example/user | `github.com/larsartmann/go-cqrs-lite/example/user` | Demo application (no tests)                   |
 
 ---
 
 ## File Size Watch
 
-| File | Lines | Limit | Status |
-|------|-------|-------|--------|
-| `core/pkg/id/id_test.go` | 947 | — | Test file (no limit) |
-| `storage/event_store_test.go` | 923 | — | Test file |
-| `catalog/internal/cattest/helpers.go` | **330** | 250 | ⚠️ OVER LIMIT (production) |
-| `catalog/d2/exporter_test.go` | 286 | — | Test file |
-| `example/user/main.go` | 180 | 250 | ✅ |
-| `catalog/d2/exporter.go` | 200 | 250 | ✅ |
+| File                                  | Lines   | Limit | Status                     |
+| ------------------------------------- | ------- | ----- | -------------------------- |
+| `core/pkg/id/id_test.go`              | 947     | —     | Test file (no limit)       |
+| `storage/event_store_test.go`         | 923     | —     | Test file                  |
+| `catalog/internal/cattest/helpers.go` | **330** | 250   | ⚠️ OVER LIMIT (production) |
+| `catalog/d2/exporter_test.go`         | 286     | —     | Test file                  |
+| `example/user/main.go`                | 180     | 250   | ✅                         |
+| `catalog/d2/exporter.go`              | 200     | 250   | ✅                         |
 
 Only 1 production file exceeds 250 lines: `cattest/helpers.go`.
 

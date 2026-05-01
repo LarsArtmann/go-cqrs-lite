@@ -72,16 +72,16 @@ go runner.Run(ctx)
 
 ### What Exists
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `core/event/projection.go` | 53 | `Projection` interface, `ProjectionFunc` convenience type |
-| `core/event/runner.go` | 166 | `InMemoryRunner` with sequential + parallel dispatch |
-| `core/event/checkpoint.go` | 23 | `CheckpointStore` interface |
-| `core/event/codec.go` | 51 | `Codec`, `JSONCodec`, `DecodePayload[T]` |
-| `core/event/upcaster.go` | 55 | `Upcaster` interface, `UpcasterFunc` |
-| `memory/checkpoint.go` | 50 | `MemoryCheckpointStore` |
-| `core/event/bus.go` | 27 | `Bus` interface: Publish, Subscribe, SubscribeAll |
-| `core/event/store.go` | 54 | `Store` interface: Save, Load, LoadFromVersion, AppendBatch, Delete |
+| File                       | Lines | Purpose                                                             |
+| -------------------------- | ----- | ------------------------------------------------------------------- |
+| `core/event/projection.go` | 53    | `Projection` interface, `ProjectionFunc` convenience type           |
+| `core/event/runner.go`     | 166   | `InMemoryRunner` with sequential + parallel dispatch                |
+| `core/event/checkpoint.go` | 23    | `CheckpointStore` interface                                         |
+| `core/event/codec.go`      | 51    | `Codec`, `JSONCodec`, `DecodePayload[T]`                            |
+| `core/event/upcaster.go`   | 55    | `Upcaster` interface, `UpcasterFunc`                                |
+| `memory/checkpoint.go`     | 50    | `MemoryCheckpointStore`                                             |
+| `core/event/bus.go`        | 27    | `Bus` interface: Publish, Subscribe, SubscribeAll                   |
+| `core/event/store.go`      | 54    | `Store` interface: Save, Load, LoadFromVersion, AppendBatch, Delete |
 
 ### What's Missing (the gap `projection/` fills)
 
@@ -181,6 +181,7 @@ func (r *HandlerRegistry) EventTypes() []event.Type
 ```
 
 Design notes:
+
 - `On("user.created", handler)` — register for specific type
 - `OnAll(handler)` — register for all types (wildcard)
 - `Lookup()` returns handlers for a given type (specific + wildcard)
@@ -389,6 +390,7 @@ func WithConcurrency(n int) RunnerOption
 ### Phase 6: Tests (60 min)
 
 **`runner_test.go`:**
+
 - Runner creation with defaults
 - Runner creation with options
 - Replay from store (using `memory.MemoryStore`)
@@ -398,12 +400,14 @@ func WithConcurrency(n int) RunnerOption
 - Close disposes subscriptions
 
 **`handler_test.go`:**
+
 - Register handlers
 - Duplicate detection
 - Wildcard handlers
 - Lookup returns correct handlers
 
 **`pipeline_test.go`:**
+
 - Filter by type
 - Batch events
 - Process single event
@@ -411,11 +415,13 @@ func WithConcurrency(n int) RunnerOption
 - Checkpoint update on success
 
 **`integration_test.go`:**
+
 - Full E2E: seed store → replay → subscribe live → publish → verify
 - Multi-projection scenario
 - Recovery after error (resume from checkpoint)
 
 **`benchmark_test.go`:**
+
 - BenchmarkProcessOne (single event through pipeline)
 - BenchmarkProcessBatch (batch of 100 events)
 - BenchmarkWithPartitioning (1000 events, 10 aggregates)
@@ -447,6 +453,7 @@ Add projection module to module table, dependency graph, coverage summary.
 
 ```markdown
 ### Added
+
 - **Projection module** (`projection/`): Production-grade event projection
   runner backed by samber/ro reactive streams. Supports replay from store,
   live subscription, per-aggregate partitioning, batching, and retry.
@@ -456,18 +463,18 @@ Add projection module to module table, dependency graph, coverage summary.
 
 ## samber/ro Operator Usage Map
 
-| CQRS Need | samber/ro Operator | Where Used |
-|-----------|-------------------|------------|
-| Filter by event type | `ro.Filter` | `internal/stream/filters.go` |
-| Skip already-processed | `ro.Filter` (custom) | `internal/stream/filters.go` |
-| Per-aggregate ordering | `ro.GroupBy` | `internal/stream/partition.go` |
-| Batch writes | `ro.BufferWithTime` / `ro.BufferWithCount` | `internal/stream/windows.go` |
-| Error recovery | `ro.Catch` / `ro.Retry` | `pipeline.go` |
-| Side effects (checkpoint) | `ro.Tap` | `pipeline.go` |
-| Merge replay + live | `ro.Merge` | `runner.go` |
-| Limit replay | `ro.TakeWhile` | `runner.go` (checkpoint boundary) |
-| Type transform | `ro.Map` | `internal/stream/windows.go` (event → []event) |
-| Deduplication | `ro.Distinct` | Optional: idempotency guard |
+| CQRS Need                 | samber/ro Operator                         | Where Used                                     |
+| ------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| Filter by event type      | `ro.Filter`                                | `internal/stream/filters.go`                   |
+| Skip already-processed    | `ro.Filter` (custom)                       | `internal/stream/filters.go`                   |
+| Per-aggregate ordering    | `ro.GroupBy`                               | `internal/stream/partition.go`                 |
+| Batch writes              | `ro.BufferWithTime` / `ro.BufferWithCount` | `internal/stream/windows.go`                   |
+| Error recovery            | `ro.Catch` / `ro.Retry`                    | `pipeline.go`                                  |
+| Side effects (checkpoint) | `ro.Tap`                                   | `pipeline.go`                                  |
+| Merge replay + live       | `ro.Merge`                                 | `runner.go`                                    |
+| Limit replay              | `ro.TakeWhile`                             | `runner.go` (checkpoint boundary)              |
+| Type transform            | `ro.Map`                                   | `internal/stream/windows.go` (event → []event) |
+| Deduplication             | `ro.Distinct`                              | Optional: idempotency guard                    |
 
 ---
 
@@ -490,13 +497,13 @@ Users who don't use projections never pull in samber/ro.
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| samber/ro v0.3.0 breaking change | Medium | Low — all ro code in `internal/stream/` | Swappable behind internal interfaces |
-| ro.GroupBy complexity | Medium | Medium | Start without partitioning; add in Phase 3 |
-| PublishSubject memory leak | Low | Medium | Proper disposal in `Close()` + context cancellation |
-| Performance overhead | Low | Low — ro is lightweight | Benchmark in Phase 6; compare with InMemoryRunner |
-| Replay/live gap (missed events) | Medium | High | Replay-first, subscribe-second, merge overlap via checkpoint |
+| Risk                             | Likelihood | Impact                                  | Mitigation                                                   |
+| -------------------------------- | ---------- | --------------------------------------- | ------------------------------------------------------------ |
+| samber/ro v0.3.0 breaking change | Medium     | Low — all ro code in `internal/stream/` | Swappable behind internal interfaces                         |
+| ro.GroupBy complexity            | Medium     | Medium                                  | Start without partitioning; add in Phase 3                   |
+| PublishSubject memory leak       | Low        | Medium                                  | Proper disposal in `Close()` + context cancellation          |
+| Performance overhead             | Low        | Low — ro is lightweight                 | Benchmark in Phase 6; compare with InMemoryRunner            |
+| Replay/live gap (missed events)  | Medium     | High                                    | Replay-first, subscribe-second, merge overlap via checkpoint |
 
 ---
 

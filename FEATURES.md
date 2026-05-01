@@ -68,8 +68,8 @@
 | Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                       | ✅     |
 | Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                          | ✅     |
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
-| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                               | ✅     |
-| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                       | ✅     |
+| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
+| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
 | JSON Codec            | `JSONCodec` using `go-json-experiment/json` (JSON v2)                                                                                                                                | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
@@ -145,12 +145,12 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/event"`
 
-| Feature                 | Detail                                                               | Status |
-| ----------------------- | -------------------------------------------------------------------- | ------ |
-| Upcaster interface      | `SourceType()`, `SourceVersion()`, `Upcast(Event) (*Core, error)`    | ✅     |
-| UpcasterFunc            | Convenience adapter from a function                                  | ✅     |
+| Feature                 | Detail                                                                                    | Status |
+| ----------------------- | ----------------------------------------------------------------------------------------- | ------ |
+| Upcaster interface      | `SourceType()`, `SourceVersion()`, `Upcast(Event) (*Core, error)`                         | ✅     |
+| UpcasterFunc            | Convenience adapter from a function                                                       | ✅     |
 | UpcasterRegistry        | Thread-safe, sorted by source version, chains upcasters sequentially with cycle detection | ✅️     |
-| Version-sorted chaining | Upcasters sorted by `SourceVersion()` ascending                      | ✅     |
+| Version-sorted chaining | Upcasters sorted by `SourceVersion()` ascending                                           | ✅     |
 
 | Cycle detection | Defense-in-depth: detects schema version revisits during upcast chain | ✅ |
 
@@ -300,26 +300,26 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage"`
 
-| Feature                         | Detail                                                               | Status      |
-| ------------------------------- | -------------------------------------------------------------------- | ----------- |
-| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅ |
-| Schema DDL                      | `Schema()` returns `CREATE TABLE events` with concurrency constraint | ✅          |
-| Optimistic concurrency          | `Save` checks version in transaction                                 | ✅          |
-| AppendBatch                     | Appends without concurrency check                                    | ✅          |
-| Load / LoadFromVersion / Delete | All implemented                                                      | ✅          |
-| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅          |
-| SQL SnapshotStore               | PostgreSQL-backed with upsert, version-aware load, delete            | ✅          |
-| SQL CheckpointStore             | PostgreSQL-backed with upsert, `sql.ErrNoRows` handling             | ✅          |
-| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                         | ✅          |
+| Feature                         | Detail                                                               | Status |
+| ------------------------------- | -------------------------------------------------------------------- | ------ |
+| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅     |
+| Schema DDL                      | `Schema()` returns `CREATE TABLE events` with concurrency constraint | ✅     |
+| Optimistic concurrency          | `Save` checks version in transaction                                 | ✅     |
+| AppendBatch                     | Appends without concurrency check                                    | ✅     |
+| Load / LoadFromVersion / Delete | All implemented                                                      | ✅     |
+| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅     |
+| SQL SnapshotStore               | PostgreSQL-backed with upsert, version-aware load, delete            | ✅     |
+| SQL CheckpointStore             | PostgreSQL-backed with upsert, `sql.ErrNoRows` handling              | ✅     |
+| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle | ✅     |
 
 **Remaining gaps:**
 
 | Issue                          | Severity  | Detail                                                                         |
 | ------------------------------ | --------- | ------------------------------------------------------------------------------ |
-| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type does not exist — consider adding table name or logger options         |
+| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type does not exist — consider adding table name or logger options             |
 | PostgreSQL-specific DDL        | ⚠️ LOW    | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
-| Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                        |
+| Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                           |
 
 **Coverage:** 92.3% (31 unit tests with go-sqlmock)
 
@@ -364,12 +364,12 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 Features mentioned in project docs/planning but with **no production code**:
 
-| Feature                     | Description                                      | Notes                                                      |
-| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| Watermill module            | Pub/sub adapter (Kafka, NATS, etc.)              | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists  |
-| Saga / Process Manager      | Long-running process orchestration               | `docs/planning/SAGA_DESIGN.md` exists                      |
-| Tagged releases             | Semantic versioning and Go module publishing     | All modules at v0.0.0                                      |
-| D2 diagram exporter         | Auto-generate D2 from Catalog                   | `catalog/d2/` exists with 14 tests                         |
+| Feature                | Description                                  | Notes                                                     |
+| ---------------------- | -------------------------------------------- | --------------------------------------------------------- |
+| Watermill module       | Pub/sub adapter (Kafka, NATS, etc.)          | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists |
+| Saga / Process Manager | Long-running process orchestration           | `docs/planning/SAGA_DESIGN.md` exists                     |
+| Tagged releases        | Semantic versioning and Go module publishing | All modules at v0.0.0                                     |
+| D2 diagram exporter    | Auto-generate D2 from Catalog                | `catalog/d2/` exists with 14 tests                        |
 
 ---
 
@@ -379,7 +379,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
 | `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
 | `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~1100     | 70+         | 96.3%    | ✅ Production   |
+| `core/event`           | `…/core/event`           | ~1100      | 70+         | 96.3%    | ✅ Production   |
 | `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.9%    | ✅ Production   |
 | `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
 | `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |

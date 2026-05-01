@@ -64,13 +64,13 @@ runner.Register(&OrderSaga{})
 
 ## Core Types
 
-| Type | Purpose |
-|------|---------|
-| `saga.Core` | Base saga with ID, state, current step |
-| `saga.Step` | Command + optional compensation command |
-| `saga.Instance` | Persistent saga state (which step, status) |
-| `saga.Store` | Persist saga instances |
-| `saga.Runner` | Execute steps, handle failures, trigger compensation |
+| Type            | Purpose                                              |
+| --------------- | ---------------------------------------------------- |
+| `saga.Core`     | Base saga with ID, state, current step               |
+| `saga.Step`     | Command + optional compensation command              |
+| `saga.Instance` | Persistent saga state (which step, status)           |
+| `saga.Store`    | Persist saga instances                               |
+| `saga.Runner`   | Execute steps, handle failures, trigger compensation |
 
 ## Persistence
 

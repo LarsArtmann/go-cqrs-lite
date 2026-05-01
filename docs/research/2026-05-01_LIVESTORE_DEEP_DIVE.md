@@ -73,11 +73,11 @@ go-cqrs-lite is a **library/SDK** — no opinions about transport, storage backe
 
 ### Three Core Concepts
 
-| Concept | Role | go-cqrs-lite Equivalent |
-|---|---|---|
-| **Events** | Immutable record of things that happened | `Event` interface |
-| **Materializers** | Event → state derivation (projection) | `Projection` interface |
-| **State (SQLite)** | Read model, fully derived from eventlog | No direct equivalent (application-level) |
+| Concept            | Role                                     | go-cqrs-lite Equivalent                  |
+| ------------------ | ---------------------------------------- | ---------------------------------------- |
+| **Events**         | Immutable record of things that happened | `Event` interface                        |
+| **Materializers**  | Event → state derivation (projection)    | `Projection` interface                   |
+| **State (SQLite)** | Read model, fully derived from eventlog  | No direct equivalent (application-level) |
 
 ---
 
@@ -87,34 +87,34 @@ LiveStore has **three distinct error domains**, each with different semantics:
 
 ### 3.1 Materializer Errors (Projection Layer)
 
-| Behavior | Detail |
-|---|---|
-| **Transactional** | Materializer runs in a DB transaction; failure = **full rollback** of that event's state changes |
-| **Event not committed** | If the error happens on the committing client, the event is **never committed** to the eventlog and never pushed to the sync backend |
-| **No partial state** | It's impossible for a materializer failure to leave the read model in an inconsistent state |
-| **Fail-fast by default** | The system **halts or flags** the event as problematic — no silent skip |
-| **Future: configurable skip** | Plan to allow skipping failed events, but with strong warning about state divergence across clients |
+| Behavior                      | Detail                                                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Transactional**             | Materializer runs in a DB transaction; failure = **full rollback** of that event's state changes                                     |
+| **Event not committed**       | If the error happens on the committing client, the event is **never committed** to the eventlog and never pushed to the sync backend |
+| **No partial state**          | It's impossible for a materializer failure to leave the read model in an inconsistent state                                          |
+| **Fail-fast by default**      | The system **halts or flags** the event as problematic — no silent skip                                                              |
+| **Future: configurable skip** | Plan to allow skipping failed events, but with strong warning about state divergence across clients                                  |
 
 **Key principle:** Materializer errors are treated as **bugs**, not operational events. There is no dead letter queue.
 
 ### 3.2 Sync/Rebase Errors
 
-| Scenario | Handling |
-|---|---|
-| **Rebase failure** | SQLite `session` extension enables efficient DB rollback; state rolls back to snapshot + re-applies all events |
-| **Client ID collision** | Detected on first push → client gets new random ID, patches local events, retries |
-| **Concurrent push conflict** | Pull-before-push model ensures global total order; local events rebased on top of remote before pushing |
-| **Merge conflicts** | Default: last-write-wins. Custom merge logic supported per application. |
+| Scenario                     | Handling                                                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Rebase failure**           | SQLite `session` extension enables efficient DB rollback; state rolls back to snapshot + re-applies all events |
+| **Client ID collision**      | Detected on first push → client gets new random ID, patches local events, retries                              |
+| **Concurrent push conflict** | Pull-before-push model ensures global total order; local events rebased on top of remote before pushing        |
+| **Merge conflicts**          | Default: last-write-wins. Custom merge logic supported per application.                                        |
 
 ### 3.3 Schema Evolution Errors
 
-| Scenario | Handling |
-|---|---|
-| **Unknown events from newer app version** | Ignore / error / catch-all handler / "update required" read-only screen |
+| Scenario                                          | Handling                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Unknown events from newer app version**         | Ignore / error / catch-all handler / "update required" read-only screen        |
 | **Non-backward-compatible clientDocument change** | Previous events **dropped, state reset** — explicitly unsafe for critical data |
-| **Event definition removed** | Not allowed — event definitions are permanent |
-| **Event field removed** | Allowed (forward-compatible) |
-| **Event field added** | Allowed if it has a default value or is optional |
+| **Event definition removed**                      | Not allowed — event definitions are permanent                                  |
+| **Event field removed**                           | Allowed (forward-compatible)                                                   |
+| **Event field added**                             | Allowed if it has a default value or is optional                               |
 
 ### 3.4 What LiveStore Gets Wrong (Our Opportunity)
 
@@ -162,22 +162,22 @@ LiveStore runs **two SQLite databases** per client:
 
 ### Why Two DBs, Not One
 
-| In-Memory SQLite (Main Thread) | Persisted SQLite (Worker Thread) |
-|---|---|
-| Synchronous reads — no async/await | Durability across sessions |
-| Sub-millisecond query latency | OPFS filesystem access |
-| Reactive: UI subscribes to changes | Sync backend connection |
+| In-Memory SQLite (Main Thread)             | Persisted SQLite (Worker Thread)    |
+| ------------------------------------------ | ----------------------------------- |
+| Synchronous reads — no async/await         | Durability across sessions          |
+| Sub-millisecond query latency              | OPFS filesystem access              |
+| Reactive: UI subscribes to changes         | Sync backend connection             |
 | **Disposable** — can rebuild from eventlog | Source of truth for rebase/recovery |
-| Higher memory cost per tab | Single writer (leader) |
+| Higher memory cost per tab                 | Single writer (leader)              |
 
 ### Why NOT a Service Worker
 
-| Concern | Service Worker | Dedicated Web Worker |
-|---|---|---|
-| **Lifecycle** | Shuts down after inactivity | Persistent while needed |
-| **OPFS access** | Not supported | Supported |
-| **Purpose** | Network interception | Computation + storage |
-| **Leader election** | Not designed for this | Web Locks API |
+| Concern             | Service Worker              | Dedicated Web Worker    |
+| ------------------- | --------------------------- | ----------------------- |
+| **Lifecycle**       | Shuts down after inactivity | Persistent while needed |
+| **OPFS access**     | Not supported               | Supported               |
+| **Purpose**         | Network interception        | Computation + storage   |
+| **Leader election** | Not designed for this       | Web Locks API           |
 
 ### The Critical Insight
 
@@ -199,25 +199,24 @@ Materializers are **functions that write to the database in response to events**
 
 ### Key Properties
 
-| Property | Detail |
-|---|---|
-| **Executed in eventlog order** | Guarantees consistency |
-| **Transactional** | Always runs in a DB transaction; failure = full rollback |
-| **Can read current state** | `ctx.query()` allows reading from the projected state within the transaction |
-| **Can return multiple writes** | Single write, array of writes, void, or an Effect |
+| Property                             | Detail                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Executed in eventlog order**       | Guarantees consistency                                                                                 |
+| **Transactional**                    | Always runs in a DB transaction; failure = full rollback                                               |
+| **Can read current state**           | `ctx.query()` allows reading from the projected state within the transaction                           |
+| **Can return multiple writes**       | Single write, array of writes, void, or an Effect                                                      |
 | **Side-effect free / deterministic** | Non-deterministic code (e.g. `crypto.randomUUID()`) belongs in the event payload, not the materializer |
-| **Auto-migration aware** | When state schema changes, LiveStore auto-migrates the DB and rematerializes from eventlog |
+| **Auto-migration aware**             | When state schema changes, LiveStore auto-migrates the DB and rematerializes from eventlog             |
 
 ### Determinism Rule (Critical)
 
 ```typescript
 // ❌ DON'T — non-deterministic ID generation inside materializer
 const materializers = State.SQLite.materializers(events, {
-  "v1.TodoCreated": ({ text }) =>
-    tables.todos.insert({ id: crypto.randomUUID(), text }),
+  "v1.TodoCreated": ({ text }) => tables.todos.insert({ id: crypto.randomUUID(), text }),
   //                          ^^^^^^^^^^^^^^^^^^^^^^^
   //                          Non-deterministic! Different result on replay
-})
+});
 
 // ✅ DO — all data from event payload
 const events = {
@@ -227,11 +226,11 @@ const events = {
     //                            ^^^^^^^^^^^^^^^^^^
     //                            Include ID in event payload
   }),
-}
+};
 const materializers = State.SQLite.materializers(events, {
   "v1.TodoCreated": ({ id, text }) => tables.todos.insert({ id, text }),
-})
-store.commit(events.todoCreated({ id: crypto.randomUUID(), text: 'Buy milk' }))
+});
+store.commit(events.todoCreated({ id: crypto.randomUUID(), text: "Buy milk" }));
 ```
 
 **Why this matters:** If a materializer produces different state on replay (because it generated a random ID), the read model diverges from what other clients computed from the same event. In a synced environment, this causes silent state corruption.
@@ -242,21 +241,21 @@ store.commit(events.todoCreated({ id: crypto.randomUUID(), text: 'Buy milk' }))
 const materializers = State.SQLite.materializers(events, {
   todoCreated: ({ id, text, completed }, ctx) => {
     // ctx.query gives a consistent view within the transaction
-    const previousIds = ctx.query(todos.select('id'))
-    return todos.insert({ id, text, completed: completed ?? false, previousIds })
+    const previousIds = ctx.query(todos.select("id"));
+    return todos.insert({ id, text, completed: completed ?? false, previousIds });
   },
-})
+});
 ```
 
 ### go-cqrs-lite Comparison
 
-| LiveStore Materializer | go-cqrs-lite Projection | Gap |
-|---|---|---|
-| Event → DB write operations | `Projection.Handle(ctx, Event) error` | We return `error` only, no structured write operations |
-| `ctx.query()` — read current state | No query access during projection | Projections are blind to their own output |
-| Transactional (auto) | Manual / application-level | No transactional guarantee in our `Projection` interface |
-| Side-effect free (enforced by design) | Convention only | No mechanism to prevent side effects |
-| Auto-migration + rematerialization | No rebuild/reset mechanism | Projections can't recover from schema changes |
+| LiveStore Materializer                | go-cqrs-lite Projection               | Gap                                                      |
+| ------------------------------------- | ------------------------------------- | -------------------------------------------------------- |
+| Event → DB write operations           | `Projection.Handle(ctx, Event) error` | We return `error` only, no structured write operations   |
+| `ctx.query()` — read current state    | No query access during projection     | Projections are blind to their own output                |
+| Transactional (auto)                  | Manual / application-level            | No transactional guarantee in our `Projection` interface |
+| Side-effect free (enforced by design) | Convention only                       | No mechanism to prevent side effects                     |
+| Auto-migration + rematerialization    | No rebuild/reset mechanism            | Projections can't recover from schema changes            |
 
 ---
 
@@ -286,20 +285,20 @@ Client A                    Sync Backend                    Client B
 
 ### Event Structure
 
-| Field | Purpose |
-|---|---|
-| `seqNum` | Monotonically increasing sequence number |
-| `parentSeqNum` | Parent event (like Git parent commit) |
-| `name` | Event definition name (e.g. `v1.TodoCreated`) |
-| `args` | Event payload (encoded via schema, usually JSON) |
+| Field          | Purpose                                          |
+| -------------- | ------------------------------------------------ |
+| `seqNum`       | Monotonically increasing sequence number         |
+| `parentSeqNum` | Parent event (like Git parent commit)            |
+| `name`         | Event definition name (e.g. `v1.TodoCreated`)    |
+| `args`         | Event payload (encoded via schema, usually JSON) |
 
 ### Three Heads (like Git branches)
 
-| Head | Scope |
-|---|---|
-| Client session head | Per browser tab/worker |
-| Client leader head | Per client (elected leader worker) |
-| Sync backend head | Global (source of total order) |
+| Head                | Scope                              |
+| ------------------- | ---------------------------------- |
+| Client session head | Per browser tab/worker             |
+| Client leader head  | Per client (elected leader worker) |
+| Sync backend head   | Global (source of total order)     |
 
 ### Conflict Resolution
 
@@ -309,12 +308,12 @@ Client A                    Sync Backend                    Client B
 
 ### go-cqrs-lite Comparison
 
-| LiveStore Sync | go-cqrs-lite | Gap |
-|---|---|---|
-| Pull-before-push with rebase | Outbox push only | No pull, no rebase mechanism |
-| Global total order via sync backend | No sync layer | Future consideration |
-| Client ID + leader election | No client identity | Not applicable (server-side) |
-| Compaction (snapshots) | `SnapshotStore` interface | We have the interface; LiveStore implements it |
+| LiveStore Sync                      | go-cqrs-lite              | Gap                                            |
+| ----------------------------------- | ------------------------- | ---------------------------------------------- |
+| Pull-before-push with rebase        | Outbox push only          | No pull, no rebase mechanism                   |
+| Global total order via sync backend | No sync layer             | Future consideration                           |
+| Client ID + leader election         | No client identity        | Not applicable (server-side)                   |
+| Compaction (snapshots)              | `SnapshotStore` interface | We have the interface; LiveStore implements it |
 
 ---
 
@@ -322,23 +321,23 @@ Client A                    Sync Backend                    Client B
 
 ### Write Model (Events)
 
-| Change | Allowed? | Constraint |
-|---|---|---|
-| Add event definition | ✅ | Always |
-| Remove event definition | ❌ | Never — event definitions are permanent |
-| Add struct field | ✅ | Must have default value or be optional |
-| Remove struct field | ✅ | Forward-compatible (old data still decodes) |
-| Change field type | ⚠️ | Only if backward-compatible decode works |
+| Change                  | Allowed? | Constraint                                  |
+| ----------------------- | -------- | ------------------------------------------- |
+| Add event definition    | ✅       | Always                                      |
+| Remove event definition | ❌       | Never — event definitions are permanent     |
+| Add struct field        | ✅       | Must have default value or be optional      |
+| Remove struct field     | ✅       | Forward-compatible (old data still decodes) |
+| Change field type       | ⚠️       | Only if backward-compatible decode works    |
 
 ### Read Model (State/SQLite)
 
-| Change | Allowed? | How |
-|---|---|---|
-| Add table | ✅ | Add table definition + materializer |
-| Remove table | ✅ | Just remove — it's derived from events |
-| Add column | ✅ | Add column definition, update materializer |
-| Remove column | ✅ | Remove column, update materializer |
-| Change column type | ✅ | Change definition, rematerialize |
+| Change             | Allowed? | How                                        |
+| ------------------ | -------- | ------------------------------------------ |
+| Add table          | ✅       | Add table definition + materializer        |
+| Remove table       | ✅       | Just remove — it's derived from events     |
+| Add column         | ✅       | Add column definition, update materializer |
+| Remove column      | ✅       | Remove column, update materializer         |
+| Change column type | ✅       | Change definition, rematerialize           |
 
 **The key insight:** State schema changes are **free** because the state is fully derived. Just update the materializer and rematerialize. This is why LiveStore was built — to eliminate database migration pain.
 
@@ -358,10 +357,10 @@ This makes evolution explicit. Old materializers still handle `v1.*` events; new
 
 We already have `UpcasterRegistry` for transforming old event formats to new ones. LiveStore's versioned names are a **complementary** strategy:
 
-| Approach | Mechanism | Trade-off |
-|---|---|---|
-| **Upcasters** | Transform old payload → new payload at read time | Single event type name; upcaster chain can grow complex |
-| **Versioned names** | New event type for new schema | Multiple event types; simpler per-type handlers; more materializer entries |
+| Approach            | Mechanism                                        | Trade-off                                                                  |
+| ------------------- | ------------------------------------------------ | -------------------------------------------------------------------------- |
+| **Upcasters**       | Transform old payload → new payload at read time | Single event type name; upcaster chain can grow complex                    |
+| **Versioned names** | New event type for new schema                    | Multiple event types; simpler per-type handlers; more materializer entries |
 
 Both are valid. For go-cqrs-lite, we should **document both** and let consumers choose.
 
@@ -383,19 +382,19 @@ A hard delete event can conflict with a concurrent update event. A soft delete (
 
 ### 8.3 Side-Effect Scopes (Still TODO in LiveStore)
 
-| Scope | Description | Implementation |
-|---|---|---|
-| Per client session | Run on every session (e.g. UI refresh) | Application-level |
-| Per client | Run once across sessions (e.g. onboarding) | Local lock between sessions |
-| Globally once | Run exactly once across all clients (e.g. send email) | Distributed transaction/lock |
+| Scope              | Description                                           | Implementation               |
+| ------------------ | ----------------------------------------------------- | ---------------------------- |
+| Per client session | Run on every session (e.g. UI refresh)                | Application-level            |
+| Per client         | Run once across sessions (e.g. onboarding)            | Local lock between sessions  |
+| Globally once      | Run exactly once across all clients (e.g. send email) | Distributed transaction/lock |
 
 **go-cqrs-lite's `OutboxPublisher`** handles scope 3 (globally-once) via the outbox pattern. Scopes 1 and 2 are application-level.
 
 ### 8.4 Synced vs. Client-Only Events
 
-| Type | Synced? | Use Case |
-|---|---|---|
-| `synced` | Yes — replicated across all clients | Business events (`TodoCreated`) |
+| Type         | Synced?                                                         | Use Case                                          |
+| ------------ | --------------------------------------------------------------- | ------------------------------------------------- |
+| `synced`     | Yes — replicated across all clients                             | Business events (`TodoCreated`)                   |
 | `clientOnly` | No — local only, but synced across sessions (e.g. browser tabs) | UI state (`SelectedTabChanged`, `ScrollPosition`) |
 
 This avoids polluting the global eventlog with transient state. go-cqrs-lite currently treats all events identically.
@@ -406,10 +405,13 @@ LiveStore has a special `clientDocument` table type for local UI state:
 
 ```typescript
 uiState: State.SQLite.clientDocument({
-  name: 'uiState',
-  schema: Schema.Struct({ newTodoText: Schema.String, filter: Schema.Literal('all', 'active', 'completed') }),
-  default: { id: SessionIdSymbol, value: { newTodoText: '', filter: 'all' } },
-})
+  name: "uiState",
+  schema: Schema.Struct({
+    newTodoText: Schema.String,
+    filter: Schema.Literal("all", "active", "completed"),
+  }),
+  default: { id: SessionIdSymbol, value: { newTodoText: "", filter: "all" } },
+});
 ```
 
 - Convenience layer (like `React.useState` but persistent)
@@ -499,6 +501,7 @@ LiveStore has significant gaps where go-cqrs-lite can do **better**:
 **LiveStore gap:** No "replay from position X" on startup. If a projection was down, there's no way to catch up on missed events. All events must arrive live through the bus.
 
 **Our opportunity:** Build a **catch-up projection runner**:
+
 1. On startup, read `CheckpointStore.Load(name)` to get last-processed position
 2. `Store.Load(fromVersion)` or `Store.LoadFromVersion(aggregateID, version)` to get missed events
 3. Feed events to `Projection.Handle()`
@@ -513,6 +516,7 @@ This is the **#1 missing feature** in both libraries. Our `CheckpointStore` + `S
 **Our gap:** Checkpoint is `id.EventID` (ULID), not a queryable position. `Store.Load()` loads per-aggregate. There's no `ReadAll(fromGlobalPosition)` method.
 
 **Our opportunity:** Add a **global log position** (monotonic sequence) to the `Store` interface. This enables:
+
 - Efficient catch-up queries across all aggregates
 - Competing consumers that partition by position range
 - Monitoring (how far behind is each projection?)
@@ -528,6 +532,7 @@ This is the **#1 missing feature** in both libraries. Our `CheckpointStore` + `S
 **LiveStore gap:** Failed events halt the system with no recovery path.
 
 **Our opportunity:** Add a **DLQ** to `InMemoryRunner`:
+
 - Failed events → `DeadLetterStore` instead of stopping the world
 - Configurable behavior: `Halt` (LiveStore default) vs. `Quarantine` (operational)
 - Admin API to inspect, retry, or discard dead-lettered events
@@ -566,6 +571,7 @@ type QueryFunc func(query string, args ...any) (Rows, error)
 **LiveStore:** Auto-migration + rematerialization when schema changes.
 
 **Our opportunity:** Expose a `Reset(ctx, projectionName)` method that:
+
 1. Deletes the read model data
 2. Deletes the checkpoint
 3. Replays all events from the store through the projection
@@ -675,20 +681,20 @@ type RunnerConfig struct {
 
 ### Priority Matrix
 
-| # | Opportunity | Impact | Effort | Priority |
-|---|---|---|---|---|
-| 1 | Catch-up projection runner | Critical — projections are useless without it | Medium | **P0** |
-| 2 | `CheckpointStore.Delete(name)` | Enables reset + rebuild | Low | **P0** |
-| 3 | Transactional projection contract | Prevents partial state on error | Low | **P0** |
-| 4 | Global log position in `Store` | Enables efficient catch-up | Medium | **P1** |
-| 5 | Dead letter queue | Operational resilience | Medium | **P1** |
-| 6 | Query access during projection | Rich projections (like LiveStore `ctx.query()`) | Medium | **P2** |
-| 7 | Projection rebuild/reset API | Schema evolution support | Low (depends on #2) | **P2** |
-| 8 | Batch `HandleBatch` | High-throughput optimization | Low | **P2** |
-| 9 | Versioned event names convention | Documentation only | Minimal | **P3** |
-| 10 | Soft delete best practice | Documentation only | Minimal | **P3** |
-| 11 | Past-tense event name convention | Documentation only | Minimal | **P3** |
-| 12 | Client-only events (`WithLocalOnly`) | Future sync layer prep | Low | **P3** |
+| #   | Opportunity                          | Impact                                          | Effort              | Priority |
+| --- | ------------------------------------ | ----------------------------------------------- | ------------------- | -------- |
+| 1   | Catch-up projection runner           | Critical — projections are useless without it   | Medium              | **P0**   |
+| 2   | `CheckpointStore.Delete(name)`       | Enables reset + rebuild                         | Low                 | **P0**   |
+| 3   | Transactional projection contract    | Prevents partial state on error                 | Low                 | **P0**   |
+| 4   | Global log position in `Store`       | Enables efficient catch-up                      | Medium              | **P1**   |
+| 5   | Dead letter queue                    | Operational resilience                          | Medium              | **P1**   |
+| 6   | Query access during projection       | Rich projections (like LiveStore `ctx.query()`) | Medium              | **P2**   |
+| 7   | Projection rebuild/reset API         | Schema evolution support                        | Low (depends on #2) | **P2**   |
+| 8   | Batch `HandleBatch`                  | High-throughput optimization                    | Low                 | **P2**   |
+| 9   | Versioned event names convention     | Documentation only                              | Minimal             | **P3**   |
+| 10  | Soft delete best practice            | Documentation only                              | Minimal             | **P3**   |
+| 11  | Past-tense event name convention     | Documentation only                              | Minimal             | **P3**   |
+| 12  | Client-only events (`WithLocalOnly`) | Future sync layer prep                          | Low                 | **P3**   |
 
 ### Quick Wins (Can Do Today)
 
@@ -720,27 +726,27 @@ type RunnerConfig struct {
 
 Features LiveStore has that go-cqrs-lite doesn't (by design or gap):
 
-| Feature | LiveStore | go-cqrs-lite | Status |
-|---|---|---|---|
-| Reactive queries (Signals) | ✅ Built-in | ❌ Not our scope | By design — we're a library, not a framework |
-| Auto schema migration (read model) | ✅ Drop + rematerialize | ❌ | Gap — need rebuild mechanism |
-| Built-in sync (push/pull) | ✅ Pluggable sync providers | ❌ | Future — outbox is step 1 |
-| Devtools (inspector) | ✅ Built-in | ❌ | Future consideration |
-| Client documents (UI state) | ✅ `clientDocument` type | ❌ | Different scope |
-| In-memory + persisted dual DB | ✅ SQLite pair | N/A | Architecture pattern to learn from |
-| Offline-first | ✅ Out of the box | Partial (outbox) | Different target (server vs. client) |
+| Feature                            | LiveStore                   | go-cqrs-lite     | Status                                       |
+| ---------------------------------- | --------------------------- | ---------------- | -------------------------------------------- |
+| Reactive queries (Signals)         | ✅ Built-in                 | ❌ Not our scope | By design — we're a library, not a framework |
+| Auto schema migration (read model) | ✅ Drop + rematerialize     | ❌               | Gap — need rebuild mechanism                 |
+| Built-in sync (push/pull)          | ✅ Pluggable sync providers | ❌               | Future — outbox is step 1                    |
+| Devtools (inspector)               | ✅ Built-in                 | ❌               | Future consideration                         |
+| Client documents (UI state)        | ✅ `clientDocument` type    | ❌               | Different scope                              |
+| In-memory + persisted dual DB      | ✅ SQLite pair              | N/A              | Architecture pattern to learn from           |
+| Offline-first                      | ✅ Out of the box           | Partial (outbox) | Different target (server vs. client)         |
 
 Features go-cqrs-lite has that LiveStore doesn't:
 
-| Feature | go-cqrs-lite | LiveStore | Our Advantage |
-|---|---|---|---|
-| Catch-up / replay from store | Building blocks exist | ❌ None | We can build it first |
-| Competing consumers | CheckpointStore enables it | ❌ None | Architecture supports distribution |
-| Language-agnostic (Go) | Go (server-side) | TypeScript (client-side) | Different target market |
-| Modular (import what you need) | 8 independent modules | Monolithic framework | Library > framework philosophy |
-| Branded IDs (`id.Of[T]`) | ✅ Type-safe | String-based IDs | Compile-time safety |
-| AsyncAPI catalog generation | ✅ Built-in | ❌ | Documentation from types |
-| Upcaster registry | ✅ Write-model evolution | Versioned names only | Both strategies available |
+| Feature                        | go-cqrs-lite               | LiveStore                | Our Advantage                      |
+| ------------------------------ | -------------------------- | ------------------------ | ---------------------------------- |
+| Catch-up / replay from store   | Building blocks exist      | ❌ None                  | We can build it first              |
+| Competing consumers            | CheckpointStore enables it | ❌ None                  | Architecture supports distribution |
+| Language-agnostic (Go)         | Go (server-side)           | TypeScript (client-side) | Different target market            |
+| Modular (import what you need) | 8 independent modules      | Monolithic framework     | Library > framework philosophy     |
+| Branded IDs (`id.Of[T]`)       | ✅ Type-safe               | String-based IDs         | Compile-time safety                |
+| AsyncAPI catalog generation    | ✅ Built-in                | ❌                       | Documentation from types           |
+| Upcaster registry              | ✅ Write-model evolution   | Versioned names only     | Both strategies available          |
 
 ---
 
