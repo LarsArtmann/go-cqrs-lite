@@ -274,6 +274,9 @@ func (s *FakeSnapshotStore) Delete(
 	return nil
 }
 
+// Close is a no-op for testing.
+func (s *FakeSnapshotStore) Close() error { return nil }
+
 var _ event.SnapshotStore = (*FakeSnapshotStore)(nil)
 
 // FakeOutbox implements event.Outbox for testing.

@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -17,7 +18,10 @@ type Snapshot struct {
 }
 
 // SnapshotStore persists and retrieves aggregate snapshots.
+// All implementations must support lifecycle management via io.Closer.
 type SnapshotStore interface {
+	io.Closer
+
 	// Save persists a snapshot for an aggregate at a specific version.
 	Save(ctx context.Context, snapshot Snapshot) error
 
