@@ -12,7 +12,10 @@ import (
 //
 // Usage:
 //
-//	runner := event.NewInMemoryRunner(checkpointStore)
+//	runner, err := event.NewInMemoryRunner(checkpointStore)
+//	if err != nil {
+//	    // handle error
+//	}
 //	runner.Register(myProjection)
 //	bus.SubscribeAll(runner.Handle)
 type InMemoryRunner struct {
