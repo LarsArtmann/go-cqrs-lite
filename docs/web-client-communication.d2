@@ -52,15 +52,6 @@ classes: {
       font-color: "#1b5e20"
     }
   }
-  event: {
-    style: {
-      fill: "#fce4ec"
-      stroke: "#c62828"
-      stroke-width: 2
-      border-radius: 6
-      font-color: "#b71c1c"
-    }
-  }
   read: {
     style: {
       fill: "#f3e5f5"
@@ -68,6 +59,15 @@ classes: {
       stroke-width: 2
       border-radius: 6
       font-color: "#4a148c"
+    }
+  }
+  event: {
+    style: {
+      fill: "#fce4ec"
+      stroke: "#c62828"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#b71c1c"
     }
   }
   store: {
@@ -99,311 +99,207 @@ classes: {
   }
 }
 
-# ─── LAYER 1: CLIENT ─────────────────────────────────────────────────────────
+# ─── CLIENT ──────────────────────────────────────────────────────────────────
 
-Client Layer: {
-  style: {
-    fill: "#f5f5f5"
-    stroke: "#bdbdbd"
-    stroke-dash: 3
-    border-radius: 12
-  }
-
-  direction: right
-
-  Web Client: {
-    class: client
-    width: 200
-    label: "Web Client\nSPA / React / Vue"
-  }
-
-  Client Note: {
-    shape: text
-    label: "• POST /users → cmd\n• GET /users/:id → query\n• EventSource → live"
-    style: {
-      font-size: 10
-      font-color: "#1565c0"
-    }
-  }
+Web Client: {
+  class: client
+  label: "Web Client\nSPA · React · Vue · Svelte"
+  width: 240
+  link: https://github.com/larsartmann/go-cqrs-lite
+  tooltip: "Your frontend application — sends commands and queries, receives real-time events"
 }
 
-# ─── LAYER 2: TRANSPORT ──────────────────────────────────────────────────────
+# ─── TRANSPORT ────────────────────────────────────────────────────────────────
 
-Transport Layer: {
-  style: {
-    fill: "#fafafa"
-    stroke: "#e65100"
-    stroke-dash: 3
-    border-radius: 12
-  }
-
-  direction: right
-
-  HTTP API: {
-    class: transport
-    width: 220
-    label: "HTTP API\nChi · Echo · Gin"
-  }
-
-  SSE: {
-    class: transport
-    width: 200
-    label: "SSE / WebSocket\nReal-time push"
-  }
+HTTP API: {
+  class: transport
+  label: "HTTP API\nChi · Echo · Gin"
+  width: 220
+  tooltip: "Decode request → Command/Query, inject ContextEnricher (correlationID, userID, requestID, IP, UA), encode response"
 }
 
-# ─── LAYER 3: CQRS DISPATCH ──────────────────────────────────────────────────
+SSE: {
+  class: transport
+  label: "SSE / WebSocket\nReal-time push"
+  width: 180
+  tooltip: "Subscribe to Event Bus, push filtered events to client in real-time"
+}
 
-CQRS Layer: {
-  style: {
-    fill: "#fafafa"
-    stroke: "#424242"
-    stroke-dash: 3
-    border-radius: 12
-  }
+# ─── CQRS DISPATCHERS ────────────────────────────────────────────────────────
 
-  direction: right
+Write: {
+  class: write
+  direction: down
+  label: "Command Side"
 
-  Write Path: {
+  CmdD: {
+    label: "Command Dispatcher\nUse → Register → Dispatch"
     class: write
-    direction: down
-    label: "Command Side (Write)"
+    width: 220
+    tooltip: "Routes commands to handlers. Middleware applied at Register time."
+  }
 
-    Cmd Dispatcher: {
-      label: "Command Dispatcher\nUse → Register → Dispatch"
-      class: write
-      width: 220
-    }
-
-    Cmd MW: {
-      shape: text
-      label: "Recovery → Tracing → Logging\n→ Validation → Retry → Metrics"
-      style: {
-        font-size: 9
-        italic: true
-        font-color: "#546e7a"
-      }
-    }
-
-    Cmd Handler: {
-      label: "Command Handler"
-      class: write
-      width: 220
-    }
-
-    Cmd Dispatcher -> Cmd MW -> Cmd Handler: {
-      style: {
-        stroke: "#2e7d32"
-        stroke-dash: 2
-      }
+  CmdMW: {
+    shape: text
+    label: "Recovery → Tracing → Logging\n→ Validation → Retry → Metrics"
+    style: {
+      font-size: 9
+      italic: true
+      font-color: "#546e7a"
     }
   }
 
-  Read Path: {
-    class: read
-    direction: down
-    label: "Query Side (Read)"
+  CmdH: {
+    label: "Command Handler"
+    class: write
+    width: 220
+    tooltip: "Loads aggregate, applies business logic, records events, saves via repository"
+  }
 
-    Q Dispatcher: {
-      label: "Query Dispatcher\nUse → Register → Dispatch"
-      class: read
-      width: 220
-    }
-
-    Q MW: {
-      shape: text
-      label: "Recovery → Tracing → Logging\n→ Validation → Metrics"
-      style: {
-        font-size: 9
-        italic: true
-        font-color: "#546e7a"
-      }
-    }
-
-    Q Handler: {
-      label: "Query Handler"
-      class: read
-      width: 220
-    }
-
-    Q Dispatcher -> Q MW -> Q Handler: {
-      style: {
-        stroke: "#6a1b9a"
-        stroke-dash: 2
-      }
+  CmdD -> CmdMW -> CmdH: {
+    style: {
+      stroke: "#2e7d32"
+      stroke-dash: 2
     }
   }
 }
 
-# ─── LAYER 4: DOMAIN ─────────────────────────────────────────────────────────
+Read: {
+  class: read
+  direction: down
+  label: "Query Side"
 
-Domain Layer: {
+  QD: {
+    label: "Query Dispatcher\nUse → Register → Dispatch"
+    class: read
+    width: 220
+    tooltip: "Routes queries to handlers. Returns typed results via DispatchTyped[T]."
+  }
+
+  QMW: {
+    shape: text
+    label: "Recovery → Tracing → Logging\n→ Validation → Metrics"
+    style: {
+      font-size: 9
+      italic: true
+      font-color: "#546e7a"
+    }
+  }
+
+  QH: {
+    label: "Query Handler"
+    class: read
+    width: 220
+    tooltip: "Reads from materialized read model built by projections"
+  }
+
+  QD -> QMW -> QH: {
+    style: {
+      stroke: "#6a1b9a"
+      stroke-dash: 2
+    }
+  }
+}
+
+# ─── DOMAIN ───────────────────────────────────────────────────────────────────
+
+Aggregate: {
+  class: write
+  shape: hexagon
+  label: "Aggregate Root"
+  width: 160
   style: {
-    fill: "#fafafa"
+    fill: "#c8e6c9"
     stroke: "#1b5e20"
-    stroke-dash: 3
-    border-radius: 12
+    stroke-width: 3
+    font-color: "#1b5e20"
+    bold: true
   }
-
-  direction: right
-
-  Aggregate: {
-    class: write
-    shape: hexagon
-    label: "Aggregate Root"
-    width: 180
-    style: {
-      fill: "#c8e6c9"
-      stroke: "#1b5e20"
-      stroke-width: 3
-      font-color: "#1b5e20"
-      bold: true
-    }
-  }
-
-  Repo: {
-    class: infra
-    width: 280
-    label: "EventSourcedRepository\nSave → Load → Delete"
-  }
-
-  Agg Note: {
-    shape: text
-    label: "Apply · RecordEvent\nUncommittedChanges\nMarkChangesAsCommitted"
-    style: {
-      font-size: 9
-      font-color: "#2e7d32"
-    }
-  }
-
-  Repo Note: {
-    shape: text
-    label: "Save: Store.Save → Outbox / Bus → Snapshot\nLoad: Snapshot → LoadFromVersion → Replay"
-    style: {
-      font-size: 9
-      font-color: "#455a64"
-    }
-  }
-
-  Aggregate -> Repo: "Uncommitted\nChanges" {
-    style: {
-      stroke: "#1b5e20"
-      stroke-dash: 3
-    }
-  }
+  tooltip: "Root interface: Apply(evt), RecordEvent(ctx, evt), UncommittedChanges(), MarkChangesAsCommitted()"
 }
 
-# ─── LAYER 5: EVENT INFRA ────────────────────────────────────────────────────
+Repo: {
+  class: infra
+  label: "EventSourced\nRepository"
+  width: 180
+  tooltip: "Save: Store.Save → Outbox/Bus.Publish → Snapshot\nLoad: SnapshotStore.Load → Store.LoadFromVersion → Replay"
+}
 
-Event Layer: {
+# ─── EVENT INFRA ──────────────────────────────────────────────────────────────
+
+EventStore: {
+  class: store
+  label: "Event Store\nPostgreSQL"
+  width: 160
+  tooltip: "event.Store: Save (optimistic concurrency), Load, LoadFromVersion, Delete"
+}
+
+Outbox: {
+  class: infra
+  shape: queue
+  label: "Outbox"
+  width: 120
   style: {
-    fill: "#fafafa"
+    fill: "#eceff1"
+    stroke: "#546e7a"
+  }
+  tooltip: "event.Outbox: Append (same TX as Store.Save), PollPending, Ack — guarantees at-least-once publishing"
+}
+
+Snapshot: {
+  class: store
+  label: "Snapshot Store\nPostgreSQL"
+  width: 160
+  tooltip: "event.SnapshotStore: Save, Load (latest), LoadAtVersion — accelerated aggregate replay"
+}
+
+Bus: {
+  class: event
+  shape: queue
+  label: "Event Bus\nMemory · NATS · Kafka"
+  width: 200
+  style: {
+    fill: "#fce4ec"
     stroke: "#c62828"
-    stroke-dash: 3
-    border-radius: 12
+    font-color: "#b71c1c"
+    bold: true
   }
-
-  direction: right
-
-  Event Store: {
-    class: store
-    width: 180
-    label: "Event Store\nPostgreSQL"
-  }
-
-  Event Bus: {
-    class: event
-    shape: queue
-    width: 220
-    label: "Event Bus\nMemoryBus / NATS / Kafka"
-    style: {
-      fill: "#fce4ec"
-      stroke: "#c62828"
-      font-color: "#b71c1c"
-      bold: true
-    }
-  }
-
-  Outbox: {
-    class: infra
-    shape: queue
-    width: 160
-    label: "Outbox\nreliable pub"
-  }
-
-  Snapshot: {
-    class: store
-    width: 180
-    label: "Snapshot Store\nPostgreSQL"
-  }
+  tooltip: "event.Bus: Publish, Subscribe(type), SubscribeAll — delivers domain events to projections and SSE/WS"
 }
 
-# ─── LAYER 6: READ MODEL ─────────────────────────────────────────────────────
+# ─── READ MODEL ───────────────────────────────────────────────────────────────
 
-Read Layer: {
+Projections: {
+  class: read
+  label: "Projections\nInMemoryRunner"
+  width: 160
+  tooltip: "Projection: Name, Handle(ctx, evt), EventTypes() — InMemoryRunner routes events and saves checkpoints"
+}
+
+ReadModel: {
+  class: store
+  label: "Read Model\nPostgreSQL · Redis"
+  width: 180
   style: {
-    fill: "#fafafa"
+    fill: "#f3e5f5"
     stroke: "#6a1b9a"
-    stroke-dash: 3
-    border-radius: 12
+    font-color: "#4a148c"
   }
-
-  direction: right
-
-  Projections: {
-    class: read
-    width: 200
-    label: "Projections\nInMemoryRunner"
-  }
-
-  Read Model: {
-    class: store
-    width: 240
-    label: "Read Model\nPostgreSQL / Redis"
-    style: {
-      fill: "#f3e5f5"
-      stroke: "#6a1b9a"
-      font-color: "#4a148c"
-    }
-  }
-
-  Proj Note: {
-    shape: text
-    label: "SubscribeAll · EventTypes\nCheckpointStore · Idempotent"
-    style: {
-      font-size: 9
-      font-color: "#6a1b9a"
-    }
-  }
-
-  Projections -> Read Model: "8  update read model" {
-    style: {
-      stroke: "#6a1b9a"
-      stroke-width: 2
-    }
-  }
+  tooltip: "Materialized view updated by projections. Queried by Query Handlers."
 }
 
-# ─── LAYER 7: CATALOG (side) ─────────────────────────────────────────────────
+# ─── CATALOG ──────────────────────────────────────────────────────────────────
 
 Catalog: {
   class: docs
-  width: 200
-  label: "Catalog\nAuto-generated docs"
+  label: "Catalog\nAuto-generated"
+  width: 160
+  tooltip: "AsyncAPI 3.0 YAML/JSON, EventCatalog MDX, SchemaFromType via reflect — auto-generated from Go types"
 }
 
-Catalog Note: {
-  shape: text
-  label: "AsyncAPI 3.0 YAML/JSON\nEventCatalog MDX\nSchemaFromType via reflect"
-  style: {
-    font-size: 9
-    font-color: "#00838f"
-  }
-}
+# ─── WRITE PATH CONNECTIONS ─────────────────────────────────────────────────
 
-# ─── FLOW: WRITE PATH (1→7) ─────────────────────────────────────────────────
-
-Client Layer.Web Client -> Transport Layer.HTTP API: "1  POST\n   CreateUser cmd" {
+Web Client -> HTTP API: "1  POST /users\n   CreateUser cmd" {
   style: {
     stroke: "#1565c0"
     stroke-width: 3
@@ -411,7 +307,7 @@ Client Layer.Web Client -> Transport Layer.HTTP API: "1  POST\n   CreateUser cmd
   }
 }
 
-Transport Layer.HTTP API -> CQRS Layer.Write Path.Cmd Dispatcher: "2  Dispatch(ctx, cmd)\n   ContextEnricher metadata" {
+HTTP API -> Write.CmdD: "2  Dispatch(ctx, cmd)" {
   style: {
     stroke: "#2e7d32"
     stroke-width: 3
@@ -419,14 +315,7 @@ Transport Layer.HTTP API -> CQRS Layer.Write Path.Cmd Dispatcher: "2  Dispatch(c
   }
 }
 
-CQRS Layer.Write Path.Cmd Handler -> Domain Layer.Repo: "3  repo.Save(ctx, root)" {
-  style: {
-    stroke: "#2e7d32"
-    stroke-width: 3
-  }
-}
-
-CQRS Layer.Write Path.Cmd Handler -> Domain Layer.Aggregate: "3  Load → mutate\n   RecordEvent" {
+Write.CmdH -> Aggregate: "3  Load → mutate\n   RecordEvent" {
   style: {
     stroke: "#1b5e20"
     stroke-width: 2
@@ -434,23 +323,38 @@ CQRS Layer.Write Path.Cmd Handler -> Domain Layer.Aggregate: "3  Load → mutate
   }
 }
 
-Domain Layer.Repo -> Event Layer.Event Store: "4  Store.Save\n   optimistic concurrency" {
+Write.CmdH -> Repo: "3  repo.Save(ctx, root)" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 3
+  }
+}
+
+Aggregate -> Repo: "Uncommitted\nChanges" {
+  style: {
+    stroke: "#1b5e20"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+Repo -> EventStore: "4  Store.Save\n   (opt. concurrency)" {
   style: {
     stroke: "#f9a825"
     stroke-width: 3
   }
 }
 
-Domain Layer.Repo -> Event Layer.Outbox: "5  Outbox.Append\n   same TX" {
+Repo -> Outbox: "5  Outbox.Append\n   (same TX)" {
   style: {
     stroke: "#546e7a"
     stroke-width: 2
-    animated: true
     stroke-dash: 4
+    animated: true
   }
 }
 
-Domain Layer.Repo -> Event Layer.Snapshot: "5  SnapshotStore.Save\n   if strategy triggers" {
+Repo -> Snapshot: "5  Snapshot.Save\n   (if strategy)" {
   style: {
     stroke: "#f9a825"
     stroke-width: 2
@@ -458,7 +362,7 @@ Domain Layer.Repo -> Event Layer.Snapshot: "5  SnapshotStore.Save\n   if strateg
   }
 }
 
-Event Layer.Outbox -> Event Layer.Event Bus: "6  Poll → Publish → Ack" {
+Outbox -> Bus: "6  Poll → Publish → Ack\n   (background)" {
   style: {
     stroke: "#c62828"
     stroke-width: 2
@@ -466,9 +370,9 @@ Event Layer.Outbox -> Event Layer.Event Bus: "6  Poll → Publish → Ack" {
   }
 }
 
-# ─── FLOW: EVENT → PROJECTION (7→8) ──────────────────────────────────────────
+# ─── EVENT → PROJECTION CONNECTIONS ─────────────────────────────────────────
 
-Event Layer.Event Bus -> Read Layer.Projections: "7  Bus.SubscribeAll\n   InMemoryRunner.Handle" {
+Bus -> Projections: "7  Bus.SubscribeAll\n   InMemoryRunner" {
   style: {
     stroke: "#c62828"
     stroke-width: 3
@@ -476,18 +380,16 @@ Event Layer.Event Bus -> Read Layer.Projections: "7  Bus.SubscribeAll\n   InMemo
   }
 }
 
-# ─── FLOW: READ PATH (9→12) ──────────────────────────────────────────────────
-
-Client Layer.Web Client -> Transport Layer.HTTP API Read: "9  GET\n   GetUser query" {
+Projections -> ReadModel: "8  Update read model\n   (idempotent)" {
   style: {
-    stroke: "#1565c0"
-    stroke-width: 3
+    stroke: "#6a1b9a"
+    stroke-width: 2
   }
 }
 
-Transport Layer.HTTP API Read: Transport Layer.HTTP API
+# ─── READ PATH CONNECTIONS ──────────────────────────────────────────────────
 
-Transport Layer.HTTP API -> CQRS Layer.Read Path.Q Dispatcher: "10  Dispatch(ctx, query)" {
+HTTP API -> Read.QD: "10  Dispatch(ctx, query)" {
   style: {
     stroke: "#6a1b9a"
     stroke-width: 3
@@ -495,24 +397,24 @@ Transport Layer.HTTP API -> CQRS Layer.Read Path.Q Dispatcher: "10  Dispatch(ctx
   }
 }
 
-CQRS Layer.Read Path.Q Handler -> Read Layer.Read Model: "11  Read materialized view" {
+Read.QH -> ReadModel: "11  Read from\n    materialized view" {
   style: {
     stroke: "#6a1b9a"
     stroke-width: 3
   }
 }
 
-Read Layer.Read Model -> CQRS Layer.Read Path.Q Handler: "12  Result via DispatchTyped" {
+ReadModel -> Read.QH: "12  Result via\n    DispatchTyped" {
   style: {
     stroke: "#6a1b9a"
     stroke-width: 2
-    stroke-dash: 4
+    stroke-dash: 3
   }
 }
 
-# ─── FLOW: REAL-TIME PUSH (7→13) ────────────────────────────────────────────
+# ─── REAL-TIME PUSH CONNECTIONS ──────────────────────────────────────────────
 
-Event Layer.Event Bus -> Transport Layer.SSE: "7  Bus.Subscribe\n   filter by type/aggregate" {
+Bus -> SSE: "7  Bus.Subscribe\n   (filtered)" {
   style: {
     stroke: "#e65100"
     stroke-width: 2
@@ -520,7 +422,7 @@ Event Layer.Event Bus -> Transport Layer.SSE: "7  Bus.Subscribe\n   filter by ty
   }
 }
 
-Transport Layer.SSE -> Client Layer.Web Client: "13  Push events\n   in real-time" {
+SSE -> Web Client: "13  Push events\n    real-time" {
   style: {
     stroke: "#e65100"
     stroke-width: 3
@@ -528,9 +430,9 @@ Transport Layer.SSE -> Client Layer.Web Client: "13  Push events\n   in real-tim
   }
 }
 
-# ─── FLOW: CATALOG (side channel) ────────────────────────────────────────────
+# ─── CATALOG CONNECTIONS ─────────────────────────────────────────────────────
 
-CQRS Layer.Write Path.Cmd Dispatcher -> Catalog: "CatalogDispatcher" {
+Write.CmdD -> Catalog: "CatalogDispatcher" {
   style: {
     stroke: "#00838f"
     stroke-width: 1
@@ -538,7 +440,7 @@ CQRS Layer.Write Path.Cmd Dispatcher -> Catalog: "CatalogDispatcher" {
   }
 }
 
-CQRS Layer.Read Path.Q Dispatcher -> Catalog: "CatalogDispatcher" {
+Read.QD -> Catalog: "CatalogDispatcher" {
   style: {
     stroke: "#00838f"
     stroke-width: 1
@@ -546,13 +448,23 @@ CQRS Layer.Read Path.Q Dispatcher -> Catalog: "CatalogDispatcher" {
   }
 }
 
-Event Layer.Event Bus -> Catalog: "Event schemas" {
+Bus -> Catalog: "Event schemas" {
   style: {
     stroke: "#00838f"
     stroke-width: 1
     stroke-dash: 3
   }
 }
+
+# ─── LAYOUT HINTS ────────────────────────────────────────────────────────────
+
+Web Client -> SSE: { style.opacity: 0 }
+HTTP API -> Read: { style.opacity: 0 }
+Write -> Read: { style.opacity: 0 }
+Write -> Repo: { style.opacity: 0 }
+Aggregate -> EventStore: { style.opacity: 0 }
+EventStore -> Bus: { style.opacity: 0 }
+Projections -> Catalog: { style.opacity: 0 }
 
 # ─── LEGEND ───────────────────────────────────────────────────────────────────
 
@@ -592,7 +504,7 @@ Legend: {
     }
   }
 
-  patterns: {
+  line_styles: {
     shape: text
     label: "Solid   — Synchronous data flow\nDashed  — Async / indirect flow\nAnimated — Event-driven flow"
     style: {
