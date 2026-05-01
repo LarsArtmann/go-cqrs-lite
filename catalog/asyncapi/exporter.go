@@ -96,13 +96,13 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 	for _, svc := range cat.Services {
 		for _, cmd := range svc.Commands {
-			e.addMessage(doc, svc.ID, cmd, kindCommand)
+			e.addMessage(doc, svc.ID, cmd, kindCommand, withAction(actionReceive))
 		}
 
 		for _, evt := range svc.Events {
-			action := "send"
+			action := actionSend
 			if evt.Direction == catalog.Receives {
-				action = "receive"
+				action = actionReceive
 			}
 
 			e.addMessage(doc, svc.ID, evt, kindEvent, withAction(action))

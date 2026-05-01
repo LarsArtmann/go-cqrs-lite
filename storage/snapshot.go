@@ -91,7 +91,7 @@ func (s *SQLSnapshotStore) Load(
 	return &event.Snapshot{
 		AggregateType: aggregateType,
 		AggregateID:   aggregateID,
-		Version:       version,
+		Version:       event.Version(version),
 		State:         stateBytes,
 	}, nil
 }
@@ -126,7 +126,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	return &event.Snapshot{
 		AggregateType: aggregateType,
 		AggregateID:   aggregateID,
-		Version:       snapVersion,
+		Version:       event.Version(snapVersion),
 		State:         stateBytes,
 	}, nil
 }

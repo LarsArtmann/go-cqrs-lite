@@ -23,20 +23,11 @@ type SQLEventStore struct {
 }
 
 // NewSQLEventStore creates a new SQL-backed event store.
-func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
-	s := &SQLEventStore{
+func NewSQLEventStore(db *sql.DB) *SQLEventStore {
+	return &SQLEventStore{
 		db: db,
 	}
-
-	for _, opt := range opts {
-		opt(s)
-	}
-
-	return s
 }
-
-// SQLEventStoreOption configures an SQLEventStore.
-type SQLEventStoreOption func(*SQLEventStore)
 
 // ErrConcurrencyConflict indicates an optimistic concurrency violation.
 // Alias of event.ErrVersionConflict for unified errors.Is checking.
