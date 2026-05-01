@@ -23,17 +23,17 @@ type InMemoryRunner struct {
 }
 
 // NewInMemoryRunner creates a runner that tracks checkpoints.
-// Panics if checkpoint is nil.
-func NewInMemoryRunner(checkpoint CheckpointStore) *InMemoryRunner {
+// Returns an error if checkpoint is nil.
+func NewInMemoryRunner(checkpoint CheckpointStore) (*InMemoryRunner, error) {
 	if checkpoint == nil {
-		panic("event: nil CheckpointStore")
+		return nil, fmt.Errorf("%w", ErrNilCheckpointStore)
 	}
 
 	return &InMemoryRunner{
 		checkpoint:  checkpoint,
 		mu:          sync.RWMutex{},
 		projections: nil,
-	}
+	}, nil
 }
 
 // Register adds a projection to the runner.

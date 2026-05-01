@@ -24,31 +24,25 @@ func (nopCheckpointStore) Close() error { return nil }
 func TestInMemoryRunner_NilCheckpoint(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic for nil CheckpointStore")
-		}
+	_, err := NewInMemoryRunner(nil)
+	if err == nil {
+		t.Fatal("expected error for nil CheckpointStore")
+	}
 
-		msg, ok := r.(string)
-		if !ok {
-			t.Fatalf("panic value = %v (%T), want string", r, r)
-		}
-
-		if msg != "event: nil CheckpointStore" {
-			t.Errorf("panic message = %q, want %q", msg, "event: nil CheckpointStore")
-		}
-	}()
-
-	NewInMemoryRunner(nil)
+	if !errors.Is(err, ErrNilCheckpointStore) {
+		t.Errorf("error = %v, want ErrNilCheckpointStore", err)
+	}
 }
 
 func TestInMemoryRunner_RegisterNilProjection(t *testing.T) {
 	t.Parallel()
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(nil)
+	err = runner.Register(nil)
 	if err == nil {
 		t.Fatal("expected error for nil projection")
 	}
@@ -57,11 +51,14 @@ func TestInMemoryRunner_RegisterNilProjection(t *testing.T) {
 func TestInMemoryRunner_RegisterDuplicateName(t *testing.T) {
 	t.Parallel()
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection("dup", func(_ context.Context, _ Event) error { return nil }, nil)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("first Register: %v", err)
 	}
@@ -77,7 +74,10 @@ func TestInMemoryRunner_Handle_DispatchesToMatching(t *testing.T) {
 
 	var handled []string
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection(
 		"test",
@@ -89,7 +89,7 @@ func TestInMemoryRunner_Handle_DispatchesToMatching(t *testing.T) {
 		[]Type{"UserCreated"},
 	)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -114,7 +114,10 @@ func TestInMemoryRunner_Handle_SkipsNonMatching(t *testing.T) {
 
 	handled := false
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection(
 		"test",
@@ -126,7 +129,7 @@ func TestInMemoryRunner_Handle_SkipsNonMatching(t *testing.T) {
 		[]Type{"UserCreated"},
 	)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -151,7 +154,10 @@ func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
 
 	count := 0
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection(
 		"all-events",
@@ -163,7 +169,7 @@ func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
 		nil,
 	)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -186,7 +192,10 @@ func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
 func TestInMemoryRunner_Handle_ProjectionError(t *testing.T) {
 	t.Parallel()
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection(
 		"failing",
@@ -196,7 +205,7 @@ func TestInMemoryRunner_Handle_ProjectionError(t *testing.T) {
 		[]Type{"UserCreated"},
 	)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -219,7 +228,10 @@ func TestInMemoryRunner_HandleParallel_DispatchesConcurrently(t *testing.T) {
 
 	handled := map[string]bool{}
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	for _, name := range []string{"proj-a", "proj-b", "proj-c"} {
 		p := NewProjection(name, func(_ context.Context, _ Event) error {
@@ -230,7 +242,7 @@ func TestInMemoryRunner_HandleParallel_DispatchesConcurrently(t *testing.T) {
 			return nil
 		}, nil)
 
-		err := runner.Register(p)
+		err = runner.Register(p)
 		if err != nil {
 			t.Fatalf("Register %s: %v", name, err)
 		}
@@ -259,7 +271,10 @@ func TestInMemoryRunner_HandleParallel_SkipsNonMatching(t *testing.T) {
 
 	called := false
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection("filtered", func(_ context.Context, _ Event) error {
 		called = true
@@ -267,7 +282,7 @@ func TestInMemoryRunner_HandleParallel_SkipsNonMatching(t *testing.T) {
 		return nil
 	}, []Type{"UserCreated"})
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -290,13 +305,16 @@ func TestInMemoryRunner_HandleParallel_SkipsNonMatching(t *testing.T) {
 func TestInMemoryRunner_HandleParallel_ProjectionError(t *testing.T) {
 	t.Parallel()
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	proj := NewProjection("failing", func(_ context.Context, _ Event) error {
 		return errors.New("boom")
 	}, nil)
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -315,7 +333,10 @@ func TestInMemoryRunner_HandleParallel_ProjectionError(t *testing.T) {
 func TestInMemoryRunner_HandleParallel_NoProjections(t *testing.T) {
 	t.Parallel()
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
 	evt, err := NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {
@@ -335,9 +356,12 @@ func TestInMemoryRunner_HandleParallel_PartialFailure_StillRunsOthers(t *testing
 
 	handled := map[string]bool{}
 
-	runner := NewInMemoryRunner(nopCheckpointStore{})
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(NewProjection("ok-1", func(_ context.Context, _ Event) error {
+	err = runner.Register(NewProjection("ok-1", func(_ context.Context, _ Event) error {
 		mtx.Lock()
 		handled["ok-1"] = true
 		mtx.Unlock()

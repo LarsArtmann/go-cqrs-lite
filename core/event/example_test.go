@@ -49,7 +49,12 @@ func ExampleNewBuilder() {
 
 func ExampleInMemoryRunner() {
 	checkpoint := memory.NewCheckpointStore()
-	runner := event.NewInMemoryRunner(checkpoint)
+	runner, err := event.NewInMemoryRunner(checkpoint)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
 
 	proj := event.NewProjection(
 		"my-projection",

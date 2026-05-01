@@ -29,9 +29,12 @@ func TestInMemoryRunner_Handle(t *testing.T) {
 		[]event.Type{"UserCreated"},
 	)
 
-	runner := event.NewInMemoryRunner(checkpoint)
+	runner, err := event.NewInMemoryRunner(checkpoint)
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -83,9 +86,12 @@ func TestInMemoryRunner_FiltersByEventType(t *testing.T) {
 		[]event.Type{"UserCreated"},
 	)
 
-	runner := event.NewInMemoryRunner(checkpoint)
+	runner, err := event.NewInMemoryRunner(checkpoint)
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -127,9 +133,12 @@ func TestInMemoryRunner_SubscribesToAll(t *testing.T) {
 		nil,
 	)
 
-	runner := event.NewInMemoryRunner(checkpoint)
+	runner, err := event.NewInMemoryRunner(checkpoint)
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -167,9 +176,12 @@ func TestInMemoryRunner_ProjectionError(t *testing.T) {
 		nil,
 	)
 
-	runner := event.NewInMemoryRunner(checkpoint)
+	runner, err := event.NewInMemoryRunner(checkpoint)
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
 
-	err := runner.Register(proj)
+	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}

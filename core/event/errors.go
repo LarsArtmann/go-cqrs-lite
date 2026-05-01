@@ -23,5 +23,8 @@ var ErrSnapshotStoreClosed = errors.New("snapshot store is closed")
 // ErrNilProjection is returned when a nil projection is registered.
 var ErrNilProjection = errors.New("event: nil projection")
 
+// ErrNilCheckpointStore is returned when a nil checkpoint store is passed to NewInMemoryRunner.
+var ErrNilCheckpointStore = errors.New("event: nil checkpoint store")
+
 // ErrDuplicateProjection is returned when a projection with the same name is already registered.
 var ErrDuplicateProjection = errors.New("event: duplicate projection")
