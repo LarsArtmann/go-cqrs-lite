@@ -226,7 +226,7 @@ linters:
           - exhaustruct
           - wrapcheck
           - noinlineerr
-      - path: testhelpers/fakes\.go$
+      - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct
 formatters:
