@@ -10,8 +10,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	catalogadapters "github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -21,11 +19,11 @@ import (
 // --- Typed event payloads (with struct tags for schema generation) ---
 
 type UserCreatedPayload struct {
-	Email string `json:"email" description:"The user's email address"`
+	Email string `description:"The user's email address" json:"email"`
 }
 
 type UserNameChangedPayload struct {
-	Name string `json:"name" description:"The new display name"`
+	Name string `description:"The new display name" json:"name"`
 }
 
 // --- User aggregate root ---
@@ -50,15 +48,19 @@ func (u *User) Apply(evt event.Event) error {
 	switch evt.Type() {
 	case "UserCreated":
 		var p UserCreatedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		err := json.Unmarshal(evt.Payload(), &p)
+		if err != nil {
 			return fmt.Errorf("unmarshal UserCreated: %w", err)
 		}
+
 		u.email = p.Email
 	case "UserNameChanged":
 		var p UserNameChangedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		err := json.Unmarshal(evt.Payload(), &p)
+		if err != nil {
 			return fmt.Errorf("unmarshal UserNameChanged: %w", err)
 		}
+
 		u.name = p.Name
 	}
 
@@ -173,106 +175,4 @@ func main() {
 	fmt.Println(
 		"Open it with EventCatalog (https://www.eventcatalog.dev/) to visualize your event-driven architecture.",
 	)
-}
-
-func generateEventCatalog(outputDir string) error {
-	builder := catalogadapters.NewBuilder("User Service", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages user accounts")
-
-	builder.AddEvent("user-svc", newUserCreatedEvent())
-	builder.AddEvent("user-svc", newUserNameChangedEvent())
-
-	builder.AddDomain(
-		"identity",
-		"Identity",
-		"User identity and account management",
-		[]string{"user-svc"},
-	)
-
-	cat := builder.Build()
-
-	printCatalogSummary(cat)
-
-	return builder.ExportEventCatalog(outputDir)
-}
-
-func newUserCreatedEvent() event.Catalogable {
-	aggID := id.NewAggregateID()
-
-	core, err := event.NewCatalogCore(
-		"UserCreated",
-		aggID,
-		"User",
-		1,
-		nil,
-		event.CatalogMeta{
-			Name:          "User Created",
-			Version:       "1.0.0",
-			Summary:       "Fired when a new user account is created",
-			AggregateType: "User",
-		},
-	)
-	if err != nil {
-		log.Fatalf("create UserCreated catalog core: %v", err)
-	}
-
-	return &userCreatedEvent{CatalogCore: core}
-}
-
-func newUserNameChangedEvent() event.Catalogable {
-	aggID := id.NewAggregateID()
-
-	core, err := event.NewCatalogCore(
-		"UserNameChanged",
-		aggID,
-		"User",
-		1,
-		nil,
-		event.CatalogMeta{
-			Name:          "User Name Changed",
-			Version:       "1.0.0",
-			Summary:       "Fired when a user changes their display name",
-			AggregateType: "User",
-		},
-	)
-	if err != nil {
-		log.Fatalf("create UserNameChanged catalog core: %v", err)
-	}
-
-	return &userNameChangedEvent{CatalogCore: core}
-}
-
-// --- Catalogable event types (with struct tags for schema reflection) ---
-
-type userCreatedEvent struct {
-	*event.CatalogCore
-
-	Email string `json:"email" description:"The user's email address"`
-}
-
-type userNameChangedEvent struct {
-	*event.CatalogCore
-
-	Name string `json:"name" description:"The new display name"`
-}
-
-func printCatalogSummary(cat *catalog.Catalog) {
-	fmt.Printf("Catalog: %s v%s\n", cat.Title, cat.Version)
-
-	for _, svc := range cat.Services {
-		fmt.Printf("  Service: %s (%s)\n", svc.Name, svc.ID)
-
-		for _, evt := range svc.Events {
-			schemaInfo := "(no schema)"
-			if evt.Schema != nil {
-				schemaInfo = fmt.Sprintf("%d properties", len(evt.Schema.Properties))
-			}
-
-			fmt.Printf("    Event: %s — %s %s\n", evt.Name, evt.Summary, schemaInfo)
-		}
-	}
-
-	for _, domain := range cat.Domains {
-		fmt.Printf("  Domain: %s (%s)\n", domain.Name, domain.ID)
-	}
 }
