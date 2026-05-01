@@ -670,3 +670,73 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 		"42.5",
 	)
 }
+
+func TestExporter_Export_ServiceWithOwners(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	reg := cattest.NewRegistry(t, "Test", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "owned-svc",
+		Name:    "Owned Service",
+		Version: "1.0.0",
+		Owners:  []string{"team-platform", "john-doe"},
+		Commands: []catalog.Message{
+			{Kind: catalog.CommandMessage, ID: "DoThing", Name: "DoThing", Version: "1.0.0"},
+		},
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "owned-svc", "index.mdx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := string(data)
+	cattest.AssertContentContains(t, content, "service index.mdx",
+		"owners:",
+		"- team-platform",
+		"- john-doe",
+	)
+}
+
+func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	reg := cattest.NewRegistry(t, "Test", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
+	cattest.AddEventSimple(t, reg, "svc", "PlainEvent", "PlainEvent", "1.0.0", catalog.Sends)
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(
+		tmpDir, "services", "svc", "events", "PlainEvent", "index.mdx",
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := string(data)
+
+	if strings.Contains(content, "summary:") {
+		t.Errorf("message without summary should not have summary field, got:\n%s", content)
+	}
+
+	if !strings.Contains(content, "# PlainEvent") {
+		t.Errorf("message should have title heading, got:\n%s", content)
+	}
+}
