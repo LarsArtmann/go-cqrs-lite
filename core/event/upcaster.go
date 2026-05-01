@@ -53,3 +53,5 @@ func (u *UpcasterFunc) SourceVersion() int { return u.sourceVersion }
 func (u *UpcasterFunc) Upcast(evt Event) (*Core, error) {
 	return u.upcast(evt)
 }
+
+var _ Upcaster = (*UpcasterFunc)(nil)
