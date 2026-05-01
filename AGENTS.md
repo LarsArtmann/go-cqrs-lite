@@ -317,15 +317,16 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/command`         | 100.0%   |
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
-| `middleware`           | 100.0%   |
-| `memory`               | 98.9%    |
+| `core/pkg/id`          | 100.0%   |
+| `middleware`           | 99.4%    |
+| `memory`               | 99.0%    |
 | `catalog/adapters`     | 98.8%    |
-| `core/event`           | 99.1%    |
-| `core/pkg/id`          | 97.1%    |
-| `catalog/asyncapi`     | 97.6%    |
+| `catalog/asyncapi`     | 97.9%    |
+| `core/event`           | 96.3%    |
 | `catalog/eventcatalog` | 95.5%    |
-| `core/aggregate`       | 95.7%    |
+| `core/aggregate`       | 95.6%    |
 | `catalog`              | 94.4%    |
+| `storage`              | 79.6%    |
 
 ## Module Dependency Graph
 
@@ -334,6 +335,7 @@ testhelpers → core
 memory      → core + testhelpers
 middleware  → core + testhelpers
 catalog    → core (via cattest internal helpers)
+storage    → core (go-sqlmock for tests)
 integration → core + memory + testhelpers
 core        → (no internal deps — independently publishable)
 ```
@@ -540,6 +542,23 @@ Interfaces now return branded ID types instead of `string`:
   - **BDD_TESTS_REVIEW.md**: Fixed all file paths from `core/` → `integration/`, updated running commands, noted missing query suite file
   - **FEATURES.md**: Fixed audit date (2025→2026), corrected middleware count (7→6 concerns, 21→18 factories)
   - **TODO_LIST.md**: Removed 250+ stale completed items, restructured to 5 actionable priorities (HIGH/MEDIUM/LOW/PLANNED)
+
+- **Session 17 (Bug Fix Sprint)**:
+  - Fixed upcaster `>=` → `==` version comparison, storage metadata persistence, dead codec removal, transactional AppendBatch, InMemoryRunner nil guards, toDotAddress acronyms, AsyncAPI key collision
+
+- **Session 18 (Comprehensive Audit + Ghost System Fix)**:
+  - Migrated storage from `encoding/json` (v1) to `go-json-experiment/json` (v2) — eliminated JSON split brain
+  - Added `storage` to `flake.nix` test matrix (was invisible to CI)
+  - Unified `FakeStore` key separator with `MemoryStore` (`/` → `:`)
+
+- **Session 19 (Ghost System Elimination + Coverage Recovery)**:
+  - **Storage unit tests**: 12 tests with go-sqlmock, coverage 0% → 79.6% (Save, Load, LoadFromVersion, Delete, AppendBatch, Close, metadata roundtrip)
+  - **InMemoryRunner Handle/subscribesTo tests**: core/event 86.7% → 96.3%
+  - **id.Ptr/FromPtr tests**: core/pkg/id 92.9% → 100.0%
+  - **MemoryCheckpointStore tests**: memory 94.9% → 99.0%
+  - **FakeCheckpointStore**: Added to testhelpers for integration test use
+  - **CI improvement**: `example/user` build verification added to flake.nix
+  - All 17 packages pass (including storage), zero lint, zero races
 
 ## Migration State
 
