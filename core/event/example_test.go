@@ -38,7 +38,7 @@ func ExampleNewBuilder() {
 	aggID := id.NewAggregateID()
 
 	evt := event.NewBuilder("UserCreated", aggID, "User", 1).
-		Payload([]byte(`{"name":"Alice"}`)).
+		WithPayload([]byte(`{"name":"Alice"}`)).
 		MustBuild()
 
 	fmt.Println(evt.Type())
