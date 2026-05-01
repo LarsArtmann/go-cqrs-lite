@@ -140,6 +140,7 @@ func (s *SQLEventStore) Save(
 }
 
 // AppendBatch appends events without optimistic concurrency checks.
+// All events are inserted in a single transaction for atomicity.
 func (s *SQLEventStore) AppendBatch(
 	ctx context.Context,
 	aggregateType event.AggregateType,
@@ -150,6 +151,15 @@ func (s *SQLEventStore) AppendBatch(
 		return nil
 	}
 
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	insertQuery := `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
@@ -159,7 +169,7 @@ func (s *SQLEventStore) AppendBatch(
 			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
 		}
 
-		_, err = s.db.ExecContext(
+		_, err = tx.ExecContext(
 			ctx,
 			insertQuery,
 			evt.ID(),
@@ -174,6 +184,10 @@ func (s *SQLEventStore) AppendBatch(
 		if err != nil {
 			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return nil
