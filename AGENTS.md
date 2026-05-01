@@ -67,6 +67,7 @@ go-cqrs-lite/
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
 │   ├── adapters/                    # CatalogBuilder, FromDispatcher adapters
 │   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter (uses catalog.MessageID)
+│   ├── d2/                          # D2 diagram text exporter (uses catalog.MessageID)
 │   ├── eventcatalog/                # EventCatalog MDX file generator (uses catalog.MessageID)
 │   └── internal/cattest/            # test helpers
 │
@@ -190,6 +191,7 @@ nix develop             # enter dev shell
 | `catalog/`              | Registry, schema reflection, MessageID | `Registry`, `Catalog`, `SchemaFromType[T]`, `MessageID()` |
 | `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                 |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                     |
+| `catalog/d2/`           | D2 diagram text export                | `Exporter`, `Export()`, `NewExporter()`                       |
 | `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                |
 
 ### Middleware Module (`middleware/`)
@@ -383,7 +385,7 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
            ┌───────────┴───────────┐
            ▼                       ▼
 ┌─────────────────────┐  ┌─────────────────────────┐
-│ catalog/asyncapi/   │  │ catalog/eventcatalog/   │
+│ catalog/asyncapi/   │  │ catalog/d2/            │  │ catalog/eventcatalog/   │
 │ AsyncAPI 3.0 YAML   │  │ MDX files on disk       │
 │ Document.MarshalYAML│  │ services/{id}/index.mdx │
 │ Document.MarshalJSON│  │ schemas/schema.json     │
@@ -405,6 +407,8 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. Service frontmatter includes `sends`, `receives`, `commands`, and `queries` lists.
 
 7. **Catalog adapters** (`catalog/adapters`) — `CatalogBuilder` provides instance-based methods (`AddCommand`, `AddEvent`, `AddQuery`) and generic zero-instance methods (`AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`). Generic methods use `SchemaFromType[T]()` for compile-time safety. `FromCommandDispatcher` and `FromQueryDispatcher` extract catalog entries from dispatchers.
+
+8. **D2 diagram export** (`catalog/d2`) — Generates D2 text from `*catalog.Catalog`. Services become containers, commands/events/queries become color-coded nodes (command=blue, event=red queue, query=purple), domains become grouping labels. Wire via `CatalogBuilder.ExportD2(title, version)`. Follows same `Exporter` pattern as `asyncapi` and `eventcatalog`.
 
 ## Branded Return Types Migration (Session 3)
 
