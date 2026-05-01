@@ -98,3 +98,44 @@ func TestNewCatalogCore_WithOptions(t *testing.T) {
 		t.Error("correlation ID not set via option")
 	}
 }
+
+func TestMustNewCatalogCore_Success(t *testing.T) {
+	t.Parallel()
+
+	meta := event.CatalogMeta{Name: "Test", Version: "1.0.0"}
+
+	core := event.MustNewCatalogCore(
+		"TestEvent",
+		id.NewAggregateID(),
+		"TestAgg",
+		1,
+		nil,
+		meta,
+	)
+
+	if core.Type() != "TestEvent" {
+		t.Errorf("type = %q, want TestEvent", core.Type())
+	}
+}
+
+func TestMustNewCatalogCore_Panics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("expected panic for empty event type")
+		}
+	}()
+
+	meta := event.CatalogMeta{Name: "Test", Version: "1.0.0"}
+
+	event.MustNewCatalogCore(
+		"",
+		id.NewAggregateID(),
+		"TestAgg",
+		1,
+		nil,
+		meta,
+	)
+}

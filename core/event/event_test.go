@@ -3,6 +3,7 @@ package event_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -482,5 +483,49 @@ func TestEnsureMetadata_WhenNil(t *testing.T) {
 
 	if core.Metadata().CorrelationID != id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
 		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)
+	}
+}
+
+func TestWithEventID(t *testing.T) {
+	t.Parallel()
+
+	overrideID := id.MustParseEventID("01HK154EJG2GP2SR75DK1Q1TBH")
+
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewAggregateID(),
+		"TestAgg",
+		1,
+		nil,
+		event.WithEventID(overrideID),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.ID() != overrideID {
+		t.Errorf("ID = %s, want %s", evt.ID(), overrideID)
+	}
+}
+
+func TestWithOccurredAt(t *testing.T) {
+	t.Parallel()
+
+	ts := time.Date(2025, 3, 15, 10, 30, 0, 0, time.UTC)
+
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewAggregateID(),
+		"TestAgg",
+		1,
+		nil,
+		event.WithOccurredAt(ts),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !evt.OccurredAt().Equal(ts) {
+		t.Errorf("OccurredAt = %v, want %v", evt.OccurredAt(), ts)
 	}
 }
