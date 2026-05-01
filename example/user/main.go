@@ -95,8 +95,6 @@ func (u *User) ChangeName(ctx context.Context, name string) error {
 
 	u.RecordEvent(ctx, evt)
 
-	u.name = name
-
 	return nil
 }
 
