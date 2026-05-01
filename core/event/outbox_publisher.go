@@ -9,14 +9,18 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
+const defaultBatchSize = 100
+
+const defaultPollInterval = time.Second
+
 // OutboxPublisher polls an Outbox for pending entries and publishes them
 // to a Bus. Intended for reliable eventual publishing in event-sourced systems.
 //
 // Start the background loop with Start; stop it with Close (implements io.Closer).
 type OutboxPublisher struct {
-	outbox   Outbox
-	bus      Bus
-	interval time.Duration
+	outbox    Outbox
+	bus       Bus
+	interval  time.Duration
 	batchSize int
 
 	mu     sync.Mutex
@@ -53,8 +57,10 @@ func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) *
 	p := &OutboxPublisher{
 		outbox:    outbox,
 		bus:       bus,
-		interval:  time.Second,
-		batchSize: 100,
+		interval:  defaultPollInterval,
+		batchSize: defaultBatchSize,
+		mu:        sync.Mutex{},
+		cancel:    nil,
 		done:      make(chan struct{}),
 	}
 
@@ -63,11 +69,11 @@ func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) *
 	}
 
 	if p.interval <= 0 {
-		p.interval = time.Second
+		p.interval = defaultPollInterval
 	}
 
 	if p.batchSize <= 0 {
-		p.batchSize = 100
+		p.batchSize = defaultBatchSize
 	}
 
 	return p
@@ -160,7 +166,7 @@ func (p *OutboxPublisher) PublishNow(ctx context.Context) error {
 	}
 
 	var (
-		ackIDs []OutboxID
+		ackIDs  []OutboxID
 		lastErr error
 	)
 
