@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -9,7 +10,10 @@ import (
 // CheckpointStore tracks the last processed event position for projections.
 // Each projection maintains its own checkpoint, enabling independent
 // recovery and replay.
+// All implementations must support lifecycle management via io.Closer.
 type CheckpointStore interface {
+	io.Closer
+
 	// Load returns the last processed event ID for a projection.
 	// Returns id.EventID zero value if no checkpoint exists.
 	Load(ctx context.Context, projectionName string) (id.EventID, error)

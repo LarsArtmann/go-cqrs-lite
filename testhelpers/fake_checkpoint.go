@@ -19,3 +19,6 @@ func (FakeCheckpointStore) Load(_ context.Context, _ string) (id.EventID, error)
 func (FakeCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error {
 	return nil
 }
+
+// Close is a no-op.
+func (FakeCheckpointStore) Close() error { return nil }

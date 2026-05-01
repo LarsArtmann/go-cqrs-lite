@@ -19,6 +19,8 @@ func (nopCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error 
 	return nil
 }
 
+func (nopCheckpointStore) Close() error { return nil }
+
 func TestInMemoryRunner_NilCheckpoint(t *testing.T) {
 	t.Parallel()
 

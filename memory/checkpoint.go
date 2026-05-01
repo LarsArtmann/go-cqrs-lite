@@ -44,4 +44,7 @@ func (s *MemoryCheckpointStore) Save(
 	return nil
 }
 
+// Close is a no-op for the in-memory checkpoint store.
+func (s *MemoryCheckpointStore) Close() error { return nil }
+
 var _ event.CheckpointStore = (*MemoryCheckpointStore)(nil)
