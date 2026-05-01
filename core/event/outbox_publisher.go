@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/cockroachdb/errors"
 )
 
 const defaultBatchSize = 100
@@ -90,7 +88,7 @@ func (p *OutboxPublisher) Start() error {
 	defer p.mu.Unlock()
 
 	if p.cancel != nil {
-		return errors.New("event: outbox publisher already started")
+		return ErrAlreadyStarted
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

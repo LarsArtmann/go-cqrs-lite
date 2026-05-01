@@ -145,8 +145,8 @@ func TestOutboxPublisher_DoubleStart(t *testing.T) {
 		t.Fatal("expected error on double start")
 	}
 
-	if !strings.Contains(err.Error(), "already started") {
-		t.Fatalf("error = %q, want containing 'already started'", err.Error())
+	if !errors.Is(err, ErrAlreadyStarted) {
+		t.Fatalf("error = %q, want ErrAlreadyStarted", err.Error())
 	}
 }
 

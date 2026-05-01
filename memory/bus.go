@@ -126,7 +126,7 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 	}
 
 	if handler == nil {
-		return errors.New("handler must not be nil")
+		return ErrHandlerNil
 	}
 
 	b.mu.Lock()
@@ -144,7 +144,7 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 	}
 
 	if handler == nil {
-		return errors.New("handler must not be nil")
+		return ErrHandlerNil
 	}
 
 	b.mu.Lock()

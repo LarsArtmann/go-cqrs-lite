@@ -34,3 +34,6 @@ var ErrNilOutbox = errors.New("event: nil outbox")
 
 // ErrNilBus is returned when a nil bus is passed to NewOutboxPublisher.
 var ErrNilBus = errors.New("event: nil bus")
+
+// ErrAlreadyStarted is returned when OutboxPublisher.Start is called more than once.
+var ErrAlreadyStarted = errors.New("event: outbox publisher already started")
