@@ -61,12 +61,19 @@ func MustNewCatalogCore(
 	meta CatalogMeta,
 	opts ...Option,
 ) *CatalogCore {
-	cc, err := NewCatalogCore(eventType, aggregateID, aggregateType, version, payload, meta, opts...)
+	core, err := NewCatalogCore(
+		eventType,
+		aggregateID,
+		aggregateType,
+		version,
+		payload,
+		meta,
+		opts...)
 	if err != nil {
 		panic(fmt.Sprintf("event.MustNewCatalogCore: %v", err))
 	}
 
-	return cc
+	return core
 }
 
 // CatalogInfo returns the catalog metadata for this event.
