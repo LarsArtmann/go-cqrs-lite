@@ -21,6 +21,9 @@ type Bus interface {
 
 	// SubscribeAll registers a handler for all event types
 	SubscribeAll(handler Handler) error
+
+	// Use adds middleware that wraps all event handlers
+	Use(middleware ...Middleware) error
 }
 
 // Middleware wraps event handlers for cross-cutting concerns.
