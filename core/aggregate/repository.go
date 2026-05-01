@@ -66,6 +66,14 @@ func opError(
 // Save persists uncommitted events. If an outbox is configured, events are
 // appended to the outbox for reliable eventual publishing. Otherwise, they
 // are published directly to the bus.
+//
+// Partial-failure contract: if store.Save succeeds but bus.Publish or
+// outbox.Append fails, events are durably stored but not published. The
+// aggregate's uncommitted changes are NOT marked as committed, so the caller
+// can retry. On retry, store.Save will fail with ErrVersionConflict because
+// the events already exist. To recover, either use the outbox pattern (which
+// decouples persistence from publishing) or handle the conflict by loading
+// the current state and comparing.
 func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	changes := root.UncommittedChanges()
 	if len(changes) == 0 {

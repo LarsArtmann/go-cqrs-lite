@@ -170,6 +170,7 @@ func (s *SQLEventStore) AppendBatch(
 }
 
 // Load retrieves all events for an aggregate, ordered by version.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) Load(
 	ctx context.Context,
 	aggregateType event.AggregateType,
@@ -189,7 +190,16 @@ func (s *SQLEventStore) Load(
 		_ = rows.Close()
 	}()
 
-	return scanEvents(rows)
+	events, err := scanEvents(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return events, nil
 }
 
 // LoadFromVersion retrieves events starting from a given version.

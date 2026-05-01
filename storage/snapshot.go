@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -61,6 +62,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 }
 
 // Load retrieves the latest snapshot for an aggregate.
+// Returns ErrSnapshotNotFound if no snapshot exists.
 func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
 	aggregateType event.AggregateType,
@@ -78,6 +80,10 @@ func (s *SQLSnapshotStore) Load(
 	err := s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
 		Scan(&version, &stateBytes, &createdAt)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, event.ErrSnapshotNotFound
+		}
+
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
