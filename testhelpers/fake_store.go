@@ -113,7 +113,7 @@ func (s *FakeStore) LoadFromVersion(
 	s.mu.RUnlock()
 
 	for i, evt := range all {
-		if evt.Version() > version.Int() {
+		if evt.Version() > version {
 			return all[i:], nil
 		}
 	}

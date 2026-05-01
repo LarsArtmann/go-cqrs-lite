@@ -67,8 +67,8 @@ func TestCore(t *testing.T) {
 		t.Errorf("expected type User, got %s", core.Type())
 	}
 
-	if core.Version() != 0 {
-		t.Errorf("expected version 0, got %d", core.Version())
+	if core.Version().Int() != 0 {
+		t.Errorf("expected version 0, got %d", core.Version().Int())
 	}
 }
 
@@ -90,8 +90,8 @@ func TestCoreLoadFromHistory(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	if core.Version() != 1 {
-		t.Errorf("expected version 1 after loading history, got %d", core.Version())
+	if core.Version().Int() != 1 {
+		t.Errorf("expected version 1 after loading history, got %d", core.Version().Int())
 	}
 
 	if len(root.applied) != 1 {
@@ -130,8 +130,8 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if core.Version() != 5 {
-		t.Errorf("expected version 5 after loading 5 events, got %d", core.Version())
+	if core.Version().Int() != 5 {
+		t.Errorf("expected version 5 after loading 5 events, got %d", core.Version().Int())
 	}
 }
 
@@ -147,10 +147,10 @@ func TestCoreLoadFromHistory_Empty(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	if core.Version() != 0 {
+	if core.Version().Int() != 0 {
 		t.Errorf(
 			"expected version 0 after loading empty history, got %d",
-			core.Version(),
+			core.Version().Int(),
 		)
 	}
 }
@@ -173,14 +173,14 @@ func TestCoreRecordEvent(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if core.Version() != 0 {
-		t.Fatalf("expected initial version 0, got %d", core.Version())
+	if core.Version().Int() != 0 {
+		t.Fatalf("expected initial version 0, got %d", core.Version().Int())
 	}
 
 	core.RecordEvent(context.Background(), evt)
 
-	if core.Version() != 1 {
-		t.Errorf("expected version 1 after applying event, got %d", core.Version())
+	if core.Version().Int() != 1 {
+		t.Errorf("expected version 1 after applying event, got %d", core.Version().Int())
 	}
 }
 
@@ -206,8 +206,8 @@ func TestCoreRecordEvent_Multiple(t *testing.T) {
 		core.RecordEvent(context.Background(), evt)
 	}
 
-	if core.Version() != 3 {
-		t.Errorf("expected version 3 after applying 3 events, got %d", core.Version())
+	if core.Version().Int() != 3 {
+		t.Errorf("expected version 3 after applying 3 events, got %d", core.Version().Int())
 	}
 
 	changes := core.UncommittedChanges()
@@ -279,10 +279,10 @@ func TestCoreMarkChangesAsCommitted(t *testing.T) {
 		t.Errorf("expected 0 uncommitted changes after marking, got %d", len(changes))
 	}
 
-	if core.Version() != 1 {
+	if core.Version().Int() != 1 {
 		t.Errorf(
 			"expected version to remain 1 after marking committed, got %d",
-			core.Version(),
+			core.Version().Int(),
 		)
 	}
 }
@@ -361,8 +361,8 @@ func TestCoreFullLifecycle(t *testing.T) {
 
 	core.RecordEvent(context.Background(), evt2)
 
-	if core.Version() != 2 {
-		t.Errorf("expected version 2, got %d", core.Version())
+	if core.Version().Int() != 2 {
+		t.Errorf("expected version 2, got %d", core.Version().Int())
 	}
 
 	assertUncommittedChanges(t, core, 2)
@@ -371,10 +371,10 @@ func TestCoreFullLifecycle(t *testing.T) {
 
 	assertUncommittedChanges(t, core, 0)
 
-	if core.Version() != 2 {
+	if core.Version().Int() != 2 {
 		t.Errorf(
 			"expected version still 2 after commit, got %d",
-			core.Version(),
+			core.Version().Int(),
 		)
 	}
 }

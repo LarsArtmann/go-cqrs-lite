@@ -81,7 +81,7 @@ func (o *order) Place(ctx context.Context) error {
 		"OrderPlaced",
 		o.ID(),
 		orderAggregateType,
-		o.Version()+1,
+		o.Version().Int()+1,
 		payload,
 	)
 	if err != nil {
@@ -99,7 +99,7 @@ func (o *order) Ship(ctx context.Context) error {
 		"OrderShipped",
 		o.ID(),
 		orderAggregateType,
-		o.Version()+1,
+		o.Version().Int()+1,
 		nil,
 	)
 	if err != nil {

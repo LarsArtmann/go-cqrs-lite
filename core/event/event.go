@@ -41,7 +41,7 @@ type Event interface {
 	Type() Type
 	AggregateID() id.AggregateID
 	AggregateType() AggregateType
-	Version() int
+	Version() Version
 	SchemaVersion() int
 	Payload() []byte
 	Metadata() *Metadata
@@ -100,7 +100,7 @@ func (e *Core) AggregateID() id.AggregateID { return e.aggregateID }
 func (e *Core) AggregateType() AggregateType { return e.aggregateType }
 
 // Version returns the stream position of this event within the aggregate.
-func (e *Core) Version() int { return e.version.Int() }
+func (e *Core) Version() Version { return e.version }
 
 // SchemaVersion returns the schema version of the event payload.
 // Defaults to 1 for events created with NewEvent.

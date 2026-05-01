@@ -107,7 +107,7 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 		"ExpenseSubmitted",
 		e.ID(),
 		expenseType,
-		e.Version()+1,
+		e.Version().Int()+1,
 		payload,
 	)
 	if err != nil {
@@ -126,7 +126,7 @@ func (e *expense) Approve(ctx context.Context) error {
 		"ExpenseApproved",
 		e.ID(),
 		expenseType,
-		e.Version()+1,
+		e.Version().Int()+1,
 		nil,
 	)
 	if err != nil {
@@ -144,7 +144,7 @@ func (e *expense) Pay(ctx context.Context) error {
 		"ExpensePaid",
 		e.ID(),
 		expenseType,
-		e.Version()+1,
+		e.Version().Int()+1,
 		nil,
 	)
 	if err != nil {
@@ -212,7 +212,7 @@ var _ = Describe("CQRS Flow", func() {
 
 				loaded := newExpense(expenseID)
 				Expect(repo.Load(ctx, loaded)).To(Succeed())
-				Expect(loaded.Version()).To(Equal(1))
+				Expect(loaded.Version()).To(Equal(event.Version(1)))
 				Expect(loaded.description).To(Equal("Flight to Berlin"))
 				Expect(loaded.amount).To(Equal(349.50))
 			})
@@ -270,7 +270,7 @@ var _ = Describe("CQRS Flow", func() {
 
 				loaded := newExpense(expenseID)
 				Expect(repo.Load(ctx, loaded)).To(Succeed())
-				Expect(loaded.Version()).To(Equal(3))
+				Expect(loaded.Version()).To(Equal(event.Version(3)))
 				Expect(loaded.description).To(Equal("Team dinner"))
 				Expect(loaded.approved).To(BeTrue())
 				Expect(loaded.paid).To(BeTrue())
@@ -284,7 +284,7 @@ var _ = Describe("CQRS Flow", func() {
 
 				fresh := newExpense(expenseID)
 				Expect(repo.Load(ctx, fresh)).To(Succeed())
-				Expect(fresh.Version()).To(Equal(2))
+				Expect(fresh.Version()).To(Equal(event.Version(2)))
 				Expect(fresh.description).To(Equal("Uber ride"))
 				Expect(fresh.approved).To(BeTrue())
 				Expect(fresh.paid).To(BeFalse())
@@ -403,7 +403,7 @@ var _ = Describe("Aggregate Repository", func() {
 
 				final := newExpense(expenseID)
 				Expect(repo.Load(ctx, final)).To(Succeed())
-				Expect(final.Version()).To(Equal(2))
+				Expect(final.Version().Int()).To(Equal(2))
 				Expect(final.description).To(Equal("Lunch"))
 				Expect(final.approved).To(BeTrue())
 			})
@@ -425,7 +425,7 @@ var _ = Describe("Aggregate Repository", func() {
 
 				loaded := newExpense(expenseID)
 				Expect(repo.Load(ctx, loaded)).To(Succeed())
-				Expect(loaded.Version()).To(Equal(1))
+				Expect(loaded.Version()).To(Equal(event.Version(1)))
 				Expect(loaded.description).To(Equal("Recreated"))
 				Expect(loaded.amount).To(Equal(200.00))
 			})
@@ -492,11 +492,11 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 
 				final := newExpense(expenseID)
 				Expect(repo.Load(ctx, final)).To(Succeed())
-				Expect(final.Version()).To(BeNumerically(">=", 2))
+				Expect(final.Version().Int()).To(BeNumerically(">=", 2))
 
 				events, err := store.Load(ctx, expenseType, expenseID)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(events).To(HaveLen(final.Version()))
+				Expect(events).To(HaveLen(final.Version().Int()))
 			})
 		})
 
@@ -515,7 +515,7 @@ var _ = Describe("CQRS Concurrency and Invariants", func() {
 
 				final := newExpense(expenseID)
 				Expect(repo.Load(ctx, final)).To(Succeed())
-				Expect(final.Version()).To(Equal(2))
+				Expect(final.Version().Int()).To(Equal(2))
 				Expect(final.approved).To(BeFalse())
 				Expect(final.paid).To(BeTrue())
 			})

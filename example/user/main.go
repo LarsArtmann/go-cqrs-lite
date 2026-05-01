@@ -86,7 +86,7 @@ func (u *User) ChangeName(ctx context.Context, name string) error {
 		"UserNameChanged",
 		u.ID(),
 		u.Type(),
-		u.Version()+1,
+		u.Version().Int()+1,
 		payload,
 	)
 	if err != nil {
@@ -145,7 +145,7 @@ func main() {
 		log.Fatalf("load user: %v", err)
 	}
 
-	fmt.Printf("Loaded user %s, version %d\n", loaded.ID(), loaded.Version())
+	fmt.Printf("Loaded user %s, version %d\n", loaded.ID(), loaded.Version().Int())
 
 	if err := loaded.ChangeName(ctx, "Alice Smith"); err != nil {
 		log.Fatalf("change name: %v", err)
@@ -155,7 +155,7 @@ func main() {
 		log.Fatalf("save name change: %v", err)
 	}
 
-	fmt.Printf("Changed name to %q, version %d\n", loaded.name, loaded.Version())
+	fmt.Printf("Changed name to %q, version %d\n", loaded.name, loaded.Version().Int())
 
 	fmt.Println()
 	fmt.Println("CQRS + Event Sourcing flow completed successfully!")

@@ -360,7 +360,7 @@ type serializableRoot struct {
 
 func (r *serializableRoot) ID() id.AggregateID           { return r.IDVal }
 func (r *serializableRoot) Type() event.AggregateType    { return r.TypeVal }
-func (r *serializableRoot) Version() int                 { return r.Ver }
+func (r *serializableRoot) Version() event.Version       { return event.Version(r.Ver) }
 func (r *serializableRoot) SetVersion(v event.Version)   { r.Ver = v.Int() }
 func (r *serializableRoot) Apply(_ event.Event) error    { return nil }
 func (r *serializableRoot) ApplySnapshot(_ []byte) error { return nil }
@@ -446,7 +446,7 @@ func TestEveryNEvents(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		got := strategy.ShouldSnapshot("User", tc.version)
+		got := strategy.ShouldSnapshot("User", event.Version(tc.version))
 		if got != tc.expected {
 			t.Errorf("EveryNEvents(5).ShouldSnapshot(User, %d) = %v, want %v",
 				tc.version, got, tc.expected)

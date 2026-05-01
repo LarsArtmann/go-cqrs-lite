@@ -13,7 +13,7 @@ import (
 type Root interface {
 	ID() id.AggregateID
 	Type() event.AggregateType
-	Version() int
+	Version() event.Version
 	SetVersion(v event.Version)
 	Apply(evt event.Event) error
 	ApplySnapshot(state []byte) error
@@ -47,7 +47,9 @@ func (a *Core) ID() id.AggregateID { return a.id }
 func (a *Core) Type() event.AggregateType { return a.aggregateType }
 
 // Version returns the current version.
-func (a *Core) Version() int { return a.version.Int() }
+func (a *Core) Version() event.Version {
+	return a.version
+}
 
 // SetVersion sets the aggregate version directly.
 // Used by repositories when loading aggregates from snapshots.

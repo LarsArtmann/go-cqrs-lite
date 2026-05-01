@@ -61,7 +61,7 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 		"UserCreated",
 		1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
@@ -91,14 +91,14 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry.Register(event.NewUpcaster("UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
 
 	registry.Register(event.NewUpcaster("UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
 				[]byte(`{"name":"Alice","email":"","active":true}`))
 		},
 	))
@@ -129,7 +129,13 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	registry.Register(event.NewUpcaster("UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -158,7 +164,13 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -166,7 +178,13 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -195,7 +213,13 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -203,7 +227,13 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -236,7 +266,13 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -244,7 +280,13 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 
@@ -277,7 +319,13 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	registry.Register(event.NewUpcaster("UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version().Int(),
+				nil,
+			)
 		},
 	))
 

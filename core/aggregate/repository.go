@@ -74,7 +74,7 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	aggregateID := root.ID()
 	aggregateType := root.Type()
 
-	expectedVersion := event.Version(root.Version() - len(changes))
+	expectedVersion := root.Version() - event.Version(len(changes))
 
 	err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
 	if err != nil {
@@ -216,7 +216,7 @@ func (r *EventSourcedRepository) saveSnapshot(ctx context.Context, root Root) er
 	err := r.snapshotStore.Save(ctx, event.Snapshot{
 		AggregateID:   root.ID(),
 		AggregateType: root.Type(),
-		Version:       event.Version(root.Version()),
+		Version:       root.Version(),
 		State:         state,
 		CreatedAt:     time.Now().UTC(),
 	})

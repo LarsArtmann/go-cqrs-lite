@@ -76,7 +76,7 @@ func (p *product) newEvent(eventType string, payload []byte) (*event.Core, error
 		event.Type(eventType),
 		p.ID(),
 		productType,
-		p.Version()+1,
+		p.Version().Int()+1,
 		payload,
 	)
 }

@@ -59,7 +59,7 @@ var _ = Describe("Event Store", func() {
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
 				Expect(loaded[0].AggregateID()).To(Equal(aggID))
-				Expect(loaded[0].Version()).To(Equal(1))
+				Expect(loaded[0].Version()).To(Equal(event.Version(1)))
 			})
 		})
 
@@ -76,7 +76,7 @@ var _ = Describe("Event Store", func() {
 				Expect(loaded).To(HaveLen(2))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
 				Expect(loaded[1].Type()).To(Equal(event.Type("TestUpdated")))
-				Expect(loaded[1].Version()).To(Equal(2))
+				Expect(loaded[1].Version()).To(Equal(event.Version(2)))
 			})
 		})
 
@@ -154,9 +154,9 @@ var _ = Describe("Event Store", func() {
 					loaded, err := store.Load(ctx, aggType, aggID)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
-					Expect(loaded[0].Version()).To(Equal(1))
-					Expect(loaded[1].Version()).To(Equal(2))
-					Expect(loaded[2].Version()).To(Equal(3))
+					Expect(loaded[0].Version()).To(Equal(event.Version(1)))
+					Expect(loaded[1].Version()).To(Equal(event.Version(2)))
+					Expect(loaded[2].Version()).To(Equal(event.Version(3)))
 					Expect(loaded[0].Type()).To(Equal(event.Type("BatchEvent1")))
 					Expect(loaded[2].Type()).To(Equal(event.Type("BatchEvent3")))
 				},
@@ -351,7 +351,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
 				Expect(evt.AggregateID()).To(Equal(aggID))
 				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
-				Expect(evt.Version()).To(Equal(1))
+				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
 				Expect(
 					evt.Metadata().CorrelationID,

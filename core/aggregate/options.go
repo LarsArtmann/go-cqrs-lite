@@ -8,7 +8,7 @@ import (
 type SnapshotStrategy interface {
 	// ShouldSnapshot returns true if a snapshot should be created
 	// for the given aggregate after it has reached the given version.
-	ShouldSnapshot(aggregateType event.AggregateType, version int) bool
+	ShouldSnapshot(aggregateType event.AggregateType, version event.Version) bool
 }
 
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
@@ -18,8 +18,8 @@ func EveryNEvents(n int) SnapshotStrategy {
 
 type everyN struct{ interval int }
 
-func (s *everyN) ShouldSnapshot(_ event.AggregateType, version int) bool {
-	return version > 0 && version%s.interval == 0
+func (s *everyN) ShouldSnapshot(_ event.AggregateType, version event.Version) bool {
+	return version.Int() > 0 && version.Int()%s.interval == 0
 }
 
 // RepositoryOption configures an EventSourcedRepository.
