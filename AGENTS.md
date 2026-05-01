@@ -471,6 +471,15 @@ Interfaces now return branded types instead of primitives:
   - Removed `Load() empty semantics differ` from Known Issues (now fixed).
   - Zero lint, all tests pass across all modules
 
+- **Session 29 (Honest Quality Self-Assessment)**:
+  - **BREAKING**: `projection.NewRunner` returns `(*Runner, error)` instead of panicking on nil deps. Added `ErrNilStore`, `ErrNilBus`, `ErrNilCheckpoint` sentinels.
+  - **Cleanup**: Removed stale `memory` replace directives from `testhelpers/go.mod` and `middleware/go.mod`.
+  - **Interface checks**: Added compile-time `var _ Interface = (*Impl)(nil)` for `JSONCodec`, `slogLogger`, `FakeCheckpointStore`.
+  - **Sentinel errors**: Extracted `ErrHandlerNil` to `memory/errors.go`, `ErrAlreadyStarted` to `core/event/errors.go`. Tests updated to `errors.Is`.
+  - **Godoc**: Added doc comments to all exported types in `catalog/types.go` and exported functions in `catalog/schema.go`.
+  - **Documented**: `samber/ro` forces `[]any` for `Pipe` operator pipeline — acceptable exception to "no any" rule.
+  - All tests pass across all modules
+
 - **Session 27 (No-Panic Convention + Code Quality)**:
   - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint. Added `ErrNilCheckpointStore` sentinel.
   - **BREAKING**: `NewOutboxPublisher` returns `(*OutboxPublisher, error)` instead of panicking on nil outbox/bus. Added `ErrNilOutbox`, `ErrNilBus` sentinels.
