@@ -219,6 +219,17 @@ nix develop             # enter dev shell
 | `CommandMiddleware` / `EventMiddleware`         | Call-order tracking middleware                |
 | `TestMetrics`                                   | Metrics collector for testing                 |
 
+### Projection Module (`projection/`)
+
+| Package        | Purpose                                                    | Key Types                                                     |
+| -------------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
+| `projection/`  | Projection runner with replay and live subscription        | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)` |
+
+- **Runner**: Accepts `event.GlobalLoader` (for replay) + `event.Bus` (for live). Register `event.Projection` instances before `Run()`.
+- **Per-projection checkpoint**: Each projection tracked by `Name()`. Events past checkpoint are skipped during replay.
+- **Wildcard**: `EventTypes() == nil` subscribes to all event types.
+- **HandlerRegistry**: Maps event types to handlers. Useful for building custom projection dispatch.
+
 ## Design Principles
 
 1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
@@ -363,6 +374,7 @@ memory      → core + testhelpers
 middleware  → core + testhelpers
 catalog    → core (via cattest internal helpers)
 storage    → core (go-sqlmock for tests)
+projection → core + memory (tests) + testhelpers (tests)
 integration → core + memory + testhelpers
 core        → (no internal deps — independently publishable)
 ```
