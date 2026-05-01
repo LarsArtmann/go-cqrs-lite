@@ -1,0 +1,603 @@
+title: {
+  label: go-cqrs-lite — Web Client Communication
+  near: top-center
+  shape: text
+  style: {
+    font-size: 28
+    bold: true
+    underline: true
+    font-color: "#1a1a2e"
+  }
+}
+
+subtitle: {
+  label: "How Commands, Queries, Events & Projections flow from browser to read model and back"
+  near: top-center
+  shape: text
+  style: {
+    font-size: 13
+    italic: true
+    font-color: "#555555"
+  }
+}
+
+# ─── Classes ──────────────────────────────────────────────────────────────────
+
+classes: {
+  client: {
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1565c0"
+      stroke-width: 2
+      border-radius: 8
+      font-color: "#0d47a1"
+      bold: true
+    }
+  }
+  transport: {
+    style: {
+      fill: "#fff3e0"
+      stroke: "#e65100"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#bf360c"
+    }
+  }
+  write: {
+    style: {
+      fill: "#e8f5e9"
+      stroke: "#2e7d32"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#1b5e20"
+    }
+  }
+  event: {
+    style: {
+      fill: "#fce4ec"
+      stroke: "#c62828"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#b71c1c"
+    }
+  }
+  read: {
+    style: {
+      fill: "#f3e5f5"
+      stroke: "#6a1b9a"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#4a148c"
+    }
+  }
+  store: {
+    shape: cylinder
+    style: {
+      fill: "#fff9c4"
+      stroke: "#f9a825"
+      stroke-width: 2
+      font-color: "#e65100"
+    }
+  }
+  infra: {
+    style: {
+      fill: "#eceff1"
+      stroke: "#78909c"
+      stroke-width: 2
+      border-radius: 4
+      font-color: "#37474f"
+    }
+  }
+  docs: {
+    style: {
+      fill: "#e0f7fa"
+      stroke: "#00838f"
+      stroke-width: 2
+      border-radius: 4
+      font-color: "#006064"
+    }
+  }
+}
+
+# ─── LAYER 1: CLIENT ─────────────────────────────────────────────────────────
+
+Client Layer: {
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#bdbdbd"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  Web Client: {
+    class: client
+    width: 200
+    label: "Web Client\nSPA / React / Vue"
+  }
+
+  Client Note: {
+    shape: text
+    label: "• POST /users → cmd\n• GET /users/:id → query\n• EventSource → live"
+    style: {
+      font-size: 10
+      font-color: "#1565c0"
+    }
+  }
+}
+
+# ─── LAYER 2: TRANSPORT ──────────────────────────────────────────────────────
+
+Transport Layer: {
+  style: {
+    fill: "#fafafa"
+    stroke: "#e65100"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  HTTP API: {
+    class: transport
+    width: 220
+    label: "HTTP API\nChi · Echo · Gin"
+  }
+
+  SSE: {
+    class: transport
+    width: 200
+    label: "SSE / WebSocket\nReal-time push"
+  }
+}
+
+# ─── LAYER 3: CQRS DISPATCH ──────────────────────────────────────────────────
+
+CQRS Layer: {
+  style: {
+    fill: "#fafafa"
+    stroke: "#424242"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  Write Path: {
+    class: write
+    direction: down
+    label: "Command Side (Write)"
+
+    Cmd Dispatcher: {
+      label: "Command Dispatcher\nUse → Register → Dispatch"
+      class: write
+      width: 220
+    }
+
+    Cmd MW: {
+      shape: text
+      label: "Recovery → Tracing → Logging\n→ Validation → Retry → Metrics"
+      style: {
+        font-size: 9
+        italic: true
+        font-color: "#546e7a"
+      }
+    }
+
+    Cmd Handler: {
+      label: "Command Handler"
+      class: write
+      width: 220
+    }
+
+    Cmd Dispatcher -> Cmd MW -> Cmd Handler: {
+      style: {
+        stroke: "#2e7d32"
+        stroke-dash: 2
+      }
+    }
+  }
+
+  Read Path: {
+    class: read
+    direction: down
+    label: "Query Side (Read)"
+
+    Q Dispatcher: {
+      label: "Query Dispatcher\nUse → Register → Dispatch"
+      class: read
+      width: 220
+    }
+
+    Q MW: {
+      shape: text
+      label: "Recovery → Tracing → Logging\n→ Validation → Metrics"
+      style: {
+        font-size: 9
+        italic: true
+        font-color: "#546e7a"
+      }
+    }
+
+    Q Handler: {
+      label: "Query Handler"
+      class: read
+      width: 220
+    }
+
+    Q Dispatcher -> Q MW -> Q Handler: {
+      style: {
+        stroke: "#6a1b9a"
+        stroke-dash: 2
+      }
+    }
+  }
+}
+
+# ─── LAYER 4: DOMAIN ─────────────────────────────────────────────────────────
+
+Domain Layer: {
+  style: {
+    fill: "#fafafa"
+    stroke: "#1b5e20"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  Aggregate: {
+    class: write
+    shape: hexagon
+    label: "Aggregate Root"
+    width: 180
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#1b5e20"
+      stroke-width: 3
+      font-color: "#1b5e20"
+      bold: true
+    }
+  }
+
+  Repo: {
+    class: infra
+    width: 280
+    label: "EventSourcedRepository\nSave → Load → Delete"
+  }
+
+  Agg Note: {
+    shape: text
+    label: "Apply · RecordEvent\nUncommittedChanges\nMarkChangesAsCommitted"
+    style: {
+      font-size: 9
+      font-color: "#2e7d32"
+    }
+  }
+
+  Repo Note: {
+    shape: text
+    label: "Save: Store.Save → Outbox / Bus → Snapshot\nLoad: Snapshot → LoadFromVersion → Replay"
+    style: {
+      font-size: 9
+      font-color: "#455a64"
+    }
+  }
+
+  Aggregate -> Repo: "Uncommitted\nChanges" {
+    style: {
+      stroke: "#1b5e20"
+      stroke-dash: 3
+    }
+  }
+}
+
+# ─── LAYER 5: EVENT INFRA ────────────────────────────────────────────────────
+
+Event Layer: {
+  style: {
+    fill: "#fafafa"
+    stroke: "#c62828"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  Event Store: {
+    class: store
+    width: 180
+    label: "Event Store\nPostgreSQL"
+  }
+
+  Event Bus: {
+    class: event
+    shape: queue
+    width: 220
+    label: "Event Bus\nMemoryBus / NATS / Kafka"
+    style: {
+      fill: "#fce4ec"
+      stroke: "#c62828"
+      font-color: "#b71c1c"
+      bold: true
+    }
+  }
+
+  Outbox: {
+    class: infra
+    shape: queue
+    width: 160
+    label: "Outbox\nreliable pub"
+  }
+
+  Snapshot: {
+    class: store
+    width: 180
+    label: "Snapshot Store\nPostgreSQL"
+  }
+}
+
+# ─── LAYER 6: READ MODEL ─────────────────────────────────────────────────────
+
+Read Layer: {
+  style: {
+    fill: "#fafafa"
+    stroke: "#6a1b9a"
+    stroke-dash: 3
+    border-radius: 12
+  }
+
+  direction: right
+
+  Projections: {
+    class: read
+    width: 200
+    label: "Projections\nInMemoryRunner"
+  }
+
+  Read Model: {
+    class: store
+    width: 240
+    label: "Read Model\nPostgreSQL / Redis"
+    style: {
+      fill: "#f3e5f5"
+      stroke: "#6a1b9a"
+      font-color: "#4a148c"
+    }
+  }
+
+  Proj Note: {
+    shape: text
+    label: "SubscribeAll · EventTypes\nCheckpointStore · Idempotent"
+    style: {
+      font-size: 9
+      font-color: "#6a1b9a"
+    }
+  }
+
+  Projections -> Read Model: "8  update read model" {
+    style: {
+      stroke: "#6a1b9a"
+      stroke-width: 2
+    }
+  }
+}
+
+# ─── LAYER 7: CATALOG (side) ─────────────────────────────────────────────────
+
+Catalog: {
+  class: docs
+  width: 200
+  label: "Catalog\nAuto-generated docs"
+}
+
+Catalog Note: {
+  shape: text
+  label: "AsyncAPI 3.0 YAML/JSON\nEventCatalog MDX\nSchemaFromType via reflect"
+  style: {
+    font-size: 9
+    font-color: "#00838f"
+  }
+}
+
+# ─── FLOW: WRITE PATH (1→7) ─────────────────────────────────────────────────
+
+Client Layer.Web Client -> Transport Layer.HTTP API: "1  POST\n   CreateUser cmd" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 3
+    animated: true
+  }
+}
+
+Transport Layer.HTTP API -> CQRS Layer.Write Path.Cmd Dispatcher: "2  Dispatch(ctx, cmd)\n   ContextEnricher metadata" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 3
+    animated: true
+  }
+}
+
+CQRS Layer.Write Path.Cmd Handler -> Domain Layer.Repo: "3  repo.Save(ctx, root)" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 3
+  }
+}
+
+CQRS Layer.Write Path.Cmd Handler -> Domain Layer.Aggregate: "3  Load → mutate\n   RecordEvent" {
+  style: {
+    stroke: "#1b5e20"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+Domain Layer.Repo -> Event Layer.Event Store: "4  Store.Save\n   optimistic concurrency" {
+  style: {
+    stroke: "#f9a825"
+    stroke-width: 3
+  }
+}
+
+Domain Layer.Repo -> Event Layer.Outbox: "5  Outbox.Append\n   same TX" {
+  style: {
+    stroke: "#546e7a"
+    stroke-width: 2
+    animated: true
+    stroke-dash: 4
+  }
+}
+
+Domain Layer.Repo -> Event Layer.Snapshot: "5  SnapshotStore.Save\n   if strategy triggers" {
+  style: {
+    stroke: "#f9a825"
+    stroke-width: 2
+    stroke-dash: 4
+  }
+}
+
+Event Layer.Outbox -> Event Layer.Event Bus: "6  Poll → Publish → Ack" {
+  style: {
+    stroke: "#c62828"
+    stroke-width: 2
+    animated: true
+  }
+}
+
+# ─── FLOW: EVENT → PROJECTION (7→8) ──────────────────────────────────────────
+
+Event Layer.Event Bus -> Read Layer.Projections: "7  Bus.SubscribeAll\n   InMemoryRunner.Handle" {
+  style: {
+    stroke: "#c62828"
+    stroke-width: 3
+    animated: true
+  }
+}
+
+# ─── FLOW: READ PATH (9→12) ──────────────────────────────────────────────────
+
+Client Layer.Web Client -> Transport Layer.HTTP API Read: "9  GET\n   GetUser query" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 3
+  }
+}
+
+Transport Layer.HTTP API Read: Transport Layer.HTTP API
+
+Transport Layer.HTTP API -> CQRS Layer.Read Path.Q Dispatcher: "10  Dispatch(ctx, query)" {
+  style: {
+    stroke: "#6a1b9a"
+    stroke-width: 3
+    animated: true
+  }
+}
+
+CQRS Layer.Read Path.Q Handler -> Read Layer.Read Model: "11  Read materialized view" {
+  style: {
+    stroke: "#6a1b9a"
+    stroke-width: 3
+  }
+}
+
+Read Layer.Read Model -> CQRS Layer.Read Path.Q Handler: "12  Result via DispatchTyped" {
+  style: {
+    stroke: "#6a1b9a"
+    stroke-width: 2
+    stroke-dash: 4
+  }
+}
+
+# ─── FLOW: REAL-TIME PUSH (7→13) ────────────────────────────────────────────
+
+Event Layer.Event Bus -> Transport Layer.SSE: "7  Bus.Subscribe\n   filter by type/aggregate" {
+  style: {
+    stroke: "#e65100"
+    stroke-width: 2
+    animated: true
+  }
+}
+
+Transport Layer.SSE -> Client Layer.Web Client: "13  Push events\n   in real-time" {
+  style: {
+    stroke: "#e65100"
+    stroke-width: 3
+    animated: true
+  }
+}
+
+# ─── FLOW: CATALOG (side channel) ────────────────────────────────────────────
+
+CQRS Layer.Write Path.Cmd Dispatcher -> Catalog: "CatalogDispatcher" {
+  style: {
+    stroke: "#00838f"
+    stroke-width: 1
+    stroke-dash: 3
+  }
+}
+
+CQRS Layer.Read Path.Q Dispatcher -> Catalog: "CatalogDispatcher" {
+  style: {
+    stroke: "#00838f"
+    stroke-width: 1
+    stroke-dash: 3
+  }
+}
+
+Event Layer.Event Bus -> Catalog: "Event schemas" {
+  style: {
+    stroke: "#00838f"
+    stroke-width: 1
+    stroke-dash: 3
+  }
+}
+
+# ─── LEGEND ───────────────────────────────────────────────────────────────────
+
+Legend: {
+  shape: rectangle
+  style: {
+    fill: "#fafafa"
+    stroke: "#bdbdbd"
+    border-radius: 8
+  }
+
+  title: {
+    shape: text
+    label: "Legend — Data Flow Steps"
+    style: {
+      bold: true
+      font-size: 13
+      font-color: "#212121"
+    }
+  }
+
+  flow_steps: {
+    shape: text
+    label: " 1  Client sends command (POST)\n 2  Dispatch through middleware chain\n 3  Handler loads aggregate, applies business logic, records events\n 4  Repository persists to Event Store (optimistic concurrency)\n 5  Outbox.Append (same TX) + optional Snapshot\n 6  Background: Poll → Publish → Ack (reliable delivery)\n 7  Bus delivers events to Projections & SSE/WS\n 8  Projection updates read model (idempotent)\n 9  Client sends query (GET)\n10  Dispatch through middleware chain\n11  Handler reads materialized view\n12  Type-safe result via DispatchTyped\n13  Real-time push to client via SSE/WebSocket"
+    style: {
+      font-size: 11
+      font-color: "#424242"
+    }
+  }
+
+  colors: {
+    shape: text
+    label: "Blue   — Client / Transport\nGreen — Write side (Command / Aggregate)\nRed    — Events (Bus / Store)\nPurple — Read side (Query / Projection)\nYellow — Persistence (Store / Snapshot)\nOrange — Real-time push (SSE / WebSocket)\nCyan  — Auto-documentation (Catalog)"
+    style: {
+      font-size: 11
+      font-color: "#424242"
+    }
+  }
+
+  patterns: {
+    shape: text
+    label: "Solid   — Synchronous data flow\nDashed  — Async / indirect flow\nAnimated — Event-driven flow"
+    style: {
+      font-size: 11
+      font-color: "#424242"
+    }
+  }
+}
