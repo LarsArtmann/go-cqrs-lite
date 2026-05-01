@@ -92,6 +92,66 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 	return nil
 }
 
+// HandleParallel dispatches an event to all matching projections concurrently.
+// Each projection runs in its own goroutine. Returns the first error encountered.
+// Checkpoints are saved only for projections that succeed.
+func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
+	r.mu.RLock()
+	projections := make([]Projection, 0, len(r.projections))
+
+	for _, p := range r.projections {
+		if subscribesTo(p, evt.Type()) {
+			projections = append(projections, p)
+		}
+	}
+
+	r.mu.RUnlock()
+
+	if len(projections) == 0 {
+		return nil
+	}
+
+	type result struct {
+		proj Projection
+		err  error
+	}
+
+	results := make(chan result, len(projections))
+
+	for _, proj := range projections {
+		go func(p Projection) {
+			err := p.Handle(ctx, evt)
+			results <- result{proj: p, err: err}
+		}(proj)
+	}
+
+	var firstErr error
+
+	for range projections {
+		res := <-results
+
+		if res.err != nil {
+			if firstErr == nil {
+				firstErr = fmt.Errorf(
+					"projection %q handle event %s: %w",
+					res.proj.Name(),
+					evt.Type(),
+					res.err,
+				)
+			}
+
+			continue
+		}
+
+		err := r.checkpoint.Save(ctx, res.proj.Name(), evt.ID())
+		if err != nil && firstErr == nil {
+			firstErr = fmt.Errorf("checkpoint save for projection %q: %w", res.proj.Name(), err)
+		}
+	}
+
+	return firstErr
+}
+
 // subscribesTo returns true if the projection subscribes to the given event type.
 // Returns true if the projection subscribes to all events (nil EventTypes).
 func subscribesTo(proj Projection, evtType Type) bool {

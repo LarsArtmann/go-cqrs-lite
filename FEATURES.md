@@ -126,14 +126,15 @@
 | Projection interface      | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅     |
 | ProjectionFunc            | Convenience adapter from a function                                    | ✅     |
 | CheckpointStore interface | `Load`/`Save` last processed event ID per projection                   | ✅     |
-| InMemoryRunner            | Single-process runner with per-projection checkpointing, thread-safe   | ⚠️     |
+| InMemoryRunner            | Single-process runner with per-projection checkpointing, thread-safe   | ✅     |
+| HandleParallel            | Concurrent dispatch to all matching projections via goroutines         | ✅     |
 | Event type filtering      | Runner filters events by `Projection.EventTypes()`                     | ✅     |
+| OutboxPublisher           | Background goroutine polls outbox and publishes to bus                 | ✅     |
+| PublishNow                | Synchronous poll-publish-ack for testing or manual triggering          | ✅     |
 
 **Gaps in InMemoryRunner:**
 
-- Fails fast on first projection error — subsequent projections for that event are skipped
 - No retry or dead-letter mechanism
-- No duplicate projection detection on `Register`
 - No background polling (push-model only via `Handle`)
 
 **Coverage:** Tested via unit + integration tests
@@ -307,7 +308,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | AppendBatch                     | Appends without concurrency check                                    | ✅          |
 | Load / LoadFromVersion / Delete | All implemented                                                      | ✅          |
 | Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅          |
-|| Close lifecycle                 | `Close()` wraps `*sql.DB.Close()` — caller must not reuse DB         | ✅          |
+| SQL SnapshotStore               | PostgreSQL-backed with upsert, version-aware load, delete            | ✅          |
+| SQL CheckpointStore             | PostgreSQL-backed with upsert, `sql.ErrNoRows` handling             | ✅          |
+| Close lifecycle                 | `Close()` wraps `*sql.DB.Close()` — caller must not reuse DB         | ✅          |
 
 **Remaining gaps:**
 
@@ -364,10 +367,10 @@ Features mentioned in project docs/planning but with **no production code**:
 | Feature                     | Description                                      | Notes                                                      |
 | --------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
 | Watermill module            | Pub/sub adapter (Kafka, NATS, etc.)              | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists  |
-| SQL SnapshotStore           | PostgreSQL-backed snapshot persistence           | Interface exists in core, no SQL implementation            |
-| SQL CheckpointStore         | PostgreSQL-backed projection checkpointing       | Interface exists in core, no SQL implementation            |
-| Outbox background publisher | Goroutine that polls outbox and publishes to bus | Interface exists, memory impl exists, no polling publisher |
-| Saga / Process Manager      | Long-running process orchestration               | Not started                                                |
+| SQL SnapshotStore           | PostgreSQL-backed snapshot persistence           | `storage/snapshot.go` exists                               |
+| SQL CheckpointStore         | PostgreSQL-backed projection checkpointing       | `storage/checkpoint.go` exists                             |
+| Outbox background publisher | Goroutine that polls outbox and publishes to bus | `core/event/outbox_publisher.go` with background + sync mode |
+| Saga / Process Manager      | Long-running process orchestration               | `docs/planning/SAGA_DESIGN.md` exists                      |
 | Tagged releases             | Semantic versioning and Go module publishing     | All modules at v0.0.0                                      |
 
 ---
@@ -378,7 +381,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
 | `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
 | `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~900       | 50+         | 96.3%    | ✅ Production   |
+| `core/event`           | `…/core/event`           | ~1100     | 70+         | 96.3%    | ✅ Production   |
 | `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.9%    | ✅ Production   |
 | `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
 | `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |
@@ -389,7 +392,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~372       | 13          | 79.8%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~614       | 31          | 92.3%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---
