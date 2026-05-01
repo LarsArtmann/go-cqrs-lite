@@ -148,49 +148,19 @@ func NewEvent(
 	payload []byte,
 	opts ...Option,
 ) (*Core, error) {
-	if eventType == "" {
-		//nolint:err113 // dynamic error required for validation
-		return nil, fmt.Errorf(
-			"event type is required (got empty) for aggregate %q of type %q",
-			aggregateID,
-			aggregateType,
-		)
+	if err := validateEventParams(
+		eventType,
+		aggregateID,
+		aggregateType,
+		version,
+		payload,
+	); err != nil {
+		return nil, err
 	}
 
-	v, err := ParseVersion(version)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"version %d invalid for aggregate %q of type %q (event type %q, payload size %d): %w",
-			version,
-			aggregateID,
-			aggregateType,
-			eventType,
-			len(payload),
-			err,
-		)
-	}
+	v, _ := ParseVersion(version)
 
-	if aggregateID.IsZero() {
-		//nolint:err113 // dynamic error required to include event details for debugging
-		return nil, fmt.Errorf(
-			"aggregate ID is required for event type %q, aggregate type %q, version %d",
-			eventType,
-			aggregateType,
-			version,
-		)
-	}
-
-	if aggregateType == "" {
-		//nolint:err113 // dynamic error required to include event details for debugging
-		return nil, fmt.Errorf(
-			"aggregate type is required for aggregate %q, event type %q, version %d",
-			aggregateID,
-			eventType,
-			version,
-		)
-	}
-
-	event := &Core{
+	evt := &Core{
 		id:            id.NewEventID(),
 		eventType:     eventType,
 		aggregateID:   aggregateID,
@@ -203,8 +173,60 @@ func NewEvent(
 	}
 
 	for _, opt := range opts {
-		opt(event)
+		opt(evt)
 	}
 
-	return event, nil
+	return evt, nil
+}
+
+func validateEventParams(
+	eventType Type,
+	aggregateID id.AggregateID,
+	aggregateType AggregateType,
+	version int,
+	payload []byte,
+) error {
+	if eventType == "" {
+		//nolint:err113 // dynamic error required for validation
+		return fmt.Errorf(
+			"event type is required (got empty) for aggregate %q of type %q",
+			aggregateID,
+			aggregateType,
+		)
+	}
+
+	if aggregateID.IsZero() {
+		//nolint:err113 // dynamic error required to include event details for debugging
+		return fmt.Errorf(
+			"aggregate ID is required for event type %q, aggregate type %q, version %d",
+			eventType,
+			aggregateType,
+			version,
+		)
+	}
+
+	if aggregateType == "" {
+		//nolint:err113 // dynamic error required to include event details for debugging
+		return fmt.Errorf(
+			"aggregate type is required for aggregate %q, event type %q, version %d",
+			aggregateID,
+			eventType,
+			version,
+		)
+	}
+
+	_, err := ParseVersion(version)
+	if err != nil {
+		return fmt.Errorf(
+			"version %d invalid for aggregate %q of type %q (event type %q, payload size %d): %w",
+			version,
+			aggregateID,
+			aggregateType,
+			eventType,
+			len(payload),
+			err,
+		)
+	}
+
+	return nil
 }

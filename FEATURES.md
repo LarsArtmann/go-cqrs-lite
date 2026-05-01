@@ -309,13 +309,13 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 **Remaining gaps:**
 
-| Issue                                | Severity | Detail                                                                        |
-| ------------------------------------ | -------- | ----------------------------------------------------------------------------- |
-| `SQLEventStoreOption` unused         | ⚠️ LOW   | Type declared but no concrete options exist (table name, logger, etc.)        |
-| `Close()` owns `*sql.DB`             | ⚠️ LOW   | Consumers passing shared connection pools may get unexpected double-close      |
-| PostgreSQL-specific DDL              | ⚠️ LOW   | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
-| No integration tests (real DB)       | ⚠️ MEDIUM| Unit tests use go-sqlmock only; no real PostgreSQL verification               |
-| Duplicate INSERT query string        | ⚠️ LOW   | Save and AppendBatch have identical INSERT — should be a constant             |
+| Issue                          | Severity  | Detail                                                                         |
+| ------------------------------ | --------- | ------------------------------------------------------------------------------ |
+| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type declared but no concrete options exist (table name, logger, etc.)         |
+| `Close()` owns `*sql.DB`       | ⚠️ LOW    | Consumers passing shared connection pools may get unexpected double-close      |
+| PostgreSQL-specific DDL        | ⚠️ LOW    | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
+| No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
+| Duplicate INSERT query string  | ⚠️ LOW    | Save and AppendBatch have identical INSERT — should be a constant              |
 
 **Coverage:** 79.8% (13 unit tests with go-sqlmock)
 

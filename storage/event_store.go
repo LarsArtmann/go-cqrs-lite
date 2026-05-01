@@ -43,6 +43,7 @@ type SQLEventStoreOption func(*SQLEventStore)
 var ErrConcurrencyConflict = event.ErrVersionConflict
 
 // Close releases the underlying database connection.
+// Caller must not use the *sql.DB passed to NewSQLEventStore after calling Close.
 func (s *SQLEventStore) Close() error {
 	return errors.Wrap(s.db.Close(), "close database connection")
 }

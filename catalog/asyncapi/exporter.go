@@ -138,36 +138,41 @@ func (e *Exporter) addMessage(
 		opt(cfg)
 	}
 
-	id := catalog.MessageID(msg)
-	channelKey := string(kind) + "." + id
-	componentKey := string(msg.Kind) + "." + id
+	msgID := catalog.MessageID(msg)
+	channelKey := string(kind) + "." + msgID
+	componentKey := string(msg.Kind) + "." + msgID
 	ref := "#/components/messages/" + componentKey
 
+	addChannel(doc, svcID, msg, kind, channelKey, ref)
+	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, msgID)
+
+	e.addMessageSchema(doc, msg)
+}
+
+func addChannel(
+	doc *Document,
+	svcID string,
+	msg catalog.Message,
+	kind messageKind,
+	channelKey, ref string,
+) {
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(id)),
+		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(catalog.MessageID(msg))),
 		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
 	}
+}
 
-	opTitle := "Handle " + msg.Name
-	opName := "handle" + id
-
-	switch kind {
-	case kindEvent:
-		opTitle = "Publish " + msg.Name
-
-		opName = "publish" + id
-		if cfg.action == "receive" {
-			opName = "receive" + id
-		}
-	case kindCommand:
-		opTitle = "Receive " + msg.Name
-		opName = "receive" + id
-	case kindQuery:
-		opTitle = "Handle " + msg.Name
-		opName = "handle" + id
-	}
+func addOperation(
+	doc *Document,
+	svcID string,
+	msg catalog.Message,
+	kind messageKind,
+	cfg *messageConfig,
+	channelKey, ref, msgID string,
+) {
+	opTitle, opName := operationTitleAndName(msg.Name, kind, cfg, msgID)
 
 	doc.Operations[opName] = Operation{
 		Title:    opTitle,
@@ -178,8 +183,29 @@ func (e *Exporter) addMessage(
 		Tags:     []Tag{{Name: string(kind)}, {Name: svcID}},
 		Reply:    nil,
 	}
+}
 
-	e.addMessageSchema(doc, msg)
+func operationTitleAndName(
+	msgName string,
+	kind messageKind,
+	cfg *messageConfig,
+	msgID string,
+) (string, string) {
+	switch kind {
+	case kindEvent:
+		opName := "publish" + msgID
+		if cfg.action == "receive" {
+			opName = "receive" + msgID
+		}
+
+		return "Publish " + msgName, opName
+	case kindCommand:
+		return "Receive " + msgName, "receive" + msgID
+	case kindQuery:
+		return "Handle " + msgName, "handle" + msgID
+	default:
+		return "Handle " + msgName, "handle" + msgID
+	}
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {

@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                   |
-| --------- | ----------------------------------------------------------------------- |
-| Language  | Go 1.26                                                                 |
+| Item      | Value                                                                              |
+| --------- | ---------------------------------------------------------------------------------- |
+| Language  | Go 1.26                                                                            |
 | Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage` |
-| Build     | `nix run .#build`                                                       |
-| Test      | `nix run .#test` or see "Testing" below                                 |
-| Lint      | `nix run .#lint`                                                        |
-| Format    | `nix fmt`                                                               |
-| Dev shell | `nix develop`                                                           |
-| CI        | GitHub Actions: ci.yml (Nix-based)                                      |
+| Build     | `nix run .#build`                                                                  |
+| Test      | `nix run .#test` or see "Testing" below                                            |
+| Lint      | `nix run .#lint`                                                                   |
+| Format    | `nix fmt`                                                                          |
+| Dev shell | `nix develop`                                                                      |
+| CI        | GitHub Actions: ci.yml (Nix-based)                                                 |
 
 ## Monorepo Structure
 

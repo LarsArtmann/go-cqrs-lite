@@ -46,6 +46,7 @@ Thumbs.db
 node_modules/
 # Build artifacts
 /go-cqrs-lite
+/user
 # Test coverage
 /coverage
 # Sensitive files
@@ -63,4 +64,3 @@ example/*/user
 result
 result-*
 .direnv/
-user

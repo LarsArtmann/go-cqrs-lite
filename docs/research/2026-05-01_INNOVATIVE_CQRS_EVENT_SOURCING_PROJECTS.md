@@ -38,19 +38,19 @@ These projects break from conventional CQRS/ES patterns in fundamental ways.
 
 ### 1. Sekiban (.NET) — Dynamic Consistency Boundary
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/J-Tech-Japan/Sekiban` |
-| **Stars** | 331 |
-| **Language** | C# / .NET |
-| **Backends** | Azure Cosmos DB, PostgreSQL, AWS DynamoDB |
+| Field           | Value                                      |
+| --------------- | ------------------------------------------ |
+| **Repository**  | `github.com/J-Tech-Japan/Sekiban`          |
+| **Stars**       | 331                                        |
+| **Language**    | C# / .NET                                  |
+| **Backends**    | Azure Cosmos DB, PostgreSQL, AWS DynamoDB  |
 | **Integration** | Microsoft Orleans (actor-based clustering) |
 
 #### The Innovation
 
 Replaces the entire aggregate-per-stream + saga pattern with a **single global event stream** and **tag-based dynamic consistency boundaries**.
 
-Instead of static per-aggregate transactional boundaries requiring sagas for cross-entity coordination, Sekiban reserves a *dynamic set of tags* per command and uses optimistic concurrency on those tags.
+Instead of static per-aggregate transactional boundaries requiring sagas for cross-entity coordination, Sekiban reserves a _dynamic set of tags_ per command and uses optimistic concurrency on those tags.
 
 ```
 Traditional:  Aggregate A → Saga → Aggregate B → Saga → Aggregate C
@@ -97,13 +97,13 @@ Tags map to grains — one-to-one mapping provides isolation and lifecycle manag
 
 #### Traditional vs DCB Comparison
 
-| Aspect | Aggregate-Based ES | Dynamic Consistency Boundary |
-|---|---|---|
-| **Streams** | Per aggregate | Single global stream |
-| **Consistency** | Static per aggregate | Per-command dynamic tag set |
-| **Cross-entity transactions** | Sagas / eventual consistency | Immediate consistency within reserved tags |
-| **Concurrency control** | Aggregate version | Multi-tag optimistic concurrency |
-| **Event shape** | Multiple domain-specific events | One business fact per command |
+| Aspect                        | Aggregate-Based ES              | Dynamic Consistency Boundary               |
+| ----------------------------- | ------------------------------- | ------------------------------------------ |
+| **Streams**                   | Per aggregate                   | Single global stream                       |
+| **Consistency**               | Static per aggregate            | Per-command dynamic tag set                |
+| **Cross-entity transactions** | Sagas / eventual consistency    | Immediate consistency within reserved tags |
+| **Concurrency control**       | Aggregate version               | Multi-tag optimistic concurrency           |
+| **Event shape**               | Multiple domain-specific events | One business fact per command              |
 
 #### Why It Matters
 
@@ -113,13 +113,13 @@ This is the most architecturally radical idea in the list. The DCB concept funda
 
 ### 2. Eventide (Ruby) — Autonomous Services on PostgreSQL
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/eventide-project` |
-| **Stars** | 3 (understated; production since 2015) |
-| **Language** | Ruby |
-| **Storage** | PostgreSQL (MessageDB) |
-| **Messaging** | PostgreSQL (same instance) |
+| Field          | Value                                  |
+| -------------- | -------------------------------------- |
+| **Repository** | `github.com/eventide-project`          |
+| **Stars**      | 3 (understated; production since 2015) |
+| **Language**   | Ruby                                   |
+| **Storage**    | PostgreSQL (MessageDB)                 |
+| **Messaging**  | PostgreSQL (same instance)             |
 
 #### The Innovation
 
@@ -175,13 +175,13 @@ Achieves CQRS + Event Sourcing + reliable messaging with **zero external infrast
 
 ### 3. Equinox (F#) — Tip with Unfolds
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/jet/equinox` |
-| **Stars** | N/A (Jet.com internal, open-sourced) |
-| **Language** | F# |
-| **Backends** | EventStoreDB, CosmosDB, DynamoDB, PostgreSQL (MessageDB), SqlStreamStore |
-| **Production** | jet.com since 2017 |
+| Field          | Value                                                                    |
+| -------------- | ------------------------------------------------------------------------ |
+| **Repository** | `github.com/jet/equinox`                                                 |
+| **Stars**      | N/A (Jet.com internal, open-sourced)                                     |
+| **Language**   | F#                                                                       |
+| **Backends**   | EventStoreDB, CosmosDB, DynamoDB, PostgreSQL (MessageDB), SqlStreamStore |
+| **Production** | jet.com since 2017                                                       |
 
 #### The Innovation
 
@@ -214,14 +214,14 @@ Uses **FsCodec** for pluggable event serialization:
 
 #### Store Abstractions
 
-| Store | Strategy | Key Optimization |
-|---|---|---|
-| **CosmosDB** | Tip with Unfolds | Single-document reads, RU cost reduction |
-| **DynamoDB** | Tip with Unfolds | Patterned after CosmosStore |
-| **EventStoreDB** | Native event streams | gRPC interface, append-only |
-| **MessageDB (Postgres)** | SQL event storage | Actively maintained Postgres event store |
-| **SqlStreamStore** | SQL-backed | PostgreSQL, MySQL, MSSQL adapters |
-| **MemoryStore** | In-memory | ~100 LOC, unit/integration testing |
+| Store                    | Strategy             | Key Optimization                         |
+| ------------------------ | -------------------- | ---------------------------------------- |
+| **CosmosDB**             | Tip with Unfolds     | Single-document reads, RU cost reduction |
+| **DynamoDB**             | Tip with Unfolds     | Patterned after CosmosStore              |
+| **EventStoreDB**         | Native event streams | gRPC interface, append-only              |
+| **MessageDB (Postgres)** | SQL event storage    | Actively maintained Postgres event store |
+| **SqlStreamStore**       | SQL-backed           | PostgreSQL, MySQL, MSSQL adapters        |
+| **MemoryStore**          | In-memory            | ~100 LOC, unit/integration testing       |
 
 #### Why It Matters
 
@@ -233,13 +233,13 @@ The store-agnostic programming model means the same F# domain logic works identi
 
 ### 4. Reveno (Java) — Mechanical Sympathy ES
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/dmart28/reveno` |
-| **Stars** | 299 |
-| **Language** | Java |
-| **Size** | ~300KB |
-| **Benchmark** | 1,183,396 TPS, 68μs mean latency (MacBook Pro 2.7GHz i5) |
+| Field          | Value                                                    |
+| -------------- | -------------------------------------------------------- |
+| **Repository** | `github.com/dmart28/reveno`                              |
+| **Stars**      | 299                                                      |
+| **Language**   | Java                                                     |
+| **Size**       | ~300KB                                                   |
+| **Benchmark**  | 1,183,396 TPS, 68μs mean latency (MacBook Pro 2.7GHz i5) |
 
 #### The Innovation
 
@@ -292,17 +292,17 @@ Proves that JVM-based event sourcing can achieve **HFT-tier performance** by tre
 
 ### 5. canon (Rust) — Proc-Macro Zero-Boilerplate ES
 
-| Field | Value |
-|---|---|
+| Field          | Value                           |
+| -------------- | ------------------------------- |
 | **Repository** | `github.com/rjh-mopjones/canon` |
-| **Stars** | 0 (new, experimental) |
-| **Language** | Rust |
-| **Storage** | YugabyteDB (ACID outbox) |
-| **Messaging** | Kafka (pluggable) |
+| **Stars**      | 0 (new, experimental)           |
+| **Language**   | Rust                            |
+| **Storage**    | YugabyteDB (ACID outbox)        |
+| **Messaging**  | Kafka (pluggable)               |
 
 #### The Innovation
 
-Uses Rust **proc macros** (`#[aggregate]`, `#[command]`, `#[event]`, `#[command_handler]`) to generate *all* trait implementations and dispatch logic. An entire aggregate with commands, events, handlers, and snapshotting becomes declarative attribute annotations.
+Uses Rust **proc macros** (`#[aggregate]`, `#[command]`, `#[event]`, `#[command_handler]`) to generate _all_ trait implementations and dispatch logic. An entire aggregate with commands, events, handlers, and snapshotting becomes declarative attribute annotations.
 
 #### Declarative Aggregate Definition
 
@@ -365,13 +365,13 @@ Each stage provides durability guarantees. The outbox pattern with YugabyteDB AC
 
 ### 6. Eventuous (.NET) — Gateway as Architecture Seam
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/Eventuous/eventuous` |
-| **Stars** | 503 |
-| **Language** | C# / .NET |
+| Field            | Value                                     |
+| ---------------- | ----------------------------------------- |
+| **Repository**   | `github.com/Eventuous/eventuous`          |
+| **Stars**        | 503                                       |
+| **Language**     | C# / .NET                                 |
 | **Event Stores** | KurrentDB, PostgreSQL, SQL Server, SQLite |
-| **Messaging** | RabbitMQ, Google PubSub, Kafka |
+| **Messaging**    | RabbitMQ, Google PubSub, Kafka            |
 
 #### The Innovation
 
@@ -418,13 +418,13 @@ Eliminates aggregate objects entirely for scenarios where traditional boundaries
 
 #### Comparison with Other .NET Frameworks
 
-| Aspect | Eventuous | EventFlow | Marten |
-|---|---|---|---|
-| **Philosophy** | "Just enough" | Full framework | Document DB + ES |
-| **Abstractions** | Minimal | Extensive interfaces | Moderate |
-| **Primary focus** | Event store first | Full CQRS stack | PostgreSQL document store |
-| **ES/EDA separation** | Explicit Gateway | Blended | Blended |
-| **Aggregate approach** | Dual (object + functional) | Traditional only | Traditional only |
+| Aspect                 | Eventuous                  | EventFlow            | Marten                    |
+| ---------------------- | -------------------------- | -------------------- | ------------------------- |
+| **Philosophy**         | "Just enough"              | Full framework       | Document DB + ES          |
+| **Abstractions**       | Minimal                    | Extensive interfaces | Moderate                  |
+| **Primary focus**      | Event store first          | Full CQRS stack      | PostgreSQL document store |
+| **ES/EDA separation**  | Explicit Gateway           | Blended              | Blended                   |
+| **Aggregate approach** | Dual (object + functional) | Traditional only     | Traditional only          |
 
 #### Why It Matters
 
@@ -434,13 +434,13 @@ The Gateway is an architecture-level insight that most CQRS frameworks miss. By 
 
 ### 7. Commanded (Elixir) — BEAM VM as CQRS Runtime
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/commanded/commanded` |
-| **Stars** | 2k |
-| **Language** | Elixir |
+| Field            | Value                                            |
+| ---------------- | ------------------------------------------------ |
+| **Repository**   | `github.com/commanded/commanded`                 |
+| **Stars**        | 2k                                               |
+| **Language**     | Elixir                                           |
 | **Event Stores** | PostgreSQL (EventStore), EventStoreDB, in-memory |
-| **Runtime** | BEAM VM / OTP |
+| **Runtime**      | BEAM VM / OTP                                    |
 
 #### The Innovation
 
@@ -540,12 +540,12 @@ Most CQRS frameworks bolt supervision on top. Commanded gets it for free from OT
 
 ### 8. eventually-rs (Rust) — Compile-Time Aggregate Safety
 
-| Field | Value |
-|---|---|
+| Field          | Value                                     |
+| -------------- | ----------------------------------------- |
 | **Repository** | `github.com/get-eventually/eventually-rs` |
-| **Stars** | 595 |
-| **Language** | Rust |
-| **Backends** | PostgreSQL, in-memory |
+| **Stars**      | 595                                       |
+| **Language**   | Rust                                      |
+| **Backends**   | PostgreSQL, in-memory                     |
 
 #### The Innovation
 
@@ -581,10 +581,10 @@ pub trait Aggregate {
 
 #### Event Store Implementations
 
-| Backend | Thread Safety | Optimistic Concurrency |
-|---|---|---|
-| **In-Memory** | `HashMap` with `std::sync` | Yes |
-| **PostgreSQL** | Production-ready | Yes, with versioning |
+| Backend        | Thread Safety              | Optimistic Concurrency |
+| -------------- | -------------------------- | ---------------------- |
+| **In-Memory**  | `HashMap` with `std::sync` | Yes                    |
+| **PostgreSQL** | Production-ready           | Yes, with versioning   |
 
 #### Projection System
 
@@ -616,12 +616,12 @@ While other frameworks catch event handling errors at runtime, eventually-rs cat
 
 ### 9. Haskell CQRS — Streams as First-Class
 
-| Field | Value |
-|---|---|
+| Field          | Value                            |
+| -------------- | -------------------------------- |
 | **Repository** | `github.com/BardurArntsson/cqrs` |
-| **Stars** | 48 |
-| **Language** | Haskell |
-| **Backends** | PostgreSQL, in-memory |
+| **Stars**      | 48                               |
+| **Language**   | Haskell                          |
+| **Backends**   | PostgreSQL, in-memory            |
 
 #### The Innovation
 
@@ -679,12 +679,12 @@ Most ES frameworks treat event loading as `SELECT * FROM events` → list. This 
 
 ### 10. zio-event-sourcing (Scala) — Effect-System ES
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/holinov/zio-event-sourcing` |
-| **Stars** | 39 |
-| **Language** | Scala (ZIO) |
-| **Backends** | Cassandra/Scylla, RocksDB, file-based, in-memory |
+| Field          | Value                                            |
+| -------------- | ------------------------------------------------ |
+| **Repository** | `github.com/holinov/zio-event-sourcing`          |
+| **Stars**      | 39                                               |
+| **Language**   | Scala (ZIO)                                      |
+| **Backends**   | Cassandra/Scylla, RocksDB, file-based, in-memory |
 
 #### The Innovation
 
@@ -731,12 +731,12 @@ Proves that effect systems can model event sourcing more safely than imperative 
 
 ### 11. Marten (.NET) — PostgreSQL as Universal Store
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/JasperFx/marten` |
-| **Stars** | 3.4k |
-| **Language** | C# / .NET |
-| **Storage** | PostgreSQL (dual-mode: document + event store) |
+| Field          | Value                                          |
+| -------------- | ---------------------------------------------- |
+| **Repository** | `github.com/JasperFx/marten`                   |
+| **Stars**      | 3.4k                                           |
+| **Language**   | C# / .NET                                      |
+| **Storage**    | PostgreSQL (dual-mode: document + event store) |
 
 #### The Innovation
 
@@ -744,20 +744,20 @@ PostgreSQL as both **document store AND event store simultaneously**. JSONB for 
 
 #### Dual-Mode Architecture
 
-| Mode | Storage | Use Case |
-|---|---|---|
-| **Document Store** | JSONB documents | CRUD-style reads, flexible schema |
-| **Event Store** | Append-only event streams | Event sourcing, audit trails |
+| Mode               | Storage                   | Use Case                          |
+| ------------------ | ------------------------- | --------------------------------- |
+| **Document Store** | JSONB documents           | CRUD-style reads, flexible schema |
+| **Event Store**    | Append-only event streams | Event sourcing, audit trails      |
 
 Both modes share the same PostgreSQL database and ACID transactions.
 
 #### Three Projection Lifecycles
 
-| Lifecycle | Consistency | Execution | Use Case |
-|---|---|---|---|
-| **Inline** | Strong (same transaction) | Synchronous | Write models needing immediate consistency |
-| **Async** | Eventual | Background daemon | Read models for UIs and reporting |
-| **Live** | Real-time | On-demand computation | Aggregation without storage overhead |
+| Lifecycle  | Consistency               | Execution             | Use Case                                   |
+| ---------- | ------------------------- | --------------------- | ------------------------------------------ |
+| **Inline** | Strong (same transaction) | Synchronous           | Write models needing immediate consistency |
+| **Async**  | Eventual                  | Background daemon     | Read models for UIs and reporting          |
+| **Live**   | Real-time                 | On-demand computation | Aggregation without storage overhead       |
 
 ```csharp
 // Live projection — computed on-demand, no storage
@@ -780,13 +780,13 @@ Makes event sourcing accessible to teams already on PostgreSQL by eliminating th
 
 ### 12. Axon Framework (Java) — The Industry Standard
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/AxonIQ/AxonFramework` |
-| **Stars** | 3.6k |
-| **Language** | Java |
-| **Event Stores** | Axon Server, JDBC, JPA, in-memory |
-| **Messaging** | Axon Server, Kafka, RabbitMQ, Spring AMQP |
+| Field            | Value                                     |
+| ---------------- | ----------------------------------------- |
+| **Repository**   | `github.com/AxonIQ/AxonFramework`         |
+| **Stars**        | 3.6k                                      |
+| **Language**     | Java                                      |
+| **Event Stores** | Axon Server, JDBC, JPA, in-memory         |
+| **Messaging**    | Axon Server, Kafka, RabbitMQ, Spring AMQP |
 
 #### Architecture
 
@@ -802,11 +802,11 @@ Not the most architecturally innovative, but the most **complete production ecos
 
 #### Event Processor Types
 
-| Type | Behavior | Use Case |
-|---|---|---|
-| **Tracking** | Replays from event store, maintains position | Reliable projection building |
-| **Subscribing** | Live subscription to event bus | Real-time processing |
-| **PCP (Persistent Stream)** | Persistent stream from Axon Server | High-throughput processing |
+| Type                        | Behavior                                     | Use Case                     |
+| --------------------------- | -------------------------------------------- | ---------------------------- |
+| **Tracking**                | Replays from event store, maintains position | Reliable projection building |
+| **Subscribing**             | Live subscription to event bus               | Real-time processing         |
+| **PCP (Persistent Stream)** | Persistent stream from Axon Server           | High-throughput processing   |
 
 #### Event Upcasting
 
@@ -814,10 +814,10 @@ Built-in support for migrating old event schemas without breaking existing event
 
 #### Axon Server vs Framework
 
-| Component | Role |
-|---|---|
-| **Axon Framework** | Application library, annotations, abstractions |
-| **Axon Server** | Purpose-built event store + message router with gRPC |
+| Component          | Role                                                 |
+| ------------------ | ---------------------------------------------------- |
+| **Axon Framework** | Application library, annotations, abstractions       |
+| **Axon Server**    | Purpose-built event store + message router with gRPC |
 
 Axon Server provides optimized event storage, distributed command routing, and query dispatch beyond what generic databases offer.
 
@@ -848,13 +848,13 @@ The most battle-tested JVM CQRS/ES framework. Enterprise-grade features: event u
 
 ### 13. Sharpino (F#) — GDPR-First ES
 
-| Field | Value |
-|---|---|
-| **Repository** | `github.com/tonyx/Sharpino` |
-| **Stars** | 40 |
-| **Language** | F# |
-| **Backends** | PostgreSQL (JSON or binary), in-memory |
-| **Messaging** | RabbitMQ |
+| Field          | Value                                  |
+| -------------- | -------------------------------------- |
+| **Repository** | `github.com/tonyx/Sharpino`            |
+| **Stars**      | 40                                     |
+| **Language**   | F#                                     |
+| **Backends**   | PostgreSQL (JSON or binary), in-memory |
+| **Messaging**  | RabbitMQ                               |
 
 #### The Innovation
 
@@ -909,21 +909,21 @@ GDPR compliance is a legal requirement for any system handling EU citizen data, 
 
 ## Innovation Matrix
 
-| Project | Key Innovation | Language | Stars | Tier |
-|---|---|---|---|---|
-| **Sekiban** | Dynamic Consistency Boundaries (no sagas) | C# | 331 | 1 |
-| **Eventide** | Autonomous services, single Postgres table | Ruby | 3 | 1 |
-| **Equinox** | Tip + Unfolds for document DBs | F# | — | 1 |
-| **Reveno** | Mechanical sympathy, 1M+ TPS | Java | 299 | 1 |
-| **canon** | Proc-macro zero-boilerplate | Rust | 0 | 2 |
-| **Eventuous** | ES/EDA Gateway seam, dual paradigm | C# | 503 | 2 |
-| **Commanded** | BEAM/OTP as natural CQRS runtime | Elixir | 2k | 2 |
-| **eventually-rs** | Compile-time aggregate safety | Rust | 595 | 3 |
-| **Haskell cqrs** | Streams as first-class, continuation-based | Haskell | 48 | 3 |
-| **zio-event-sourcing** | ZIO effect system for ES | Scala | 39 | 3 |
-| **Marten** | PostgreSQL universal store, 3 projection modes | C# | 3.4k | 4 |
-| **Axon** | Most complete production ecosystem | Java | 3.6k | 4 |
-| **Sharpino** | GDPR-first, multi-stream transactions | F# | 40 | 4 |
+| Project                | Key Innovation                                 | Language | Stars | Tier |
+| ---------------------- | ---------------------------------------------- | -------- | ----- | ---- |
+| **Sekiban**            | Dynamic Consistency Boundaries (no sagas)      | C#       | 331   | 1    |
+| **Eventide**           | Autonomous services, single Postgres table     | Ruby     | 3     | 1    |
+| **Equinox**            | Tip + Unfolds for document DBs                 | F#       | —     | 1    |
+| **Reveno**             | Mechanical sympathy, 1M+ TPS                   | Java     | 299   | 1    |
+| **canon**              | Proc-macro zero-boilerplate                    | Rust     | 0     | 2    |
+| **Eventuous**          | ES/EDA Gateway seam, dual paradigm             | C#       | 503   | 2    |
+| **Commanded**          | BEAM/OTP as natural CQRS runtime               | Elixir   | 2k    | 2    |
+| **eventually-rs**      | Compile-time aggregate safety                  | Rust     | 595   | 3    |
+| **Haskell cqrs**       | Streams as first-class, continuation-based     | Haskell  | 48    | 3    |
+| **zio-event-sourcing** | ZIO effect system for ES                       | Scala    | 39    | 3    |
+| **Marten**             | PostgreSQL universal store, 3 projection modes | C#       | 3.4k  | 4    |
+| **Axon**               | Most complete production ecosystem             | Java     | 3.6k  | 4    |
+| **Sharpino**           | GDPR-first, multi-stream transactions          | F#       | 40    | 4    |
 
 ---
 
@@ -979,4 +979,4 @@ The performance techniques (off-heap, sequential access, single-writer, natural 
 
 ---
 
-*Research conducted 2026-05-01 across GitHub, Sourcegraph, project documentation, and architecture blogs.*
+_Research conducted 2026-05-01 across GitHub, Sourcegraph, project documentation, and architecture blogs._

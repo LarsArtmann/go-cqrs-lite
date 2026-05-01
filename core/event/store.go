@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -12,7 +13,10 @@ type Deleter interface {
 }
 
 // Store defines the interface for event persistence.
+// All implementations must support lifecycle management via io.Closer.
 type Store interface {
+	io.Closer
+
 	// Save appends events to the aggregate's event stream
 	Save(
 		ctx context.Context,

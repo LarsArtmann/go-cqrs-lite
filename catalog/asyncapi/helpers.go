@@ -47,7 +47,9 @@ func toDotAddress(s string) string {
 		case c >= '0' && c <= '9':
 			if i > 0 {
 				prev := runes[i-1]
-				if prev >= 'a' && prev <= 'z' {
+				isLetter := (prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')
+
+				if isLetter {
 					result = append(result, '.')
 				}
 			}
