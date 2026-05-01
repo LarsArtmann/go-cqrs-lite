@@ -58,7 +58,7 @@ func (s *FakeStore) Save(
 
 	s.mu.Lock()
 
-	key := string(aggregateType) + "/" + aggregateID.String()
+	key := string(aggregateType) + ":" + aggregateID.String()
 	s.events[key] = append(s.events[key], events...)
 
 	s.mu.Unlock()
@@ -75,7 +75,7 @@ func (s *FakeStore) AppendBatch(
 ) error {
 	s.mu.Lock()
 
-	key := string(aggregateType) + "/" + aggregateID.String()
+	key := string(aggregateType) + ":" + aggregateID.String()
 	s.events[key] = append(s.events[key], events...)
 
 	s.mu.Unlock()
@@ -91,7 +91,7 @@ func (s *FakeStore) Load(
 ) ([]event.Event, error) {
 	s.mu.RLock()
 
-	key := string(aggregateType) + "/" + aggregateID.String()
+	key := string(aggregateType) + ":" + aggregateID.String()
 	evts := s.events[key]
 
 	s.mu.RUnlock()
@@ -108,7 +108,7 @@ func (s *FakeStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	s.mu.RLock()
 
-	key := string(aggregateType) + "/" + aggregateID.String()
+	key := string(aggregateType) + ":" + aggregateID.String()
 	all := s.events[key]
 
 	s.mu.RUnlock()
@@ -130,7 +130,7 @@ func (s *FakeStore) Delete(
 ) error {
 	s.mu.Lock()
 
-	key := string(aggregateType) + "/" + aggregateID.String()
+	key := string(aggregateType) + ":" + aggregateID.String()
 	delete(s.events, key)
 
 	s.mu.Unlock()
