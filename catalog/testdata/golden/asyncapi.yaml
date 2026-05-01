@@ -1,106 +1,106 @@
 asyncapi: 3.0.0
 id: urn:e-commerceapi:api
 info:
-  title: E-Commerce API
-  version: 1.0.0
+    title: E-Commerce API
+    version: 1.0.0
 defaultContentType: application/json
 servers:
-  production:
-    host: localhost:9092
-    protocol: kafka
-    description: Message broker
+    production:
+        host: localhost:9092
+        protocol: kafka
+        description: Message broker
 channels:
-  commands.CreateOrder:
-    address: order-svc.commands.create.order
-    title: Create Order command Channel
-    description: Create a new order
-    messages:
-      commands:
-        $ref: "#/components/messages/CreateOrder"
-  events.OrderCreated:
-    address: order-svc.events.order.created
-    title: Order Created event Channel
-    description: Order was created
-    messages:
-      events:
-        $ref: "#/components/messages/OrderCreated"
-  queries.GetOrder:
-    address: order-svc.queries.get.order
-    title: Get Order querie Channel
-    description: Get order by ID
-    messages:
-      queries:
-        $ref: "#/components/messages/GetOrder"
+    commands.CreateOrder:
+        address: order-svc.commands.create.order
+        title: Create Order command Channel
+        description: Create a new order
+        messages:
+            commands:
+                $ref: '#/components/messages/command.CreateOrder'
+    events.OrderCreated:
+        address: order-svc.events.order.created
+        title: Order Created event Channel
+        description: Order was created
+        messages:
+            events:
+                $ref: '#/components/messages/event.OrderCreated'
+    queries.GetOrder:
+        address: order-svc.queries.get.order
+        title: Get Order querie Channel
+        description: Get order by ID
+        messages:
+            queries:
+                $ref: '#/components/messages/query.GetOrder'
 operations:
-  handleGetOrder:
-    title: Handle Get Order
-    summary: Get order by ID
-    action: receive
-    channel:
-      $ref: "#/channels/queries.GetOrder"
-    messages:
-      - $ref: "#/components/messages/GetOrder"
-    tags:
-      - name: queries
-      - name: order-svc
-  publishOrderCreated:
-    title: Publish Order Created
-    summary: Order was created
-    action: send
-    channel:
-      $ref: "#/channels/events.OrderCreated"
-    messages:
-      - $ref: "#/components/messages/OrderCreated"
-    tags:
-      - name: events
-      - name: order-svc
-  receiveCreateOrder:
-    title: Receive Create Order
-    summary: Create a new order
-    action: receive
-    channel:
-      $ref: "#/channels/commands.CreateOrder"
-    messages:
-      - $ref: "#/components/messages/CreateOrder"
-    tags:
-      - name: commands
-      - name: order-svc
+    handleGetOrder:
+        title: Handle Get Order
+        summary: Get order by ID
+        action: receive
+        channel:
+            $ref: '#/channels/queries.GetOrder'
+        messages:
+            -   $ref: '#/components/messages/query.GetOrder'
+        tags:
+            -   name: queries
+            -   name: order-svc
+    publishOrderCreated:
+        title: Publish Order Created
+        summary: Order was created
+        action: send
+        channel:
+            $ref: '#/channels/events.OrderCreated'
+        messages:
+            -   $ref: '#/components/messages/event.OrderCreated'
+        tags:
+            -   name: events
+            -   name: order-svc
+    receiveCreateOrder:
+        title: Receive Create Order
+        summary: Create a new order
+        action: receive
+        channel:
+            $ref: '#/channels/commands.CreateOrder'
+        messages:
+            -   $ref: '#/components/messages/command.CreateOrder'
+        tags:
+            -   name: commands
+            -   name: order-svc
 components:
-  schemas:
-    CreateOrder:
-      properties:
-        orderId:
-          type: string
-      type: object
-    GetOrder:
-      type: object
-    OrderCreated:
-      type: object
-  messages:
-    CreateOrder:
-      name: CreateOrder
-      title: Create Order
-      summary: Create a new order
-      contentType: application/json
-      payload:
-        $ref: "#/components/schemas/CreateOrder"
-      tags:
-        - name: commands
-    GetOrder:
-      name: GetOrder
-      title: Get Order
-      summary: Get order by ID
-      contentType: application/json
-      payload:
-        $ref: "#/components/schemas/GetOrder"
-      tags:
-        - name: queries
-    OrderCreated:
-      name: OrderCreated
-      title: Order Created
-      summary: Order was created
-      contentType: application/json
-      payload:
-        $ref: "#/components/schemas/OrderCreated"
-      tags:
-        - name: events
+    schemas:
+        command.CreateOrder:
+            properties:
+                orderId:
+                    type: string
+            type: object
+        event.OrderCreated:
+            type: object
+        query.GetOrder:
+            type: object
+    messages:
+        command.CreateOrder:
+            name: CreateOrder
+            title: Create Order
+            summary: Create a new order
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/command.CreateOrder'
+            tags:
+                -   name: commands
+        event.OrderCreated:
+            name: OrderCreated
+            title: Order Created
+            summary: Order was created
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/event.OrderCreated'
+            tags:
+                -   name: events
+        query.GetOrder:
+            name: GetOrder
+            title: Get Order
+            summary: Get order by ID
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/query.GetOrder'
+            tags:
+                -   name: queries

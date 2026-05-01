@@ -52,6 +52,9 @@ node_modules/
 *.db
 /report/jscpd-report.json
 
+# Generated catalog output
+**/eventcatalog-output/
+
 # Example binaries
 example/*/catalog
 example/*/user

@@ -2,5 +2,5 @@
 module.exports = {
   title: "E-Commerce",
   organizationName: "E-Commerce",
-  landingPage: { content: "" },
+  landingPage: { content: '' },
 };

@@ -140,7 +140,8 @@ func (e *Exporter) addMessage(
 
 	id := catalog.MessageID(msg)
 	channelKey := string(kind) + "." + id
-	ref := "#/components/messages/" + id
+	componentKey := string(msg.Kind) + "." + id
+	ref := "#/components/messages/" + componentKey
 
 	doc.Channels[channelKey] = Channel{
 		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(id)),
@@ -183,6 +184,7 @@ func (e *Exporter) addMessage(
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	id := catalog.MessageID(msg)
+	componentKey := string(msg.Kind) + "." + id
 
 	tagName := "commands"
 
@@ -195,19 +197,19 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		tagName = "commands"
 	}
 
-	doc.Components.Messages[id] = Message{
+	doc.Components.Messages[componentKey] = Message{
 		Name:        id,
 		Title:       msg.Name,
 		Summary:     msg.Summary,
 		ContentType: "application/json",
-		Payload:     Ref{Ref: "#/components/schemas/" + id},
+		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
 		Tags:        []Tag{{Name: tagName}},
 		Examples:    toExamples(msg.Examples),
 	}
 
 	if msg.Schema != nil {
-		doc.Components.Schemas[id] = SchemaToAny(msg.Schema)
+		doc.Components.Schemas[componentKey] = SchemaToAny(msg.Schema)
 	} else {
-		doc.Components.Schemas[id] = map[string]string{"type": "object"}
+		doc.Components.Schemas[componentKey] = map[string]string{"type": "object"}
 	}
 }

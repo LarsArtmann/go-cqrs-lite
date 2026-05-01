@@ -20,7 +20,7 @@
       "description": "Create a new order",
       "messages": {
         "commands": {
-          "$ref": "#/components/messages/CreateOrder"
+          "$ref": "#/components/messages/command.CreateOrder"
         }
       }
     },
@@ -30,7 +30,7 @@
       "description": "Order was created",
       "messages": {
         "events": {
-          "$ref": "#/components/messages/OrderCreated"
+          "$ref": "#/components/messages/event.OrderCreated"
         }
       }
     },
@@ -40,7 +40,7 @@
       "description": "Get order by ID",
       "messages": {
         "queries": {
-          "$ref": "#/components/messages/GetOrder"
+          "$ref": "#/components/messages/query.GetOrder"
         }
       }
     }
@@ -55,7 +55,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/GetOrder"
+          "$ref": "#/components/messages/query.GetOrder"
         }
       ],
       "tags": [
@@ -76,7 +76,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/OrderCreated"
+          "$ref": "#/components/messages/event.OrderCreated"
         }
       ],
       "tags": [
@@ -97,7 +97,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/CreateOrder"
+          "$ref": "#/components/messages/command.CreateOrder"
         }
       ],
       "tags": [
@@ -112,7 +112,7 @@
   },
   "components": {
     "schemas": {
-      "CreateOrder": {
+      "command.CreateOrder": {
         "properties": {
           "orderId": {
             "type": "string"
@@ -120,21 +120,21 @@
         },
         "type": "object"
       },
-      "GetOrder": {
+      "event.OrderCreated": {
         "type": "object"
       },
-      "OrderCreated": {
+      "query.GetOrder": {
         "type": "object"
       }
     },
     "messages": {
-      "CreateOrder": {
+      "command.CreateOrder": {
         "name": "CreateOrder",
         "title": "Create Order",
         "summary": "Create a new order",
         "contentType": "application/json",
         "payload": {
-          "$ref": "#/components/schemas/CreateOrder"
+          "$ref": "#/components/schemas/command.CreateOrder"
         },
         "tags": [
           {
@@ -142,31 +142,31 @@
           }
         ]
       },
-      "GetOrder": {
-        "name": "GetOrder",
-        "title": "Get Order",
-        "summary": "Get order by ID",
-        "contentType": "application/json",
-        "payload": {
-          "$ref": "#/components/schemas/GetOrder"
-        },
-        "tags": [
-          {
-            "name": "queries"
-          }
-        ]
-      },
-      "OrderCreated": {
+      "event.OrderCreated": {
         "name": "OrderCreated",
         "title": "Order Created",
         "summary": "Order was created",
         "contentType": "application/json",
         "payload": {
-          "$ref": "#/components/schemas/OrderCreated"
+          "$ref": "#/components/schemas/event.OrderCreated"
         },
         "tags": [
           {
             "name": "events"
+          }
+        ]
+      },
+      "query.GetOrder": {
+        "name": "GetOrder",
+        "title": "Get Order",
+        "summary": "Get order by ID",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/query.GetOrder"
+        },
+        "tags": [
+          {
+            "name": "queries"
           }
         ]
       }

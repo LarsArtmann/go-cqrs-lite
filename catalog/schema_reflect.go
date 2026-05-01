@@ -38,7 +38,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	}
 
 	if t == reflect.TypeFor[time.Time]() {
-		return &Schema{Type: jsonTypeString, Properties: map[string]Property{}}
+		return &Schema{Type: jsonTypeString}
 	}
 
 	return structSchema(t)

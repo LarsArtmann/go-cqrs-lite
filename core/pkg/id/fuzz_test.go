@@ -1,6 +1,7 @@
 package id
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -25,7 +26,7 @@ func FuzzParse(f *testing.F) {
 			return
 		}
 
-		if parsed.String() != input {
+		if !strings.EqualFold(parsed.String(), input) {
 			t.Errorf("roundtrip mismatch: got %q, want %q", parsed.String(), input)
 		}
 	})

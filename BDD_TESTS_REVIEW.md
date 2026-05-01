@@ -1,6 +1,6 @@
 # BDD Tests — go-cqrs-lite
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-05-01
 **Framework:** Ginkgo v2 + Gomega
 **Status:** Active
 
@@ -8,21 +8,22 @@
 
 ## Test Files
 
-| File                               | Specs | Focus                                                                          |
-| ---------------------------------- | ----- | ------------------------------------------------------------------------------ |
-| `event/event_sourcing_bdd_test.go` | 22    | Event Store, Event Bus, Event Creation                                         |
-| `aggregate/cqrs_bdd_test.go`       | 12    | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants, middleware |
-| `query/query_bdd_test.go`          | 6     | Query dispatch, typed results, middleware                                      |
+| File                                             | Specs | Focus                                                                          |
+| ------------------------------------------------ | ----- | ------------------------------------------------------------------------------ |
+| `integration/event/event_sourcing_bdd_test.go`   | 22    | Event Store, Event Bus, Event Creation                                         |
+| `integration/aggregate/cqrs_bdd_test.go`         | 12    | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants, middleware |
+| `integration/query/query_bdd_test.go`            | 6     | Query dispatch, typed results, middleware                                      |
 
 **Total: 40 specs**
 
 ### Supporting files
 
-| File                               | Purpose                                   |
-| ---------------------------------- | ----------------------------------------- |
-| `event/event_bdd_suite_test.go`    | `TestEventBDD` — Ginkgo suite entry point |
-| `aggregate/cqrs_bdd_suite_test.go` | `TestCQRSBDD` — Ginkgo suite entry point  |
-| `query/query_bdd_test.go`          | `TestQueryBDD` — Ginkgo suite entry point |
+| File                                             | Purpose                                   |
+| ------------------------------------------------ | ----------------------------------------- |
+| `integration/event/event_bdd_suite_test.go`      | `TestEventBDD` — Ginkgo suite entry point |
+| `integration/aggregate/cqrs_bdd_suite_test.go`   | `TestCQRSBDD` — Ginkgo suite entry point  |
+
+Note: `integration/query/` has no dedicated suite file — the BDD tests run as regular Go tests.
 
 ---
 
@@ -30,19 +31,22 @@
 
 ```bash
 # BDD suites only
-go test ./event/ -v -run TestEventBDD
-go test ./aggregate/ -v -run TestCQRSBDD
-go test ./query/ -v -run TestQueryBDD
+go test ./integration/event/ -v -run TestEventBDD
+go test ./integration/aggregate/ -v -run TestCQRSBDD
+go test ./integration/query/ -v
 
-# All tests (BDD + unit)
-go test ./...
+# All tests (BDD + unit + integration)
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... -count=1
+
+# Via Nix
+nix run .#test
 ```
 
 ---
 
 ## Scenarios
 
-### Event Store (`event/event_sourcing_bdd_test.go`)
+### Event Store (`integration/event/event_sourcing_bdd_test.go`)
 
 **Persona:** "As a developer building an event-sourced system"
 
@@ -56,7 +60,7 @@ go test ./...
 - `AppendBatch` for bulk imports — preserves original event versions on load
 - Reject operations on a closed store
 
-### Event Bus (`event/event_sourcing_bdd_test.go`)
+### Event Bus (`integration/event/event_sourcing_bdd_test.go`)
 
 **Persona:** "As a developer reacting to domain events"
 
@@ -69,7 +73,7 @@ go test ./...
 - Subscribe + SubscribeAll on same event → event delivered twice (once per subscription)
 - Subscribe to wrong type → no event received
 
-### Event Creation (`event/event_sourcing_bdd_test.go`)
+### Event Creation (`integration/event/event_sourcing_bdd_test.go`)
 
 **Persona:** "As a developer creating domain events"
 
@@ -78,7 +82,7 @@ go test ./...
 - Reject empty aggregate ID, empty aggregate type, negative version
 - Custom metadata key-value pairs survive through the metadata map
 
-### CQRS Roundtrip (`aggregate/cqrs_bdd_test.go`)
+### CQRS Roundtrip (`integration/aggregate/cqrs_bdd_test.go`)
 
 **Persona:** "As a developer building a CQRS application"
 
@@ -91,7 +95,7 @@ Uses a real `expense` aggregate with Submit → Approve → Pay workflow:
 - Close dispatcher → reject registration and dispatch
 - Command middleware wraps handler in order (audit → handler)
 
-### Repository Lifecycle (`aggregate/cqrs_bdd_test.go`)
+### Repository Lifecycle (`integration/aggregate/cqrs_bdd_test.go`)
 
 **Persona:** "As a developer managing aggregate lifecycle"
 
@@ -101,13 +105,13 @@ Uses a real `expense` aggregate with Submit → Approve → Pay workflow:
 - Re-creation after delete — delete events, submit new → version 1
 - Pay without approve — aggregate allows pay (no approval invariant enforced)
 
-### CQRS Concurrency (`aggregate/cqrs_bdd_test.go`)
+### CQRS Concurrency (`integration/aggregate/cqrs_bdd_test.go`)
 
 **Persona:** "As a developer verifying domain correctness"
 
 - Concurrent saves on same aggregate — 20 goroutines race, version conflicts detected, final state consistent
 
-### Query Dispatcher (`query/query_bdd_test.go`)
+### Query Dispatcher (`integration/query/query_bdd_test.go`)
 
 **Persona:** "As a developer building read-side queries"
 

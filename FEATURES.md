@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2025-05-01 · **Module count:** 9 · **Go version:** 1.26
+**Last audited:** 2026-05-01 · **Module count:** 9 · **Go version:** 1.26
 
 ## Status Legend
 
@@ -180,7 +180,7 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/middleware"`
 
-All 7 concerns are provided for all 3 message types (command, event, query) — **21 middleware factories** total.
+All 6 concerns are provided for all 3 message types (command, event, query) — **18 middleware factories** total.
 
 ### Logging ✅
 

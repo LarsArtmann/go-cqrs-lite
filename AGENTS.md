@@ -421,7 +421,7 @@ Interfaces now return branded ID types instead of `string`:
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)     | `699d247` |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                          | `b23a781` |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                  | `e84e3a1` |
-| Example simplification       | `example/user/` uses `aggregate.EventSourcedRepository`               | `6815ef3` |
+| Example simplification       | `example/user/` demonstrates full CQRS lifecycle + EventCatalog export | `6815ef3` |
 
 ## Known Issues
 
@@ -456,6 +456,7 @@ Interfaces now return branded ID types instead of `string`:
 - Removed dead `reflect.Ptr` case in `catalog/schema.go`
 - Removed unused `handler` parameter from `dispatcher.Dispatch()`
 - Simplified `example/user/` to use `aggregate.EventSourcedRepository`
+- Enhanced `example/user/` with typed JSON payloads (`UserCreatedPayload`, `UserNameChangedPayload`) and EventCatalog generation via `catalog/adapters`
 - **Branded return types**: `Event.ID()` → `id.EventID`, `Event.AggregateID()` → `id.AggregateID`, `Root.ID()` → `id.AggregateID`, `Command.AggregateID()` → `id.AggregateID`. All callers updated, redundant re-parses eliminated.
 - **ULID migration**: `id.Of[T]` now wraps `cbid.ID[T, ulid.ULID]` instead of `cbid.ID[T, string]`. IDs are binary-sortable, time-ordered, 16-byte binary form. All serialization reimplemented locally. ~120 test fixtures migrated to valid ULIDs.
 - Removed `NewWithPrefix` and `PrefixString` — prefix incompatible with ULID format, function silently discarded the prefix parameter
@@ -519,7 +520,7 @@ Interfaces now return branded ID types instead of `string`:
   - **Round 1 (1%→51%)**: Extracted fakes to `testhelpers/fakes.go`. Added `SnapshotStrategy` interface + `EveryNEvents`. Wired `Codec` into `EventSourcedRepository`. Added `DecodePayload[T]`, `ContextEnricher`, `CompositeEnricher`. Coverage: 95.5% aggregate, 97.9% event.
   - **Round 2 (4%→64%)**: Added `Projection` interface, `InMemoryRunner`, `CheckpointStore`, `MemoryCheckpointStore`. Added `Upcaster` interface, `UpcasterRegistry` with sorted chain application. 12 new tests.
   - **Round 3 (20%→80%)**: Created `storage/` module with `SQLEventStore` (PostgreSQL, optimistic concurrency). Created `example/user/` demonstrating full CQRS lifecycle. Updated CHANGELOG.
-  - All 9 modules in workspace: core, memory, catalog, middleware, testhelpers, integration, storage, example/user
+  - All 8 modules in workspace: core, memory, catalog, middleware, testhelpers, integration, storage, example/user (removed stale example/catalog binary)
   - Zero lint, zero races, all tests pass across all modules
 
 - **Session 15 (go-branded-id Audit + Bug Fixes)**:
@@ -530,6 +531,15 @@ Interfaces now return branded ID types instead of `string`:
   - **API completeness**: Forwarded `Ptr()`, `FromPtr()`, `fmt.Formatter` from `go-branded-id` to `id.Of[T]`
   - Removed 5 unnecessary `.String()` calls in `fmt.Errorf` across `core/aggregate`, `core/command`, `storage`
   - Zero lint, all tests pass
+
+- **Session 16 (Documentation Audit + Bug Fixes)**:
+  - **Fixed FuzzParse**: Case-insensitive ULID comparison in `core/pkg/id/fuzz_test.go` — ULIDs are case-insensitive but `String()` normalizes to lowercase
+  - **Fixed time.Time schema**: `schemaFromReflect` now returns `{type: "string"}` for `time.Time` instead of `{type: "string", Properties: map[string]Property{}}` (empty properties was incorrect)
+  - **Moved projection tests**: Split `core/event/projection_test.go` — kept `TestProjectionFunc` (no memory dep), moved InMemoryRunner + CheckpointStore tests to `integration/event/projection_test.go`
+  - **Regenerated golden files**: AsyncAPI JSON/YAML + EventCatalog config/package.json
+  - **BDD_TESTS_REVIEW.md**: Fixed all file paths from `core/` → `integration/`, updated running commands, noted missing query suite file
+  - **FEATURES.md**: Fixed audit date (2025→2026), corrected middleware count (7→6 concerns, 21→18 factories)
+  - **TODO_LIST.md**: Removed 250+ stale completed items, restructured to 5 actionable priorities (HIGH/MEDIUM/LOW/PLANNED)
 
 ## Migration State
 
