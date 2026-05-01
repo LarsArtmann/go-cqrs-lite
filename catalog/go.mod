@@ -30,6 +30,4 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../core
-	github.com/larsartmann/go-cqrs-lite/memory => ../memory
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )
