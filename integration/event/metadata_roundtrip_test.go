@@ -62,7 +62,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		Expect(got.Type()).To(Equal(event.Type("user.created")))
 		Expect(got.AggregateID()).To(Equal(aggID))
 		Expect(got.AggregateType()).To(Equal(event.AggregateType("User")))
-		Expect(got.Version()).To(Equal(1))
+		Expect(got.Version()).To(Equal(event.Version(1)))
 
 		meta := got.Metadata()
 		Expect(meta).ToNot(BeNil())
@@ -118,8 +118,8 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		loaded, err := store.LoadFromVersion(ctx, aggType, aggID, event.Version(1))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(2))
-		Expect(loaded[0].Version()).To(Equal(2))
-		Expect(loaded[1].Version()).To(Equal(3))
+		Expect(loaded[0].Version()).To(Equal(event.Version(2)))
+		Expect(loaded[1].Version()).To(Equal(event.Version(3)))
 
 		for _, evt := range loaded {
 			Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
