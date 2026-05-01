@@ -3,7 +3,9 @@ package projection
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
+	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -136,8 +138,44 @@ func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
 			continue
 		}
 
-		_ = r.handleAndCheckpoint(ctx, p, evt)
+		err := r.handleWithRetry(ctx, p, evt)
+		if err != nil {
+			slog.ErrorContext(ctx, "projection handler failed",
+				"projection", p.Name(),
+				"event_id", evt.ID(),
+				"event_type", evt.Type(),
+				"error", err,
+			)
+		}
 	}
+}
+
+func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt event.Event) error {
+	err := r.handleAndCheckpoint(ctx, p, evt)
+	if err == nil {
+		return nil
+	}
+
+	if r.opts.retryCount <= 0 || !event.IsRetryable(err) {
+		return err
+	}
+
+	for attempt := 1; attempt <= r.opts.retryCount; attempt++ {
+		delay := r.opts.retryDelay * time.Duration(1<<(attempt-1))
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(delay):
+		}
+
+		err = r.handleAndCheckpoint(ctx, p, evt)
+		if err == nil {
+			return nil
+		}
+	}
+
+	return err
 }
 
 func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (id.EventID, error) {
