@@ -408,16 +408,18 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 ## Branded Return Types Migration (Session 3)
 
-Interfaces now return branded ID types instead of `string`:
+Interfaces now return branded types instead of primitives:
 
 | Interface | Method          | Old Return | New Return       |
 | --------- | --------------- | ---------- | ---------------- |
 | `Event`   | `ID()`          | `string`   | `id.EventID`     |
 | `Event`   | `AggregateID()` | `string`   | `id.AggregateID` |
+| `Event`   | `Version()`     | `int`      | `event.Version`  |
 | `Root`    | `ID()`          | `string`   | `id.AggregateID` |
+| `Root`    | `Version()`     | `int`      | `event.Version`  |
 | `Command` | `AggregateID()` | `string`   | `id.AggregateID` |
 
-**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). All `cmd.AggregateID()` and `root.ID()` comparisons use branded types. `repository.go` eliminated redundant `id.ParseAggregateID()` re-parses. `middleware/logging.go` adds `.String()` when formatting IDs for log output. Commit: `cee6c50`
+**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). All `cmd.AggregateID()` and `root.ID()` comparisons use branded types. `repository.go` eliminated redundant `id.ParseAggregateID()` re-parses. `middleware/logging.go` adds `.String()` when formatting IDs for log output. `Version()` callers use `.Int()` when passing to `NewEvent` or `fmt.Printf`. Commit: `cee6c50` (IDs), `de095e5` (Version)
 
 ## Bug Fixes (Sessions 1–2)
 
@@ -461,4 +463,12 @@ Interfaces now return branded ID types instead of `string`:
   - **UpcasterRegistry**: Added cycle detection (visited version tracking).
   - **Documentation**: Documented `InMemoryRunner` fail-fast, `MemoryBus.Publish` RLock. Updated FEATURES.md storage status (BROKEN → PARTIALLY_FUNCTIONAL). Pruned 6 stale TODO_LIST.md items.
   - **Housekeeping**: Deleted orphaned `/user` binary. Added `/user` to `.gitignore`. Documented `storage.Close()` ownership contract.
+  - Zero lint, all tests pass across all 9 modules
+
+- **Session 25 (Bug Fixes + Type Safety)**:
+  - **CRITICAL FIX**: `SQLSnapshotStore.Save()` double-marshal — `json.Marshal(snap.State)` stored double-encoded JSON (`State` is already `[]byte`). Now stores `snap.State` directly.
+  - **CRITICAL FIX**: `storage.Close()` ownership — all 3 SQL stores now return nil (no-op). `*sql.DB` is borrowed, not owned. Previously `Close()` on one store broke others sharing the same DB.
+  - **DESIGN FIX**: `CheckpointStore` interface now embeds `io.Closer`, consistent with all other store interfaces (`Store`, `Bus`, `SnapshotStore`, `Outbox`).
+  - **BREAKING**: `Event.Version()` and `Root.Version()` return `event.Version` instead of `int`. Consistent with branded ID types. Callers needing `int` use `.Int()`. `SnapshotStrategy.ShouldSnapshot()` parameter also changed.
+  - **Tests**: Added `storage/snapshot_test.go` (11 tests) and `storage/checkpoint_test.go` (8 tests) with go-sqlmock.
   - Zero lint, all tests pass across all 9 modules

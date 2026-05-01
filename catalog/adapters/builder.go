@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	d2exporter "github.com/larsartmann/go-cqrs-lite/catalog/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 )
 
@@ -72,6 +73,17 @@ func (b *CatalogBuilder) ExportAsyncAPI(
 	exp := asyncapi.NewExporter(serviceName, version, opts...)
 
 	return exp.Export(cat), nil
+}
+
+// ExportD2 creates a D2 diagram string from the catalog.
+func (b *CatalogBuilder) ExportD2(
+	title, version string,
+	opts ...d2exporter.Option,
+) string {
+	cat := b.Build()
+	exp := d2exporter.NewExporter(title, version, opts...)
+
+	return exp.Export(cat)
 }
 
 func (b *CatalogBuilder) addMessageToService(
