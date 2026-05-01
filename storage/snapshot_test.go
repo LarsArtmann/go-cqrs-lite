@@ -155,11 +155,11 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID, 3).
+		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
 			AddRow(3, []byte(`{"name":"Jane"}`), createdAt))
 
-	snap, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(3))
+	snap, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(5))
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)
 	}
@@ -176,12 +176,29 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID, 99).
+		WithArgs("User", aggID).
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(99))
 	if err == nil {
 		t.Fatal("expected error for not found")
+	}
+}
+
+func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {
+	t.Parallel()
+
+	s, mock := newTestSnapshotStore(t)
+	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+
+	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+		WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
+			AddRow(10, []byte(`{"name":"Jane"}`), time.Now()))
+
+	_, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(5))
+	if err == nil {
+		t.Fatal("expected error when stored version exceeds requested")
 	}
 }
 
