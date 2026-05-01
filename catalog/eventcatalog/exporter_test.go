@@ -488,9 +488,9 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	cattest.AssertContentContains(t, content, "service file",
 		"id: order-svc",
 		"sends:",
-		"- OrderCreated/1.0.0",
+		"- id: OrderCreated",
 		"receives:",
-		"- PaymentProcessed/2.0.0",
+		"- id: PaymentProcessed",
 	)
 }
 
@@ -572,9 +572,9 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	content := string(data)
 	cattest.AssertContentContains(t, content, "service file",
 		"commands:",
-		"- CreateOrder/1.0.0",
+		"- id: CreateOrder",
 		"queries:",
-		"- GetOrder/1.0.0",
+		"- id: GetOrder",
 	)
 }
 

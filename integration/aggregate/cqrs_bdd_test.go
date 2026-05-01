@@ -32,7 +32,7 @@ const expenseType event.AggregateType = "Expense"
 var _ aggregate.Root = (*expense)(nil)
 
 func newExpense(expenseID id.AggregateID) *expense {
-	return &expense{Core: aggregate.NewCore(expenseID, expenseType)}
+	return &expense{Core: aggregate.MustNewCore(expenseID, expenseType)}
 }
 
 // setupCQRSComponents creates fresh store, bus, and repository for testing.

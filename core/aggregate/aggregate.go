@@ -31,13 +31,33 @@ type Core struct {
 }
 
 // NewCore creates a new aggregate core.
-func NewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
+// Returns an error if the ID is zero or the aggregate type is empty.
+func NewCore(id id.AggregateID, aggregateType event.AggregateType) (*Core, error) {
+	if id.IsZero() {
+		return nil, ErrNilAggregateID
+	}
+
+	if aggregateType == "" {
+		return nil, ErrEmptyAggregateType
+	}
+
 	return &Core{
 		id:            id,
 		aggregateType: aggregateType,
 		version:       0,
 		changes:       make([]event.Event, 0),
+	}, nil
+}
+
+// MustNewCore is like NewCore but panics on error.
+// For use in tests and examples where inputs are known valid.
+func MustNewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
+	c, err := NewCore(id, aggregateType)
+	if err != nil {
+		panic(err)
 	}
+
+	return c
 }
 
 // ID returns the aggregate ID.

@@ -17,7 +17,7 @@ func TestSetVersion(t *testing.T) {
 	t.Parallel()
 
 	orderID := id.NewAggregateID()
-	core := aggregate.NewCore(orderID, orderAggregateType)
+	core := aggregate.MustNewCore(orderID, orderAggregateType)
 
 	if core.Version() != 0 {
 		t.Fatalf("expected initial version 0, got %d", core.Version())
@@ -325,7 +325,7 @@ func TestEventSourcedRepository_Load_SnapshotApplyError(t *testing.T) {
 	}
 
 	// Load with a root that fails ApplySnapshot
-	loaded := &failingSnapshotRoot{Core: aggregate.NewCore(orderID, orderAggregateType)}
+	loaded := &failingSnapshotRoot{Core: aggregate.MustNewCore(orderID, orderAggregateType)}
 
 	err = repo.Load(ctx, loaded)
 	if err == nil {

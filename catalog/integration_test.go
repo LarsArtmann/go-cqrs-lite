@@ -129,7 +129,7 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 	svcIndex := filepath.Join(ecDir, "services", "order-service", "index.mdx")
 
 	content := cattest.MustReadFile(t, svcIndex)
-	if !containsAll(content, "sends:", "- OrderCreated/1.0.0") {
+	if !containsAll(content, "sends:", "- id: OrderCreated") {
 		t.Errorf("service frontmatter missing sends: %s", content)
 	}
 

@@ -27,7 +27,7 @@ const productType event.AggregateType = "Product"
 var _ aggregate.Root = (*product)(nil)
 
 func newProduct(productID id.AggregateID) *product {
-	return &product{Core: aggregate.NewCore(productID, productType)}
+	return &product{Core: aggregate.MustNewCore(productID, productType)}
 }
 
 func (p *product) Apply(evt event.Event) error {

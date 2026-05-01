@@ -28,3 +28,9 @@ var ErrNilCheckpointStore = errors.New("event: nil checkpoint store")
 
 // ErrDuplicateProjection is returned when a projection with the same name is already registered.
 var ErrDuplicateProjection = errors.New("event: duplicate projection")
+
+// ErrNilOutbox is returned when a nil outbox is passed to NewOutboxPublisher.
+var ErrNilOutbox = errors.New("event: nil outbox")
+
+// ErrNilBus is returned when a nil bus is passed to NewOutboxPublisher.
+var ErrNilBus = errors.New("event: nil bus")

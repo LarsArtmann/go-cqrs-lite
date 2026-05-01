@@ -11,7 +11,7 @@ import (
 )
 
 func BenchmarkAggregate_RecordEvent(b *testing.B) {
-	core := aggregate.NewCore(id.NewAggregateID(), "BenchAggregate")
+	core := aggregate.MustNewCore(id.NewAggregateID(), "BenchAggregate")
 	ctx := context.Background()
 
 	evt, err := event.NewEvent(
@@ -32,7 +32,7 @@ func BenchmarkAggregate_RecordEvent(b *testing.B) {
 }
 
 func BenchmarkAggregate_LoadFromHistory(b *testing.B) {
-	core := aggregate.NewCore(id.NewAggregateID(), "BenchAggregate")
+	core := aggregate.MustNewCore(id.NewAggregateID(), "BenchAggregate")
 	events := make([]event.Event, 100)
 
 	for i := range 100 {

@@ -25,7 +25,7 @@ const orderAggregateType event.AggregateType = "Order"
 var _ aggregate.Root = (*order)(nil)
 
 func newOrder(orderID id.AggregateID) *order {
-	return &order{Core: aggregate.NewCore(orderID, orderAggregateType)}
+	return &order{Core: aggregate.MustNewCore(orderID, orderAggregateType)}
 }
 
 func (o *order) Status() string { return o.status }
@@ -341,7 +341,7 @@ func TestCore_LoadFromHistory_ApplyError(t *testing.T) {
 		t.Fatalf("save order: %v", err)
 	}
 
-	failing := &failingApplyRoot{Core: aggregate.NewCore(orderID, orderAggregateType)}
+	failing := &failingApplyRoot{Core: aggregate.MustNewCore(orderID, orderAggregateType)}
 
 	err = repo.Load(ctx, failing)
 	if err == nil {

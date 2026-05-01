@@ -44,14 +44,14 @@ func WithBatchSize(n int) OutboxPublisherOption {
 }
 
 // NewOutboxPublisher creates a publisher that polls outbox and publishes to bus.
-// Panics if outbox or bus is nil.
-func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) *OutboxPublisher {
+// Returns an error if outbox or bus is nil.
+func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) (*OutboxPublisher, error) {
 	if outbox == nil {
-		panic("event: nil Outbox")
+		return nil, fmt.Errorf("%w", ErrNilOutbox)
 	}
 
 	if bus == nil {
-		panic("event: nil Bus")
+		return nil, fmt.Errorf("%w", ErrNilBus)
 	}
 
 	p := &OutboxPublisher{
@@ -76,7 +76,7 @@ func NewOutboxPublisher(outbox Outbox, bus Bus, opts ...OutboxPublisherOption) *
 		p.batchSize = defaultBatchSize
 	}
 
-	return p
+	return p, nil
 }
 
 // Start begins the background polling loop.

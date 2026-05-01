@@ -39,7 +39,7 @@ func newUser(email string) *User {
 	aggID := id.NewAggregateID()
 
 	return &User{
-		Core:  aggregate.NewCore(aggID, event.AggregateType("User")),
+		Core:  aggregate.MustNewCore(aggID, event.AggregateType("User")),
 		email: email,
 	}
 }
@@ -139,7 +139,7 @@ func main() {
 
 	fmt.Printf("Created user %s (%s)\n", user.ID(), user.email)
 
-	loaded := &User{Core: aggregate.NewCore(user.ID(), event.AggregateType("User"))}
+	loaded := &User{Core: aggregate.MustNewCore(user.ID(), event.AggregateType("User"))}
 
 	if err := repo.Load(ctx, loaded); err != nil {
 		log.Fatalf("load user: %v", err)
