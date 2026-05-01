@@ -136,7 +136,6 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
 	}
 
-	_, _ = fmt.Fprintf(md, "owners:\n  - %s\n", svcID)
 	md.finish(msg.Name, msg.Summary)
 
 	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())

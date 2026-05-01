@@ -111,7 +111,6 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	content = string(data)
 	cattest.AssertContentContains(t, content, "command file",
 		"id: CreateOrder",
-		"owners:",
 	)
 
 	schemaPath := filepath.Join(
