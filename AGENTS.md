@@ -453,21 +453,23 @@ Interfaces now return branded types instead of primitives:
 | Issue                                                    | Severity   | Detail                                                                                   |
 | -------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
 | **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface. |
-| **JSON v1/v2 split in storage metadata**                 | **MEDIUM** | `json:"correlationId"` (v1 tags) in storage, v2 everywhere else. Silent corruption risk. |
 | **`Load()` empty semantics differ**                      | **MEDIUM** | `MemoryStore.Load()` returns `ErrAggregateNotFound`; `SQLEventStore.Load()` returns empty slice. |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                               |
 | `query.Handler` returns `any`                            | LOW        | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                    |
 | `CatalogMeta` duplicated across 3 packages               | LOW        | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW        | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`            |
 
-- **Session 27 (Comprehensive Audit & Fixes)**:
-  - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint.
+- **Session 27 (No-Panic Convention + Code Quality)**:
+  - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint. Added `ErrNilCheckpointStore` sentinel.
+  - **BREAKING**: `NewOutboxPublisher` returns `(*OutboxPublisher, error)` instead of panicking on nil outbox/bus. Added `ErrNilOutbox`, `ErrNilBus` sentinels.
   - **BREAKING**: `NewCore` returns `(*Core, error)` with validation for zero ID/empty type. Added `MustNewCore` helper. Added `ErrNilAggregateID`, `ErrEmptyAggregateType` sentinels.
   - **BREAKING**: `Bus` interface now includes `Use(middleware ...Middleware) error`. Updated `FakeBus` and test stubs.
+  - **Fix**: `SQLSnapshotStore.LoadAtVersion` now returns snapshot at or before version (was exact match). Matches interface contract and MemorySnapshotStore behavior.
   - **Fix**: `catalog/go.mod` stale replace directives caused 33+ gopls errors.
   - **Fix**: `TestSQLEventStore_Close` was false-positive (`ExpectClose` never fulfilled).
-  - **Fix**: FEATURES.md stale entries — removed implemented items from "Not Yet Implemented", corrected Bus.Use and Close() claims.
-  - **Code quality**: Unexported `d2.Exporter` fields, simplified counter, fixed example ChangeName to use Apply pattern.
+  - **Fix**: `FEATURES.md` stale entries — removed implemented items from "Not Yet Implemented", corrected Bus.Use and Close() claims.
+  - **Fix**: D2 exporter field reference `e.Description` → `e.description` after unexporting.
+  - **Code quality**: Added doc comments to `event/catalog.go` (CatalogMeta, Catalogable, etc.). Added `MustNewCatalogCore` to event for consistency. Added compile-time interface checks for `ProjectionFunc`, `UpcasterFunc`, `CatalogCore` across all 3 packages. Replaced custom `contains()` helper with `strings.Contains` in outbox publisher tests.
   - Zero lint, all 18 test packages pass
 
 - **Session 20 (Lint Fix + Comprehensive Plan Execution)**:
