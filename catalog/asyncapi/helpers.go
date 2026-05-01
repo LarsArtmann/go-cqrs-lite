@@ -19,7 +19,10 @@ func SchemaToAny(s *catalog.Schema) any {
 
 	var result any
 
-	_ = json.Unmarshal(raw, &result)
+	err = json.Unmarshal(raw, &result)
+	if err != nil {
+		return map[string]string{"type": "object"}
+	}
 
 	return result
 }
