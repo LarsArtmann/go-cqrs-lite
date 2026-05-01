@@ -4,7 +4,7 @@
 //   - Accepts *sql.DB for maximum flexibility (connection pooling, transactions)
 //   - Uses parameterized queries for SQL injection prevention
 //   - Supports optimistic concurrency via version checking
-//   - Designed for PostgreSQL but compatible with any SQL database
+//   - DDL targets PostgreSQL (BYTEA, JSONB, TIMESTAMP WITH TIME ZONE)
 package storage
 
 import (
