@@ -32,6 +32,8 @@
           testModules = [ "core" "memory" "catalog" "middleware" "integration" "storage" ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
+          examplePaths = "./example/user/...";
+
           mkApp = name: script: {
             type = "app";
             program = "${pkgs.writeShellScriptBin name script}/bin/${name}";
@@ -83,6 +85,7 @@
             build = mkApp "build" ''
               set -euo pipefail
               ${goPkg}/bin/go build ${modulePaths} "$@"
+              ${goPkg}/bin/go build ${examplePaths}
             '';
 
             vet = mkApp "vet" ''
