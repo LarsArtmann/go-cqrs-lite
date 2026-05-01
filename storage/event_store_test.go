@@ -287,12 +287,16 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 		))
 
 	events, err := store.Load(context.Background(), "User", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
+	if err == nil {
+		t.Fatal("expected ErrAggregateNotFound for empty result, got nil")
 	}
 
-	if len(events) != 0 {
-		t.Fatalf("expected 0 events, got %d", len(events))
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Errorf("expected ErrAggregateNotFound, got %v", err)
+	}
+
+	if events != nil {
+		t.Fatalf("expected nil events, got %d", len(events))
 	}
 }
 
@@ -806,12 +810,12 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 		))
 
 	events, err := store.Load(context.Background(), maliciousAggType, maliciousAggID)
-	if err != nil {
-		t.Fatalf("Load with malicious input: %v", err)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("Load with malicious input: expected ErrAggregateNotFound, got %v", err)
 	}
 
-	if len(events) != 0 {
-		t.Errorf("expected 0 events, got %d", len(events))
+	if events != nil {
+		t.Errorf("expected nil events, got %d", len(events))
 	}
 }
 

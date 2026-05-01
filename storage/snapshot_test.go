@@ -129,6 +129,10 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
+
+	if !errors.Is(err, event.ErrSnapshotNotFound) {
+		t.Errorf("expected ErrSnapshotNotFound, got %v", err)
+	}
 }
 
 func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
