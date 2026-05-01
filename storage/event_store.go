@@ -82,8 +82,6 @@ func (s *SQLEventStore) Save(
 		)
 	}
 
-	insertQuery := insertEventSQL
-
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
 		if err != nil {
@@ -92,7 +90,7 @@ func (s *SQLEventStore) Save(
 
 		_, err = tx.ExecContext(
 			ctx,
-			insertQuery,
+			insertEventSQL,
 			evt.ID(),
 			string(evt.Type()),
 			string(aggregateType),
@@ -136,8 +134,6 @@ func (s *SQLEventStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	insertQuery := insertEventSQL
-
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
 		if err != nil {
@@ -146,7 +142,7 @@ func (s *SQLEventStore) AppendBatch(
 
 		_, err = tx.ExecContext(
 			ctx,
-			insertQuery,
+			insertEventSQL,
 			evt.ID(),
 			string(evt.Type()),
 			string(aggregateType),
