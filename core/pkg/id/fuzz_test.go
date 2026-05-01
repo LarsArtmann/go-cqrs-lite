@@ -1,7 +1,6 @@
 package id
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -21,13 +20,17 @@ func FuzzParse(f *testing.F) {
 			return
 		}
 
-		// Invalid inputs (not valid ULID) should error
 		if err != nil {
 			return
 		}
 
-		if !strings.EqualFold(parsed.String(), input) {
-			t.Errorf("roundtrip mismatch: got %q, want %q", parsed.String(), input)
+		roundtrip, err := Parse[AggregateID](parsed.String())
+		if err != nil {
+			t.Fatalf("failed to parse canonical output %q: %v", parsed.String(), err)
+		}
+
+		if !roundtrip.Equal(parsed) {
+			t.Errorf("roundtrip mismatch: Parse(String()) != parsed (input was %q)", input)
 		}
 	})
 }
