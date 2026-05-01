@@ -270,6 +270,36 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 	}
 }
 
+func TestUpcasterRegistry_CycleDetection(t *testing.T) {
+	t.Parallel()
+
+	registry := event.NewUpcasterRegistry()
+
+	registry.Register(event.NewUpcaster("UserCreated", 1,
+		func(evt event.Event) (*event.Core, error) {
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil)
+		},
+	))
+
+	registry.Register(event.NewUpcaster("UserCreated", 2,
+		func(evt event.Event) (*event.Core, error) {
+			result, _ := event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(), nil,
+				event.WithSchemaVersion(1))
+
+			return result, nil
+		},
+	))
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
+
+	_, err := registry.Upcast(evt)
+	if err == nil {
+		t.Fatal("expected error for upcast cycle")
+	}
+}
+
 func TestNewProjection_WithDecode(t *testing.T) {
 	t.Parallel()
 
