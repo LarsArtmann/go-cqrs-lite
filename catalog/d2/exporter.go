@@ -14,10 +14,10 @@ const (
 
 // Exporter generates D2 diagram output from a Catalog.
 type Exporter struct {
-	Title       string
-	Version     string
-	Description string
-	Direction   string
+	title       string
+	version     string
+	description string
+	direction   string
 }
 
 // Option configures an Exporter.
@@ -26,22 +26,22 @@ type Option func(*Exporter)
 // WithDescription sets the diagram subtitle.
 func WithDescription(desc string) Option {
 	return func(e *Exporter) {
-		e.Description = desc
+		e.description = desc
 	}
 }
 
 // WithDirection sets the diagram layout direction.
 func WithDirection(dir string) Option {
 	return func(e *Exporter) {
-		e.Direction = dir
+		e.direction = dir
 	}
 }
 
 func NewExporter(title, version string, opts ...Option) *Exporter {
 	e := &Exporter{ //nolint:exhaustruct // Description is optional, filled by WithDescription
-		Title:     title,
-		Version:   version,
-		Direction: "down",
+		title:     title,
+		version:   version,
+		direction: "down",
 	}
 
 	for _, opt := range opts {
@@ -67,19 +67,19 @@ func (e *Exporter) Export(cat *catalog.Catalog) string {
 }
 
 func (e *Exporter) writeHeader(buf *strings.Builder) {
-	if e.Title != "" {
-		fmt.Fprintf(buf, "title: {\n  label: %q\n  near: top-center\n  shape: text\n", e.Title)
+	if e.title != "" {
+		fmt.Fprintf(buf, "title: {\n  label: %q\n  near: top-center\n  shape: text\n", e.title)
 
 		buf.WriteString(
 			"  style: {\n    font-size: 28\n    bold: true\n    underline: true\n  }\n}\n\n",
 		)
 	}
 
-	if e.Description != "" {
+	if e.description != "" {
 		fmt.Fprintf(
 			buf,
 			"subtitle: {\n  label: %q\n  near: top-center\n  shape: text\n",
-			e.Description,
+			e.description,
 		)
 
 		buf.WriteString(
@@ -262,7 +262,7 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 		}
 	}
 
-	drawn := 0
+	var hasCrossService bool
 
 	for evtID, pubs := range publishers {
 		recvs, ok := receivers[evtID]
@@ -287,12 +287,12 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 				b.WriteString("    animated: true\n")
 				b.WriteString("  }\n}\n\n")
 
-				drawn++
+				hasCrossService = true
 			}
 		}
 	}
 
-	if drawn > 0 {
+	if hasCrossService {
 		b.WriteString("\n")
 	}
 }
