@@ -10,6 +10,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -117,6 +118,11 @@ func (s *SQLEventStore) Save(
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	for _, evt := range events {
+		metadata, err := marshalMetadata(evt.Metadata())
+		if err != nil {
+			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
+		}
+
 		_, err = tx.ExecContext(
 			ctx,
 			insertQuery,
@@ -126,7 +132,7 @@ func (s *SQLEventStore) Save(
 			aggregateID,
 			evt.Version(),
 			evt.Payload(),
-			nil,
+			metadata,
 			evt.OccurredAt(),
 		)
 		if err != nil {
@@ -157,7 +163,12 @@ func (s *SQLEventStore) AppendBatch(
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	for _, evt := range events {
-		_, err := s.db.ExecContext(
+		metadata, err := marshalMetadata(evt.Metadata())
+		if err != nil {
+			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
+		}
+
+		_, err = s.db.ExecContext(
 			ctx,
 			insertQuery,
 			evt.ID(),
@@ -166,7 +177,7 @@ func (s *SQLEventStore) AppendBatch(
 			aggregateID,
 			evt.Version(),
 			evt.Payload(),
-			nil,
+			metadata,
 			evt.OccurredAt(),
 		)
 		if err != nil {
@@ -183,7 +194,7 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version ASC`
@@ -207,7 +218,7 @@ func (s *SQLEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
 		ORDER BY version ASC`
@@ -257,10 +268,11 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 			aggIDStr   string
 			version    int
 			payload    []byte
+			metadataJSON []byte
 			occurredAt time.Time
 		)
 
-		err := rows.Scan(&idStr, &eventType, &aggType, &aggIDStr, &version, &payload, &occurredAt)
+		err := rows.Scan(&idStr, &eventType, &aggType, &aggIDStr, &version, &payload, &metadataJSON, &occurredAt)
 		if err != nil {
 			return nil, fmt.Errorf("scan event row: %w", err)
 		}
@@ -275,14 +287,25 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 			return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
 		}
 
+		var opts []event.Option
+		opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
+
+		if len(metadataJSON) > 0 {
+			var meta event.Metadata
+			if err := json.Unmarshal(metadataJSON, &meta); err != nil {
+				return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
+			}
+
+			opts = append(opts, event.WithMetadata(&meta))
+		}
+
 		evt, err := event.NewEvent(
 			event.Type(eventType),
 			parsedAggID,
 			event.AggregateType(aggType),
 			version,
 			payload,
-			event.WithEventID(parsedEventID),
-			event.WithOccurredAt(occurredAt),
+			opts...,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
@@ -299,3 +322,11 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 }
 
 var _ event.Store = (*SQLEventStore)(nil)
+
+func marshalMetadata(m *event.Metadata) ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+
+	return json.Marshal(m)
+}
