@@ -21,7 +21,4 @@ require (
 	golang.org/x/text v0.36.0 // indirect
 )
 
-replace (
-	github.com/larsartmann/go-cqrs-lite/core => ../core
-	github.com/larsartmann/go-cqrs-lite/memory => ../memory
-)
+replace github.com/larsartmann/go-cqrs-lite/core => ../core
