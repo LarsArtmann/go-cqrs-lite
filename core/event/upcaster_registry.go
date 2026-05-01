@@ -53,17 +53,18 @@ func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 
 	for _, upcaster := range upcasters {
 		sv := current.SchemaVersion()
-		if _, seen := visited[sv]; seen {
-			return nil, fmt.Errorf(
-				"upcast cycle detected for event type %s: schema version %d revisited",
-				evt.Type(),
-				sv,
-			)
-		}
-
-		visited[sv] = struct{}{}
 
 		if sv == upcaster.SourceVersion() {
+			if _, seen := visited[sv]; seen {
+				return nil, fmt.Errorf(
+					"upcast cycle detected for event type %s: schema version %d revisited",
+					evt.Type(),
+					sv,
+				)
+			}
+
+			visited[sv] = struct{}{}
+
 			next, err := upcaster.Upcast(current)
 			if err != nil {
 				return nil, fmt.Errorf(
