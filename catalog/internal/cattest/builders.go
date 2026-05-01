@@ -147,11 +147,11 @@ func AddCommandWithSchema(
 	tb.Helper()
 
 	msg := catalog.Message{
-		Kind:   catalog.CommandMessage,
-		ID:     id,
-		Name:   name,
+		Kind:    catalog.CommandMessage,
+		ID:      id,
+		Name:    name,
 		Version: version,
-		Schema: schema,
+		Schema:  schema,
 	}
 	r.AddCommand(svcID, msg)
 
