@@ -68,7 +68,7 @@
 | Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                       | ✅     |
 | Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                          | ✅     |
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
-| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use`                                                                                                               | ✅     |
+| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                               | ✅     |
 | Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                       | ✅     |
 | JSON Codec            | `JSONCodec` using `go-json-experiment/json` (JSON v2)                                                                                                                                | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
@@ -310,16 +310,16 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅          |
 | SQL SnapshotStore               | PostgreSQL-backed with upsert, version-aware load, delete            | ✅          |
 | SQL CheckpointStore             | PostgreSQL-backed with upsert, `sql.ErrNoRows` handling             | ✅          |
-| Close lifecycle                 | `Close()` wraps `*sql.DB.Close()` — caller must not reuse DB         | ✅          |
+| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                         | ✅          |
 
 **Remaining gaps:**
 
 | Issue                          | Severity  | Detail                                                                         |
 | ------------------------------ | --------- | ------------------------------------------------------------------------------ |
-| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type declared but no concrete options exist (table name, logger, etc.)         |
+| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type does not exist — consider adding table name or logger options         |
 | PostgreSQL-specific DDL        | ⚠️ LOW    | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
-| Duplicate INSERT query string  | ⚠️ LOW    | Save and AppendBatch have identical INSERT — should be a constant              |
+| Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                        |
 
 **Coverage:** 92.3% (31 unit tests with go-sqlmock)
 
@@ -367,11 +367,9 @@ Features mentioned in project docs/planning but with **no production code**:
 | Feature                     | Description                                      | Notes                                                      |
 | --------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
 | Watermill module            | Pub/sub adapter (Kafka, NATS, etc.)              | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists  |
-| SQL SnapshotStore           | PostgreSQL-backed snapshot persistence           | `storage/snapshot.go` exists                               |
-| SQL CheckpointStore         | PostgreSQL-backed projection checkpointing       | `storage/checkpoint.go` exists                             |
-| Outbox background publisher | Goroutine that polls outbox and publishes to bus | `core/event/outbox_publisher.go` with background + sync mode |
 | Saga / Process Manager      | Long-running process orchestration               | `docs/planning/SAGA_DESIGN.md` exists                      |
 | Tagged releases             | Semantic versioning and Go module publishing     | All modules at v0.0.0                                      |
+| D2 diagram exporter         | Auto-generate D2 from Catalog                   | `catalog/d2/` exists with 14 tests                         |
 
 ---
 
