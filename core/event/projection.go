@@ -51,3 +51,5 @@ func (p *ProjectionFunc) Handle(ctx context.Context, evt Event) error {
 
 // EventTypes returns the subscribed event types.
 func (p *ProjectionFunc) EventTypes() []Type { return p.eventTypes }
+
+var _ Projection = (*ProjectionFunc)(nil)
