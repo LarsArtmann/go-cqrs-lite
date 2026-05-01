@@ -1,6 +1,9 @@
 package event
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 // OutboxID identifies an entry in the outbox.
 type OutboxID string
@@ -12,6 +15,7 @@ type OutboxEntry struct {
 }
 
 // Outbox persists events for reliable eventual publishing.
+// All implementations must support lifecycle management via io.Closer.
 //
 // Implementations MUST guarantee that Append returns successfully only
 // when the events are durably stored. For SQL-backed implementations,
@@ -24,6 +28,8 @@ type OutboxEntry struct {
 //  3. Publisher calls Bus.Publish for each entry.
 //  4. On success, publisher calls Outbox.Ack(entry.ID).
 type Outbox interface {
+	io.Closer
+
 	// Append writes events to the outbox.
 	Append(ctx context.Context, events []Event) error
 

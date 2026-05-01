@@ -98,3 +98,6 @@ func (o *MemoryOutboxStore) Ack(_ context.Context, ids []event.OutboxID) error {
 
 	return nil
 }
+
+// Close is a no-op for the in-memory outbox store.
+func (o *MemoryOutboxStore) Close() error { return nil }

@@ -332,6 +332,9 @@ func (o *FakeOutbox) Ack(_ context.Context, _ []event.OutboxID) error {
 	return nil
 }
 
+// Close is a no-op for testing.
+func (o *FakeOutbox) Close() error { return nil }
+
 var _ event.Outbox = (*FakeOutbox)(nil)
 
 // FakeCheckpointStore implements event.CheckpointStore for testing.

@@ -148,13 +148,14 @@ func NewEvent(
 	payload []byte,
 	opts ...Option,
 ) (*Core, error) {
-	if err := validateEventParams(
+	err := validateEventParams(
 		eventType,
 		aggregateID,
 		aggregateType,
 		version,
 		payload,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
 

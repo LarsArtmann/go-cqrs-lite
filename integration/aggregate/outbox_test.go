@@ -92,6 +92,8 @@ func (f *failingOutbox) Ack(_ context.Context, _ []event.OutboxID) error {
 	return nil
 }
 
+func (f *failingOutbox) Close() error { return nil }
+
 func TestEventSourcedRepository_Save_OutboxFailure_AfterStoreSuccess(t *testing.T) {
 	t.Parallel()
 
