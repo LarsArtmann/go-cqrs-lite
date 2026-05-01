@@ -261,7 +261,7 @@ func TestExporter_Export_Domain(t *testing.T) {
 	cattest.AssertContentContains(t, content, "domain file",
 		"id: ordering",
 		"services:",
-		"- order-svc",
+		"- id: order-svc",
 	)
 }
 
