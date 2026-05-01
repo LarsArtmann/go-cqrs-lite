@@ -148,10 +148,10 @@
 | ----------------------- | -------------------------------------------------------------------- | ------ |
 | Upcaster interface      | `SourceType()`, `SourceVersion()`, `Upcast(Event) (*Core, error)`    | ✅     |
 | UpcasterFunc            | Convenience adapter from a function                                  | ✅     |
-| UpcasterRegistry        | Thread-safe, sorted by source version, chains upcasters sequentially | ⚠️     |
+| UpcasterRegistry        | Thread-safe, sorted by source version, chains upcasters sequentially with cycle detection | ✅️     |
 | Version-sorted chaining | Upcasters sorted by `SourceVersion()` ascending                      | ✅     |
 
-**Note:** Upcasters are responsible for setting the correct output version. No enforcement exists.
+| Cycle detection | Defense-in-depth: detects schema version revisits during upcast chain | ✅ |
 
 **Coverage:** Tested
 
@@ -301,23 +301,24 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 | Feature                         | Detail                                                               | Status      |
 | ------------------------------- | -------------------------------------------------------------------- | ----------- |
-| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ⚠️ Compiles |
+| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅ |
 | Schema DDL                      | `Schema()` returns `CREATE TABLE events` with concurrency constraint | ✅          |
 | Optimistic concurrency          | `Save` checks version in transaction                                 | ✅          |
 | AppendBatch                     | Appends without concurrency check                                    | ✅          |
 | Load / LoadFromVersion / Delete | All implemented                                                      | ✅          |
+| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅          |
+|| Close lifecycle                 | `Close()` wraps `*sql.DB.Close()` — caller must not reuse DB         | ✅          |
 
 **Remaining gaps:**
 
 | Issue                          | Severity  | Detail                                                                         |
 | ------------------------------ | --------- | ------------------------------------------------------------------------------ |
 | `SQLEventStoreOption` unused   | ⚠️ LOW    | Type declared but no concrete options exist (table name, logger, etc.)         |
-| `Close()` owns `*sql.DB`       | ⚠️ LOW    | Consumers passing shared connection pools may get unexpected double-close      |
 | PostgreSQL-specific DDL        | ⚠️ LOW    | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
 | Duplicate INSERT query string  | ⚠️ LOW    | Save and AppendBatch have identical INSERT — should be a constant              |
 
-**Coverage:** 79.8% (13 unit tests with go-sqlmock)
+**Coverage:** 92.3% (31 unit tests with go-sqlmock)
 
 ---
 
