@@ -909,3 +909,39 @@ func TestUnmarshalText_EmptyData(t *testing.T) {
 		t.Error("UnmarshalText(empty) should reset ID to zero")
 	}
 }
+
+func TestPtr(t *testing.T) {
+	t.Parallel()
+
+	id := NewAggregateID()
+	p := id.Ptr()
+
+	if p == nil {
+		t.Fatal("Ptr() returned nil")
+	}
+
+	if *p != id {
+		t.Errorf("Ptr() = %v, want %v", *p, id)
+	}
+}
+
+func TestFromPtr_NonNil(t *testing.T) {
+	t.Parallel()
+
+	id := NewAggregateID()
+	result := FromPtr(id.Ptr())
+
+	if result != id {
+		t.Errorf("FromPtr(non-nil) = %v, want %v", result, id)
+	}
+}
+
+func TestFromPtr_Nil(t *testing.T) {
+	t.Parallel()
+
+	result := FromPtr[AggregateID](nil)
+
+	if !result.IsZero() {
+		t.Errorf("FromPtr(nil) = %v, want zero value", result)
+	}
+}
