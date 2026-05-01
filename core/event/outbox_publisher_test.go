@@ -493,6 +493,7 @@ func (b *stubBus) Publish(_ context.Context, events ...Event) error {
 
 func (b *stubBus) Subscribe(_ Type, _ Handler) error { return nil }
 func (b *stubBus) SubscribeAll(_ Handler) error      { return nil }
+func (b *stubBus) Use(_ ...Middleware) error         { return nil }
 func (b *stubBus) Close() error                      { return nil }
 
 func mustNewTestEvent(eventType Type) Event {
