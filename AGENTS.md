@@ -529,3 +529,16 @@ Interfaces now return branded types instead of primitives:
   - **BREAKING**: `Event.Version()` and `Root.Version()` return `event.Version` instead of `int`. Consistent with branded ID types. Callers needing `int` use `.Int()`. `SnapshotStrategy.ShouldSnapshot()` parameter also changed.
   - **Tests**: Added `storage/snapshot_test.go` (11 tests) and `storage/checkpoint_test.go` (8 tests) with go-sqlmock.
   - Zero lint, all tests pass across all 9 modules
+
+- **Session 30 (Architecture Roadmap Planning)**:
+  - **Research synthesis**: Reviewed 11 planning/research documents across go-cqrs-lite and go-localfirst projects, including error handling brainstorm (9 families, 74 issues), offline-first dimensions (15 topics), hybrid architecture proposal, and 13 innovative CQRS/ES projects.
+  - **Roadmap created**: `docs/planning/2026-05-01_ARCHITECTURE_ROADMAP.md` — 5-phase plan with 3 initiatives (Error Taxonomy in library, Offline-First Primitives, Error Handling in go-localfirst).
+  - **Key decisions**:
+    - Error taxonomy: 5 families in go-cqrs-lite (Rejection, Conflict, Transient, Corruption, Infrastructure), 4 more in go-localfirst (Staleness, Divergence, Pipeline, Transport)
+    - `core/pkg/errors/` package for library-level error classification
+    - `IdempotencyKey()` added to Command interface (breaking, with BaseCommand migration helper)
+    - Client metadata options: `WithClientID`, `WithClientOccurredAt`, `WithClientTimezone`, `WithCausationID`
+    - Single write path in go-localfirst (sync operations become commands)
+    - Dual bus pattern (event bus + notification bus) for error broadcasting
+  - **Explicit non-goals documented**: No sync protocol, no client-side store, no event signing, no WASM/mobile SDK
+  - No code changes this session — planning only
