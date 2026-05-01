@@ -557,3 +557,16 @@ Interfaces now return branded types instead of primitives:
   - **DOCS**: `docs/OFFLINE_FIRST_METADATA.md` — convention-based metadata keys for offline-first
   - **DOCS**: `docs/planning/2026-05-01_EXECUTION_PLAN.md` — comprehensive task list with effort/impact estimates
   - Zero lint, all tests pass across all modules
+
+- **Session 32 (Test Coverage + Type Quality + Cleanup)**:
+  - **FIX**: `Classify(nil)` returns `Rejection` (was `Transient`), `IsRetryable(nil)` returns `false`
+  - **FIX**: `ErrDuplicateProjection` classified as `Conflict` in `Classify()`
+  - **NEW**: `event.Error` implements `fmt.Formatter` — `%+v` shows `family:code: message` with cause chain
+  - **NEW**: `event.Version.String()` — returns decimal representation
+  - **TEST**: Projection retry: `TestRunner_RetryOnTransientError`, `TestRunner_NoRetryOnNonRetryableError`
+  - **TEST**: `TestWithClientID`, `TestWithClientOccurredAt`, `TestClientID`, `MustParseClientID` panic test
+  - **DOCS**: `RetryConfig.IsRetryable` field documented
+  - **CLEANUP**: Removed stale "FakeStore/MemoryStore key separator mismatch" Known Issue
+  - **KNOWN ISSUE**: Cross-package sentinels (aggregate, projection, storage) not classified — circular dependency. Documented in `Classify()` doc comment.
+  - **KNOWN ISSUE**: `WithBatchSize`/`WithBatchWindow`/`WithConcurrency` options set fields but runner never reads them — dead API surface.
+  - Zero lint, all 20 test packages pass
