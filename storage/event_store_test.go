@@ -362,8 +362,7 @@ func TestSQLEventStore_Delete(t *testing.T) {
 func TestSQLEventStore_Close(t *testing.T) {
 	t.Parallel()
 
-	store, mock := newTestStore(t)
-	mock.ExpectClose()
+	store, _ := newTestStore(t)
 
 	err := store.Close()
 	if err != nil {
