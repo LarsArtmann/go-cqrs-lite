@@ -74,7 +74,7 @@
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
-**Coverage:** 96.5%
+**Coverage:** 97.0%
 
 ---
 
@@ -93,7 +93,7 @@
 | Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
-**Coverage:** 95.9%
+**Coverage:** 92.7%
 
 ---
 
@@ -174,7 +174,7 @@
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
-**Coverage:** 99.0%
+**Coverage:** 98.0%
 
 ---
 
@@ -276,7 +276,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
 | Examples            | `toExamples()` converts `json.RawMessage` to AsyncAPI examples                                              | ✅     |
 
-**Coverage:** 97.9%
+**Coverage:** 96.8%
 
 ---
 
@@ -292,7 +292,24 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
-**Coverage:** 95.5%
+**Coverage:** 93.7%
+
+---
+
+### D2 Diagram Export ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/d2"`
+
+| Feature                 | Detail                                                          | Status |
+| ----------------------- | --------------------------------------------------------------- | ------ |
+| D2 text export          | `Exporter.Export(cat)` produces D2 diagram syntax               | ✅     |
+| Service nodes           | Color-coded rectangles per service with command/event/query     | ✅     |
+| Cross-service flows     | Animated arrows between publishers and receivers                | ✅     |
+| Domain grouping         | Domain labels with dashed "contains" links to services          | ✅     |
+| Schema tooltips         | Field names and types shown on hover                            | ✅     |
+| Options                 | `WithDescription`, `WithDirection` for layout customization     | ✅     |
+
+**Coverage:** 97.7%
 
 ---
 
@@ -321,7 +338,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
 | Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                           |
 
-**Coverage:** 92.3% (31 unit tests with go-sqlmock)
+**Coverage:** 95.4% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
 
 ---
 
@@ -369,7 +386,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | Watermill module       | Pub/sub adapter (Kafka, NATS, etc.)          | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists |
 | Saga / Process Manager | Long-running process orchestration           | `docs/planning/SAGA_DESIGN.md` exists                     |
 | Tagged releases        | Semantic versioning and Go module publishing | All modules at v0.0.0                                     |
-| D2 diagram exporter    | Auto-generate D2 from Catalog                | `catalog/d2/` exists with 14 tests                        |
+
 
 ---
 
@@ -379,18 +396,19 @@ Features mentioned in project docs/planning but with **no production code**:
 | ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
 | `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
 | `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~1100      | 70+         | 96.3%    | ✅ Production   |
-| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.9%    | ✅ Production   |
+| `core/event`           | `…/core/event`           | ~1100      | 70+         | 97.0%    | ✅ Production   |
+| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 92.7%    | ✅ Production   |
 | `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
 | `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |
-| `memory`               | `…/memory`               | ~500       | Extensive   | 99.0%    | 🧪 Test utility |
+| `memory`               | `…/memory`               | ~500       | Extensive   | 98.0%    | 🧪 Test utility |
 | `catalog`              | `…/catalog`              | ~400       | Extensive   | 94.4%    | ✅ Production   |
-| `catalog/asyncapi`     | `…/catalog/asyncapi`     | ~280       | Golden-file | 97.9%    | ✅ Production   |
-| `catalog/eventcatalog` | `…/catalog/eventcatalog` | ~350       | Golden-file | 95.5%    | ✅ Production   |
-| `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
+| `catalog/asyncapi`     | `…/catalog/asyncapi`     | ~280       | Golden-file | 96.8%    | ✅ Production   |
+| `catalog/d2`           | `…/catalog/d2`           | ~340       | 14          | 97.7%    | ✅ Production   |
+| `catalog/eventcatalog` | `…/catalog/eventcatalog` | ~350       | Golden-file | 93.7%    | ✅ Production   |
+| `middleware`           | `…/middleware`           | ~600       | Extensive   | 99.4%    | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~614       | 31          | 92.3%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~614       | 31          | 95.4%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---
