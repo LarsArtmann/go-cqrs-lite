@@ -36,9 +36,6 @@ go get github.com/larsartmann/go-cqrs-lite/catalog
 
 # Cross-cutting middleware (logging, retry, validation, recovery, metrics)
 go get github.com/larsartmann/go-cqrs-lite/middleware
-
-# In-memory implementations for testing
-go get github.com/larsartmann/go-cqrs-lite/memory
 ```
 
 ### Requirements
@@ -51,7 +48,7 @@ go get github.com/larsartmann/go-cqrs-lite/memory
 | ------------------------------ | ----------------------------------------------- | ------------ |
 | `cockroachdb/errors`           | Error wrapping                                  | core         |
 | `oklog/ulid/v2`                | ULID generation (binary-sortable, time-ordered) | core         |
-| `go-composable-business-types` | Branded ID type backing                         | core         |
+| `go-branded-id`              | Branded ID type backing                         | core         |
 | `go-json-experiment/json`      | JSON v2                                         | core         |
 | `go-faster/yaml`               | YAML marshaling                                 | catalog only |
 
@@ -115,12 +112,15 @@ aggregateID := aggregate_id.New()
 
 ## Module Structure
 
-| Module         | Import Path       | Purpose                                       | Dependencies       |
-| -------------- | ----------------- | --------------------------------------------- | ------------------ |
-| **core**       | `.../core/...`    | CQRS types, dispatchers, event sourcing       | errors, ulid, json |
-| **memory**     | `.../memory`      | In-memory store/bus/snapshot (testing)        | core               |
-| **catalog**    | `.../catalog/...` | AsyncAPI + EventCatalog generation            | core, yaml         |
-| **middleware** | `.../middleware`  | Logging, retry, validation, recovery, metrics | core               |
+| Module           | Import Path       | Purpose                                          | Dependencies          |
+| ---------------- | ----------------- | ------------------------------------------------ | --------------------- |
+| **core**         | `.../core/...`    | CQRS types, dispatchers, event sourcing          | errors, ulid, json    |
+| **memory**       | `.../memory`      | In-memory store/bus/snapshot (testing)           | core                  |
+| **catalog**      | `.../catalog/...` | AsyncAPI + EventCatalog generation               | core, yaml            |
+| **middleware**   | `.../middleware`  | Logging, retry, validation, recovery, metrics    | core                  |
+| **storage**      | `.../storage`     | PostgreSQL event store                           | core                  |
+| **testhelpers**  | `.../testhelpers` | Shared test utilities (fakes, handlers, mocks)   | core                  |
+| **integration**  | `.../integration` | Cross-module integration tests                   | core, memory, helpers |
 
 ## Design Principles
 
@@ -381,6 +381,7 @@ evt, err := event.NewBuilder(
     WithCorrelationID(correlationID).
     WithUserID(operatorID).
     Build()
+```
 ## Comparison
 
 | Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
@@ -396,7 +397,7 @@ evt, err := event.NewBuilder(
 
 ## Project Status
 
-**Phase:** Production Ready (All core features complete)
+**Phase:** Active Development (core stable, storage module experimental)
 
 | Phase         | Status      | Description                                       |
 | ------------- | ----------- | ------------------------------------------------- |
@@ -409,7 +410,7 @@ evt, err := event.NewBuilder(
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
-See [TODO_LIST.md](TODO_LIST.md) for detailed status.
+See [FEATURES.md](FEATURES.md) for detailed feature inventory and maturity ratings.
 
 ## License
 
