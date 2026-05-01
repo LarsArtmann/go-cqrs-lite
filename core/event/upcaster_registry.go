@@ -50,17 +50,18 @@ func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 	current := evt
 
 	for _, upcaster := range upcasters {
-		if current.Version() == upcaster.SourceVersion() {
+		if current.SchemaVersion() == upcaster.SourceVersion() {
 			next, err := upcaster.Upcast(current)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"upcast %s from version %d: %w",
+					"upcast %s from schema version %d: %w",
 					upcaster.SourceType(),
 					upcaster.SourceVersion(),
 					err,
 				)
 			}
 
+			next.schemaVersion = upcaster.SourceVersion() + 1
 			current = next
 		}
 	}

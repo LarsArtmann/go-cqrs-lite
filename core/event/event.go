@@ -42,6 +42,7 @@ type Event interface {
 	AggregateID() id.AggregateID
 	AggregateType() AggregateType
 	Version() int
+	SchemaVersion() int
 	Payload() []byte
 	Metadata() *Metadata
 	OccurredAt() time.Time
@@ -66,6 +67,7 @@ type Core struct {
 	aggregateID   id.AggregateID
 	aggregateType AggregateType
 	version       Version
+	schemaVersion int
 	payload       []byte
 	metadata      *Metadata
 	occurredAt    time.Time
@@ -97,8 +99,13 @@ func (e *Core) AggregateID() id.AggregateID { return e.aggregateID }
 // AggregateType returns the aggregate type.
 func (e *Core) AggregateType() AggregateType { return e.aggregateType }
 
-// Version returns the event version.
+// Version returns the stream position of this event within the aggregate.
 func (e *Core) Version() int { return e.version.Int() }
+
+// SchemaVersion returns the schema version of the event payload.
+// Defaults to 1 for events created with NewEvent.
+// Used by upcasters to determine if an event needs transformation.
+func (e *Core) SchemaVersion() int { return e.schemaVersion }
 
 // Payload returns a copy of the event payload.
 func (e *Core) Payload() []byte {
@@ -189,6 +196,7 @@ func NewEvent(
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
 		version:       v,
+		schemaVersion: 1,
 		payload:       payload,
 		metadata:      NewMetadata(),
 		occurredAt:    time.Now(),

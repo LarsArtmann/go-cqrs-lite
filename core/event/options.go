@@ -92,3 +92,10 @@ func WithCustom(key MetadataKey, value string) Option {
 		e.metadata.Custom[key] = value
 	}
 }
+
+// WithSchemaVersion sets the schema version of the event payload.
+// Defaults to 1. Use when reconstructing events from storage or
+// when creating events with a known schema version.
+func WithSchemaVersion(v int) Option {
+	return func(e *Core) { e.schemaVersion = v }
+}
