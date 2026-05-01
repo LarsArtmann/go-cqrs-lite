@@ -382,6 +382,401 @@ func TestMarshalMetadata_Nil(t *testing.T) {
 	}
 }
 
+func TestSQLEventStore_Save_BeginTxFailure(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
+
+	err := store.Save(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+	if err == nil {
+		t.Fatal("expected error for BeginTx failure")
+	}
+}
+
+func TestSQLEventStore_Save_VersionQueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
+	)).WithArgs("User", evt.AggregateID()).
+		WillReturnError(errors.New("query failed"))
+	mock.ExpectRollback()
+
+	err := store.Save(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+	if err == nil {
+		t.Fatal("expected error for version query failure")
+	}
+}
+
+func TestSQLEventStore_Save_InsertError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
+	)).WithArgs("User", evt.AggregateID()).
+		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(0))
+	mock.ExpectExec(regexp.QuoteMeta(
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+	)).WithArgs(
+		evt.ID(),
+		"UserCreated",
+		"User",
+		evt.AggregateID(),
+		1,
+		evt.Payload(),
+		sqlmock.AnyArg(),
+		evt.OccurredAt(),
+	).WillReturnError(errors.New("insert failed"))
+	mock.ExpectRollback()
+
+	err := store.Save(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+	if err == nil {
+		t.Fatal("expected error for insert failure")
+	}
+}
+
+func TestSQLEventStore_Save_CommitError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
+	)).WithArgs("User", evt.AggregateID()).
+		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(0))
+	mock.ExpectExec(regexp.QuoteMeta(
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+	)).WithArgs(
+		evt.ID(),
+		"UserCreated",
+		"User",
+		evt.AggregateID(),
+		1,
+		evt.Payload(),
+		sqlmock.AnyArg(),
+		evt.OccurredAt(),
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
+
+	err := store.Save(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+	if err == nil {
+		t.Fatal("expected error for commit failure")
+	}
+}
+
+func TestSQLEventStore_AppendBatch_BeginTxFailure(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
+
+	err := store.AppendBatch(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+	)
+	if err == nil {
+		t.Fatal("expected error for BeginTx failure")
+	}
+}
+
+func TestSQLEventStore_AppendBatch_InsertError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+	)).WillReturnError(errors.New("insert failed"))
+	mock.ExpectRollback()
+
+	err := store.AppendBatch(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+	)
+	if err == nil {
+		t.Fatal("expected error for insert failure")
+	}
+}
+
+func TestSQLEventStore_AppendBatch_CommitError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evt := testEvent(t, 1)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+	)).WithArgs(
+		evt.ID(),
+		"UserCreated",
+		"User",
+		evt.AggregateID(),
+		1,
+		evt.Payload(),
+		sqlmock.AnyArg(),
+		evt.OccurredAt(),
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
+
+	err := store.AppendBatch(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+	)
+	if err == nil {
+		t.Fatal("expected error for commit failure")
+	}
+}
+
+func TestSQLEventStore_Load_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs("User", aggID).
+		WillReturnError(errors.New("query failed"))
+
+	_, err := store.Load(context.Background(), "User", aggID)
+	if err == nil {
+		t.Fatal("expected error for query failure")
+	}
+}
+
+func TestSQLEventStore_LoadFromVersion_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
+		ORDER BY version ASC`,
+	)).WithArgs("User", aggID, 2).
+		WillReturnError(errors.New("query failed"))
+
+	_, err := store.LoadFromVersion(context.Background(), "User", aggID, event.Version(2))
+	if err == nil {
+		t.Fatal("expected error for query failure")
+	}
+}
+
+func TestScanEvents_InvalidAggregateID(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs("User", "bad").
+		WillReturnRows(sqlmock.NewRows(
+			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+		).AddRow(
+			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, nil, nil, time.Now(),
+		))
+
+	_, err := store.Load(context.Background(), "User", id.NewAggregateID())
+	if err == nil {
+		t.Fatal("expected error for invalid aggregate ID")
+	}
+}
+
+func TestScanEvents_InvalidEventID(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows(
+			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+		).AddRow(
+			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, nil, nil, time.Now(),
+		))
+
+	_, err := store.Load(context.Background(), "User", aggID)
+	if err == nil {
+		t.Fatal("expected error for invalid event ID")
+	}
+}
+
+func TestScanEvents_RowScanError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs("User", "bad").
+		WillReturnRows(sqlmock.NewRows(
+			[]string{"id", "event_type"},
+		).AddRow("only-two-columns", "UserCreated"))
+
+	_, err := store.Load(context.Background(), "User", id.NewAggregateID())
+	if err == nil {
+		t.Fatal("expected error for row scan failure")
+	}
+}
+
+func TestScanEvents_InvalidMetadata(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+	eventID := id.NewEventID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows(
+			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+		).AddRow(
+			eventID.String(), "UserCreated", "User", aggID.String(), 1, nil, []byte(`{invalid`), time.Now(),
+		))
+
+	_, err := store.Load(context.Background(), "User", aggID)
+	if err == nil {
+		t.Fatal("expected error for invalid metadata JSON")
+	}
+}
+
+func TestSQLEventStore_Delete_Error(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectExec(regexp.QuoteMeta(
+		`DELETE FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
+	)).WithArgs("User", aggID).
+		WillReturnError(errors.New("delete failed"))
+
+	err := store.Delete(context.Background(), "User", aggID)
+	if err == nil {
+		t.Fatal("expected error for delete failure")
+	}
+}
+
+func TestSchema_ContainsExpectedDDL(t *testing.T) {
+	ddl := Schema()
+
+	if !regexp.MustCompile(`(?s)CREATE TABLE.*events`).MatchString(ddl) {
+		t.Error("Schema() missing CREATE TABLE events")
+	}
+
+	if !regexp.MustCompile(`UNIQUE\(aggregate_type,\s*aggregate_id,\s*version\)`).MatchString(ddl) {
+		t.Error("Schema() missing UNIQUE constraint")
+	}
+
+	if !regexp.MustCompile(`idx_events_aggregate`).MatchString(ddl) {
+		t.Error("Schema() missing idx_events_aggregate index")
+	}
+
+	if !regexp.MustCompile(`idx_events_type`).MatchString(ddl) {
+		t.Error("Schema() missing idx_events_type index")
+	}
+}
+
+func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+
+	maliciousAggType := event.AggregateType("User'; DROP TABLE events; --")
+	maliciousAggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version ASC`,
+	)).WithArgs(string(maliciousAggType), maliciousAggID).
+		WillReturnRows(sqlmock.NewRows(
+			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+		))
+
+	events, err := store.Load(context.Background(), maliciousAggType, maliciousAggID)
+	if err != nil {
+		t.Fatalf("Load with malicious input: %v", err)
+	}
+
+	if len(events) != 0 {
+		t.Errorf("expected 0 events, got %d", len(events))
+	}
+}
+
 func TestMarshalMetadata_Full(t *testing.T) {
 	meta := event.NewMetadata()
 	meta.CorrelationID = id.NewCorrelationID()
