@@ -38,9 +38,7 @@ func TestCommandTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "command.handle" {
@@ -72,9 +70,7 @@ func TestCommandTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Status().Code != codes.Error {
@@ -100,9 +96,7 @@ func TestEventTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "event.handle" {
@@ -133,9 +127,7 @@ func TestEventTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Status().Code != codes.Error {
@@ -162,9 +154,7 @@ func TestQueryTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "query.handle" {
@@ -192,9 +182,7 @@ func TestQueryTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	if len(spans) != 1 {
-		t.Fatalf("expected 1 span, got %d", len(spans))
-	}
+	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Status().Code != codes.Error {

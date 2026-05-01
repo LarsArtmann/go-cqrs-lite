@@ -23,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                              |
 | --------- | ---------------------------------------------------------------------------------- |
 | Language  | Go 1.26                                                                            |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage` |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
 | Build     | `nix run .#build`                                                                  |
 | Test      | `nix run .#test` or see "Testing" below                                            |
 | Lint      | `nix run .#lint`                                                                   |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 8 modules (9 including example/user demo):
+Multi-module Go workspace with 9 modules (10 including example/user demo):
 
 ```
 go-cqrs-lite/
@@ -83,6 +83,13 @@ go-cqrs-lite/
 │   └── go.mod                       # deps: core
 │   └── helpers.go                   # Shared test utilities (AppendEventsHandler, Noop*, Failing*, etc.)
 │
+├── projection/                      # github.com/larsartmann/go-cqrs-lite/projection
+│   └── go.mod                       # deps: core, memory (test)
+│   ├── runner.go                    # Runner with Register(Projection), replay, live subscription
+│   ├── handler.go                   # HandlerRegistry (On, OnAll, Lookup)
+│   ├── errors.go                    # Sentinel errors
+│   └── options.go                   # RunnerOption functional options
+│
 └── docs/
     ├── status/                      # periodic status reports
     └── planning/                    # architectural decisions and migration plans
@@ -93,7 +100,7 @@ go-cqrs-lite/
 From root with go.work:
 
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... -count=1
 ```
 
 Per-module (isolated, no go.work):

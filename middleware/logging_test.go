@@ -26,9 +26,7 @@ func TestCommandLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(logger.Logs) != 2 {
-		t.Errorf("expected 2 info logs, got %d", len(logger.Logs))
-	}
+	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
 }
 
 func TestCommandLogging_Error(t *testing.T) {
@@ -46,9 +44,7 @@ func TestCommandLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	if len(logger.Errors) != 1 {
-		t.Errorf("expected 1 error log, got %d", len(logger.Errors))
-	}
+	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
 }
 
 func TestQueryLogging_Success(t *testing.T) {
@@ -66,9 +62,7 @@ func TestQueryLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(logger.Logs) != 2 {
-		t.Errorf("expected 2 info logs, got %d", len(logger.Logs))
-	}
+	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
 }
 
 func TestQueryLogging_Error(t *testing.T) {
@@ -86,9 +80,7 @@ func TestQueryLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	if len(logger.Errors) != 1 {
-		t.Errorf("expected 1 error log, got %d", len(logger.Errors))
-	}
+	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
 }
 
 func TestEventLogging_Success(t *testing.T) {
@@ -109,9 +101,7 @@ func TestEventLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(logger.Logs) != 2 {
-		t.Errorf("expected 2 info logs, got %d", len(logger.Logs))
-	}
+	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
 }
 
 func TestEventLogging_Error(t *testing.T) {
@@ -132,7 +122,5 @@ func TestEventLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	if len(logger.Errors) != 1 {
-		t.Errorf("expected 1 error log, got %d", len(logger.Errors))
-	}
+	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
 }

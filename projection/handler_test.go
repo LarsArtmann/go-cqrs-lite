@@ -22,9 +22,7 @@ func TestHandlerRegistry_On(t *testing.T) {
 	}
 
 	handlers := r.Lookup("UserCreated")
-	if len(handlers) != 1 {
-		t.Errorf("Lookup(UserCreated) = %d handlers, want 1", len(handlers))
-	}
+	testhelpers.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_On_NilHandler(t *testing.T) {
@@ -49,9 +47,7 @@ func TestHandlerRegistry_OnAll(t *testing.T) {
 	}
 
 	handlers := r.Lookup("anything")
-	if len(handlers) != 1 {
-		t.Errorf("Lookup(anything) = %d handlers, want 1 (wildcard)", len(handlers))
-	}
+	testhelpers.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_Lookup_CombinesSpecificAndWildcard(t *testing.T) {
@@ -63,14 +59,10 @@ func TestHandlerRegistry_Lookup_CombinesSpecificAndWildcard(t *testing.T) {
 	_ = r.OnAll(testhelpers.NoopEventHandler())
 
 	handlers := r.Lookup("UserCreated")
-	if len(handlers) != 2 {
-		t.Errorf("Lookup(UserCreated) = %d handlers, want 2 (specific + wildcard)", len(handlers))
-	}
+	testhelpers.AssertLen(t, "handlers", handlers, 2)
 
 	handlers = r.Lookup("OtherEvent")
-	if len(handlers) != 1 {
-		t.Errorf("Lookup(OtherEvent) = %d handlers, want 1 (wildcard only)", len(handlers))
-	}
+	testhelpers.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_HasHandlers(t *testing.T) {
