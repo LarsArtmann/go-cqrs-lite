@@ -428,7 +428,12 @@ func TestToDotAddress(t *testing.T) {
 		{"CreateOrder", "create.order"},
 		{"PaymentProcessed", "payment.processed"},
 		{"simple", "simple"},
-		{"GetProductByID", "get.product.by.i.d"},
+		{"GetProductByID", "get.product.by.id"},
+		{"XMLParser", "xml.parser"},
+		{"Get3DView", "get.3d.view"},
+		{"HTTPSConnection", "https.connection"},
+		{"lower", "lower"},
+		{"", ""},
 	}
 	for _, tt := range tests {
 		got := toDotAddress(tt.input)
