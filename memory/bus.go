@@ -41,7 +41,9 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	return nil
 }
 
-// MemoryBus is an in-memory event bus for testing and single-process deployments.
+// Publish sends events to all matching subscribers.
+//
+// The MemoryBus is designed for testing and single-process deployments.
 //
 // Ordering: Within a single event, all SubscribeAll handlers run before
 // type-specific handlers. If any handler fails, subsequent handlers for
