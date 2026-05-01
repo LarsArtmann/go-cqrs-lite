@@ -125,12 +125,20 @@ SSE: {
   tooltip: "Subscribe to Event Bus, push filtered events to client in real-time"
 }
 
+ContextEnricher: {
+  class: transport
+  shape: parallelogram
+  width: 200
+  label: "ContextEnricher\nrequest → event metadata"
+  tooltip: "Injects HTTP request context into events: correlationID, causationID, userID, requestID, IP, UserAgent — via event.WithCorrelationID, WithUserID, etc."
+}
+
 # ─── CQRS DISPATCHERS ────────────────────────────────────────────────────────
 
 Write: {
   class: write
   direction: down
-  label: "Command Side"
+  label: "Command Side  [core/command]"
 
   CmdD: {
     label: "Command Dispatcher\nUse → Register → Dispatch"
@@ -141,7 +149,7 @@ Write: {
 
   CmdMW: {
     shape: text
-    label: "Recovery → Tracing → Logging\n→ Validation → Retry → Metrics"
+    label: "Recovery → Tracing → Logging\n→ Validation → Retry → Metrics\n[middleware]"
     style: {
       font-size: 9
       italic: true
@@ -167,7 +175,7 @@ Write: {
 Read: {
   class: read
   direction: down
-  label: "Query Side"
+  label: "Query Side  [core/query]"
 
   QD: {
     label: "Query Dispatcher\nUse → Register → Dispatch"
@@ -178,7 +186,7 @@ Read: {
 
   QMW: {
     shape: text
-    label: "Recovery → Tracing → Logging\n→ Validation → Metrics"
+    label: "Recovery → Tracing → Logging\n→ Validation → Metrics\n[middleware]"
     style: {
       font-size: 9
       italic: true
@@ -206,8 +214,8 @@ Read: {
 Aggregate: {
   class: write
   shape: hexagon
-  label: "Aggregate Root"
-  width: 160
+  label: "Aggregate Root\n[core/aggregate]"
+  width: 180
   style: {
     fill: "#c8e6c9"
     stroke: "#1b5e20"
@@ -220,7 +228,7 @@ Aggregate: {
 
 Repo: {
   class: infra
-  label: "EventSourced\nRepository"
+  label: "EventSourced\nRepository\n[core/aggregate]"
   width: 180
   tooltip: "Save: Store.Save → Outbox/Bus.Publish → Snapshot\nLoad: SnapshotStore.Load → Store.LoadFromVersion → Replay"
 }
@@ -229,15 +237,15 @@ Repo: {
 
 EventStore: {
   class: store
-  label: "Event Store\nPostgreSQL"
+  label: "Event Store\n[storage / memory]"
   width: 160
-  tooltip: "event.Store: Save (optimistic concurrency), Load, LoadFromVersion, Delete"
+  tooltip: "event.Store: Save (optimistic concurrency), Load, LoadFromVersion, Delete, io.Closer"
 }
 
 Outbox: {
   class: infra
   shape: queue
-  label: "Outbox"
+  label: "Outbox\n[core/event]"
   width: 120
   style: {
     fill: "#eceff1"
@@ -248,15 +256,15 @@ Outbox: {
 
 Snapshot: {
   class: store
-  label: "Snapshot Store\nPostgreSQL"
+  label: "Snapshot Store\n[storage / memory]"
   width: 160
-  tooltip: "event.SnapshotStore: Save, Load (latest), LoadAtVersion — accelerated aggregate replay"
+  tooltip: "event.SnapshotStore: Save, Load (latest), LoadAtVersion, io.Closer — accelerated aggregate replay"
 }
 
 Bus: {
   class: event
   shape: queue
-  label: "Event Bus\nMemory · NATS · Kafka"
+  label: "Event Bus\n[memory / ext]\nMemoryBus · NATS · Kafka"
   width: 200
   style: {
     fill: "#fce4ec"
@@ -264,21 +272,28 @@ Bus: {
     font-color: "#b71c1c"
     bold: true
   }
-  tooltip: "event.Bus: Publish, Subscribe(type), SubscribeAll — delivers domain events to projections and SSE/WS"
+  tooltip: "event.Bus: Publish, Subscribe(type), SubscribeAll, io.Closer — delivers domain events to projections and SSE/WS"
 }
 
 # ─── READ MODEL ───────────────────────────────────────────────────────────────
 
 Projections: {
   class: read
-  label: "Projections\nInMemoryRunner"
+  label: "Projections\n[core/event]"
   width: 160
   tooltip: "Projection: Name, Handle(ctx, evt), EventTypes() — InMemoryRunner routes events and saves checkpoints"
 }
 
+CheckpointStore: {
+  class: store
+  label: "Checkpoint Store\n[storage / memory]"
+  width: 160
+  tooltip: "event.CheckpointStore: Load(projectionName), Save(projectionName, eventID) — tracks projection offset"
+}
+
 ReadModel: {
   class: store
-  label: "Read Model\nPostgreSQL · Redis"
+  label: "Read Model\n[your DB / Redis]"
   width: 180
   style: {
     fill: "#f3e5f5"
@@ -292,9 +307,9 @@ ReadModel: {
 
 Catalog: {
   class: docs
-  label: "Catalog\nAuto-generated"
+  label: "Catalog\n[catalog/]"
   width: 160
-  tooltip: "AsyncAPI 3.0 YAML/JSON, EventCatalog MDX, SchemaFromType via reflect — auto-generated from Go types"
+  tooltip: "AsyncAPI 3.0 YAML/JSON, EventCatalog MDX, D2 diagrams — auto-generated from Go types via SchemaFromType[T]"
 }
 
 # ─── WRITE PATH CONNECTIONS ─────────────────────────────────────────────────
@@ -387,7 +402,24 @@ Projections -> ReadModel: "8  Update read model\n   (idempotent)" {
   }
 }
 
+Projections -> CheckpointStore: "Save offset\nafter each event" {
+  style: {
+    stroke: "#6a1b9a"
+    stroke-width: 1
+    stroke-dash: 3
+  }
+}
+
 # ─── READ PATH CONNECTIONS ──────────────────────────────────────────────────
+
+Web Client -> HTTP API Get: "9  GET /users/:id\n   GetUser query" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 3
+  }
+}
+
+HTTP API Get: HTTP API
 
 HTTP API -> Read.QD: "10  Dispatch(ctx, query)" {
   style: {
@@ -407,6 +439,24 @@ Read.QH -> ReadModel: "11  Read from\n    materialized view" {
 ReadModel -> Read.QH: "12  Result via\n    DispatchTyped" {
   style: {
     stroke: "#6a1b9a"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+# ─── CONTEXTENRICHER CONNECTIONS ──────────────────────────────────────────────
+
+HTTP API -> ContextEnricher: "Extract from\nHTTP request" {
+  style: {
+    stroke: "#e65100"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+ContextEnricher -> Write.CmdD: "event.With*\nmetadata options" {
+  style: {
+    stroke: "#e65100"
     stroke-width: 2
     stroke-dash: 3
   }
@@ -465,6 +515,7 @@ Write -> Repo: { style.opacity: 0 }
 Aggregate -> EventStore: { style.opacity: 0 }
 EventStore -> Bus: { style.opacity: 0 }
 Projections -> Catalog: { style.opacity: 0 }
+CheckpointStore -> ReadModel: { style.opacity: 0 }
 
 # ─── LEGEND ───────────────────────────────────────────────────────────────────
 
@@ -497,7 +548,16 @@ Legend: {
 
   colors: {
     shape: text
-    label: "Blue   — Client / Transport\nGreen — Write side (Command / Aggregate)\nRed    — Events (Bus / Store)\nPurple — Read side (Query / Projection)\nYellow — Persistence (Store / Snapshot)\nOrange — Real-time push (SSE / WebSocket)\nCyan  — Auto-documentation (Catalog)"
+    label: "Blue   — Client / Transport\nGreen — Write side (Command / Aggregate)\nRed    — Events (Bus / Store)\nPurple — Read side (Query / Projection)\nYellow — Persistence (Store / Snapshot)\nOrange — Real-time push + ContextEnricher\nCyan  — Auto-documentation (Catalog)"
+    style: {
+      font-size: 11
+      font-color: "#424242"
+    }
+  }
+
+  modules: {
+    shape: text
+    label: "Module labels [brackets] show which go module owns each component:\ncore — interfaces + types (zero infra deps)\nmemory — in-memory test implementations\nstorage — PostgreSQL implementations\nmiddleware — cross-cutting middleware\n[catalog] — auto-doc generation"
     style: {
       font-size: 11
       font-color: "#424242"
@@ -506,7 +566,7 @@ Legend: {
 
   line_styles: {
     shape: text
-    label: "Solid   — Synchronous data flow\nDashed  — Async / indirect flow\nAnimated — Event-driven flow"
+    label: "Solid   — Synchronous data flow\nDashed  — Async / indirect / metadata flow\nAnimated — Event-driven flow"
     style: {
       font-size: 11
       font-color: "#424242"
