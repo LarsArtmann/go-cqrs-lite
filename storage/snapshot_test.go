@@ -187,6 +187,10 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
+
+	if !errors.Is(err, event.ErrSnapshotNotFound) {
+		t.Errorf("error = %v, want ErrSnapshotNotFound", err)
+	}
 }
 
 func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {

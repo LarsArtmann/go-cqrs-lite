@@ -120,6 +120,10 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		aggregateID,
 	).Scan(&snapVersion, &stateBytes, &createdAt)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, event.ErrSnapshotNotFound
+		}
+
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, err)
 	}
