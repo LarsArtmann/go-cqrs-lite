@@ -2,5 +2,5 @@
 export default {
   title: "E-Commerce",
   organizationName: "E-Commerce",
-  landingPage: { content: '' },
+  landingPage: '',
 };

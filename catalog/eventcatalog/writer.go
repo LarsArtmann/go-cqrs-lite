@@ -149,7 +149,7 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	cfg.WriteString("export default {\n")
 	fmt.Fprintf(&cfg, "  title: %q,\n", cat.Title)
 	fmt.Fprintf(&cfg, "  organizationName: %q,\n", cat.Title)
-	cfg.WriteString("  landingPage: { content: '' },\n")
+	cfg.WriteString("  landingPage: '',\n")
 	cfg.WriteString("};\n")
 
 	err := os.WriteFile(
