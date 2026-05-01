@@ -38,7 +38,8 @@ func (r *UpcasterRegistry) Register(upcaster Upcaster) {
 // Upcast applies all registered upcasters for the event's type, starting
 // from the event's schema version. Returns the fully upcasted event.
 // If no upcasters are registered, returns the original event unchanged.
-// Returns an error if a cycle is detected (same schema version revisited).
+// After each successful upcast, the result's schema version is auto-incremented
+// to sourceVersion + 1, ensuring forward progress and preventing cycles.
 func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 	r.mu.RLock()
 	upcasters := r.upcasters[evt.Type()]
@@ -49,35 +50,24 @@ func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 	}
 
 	current := evt
-	visited := make(map[int]struct{})
 
 	for _, upcaster := range upcasters {
-		sv := current.SchemaVersion()
-
-		if sv == upcaster.SourceVersion() {
-			if _, seen := visited[sv]; seen {
-				return nil, fmt.Errorf(
-					"upcast cycle detected for event type %s: schema version %d revisited",
-					evt.Type(),
-					sv,
-				)
-			}
-
-			visited[sv] = struct{}{}
-
-			next, err := upcaster.Upcast(current)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"upcast %s from schema version %d: %w",
-					upcaster.SourceType(),
-					upcaster.SourceVersion(),
-					err,
-				)
-			}
-
-			next.schemaVersion = upcaster.SourceVersion() + 1
-			current = next
+		if current.SchemaVersion() != upcaster.SourceVersion() {
+			continue
 		}
+
+		next, err := upcaster.Upcast(current)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"upcast %s from schema version %d: %w",
+				upcaster.SourceType(),
+				upcaster.SourceVersion(),
+				err,
+			)
+		}
+
+		next.schemaVersion = upcaster.SourceVersion() + 1
+		current = next
 	}
 
 	return current, nil

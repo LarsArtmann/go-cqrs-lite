@@ -41,6 +41,9 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	return nil
 }
 
+// Publish sends events to all registered subscribers.
+// Holds a read lock for the duration of handler execution — subscribers
+// block publishers until all handlers for each event complete.
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {

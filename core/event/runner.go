@@ -61,6 +61,10 @@ func (r *InMemoryRunner) Register(projection Projection) error {
 // Handle dispatches an event to all registered projections that
 // subscribe to its type. After successful processing, the checkpoint
 // is updated.
+//
+// Fail-fast: if any projection returns an error, Handle returns immediately.
+// Subsequent projections for this event are not processed, and their
+// checkpoints are not saved. The caller is responsible for retry logic.
 func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 	r.mu.RLock()
 	projections := make([]Projection, len(r.projections))

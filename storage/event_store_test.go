@@ -23,10 +23,10 @@ func newTestStore(t *testing.T) (*SQLEventStore, sqlmock.Sqlmock) {
 	return NewSQLEventStore(db), mock
 }
 
-func testEvent(t *testing.T, version int, opts ...event.Option) *event.Core {
+func testEvent(t *testing.T) *event.Core {
 	t.Helper()
 
-	return testEventWithAggID(t, id.NewAggregateID(), version, opts...)
+	return testEventWithAggID(t, id.NewAggregateID(), 1)
 }
 
 func testEventWithAggID(
@@ -56,7 +56,7 @@ func TestSQLEventStore_Save_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
@@ -99,7 +99,7 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
@@ -386,7 +386,7 @@ func TestSQLEventStore_Save_BeginTxFailure(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
@@ -406,7 +406,7 @@ func TestSQLEventStore_Save_VersionQueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
@@ -431,7 +431,7 @@ func TestSQLEventStore_Save_InsertError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
@@ -469,7 +469,7 @@ func TestSQLEventStore_Save_CommitError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
@@ -507,7 +507,7 @@ func TestSQLEventStore_AppendBatch_BeginTxFailure(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
@@ -526,7 +526,7 @@ func TestSQLEventStore_AppendBatch_InsertError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(
@@ -550,7 +550,7 @@ func TestSQLEventStore_AppendBatch_CommitError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	evt := testEvent(t, 1)
+	evt := testEvent(t)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(
@@ -631,7 +631,16 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", "bad").
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
 		).AddRow(
 			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, nil, nil, time.Now(),
 		))
@@ -655,7 +664,16 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
 		).AddRow(
 			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, nil, nil, time.Now(),
 		))
@@ -701,10 +719,22 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
-		).AddRow(
-			eventID.String(), "UserCreated", "User", aggID.String(), 1, nil, []byte(`{invalid`), time.Now(),
-		))
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
+		).
+			AddRow(
+				eventID.String(),
+				"UserCreated", "User", aggID.String(), 1, nil, []byte(`{invalid`), time.Now(),
+			),
+		)
 
 	_, err := store.Load(context.Background(), "User", aggID)
 	if err == nil {
@@ -764,7 +794,16 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 		ORDER BY version ASC`,
 	)).WithArgs(string(maliciousAggType), maliciousAggID).
 		WillReturnRows(sqlmock.NewRows(
-			[]string{"id", "event_type", "aggregate_type", "aggregate_id", "version", "payload", "metadata", "occurred_at"},
+			[]string{
+				"id",
+				"event_type",
+				"aggregate_type",
+				"aggregate_id",
+				"version",
+				"payload",
+				"metadata",
+				"occurred_at",
+			},
 		))
 
 	events, err := store.Load(context.Background(), maliciousAggType, maliciousAggID)
