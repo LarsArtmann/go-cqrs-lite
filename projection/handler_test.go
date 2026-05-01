@@ -1,10 +1,9 @@
 package projection
 
 import (
-	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestHandlerRegistry_On(t *testing.T) {
@@ -12,7 +11,7 @@ func TestHandlerRegistry_On(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	err := r.On("UserCreated", func(_ context.Context, _ event.Event) error { return nil })
+	err := r.On("UserCreated", testhelpers.NoopEventHandler())
 	if err != nil {
 		t.Fatalf("On: %v", err)
 	}
@@ -44,7 +43,7 @@ func TestHandlerRegistry_OnAll(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	err := r.OnAll(func(_ context.Context, _ event.Event) error { return nil })
+	err := r.OnAll(testhelpers.NoopEventHandler())
 	if err != nil {
 		t.Fatalf("OnAll: %v", err)
 	}
@@ -60,8 +59,8 @@ func TestHandlerRegistry_Lookup_CombinesSpecificAndWildcard(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	_ = r.On("UserCreated", func(_ context.Context, _ event.Event) error { return nil })
-	_ = r.OnAll(func(_ context.Context, _ event.Event) error { return nil })
+	_ = r.On("UserCreated", testhelpers.NoopEventHandler())
+	_ = r.OnAll(testhelpers.NoopEventHandler())
 
 	handlers := r.Lookup("UserCreated")
 	if len(handlers) != 2 {
@@ -82,7 +81,7 @@ func TestHandlerRegistry_HasHandlers(t *testing.T) {
 		t.Error("empty registry should not have handlers")
 	}
 
-	_ = r.On("Test", func(_ context.Context, _ event.Event) error { return nil })
+	_ = r.On("Test", testhelpers.NoopEventHandler())
 	if !r.HasHandlers() {
 		t.Error("registry with On handler should have handlers")
 	}
