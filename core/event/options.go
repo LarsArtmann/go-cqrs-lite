@@ -99,3 +99,15 @@ func WithCustom(key MetadataKey, value string) Option {
 func WithSchemaVersion(v int) Option {
 	return func(e *Core) { e.schemaVersion = v }
 }
+
+// WithClientID sets the client device ID in event metadata.
+// Used for offline-first attribution and conflict detection.
+func WithClientID(v id.ClientID) Option {
+	return WithCustom("client.id", v.String())
+}
+
+// WithClientOccurredAt sets the timestamp when the event occurred on the client device.
+// Used for offline-first timing analysis.
+func WithClientOccurredAt(t time.Time) Option {
+	return WithCustom("client.occurred_at", t.Format(time.RFC3339Nano))
+}

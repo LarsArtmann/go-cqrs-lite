@@ -43,7 +43,7 @@ func DefaultRetryConfig() RetryConfig {
 		InitialDelay: defaultRetryInitDelay,
 		MaxDelay:     defaultRetryMaxDelay,
 		Multiplier:   defaultRetryMultiplier,
-		IsRetryable:  func(error) bool { return false },
+		IsRetryable:  event.IsRetryable,
 	}
 }
 

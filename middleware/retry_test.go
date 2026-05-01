@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -150,11 +151,23 @@ func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
 
 	config := DefaultRetryConfig()
 
-	if config.IsRetryable(errors.New("any error")) {
-		t.Error("default IsRetryable should return false for all errors")
+	if !config.IsRetryable(errors.New("any error")) {
+		t.Error("default IsRetryable should return true for unknown errors (Transient)")
 	}
 
-	if config.IsRetryable(nil) {
-		t.Error("default IsRetryable should return false for nil error")
+	if !config.IsRetryable(event.NewTransient("test", "transient")) {
+		t.Error("default IsRetryable should return true for Transient errors")
+	}
+
+	if config.IsRetryable(event.NewRejection("test", "rejected")) {
+		t.Error("default IsRetryable should return false for Rejection errors")
+	}
+
+	if config.IsRetryable(event.NewConflict("test", "conflict")) {
+		t.Error("default IsRetryable should return false for Conflict errors")
+	}
+
+	if config.IsRetryable(event.ErrStoreClosed) {
+		t.Error("default IsRetryable should return false for Infrastructure errors")
 	}
 }
