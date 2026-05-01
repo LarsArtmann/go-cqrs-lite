@@ -324,3 +324,19 @@ func (o *FakeOutbox) Ack(_ context.Context, _ []event.OutboxID) error {
 }
 
 var _ event.Outbox = (*FakeOutbox)(nil)
+
+// FakeCheckpointStore implements event.CheckpointStore for testing.
+// All operations are no-ops.
+type FakeCheckpointStore struct{}
+
+// Load returns a zero EventID (no-op).
+func (FakeCheckpointStore) Load(_ context.Context, _ string) (id.EventID, error) {
+	return id.EventID{}, nil
+}
+
+// Save does nothing (no-op).
+func (FakeCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error {
+	return nil
+}
+
+var _ event.CheckpointStore = FakeCheckpointStore{}
