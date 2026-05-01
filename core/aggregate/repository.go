@@ -181,6 +181,7 @@ func (r *EventSourcedRepository) loadFromStore(
 func (r *EventSourcedRepository) shouldSnapshot(root Root) bool {
 	return r.snapshotStrategy != nil &&
 		r.snapshotStore != nil &&
+		r.codec != nil &&
 		r.snapshotStrategy.ShouldSnapshot(root.Type(), root.Version())
 }
 

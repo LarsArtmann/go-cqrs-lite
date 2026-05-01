@@ -464,10 +464,16 @@ func TestRepository_Save_CreatesSnapshot(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
 		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithCodec(event.JSONCodec{}),
 	)
 
-	root := newTestRoot()
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	root := &serializableRoot{
+		IDVal:   aggID,
+		TypeVal: event.AggregateType("User"),
+		Name:    "Alice",
+	}
+	root.recordEvent(context.Background(), makeUserEvent(t))
 
 	err := repo.Save(context.Background(), root)
 	if err != nil {
@@ -485,6 +491,10 @@ func TestRepository_Save_CreatesSnapshot(t *testing.T) {
 
 	if saved[0].Version != 1 {
 		t.Errorf("expected snapshot version 1, got %d", saved[0].Version)
+	}
+
+	if len(saved[0].State) == 0 {
+		t.Error("expected non-empty snapshot state")
 	}
 }
 
@@ -558,10 +568,16 @@ func TestRepository_Save_SnapshotStoreError(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
 		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithCodec(event.JSONCodec{}),
 	)
 
-	root := newTestRoot()
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	root := &serializableRoot{
+		IDVal:   aggID,
+		TypeVal: event.AggregateType("User"),
+		Name:    "Alice",
+	}
+	root.recordEvent(context.Background(), makeUserEvent(t))
 
 	err := repo.Save(context.Background(), root)
 	if err == nil {
@@ -584,6 +600,31 @@ func TestRepository_Save_NoSnapshotWithoutStore(t *testing.T) {
 	err := repo.Save(context.Background(), root)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRepository_Save_NoSnapshotWithoutCodec(t *testing.T) {
+	t.Parallel()
+
+	snapStore := testhelpers.NewFakeSnapshotStore()
+	repo := aggregate.NewRepository(
+		testhelpers.NewFakeStore(),
+		testhelpers.NewFakeBus(),
+		aggregate.WithSnapshotStore(snapStore),
+		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+	)
+
+	root := newTestRoot()
+	root.RecordEvent(context.Background(), makeUserEvent(t))
+
+	err := repo.Save(context.Background(), root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	saved := snapStore.Saved()
+	if len(saved) != 0 {
+		t.Errorf("expected 0 snapshots without codec, got %d", len(saved))
 	}
 }
 
