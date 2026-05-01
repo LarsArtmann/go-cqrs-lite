@@ -5,9 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -49,7 +47,7 @@ func TestEventRecovery_NoPanic(t *testing.T) {
 	mw := EventRecovery()
 	handler := mw(testhelpers.NoopEventHandler())
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -66,7 +64,7 @@ func TestEventRecovery_Panic(t *testing.T) {
 	mw := EventRecovery()
 	handler := mw(testhelpers.PanicEventHandler("event boom"))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -85,17 +83,15 @@ func TestQueryRecovery_NoPanic(t *testing.T) {
 	t.Parallel()
 
 	mw := QueryRecovery()
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return "ok", nil
-	})
+	handler := mw(testhelpers.NoopQueryHandler())
 
 	result, err := handler(context.Background(), &testQuery{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if result != "ok" {
-		t.Errorf("expected ok, got %v", result)
+	if result != nil {
+		t.Errorf("expected nil result, got %v", result)
 	}
 }
 
@@ -103,9 +99,7 @@ func TestQueryRecovery_Panic(t *testing.T) {
 	t.Parallel()
 
 	mw := QueryRecovery()
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		panic("query boom")
-	})
+	handler := mw(testhelpers.PanicQueryHandler("query boom"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {

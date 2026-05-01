@@ -60,7 +60,7 @@ func TestEventValidation_Pass(t *testing.T) {
 	called := false
 	handler := mw(testhelpers.CallbackEventHandler(&called))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestEventValidation_Fail(t *testing.T) {
 
 	handler := mw(testhelpers.FailingEventHandler("should not be called"))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -103,11 +103,7 @@ func TestQueryValidation_Pass(t *testing.T) {
 	mw := QueryValidation(validate)
 
 	called := false
-	handler := mw(func(_ context.Context, q query.Query) (any, error) {
-		called = true
-
-		return q.Type(), nil
-	})
+	handler := mw(testhelpers.CallbackQueryHandler(&called))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -127,9 +123,7 @@ func TestQueryValidation_Fail(t *testing.T) {
 	}
 	mw := QueryValidation(validate)
 
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return "should not be called", nil
-	})
+	handler := mw(testhelpers.FailingQueryHandler("should not be called"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {

@@ -62,6 +62,29 @@ func NoopQueryHandler() func(context.Context, query.Query) (any, error) {
 	}
 }
 
+// FailingQueryHandler returns a query handler that returns an error.
+func FailingQueryHandler(msg string) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		return nil, errors.New(msg) //nolint:err113 // test helper with dynamic message
+	}
+}
+
+// PanicQueryHandler returns a query handler that panics with the given message.
+func PanicQueryHandler(msg string) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		panic(msg)
+	}
+}
+
+// CallbackQueryHandler returns a query handler that sets *called to true.
+func CallbackQueryHandler(called *bool) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		*called = true
+
+		return nil, nil
+	}
+}
+
 // FailingCommandHandler returns a handler that returns an error.
 func FailingCommandHandler(msg string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {

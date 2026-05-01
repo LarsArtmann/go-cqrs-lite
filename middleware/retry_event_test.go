@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -31,7 +30,7 @@ func TestEventRetry_Success(t *testing.T) {
 		return nil
 	})
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -58,7 +57,7 @@ func TestEventRetry_AllAttemptsFail(t *testing.T) {
 
 	handler := mw(testhelpers.FailingEventHandler("always fail"))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -85,7 +84,7 @@ func TestEventRetry_NonRetryable(t *testing.T) {
 		return errors.New("non-retryable")
 	})
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -120,7 +119,7 @@ func TestEventRetry_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

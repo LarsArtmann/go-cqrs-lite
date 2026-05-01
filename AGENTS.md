@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                              |
-| --------- | ---------------------------------------------------------------------------------- |
-| Language  | Go 1.26                                                                            |
+| Item      | Value                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| Language  | Go 1.26                                                                                          |
 | Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
-| Build     | `nix run .#build`                                                                  |
-| Test      | `nix run .#test` or see "Testing" below                                            |
-| Lint      | `nix run .#lint`                                                                   |
-| Format    | `nix fmt`                                                                          |
-| Dev shell | `nix develop`                                                                      |
-| CI        | GitHub Actions: ci.yml (Nix-based)                                                 |
+| Build     | `nix run .#build`                                                                                |
+| Test      | `nix run .#test` or see "Testing" below                                                          |
+| Lint      | `nix run .#lint`                                                                                 |
+| Format    | `nix fmt`                                                                                        |
+| Dev shell | `nix develop`                                                                                    |
+| CI        | GitHub Actions: ci.yml (Nix-based)                                                               |
 
 ## Monorepo Structure
 
@@ -221,9 +221,9 @@ nix develop             # enter dev shell
 
 ### Projection Module (`projection/`)
 
-| Package        | Purpose                                                    | Key Types                                                     |
-| -------------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
-| `projection/`  | Projection runner with replay and live subscription        | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)` |
+| Package       | Purpose                                             | Key Types                                                        |
+| ------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)` |
 
 - **Runner**: Accepts `event.GlobalLoader` (for replay) + `event.Bus` (for live). Register `event.Projection` instances before `Run()`.
 - **Per-projection checkpoint**: Each projection tracked by `Name()`. Events past checkpoint are skipped during replay.

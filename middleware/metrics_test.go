@@ -2,12 +2,9 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -63,7 +60,7 @@ func TestEventMetrics_Success(t *testing.T) {
 
 	handler := mw(testhelpers.NoopEventHandler())
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -88,7 +85,7 @@ func TestEventMetrics_Error(t *testing.T) {
 
 	handler := mw(testhelpers.FailingEventHandler("middleware failure"))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -111,9 +108,7 @@ func TestQueryMetrics_Success(t *testing.T) {
 	metrics := &testhelpers.TestMetrics{}
 	mw := QueryMetrics(metrics)
 
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return "result", nil
-	})
+	handler := mw(testhelpers.NoopQueryHandler())
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -133,9 +128,7 @@ func TestQueryMetrics_Error(t *testing.T) {
 	metrics := &testhelpers.TestMetrics{}
 	mw := QueryMetrics(metrics)
 
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return nil, errors.New("fail")
-	})
+	handler := mw(testhelpers.FailingQueryHandler("fail"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {

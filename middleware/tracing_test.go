@@ -2,12 +2,9 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -85,7 +82,7 @@ func TestEventTracing_Success(t *testing.T) {
 	mw := EventTracing(tracer)
 	handler := mw(testhelpers.NoopEventHandler())
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -116,7 +113,7 @@ func TestEventTracing_Error(t *testing.T) {
 	mw := EventTracing(tracer)
 	handler := mw(testhelpers.FailingEventHandler("boom"))
 
-	evt, err := event.NewEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -140,17 +137,15 @@ func TestQueryTracing_Success(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := QueryTracing(tracer)
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return "result", nil
-	})
+	handler := mw(testhelpers.NoopQueryHandler())
 
 	result, err := handler(context.Background(), &testQuery{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if result != "result" {
-		t.Errorf("expected 'result', got %v", result)
+	if result != nil {
+		t.Errorf("expected nil result, got %v", result)
 	}
 
 	spans := recorder.Ended()
@@ -172,9 +167,7 @@ func TestQueryTracing_Error(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := QueryTracing(tracer)
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return nil, errors.New("boom")
-	})
+	handler := mw(testhelpers.FailingQueryHandler("boom"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
