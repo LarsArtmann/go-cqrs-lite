@@ -9,55 +9,8 @@ import (
 
 const (
 	shapeRectangle = "rectangle"
-	shapeCylinder  = "cylinder"
 	shapeQueue     = "queue"
-	shapeHexagon   = "hexagon"
 )
-
-type styleConfig struct {
-	fill          string
-	stroke        string
-	strokeWidth   int
-	borderRadius  int
-	fontColor     string
-	bold          bool
-	shape         string
-	animated      bool
-	strokeDash    int
-	label         string
-	tooltip       string
-	connectionDir string
-}
-
-type nodeConfig struct {
-	id    string
-	label string
-	shape string
-	class string
-	tooltip string
-	style styleConfig
-}
-
-type connectionConfig struct {
-	from       string
-	to         string
-	label      string
-	arrowColor string
-	animated   bool
-	dashed     bool
-	strokeWidth int
-}
-
-type serviceStyle struct {
-	cmdShape string
-	evtShape string
-	queryShape string
-	evtDirection string
-}
-
-var defaultServiceStyles = map[string]serviceStyle{
-	"command": {cmdShape: shapeRectangle, evtShape: shapeQueue, queryShape: shapeRectangle, evtDirection: "send"},
-}
 
 type Exporter struct {
 	Title       string
@@ -97,7 +50,7 @@ func NewExporter(title, version string, opts ...Option) *Exporter {
 func (e *Exporter) Export(cat *catalog.Catalog) string {
 	var b strings.Builder
 
-	e.writeHeader(&b, cat)
+	e.writeHeader(&b)
 	e.writeClasses(&b)
 	e.writeServices(&b, cat)
 
@@ -108,7 +61,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) string {
 	return b.String()
 }
 
-func (e *Exporter) writeHeader(b *strings.Builder, cat *catalog.Catalog) {
+func (e *Exporter) writeHeader(b *strings.Builder) {
 	if e.Title != "" {
 		fmt.Fprintf(b, "title: {\n  label: %q\n  near: top-center\n  shape: text\n", e.Title)
 		b.WriteString("  style: {\n    font-size: 28\n    bold: true\n    underline: true\n  }\n}\n\n")
@@ -140,6 +93,7 @@ func (e *Exporter) writeClasses(b *strings.Builder) {
 func (e *Exporter) writeServices(b *strings.Builder, cat *catalog.Catalog) {
 	for _, svc := range cat.Services {
 		svcID := sanitizeID(svc.ID)
+
 		fmt.Fprintf(b, "%s: {\n", svcID)
 		fmt.Fprintf(b, "  class: service\n  label: %q\n", svc.Name)
 		b.WriteString("  direction: down\n\n")
