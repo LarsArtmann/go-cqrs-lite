@@ -182,7 +182,7 @@ nix develop             # enter dev shell
 | `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                              |
 | `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                 |
 | `core/aggregate/`      | Aggregate roots and repository      | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                 |
-| `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
+| `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
 | `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                          |
 
 ### Memory Module (`memory/`)
@@ -542,3 +542,19 @@ Interfaces now return branded types instead of primitives:
     - Dual bus pattern (event bus + notification bus) for error broadcasting
   - **Explicit non-goals documented**: No sync protocol, no client-side store, no event signing, no WASM/mobile SDK
   - No code changes this session — planning only
+
+- **Session 31 (Error Taxonomy + Offline-First Primitives)**:
+  - **NEW**: `event.Family` enum (Rejection, Conflict, Transient, Corruption, Infrastructure) in `core/event/errors.go`
+  - **NEW**: `event.Error` struct with Code, Message, Family, cause — extractable via `errors.As`
+  - **NEW**: `event.Classify(err) Family` — maps sentinels to families, defaults to Transient
+  - **NEW**: `event.IsRetryable(err) bool` — returns true for Transient family
+  - **NEW**: Constructors: `NewRejection`, `NewConflict`, `NewTransient`, `NewCorruption`, `NewInfrastructure`
+  - **NEW**: `id.ClientID` branded type in `core/pkg/id/client_id.go`
+  - **NEW**: `event.WithClientID(id.ClientID)` and `event.WithClientOccurredAt(time.Time)` options
+  - **BREAKING**: `command.Command` interface now requires `IdempotencyKey() string`
+  - **FIX**: `projection/runner.go` — stopped silently discarding handler errors (`_ =` → proper error handling with retry)
+  - **ENHANCEMENT**: `projection/runner.go` — wired `WithRetry` option with exponential backoff using `event.IsRetryable()`
+  - **ENHANCEMENT**: `middleware.DefaultRetryConfig()` — `IsRetryable` now defaults to `event.IsRetryable` (was: always false)
+  - **DOCS**: `docs/OFFLINE_FIRST_METADATA.md` — convention-based metadata keys for offline-first
+  - **DOCS**: `docs/planning/2026-05-01_EXECUTION_PLAN.md` — comprehensive task list with effort/impact estimates
+  - Zero lint, all tests pass across all modules
