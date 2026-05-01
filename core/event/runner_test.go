@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -65,5 +66,138 @@ func TestInMemoryRunner_RegisterDuplicateName(t *testing.T) {
 	err = runner.Register(proj)
 	if err == nil {
 		t.Fatal("expected error for duplicate projection name")
+	}
+}
+
+func TestInMemoryRunner_Handle_DispatchesToMatching(t *testing.T) {
+	t.Parallel()
+
+	var handled []string
+
+	runner := NewInMemoryRunner(nopCheckpointStore{})
+
+	proj := NewProjection(
+		"test",
+		func(_ context.Context, evt Event) error {
+			handled = append(handled, string(evt.Type()))
+
+			return nil
+		},
+		[]Type{"UserCreated"},
+	)
+
+	if err := runner.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	evt, err := NewEvent("UserCreated", id.NewAggregateID(), "User", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := runner.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if len(handled) != 1 || handled[0] != "UserCreated" {
+		t.Errorf("handled = %v, want [UserCreated]", handled)
+	}
+}
+
+func TestInMemoryRunner_Handle_SkipsNonMatching(t *testing.T) {
+	t.Parallel()
+
+	handled := false
+
+	runner := NewInMemoryRunner(nopCheckpointStore{})
+
+	proj := NewProjection(
+		"test",
+		func(_ context.Context, _ Event) error {
+			handled = true
+
+			return nil
+		},
+		[]Type{"UserCreated"},
+	)
+
+	if err := runner.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	evt, err := NewEvent("UserDeleted", id.NewAggregateID(), "User", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := runner.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if handled {
+		t.Error("projection should not have been called for non-matching event type")
+	}
+}
+
+func TestInMemoryRunner_Handle_SubscribesToAll(t *testing.T) {
+	t.Parallel()
+
+	count := 0
+
+	runner := NewInMemoryRunner(nopCheckpointStore{})
+
+	proj := NewProjection(
+		"all-events",
+		func(_ context.Context, _ Event) error {
+			count++
+
+			return nil
+		},
+		nil,
+	)
+
+	if err := runner.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	evt, err := NewEvent("Anything", id.NewAggregateID(), "User", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := runner.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if count != 1 {
+		t.Errorf("count = %d, want 1", count)
+	}
+}
+
+func TestInMemoryRunner_Handle_ProjectionError(t *testing.T) {
+	t.Parallel()
+
+	runner := NewInMemoryRunner(nopCheckpointStore{})
+
+	proj := NewProjection(
+		"failing",
+		func(_ context.Context, _ Event) error {
+			return fmt.Errorf("boom")
+		},
+		[]Type{"UserCreated"},
+	)
+
+	if err := runner.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	evt, err := NewEvent("UserCreated", id.NewAggregateID(), "User", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	err = runner.Handle(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error from failing projection")
 	}
 }
