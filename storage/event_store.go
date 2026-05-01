@@ -20,15 +20,13 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	db    *sql.DB
-	codec event.Codec
+	db *sql.DB
 }
 
 // NewSQLEventStore creates a new SQL-backed event store.
 func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
 	s := &SQLEventStore{
-		db:    db,
-		codec: event.JSONCodec{},
+		db: db,
 	}
 
 	for _, opt := range opts {
@@ -40,13 +38,6 @@ func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
 
 // SQLEventStoreOption configures an SQLEventStore.
 type SQLEventStoreOption func(*SQLEventStore)
-
-// WithStoreCodec sets the codec for event payload serialization.
-func WithStoreCodec(codec event.Codec) SQLEventStoreOption {
-	return func(s *SQLEventStore) {
-		s.codec = codec
-	}
-}
 
 // Close releases the underlying database connection.
 func (s *SQLEventStore) Close() error {
