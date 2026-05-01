@@ -90,7 +90,8 @@ func (s *SQLSnapshotStore) Load(
 	}, nil
 }
 
-// LoadAtVersion retrieves a snapshot at a specific version.
+// LoadAtVersion retrieves a snapshot at or before a specific version.
+// Returns ErrSnapshotNotFound if no snapshot exists or the stored version exceeds the requested version.
 func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx context.Context,
 	aggregateType event.AggregateType,
@@ -98,7 +99,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	version event.Version,
 ) (*event.Snapshot, error) {
 	query := `SELECT version, state, created_at FROM snapshots
-		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version = $3`
+		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
 	var (
 		snapVersion int
@@ -111,11 +112,15 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		query,
 		string(aggregateType),
 		aggregateID,
-		version.Int(),
 	).Scan(&snapVersion, &stateBytes, &createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, err)
+	}
+
+	if snapVersion > version.Int() {
+		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
+			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
 	}
 
 	return &event.Snapshot{
