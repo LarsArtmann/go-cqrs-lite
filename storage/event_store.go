@@ -39,7 +39,8 @@ func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
 type SQLEventStoreOption func(*SQLEventStore)
 
 // ErrConcurrencyConflict indicates an optimistic concurrency violation.
-var ErrConcurrencyConflict = errors.New("concurrency conflict")
+// Alias of event.ErrVersionConflict for unified errors.Is checking.
+var ErrConcurrencyConflict = event.ErrVersionConflict
 
 // Close releases the underlying database connection.
 func (s *SQLEventStore) Close() error {

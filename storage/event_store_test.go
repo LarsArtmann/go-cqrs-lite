@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"regexp"
 	"testing"
 	"time"
@@ -116,6 +117,14 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected concurrency conflict error")
+	}
+
+	if !errors.Is(err, event.ErrVersionConflict) {
+		t.Errorf("error should wrap event.ErrVersionConflict, got: %v", err)
+	}
+
+	if !errors.Is(err, ErrConcurrencyConflict) {
+		t.Errorf("error should wrap ErrConcurrencyConflict, got: %v", err)
 	}
 
 	err = mock.ExpectationsWereMet()
