@@ -7,16 +7,6 @@ import (
 	"sync"
 )
 
-// ProjectionRunner drives projections by feeding events and tracking checkpoints.
-type ProjectionRunner interface {
-	// Register adds a projection to the runner.
-	Register(projection Projection) error
-
-	// Handle processes an event through all registered projections.
-	// This can be used as a Bus.SubscribeAll handler.
-	Handle(ctx context.Context, evt Event) error
-}
-
 // InMemoryRunner processes events through registered projections with
 // checkpoint tracking. Intended for testing and single-process deployments.
 //
