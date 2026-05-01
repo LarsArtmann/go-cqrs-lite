@@ -453,11 +453,22 @@ Interfaces now return branded types instead of primitives:
 | Issue                                                    | Severity   | Detail                                                                                           |
 | -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
 | **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface.         |
-| **`Load()` empty semantics differ**                      | **MEDIUM** | `MemoryStore.Load()` returns `ErrAggregateNotFound`; `SQLEventStore.Load()` returns empty slice. |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                                       |
 | `query.Handler` returns `any`                            | LOW        | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                             |
 | `CatalogMeta` duplicated across 3 packages               | LOW        | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical               |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW        | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                    |
+
+- **Session 28 (Branching-Flow Context Review)**:
+  - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.
+  - **HIGH FIX**: `SQLEventStore.Load` now returns `event.ErrAggregateNotFound` for empty result sets, consistent with `MemoryStore.Load`.
+  - **HIGH FIX**: `SQLSnapshotStore.Load` now translates `sql.ErrNoRows` to `event.ErrSnapshotNotFound`, consistent with `MemorySnapshotStore.Load`.
+  - **MEDIUM FIX**: `HandleParallel` now respects context cancellation — returns context error when canceled mid-processing.
+  - **DOCUMENTED**: `Save` partial-failure contract (events persisted but unpublished on bus/outbox failure).
+  - **DOCUMENTED**: `publishPending` silently swallows errors in background loop; use `PublishNow` for error visibility.
+  - **DOCUMENTED**: `MemoryBus` handler ordering (all-handlers before type-specific) and partial-publish semantics.
+  - **DOCUMENTED**: `NewRepository` requires non-nil store/bus (undefined behavior if nil).
+  - Removed `Load() empty semantics differ` from Known Issues (now fixed).
+  - Zero lint, all tests pass across all modules
 
 - **Session 27 (No-Panic Convention + Code Quality)**:
   - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint. Added `ErrNilCheckpointStore` sentinel.

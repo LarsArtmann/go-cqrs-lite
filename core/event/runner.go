@@ -98,6 +98,8 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 // HandleParallel dispatches an event to all matching projections concurrently.
 // Each projection runs in its own goroutine. Returns the first error encountered.
 // Checkpoints are saved only for projections that succeed.
+// Respects context cancellation: if the context is canceled, remaining
+// goroutines are waited for but their results are ignored.
 func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
 	r.mu.RLock()
 	projections := make([]Projection, 0, len(r.projections))
@@ -131,7 +133,17 @@ func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
 	var firstErr error
 
 	for range projections {
-		res := <-results
+		var res result
+
+		select {
+		case <-ctx.Done():
+			if firstErr == nil {
+				firstErr = fmt.Errorf("handle parallel canceled: %w", ctx.Err())
+			}
+
+			return firstErr
+		case res = <-results:
+		}
 
 		if res.err != nil {
 			if firstErr == nil {

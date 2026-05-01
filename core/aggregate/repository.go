@@ -36,6 +36,7 @@ type EventSourcedRepository struct {
 var _ Repository = (*EventSourcedRepository)(nil)
 
 // NewRepository creates a new event-sourced repository.
+// Both store and bus must be non-nil; passing nil causes a panic on first use.
 func NewRepository(
 	store event.Store,
 	bus event.Bus,

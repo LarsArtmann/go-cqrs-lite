@@ -135,6 +135,9 @@ func (p *OutboxPublisher) run(ctx context.Context) {
 	}
 }
 
+// publishPending performs a single poll-publish-ack cycle.
+// Errors are silently swallowed to keep the background loop running.
+// For error visibility, use PublishNow which returns errors to the caller.
 func (p *OutboxPublisher) publishPending(ctx context.Context) {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {

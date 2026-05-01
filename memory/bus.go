@@ -41,9 +41,19 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	return nil
 }
 
-// Publish sends events to all registered subscribers.
-// Holds a read lock for the duration of handler execution — subscribers
-// block publishers until all handlers for each event complete.
+// MemoryBus is an in-memory event bus for testing and single-process deployments.
+//
+// Ordering: Within a single event, all SubscribeAll handlers run before
+// type-specific handlers. If any handler fails, subsequent handlers for
+// that event are skipped.
+//
+// Partial publish: Publish sends events sequentially. If event N fails to
+// publish, events 0..N-1 have already been delivered. There is no rollback.
+// This mirrors real-world at-least-once delivery semantics.
+//
+// Concurrency: Publish holds a read lock for the duration of handler
+// execution — subscribers block publishers until all handlers complete.
+// This is acceptable for test utilities but limits throughput.
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
