@@ -141,7 +141,7 @@
 
 ---
 
-### Event Upcasting ⚠️ PARTIALLY_FUNCTIONAL
+### Event Upcasting ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/event"`
 
