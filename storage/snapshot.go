@@ -41,7 +41,7 @@ func SnapshotSchema() string {
 }
 
 // Save persists a snapshot for an aggregate.
-func (s *SQLSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
+func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
 	state, err := json.Marshal(snap.State)
 	if err != nil {
 		return errors.Wrap(err, "marshal snapshot state")
@@ -53,7 +53,7 @@ func (s *SQLSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`
 
 	_, err = s.db.ExecContext(
-		context.Background(),
+		ctx,
 		query,
 		string(snap.AggregateType),
 		snap.AggregateID,
@@ -70,20 +70,21 @@ func (s *SQLSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
 
 // Load retrieves the latest snapshot for an aggregate.
 func (s *SQLSnapshotStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (*event.Snapshot, error) {
-	query := `SELECT version, state FROM snapshots
+	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
 	var (
 		version    int
 		stateBytes []byte
+		createdAt  time.Time
 	)
 
-	err := s.db.QueryRowContext(context.Background(), query, string(aggregateType), aggregateID).
-		Scan(&version, &stateBytes)
+	err := s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
+		Scan(&version, &stateBytes, &createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
@@ -93,31 +94,33 @@ func (s *SQLSnapshotStore) Load(
 		AggregateID:   aggregateID,
 		Version:       event.Version(version),
 		State:         stateBytes,
+		CreatedAt:     createdAt,
 	}, nil
 }
 
 // LoadAtVersion retrieves a snapshot at a specific version.
 func (s *SQLSnapshotStore) LoadAtVersion(
-	_ context.Context,
+	ctx context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 	version event.Version,
 ) (*event.Snapshot, error) {
-	query := `SELECT version, state FROM snapshots
+	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version = $3`
 
 	var (
 		snapVersion int
 		stateBytes  []byte
+		createdAt   time.Time
 	)
 
 	err := s.db.QueryRowContext(
-		context.Background(),
+		ctx,
 		query,
 		string(aggregateType),
 		aggregateID,
 		version.Int(),
-	).Scan(&snapVersion, &stateBytes)
+	).Scan(&snapVersion, &stateBytes, &createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, err)
@@ -128,18 +131,19 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		AggregateID:   aggregateID,
 		Version:       event.Version(snapVersion),
 		State:         stateBytes,
+		CreatedAt:     createdAt,
 	}, nil
 }
 
 // Delete removes a snapshot for an aggregate.
 func (s *SQLSnapshotStore) Delete(
-	_ context.Context,
+	ctx context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
 	query := `DELETE FROM snapshots WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	_, err := s.db.ExecContext(context.Background(), query, string(aggregateType), aggregateID)
+	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
 		return fmt.Errorf("delete snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
