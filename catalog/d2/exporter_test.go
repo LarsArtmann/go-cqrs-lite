@@ -165,7 +165,15 @@ func TestExporter_Export_DomainGrouping(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "order-svc", "Order Service", "1.0.0")
-	cattest.AddDomain(t, reg, "ecommerce", "E-Commerce", "1.0.0", "Online store", []string{"order-svc"})
+	cattest.AddDomain(
+		t,
+		reg,
+		"ecommerce",
+		"E-Commerce",
+		"1.0.0",
+		"Online store",
+		[]string{"order-svc"},
+	)
 
 	cat := reg.Build()
 	output := NewExporter("Test", "1.0.0").Export(cat)
@@ -202,17 +210,105 @@ func TestExporter_Export_SchemaTooltip(t *testing.T) {
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
-		ID:      "DoStuff",
-		Name:    "DoStuff",
+		ID:      "CreateOrder",
+		Name:    "CreateOrder",
 		Version: "1.0.0",
-		Summary: "Does important stuff",
+		Summary: "Create a new order",
+		Schema: &catalog.Schema{
+			Type: "object",
+			Properties: map[string]catalog.Property{
+				"orderId": {Type: "string", Description: "Unique order ID"},
+				"amount":  {Type: "number"},
+			},
+		},
 	})
 
 	cat := reg.Build()
 	output := NewExporter("Test", "1.0.0").Export(cat)
 
-	if !strings.Contains(output, "Does important stuff") {
-		t.Error("expected summary as tooltip")
+	if !strings.Contains(output, "Create a new order") {
+		t.Error("expected summary in tooltip")
+	}
+
+	if !strings.Contains(output, "orderId: string") {
+		t.Error("expected schema field in tooltip")
+	}
+
+	if !strings.Contains(output, "Unique order ID") {
+		t.Error("expected field description in tooltip")
+	}
+}
+
+func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "order-svc", "Order Service", "1.0.0")
+	cattest.AddService(t, reg, "notification-svc", "Notification Service", "1.0.0")
+
+	cattest.AddEventSimple(
+		t,
+		reg,
+		"order-svc",
+		"OrderCreated",
+		"OrderCreated",
+		"1.0.0",
+		catalog.Sends,
+	)
+	cattest.AddEventSimple(
+		t,
+		reg,
+		"notification-svc",
+		"OrderCreated",
+		"OrderCreated",
+		"1.0.0",
+		catalog.Receives,
+	)
+
+	cat := cattest.Build(t, reg)
+	output := NewExporter("E-Commerce", "1.0.0").Export(cat)
+
+	if !strings.Contains(output, "order_svc.ordercreated -> notification_svc.ordercreated") {
+		t.Error("expected cross-service event connection from publisher to receiver")
+	}
+
+	if !strings.Contains(output, "OrderCreated") {
+		t.Error("expected event name as connection label")
+	}
+
+	if !strings.Contains(output, "animated: true") {
+		t.Error("expected animated connection for cross-service events")
+	}
+}
+
+func TestExporter_Export_CrossService_NoSelfConnection(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
+	cattest.AddEventSimple(t, reg, "svc", "SelfEvent", "SelfEvent", "1.0.0", catalog.Sends)
+	cattest.AddEventSimple(t, reg, "svc", "SelfEvent", "SelfEvent", "1.0.0", catalog.Receives)
+
+	cat := cattest.Build(t, reg)
+	output := NewExporter("Test", "1.0.0").Export(cat)
+
+	if strings.Contains(output, "svc.selfevent -> svc.selfevent") {
+		t.Error("should not create cross-service connection for same service")
+	}
+}
+
+func TestExporter_Export_CrossService_NoConnectionWithoutMatch(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc-a", "Service A", "1.0.0")
+	cattest.AddEventSimple(t, reg, "svc-a", "OrphanEvent", "OrphanEvent", "1.0.0", catalog.Sends)
+
+	cat := cattest.Build(t, reg)
+	output := NewExporter("Test", "1.0.0").Export(cat)
+
+	if strings.Contains(output, "animated: true") {
+		t.Error("should not create cross-service connection when no receiver")
 	}
 }
 
