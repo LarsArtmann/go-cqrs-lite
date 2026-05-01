@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"slices"
 	"sync"
 
 	"github.com/cockroachdb/errors"
@@ -18,6 +19,7 @@ type MemoryStore struct {
 }
 
 var _ event.Store = (*MemoryStore)(nil)
+var _ event.GlobalLoader = (*MemoryStore)(nil)
 
 func NewMemoryStore() *MemoryStore {
 	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
@@ -149,6 +151,33 @@ func (s *MemoryStore) Delete(
 	delete(s.events, key)
 
 	return nil
+}
+
+// LoadAll returns all events across all aggregates, sorted by OccurredAt.
+// Implements event.GlobalLoader for projection replay.
+func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
+	err := s.CheckClosed(event.ErrStoreClosed)
+	if err != nil {
+		return nil, errors.Wrap(err, "memory store load all")
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var all []event.Event
+
+	for _, events := range s.events {
+		all = append(all, events...)
+	}
+
+	slices.SortFunc(all, func(a, b event.Event) int {
+		return a.OccurredAt().Compare(b.OccurredAt())
+	})
+
+	result := make([]event.Event, len(all))
+	copy(result, all)
+
+	return result, nil
 }
 
 func (s *MemoryStore) Close() error {

@@ -12,6 +12,13 @@ type Deleter interface {
 	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }
 
+// GlobalLoader loads all events across all aggregates, ordered by occurrence.
+// Implementations return events sorted by OccurredAt for deterministic replay.
+// This is the core interface for projection replay.
+type GlobalLoader interface {
+	LoadAll(ctx context.Context) ([]Event, error)
+}
+
 // Store defines the interface for event persistence.
 // All implementations must support lifecycle management via io.Closer.
 type Store interface {
