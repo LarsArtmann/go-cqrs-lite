@@ -35,11 +35,11 @@ Aggregateless event sourcing is an architectural approach that **eliminates DDD 
 
 The system is built on three pillars:
 
-| Pillar | Description |
-|--------|-------------|
-| **Pure Events** | Self-contained facts with no aggregate binding |
-| **Context Queries** | SQL queries that define consistency boundaries per operation |
-| **CTE Atomic Operations** | PostgreSQL CTEs for optimistic check-and-insert |
+| Pillar                    | Description                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| **Pure Events**           | Self-contained facts with no aggregate binding               |
+| **Context Queries**       | SQL queries that define consistency boundaries per operation |
+| **CTE Atomic Operations** | PostgreSQL CTEs for optimistic check-and-insert              |
 
 ---
 
@@ -57,6 +57,7 @@ Traditional event sourcing forces you to answer: "What is the aggregate?" This q
 ### The Domain Service Problem
 
 Cross-aggregate coordination requires:
+
 - Domain services (anemic, procedural code outside aggregates)
 - Saga orchestrators (complex state machines)
 - Process managers (additional event handlers)
@@ -121,14 +122,14 @@ Instead: every operation defines its own **context** — the set of relevant eve
 
 ### Key Architectural Differences from Traditional ES
 
-| Aspect | Traditional ES | Aggregateless ES |
-|--------|---------------|-----------------|
-| Storage | Stream per aggregate | Single events table |
-| Consistency | Aggregate version / expected revision | CTE with context filter |
-| Boundary definition | At design time (aggregate ID) | At runtime (query filter) |
-| Cross-boundary ops | Sagas / process managers | Naturally via wider context query |
-| State shape | One per aggregate | One per feature slice |
-| Read model | Separate projection handlers | Per-slice fold functions |
+| Aspect              | Traditional ES                        | Aggregateless ES                  |
+| ------------------- | ------------------------------------- | --------------------------------- |
+| Storage             | Stream per aggregate                  | Single events table               |
+| Consistency         | Aggregate version / expected revision | CTE with context filter           |
+| Boundary definition | At design time (aggregate ID)         | At runtime (query filter)         |
+| Cross-boundary ops  | Sagas / process managers              | Naturally via wider context query |
+| State shape         | One per aggregate                     | One per feature slice             |
+| Read model          | Separate projection handlers          | Per-slice fold functions          |
 
 ---
 
@@ -209,7 +210,7 @@ An **EventFilter** defines which events are relevant for a specific operation. I
 
 ```typescript
 interface EventFilter {
-  eventTypes: string[];                          // OR condition on event types
+  eventTypes: string[]; // OR condition on event types
   payloadPredicates?: Record<string, unknown>[]; // OR condition on payload fields
 }
 ```
@@ -217,28 +218,32 @@ interface EventFilter {
 ### Examples
 
 **"Does this account exist?" (for deposit)**
+
 ```typescript
-const filter = EventFilter
-  .createFilter(['AccountOpened'])
-  .withPayloadPredicate('accountId', 'acc-123');
+const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
+  "accountId",
+  "acc-123",
+);
 ```
 
 **"What's the balance of this account?" (for withdrawal)**
+
 ```typescript
 const filter = EventFilter.createFilter(
-  ['AccountOpened', 'MoneyDeposited', 'MoneyWithdrawn'],
-  [{ accountId: 'acc-123' }]
+  ["AccountOpened", "MoneyDeposited", "MoneyWithdrawn"],
+  [{ accountId: "acc-123" }],
 );
 ```
 
 **"Can I bind this device to this asset?" (cross-entity)**
+
 ```typescript
 const filter = EventFilter.createFilter(
-  ['DeviceRegistered', 'AssetRegistered', 'DeviceBoundToAsset', 'DeviceUnboundFromAsset'],
+  ["DeviceRegistered", "AssetRegistered", "DeviceBoundToAsset", "DeviceUnboundFromAsset"],
   [
-    { deviceId: 'dev-456' },  // events about this device
-    { assetId: 'asset-789' }  // OR events about this asset
-  ]
+    { deviceId: "dev-456" }, // events about this device
+    { assetId: "asset-789" }, // OR events about this asset
+  ],
 );
 ```
 
@@ -393,12 +398,12 @@ Feature Slice = {
 
 For the same account's event stream:
 
-| Feature | State Needed | Events Folded |
-|---------|-------------|---------------|
-| Open Account | `{exists: bool}` | `AccountOpened` only |
-| Deposit Money | `{exists: bool}` | `AccountOpened` only |
+| Feature        | State Needed                      | Events Folded                                       |
+| -------------- | --------------------------------- | --------------------------------------------------- |
+| Open Account   | `{exists: bool}`                  | `AccountOpened` only                                |
+| Deposit Money  | `{exists: bool}`                  | `AccountOpened` only                                |
 | Withdraw Money | `{exists: bool, balance: number}` | `AccountOpened`, `MoneyDeposited`, `MoneyWithdrawn` |
-| Transfer Money | `{exists: bool, balance: number}` | All account events + counterpart account events |
+| Transfer Money | `{exists: bool, balance: number}` | All account events + counterpart account events     |
 
 Each slice reconstructs **only the state it needs**. No wasted computation loading irrelevant events.
 
@@ -423,13 +428,13 @@ function foldBalanceState(events: AccountEvent[]): BalanceState {
 
   for (const event of events) {
     switch (event.type) {
-      case 'AccountOpened':
+      case "AccountOpened":
         exists = true;
         break;
-      case 'MoneyDeposited':
+      case "MoneyDeposited":
         balance += event.amount;
         break;
-      case 'MoneyWithdrawn':
+      case "MoneyWithdrawn":
         balance -= event.amount;
         break;
     }
@@ -441,13 +446,13 @@ function foldBalanceState(events: AccountEvent[]): BalanceState {
 
 ### Why Folds Beat Aggregate Hydration
 
-| Aspect | Aggregate Hydration | Feature Fold |
-|--------|-------------------|-------------|
-| State shape | Fixed (one per aggregate) | Flexible (one per feature) |
-| Events loaded | All events in stream | Only relevant event types |
-| Unused fields | Hydrated but ignored | Not loaded at all |
-| Multiple consumers | All see same state | Each sees tailored state |
-| Evolution | Aggregate schema changes affect all consumers | New fold for new feature, old folds untouched |
+| Aspect             | Aggregate Hydration                           | Feature Fold                                  |
+| ------------------ | --------------------------------------------- | --------------------------------------------- |
+| State shape        | Fixed (one per aggregate)                     | Flexible (one per feature)                    |
+| Events loaded      | All events in stream                          | Only relevant event types                     |
+| Unused fields      | Hydrated but ignored                          | Not loaded at all                             |
+| Multiple consumers | All see same state                            | Each sees tailored state                      |
+| Evolution          | Aggregate schema changes affect all consumers | New fold for new feature, old folds untouched |
 
 ---
 
@@ -460,12 +465,12 @@ The `decide` function is **pure** — no IO, no side effects, no mocks needed fo
 ```typescript
 function decideOpenAccount(
   state: AccountState,
-  command: OpenAccountCommand
+  command: OpenAccountCommand,
 ): Result<AccountOpened, OpenAccountError> {
   if (state.exists) {
     return {
       success: false,
-      error: { type: 'AlreadyExists', message: 'Account already opened' }
+      error: { type: "AlreadyExists", message: "Account already opened" },
     };
   }
 
@@ -474,10 +479,10 @@ function decideOpenAccount(
     event: new AccountOpened(
       command.accountId,
       command.customerName,
-      command.accountType || 'checking',
+      command.accountType || "checking",
       command.initialDeposit || 0,
-      command.currency || 'USD'
-    )
+      command.currency || "USD",
+    ),
   };
 }
 ```
@@ -485,26 +490,24 @@ function decideOpenAccount(
 ### The Result Type
 
 ```typescript
-type Result<T, E> =
-  | { success: true;  event: T }
-  | { success: false; error: E };
+type Result<T, E> = { success: true; event: T } | { success: false; error: E };
 ```
 
 ### Testing
 
 ```typescript
 // Two-line test. No database. No mocks. No setup.
-test('opens account when it does not exist', () => {
+test("opens account when it does not exist", () => {
   const state = { exists: false };
-  const result = decideOpenAccount(state, { accountId: '123', customerName: 'Alice' });
+  const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
   expect(result.success).toBe(true);
 });
 
-test('rejects opening when account exists', () => {
+test("rejects opening when account exists", () => {
   const state = { exists: true };
-  const result = decideOpenAccount(state, { accountId: '123', customerName: 'Alice' });
+  const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
   expect(result.success).toBe(false);
-  expect(result.error.type).toBe('AlreadyExists');
+  expect(result.error.type).toBe("AlreadyExists");
 });
 ```
 
@@ -515,14 +518,12 @@ test('rejects opening when account exists', () => {
 The shell handles IO — loading events, calling the pure core, persisting results:
 
 ```typescript
-async function executeOpenAccount(
-  pool: Pool,
-  command: OpenAccountCommand
-): Promise<void> {
+async function executeOpenAccount(pool: Pool, command: OpenAccountCommand): Promise<void> {
   // 1. Define context filter
-  const filter = EventFilter
-    .createFilter(['AccountOpened'])
-    .withPayloadPredicate('accountId', command.accountId);
+  const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
+    "accountId",
+    command.accountId,
+  );
 
   // 2. Load context
   const { events, maxSequenceNumber } = await store.query(filter);
@@ -594,33 +595,45 @@ class AccountOpened implements HasEventType {
     public readonly accountType: string,
     public readonly initialDeposit: number,
     public readonly currency: string,
-    public readonly openedAt: Date = new Date()
+    public readonly openedAt: Date = new Date(),
   ) {}
 
-  eventType() { return 'AccountOpened'; }
-  eventVersion() { return '1.0'; }
+  eventType() {
+    return "AccountOpened";
+  }
+  eventVersion() {
+    return "1.0";
+  }
 }
 
 class MoneyDeposited implements HasEventType {
   constructor(
     public readonly accountId: string,
     public readonly amount: number,
-    public readonly depositedAt: Date = new Date()
+    public readonly depositedAt: Date = new Date(),
   ) {}
 
-  eventType() { return 'MoneyDeposited'; }
-  eventVersion() { return '1.0'; }
+  eventType() {
+    return "MoneyDeposited";
+  }
+  eventVersion() {
+    return "1.0";
+  }
 }
 
 class MoneyWithdrawn implements HasEventType {
   constructor(
     public readonly accountId: string,
     public readonly amount: number,
-    public readonly withdrawnAt: Date = new Date()
+    public readonly withdrawnAt: Date = new Date(),
   ) {}
 
-  eventType() { return 'MoneyWithdrawn'; }
-  eventVersion() { return '1.0'; }
+  eventType() {
+    return "MoneyWithdrawn";
+  }
+  eventVersion() {
+    return "1.0";
+  }
 }
 ```
 
@@ -637,7 +650,7 @@ interface IEventStore {
   append<T extends HasEventType>(
     filter: EventFilter,
     events: T[],
-    expectedMaxSequence: number
+    expectedMaxSequence: number,
   ): Promise<void>;
   close(): Promise<void>;
 }
@@ -717,32 +730,36 @@ interface DepositState {
 // Fold
 function foldDepositState(events: HasEventType[]): DepositState {
   return {
-    exists: events.some(e => e.eventType() === 'AccountOpened')
+    exists: events.some((e) => e.eventType() === "AccountOpened"),
   };
 }
 
 // Decide
 function decideDeposit(
   state: DepositState,
-  command: { accountId: string; amount: number }
+  command: { accountId: string; amount: number },
 ): Result<MoneyDeposited, { type: string; message: string }> {
   if (!state.exists) {
-    return { success: false, error: { type: 'AccountNotFound', message: 'Account does not exist' } };
+    return {
+      success: false,
+      error: { type: "AccountNotFound", message: "Account does not exist" },
+    };
   }
   if (command.amount <= 0) {
-    return { success: false, error: { type: 'InvalidAmount', message: 'Amount must be positive' } };
+    return { success: false, error: { type: "InvalidAmount", message: "Amount must be positive" } };
   }
   return {
     success: true,
-    event: new MoneyDeposited(command.accountId, command.amount)
+    event: new MoneyDeposited(command.accountId, command.amount),
   };
 }
 
 // Execute (imperative shell)
 async function executeDeposit(store: IEventStore, command: DepositCommand): Promise<void> {
-  const filter = EventFilter
-    .createFilter(['AccountOpened'])
-    .withPayloadPredicate('accountId', command.accountId);
+  const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
+    "accountId",
+    command.accountId,
+  );
 
   const { events, maxSequenceNumber } = await store.query(filter);
   const state = foldDepositState(events);
@@ -887,6 +904,7 @@ fn deposit_fails_for_nonexistent_account() {
 ### Side-by-Side: Opening a Bank Account
 
 **Traditional (aggregate-based)**:
+
 ```
 1. Load aggregate by ID (stream: "account-123")
    → Empty stream (new account)
@@ -899,6 +917,7 @@ fn deposit_fails_for_nonexistent_account() {
 ```
 
 **Aggregateless**:
+
 ```
 1. Query context: events where type='AccountOpened' AND payload->>'accountId'='123'
    → Empty result, max_seq = 0
@@ -913,6 +932,7 @@ fn deposit_fails_for_nonexistent_account() {
 ### Side-by-Side: Binding Device to Asset (Cross-Aggregate)
 
 **Traditional**:
+
 ```
 1. This spans TWO aggregates (Device, Asset)
    → Need a domain service or saga
@@ -934,6 +954,7 @@ fn deposit_fails_for_nonexistent_account() {
 ```
 
 **Aggregateless**:
+
 ```
 1. Query context:
    events where type IN ('DeviceRegistered', 'AssetRegistered',
@@ -949,21 +970,21 @@ fn deposit_fails_for_nonexistent_account() {
 
 ### Comparison Matrix
 
-| Aspect | Traditional ES | Aggregateless ES |
-|--------|---------------|-----------------|
-| **Boundary definition** | Design-time (aggregate ID) | Runtime (query filter) |
-| **Cross-boundary ops** | Sagas, process managers, domain services | Wider context query |
-| **Storage layout** | Stream per aggregate | Single events table |
-| **Consistency check** | Expected stream version | CTE with context filter |
-| **State shape** | One per aggregate (fixed) | One per feature (flexible) |
-| **Schema evolution** | Upcasting per stream | Filter-based, more forgiving |
-| **Tooling** | Mature (EventStoreDB, Axon, etc.) | Early (DIY on PostgreSQL) |
-| **Learning curve** | DDD + ES concepts | SQL + functional programming |
-| **Performance (single entity)** | Stream read (fast) | Filtered query (indexed, fast) |
-| **Performance (cross-entity)** | Multiple reads + coordination | Single query |
-| **Snapshotting** | Per-aggregate snapshots | Per-feature snapshots (optional) |
-| **Event replay** | Per-aggregate replay | Per-feature replay |
-| **Projections** | Subscribe to all events / stream | Per-feature fold or subscription |
+| Aspect                          | Traditional ES                           | Aggregateless ES                 |
+| ------------------------------- | ---------------------------------------- | -------------------------------- |
+| **Boundary definition**         | Design-time (aggregate ID)               | Runtime (query filter)           |
+| **Cross-boundary ops**          | Sagas, process managers, domain services | Wider context query              |
+| **Storage layout**              | Stream per aggregate                     | Single events table              |
+| **Consistency check**           | Expected stream version                  | CTE with context filter          |
+| **State shape**                 | One per aggregate (fixed)                | One per feature (flexible)       |
+| **Schema evolution**            | Upcasting per stream                     | Filter-based, more forgiving     |
+| **Tooling**                     | Mature (EventStoreDB, Axon, etc.)        | Early (DIY on PostgreSQL)        |
+| **Learning curve**              | DDD + ES concepts                        | SQL + functional programming     |
+| **Performance (single entity)** | Stream read (fast)                       | Filtered query (indexed, fast)   |
+| **Performance (cross-entity)**  | Multiple reads + coordination            | Single query                     |
+| **Snapshotting**                | Per-aggregate snapshots                  | Per-feature snapshots (optional) |
+| **Event replay**                | Per-aggregate replay                     | Per-feature replay               |
+| **Projections**                 | Subscribe to all events / stream         | Per-feature fold or subscription |
 
 ---
 
@@ -1076,30 +1097,30 @@ The consistency boundary is explicit in the filter definition. You can see exact
 
 ### What Aligns
 
-| Aspect | go-cqrs-lite | Aggregateless |
-|--------|-------------|---------------|
-| Library, not framework | ✅ Core principle | ✅ Same philosophy |
-| Decider pattern | ✅ `aggregate.Core` follows decide/apply | ✅ Same pattern |
-| Functional core | ✅ Pure handler functions | ✅ Same approach |
-| Feature slices | ✅ Command handlers are independent | ✅ Same organization |
-| Backend-agnostic | ✅ `event.Store` interface | ✅ Same idea (PostgreSQL impl) |
+| Aspect                 | go-cqrs-lite                             | Aggregateless                  |
+| ---------------------- | ---------------------------------------- | ------------------------------ |
+| Library, not framework | ✅ Core principle                        | ✅ Same philosophy             |
+| Decider pattern        | ✅ `aggregate.Core` follows decide/apply | ✅ Same pattern                |
+| Functional core        | ✅ Pure handler functions                | ✅ Same approach               |
+| Feature slices         | ✅ Command handlers are independent      | ✅ Same organization           |
+| Backend-agnostic       | ✅ `event.Store` interface               | ✅ Same idea (PostgreSQL impl) |
 
 ### What Could Be Explored
 
-| Idea | Description |
-|------|-------------|
-| **Context-based queries** | `event.Store.Query(filter)` method that queries across streams |
-| **CTE append** | `storage.SQLEventStore` could offer a CTE-based append for cross-stream atomicity |
+| Idea                       | Description                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------- |
+| **Context-based queries**  | `event.Store.Query(filter)` method that queries across streams                              |
+| **CTE append**             | `storage.SQLEventStore` could offer a CTE-based append for cross-stream atomicity           |
 | **Feature-specific folds** | Each command handler defines its own fold function (already natural in the Decider pattern) |
-| **EventFilter type** | A reusable filter type for context queries (event types + payload predicates) |
+| **EventFilter type**       | A reusable filter type for context queries (event types + payload predicates)               |
 
 ### What Doesn't Fit
 
-| Aspect | Reason |
-|--------|--------|
+| Aspect                         | Reason                                                                            |
+| ------------------------------ | --------------------------------------------------------------------------------- |
 | **Dropping aggregate concept** | `aggregate.Root` and `aggregate.Repository` are core abstractions with real value |
-| **Single events table** | `storage.SQLEventStore` uses stream-based layout, optimized for aggregate loading |
-| **No subscriptions** | `event.Bus` provides push-based subscriptions for projections |
+| **Single events table**        | `storage.SQLEventStore` uses stream-based layout, optimized for aggregate loading |
+| **No subscriptions**           | `event.Bus` provides push-based subscriptions for projections                     |
 
 ### Bottom Line
 

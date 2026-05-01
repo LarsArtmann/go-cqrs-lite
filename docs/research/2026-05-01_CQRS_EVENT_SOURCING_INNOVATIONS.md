@@ -71,6 +71,7 @@ Aggregateless:   Command → Load Context (SQL query) → Pure Function → Atom
 ### Technical Implementation
 
 **Event Store Schema** (single table, no stream concept):
+
 ```sql
 CREATE TABLE events (
   sequence_number BIGSERIAL PRIMARY KEY,
@@ -82,6 +83,7 @@ CREATE TABLE events (
 ```
 
 **Context-Based Consistency** (CTE atomic check-and-insert):
+
 ```sql
 WITH context AS (
   SELECT MAX(sequence_number) AS max_seq
@@ -96,6 +98,7 @@ WHERE COALESCE(max_seq, 0) = $6
 ```
 
 **Feature Slice Pattern**:
+
 ```
 Feature Slice = {
   context query:  defines which events are relevant
@@ -107,14 +110,14 @@ Feature Slice = {
 
 ### Tradeoffs
 
-| Aspect | Traditional Aggregates | Aggregateless |
-|--------|----------------------|---------------|
-| Boundary decisions | Hard, often wrong | Eliminated |
-| Cross-aggregate ops | Complex sagas | Natural query composition |
-| Schema simplicity | Stream per aggregate | Single events table |
-| Tooling maturity | Rich ecosystem | Early stage |
-| Learning curve | DDD knowledge needed | SQL + functional thinking |
-| Performance | Aggregate-level batching | Feature-specific queries |
+| Aspect              | Traditional Aggregates   | Aggregateless             |
+| ------------------- | ------------------------ | ------------------------- |
+| Boundary decisions  | Hard, often wrong        | Eliminated                |
+| Cross-aggregate ops | Complex sagas            | Natural query composition |
+| Schema simplicity   | Stream per aggregate     | Single events table       |
+| Tooling maturity    | Rich ecosystem           | Early stage               |
+| Learning curve      | DDD knowledge needed     | SQL + functional thinking |
+| Performance         | Aggregate-level batching | Feature-specific queries  |
 
 ### When to Consider
 
@@ -189,18 +192,19 @@ The `catalog` module's auto-documentation (AsyncAPI, EventCatalog) aligns perfec
 
 **Major innovations since rebrand**:
 
-| Feature | Description | Impact |
-|---------|-------------|--------|
-| **Archiving** | Upload chunk files to S3, transparent reads through archive | 10x storage cost reduction for long-lived streams |
-| **Multi-Stream Atomic Appends** | Atomic writes across multiple streams | Eliminates need for sagas/process managers in many cases |
-| **Custom Indices** | Virtual views organized by any property | Flexible querying without modifying event log |
-| **Kafka Source Connector** | Native ingestion from Kafka topics | Bridge between event streaming and event sourcing |
-| **Relational Sink** | Auto-sync to PostgreSQL/SQL Server | Built-in CQRS read model synchronization |
-| **Arrow Flight SQL** | SQL querying protocol | Direct analytical queries over event data |
-| **Single Package** | Merged OSS + Enterprise into one binary | Simplified operations |
-| **DuckDB Integration** | High-performance analytical processing | Up to 10x projection replay speed |
+| Feature                         | Description                                                 | Impact                                                   |
+| ------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------- |
+| **Archiving**                   | Upload chunk files to S3, transparent reads through archive | 10x storage cost reduction for long-lived streams        |
+| **Multi-Stream Atomic Appends** | Atomic writes across multiple streams                       | Eliminates need for sagas/process managers in many cases |
+| **Custom Indices**              | Virtual views organized by any property                     | Flexible querying without modifying event log            |
+| **Kafka Source Connector**      | Native ingestion from Kafka topics                          | Bridge between event streaming and event sourcing        |
+| **Relational Sink**             | Auto-sync to PostgreSQL/SQL Server                          | Built-in CQRS read model synchronization                 |
+| **Arrow Flight SQL**            | SQL querying protocol                                       | Direct analytical queries over event data                |
+| **Single Package**              | Merged OSS + Enterprise into one binary                     | Simplified operations                                    |
+| **DuckDB Integration**          | High-performance analytical processing                      | Up to 10x projection replay speed                        |
 
 **Rebranding timeline**:
+
 - Dec 2024: EventStoreDB 24.10 (last under old name)
 - Mar 2025: KurrentDB 25.0 (first under new name)
 - Apr 2026: KurrentDB 26.1.0 (current)
@@ -210,6 +214,7 @@ The `catalog` module's auto-documentation (AsyncAPI, EventCatalog) aligns perfec
 **Source**: [eventsourcingdb.io](https://www.eventsourcingdb.io) (the native web GmbH)
 
 A **purpose-built database** for event sourcing, positioned as:
+
 - Event-native from the ground up (not a general-purpose DB with ES bolted on)
 - AI-ready with direct LLM integration interfaces
 - Focused on event sourcing as foundation for AI systems
@@ -238,11 +243,13 @@ The most **type-theoretically rigorous** event sourcing framework discovered.
 **Pure Domain Logic**: Both `decide` (command handler) and `react` (process manager) are pure functions — no IO, no monads, trivially testable.
 
 **Type-Safe Compensation**: The `IssueCommandWithCompensation` type carries a failure handler as part of its structure:
+
 ```haskell
 data ProcessManagerEffect command
   = IssueCommand UUID command
   | IssueCommandWithCompensation UUID command (RejectionReason -> [ProcessManagerEffect command])
 ```
+
 No separate compensation service. The entire decision tree lives in the type.
 
 **Template Haskell for Events**: `constructSumType` generates sum types from event records automatically — exhaustive pattern matching guaranteed.
@@ -251,30 +258,31 @@ No separate compensation service. The entire decision tree lives in the type.
 
 #### Core Abstractions
 
-| Type | Purpose |
-|------|---------|
-| `Projection state event` | Fold function with seed — composable state reconstruction |
-| `CommandHandler state event command err` | Pure `decide` + `Projection` |
-| `ProcessManager state event command` | Pure `react` + `Projection` for cross-aggregate coordination |
-| `ReadModel m event` | First-class queryable views |
-| `EventStoreWriter/Reader` | Polymorphic backend abstractions (STM, SQLite, PostgreSQL) |
+| Type                                     | Purpose                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `Projection state event`                 | Fold function with seed — composable state reconstruction    |
+| `CommandHandler state event command err` | Pure `decide` + `Projection`                                 |
+| `ProcessManager state event command`     | Pure `react` + `Projection` for cross-aggregate coordination |
+| `ReadModel m event`                      | First-class queryable views                                  |
+| `EventStoreWriter/Reader`                | Polymorphic backend abstractions (STM, SQLite, PostgreSQL)   |
 
 **Implication**: When your type system can express compensation logic, saga correctness becomes a compile-time guarantee, not a runtime hope.
 
 ### 5.2 Sharpino (F#)
 
 F# event sourcing with:
+
 - Pure functional domain modeling
 - Type-safe event definitions and projections
 - Optimized for real-time state updates
 
 **F# Performance Benchmarks** (100,000 students):
 
-| Read Model Strategy | Time |
-|---------------------|------|
-| State rebuilding (cold start) | 23 seconds |
-| Continuously updated in-memory | 652ms |
-| Message-driven (RabbitMQ) | 28ms |
+| Read Model Strategy            | Time       |
+| ------------------------------ | ---------- |
+| State rebuilding (cold start)  | 23 seconds |
+| Continuously updated in-memory | 652ms      |
+| Message-driven (RabbitMQ)      | 28ms       |
 
 **Lesson**: Message-driven projections achieve near-constant-time access — the "project ahead of time" pattern is critical for production.
 
@@ -300,14 +308,14 @@ Decider = {
 
 ### How It Differs from Traditional Aggregates
 
-| Aspect | Traditional Aggregate | Decider |
-|--------|----------------------|---------|
-| Encapsulation | State + behavior bundled | State and behavior separated |
-| Purity | Side effects in methods | Pure functions, IO in shell |
-| Testing | Mock repositories | Direct function calls |
-| Composition | Inheritance/composition | Function composition |
-| Persistence | Active Record style | Event stream + fold |
-| State mutation | In-place mutation | Immutable, event-driven |
+| Aspect         | Traditional Aggregate    | Decider                      |
+| -------------- | ------------------------ | ---------------------------- |
+| Encapsulation  | State + behavior bundled | State and behavior separated |
+| Purity         | Side effects in methods  | Pure functions, IO in shell  |
+| Testing        | Mock repositories        | Direct function calls        |
+| Composition    | Inheritance/composition  | Function composition         |
+| Persistence    | Active Record style      | Event stream + fold          |
+| State mutation | In-place mutation        | Immutable, event-driven      |
 
 ### Usage in Modern Frameworks
 
@@ -331,6 +339,7 @@ Decider = {
 Actors persist events for recovery and migration. Each entity has a **single representation** across the cluster (virtual actors), preventing race conditions.
 
 **Key benefits**:
+
 - Database independence — actors operate in-memory with async writes
 - Lifecycle management — actors optimized by business-defined lifecycles
 - Location transparency — actors move across cluster nodes seamlessly
@@ -355,21 +364,22 @@ Actors persist events for recovery and migration. Each entity has a **single rep
 
 #### Go
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
-| **go-cqrs-lite** | Library-first, branded IDs, auto-doc generation (AsyncAPI, EventCatalog) | Production-ready |
-| **goes** | Streaming-first APIs (channels), multi-backend (MongoDB, PostgreSQL, NATS) | Active |
-| **EventHorizon** | Multi-backend (Redis, AWS, Kafka, MongoDB, NATS, GCP), DDD built-in | Mature |
-| **Watermill** | Event-driven applications with multiple message broker support | Mature |
+| Framework        | Innovation                                                                 | Maturity         |
+| ---------------- | -------------------------------------------------------------------------- | ---------------- |
+| **go-cqrs-lite** | Library-first, branded IDs, auto-doc generation (AsyncAPI, EventCatalog)   | Production-ready |
+| **goes**         | Streaming-first APIs (channels), multi-backend (MongoDB, PostgreSQL, NATS) | Active           |
+| **EventHorizon** | Multi-backend (Redis, AWS, Kafka, MongoDB, NATS, GCP), DDD built-in        | Mature           |
+| **Watermill**    | Event-driven applications with multiple message broker support             | Mature           |
 
 #### Rust
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
-| **cqrs-es** | Serverless-optimized, zero-cost abstractions | Active |
-| **eventually-rs** | DDD-focused, macro-based compile-time safety | Pre-1.0 |
+| Framework         | Innovation                                   | Maturity |
+| ----------------- | -------------------------------------------- | -------- |
+| **cqrs-es**       | Serverless-optimized, zero-cost abstractions | Active   |
+| **eventually-rs** | DDD-focused, macro-based compile-time safety | Pre-1.0  |
 
 **Rust advantages for event sourcing**:
+
 - Memory safety without GC pauses during high-throughput event processing
 - Ownership model prevents data races in concurrent event handling
 - Zero-cost abstractions for event serialization
@@ -378,37 +388,37 @@ Actors persist events for recovery and migration. Each entity has a **single rep
 
 #### .NET
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
-| **Equinox** | Store-neutral, CosmosDB-optimized "Tip" mechanism, Decider pattern | Production-hardened |
-| **Axon Framework** | Enterprise CQRS/ES, full DDD support | Very mature |
+| Framework          | Innovation                                                         | Maturity            |
+| ------------------ | ------------------------------------------------------------------ | ------------------- |
+| **Equinox**        | Store-neutral, CosmosDB-optimized "Tip" mechanism, Decider pattern | Production-hardened |
+| **Axon Framework** | Enterprise CQRS/ES, full DDD support                               | Very mature         |
 
 #### Haskell
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
+| Framework    | Innovation                                                         | Maturity   |
+| ------------ | ------------------------------------------------------------------ | ---------- |
 | **Eventium** | Type-safe compensation, pure domain logic, Template Haskell events | New (2026) |
 
 #### Elixir
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
+| Framework     | Innovation                                      | Maturity   |
+| ------------- | ----------------------------------------------- | ---------- |
 | **Commanded** | BEAM VM fault tolerance, real-time capabilities | Production |
 
 #### Python
 
-| Framework | Innovation | Maturity |
-|-----------|-----------|----------|
-| **eventsourcing** | Comprehensive Python library, modern Python features | Mature |
+| Framework         | Innovation                                           | Maturity |
+| ----------------- | ---------------------------------------------------- | -------- |
+| **eventsourcing** | Comprehensive Python library, modern Python features | Mature   |
 
 ### Cross-Cutting Tooling
 
-| Tool | Purpose |
-|------|---------|
-| **Apache EventMesh** | Serverless event middleware for distributed applications |
-| **Redpanda Connect** | Cloud-native stream processing with ES capabilities |
-| **ksqlDB** | Real-time SQL queries over Kafka streams for projections |
-| **Confluent Schema Registry** | Schema evolution and compatibility enforcement |
+| Tool                          | Purpose                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| **Apache EventMesh**          | Serverless event middleware for distributed applications |
+| **Redpanda Connect**          | Cloud-native stream processing with ES capabilities      |
+| **ksqlDB**                    | Real-time SQL queries over Kafka streams for projections |
+| **Confluent Schema Registry** | Schema evolution and compatibility enforcement           |
 
 ---
 
@@ -419,6 +429,7 @@ Actors persist events for recovery and migration. Each entity has a **single rep
 #### Upcasting (Still Gold Standard)
 
 Transform old event versions to new format during replay:
+
 ```
 v1 event → Upcaster → v2 event → v2 handler
 ```
@@ -448,18 +459,18 @@ v1 event → Upcaster → v2 event → v2 handler
 
 ### Impact × Novelty Assessment
 
-| Innovation | Impact | Novelty | Maturity | Direction |
-|-----------|--------|---------|----------|-----------|
-| Aggregateless ES | 🔴 High | 🔴 Very High | 🟡 Early | Paradigm shift |
-| AI + Event Sourcing | 🔴 High | 🔴 Very High | 🟡 Early | Emerging rapidly |
-| Decider Pattern | 🟠 Medium-High | 🟠 Medium | 🟢 Mature | Best practice |
-| Eventium (Haskell) | 🟠 Medium | 🔴 High | 🟡 Early | Type safety frontier |
-| KurrentDB Archiving | 🟠 Medium-High | 🟠 Medium | 🟢 Production | Cost optimization |
-| Multi-Stream Atomic Appends | 🔴 High | 🟠 Medium | 🟢 Production | Simplifies sagas |
-| Functional Core/Imperative Shell | 🟠 Medium-High | 🟠 Medium | 🟢 Mature | Best practice |
-| Message-Driven Projections | 🟠 Medium-High | 🟡 Low-Medium | 🟢 Production | Performance critical |
-| Actor + Event Sourcing | 🟠 Medium | 🟡 Low | 🟢 Mature | Proven pattern |
-| Rust Event Sourcing | 🟡 Medium | 🟡 Low | 🟡 Growing | Performance niche |
+| Innovation                       | Impact         | Novelty       | Maturity      | Direction            |
+| -------------------------------- | -------------- | ------------- | ------------- | -------------------- |
+| Aggregateless ES                 | 🔴 High        | 🔴 Very High  | 🟡 Early      | Paradigm shift       |
+| AI + Event Sourcing              | 🔴 High        | 🔴 Very High  | 🟡 Early      | Emerging rapidly     |
+| Decider Pattern                  | 🟠 Medium-High | 🟠 Medium     | 🟢 Mature     | Best practice        |
+| Eventium (Haskell)               | 🟠 Medium      | 🔴 High       | 🟡 Early      | Type safety frontier |
+| KurrentDB Archiving              | 🟠 Medium-High | 🟠 Medium     | 🟢 Production | Cost optimization    |
+| Multi-Stream Atomic Appends      | 🔴 High        | 🟠 Medium     | 🟢 Production | Simplifies sagas     |
+| Functional Core/Imperative Shell | 🟠 Medium-High | 🟠 Medium     | 🟢 Mature     | Best practice        |
+| Message-Driven Projections       | 🟠 Medium-High | 🟡 Low-Medium | 🟢 Production | Performance critical |
+| Actor + Event Sourcing           | 🟠 Medium      | 🟡 Low        | 🟢 Mature     | Proven pattern       |
+| Rust Event Sourcing              | 🟡 Medium      | 🟡 Low        | 🟡 Growing    | Performance niche    |
 
 ### Trends Summary
 
@@ -472,14 +483,14 @@ v1 event → Upcaster → v2 event → v2 handler
 
 ### What This Means for go-cqrs-lite
 
-| Trend | Relevance | Action |
-|-------|-----------|--------|
-| Decider pattern | ✅ Already follows it | Document as architectural decision |
-| AI + ES | 🟡 Emerging | Catalog module's structured metadata is AI-ready |
-| Aggregateless ES | 🟠 Interesting | Could inform future projection/query architecture |
-| Message-driven projections | ✅ Partially done | `InMemoryRunner` exists; consider persistent subscriptions |
-| Type-safe sagas | 🔴 High value | Process manager / saga support would be impactful |
-| Multi-backend | ✅ Already done | Store/Bus interfaces are backend-agnostic |
+| Trend                      | Relevance             | Action                                                     |
+| -------------------------- | --------------------- | ---------------------------------------------------------- |
+| Decider pattern            | ✅ Already follows it | Document as architectural decision                         |
+| AI + ES                    | 🟡 Emerging           | Catalog module's structured metadata is AI-ready           |
+| Aggregateless ES           | 🟠 Interesting        | Could inform future projection/query architecture          |
+| Message-driven projections | ✅ Partially done     | `InMemoryRunner` exists; consider persistent subscriptions |
+| Type-safe sagas            | 🔴 High value         | Process manager / saga support would be impactful          |
+| Multi-backend              | ✅ Already done       | Store/Bus interfaces are backend-agnostic                  |
 
 ---
 
@@ -499,4 +510,4 @@ v1 event → Upcaster → v2 event → v2 handler
 
 ---
 
-*Research conducted May 2026. Sources include project documentation, blog posts, conference talks, and technical articles from the event sourcing and CQRS communities.*
+_Research conducted May 2026. Sources include project documentation, blog posts, conference talks, and technical articles from the event sourcing and CQRS communities._

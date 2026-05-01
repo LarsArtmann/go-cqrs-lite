@@ -791,37 +791,37 @@ and working. The remaining work is the "last mile": specialized storage modules
 
 ### Phase-by-Phase Status
 
-| Phase | Description                                | Status     | Notes                                                                                                  |
-| ----- | ------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------ |
-| 0     | Preparation (no breaking changes)          | ✅ Done     | Query ctx fixed, dead code deleted, custom YAML replaced, err113 fixed, all tests green                |
-| 1     | go.work + move into `core/` subdirectory   | ✅ Done     | `go.work` created, `core/` has own `go.mod`, all imports updated                                       |
-| 2     | Extract `memory/`                          | ✅ Done     | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryOutbox`            |
-| 3     | Extract `catalog/`                         | ✅ Done     | `go-faster/yaml`, `asyncapi/`, `eventcatalog/`, `adapters/` all extracted                              |
-| 4     | Extract `middleware`                       | ✅ Done     | Logging, metrics, recovery, retry, validation. `xtypes` not needed (was empty in practice)            |
-| 5     | Storage module (`SQLEventStore`)           | ✅ Done     | PostgreSQL via `database/sql`, optimistic concurrency, 79.6% coverage with go-sqlmock                  |
-| 6     | Watermill module (pub/sub)                 | 🔲 Planned | Not started                                                                                             |
-| 7     | Projection module                          | ✅ Partial  | Interfaces + in-memory runner in `core/event/`. SQL-backed `projection/` module not yet extracted      |
-| 8     | Snapshot module (SQL-backed)               | 🔲 Planned | Interface in `core/event/`. SQL-backed implementation not yet extracted                                 |
-| 9     | Test utilities module                      | ✅ Done     | Extracted as `testhelpers/` at repo root (not `testutil/` — different name, same purpose)             |
-| 10    | Tag releases                               | 🔲 Planned | Not started                                                                                             |
+| Phase | Description                              | Status     | Notes                                                                                             |
+| ----- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| 0     | Preparation (no breaking changes)        | ✅ Done    | Query ctx fixed, dead code deleted, custom YAML replaced, err113 fixed, all tests green           |
+| 1     | go.work + move into `core/` subdirectory | ✅ Done    | `go.work` created, `core/` has own `go.mod`, all imports updated                                  |
+| 2     | Extract `memory/`                        | ✅ Done    | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryOutbox`        |
+| 3     | Extract `catalog/`                       | ✅ Done    | `go-faster/yaml`, `asyncapi/`, `eventcatalog/`, `adapters/` all extracted                         |
+| 4     | Extract `middleware`                     | ✅ Done    | Logging, metrics, recovery, retry, validation. `xtypes` not needed (was empty in practice)        |
+| 5     | Storage module (`SQLEventStore`)         | ✅ Done    | PostgreSQL via `database/sql`, optimistic concurrency, 79.6% coverage with go-sqlmock             |
+| 6     | Watermill module (pub/sub)               | 🔲 Planned | Not started                                                                                       |
+| 7     | Projection module                        | ✅ Partial | Interfaces + in-memory runner in `core/event/`. SQL-backed `projection/` module not yet extracted |
+| 8     | Snapshot module (SQL-backed)             | 🔲 Planned | Interface in `core/event/`. SQL-backed implementation not yet extracted                           |
+| 9     | Test utilities module                    | ✅ Done    | Extracted as `testhelpers/` at repo root (not `testutil/` — different name, same purpose)         |
+| 10    | Tag releases                             | 🔲 Planned | Not started                                                                                       |
 
 ### Actual vs. Planned Module Layout
 
-| Planned Module   | Actual Status | Notes                                                                                    |
-| ---------------- | ------------- | ---------------------------------------------------------------------------------------- |
-| `core/`          | ✅ Exists      | 5 packages: `command`, `query`, `event`, `aggregate`, `pkg/id` + `pkg/dispatcher`       |
-| `memory/`        | ✅ Exists      | Store, Bus, SnapshotStore, CheckpointStore, Outbox                                       |
-| `catalog/`       | ✅ Exists      | `asyncapi/`, `eventcatalog/`, `adapters/`, `internal/cattest/`                           |
-| `middleware/`    | ✅ Exists      | 5 concerns: logging, metrics, recovery, retry, validation                                |
-| `storage/`       | ✅ Exists      | `SQLEventStore` (PostgreSQL), schema helper, 79.6% coverage                              |
-| `testhelpers/`   | ✅ Exists      | Fakes, noop/failing/panic handlers, middleware helpers, test metrics                      |
-| `integration/`   | ✅ Exists      | Cross-module BDD + integration tests (not in original plan — valuable addition)         |
-| `example/user/`  | ✅ Exists      | Full CQRS lifecycle demo + EventCatalog export                                           |
-| `watermill/`     | ❌ Missing     | Planned Phase 6                                                                           |
-| `projection/`    | ⚠️ Partial    | `Projection`, `InMemoryRunner`, `CheckpointStore` in `core/event/`. No separate module   |
-| `snapshot/`      | ⚠️ Partial    | `SnapshotStore` interface in `core/event/`. No separate SQL-backed module                |
-| `xtypes/`        | ❌ Skipped     | Was empty concept; functionality absorbed into core                                      |
-| `testutil/`      | ✅ (renamed)   | Named `testhelpers/` instead. Same role, different name                                  |
+| Planned Module  | Actual Status | Notes                                                                                  |
+| --------------- | ------------- | -------------------------------------------------------------------------------------- |
+| `core/`         | ✅ Exists     | 5 packages: `command`, `query`, `event`, `aggregate`, `pkg/id` + `pkg/dispatcher`      |
+| `memory/`       | ✅ Exists     | Store, Bus, SnapshotStore, CheckpointStore, Outbox                                     |
+| `catalog/`      | ✅ Exists     | `asyncapi/`, `eventcatalog/`, `adapters/`, `internal/cattest/`                         |
+| `middleware/`   | ✅ Exists     | 5 concerns: logging, metrics, recovery, retry, validation                              |
+| `storage/`      | ✅ Exists     | `SQLEventStore` (PostgreSQL), schema helper, 79.6% coverage                            |
+| `testhelpers/`  | ✅ Exists     | Fakes, noop/failing/panic handlers, middleware helpers, test metrics                   |
+| `integration/`  | ✅ Exists     | Cross-module BDD + integration tests (not in original plan — valuable addition)        |
+| `example/user/` | ✅ Exists     | Full CQRS lifecycle demo + EventCatalog export                                         |
+| `watermill/`    | ❌ Missing    | Planned Phase 6                                                                        |
+| `projection/`   | ⚠️ Partial    | `Projection`, `InMemoryRunner`, `CheckpointStore` in `core/event/`. No separate module |
+| `snapshot/`     | ⚠️ Partial    | `SnapshotStore` interface in `core/event/`. No separate SQL-backed module              |
+| `xtypes/`       | ❌ Skipped    | Was empty concept; functionality absorbed into core                                    |
+| `testutil/`     | ✅ (renamed)  | Named `testhelpers/` instead. Same role, different name                                |
 
 ### Key Deviations from Original Plan
 
@@ -860,17 +860,17 @@ and working. The remaining work is the "last mile": specialized storage modules
 
 Several features planned as separate modules ended up as interfaces in `core/event/`:
 
-| Feature              | Planned Location     | Actual Location        | Status                                          |
-| -------------------- | -------------------- | ---------------------- | ----------------------------------------------- |
-| `Projection`         | `projection/` module | `core/event/projection.go` | Interface + `ProjectionFunc`                |
-| `InMemoryRunner`     | `projection/` module | `core/event/runner.go`     | Simple handler-based runner                  |
-| `CheckpointStore`    | `projection/` module | `core/event/checkpoint.go` | Interface + `MemoryCheckpointStore` in `memory/` |
-| `Upcaster`           | `core/upcasting/`    | `core/event/upcaster.go`   | Interface + `UpcasterRegistry`              |
-| `Codec`              | `core/event/`        | `core/event/codec.go`      | Interface + `JSONCodec`, `DecodePayload[T]` |
-| `SnapshotStore`      | `snapshot/` module   | `core/event/snapshot.go`   | Interface (implementation in `memory/`)      |
-| `SnapshotStrategy`   | `snapshot/` module   | `core/aggregate/`          | `EveryNEvents` strategy                      |
-| `Outbox`             | `storage/` module    | `core/event/outbox.go`     | Interface (implementation in `memory/`)      |
-| `ContextEnricher`    | — (not planned)      | `core/event/enricher.go`   | Bonus: event metadata enrichment             |
+| Feature            | Planned Location     | Actual Location            | Status                                           |
+| ------------------ | -------------------- | -------------------------- | ------------------------------------------------ |
+| `Projection`       | `projection/` module | `core/event/projection.go` | Interface + `ProjectionFunc`                     |
+| `InMemoryRunner`   | `projection/` module | `core/event/runner.go`     | Simple handler-based runner                      |
+| `CheckpointStore`  | `projection/` module | `core/event/checkpoint.go` | Interface + `MemoryCheckpointStore` in `memory/` |
+| `Upcaster`         | `core/upcasting/`    | `core/event/upcaster.go`   | Interface + `UpcasterRegistry`                   |
+| `Codec`            | `core/event/`        | `core/event/codec.go`      | Interface + `JSONCodec`, `DecodePayload[T]`      |
+| `SnapshotStore`    | `snapshot/` module   | `core/event/snapshot.go`   | Interface (implementation in `memory/`)          |
+| `SnapshotStrategy` | `snapshot/` module   | `core/aggregate/`          | `EveryNEvents` strategy                          |
+| `Outbox`           | `storage/` module    | `core/event/outbox.go`     | Interface (implementation in `memory/`)          |
+| `ContextEnricher`  | — (not planned)      | `core/event/enricher.go`   | Bonus: event metadata enrichment                 |
 
 This is actually a sound architecture — interfaces in core, implementations in dedicated modules.
 The `projection/` and `snapshot/` SQL-backed modules would implement these core interfaces
@@ -898,17 +898,17 @@ All 18 packages pass. Zero lint. Zero race conditions.
 
 ### Remaining Work (Prioritized)
 
-| Priority | Item                                              | Effort   | Notes                                             |
-| -------- | ------------------------------------------------- | -------- | ------------------------------------------------- |
-| HIGH     | Storage: real DB integration tests                | Medium   | Current tests use go-sqlmock; need PostgreSQL CI  |
-| HIGH     | Storage: transactional outbox (SQL-backed)        | Medium   | Interface exists, needs SQL implementation         |
-| MEDIUM   | `watermill/` module (Phase 6)                     | Large    | Depends on Watermill library evaluation           |
-| MEDIUM   | SQL-backed `projection/` module                   | Medium   | SQL CheckpointStore, subscribe-to-store runner    |
-| MEDIUM   | SQL-backed `snapshot/` module                     | Small    | Schema exists, straightforward implementation     |
-| LOW      | `go-import` meta tags for module resolution       | Small    | Needed before public release                       |
-| LOW      | Multi-engine storage (MySQL, SQLite) via sqlc     | Large    | PostgreSQL-only for now; sqlc ready when needed    |
-| LOW      | High-level test utilities (`AggregateTester` etc.)| Medium   | `testhelpers/` has fakes; fluent API is a bonus   |
-| LOW      | Tag v1.0.0 releases (Phase 10)                    | Small    | After all modules stabilized                       |
+| Priority | Item                                               | Effort | Notes                                            |
+| -------- | -------------------------------------------------- | ------ | ------------------------------------------------ |
+| HIGH     | Storage: real DB integration tests                 | Medium | Current tests use go-sqlmock; need PostgreSQL CI |
+| HIGH     | Storage: transactional outbox (SQL-backed)         | Medium | Interface exists, needs SQL implementation       |
+| MEDIUM   | `watermill/` module (Phase 6)                      | Large  | Depends on Watermill library evaluation          |
+| MEDIUM   | SQL-backed `projection/` module                    | Medium | SQL CheckpointStore, subscribe-to-store runner   |
+| MEDIUM   | SQL-backed `snapshot/` module                      | Small  | Schema exists, straightforward implementation    |
+| LOW      | `go-import` meta tags for module resolution        | Small  | Needed before public release                     |
+| LOW      | Multi-engine storage (MySQL, SQLite) via sqlc      | Large  | PostgreSQL-only for now; sqlc ready when needed  |
+| LOW      | High-level test utilities (`AggregateTester` etc.) | Medium | `testhelpers/` has fakes; fluent API is a bonus  |
+| LOW      | Tag v1.0.0 releases (Phase 10)                     | Small  | After all modules stabilized                     |
 
 ### Summary
 

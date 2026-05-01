@@ -8,20 +8,20 @@
 
 ## Test Files
 
-| File                                             | Specs | Focus                                                                          |
-| ------------------------------------------------ | ----- | ------------------------------------------------------------------------------ |
-| `integration/event/event_sourcing_bdd_test.go`   | 22    | Event Store, Event Bus, Event Creation                                         |
-| `integration/aggregate/cqrs_bdd_test.go`         | 12    | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants, middleware |
-| `integration/query/query_bdd_test.go`            | 6     | Query dispatch, typed results, middleware                                      |
+| File                                           | Specs | Focus                                                                          |
+| ---------------------------------------------- | ----- | ------------------------------------------------------------------------------ |
+| `integration/event/event_sourcing_bdd_test.go` | 22    | Event Store, Event Bus, Event Creation                                         |
+| `integration/aggregate/cqrs_bdd_test.go`       | 12    | Full CQRS roundtrip, Repository lifecycle, concurrency, invariants, middleware |
+| `integration/query/query_bdd_test.go`          | 6     | Query dispatch, typed results, middleware                                      |
 
 **Total: 40 specs**
 
 ### Supporting files
 
-| File                                             | Purpose                                   |
-| ------------------------------------------------ | ----------------------------------------- |
-| `integration/event/event_bdd_suite_test.go`      | `TestEventBDD` — Ginkgo suite entry point |
-| `integration/aggregate/cqrs_bdd_suite_test.go`   | `TestCQRSBDD` — Ginkgo suite entry point  |
+| File                                           | Purpose                                   |
+| ---------------------------------------------- | ----------------------------------------- |
+| `integration/event/event_bdd_suite_test.go`    | `TestEventBDD` — Ginkgo suite entry point |
+| `integration/aggregate/cqrs_bdd_suite_test.go` | `TestCQRSBDD` — Ginkgo suite entry point  |
 
 Note: `integration/query/` has no dedicated suite file — the BDD tests run as regular Go tests.
 

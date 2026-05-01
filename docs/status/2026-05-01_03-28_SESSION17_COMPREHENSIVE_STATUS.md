@@ -12,6 +12,7 @@
 **Task:** Enhance `example/user/` to generate EventCatalog output.
 
 **Result:** The example was already enhanced in session 16 (commit `4324713`). Session 16 added:
+
 - Typed JSON payloads (`UserCreatedPayload`, `UserNameChangedPayload`) with `json`/`description` struct tags
 - Catalogable event types (`userCreatedEvent`, `userNameChangedEvent`) embedding `*event.CatalogCore`
 - `generateEventCatalog()` function using `catalog/adapters.CatalogBuilder`
@@ -20,6 +21,7 @@
 - Full EventCatalog output to `eventcatalog-output/` (MDX files, JSON schemas, config, llms.txt)
 
 **What this session actually did:**
+
 1. Re-verified the example builds and runs correctly
 2. Re-verified EventCatalog output is correct (MDX frontmatter, JSON schemas, config, llms.txt, domains)
 3. Re-verified all 18 test packages pass
@@ -35,22 +37,22 @@
 
 ### Core Library (Production-Grade)
 
-| Module | Coverage | Status |
-|--------|----------|--------|
-| `core/command` | 100.0% | Complete — dispatch, middleware, catalog |
-| `core/query` | 100.0% | Complete — dispatch, pagination, typed results |
-| `core/event` | 86.7% | Complete — store/bus/snapshot interfaces, projections, upcasters, codec |
-| `core/aggregate` | 95.6% | Complete — roots, repository, snapshot strategy, codec |
-| `core/pkg/dispatcher` | 100.0% | Complete — generic dispatcher with lifecycle |
-| `core/pkg/id` | 92.9% | Complete — branded IDs backed by go-branded-id + ULID |
-| `memory` | 94.9% | Complete — MemoryStore, MemoryBus, MemorySnapshotStore |
-| `middleware` | 99.4% | Complete — logging, metrics, retry, recovery, validation |
-| `catalog` | 94.4% | Complete — registry, schema reflection, MessageID |
-| `catalog/adapters` | 98.8% | Complete — builder, dispatcher adapters |
-| `catalog/asyncapi` | 97.9% | Complete — AsyncAPI 3.0 YAML/JSON export |
-| `catalog/eventcatalog` | 95.5% | Complete — EventCatalog MDX generation |
-| `testhelpers` | — | Complete — shared fakes, test doubles |
-| `integration` | — | Complete — cross-module BDD + integration tests |
+| Module                 | Coverage | Status                                                                  |
+| ---------------------- | -------- | ----------------------------------------------------------------------- |
+| `core/command`         | 100.0%   | Complete — dispatch, middleware, catalog                                |
+| `core/query`           | 100.0%   | Complete — dispatch, pagination, typed results                          |
+| `core/event`           | 86.7%    | Complete — store/bus/snapshot interfaces, projections, upcasters, codec |
+| `core/aggregate`       | 95.6%    | Complete — roots, repository, snapshot strategy, codec                  |
+| `core/pkg/dispatcher`  | 100.0%   | Complete — generic dispatcher with lifecycle                            |
+| `core/pkg/id`          | 92.9%    | Complete — branded IDs backed by go-branded-id + ULID                   |
+| `memory`               | 94.9%    | Complete — MemoryStore, MemoryBus, MemorySnapshotStore                  |
+| `middleware`           | 99.4%    | Complete — logging, metrics, retry, recovery, validation                |
+| `catalog`              | 94.4%    | Complete — registry, schema reflection, MessageID                       |
+| `catalog/adapters`     | 98.8%    | Complete — builder, dispatcher adapters                                 |
+| `catalog/asyncapi`     | 97.9%    | Complete — AsyncAPI 3.0 YAML/JSON export                                |
+| `catalog/eventcatalog` | 95.5%    | Complete — EventCatalog MDX generation                                  |
+| `testhelpers`          | —        | Complete — shared fakes, test doubles                                   |
+| `integration`          | —        | Complete — cross-module BDD + integration tests                         |
 
 ### All Tests Green (18 packages)
 
@@ -136,23 +138,23 @@ ok  integration/aggregate/command/event/query — all pass
 
 ## C) NOT STARTED 📋
 
-| # | Item | Priority | Effort |
-|---|------|----------|--------|
-| 1 | Storage module tests (PostgreSQL integration) | HIGH | 1 day |
-| 2 | Watermill module (`watermill/`) — pub/sub integration | HIGH | 2-3 days |
-| 3 | Tag v0.3.0 release | HIGH | 1 hour |
-| 4 | SQL Snapshot Store — persistent snapshots | MEDIUM | 1 day |
-| 5 | Persistent projection runner (SQL checkpoints) | MEDIUM | 1 day |
-| 6 | Circuit breaker middleware | MEDIUM | 4 hrs |
-| 7 | Dead letter queue mechanism | MEDIUM | 4 hrs |
-| 8 | Event bus partitioning by aggregate ID | MEDIUM | 4 hrs |
-| 9 | HTTP handler examples (chi/echo) | LOW | 2 hrs |
-| 10 | API documentation (godoc polish) | LOW | 1 day |
-| 11 | Performance benchmarks for storage | LOW | 0.5 day |
-| 12 | Migration CLI tool (schema versioning) | LOW | 2 days |
-| 13 | Graceful shutdown patterns | LOW | 0.5 day |
-| 14 | OpenTelemetry integration (tracing middleware) | LOW | 1 day |
-| 15 | Documentation site (Docusaurus) | LOW | 2 days |
+| #   | Item                                                  | Priority | Effort   |
+| --- | ----------------------------------------------------- | -------- | -------- |
+| 1   | Storage module tests (PostgreSQL integration)         | HIGH     | 1 day    |
+| 2   | Watermill module (`watermill/`) — pub/sub integration | HIGH     | 2-3 days |
+| 3   | Tag v0.3.0 release                                    | HIGH     | 1 hour   |
+| 4   | SQL Snapshot Store — persistent snapshots             | MEDIUM   | 1 day    |
+| 5   | Persistent projection runner (SQL checkpoints)        | MEDIUM   | 1 day    |
+| 6   | Circuit breaker middleware                            | MEDIUM   | 4 hrs    |
+| 7   | Dead letter queue mechanism                           | MEDIUM   | 4 hrs    |
+| 8   | Event bus partitioning by aggregate ID                | MEDIUM   | 4 hrs    |
+| 9   | HTTP handler examples (chi/echo)                      | LOW      | 2 hrs    |
+| 10  | API documentation (godoc polish)                      | LOW      | 1 day    |
+| 11  | Performance benchmarks for storage                    | LOW      | 0.5 day  |
+| 12  | Migration CLI tool (schema versioning)                | LOW      | 2 days   |
+| 13  | Graceful shutdown patterns                            | LOW      | 0.5 day  |
+| 14  | OpenTelemetry integration (tracing middleware)        | LOW      | 1 day    |
+| 15  | Documentation site (Docusaurus)                       | LOW      | 2 days   |
 
 ---
 
@@ -206,48 +208,48 @@ All 31 LSP errors are false positives from `gopls` not understanding `go.work` w
 
 ### Immediate — Fix Coverage Gap (2-3 hours)
 
-| # | Task | Effort |
-|---|------|--------|
-| 1 | Add `InMemoryRunner` unit tests to `core/event/` (without memory dependency) | 1 hr |
-| 2 | Add `UpcasterRegistry` unit tests to `core/event/` | 30 min |
-| 3 | Split `storage/event_store.go` under 250 lines | 30 min |
-| 4 | Verify `core/event` coverage recovers to 95%+ | 15 min |
+| #   | Task                                                                         | Effort |
+| --- | ---------------------------------------------------------------------------- | ------ |
+| 1   | Add `InMemoryRunner` unit tests to `core/event/` (without memory dependency) | 1 hr   |
+| 2   | Add `UpcasterRegistry` unit tests to `core/event/`                           | 30 min |
+| 3   | Split `storage/event_store.go` under 250 lines                               | 30 min |
+| 4   | Verify `core/event` coverage recovers to 95%+                                | 15 min |
 
 ### Short-Term — Ship Storage Tests (1-2 days)
 
-| # | Task | Effort |
-|---|------|--------|
-| 5 | Create `storage/event_store_test.go` with pgx mock or testcontainers | 4 hrs |
-| 6 | Test optimistic concurrency conflicts | 1 hr |
-| 7 | Test metadata persistence roundtrip | 1 hr |
-| 8 | Test branded ID SQL parameter binding | 30 min |
-| 9 | Test `AppendBatch` transactionality | 1 hr |
-| 10 | Run storage tests in CI (PostgreSQL service container) | 2 hrs |
+| #   | Task                                                                 | Effort |
+| --- | -------------------------------------------------------------------- | ------ |
+| 5   | Create `storage/event_store_test.go` with pgx mock or testcontainers | 4 hrs  |
+| 6   | Test optimistic concurrency conflicts                                | 1 hr   |
+| 7   | Test metadata persistence roundtrip                                  | 1 hr   |
+| 8   | Test branded ID SQL parameter binding                                | 30 min |
+| 9   | Test `AppendBatch` transactionality                                  | 1 hr   |
+| 10  | Run storage tests in CI (PostgreSQL service container)               | 2 hrs  |
 
 ### Medium-Term — Ship v0.3.0 (1 week)
 
-| # | Task | Effort |
-|---|------|--------|
-| 11 | Polish godoc on all exported types | 2 hrs |
-| 12 | Add `example/user/main_test.go` smoke test | 1 hr |
-| 13 | Update CHANGELOG for v0.3.0 | 30 min |
-| 14 | Tag v0.3.0 release | 15 min |
-| 15 | Watermill module — pub/sub with Kafka/NATS | 2-3 days |
-| 16 | SQL Snapshot Store implementation | 1 day |
-| 17 | Persistent projection runner (SQL checkpoints) | 1 day |
+| #   | Task                                           | Effort   |
+| --- | ---------------------------------------------- | -------- |
+| 11  | Polish godoc on all exported types             | 2 hrs    |
+| 12  | Add `example/user/main_test.go` smoke test     | 1 hr     |
+| 13  | Update CHANGELOG for v0.3.0                    | 30 min   |
+| 14  | Tag v0.3.0 release                             | 15 min   |
+| 15  | Watermill module — pub/sub with Kafka/NATS     | 2-3 days |
+| 16  | SQL Snapshot Store implementation              | 1 day    |
+| 17  | Persistent projection runner (SQL checkpoints) | 1 day    |
 
 ### Long-Term — Production Ecosystem (2-4 weeks)
 
-| # | Task | Effort |
-|---|------|--------|
-| 18 | Circuit breaker middleware | 4 hrs |
-| 19 | Dead letter queue mechanism | 4 hrs |
-| 20 | Event bus partitioning by aggregate ID | 4 hrs |
-| 21 | HTTP handler examples (chi/echo integration) | 2 hrs |
-| 22 | OpenTelemetry tracing middleware | 1 day |
-| 23 | Migration CLI tool (schema versioning) | 2 days |
-| 24 | Documentation site (Docusaurus) | 2 days |
-| 25 | Example microservice (multi-service demo with EventCatalog) | 1 day |
+| #   | Task                                                        | Effort |
+| --- | ----------------------------------------------------------- | ------ |
+| 18  | Circuit breaker middleware                                  | 4 hrs  |
+| 19  | Dead letter queue mechanism                                 | 4 hrs  |
+| 20  | Event bus partitioning by aggregate ID                      | 4 hrs  |
+| 21  | HTTP handler examples (chi/echo integration)                | 2 hrs  |
+| 22  | OpenTelemetry tracing middleware                            | 1 day  |
+| 23  | Migration CLI tool (schema versioning)                      | 2 days |
+| 24  | Documentation site (Docusaurus)                             | 2 days |
+| 25  | Example microservice (multi-service demo with EventCatalog) | 1 day  |
 
 ---
 
@@ -268,23 +270,23 @@ This determines whether items 5-17 are "this sprint" or "next sprint."
 
 ## Module Coverage Matrix (Current)
 
-| Module | Coverage | Tests | Lint | Race |
-|--------|----------|-------|------|------|
-| `core/command` | 100.0% | ✅ | ✅ | ✅ |
-| `core/query` | 100.0% | ✅ | ✅ | ✅ |
-| `core/event` | 86.7% | ✅ | ✅ | ✅ |
-| `core/aggregate` | 95.6% | ✅ | ✅ | ✅ |
-| `core/pkg/dispatcher` | 100.0% | ✅ | ✅ | ✅ |
-| `core/pkg/id` | 92.9% | ✅ | ✅ | ✅ |
-| `memory` | 94.9% | ✅ | ✅ | ✅ |
-| `catalog` | 94.4% | ✅ | ✅ | ✅ |
-| `catalog/adapters` | 98.8% | ✅ | ✅ | ✅ |
-| `catalog/asyncapi` | 97.9% | ✅ | ✅ | ✅ |
-| `catalog/eventcatalog` | 95.5% | ✅ | ✅ | ✅ |
-| `middleware` | 99.4% | ✅ | ✅ | ✅ |
-| `integration` | — | ✅ | ✅ | ✅ |
-| `storage` | — | ⚠️ no tests | — | — |
-| `testhelpers` | — | — | ✅ | — |
+| Module                 | Coverage | Tests       | Lint | Race |
+| ---------------------- | -------- | ----------- | ---- | ---- |
+| `core/command`         | 100.0%   | ✅          | ✅   | ✅   |
+| `core/query`           | 100.0%   | ✅          | ✅   | ✅   |
+| `core/event`           | 86.7%    | ✅          | ✅   | ✅   |
+| `core/aggregate`       | 95.6%    | ✅          | ✅   | ✅   |
+| `core/pkg/dispatcher`  | 100.0%   | ✅          | ✅   | ✅   |
+| `core/pkg/id`          | 92.9%    | ✅          | ✅   | ✅   |
+| `memory`               | 94.9%    | ✅          | ✅   | ✅   |
+| `catalog`              | 94.4%    | ✅          | ✅   | ✅   |
+| `catalog/adapters`     | 98.8%    | ✅          | ✅   | ✅   |
+| `catalog/asyncapi`     | 97.9%    | ✅          | ✅   | ✅   |
+| `catalog/eventcatalog` | 95.5%    | ✅          | ✅   | ✅   |
+| `middleware`           | 99.4%    | ✅          | ✅   | ✅   |
+| `integration`          | —        | ✅          | ✅   | ✅   |
+| `storage`              | —        | ⚠️ no tests | —    | —    |
+| `testhelpers`          | —        | —           | ✅   | —    |
 
 ## Module Dependency Graph
 
