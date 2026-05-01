@@ -33,7 +33,12 @@ type InMemoryRunner struct {
 }
 
 // NewInMemoryRunner creates a runner that tracks checkpoints.
+// Panics if checkpoint is nil.
 func NewInMemoryRunner(checkpoint CheckpointStore) *InMemoryRunner {
+	if checkpoint == nil {
+		panic("event: nil CheckpointStore")
+	}
+
 	return &InMemoryRunner{
 		checkpoint:  checkpoint,
 		mu:          sync.RWMutex{},
@@ -42,9 +47,21 @@ func NewInMemoryRunner(checkpoint CheckpointStore) *InMemoryRunner {
 }
 
 // Register adds a projection to the runner.
+// Returns an error if the projection is nil or a projection with
+// the same name is already registered.
 func (r *InMemoryRunner) Register(projection Projection) error {
+	if projection == nil {
+		return fmt.Errorf("event: nil projection")
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	for _, existing := range r.projections {
+		if existing.Name() == projection.Name() {
+			return fmt.Errorf("event: projection %q already registered", projection.Name())
+		}
+	}
 
 	r.projections = append(r.projections, projection)
 
