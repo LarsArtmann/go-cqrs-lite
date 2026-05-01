@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cockroachdb/errors"
-	json "github.com/go-json-experiment/json"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -18,15 +16,13 @@ type SQLSnapshotStore struct {
 }
 
 // NewSQLSnapshotStore creates a new SQL-backed snapshot store.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewSQLSnapshotStore(db *sql.DB) *SQLSnapshotStore {
 	return &SQLSnapshotStore{db: db}
 }
 
-// Close releases the underlying database connection.
-// Caller must not use the *sql.DB passed to NewSQLSnapshotStore after calling Close.
-func (s *SQLSnapshotStore) Close() error {
-	return errors.Wrap(s.db.Close(), "close snapshot store database connection")
-}
+// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
+func (s *SQLSnapshotStore) Close() error { return nil }
 
 // SnapshotSchema returns the SQL DDL for creating the snapshots table.
 func SnapshotSchema() string {
@@ -41,25 +37,21 @@ func SnapshotSchema() string {
 }
 
 // Save persists a snapshot for an aggregate.
+// State is stored as-is ([]byte) — no additional marshaling is applied.
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
-	state, err := json.Marshal(snap.State)
-	if err != nil {
-		return errors.Wrap(err, "marshal snapshot state")
-	}
-
 	query := `INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (aggregate_type, aggregate_id)
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`
 
-	_, err = s.db.ExecContext(
+	_, err := s.db.ExecContext(
 		ctx,
 		query,
 		string(snap.AggregateType),
 		snap.AggregateID,
-		snap.Version,
-		state,
-		time.Now(),
+		snap.Version.Int(),
+		snap.State,
+		snap.CreatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("save snapshot for %s %s: %w", snap.AggregateType, snap.AggregateID, err)

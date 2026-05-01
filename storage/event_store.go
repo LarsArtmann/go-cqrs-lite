@@ -23,6 +23,7 @@ type SQLEventStore struct {
 }
 
 // NewSQLEventStore creates a new SQL-backed event store.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewSQLEventStore(db *sql.DB) *SQLEventStore {
 	return &SQLEventStore{
 		db: db,
@@ -36,11 +37,8 @@ var ErrConcurrencyConflict = event.ErrVersionConflict
 const insertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-// Close releases the underlying database connection.
-// Caller must not use the *sql.DB passed to NewSQLEventStore after calling Close.
-func (s *SQLEventStore) Close() error {
-	return errors.Wrap(s.db.Close(), "close database connection")
-}
+// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
+func (s *SQLEventStore) Close() error { return nil }
 
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
