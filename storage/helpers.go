@@ -1,0 +1,122 @@
+package storage
+
+import (
+	"database/sql"
+	"fmt"
+	"time"
+
+	"github.com/cockroachdb/errors"
+	json "github.com/go-json-experiment/json"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
+
+// Schema returns the SQL DDL for creating the events table.
+func Schema() string {
+	return `CREATE TABLE IF NOT EXISTS events (
+    id              TEXT PRIMARY KEY,
+    event_type      VARCHAR(255) NOT NULL,
+    aggregate_type  VARCHAR(255) NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    payload         BYTEA,
+    metadata        JSONB,
+    occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(aggregate_type, aggregate_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
+}
+
+func scanEvents(rows *sql.Rows) ([]event.Event, error) {
+	var events []event.Event
+
+	for rows.Next() {
+		var (
+			idStr        string
+			eventType    string
+			aggType      string
+			aggIDStr     string
+			version      int
+			payload      []byte
+			metadataJSON []byte
+			occurredAt   time.Time
+		)
+
+		err := rows.Scan(
+			&idStr,
+			&eventType,
+			&aggType,
+			&aggIDStr,
+			&version,
+			&payload,
+			&metadataJSON,
+			&occurredAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan event row: %w", err)
+		}
+
+		parsedAggID, err := id.ParseAggregateID(aggIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
+		}
+
+		parsedEventID, err := id.ParseEventID(idStr)
+		if err != nil {
+			return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
+		}
+
+		var opts []event.Option
+
+		opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
+
+		if len(metadataJSON) > 0 {
+			var meta event.Metadata
+
+			err := json.Unmarshal(metadataJSON, &meta)
+			if err != nil {
+				return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
+			}
+
+			opts = append(opts, event.WithMetadata(&meta))
+		}
+
+		evt, err := event.NewEvent(
+			event.Type(eventType),
+			parsedAggID,
+			event.AggregateType(aggType),
+			version,
+			payload,
+			opts...,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
+		}
+
+		events = append(events, evt)
+	}
+
+	err := rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("iterate event rows: %w", err)
+	}
+
+	return events, nil
+}
+
+func marshalMetadata(m *event.Metadata) ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(m)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal metadata")
+	}
+
+	return data, nil
+}

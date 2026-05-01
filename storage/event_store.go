@@ -10,10 +10,9 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"github.com/go-json-experiment/json"
 	"fmt"
-	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -39,29 +38,12 @@ func NewSQLEventStore(db *sql.DB, opts ...SQLEventStoreOption) *SQLEventStore {
 // SQLEventStoreOption configures an SQLEventStore.
 type SQLEventStoreOption func(*SQLEventStore)
 
+// ErrConcurrencyConflict indicates an optimistic concurrency violation.
+var ErrConcurrencyConflict = errors.New("concurrency conflict")
+
 // Close releases the underlying database connection.
 func (s *SQLEventStore) Close() error {
-	return s.db.Close()
-}
-
-// Schema returns the SQL DDL for creating the events table.
-func Schema() string {
-	return `CREATE TABLE IF NOT EXISTS events (
-    id              TEXT PRIMARY KEY,
-    event_type      VARCHAR(255) NOT NULL,
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    payload         BYTEA,
-    metadata        JSONB,
-    occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE(aggregate_type, aggregate_id, version)
-);
-
-CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
-CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
-CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
+	return errors.Wrap(s.db.Close(), "close database connection")
 }
 
 // Save persists events with optimistic concurrency check.
@@ -96,8 +78,9 @@ func (s *SQLEventStore) Save(
 	}
 
 	if currentVersion != expectedVersion.Int() {
-		return fmt.Errorf(
-			"concurrency conflict: expected version %d, got %d for %s %s",
+		return errors.Wrapf(
+			ErrConcurrencyConflict,
+			"expected version %d, got %d for %s %s",
 			expectedVersion.Int(),
 			currentVersion,
 			aggregateType,
@@ -186,7 +169,8 @@ func (s *SQLEventStore) AppendBatch(
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
+	err = tx.Commit()
+	if err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
 	}
 
@@ -262,85 +246,4 @@ func (s *SQLEventStore) Delete(
 	return nil
 }
 
-func scanEvents(rows *sql.Rows) ([]event.Event, error) {
-	var events []event.Event
-
-	for rows.Next() {
-		var (
-			idStr        string
-			eventType    string
-			aggType      string
-			aggIDStr     string
-			version      int
-			payload      []byte
-			metadataJSON []byte
-			occurredAt   time.Time
-		)
-
-		err := rows.Scan(
-			&idStr,
-			&eventType,
-			&aggType,
-			&aggIDStr,
-			&version,
-			&payload,
-			&metadataJSON,
-			&occurredAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("scan event row: %w", err)
-		}
-
-		parsedAggID, err := id.ParseAggregateID(aggIDStr)
-		if err != nil {
-			return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
-		}
-
-		parsedEventID, err := id.ParseEventID(idStr)
-		if err != nil {
-			return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
-		}
-
-		var opts []event.Option
-		opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
-
-		if len(metadataJSON) > 0 {
-			var meta event.Metadata
-			if err := json.Unmarshal(metadataJSON, &meta); err != nil {
-				return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
-			}
-
-			opts = append(opts, event.WithMetadata(&meta))
-		}
-
-		evt, err := event.NewEvent(
-			event.Type(eventType),
-			parsedAggID,
-			event.AggregateType(aggType),
-			version,
-			payload,
-			opts...,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
-		}
-
-		events = append(events, evt)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate event rows: %w", err)
-	}
-
-	return events, nil
-}
-
 var _ event.Store = (*SQLEventStore)(nil)
-
-func marshalMetadata(m *event.Metadata) ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-
-	return json.Marshal(m)
-}
