@@ -29,13 +29,9 @@ func TestMemoryOutboxStore_AppendAndPoll(t *testing.T) {
 		t.Fatalf("poll pending: %v", err)
 	}
 
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 pending entry, got %d", len(entries))
-	}
+	testhelpers.AssertLenFatal(t, "entries", entries, 1)
 
-	if len(entries[0].Events) != 1 {
-		t.Errorf("expected 1 event in entry, got %d", len(entries[0].Events))
-	}
+	testhelpers.AssertLen(t, "entry events", entries[0].Events, 1)
 
 	if entries[0].Events[0].Type() != "TestEvent" {
 		t.Errorf("expected event type TestEvent, got %s", entries[0].Events[0].Type())
@@ -61,9 +57,7 @@ func TestMemoryOutboxStore_AckRemovesFromPending(t *testing.T) {
 		t.Fatalf("poll pending: %v", err)
 	}
 
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 pending entry, got %d", len(entries))
-	}
+	testhelpers.AssertLenFatal(t, "entries", entries, 1)
 
 	err = outbox.Ack(ctx, []event.OutboxID{entries[0].ID})
 	if err != nil {
@@ -75,9 +69,7 @@ func TestMemoryOutboxStore_AckRemovesFromPending(t *testing.T) {
 		t.Fatalf("poll pending after ack: %v", err)
 	}
 
-	if len(entries) != 0 {
-		t.Errorf("expected 0 pending entries after ack, got %d", len(entries))
-	}
+	testhelpers.AssertLen(t, "pending entries after ack", entries, 0)
 }
 
 func TestMemoryOutboxStore_PollPendingLimit(t *testing.T) {
@@ -101,9 +93,7 @@ func TestMemoryOutboxStore_PollPendingLimit(t *testing.T) {
 		t.Fatalf("poll pending: %v", err)
 	}
 
-	if len(entries) != 2 {
-		t.Errorf("expected 2 entries with limit, got %d", len(entries))
-	}
+	testhelpers.AssertLen(t, "entries with limit", entries, 2)
 }
 
 func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
@@ -125,9 +115,7 @@ func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
 		t.Fatalf("poll pending 1: %v", err)
 	}
 
-	if len(entries1) != 1 {
-		t.Fatalf("expected 1 pending entry, got %d", len(entries1))
-	}
+	testhelpers.AssertLenFatal(t, "entries1", entries1, 1)
 
 	err = outbox.Ack(ctx, []event.OutboxID{entries1[0].ID})
 	if err != nil {
@@ -147,9 +135,7 @@ func TestMemoryOutboxStore_Ack_RemovesEntryFromSlice(t *testing.T) {
 		t.Fatalf("poll pending 2: %v", err)
 	}
 
-	if len(entries2) != 1 {
-		t.Fatalf("expected 1 pending entry after ack+append, got %d", len(entries2))
-	}
+	testhelpers.AssertLenFatal(t, "entries2", entries2, 1)
 
 	if entries2[0].Events[0].Type() != "Event2" {
 		t.Errorf("expected Event2, got %s", entries2[0].Events[0].Type())
@@ -187,9 +173,7 @@ func TestMemoryOutboxStore_DefensiveCopy(t *testing.T) {
 		t.Fatalf("poll pending: %v", err)
 	}
 
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
+	testhelpers.AssertLenFatal(t, "entries", entries, 1)
 
 	entries[0].Events[0].Payload()[0] = 'X'
 

@@ -38,7 +38,6 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	testhelpers.AssertLen(t, "events", events, 2)
 }
 
-
 func TestMemoryStore_VersionConflict(t *testing.T) {
 	t.Parallel()
 
@@ -86,7 +85,6 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 
 	testhelpers.AssertLen(t, "events from version", events, 2)
 }
-
 
 func TestMemoryStore_Delete(t *testing.T) {
 	t.Parallel()
