@@ -17,6 +17,9 @@ type Repository interface {
 	// Load replays event history into the provided aggregate.
 	// The aggregate must have its ID and Type set (via its constructor).
 	Load(ctx context.Context, root Root) error
+
+	// Delete removes all events for the aggregate from the store.
+	Delete(ctx context.Context, root Root) error
 }
 
 // EventSourcedRepository persists and loads aggregates using event sourcing.
@@ -123,6 +126,19 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 			aggregateID,
 			err,
 		)
+	}
+
+	return nil
+}
+
+// Delete removes all events for the aggregate from the store.
+func (r *EventSourcedRepository) Delete(ctx context.Context, root Root) error {
+	aggregateType := root.Type()
+	aggregateID := root.ID()
+
+	err := r.store.Delete(ctx, aggregateType, aggregateID)
+	if err != nil {
+		return opError("delete", aggregateType, aggregateID, err)
 	}
 
 	return nil

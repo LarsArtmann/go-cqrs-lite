@@ -628,6 +628,56 @@ func TestRepository_Save_NoSnapshotWithoutCodec(t *testing.T) {
 	}
 }
 
+func TestRepository_Delete(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+
+	repo := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	root := &testRoot{Core: aggregate.NewCore(aggID, event.AggregateType("User"))}
+
+	err := repo.Delete(context.Background(), root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	events, _ := store.Load(context.Background(), "User", aggID)
+	if len(events) != 0 {
+		t.Errorf("expected 0 events after delete, got %d", len(events))
+	}
+}
+
+func TestRepository_Delete_StoreError(t *testing.T) {
+	t.Parallel()
+
+	repo := aggregate.NewRepository(
+		&failingDeleteStore{FakeStore: testhelpers.NewFakeStore()},
+		testhelpers.NewFakeBus(),
+	)
+	root := newTestRoot()
+
+	err := repo.Delete(context.Background(), root)
+	if err == nil {
+		t.Fatal("expected error from store delete failure")
+	}
+}
+
+type failingDeleteStore struct {
+	*testhelpers.FakeStore
+}
+
+func (s *failingDeleteStore) Delete(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) error {
+	return errors.New("connection lost")
+}
+
 func TestNewRepository_WithCodec(t *testing.T) {
 	t.Parallel()
 
