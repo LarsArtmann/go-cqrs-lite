@@ -451,13 +451,13 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity   | Detail                                                                                           |
-| -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| **FakeStore/MemoryStore key separator mismatch**         | **HIGH**   | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface.         |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW        | Subscribers block publishers (acceptable for test utility)                                       |
-| `query.Handler` returns `any`                            | LOW        | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                             |
-| `CatalogMeta` duplicated across 3 packages               | LOW        | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical               |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW        | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                    |
+| Issue                                                    | Severity | Detail                                                                                   |
+| -------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| **FakeStore/MemoryStore key separator mismatch**         | **HIGH** | `FakeStore` uses `"/"`, `MemoryStore` uses `":"`. Different behavior for same interface. |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                               |
+| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                     |
+| `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`            |
 
 - **Session 28 (Branching-Flow Context Review)**:
   - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.

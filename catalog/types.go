@@ -2,6 +2,7 @@ package catalog
 
 import "encoding/json"
 
+// Direction represents the flow direction of a message relative to a service.
 type Direction string
 
 const (
@@ -9,6 +10,7 @@ const (
 	Receives Direction = "receives"
 )
 
+// MessageKind categorizes a message as a command, event, or query.
 type MessageKind string
 
 const (
@@ -17,6 +19,7 @@ const (
 	QueryMessage   MessageKind = "query"
 )
 
+// Message describes a single command, event, or query in the catalog.
 type Message struct {
 	Kind      MessageKind       `json:"kind"`
 	ID        string            `json:"id"`
@@ -28,6 +31,7 @@ type Message struct {
 	Examples  []json.RawMessage `json:"examples,omitempty"`
 }
 
+// Schema represents a JSON Schema object with properties, required fields, and items.
 type Schema struct {
 	Type       string              `json:"type"`
 	Properties map[string]Property `json:"properties,omitempty"`
@@ -35,6 +39,7 @@ type Schema struct {
 	Items      *Property           `json:"items,omitempty"`
 }
 
+// Property describes a single field within a JSON Schema.
 type Property struct {
 	Type        string              `json:"type"`
 	Description string              `json:"description,omitempty"`
@@ -49,6 +54,7 @@ type Property struct {
 	Pattern     string              `json:"pattern,omitempty"`
 }
 
+// Service groups related commands, events, and queries under a logical service.
 type Service struct {
 	ID       string    `json:"id"`
 	Name     string    `json:"name"`
@@ -60,6 +66,7 @@ type Service struct {
 	Queries  []Message `json:"queries,omitempty"`
 }
 
+// Domain represents a business domain that groups multiple services.
 type Domain struct {
 	ID       string   `json:"id"`
 	Name     string   `json:"name"`
@@ -68,6 +75,7 @@ type Domain struct {
 	Services []string `json:"services,omitempty"`
 }
 
+// Channel represents a messaging channel used for message transport.
 type Channel struct {
 	ID        string   `json:"id"`
 	Name      string   `json:"name"`
@@ -78,6 +86,7 @@ type Channel struct {
 	Messages  []string `json:"messages,omitempty"`
 }
 
+// Catalog is an immutable snapshot of all registered services, domains, and channels.
 type Catalog struct {
 	Title    string    `json:"title"`
 	Version  string    `json:"version"`

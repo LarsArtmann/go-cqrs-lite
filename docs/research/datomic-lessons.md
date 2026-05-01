@@ -10,11 +10,11 @@
 
 Datomic stores **datoms** — immutable atomic facts `[Entity Attribute Value Transaction]`. There's no UPDATE or DELETE — only assertions and retractions (which are themselves new facts). This is event sourcing at the database level.
 
-**go-cqrs-lite already aligns here.** Events are append-only, never mutated. But Datomic formalizes *retractions* as a first-class concept — a semantic "this is no longer true" without destroying the original fact. We don't have an equivalent. Today, "undo" is just another event type, but there's no explicit retraction pattern in the event model.
+**go-cqrs-lite already aligns here.** Events are append-only, never mutated. But Datomic formalizes _retractions_ as a first-class concept — a semantic "this is no longer true" without destroying the original fact. We don't have an equivalent. Today, "undo" is just another event type, but there's no explicit retraction pattern in the event model.
 
 ### 2. Database as a Value
 
-Datomic's most radical idea: the entire database is an **immutable value**. `d/as-of` and `d/since` return a database *value* at a point in time — not a copy, not a snapshot, but a view of the same indelible log. You can pass it around, query it, compare it — with zero coordination.
+Datomic's most radical idea: the entire database is an **immutable value**. `d/as-of` and `d/since` return a database _value_ at a point in time — not a copy, not a snapshot, but a view of the same indelible log. You can pass it around, query it, compare it — with zero coordination.
 
 **Implication for us:** Our `event.Store` returns event slices, but there's no concept of an "event store as of version X" as a first-class value. A `Snapshot` is closer, but it's a materialized state, not a view of the log. We could add:
 
@@ -33,7 +33,7 @@ Every datom carries a transaction ID (`t`) — a monotonic global counter. This 
 
 ### 4. Separation of Read and Write is Architectural, Not Just Pattern
 
-Datomic's Transactor (single writer) vs. Peers (unlimited readers) is *infrastructure-level* CQRS, not just code-level. Writes go through one serialized path; reads happen anywhere with a local cache of the immutable log.
+Datomic's Transactor (single writer) vs. Peers (unlimited readers) is _infrastructure-level_ CQRS, not just code-level. Writes go through one serialized path; reads happen anywhere with a local cache of the immutable log.
 
 **We already separate command/query dispatch, but the store layer could reflect this more explicitly:**
 
@@ -59,19 +59,19 @@ Datomic has `:db/retract` — a first-class operation meaning "this fact is no l
 
 Datomic's schema is just more datoms — attributes about attributes. Schema evolves by adding new facts, not by ALTER TABLE. Any entity can acquire any attribute at any time.
 
-**Our `catalog` module's reflection-based schema (`SchemaFromType[T]`) is close in spirit**, but it's read-only — it describes existing types. A Datomic-inspired evolution: allow the catalog to *define* attributes independently of Go structs, enabling schema evolution without code changes.
+**Our `catalog` module's reflection-based schema (`SchemaFromType[T]`) is close in spirit**, but it's read-only — it describes existing types. A Datomic-inspired evolution: allow the catalog to _define_ attributes independently of Go structs, enabling schema evolution without code changes.
 
 ## Concrete Opportunities for go-cqrs-lite
 
-| Datomic Concept | go-cqrs-lite Equivalent | Gap | Opportunity |
-|---|---|---|---|
-| Datom `[E A V T]` | Event `[AggregateID Type Payload Version]` | No global `T` | Add monotonic transaction ID to store |
-| `d/as-of` | `Store.Load()` | No time-travel | Add `Store.AsOf(id, version)` |
-| Database as value | N/A | Store returns slices | `StoreView` — immutable handle to log at point-in-time |
-| Retraction | N/A | Only domain events | First-class `Retract` in event model |
-| Peer caching | N/A | No read caching | Projection caching with invalidation on new events |
-| Schema as data | `catalog.SchemaFromType[T]` | Schema describes, doesn't define | Schema-first attribute definitions |
-| Functional `d/with` | N/A | No dry-run transactions | `Store.Apply(events) → StoreView` without persisting |
+| Datomic Concept     | go-cqrs-lite Equivalent                    | Gap                              | Opportunity                                            |
+| ------------------- | ------------------------------------------ | -------------------------------- | ------------------------------------------------------ |
+| Datom `[E A V T]`   | Event `[AggregateID Type Payload Version]` | No global `T`                    | Add monotonic transaction ID to store                  |
+| `d/as-of`           | `Store.Load()`                             | No time-travel                   | Add `Store.AsOf(id, version)`                          |
+| Database as value   | N/A                                        | Store returns slices             | `StoreView` — immutable handle to log at point-in-time |
+| Retraction          | N/A                                        | Only domain events               | First-class `Retract` in event model                   |
+| Peer caching        | N/A                                        | No read caching                  | Projection caching with invalidation on new events     |
+| Schema as data      | `catalog.SchemaFromType[T]`                | Schema describes, doesn't define | Schema-first attribute definitions                     |
+| Functional `d/with` | N/A                                        | No dry-run transactions          | `Store.Apply(events) → StoreView` without persisting   |
 
 ## The Deepest Lesson
 

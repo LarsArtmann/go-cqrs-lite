@@ -20,12 +20,15 @@ const (
 	jsonTypeNull    = "null"
 )
 
+// SchemaFromType generates a JSON Schema from the struct type T using reflection.
+// It reads json, doc/description, and format struct tags.
 func SchemaFromType[T any]() *Schema {
 	var zero T
 
 	return schemaFromReflect(reflect.TypeOf(zero))
 }
 
+// SchemaFromReflect generates a JSON Schema from a reflect.Type.
 func SchemaFromReflect(t reflect.Type) *Schema {
 	return schemaFromReflect(t)
 }
@@ -127,6 +130,7 @@ func parseJSONTag(tag string) (string, bool) {
 	return name, omit
 }
 
+// SchemaToJSON serializes a Schema to indented JSON.
 func SchemaToJSON(schema *Schema) ([]byte, error) {
 	if schema == nil {
 		//nolint:err113 // nil check must return specific error

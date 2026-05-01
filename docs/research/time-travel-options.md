@@ -24,22 +24,22 @@
 
 Time travel is the ability to **observe or reconstruct the state of a system at any point in its history** — not just the current state. In event-sourced systems, this is theoretically trivial (replay events), but practically complex (performance, correctness, API design, storage cost).
 
-Greg Young's fundamental insight: *"Your bank balance isn't a column in a table; it's the sum of all transactions."* Current state is always a derivative of immutable facts. If you preserve the facts, you can always reconstruct any past state.
+Greg Young's fundamental insight: _"Your bank balance isn't a column in a table; it's the sum of all transactions."_ Current state is always a derivative of immutable facts. If you preserve the facts, you can always reconstruct any past state.
 
-Martin Fowler: *"We can determine the application state at any point in time. Notionally we do this by starting with a blank state and rerunning the events up to a particular time or event. We can take this further by considering multiple time-lines (analogous to branching in a version control system)."*
+Martin Fowler: _"We can determine the application state at any point in time. Notionally we do this by starting with a blank state and rerunning the events up to a particular time or event. We can take this further by considering multiple time-lines (analogous to branching in a version control system)."_
 
 ### Time Travel Use Cases
 
-| Category | Example | Value |
-|----------|---------|-------|
-| **Debugging** | "Why was this order rejected?" | Replay to exact state at time of decision |
-| **Audit & Compliance** | "What was user X's permission level on March 15?" | Legal requirement in finance, healthcare |
-| **Temporal Analytics** | "How many accounts were active vs. churned each month?" | Business intelligence from history |
-| **Retroactive Corrections** | "Salary change should have been effective Jan 1, not Feb 1" | Correct reality without destroying history |
-| **What-If / Simulation** | "What would the balance be if we applied this fee?" | Speculative transactions without persistence |
-| **Race Condition Diagnosis** | "What was the aggregate state when this concurrent write arrived?" | Production debugging |
-| **Regulatory Replay** | "Show me the system state at the time of this trade" | MiFID II, SOX compliance |
-| **Migration Testing** | "Does the new projection logic produce the same state from historical events?" | Zero-downtime deployments |
+| Category                     | Example                                                                        | Value                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------- |
+| **Debugging**                | "Why was this order rejected?"                                                 | Replay to exact state at time of decision    |
+| **Audit & Compliance**       | "What was user X's permission level on March 15?"                              | Legal requirement in finance, healthcare     |
+| **Temporal Analytics**       | "How many accounts were active vs. churned each month?"                        | Business intelligence from history           |
+| **Retroactive Corrections**  | "Salary change should have been effective Jan 1, not Feb 1"                    | Correct reality without destroying history   |
+| **What-If / Simulation**     | "What would the balance be if we applied this fee?"                            | Speculative transactions without persistence |
+| **Race Condition Diagnosis** | "What was the aggregate state when this concurrent write arrived?"             | Production debugging                         |
+| **Regulatory Replay**        | "Show me the system state at the time of this trade"                           | MiFID II, SOX compliance                     |
+| **Migration Testing**        | "Does the new projection logic produce the same state from historical events?" | Zero-downtime deployments                    |
 
 ---
 
@@ -58,7 +58,7 @@ Event written to store at 2026-05-01T14:30:00Z
 
 ### Valid Time (Business Time / "As-Of")
 
-**When the event was true in the real world.** Can differ from transaction time. Must be provided by the domain. This is *not* currently on our events.
+**When the event was true in the real world.** Can differ from transaction time. Must be provided by the domain. This is _not_ currently on our events.
 
 ```
 Salary change recorded on 2026-02-01 but effective 2026-01-01
@@ -68,12 +68,12 @@ Salary change recorded on 2026-02-01 but effective 2026-01-01
 
 ### The Four Query Modes
 
-| Query Mode | Time Axis | Question | Example |
-|------------|-----------|----------|---------|
-| **Current** | Neither | "What is the state now?" | Default aggregate load |
-| **As-At** | Transaction time | "What did the system know at time T?" | "What was the balance as recorded on March 15?" |
-| **As-Of** | Valid time | "What was true in reality at time T?" | "What salary was effective on Jan 1?" |
-| **Bi-Temporal** | Both | "What did we believe was true at recording-time R about valid-time V?" | "What did we record on Feb 1 as effective Jan 1?" |
+| Query Mode      | Time Axis        | Question                                                               | Example                                           |
+| --------------- | ---------------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
+| **Current**     | Neither          | "What is the state now?"                                               | Default aggregate load                            |
+| **As-At**       | Transaction time | "What did the system know at time T?"                                  | "What was the balance as recorded on March 15?"   |
+| **As-Of**       | Valid time       | "What was true in reality at time T?"                                  | "What salary was effective on Jan 1?"             |
+| **Bi-Temporal** | Both             | "What did we believe was true at recording-time R about valid-time V?" | "What did we record on Feb 1 as effective Jan 1?" |
 
 Most systems only need **As-At**. Financial, HR, and healthcare domains often need **As-Of** or **Bi-Temporal**.
 
@@ -154,7 +154,7 @@ allEvents := store.ReadAllFromPosition(ctx, globalPosition)
 
 **Pros:** Cross-aggregate temporal consistency, enables "$all stream" patterns, supports subscription/checkpoint replay
 **Cons:** Requires a global monotonic position counter, more storage overhead, read performance depends on global log size
-**Used by:** EventStoreDB (`$all` stream with commit/prepare position), Kafka (offset-based reads), Datomic (monotonic `t` value)
+**Used by:** EventStoreDB (`$all`stream with commit/prepare position), Kafka (offset-based reads), Datomic (monotonic`t` value)
 
 ### Mechanism 6: Database-as-Value (Datomic Model)
 
@@ -262,7 +262,7 @@ store.TruncateBefore(ctx, aggType, aggID, minVersion)
 **Cons:** Destroys history, violates immutability principle, makes some time travel impossible
 **Used by:** EventStoreDB (stream truncation via `$maxCount` metadata), Kafka (log compaction — but incompatible with ES, use `delete` retention instead)
 
-> **Important:** Log compaction (Kafka-style "keep last value per key") is **incompatible** with event sourcing. Event sourcing requires the *full history*, not just the latest state per key.
+> **Important:** Log compaction (Kafka-style "keep last value per key") is **incompatible** with event sourcing. Event sourcing requires the _full history_, not just the latest state per key.
 
 ### Mechanism 13: Forking / Branching Event Streams
 
@@ -283,94 +283,94 @@ forkedStreamID := store.Fork(ctx, aggType, aggID, atVersion: 5)
 
 ### EventStoreDB / KurrentDB
 
-| Capability | Implementation |
-|-----------|---------------|
-| Stream revision read | `ReadStream(fromRevision: N)` |
-| $all stream (global position) | `ReadAll(fromPosition: {commit, prepare})` |
-| Backward reads | `direction: BACKWARDS` |
-| Projections | JavaScript-based continuous queries |
-| Filtering | By event type, stream, metadata |
-| Bi-temporal | Via `valid_at` metadata + `as_at`/`as_of` read modes |
-| Global ordering | Commit/prepare position in transaction log |
-| Optimistic concurrency | Expected stream revision |
+| Capability                    | Implementation                                       |
+| ----------------------------- | ---------------------------------------------------- |
+| Stream revision read          | `ReadStream(fromRevision: N)`                        |
+| $all stream (global position) | `ReadAll(fromPosition: {commit, prepare})`           |
+| Backward reads                | `direction: BACKWARDS`                               |
+| Projections                   | JavaScript-based continuous queries                  |
+| Filtering                     | By event type, stream, metadata                      |
+| Bi-temporal                   | Via `valid_at` metadata + `as_at`/`as_of` read modes |
+| Global ordering               | Commit/prepare position in transaction log           |
+| Optimistic concurrency        | Expected stream revision                             |
 
 **Key insight:** Two positioning systems — stream revision (per-aggregate) and global position (cross-aggregate). The `$all` stream is the global event log, enabling cross-stream temporal queries.
 
 ### Marten (.NET / PostgreSQL)
 
-| Capability | Implementation |
-|-----------|---------------|
-| Version-based load | `AggregateStreamAsync<T>(id, version: N)` |
-| Timestamp-based load | `AggregateStreamAsync<T>(id, timestamp: T)` |
-| Event storage | `mt_events` table with `seq_id`, `version`, `timestamp` columns |
-| Inline projections | Transactional (within same DB tx) |
-| Async projections | Background daemon with checkpoint tracking |
-| Live projections | On-demand computation from raw events |
-| Bi-temporal | System time (db timestamp) + business time (in event data) |
+| Capability           | Implementation                                                  |
+| -------------------- | --------------------------------------------------------------- |
+| Version-based load   | `AggregateStreamAsync<T>(id, version: N)`                       |
+| Timestamp-based load | `AggregateStreamAsync<T>(id, timestamp: T)`                     |
+| Event storage        | `mt_events` table with `seq_id`, `version`, `timestamp` columns |
+| Inline projections   | Transactional (within same DB tx)                               |
+| Async projections    | Background daemon with checkpoint tracking                      |
+| Live projections     | On-demand computation from raw events                           |
+| Bi-temporal          | System time (db timestamp) + business time (in event data)      |
 
 **Key insight:** PostgreSQL's JSONB + timestamp indexing makes temporal queries efficient at the store level. `AggregateStreamAsync<T>` with `version:` or `timestamp:` parameters is the gold standard for aggregate-level time travel API.
 
 ### Axon Framework (Java)
 
-| Capability | Implementation |
-|-----------|---------------|
+| Capability          | Implementation                                            |
+| ------------------- | --------------------------------------------------------- |
 | Sequence-based read | `eventStore.readEvents(aggregateId, firstSequenceNumber)` |
-| Domain event stream | `DomainEventStream` with `hasNext()`, `next()`, `peek()` |
-| Event replay | `TrackingEventProcessor.resetTokens()` |
-| Snapshots | `Snapshotter` with configurable policies |
-| Position tracking | `TrackingToken` persisted in `TokenStore` |
-| Speculative loads | Manual: read events from sequence N, apply manually |
+| Domain event stream | `DomainEventStream` with `hasNext()`, `next()`, `peek()`  |
+| Event replay        | `TrackingEventProcessor.resetTokens()`                    |
+| Snapshots           | `Snapshotter` with configurable policies                  |
+| Position tracking   | `TrackingToken` persisted in `TokenStore`                 |
+| Speculative loads   | Manual: read events from sequence N, apply manually       |
 
 **Key insight:** The `DomainEventStream` is a lazy iterator — events are loaded on demand, enabling efficient temporal reads without loading entire streams. The `readEvents(id, firstSequenceNumber)` API is the simplest version-based time travel.
 
 ### Datomic
 
-| Capability | Implementation |
-|-----------|---------------|
-| As-of | `d/as-of db t-or-instant` → filtered database value |
-| Since | `d/since db t-or-instant` → database value since point |
-| History | `d/history db` → all assertions + retractions |
-| Speculative | `d/with db tx-data` → new database value without persisting |
-| Global ordering | Monotonic `t` value per transaction |
-| Indexes | EAVT, AVET, AEVT, VAET — all include time dimension |
-| Retractions | `:db/retract` stored as new datoms with `added=false` |
+| Capability      | Implementation                                              |
+| --------------- | ----------------------------------------------------------- |
+| As-of           | `d/as-of db t-or-instant` → filtered database value         |
+| Since           | `d/since db t-or-instant` → database value since point      |
+| History         | `d/history db` → all assertions + retractions               |
+| Speculative     | `d/with db tx-data` → new database value without persisting |
+| Global ordering | Monotonic `t` value per transaction                         |
+| Indexes         | EAVT, AVET, AEVT, VAET — all include time dimension         |
+| Retractions     | `:db/retract` stored as new datoms with `added=false`       |
 
 **Key insight:** Database-as-value is the most powerful time travel model. Every query operates on an immutable snapshot of the entire database at a point in time. No special "time travel API" — time travel is just querying a different value.
 
 ### Eventuous (Go)
 
-| Capability | Implementation |
-|-----------|---------------|
-| Version-based read | `ReadEvents(ctx, stream, startVersion, count)` |
-| Backward read | `ReadEventsBackwards(ctx, stream, start, count)` |
-| Global position | `GlobalPosition uint64` in `StreamEvent` |
-| Checkpoint tracking | `CheckpointCommitter` for subscription resume |
+| Capability             | Implementation                                      |
+| ---------------------- | --------------------------------------------------- |
+| Version-based read     | `ReadEvents(ctx, stream, startVersion, count)`      |
+| Backward read          | `ReadEventsBackwards(ctx, stream, start, count)`    |
+| Global position        | `GlobalPosition uint64` in `StreamEvent`            |
+| Checkpoint tracking    | `CheckpointCommitter` for subscription resume       |
 | Optimistic concurrency | `ExpectedVersion` (NoStream, Any, specific version) |
-| State reconstruction | `LoadState` with `fold` function |
-| As-of queries | Manual: read events + fold up to target |
+| State reconstruction   | `LoadState` with `fold` function                    |
+| As-of queries          | Manual: read events + fold up to target             |
 
 **Key insight:** Go-idiomatic, no built-in "as-of" API. Time travel is achieved by reading events at specific positions and folding manually. The `GlobalPosition` enables cross-stream temporal coordination.
 
 ### Rails EventStore (Ruby)
 
-| Capability | Implementation |
-|-----------|---------------|
-| Bi-temporal | `valid_at` metadata on events |
-| As-at reads | `event_store.read.stream("x").as_at.to_a` (by timestamp) |
-| As-of reads | `event_store.read.stream("x").as_of.to_a` (by valid_at) |
-| Position reads | Stream position-based reads |
+| Capability     | Implementation                                           |
+| -------------- | -------------------------------------------------------- |
+| Bi-temporal    | `valid_at` metadata on events                            |
+| As-at reads    | `event_store.read.stream("x").as_at.to_a` (by timestamp) |
+| As-of reads    | `event_store.read.stream("x").as_of.to_a` (by valid_at)  |
+| Position reads | Stream position-based reads                              |
 
 **Key insight:** First-class bi-temporal support with explicit `as_at`/`as_of` read modes. The simplest API for the common "as-of" query pattern.
 
 ### Kafka (Infrastructure-Level)
 
-| Capability | Implementation |
-|-----------|---------------|
-| Offset-based reads | `consumer.seek(partition, offset)` |
-| Timestamp-based reads | `offsetsForTimes()` to find offset by timestamp |
-| Log retention | Configurable (time-based or size-based) |
-| Log compaction | ⚠️ **INCOMPATIBLE with ES** — keeps only latest per key |
-| Global ordering | Per-partition only, not cross-partition |
+| Capability            | Implementation                                          |
+| --------------------- | ------------------------------------------------------- |
+| Offset-based reads    | `consumer.seek(partition, offset)`                      |
+| Timestamp-based reads | `offsetsForTimes()` to find offset by timestamp         |
+| Log retention         | Configurable (time-based or size-based)                 |
+| Log compaction        | ⚠️ **INCOMPATIBLE with ES** — keeps only latest per key |
+| Global ordering       | Per-partition only, not cross-partition                 |
 
 **Key insight:** Kafka provides offset-based and timestamp-based time travel at the infrastructure level, but log compaction destroys event sourcing history. For ES, use `retention.ms=-1` with `cleanup.policy=delete`.
 
@@ -380,31 +380,31 @@ forkedStreamID := store.Fork(ctx, aggType, aggID, atVersion: 5)
 
 ### What We Have
 
-| Feature | Location | Status |
-|---------|----------|--------|
-| Per-aggregate versioning | `event.Version` on every event | ✅ Working |
-| Load all events | `Store.Load(ctx, aggType, aggID)` | ✅ Working |
-| Load from version | `Store.LoadFromVersion(ctx, aggType, aggID, version)` | ✅ Working |
-| Snapshot at version | `SnapshotStore.LoadAtVersion(ctx, aggType, aggID, version)` | ✅ Working |
-| Event timestamps | `Event.OccurredAt()` (transaction time) | ✅ Working |
-| Optimistic concurrency | `Store.Save(ctx, ..., expectedVersion)` | ✅ Working |
-| Event upcasting | `Upcaster` interface for schema evolution | ✅ Working |
-| Projection checkpoint | `CheckpointStore` in `InMemoryRunner` | ✅ Working |
+| Feature                  | Location                                                    | Status     |
+| ------------------------ | ----------------------------------------------------------- | ---------- |
+| Per-aggregate versioning | `event.Version` on every event                              | ✅ Working |
+| Load all events          | `Store.Load(ctx, aggType, aggID)`                           | ✅ Working |
+| Load from version        | `Store.LoadFromVersion(ctx, aggType, aggID, version)`       | ✅ Working |
+| Snapshot at version      | `SnapshotStore.LoadAtVersion(ctx, aggType, aggID, version)` | ✅ Working |
+| Event timestamps         | `Event.OccurredAt()` (transaction time)                     | ✅ Working |
+| Optimistic concurrency   | `Store.Save(ctx, ..., expectedVersion)`                     | ✅ Working |
+| Event upcasting          | `Upcaster` interface for schema evolution                   | ✅ Working |
+| Projection checkpoint    | `CheckpointStore` in `InMemoryRunner`                       | ✅ Working |
 
 ### What We Lack
 
-| Feature | Impact | Priority |
-|---------|--------|----------|
-| **No LoadToVersion** | Can't read events up to a specific version at store level | HIGH |
-| **No timestamp-based queries** | Can't query "state at time T" | HIGH |
-| **No global transaction position** | No cross-aggregate temporal consistency | MEDIUM |
-| **No valid-time (as-of)** | No bi-temporal support | MEDIUM |
-| **No backward reads** | Can't efficiently query "last N events" | LOW |
-| **No speculative application** | Can't dry-run events | LOW |
-| **No retraction model** | No semantic "no longer true" | LOW |
-| **No history query** | Can't see all versions of a value over time | LOW |
-| **No StoreView** | Store returns slices, not an immutable value | LOW |
-| **No global $all stream** | No way to read all events across aggregates | MEDIUM |
+| Feature                            | Impact                                                    | Priority |
+| ---------------------------------- | --------------------------------------------------------- | -------- |
+| **No LoadToVersion**               | Can't read events up to a specific version at store level | HIGH     |
+| **No timestamp-based queries**     | Can't query "state at time T"                             | HIGH     |
+| **No global transaction position** | No cross-aggregate temporal consistency                   | MEDIUM   |
+| **No valid-time (as-of)**          | No bi-temporal support                                    | MEDIUM   |
+| **No backward reads**              | Can't efficiently query "last N events"                   | LOW      |
+| **No speculative application**     | Can't dry-run events                                      | LOW      |
+| **No retraction model**            | No semantic "no longer true"                              | LOW      |
+| **No history query**               | Can't see all versions of a value over time               | LOW      |
+| **No StoreView**                   | Store returns slices, not an immutable value              | LOW      |
+| **No global $all stream**          | No way to read all events across aggregates               | MEDIUM   |
 
 ### Current Time Travel Workaround
 
@@ -436,7 +436,7 @@ This is **O(n)** for every time-travel query, even if you only need the first 5 
 // New method on Store interface
 type Store interface {
     // ... existing methods ...
-    
+
     // LoadToVersion retrieves events up to and including maxVersion.
     LoadToVersion(
         ctx context.Context,
@@ -458,13 +458,13 @@ func (s *MemoryStore) LoadToVersion(
 ) ([]Event, error) {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    
+
     key := streamKey(aggregateType, aggregateID)
     events, exists := s.events[key]
     if !exists {
         return nil, ErrAggregateNotFound
     }
-    
+
     // Events are 1-indexed, so version N is at index N-1
     end := min(maxVersion.Int(), len(events))
     result := make([]Event, end)
@@ -482,6 +482,7 @@ ORDER BY version ASC
 ```
 
 **Impact:**
+
 - Interface change (new method on `Store`)
 - MemoryStore: trivial
 - SQL Store: index on `(aggregate_type, aggregate_id, version)` already exists
@@ -499,7 +500,7 @@ ORDER BY version ASC
 // New method on Store interface
 type Store interface {
     // ... existing methods ...
-    
+
     // LoadToTimestamp retrieves events up to and including maxTime.
     LoadToTimestamp(
         ctx context.Context,
@@ -519,6 +520,7 @@ ORDER BY version ASC
 ```
 
 **Impact:**
+
 - Interface change (new method on `Store`)
 - Requires timestamp index in SQL store
 - MemoryStore: linear scan or secondary index by time
@@ -536,10 +538,10 @@ ORDER BY version ASC
 // New methods on Repository
 type Repository interface {
     // ... existing methods ...
-    
+
     // LoadAtVersion loads the aggregate at a specific version.
     LoadAtVersion(ctx context.Context, root Root, version Version) error
-    
+
     // LoadAtTime loads the aggregate at a specific point in time.
     LoadAtTime(ctx context.Context, root Root, t time.Time) error
 }
@@ -574,6 +576,7 @@ func (r *EventSourcedRepository) LoadAtTime(
 ```
 
 **Impact:**
+
 - No interface change to Store if Store already has `LoadToVersion`/`LoadToTimestamp`
 - Convenience methods on Repository
 - Mark loaded aggregate as read-only (temporal aggregates should not be saved)
@@ -596,7 +599,7 @@ type Event interface {
 // Add to Store interface
 type Store interface {
     // ... existing methods ...
-    
+
     // LoadAllFromPosition retrieves events from the global log starting at a position.
     LoadAllFromPosition(
         ctx context.Context,
@@ -613,6 +616,7 @@ type Store interface {
 3. **ULID-based ordering** — already using `oklog/ulid`, ULIDs are time-sortable
 
 **Impact:**
+
 - Breaking change to `Event` interface (new method)
 - All `NewEvent` calls need a `TransactionID` assigned
 - MemoryStore: atomic counter
@@ -642,7 +646,7 @@ func WithValidAt(t time.Time) Option {
 // New store method for as-of queries
 type Store interface {
     // ... existing methods ...
-    
+
     // LoadToValidTime retrieves events where ValidAt <= maxTime.
     LoadToValidTime(
         ctx context.Context,
@@ -654,6 +658,7 @@ type Store interface {
 ```
 
 **Impact:**
+
 - Non-breaking (additive change to Metadata, optional field)
 - Requires valid-time index in SQL store
 - Projection logic must decide: fold by transaction time or valid time?
@@ -670,7 +675,7 @@ type Store interface {
 ```go
 type Store interface {
     // ... existing methods ...
-    
+
     // ReadBackwards retrieves the last maxCount events from a stream.
     ReadBackwards(
         ctx context.Context,
@@ -694,6 +699,7 @@ ORDER BY version ASC
 ```
 
 **Impact:**
+
 - New interface method
 - MemoryStore: trivial (slice reverse)
 - SQL Store: requires DESC index
@@ -744,6 +750,7 @@ state := fold(speculative.Events())
 ```
 
 **Impact:**
+
 - No interface changes needed for the simple approach
 - StoreView would be a new abstraction (larger effort)
 - Useful for preview/validation features
@@ -772,6 +779,7 @@ type Store interface {
 ```
 
 **Impact:**
+
 - Changes how projections interpret events (must check retraction metadata)
 - Complex: what does "retract" mean for different event types?
 - Could be expressed as a domain event pattern instead (e.g., `UserEmailRetracted`)
@@ -810,6 +818,7 @@ func (p *TemporalProjection) Handle(ctx context.Context, evt Event) error {
 ```
 
 **Impact:**
+
 - New projection type
 - Storage cost proportional to (number of time snapshots × state size)
 - Only practical for coarse granularity (daily, hourly)
@@ -821,18 +830,18 @@ func (p *TemporalProjection) Handle(ctx context.Context, evt Event) error {
 
 ## 7. Decision Matrix
 
-| Option | Value | Effort | Breaking? | Priority |
-|--------|-------|--------|-----------|----------|
-| **A: LoadToVersion** | ⭐⭐⭐⭐⭐ | 🔨 Low | No (additive) | **P0** |
-| **B: LoadToTimestamp** | ⭐⭐⭐⭐ | 🔨 Low | No (additive) | **P1** |
-| **C: Repository time travel** | ⭐⭐⭐⭐ | 🔨 Low | No (additive) | **P1** |
-| **F: Backward reads** | ⭐⭐⭐ | 🔨 Low | No (additive) | **P2** |
-| **D: Global transaction ID** | ⭐⭐⭐⭐⭐ | 🔨🔨🔨 High | **Yes** (Event interface) | **P3** (next major) |
-| **E: Valid-time (bi-temporal)** | ⭐⭐⭐ | 🔨🔨 Medium | No (additive) | **P3** (opt-in) |
-| **G: Speculative application** | ⭐⭐⭐ | 🔨 Low | No | **P4** |
-| **J: Temporal projections** | ⭐⭐ | 🔨🔨 Medium | No | **P4** |
-| **H: Retraction model** | ⭐⭐ | 🔨🔨🔨 High | Maybe | **Skip** |
-| **I: History query** | ⭐ | 🔨🔨🔨🔨 Very High | Yes | **Skip** |
+| Option                          | Value      | Effort             | Breaking?                 | Priority            |
+| ------------------------------- | ---------- | ------------------ | ------------------------- | ------------------- |
+| **A: LoadToVersion**            | ⭐⭐⭐⭐⭐ | 🔨 Low             | No (additive)             | **P0**              |
+| **B: LoadToTimestamp**          | ⭐⭐⭐⭐   | 🔨 Low             | No (additive)             | **P1**              |
+| **C: Repository time travel**   | ⭐⭐⭐⭐   | 🔨 Low             | No (additive)             | **P1**              |
+| **F: Backward reads**           | ⭐⭐⭐     | 🔨 Low             | No (additive)             | **P2**              |
+| **D: Global transaction ID**    | ⭐⭐⭐⭐⭐ | 🔨🔨🔨 High        | **Yes** (Event interface) | **P3** (next major) |
+| **E: Valid-time (bi-temporal)** | ⭐⭐⭐     | 🔨🔨 Medium        | No (additive)             | **P3** (opt-in)     |
+| **G: Speculative application**  | ⭐⭐⭐     | 🔨 Low             | No                        | **P4**              |
+| **J: Temporal projections**     | ⭐⭐       | 🔨🔨 Medium        | No                        | **P4**              |
+| **H: Retraction model**         | ⭐⭐       | 🔨🔨🔨 High        | Maybe                     | **Skip**            |
+| **I: History query**            | ⭐         | 🔨🔨🔨🔨 Very High | Yes                       | **Skip**            |
 
 ---
 
@@ -843,6 +852,7 @@ func (p *TemporalProjection) Handle(ctx context.Context, evt Event) error {
 Add version-based and timestamp-based time travel to `Store` and `Repository`.
 
 **New Store methods:**
+
 ```
 LoadToVersion(ctx, aggType, aggID, maxVersion) → []Event
 LoadToTimestamp(ctx, aggType, aggID, maxTime) → []Event
@@ -850,12 +860,14 @@ ReadBackwards(ctx, aggType, aggID, maxCount) → []Event
 ```
 
 **New Repository methods:**
+
 ```
 LoadAtVersion(ctx, root, version) → error
 LoadAtTime(ctx, root, time) → error
 ```
 
 **Changes:**
+
 - `event.Store` interface: 3 new methods
 - `memory.MemoryStore`: trivial implementations
 - `EventSourcedRepository`: 2 new methods
@@ -868,16 +880,19 @@ LoadAtTime(ctx, root, time) → error
 Add a monotonic global transaction position to enable cross-aggregate time travel.
 
 **Event interface change:**
+
 ```
 TransactionID() id.TransactionID
 ```
 
 **New Store methods:**
+
 ```
 LoadAllFromPosition(ctx, position, maxCount) → []Event
 ```
 
 **Changes:**
+
 - `Event` interface: new method (breaking)
 - `event.Core`: new field
 - `NewEvent`: assign TransactionID from store
@@ -891,21 +906,25 @@ LoadAllFromPosition(ctx, position, maxCount) → []Event
 Add valid-time support for domains that need it.
 
 **New Metadata field:**
+
 ```
 ValidAt time.Time `json:"validAt,omitempty"`
 ```
 
 **New option:**
+
 ```
 event.WithValidAt(t)
 ```
 
 **New Store method:**
+
 ```
 LoadToValidTime(ctx, aggType, aggID, maxTime) → []Event
 ```
 
 **New Repository method:**
+
 ```
 LoadAsOf(ctx, root, validTime) → error
 ```
@@ -922,16 +941,16 @@ LoadAsOf(ctx, root, validTime) → error
 
 ### Systems Researched
 
-| System | Language | Time Travel Features |
-|--------|----------|---------------------|
-| EventStoreDB / KurrentDB | Any (gRPC) | Stream revision, $all stream position, backward reads, projections, bi-temporal via metadata |
-| Marten | .NET | `AggregateStreamAsync<T>(id, version: N)`, `AggregateStreamAsync<T>(id, timestamp: T)`, live/inline/async projections |
-| Axon Framework | Java | `readEvents(id, firstSeqNum)`, `DomainEventStream`, `TrackingEventProcessor` replay, snapshots |
-| Datomic | Clojure | `d/as-of`, `d/since`, `d/history`, `d/with` (speculative), database-as-value, EAVT/AVET/AEVT/VAET indexes |
-| Eventuous | Go | `ReadEvents(ctx, stream, startVersion, count)`, `ReadEventsBackwards`, `GlobalPosition`, `LoadState` with fold |
-| Rails EventStore | Ruby | `as_at`/`as_of` read scopes, `valid_at` metadata, bi-temporal |
-| EventSourcingDB | Any (HTTP) | `upperBound` parameter, subject-based scoping, time-bucketed aggregations |
-| Kafka | Any | Offset-based reads, timestamp-based offset lookup, ⚠️ log compaction incompatible with ES |
+| System                   | Language   | Time Travel Features                                                                                                  |
+| ------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| EventStoreDB / KurrentDB | Any (gRPC) | Stream revision, $all stream position, backward reads, projections, bi-temporal via metadata                          |
+| Marten                   | .NET       | `AggregateStreamAsync<T>(id, version: N)`, `AggregateStreamAsync<T>(id, timestamp: T)`, live/inline/async projections |
+| Axon Framework           | Java       | `readEvents(id, firstSeqNum)`, `DomainEventStream`, `TrackingEventProcessor` replay, snapshots                        |
+| Datomic                  | Clojure    | `d/as-of`, `d/since`, `d/history`, `d/with` (speculative), database-as-value, EAVT/AVET/AEVT/VAET indexes             |
+| Eventuous                | Go         | `ReadEvents(ctx, stream, startVersion, count)`, `ReadEventsBackwards`, `GlobalPosition`, `LoadState` with fold        |
+| Rails EventStore         | Ruby       | `as_at`/`as_of` read scopes, `valid_at` metadata, bi-temporal                                                         |
+| EventSourcingDB          | Any (HTTP) | `upperBound` parameter, subject-based scoping, time-bucketed aggregations                                             |
+| Kafka                    | Any        | Offset-based reads, timestamp-based offset lookup, ⚠️ log compaction incompatible with ES                             |
 
 ### Key References
 

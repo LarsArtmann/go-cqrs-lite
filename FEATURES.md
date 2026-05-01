@@ -300,14 +300,14 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/d2"`
 
-| Feature                 | Detail                                                          | Status |
-| ----------------------- | --------------------------------------------------------------- | ------ |
-| D2 text export          | `Exporter.Export(cat)` produces D2 diagram syntax               | ✅     |
-| Service nodes           | Color-coded rectangles per service with command/event/query     | ✅     |
-| Cross-service flows     | Animated arrows between publishers and receivers                | ✅     |
-| Domain grouping         | Domain labels with dashed "contains" links to services          | ✅     |
-| Schema tooltips         | Field names and types shown on hover                            | ✅     |
-| Options                 | `WithDescription`, `WithDirection` for layout customization     | ✅     |
+| Feature             | Detail                                                      | Status |
+| ------------------- | ----------------------------------------------------------- | ------ |
+| D2 text export      | `Exporter.Export(cat)` produces D2 diagram syntax           | ✅     |
+| Service nodes       | Color-coded rectangles per service with command/event/query | ✅     |
+| Cross-service flows | Animated arrows between publishers and receivers            | ✅     |
+| Domain grouping     | Domain labels with dashed "contains" links to services      | ✅     |
+| Schema tooltips     | Field names and types shown on hover                        | ✅     |
+| Options             | `WithDescription`, `WithDirection` for layout customization | ✅     |
 
 **Coverage:** 97.7%
 
@@ -386,7 +386,6 @@ Features mentioned in project docs/planning but with **no production code**:
 | Watermill module       | Pub/sub adapter (Kafka, NATS, etc.)          | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists |
 | Saga / Process Manager | Long-running process orchestration           | `docs/planning/SAGA_DESIGN.md` exists                     |
 | Tagged releases        | Semantic versioning and Go module publishing | All modules at v0.0.0                                     |
-
 
 ---
 
