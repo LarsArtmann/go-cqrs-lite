@@ -34,14 +34,14 @@ Continuation session focused on closing gaps from Session 31's execution plan. F
 
 ## Remaining Known Issues
 
-| Issue | Severity | Notes |
-|-------|----------|-------|
-| Cross-package sentinels not in `Classify()` | MEDIUM | Circular dependency prevents mapping aggregate/projection/storage errors. Documented. Consumers use `errors.Is` or wrap with typed errors. |
-| `WithBatchSize`/`WithBatchWindow`/`WithConcurrency` unused in runner | MEDIUM | Options exist but runner never reads the fields. Dead API surface. |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW | Acceptable for test utility |
-| `query.Handler` returns `any` | LOW | `DispatchTyped[T]` workaround exists |
-| `CatalogMeta` duplicated across 3 packages | LOW | |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch | LOW | |
+| Issue                                                                | Severity | Notes                                                                                                                                      |
+| -------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cross-package sentinels not in `Classify()`                          | MEDIUM   | Circular dependency prevents mapping aggregate/projection/storage errors. Documented. Consumers use `errors.Is` or wrap with typed errors. |
+| `WithBatchSize`/`WithBatchWindow`/`WithConcurrency` unused in runner | MEDIUM   | Options exist but runner never reads the fields. Dead API surface.                                                                         |
+| `MemoryBus.Publish` holds RLock during handler execution             | LOW      | Acceptable for test utility                                                                                                                |
+| `query.Handler` returns `any`                                        | LOW      | `DispatchTyped[T]` workaround exists                                                                                                       |
+| `CatalogMeta` duplicated across 3 packages                           | LOW      |                                                                                                                                            |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch                 | LOW      |                                                                                                                                            |
 
 ## Test Coverage
 

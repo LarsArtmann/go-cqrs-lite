@@ -4,6 +4,7 @@
 > **Status:** Actionable Plan
 > **Scope:** go-cqrs-lite + go-localfirst
 > **Input Documents:**
+>
 > - `go-localfirst/docs/planning/2026-05-01_BRAINSTORM_ERROR_HANDLING_ARCHITECTURE.md` (2017 lines — error taxonomy, 9 families, 74 issues)
 > - `go-cqrs-lite/docs/planning/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md` (monorepo phases 0-10, 70% done)
 > - `go-cqrs-lite/docs/planning/2026-05-01_OFFLINE_FIRST_EVERYTHING_ELSE.md` (15 dimensions of offline-first)
@@ -22,11 +23,11 @@
 
 Three interlocking initiatives, ordered by dependency and value:
 
-| # | Initiative | Scope | Impact | Effort |
-|---|-----------|-------|--------|--------|
-| **A** | **Error Taxonomy in go-cqrs-lite** | Library-level error types | Foundation for everything else | Medium |
-| **B** | **Offline-First Primitives in go-cqrs-lite** | Client metadata + sync building blocks | Enables go-localfirst | Medium |
-| **C** | **Error Handling & SSE in go-localfirst** | Application-level error architecture | Fixes 74 identified issues | Large |
+| #     | Initiative                                   | Scope                                  | Impact                         | Effort |
+| ----- | -------------------------------------------- | -------------------------------------- | ------------------------------ | ------ |
+| **A** | **Error Taxonomy in go-cqrs-lite**           | Library-level error types              | Foundation for everything else | Medium |
+| **B** | **Offline-First Primitives in go-cqrs-lite** | Client metadata + sync building blocks | Enables go-localfirst          | Medium |
+| **C** | **Error Handling & SSE in go-localfirst**    | Application-level error architecture   | Fixes 74 identified issues     | Large  |
 
 **Critical dependency:** A → C (go-localfirst's error handling uses go-cqrs-lite's error types).
 
@@ -42,17 +43,17 @@ Add structured error types to `core/event/` (or a new `core/pkg/errors/` package
 
 The brainstorm identified 9 error families. Not all belong in the library. The library provides **building blocks**, not opinions about HTTP status codes or SSE broadcasting.
 
-| Family | Belongs in go-cqrs-lite? | Why |
-|--------|--------------------------|-----|
-| Rejection | ✅ Yes | Domain validation errors — universal |
-| Conflict | ✅ Yes | Version mismatch — `event.ErrVersionConflict` already exists |
-| Transient | ✅ Yes | Retryable infrastructure errors — middleware needs this |
-| Staleness | ⚠️ Partial | Library can detect it (version comparison), not resolve it |
-| Corruption | ✅ Yes | Poison event detection — codec/store produce these |
-| Divergence | ❌ No | Only relevant for distributed sync (go-localfirst) |
-| Pipeline | ⚠️ Partial | Library can produce projection errors, not manage DLQ |
-| Transport | ❌ No | Application-level SSE/WS concern |
-| Infrastructure | ✅ Yes | `ErrStoreClosed`, `ErrBusClosed` already exist |
+| Family         | Belongs in go-cqrs-lite? | Why                                                          |
+| -------------- | ------------------------ | ------------------------------------------------------------ |
+| Rejection      | ✅ Yes                   | Domain validation errors — universal                         |
+| Conflict       | ✅ Yes                   | Version mismatch — `event.ErrVersionConflict` already exists |
+| Transient      | ✅ Yes                   | Retryable infrastructure errors — middleware needs this      |
+| Staleness      | ⚠️ Partial               | Library can detect it (version comparison), not resolve it   |
+| Corruption     | ✅ Yes                   | Poison event detection — codec/store produce these           |
+| Divergence     | ❌ No                    | Only relevant for distributed sync (go-localfirst)           |
+| Pipeline       | ⚠️ Partial               | Library can produce projection errors, not manage DLQ        |
+| Transport      | ❌ No                    | Application-level SSE/WS concern                             |
+| Infrastructure | ✅ Yes                   | `ErrStoreClosed`, `ErrBusClosed` already exist               |
 
 ### Actionable Steps
 
@@ -111,18 +112,18 @@ func IsInfrastructure(err error) bool
 
 Map current sentinel errors to families:
 
-| Current Error | Package | Family |
-|--------------|---------|--------|
-| `event.ErrVersionConflict` | `core/event/` | Conflict |
-| `event.ErrAggregateNotFound` | `core/event/` | Rejection |
-| `event.ErrStoreClosed` | `core/event/` | Infrastructure |
-| `event.ErrBusClosed` | `core/event/` | Infrastructure |
-| `event.ErrSnapshotNotFound` | `core/event/` | Rejection |
-| `command.ErrHandlerNotFound` | `core/command/` | Infrastructure |
+| Current Error                 | Package         | Family         |
+| ----------------------------- | --------------- | -------------- |
+| `event.ErrVersionConflict`    | `core/event/`   | Conflict       |
+| `event.ErrAggregateNotFound`  | `core/event/`   | Rejection      |
+| `event.ErrStoreClosed`        | `core/event/`   | Infrastructure |
+| `event.ErrBusClosed`          | `core/event/`   | Infrastructure |
+| `event.ErrSnapshotNotFound`   | `core/event/`   | Rejection      |
+| `command.ErrHandlerNotFound`  | `core/command/` | Infrastructure |
 | `command.ErrDispatcherClosed` | `core/command/` | Infrastructure |
-| `query.ErrHandlerNotFound` | `core/query/` | Infrastructure |
-| `query.ErrDispatcherClosed` | `core/query/` | Infrastructure |
-| `projection.ErrNilStore` | `projection/` | Infrastructure |
+| `query.ErrHandlerNotFound`    | `core/query/`   | Infrastructure |
+| `query.ErrDispatcherClosed`   | `core/query/`   | Infrastructure |
+| `projection.ErrNilStore`      | `projection/`   | Infrastructure |
 
 **Approach:** Keep existing sentinel errors as `errors.New(...)` for backward compat. Add a new `Classify(err) Family` function that maps known sentinels to families. This is non-breaking.
 
@@ -167,14 +168,14 @@ This replaces the current "stop processing on any error" behavior.
 
 ### What Does NOT Go Into go-cqrs-lite
 
-| Concern | Where It Lives | Why |
-|---------|---------------|-----|
-| SSE broadcasting of errors | go-localfirst | Transport-specific |
-| DLQ (dead letter queue) | go-localfirst or consumer | Infrastructure-specific |
-| HTMX error mapping | go-localfirst | UI-specific |
-| Divergence/CRDT errors | go-localfirst `pkg/sync/` | Sync-specific |
-| Error notification bus | go-localfirst | Application pattern |
-| `system.degraded` SSE events | go-localfirst | UI-specific |
+| Concern                      | Where It Lives            | Why                     |
+| ---------------------------- | ------------------------- | ----------------------- |
+| SSE broadcasting of errors   | go-localfirst             | Transport-specific      |
+| DLQ (dead letter queue)      | go-localfirst or consumer | Infrastructure-specific |
+| HTMX error mapping           | go-localfirst             | UI-specific             |
+| Divergence/CRDT errors       | go-localfirst `pkg/sync/` | Sync-specific           |
+| Error notification bus       | go-localfirst             | Application pattern     |
+| `system.degraded` SSE events | go-localfirst             | UI-specific             |
 
 ---
 
@@ -232,20 +233,21 @@ Existing commands can embed `BaseCommand` or implement the method directly.
 
 These don't need new event fields — they go into the existing `Metadata` map:
 
-| Key | Set By | Purpose |
-|-----|--------|---------|
-| `client.id` | Client | Device attribution |
-| `client.occurred_at` | Client | Business truth timestamp |
-| `client.timezone` | Client | Timezone for day grouping |
-| `sync.pushed_at` | Client | When push was attempted |
-| `sync.acked_at` | Server | When server confirmed receipt |
-| `sync.rebased_at` | Server/Client | When events were reordered |
+| Key                  | Set By        | Purpose                       |
+| -------------------- | ------------- | ----------------------------- |
+| `client.id`          | Client        | Device attribution            |
+| `client.occurred_at` | Client        | Business truth timestamp      |
+| `client.timezone`    | Client        | Timezone for day grouping     |
+| `sync.pushed_at`     | Client        | When push was attempted       |
+| `sync.acked_at`      | Server        | When server confirmed receipt |
+| `sync.rebased_at`    | Server/Client | When events were reordered    |
 
 No code change needed in go-cqrs-lite — these are convention-based metadata keys. Document them.
 
 #### Step B4: Document the offline-first metadata convention
 
 Create `docs/OFFLINE_FIRST_METADATA.md` with:
+
 - Metadata key names and semantics
 - Who sets each key (client vs server)
 - When each key is set (creation vs sync vs ack)
@@ -257,16 +259,16 @@ Create `docs/OFFLINE_FIRST_METADATA.md` with:
 
 From the brainstorm's "Everything Else" document, these are explicitly consumer concerns:
 
-| Concern | Why Not in Library |
-|---------|-------------------|
-| Sync protocol (push/pull/rebase) | Too opinionated |
-| Client-side event store | Platform-specific (SQLite, IndexedDB) |
-| Vector clock / CRDT | Already in go-localfirst `pkg/sync/` |
-| Event signing | Security concern, consumer responsibility |
-| Network monitor | Platform-specific |
-| Auth token management | Out of scope |
-| Client-side projection rebuild | Consumer's read model lifecycle |
-| Event compaction | Consumer's storage policy |
+| Concern                          | Why Not in Library                        |
+| -------------------------------- | ----------------------------------------- |
+| Sync protocol (push/pull/rebase) | Too opinionated                           |
+| Client-side event store          | Platform-specific (SQLite, IndexedDB)     |
+| Vector clock / CRDT              | Already in go-localfirst `pkg/sync/`      |
+| Event signing                    | Security concern, consumer responsibility |
+| Network monitor                  | Platform-specific                         |
+| Auth token management            | Out of scope                              |
+| Client-side projection rebuild   | Consumer's read model lifecycle           |
+| Event compaction                 | Consumer's storage policy                 |
 
 ---
 
@@ -282,14 +284,14 @@ Implement the full error architecture from the brainstorm, using go-cqrs-lite's 
 
 From the brainstorm audit, these are correctness bugs, not design gaps:
 
-| Bug | File | Fix |
-|-----|------|-----|
-| SSE `BroadcastEvent` iterates `clients` map without lock | `internal/handler/sse.go` | Add `sync.RWMutex` |
-| SSE `HandleEvents` writes to `clients` map without lock | `internal/handler/sse.go` | Use same mutex |
-| VectorClock map accessed from goroutines without lock | `pkg/sync/vector_clock.go` | Add `sync.RWMutex` |
-| RateLimiter cleanup goroutine never stops | `pkg/middleware/rate_limiter.go` | Add `Stop()` with context |
-| Sync `performPeriodicSync` spawns unbounded goroutines | `internal/sync/manager.go` | Use bounded pool |
-| Sync `broadcastOperation` spawns unbounded goroutines | `internal/sync/manager.go` | Use bounded pool |
+| Bug                                                      | File                             | Fix                       |
+| -------------------------------------------------------- | -------------------------------- | ------------------------- |
+| SSE `BroadcastEvent` iterates `clients` map without lock | `internal/handler/sse.go`        | Add `sync.RWMutex`        |
+| SSE `HandleEvents` writes to `clients` map without lock  | `internal/handler/sse.go`        | Use same mutex            |
+| VectorClock map accessed from goroutines without lock    | `pkg/sync/vector_clock.go`       | Add `sync.RWMutex`        |
+| RateLimiter cleanup goroutine never stops                | `pkg/middleware/rate_limiter.go` | Add `Stop()` with context |
+| Sync `performPeriodicSync` spawns unbounded goroutines   | `internal/sync/manager.go`       | Use bounded pool          |
+| Sync `broadcastOperation` spawns unbounded goroutines    | `internal/sync/manager.go`       | Use bounded pool          |
 
 **Estimate:** 6 focused bug fixes. Each is 10-30 lines.
 
@@ -352,6 +354,7 @@ notify.Bus    → notifications → SSE + logging + metrics (ephemeral, no persi
 The `NotificationBus` lives in `pkg/errors/notify.go`. It's in-memory, ephemeral, and separate from `event.Bus`.
 
 **Wiring:**
+
 ```go
 // cmd/api/main.go
 notifyBus := errors.NewNotificationBus(logger)
@@ -457,6 +460,7 @@ Sync Peer → OpCreate → SyncCreateCommand → CommandDispatcher → Event Sto
 ```
 
 The sync manager dispatches commands instead of writing to `repo` directly. This eliminates:
+
 - Dual-write race (10.2)
 - Ghost aggregates (10.5)
 - CQRS/CRDT identity crisis (10.14)
@@ -523,30 +527,30 @@ Phase 5: Future Innovation (go-cqrs-lite)    [~3-5 sessions]
 
 ## What We're NOT Doing (Explicit Non-Goals)
 
-| Non-Goal | Why |
-|----------|-----|
-| Sync protocol implementation | Too opinionated for a library; consumer's responsibility |
-| Client-side event store | Platform-specific (SQLite, IndexedDB, OPFS) |
-| Event signing / encryption | Security concern, consumer's responsibility |
-| WASM / mobile client SDK | Needs separate TypeScript/Dart SDK |
-| Full CRDT implementation | Already in go-localfirst `pkg/sync/` |
-| Multi-engine storage (MySQL, SQLite) | sqlc is ready but PostgreSQL-only for now |
-| Watermill module | Planned Phase 6 — not started |
-| Tag v1.0.0 releases | After all modules stabilize |
-| GraphQL, gRPC transport | Framework-level, not library |
-| LLM/AI integration | Research only, no implementation planned |
+| Non-Goal                             | Why                                                      |
+| ------------------------------------ | -------------------------------------------------------- |
+| Sync protocol implementation         | Too opinionated for a library; consumer's responsibility |
+| Client-side event store              | Platform-specific (SQLite, IndexedDB, OPFS)              |
+| Event signing / encryption           | Security concern, consumer's responsibility              |
+| WASM / mobile client SDK             | Needs separate TypeScript/Dart SDK                       |
+| Full CRDT implementation             | Already in go-localfirst `pkg/sync/`                     |
+| Multi-engine storage (MySQL, SQLite) | sqlc is ready but PostgreSQL-only for now                |
+| Watermill module                     | Planned Phase 6 — not started                            |
+| Tag v1.0.0 releases                  | After all modules stabilize                              |
+| GraphQL, gRPC transport              | Framework-level, not library                             |
+| LLM/AI integration                   | Research only, no implementation planned                 |
 
 ---
 
 ## Risk Assessment
 
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| `IdempotencyKey()` breaks Command interface | High | Medium | Provide `BaseCommand` embed, update all implementations in one pass |
-| Error taxonomy too rigid for all consumers | Medium | Low | Families are additive; `Classify()` has a default (Transient) |
-| Dual-bus pattern adds complexity | Medium | Low | Notification bus is optional; system works without it |
-| Single-write-path migration breaks sync | Medium | High | Incremental: first add command dispatch, then remove direct repo writes |
-| Metadata convention not followed by consumers | Low | Low | Document clearly; it's convention-based, not enforced |
+| Risk                                          | Probability | Impact | Mitigation                                                              |
+| --------------------------------------------- | ----------- | ------ | ----------------------------------------------------------------------- |
+| `IdempotencyKey()` breaks Command interface   | High        | Medium | Provide `BaseCommand` embed, update all implementations in one pass     |
+| Error taxonomy too rigid for all consumers    | Medium      | Low    | Families are additive; `Classify()` has a default (Transient)           |
+| Dual-bus pattern adds complexity              | Medium      | Low    | Notification bus is optional; system works without it                   |
+| Single-write-path migration breaks sync       | Medium      | High   | Incremental: first add command dispatch, then remove direct repo writes |
+| Metadata convention not followed by consumers | Low         | Low    | Document clearly; it's convention-based, not enforced                   |
 
 ---
 

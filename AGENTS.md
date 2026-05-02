@@ -176,14 +176,14 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                             | Key Types                                                                                              |
-| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                               |
-| `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                              |
-| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                 |
-| `core/aggregate/`      | Aggregate roots and repository      | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                 |
+| Package                | Purpose                             | Key Types                                                                                                          |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                           |
+| `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                          |
+| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                             |
+| `core/aggregate/`      | Aggregate roots and repository      | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
 | `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
-| `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                          |
+| `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                      |
 
 ### Memory Module (`memory/`)
 
@@ -470,13 +470,13 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity | Detail                                                                                   |
-| -------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                               |
-| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                     |
-| `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`            |
-| Cross-package sentinels not in `Classify()`              | MEDIUM   | Circular dependency prevents mapping aggregate/projection/storage errors. Documented.     |
+| Issue                                                    | Severity | Detail                                                                                |
+| -------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                            |
+| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                  |
+| `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical    |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`         |
+| Cross-package sentinels not in `Classify()`              | MEDIUM   | Circular dependency prevents mapping aggregate/projection/storage errors. Documented. |
 
 - **Session 28 (Branching-Flow Context Review)**:
   - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.

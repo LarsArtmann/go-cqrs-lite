@@ -50,7 +50,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = store.Save(ctx, event.AggregateType("User"), aggID, []event.Event{evt}, event.Version(0))
+		err = store.Save(
+			ctx,
+			event.AggregateType("User"),
+			aggID,
+			[]event.Event{evt},
+			event.Version(0),
+		)
 		Expect(err).ToNot(HaveOccurred())
 
 		loaded, err := store.Load(ctx, event.AggregateType("User"), aggID)
@@ -85,7 +91,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		evt, err := event.NewEvent("test.event", aggID, "Test", 1, payload)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = store.Save(ctx, event.AggregateType("Test"), aggID, []event.Event{evt}, event.Version(0))
+		err = store.Save(
+			ctx,
+			event.AggregateType("Test"),
+			aggID,
+			[]event.Event{evt},
+			event.Version(0),
+		)
 		Expect(err).ToNot(HaveOccurred())
 
 		loaded, err := store.Load(ctx, event.AggregateType("Test"), aggID)

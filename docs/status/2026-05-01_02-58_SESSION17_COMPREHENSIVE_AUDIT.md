@@ -14,26 +14,26 @@ The project is in **strong shape**: 0 lint issues, race-free, core modules at 95
 
 These are production-quality with no known issues:
 
-| Component | Package | Coverage | Status |
-|---|---|---|---|
-| Command Dispatcher | `core/command` | 100.0% | Complete |
-| Query Dispatcher | `core/query` | 100.0% | Complete |
-| Event Core (types, options, builder) | `core/event` | 96.1% | Complete |
-| Generic Dispatcher | `core/pkg/dispatcher` | 100.0% | Complete |
-| Aggregate Root | `core/aggregate` | 95.6% | Complete |
-| Branded IDs | `core/pkg/id` | 92.9%* | Complete (fuzz test issue) |
-| Middleware Suite (7 concerns × 3 types) | `middleware` | 99.4% | Complete |
-| Memory Store | `memory` | 94.9% | Complete |
-| Catalog Registry + Schema | `catalog` | 94.4% | Complete |
-| AsyncAPI 3.0 Exporter | `catalog/asyncapi` | 97.6% | Complete |
-| EventCatalog Exporter | `catalog/eventcatalog` | 95.5% | Complete |
-| Catalog Adapters | `catalog/adapters` | 98.8% | Complete |
-| Upcaster Registry | `core/event` | — | Complete |
-| Context Enricher | `core/event` | — | Complete |
-| Test Helpers + Fakes | `testhelpers` | N/A | Complete |
-| CI/CD (Nix + GitHub Actions) | `flake.nix` + `.github/` | — | Complete |
+| Component                               | Package                  | Coverage | Status                     |
+| --------------------------------------- | ------------------------ | -------- | -------------------------- |
+| Command Dispatcher                      | `core/command`           | 100.0%   | Complete                   |
+| Query Dispatcher                        | `core/query`             | 100.0%   | Complete                   |
+| Event Core (types, options, builder)    | `core/event`             | 96.1%    | Complete                   |
+| Generic Dispatcher                      | `core/pkg/dispatcher`    | 100.0%   | Complete                   |
+| Aggregate Root                          | `core/aggregate`         | 95.6%    | Complete                   |
+| Branded IDs                             | `core/pkg/id`            | 92.9%\*  | Complete (fuzz test issue) |
+| Middleware Suite (7 concerns × 3 types) | `middleware`             | 99.4%    | Complete                   |
+| Memory Store                            | `memory`                 | 94.9%    | Complete                   |
+| Catalog Registry + Schema               | `catalog`                | 94.4%    | Complete                   |
+| AsyncAPI 3.0 Exporter                   | `catalog/asyncapi`       | 97.6%    | Complete                   |
+| EventCatalog Exporter                   | `catalog/eventcatalog`   | 95.5%    | Complete                   |
+| Catalog Adapters                        | `catalog/adapters`       | 98.8%    | Complete                   |
+| Upcaster Registry                       | `core/event`             | —        | Complete                   |
+| Context Enricher                        | `core/event`             | —        | Complete                   |
+| Test Helpers + Fakes                    | `testhelpers`            | N/A      | Complete                   |
+| CI/CD (Nix + GitHub Actions)            | `flake.nix` + `.github/` | —        | Complete                   |
 
-*Coverage affected by FuzzParse failure.
+\*Coverage affected by FuzzParse failure.
 
 ---
 
@@ -43,41 +43,42 @@ These are production-quality with no known issues:
 
 **Commit `95be76f` fixed metadata persistence**, but FEATURES.md still says BROKEN. Current state:
 
-| Feature | Status |
-|---|---|
-| PostgreSQL event store | ✅ Compiles |
-| Schema DDL | ✅ |
-| Optimistic concurrency (Save) | ✅ |
-| AppendBatch | ✅ |
-| Load / LoadFromVersion / Delete | ✅ |
-| Metadata persistence | ✅ Fixed in `95be76f` |
-| Codec usage (marshal/unmarshal) | ✅ Working |
-| Close() lifecycle | ✅ Exists |
+| Feature                         | Status                |
+| ------------------------------- | --------------------- |
+| PostgreSQL event store          | ✅ Compiles           |
+| Schema DDL                      | ✅                    |
+| Optimistic concurrency (Save)   | ✅                    |
+| AppendBatch                     | ✅                    |
+| Load / LoadFromVersion / Delete | ✅                    |
+| Metadata persistence            | ✅ Fixed in `95be76f` |
+| Codec usage (marshal/unmarshal) | ✅ Working            |
+| Close() lifecycle               | ✅ Exists             |
 
 **Remaining issues:**
 
-| Issue | Severity | Detail |
-|---|---|---|
-| Zero tests | 🔴 CRITICAL | No unit, integration, or benchmark tests |
-| Close() closes shared *sql.DB | 🔴 HIGH | Will break every other component using the same DB connection pool |
-| 3 functions >30 lines | ⚠️ | Save (73), AppendBatch (52), scanEvents (64) |
-| File is 369 lines | ⚠️ | Over 250-line limit |
-| Hardcoded PostgreSQL | ⚠️ | `$1` placeholders, BYTEA, JSONB — no dialect abstraction |
-| No batch INSERT optimization | LOW | Each event is a separate INSERT within transaction |
+| Issue                          | Severity    | Detail                                                             |
+| ------------------------------ | ----------- | ------------------------------------------------------------------ |
+| Zero tests                     | 🔴 CRITICAL | No unit, integration, or benchmark tests                           |
+| Close() closes shared \*sql.DB | 🔴 HIGH     | Will break every other component using the same DB connection pool |
+| 3 functions >30 lines          | ⚠️          | Save (73), AppendBatch (52), scanEvents (64)                       |
+| File is 369 lines              | ⚠️          | Over 250-line limit                                                |
+| Hardcoded PostgreSQL           | ⚠️          | `$1` placeholders, BYTEA, JSONB — no dialect abstraction           |
+| No batch INSERT optimization   | LOW         | Each event is a separate INSERT within transaction                 |
 
 **Verdict:** FEATURES.md should update from BROKEN → PARTIALLY_FUNCTIONAL.
 
 ### B2. Projection Runner — `core/event/runner.go`
 
-| Feature | Status |
-|---|---|
-| Projection interface | ✅ |
-| ProjectionFunc adapter | ✅ |
-| InMemoryRunner | ⚠️ Partial |
-| CheckpointStore | ✅ |
-| Event type filtering | ✅ |
+| Feature                | Status     |
+| ---------------------- | ---------- |
+| Projection interface   | ✅         |
+| ProjectionFunc adapter | ✅         |
+| InMemoryRunner         | ⚠️ Partial |
+| CheckpointStore        | ✅         |
+| Event type filtering   | ✅         |
 
 **Gaps:**
+
 - Fail-fast on first projection error — subsequent projections skipped
 - No retry or dead-letter mechanism
 - No duplicate registration guard
@@ -100,15 +101,15 @@ These are production-quality with no known issues:
 
 ## C) NOT STARTED 📐
 
-| Feature | Where Documented | Notes |
-|---|---|---|
-| Watermill module (Kafka, NATS) | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` | Planning doc exists |
-| SQL SnapshotStore | Interface in `core/event` | No implementation |
-| SQL CheckpointStore | Interface in `core/event` | No implementation |
-| Outbox background publisher | Interface in `core/event` | Memory impl exists, no polling publisher |
-| Saga / Process Manager | AGENTS.md | Not started |
-| Tagged releases (semver) | AGENTS.md | All modules at v0.0.0 |
-| `example/user/` in CI | `flake.nix` | Excluded from test/lint apps |
+| Feature                        | Where Documented                                   | Notes                                    |
+| ------------------------------ | -------------------------------------------------- | ---------------------------------------- |
+| Watermill module (Kafka, NATS) | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` | Planning doc exists                      |
+| SQL SnapshotStore              | Interface in `core/event`                          | No implementation                        |
+| SQL CheckpointStore            | Interface in `core/event`                          | No implementation                        |
+| Outbox background publisher    | Interface in `core/event`                          | Memory impl exists, no polling publisher |
+| Saga / Process Manager         | AGENTS.md                                          | Not started                              |
+| Tagged releases (semver)       | AGENTS.md                                          | All modules at v0.0.0                    |
+| `example/user/` in CI          | `flake.nix`                                        | Excluded from test/lint apps             |
 
 ---
 
@@ -125,6 +126,7 @@ FuzzParse/5680a28533fa623f: roundtrip mismatch:
 **Root cause:** `ulid.Parse()` accepts lowercase Crockford Base32 but `String()` always returns uppercase. The fuzz test does exact string comparison.
 
 **Fix:** Either:
+
 - Use `strings.EqualFold(parsed.String(), input)` in the test, OR
 - Normalize input to uppercase in `Parse()` before returning
 
@@ -175,33 +177,33 @@ FEATURES.md still lists storage metadata as "silently discarded" and codec as "u
 
 Sorted by **impact ÷ effort** (highest ROI first):
 
-| # | Task | Impact | Effort | Category |
-|---|---|---|---|---|
-| 1 | Fix FuzzParse case-sensitivity bug in `core/pkg/id` | HIGH | LOW | Bug fix |
-| 2 | Update FEATURES.md: storage BROKEN → PARTIALLY_FUNCTIONAL, remove stale claims | HIGH | LOW | Docs |
-| 3 | Archive 4 stale root-level markdown files to `docs/archive/` | MEDIUM | LOW | Cleanup |
-| 4 | Add `LifecycleMixin` + `Close()` to `MemoryOutboxStore` and `MemoryCheckpointStore` | MEDIUM | LOW | Consistency |
-| 5 | Make inline `errors.New` in `memory/bus.go` and `core/query/query.go` into sentinel vars | LOW | LOW | Code quality |
-| 6 | Split `storage/event_store.go` (369→<250 lines) — extract scanner, metadata helpers | MEDIUM | LOW | File limits |
-| 7 | Validate `MemoryStore.Save` rejects empty event slices | MEDIUM | LOW | Bug fix |
-| 8 | Add nil-check in `NewRepository` for `store` and `bus` params | MEDIUM | LOW | Safety |
-| 9 | Fix snapshot error swallowing in `loadEvents` — log/propagate snapshot store errors | MEDIUM | LOW | Bug fix |
-| 10 | Add `context.Context` doc to MemoryStore methods (all ignored) | LOW | LOW | Docs |
-| 11 | Split `core/aggregate/repository.go` (274→<250 lines) | LOW | LOW | File limits |
-| 12 | Refactor functions >30 lines: `NewEvent` (67→<30), `Exporter.Export` (54→<30) | MEDIUM | MEDIUM | Code quality |
-| 13 | Add integration tests for `storage/` with testcontainers-go + PostgreSQL | HIGH | HIGH | Testing |
-| 14 | Fix `SQLEventStore.Close()` — don't close shared `*sql.DB` | HIGH | MEDIUM | Bug fix |
-| 15 | Add `SnapshotAware` interface to segregate `ApplySnapshot` from `Root` | MEDIUM | MEDIUM | Architecture |
-| 16 | Fix `EventSourcedRepository.Save` publish failure — mark committed before publish or add recovery | HIGH | HIGH | Bug fix |
-| 17 | Add `Close()` + `Use()` to `event.Bus` interface (breaking change — coordinate) | HIGH | HIGH | Architecture |
-| 18 | Unify `ErrDispatcherClosed` across packages — shared base error with domain-specific wrappers | MEDIUM | MEDIUM | Consistency |
-| 19 | Add duplicate registration guard to `InMemoryRunner.Register` | LOW | LOW | Safety |
-| 20 | Add `HasHandler(cmdType) bool` to command/query dispatchers | MEDIUM | LOW | API completeness |
-| 21 | Update `example/user/main.go` — add bus subscription, `defer Close()`, constants for event types | MEDIUM | LOW | Example |
-| 22 | Add `Reset(ctx) error` to `Projection` interface for rebuild-from-scratch | MEDIUM | MEDIUM | API completeness |
-| 23 | Address `query.Handler` `any` cascade — explore generic `Handler[T]` pattern | HIGH | HIGH | Architecture |
-| 24 | Add `LoadByVersionRange` to `event.Store` for partial replay | MEDIUM | MEDIUM | API completeness |
-| 25 | Tag v0.1.0 releases for stable modules (core, memory, middleware, catalog) | HIGH | MEDIUM | Release |
+| #   | Task                                                                                              | Impact | Effort | Category         |
+| --- | ------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------- |
+| 1   | Fix FuzzParse case-sensitivity bug in `core/pkg/id`                                               | HIGH   | LOW    | Bug fix          |
+| 2   | Update FEATURES.md: storage BROKEN → PARTIALLY_FUNCTIONAL, remove stale claims                    | HIGH   | LOW    | Docs             |
+| 3   | Archive 4 stale root-level markdown files to `docs/archive/`                                      | MEDIUM | LOW    | Cleanup          |
+| 4   | Add `LifecycleMixin` + `Close()` to `MemoryOutboxStore` and `MemoryCheckpointStore`               | MEDIUM | LOW    | Consistency      |
+| 5   | Make inline `errors.New` in `memory/bus.go` and `core/query/query.go` into sentinel vars          | LOW    | LOW    | Code quality     |
+| 6   | Split `storage/event_store.go` (369→<250 lines) — extract scanner, metadata helpers               | MEDIUM | LOW    | File limits      |
+| 7   | Validate `MemoryStore.Save` rejects empty event slices                                            | MEDIUM | LOW    | Bug fix          |
+| 8   | Add nil-check in `NewRepository` for `store` and `bus` params                                     | MEDIUM | LOW    | Safety           |
+| 9   | Fix snapshot error swallowing in `loadEvents` — log/propagate snapshot store errors               | MEDIUM | LOW    | Bug fix          |
+| 10  | Add `context.Context` doc to MemoryStore methods (all ignored)                                    | LOW    | LOW    | Docs             |
+| 11  | Split `core/aggregate/repository.go` (274→<250 lines)                                             | LOW    | LOW    | File limits      |
+| 12  | Refactor functions >30 lines: `NewEvent` (67→<30), `Exporter.Export` (54→<30)                     | MEDIUM | MEDIUM | Code quality     |
+| 13  | Add integration tests for `storage/` with testcontainers-go + PostgreSQL                          | HIGH   | HIGH   | Testing          |
+| 14  | Fix `SQLEventStore.Close()` — don't close shared `*sql.DB`                                        | HIGH   | MEDIUM | Bug fix          |
+| 15  | Add `SnapshotAware` interface to segregate `ApplySnapshot` from `Root`                            | MEDIUM | MEDIUM | Architecture     |
+| 16  | Fix `EventSourcedRepository.Save` publish failure — mark committed before publish or add recovery | HIGH   | HIGH   | Bug fix          |
+| 17  | Add `Close()` + `Use()` to `event.Bus` interface (breaking change — coordinate)                   | HIGH   | HIGH   | Architecture     |
+| 18  | Unify `ErrDispatcherClosed` across packages — shared base error with domain-specific wrappers     | MEDIUM | MEDIUM | Consistency      |
+| 19  | Add duplicate registration guard to `InMemoryRunner.Register`                                     | LOW    | LOW    | Safety           |
+| 20  | Add `HasHandler(cmdType) bool` to command/query dispatchers                                       | MEDIUM | LOW    | API completeness |
+| 21  | Update `example/user/main.go` — add bus subscription, `defer Close()`, constants for event types  | MEDIUM | LOW    | Example          |
+| 22  | Add `Reset(ctx) error` to `Projection` interface for rebuild-from-scratch                         | MEDIUM | MEDIUM | API completeness |
+| 23  | Address `query.Handler` `any` cascade — explore generic `Handler[T]` pattern                      | HIGH   | HIGH   | Architecture     |
+| 24  | Add `LoadByVersionRange` to `event.Store` for partial replay                                      | MEDIUM | MEDIUM | API completeness |
+| 25  | Tag v0.1.0 releases for stable modules (core, memory, middleware, catalog)                        | HIGH   | MEDIUM | Release          |
 
 ---
 
@@ -210,6 +212,7 @@ Sorted by **impact ÷ effort** (highest ROI first):
 **Should `event.Bus` and `event.Store` interfaces include lifecycle methods (`Close()`, `Use()`)?**
 
 Currently:
+
 - `MemoryBus` has `Close()` and `Use()` as concrete methods, NOT on the interface
 - `MemoryStore` has `Close()` as a concrete method
 - `SQLEventStore` has `Close()` as a concrete method
@@ -260,12 +263,12 @@ No circular dependencies. Core is independently publishable.
 
 ## Files Over Limits
 
-| File | Lines | Limit | Action Needed |
-|---|---|---|---|
-| `storage/event_store.go` | 369 | 250 | Split into 2-3 files |
-| `testhelpers/fakes.go` | 326 | 250 | Split by fake type |
-| `catalog/internal/cattest/helpers.go` | 330 | 250 | Split helpers + assertions |
-| `core/aggregate/repository.go` | 274 | 250 | Extract helper methods |
+| File                                  | Lines | Limit | Action Needed              |
+| ------------------------------------- | ----- | ----- | -------------------------- |
+| `storage/event_store.go`              | 369   | 250   | Split into 2-3 files       |
+| `testhelpers/fakes.go`                | 326   | 250   | Split by fake type         |
+| `catalog/internal/cattest/helpers.go` | 330   | 250   | Split helpers + assertions |
+| `core/aggregate/repository.go`        | 274   | 250   | Extract helper methods     |
 
 ---
 

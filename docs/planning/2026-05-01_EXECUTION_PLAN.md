@@ -28,6 +28,7 @@ For a **library**, this is wrong. Instead:
 ### 3. No New Package — Use `core/event/errors.go` Extension
 
 Creating `core/pkg/errors/` adds import path churn. Instead:
+
 - Extend the existing `core/event/errors.go` with the `Error` type and `Family` enum
 - Add classification functions there
 - All modules already import `core/event` — zero new dependency edges
@@ -42,6 +43,7 @@ is used by all test code). Document the migration. Most consumers embed `command
 
 `event.WithCustom(key MetadataKey, value string)` already exists.
 Offline-first metadata is just convention over `MetadataKey`:
+
 - `event.WithCustom("client.id", clientID)` — no code change needed
 - Just document the convention
 
@@ -61,31 +63,31 @@ Fix this to log and support the `WithRetry` option that already exists but is un
 
 Each task is designed to be completable in **≤12 minutes**.
 
-| # | Task | Impact | Effort | Module | Type |
-|---|------|--------|--------|--------|------|
-| 1 | Create `Error` struct + `Family` enum in `core/event/errors.go` | HIGH | LOW | core | Feature |
-| 2 | Add `Classify(err) Family` function mapping sentinels to families | HIGH | LOW | core | Feature |
-| 3 | Add constructor helpers: `Reject()`, `Conflict()`, `Transient()`, `Corruption()`, `Infrastructure()` | HIGH | LOW | core | Feature |
-| 4 | Add `IsRetryable(err) bool` helper | HIGH | LOW | core | Feature |
-| 5 | Add `WithCause(err) *Error` fluent setter | MED | LOW | core | Feature |
-| 6 | Write tests for error taxonomy (100% coverage) | HIGH | MED | core | Test |
-| 7 | Fix silent error discard in `projection/runner.go` dispatchToProjections | HIGH | LOW | projection | Bug |
-| 8 | Wire `WithRetry` option in projection runner (already defined, unused) | MED | MED | projection | Feature |
-| 9 | Add `ClientID` branded type in `core/pkg/id/client_id.go` | MED | LOW | core | Feature |
-| 10 | Add `event.WithClientID(id.ClientID) Option` convenience wrapper | MED | LOW | core | Feature |
-| 11 | Document offline-first metadata convention (`docs/OFFLINE_FIRST_METADATA.md`) | MED | LOW | docs | Docs |
-| 12 | Update `middleware/retry.go` to use `IsRetryable()` as default `IsRetryable` func | MED | LOW | middleware | Enhancement |
-| 13 | Add `IdempotencyKey() string` to `command.Command` interface | HIGH | MED | core | Breaking |
-| 14 | Implement `IdempotencyKey()` on `command.Core` (returns `""`) | HIGH | LOW | core | Feature |
-| 15 | Update all test code implementing `command.Command` to add `IdempotencyKey()` | MED | MED | tests | Migration |
-| 16 | Update `example/user/` to add `IdempotencyKey()` to command types | MED | LOW | example | Migration |
-| 17 | Update `integration/` tests for new `IdempotencyKey()` method | MED | MED | integration | Migration |
-| 18 | Update `testhelpers/` command helpers for `IdempotencyKey()` | MED | LOW | testhelpers | Migration |
-| 19 | Update `middleware/` validation/recovery/retry tests for `IdempotencyKey()` | MED | MED | middleware | Migration |
-| 20 | Update `projection/` tests for `IdempotencyKey()` (if they use commands) | LOW | LOW | projection | Migration |
-| 21 | Run full test suite + lint check | HIGH | LOW | all | Verify |
-| 22 | Update AGENTS.md with new types, interfaces, and patterns | MED | LOW | docs | Docs |
-| 23 | Update ARCHITECTURE_ROADMAP.md with what was actually done | LOW | LOW | docs | Docs |
+| #   | Task                                                                                                 | Impact | Effort | Module      | Type        |
+| --- | ---------------------------------------------------------------------------------------------------- | ------ | ------ | ----------- | ----------- |
+| 1   | Create `Error` struct + `Family` enum in `core/event/errors.go`                                      | HIGH   | LOW    | core        | Feature     |
+| 2   | Add `Classify(err) Family` function mapping sentinels to families                                    | HIGH   | LOW    | core        | Feature     |
+| 3   | Add constructor helpers: `Reject()`, `Conflict()`, `Transient()`, `Corruption()`, `Infrastructure()` | HIGH   | LOW    | core        | Feature     |
+| 4   | Add `IsRetryable(err) bool` helper                                                                   | HIGH   | LOW    | core        | Feature     |
+| 5   | Add `WithCause(err) *Error` fluent setter                                                            | MED    | LOW    | core        | Feature     |
+| 6   | Write tests for error taxonomy (100% coverage)                                                       | HIGH   | MED    | core        | Test        |
+| 7   | Fix silent error discard in `projection/runner.go` dispatchToProjections                             | HIGH   | LOW    | projection  | Bug         |
+| 8   | Wire `WithRetry` option in projection runner (already defined, unused)                               | MED    | MED    | projection  | Feature     |
+| 9   | Add `ClientID` branded type in `core/pkg/id/client_id.go`                                            | MED    | LOW    | core        | Feature     |
+| 10  | Add `event.WithClientID(id.ClientID) Option` convenience wrapper                                     | MED    | LOW    | core        | Feature     |
+| 11  | Document offline-first metadata convention (`docs/OFFLINE_FIRST_METADATA.md`)                        | MED    | LOW    | docs        | Docs        |
+| 12  | Update `middleware/retry.go` to use `IsRetryable()` as default `IsRetryable` func                    | MED    | LOW    | middleware  | Enhancement |
+| 13  | Add `IdempotencyKey() string` to `command.Command` interface                                         | HIGH   | MED    | core        | Breaking    |
+| 14  | Implement `IdempotencyKey()` on `command.Core` (returns `""`)                                        | HIGH   | LOW    | core        | Feature     |
+| 15  | Update all test code implementing `command.Command` to add `IdempotencyKey()`                        | MED    | MED    | tests       | Migration   |
+| 16  | Update `example/user/` to add `IdempotencyKey()` to command types                                    | MED    | LOW    | example     | Migration   |
+| 17  | Update `integration/` tests for new `IdempotencyKey()` method                                        | MED    | MED    | integration | Migration   |
+| 18  | Update `testhelpers/` command helpers for `IdempotencyKey()`                                         | MED    | LOW    | testhelpers | Migration   |
+| 19  | Update `middleware/` validation/recovery/retry tests for `IdempotencyKey()`                          | MED    | MED    | middleware  | Migration   |
+| 20  | Update `projection/` tests for `IdempotencyKey()` (if they use commands)                             | LOW    | LOW    | projection  | Migration   |
+| 21  | Run full test suite + lint check                                                                     | HIGH   | LOW    | all         | Verify      |
+| 22  | Update AGENTS.md with new types, interfaces, and patterns                                            | MED    | LOW    | docs        | Docs        |
+| 23  | Update ARCHITECTURE_ROADMAP.md with what was actually done                                           | LOW    | LOW    | docs        | Docs        |
 
 ---
 
@@ -182,10 +184,11 @@ func (e *Error) WithCause(cause error) *Error { e.cause = cause; return e }
 ### Task 6: Error Taxonomy Tests
 
 Create `core/event/errors_taxonomy_test.go`:
+
 - Test each constructor produces correct family
 - Test Classify maps all sentinels correctly
 - Test Classify falls through to Transient for unknown errors
-- Test errors.As extracts *Error from wrapped chain
+- Test errors.As extracts \*Error from wrapped chain
 - Test IsRetryable true/false
 - Test WithCause sets cause correctly
 
@@ -194,6 +197,7 @@ Create `core/event/errors_taxonomy_test.go`:
 **File:** `projection/runner.go` line 140
 
 Change `_ = r.handleAndCheckpoint(ctx, p, evt)` to:
+
 ```go
 if err := r.handleAndCheckpoint(ctx, p, evt); err != nil {
     if r.opts.retryCount > 0 {
@@ -256,6 +260,7 @@ Create `docs/OFFLINE_FIRST_METADATA.md` documenting the metadata key convention.
 ### Task 12: Default IsRetryable in Middleware
 
 Update `middleware/middleware.go` `DefaultRetryConfig()`:
+
 ```go
 IsRetryable: event.IsRetryable, // was: func(error) bool { return false }
 ```
@@ -269,6 +274,7 @@ This makes retry middleware actually useful out of the box.
 **Tasks 15-20:** Update all downstream code implementing Command interface.
 
 The main consumers are:
+
 - `testhelpers/helpers.go` — all command handler test types
 - `integration/` — BDD test command types (`submitExpenseCmd` etc.)
 - `middleware/` — test command types
@@ -279,14 +285,14 @@ The main consumers are:
 
 ## What I Got Wrong in the First Plan
 
-| Original Idea | Problem | Revised Approach |
-|---------------|---------|------------------|
-| New `core/pkg/errors/` package | Adds import path churn, all modules already import `core/event` | Extend existing `core/event/errors.go` |
-| Monolithic `Error` struct with 20+ fields | Too heavy for a library, consumer-specific concerns leaked in | 4-field `Error` + `Classify()` + consumer adds their own wrappers |
-| `Reject()`, `Conflict()` as bare function names | Collides with `Family` const names | `NewRejection()`, `NewConflict()` etc. |
-| `IdempotencyKey()` with `BaseCommand` helper | `command.Core` already IS the base — no new type needed | Just add method to `command.Core` |
-| New `WithClientID` option with `apply[T]` pattern | ClientID not in Metadata struct — would need breaking change | Use `WithCustom("client.id", ...)` convention |
-| 9 error families in library | Only 5 are library-relevant (Rejection, Conflict, Transient, Corruption, Infrastructure) | 5 families in library, 4 in go-localfirst |
+| Original Idea                                     | Problem                                                                                  | Revised Approach                                                  |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| New `core/pkg/errors/` package                    | Adds import path churn, all modules already import `core/event`                          | Extend existing `core/event/errors.go`                            |
+| Monolithic `Error` struct with 20+ fields         | Too heavy for a library, consumer-specific concerns leaked in                            | 4-field `Error` + `Classify()` + consumer adds their own wrappers |
+| `Reject()`, `Conflict()` as bare function names   | Collides with `Family` const names                                                       | `NewRejection()`, `NewConflict()` etc.                            |
+| `IdempotencyKey()` with `BaseCommand` helper      | `command.Core` already IS the base — no new type needed                                  | Just add method to `command.Core`                                 |
+| New `WithClientID` option with `apply[T]` pattern | ClientID not in Metadata struct — would need breaking change                             | Use `WithCustom("client.id", ...)` convention                     |
+| 9 error families in library                       | Only 5 are library-relevant (Rejection, Conflict, Transient, Corruption, Infrastructure) | 5 families in library, 4 in go-localfirst                         |
 
 ---
 

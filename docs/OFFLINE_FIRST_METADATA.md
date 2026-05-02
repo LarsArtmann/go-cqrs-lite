@@ -8,14 +8,14 @@ These keys use `event.WithCustom(key, value)` or the convenience wrappers
 `event.WithClientID()` and `event.WithClientOccurredAt()`. They are stored
 in `event.Metadata.Custom`.
 
-| Key | Type | Set By | When | Purpose |
-|-----|------|--------|------|---------|
-| `client.id` | string (ULID) | Client | Event creation | Which device created this event |
-| `client.occurred_at` | string (RFC3339Nano) | Client | Event creation | When the event happened on the device |
-| `client.timezone` | string (IANA tz) | Client | Event creation | Device timezone for business grouping |
-| `sync.pushed_at` | string (RFC3339Nano) | Client | Push attempt | When push was attempted |
-| `sync.acked_at` | string (RFC3339Nano) | Server | Push acknowledgment | When server confirmed receipt |
-| `sync.rebased_at` | string (RFC3339Nano) | Server/Client | Rebase | When events were reordered |
+| Key                  | Type                 | Set By        | When                | Purpose                               |
+| -------------------- | -------------------- | ------------- | ------------------- | ------------------------------------- |
+| `client.id`          | string (ULID)        | Client        | Event creation      | Which device created this event       |
+| `client.occurred_at` | string (RFC3339Nano) | Client        | Event creation      | When the event happened on the device |
+| `client.timezone`    | string (IANA tz)     | Client        | Event creation      | Device timezone for business grouping |
+| `sync.pushed_at`     | string (RFC3339Nano) | Client        | Push attempt        | When push was attempted               |
+| `sync.acked_at`      | string (RFC3339Nano) | Server        | Push acknowledgment | When server confirmed receipt         |
+| `sync.rebased_at`    | string (RFC3339Nano) | Server/Client | Rebase              | When events were reordered            |
 
 ## Usage
 

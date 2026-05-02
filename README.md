@@ -44,13 +44,13 @@ go get github.com/larsartmann/go-cqrs-lite/middleware
 
 ### Core Dependencies
 
-| Dependency                     | Purpose                                         | Module       |
-| ------------------------------ | ----------------------------------------------- | ------------ |
-| `cockroachdb/errors`           | Error wrapping                                  | core         |
-| `oklog/ulid/v2`                | ULID generation (binary-sortable, time-ordered) | core         |
-| `go-branded-id`              | Branded ID type backing                         | core         |
-| `go-json-experiment/json`      | JSON v2                                         | core         |
-| `go-faster/yaml`               | YAML marshaling                                 | catalog only |
+| Dependency                | Purpose                                         | Module       |
+| ------------------------- | ----------------------------------------------- | ------------ |
+| `cockroachdb/errors`      | Error wrapping                                  | core         |
+| `oklog/ulid/v2`           | ULID generation (binary-sortable, time-ordered) | core         |
+| `go-branded-id`           | Branded ID type backing                         | core         |
+| `go-json-experiment/json` | JSON v2                                         | core         |
+| `go-faster/yaml`          | YAML marshaling                                 | catalog only |
 
 ## Core Concepts
 
@@ -112,15 +112,15 @@ aggregateID := aggregate_id.New()
 
 ## Module Structure
 
-| Module           | Import Path       | Purpose                                          | Dependencies          |
-| ---------------- | ----------------- | ------------------------------------------------ | --------------------- |
-| **core**         | `.../core/...`    | CQRS types, dispatchers, event sourcing          | errors, ulid, json    |
-| **memory**       | `.../memory`      | In-memory store/bus/snapshot (testing)           | core                  |
-| **catalog**      | `.../catalog/...` | AsyncAPI + EventCatalog generation               | core, yaml            |
-| **middleware**   | `.../middleware`  | Logging, retry, validation, recovery, metrics    | core                  |
-| **storage**      | `.../storage`     | PostgreSQL event store                           | core                  |
-| **testhelpers**  | `.../testhelpers` | Shared test utilities (fakes, handlers, mocks)   | core                  |
-| **integration**  | `.../integration` | Cross-module integration tests                   | core, memory, helpers |
+| Module          | Import Path       | Purpose                                        | Dependencies          |
+| --------------- | ----------------- | ---------------------------------------------- | --------------------- |
+| **core**        | `.../core/...`    | CQRS types, dispatchers, event sourcing        | errors, ulid, json    |
+| **memory**      | `.../memory`      | In-memory store/bus/snapshot (testing)         | core                  |
+| **catalog**     | `.../catalog/...` | AsyncAPI + EventCatalog generation             | core, yaml            |
+| **middleware**  | `.../middleware`  | Logging, retry, validation, recovery, metrics  | core                  |
+| **storage**     | `.../storage`     | PostgreSQL event store                         | core                  |
+| **testhelpers** | `.../testhelpers` | Shared test utilities (fakes, handlers, mocks) | core                  |
+| **integration** | `.../integration` | Cross-module integration tests                 | core, memory, helpers |
 
 ## Design Principles
 
@@ -389,6 +389,7 @@ evt, err := event.NewBuilder(
     WithUserID(operatorID).
     Build()
 ```
+
 ## Comparison
 
 | Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
@@ -427,4 +428,7 @@ MIT
 
 - [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards
 - [CQRS pattern](https://martinfowler.com/bliki/CQRS.html) - Martin Fowler
+
+```
+
 ```

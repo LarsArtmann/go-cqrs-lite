@@ -170,13 +170,13 @@ type (
 
 func (c *submitExpenseCmd) Type() command.Type           { return "expense.submit" }
 func (c *submitExpenseCmd) AggregateID() id.AggregateID  { return c.id }
-func (c *submitExpenseCmd) IdempotencyKey() string        { return "" }
+func (c *submitExpenseCmd) IdempotencyKey() string       { return "" }
 func (c *approveExpenseCmd) Type() command.Type          { return "expense.approve" }
 func (c *approveExpenseCmd) AggregateID() id.AggregateID { return c.id }
-func (c *approveExpenseCmd) IdempotencyKey() string       { return "" }
+func (c *approveExpenseCmd) IdempotencyKey() string      { return "" }
 func (c *payExpenseCmd) Type() command.Type              { return "expense.pay" }
 func (c *payExpenseCmd) AggregateID() id.AggregateID     { return c.id }
-func (c *payExpenseCmd) IdempotencyKey() string           { return "" }
+func (c *payExpenseCmd) IdempotencyKey() string          { return "" }
 
 var _ = Describe("CQRS Flow", func() {
 	var (

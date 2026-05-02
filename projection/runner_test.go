@@ -599,7 +599,10 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 	}
 }
 
-func newTestRunnerWithOpts(t *testing.T, opts ...projection.RunnerOption) (*projection.Runner, *memory.MemoryBus) {
+func newTestRunnerWithOpts(
+	t *testing.T,
+	opts ...projection.RunnerOption,
+) (*projection.Runner, *memory.MemoryBus) {
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
