@@ -476,6 +476,7 @@ Interfaces now return branded types instead of primitives:
 | `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                     |
 | `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical       |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`            |
+| Cross-package sentinels not in `Classify()`              | MEDIUM   | Circular dependency prevents mapping aggregate/projection/storage errors. Documented.     |
 
 - **Session 28 (Branching-Flow Context Review)**:
   - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.
@@ -570,3 +571,14 @@ Interfaces now return branded types instead of primitives:
   - **KNOWN ISSUE**: Cross-package sentinels (aggregate, projection, storage) not classified — circular dependency. Documented in `Classify()` doc comment.
   - **KNOWN ISSUE**: `WithBatchSize`/`WithBatchWindow`/`WithConcurrency` options set fields but runner never reads them — dead API surface.
   - Zero lint, all 20 test packages pass
+
+- **Session 34 (World-Class Library Cleanup)**:
+  - **BREAKING**: Removed dead public API — `WithBatchSize`, `WithBatchWindow`, `WithConcurrency` (3 options that silently did nothing)
+  - **BREAKING**: Removed 5 unused error sentinels from `projection/errors.go` (`ErrRunnerStopped`, `ErrDuplicateHandler`, `ErrCheckpointLoad`, `ErrStoreLoad`, `ErrNilStore`)
+  - **BREAKING**: Removed unused `FakeCheckpointStore` from `testhelpers/`
+  - **DOCS**: Added godoc to 57 exported symbols across 8 files: `projection/runner.go`, `projection/errors.go`, `memory/bus.go`, `memory/store.go`, `memory/snapshot.go`, `core/aggregate/errors.go`, `catalog/eventcatalog/exporter.go`, `catalog/asyncapi/types.go`
+  - **NEW**: `String()` on `event.Type`, `event.AggregateType`, `command.Type`, `query.Type`
+  - **NEW**: `*event.Error.Is(error) bool` — matches by Code+Family for `errors.Is` support
+  - **NEW**: Compile-time `var _ io.Closer` for `*projection.Runner`, `*event.OutboxPublisher`, `*command.Dispatcher`, `*query.Dispatcher`
+  - **RESOLVED**: "WithBatchSize/WithBatchWindow/WithConcurrency dead API surface" Known Issue — removed
+  - Zero lint, all 21 test packages pass
