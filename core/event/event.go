@@ -79,6 +79,8 @@ type Core struct {
 	occurredAt    time.Time
 }
 
+var _ Event = (*Core)(nil)
+
 // NewMetadata creates a Metadata with all fields initialized.
 func NewMetadata() *Metadata {
 	return &Metadata{

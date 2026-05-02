@@ -93,9 +93,13 @@ type Error struct {
 	cause   error
 }
 
+// Error returns the human-readable error message.
 func (e *Error) Error() string { return e.Message }
+
+// Unwrap returns the underlying cause.
 func (e *Error) Unwrap() error { return e.cause }
 
+// Is reports whether this error matches another *Error by Code and Family.
 func (e *Error) Is(target error) bool {
 	t, ok := target.(*Error)
 	if !ok {
@@ -105,6 +109,8 @@ func (e *Error) Is(target error) bool {
 	return e.Code == t.Code && e.Family == t.Family
 }
 
+// Format implements fmt.Formatter for verbose error output.
+// Use %+v for family:code: message with cause chain.
 func (e *Error) Format(f fmt.State, verb rune) {
 	switch verb {
 	case 'v':

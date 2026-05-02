@@ -25,6 +25,8 @@ type Core struct {
 	aggregateID id.AggregateID
 }
 
+var _ Command = (*Core)(nil)
+
 // Type returns the command type.
 func (c *Core) Type() Type { return c.commandType }
 

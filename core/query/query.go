@@ -21,6 +21,8 @@ type Core struct {
 	queryType Type
 }
 
+var _ Query = (*Core)(nil)
+
 // Type returns the query type.
 func (q *Core) Type() Type { return q.queryType }
 
