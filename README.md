@@ -128,7 +128,7 @@ aggregateID := aggregate_id.New()
 2. **Composition over inheritance** — Per Go best practices
 3. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 4. **Context-aware** — All operations accept `context.Context`
-5. **Errors as values** — No panics, explicit error returns
+5. **Errors as values** — No panics in production paths; `Must*` variants provided for test convenience
 6. **File size limits** — Max 250 lines per file
 
 ## Architecture
@@ -162,9 +162,9 @@ package main
 
 import (
     "context"
+    "log"
 
     "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
     "github.com/larsartmann/go-cqrs-lite/memory"
 )
@@ -173,8 +173,8 @@ func main() {
     ctx := context.Background()
 
     // Create in-memory event store and bus (testing)
-    store := memory.NewMemoryStore()
-    bus := memory.NewMemoryBus()
+    _ = memory.NewMemoryStore()
+    _ = memory.NewMemoryBus()
 
     // Register command dispatcher
     cmdDispatcher := command.NewDispatcher()
@@ -183,8 +183,15 @@ func main() {
     userID := id.NewAggregateID()
 
     // Create and dispatch command
-    cmd := command.New("user.create", userID.String())
-    cmdDispatcher.Dispatch(ctx, cmd)
+    cmd, err := command.New(command.Type("user.create"), userID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = cmdDispatcher.Dispatch(ctx, cmd)
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
