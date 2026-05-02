@@ -63,13 +63,8 @@ func NewRepository(
 }
 
 // opError formats an error for aggregate operations.
-func opError(
-	op string,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-	err error,
-) error {
-	return fmt.Errorf("%s for %s %s: %w", op, aggregateType, aggregateID, err)
+func opError(op string, aggType event.AggregateType, aggID id.AggregateID, err error) error {
+	return fmt.Errorf("%s for %s %s: %w", op, aggType, aggID, err)
 }
 
 // Save persists uncommitted events. If an outbox is configured, events are
@@ -91,32 +86,40 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 
 	aggregateID := root.ID()
 	aggregateType := root.Type()
-
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
-	if err != nil {
+	if err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion); err != nil {
 		return opError("save", aggregateType, aggregateID, err)
 	}
 
-	if r.outbox != nil {
-		err = r.outbox.Append(ctx, changes)
-		if err != nil {
-			return opError("stage events in outbox", aggregateType, aggregateID, err)
-		}
-	} else {
-		err = r.bus.Publish(ctx, changes...)
-		if err != nil {
-			return opError("publish events", aggregateType, aggregateID, err)
-		}
+	if err := r.publishChanges(ctx, changes, aggregateType, aggregateID); err != nil {
+		return err
 	}
 
 	root.MarkChangesAsCommitted()
 
 	if r.shouldSnapshot(root) {
-		err = r.saveSnapshot(ctx, root)
-		if err != nil {
+		if err := r.saveSnapshot(ctx, root); err != nil {
 			return opError("save snapshot", aggregateType, aggregateID, err)
+		}
+	}
+
+	return nil
+}
+
+func (r *EventSourcedRepository) publishChanges(
+	ctx context.Context,
+	changes []event.Event,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) error {
+	if r.outbox != nil {
+		if err := r.outbox.Append(ctx, changes); err != nil {
+			return opError("stage events in outbox", aggType, aggID, err)
+		}
+	} else {
+		if err := r.bus.Publish(ctx, changes...); err != nil {
+			return opError("publish events", aggType, aggID, err)
 		}
 	}
 
@@ -135,15 +138,8 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 		return err
 	}
 
-	err = root.LoadEvents(events)
-	if err != nil {
-		return fmt.Errorf(
-			"replay %d events for %s %s: %w",
-			len(events),
-			aggregateType,
-			aggregateID,
-			err,
-		)
+	if err := root.LoadEvents(events); err != nil {
+		return fmt.Errorf("replay %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
 	}
 
 	return nil
@@ -154,15 +150,13 @@ func (r *EventSourcedRepository) Delete(ctx context.Context, root Root) error {
 	aggregateType := root.Type()
 	aggregateID := root.ID()
 
-	err := r.store.Delete(ctx, aggregateType, aggregateID)
-	if err != nil {
+	if err := r.store.Delete(ctx, aggregateType, aggregateID); err != nil {
 		return opError("delete", aggregateType, aggregateID, err)
 	}
 
 	return nil
 }
 
-// loadEvents returns events for the aggregate, using a snapshot if available.
 func (r *EventSourcedRepository) loadEvents(
 	ctx context.Context,
 	root Root,
@@ -188,8 +182,7 @@ func (r *EventSourcedRepository) loadEvents(
 
 	root.SetVersion(snapshot.Version)
 
-	err := root.ApplySnapshot(snapshot.State)
-	if err != nil {
+	if err := root.ApplySnapshot(snapshot.State); err != nil {
 		return nil, opError("apply snapshot", aggregateType, aggregateID, err)
 	}
 
@@ -197,10 +190,7 @@ func (r *EventSourcedRepository) loadEvents(
 	if err != nil {
 		return nil, fmt.Errorf(
 			"load events from version %d for %s %s: %w",
-			snapshot.Version,
-			aggregateType,
-			aggregateID,
-			err,
+			snapshot.Version, aggregateType, aggregateID, err,
 		)
 	}
 
