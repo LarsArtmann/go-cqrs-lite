@@ -8,6 +8,9 @@ import (
 // Type identifies a query type.
 type Type string
 
+// String returns the query type as a string.
+func (t Type) String() string { return string(t) }
+
 // Query represents a read-side query.
 type Query interface {
 	Type() Type

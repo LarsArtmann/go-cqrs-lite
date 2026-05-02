@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 )
@@ -25,6 +26,8 @@ type OutboxPublisher struct {
 	cancel context.CancelFunc
 	done   chan struct{}
 }
+
+var _ io.Closer = (*OutboxPublisher)(nil)
 
 // OutboxPublisherOption configures an OutboxPublisher.
 type OutboxPublisherOption func(*OutboxPublisher)

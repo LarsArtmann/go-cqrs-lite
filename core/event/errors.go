@@ -96,6 +96,15 @@ type Error struct {
 func (e *Error) Error() string { return e.Message }
 func (e *Error) Unwrap() error { return e.cause }
 
+func (e *Error) Is(target error) bool {
+	t, ok := target.(*Error)
+	if !ok {
+		return false
+	}
+
+	return e.Code == t.Code && e.Family == t.Family
+}
+
 func (e *Error) Format(f fmt.State, verb rune) {
 	switch verb {
 	case 'v':

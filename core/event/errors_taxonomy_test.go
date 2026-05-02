@@ -215,3 +215,23 @@ func TestError_Format_withCause(t *testing.T) {
 		t.Errorf("%%+v with cause should contain 'caused by:', got %q", got)
 	}
 }
+
+func TestError_Is(t *testing.T) {
+	t.Parallel()
+
+	err1 := event.NewRejection("not_found", "user not found")
+	err2 := event.NewRejection("not_found", "different message")
+	err3 := event.NewConflict("not_found", "user not found")
+
+	if !err1.Is(err2) {
+		t.Error("Is should match errors with same Code and Family")
+	}
+
+	if err1.Is(err3) {
+		t.Error("Is should not match errors with different Family")
+	}
+
+	if err1.Is(errors.New("unrelated")) {
+		t.Error("Is should not match non-*Error targets")
+	}
+}

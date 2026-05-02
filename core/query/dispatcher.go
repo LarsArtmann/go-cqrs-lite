@@ -3,6 +3,7 @@ package query
 
 import (
 	"context"
+	"io"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
@@ -17,6 +18,8 @@ type Dispatcher struct {
 
 	base dispatcher.BaseDispatcher[Handler, Middleware]
 }
+
+var _ io.Closer = (*Dispatcher)(nil)
 
 // NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {

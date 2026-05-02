@@ -3,6 +3,7 @@ package projection
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"slices"
 	"time"
@@ -21,6 +22,8 @@ type Runner struct {
 	opts        runnerOptions
 	projections []event.Projection
 }
+
+var _ io.Closer = (*Runner)(nil)
 
 // NewRunner creates a projection Runner. Pass a nil loader to skip replay (live-only mode).
 // Returns an error if bus or checkpoint is nil.

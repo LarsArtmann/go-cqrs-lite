@@ -32,8 +32,14 @@ import (
 // Type is a type identifier for domain events.
 type Type string
 
+// String returns the event type as a string.
+func (t Type) String() string { return string(t) }
+
 // AggregateType is a type identifier for aggregate roots.
 type AggregateType string
+
+// String returns the aggregate type as a string.
+func (a AggregateType) String() string { return string(a) }
 
 // Event represents a domain event with rich metadata.
 type Event interface {

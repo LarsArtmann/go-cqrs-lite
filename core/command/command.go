@@ -9,6 +9,9 @@ import (
 // Type identifies a command type.
 type Type string
 
+// String returns the command type as a string.
+func (t Type) String() string { return string(t) }
+
 // Command represents a domain command.
 type Command interface {
 	Type() Type
