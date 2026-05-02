@@ -264,17 +264,9 @@ func TestCore_IdempotencyKey_CustomOverride(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	type customCmd struct {
-		command.Core
-	}
-
 	cmdCore := command.MustNew("CreateUser", aggID)
 
-	overridingCmd := struct {
-		*command.Core
-	}{
-		Core: cmdCore,
-	}
+	overridingCmd := struct{ *command.Core }{Core: cmdCore}
 
 	_ = overridingCmd // struct embeds *Core, which delegates to Core.IdempotencyKey()
 

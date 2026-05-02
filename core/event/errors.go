@@ -132,32 +132,33 @@ func (e *Error) Format(f fmt.State, verb rune) {
 // WithCause sets the underlying cause and returns the error for chaining.
 func (e *Error) WithCause(cause error) *Error {
 	e.cause = cause
+
 	return e
 }
 
 // NewRejection creates a Rejection-classified error.
 func NewRejection(code, msg string) *Error {
-	return &Error{Code: code, Message: msg, Family: Rejection}
+	return &Error{Code: code, Message: msg, Family: Rejection, cause: nil}
 }
 
 // NewConflict creates a Conflict-classified error.
 func NewConflict(code, msg string) *Error {
-	return &Error{Code: code, Message: msg, Family: Conflict}
+	return &Error{Code: code, Message: msg, Family: Conflict, cause: nil}
 }
 
 // NewTransient creates a Transient-classified error (retryable).
 func NewTransient(code, msg string) *Error {
-	return &Error{Code: code, Message: msg, Family: Transient}
+	return &Error{Code: code, Message: msg, Family: Transient, cause: nil}
 }
 
 // NewCorruption creates a Corruption-classified error (source of truth damaged).
 func NewCorruption(code, msg string) *Error {
-	return &Error{Code: code, Message: msg, Family: Corruption}
+	return &Error{Code: code, Message: msg, Family: Corruption, cause: nil}
 }
 
 // NewInfrastructure creates an Infrastructure-classified error (system cannot serve).
 func NewInfrastructure(code, msg string) *Error {
-	return &Error{Code: code, Message: msg, Family: Infrastructure}
+	return &Error{Code: code, Message: msg, Family: Infrastructure, cause: nil}
 }
 
 // Classify returns the Family of an error by checking for *Error in the chain,

@@ -93,7 +93,7 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 		return opError("save", aggregateType, aggregateID, err)
 	}
 
-	err := r.publishChanges(ctx, changes, aggregateType, aggregateID)
+	err = r.publishChanges(ctx, changes, aggregateType, aggregateID)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,8 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 		return err
 	}
 
-	if err := root.LoadEvents(events); err != nil {
+	err = root.LoadEvents(events)
+	if err != nil {
 		return fmt.Errorf(
 			"replay %d events for %s %s: %w",
 			len(events),
@@ -194,7 +195,8 @@ func (r *EventSourcedRepository) loadEvents(
 
 	root.SetVersion(snapshot.Version)
 
-	if err := root.ApplySnapshot(snapshot.State); err != nil {
+	err := root.ApplySnapshot(snapshot.State)
+	if err != nil {
 		return nil, opError("apply snapshot", aggregateType, aggregateID, err)
 	}
 

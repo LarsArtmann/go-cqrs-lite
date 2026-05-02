@@ -112,6 +112,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		aggType := event.AggregateType("Test")
 
 		var events []event.Event
+
 		for i := 1; i <= 3; i++ {
 			evt, err := event.NewEvent(
 				"test.event",
@@ -122,6 +123,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 				event.WithCorrelationID(corrID),
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			events = append(events, evt)
 		}
 

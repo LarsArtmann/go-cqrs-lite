@@ -29,9 +29,11 @@ func newTestStore(t *testing.T) (*SQLEventStore, sqlmock.Sqlmock) {
 	return store, mock
 }
 
-var eventColumns = []string{
-	"id", "event_type", "aggregate_type", "aggregate_id",
-	"version", "payload", "metadata", "occurred_at",
+func eventColumns() []string {
+	return []string{
+		"id", "event_type", "aggregate_type", "aggregate_id",
+		"version", "payload", "metadata", "occurred_at",
+	}
 }
 
 const loadQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
@@ -52,13 +54,13 @@ const versionQuery = `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggrega
 func expectLoadRows(mock sqlmock.Sqlmock, aggID id.AggregateID, rows ...driver.Value) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns).AddRow(rows...))
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(rows...))
 }
 
 func expectLoadEmpty(mock sqlmock.Sqlmock, aggID id.AggregateID) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns))
+		WillReturnRows(sqlmock.NewRows(eventColumns()))
 }
 
 func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int) {
@@ -308,7 +310,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadFromVersionQuery)).
 		WithArgs("User", aggID, 2).
-		WillReturnRows(sqlmock.NewRows(eventColumns).AddRow(
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			eventID.String(),
 			"UserUpdated", "User", aggID.String(), 3, []byte(`{"name":"updated"}`), nil, ts,
 		))
@@ -584,7 +586,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", "bad").
-		WillReturnRows(sqlmock.NewRows(eventColumns).AddRow(
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, nil, nil, time.Now(),
 		))
 
@@ -602,7 +604,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns).AddRow(
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, nil, nil, time.Now(),
 		))
 
@@ -638,7 +640,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).
 			AddRow(
 				eventID.String(),
 				"UserCreated", "User", aggID.String(), 1, nil, []byte(`{invalid`), time.Now(),
@@ -697,7 +699,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs(string(maliciousAggType), maliciousAggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns))
+		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
 	events, err := store.Load(context.Background(), maliciousAggType, maliciousAggID)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -758,7 +760,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).
 			AddRow(
 				eventID.String(),
 				"UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), metaJSON, ts,
