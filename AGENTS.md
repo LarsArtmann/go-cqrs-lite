@@ -582,3 +582,12 @@ Interfaces now return branded types instead of primitives:
   - **NEW**: Compile-time `var _ io.Closer` for `*projection.Runner`, `*event.OutboxPublisher`, `*command.Dispatcher`, `*query.Dispatcher`
   - **RESOLVED**: "WithBatchSize/WithBatchWindow/WithConcurrency dead API surface" Known Issue — removed
   - Zero lint, all 21 test packages pass
+
+- **Session 36 (Continuation — Cleanup + Audit)**:
+  - **TEST**: `command.Core.IdempotencyKey()` — default returns `""`, embed override test
+  - **REFACTOR**: Split `testhelpers/helpers.go` (293 lines) into 3 files: `handlers.go` (131), `event_helpers.go` (58), `assertions.go` (113)
+  - **REFACTOR**: Trimmed `aggregate/repository.go` from 254 → 244 lines (extracted `publishChanges` helper)
+  - **QUALITY**: Added compile-time `var _` interface checks for `event.Core→Event`, `command.Core→Command`, `query.Core→Query`
+  - **QUALITY**: Added godoc to 4 `*event.Error` methods (`Error`, `Unwrap`, `Is`, `Format`)
+  - **AUDIT**: Full codebase audit — all files ≤250 lines, zero TODO/FIXME, all exported errors use correct patterns
+  - Zero lint, all 21 test packages pass
