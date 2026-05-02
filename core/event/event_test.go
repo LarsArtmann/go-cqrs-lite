@@ -413,6 +413,7 @@ func TestWithClientID(t *testing.T) {
 	t.Parallel()
 
 	clientID := id.NewClientID()
+
 	evt, err := event.NewEvent(
 		"TestEvent",
 		id.NewAggregateID(),
@@ -435,6 +436,7 @@ func TestWithClientOccurredAt(t *testing.T) {
 	t.Parallel()
 
 	ts := time.Date(2026, 5, 1, 12, 30, 0, 0, time.UTC)
+
 	evt, err := event.NewEvent(
 		"TestEvent",
 		id.NewAggregateID(),

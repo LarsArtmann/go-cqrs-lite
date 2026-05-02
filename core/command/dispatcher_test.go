@@ -267,6 +267,7 @@ func TestCore_IdempotencyKey_CustomOverride(t *testing.T) {
 	type customCmd struct {
 		command.Core
 	}
+
 	cmdCore := command.MustNew("CreateUser", aggID)
 
 	overridingCmd := struct {
@@ -279,7 +280,7 @@ func TestCore_IdempotencyKey_CustomOverride(t *testing.T) {
 
 	// Verify the interface is satisfied and default is still empty
 	var _ command.Command = overridingCmd.Core
-	if got := overridingCmd.Core.IdempotencyKey(); got != "" {
+	if got := overridingCmd.IdempotencyKey(); got != "" {
 		t.Errorf("embedded Core IdempotencyKey() = %q, want empty string", got)
 	}
 }

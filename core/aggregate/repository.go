@@ -88,18 +88,21 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	aggregateType := root.Type()
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	if err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion); err != nil {
+	err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
+	if err != nil {
 		return opError("save", aggregateType, aggregateID, err)
 	}
 
-	if err := r.publishChanges(ctx, changes, aggregateType, aggregateID); err != nil {
+	err := r.publishChanges(ctx, changes, aggregateType, aggregateID)
+	if err != nil {
 		return err
 	}
 
 	root.MarkChangesAsCommitted()
 
 	if r.shouldSnapshot(root) {
-		if err := r.saveSnapshot(ctx, root); err != nil {
+		err := r.saveSnapshot(ctx, root)
+		if err != nil {
 			return opError("save snapshot", aggregateType, aggregateID, err)
 		}
 	}
@@ -114,11 +117,13 @@ func (r *EventSourcedRepository) publishChanges(
 	aggID id.AggregateID,
 ) error {
 	if r.outbox != nil {
-		if err := r.outbox.Append(ctx, changes); err != nil {
+		err := r.outbox.Append(ctx, changes)
+		if err != nil {
 			return opError("stage events in outbox", aggType, aggID, err)
 		}
 	} else {
-		if err := r.bus.Publish(ctx, changes...); err != nil {
+		err := r.bus.Publish(ctx, changes...)
+		if err != nil {
 			return opError("publish events", aggType, aggID, err)
 		}
 	}
@@ -139,7 +144,13 @@ func (r *EventSourcedRepository) Load(ctx context.Context, root Root) error {
 	}
 
 	if err := root.LoadEvents(events); err != nil {
-		return fmt.Errorf("replay %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
+		return fmt.Errorf(
+			"replay %d events for %s %s: %w",
+			len(events),
+			aggregateType,
+			aggregateID,
+			err,
+		)
 	}
 
 	return nil
@@ -150,7 +161,8 @@ func (r *EventSourcedRepository) Delete(ctx context.Context, root Root) error {
 	aggregateType := root.Type()
 	aggregateID := root.ID()
 
-	if err := r.store.Delete(ctx, aggregateType, aggregateID); err != nil {
+	err := r.store.Delete(ctx, aggregateType, aggregateID)
+	if err != nil {
 		return opError("delete", aggregateType, aggregateID, err)
 	}
 

@@ -130,7 +130,10 @@ func (e *Error) Format(f fmt.State, verb rune) {
 }
 
 // WithCause sets the underlying cause and returns the error for chaining.
-func (e *Error) WithCause(cause error) *Error { e.cause = cause; return e }
+func (e *Error) WithCause(cause error) *Error {
+	e.cause = cause
+	return e
+}
 
 // NewRejection creates a Rejection-classified error.
 func NewRejection(code, msg string) *Error {
