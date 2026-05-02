@@ -10,6 +10,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// MemorySnapshotStore is an in-memory implementation of event.SnapshotStore.
+// It stores at most one snapshot per aggregate (the latest version).
 type MemorySnapshotStore struct {
 	dispatcher.LifecycleMixin
 
@@ -19,6 +21,7 @@ type MemorySnapshotStore struct {
 
 var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
 
+// NewMemorySnapshotStore creates a new in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemorySnapshotStore{
@@ -26,6 +29,7 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 	}
 }
 
+// Save stores a snapshot. If a newer snapshot already exists for the aggregate, the save is silently skipped.
 func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
@@ -47,6 +51,8 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 	return nil
 }
 
+// Load returns the latest snapshot for an aggregate.
+// Returns ErrSnapshotNotFound if no snapshot exists.
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -72,6 +78,8 @@ func (s *MemorySnapshotStore) Load(
 	return cp, nil
 }
 
+// LoadAtVersion returns the snapshot for an aggregate if its version is at or before the requested version.
+// Returns ErrSnapshotNotFound if no suitable snapshot exists.
 func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -113,6 +121,7 @@ func copySnapshot(snapshot *event.Snapshot) *event.Snapshot {
 	return &snapshotCopy
 }
 
+// Delete removes the snapshot for an aggregate.
 func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -132,6 +141,7 @@ func (s *MemorySnapshotStore) Delete(
 	return nil
 }
 
+// Close marks the store as closed. Subsequent operations return ErrSnapshotStoreClosed.
 func (s *MemorySnapshotStore) Close() error {
 	return s.LifecycleMixin.Close() //nolint:wrapcheck
 }

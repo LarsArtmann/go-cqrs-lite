@@ -11,6 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// MemoryStore is an in-memory implementation of event.Store and event.GlobalLoader.
+// It is safe for concurrent use. Designed for testing and single-process deployments.
 type MemoryStore struct {
 	dispatcher.LifecycleMixin
 
@@ -23,6 +25,7 @@ var (
 	_ event.GlobalLoader = (*MemoryStore)(nil)
 )
 
+// NewMemoryStore creates a new in-memory event store.
 func NewMemoryStore() *MemoryStore {
 	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemoryStore{
@@ -30,6 +33,8 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
+// Save appends events to an aggregate stream with optimistic concurrency check.
+// Returns ErrVersionConflict if the expected version does not match the current stream length.
 func (s *MemoryStore) Save(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -58,6 +63,7 @@ func (s *MemoryStore) Save(
 	return nil
 }
 
+// AppendBatch appends events without a version check. Useful for testing idempotent writes.
 func (s *MemoryStore) AppendBatch(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -78,6 +84,8 @@ func (s *MemoryStore) AppendBatch(
 	return nil
 }
 
+// Load returns all events for an aggregate. Returns a defensive copy.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -104,6 +112,8 @@ func (s *MemoryStore) Load(
 	return result, nil
 }
 
+// LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadFromVersion(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -136,6 +146,7 @@ func (s *MemoryStore) LoadFromVersion(
 	return result, nil
 }
 
+// Delete removes all events for an aggregate.
 func (s *MemoryStore) Delete(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -182,6 +193,7 @@ func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 	return result, nil
 }
 
+// Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryStore) Close() error {
 	return s.LifecycleMixin.Close() //nolint:wrapcheck
 }

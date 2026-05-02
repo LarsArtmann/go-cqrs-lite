@@ -9,6 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
+// MemoryBus is an in-memory implementation of event.Bus for testing and single-process deployments.
+// It is safe for concurrent use. Handler execution blocks publishers (see Publish docs).
 type MemoryBus struct {
 	dispatcher.LifecycleMixin
 
@@ -20,6 +22,7 @@ type MemoryBus struct {
 
 var _ event.Bus = (*MemoryBus)(nil)
 
+// NewMemoryBus creates a new in-memory event bus.
 func NewMemoryBus() *MemoryBus {
 	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
 	return &MemoryBus{
@@ -27,6 +30,8 @@ func NewMemoryBus() *MemoryBus {
 	}
 }
 
+// Use registers event middleware. Middleware is applied in reverse registration order
+// (last registered runs first). Returns ErrBusClosed if the bus is already closed.
 func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
@@ -119,6 +124,8 @@ func (b *MemoryBus) notifyHandlers(
 	return nil
 }
 
+// Subscribe registers a handler for a specific event type. Returns ErrHandlerNil if
+// the handler is nil, or ErrBusClosed if the bus is closed.
 func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
@@ -137,6 +144,8 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 	return nil
 }
 
+// SubscribeAll registers a handler that receives every published event regardless of type.
+// All-handlers run before type-specific handlers (see Publish docs).
 func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
@@ -155,6 +164,7 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 	return nil
 }
 
+// Close marks the bus as closed. Subsequent Publish, Subscribe, or Use calls return ErrBusClosed.
 func (b *MemoryBus) Close() error {
 	return b.LifecycleMixin.Close() //nolint:wrapcheck
 }

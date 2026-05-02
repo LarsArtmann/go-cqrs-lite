@@ -12,6 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// Runner orchestrates projection replay from an event store and live subscription via an event bus.
+// Each registered projection tracks its own checkpoint independently.
 type Runner struct {
 	loader      event.GlobalLoader
 	bus         event.Bus
@@ -20,6 +22,8 @@ type Runner struct {
 	projections []event.Projection
 }
 
+// NewRunner creates a projection Runner. Pass a nil loader to skip replay (live-only mode).
+// Returns an error if bus or checkpoint is nil.
 func NewRunner(
 	loader event.GlobalLoader,
 	bus event.Bus,
@@ -48,6 +52,8 @@ func NewRunner(
 	}, nil
 }
 
+// Register adds a projection to the runner. Must be called before Run.
+// Returns ErrNilHandler if the projection is nil.
 func (r *Runner) Register(p event.Projection) error {
 	if p == nil {
 		return ErrNilHandler
@@ -58,6 +64,8 @@ func (r *Runner) Register(p event.Projection) error {
 	return nil
 }
 
+// Run replays historical events from the loader (if non-nil), then subscribes to live events.
+// Blocks until the context is cancelled. Returns ErrNoProjections if no projections are registered.
 func (r *Runner) Run(ctx context.Context) error {
 	if len(r.projections) == 0 {
 		return ErrNoProjections
@@ -178,10 +186,12 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 	return err
 }
 
+// CurrentCheckpoint returns the last processed event ID for the given projection.
 func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (id.EventID, error) {
 	return r.checkpoint.Load(ctx, projectionName)
 }
 
+// Close releases resources held by the runner. Currently a no-op.
 func (r *Runner) Close() error { return nil }
 
 func subscribesTo(p event.Projection, evtType event.Type) bool {

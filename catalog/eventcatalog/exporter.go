@@ -13,14 +13,17 @@ const (
 	dirPerm  = 0o750
 )
 
+// Exporter generates EventCatalog-compatible MDX files from a catalog.
 type Exporter struct {
 	OutputDir string
 }
 
+// NewExporter creates an exporter that writes MDX files to the given output directory.
 func NewExporter(outputDir string) *Exporter {
 	return &Exporter{OutputDir: outputDir}
 }
 
+// Export writes all services, messages, and schemas as MDX files to the output directory.
 func (e *Exporter) Export(cat *catalog.Catalog) error {
 	for _, svc := range cat.Services {
 		err := e.writeService(svc)
