@@ -167,7 +167,6 @@ func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
 	return firstErr
 }
 
-// subscribesTo returns true if the projection subscribes to the given event type.
 // SubscribesTo returns true if the projection subscribes to the given event type.
 // Returns true if the projection subscribes to all events (nil or empty EventTypes).
 func SubscribesTo(proj Projection, evtType Type) bool {
