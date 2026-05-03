@@ -203,9 +203,12 @@ func Classify(err error) Family {
 	}
 }
 
-var classificationMu sync.RWMutex
-
-var classificationMap = map[error]Family{}
+var classifier = struct {
+	mu   sync.RWMutex
+	maps map[error]Family
+}{
+	maps: make(map[error]Family),
+}
 
 // RegisterClassification maps a sentinel error to a Family.
 // Thread-safe. Call from init() in external packages:
@@ -214,17 +217,17 @@ var classificationMap = map[error]Family{}
 //	    event.RegisterClassification(ErrHandlerNotFound, event.Rejection)
 //	}
 func RegisterClassification(sentinel error, family Family) {
-	classificationMu.Lock()
-	defer classificationMu.Unlock()
+	classifier.mu.Lock()
+	defer classifier.mu.Unlock()
 
-	classificationMap[sentinel] = family
+	classifier.maps[sentinel] = family
 }
 
 func lookupRegistered(err error) (Family, bool) {
-	classificationMu.RLock()
-	defer classificationMu.RUnlock()
+	classifier.mu.RLock()
+	defer classifier.mu.RUnlock()
 
-	for sentinel, family := range classificationMap {
+	for sentinel, family := range classifier.maps {
 		if errors.Is(err, sentinel) {
 			return family, true
 		}

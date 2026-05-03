@@ -296,7 +296,9 @@ func TestClassify_RegisteredSentinels(t *testing.T) {
 	}
 
 	wrapped := fmt.Errorf("wrapped: %w", sentinel)
+
 	got = event.Classify(wrapped)
+
 	if got != event.Corruption {
 		t.Errorf("Classify(wrapped registered) = %v, want Corruption", got)
 	}

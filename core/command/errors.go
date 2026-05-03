@@ -11,7 +11,7 @@ var ErrHandlerNotFound = errors.New("handler not found for command")
 // ErrDispatcherClosed is returned when the dispatcher is closed.
 var ErrDispatcherClosed = errors.New("command dispatcher is closed")
 
-func init() {
+func init() { //nolint:gochecknoinits // registers error classifications for cross-package Classify()
 	event.RegisterClassification(ErrHandlerNotFound, event.Rejection)
 	event.RegisterClassification(ErrDispatcherClosed, event.Infrastructure)
 }
