@@ -591,3 +591,15 @@ Interfaces now return branded types instead of primitives:
   - **QUALITY**: Added godoc to 4 `*event.Error` methods (`Error`, `Unwrap`, `Is`, `Format`)
   - **AUDIT**: Full codebase audit — all files ≤250 lines, zero TODO/FIXME, all exported errors use correct patterns
   - Zero lint, all 21 test packages pass
+
+- **Session 38 (Deep Cleanup + Deduplication + Type Safety)**:
+  - **FIX**: `EveryNEvents` now validates `n > 0` (prevents division-by-zero)
+  - **FIX**: `FakeOutbox.Ack` now respects IDs parameter (was clearing all entries)
+  - **FIX**: Golden tests use `strings.TrimSpace` for comparison (prevents trailing-newline drift)
+  - **REFACTOR**: Extracted `insertEvents` helper in `storage/event_store.go` (removes duplicated loop from Save/AppendBatch)
+  - **REFACTOR**: Extracted `pollPublishAck` in `core/event/outbox_publisher.go` (publishPending/PublishNow now share one cycle)
+  - **REFACTOR**: Exported `event.SubscribesTo` and removed duplicated `subscribesTo` from `projection/runner.go`
+  - **REFACTOR**: Removed dead `dispatcher.Typed` interface (no production references)
+  - **REFACTOR**: Replaced 2 dynamic errors with sentinels (`query.ErrEmptyQueryType`, `catalog.ErrNilSchema`)
+  - **API**: `projection/HandlerRegistry.On` now accepts `event.Type` instead of `string`
+  - Zero lint, all 21 test packages pass
