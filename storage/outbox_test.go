@@ -298,4 +298,17 @@ func newTestEvent(t *testing.T, eventType string, aggID id.AggregateID, version 
 	return core
 }
 
+func TestOutboxSchema(t *testing.T) {
+	t.Parallel()
+
+	schema := OutboxSchema()
+	if schema == "" {
+		t.Fatal("OutboxSchema returned empty string")
+	}
+
+	if !regexp.MustCompile(`(?i)CREATE TABLE`).MatchString(schema) {
+		t.Fatal("OutboxSchema should contain CREATE TABLE")
+	}
+}
+
 var errTestDB = errors.New("test db error")
