@@ -40,11 +40,8 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 
 		action := "publishes"
 
-		switch evt.Direction {
-		case catalog.Receives:
+		if evt.Direction == catalog.Receives {
 			action = "receives"
-		case catalog.Sends:
-			action = "publishes"
 		}
 
 		fmt.Fprintf(buf, "  %s.%s -> %s: %q\n", svcID, evtID, svcID, action)
@@ -147,10 +144,12 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 }
 
 func sanitizeID(s string) string {
-	s = strings.ReplaceAll(s, " ", "_")
-	s = strings.ReplaceAll(s, "-", "_")
-	s = strings.ReplaceAll(s, ".", "_")
-	s = strings.ReplaceAll(s, "/", "_")
-
-	return strings.ToLower(s)
+	return strings.ToLower(strings.Map(func(r rune) rune {
+		switch r {
+		case ' ', '-', '.', '/':
+			return '_'
+		default:
+			return r
+		}
+	}, s))
 }
