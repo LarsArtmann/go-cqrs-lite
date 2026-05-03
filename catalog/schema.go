@@ -130,11 +130,13 @@ func parseJSONTag(tag string) (string, bool) {
 	return name, omit
 }
 
+// ErrNilSchema is returned when a nil schema is passed to SchemaToJSON.
+var ErrNilSchema = errors.New("schema is nil")
+
 // SchemaToJSON serializes a Schema to indented JSON.
 func SchemaToJSON(schema *Schema) ([]byte, error) {
 	if schema == nil {
-		//nolint:err113 // nil check must return specific error
-		return nil, errors.New("schema is nil")
+		return nil, ErrNilSchema
 	}
 
 	//nolint:wrapcheck // MarshalIndent returns bytes, error from json.MarshalIndent

@@ -1,9 +1,6 @@
 package query
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 // Type identifies a query type.
 type Type string
@@ -29,8 +26,7 @@ func (q *Core) Type() Type { return q.queryType }
 // New creates a new query with validation.
 func New(queryType Type) (*Core, error) {
 	if queryType == "" {
-		//nolint:err113 // dynamic error required for validation
-		return nil, errors.New("query type is required (got empty)")
+		return nil, ErrEmptyQueryType
 	}
 
 	return &Core{queryType: queryType}, nil

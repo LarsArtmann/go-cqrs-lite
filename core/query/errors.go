@@ -7,3 +7,6 @@ var ErrQueryNotSupported = errors.New("query not supported")
 
 // ErrDispatcherClosed is returned when the dispatcher is closed.
 var ErrDispatcherClosed = errors.New("query dispatcher is closed")
+
+// ErrEmptyQueryType is returned when a query is created with an empty type.
+var ErrEmptyQueryType = errors.New("query type is required (got empty)")
