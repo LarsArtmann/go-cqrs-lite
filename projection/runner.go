@@ -198,13 +198,7 @@ func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (
 func (r *Runner) Close() error { return nil }
 
 func subscribesTo(p event.Projection, evtType event.Type) bool {
-	types := p.EventTypes()
-
-	if len(types) == 0 {
-		return true
-	}
-
-	return slices.Contains(types, evtType)
+	return event.SubscribesTo(p, evtType)
 }
 
 func filterEvents(

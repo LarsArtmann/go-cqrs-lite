@@ -77,7 +77,7 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 	evtType := evt.Type()
 
 	for _, proj := range projections {
-		if !subscribesTo(proj, evtType) {
+		if !SubscribesTo(proj, evtType) {
 			continue
 		}
 
@@ -105,7 +105,7 @@ func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
 	projections := make([]Projection, 0, len(r.projections))
 
 	for _, p := range r.projections {
-		if subscribesTo(p, evt.Type()) {
+		if SubscribesTo(p, evt.Type()) {
 			projections = append(projections, p)
 		}
 	}
@@ -168,8 +168,9 @@ func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
 }
 
 // subscribesTo returns true if the projection subscribes to the given event type.
-// Returns true if the projection subscribes to all events (nil EventTypes).
-func subscribesTo(proj Projection, evtType Type) bool {
+// SubscribesTo returns true if the projection subscribes to the given event type.
+// Returns true if the projection subscribes to all events (nil or empty EventTypes).
+func SubscribesTo(proj Projection, evtType Type) bool {
 	types := proj.EventTypes()
 	if len(types) == 0 {
 		return true
