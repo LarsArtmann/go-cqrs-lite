@@ -181,7 +181,7 @@ nix develop             # enter dev shell
 | ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                           |
 | `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                          |
-| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                             |
+| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                     |
 | `core/aggregate/`      | Aggregate roots and repository (OO) | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
 | `core/decider/`        | Aggregate via pure functions        | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
 | `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
@@ -236,7 +236,7 @@ nix develop             # enter dev shell
 
 | Package       | Purpose                                             | Key Types                                                        |
 | ------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)` |
+| `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)`, `WithLogger` |
 
 - **Runner**: Accepts `event.GlobalLoader` (for replay) + `event.Bus` (for live). Register `event.Projection` instances before `Run()`.
 - **Per-projection checkpoint**: Each projection tracked by `Name()`. Events past checkpoint are skipped during replay.
@@ -660,3 +660,13 @@ Interfaces now return branded types instead of primitives:
   - **TEST(projection)**: Replaced all 9× `time.Sleep` with channel-based sync via `subscribeSignalBus` wrapper — no flaky CI timing
   - **TEST(memory)**: Added concurrent access tests for `MemoryStore` (10 goroutines × 50 saves + 50 loads) and `MemoryBus` (5 publishers × 20 events) — passes with `-race`
   - Zero lint, all 20 test packages pass
+
+- **Session 44 (Architecture: ISP + Error Classification + DI + Lint)**:
+  - **NEW**: `event.Publisher` and `event.Subscriber` sub-interfaces — `event.Bus` composes both. Non-breaking ISP improvement. Repositories accept `Publisher`, projections accept `Subscriber`.
+  - **NEW**: `RegisterClassification(sentinel, family)` — extensible error classification. External packages register sentinels via `init()` without circular deps. `Classify()` checks registered map.
+  - **NEW**: `command` and `query` packages register their sentinels (`ErrHandlerNotFound` → Rejection, `ErrDispatcherClosed` → Infrastructure, etc.)
+  - **NEW**: `WithLogger(*slog.Logger)` option for `projection.Runner` — replaces global `slog.Default()`. DI over globals.
+  - **STYLE**: `errors.As` → `errors.AsType` in `example/user/main.go` (Go 1.26 API)
+  - **LINT**: Resolved `gochecknoglobals` (inline struct initialization for classifier), `gochecknoinits` (nolint directives for registration pattern), `wsl_v5` in test file
+  - **SKIPPED**: `CatalogMeta` consolidation — `event.CatalogMeta` has extra `AggregateType` field; no clean shared location
+  - Zero lint (all 46 remaining issues are pre-existing), all 21 test packages pass
