@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------ |
-| Language  | Go 1.26                                                                                          |
+| Item      | Value                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------ |
+| Language  | Go 1.26                                                                                                            |
 | Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
-| Build     | `nix run .#build`                                                                                |
-| Test      | `nix run .#test` or see "Testing" below                                                          |
-| Lint      | `nix run .#lint`                                                                                 |
-| Format    | `nix fmt`                                                                                        |
-| Dev shell | `nix develop`                                                                                    |
-| CI        | GitHub Actions: ci.yml (Nix-based)                                                               |
+| Build     | `nix run .#build`                                                                                                  |
+| Test      | `nix run .#test` or see "Testing" below                                                                            |
+| Lint      | `nix run .#lint`                                                                                                   |
+| Format    | `nix fmt`                                                                                                          |
+| Dev shell | `nix develop`                                                                                                      |
+| CI        | GitHub Actions: ci.yml (Nix-based)                                                                                 |
 
 ## Monorepo Structure
 
@@ -182,8 +182,8 @@ nix develop             # enter dev shell
 | `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                           |
 | `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                          |
 | `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                             |
-| `core/aggregate/`      | Aggregate roots and repository (OO)  | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
-| `core/decider/`        | Aggregate via pure functions         | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
+| `core/aggregate/`      | Aggregate roots and repository (OO) | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
+| `core/decider/`        | Aggregate via pure functions        | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
 | `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
 | `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                      |
 
@@ -473,16 +473,16 @@ Interfaces now return branded types instead of primitives:
 
 ## Code Quality Improvements (Sessions 1–2)
 
-| Improvement                  | Detail                                                                 | Commit    |
-| ---------------------------- | ---------------------------------------------------------------------- | --------- |
-| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`  | `1862eae` |
-| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`             | `8e5150c` |
-| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                  | `4fdd447` |
-| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`          | `c1bc261` |
-| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)      | `699d247` |
-| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                           | `b23a781` |
-| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                   | `e84e3a1` |
-| Example rewrite            | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog | session 37 |
+| Improvement                  | Detail                                                                               | Commit     |
+| ---------------------------- | ------------------------------------------------------------------------------------ | ---------- |
+| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`                | `1862eae`  |
+| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                           | `8e5150c`  |
+| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                | `4fdd447`  |
+| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`                        | `c1bc261`  |
+| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                    | `699d247`  |
+| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                         | `b23a781`  |
+| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                 | `e84e3a1`  |
+| Example rewrite              | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog | session 37 |
 
 ## Known Issues
 
