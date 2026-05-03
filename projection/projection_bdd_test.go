@@ -204,7 +204,13 @@ var _ = Describe("Projection Runner", func() {
 			It("should return the last processed event ID", func() {
 				aggID := id.NewAggregateID()
 				evt := makeBDDEvent("UserCreated", 1)
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, []event.Event{evt}, 0)
+				err := store.Save(
+					ctx,
+					event.AggregateType("TestAggregate"),
+					aggID,
+					[]event.Event{evt},
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)

@@ -58,7 +58,7 @@ func createCounter(
 ) {
 	err := repo.Execute(ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCreateEvent(aggID, v + 1)}, nil
+			return []event.Event{makeCreateEvent(aggID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
@@ -71,7 +71,7 @@ func incrementCounter(
 ) {
 	err := repo.Execute(ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeIncrementEvent(aggID, v + 1)}, nil
+			return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
@@ -102,7 +102,7 @@ var _ = Describe("Decider Repository", func() {
 			It("should save and publish the decision events", func() {
 				err := repo.Execute(ctx, aggID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
-						return []event.Event{makeCreateEvent(aggID, v + 1)}, nil
+						return []event.Event{makeCreateEvent(aggID, v+1)}, nil
 					},
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -179,7 +179,7 @@ var _ = Describe("Decider Repository", func() {
 						receivedState = state
 						receivedVersion = v
 
-						return []event.Event{makeIncrementEvent(aggID, v + 1)}, nil
+						return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
 					},
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -242,7 +242,11 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when I create a repository without a fold function", func() {
 			It("should return ErrNilFold", func() {
-				_, err := decider.NewRepository[bddCounter](store, bus, decider.Decider[bddCounter]{})
+				_, err := decider.NewRepository[bddCounter](
+					store,
+					bus,
+					decider.Decider[bddCounter]{},
+				)
 				Expect(err).To(MatchError(decider.ErrNilFold))
 			})
 		})

@@ -169,8 +169,12 @@ var _ = Describe("MemoryBus", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1))).To(Succeed())
-				Expect(bus.Publish(ctx, makeMemEvent("OrderPlaced", id.NewAggregateID(), 1))).To(Succeed())
+				Expect(
+					bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1)),
+				).To(Succeed())
+				Expect(
+					bus.Publish(ctx, makeMemEvent("OrderPlaced", id.NewAggregateID(), 1)),
+				).To(Succeed())
 
 				Expect(received).To(HaveLen(2))
 			})
