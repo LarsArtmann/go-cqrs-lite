@@ -36,77 +36,77 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 	var events []event.Event
 
 	for rows.Next() {
-		var (
-			idStr        string
-			eventType    string
-			aggType      string
-			aggIDStr     string
-			version      int
-			payload      []byte
-			metadataJSON []byte
-			occurredAt   time.Time
-		)
-
-		err := rows.Scan(
-			&idStr,
-			&eventType,
-			&aggType,
-			&aggIDStr,
-			&version,
-			&payload,
-			&metadataJSON,
-			&occurredAt,
-		)
+		evt, err := scanEvent(rows)
 		if err != nil {
-			return nil, fmt.Errorf("scan event row: %w", err)
-		}
-
-		parsedAggID, err := id.ParseAggregateID(aggIDStr)
-		if err != nil {
-			return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
-		}
-
-		parsedEventID, err := id.ParseEventID(idStr)
-		if err != nil {
-			return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
-		}
-
-		var opts []event.Option
-
-		opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
-
-		if len(metadataJSON) > 0 {
-			var meta event.Metadata
-
-			err := json.Unmarshal(metadataJSON, &meta)
-			if err != nil {
-				return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
-			}
-
-			opts = append(opts, event.WithMetadata(&meta))
-		}
-
-		evt, err := event.NewEvent(
-			event.Type(eventType),
-			parsedAggID,
-			event.AggregateType(aggType),
-			version,
-			payload,
-			opts...,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
+			return nil, err
 		}
 
 		events = append(events, evt)
 	}
 
-	err := rows.Err()
-	if err != nil {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate event rows: %w", err)
 	}
 
 	return events, nil
+}
+
+func scanEvent(rows *sql.Rows) (event.Event, error) {
+	var (
+		idStr        string
+		eventType    string
+		aggType      string
+		aggIDStr     string
+		version      int
+		payload      []byte
+		metadataJSON []byte
+		occurredAt   time.Time
+	)
+
+	err := rows.Scan(&idStr, &eventType, &aggType, &aggIDStr, &version, &payload, &metadataJSON, &occurredAt)
+	if err != nil {
+		return nil, fmt.Errorf("scan event row: %w", err)
+	}
+
+	parsedAggID, err := id.ParseAggregateID(aggIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
+	}
+
+	parsedEventID, err := id.ParseEventID(idStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
+	}
+
+	opts := []event.Option{event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt)}
+
+	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
+	if err != nil {
+		return nil, err
+	}
+
+	opts = append(opts, metaOpts...)
+
+	evt, err := event.NewEvent(event.Type(eventType), parsedAggID, event.AggregateType(aggType), version, payload, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
+	}
+
+	return evt, nil
+}
+
+func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	var meta event.Metadata
+
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
+	}
+
+	return []event.Option{event.WithMetadata(&meta)}, nil
 }
 
 func marshalMetadata(m *event.Metadata) ([]byte, error) {

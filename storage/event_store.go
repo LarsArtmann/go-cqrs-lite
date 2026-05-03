@@ -64,11 +64,31 @@ func (s *SQLEventStore) Save(
 		_ = tx.Rollback()
 	}()
 
+	err = checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	if err != nil {
+		return err
+	}
+
+	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	if err != nil {
+		return err
+	}
+
+	return commitTx(tx)
+}
+
+func checkVersion(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	expectedVersion event.Version,
+) error {
 	var currentVersion int
 
 	query := `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	err = tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
+	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
 		Scan(&currentVersion)
 	if err != nil {
 		return fmt.Errorf("check current version: %w", err)
@@ -83,16 +103,6 @@ func (s *SQLEventStore) Save(
 			aggregateType,
 			aggregateID,
 		)
-	}
-
-	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return nil
@@ -119,30 +129,16 @@ func (s *SQLEventStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	for _, evt := range events {
-		metadata, err := marshalMetadata(evt.Metadata())
-		if err != nil {
-			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
-		}
-
-		_, err = tx.ExecContext(
-			ctx,
-			insertEventSQL,
-			evt.ID(),
-			string(evt.Type()),
-			string(aggregateType),
-			aggregateID,
-			evt.Version(),
-			evt.Payload(),
-			metadata,
-			evt.OccurredAt(),
-		)
-		if err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
-		}
+	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	if err != nil {
+		return err
 	}
 
-	err = tx.Commit()
+	return commitTx(tx)
+}
+
+func commitTx(tx *sql.Tx) error {
+	err := tx.Commit()
 	if err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
 	}

@@ -76,29 +76,15 @@ func (s *SQLSnapshotStore) Load(
 	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	var (
-		version    int
-		stateBytes []byte
-		createdAt  time.Time
-	)
-
-	err := s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
-		Scan(&version, &stateBytes, &createdAt)
+	snap, err := scanSnapshot(s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID))
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, event.ErrSnapshotNotFound
-		}
-
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
-	return &event.Snapshot{
-		AggregateType: aggregateType,
-		AggregateID:   aggregateID,
-		Version:       event.Version(version),
-		State:         stateBytes,
-		CreatedAt:     createdAt,
-	}, nil
+	snap.AggregateType = aggregateType
+	snap.AggregateID = aggregateID
+
+	return snap, nil
 }
 
 // LoadAtVersion retrieves a snapshot at or before a specific version.
@@ -112,38 +98,43 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
+	snap, err := scanSnapshot(s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID))
+	if err != nil {
+		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
+			version, aggregateType, aggregateID, err)
+	}
+
+	if snap.Version.Int() > version.Int() {
+		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
+			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
+	}
+
+	snap.AggregateType = aggregateType
+	snap.AggregateID = aggregateID
+
+	return snap, nil
+}
+
+func scanSnapshot(row *sql.Row) (*event.Snapshot, error) {
 	var (
-		snapVersion int
-		stateBytes  []byte
-		createdAt   time.Time
+		version    int
+		stateBytes []byte
+		createdAt  time.Time
 	)
 
-	err := s.db.QueryRowContext(
-		ctx,
-		query,
-		string(aggregateType),
-		aggregateID,
-	).Scan(&snapVersion, &stateBytes, &createdAt)
+	err := row.Scan(&version, &stateBytes, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, event.ErrSnapshotNotFound
 		}
 
-		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
-			version, aggregateType, aggregateID, err)
-	}
-
-	if snapVersion > version.Int() {
-		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
-			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
+		return nil, err
 	}
 
 	return &event.Snapshot{
-		AggregateType: aggregateType,
-		AggregateID:   aggregateID,
-		Version:       event.Version(snapVersion),
-		State:         stateBytes,
-		CreatedAt:     createdAt,
+		Version:   event.Version(version),
+		State:     stateBytes,
+		CreatedAt: createdAt,
 	}, nil
 }
 

@@ -101,39 +101,62 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 // Respects context cancellation: if the context is canceled, remaining
 // goroutines are waited for but their results are ignored.
 func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
-	r.mu.RLock()
-	projections := make([]Projection, 0, len(r.projections))
-
-	for _, p := range r.projections {
-		if SubscribesTo(p, evt.Type()) {
-			projections = append(projections, p)
-		}
-	}
-
-	r.mu.RUnlock()
-
+	projections := r.matchingProjections(evt.Type())
 	if len(projections) == 0 {
 		return nil
 	}
 
-	type result struct {
-		proj Projection
-		err  error
+	results := r.dispatchProjections(ctx, projections, evt)
+
+	return r.collectResults(ctx, results, projections, evt)
+}
+
+func (r *InMemoryRunner) matchingProjections(evtType Type) []Projection {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	matched := make([]Projection, 0, len(r.projections))
+	for _, p := range r.projections {
+		if SubscribesTo(p, evtType) {
+			matched = append(matched, p)
+		}
 	}
 
-	results := make(chan result, len(projections))
+	return matched
+}
+
+type parallelResult struct {
+	proj Projection
+	err  error
+}
+
+func (r *InMemoryRunner) dispatchProjections(
+	ctx context.Context,
+	projections []Projection,
+	evt Event,
+) chan parallelResult {
+	results := make(chan parallelResult, len(projections))
 
 	for _, proj := range projections {
 		go func(p Projection) {
 			err := p.Handle(ctx, evt)
-			results <- result{proj: p, err: err}
+			results <- parallelResult{proj: p, err: err}
 		}(proj)
 	}
 
+	return results
+}
+
+func (r *InMemoryRunner) collectResults(
+	ctx context.Context,
+	results chan parallelResult,
+	projections []Projection,
+	evt Event,
+) error {
 	var firstErr error
 
 	for range projections {
-		var res result
+		var res parallelResult
 
 		select {
 		case <-ctx.Done():
