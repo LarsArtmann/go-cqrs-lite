@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-01 · **Module count:** 9 · **Go version:** 1.26
+**Last audited:** 2026-05-03 · **Module count:** 9 · **Go version:** 1.26
 
 ## Status Legend
 
@@ -33,7 +33,7 @@
 | MustNew panic helper | `MustNew()` for test convenience                                              | ✅     |
 | Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation          | ✅     |
 
-**Coverage:** 100%
+**Coverage:** 100.0%
 
 ---
 
@@ -51,7 +51,7 @@
 | Paginated results    | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`        | ✅     |
 | Catalog metadata     | `Catalogable` interface + `CatalogCore`                                          | ✅     |
 
-**Defaults:** Page 1, PageSize 20, max 100. **Coverage:** 100%
+**Defaults:** Page 1, PageSize 20, max 100. **Coverage:** 100.0%
 
 ---
 
@@ -74,7 +74,7 @@
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
-**Coverage:** 97.0%
+**Coverage:** 93.6%
 
 ---
 
@@ -91,9 +91,10 @@
 | Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                  | ✅     |
 | Snapshot codec         | `WithCodec` option for custom snapshot serialization                                            | ✅     |
 | Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
+| ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                    | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
-**Coverage:** 95.8%
+**Coverage:** 95.3%
 
 ---
 
@@ -175,7 +176,6 @@
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
 **Coverage:** 99.1%
-
 ---
 
 ## Middleware Suite ✅ FULLY_FUNCTIONAL
@@ -240,7 +240,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | `EventValidation(validator)`   | Same                                                      |
 | `QueryValidation(validator)`   | Same                                                      |
 
-**Coverage:** 100%
+**Coverage:** 100.0%
 
 ---
 
@@ -276,7 +276,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
 | Examples            | `toExamples()` converts `json.RawMessage` to AsyncAPI examples                                              | ✅     |
 
-**Coverage:** 96.8%
+**Coverage:** 95.9%
 
 ---
 
@@ -292,7 +292,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
-**Coverage:** 93.7%
+**Coverage:** 95.6%
 
 ---
 
@@ -309,7 +309,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Schema tooltips     | Field names and types shown on hover                        | ✅     |
 | Options             | `WithDescription`, `WithDirection` for layout customization | ✅     |
 
-**Coverage:** 97.7%
+**Coverage:** 97.6%
 
 ---
 
@@ -395,19 +395,20 @@ Features mentioned in project docs/planning but with **no production code**:
 | ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
 | `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
 | `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~1100      | 70+         | 97.0%    | ✅ Production   |
-| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 92.7%    | ✅ Production   |
+| `core/event`           | `…/core/event`           | ~1100      | 70+         | 93.6%    | ✅ Production   |
+| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.3%    | ✅ Production   |
+| `core/decider`         | `…/core/decider`         | ~240       | 22          | 95.6%    | ✅ Production   |
 | `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
 | `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |
-| `memory`               | `…/memory`               | ~500       | Extensive   | 98.0%    | 🧪 Test utility |
+| `memory`               | `…/memory`               | ~500       | Extensive   | 99.1%    | 🧪 Test utility |
 | `catalog`              | `…/catalog`              | ~400       | Extensive   | 94.4%    | ✅ Production   |
-| `catalog/asyncapi`     | `…/catalog/asyncapi`     | ~280       | Golden-file | 96.8%    | ✅ Production   |
-| `catalog/d2`           | `…/catalog/d2`           | ~340       | 14          | 97.7%    | ✅ Production   |
-| `catalog/eventcatalog` | `…/catalog/eventcatalog` | ~350       | Golden-file | 93.7%    | ✅ Production   |
-| `middleware`           | `…/middleware`           | ~600       | Extensive   | 99.4%    | ✅ Production   |
+| `catalog/asyncapi`     | `…/catalog/asyncapi`     | ~280       | Golden-file | 95.9%    | ✅ Production   |
+| `catalog/d2`           | `…/catalog/d2`           | ~340       | 14          | 97.6%    | ✅ Production   |
+| `catalog/eventcatalog` | `…/catalog/eventcatalog` | ~350       | Golden-file | 95.6%    | ✅ Production   |
+| `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~614       | 31          | 95.4%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~614       | 31          | 93.6%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---

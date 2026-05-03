@@ -27,7 +27,7 @@ None — all critical items resolved.
 
 ## 🟢 LOW Priority (Nice-to-Have)
 
-- [ ] **Add performance benchmarks** — zero benchmarks exist in the entire project
+- [ ] **Add missing benchmarks** — 26 benchmarks exist in 7 files (integration/*, core/pkg/id, catalog); missing from `core/decider`, `projection`, `middleware`
 - [ ] **Design outbox transaction co-participation API** — currently Save + Append are separate calls
 - [ ] **Design `query.Handler` generics migration** — breaking change plan
 - [ ] **Tag `v0.1.0-alpha`** — first public release after all phases complete

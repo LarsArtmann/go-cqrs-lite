@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Zero lint issues** across all 8 linted modules (was 50+).
 - **go.mod tidy**: ginkgo/gomega moved from indirect to direct in memory and projection modules.
 - **SnapshotStrategy deduplication**: Removed 22-line duplicate from aggregate and decider; replaced with type aliases.
+- `FakeSnapshotStore.Save` now records snapshots for verification (was no-op)
+- Updated `dispatcher.Typed` documentation to clarify string-backed named types require explicit `string()` conversion
 
 ### Fixed
 
@@ -46,11 +48,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Example app** (`example/user`): Working User aggregate demonstrating full CQRS + Event Sourcing lifecycle.
 - **FakeSnapshotStore** (`testhelpers`): `Saved()` method and `SetSaveError` for testing snapshot creation and failure paths.
 - **Exported fakes** (`testhelpers`): `FakeStore`, `FakeBus`, `FakeSnapshotStore`, `FakeOutbox` — reusable test doubles for all modules.
-
-### Changed
-
-- `FakeSnapshotStore.Save` now records snapshots for verification (was no-op)
-- Updated `dispatcher.Typed` documentation to clarify string-backed named types require explicit `string()` conversion
 
 ## [0.2.0] - 2026-04-05
 
