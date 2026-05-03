@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -119,4 +120,37 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func insertEvents(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	events []event.Event,
+) error {
+	for _, evt := range events {
+		metadata, err := marshalMetadata(evt.Metadata())
+		if err != nil {
+			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
+		}
+
+		_, err = tx.ExecContext(
+			ctx,
+			insertEventSQL,
+			evt.ID(),
+			string(evt.Type()),
+			string(aggregateType),
+			aggregateID,
+			evt.Version(),
+			evt.Payload(),
+			metadata,
+			evt.OccurredAt(),
+		)
+		if err != nil {
+			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
+		}
+	}
+
+	return nil
 }

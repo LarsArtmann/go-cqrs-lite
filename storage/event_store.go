@@ -85,27 +85,9 @@ func (s *SQLEventStore) Save(
 		)
 	}
 
-	for _, evt := range events {
-		metadata, err := marshalMetadata(evt.Metadata())
-		if err != nil {
-			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
-		}
-
-		_, err = tx.ExecContext(
-			ctx,
-			insertEventSQL,
-			evt.ID(),
-			string(evt.Type()),
-			string(aggregateType),
-			aggregateID,
-			evt.Version(),
-			evt.Payload(),
-			metadata,
-			evt.OccurredAt(),
-		)
-		if err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
-		}
+	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	if err != nil {
+		return err
 	}
 
 	err = tx.Commit()
