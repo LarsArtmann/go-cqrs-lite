@@ -51,16 +51,19 @@ func (s *FakeStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	if s.saveFn != nil {
-		return s.saveFn(ctx, aggregateType, aggregateID, events, expectedVersion)
+	s.mu.RLock()
+	fn := s.saveFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(ctx, aggregateType, aggregateID, events, expectedVersion)
 	}
 
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
-
-	s.mu.Unlock()
 
 	return nil
 }
@@ -73,11 +76,10 @@ func (s *FakeStore) AppendBatch(
 	events []event.Event,
 ) error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
-
-	s.mu.Unlock()
 
 	return nil
 }
@@ -89,13 +91,11 @@ func (s *FakeStore) Load(
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
 	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
-	evts := s.events[key]
 
-	s.mu.RUnlock()
-
-	return evts, nil
+	return s.events[key], nil
 }
 
 // LoadFromVersion returns events starting after the given version.
@@ -106,11 +106,10 @@ func (s *FakeStore) LoadFromVersion(
 	version event.Version,
 ) ([]event.Event, error) {
 	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
 	all := s.events[key]
-
-	s.mu.RUnlock()
 
 	for i, evt := range all {
 		if evt.Version() > version {
@@ -128,11 +127,10 @@ func (s *FakeStore) Delete(
 	aggregateID id.AggregateID,
 ) error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
 	delete(s.events, key)
-
-	s.mu.Unlock()
 
 	return nil
 }

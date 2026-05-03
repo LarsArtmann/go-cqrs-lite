@@ -2,6 +2,7 @@ package memory_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -260,4 +261,42 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 	if err == nil {
 		t.Error("expected store closed error")
 	}
+}
+
+func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	const goroutines = 10
+	const eventsPerGoroutine = 50
+
+	var wg sync.WaitGroup
+	wg.Add(goroutines * 2)
+
+	for i := range goroutines {
+		aggID := id.NewAggregateID()
+
+		go func() {
+			defer wg.Done()
+
+			for j := range eventsPerGoroutine {
+				evt := testhelpers.QuickEvent("UserCreated", aggID, "User", j, nil)
+				_ = store.Save(ctx, "User", aggID, []event.Event{evt}, event.Version(j))
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+
+			for range eventsPerGoroutine {
+				_, _ = store.Load(ctx, "User", aggID)
+			}
+		}()
+
+		_ = i
+	}
+
+	wg.Wait()
 }

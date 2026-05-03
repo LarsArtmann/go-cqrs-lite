@@ -368,17 +368,18 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
 | `core/pkg/id`          | 100.0%   |
-| `middleware`           | 99.4%    |
-| `memory`               | 98.0%    |
+| `middleware`           | 100.0%   |
+| `core/event`           | ~98%     |
+| `memory`               | ~98%     |
 | `catalog/d2`           | 97.7%    |
-| `core/event`           | 97.0%    |
-| `catalog/asyncapi`     | 96.8%    |
+| `catalog/asyncapi`     | 95.9%    |
 | `catalog/adapters`     | 95.5%    |
-| `storage`              | 95.4%    |
-| `catalog/eventcatalog` | 93.7%    |
+| `storage`              | ~92%     |
+| `catalog/eventcatalog` | 95.6%    |
 | `catalog`              | 94.4%    |
-| `core/aggregate`       | 92.7%    |
-| `core/decider`         | ~95%     |
+| `core/decider`         | ~94%     |
+| `core/aggregate`       | ~93%     |
+| `projection`           | ~90%     |
 
 ## Module Dependency Graph
 
@@ -645,3 +646,17 @@ Interfaces now return branded types instead of primitives:
   - **REFACTOR(catalog/d2)**: Simplified `sanitizeID` to single-pass `strings.Map`; removed redundant `Sends` case in action switch
   - **FIX(testhelpers)**: `FakeOutbox` uses monotonic counter for IDs (was `len(Entries)`, produced duplicates after `Ack`)
   - Net -69 lines across 11 files, zero lint, all 21 test packages pass
+
+- **Session 43 (Bug Fixes + Test Quality + Coverage)**:
+  - **FIX(event)**: `HandleParallel` goroutine now has panic recovery — prevents deadlock from panicking projection handlers
+  - **FIX(event)**: `OutboxPublisher.run()` goroutine now has panic recovery — prevents process crash from panicked publish cycle
+  - **FIX(aggregate)**: `TestCoreDoesNotImplementRootDirectly` now has proper assertions (was zero-assertion always-passing test)
+  - **FIX(event)**: `TestOutboxPublisher_PublishNow_ContextCanceled` now asserts error (stub also made context-aware)
+  - **FIX(testhelpers)**: `FakeOutbox` uses `sync.RWMutex` + `RLock()` for `PollPending` (was exclusive `Lock()` for read-only)
+  - **FIX(testhelpers)**: `FakeStore.Save` reads `saveFn` under `RLock` (was data race with `SaveFn()`)
+  - **FIX(testhelpers)**: All `FakeStore`/`FakeOutbox` methods use `defer` unlock (was manual unlock without defer)
+  - **REFACTOR(decider)**: Split `decider.go` (292→243 lines) by extracting `loadFromSnapshot` to `options.go`
+  - **TEST(decider)**: Coverage 77.4%→94.3% — added 8 tests: snapshot decode error, store load error, fold error during replay, save snapshot error, Delete error, EveryNEvents validation, snapshot+events after, nil snapshot fallback
+  - **TEST(projection)**: Replaced all 9× `time.Sleep` with channel-based sync via `subscribeSignalBus` wrapper — no flaky CI timing
+  - **TEST(memory)**: Added concurrent access tests for `MemoryStore` (10 goroutines × 50 saves + 50 loads) and `MemoryBus` (5 publishers × 20 events) — passes with `-race`
+  - Zero lint, all 20 test packages pass

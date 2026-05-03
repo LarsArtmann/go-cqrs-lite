@@ -470,7 +470,10 @@ func TestOutboxPublisher_PublishNow_ContextCanceled(t *testing.T) {
 		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
-	_ = p.PublishNow(ctx)
+	err = p.PublishNow(ctx)
+	if err == nil {
+		t.Fatal("expected error from canceled context")
+	}
 }
 
 type stubOutbox struct {
@@ -483,9 +486,13 @@ type stubOutbox struct {
 
 func (o *stubOutbox) Append(_ context.Context, _ []Event) error { return nil }
 
-func (o *stubOutbox) PollPending(_ context.Context, limit int) ([]OutboxEntry, error) {
+func (o *stubOutbox) PollPending(ctx context.Context, limit int) ([]OutboxEntry, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
+
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 
 	if o.pollErr != nil {
 		return nil, o.pollErr

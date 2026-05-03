@@ -1,7 +1,7 @@
 # TODO List
 
-**Audited:** 2026-05-03 · **Session 42**
-**Sources:** Session 41 execution, Session 42 continuation
+**Audited:** 2026-05-03 · **Session 43**
+**Sources:** Session 43 execution (bug fixes + test quality)
 
 ---
 
@@ -47,6 +47,22 @@ None — all medium items resolved.
 
 - [ ] **Tagged releases** — All modules at `v0.0.0`
   - Tag `v0.1.0-alpha` when modules stabilize
+
+---
+
+## ✅ COMPLETED (Session 43)
+
+- [x] **Fix `HandleParallel` panic recovery** — goroutine now recovers panics instead of deadlocking
+- [x] **Fix `OutboxPublisher.run()` panic recovery** — background goroutine recovers panics
+- [x] **Fix `TestCoreDoesNotImplementRootDirectly`** — added proper assertions
+- [x] **Fix `TestOutboxPublisher_PublishNow_ContextCanceled`** — added error assertion
+- [x] **Fix `FakeOutbox.PollPending`** — `Lock()` → `RLock()` + changed to `sync.RWMutex`
+- [x] **Fix `FakeStore.Save` data race** — `saveFn` read under `RLock`
+- [x] **Fix `FakeStore`/`FakeOutbox` defer unlocks** — all methods use `defer` unlock
+- [x] **Split `core/decider/decider.go`** — 292→243 lines (extracted `loadFromSnapshot`)
+- [x] **Increase `core/decider` coverage** — 77.4%→94.3% (8 new tests for error paths)
+- [x] **Replace `time.Sleep` in projection tests** — 9× sleep replaced with channel-based sync
+- [x] **Add concurrent access tests for memory** — MemoryStore + MemoryBus tested with `-race`
 
 ---
 
@@ -105,4 +121,4 @@ None — all medium items resolved.
 
 ---
 
-_Last updated: 2026-05-03 (Session 42)_
+_Last updated: 2026-05-03 (Session 43)_

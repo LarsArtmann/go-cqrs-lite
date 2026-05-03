@@ -349,6 +349,32 @@ func TestInMemoryRunner_HandleParallel_NoProjections(t *testing.T) {
 	}
 }
 
+func TestInMemoryRunner_HandleParallel_PanicRecovery(t *testing.T) {
+	t.Parallel()
+
+	runner, err := NewInMemoryRunner(nopCheckpointStore{})
+	if err != nil {
+		t.Fatalf("NewInMemoryRunner: %v", err)
+	}
+
+	err = runner.Register(NewProjection("panicker", func(_ context.Context, _ Event) error {
+		panic("handler exploded")
+	}, nil))
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	evt, err := NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	err = runner.HandleParallel(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error from panicked projection")
+	}
+}
+
 func TestInMemoryRunner_HandleParallel_PartialFailure_StillRunsOthers(t *testing.T) {
 	t.Parallel()
 

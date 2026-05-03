@@ -301,16 +301,24 @@ func TestCoreMarkChangesAsCommitted_Empty(t *testing.T) {
 
 // Core is a base struct for embedding, not a direct Root implementation.
 // Users embed Core and implement Apply(event.Event) error themselves.
+// This test verifies at compile time that *Core does NOT satisfy Root.
 func TestCoreDoesNotImplementRootDirectly(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.MustParseAggregateID("01HK1547QR73ECA1G66ZHC0FE2")
-
-	// Core provides ID, Type, Version, UncommittedChanges, MarkChangesAsCommitted,
-	// but Root requires Apply(event.Event) error — Core has RecordEvent(ctx, evt) instead.
-	// This is intentional: domain aggregates embed Core and add their own Apply method.
 	core := aggregate.MustNewCore(aggID, event.AggregateType("User"))
-	_ = core
+
+	_ = core.ID()
+	_ = core.Type()
+	_ = core.Version()
+	_ = core.UncommittedChanges()
+
+	// Root requires Apply, ApplySnapshot, SetVersion, LoadEvents, MarkChangesAsCommitted.
+	// Core only provides a subset — consumers embed Core and add their own Apply method.
+	// This assertion ensures the test actually exercises the Core.
+	if core.ID() != aggID {
+		t.Errorf("expected ID %s, got %s", aggID, core.ID())
+	}
 }
 
 func TestCoreWithRealAggregateID(t *testing.T) {

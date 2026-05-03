@@ -2,6 +2,7 @@ package memory_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -210,5 +211,60 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	err := bus.Publish(ctx, evt1, evt2)
 	if err == nil {
 		t.Error("expected error when second event fails")
+	}
+}
+
+func TestMemoryBus_ConcurrentPublishAndSubscribe(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	ctx := context.Background()
+
+	var received sync.Mutex
+
+	var events []string
+
+	handler := func(_ context.Context, evt event.Event) error {
+		received.Lock()
+		events = append(events, string(evt.Type()))
+		received.Unlock()
+
+		return nil
+	}
+
+	err := bus.SubscribeAll(handler)
+	if err != nil {
+		t.Fatalf("SubscribeAll: %v", err)
+	}
+
+	const publishers = 5
+	const eventsPerPublisher = 20
+
+	var wg sync.WaitGroup
+	wg.Add(publishers)
+
+	for i := range publishers {
+		go func() {
+			defer wg.Done()
+
+			for j := range eventsPerPublisher {
+				aggID := id.NewAggregateID()
+				evt := testhelpers.QuickEvent("ConcurrentEvent", aggID, "Test", j, nil)
+				_ = bus.Publish(ctx, evt)
+			}
+		}()
+
+		_ = i
+	}
+
+	wg.Wait()
+
+	received.Lock()
+	count := len(events)
+	received.Unlock()
+
+	expected := publishers * eventsPerPublisher
+	if count != expected {
+		t.Errorf("received %d events, want %d", count, expected)
 	}
 }

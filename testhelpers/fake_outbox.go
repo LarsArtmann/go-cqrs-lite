@@ -10,7 +10,7 @@ import (
 
 // FakeOutbox implements event.Outbox for testing.
 type FakeOutbox struct {
-	mu       sync.Mutex
+	mu       sync.RWMutex
 	Entries  []event.OutboxEntry
 	nextID   int
 	appendFn func(events []event.Event) error
@@ -48,8 +48,8 @@ func (o *FakeOutbox) Append(_ context.Context, events []event.Event) error {
 
 // PollPending returns all entries.
 func (o *FakeOutbox) PollPending(_ context.Context, _ int) ([]event.OutboxEntry, error) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 
 	return o.Entries, nil
 }
@@ -57,6 +57,7 @@ func (o *FakeOutbox) PollPending(_ context.Context, _ int) ([]event.OutboxEntry,
 // Ack removes entries matching the given IDs.
 func (o *FakeOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
 	o.mu.Lock()
+	defer o.mu.Unlock()
 
 	ackSet := make(map[event.OutboxID]struct{}, len(ids))
 	for _, id := range ids {
@@ -72,7 +73,6 @@ func (o *FakeOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
 	}
 
 	o.Entries = remaining
-	o.mu.Unlock()
 
 	return nil
 }

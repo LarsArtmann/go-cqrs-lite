@@ -121,7 +121,10 @@ func (p *OutboxPublisher) Close() error {
 }
 
 func (p *OutboxPublisher) run(ctx context.Context) {
-	defer close(p.done)
+	defer func() {
+		recover()
+		close(p.done)
+	}()
 
 	ticker := time.NewTicker(p.interval)
 	defer ticker.Stop()

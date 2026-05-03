@@ -645,3 +645,405 @@ func (c *ctxCheckStore) Load(
 
 	return c.Store.Load(ctx, aggType, aggID)
 }
+
+func TestLoad_SnapshotDecodeError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+	snapshotStore.SetSnapshot(&event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       event.Version(1),
+		State:         []byte("}}}not-json{{{"),
+		CreatedAt:     time.Now(),
+	})
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected decode error from malformed snapshot")
+	}
+}
+
+func TestLoad_SnapshotStoreLoadError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	snapshotStore.SetLoadError(fmt.Errorf("db unavailable"))
+	codec := event.JSONCodec{}
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected error from snapshot store load failure")
+	}
+}
+
+func TestLoad_SnapshotFoldError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+
+	snapState, _ := codec.Encode(counterState{Value: 1})
+	_ = snapshotStore.Save(t.Context(), event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       event.Version(1),
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterIncremented", aggID, 2),
+	})
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold: func(_ counterState, evt event.Event) (counterState, error) {
+			if evt.Version() > 1 {
+				return counterState{}, fmt.Errorf("corrupted event")
+			}
+
+			return counterState{Value: 1}, nil
+		},
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected fold error during snapshot replay")
+	}
+
+	if !errors.Is(err, decider.ErrFoldFailed) {
+		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	}
+}
+
+func TestExecute_SaveSnapshotError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	snapshotStore.SetSaveError(fmt.Errorf("disk full"))
+	codec := event.JSONCodec{}
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+		decider.WithSnapshotStrategy[counterState](decider.EveryNEvents(1)),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute should succeed despite snapshot save error: %v", err)
+	}
+}
+
+func TestDelete_StoreError(t *testing.T) {
+	t.Parallel()
+
+	store := &failingDeleteStore{}
+	bus := testhelpers.NewFakeBus()
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Delete(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected error from store delete failure")
+	}
+}
+
+type failingDeleteStore struct{ event.Store }
+
+func (f *failingDeleteStore) Save(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event, _ event.Version) error {
+	return nil
+}
+
+func (f *failingDeleteStore) AppendBatch(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+	return nil
+}
+
+func (f *failingDeleteStore) Load(_ context.Context, _ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (f *failingDeleteStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (f *failingDeleteStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {
+	return fmt.Errorf("disk error")
+}
+
+func (f *failingDeleteStore) Close() error { return nil }
+
+func TestEveryNEvents_PanicsOnZero(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for EveryNEvents(0)")
+		}
+	}()
+
+	decider.EveryNEvents(0)
+}
+
+func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for EveryNEvents(-1)")
+		}
+	}()
+
+	decider.EveryNEvents(-1)
+}
+
+func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+
+	snapState, _ := codec.Encode(counterState{Value: 5})
+	snapshotStore.SetSnapshot(&event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       event.Version(5),
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterIncremented", aggID, 6),
+		makeEvent(t, "CounterIncremented", aggID, 7),
+	})
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != 7 {
+		t.Fatalf("expected Value=7 (5 from snapshot + 2 events), got %d", state.Value)
+	}
+
+	if version != 7 {
+		t.Fatalf("expected version 7, got %d", version)
+	}
+}
+
+func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+
+	snapState, _ := codec.Encode(counterState{Value: 1})
+	snapshotStore.SetSnapshot(&event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       event.Version(1),
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterIncremented", aggID, 2),
+	})
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(
+		&failingLoadFromVersionStore{Store: store},
+		bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected error from LoadFromVersion failure")
+	}
+}
+
+func TestLoad_SnapshotNil(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != 1 {
+		t.Fatalf("expected Value=1 from store fallback, got %d", state.Value)
+	}
+
+	if version != 1 {
+		t.Fatalf("expected version 1, got %d", version)
+	}
+}
+
+func TestLoad_StoreLoadError(t *testing.T) {
+	t.Parallel()
+
+	store := &failingLoadStore{}
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected error from store load failure")
+	}
+}
+
+type failingLoadStore struct{}
+
+func (f *failingLoadStore) Save(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event, _ event.Version) error {
+	return nil
+}
+
+func (f *failingLoadStore) AppendBatch(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+	return nil
+}
+
+func (f *failingLoadStore) Load(_ context.Context, _ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+	return nil, fmt.Errorf("db unavailable")
+}
+
+func (f *failingLoadStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (f *failingLoadStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {
+	return nil
+}
+
+func (f *failingLoadStore) Close() error { return nil }
+
+type failingLoadFromVersionStore struct{ event.Store }
+
+func (f *failingLoadFromVersionStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+	return nil, fmt.Errorf("db unavailable")
+}

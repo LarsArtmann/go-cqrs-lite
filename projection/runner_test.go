@@ -81,7 +81,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 
 	handled := make(chan string, 1)
 
-	runner, bus := newTestRunnerWithBus(t)
+	runner, bus, ready := newTestRunnerWithReady(t)
 
 	err := runner.Register(event.NewProjection("user-proj",
 		func(_ context.Context, evt event.Event) error {
@@ -102,7 +102,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -130,7 +130,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
-	runner, bus := newTestRunnerWithBusAndCheckpoint(t, checkpoint)
+	runner, bus, ready := newTestRunnerWithReadyAndCheckpoint(t, checkpoint)
 
 	err := runner.Register(event.NewProjection("user-proj",
 		func(_ context.Context, _ event.Event) error {
@@ -151,7 +151,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -181,7 +181,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 
 	handled := make(chan string, 1)
 
-	runner, bus := newTestRunnerWithBus(t)
+	runner, bus, ready := newTestRunnerWithReady(t)
 
 	err := runner.Register(event.NewProjection("user-proj",
 		func(_ context.Context, evt event.Event) error {
@@ -202,7 +202,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	otherEvt := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
 
@@ -220,7 +220,7 @@ func TestRunner_WildcardProjection(t *testing.T) {
 
 	handled := make(chan string, 2)
 
-	runner, bus := newTestRunnerWithBus(t)
+	runner, bus, ready := newTestRunnerWithReady(t)
 
 	err := runner.Register(event.NewProjection("all-proj",
 		func(_ context.Context, evt event.Event) error {
@@ -241,7 +241,7 @@ func TestRunner_WildcardProjection(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
@@ -291,6 +291,8 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
+	replayDone := make(chan struct{})
+
 	var replayed []string
 
 	var replayMu sync.Mutex
@@ -300,6 +302,10 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 			replayMu.Lock()
 
 			replayed = append(replayed, string(evt.Type()))
+
+			if len(replayed) == 2 {
+				close(replayDone)
+			}
 
 			replayMu.Unlock()
 
@@ -321,7 +327,12 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	select {
+	case <-replayDone:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for replay to complete")
+	}
+
 	cancel()
 
 	<-done
@@ -349,7 +360,7 @@ func TestRunner_MultipleProjections(t *testing.T) {
 	userHandled := make(chan string, 1)
 	orderHandled := make(chan string, 1)
 
-	runner, bus := newTestRunnerWithBus(t)
+	runner, bus, ready := newTestRunnerWithReady(t)
 
 	err := runner.Register(event.NewProjection("user-proj",
 		func(_ context.Context, evt event.Event) error {
@@ -382,7 +393,7 @@ func TestRunner_MultipleProjections(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
@@ -446,6 +457,8 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
+	replayDone := make(chan struct{})
+
 	var replayed []id.EventID
 
 	var replayMu sync.Mutex
@@ -455,6 +468,10 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 			replayMu.Lock()
 
 			replayed = append(replayed, evt.ID())
+
+			if len(replayed) == 1 {
+				close(replayDone)
+			}
 
 			replayMu.Unlock()
 
@@ -476,7 +493,12 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	select {
+	case <-replayDone:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for replay to complete")
+	}
+
 	cancel()
 
 	<-done
@@ -499,7 +521,7 @@ func TestRunner_RetryOnTransientError(t *testing.T) {
 	attempts := make(chan int, 3)
 	callCount := 0
 
-	runner, bus := newTestRunnerWithOpts(t, projection.WithRetry(3, time.Millisecond))
+	runner, bus, ready := newTestRunnerWithReadyAndOpts(t, projection.WithRetry(3, time.Millisecond))
 
 	err := runner.Register(event.NewProjection("retry-proj",
 		func(_ context.Context, _ event.Event) error {
@@ -525,7 +547,7 @@ func TestRunner_RetryOnTransientError(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -552,7 +574,7 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 	attempts := make(chan int, 2)
 	callCount := 0
 
-	runner, bus := newTestRunnerWithOpts(t, projection.WithRetry(3, time.Millisecond))
+	runner, bus, ready := newTestRunnerWithReadyAndOpts(t, projection.WithRetry(3, time.Millisecond))
 
 	err := runner.Register(event.NewProjection("no-retry-proj",
 		func(_ context.Context, _ event.Event) error {
@@ -574,7 +596,7 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 		_ = runner.Run(ctx)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
+	<-ready
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -599,10 +621,23 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 	}
 }
 
-func newTestRunnerWithOpts(
+// subscribeSignalBus wraps an event.Bus and signals when SubscribeAll is called.
+type subscribeSignalBus struct {
+	event.Bus
+	ready chan struct{}
+	once  sync.Once
+}
+
+func (b *subscribeSignalBus) SubscribeAll(handler event.Handler) error {
+	b.once.Do(func() { close(b.ready) })
+
+	return b.Bus.SubscribeAll(handler)
+}
+
+func newTestRunnerWithReadyAndOpts(
 	t *testing.T,
 	opts ...projection.RunnerOption,
-) (*projection.Runner, *memory.MemoryBus) {
+) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
@@ -613,57 +648,50 @@ func newTestRunnerWithOpts(
 		_ = checkpoint.Close()
 	})
 
-	runner, err := projection.NewRunner(nil, bus, checkpoint, opts...)
+	ready := make(chan struct{})
+	signalBus := &subscribeSignalBus{Bus: bus, ready: ready}
+
+	runner, err := projection.NewRunner(nil, signalBus, checkpoint, opts...)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	return runner, bus
+	return runner, bus, ready
 }
 
-func newTestRunner(t *testing.T) *projection.Runner {
+func newTestRunnerWithReady(t *testing.T) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
 	t.Helper()
 
-	r, _ := newTestRunnerWithBus(t)
-
-	return r
+	return newTestRunnerWithReadyAndOpts(t)
 }
 
-func newTestRunnerWithBus(t *testing.T) (*projection.Runner, *memory.MemoryBus) {
-	t.Helper()
-
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
-
-	t.Cleanup(func() {
-		_ = bus.Close()
-		_ = checkpoint.Close()
-	})
-
-	runner, err := projection.NewRunner(nil, bus, checkpoint)
-	if err != nil {
-		t.Fatalf("NewRunner: %v", err)
-	}
-
-	return runner, bus
-}
-
-func newTestRunnerWithBusAndCheckpoint(
+func newTestRunnerWithReadyAndCheckpoint(
 	t *testing.T,
 	checkpoint *memory.MemoryCheckpointStore,
-) (*projection.Runner, *memory.MemoryBus) {
+) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	runner, err := projection.NewRunner(nil, bus, checkpoint)
+	ready := make(chan struct{})
+	signalBus := &subscribeSignalBus{Bus: bus, ready: ready}
+
+	runner, err := projection.NewRunner(nil, signalBus, checkpoint)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	return runner, bus
+	return runner, bus, ready
+}
+
+func newTestRunner(t *testing.T) *projection.Runner {
+	t.Helper()
+
+	r, _, _ := newTestRunnerWithReady(t)
+
+	return r
 }
 
 func mustNewEvent(

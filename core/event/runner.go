@@ -139,8 +139,20 @@ func (r *InMemoryRunner) dispatchProjections(
 
 	for _, proj := range projections {
 		go func(p Projection) {
-			err := p.Handle(ctx, evt)
-			results <- parallelResult{proj: p, err: err}
+			var res parallelResult
+
+			defer func() {
+				if r := recover(); r != nil {
+					res = parallelResult{
+						proj: p,
+						err:  fmt.Errorf("projection %q panicked: %v", p.Name(), r),
+					}
+				}
+
+				results <- res
+			}()
+
+			res = parallelResult{proj: p, err: p.Handle(ctx, evt)}
 		}(proj)
 	}
 
