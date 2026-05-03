@@ -168,12 +168,7 @@ func (r *EventSourcedRepository) loadEvents(
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
 	if r.snapshotStore == nil {
-		events, err := r.store.Load(ctx, aggregateType, aggregateID)
-		if err != nil {
-			return nil, opError("load events", aggregateType, aggregateID, err)
-		}
-
-		return events, nil
+		return r.loadFromStore(ctx, aggregateType, aggregateID)
 	}
 
 	snapshot, err := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
@@ -182,21 +177,11 @@ func (r *EventSourcedRepository) loadEvents(
 			return nil, opError("load snapshot", aggregateType, aggregateID, err)
 		}
 
-		events, err := r.store.Load(ctx, aggregateType, aggregateID)
-		if err != nil {
-			return nil, opError("load events", aggregateType, aggregateID, err)
-		}
-
-		return events, nil
+		return r.loadFromStore(ctx, aggregateType, aggregateID)
 	}
 
 	if snapshot == nil {
-		events, err := r.store.Load(ctx, aggregateType, aggregateID)
-		if err != nil {
-			return nil, opError("load events", aggregateType, aggregateID, err)
-		}
-
-		return events, nil
+		return r.loadFromStore(ctx, aggregateType, aggregateID)
 	}
 
 	root.SetVersion(snapshot.Version)

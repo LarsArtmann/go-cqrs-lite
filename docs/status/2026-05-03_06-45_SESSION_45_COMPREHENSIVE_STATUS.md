@@ -19,32 +19,32 @@ go-cqrs-lite is a **mature, production-quality Go CQRS library** with 9 independ
 
 ### Core CQRS Infrastructure
 
-| Feature | Module | Coverage | Status |
-|---------|--------|----------|--------|
-| Command Dispatcher | `core/command` | 100.0% | ✅ Full lifecycle, middleware, catalog |
-| Query Dispatcher | `core/query` | 100.0% | ✅ Pagination, typed dispatch, catalog |
-| Event System | `core/event` | 98.0% | ✅ Store+Bus interfaces, metadata, builder, JSON codec |
-| Branded IDs | `core/pkg/id` | 100.0% | ✅ Type alias to go-branded-id, ULID-backed |
-| Generic Dispatcher | `core/pkg/dispatcher` | 100.0% | ✅ Lifecycle, middleware chain |
-| Aggregate (OO) | `core/aggregate` | 93.2% | ✅ Repository, snapshots, versioning |
-| Decider (FP) | `core/decider` | 96.2% | ✅ Pure functions, snapshot support |
+| Feature            | Module                | Coverage | Status                                                 |
+| ------------------ | --------------------- | -------- | ------------------------------------------------------ |
+| Command Dispatcher | `core/command`        | 100.0%   | ✅ Full lifecycle, middleware, catalog                 |
+| Query Dispatcher   | `core/query`          | 100.0%   | ✅ Pagination, typed dispatch, catalog                 |
+| Event System       | `core/event`          | 98.0%    | ✅ Store+Bus interfaces, metadata, builder, JSON codec |
+| Branded IDs        | `core/pkg/id`         | 100.0%   | ✅ Type alias to go-branded-id, ULID-backed            |
+| Generic Dispatcher | `core/pkg/dispatcher` | 100.0%   | ✅ Lifecycle, middleware chain                         |
+| Aggregate (OO)     | `core/aggregate`      | 93.2%    | ✅ Repository, snapshots, versioning                   |
+| Decider (FP)       | `core/decider`        | 96.2%    | ✅ Pure functions, snapshot support                    |
 
 ### Supporting Modules
 
-| Feature | Module | Coverage | Status |
-|---------|--------|----------|--------|
-| Memory Store/Bus/Snapshot | `memory` | 91.9% | ✅ Thread-safe test implementations |
-| Middleware Suite | `middleware` | 100.0% | ✅ Logging, retry, recovery, validation, metrics |
-| Catalog Registry | `catalog` | 94.4% | ✅ Schema reflection, thread-safe registry |
-| AsyncAPI 3.0 Export | `catalog/asyncapi` | 95.9% | ✅ YAML/JSON, full document model |
-| D2 Diagram Export | `catalog/d2` | 97.6% | ✅ Color-coded nodes, domain grouping |
-| EventCatalog MDX | `catalog/eventcatalog` | 95.6% | ✅ MDX files with frontmatter |
-| Catalog Adapters | `catalog/adapters` | 95.5% | ✅ Builder, dispatcher extraction |
-| SQL Event Store | `storage` | 92.0% | ✅ PostgreSQL, snapshots, checkpoints, outbox |
-| Projection Runner | `projection` | 89.7% | ✅ Replay, live subscription, retry, DI logger |
-| Test Helpers | `testhelpers` | N/A | ✅ Fake store, bus, outbox, handlers |
-| Integration Tests | `integration` | N/A | ✅ BDD + middleware chain tests across all packages |
-| Example App | `example/user` | N/A | ✅ Full CQRS + Decider + EventCatalog demo |
+| Feature                   | Module                 | Coverage | Status                                              |
+| ------------------------- | ---------------------- | -------- | --------------------------------------------------- |
+| Memory Store/Bus/Snapshot | `memory`               | 91.9%    | ✅ Thread-safe test implementations                 |
+| Middleware Suite          | `middleware`           | 100.0%   | ✅ Logging, retry, recovery, validation, metrics    |
+| Catalog Registry          | `catalog`              | 94.4%    | ✅ Schema reflection, thread-safe registry          |
+| AsyncAPI 3.0 Export       | `catalog/asyncapi`     | 95.9%    | ✅ YAML/JSON, full document model                   |
+| D2 Diagram Export         | `catalog/d2`           | 97.6%    | ✅ Color-coded nodes, domain grouping               |
+| EventCatalog MDX          | `catalog/eventcatalog` | 95.6%    | ✅ MDX files with frontmatter                       |
+| Catalog Adapters          | `catalog/adapters`     | 95.5%    | ✅ Builder, dispatcher extraction                   |
+| SQL Event Store           | `storage`              | 92.0%    | ✅ PostgreSQL, snapshots, checkpoints, outbox       |
+| Projection Runner         | `projection`           | 89.7%    | ✅ Replay, live subscription, retry, DI logger      |
+| Test Helpers              | `testhelpers`          | N/A      | ✅ Fake store, bus, outbox, handlers                |
+| Integration Tests         | `integration`          | N/A      | ✅ BDD + middleware chain tests across all packages |
+| Example App               | `example/user`         | N/A      | ✅ Full CQRS + Decider + EventCatalog demo          |
 
 ### Architecture Quality
 
@@ -94,18 +94,18 @@ go-cqrs-lite is a **mature, production-quality Go CQRS library** with 9 independ
 
 ## c) NOT STARTED
 
-| Feature | Notes |
-|---------|-------|
-| Watermill module | Evaluated in `docs/planning/archive/` — Kafka/NATS adapter never started |
-| Event signing / HMAC | Mentioned as LOW priority in TODO_LIST.md |
-| Tagged releases | All modules at `v0.0.0` — no version tags published |
-| Real PostgreSQL integration tests | No testcontainers or real DB tests for `storage/` |
-| WebSocket/SSE transport | No opinionated transport layer (by design — library, not framework) |
-| gRPC transport | Same — consumer's responsibility |
-| Client-side event store | Planned for go-localfirst, not this library |
-| Event upcasting in storage | `UpcasterRegistry` exists in core but storage has no migration path |
-| Multi-tenant event store | No tenant isolation support |
-| Benchmarks for storage | No sqlmock benchmarks for PostgreSQL performance characteristics |
+| Feature                           | Notes                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| Watermill module                  | Evaluated in `docs/planning/archive/` — Kafka/NATS adapter never started |
+| Event signing / HMAC              | Mentioned as LOW priority in TODO_LIST.md                                |
+| Tagged releases                   | All modules at `v0.0.0` — no version tags published                      |
+| Real PostgreSQL integration tests | No testcontainers or real DB tests for `storage/`                        |
+| WebSocket/SSE transport           | No opinionated transport layer (by design — library, not framework)      |
+| gRPC transport                    | Same — consumer's responsibility                                         |
+| Client-side event store           | Planned for go-localfirst, not this library                              |
+| Event upcasting in storage        | `UpcasterRegistry` exists in core but storage has no migration path      |
+| Multi-tenant event store          | No tenant isolation support                                              |
+| Benchmarks for storage            | No sqlmock benchmarks for PostgreSQL performance characteristics         |
 
 ---
 
@@ -121,20 +121,20 @@ Nothing is currently broken. But here's what **sucks**:
 
 All 52 are in **test files only** — zero in production code. Breakdown:
 
-| Linter | Count | Fixable? |
-|--------|-------|----------|
-| `wsl_v5` | 11 | Yes — add blank lines |
-| `perfsprint` | 8 | Yes — replace `fmt.Errorf("literal")` with `errors.New` |
-| `noinlineerr` | 6 | Yes — extract to var |
-| `errcheck` | 10 | Yes — check returns |
-| `nlreturn` | 6 | Yes — add blank line before return |
-| `revive` | 3 | Yes — unused params to `_` |
-| `err113` | 2 | Yes — replace dynamic errors with sentinels |
-| `intrange` | 2 | Yes — use `for i := range n` |
-| `gci` | 1 | Yes — fix import order |
-| `golines` | 1 | Yes — shorten line |
-| `modernize` | 1 | Yes — use `cmp.Or` |
-| `exhaustruct` | 1 | Maybe — test struct literal |
+| Linter        | Count | Fixable?                                                |
+| ------------- | ----- | ------------------------------------------------------- |
+| `wsl_v5`      | 11    | Yes — add blank lines                                   |
+| `perfsprint`  | 8     | Yes — replace `fmt.Errorf("literal")` with `errors.New` |
+| `noinlineerr` | 6     | Yes — extract to var                                    |
+| `errcheck`    | 10    | Yes — check returns                                     |
+| `nlreturn`    | 6     | Yes — add blank line before return                      |
+| `revive`      | 3     | Yes — unused params to `_`                              |
+| `err113`      | 2     | Yes — replace dynamic errors with sentinels             |
+| `intrange`    | 2     | Yes — use `for i := range n`                            |
+| `gci`         | 1     | Yes — fix import order                                  |
+| `golines`     | 1     | Yes — shorten line                                      |
+| `modernize`   | 1     | Yes — use `cmp.Or`                                      |
+| `exhaustruct` | 1     | Maybe — test struct literal                             |
 
 ### CatalogMeta Duplication
 
@@ -174,33 +174,33 @@ All 52 are in **test files only** — zero in production code. Breakdown:
 
 ## f) Top 25 Things We Should Get Done Next
 
-| # | Priority | Item | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | 🔴 | Fix all 52 lint issues (tests only) | 1h | Trust signal |
-| 2 | 🔴 | Tag `v0.1.0-alpha` for all modules | 30m | Enables version pinning |
-| 3 | 🔴 | Real PostgreSQL integration tests (testcontainers) | 4h | Proves SQL works |
-| 4 | 🟡 | Projection dead-letter mechanism | 3h | Production readiness |
-| 5 | 🟡 | Storage options (table prefix, logger, pool) | 2h | Configurability |
-| 6 | 🟡 | Register storage/projection errors in taxonomy | 1h | Consistent error handling |
-| 7 | 🟡 | Example app smoke test | 1h | Proves demo works |
-| 8 | 🟡 | BDD tests for command, query, event modules | 3h | User-focused coverage |
-| 9 | 🟡 | BDD tests for middleware module | 2h | User-focused coverage |
-| 10 | 🟡 | BDD tests for catalog modules | 3h | User-focused coverage |
-| 11 | 🟢 | Benchmark suite (event, dispatcher, store) | 2h | Performance visibility |
-| 12 | 🟢 | Fix `query.Handler` returns `any` | 2h | API correctness (breaking) |
-| 13 | 🟢 | Event signing / HMAC verification | 4h | Integrity guarantees |
-| 14 | 🟢 | Saga/Process Manager implementation | 8h | Orchestration support |
-| 15 | 🟢 | Watermill adapter module | 6h | Kafka/NATS integration |
-| 16 | 🟢 | Storage DDL abstractions (multi-DB) | 4h | MySQL/SQLite support |
-| 17 | 🟢 | Event upcasting migration path in storage | 3h | Schema evolution |
-| 18 | 🟢 | Multi-tenant event store support | 6h | SaaS use case |
-| 19 | 🟢 | Documentation site (MkDocs/Hugo) | 4h | Discoverability |
-| 20 | 🟢 | Projection batch processing | 2h | Throughput |
-| 21 | 🟢 | Projection backpressure / rate limiting | 3h | Stability under load |
-| 22 | 🟢 | Client-side event metadata convention docs | 1h | Offline-first enablement |
-| 23 | 🟢 | Connection pool configuration guide for storage | 1h | Operational docs |
-| 24 | 🟢 | godoc for all exported symbols (remaining ~20) | 2h | API documentation |
-| 25 | 🟢 | CI pipeline for tagged releases (goreleaser) | 3h | Automated publishing |
+| #   | Priority | Item                                               | Effort | Impact                     |
+| --- | -------- | -------------------------------------------------- | ------ | -------------------------- |
+| 1   | 🔴       | Fix all 52 lint issues (tests only)                | 1h     | Trust signal               |
+| 2   | 🔴       | Tag `v0.1.0-alpha` for all modules                 | 30m    | Enables version pinning    |
+| 3   | 🔴       | Real PostgreSQL integration tests (testcontainers) | 4h     | Proves SQL works           |
+| 4   | 🟡       | Projection dead-letter mechanism                   | 3h     | Production readiness       |
+| 5   | 🟡       | Storage options (table prefix, logger, pool)       | 2h     | Configurability            |
+| 6   | 🟡       | Register storage/projection errors in taxonomy     | 1h     | Consistent error handling  |
+| 7   | 🟡       | Example app smoke test                             | 1h     | Proves demo works          |
+| 8   | 🟡       | BDD tests for command, query, event modules        | 3h     | User-focused coverage      |
+| 9   | 🟡       | BDD tests for middleware module                    | 2h     | User-focused coverage      |
+| 10  | 🟡       | BDD tests for catalog modules                      | 3h     | User-focused coverage      |
+| 11  | 🟢       | Benchmark suite (event, dispatcher, store)         | 2h     | Performance visibility     |
+| 12  | 🟢       | Fix `query.Handler` returns `any`                  | 2h     | API correctness (breaking) |
+| 13  | 🟢       | Event signing / HMAC verification                  | 4h     | Integrity guarantees       |
+| 14  | 🟢       | Saga/Process Manager implementation                | 8h     | Orchestration support      |
+| 15  | 🟢       | Watermill adapter module                           | 6h     | Kafka/NATS integration     |
+| 16  | 🟢       | Storage DDL abstractions (multi-DB)                | 4h     | MySQL/SQLite support       |
+| 17  | 🟢       | Event upcasting migration path in storage          | 3h     | Schema evolution           |
+| 18  | 🟢       | Multi-tenant event store support                   | 6h     | SaaS use case              |
+| 19  | 🟢       | Documentation site (MkDocs/Hugo)                   | 4h     | Discoverability            |
+| 20  | 🟢       | Projection batch processing                        | 2h     | Throughput                 |
+| 21  | 🟢       | Projection backpressure / rate limiting            | 3h     | Stability under load       |
+| 22  | 🟢       | Client-side event metadata convention docs         | 1h     | Offline-first enablement   |
+| 23  | 🟢       | Connection pool configuration guide for storage    | 1h     | Operational docs           |
+| 24  | 🟢       | godoc for all exported symbols (remaining ~20)     | 2h     | API documentation          |
+| 25  | 🟢       | CI pipeline for tagged releases (goreleaser)       | 3h     | Automated publishing       |
 
 ---
 
@@ -222,48 +222,48 @@ This is a **breaking API change** regardless of approach. I need your direction 
 
 ## Metrics Dashboard
 
-| Metric | Value |
-|--------|-------|
-| Modules | 9 (+ example) |
-| Production lines | 9,514 |
-| Test lines | 21,428 |
-| Total Go files | 181 |
-| Test packages (passing) | 21/21 (100%) |
-| Race detector | ✅ Clean |
-| Overall coverage | 83.3% |
-| Core module coverage | 97.6% |
-| Middleware coverage | 100.0% |
-| Memory coverage | 91.9% |
-| Catalog coverage | 81.4% |
-| Storage coverage | 92.0% |
-| Projection coverage | 89.7% |
-| Lint issues | 52 (all in tests) |
-| Open ADRs | 3 |
-| Research docs | 9 |
-| Status reports | 6 (+ this one) |
-| Dependencies (prod) | 4 (`cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`) |
-| Dependencies (test) | 2 (`onsi/ginkgo`, `onsi/gomega`) |
+| Metric                  | Value                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| Modules                 | 9 (+ example)                                                                      |
+| Production lines        | 9,514                                                                              |
+| Test lines              | 21,428                                                                             |
+| Total Go files          | 181                                                                                |
+| Test packages (passing) | 21/21 (100%)                                                                       |
+| Race detector           | ✅ Clean                                                                           |
+| Overall coverage        | 83.3%                                                                              |
+| Core module coverage    | 97.6%                                                                              |
+| Middleware coverage     | 100.0%                                                                             |
+| Memory coverage         | 91.9%                                                                              |
+| Catalog coverage        | 81.4%                                                                              |
+| Storage coverage        | 92.0%                                                                              |
+| Projection coverage     | 89.7%                                                                              |
+| Lint issues             | 52 (all in tests)                                                                  |
+| Open ADRs               | 3                                                                                  |
+| Research docs           | 9                                                                                  |
+| Status reports          | 6 (+ this one)                                                                     |
+| Dependencies (prod)     | 4 (`cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`) |
+| Dependencies (test)     | 2 (`onsi/ginkgo`, `onsi/gomega`)                                                   |
 
 ### Coverage by Package
 
-| Package | Coverage |
-|---------|----------|
-| `core/command` | 100.0% |
-| `core/query` | 100.0% |
-| `core/pkg/dispatcher` | 100.0% |
-| `core/pkg/id` | 100.0% |
-| `middleware` | 100.0% |
-| `core/event` | 98.0% |
-| `catalog/d2` | 97.6% |
-| `core/decider` | 96.2% |
-| `catalog/eventcatalog` | 95.6% |
-| `catalog/adapters` | 95.5% |
-| `catalog/asyncapi` | 95.9% |
-| `catalog` | 94.4% |
-| `core/aggregate` | 93.2% |
-| `storage` | 92.0% |
-| `memory` | 91.9% |
-| `projection` | 89.7% |
+| Package                    | Coverage            |
+| -------------------------- | ------------------- |
+| `core/command`             | 100.0%              |
+| `core/query`               | 100.0%              |
+| `core/pkg/dispatcher`      | 100.0%              |
+| `core/pkg/id`              | 100.0%              |
+| `middleware`               | 100.0%              |
+| `core/event`               | 98.0%               |
+| `catalog/d2`               | 97.6%               |
+| `core/decider`             | 96.2%               |
+| `catalog/eventcatalog`     | 95.6%               |
+| `catalog/adapters`         | 95.5%               |
+| `catalog/asyncapi`         | 95.9%               |
+| `catalog`                  | 94.4%               |
+| `core/aggregate`           | 93.2%               |
+| `storage`                  | 92.0%               |
+| `memory`                   | 91.9%               |
+| `projection`               | 89.7%               |
 | `catalog/internal/cattest` | 0.0% (test helpers) |
 
 ---
@@ -272,16 +272,16 @@ This is a **breaking API change** regardless of approach. I need your direction 
 
 ### go-branded-id Type Alias Refactor
 
-| Change | Detail |
-|--------|--------|
-| `id.Of[T]` | Changed from `struct{ wrapped cbid.ID[T, ulid.ULID] }` to type alias `= cbid.ID[T, ulid.ULID]` |
-| `id_encoding.go` | **Deleted** (32 lines) — all encoding inherited via type alias |
-| Delegated methods removed | `IsZero`, `Equal`, `Or`, `Reset`, `Get`, `String`, `GoString`, `Format`, `Ptr` — now inherited |
-| `CompareIDs[T]` | New function replacing `Compare()` method (cbid.ID.Compare returns ErrNotOrdered for ulid.ULID) |
-| `FromPtr[T]` | Re-exported as package-level function (not promoted by type alias) |
-| Net delta | **-89 lines** (141→84 in id.go, id_encoding.go deleted) |
-| Tests | All 21 packages pass with race detector |
-| Lint | Zero new issues |
+| Change                    | Detail                                                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `id.Of[T]`                | Changed from `struct{ wrapped cbid.ID[T, ulid.ULID] }` to type alias `= cbid.ID[T, ulid.ULID]`  |
+| `id_encoding.go`          | **Deleted** (32 lines) — all encoding inherited via type alias                                  |
+| Delegated methods removed | `IsZero`, `Equal`, `Or`, `Reset`, `Get`, `String`, `GoString`, `Format`, `Ptr` — now inherited  |
+| `CompareIDs[T]`           | New function replacing `Compare()` method (cbid.ID.Compare returns ErrNotOrdered for ulid.ULID) |
+| `FromPtr[T]`              | Re-exported as package-level function (not promoted by type alias)                              |
+| Net delta                 | **-89 lines** (141→84 in id.go, id_encoding.go deleted)                                         |
+| Tests                     | All 21 packages pass with race detector                                                         |
+| Lint                      | Zero new issues                                                                                 |
 
 ---
 

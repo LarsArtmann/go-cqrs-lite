@@ -13,26 +13,26 @@
 
 ### Session 44 Deliverables
 
-| Item | Status | Commit | Detail |
-|------|--------|--------|--------|
-| **Publisher/Subscriber sub-interfaces** | ✅ DONE | `a46b4c9` | `event.Publisher` + `event.Subscriber` composed by `event.Bus`. Non-breaking ISP improvement. |
-| **Extensible error classification** | ✅ DONE | `bf5f731` | `RegisterClassification()` lets command/query/aggregate register sentinels without circular deps. `Classify()` checks registered map. |
-| **Projection logger injection** | ✅ DONE | `6c3fcf7` | `WithLogger(*slog.Logger)` option replaces global `slog.Default()`. DI over globals. |
-| **Lint compliance** | ✅ DONE | `81a0a27` | Resolved `gochecknoglobals` (inline struct init) and `gochecknoinits` (nolint directives). Fixed `wsl_v5` in test. |
-| **errors.As → errors.AsType** | ✅ DONE | `3b02c3a` | Modernized example/user to use Go 1.26 `errors.AsType`. |
+| Item                                    | Status  | Commit    | Detail                                                                                                                                |
+| --------------------------------------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Publisher/Subscriber sub-interfaces** | ✅ DONE | `a46b4c9` | `event.Publisher` + `event.Subscriber` composed by `event.Bus`. Non-breaking ISP improvement.                                         |
+| **Extensible error classification**     | ✅ DONE | `bf5f731` | `RegisterClassification()` lets command/query/aggregate register sentinels without circular deps. `Classify()` checks registered map. |
+| **Projection logger injection**         | ✅ DONE | `6c3fcf7` | `WithLogger(*slog.Logger)` option replaces global `slog.Default()`. DI over globals.                                                  |
+| **Lint compliance**                     | ✅ DONE | `81a0a27` | Resolved `gochecknoglobals` (inline struct init) and `gochecknoinits` (nolint directives). Fixed `wsl_v5` in test.                    |
+| **errors.As → errors.AsType**           | ✅ DONE | `3b02c3a` | Modernized example/user to use Go 1.26 `errors.AsType`.                                                                               |
 
 ### Session 43 Deliverables (committed at session start)
 
-| Item | Status | Commit | Detail |
-|------|--------|--------|--------|
-| Panic recovery in HandleParallel | ✅ DONE | `623609a` | `core/event/runner.go` goroutine recovers panics |
-| Panic recovery in OutboxPublisher | ✅ DONE | `623609a` | `core/event/outbox_publisher.go` goroutine recovers panics |
-| Test assertion fixes | ✅ DONE | `623609a` | Added assertions to `TestCoreDoesNotImplementRootDirectly`, `TestOutboxPublisher_PublishNow_ContextCanceled` |
-| Data race fixes (FakeOutbox, FakeStore) | ✅ DONE | `623609a` | `sync.RWMutex` with `RLock()`, `defer` unlock throughout |
-| Decider refactor (292→243 lines) | ✅ DONE | `623609a` | Extracted `loadFromSnapshot` to `options.go` |
-| Decider coverage 77.4%→94.3% | ✅ DONE | `623609a` | 8 new tests for snapshot error paths |
-| Projection test quality | ✅ DONE | `623609a` | Replaced 9× `time.Sleep` with channel-based `subscribeSignalBus` |
-| Memory concurrent access tests | ✅ DONE | `623609a` | `MemoryStore` and `MemoryBus` `-race` tests |
+| Item                                    | Status  | Commit    | Detail                                                                                                       |
+| --------------------------------------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| Panic recovery in HandleParallel        | ✅ DONE | `623609a` | `core/event/runner.go` goroutine recovers panics                                                             |
+| Panic recovery in OutboxPublisher       | ✅ DONE | `623609a` | `core/event/outbox_publisher.go` goroutine recovers panics                                                   |
+| Test assertion fixes                    | ✅ DONE | `623609a` | Added assertions to `TestCoreDoesNotImplementRootDirectly`, `TestOutboxPublisher_PublishNow_ContextCanceled` |
+| Data race fixes (FakeOutbox, FakeStore) | ✅ DONE | `623609a` | `sync.RWMutex` with `RLock()`, `defer` unlock throughout                                                     |
+| Decider refactor (292→243 lines)        | ✅ DONE | `623609a` | Extracted `loadFromSnapshot` to `options.go`                                                                 |
+| Decider coverage 77.4%→94.3%            | ✅ DONE | `623609a` | 8 new tests for snapshot error paths                                                                         |
+| Projection test quality                 | ✅ DONE | `623609a` | Replaced 9× `time.Sleep` with channel-based `subscribeSignalBus`                                             |
+| Memory concurrent access tests          | ✅ DONE | `623609a` | `MemoryStore` and `MemoryBus` `-race` tests                                                                  |
 
 ### Evergreen (All Sessions)
 
@@ -53,23 +53,23 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| Item | Status | What's Done | What's Missing |
-|------|--------|-------------|----------------|
-| **Function size compliance** | ⚠️ Partial | Session 43 extracted worst offenders | 43 functions still exceed 30-line max (catalog exporters, validateEventParams at 51) |
-| **CatalogMeta consolidation** | ⚠️ SKIPPED | Investigated | `event.CatalogMeta` has extra `AggregateType` field — not identical, no clean shared location |
+| Item                          | Status     | What's Done                          | What's Missing                                                                                |
+| ----------------------------- | ---------- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| **Function size compliance**  | ⚠️ Partial | Session 43 extracted worst offenders | 43 functions still exceed 30-line max (catalog exporters, validateEventParams at 51)          |
+| **CatalogMeta consolidation** | ⚠️ SKIPPED | Investigated                         | `event.CatalogMeta` has extra `AggregateType` field — not identical, no clean shared location |
 
 ---
 
 ## C) NOT STARTED ○
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| `query.Handler` returns `any` | HIGH | Breaking change — `DispatchTyped[T]` is the workaround |
-| Transaction co-participation (outbox + events) | HIGH | `SQLOutbox.Append` runs in separate tx from `SQLEventStore.Save` |
-| Event signing / integrity verification | LOW | No HMAC or checksum on stored events |
-| Saga / Process Manager | PLANNED | `docs/planning/SAGA_DESIGN.md` exists |
-| Watermill module | PLANNED | Pub/sub adapter for Kafka, NATS |
-| Tagged releases | PLANNED | All modules at `v0.0.0` |
+| Item                                           | Priority | Notes                                                            |
+| ---------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `query.Handler` returns `any`                  | HIGH     | Breaking change — `DispatchTyped[T]` is the workaround           |
+| Transaction co-participation (outbox + events) | HIGH     | `SQLOutbox.Append` runs in separate tx from `SQLEventStore.Save` |
+| Event signing / integrity verification         | LOW      | No HMAC or checksum on stored events                             |
+| Saga / Process Manager                         | PLANNED  | `docs/planning/SAGA_DESIGN.md` exists                            |
+| Watermill module                               | PLANNED  | Pub/sub adapter for Kafka, NATS                                  |
+| Tagged releases                                | PLANNED  | All modules at `v0.0.0`                                          |
 
 ---
 
@@ -149,24 +149,24 @@ This is an interface-breaking decision that requires consumer input.
 
 ## Test Coverage Summary
 
-| Package | Coverage | Target | Status |
-|---------|----------|--------|--------|
-| `core/command` | 100.0% | >95% | ✅ |
-| `core/query` | 100.0% | >95% | ✅ |
-| `core/pkg/dispatcher` | 100.0% | >95% | ✅ |
-| `core/pkg/id` | 100.0% | >95% | ✅ |
-| `middleware` | 100.0% | >95% | ✅ |
-| `core/event` | 98.0% | >95% | ✅ |
-| `catalog/d2` | 97.6% | >95% | ✅ |
-| `catalog/asyncapi` | 95.9% | >95% | ✅ |
-| `catalog/eventcatalog` | 95.6% | >95% | ✅ |
-| `catalog/adapters` | 95.5% | >95% | ✅ |
-| `core/decider` | 94.3% | >95% | ⚠️ |
-| `catalog` | 94.4% | >95% | ⚠️ |
-| `core/aggregate` | 93.2% | >95% | ⚠️ |
-| `storage` | 92.0% | >95% | ⚠️ |
-| `memory` | 91.9% | >95% | ⚠️ |
-| `projection` | 88.8% | >95% | ⚠️ |
+| Package                | Coverage | Target | Status |
+| ---------------------- | -------- | ------ | ------ |
+| `core/command`         | 100.0%   | >95%   | ✅     |
+| `core/query`           | 100.0%   | >95%   | ✅     |
+| `core/pkg/dispatcher`  | 100.0%   | >95%   | ✅     |
+| `core/pkg/id`          | 100.0%   | >95%   | ✅     |
+| `middleware`           | 100.0%   | >95%   | ✅     |
+| `core/event`           | 98.0%    | >95%   | ✅     |
+| `catalog/d2`           | 97.6%    | >95%   | ✅     |
+| `catalog/asyncapi`     | 95.9%    | >95%   | ✅     |
+| `catalog/eventcatalog` | 95.6%    | >95%   | ✅     |
+| `catalog/adapters`     | 95.5%    | >95%   | ✅     |
+| `core/decider`         | 94.3%    | >95%   | ⚠️     |
+| `catalog`              | 94.4%    | >95%   | ⚠️     |
+| `core/aggregate`       | 93.2%    | >95%   | ⚠️     |
+| `storage`              | 92.0%    | >95%   | ⚠️     |
+| `memory`               | 91.9%    | >95%   | ⚠️     |
+| `projection`           | 88.8%    | >95%   | ⚠️     |
 
 ---
 

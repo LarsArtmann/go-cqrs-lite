@@ -12,27 +12,27 @@
 
 ### Session 42 Deliverables
 
-| Item | Status | Detail |
-|------|--------|--------|
-| **PostgreSQL outbox store** | ✅ DONE | `storage/outbox.go` — `SQLOutbox` implementing `event.Outbox` |
-| **Refactor long functions** | ✅ DONE | Reduced from 16 → 43 functions >30 lines (session 41 extracted the worst 5; remaining are in catalog/exporter modules) |
-| **Snapshot support for decider** | ✅ DONE | `WithSnapshotStore`, `WithCodec`, `WithSnapshotStrategy` options |
-| **Decider test coverage increase** | ✅ DONE | Added 4 tests (snapshot save/load, concurrent, context cancellation) |
-| **CONTEXT.md domain glossary** | ✅ DONE | 20 terms with cross-references |
-| **docs/adr/ — 3 ADRs** | ✅ DONE | Decider pattern, error taxonomy, multi-module monorepo |
-| **Archive stale docs** | ✅ DONE | 30 docs moved to `archive/` subdirectories |
-| **TODO_LIST.md updated** | ✅ DONE | Zero CRITICAL items remaining |
+| Item                               | Status  | Detail                                                                                                                 |
+| ---------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **PostgreSQL outbox store**        | ✅ DONE | `storage/outbox.go` — `SQLOutbox` implementing `event.Outbox`                                                          |
+| **Refactor long functions**        | ✅ DONE | Reduced from 16 → 43 functions >30 lines (session 41 extracted the worst 5; remaining are in catalog/exporter modules) |
+| **Snapshot support for decider**   | ✅ DONE | `WithSnapshotStore`, `WithCodec`, `WithSnapshotStrategy` options                                                       |
+| **Decider test coverage increase** | ✅ DONE | Added 4 tests (snapshot save/load, concurrent, context cancellation)                                                   |
+| **CONTEXT.md domain glossary**     | ✅ DONE | 20 terms with cross-references                                                                                         |
+| **docs/adr/ — 3 ADRs**             | ✅ DONE | Decider pattern, error taxonomy, multi-module monorepo                                                                 |
+| **Archive stale docs**             | ✅ DONE | 30 docs moved to `archive/` subdirectories                                                                             |
+| **TODO_LIST.md updated**           | ✅ DONE | Zero CRITICAL items remaining                                                                                          |
 
 ### Session 41 Deliverables (committed at session start)
 
-| Item | Status | Detail |
-|------|--------|--------|
-| Golden test fix | ✅ DONE | 3 catalog golden files refreshed |
-| aggregate/repository.go trim | ✅ DONE | 258 → 245 lines |
-| Decider option pattern | ✅ DONE | `RepositoryOption[State]` functional options |
-| Decider WithOutbox | ✅ DONE | Same pattern as aggregate |
-| Decider Delete method | ✅ DONE | Feature parity with aggregate |
-| example/user/main.go split | ✅ DONE | 132-line main() → 6 focused functions |
+| Item                         | Status  | Detail                                       |
+| ---------------------------- | ------- | -------------------------------------------- |
+| Golden test fix              | ✅ DONE | 3 catalog golden files refreshed             |
+| aggregate/repository.go trim | ✅ DONE | 258 → 245 lines                              |
+| Decider option pattern       | ✅ DONE | `RepositoryOption[State]` functional options |
+| Decider WithOutbox           | ✅ DONE | Same pattern as aggregate                    |
+| Decider Delete method        | ✅ DONE | Feature parity with aggregate                |
+| example/user/main.go split   | ✅ DONE | 132-line main() → 6 focused functions        |
 
 ### Evergreen (All Sessions)
 
@@ -50,26 +50,26 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| Item | Status | What's Done | What's Missing |
-|------|--------|-------------|----------------|
-| **Decider coverage** | ⚠️ 77.4% | Execute, Load, NewRepository, loadState, publishChanges all 100% | `loadFromSnapshot` at 18.2% (snapshot decode error, store load error, fold error paths), `Delete` at 75%, `saveSnapshot` at 71.4%, `EveryNEvents` at 66.7% |
-| **Function size compliance** | ⚠️ Partial | Session 41 reduced worst offenders (76→22, 66→5, 53→30, 49→20) | 43 functions still exceed 30-line max — mostly in catalog exporters (asyncapi 62-line Export, d2 60-line connections, eventcatalog 56-line writeLLMsTxt). Also `validateEventParams` 51 lines, `loadFromSnapshot` 49 lines |
-| **File size compliance** | ⚠️ 1 file over | All files ≤250 except `core/decider/decider.go` at 292 lines | Need to split decider.go (options/methods to separate files) |
+| Item                         | Status         | What's Done                                                      | What's Missing                                                                                                                                                                                                             |
+| ---------------------------- | -------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Decider coverage**         | ⚠️ 77.4%       | Execute, Load, NewRepository, loadState, publishChanges all 100% | `loadFromSnapshot` at 18.2% (snapshot decode error, store load error, fold error paths), `Delete` at 75%, `saveSnapshot` at 71.4%, `EveryNEvents` at 66.7%                                                                 |
+| **Function size compliance** | ⚠️ Partial     | Session 41 reduced worst offenders (76→22, 66→5, 53→30, 49→20)   | 43 functions still exceed 30-line max — mostly in catalog exporters (asyncapi 62-line Export, d2 60-line connections, eventcatalog 56-line writeLLMsTxt). Also `validateEventParams` 51 lines, `loadFromSnapshot` 49 lines |
+| **File size compliance**     | ⚠️ 1 file over | All files ≤250 except `core/decider/decider.go` at 292 lines     | Need to split decider.go (options/methods to separate files)                                                                                                                                                               |
 
 ---
 
 ## C) NOT STARTED ○
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| `query.Handler` returns `any` | HIGH | Breaking change — `DispatchTyped[T]` is the workaround |
-| CatalogMeta consolidation | HIGH→LOW | `event.CatalogMeta` has extra `AggregateType` field — not identical to command/query versions. Accepting duplication |
-| Event signing / integrity verification | LOW | No HMAC or checksum on stored events |
-| Saga / Process Manager | PLANNED | `docs/planning/SAGA_DESIGN.md` exists |
-| Watermill module | PLANNED | Pub/sub adapter for Kafka, NATS — never started |
-| Tagged releases | PLANNED | All modules at `v0.0.0` |
-| Transaction co-participation (outbox + events) | PLANNED | `SQLOutbox.Append` runs in separate tx from `SQLEventStore.Save`. True atomicity requires shared tx or accepting external `*sql.Tx` |
-| SQLite / Turso support | NOT STARTED | User mentioned in passing — not in TODO_LIST.md |
+| Item                                           | Priority    | Notes                                                                                                                               |
+| ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `query.Handler` returns `any`                  | HIGH        | Breaking change — `DispatchTyped[T]` is the workaround                                                                              |
+| CatalogMeta consolidation                      | HIGH→LOW    | `event.CatalogMeta` has extra `AggregateType` field — not identical to command/query versions. Accepting duplication                |
+| Event signing / integrity verification         | LOW         | No HMAC or checksum on stored events                                                                                                |
+| Saga / Process Manager                         | PLANNED     | `docs/planning/SAGA_DESIGN.md` exists                                                                                               |
+| Watermill module                               | PLANNED     | Pub/sub adapter for Kafka, NATS — never started                                                                                     |
+| Tagged releases                                | PLANNED     | All modules at `v0.0.0`                                                                                                             |
+| Transaction co-participation (outbox + events) | PLANNED     | `SQLOutbox.Append` runs in separate tx from `SQLEventStore.Save`. True atomicity requires shared tx or accepting external `*sql.Tx` |
+| SQLite / Turso support                         | NOT STARTED | User mentioned in passing — not in TODO_LIST.md                                                                                     |
 
 ---
 
@@ -86,6 +86,7 @@ The snapshot load path was added but barely tested. Only the happy path (snapsho
 ### 3. 43 functions exceed 30-line max
 
 The catalog exporters are the worst offenders:
+
 - `asyncapi.Exporter.Export` — 62 lines
 - `d2.writeCrossServiceConnections` — 60 lines
 - `storage/helpers.scanEvent` — 59 lines (was 76, refactored but still long)
@@ -216,24 +217,24 @@ This is an **interface-breaking decision**. Option 1 is cleanest for consumers b
 
 ## Test Coverage Summary
 
-| Package | Coverage | Target | Status |
-|---------|----------|--------|--------|
-| `core/command` | 100.0% | >95% | ✅ |
-| `core/query` | 100.0% | >95% | ✅ |
-| `core/pkg/dispatcher` | 100.0% | >95% | ✅ |
-| `core/pkg/id` | 100.0% | >95% | ✅ |
-| `middleware` | 100.0% | >95% | ✅ |
-| `core/event` | 97.9% | >95% | ✅ |
-| `catalog/d2` | 97.6% | >95% | ✅ |
-| `catalog/asyncapi` | 95.9% | >95% | ✅ |
-| `catalog/eventcatalog` | 95.6% | >95% | ✅ |
-| `catalog/adapters` | 95.5% | >95% | ✅ |
-| `catalog` | 94.4% | >95% | ⚠️ |
-| `core/aggregate` | 93.2% | >95% | ⚠️ |
-| `storage` | 92.0% | >95% | ⚠️ |
-| `memory` | 91.9% | >95% | ⚠️ |
-| `projection` | 90.1% | >95% | ⚠️ |
-| **`core/decider`** | **77.4%** | >95% | **💥** |
+| Package                | Coverage  | Target | Status |
+| ---------------------- | --------- | ------ | ------ |
+| `core/command`         | 100.0%    | >95%   | ✅     |
+| `core/query`           | 100.0%    | >95%   | ✅     |
+| `core/pkg/dispatcher`  | 100.0%    | >95%   | ✅     |
+| `core/pkg/id`          | 100.0%    | >95%   | ✅     |
+| `middleware`           | 100.0%    | >95%   | ✅     |
+| `core/event`           | 97.9%     | >95%   | ✅     |
+| `catalog/d2`           | 97.6%     | >95%   | ✅     |
+| `catalog/asyncapi`     | 95.9%     | >95%   | ✅     |
+| `catalog/eventcatalog` | 95.6%     | >95%   | ✅     |
+| `catalog/adapters`     | 95.5%     | >95%   | ✅     |
+| `catalog`              | 94.4%     | >95%   | ⚠️     |
+| `core/aggregate`       | 93.2%     | >95%   | ⚠️     |
+| `storage`              | 92.0%     | >95%   | ⚠️     |
+| `memory`               | 91.9%     | >95%   | ⚠️     |
+| `projection`           | 90.1%     | >95%   | ⚠️     |
+| **`core/decider`**     | **77.4%** | >95%   | **💥** |
 
 ## Module Dependency Graph
 

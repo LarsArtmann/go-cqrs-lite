@@ -8,17 +8,17 @@
 
 ## Comparison Table
 
-| Tool | Type | Shows Aggregate State Over Time? | How | Availability | Maturity |
-|---|---|---|---|---|---|
-| **KurrentDB Visualize Tab** | Runtime debugger | ✅ Causal graph of events linked by correlation/causation IDs, showing full entity lifecycle | Graph/tree view with event nodes + causal links. Branches where multiple events share a causation ID. | **Enterprise/Cloud only** — not in OSS | Production |
-| **KurrentDB Stream Browser** | Runtime browser | ⚠️ Partial — browse individual streams (one aggregate), see events in order, but no state reconstruction | Paginated event list per stream. You see the raw events, not the folded state. | **Free (OSS)** | Production |
-| **Prooph Board** | Design-time modeling | ✅ Event modeling with timeline showing commands→events→state over time | Interactive timeline: commands (blue), events (orange), read models (green). Design-phase, not runtime. | Free (3 seats), €6/seat/mo | Production |
-| **Redux DevTools** | Runtime debugger | ✅ Action-by-action state diffs with time travel | Timeline of actions, state tree inspector, diff highlight, jump to any point | Free (browser ext) | Production (20k+ ⭐) |
-| **XState Stately** | Design + simulation | ✅ Event-triggered state transitions visualized on a statechart | Interactive statechart: send events, watch transitions, inspect context | Free (basic), paid (teams) | Production |
-| **Avala State Machine Panel** | Runtime monitor | ✅ State machine history with timeline scrubbing + analytics | Horizontal bar chart of state durations, transition history, frequency stats | — | Early |
-| **Replay.io** | Runtime recorder | ⚠️ Partial — auto-discovers state machines from recorded sessions, but not ES-specific | Record→replay browser sessions, auto-extract flow maps | Paid | Production |
-| **Marten** | Event store library | ❌ PostgreSQL-based, no built-in UI | Would need custom Grafana/superset dashboard | Free (OSS, 1.8k ⭐) | Production |
-| **Axon Server** | Event store + command bus | ⚠️ Partial — Grafana dashboards for metrics, not aggregate state | Operational monitoring only, not state timeline | Free (standard), paid (enterprise) | Production |
+| Tool                          | Type                      | Shows Aggregate State Over Time?                                                                         | How                                                                                                     | Availability                           | Maturity             |
+| ----------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------- |
+| **KurrentDB Visualize Tab**   | Runtime debugger          | ✅ Causal graph of events linked by correlation/causation IDs, showing full entity lifecycle             | Graph/tree view with event nodes + causal links. Branches where multiple events share a causation ID.   | **Enterprise/Cloud only** — not in OSS | Production           |
+| **KurrentDB Stream Browser**  | Runtime browser           | ⚠️ Partial — browse individual streams (one aggregate), see events in order, but no state reconstruction | Paginated event list per stream. You see the raw events, not the folded state.                          | **Free (OSS)**                         | Production           |
+| **Prooph Board**              | Design-time modeling      | ✅ Event modeling with timeline showing commands→events→state over time                                  | Interactive timeline: commands (blue), events (orange), read models (green). Design-phase, not runtime. | Free (3 seats), €6/seat/mo             | Production           |
+| **Redux DevTools**            | Runtime debugger          | ✅ Action-by-action state diffs with time travel                                                         | Timeline of actions, state tree inspector, diff highlight, jump to any point                            | Free (browser ext)                     | Production (20k+ ⭐) |
+| **XState Stately**            | Design + simulation       | ✅ Event-triggered state transitions visualized on a statechart                                          | Interactive statechart: send events, watch transitions, inspect context                                 | Free (basic), paid (teams)             | Production           |
+| **Avala State Machine Panel** | Runtime monitor           | ✅ State machine history with timeline scrubbing + analytics                                             | Horizontal bar chart of state durations, transition history, frequency stats                            | —                                      | Early                |
+| **Replay.io**                 | Runtime recorder          | ⚠️ Partial — auto-discovers state machines from recorded sessions, but not ES-specific                   | Record→replay browser sessions, auto-extract flow maps                                                  | Paid                                   | Production           |
+| **Marten**                    | Event store library       | ❌ PostgreSQL-based, no built-in UI                                                                      | Would need custom Grafana/superset dashboard                                                            | Free (OSS, 1.8k ⭐)                    | Production           |
+| **Axon Server**               | Event store + command bus | ⚠️ Partial — Grafana dashboards for metrics, not aggregate state                                         | Operational monitoring only, not state timeline                                                         | Free (standard), paid (enterprise)     | Production           |
 
 ---
 
@@ -47,7 +47,7 @@
 
 Event modeling tool with an interactive timeline showing commands (blue), events (orange), read models (green), UI elements (gray), and automation (purple). Real-time collaboration, AI integration via Model-Context-Protocol.
 
-**Gap:** Design-phase only. No runtime data — it models the system you *intend* to build, not the events that actually happened. You can't point it at a running event store and scrub through aggregate history.
+**Gap:** Design-phase only. No runtime data — it models the system you _intend_ to build, not the events that actually happened. You can't point it at a running event store and scrub through aggregate history.
 
 ---
 
@@ -117,13 +117,13 @@ Combined event store and command/event message router for JVM systems. Grafana d
 
 ### Tools Rejected (Too Immature)
 
-| Tool | Stars | Reason |
-|---|---|---|
-| TimeTravelDebugger | 0 | 1 commit, 0 ⭐, React/Three.js demo — toy project |
-| CQRS Event Streaming | 0 | 6 commits, template only |
-| Event-Sourcing-Visualizer (wbbrick) | 0 | 2016-era Elm, abandoned |
-| EventSourcingDB (thenativeweb) | N/A | No built-in UI, commercial license (free ≤25k events) |
-| EventSourcing.NetCore | 3.7k ⭐ | Educational examples only, no visualization |
+| Tool                                | Stars   | Reason                                                |
+| ----------------------------------- | ------- | ----------------------------------------------------- |
+| TimeTravelDebugger                  | 0       | 1 commit, 0 ⭐, React/Three.js demo — toy project     |
+| CQRS Event Streaming                | 0       | 6 commits, template only                              |
+| Event-Sourcing-Visualizer (wbbrick) | 0       | 2016-era Elm, abandoned                               |
+| EventSourcingDB (thenativeweb)      | N/A     | No built-in UI, commercial license (free ≤25k events) |
+| EventSourcing.NetCore               | 3.7k ⭐ | Educational examples only, no visualization           |
 
 ---
 
@@ -141,6 +141,7 @@ Combined event store and command/event message router for JVM systems. Grafana d
 This is exactly what Redux DevTools does for Redux, but translated to server-side event sourcing. The pattern is proven. The value is obvious (debugging, auditing, understanding). Nobody has built it.
 
 **The closest approximations:**
+
 - **KurrentDB Visualize Tab** — causal event graph, but no state folding, enterprise-only
 - **Prooph Board** — design-time timeline, but no runtime data
 - **Redux DevTools** — the right UX pattern, but client-side only
@@ -159,4 +160,4 @@ What's missing is the glue: a generic visualizer that takes a stream reader + a 
 
 ---
 
-*Researched 2026-05-03*
+_Researched 2026-05-03_

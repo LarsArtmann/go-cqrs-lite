@@ -107,6 +107,7 @@ See: `middleware/`
 ## Error Taxonomy
 
 A classification system for errors into five families:
+
 - **Rejection** — business rule violation (not retryable)
 - **Conflict** — optimistic concurrency or duplicate (not retryable)
 - **Transient** — temporary infrastructure failure (retryable)

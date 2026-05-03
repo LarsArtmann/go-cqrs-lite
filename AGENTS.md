@@ -176,15 +176,15 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                             | Key Types                                                                                                          |
-| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                           |
-| `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                          |
-| `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                     |
-| `core/aggregate/`      | Aggregate roots and repository (OO) | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
-| `core/decider/`        | Aggregate via pure functions        | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
+| Package                | Purpose                                   | Key Types                                                                                                                      |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                       |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                                      |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                              |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                         |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                         |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr` |
-| `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                      |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                  |
 
 ### Decider Module (`core/decider/`)
 
@@ -233,8 +233,8 @@ nix develop             # enter dev shell
 
 ### Projection Module (`projection/`)
 
-| Package       | Purpose                                             | Key Types                                                        |
-| ------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| Package       | Purpose                                             | Key Types                                                                      |
+| ------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)`, `WithLogger` |
 
 - **Runner**: Accepts `event.GlobalLoader` (for replay) + `event.Bus` (for live). Register `event.Projection` instances before `Run()`.

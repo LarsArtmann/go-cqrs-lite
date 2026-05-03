@@ -238,12 +238,7 @@ func (r *Repository[State]) publishChanges(
 	return nil
 }
 
-func opError(
-	aggType event.AggregateType,
-	aggID id.AggregateID,
-	msg string,
-	args ...any,
-) error {
+func opError(aggType event.AggregateType, aggID id.AggregateID, msg string, args ...any) error {
 	prefix := aggType.String() + " " + aggID.String() + ": "
 
 	return fmt.Errorf(prefix+msg, args...) //nolint:err113

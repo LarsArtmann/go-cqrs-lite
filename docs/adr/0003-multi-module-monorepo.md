@@ -14,6 +14,7 @@ The alternative is a single module with all packages. This was considered and re
 Use Go workspace (`go.work`) with independent `go.mod` per module.
 
 **Dependency rules:**
+
 - `core` has zero internal dependencies — independently publishable
 - `memory`, `catalog`, `middleware`, `testhelpers`, `storage`, `projection` depend on `core`
 - `integration` depends on `core` + `memory` + `testhelpers`
@@ -25,17 +26,20 @@ Use Go workspace (`go.work`) with independent `go.mod` per module.
 ## Consequences
 
 **Positive:**
+
 - Minimal dependency footprint per consumer — don't pull `go-sqlmock` if you only need `core`
 - Independent versioning possible — `core` can reach v1.0 before `storage`
 - Clean dependency graph enforced by `go.work`
 - `core` is independently publishable — the most stable module
 
 **Negative:**
+
 - More `go.mod` files to maintain (9 modules)
 - Dependency bumps must be applied per-module
 - CI must test each module independently AND via `go.work`
 - Replace directives in `go.mod` files for local development
 
 **Neutral:**
+
 - `go.work` ties modules together for development but is not used by consumers
 - Test-only dependencies (ginkgo, gomega, go-sqlmock) are isolated to their modules
