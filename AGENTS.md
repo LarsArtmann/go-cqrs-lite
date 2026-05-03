@@ -603,3 +603,14 @@ Interfaces now return branded types instead of primitives:
   - **REFACTOR**: Replaced 2 dynamic errors with sentinels (`query.ErrEmptyQueryType`, `catalog.ErrNilSchema`)
   - **API**: `projection/HandlerRegistry.On` now accepts `event.Type` instead of `string`
   - Zero lint, all 21 test packages pass
+
+- **Session 39 (Deep Cleanup + Dead Code Removal)**:
+  - **CHORE**: Removed stale `.golangci-lint.yml` (minimal 12-linter config replaced by comprehensive 60+ linter `.golangci.yml`)
+  - **CHORE**: Removed 6 dead `//nolint:ireturn` directives (ireturn linter is not enabled)
+  - **REFACTOR(middleware)**: Replaced `crypto/rand` with `math/rand/v2` for jitter — simpler, faster, no modulo bias
+  - **REFACTOR(testhelpers)**: Extracted `fakeStreamKey` helper — deduplicated 5× inline `string(aggregateType) + ":" + aggregateID.String()`
+  - **REFACTOR(catalog)**: Added `catalog.ErrDomainNotFound` sentinel, replaced 2× `fmt.Errorf("domain %q not found")` with `errors.Is`-compatible sentinel
+  - **FIX(aggregate)**: `MustNewCore` panic now includes context prefix (`"aggregate.MustNewCore: ..."`), consistent with all other `Must*` helpers
+  - **REFACTOR(catalog/d2)**: Simplified `sanitizeID` to single-pass `strings.Map`; removed redundant `Sends` case in action switch
+  - **FIX(testhelpers)**: `FakeOutbox` uses monotonic counter for IDs (was `len(Entries)`, produced duplicates after `Ack`)
+  - Net -69 lines across 11 files, zero lint, all 21 test packages pass
