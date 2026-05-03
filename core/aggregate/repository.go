@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -84,38 +83,35 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 		return opError("save", aggregateType, aggregateID, err)
 	}
 
-	err = r.publishChanges(ctx, changes, aggregateType, aggregateID)
+	err = event.PublishChanges(ctx, r.publisher, r.outbox, changes)
 	if err != nil {
-		return err
+		return opError("publish events", aggregateType, aggregateID, err)
 	}
 
 	root.MarkChangesAsCommitted()
 
 	if r.shouldSnapshot(root) {
-		err := r.saveSnapshot(ctx, root)
+		var state []byte
+
+		if r.codec != nil {
+			encoded, err := r.codec.Encode(root)
+			if err != nil {
+				return fmt.Errorf("encode snapshot state: %w", err)
+			}
+
+			state = encoded
+		}
+
+		err := event.SaveSnapshot(
+			ctx,
+			r.snapshotStore,
+			aggregateType,
+			aggregateID,
+			root.Version(),
+			state,
+		)
 		if err != nil {
 			return opError("save snapshot", aggregateType, aggregateID, err)
-		}
-	}
-
-	return nil
-}
-
-func (r *EventSourcedRepository) publishChanges(
-	ctx context.Context,
-	changes []event.Event,
-	aggType event.AggregateType,
-	aggID id.AggregateID,
-) error {
-	if r.outbox != nil {
-		err := r.outbox.Append(ctx, changes)
-		if err != nil {
-			return opError("stage events in outbox", aggType, aggID, err)
-		}
-	} else {
-		err := r.publisher.Publish(ctx, changes...)
-		if err != nil {
-			return opError("publish events", aggType, aggID, err)
 		}
 	}
 
@@ -220,30 +216,4 @@ func (r *EventSourcedRepository) shouldSnapshot(root Root) bool {
 		root.Type(),
 		root.Version(),
 	)
-}
-
-func (r *EventSourcedRepository) saveSnapshot(ctx context.Context, root Root) error {
-	var state []byte
-
-	if r.codec != nil {
-		encoded, err := r.codec.Encode(root)
-		if err != nil {
-			return fmt.Errorf("encode snapshot state: %w", err)
-		}
-
-		state = encoded
-	}
-
-	err := r.snapshotStore.Save(ctx, event.Snapshot{
-		AggregateID:   root.ID(),
-		AggregateType: root.Type(),
-		Version:       root.Version(),
-		State:         state,
-		CreatedAt:     time.Now().UTC(),
-	})
-	if err != nil {
-		return fmt.Errorf("snapshot store save: %w", err)
-	}
-
-	return nil
 }

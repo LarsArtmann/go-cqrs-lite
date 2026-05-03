@@ -3,7 +3,6 @@ package decider
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -64,32 +63,6 @@ func (r *Repository[State]) shouldSnapshot(
 	version event.Version,
 ) bool {
 	return event.ShouldSnapshot(r.snapshotStrategy, r.snapshotStore, r.codec, aggType, version)
-}
-
-func (r *Repository[State]) saveSnapshot(
-	ctx context.Context,
-	state State,
-	aggType event.AggregateType,
-	aggID id.AggregateID,
-	version event.Version,
-) error {
-	encoded, err := r.codec.Encode(state)
-	if err != nil {
-		return opError(aggType, aggID, "encode snapshot: %w", err)
-	}
-
-	err = r.snapshotStore.Save(ctx, event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: aggType,
-		Version:       version,
-		State:         encoded,
-		CreatedAt:     time.Now().UTC(),
-	})
-	if err != nil {
-		return opError(aggType, aggID, "save snapshot: %w", err)
-	}
-
-	return nil
 }
 
 func (r *Repository[State]) loadFromSnapshot(

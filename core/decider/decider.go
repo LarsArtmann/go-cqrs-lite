@@ -123,9 +123,9 @@ func (r *Repository[State]) Execute(
 		return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
 	}
 
-	err = r.publishChanges(ctx, newEvents, aggType, aggID)
+	err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
 	if err != nil {
-		return err
+		return opError(aggType, aggID, "publish events: %w", err)
 	}
 
 	newVersion := event.Version(len(newEvents)) + currentVersion
@@ -139,7 +139,12 @@ func (r *Repository[State]) Execute(
 			}
 		}
 
-		_ = r.saveSnapshot(ctx, finalState, aggType, aggID, newVersion)
+		encoded, encErr := r.codec.Encode(finalState)
+		if encErr != nil {
+			_ = opError(aggType, aggID, "encode snapshot: %w", encErr)
+		} else {
+			_ = event.SaveSnapshot(ctx, r.snapshotStore, aggType, aggID, newVersion, encoded)
+		}
 	}
 
 	return nil
@@ -212,27 +217,6 @@ func (r *Repository[State]) Delete(
 	err := r.store.Delete(ctx, aggType, aggID)
 	if err != nil {
 		return opError(aggType, aggID, "delete: %w", err)
-	}
-
-	return nil
-}
-
-func (r *Repository[State]) publishChanges(
-	ctx context.Context,
-	events []event.Event,
-	aggType event.AggregateType,
-	aggID id.AggregateID,
-) error {
-	if r.outbox != nil {
-		err := r.outbox.Append(ctx, events)
-		if err != nil {
-			return opError(aggType, aggID, "stage events in outbox: %w", err)
-		}
-	} else {
-		err := r.publisher.Publish(ctx, events...)
-		if err != nil {
-			return opError(aggType, aggID, "publish events: %w", err)
-		}
 	}
 
 	return nil
