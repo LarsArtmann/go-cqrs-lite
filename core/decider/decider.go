@@ -202,7 +202,14 @@ func (r *Repository[State]) loadFromSnapshot(
 		state, err = r.decider.Fold(state, evt)
 		if err != nil {
 			var zero State
-			return zero, 0, opError(aggType, aggID, "%w (event %s): %w", ErrFoldFailed, evt.Type(), err)
+			return zero, 0, opError(
+				aggType,
+				aggID,
+				"%w (event %s): %w",
+				ErrFoldFailed,
+				evt.Type(),
+				err,
+			)
 		}
 	}
 

@@ -586,7 +586,7 @@ func TestExecute_Concurrent(t *testing.T) {
 func TestExecute_ContextCancellation(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
+	store := &ctxCheckStore{Store: testhelpers.NewFakeStore()}
 	bus := testhelpers.NewFakeBus()
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
 
@@ -608,4 +608,40 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error from canceled context")
 	}
+}
+
+type ctxCheckStore struct{ event.Store }
+
+func (c *ctxCheckStore) checkCtx(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *ctxCheckStore) Save(
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	events []event.Event,
+	expectedVersion event.Version,
+) error {
+	if err := c.checkCtx(ctx); err != nil {
+		return err
+	}
+
+	return c.Store.Save(ctx, aggType, aggID, events, expectedVersion)
+}
+
+func (c *ctxCheckStore) Load(
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) ([]event.Event, error) {
+	if err := c.checkCtx(ctx); err != nil {
+		return nil, err
+	}
+
+	return c.Store.Load(ctx, aggType, aggID)
 }

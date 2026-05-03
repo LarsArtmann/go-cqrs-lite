@@ -63,7 +63,16 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 		occurredAt   time.Time
 	)
 
-	err := rows.Scan(&idStr, &eventType, &aggType, &aggIDStr, &version, &payload, &metadataJSON, &occurredAt)
+	err := rows.Scan(
+		&idStr,
+		&eventType,
+		&aggType,
+		&aggIDStr,
+		&version,
+		&payload,
+		&metadataJSON,
+		&occurredAt,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("scan event row: %w", err)
 	}
@@ -87,7 +96,13 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 
 	opts = append(opts, metaOpts...)
 
-	evt, err := event.NewEvent(event.Type(eventType), parsedAggID, event.AggregateType(aggType), version, payload, opts...)
+	evt, err := event.NewEvent(
+		event.Type(eventType),
+		parsedAggID,
+		event.AggregateType(aggType),
+		version,
+		payload,
+		opts...)
 	if err != nil {
 		return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
 	}
