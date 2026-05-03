@@ -627,9 +627,10 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 	}
 }
 
-// subscribeSignalBus wraps an event.Bus and signals when SubscribeAll is called.
+// subscribeSignalBus wraps an event.Subscriber and signals when SubscribeAll is called.
 type subscribeSignalBus struct {
-	event.Bus
+	event.Subscriber
+
 	ready chan struct{}
 	once  sync.Once
 }
@@ -637,7 +638,7 @@ type subscribeSignalBus struct {
 func (b *subscribeSignalBus) SubscribeAll(handler event.Handler) error {
 	b.once.Do(func() { close(b.ready) })
 
-	return b.Bus.SubscribeAll(handler)
+	return b.Subscriber.SubscribeAll(handler)
 }
 
 func newTestRunnerWithReadyAndOpts(
@@ -655,7 +656,7 @@ func newTestRunnerWithReadyAndOpts(
 	})
 
 	ready := make(chan struct{})
-	signalBus := &subscribeSignalBus{Bus: bus, ready: ready}
+	signalBus := &subscribeSignalBus{Subscriber: bus, ready: ready}
 
 	runner, err := projection.NewRunner(nil, signalBus, checkpoint, opts...)
 	if err != nil {
@@ -682,7 +683,7 @@ func newTestRunnerWithReadyAndCheckpoint(
 	t.Cleanup(func() { _ = bus.Close() })
 
 	ready := make(chan struct{})
-	signalBus := &subscribeSignalBus{Bus: bus, ready: ready}
+	signalBus := &subscribeSignalBus{Subscriber: bus, ready: ready}
 
 	runner, err := projection.NewRunner(nil, signalBus, checkpoint)
 	if err != nil {

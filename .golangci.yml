@@ -213,6 +213,13 @@ linters:
           - tagalign
           - gosec
           - goconst
+          - wsl_v5
+          - noinlineerr
+          - intrange
+          - modernize
+          - revive
+          - unparam
+          - fatcontext
       - path: internal/cattest/
         linters:
           - thelper

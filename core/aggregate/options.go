@@ -1,33 +1,21 @@
 package aggregate
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // SnapshotStrategy decides when to create a snapshot after saving events.
-type SnapshotStrategy interface {
-	// ShouldSnapshot returns true if a snapshot should be created
-	// for the given aggregate after it has reached the given version.
-	ShouldSnapshot(aggregateType event.AggregateType, version event.Version) bool
-}
+//
+// Deprecated: Use event.SnapshotStrategy instead. This type alias is provided
+// for backward compatibility and will be removed in a future version.
+type SnapshotStrategy = event.SnapshotStrategy
 
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
 // Panics if n <= 0.
-func EveryNEvents(n int) SnapshotStrategy {
-	if n <= 0 {
-		panic(fmt.Sprintf("EveryNEvents: interval must be positive, got %d", n))
-	}
-
-	return &everyN{interval: n}
-}
-
-type everyN struct{ interval int }
-
-func (s *everyN) ShouldSnapshot(_ event.AggregateType, version event.Version) bool {
-	return version.Int() > 0 && version.Int()%s.interval == 0
-}
+//
+// Deprecated: Use event.EveryNEvents instead. This function is provided
+// for backward compatibility and will be removed in a future version.
+var EveryNEvents = event.EveryNEvents //nolint:gochecknoglobals
 
 // RepositoryOption configures an EventSourcedRepository.
 type RepositoryOption func(*EventSourcedRepository)

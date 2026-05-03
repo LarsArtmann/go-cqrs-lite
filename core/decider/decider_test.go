@@ -3,7 +3,6 @@ package decider_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -16,6 +15,21 @@ import (
 
 type counterState struct {
 	Value int
+}
+
+func mustAppendBatch(
+	t *testing.T,
+	store event.Store,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	events []event.Event,
+) {
+	t.Helper()
+
+	err := store.AppendBatch(t.Context(), aggType, aggID, events)
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
 }
 
 func foldCounter(state counterState, evt event.Event) (counterState, error) {
@@ -118,7 +132,7 @@ func TestExecute_Update(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	err := repo.Execute(t.Context(), aggID, "Counter",
-		func(state counterState, version event.Version) ([]event.Event, error) {
+		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
 		},
 	)
@@ -153,7 +167,7 @@ func TestExecute_DecideError(t *testing.T) {
 	decideErr := errors.New("rejection: email required")
 
 	err := repo.Execute(t.Context(), aggID, "Counter",
-		func(state counterState, version event.Version) ([]event.Event, error) {
+		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return nil, decideErr
 		},
 	)
@@ -182,10 +196,10 @@ func TestExecute_FoldError(t *testing.T) {
 	}
 
 	existing := makeEvent(t, "CounterCreated", aggID, 1)
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{existing})
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{existing})
 
 	err = repo.Execute(t.Context(), aggID, "Counter",
-		func(state counterState, version event.Version) ([]event.Event, error) {
+		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
 		},
 	)
@@ -307,7 +321,7 @@ func TestLoad_WithEvents(t *testing.T) {
 	repo, store, _ := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 		makeEvent(t, "CounterIncremented", aggID, 2),
 	})
@@ -336,7 +350,7 @@ func TestLoad_FoldError(t *testing.T) {
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
 		Fold: func(_ counterState, _ event.Event) (counterState, error) {
-			return counterState{}, fmt.Errorf("corrupted")
+			return counterState{}, errors.New("corrupted")
 		},
 	}
 
@@ -345,7 +359,7 @@ func TestLoad_FoldError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
@@ -365,7 +379,7 @@ func TestDelete(t *testing.T) {
 	repo, store, _ := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
@@ -423,7 +437,7 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	bus := testhelpers.NewFakeBus()
 	outbox := testhelpers.NewFakeOutbox()
-	outbox.AppendFn(func(_ []event.Event) error { return fmt.Errorf("outbox full") })
+	outbox.AppendFn(func(_ []event.Event) error { return errors.New("outbox full") })
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
@@ -508,7 +522,7 @@ func TestLoad_WithSnapshot(t *testing.T) {
 	codec := event.JSONCodec{}
 
 	aggID := id.NewAggregateID()
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
@@ -684,7 +698,7 @@ func TestLoad_SnapshotStoreLoadError(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	bus := testhelpers.NewFakeBus()
 	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	snapshotStore.SetLoadError(fmt.Errorf("db unavailable"))
+	snapshotStore.SetLoadError(errors.New("db unavailable"))
 	codec := event.JSONCodec{}
 
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
@@ -722,7 +736,7 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 		CreatedAt:     time.Now(),
 	})
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 2),
 	})
 
@@ -730,7 +744,7 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 		Initial: counterState{},
 		Fold: func(_ counterState, evt event.Event) (counterState, error) {
 			if evt.Version() > 1 {
-				return counterState{}, fmt.Errorf("corrupted event")
+				return counterState{}, errors.New("corrupted event")
 			}
 
 			return counterState{Value: 1}, nil
@@ -761,7 +775,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	bus := testhelpers.NewFakeBus()
 	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	snapshotStore.SetSaveError(fmt.Errorf("disk full"))
+	snapshotStore.SetSaveError(errors.New("disk full"))
 	codec := event.JSONCodec{}
 
 	d := decider.Decider[counterState]{
@@ -853,7 +867,7 @@ func (f *failingDeleteStore) Delete(
 	_ event.AggregateType,
 	_ id.AggregateID,
 ) error {
-	return fmt.Errorf("disk error")
+	return errors.New("disk error")
 }
 
 func (f *failingDeleteStore) Close() error { return nil }
@@ -903,7 +917,7 @@ func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 		CreatedAt:     time.Now(),
 	})
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 6),
 		makeEvent(t, "CounterIncremented", aggID, 7),
 	})
@@ -954,7 +968,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 		CreatedAt:     time.Now(),
 	})
 
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 2),
 	})
 
@@ -988,7 +1002,7 @@ func TestLoad_SnapshotNil(t *testing.T) {
 	codec := event.JSONCodec{}
 
 	aggID := id.NewAggregateID()
-	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
@@ -1068,7 +1082,7 @@ func (f *failingLoadStore) Load(
 	_ event.AggregateType,
 	_ id.AggregateID,
 ) ([]event.Event, error) {
-	return nil, fmt.Errorf("db unavailable")
+	return nil, errors.New("db unavailable")
 }
 
 func (f *failingLoadStore) LoadFromVersion(
@@ -1098,5 +1112,5 @@ func (f *failingLoadFromVersionStore) LoadFromVersion(
 	_ id.AggregateID,
 	_ event.Version,
 ) ([]event.Event, error) {
-	return nil, fmt.Errorf("db unavailable")
+	return nil, errors.New("db unavailable")
 }

@@ -76,13 +76,14 @@ func (s *SQLSnapshotStore) Load(
 	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	snap, err := scanSnapshot(s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID))
+	snap, err := scanSnapshot(
+		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
+		aggregateType,
+		aggregateID,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
-
-	snap.AggregateType = aggregateType
-	snap.AggregateID = aggregateID
 
 	return snap, nil
 }
@@ -98,7 +99,11 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	query := `SELECT version, state, created_at FROM snapshots
 		WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-	snap, err := scanSnapshot(s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID))
+	snap, err := scanSnapshot(
+		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
+		aggregateType,
+		aggregateID,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, err)
@@ -109,13 +114,14 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
 	}
 
-	snap.AggregateType = aggregateType
-	snap.AggregateID = aggregateID
-
 	return snap, nil
 }
 
-func scanSnapshot(row *sql.Row) (*event.Snapshot, error) {
+func scanSnapshot(
+	row *sql.Row,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) (*event.Snapshot, error) {
 	var (
 		version    int
 		stateBytes []byte
@@ -128,13 +134,15 @@ func scanSnapshot(row *sql.Row) (*event.Snapshot, error) {
 			return nil, event.ErrSnapshotNotFound
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("scan snapshot row: %w", err)
 	}
 
 	return &event.Snapshot{
-		Version:   event.Version(version),
-		State:     stateBytes,
-		CreatedAt: createdAt,
+		AggregateID:   aggregateID,
+		AggregateType: aggregateType,
+		Version:       event.Version(version),
+		State:         stateBytes,
+		CreatedAt:     createdAt,
 	}, nil
 }
 

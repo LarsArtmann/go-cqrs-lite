@@ -10,25 +10,17 @@ import (
 )
 
 // SnapshotStrategy decides when to create a snapshot after saving events.
-type SnapshotStrategy interface {
-	ShouldSnapshot(aggregateType event.AggregateType, version event.Version) bool
-}
+//
+// Deprecated: Use event.SnapshotStrategy instead. This type alias is provided
+// for backward compatibility and will be removed in a future version.
+type SnapshotStrategy = event.SnapshotStrategy
 
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
 // Panics if n <= 0.
-func EveryNEvents(n int) SnapshotStrategy {
-	if n <= 0 {
-		panic("EveryNEvents: interval must be positive")
-	}
-
-	return &everyN{interval: n}
-}
-
-type everyN struct{ interval int }
-
-func (s *everyN) ShouldSnapshot(_ event.AggregateType, version event.Version) bool {
-	return version.Int() > 0 && version.Int()%s.interval == 0
-}
+//
+// Deprecated: Use event.EveryNEvents instead. This function is provided
+// for backward compatibility and will be removed in a future version.
+var EveryNEvents = event.EveryNEvents //nolint:gochecknoglobals
 
 // RepositoryOption configures a Repository.
 type RepositoryOption[State any] func(*Repository[State])
@@ -71,10 +63,7 @@ func (r *Repository[State]) shouldSnapshot(
 	aggType event.AggregateType,
 	version event.Version,
 ) bool {
-	return r.snapshotStrategy != nil &&
-		r.snapshotStore != nil &&
-		r.codec != nil &&
-		r.snapshotStrategy.ShouldSnapshot(aggType, version)
+	return event.ShouldSnapshot(r.snapshotStrategy, r.snapshotStore, r.codec, aggType, version)
 }
 
 func (r *Repository[State]) saveSnapshot(
@@ -112,6 +101,7 @@ func (r *Repository[State]) loadFromSnapshot(
 	if err != nil {
 		if !errors.Is(err, event.ErrSnapshotNotFound) {
 			var zero State
+
 			return zero, 0, opError(aggType, aggID, "load snapshot: %w", err)
 		}
 
@@ -123,14 +113,18 @@ func (r *Repository[State]) loadFromSnapshot(
 	}
 
 	var state State
-	if err = r.codec.Decode(snap.State, &state); err != nil {
+
+	err = r.codec.Decode(snap.State, &state)
+	if err != nil {
 		var zero State
+
 		return zero, 0, opError(aggType, aggID, "decode snapshot: %w", err)
 	}
 
 	events, err := r.store.LoadFromVersion(ctx, aggType, aggID, snap.Version)
 	if err != nil {
 		var zero State
+
 		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
 	}
 
@@ -138,6 +132,7 @@ func (r *Repository[State]) loadFromSnapshot(
 		state, err = r.decider.Fold(state, evt)
 		if err != nil {
 			var zero State
+
 			return zero, 0, opError(
 				aggType,
 				aggID,

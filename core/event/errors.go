@@ -203,10 +203,11 @@ func Classify(err error) Family {
 	}
 }
 
-var classifier = struct {
+var classifier = struct { //nolint:gochecknoglobals
 	mu   sync.RWMutex
 	maps map[error]Family
 }{
+	mu:   sync.RWMutex{},
 	maps: make(map[error]Family),
 }
 

@@ -1,6 +1,9 @@
 package aggregate
 
-import "github.com/cockroachdb/errors"
+import (
+	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+)
 
 var (
 	// ErrNilAggregateID is returned when a nil aggregate ID is passed to NewCore.
@@ -12,6 +15,13 @@ var (
 	// ErrNilStore is returned when a nil event store is passed to NewRepository.
 	ErrNilStore = errors.New("aggregate: nil store")
 
-	// ErrNilBus is returned when a nil event bus is passed to NewRepository.
+	// ErrNilBus is returned when a nil event publisher is passed to NewRepository.
 	ErrNilBus = errors.New("aggregate: nil bus")
 )
+
+func init() { //nolint:gochecknoinits
+	event.RegisterClassification(ErrNilAggregateID, event.Rejection)
+	event.RegisterClassification(ErrEmptyAggregateType, event.Rejection)
+	event.RegisterClassification(ErrNilStore, event.Infrastructure)
+	event.RegisterClassification(ErrNilBus, event.Infrastructure)
+}

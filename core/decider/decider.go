@@ -33,13 +33,13 @@ type Decider[State any] struct {
 
 // Repository loads and saves aggregates using pure functions.
 //
-// It wraps event.Store (persistence) and event.Bus (publishing) behind a
+// It wraps event.Store (persistence) and event.Publisher (publishing) behind a
 // Decider[State], providing load → fold → decide → save → publish semantics
 // without requiring the consumer to implement a mutable aggregate root
 // interface.
 type Repository[State any] struct {
 	store            event.Store
-	bus              event.Bus
+	publisher        event.Publisher
 	outbox           event.Outbox
 	snapshotStore    event.SnapshotStore
 	codec            event.Codec
@@ -49,10 +49,10 @@ type Repository[State any] struct {
 
 // NewRepository creates a decider-backed repository.
 //
-// Returns an error if store, bus, or decider.Fold is nil.
+// Returns an error if store, publisher, or decider.Fold is nil.
 func NewRepository[State any](
 	store event.Store,
-	bus event.Bus,
+	publisher event.Publisher,
 	decider Decider[State],
 	opts ...RepositoryOption[State],
 ) (*Repository[State], error) {
@@ -60,7 +60,7 @@ func NewRepository[State any](
 		return nil, ErrNilStore
 	}
 
-	if bus == nil {
+	if publisher == nil {
 		return nil, ErrNilBus
 	}
 
@@ -69,9 +69,9 @@ func NewRepository[State any](
 	}
 
 	r := &Repository[State]{ //nolint:exhaustruct // options fill remaining fields
-		store:   store,
-		bus:     bus,
-		decider: decider,
+		store:     store,
+		publisher: publisher,
+		decider:   decider,
 	}
 
 	for _, opt := range opts {
@@ -179,6 +179,7 @@ func (r *Repository[State]) loadFromStore(
 		}
 
 		var zero State
+
 		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
 	}
 
@@ -187,6 +188,7 @@ func (r *Repository[State]) loadFromStore(
 		state, err = r.decider.Fold(state, evt)
 		if err != nil {
 			var zero State
+
 			return zero, 0, opError(
 				aggType,
 				aggID,
@@ -227,7 +229,7 @@ func (r *Repository[State]) publishChanges(
 			return opError(aggType, aggID, "stage events in outbox: %w", err)
 		}
 	} else {
-		err := r.bus.Publish(ctx, events...)
+		err := r.publisher.Publish(ctx, events...)
 		if err != nil {
 			return opError(aggType, aggID, "publish events: %w", err)
 		}
@@ -236,8 +238,13 @@ func (r *Repository[State]) publishChanges(
 	return nil
 }
 
-func opError(aggType event.AggregateType, aggID id.AggregateID, format string, args ...any) error {
+func opError(
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	msg string,
+	args ...any,
+) error {
 	prefix := aggType.String() + " " + aggID.String() + ": "
 
-	return fmt.Errorf(prefix+format, args...)
+	return fmt.Errorf(prefix+msg, args...) //nolint:err113
 }

@@ -1,0 +1,26 @@
+package event
+
+import "fmt"
+
+// SnapshotStrategy decides when to create a snapshot after saving events.
+type SnapshotStrategy interface {
+	// ShouldSnapshot returns true if a snapshot should be created
+	// for the given aggregate after it has reached the given version.
+	ShouldSnapshot(aggregateType AggregateType, version Version) bool
+}
+
+// EveryNEvents creates a SnapshotStrategy that snapshots every N events.
+// Panics if n <= 0.
+func EveryNEvents(n int) SnapshotStrategy {
+	if n <= 0 {
+		panic(fmt.Sprintf("EveryNEvents: interval must be positive, got %d", n))
+	}
+
+	return &everyN{interval: n}
+}
+
+type everyN struct{ interval int }
+
+func (s *everyN) ShouldSnapshot(_ AggregateType, version Version) bool {
+	return version.Int() > 0 && version.Int()%s.interval == 0
+}

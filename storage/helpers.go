@@ -44,7 +44,8 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 		events = append(events, evt)
 	}
 
-	if err := rows.Err(); err != nil {
+	err := rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("iterate event rows: %w", err)
 	}
 
@@ -87,12 +88,13 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 		return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
 	}
 
-	opts := []event.Option{event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt)}
-
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
 		return nil, err
 	}
+
+	opts := make([]event.Option, 0, 2+len(metaOpts)) //nolint:mnd
+	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
 
 	opts = append(opts, metaOpts...)
 
@@ -117,7 +119,8 @@ func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 
 	var meta event.Metadata
 
-	if err := json.Unmarshal(data, &meta); err != nil {
+	err := json.Unmarshal(data, &meta)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
 	}
 

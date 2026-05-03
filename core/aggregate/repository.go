@@ -26,7 +26,7 @@ type Repository interface {
 // EventSourcedRepository persists and loads aggregates using event sourcing.
 type EventSourcedRepository struct {
 	store            event.Store
-	bus              event.Bus
+	publisher        event.Publisher
 	snapshotStore    event.SnapshotStore
 	outbox           event.Outbox
 	codec            event.Codec
@@ -36,23 +36,23 @@ type EventSourcedRepository struct {
 var _ Repository = (*EventSourcedRepository)(nil)
 
 // NewRepository creates a new event-sourced repository.
-// Returns an error if store or bus is nil.
+// Returns an error if store or publisher is nil.
 func NewRepository(
 	store event.Store,
-	bus event.Bus,
+	publisher event.Publisher,
 	opts ...RepositoryOption,
 ) (*EventSourcedRepository, error) {
 	if store == nil {
 		return nil, fmt.Errorf("%w", ErrNilStore)
 	}
 
-	if bus == nil {
+	if publisher == nil {
 		return nil, fmt.Errorf("%w", ErrNilBus)
 	}
 
 	r := &EventSourcedRepository{ //nolint:exhaustruct // options fill remaining fields
-		store: store,
-		bus:   bus,
+		store:     store,
+		publisher: publisher,
 	}
 
 	for _, opt := range opts {
@@ -113,7 +113,7 @@ func (r *EventSourcedRepository) publishChanges(
 			return opError("stage events in outbox", aggType, aggID, err)
 		}
 	} else {
-		err := r.bus.Publish(ctx, changes...)
+		err := r.publisher.Publish(ctx, changes...)
 		if err != nil {
 			return opError("publish events", aggType, aggID, err)
 		}
@@ -186,7 +186,8 @@ func (r *EventSourcedRepository) loadEvents(
 
 	root.SetVersion(snapshot.Version)
 
-	if err := root.ApplySnapshot(snapshot.State); err != nil {
+	err = root.ApplySnapshot(snapshot.State)
+	if err != nil {
 		return nil, opError("apply snapshot", aggregateType, aggregateID, err)
 	}
 
@@ -212,10 +213,13 @@ func (r *EventSourcedRepository) loadFromStore(
 }
 
 func (r *EventSourcedRepository) shouldSnapshot(root Root) bool {
-	return r.snapshotStrategy != nil &&
-		r.snapshotStore != nil &&
-		r.codec != nil &&
-		r.snapshotStrategy.ShouldSnapshot(root.Type(), root.Version())
+	return event.ShouldSnapshot(
+		r.snapshotStrategy,
+		r.snapshotStore,
+		r.codec,
+		root.Type(),
+		root.Version(),
+	)
 }
 
 func (r *EventSourcedRepository) saveSnapshot(ctx context.Context, root Root) error {

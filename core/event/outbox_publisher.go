@@ -18,7 +18,7 @@ const defaultPollInterval = time.Second
 // Start the background loop with Start; stop it with Close (implements io.Closer).
 type OutboxPublisher struct {
 	outbox    Outbox
-	bus       Bus
+	publisher Publisher
 	interval  time.Duration
 	batchSize int
 
@@ -44,24 +44,24 @@ func WithBatchSize(n int) OutboxPublisherOption {
 	return func(p *OutboxPublisher) { p.batchSize = n }
 }
 
-// NewOutboxPublisher creates a publisher that polls outbox and publishes to bus.
-// Returns an error if outbox or bus is nil.
+// NewOutboxPublisher creates a publisher that polls outbox and publishes via the Publisher.
+// Returns an error if outbox or publisher is nil.
 func NewOutboxPublisher(
 	outbox Outbox,
-	bus Bus,
+	publisher Publisher,
 	opts ...OutboxPublisherOption,
 ) (*OutboxPublisher, error) {
 	if outbox == nil {
 		return nil, fmt.Errorf("%w", ErrNilOutbox)
 	}
 
-	if bus == nil {
+	if publisher == nil {
 		return nil, fmt.Errorf("%w", ErrNilBus)
 	}
 
 	p := &OutboxPublisher{
 		outbox:    outbox,
-		bus:       bus,
+		publisher: publisher,
 		interval:  defaultPollInterval,
 		batchSize: defaultBatchSize,
 		mu:        sync.Mutex{},
@@ -122,7 +122,8 @@ func (p *OutboxPublisher) Close() error {
 
 func (p *OutboxPublisher) run(ctx context.Context) {
 	defer func() {
-		recover()
+		_ = recover()
+
 		close(p.done)
 	}()
 
@@ -154,7 +155,7 @@ func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	var ackIDs []OutboxID
 
 	for _, entry := range entries {
-		err = p.bus.Publish(ctx, entry.Events...)
+		err = p.publisher.Publish(ctx, entry.Events...)
 		if err != nil {
 			break
 		}

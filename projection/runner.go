@@ -17,7 +17,7 @@ import (
 // Each registered projection tracks its own checkpoint independently.
 type Runner struct {
 	loader      event.GlobalLoader
-	bus         event.Bus
+	subscriber  event.Subscriber
 	checkpoint  event.CheckpointStore
 	opts        runnerOptions
 	logger      *slog.Logger
@@ -27,14 +27,14 @@ type Runner struct {
 var _ io.Closer = (*Runner)(nil)
 
 // NewRunner creates a projection Runner. Pass a nil loader to skip replay (live-only mode).
-// Returns an error if bus or checkpoint is nil.
+// Returns an error if subscriber or checkpoint is nil.
 func NewRunner(
 	loader event.GlobalLoader,
-	bus event.Bus,
+	subscriber event.Subscriber,
 	checkpoint event.CheckpointStore,
 	opts ...RunnerOption,
 ) (*Runner, error) {
-	if bus == nil {
+	if subscriber == nil {
 		return nil, errors.Wrap(ErrNilBus, "create runner")
 	}
 
@@ -55,7 +55,7 @@ func NewRunner(
 
 	return &Runner{
 		loader:     loader,
-		bus:        bus,
+		subscriber: subscriber,
 		checkpoint: checkpoint,
 		opts:       o,
 		logger:     logger,
@@ -140,7 +140,7 @@ func (r *Runner) subscribeLive(ctx context.Context) error {
 		return nil
 	}
 
-	err := r.bus.SubscribeAll(handler)
+	err := r.subscriber.SubscribeAll(handler)
 	if err != nil {
 		return fmt.Errorf("subscribe: %w", err)
 	}

@@ -13,6 +13,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+const pollPendingQuery = `SELECT id, events FROM outbox
+		WHERE status = 'pending'
+		ORDER BY created_at ASC
+		LIMIT $1`
+
 // OutboxSchema returns the SQL DDL for creating the outbox table.
 func OutboxSchema() string {
 	return `CREATE TABLE IF NOT EXISTS outbox (
@@ -69,12 +74,7 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 // PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
-	query := `SELECT id, events FROM outbox
-		WHERE status = 'pending'
-		ORDER BY created_at ASC
-		LIMIT $1`
-
-	rows, err := o.db.QueryContext(ctx, query, limit)
+	rows, err := o.db.QueryContext(ctx, pollPendingQuery, limit)
 	if err != nil {
 		return nil, fmt.Errorf("poll pending outbox: %w", err)
 	}
@@ -100,6 +100,7 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 		args[i] = string(oid)
 	}
 
+	//nolint:gosec // G201: placeholders are parameterized ($1, $2...), not user input
 	query := fmt.Sprintf("DELETE FROM outbox WHERE id IN (%s)", strings.Join(placeholders, ", "))
 
 	_, err := o.db.ExecContext(ctx, query, args...)
@@ -112,6 +113,9 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 
 var _ event.Outbox = (*SQLOutbox)(nil)
 
+// outboxEvent uses snake_case JSON tags matching database column names.
+//
+//nolint:tagliatelle
 type outboxEvent struct {
 	ID            string          `json:"id"`
 	Type          string          `json:"type"`
@@ -150,7 +154,8 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 func unmarshalOutboxEvents(data []byte) ([]event.Event, error) {
 	var rows []outboxEvent
 
-	if err := json.Unmarshal(data, &rows); err != nil {
+	err := json.Unmarshal(data, &rows)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshal outbox events: %w", err)
 	}
 
@@ -212,7 +217,8 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 			eventsBytes []byte
 		)
 
-		if err := rows.Scan(&idStr, &eventsBytes); err != nil {
+		err := rows.Scan(&idStr, &eventsBytes)
+		if err != nil {
 			return nil, fmt.Errorf("scan outbox row: %w", err)
 		}
 
@@ -227,7 +233,8 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 		})
 	}
 
-	if err := rows.Err(); err != nil {
+	err := rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("iterate outbox rows: %w", err)
 	}
 
