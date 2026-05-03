@@ -38,10 +38,13 @@ type Decider[State any] struct {
 // without requiring the consumer to implement a mutable aggregate root
 // interface.
 type Repository[State any] struct {
-	store   event.Store
-	bus     event.Bus
-	outbox  event.Outbox
-	decider Decider[State]
+	store            event.Store
+	bus              event.Bus
+	outbox           event.Outbox
+	snapshotStore    event.SnapshotStore
+	codec            event.Codec
+	snapshotStrategy SnapshotStrategy
+	decider          Decider[State]
 }
 
 // NewRepository creates a decider-backed repository.
@@ -125,6 +128,20 @@ func (r *Repository[State]) Execute(
 		return err
 	}
 
+	newVersion := event.Version(len(newEvents)) + currentVersion
+
+	if r.shouldSnapshot(aggType, newVersion) {
+		finalState := state
+		for _, evt := range newEvents {
+			finalState, err = r.decider.Fold(finalState, evt)
+			if err != nil {
+				break
+			}
+		}
+
+		_ = r.saveSnapshot(ctx, finalState, aggType, aggID, newVersion)
+	}
+
 	return nil
 }
 
@@ -139,6 +156,60 @@ func (r *Repository[State]) Load(
 }
 
 func (r *Repository[State]) loadState(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+) (State, event.Version, error) {
+	if r.snapshotStore != nil && r.codec != nil {
+		return r.loadFromSnapshot(ctx, aggID, aggType)
+	}
+
+	return r.loadFromStore(ctx, aggID, aggType)
+}
+
+func (r *Repository[State]) loadFromSnapshot(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+) (State, event.Version, error) {
+	snap, err := r.snapshotStore.Load(ctx, aggType, aggID)
+	if err != nil {
+		if !errors.Is(err, event.ErrSnapshotNotFound) {
+			var zero State
+			return zero, 0, opError(aggType, aggID, "load snapshot: %w", err)
+		}
+
+		return r.loadFromStore(ctx, aggID, aggType)
+	}
+
+	if snap == nil {
+		return r.loadFromStore(ctx, aggID, aggType)
+	}
+
+	var state State
+	if err = r.codec.Decode(snap.State, &state); err != nil {
+		var zero State
+		return zero, 0, opError(aggType, aggID, "decode snapshot: %w", err)
+	}
+
+	events, err := r.store.LoadFromVersion(ctx, aggType, aggID, snap.Version)
+	if err != nil {
+		var zero State
+		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+	}
+
+	for _, evt := range events {
+		state, err = r.decider.Fold(state, evt)
+		if err != nil {
+			var zero State
+			return zero, 0, opError(aggType, aggID, "%w (event %s): %w", ErrFoldFailed, evt.Type(), err)
+		}
+	}
+
+	return state, snap.Version + event.Version(len(events)), nil
+}
+
+func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
 	aggID id.AggregateID,
 	aggType event.AggregateType,

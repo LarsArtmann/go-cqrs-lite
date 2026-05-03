@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -442,5 +444,168 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected outbox append error")
+	}
+}
+
+func TestExecute_WithSnapshot(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+		decider.WithSnapshotStrategy[counterState](decider.EveryNEvents(2)),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("first Execute: %v", err)
+	}
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("second Execute: %v", err)
+	}
+
+	saved := snapshotStore.Saved()
+	if len(saved) == 0 {
+		t.Fatal("expected snapshot to be saved")
+	}
+
+	if saved[0].Version.Int() != 2 {
+		t.Fatalf("expected snapshot version 2, got %d", saved[0].Version.Int())
+	}
+}
+
+func TestLoad_WithSnapshot(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	aggID := id.NewAggregateID()
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
+
+	snapState, _ := codec.Encode(counterState{Value: 1})
+	_ = snapshotStore.Save(t.Context(), event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       event.Version(1),
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != 1 {
+		t.Fatalf("expected Value=1 from snapshot, got %d", state.Value)
+	}
+
+	if version != 1 {
+		t.Fatalf("expected version 1, got %d", version)
+	}
+}
+
+func TestExecute_Concurrent(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	var wg sync.WaitGroup
+
+	for i := range 5 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			_ = repo.Execute(t.Context(), aggID, "Counter",
+				func(_ counterState, v event.Version) ([]event.Event, error) {
+					return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+				},
+			)
+		}()
+
+		_ = i
+	}
+
+	wg.Wait()
+}
+
+func TestExecute_ContextCancellation(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(ctx, aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("expected error from canceled context")
 	}
 }
