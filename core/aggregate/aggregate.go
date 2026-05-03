@@ -54,7 +54,7 @@ func NewCore(id id.AggregateID, aggregateType event.AggregateType) (*Core, error
 func MustNewCore(id id.AggregateID, aggregateType event.AggregateType) *Core {
 	c, err := NewCore(id, aggregateType)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("aggregate.MustNewCore: %v", err))
 	}
 
 	return c
