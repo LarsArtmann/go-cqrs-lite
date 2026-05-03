@@ -181,7 +181,7 @@ func TestCompare(t *testing.T) {
 			a := MustParse[AggregateID](tc.aStr)
 			b := MustParse[AggregateID](tc.bStr)
 
-			got := a.Compare(b)
+			got := CompareIDs(a, b)
 
 			if got != tc.want {
 				t.Error(tc.desc)

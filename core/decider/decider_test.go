@@ -812,23 +812,47 @@ func TestDelete_StoreError(t *testing.T) {
 
 type failingDeleteStore struct{ event.Store }
 
-func (f *failingDeleteStore) Save(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event, _ event.Version) error {
+func (f *failingDeleteStore) Save(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+	_ event.Version,
+) error {
 	return nil
 }
 
-func (f *failingDeleteStore) AppendBatch(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+func (f *failingDeleteStore) AppendBatch(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+) error {
 	return nil
 }
 
-func (f *failingDeleteStore) Load(_ context.Context, _ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+func (f *failingDeleteStore) Load(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) ([]event.Event, error) {
 	return nil, nil
 }
 
-func (f *failingDeleteStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+func (f *failingDeleteStore) LoadFromVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
 	return nil, nil
 }
 
-func (f *failingDeleteStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {
+func (f *failingDeleteStore) Delete(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) error {
 	return fmt.Errorf("disk error")
 }
 
@@ -1020,23 +1044,47 @@ func TestLoad_StoreLoadError(t *testing.T) {
 
 type failingLoadStore struct{}
 
-func (f *failingLoadStore) Save(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event, _ event.Version) error {
+func (f *failingLoadStore) Save(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+	_ event.Version,
+) error {
 	return nil
 }
 
-func (f *failingLoadStore) AppendBatch(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+func (f *failingLoadStore) AppendBatch(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ []event.Event,
+) error {
 	return nil
 }
 
-func (f *failingLoadStore) Load(_ context.Context, _ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+func (f *failingLoadStore) Load(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) ([]event.Event, error) {
 	return nil, fmt.Errorf("db unavailable")
 }
 
-func (f *failingLoadStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+func (f *failingLoadStore) LoadFromVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
 	return nil, nil
 }
 
-func (f *failingLoadStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {
+func (f *failingLoadStore) Delete(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) error {
 	return nil
 }
 
@@ -1044,6 +1092,11 @@ func (f *failingLoadStore) Close() error { return nil }
 
 type failingLoadFromVersionStore struct{ event.Store }
 
-func (f *failingLoadFromVersionStore) LoadFromVersion(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+func (f *failingLoadFromVersionStore) LoadFromVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
 	return nil, fmt.Errorf("db unavailable")
 }

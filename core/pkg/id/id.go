@@ -1,16 +1,3 @@
-// Package id provides strongly-typed identifiers for domain entities.
-//
-// Using branded types prevents mixing up IDs of different entities at compile time.
-// For example, you cannot accidentally pass a UserID where an AggregateID is expected.
-//
-// Example usage:
-//
-//	type userAggregate struct{}
-//	type UserAggregate = id.Of[userAggregate]
-//
-//	userID := id.New[UserAggregate]()
-//	aggregateID := id.New[AggregateID]()
-//	// userID = aggregateID // Compile error!
 package id
 
 import (
@@ -23,16 +10,15 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-// Sentinel errors for id package.
-var (
-	errEmptyString = errors.New("empty string")
-)
+var errEmptyString = errors.New("empty string")
 
 // Of is a branded type for strongly-typed identifiers backed by ULID.
 // The type parameter T is a phantom type used only for type differentiation.
-type Of[T any] struct {
-	wrapped cbid.ID[T, ulid.ULID]
-}
+//
+// Of aliases go-branded-id's ID[T, ulid.ULID], inheriting all serialization
+// (JSON, SQL, Text, Binary, Gob) and utility methods (IsZero, Equal, Or,
+// Reset, Get, Ptr, FromPtr, String, GoString, Format, etc.).
+type Of[T any] = cbid.ID[T, ulid.ULID]
 
 func newULID() ulid.ULID {
 	return ulid.MustNew(ulid.Timestamp(time.Now()), rand.Reader)
@@ -40,7 +26,7 @@ func newULID() ulid.ULID {
 
 // New generates a new random ULID-backed ID.
 func New[T any]() Of[T] {
-	return Of[T]{wrapped: cbid.NewID[T, ulid.ULID](newULID())}
+	return cbid.NewID[T](newULID())
 }
 
 // Parse converts a ULID string to a strongly-typed ID.
@@ -59,7 +45,7 @@ func Parse[T any](s string) (Of[T], error) {
 		return zero, fmt.Errorf("cannot parse %q as ULID for %T: %w", s, zero, err)
 	}
 
-	return Of[T]{wrapped: cbid.NewID[T, ulid.ULID](id)}, nil
+	return cbid.NewID[T](id), nil
 }
 
 // MustParse converts a ULID string to a strongly-typed ID, panicking on error.
@@ -82,60 +68,17 @@ func MustParse[T any](s string) Of[T] {
 // ULID returns the timestamp encoded in the ID, if it is a valid ULID.
 // Returns an error if the ID is not a valid ULID.
 func ULID(id Of[struct{}]) (time.Time, error) {
-	return ulid.Time(id.wrapped.Get().Time()), nil
+	return ulid.Time(id.Get().Time()), nil
 }
 
-// IsZero returns true if the ID has its zero value.
-func (id Of[T]) IsZero() bool { return id.wrapped.IsZero() }
-
-// Equal returns true if this ID equals the other ID.
-func (id Of[T]) Equal(other Of[T]) bool { return id.wrapped.Equal(other.wrapped) }
-
-// Compare returns -1 if id < other, 0 if equal, 1 if id > other.
-// Uses ULID's Compare method for lexicographic byte comparison.
-func (id Of[T]) Compare(other Of[T]) int {
-	return id.wrapped.Get().Compare(other.wrapped.Get())
+// CompareIDs compares two branded IDs by their ULID values.
+// Use this instead of the built-in Compare method, which does not
+// support ULID types.
+func CompareIDs[T any](a, b Of[T]) int {
+	return a.Get().Compare(b.Get())
 }
-
-// Get returns the underlying ULID value.
-func (id Of[T]) Get() ulid.ULID { return id.wrapped.Get() }
-
-// Or returns the ID if not zero, otherwise returns the provided default.
-func (id Of[T]) Or(defaultValue Of[T]) Of[T] {
-	if id.IsZero() {
-		return defaultValue
-	}
-
-	return id
-}
-
-// Reset sets the ID to its zero value.
-func (id *Of[T]) Reset() { id.wrapped.Reset() }
-
-// String returns the canonical ULID string representation.
-func (id Of[T]) String() string { return id.wrapped.Get().String() }
-
-// GoString implements fmt.GoStringer for debugging.
-func (id Of[T]) GoString() string { return id.String() }
-
-// Format implements fmt.Formatter for custom formatting (%s, %v, %#v, %q).
-func (id Of[T]) Format(f fmt.State, verb rune) { id.wrapped.Format(f, verb) }
-
-// Ptr returns a pointer to the ID. Useful for optional ID fields in API payloads.
-func (id Of[T]) Ptr() *Of[T] { return &id }
 
 // FromPtr dereferences a pointer-to-ID, returning the zero value if the pointer is nil.
 func FromPtr[T any](p *Of[T]) Of[T] {
-	if p == nil {
-		return Of[T]{wrapped: cbid.ID[T, ulid.ULID]{}}
-	}
-
-	return *p
+	return cbid.FromPtr(p)
 }
-
-// Compile-time interface assertions for core interfaces.
-var (
-	_ fmt.Stringer   = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
-	_ fmt.GoStringer = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
-	_ fmt.Formatter  = Of[struct{}]{wrapped: cbid.ID[struct{}, ulid.ULID]{}}
-)

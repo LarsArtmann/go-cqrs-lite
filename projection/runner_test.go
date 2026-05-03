@@ -521,7 +521,10 @@ func TestRunner_RetryOnTransientError(t *testing.T) {
 	attempts := make(chan int, 3)
 	callCount := 0
 
-	runner, bus, ready := newTestRunnerWithReadyAndOpts(t, projection.WithRetry(3, time.Millisecond))
+	runner, bus, ready := newTestRunnerWithReadyAndOpts(
+		t,
+		projection.WithRetry(3, time.Millisecond),
+	)
 
 	err := runner.Register(event.NewProjection("retry-proj",
 		func(_ context.Context, _ event.Event) error {
@@ -574,7 +577,10 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 	attempts := make(chan int, 2)
 	callCount := 0
 
-	runner, bus, ready := newTestRunnerWithReadyAndOpts(t, projection.WithRetry(3, time.Millisecond))
+	runner, bus, ready := newTestRunnerWithReadyAndOpts(
+		t,
+		projection.WithRetry(3, time.Millisecond),
+	)
 
 	err := runner.Register(event.NewProjection("no-retry-proj",
 		func(_ context.Context, _ event.Event) error {

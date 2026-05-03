@@ -50,9 +50,8 @@ go-cqrs-lite/
 │   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository (OO style)
 │   ├── decider/                     # Decider[State], Repository[State], Execute, Load (pure-function style)
 │   ├── pkg/
-│   │   ├── id/                      # branded IDs: id.Of[T] (AggregateID, EventID, UserID, etc.)
-│   │   │   ├── id.go               # Core type, constructors, comparisons
-│   │   │   └── id_encoding.go      # JSON/binary/text/SQL marshaling
+│   │   ├── id/                      # branded IDs: id.Of[T] (type alias for go-branded-id ID[T, ulid.ULID])
+│   │   │   └── id.go               # ULID constructors, parsing, CompareIDs, FromPtr
 │   │   └── dispatcher/              # generic Dispatcher[H, M] with LifecycleMixin, CheckClosed
 │
 ├── memory/                          # github.com/larsartmann/go-cqrs-lite/memory
@@ -184,7 +183,7 @@ nix develop             # enter dev shell
 | `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                     |
 | `core/aggregate/`      | Aggregate roots and repository (OO) | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
 | `core/decider/`        | Aggregate via pure functions        | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
-| `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr` |
 | `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                      |
 
 ### Decider Module (`core/decider/`)
@@ -670,3 +669,11 @@ Interfaces now return branded types instead of primitives:
   - **LINT**: Resolved `gochecknoglobals` (inline struct initialization for classifier), `gochecknoinits` (nolint directives for registration pattern), `wsl_v5` in test file
   - **SKIPPED**: `CatalogMeta` consolidation — `event.CatalogMeta` has extra `AggregateType` field; no clean shared location
   - Zero lint (all 46 remaining issues are pre-existing), all 21 test packages pass
+
+- **Session 45 (go-branded-id Integration: Type Alias)**:
+  - **REFACTOR**: `id.Of[T]` changed from wrapper struct to type alias `cbid.ID[T, ulid.ULID]` — eliminates all delegation boilerplate
+  - **DELETED**: `core/pkg/id/id_encoding.go` (32 lines) — all encoding (JSON, SQL, Text, Binary, Gob) now inherited from `go-branded-id`
+  - **REMOVED**: Delegated methods from `id.go` — `IsZero`, `Equal`, `Or`, `Reset`, `Get`, `String`, `GoString`, `Format`, `Ptr` all inherited from `cbid.ID`
+  - **NEW**: `CompareIDs[T](a, b Of[T]) int` — replaces `Compare()` method (cbid.ID.Compare returns ErrNotOrdered for ulid.ULID)
+  - **RE-EXPORT**: `FromPtr[T]` — delegates to `cbid.FromPtr` (package-level functions not promoted by type alias)
+  - Net -89 lines (141→84 in id.go, id_encoding.go deleted), all 21 test packages pass
