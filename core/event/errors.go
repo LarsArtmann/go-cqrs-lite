@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/cockroachdb/errors"
 )
@@ -162,12 +163,11 @@ func NewInfrastructure(code, msg string) *Error {
 }
 
 // Classify returns the Family of an error by checking for *Error in the chain,
-// then mapping known sentinel errors from the event package.
-// Returns Rejection for nil errors. Defaults to Transient for unknowns.
+// then mapping known sentinel errors from the event package and any registered
+// external sentinels. Returns Rejection for nil errors. Defaults to Transient for unknowns.
 //
-// Note: This only classifies sentinels from the event package.
-// Other packages (aggregate, projection, storage) define their own sentinels.
-// Consumers should wrap errors with event.Error types or check errors.Is directly.
+// External packages (command, query, aggregate, projection, storage) can register
+// their own sentinel classifications via RegisterClassification.
 func Classify(err error) Family {
 	if err == nil {
 		return Rejection
@@ -176,6 +176,10 @@ func Classify(err error) Family {
 	var e *Error
 	if errors.As(err, &e) {
 		return e.Family
+	}
+
+	if family, ok := lookupRegistered(err); ok {
+		return family
 	}
 
 	switch {
@@ -197,6 +201,36 @@ func Classify(err error) Family {
 	default:
 		return Transient
 	}
+}
+
+var classificationMu sync.RWMutex
+
+var classificationMap = map[error]Family{}
+
+// RegisterClassification maps a sentinel error to a Family.
+// Thread-safe. Call from init() in external packages:
+//
+//	func init() {
+//	    event.RegisterClassification(ErrHandlerNotFound, event.Rejection)
+//	}
+func RegisterClassification(sentinel error, family Family) {
+	classificationMu.Lock()
+	defer classificationMu.Unlock()
+
+	classificationMap[sentinel] = family
+}
+
+func lookupRegistered(err error) (Family, bool) {
+	classificationMu.RLock()
+	defer classificationMu.RUnlock()
+
+	for sentinel, family := range classificationMap {
+		if errors.Is(err, sentinel) {
+			return family, true
+		}
+	}
+
+	return Rejection, false
 }
 
 // IsRetryable returns true if the error is classified as Transient.

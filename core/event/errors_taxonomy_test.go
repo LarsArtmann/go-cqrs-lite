@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 func TestFamily_String(t *testing.T) {
@@ -279,5 +281,43 @@ func TestError_Is(t *testing.T) {
 
 	if err1.Is(errors.New("unrelated")) {
 		t.Error("Is should not match non-*Error targets")
+	}
+}
+
+func TestClassify_RegisteredSentinels(t *testing.T) {
+	t.Parallel()
+
+	sentinel := errors.New("test.sentinel")
+	event.RegisterClassification(sentinel, event.Corruption)
+
+	got := event.Classify(sentinel)
+	if got != event.Corruption {
+		t.Errorf("Classify(registered) = %v, want Corruption", got)
+	}
+
+	wrapped := fmt.Errorf("wrapped: %w", sentinel)
+	got = event.Classify(wrapped)
+	if got != event.Corruption {
+		t.Errorf("Classify(wrapped registered) = %v, want Corruption", got)
+	}
+}
+
+func TestClassify_CommandQuerySentinels(t *testing.T) {
+	t.Parallel()
+
+	if event.Classify(command.ErrHandlerNotFound) != event.Rejection {
+		t.Error("ErrHandlerNotFound should be Rejection")
+	}
+
+	if event.Classify(command.ErrDispatcherClosed) != event.Infrastructure {
+		t.Error("command.ErrDispatcherClosed should be Infrastructure")
+	}
+
+	if event.Classify(query.ErrQueryNotSupported) != event.Rejection {
+		t.Error("ErrQueryNotSupported should be Rejection")
+	}
+
+	if event.Classify(query.ErrDispatcherClosed) != event.Infrastructure {
+		t.Error("query.ErrDispatcherClosed should be Infrastructure")
 	}
 }

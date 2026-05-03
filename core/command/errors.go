@@ -1,9 +1,17 @@
 package command
 
-import "github.com/cockroachdb/errors"
+import (
+	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+)
 
 // ErrHandlerNotFound is returned when no handler is registered for a command.
 var ErrHandlerNotFound = errors.New("handler not found for command")
 
 // ErrDispatcherClosed is returned when the dispatcher is closed.
 var ErrDispatcherClosed = errors.New("command dispatcher is closed")
+
+func init() {
+	event.RegisterClassification(ErrHandlerNotFound, event.Rejection)
+	event.RegisterClassification(ErrDispatcherClosed, event.Infrastructure)
+}
