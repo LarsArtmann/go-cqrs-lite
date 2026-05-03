@@ -20,6 +20,7 @@ type Runner struct {
 	bus         event.Bus
 	checkpoint  event.CheckpointStore
 	opts        runnerOptions
+	logger      *slog.Logger
 	projections []event.Projection
 }
 
@@ -47,11 +48,17 @@ func NewRunner(
 		opt(&o)
 	}
 
+	logger := o.logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return &Runner{
 		loader:     loader,
 		bus:        bus,
 		checkpoint: checkpoint,
 		opts:       o,
+		logger:     logger,
 	}, nil
 }
 
@@ -151,7 +158,7 @@ func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
 
 		err := r.handleWithRetry(ctx, p, evt)
 		if err != nil {
-			slog.ErrorContext(ctx, "projection handler failed",
+		r.logger.ErrorContext(ctx, "projection handler failed",
 				"projection", p.Name(),
 				"event_id", evt.ID(),
 				"event_type", evt.Type(),

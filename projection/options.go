@@ -1,10 +1,14 @@
 package projection
 
-import "time"
+import (
+	"log/slog"
+	"time"
+)
 
 type runnerOptions struct {
 	retryCount int
 	retryDelay time.Duration
+	logger     *slog.Logger
 }
 
 // RunnerOption configures a projection Runner.
@@ -17,5 +21,13 @@ func WithRetry(count int, delay time.Duration) RunnerOption {
 	return func(o *runnerOptions) {
 		o.retryCount = count
 		o.retryDelay = delay
+	}
+}
+
+// WithLogger sets the structured logger for the runner.
+// Defaults to slog.Default() if not set.
+func WithLogger(logger *slog.Logger) RunnerOption {
+	return func(o *runnerOptions) {
+		o.logger = logger
 	}
 }
