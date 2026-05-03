@@ -138,8 +138,8 @@ func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {
 
 	err := cmdDisp.Dispatch(ctx, newUserCmd(id.NewAggregateID(), "", "No Email"))
 	if err != nil {
-		var evtErr *event.Error
-		if errors.As(err, &evtErr) {
+		evtErr, ok := errors.AsType[*event.Error](err)
+		if ok {
 			fmt.Printf("→ Rejected [%s]: %s\n\n", evtErr.Family, evtErr.Message)
 		} else {
 			fmt.Printf("→ Error: %v\n\n", err)
