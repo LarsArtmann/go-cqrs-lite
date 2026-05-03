@@ -1,6 +1,8 @@
 package aggregate
 
 import (
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -12,7 +14,12 @@ type SnapshotStrategy interface {
 }
 
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
+// Panics if n <= 0.
 func EveryNEvents(n int) SnapshotStrategy {
+	if n <= 0 {
+		panic(fmt.Sprintf("EveryNEvents: interval must be positive, got %d", n))
+	}
+
 	return &everyN{interval: n}
 }
 

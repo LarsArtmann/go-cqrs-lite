@@ -378,3 +378,15 @@ func TestCoreFullLifecycle(t *testing.T) {
 		)
 	}
 }
+
+func TestEveryNEvents_PanicsOnZeroOrNegative(t *testing.T) {
+	t.Parallel()
+
+	for _, n := range []int{0, -1, -5} {
+		func() {
+			defer func() { recover() }()
+			aggregate.EveryNEvents(n)
+			t.Errorf("expected panic for n=%d", n)
+		}()
+	}
+}
