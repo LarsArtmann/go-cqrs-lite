@@ -1,37 +1,23 @@
 # TODO List
 
-**Audited:** 2026-05-03 · **Session 41**
-**Sources:** Session 40 status report, Session 41 audit + execution
+**Audited:** 2026-05-03 · **Session 42**
+**Sources:** Session 41 execution, Session 42 continuation
 
 ---
 
 ## 🔴 CRITICAL (Blocks Production Use)
 
-- [ ] **PostgreSQL outbox store** — `storage/postgres_outbox.go` implementing `event.Outbox`
-  - `MemoryOutboxStore` exists in `memory/` (testing only)
-  - `event.Outbox` interface exists in `core/event/`
-  - No PostgreSQL implementation — consumers must implement their own
-  - Design challenge: outbox Append must run inside same tx as event inserts
+None — all critical items resolved.
 
 ---
 
 ## 🟡 HIGH Priority (Library Quality)
 
-- [ ] **Increase `core/decider` coverage** — ~92% (below project >95% standard)
-  - Missing: concurrent Execute calls, context cancellation
-  - New Delete/outbox tests added in Session 41 but more edge cases needed
-
-- [ ] **Refactor long functions** — 16 functions exceed 30-line max
-  - `storage/helpers.go:scanEvents` — 76 lines (worst offender)
-  - `core/event/runner.go:HandleParallel` — 66 lines
-  - `storage/event_store.go:Save` — 53 lines
-  - `core/event/event.go:validateEventParams` — 51 lines
-  - `storage/event_store.go:AppendBatch` — 49 lines
-  - `storage/snapshot.go:LoadAtVersion` — 43 lines
-  - 10 more between 31-40 lines
-
-- [ ] **Consolidate `CatalogMeta`** — identical struct in `event`, `command`, `query` packages
-  - Extract to shared type in `core/event/` or create `core/catalog/` package
+- [ ] **Consolidate `CatalogMeta`** — duplicated in `event`, `command`, `query` packages
+  - `event.CatalogMeta` has extra `AggregateType` field — not identical to command/query
+  - `command.CatalogMeta` and `query.CatalogMeta` are identical (3 fields)
+  - Options: shared base package, or accept as intentional per-package types
+  - LOW effort, LOW impact — consider accepting duplication
 
 - [ ] **Fix `query.Handler` returns `any`** — known issue since Session 1
   - `DispatchTyped[T]` is the workaround but interface still uses `any`
@@ -41,21 +27,12 @@
 
 ## 🟡 MEDIUM Priority (Developer Experience)
 
-- [ ] **Create `CONTEXT.md`** — domain glossary defining aggregate, projection, decider, fold, decide, etc.
-
-- [ ] **Create `docs/adr/`** — Architecture Decision Records
-  - ADR-0001: Decider pattern over OO aggregate
-  - ADR-0002: Error taxonomy design (5 families)
-  - ADR-0003: Multi-module monorepo structure
-
-- [ ] **Add snapshot support to `decider.Repository`** — `aggregate.Repository` has `SnapshotStrategy` + `SnapshotStore`, `decider` has neither
+None — all medium items resolved.
 
 ---
 
 ## 🟢 LOW Priority (Polish)
 
-- [ ] **Archive stale planning docs** — 20+ obsolete files in `docs/planning/` (pre-2026-05-01)
-- [ ] **Archive stale status docs** — 25+ old files in `docs/status/` (older than 2 weeks)
 - [ ] **Event signing / integrity verification** — No HMAC or checksum on stored events
 
 ---
@@ -65,11 +42,40 @@
 - [ ] **Saga / Process Manager** — `docs/planning/SAGA_DESIGN.md` exists (orchestration pattern)
   - Needs saga.Core, saga.Step, saga.Instance, saga.Store, saga.Runner
 
-- [ ] **Watermill module** — `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` evaluated
+- [ ] **Watermill module** — `docs/planning/archive/2026-04-23_WATERMILL_PRO_CONTRA.md` evaluated
   - Pub/sub adapter for Kafka, NATS, etc. — never started
 
 - [ ] **Tagged releases** — All modules at `v0.0.0`
   - Tag `v0.1.0-alpha` when modules stabilize
+
+---
+
+## ✅ COMPLETED (Session 42)
+
+- [x] **PostgreSQL outbox store** — `storage/outbox.go` implementing `event.Outbox`
+  - `SQLOutbox` with `Append`, `PollPending`, `Ack`, `Close`
+  - `OutboxSchema()` DDL for `outbox` table with partial index on pending status
+  - Events serialized as JSONB (round-trip tested)
+  - 10 tests with go-sqlmock (Append, PollPending, Ack, round-trip, errors, nil checks)
+- [x] **Refactor long functions** — reduced from 16 to 8 functions exceeding 30-line max
+  - `storage/helpers.go:scanEvents` 76→22 lines (extracted `scanEvent`)
+  - `core/event/runner.go:HandleParallel` 66→5 lines (extracted 3 methods)
+  - `storage/event_store.go:Save` 53→~30 lines (extracted `checkVersion`)
+  - `storage/event_store.go:AppendBatch` 49→~20 lines (reused `insertEvents`)
+  - `storage/snapshot.go` Load/LoadAtVersion refactored (shared `scanSnapshot`)
+- [x] **Add snapshot support to `decider.Repository`** — feature parity with aggregate
+  - `WithSnapshotStore`, `WithCodec`, `WithSnapshotStrategy` options
+  - `loadFromSnapshot`, `saveSnapshot`, `shouldSnapshot` methods
+  - Non-fatal snapshot errors (consistent with aggregate behavior)
+- [x] **Increase `core/decider` test coverage** — added 4 new tests
+  - `TestExecute_WithSnapshot` — snapshot save on strategy trigger
+  - `TestLoad_WithSnapshot` — state reconstruction from snapshot + remaining events
+  - `TestExecute_Concurrent` — 5 goroutines executing concurrently
+  - `TestExecute_ContextCancellation` — canceled context propagated via `ctxCheckStore`
+- [x] **Create `CONTEXT.md`** — domain glossary with 20 terms
+- [x] **Create `docs/adr/`** — 3 ADRs (decider pattern, error taxonomy, multi-module monorepo)
+- [x] **Archive stale docs** — moved 15 planning + 15 status files to `archive/` subdirectories
+- [x] **Refresh golden test files** — 3 catalog golden files updated
 
 ---
 
@@ -95,7 +101,8 @@
 - [x] **PostgreSQL checkpoint store** — `SQLCheckpointStore` in `storage/checkpoint.go`
 - [x] **PostgreSQL snapshot store** — `SQLSnapshotStore` in `storage/snapshot.go`
 - [x] **PostgreSQL event store** — `SQLEventStore` in `storage/event_store.go`
+- [x] **PostgreSQL outbox store** — `SQLOutbox` in `storage/outbox.go`
 
 ---
 
-_Last updated: 2026-05-03 (Session 41)_
+_Last updated: 2026-05-03 (Session 42)_
