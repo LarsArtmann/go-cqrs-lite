@@ -52,10 +52,24 @@ func (o *FakeOutbox) PollPending(_ context.Context, _ int) ([]event.OutboxEntry,
 	return o.Entries, nil
 }
 
-// Ack clears all entries.
-func (o *FakeOutbox) Ack(_ context.Context, _ []event.OutboxID) error {
+// Ack removes entries matching the given IDs.
+func (o *FakeOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
 	o.mu.Lock()
-	o.Entries = nil
+
+	ackSet := make(map[event.OutboxID]struct{}, len(ids))
+	for _, id := range ids {
+		ackSet[id] = struct{}{}
+	}
+
+	var remaining []event.OutboxEntry
+
+	for _, entry := range o.Entries {
+		if _, ok := ackSet[entry.ID]; !ok {
+			remaining = append(remaining, entry)
+		}
+	}
+
+	o.Entries = remaining
 	o.mu.Unlock()
 
 	return nil

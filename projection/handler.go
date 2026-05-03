@@ -23,7 +23,7 @@ func NewHandlerRegistry() *HandlerRegistry {
 
 // On registers a handler for a specific event type.
 // Returns an error if the handler is nil.
-func (r *HandlerRegistry) On(eventType string, handler event.Handler) error {
+func (r *HandlerRegistry) On(eventType event.Type, handler event.Handler) error {
 	if handler == nil {
 		return ErrNilHandler
 	}
@@ -31,7 +31,7 @@ func (r *HandlerRegistry) On(eventType string, handler event.Handler) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.handlers[event.Type(eventType)] = append(r.handlers[event.Type(eventType)], handler)
+	r.handlers[eventType] = append(r.handlers[eventType], handler)
 
 	return nil
 }
