@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
@@ -50,7 +51,7 @@ func readOrWriteGolden(t *testing.T, goldenPath, actualContent string) {
 		t.Fatalf("read golden %s: %v", goldenPath, err)
 	}
 
-	if actualContent != string(want) {
+	if strings.TrimSpace(actualContent) != strings.TrimSpace(string(want)) {
 		t.Errorf("golden file %s mismatch (run with -update to refresh)", goldenPath)
 	}
 }

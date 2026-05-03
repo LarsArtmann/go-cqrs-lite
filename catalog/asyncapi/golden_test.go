@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
@@ -30,7 +31,7 @@ func TestGolden_AsyncAPIJSON(t *testing.T) {
 	goldenPath := filepath.Join(goldenDir(), "asyncapi.json")
 
 	if *update {
-		err := os.WriteFile(goldenPath, got, 0o644)
+		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644)
 		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}
@@ -43,7 +44,7 @@ func TestGolden_AsyncAPIJSON(t *testing.T) {
 		t.Fatalf("read golden: %v", err)
 	}
 
-	if string(got) != string(want) {
+	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
 		t.Errorf("AsyncAPI JSON mismatch (run with -update to refresh golden files)")
 	}
 }
@@ -61,7 +62,7 @@ func TestGolden_AsyncAPIYAML(t *testing.T) {
 	goldenPath := filepath.Join(goldenDir(), "asyncapi.yaml")
 
 	if *update {
-		err := os.WriteFile(goldenPath, got, 0o644)
+		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644)
 		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}
@@ -74,7 +75,7 @@ func TestGolden_AsyncAPIYAML(t *testing.T) {
 		t.Fatalf("read golden: %v", err)
 	}
 
-	if string(got) != string(want) {
+	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
 		t.Errorf("AsyncAPI YAML mismatch (run with -update to refresh golden files)")
 	}
 }
