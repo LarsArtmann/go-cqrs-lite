@@ -68,16 +68,7 @@ func opError(op string, aggType event.AggregateType, aggID id.AggregateID, err e
 }
 
 // Save persists uncommitted events. If an outbox is configured, events are
-// appended to the outbox for reliable eventual publishing. Otherwise, they
-// are published directly to the bus.
-//
-// Partial-failure contract: if store.Save succeeds but bus.Publish or
-// outbox.Append fails, events are durably stored but not published. The
-// aggregate's uncommitted changes are NOT marked as committed, so the caller
-// can retry. On retry, store.Save will fail with ErrVersionConflict because
-// the events already exist. To recover, either use the outbox pattern (which
-// decouples persistence from publishing) or handle the conflict by loading
-// the current state and comparing.
+// appended to the outbox; otherwise published directly to the bus.
 func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	changes := root.UncommittedChanges()
 	if len(changes) == 0 {
@@ -180,10 +171,10 @@ func (r *EventSourcedRepository) loadEvents(
 		return r.loadFromStore(ctx, aggregateType, aggregateID)
 	}
 
-	snapshot, snapErr := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
-	if snapErr != nil {
-		if !errors.Is(snapErr, event.ErrSnapshotNotFound) {
-			return nil, opError("load snapshot", aggregateType, aggregateID, snapErr)
+	snapshot, err := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
+	if err != nil {
+		if !errors.Is(err, event.ErrSnapshotNotFound) {
+			return nil, opError("load snapshot", aggregateType, aggregateID, err)
 		}
 
 		return r.loadFromStore(ctx, aggregateType, aggregateID)
@@ -195,17 +186,13 @@ func (r *EventSourcedRepository) loadEvents(
 
 	root.SetVersion(snapshot.Version)
 
-	err := root.ApplySnapshot(snapshot.State)
-	if err != nil {
+	if err := root.ApplySnapshot(snapshot.State); err != nil {
 		return nil, opError("apply snapshot", aggregateType, aggregateID, err)
 	}
 
 	events, err := r.store.LoadFromVersion(ctx, aggregateType, aggregateID, snapshot.Version)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"load events from version %d for %s %s: %w",
-			snapshot.Version, aggregateType, aggregateID, err,
-		)
+		return nil, opError("load events from snapshot", aggregateType, aggregateID, err)
 	}
 
 	return events, nil
