@@ -91,7 +91,9 @@ func backoff(config RetryConfig, attempt int) time.Duration {
 	)
 	delay = min(delay, config.MaxDelay)
 
-	delay += time.Duration(rand.Int64N(int64(delay) / 2)) //nolint:mnd // jitter divisor
+	delay += time.Duration(
+		rand.Int64N(int64(delay) / 2),
+	) //nolint:mnd,gosec // jitter divisor; weak rand is fine for retry backoff
 
 	return delay
 }

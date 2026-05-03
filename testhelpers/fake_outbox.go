@@ -12,6 +12,7 @@ import (
 type FakeOutbox struct {
 	mu       sync.Mutex
 	Entries  []event.OutboxEntry
+	nextID   int
 	appendFn func(events []event.Event) error
 }
 
@@ -37,9 +38,10 @@ func (o *FakeOutbox) Append(_ context.Context, events []event.Event) error {
 	}
 
 	o.Entries = append(o.Entries, event.OutboxEntry{
-		ID:     event.OutboxID(fmt.Sprintf("outbox-%d", len(o.Entries))),
+		ID:     event.OutboxID(fmt.Sprintf("outbox-%d", o.nextID)),
 		Events: events,
 	})
+	o.nextID++
 
 	return nil
 }
