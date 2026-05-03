@@ -136,13 +136,16 @@ func (p *OutboxPublisher) run(ctx context.Context) {
 	}
 }
 
-// publishPending performs a single poll-publish-ack cycle.
-// Errors are silently swallowed to keep the background loop running.
-// For error visibility, use PublishNow which returns errors to the caller.
-func (p *OutboxPublisher) publishPending(ctx context.Context) {
+// pollPublishAck performs a single poll-publish-ack cycle.
+// Returns the poll error, publish error, and ack error (in that priority).
+func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {
-		return
+		return fmt.Errorf("poll pending: %w", err)
+	}
+
+	if len(entries) == 0 {
+		return nil
 	}
 
 	var ackIDs []OutboxID
@@ -156,49 +159,31 @@ func (p *OutboxPublisher) publishPending(ctx context.Context) {
 		ackIDs = append(ackIDs, entry.ID)
 	}
 
+	publishErr := err
+
 	if len(ackIDs) > 0 {
-		_ = p.outbox.Ack(ctx, ackIDs)
+		ackErr := p.outbox.Ack(ctx, ackIDs)
+		if ackErr != nil && publishErr == nil {
+			return fmt.Errorf("ack entries: %w", ackErr)
+		}
 	}
+
+	if publishErr != nil {
+		return fmt.Errorf("publish events: %w", publishErr)
+	}
+
+	return nil
+}
+
+// publishPending performs a single poll-publish-ack cycle.
+// Errors are silently swallowed to keep the background loop running.
+// For error visibility, use PublishNow which returns errors to the caller.
+func (p *OutboxPublisher) publishPending(ctx context.Context) {
+	_ = p.pollPublishAck(ctx)
 }
 
 // PublishNow performs a single poll-publish-ack cycle immediately.
 // Useful for testing or triggering from application code.
 func (p *OutboxPublisher) PublishNow(ctx context.Context) error {
-	entries, err := p.outbox.PollPending(ctx, p.batchSize)
-	if err != nil {
-		return fmt.Errorf("poll pending: %w", err)
-	}
-
-	if len(entries) == 0 {
-		return nil
-	}
-
-	var (
-		ackIDs  []OutboxID
-		lastErr error
-	)
-
-	for _, entry := range entries {
-		err = p.bus.Publish(ctx, entry.Events...)
-		if err != nil {
-			lastErr = err
-
-			break
-		}
-
-		ackIDs = append(ackIDs, entry.ID)
-	}
-
-	if len(ackIDs) > 0 {
-		ackErr := p.outbox.Ack(ctx, ackIDs)
-		if ackErr != nil && lastErr == nil {
-			return fmt.Errorf("ack entries: %w", ackErr)
-		}
-	}
-
-	if lastErr != nil {
-		return fmt.Errorf("publish events: %w", lastErr)
-	}
-
-	return nil
+	return p.pollPublishAck(ctx)
 }
