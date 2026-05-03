@@ -23,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                            |
 | --------- | ------------------------------------------------------------------------------------------------ |
 | Language  | Go 1.26                                                                                          |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
+| Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
 | Build     | `nix run .#build`                                                                                |
 | Test      | `nix run .#test` or see "Testing" below                                                          |
 | Lint      | `nix run .#lint`                                                                                 |
@@ -47,7 +47,8 @@ go-cqrs-lite/
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
 │   │   ├── event.go                # Core struct, NewEvent constructor
 │   │   └── options.go              # Option func, With* metadata helpers
-│   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository
+│   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository (OO style)
+│   ├── decider/                     # Decider[State], Repository[State], Execute, Load (pure-function style)
 │   ├── pkg/
 │   │   ├── id/                      # branded IDs: id.Of[T] (AggregateID, EventID, UserID, etc.)
 │   │   │   ├── id.go               # Core type, constructors, comparisons
@@ -181,9 +182,21 @@ nix develop             # enter dev shell
 | `core/command/`        | Command dispatch and handling       | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                           |
 | `core/query/`          | Query dispatch with pagination      | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                          |
 | `core/event/`          | Event sourcing interfaces and types | `Store`, `Bus`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                                             |
-| `core/aggregate/`      | Aggregate roots and repository      | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
+| `core/aggregate/`      | Aggregate roots and repository (OO)  | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                             |
+| `core/decider/`        | Aggregate via pure functions         | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                             |
 | `core/pkg/id/`         | Branded IDs via generics            | `id.Of[T]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `Ptr()`, `FromPtr()`, `fmt.Formatter` |
 | `core/pkg/dispatcher/` | Generic internal dispatcher         | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                      |
+
+### Decider Module (`core/decider/`)
+
+| Package         | Purpose                                    | Key Types                                                |
+| --------------- | ------------------------------------------ | -------------------------------------------------------- |
+| `core/decider/` | Functional aggregate pattern (recommended) | `Decider[State]`, `Repository[State]`, `Execute`, `Load` |
+
+- **Recommended over `aggregate`** for new consumers: pure functions, no mutable state, no 9-method interface, zero-infrastructure testing.
+- `Decider[State]` holds `Initial` state and `Fold func(State, Event) (State, error)`.
+- `Repository[State].Execute` does load → fold → decide → save → publish.
+- `aggregate` package stays for existing consumers who prefer the OO style.
 
 ### Memory Module (`memory/`)
 
@@ -365,6 +378,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `catalog/eventcatalog` | 93.7%    |
 | `catalog`              | 94.4%    |
 | `core/aggregate`       | 92.7%    |
+| `core/decider`         | ~95%     |
 
 ## Module Dependency Graph
 
@@ -376,7 +390,9 @@ catalog    → core (via cattest internal helpers)
 storage    → core (go-sqlmock for tests)
 projection → core + memory (tests) + testhelpers (tests)
 integration → core + memory + testhelpers
+example/user → core + memory + catalog + middleware
 core        → (no internal deps — independently publishable)
+core/decider is a package within core, not a separate module
 ```
 
 ### Integration Module (`integration/`)
@@ -466,7 +482,7 @@ Interfaces now return branded types instead of primitives:
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)      | `699d247` |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                           | `b23a781` |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                   | `e84e3a1` |
-| Example simplification       | `example/user/` demonstrates full CQRS lifecycle + EventCatalog export | `6815ef3` |
+| Example rewrite            | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog | session 37 |
 
 ## Known Issues
 
@@ -591,6 +607,21 @@ Interfaces now return branded types instead of primitives:
   - **QUALITY**: Added godoc to 4 `*event.Error` methods (`Error`, `Unwrap`, `Is`, `Format`)
   - **AUDIT**: Full codebase audit — all files ≤250 lines, zero TODO/FIXME, all exported errors use correct patterns
   - Zero lint, all 21 test packages pass
+
+- **Session 37 (Decider Package + Example Rewrite)**:
+  - **NEW**: `core/decider` package — functional aggregate pattern using pure functions
+  - **NEW**: `decider.Decider[State]` — holds Initial state + Fold function (pure)
+  - **NEW**: `decider.Repository[State]` — wraps event.Store + event.Bus, provides Execute (load→fold→decide→save→publish) and Load (read-only)
+  - **NEW**: `decider.DecideFunc[State]` — `func(state State, version event.Version) ([]event.Event, error)`
+  - **NEW**: Sentinel errors: `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
+  - **DESIGN**: `aggregate` package stays for existing consumers; `decider` is recommended for new consumers
+  - **DESIGN**: `Execute` handles `ErrAggregateNotFound` as empty stream (new aggregate, version 0)
+  - **TEST**: 11 tests covering create, update, decide error, fold error, save error, publish error, no events, load, nil checks
+  - **EXAMPLE**: Complete rewrite of `example/user/` — 10 files, full CQRS stack using Decider pattern
+  - **EXAMPLE**: Demonstrates commands, events, projections, queries, middleware chain, error classification, EventCatalog
+  - **EXAMPLE**: No split-brain types, no `log.Fatalf` in helpers, uses library's `SlogAdapter`
+  - **EXAMPLE**: README with architecture diagram, file structure, and pattern explanations
+  - Zero lint, all 22 test packages pass
 
 - **Session 38 (Deep Cleanup + Deduplication + Type Safety)**:
   - **FIX**: `EveryNEvents` now validates `n > 0` (prevents division-by-zero)

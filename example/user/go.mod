@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/catalog v0.0.0
 	github.com/larsartmann/go-cqrs-lite/core v0.0.0
 	github.com/larsartmann/go-cqrs-lite/memory v0.0.0
+	github.com/larsartmann/go-cqrs-lite/middleware v0.0.0
 )
 
 require (
@@ -34,4 +35,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/catalog => ../../catalog
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
+	github.com/larsartmann/go-cqrs-lite/middleware => ../../middleware
 )

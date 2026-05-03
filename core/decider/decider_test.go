@@ -1,0 +1,358 @@
+package decider_test
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/core/decider"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
+)
+
+type counterState struct {
+	Value int
+}
+
+func foldCounter(state counterState, evt event.Event) (counterState, error) {
+	switch evt.Type() {
+	case "CounterCreated":
+		return counterState{Value: 1}, nil
+	case "CounterIncremented":
+		return counterState{Value: state.Value + 1}, nil
+	}
+
+	return state, nil
+}
+
+func newTestRepo(
+	t *testing.T,
+) (*decider.Repository[counterState], *testhelpers.FakeStore, *testhelpers.FakeBus) {
+	t.Helper()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	return repo, store, bus
+}
+
+func makeEvent(t *testing.T, eventType string, aggID id.AggregateID, version int) *event.Core {
+	t.Helper()
+
+	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	return evt
+}
+
+func TestNewRepository_NilChecks(t *testing.T) {
+	t.Parallel()
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	_, err := decider.NewRepository(nil, testhelpers.NewFakeBus(), d)
+	if !errors.Is(err, decider.ErrNilStore) {
+		t.Fatalf("expected ErrNilStore, got %v", err)
+	}
+
+	_, err = decider.NewRepository(testhelpers.NewFakeStore(), nil, d)
+	if !errors.Is(err, decider.ErrNilBus) {
+		t.Fatalf("expected ErrNilBus, got %v", err)
+	}
+
+	_, err = decider.NewRepository(testhelpers.NewFakeStore(), testhelpers.NewFakeBus(),
+		decider.Decider[counterState]{Initial: counterState{}, Fold: nil})
+	if !errors.Is(err, decider.ErrNilFold) {
+		t.Fatalf("expected ErrNilFold, got %v", err)
+	}
+}
+
+func TestExecute_Create(t *testing.T) {
+	t.Parallel()
+
+	repo, _, bus := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	err := repo.Execute(t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			if state.Value != 0 {
+				t.Fatalf("expected initial state, got Value=%d", state.Value)
+			}
+
+			if version != 0 {
+				t.Fatalf("expected version 0, got %d", version)
+			}
+
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	if len(bus.Published) != 1 {
+		t.Fatalf("expected 1 published event, got %d", len(bus.Published))
+	}
+}
+
+func TestExecute_Update(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	err := repo.Execute(t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("first Execute: %v", err)
+	}
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			if state.Value != 1 {
+				t.Fatalf("expected Value=1 after fold, got %d", state.Value)
+			}
+
+			if version != 1 {
+				t.Fatalf("expected version 1, got %d", version)
+			}
+
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("second Execute: %v", err)
+	}
+}
+
+func TestExecute_DecideError(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	decideErr := errors.New("rejection: email required")
+
+	err := repo.Execute(t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			return nil, decideErr
+		},
+	)
+	if !errors.Is(err, decideErr) {
+		t.Fatalf("expected decide error, got %v", err)
+	}
+}
+
+func TestExecute_FoldError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	aggID := id.NewAggregateID()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+			return counterState{}, errors.New("corrupted payload")
+		},
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	existing := makeEvent(t, "CounterCreated", aggID, 1)
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{existing})
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("expected fold error")
+	}
+
+	if !errors.Is(err, decider.ErrFoldFailed) {
+		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	}
+}
+
+func TestExecute_SaveError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	store.SaveFn(
+		func(_ context.Context, _ event.AggregateType, _ id.AggregateID, _ []event.Event, _ event.Version) error {
+			return errors.New("db connection lost")
+		},
+	)
+
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("expected save error")
+	}
+
+	if !errors.Is(err, decider.ErrSaveFailed) {
+		t.Fatalf("expected ErrSaveFailed, got %v", err)
+	}
+}
+
+func TestExecute_PublishError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	bus.PublishErr = errors.New("bus unavailable")
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("expected publish error")
+	}
+
+	if !errors.Is(err, bus.PublishErr) {
+		t.Fatalf("expected publish error, got %v", err)
+	}
+}
+
+func TestExecute_NoEvents(t *testing.T) {
+	t.Parallel()
+
+	repo, _, bus := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	err := repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return nil, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	if len(bus.Published) != 0 {
+		t.Fatalf("expected 0 published events, got %d", len(bus.Published))
+	}
+}
+
+func TestLoad_NoEvents(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != 0 {
+		t.Fatalf("expected initial state Value=0, got %d", state.Value)
+	}
+
+	if version != 0 {
+		t.Fatalf("expected version 0, got %d", version)
+	}
+}
+
+func TestLoad_WithEvents(t *testing.T) {
+	t.Parallel()
+
+	repo, store, _ := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+		makeEvent(t, "CounterIncremented", aggID, 2),
+	})
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != 2 {
+		t.Fatalf("expected Value=2, got %d", state.Value)
+	}
+
+	if version != 2 {
+		t.Fatalf("expected version 2, got %d", version)
+	}
+}
+
+func TestLoad_FoldError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	aggID := id.NewAggregateID()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+			return counterState{}, fmt.Errorf("corrupted")
+		},
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
+
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err == nil {
+		t.Fatal("expected fold error")
+	}
+
+	if !errors.Is(err, decider.ErrFoldFailed) {
+		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	}
+}

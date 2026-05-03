@@ -1,178 +1,153 @@
-// Package main demonstrates a complete CQRS + Event Sourcing flow
-// using go-cqrs-lite with the in-memory implementations,
-// followed by automatic EventCatalog generation.
+// Package main demonstrates a complete CQRS + Event Sourcing integration
+// using go-cqrs-lite with the Decider pattern — pure functions for state
+// reconstruction and command decisions, no mutable aggregate required.
 package main
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"path/filepath"
 
-	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/middleware"
 )
-
-// --- Typed event payloads (with struct tags for schema generation) ---
-
-type UserCreatedPayload struct {
-	Email string `description:"The user's email address" json:"email"`
-}
-
-type UserNameChangedPayload struct {
-	Name string `description:"The new display name" json:"name"`
-}
-
-// --- User aggregate root ---
-
-type User struct {
-	*aggregate.Core
-
-	email string
-	name  string
-}
-
-func newUser(email string) *User {
-	aggID := id.NewAggregateID()
-
-	return &User{
-		Core:  aggregate.MustNewCore(aggID, event.AggregateType("User")),
-		email: email,
-	}
-}
-
-func (u *User) Apply(evt event.Event) error {
-	switch evt.Type() {
-	case "UserCreated":
-		var p UserCreatedPayload
-
-		err := json.Unmarshal(evt.Payload(), &p)
-		if err != nil {
-			return fmt.Errorf("unmarshal UserCreated: %w", err)
-		}
-
-		u.email = p.Email
-	case "UserNameChanged":
-		var p UserNameChangedPayload
-
-		err := json.Unmarshal(evt.Payload(), &p)
-		if err != nil {
-			return fmt.Errorf("unmarshal UserNameChanged: %w", err)
-		}
-
-		u.name = p.Name
-	}
-
-	return nil
-}
-
-func (u *User) ApplySnapshot(_ []byte) error { return nil }
-
-func (u *User) LoadEvents(events []event.Event) error {
-	return u.LoadFromHistory(u, events)
-}
-
-// ChangeName records a UserNameChanged event.
-func (u *User) ChangeName(ctx context.Context, name string) error {
-	payload, err := json.Marshal(UserNameChangedPayload{Name: name})
-	if err != nil {
-		return fmt.Errorf("marshal name payload: %w", err)
-	}
-
-	evt, err := event.NewEvent(
-		"UserNameChanged",
-		u.ID(),
-		u.Type(),
-		u.Version().Int()+1,
-		payload,
-	)
-	if err != nil {
-		return fmt.Errorf("create UserNameChanged event: %w", err)
-	}
-
-	u.RecordEvent(ctx, evt)
-
-	return nil
-}
-
-// --- Main ---
 
 func main() {
 	ctx := context.Background()
 
-	fmt.Println("=== CQRS + Event Sourcing Demo ===")
+	fmt.Println("=== go-cqrs-lite: Full CQRS + Event Sourcing Demo ===")
 	fmt.Println()
 
+	// --- Infrastructure ---
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
+	readModel := NewReadModelStore()
 
-	repo, _ := aggregate.NewRepository(store, bus)
-
-	user := newUser("alice@example.com")
-
-	createdPayload, err := json.Marshal(UserCreatedPayload{Email: user.email})
-	if err != nil {
-		log.Fatalf("marshal created payload: %v", err)
+	userDecider := decider.Decider[UserState]{
+		Initial: UserState{},
+		Fold:    foldUser,
 	}
 
-	created, err := event.NewEvent(
-		"UserCreated",
-		user.ID(),
-		user.Type(),
-		1,
-		createdPayload,
+	deciderRepo, err := decider.NewRepository(store, bus, userDecider)
+	if err != nil {
+		log.Fatalf("create decider repo: %v", err)
+	}
+
+	// --- Bus subscribers (projection + logging) ---
+	var publishedEvents []event.Event
+
+	registerBusHandlers(bus, readModel, &publishedEvents)
+
+	fmt.Println("[infra] Store: MemoryStore | Bus: MemoryBus | Decider Repository: ready")
+	fmt.Println("[infra] Read model projection: subscribed to bus")
+	fmt.Println()
+
+	// --- Command dispatcher with middleware ---
+	cmdDispatcher := command.NewDispatcher()
+
+	cmdDispatcher.Use(
+		middleware.CommandRecovery(),
+		middleware.CommandLogging(newLogger()),
+		middleware.CommandMetrics(&printMetricsRecorder{}),
+		middleware.CommandRetry(middleware.DefaultRetryConfig()),
 	)
+
+	registerCommandHandlers(cmdDispatcher, deciderRepo)
+
+	// --- Query dispatcher ---
+	qryDispatcher := query.NewDispatcher()
+	registerQueryHandlers(qryDispatcher, readModel)
+
+	fmt.Println("[infra] Middleware: Recovery → Logging → Metrics → Retry")
+	fmt.Println()
+
+	// --- Step 1: Create User ---
+	fmt.Println("--- Step 1: Create User ---")
+	userID := id.NewAggregateID()
+
+	err = cmdDispatcher.Dispatch(ctx, newUserCmd(userID, "alice@example.com", "Alice Smith"))
 	if err != nil {
-		log.Fatalf("create event: %v", err)
+		log.Fatalf("create user: %v", err)
 	}
 
-	user.RecordEvent(ctx, created)
+	fmt.Printf("→ Created user %s (alice@example.com)\n\n", userID)
 
-	if err := repo.Save(ctx, user); err != nil {
-		log.Fatalf("save user: %v", err)
-	}
-
-	fmt.Printf("Created user %s (%s)\n", user.ID(), user.email)
-
-	loaded := &User{Core: aggregate.MustNewCore(user.ID(), event.AggregateType("User"))}
-
-	if err := repo.Load(ctx, loaded); err != nil {
-		log.Fatalf("load user: %v", err)
-	}
-
-	fmt.Printf("Loaded user %s, version %d\n", loaded.ID(), loaded.Version().Int())
-
-	if err := loaded.ChangeName(ctx, "Alice Smith"); err != nil {
+	// --- Step 2: Change Name ---
+	fmt.Println("--- Step 2: Change Name ---")
+	err = cmdDispatcher.Dispatch(ctx, &ChangeUserNameCmd{
+		aggregateID: userID,
+		name:        "Alice Johnson",
+		idempotency: "change-name-" + userID.String(),
+	})
+	if err != nil {
 		log.Fatalf("change name: %v", err)
 	}
 
-	if err := repo.Save(ctx, loaded); err != nil {
-		log.Fatalf("save name change: %v", err)
+	fmt.Printf("→ Changed name to %q, version %d\n\n", "Alice Johnson", len(publishedEvents))
+
+	// --- Step 3: Query User (from read model) ---
+	fmt.Println("--- Step 3: Query User ---")
+	getResult, err := qryDispatcher.Dispatch(ctx, &GetUserQuery{aggregateID: userID})
+	if err != nil {
+		log.Fatalf("get user: %v", err)
 	}
 
-	fmt.Printf("Changed name to %q, version %d\n", loaded.name, loaded.Version().Int())
+	if rm, ok := getResult.(ReadModel); ok {
+		fmt.Printf("→ User{Email: %q, Name: %q}\n\n", rm.Email, rm.Name)
+	}
+
+	// --- Step 4: List Users ---
+	fmt.Println("--- Step 4: List Users ---")
+	listResult, err := qryDispatcher.Dispatch(ctx, &ListUsersQuery{})
+	if err != nil {
+		log.Fatalf("list users: %v", err)
+	}
+
+	if users, ok := listResult.([]ReadModel); ok {
+		for i, u := range users {
+			fmt.Printf("  [%d] %s (%s)\n", i, u.Email, u.Name)
+		}
+	}
 
 	fmt.Println()
-	fmt.Println("CQRS + Event Sourcing flow completed successfully!")
 
-	// --- EventCatalog Generation ---
+	// --- Step 5: Validation Error ---
+	fmt.Println("--- Step 5: Validation Error (empty email) ---")
+	err = cmdDispatcher.Dispatch(ctx, newUserCmd(id.NewAggregateID(), "", "No Email"))
+	if err != nil {
+		var evtErr *event.Error
+		if errors.As(err, &evtErr) {
+			fmt.Printf("→ Rejected [%s]: %s\n\n", evtErr.Family, evtErr.Message)
+		} else {
+			fmt.Printf("→ Error: %v\n\n", err)
+		}
+	}
 
-	fmt.Println()
-	fmt.Println("=== EventCatalog Generation ===")
-	fmt.Println()
+	// --- Step 6: Error Classification ---
+	fmt.Println("--- Step 6: Error Classification ---")
+	family := event.Classify(err)
+	fmt.Printf("→ classify(create-no-email) = %s\n", family)
+	fmt.Printf("→ isRetryable(create-no-email) = %v\n\n", event.IsRetryable(err))
 
+	// --- Step 7: EventCatalog ---
+	fmt.Println("--- Step 7: EventCatalog ---")
 	outputDir := filepath.Join(".", "eventcatalog-output")
 
 	if err := generateEventCatalog(outputDir); err != nil {
 		log.Fatalf("generate event catalog: %v", err)
 	}
 
-	fmt.Printf("EventCatalog written to %s\n", outputDir)
-	fmt.Println()
-	fmt.Println(
-		"Open it with EventCatalog (https://www.eventcatalog.dev/) to visualize your event-driven architecture.",
-	)
+	fmt.Printf("→ EventCatalog written to %s\n\n", outputDir)
+
+	// --- Summary ---
+	fmt.Println("=== Demo Complete ===")
+	fmt.Printf("  Events published: %d\n", len(publishedEvents))
+	fmt.Printf("  Read model users: %d\n", len(readModel.List()))
 }
