@@ -1,9 +1,13 @@
 package catalog
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 )
+
+// ErrDomainNotFound is returned when a domain ID does not exist in the registry.
+var ErrDomainNotFound = errors.New("domain not found")
 
 func copySlice[T any](s []T) []T {
 	if s == nil {
@@ -182,8 +186,7 @@ func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 
 	d, ok := r.domains[domainID]
 	if !ok {
-		//nolint:err113 // dynamic error required to include domainID in message
-		return fmt.Errorf("domain %q not found", domainID)
+		return fmt.Errorf("%w: %q", ErrDomainNotFound, domainID)
 	}
 
 	d.Services = append(d.Services, serviceID)
