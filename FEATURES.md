@@ -88,12 +88,12 @@
 | Event sourcing         | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store)                | ✅     |
 | Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save`                                                 | ✅     |
 | Snapshot support       | `WithSnapshotStore` option — loads from snapshot then replays remaining events                  | ✅     |
-| Snapshot strategy      | `SnapshotStrategy` interface + `EveryNEvents(n)` built-in                                       | ✅     |
+| Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                  | ✅     |
 | Snapshot codec         | `WithCodec` option for custom snapshot serialization                                            | ✅     |
 | Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
-**Coverage:** 92.7%
+**Coverage:** 95.8%
 
 ---
 
@@ -174,7 +174,7 @@
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
-**Coverage:** 98.0%
+**Coverage:** 99.1%
 
 ---
 
@@ -338,7 +338,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
 | Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                           |
 
-**Coverage:** 95.4% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
+**Coverage:** 93.6% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
 
 ---
 

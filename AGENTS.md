@@ -677,3 +677,30 @@ Interfaces now return branded types instead of primitives:
   - **NEW**: `CompareIDs[T](a, b Of[T]) int` — replaces `Compare()` method (cbid.ID.Compare returns ErrNotOrdered for ulid.ULID)
   - **RE-EXPORT**: `FromPtr[T]` — delegates to `cbid.FromPtr` (package-level functions not promoted by type alias)
   - Net -89 lines (141→84 in id.go, id_encoding.go deleted), all 21 test packages pass
+
+- **Session 46 (Deep Duplication Audit + Status Report)**:
+  - **AUDIT**: Identified 5 duplication targets: SnapshotStrategy (aggregate↔decider), publishChanges (aggregate↔decider), saveSnapshot (aggregate↔decider), ISP (Bus used everywhere), error classification gaps
+  - **STATUS**: 21 test packages pass, 90.9% total coverage, 46 pre-existing lint issues, 0 TODOs
+  - **PLANNING**: Prioritized deduplication and ISP as highest-impact, lowest-effort improvements
+
+- **Session 47 (Execution Plan + Status Report)**:
+  - **PLAN**: 66-task, 9-phase execution plan — Phases 1-7 (implementation), Phase 8 (docs), Phase 9 (future-looking)
+  - **STATUS**: 21 packages pass, 31,509 LOC (10,067 production + 21,442 test), 154 commits since May 1
+  - **PHASES**: (1) SnapshotStrategy extraction, (2) ISP activation, (3) error classification completion, (4) zero lint, (5) test coverage gaps, (6) code quality cleanup, (7) deduplicate publishChanges/saveSnapshot, (8) documentation, (9) future-looking
+
+- **Session 48 (Execution: Phases 1–7)**:
+  - **NEW**: `core/event/snapshot_strategy.go` — canonical `SnapshotStrategy` interface, `EveryNEvents(n)`, shared `ShouldSnapshot()` helper
+  - **NEW**: `event.Publisher` and `event.Subscriber` sub-interfaces — `event.Bus` composes both. Backward-compatible ISP.
+  - **NEW**: `event.RegisterClassification(sentinel, family)` — extensible error classification; `aggregate`, `projection`, `storage` register via `init()`
+  - **NEW**: `event.ErrProjectionPanicked` sentinel for panic recovery in `HandleParallel` and `OutboxPublisher`
+  - **NEW**: `event.PublishChanges()` and `event.SaveSnapshot()` — shared helpers eliminating duplication in aggregate/decider repositories
+  - **NEW**: Cross-module classification tests in `integration/event/classify_test.go`
+  - **NEW**: Coverage tests for memory (99.1%), projection (92.5%), storage (93.6%), aggregate (95.8%)
+  - **FIX**: Root `go.mod` module path `LarsArtmann` → `larsartmann` (consistent with sub-modules)
+  - **FIX**: All 50+ lint issues → 0 across 8 linted modules (exhaustruct, wrapcheck, noinlineerr, gosec, goconst, prealloc, tagliatelle, fatcontext)
+  - **FIX**: `storage/snapshot.go` scanSignature fills all struct fields, wraps `sql.Row.Scan` error
+  - **FIX**: `storage/outbox.go` extracted `pollPendingQuery` constant, nolint for G201/tagliatelle
+  - **REFACTOR**: `aggregate.Repository` accepts `event.Publisher`, `decider.Repository` accepts `event.Publisher`, `projection.Runner` accepts `event.Subscriber`
+  - **REFACTOR**: Deleted duplicate `publishChanges` and `saveSnapshot` from aggregate/decider repositories; replaced with shared `event.PublishChanges()` / `event.SaveSnapshot()`
+  - **REFACTOR**: Type aliases for `SnapshotStrategy` in aggregate and decider (backward-compatible)
+  - 6 commits (7437986, d28d03d, 09bbbba, 57b3939, 6f8d8f6, 7bc841b), zero lint, all 22 test packages pass

@@ -8,7 +8,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **SnapshotStrategy** (`core/aggregate`): Interface for automatic snapshot creation with `EveryNEvents(n)` convenience implementation. Wired into `EventSourcedRepository.Save()` via `WithSnapshotStrategy()` option.
+- **SnapshotStrategy** (`core/event`): Canonical `SnapshotStrategy` interface and `EveryNEvents(n)` extracted from aggregate/decider to `core/event/snapshot_strategy.go`. Backward-compatible type aliases in `core/aggregate` and `core/decider`.
+- **ShouldSnapshot helper** (`core/event`): Shared `ShouldSnapshot()` function in `core/event/snapshot_helper.go`.
+- **Publisher/Subscriber ISP** (`core/event`): `event.Publisher` and `event.Subscriber` sub-interfaces extracted from `event.Bus`. Repositories accept `Publisher`, projections accept `Subscriber`.
+- **Error classification registration** (`core/aggregate`, `projection`, `storage`): Sentinel errors registered via `event.RegisterClassification()` in `init()`.
+- **ErrProjectionPanicked** (`core/event`): Sentinel error for panicking projection handlers.
+- **Cross-module classification tests** (`integration/event`): Tests verifying aggregate, projection, and storage sentinels classify correctly.
+- **PublishChanges** (`core/event`): Shared function for outbox/bus event dispatch. Eliminates duplication in aggregate and decider repositories.
+- **SaveSnapshot** (`core/event`): Shared function for snapshot persistence with pre-encoded state.
+- **Coverage tests**: New test files for memory (99.1%), projection (92.5%), storage (93.6%), aggregate (95.8%).
+
+### Changed
+
+- **ISP activation**: `aggregate.Repository` accepts `event.Publisher` (not `event.Bus`). `decider.Repository` accepts `event.Publisher`. `projection.Runner` accepts `event.Subscriber`. `event.OutboxPublisher` accepts `event.Publisher`. All backward-compatible — `event.Bus` satisfies both sub-interfaces.
+- **Root go.mod module path**: `github.com/LarsArtmann/go-cqrs-lite` → `github.com/larsartmann/go-cqrs-lite` (consistent with sub-modules).
+- **Zero lint issues** across all 8 linted modules (was 50+).
+- **go.mod tidy**: ginkgo/gomega moved from indirect to direct in memory and projection modules.
+- **SnapshotStrategy deduplication**: Removed 22-line duplicate from aggregate and decider; replaced with type aliases.
+
+### Fixed
+
+- **exhaustruct**: `snapshot.go` scanSnapshot now fills all Snapshot struct fields via parameter passing.
+- **gosec G201**: `outbox.go` DELETE query uses parameterized placeholders (nolint with explanation).
+- **tagliatelle**: `outboxEvent` JSON tags use snake_case matching DB column names (nolint).
+- **wrapcheck**: `snapshot.go` wraps `sql.Row.Scan` error; `SaveSnapshot` return wrapped with `opError`.
+- **noinlineerr**: 5 instances in `storage/` fixed by splitting inline error handling.
+- **prealloc**: `helpers.go` preallocates options slice.
+- **goconst**: Extracted `pollPendingQuery` constant in `storage/outbox.go`.
+- **fatcontext**: Excluded for test files in `.golangci.yml`.
 - **Codec integration** (`core/aggregate`): `WithCodec()` option on `EventSourcedRepository` for automatic snapshot serialization via `event.Codec`.
 - **DecodePayload[T]** (`core/event`): Generic `DecodePayload[T any](evt Event, codec Codec) (T, error)` for type-safe event payload deserialization in handlers and projectors.
 - **ContextEnricher** (`core/event`): `ContextEnricher` type and `CompositeEnricher` for extracting metadata from context and injecting into events before persistence.
