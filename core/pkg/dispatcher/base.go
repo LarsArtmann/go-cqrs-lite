@@ -27,15 +27,11 @@ func (b *BaseDispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) 
 }
 
 // GetHandler returns the handler for a type and whether it exists.
-//
-//nolint:ireturn // generic interface return by design
 func (b *BaseDispatcher[H, M]) GetHandler(t string) (H, bool) {
 	return b.inner.GetHandler(t)
 }
 
 // Dispatch returns the wrapped handler for a type.
-//
-//nolint:ireturn // generic interface return by design
 func (b *BaseDispatcher[H, M]) Dispatch(t string) (H, error) {
 	return b.inner.Dispatch(t)
 }

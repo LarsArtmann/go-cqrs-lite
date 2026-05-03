@@ -73,8 +73,6 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 }
 
 // DispatchTyped sends a query and returns a typed result.
-//
-//nolint:ireturn // generic return by design
 func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, error) {
 	var zero T
 
