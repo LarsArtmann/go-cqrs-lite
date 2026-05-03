@@ -40,6 +40,7 @@ type Decider[State any] struct {
 type Repository[State any] struct {
 	store   event.Store
 	bus     event.Bus
+	outbox  event.Outbox
 	decider Decider[State]
 }
 
@@ -50,6 +51,7 @@ func NewRepository[State any](
 	store event.Store,
 	bus event.Bus,
 	decider Decider[State],
+	opts ...RepositoryOption[State],
 ) (*Repository[State], error) {
 	if store == nil {
 		return nil, ErrNilStore
@@ -63,11 +65,17 @@ func NewRepository[State any](
 		return nil, ErrNilFold
 	}
 
-	return &Repository[State]{
+	r := &Repository[State]{ //nolint:exhaustruct // options fill remaining fields
 		store:   store,
 		bus:     bus,
 		decider: decider,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r, nil
 }
 
 // DecideFunc is the signature for a decision function.
@@ -112,9 +120,9 @@ func (r *Repository[State]) Execute(
 		return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
 	}
 
-	err = r.bus.Publish(ctx, newEvents...)
+	err = r.publishChanges(ctx, newEvents, aggType, aggID)
 	if err != nil {
-		return opError(aggType, aggID, "publish events: %w", err)
+		return err
 	}
 
 	return nil
@@ -162,6 +170,41 @@ func (r *Repository[State]) loadState(
 	}
 
 	return state, event.Version(len(events)), nil
+}
+
+// Delete removes all events for the aggregate from the store.
+func (r *Repository[State]) Delete(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+) error {
+	err := r.store.Delete(ctx, aggType, aggID)
+	if err != nil {
+		return opError(aggType, aggID, "delete: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repository[State]) publishChanges(
+	ctx context.Context,
+	events []event.Event,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) error {
+	if r.outbox != nil {
+		err := r.outbox.Append(ctx, events)
+		if err != nil {
+			return opError(aggType, aggID, "stage events in outbox: %w", err)
+		}
+	} else {
+		err := r.bus.Publish(ctx, events...)
+		if err != nil {
+			return opError(aggType, aggID, "publish events: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func opError(aggType event.AggregateType, aggID id.AggregateID, format string, args ...any) error {

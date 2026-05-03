@@ -356,3 +356,91 @@ func TestLoad_FoldError(t *testing.T) {
 		t.Fatalf("expected ErrFoldFailed, got %v", err)
 	}
 }
+
+func TestDelete(t *testing.T) {
+	t.Parallel()
+
+	repo, store, _ := newTestRepo(t)
+	aggID := id.NewAggregateID()
+
+	store.AppendBatch(t.Context(), "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
+
+	err := repo.Delete(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load after delete: %v", err)
+	}
+}
+
+func TestExecute_WithOutbox(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	outbox := testhelpers.NewFakeOutbox()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d, decider.WithOutbox[counterState](outbox))
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	if len(bus.Published) != 0 {
+		t.Fatal("expected no bus publishes with outbox")
+	}
+
+	if len(outbox.Entries) == 0 {
+		t.Fatal("expected outbox entries")
+	}
+}
+
+func TestExecute_OutboxAppendError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	outbox := testhelpers.NewFakeOutbox()
+	outbox.AppendFn(func(_ []event.Event) error { return fmt.Errorf("outbox full") })
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d, decider.WithOutbox[counterState](outbox))
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("expected outbox append error")
+	}
+}
