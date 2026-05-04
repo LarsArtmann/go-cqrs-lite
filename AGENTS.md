@@ -364,18 +364,17 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
 | `core/pkg/id`          | 100.0%   |
-| `middleware`           | 100.0%   |
-| `core/event`           | ~98%     |
-| `memory`               | ~98%     |
+| `catalog/adapters`     | 100.0%   |
+| `projection`           | 100.0%   |
+| `middleware`           | 99.4%    |
+| `memory`               | 99.5%    |
 | `catalog/d2`           | 97.7%    |
+| `core/event`           | 97.0%    |
 | `catalog/asyncapi`     | 95.9%    |
-| `catalog/adapters`     | 95.5%    |
-| `storage`              | ~92%     |
 | `catalog/eventcatalog` | 95.6%    |
 | `catalog`              | 94.4%    |
-| `core/decider`         | ~94%     |
-| `core/aggregate`       | ~93%     |
-| `projection`           | ~90%     |
+| `storage`              | 93.1%    |
+| `core/aggregate`       | 92.9%    |
 
 ## Module Dependency Graph
 
