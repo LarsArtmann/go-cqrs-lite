@@ -99,7 +99,7 @@ go-cqrs-lite/
 From root with go.work:
 
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./storage/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -179,7 +179,7 @@ nix develop             # enter dev shell
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                       |
 | `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`               |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                              |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option` |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                         |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                         |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr` |
@@ -757,3 +757,17 @@ Interfaces now return branded types instead of primitives:
   - **TEST**: 5 new middleware sentinel tests, 4 new TypedHandler tests
   - **REFACTOR**: `core/event/event.go` doc comment updated — no longer claims cockroachdb/errors dependency
   - Net -169 lines from cockroachdb removal, 4 commits, zero lint, all 22 test packages pass
+
+- **Session 55–56 (Comprehensive Codebase Improvement Sweep)**:
+  - **FIX**: Golden test files updated to match go-faster/yaml indentation
+  - **REFACTOR**: `errors.As` → `errors.AsType[*Error]` (Go 1.22+ API) across all modules
+  - **FIX**: `OutboxPublisher.run()` logs panics instead of silently swallowing
+  - **FIX**: `NewEvent` copies payload bytes to prevent caller mutation
+  - **REFACTOR**: Inlined `Deleter` interface into `Store` and `SnapshotStore` — removed unnecessary sub-interface
+  - **NEW**: `event.TransactionalStore` interface — `SaveWithOutbox(ctx, aggregateID, expectedVersion, events, outbox)` for atomic save+outbox append
+  - **NEW**: `storage.SQLTransactionalStore` — single `*sql.Tx` wraps event insert + outbox append + commit
+  - **NEW**: `event.GlobalLoader` implemented on `SQLEventStore` — `LoadAll()` returns all events ordered by `occurred_at ASC`
+  - **EVALUATED**: Shared repository core — rejected (aggregate vs decider have fundamentally different API shapes)
+  - **EVALUATED**: `io.Closer` removal from interfaces — deferred (breaking change, needs focused design session)
+  - **EVALUATED**: `IdempotencyKey` auto-generation — rejected (correct by design, `""` means no dedup key)
+  - Zero lint, all 22 test packages pass
