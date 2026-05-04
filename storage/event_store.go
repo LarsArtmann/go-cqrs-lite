@@ -244,10 +244,5 @@ func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 		_ = rows.Close()
 	}()
 
-	events, err := scanEvents(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	return events, nil
+	return scanEvents(rows)
 }
