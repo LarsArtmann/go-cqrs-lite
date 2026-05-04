@@ -136,8 +136,8 @@ func Classify(err error) Family {
 		return Rejection
 	}
 
-	var e *Error
-	if errors.As(err, &e) {
+	e, ok := errors.AsType[*Error](err)
+	if ok {
 		return e.Family
 	}
 

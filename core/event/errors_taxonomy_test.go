@@ -113,9 +113,9 @@ func TestError_WithCause_chaining(t *testing.T) {
 	err := event.NewConflict("test.c", "msg").WithCause(inner)
 	wrapped := fmt.Errorf("outer: %w", err)
 
-	var extracted *event.Error
-	if !errors.As(wrapped, &extracted) {
-		t.Fatal("errors.As should find *event.Error in wrapped chain")
+	extracted, ok := errors.AsType[*event.Error](wrapped)
+	if !ok {
+		t.Fatal("errors.AsType should find *event.Error in wrapped chain")
 	}
 
 	if extracted.Code != "test.c" {
