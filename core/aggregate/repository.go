@@ -74,50 +74,57 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 		return nil
 	}
 
-	aggregateID := root.ID()
 	aggregateType := root.Type()
+	aggregateID := root.ID()
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	if r.outbox != nil {
-		if ts, ok := r.store.(event.TransactionalStore); ok {
-			err := ts.SaveWithOutbox(
-				ctx,
-				aggregateType,
-				aggregateID,
-				changes,
-				expectedVersion,
-				r.outbox,
-			)
-			if err != nil {
-				return opError("save with outbox", aggregateType, aggregateID, err)
-			}
-		} else {
-			err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
-			if err != nil {
-				return opError("save", aggregateType, aggregateID, err)
-			}
-
-			err = r.outbox.Append(ctx, changes)
-			if err != nil {
-				return opError("stage events in outbox", aggregateType, aggregateID, err)
-			}
-		}
-	} else {
-		err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
-		if err != nil {
-			return opError("save", aggregateType, aggregateID, err)
-		}
-
-		err = r.publisher.Publish(ctx, changes...)
-		if err != nil {
-			return opError("publish events", aggregateType, aggregateID, err)
-		}
+	if err := r.persistChanges(ctx, aggregateType, aggregateID, changes, expectedVersion); err != nil {
+		return err
 	}
 
 	root.MarkChangesAsCommitted()
 
-	if err := r.trySnapshot(ctx, root); err != nil {
-		return err
+	return r.trySnapshot(ctx, root)
+}
+
+func (r *EventSourcedRepository) persistChanges(
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	changes []event.Event,
+	expectedVersion event.Version,
+) error {
+	if r.outbox != nil {
+		if ts, ok := r.store.(event.TransactionalStore); ok {
+			err := ts.SaveWithOutbox(ctx, aggType, aggID, changes, expectedVersion, r.outbox)
+			if err != nil {
+				return opError("save with outbox", aggType, aggID, err)
+			}
+
+			return nil
+		}
+
+		err := r.store.Save(ctx, aggType, aggID, changes, expectedVersion)
+		if err != nil {
+			return opError("save", aggType, aggID, err)
+		}
+
+		err = r.outbox.Append(ctx, changes)
+		if err != nil {
+			return opError("stage events in outbox", aggType, aggID, err)
+		}
+
+		return nil
+	}
+
+	err := r.store.Save(ctx, aggType, aggID, changes, expectedVersion)
+	if err != nil {
+		return opError("save", aggType, aggID, err)
+	}
+
+	err = r.publisher.Publish(ctx, changes...)
+	if err != nil {
+		return opError("publish events", aggType, aggID, err)
 	}
 
 	return nil
