@@ -125,12 +125,34 @@ func NewInfrastructure(code, msg string) *Error {
 	return &Error{Code: code, Message: msg, Family: Infrastructure, cause: nil}
 }
 
+func init() {
+	classifications := map[error]Family{
+		ErrVersionConflict:       Conflict,
+		ErrDuplicateProjection:   Conflict,
+		ErrAggregateNotFound:     Rejection,
+		ErrSnapshotNotFound:      Rejection,
+		ErrInvalidSnapshotInterval: Rejection,
+		ErrEmptyEventType:        Rejection,
+		ErrNilAggregateID:        Rejection,
+		ErrEmptyAggregateType:    Rejection,
+		ErrStoreClosed:           Infrastructure,
+		ErrBusClosed:             Infrastructure,
+		ErrSnapshotStoreClosed:   Infrastructure,
+		ErrNilProjection:         Infrastructure,
+		ErrNilCheckpointStore:    Infrastructure,
+		ErrNilOutbox:             Infrastructure,
+		ErrNilBus:                Infrastructure,
+		ErrAlreadyStarted:        Infrastructure,
+		ErrProjectionPanicked:    Corruption,
+	}
+	for sentinel, family := range classifications {
+		RegisterClassification(sentinel, family)
+	}
+}
+
 // Classify returns the Family of an error by checking for *Error in the chain,
-// then mapping known sentinel errors from the event package and any registered
-// external sentinels. Returns Rejection for nil errors. Defaults to Transient for unknowns.
-//
-// External packages (command, query, aggregate, projection, storage, decider) can register
-// their own sentinel classifications via RegisterClassification.
+// then mapping known sentinel errors via the registered classification map.
+// Returns Rejection for nil errors. Defaults to Transient for unknowns.
 func Classify(err error) Family {
 	if err == nil {
 		return Rejection
@@ -145,31 +167,7 @@ func Classify(err error) Family {
 		return family
 	}
 
-	switch {
-	case errors.Is(err, ErrVersionConflict),
-		errors.Is(err, ErrDuplicateProjection):
-		return Conflict
-	case errors.Is(err, ErrAggregateNotFound),
-		errors.Is(err, ErrSnapshotNotFound),
-		errors.Is(err, ErrInvalidSnapshotInterval),
-		errors.Is(err, ErrEmptyEventType),
-		errors.Is(err, ErrNilAggregateID),
-		errors.Is(err, ErrEmptyAggregateType):
-		return Rejection
-	case errors.Is(err, ErrStoreClosed),
-		errors.Is(err, ErrBusClosed),
-		errors.Is(err, ErrSnapshotStoreClosed),
-		errors.Is(err, ErrNilProjection),
-		errors.Is(err, ErrNilCheckpointStore),
-		errors.Is(err, ErrNilOutbox),
-		errors.Is(err, ErrNilBus),
-		errors.Is(err, ErrAlreadyStarted):
-		return Infrastructure
-	case errors.Is(err, ErrProjectionPanicked):
-		return Corruption
-	default:
-		return Transient
-	}
+	return Transient
 }
 
 var classifier = struct { //nolint:gochecknoglobals
