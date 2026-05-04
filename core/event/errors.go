@@ -10,6 +10,15 @@ import (
 // ErrInvalidSnapshotInterval is returned by EveryNEvents when n <= 0.
 var ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
 
+// ErrEmptyEventType is returned by NewEvent when the event type is empty.
+var ErrEmptyEventType = errors.New("event type is required")
+
+// ErrNilAggregateID is returned by NewEvent when the aggregate ID is zero.
+var ErrNilAggregateID = errors.New("aggregate ID is required")
+
+// ErrEmptyAggregateType is returned by NewEvent when the aggregate type is empty.
+var ErrEmptyAggregateType = errors.New("aggregate type is required")
+
 // ErrVersionConflict is returned when there is a version conflict.
 var ErrVersionConflict = errors.New("version conflict")
 
@@ -191,7 +200,10 @@ func Classify(err error) Family {
 		return Conflict
 	case errors.Is(err, ErrAggregateNotFound),
 		errors.Is(err, ErrSnapshotNotFound),
-		errors.Is(err, ErrInvalidSnapshotInterval):
+		errors.Is(err, ErrInvalidSnapshotInterval),
+		errors.Is(err, ErrEmptyEventType),
+		errors.Is(err, ErrNilAggregateID),
+		errors.Is(err, ErrEmptyAggregateType):
 		return Rejection
 	case errors.Is(err, ErrStoreClosed),
 		errors.Is(err, ErrBusClosed),
@@ -202,6 +214,8 @@ func Classify(err error) Family {
 		errors.Is(err, ErrNilBus),
 		errors.Is(err, ErrAlreadyStarted):
 		return Infrastructure
+	case errors.Is(err, ErrProjectionPanicked):
+		return Corruption
 	default:
 		return Transient
 	}

@@ -40,17 +40,17 @@ func (c *Core) IdempotencyKey() string { return "" }
 // New creates a new command with validation.
 func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
 	if commandType == "" {
-		//nolint:err113 // dynamic error required to include aggregate ID
 		return nil, fmt.Errorf(
-			"command type is required (got empty) for aggregate %q",
+			"%w: got empty for aggregate %q",
+			ErrEmptyCommandType,
 			aggregateID,
 		)
 	}
 
 	if aggregateID.IsZero() {
-		//nolint:err113 // dynamic error required to include command type
 		return nil, fmt.Errorf(
-			"aggregate ID is required (got zero) for command type %q",
+			"%w: got zero for command type %q",
+			ErrNilAggregateID,
 			commandType,
 		)
 	}

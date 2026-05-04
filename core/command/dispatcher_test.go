@@ -19,6 +19,10 @@ func TestNew_EmptyType(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for empty command type")
 	}
+
+	if !errors.Is(err, command.ErrEmptyCommandType) {
+		t.Errorf("errors.Is(err, ErrEmptyCommandType) = false, got: %v", err)
+	}
 }
 
 func TestNew_ZeroAggregateID(t *testing.T) {
@@ -27,6 +31,10 @@ func TestNew_ZeroAggregateID(t *testing.T) {
 	_, err := command.New("CreateUser", id.AggregateID{})
 	if err == nil {
 		t.Error("expected error for zero aggregate ID")
+	}
+
+	if !errors.Is(err, command.ErrNilAggregateID) {
+		t.Errorf("errors.Is(err, ErrNilAggregateID) = false, got: %v", err)
 	}
 }
 

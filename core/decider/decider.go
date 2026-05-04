@@ -9,15 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-var (
-	ErrNilStore   = errors.New("event store is required")
-	ErrNilBus     = errors.New("event bus is required")
-	ErrNilFold    = errors.New("fold function is required")
-	ErrLoadFailed = errors.New("failed to load events")
-	ErrFoldFailed = errors.New("failed to fold events")
-	ErrSaveFailed = errors.New("failed to save events")
-)
-
 // Decider defines how to reconstruct state from events.
 //
 // State is the aggregate's domain state. Fold applies a single event to the

@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -53,6 +54,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		aggregateID   id.AggregateID
 		aggregateType event.AggregateType
 		version       int
+		wantErr       error
 	}{
 		{
 			name:          "empty event type",
@@ -60,6 +62,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			aggregateID:   id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "User",
 			version:       1,
+			wantErr:       event.ErrEmptyEventType,
 		},
 		{
 			name:          "missing aggregate ID",
@@ -67,6 +70,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			aggregateID:   id.AggregateID{},
 			aggregateType: "User",
 			version:       1,
+			wantErr:       event.ErrNilAggregateID,
 		},
 		{
 			name:          "missing aggregate type",
@@ -74,6 +78,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			aggregateID:   id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "",
 			version:       1,
+			wantErr:       event.ErrEmptyAggregateType,
 		},
 		{
 			name:          "negative version",
@@ -97,6 +102,10 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			)
 			if err == nil {
 				t.Errorf("expected error for %s", tt.name)
+			}
+
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("errors.Is(err, %v) = false, got: %v", tt.wantErr, err)
 			}
 		})
 	}

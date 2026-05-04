@@ -196,18 +196,18 @@ func validateEventParams(
 	payload []byte,
 ) error {
 	if eventType == "" {
-		//nolint:err113 // dynamic error required for validation
 		return fmt.Errorf(
-			"event type is required (got empty) for aggregate %q of type %q",
+			"%w: got empty for aggregate %q of type %q",
+			ErrEmptyEventType,
 			aggregateID,
 			aggregateType,
 		)
 	}
 
 	if aggregateID.IsZero() {
-		//nolint:err113 // dynamic error required to include event details for debugging
 		return fmt.Errorf(
-			"aggregate ID is required for event type %q, aggregate type %q, version %d",
+			"%w: for event type %q, aggregate type %q, version %d",
+			ErrNilAggregateID,
 			eventType,
 			aggregateType,
 			version,
@@ -215,9 +215,9 @@ func validateEventParams(
 	}
 
 	if aggregateType == "" {
-		//nolint:err113 // dynamic error required to include event details for debugging
 		return fmt.Errorf(
-			"aggregate type is required for aggregate %q, event type %q, version %d",
+			"%w: for aggregate %q, event type %q, version %d",
+			ErrEmptyAggregateType,
 			aggregateID,
 			eventType,
 			version,
