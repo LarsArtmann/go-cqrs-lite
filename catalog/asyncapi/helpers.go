@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+// SchemaToAny converts a catalog.Schema to a generic map for JSON serialization.
 func SchemaToAny(s *catalog.Schema) any {
 	if s == nil {
 		return map[string]string{"type": "object"}
@@ -80,11 +81,14 @@ func toExamples(raw []json.RawMessage) []Example {
 	return examples
 }
 
+// MarshalYAML serializes the document to YAML format.
 func (d *Document) MarshalYAML() ([]byte, error) {
 	//nolint:wrapcheck // MarshalYAML returns bytes; caller handles error
 	return yaml.Marshal(d)
 }
 
+// MarshalJSON serializes the document to JSON format.
+// Uses type alias to avoid infinite recursion.
 func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
 

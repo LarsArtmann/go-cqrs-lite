@@ -18,6 +18,7 @@ const (
 	actionReceive = "receive"
 )
 
+// Exporter generates an AsyncAPI 3.0 document from a catalog.
 type Exporter struct {
 	ServiceName string
 	Version     string
@@ -27,8 +28,10 @@ type Exporter struct {
 	ServerName  string
 }
 
+// Option configures an Exporter.
 type Option func(*Exporter)
 
+// WithServer sets the server name, host, and protocol for the AsyncAPI document.
 func WithServer(name, host, protocol string) Option {
 	return func(e *Exporter) {
 		e.ServerName = name
@@ -37,12 +40,14 @@ func WithServer(name, host, protocol string) Option {
 	}
 }
 
+// WithDescription sets the description for the AsyncAPI document.
 func WithDescription(desc string) Option {
 	return func(e *Exporter) {
 		e.Description = desc
 	}
 }
 
+// NewExporter creates an AsyncAPI exporter with the given service name and version.
 func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 	e := &Exporter{
 		ServiceName: serviceName,
@@ -60,6 +65,7 @@ func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 	return e
 }
 
+// Export generates an AsyncAPI 3.0 Document from the given catalog.
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	doc := &Document{
 		AsyncAPI: "3.0.0",

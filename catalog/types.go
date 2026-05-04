@@ -6,7 +6,9 @@ import "encoding/json"
 type Direction string
 
 const (
-	Sends    Direction = "sends"
+	// Sends indicates the service publishes this message.
+	Sends Direction = "sends"
+	// Receives indicates the service consumes this message.
 	Receives Direction = "receives"
 )
 
@@ -14,9 +16,12 @@ const (
 type MessageKind string
 
 const (
+	// CommandMessage identifies a command message.
 	CommandMessage MessageKind = "command"
-	EventMessage   MessageKind = "event"
-	QueryMessage   MessageKind = "query"
+	// EventMessage identifies an event message.
+	EventMessage MessageKind = "event"
+	// QueryMessage identifies a query message.
+	QueryMessage MessageKind = "query"
 )
 
 // Message describes a single command, event, or query in the catalog.
