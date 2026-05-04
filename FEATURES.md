@@ -94,7 +94,7 @@
 | ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                     | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
-**Coverage:** 95.3%
+**Coverage:** 95.5%
 
 ---
 
@@ -339,7 +339,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
 | Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                           |
 
-**Coverage:** 93.6% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
+**Coverage:** 94.8% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
 
 ---
 
@@ -396,9 +396,9 @@ Features mentioned in project docs/planning but with **no production code**:
 | ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
 | `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
 | `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~1100      | 70+         | 93.6%    | ✅ Production   |
-| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.3%    | ✅ Production   |
-| `core/decider`         | `…/core/decider`         | ~240       | 22          | 95.6%    | ✅ Production   |
+| `core/event`           | `…/core/event`           | ~1100      | 70+         | 94.4%    | ✅ Production   |
+| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.5%    | ✅ Production   |
+| `core/decider`         | `…/core/decider`         | ~240       | 22          | 95.0%    | ✅ Production   |
 | `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
 | `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |
 | `memory`               | `…/memory`               | ~500       | Extensive   | 99.1%    | 🧪 Test utility |
@@ -409,7 +409,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~614       | 31          | 93.6%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~614       | 31          | 94.8%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---

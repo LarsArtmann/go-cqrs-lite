@@ -33,7 +33,7 @@ None — all critical items resolved.
 
 ## 🟢 LOW Priority (Nice-to-Have)
 
-- [ ] **Add remaining benchmarks** — 33 benchmarks exist in 10 files; missing from `middleware`, `core/event`
+- [x] **Add remaining benchmarks** — 43 benchmarks across 12 files; middleware and core/event now covered
 - [ ] **Implement Saga/Process Manager** — design done, implementation pending
   - Design doc: `docs/planning/SAGA_DESIGN.md` (4-phase plan, 18h estimate)
 - [ ] **Tag `v0.1.0-alpha`** — first public release after verification

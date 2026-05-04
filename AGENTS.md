@@ -735,3 +735,19 @@ Interfaces now return branded types instead of primitives:
   - **TEST**: Updated `TestNewEvent_InvalidInputErrors` and command tests to assert `errors.Is()` for sentinels
   - **DOCS**: `docs/status/2026-05-02_SESSION_51_COMPREHENSIVE_STATUS.md`
   - 38 sentinel errors across 7 modules, all classified. Zero lint, all 22 test packages pass
+
+- **Session 52 (Code Quality: No-Panic Convention + Interface Checks + Outbox Safety)**:
+  - **FIX**: Renamed `newCatalogEvent` → `mustNewCatalogEvent` in `example/user/catalog.go` (no-panic convention)
+  - **NEW**: Compile-time `var _ SnapshotStrategy = (*everyN)(nil)` interface check
+  - **PERF**: Replaced `fmt.Sprintf` with `strconv.Itoa` in `event.Version.String()` and `storage/outbox.go`
+  - **FIX**: Added batch chunking to `storage/outbox.Ack()` (max 500 IDs per DELETE) to prevent PostgreSQL parameter overflow
+  - **REFACTOR**: Extracted `trySnapshot` from `aggregate.Save`, `saveSnapshotAfterEvents` from `decider.Execute`
+  - **DOCS**: Added godoc to 14 exported symbols in `catalog/asyncapi` (9) and `catalog/types` (5)
+  - Zero lint, all 22 test packages pass
+
+- **Session 53 (Godoc Completion + Deduplication + Coverage Accuracy)**:
+  - **DOCS**: Added godoc to 14 exported symbols in `catalog/d2` (5) and `catalog/adapters` (8)
+  - **REFACTOR**: Extracted `reconstructEvent` from `storage/helpers.go:scanEvent` (58→28 lines). Reused in `storage/outbox.go:reconstructOutboxEvent` (33→8 lines). Removed unused `id` import from outbox.
+  - **FIX**: Updated stale benchmark count in `TODO_LIST.md` (33→43, middleware+event now covered)
+  - **FIX**: Updated coverage numbers in `FEATURES.md` to match actual (event 93.6→94.4%, aggregate 95.3→95.5%, decider 95.6→95.0%, storage 93.6→94.8%)
+  - Total 91.6% coverage, zero lint, all 22 test packages pass
