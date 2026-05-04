@@ -78,6 +78,24 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 		return nil, fmt.Errorf("scan event row: %w", err)
 	}
 
+	return reconstructEvent(
+		idStr,
+		eventType,
+		aggType,
+		aggIDStr,
+		version,
+		payload,
+		metadataJSON,
+		occurredAt,
+	)
+}
+
+func reconstructEvent(
+	idStr, eventType, aggType, aggIDStr string,
+	version int,
+	payload, metadataJSON []byte,
+	occurredAt time.Time,
+) (event.Event, error) {
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
 		return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
@@ -95,7 +113,6 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 
 	opts := make([]event.Option, 0, 2+len(metaOpts)) //nolint:mnd
 	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
-
 	opts = append(opts, metaOpts...)
 
 	evt, err := event.NewEvent(

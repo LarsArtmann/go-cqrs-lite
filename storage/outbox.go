@@ -11,7 +11,6 @@ import (
 	"github.com/cockroachdb/errors"
 	json "github.com/go-json-experiment/json"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 const pollPendingQuery = `SELECT id, events FROM outbox
@@ -196,38 +195,12 @@ func unmarshalOutboxEvents(data []byte) ([]event.Event, error) {
 }
 
 func reconstructOutboxEvent(row outboxEvent) (event.Event, error) {
-	aggID, err := id.ParseAggregateID(row.AggregateID)
-	if err != nil {
-		return nil, fmt.Errorf("parse aggregate ID %q: %w", row.AggregateID, err)
-	}
+	metadataJSON, _ := marshalMetadata(row.Metadata)
 
-	eventID, err := id.ParseEventID(row.ID)
-	if err != nil {
-		return nil, fmt.Errorf("parse event ID %q: %w", row.ID, err)
-	}
-
-	opts := []event.Option{
-		event.WithEventID(eventID),
-		event.WithOccurredAt(row.OccurredAt),
-	}
-
-	if row.Metadata != nil {
-		opts = append(opts, event.WithMetadata(row.Metadata))
-	}
-
-	evt, err := event.NewEvent(
-		event.Type(row.Type),
-		aggID,
-		event.AggregateType(row.AggregateType),
-		row.Version,
-		row.Payload,
-		opts...,
+	return reconstructEvent(
+		row.ID, row.Type, row.AggregateType, row.AggregateID,
+		row.Version, row.Payload, metadataJSON, row.OccurredAt,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("reconstruct outbox event %s: %w", row.Type, err)
-	}
-
-	return evt, nil
 }
 
 func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
