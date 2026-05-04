@@ -560,6 +560,7 @@ func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
 			replayMu.Lock()
 			replayed = append(replayed, string(evt.Type()))
 			replayMu.Unlock()
+
 			return nil
 		},
 		[]event.Type{"UserCreated"},
