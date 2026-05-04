@@ -94,7 +94,8 @@ func TestSQLTransactionalStore_SaveWithOutbox_Success(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(
 		evt.ID(), sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -195,7 +196,8 @@ func TestSQLTransactionalStore_SaveWithOutbox_InsertEventFailure(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).WillReturnError(errors.New("insert event failed"))
+	).
+		WillReturnError(errors.New("insert event failed"))
 	mock.ExpectRollback()
 
 	err := ts.SaveWithOutbox(
@@ -222,7 +224,8 @@ func TestSQLTransactionalStore_SaveWithOutbox_OutboxInsertFailure(t *testing.T) 
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(
 		evt.ID(), sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnError(errors.New("outbox insert failed"))
@@ -252,7 +255,8 @@ func TestSQLTransactionalStore_SaveWithOutbox_CommitFailure(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(
 		evt.ID(), sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnResult(sqlmock.NewResult(1, 1))

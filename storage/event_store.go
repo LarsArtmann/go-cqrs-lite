@@ -223,8 +223,10 @@ func (s *SQLEventStore) Delete(
 	return nil
 }
 
-var _ event.Store = (*SQLEventStore)(nil)
-var _ event.GlobalLoader = (*SQLEventStore)(nil)
+var (
+	_ event.Store        = (*SQLEventStore)(nil)
+	_ event.GlobalLoader = (*SQLEventStore)(nil)
+)
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.

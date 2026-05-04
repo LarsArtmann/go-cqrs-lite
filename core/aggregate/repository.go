@@ -80,7 +80,14 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 
 	if r.outbox != nil {
 		if ts, ok := r.store.(event.TransactionalStore); ok {
-			err := ts.SaveWithOutbox(ctx, aggregateType, aggregateID, changes, expectedVersion, r.outbox)
+			err := ts.SaveWithOutbox(
+				ctx,
+				aggregateType,
+				aggregateID,
+				changes,
+				expectedVersion,
+				r.outbox,
+			)
 			if err != nil {
 				return opError("save with outbox", aggregateType, aggregateID, err)
 			}

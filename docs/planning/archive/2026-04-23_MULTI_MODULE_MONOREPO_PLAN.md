@@ -926,6 +926,7 @@ in core, awaiting implementations.
 ### Overall Status: **Phases 0–5, 7, 9 Complete — 8 of 11 Phases Done**
 
 Since the 2026-05-01 update, significant progress has been made:
+
 - **Phase 7 (Projection)** is now fully extracted as a standalone module
 - **Storage** gained `SQLSnapshotStore` and `SQLCheckpointStore` implementations
 - **Middleware** gained OpenTelemetry tracing and a slog adapter
@@ -933,66 +934,66 @@ Since the 2026-05-01 update, significant progress has been made:
 
 ### Phase-by-Phase Status
 
-| Phase | Description                              | Status        | Notes                                                                                                |
-| ----- | ---------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
-| 0     | Preparation (no breaking changes)        | ✅ Done       | Query ctx fixed, dead code deleted, custom YAML replaced, err113 fixed, all tests green              |
-| 1     | go.work + move into `core/` subdirectory | ✅ Done       | `go.work` created, `core/` has own `go.mod`, all imports updated                                     |
-| 2     | Extract `memory/`                        | ✅ Done       | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryOutbox`           |
-| 3     | Extract `catalog/`                       | ✅ Done       | `go-faster/yaml`, `asyncapi/`, `eventcatalog/`, `adapters/` all extracted                            |
-| 4     | Extract `middleware`                     | ✅ Done       | Logging, metrics, recovery, retry, validation, **tracing (OTel)**, **slog adapter**. `xtypes` skipped |
-| 5     | Storage module                           | ✅ Done       | `SQLEventStore` + **`SQLSnapshotStore`** + **`SQLCheckpointStore`**. PostgreSQL, 93.1% coverage       |
-| 6     | Watermill module (pub/sub)               | 🔲 Planned    | Not started                                                                                           |
-| 7     | Projection module                        | ✅ Done       | **Extracted as standalone `projection/` module** with `Runner`, `HandlerRegistry`, options. 81.0% coverage |
-| 8     | Snapshot module (SQL-backed)             | ✅ Merged     | SQL implementation lives in `storage/` (`SQLSnapshotStore`), not a separate module                   |
-| 9     | Test utilities module                    | ✅ Done       | Extracted as `testhelpers/` (not `testutil/`). Fakes, noop/failing/panic handlers, metrics           |
-| 10    | Tag releases                             | 🟡 Partial    | Tags exist: `core/v1.0.0`, `memory/v1.0.0`, `testhelpers/v1.0.0`, `middleware/v0.1.0`. Not all modules tagged |
+| Phase | Description                              | Status     | Notes                                                                                                         |
+| ----- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| 0     | Preparation (no breaking changes)        | ✅ Done    | Query ctx fixed, dead code deleted, custom YAML replaced, err113 fixed, all tests green                       |
+| 1     | go.work + move into `core/` subdirectory | ✅ Done    | `go.work` created, `core/` has own `go.mod`, all imports updated                                              |
+| 2     | Extract `memory/`                        | ✅ Done    | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryOutbox`                    |
+| 3     | Extract `catalog/`                       | ✅ Done    | `go-faster/yaml`, `asyncapi/`, `eventcatalog/`, `adapters/` all extracted                                     |
+| 4     | Extract `middleware`                     | ✅ Done    | Logging, metrics, recovery, retry, validation, **tracing (OTel)**, **slog adapter**. `xtypes` skipped         |
+| 5     | Storage module                           | ✅ Done    | `SQLEventStore` + **`SQLSnapshotStore`** + **`SQLCheckpointStore`**. PostgreSQL, 93.1% coverage               |
+| 6     | Watermill module (pub/sub)               | 🔲 Planned | Not started                                                                                                   |
+| 7     | Projection module                        | ✅ Done    | **Extracted as standalone `projection/` module** with `Runner`, `HandlerRegistry`, options. 81.0% coverage    |
+| 8     | Snapshot module (SQL-backed)             | ✅ Merged  | SQL implementation lives in `storage/` (`SQLSnapshotStore`), not a separate module                            |
+| 9     | Test utilities module                    | ✅ Done    | Extracted as `testhelpers/` (not `testutil/`). Fakes, noop/failing/panic handlers, metrics                    |
+| 10    | Tag releases                             | 🟡 Partial | Tags exist: `core/v1.0.0`, `memory/v1.0.0`, `testhelpers/v1.0.0`, `middleware/v0.1.0`. Not all modules tagged |
 
 ### Actual vs. Planned Module Layout
 
-| Planned Module  | Actual Status | Notes                                                                                         |
-| --------------- | ------------- | --------------------------------------------------------------------------------------------- |
-| `core/`         | ✅ Exists     | 5 packages: `command`, `query`, `event`, `aggregate`, `pkg/id` + `pkg/dispatcher`             |
-| `memory/`       | ✅ Exists     | Store, Bus, SnapshotStore, CheckpointStore, Outbox                                             |
-| `catalog/`      | ✅ Exists     | `asyncapi/`, `eventcatalog/`, `d2/`, `adapters/`, `internal/cattest/`                         |
-| `middleware/`   | ✅ Exists     | 7 concerns: logging, metrics, recovery, retry, validation, **tracing**, **slog adapter**      |
-| `storage/`      | ✅ Exists     | `SQLEventStore`, **`SQLSnapshotStore`**, **`SQLCheckpointStore`**, schema helpers, 93.1%      |
-| `testhelpers/`  | ✅ Exists     | FakeBus, FakeStore, FakeSnapshotStore, FakeOutbox, FakeCheckpointStore, handler helpers        |
-| `integration/`  | ✅ Exists     | Cross-module BDD + integration tests (not in original plan — valuable addition)                |
-| `projection/`   | ✅ Exists     | **NEW standalone module** — `Runner`, `HandlerRegistry`, options, 81.0% coverage               |
-| `example/user/` | ✅ Exists     | Full CQRS lifecycle demo + EventCatalog export                                                 |
-| `watermill/`    | ❌ Missing    | Planned Phase 6                                                                                |
-| `snapshot/`     | ✅ Merged     | Not a separate module — `SQLSnapshotStore` lives in `storage/`                                 |
-| `xtypes/`       | ❌ Skipped    | Was empty concept; functionality absorbed into core                                            |
-| `testutil/`     | ✅ (renamed)  | Named `testhelpers/` instead. Same role, different name, different content from plan           |
+| Planned Module  | Actual Status | Notes                                                                                    |
+| --------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| `core/`         | ✅ Exists     | 5 packages: `command`, `query`, `event`, `aggregate`, `pkg/id` + `pkg/dispatcher`        |
+| `memory/`       | ✅ Exists     | Store, Bus, SnapshotStore, CheckpointStore, Outbox                                       |
+| `catalog/`      | ✅ Exists     | `asyncapi/`, `eventcatalog/`, `d2/`, `adapters/`, `internal/cattest/`                    |
+| `middleware/`   | ✅ Exists     | 7 concerns: logging, metrics, recovery, retry, validation, **tracing**, **slog adapter** |
+| `storage/`      | ✅ Exists     | `SQLEventStore`, **`SQLSnapshotStore`**, **`SQLCheckpointStore`**, schema helpers, 93.1% |
+| `testhelpers/`  | ✅ Exists     | FakeBus, FakeStore, FakeSnapshotStore, FakeOutbox, FakeCheckpointStore, handler helpers  |
+| `integration/`  | ✅ Exists     | Cross-module BDD + integration tests (not in original plan — valuable addition)          |
+| `projection/`   | ✅ Exists     | **NEW standalone module** — `Runner`, `HandlerRegistry`, options, 81.0% coverage         |
+| `example/user/` | ✅ Exists     | Full CQRS lifecycle demo + EventCatalog export                                           |
+| `watermill/`    | ❌ Missing    | Planned Phase 6                                                                          |
+| `snapshot/`     | ✅ Merged     | Not a separate module — `SQLSnapshotStore` lives in `storage/`                           |
+| `xtypes/`       | ❌ Skipped    | Was empty concept; functionality absorbed into core                                      |
+| `testutil/`     | ✅ (renamed)  | Named `testhelpers/` instead. Same role, different name, different content from plan     |
 
 ### Changes Since 2026-05-01 Appendix
 
-| Change                                         | Detail                                                                                           |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Change                                           | Detail                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`projection/` extracted as standalone module** | No longer just interfaces in `core/event/`. Full `Runner` with replay + live subscription, `HandlerRegistry`, `RunnerOption` functional options (`WithBatchSize`, `WithBatchWindow`, `WithRetry`, `WithConcurrency`). Depends on `core` + `memory` (test) + `testhelpers` (test). |
-| **`SQLSnapshotStore` added to `storage/`**       | Full implementation of `event.SnapshotStore` with upsert, version-aware `LoadAtVersion`, delete. Uses `ON CONFLICT` for idempotent saves. |
-| **`SQLCheckpointStore` added to `storage/`**    | Full implementation of `event.CheckpointStore` with upsert, `sql.ErrNoRows` → zero-value `EventID`. Enables SQL-backed projection checkpointing. |
-| **OTel tracing middleware**                     | `CommandTracing`, `EventTracing`, `QueryTracing` — creates spans with `cqrs.message.kind` and type attributes. Depends on `go.opentelemetry.io/otel`. |
-| **Slog adapter**                                 | `SlogAdapter(*slog.Logger) Logger` bridges `log/slog` to the middleware `Logger` interface.       |
-| **Git tags published**                           | `core/v1.0.0`, `memory/v1.0.0`, `testhelpers/v1.0.0`, `catalog/v0.1.0`, `middleware/v0.1.0`, `testhelpers/v0.1.0`/`v0.1.1`, `core/v0.1.0`/`v0.1.1`, `memory/v0.1.0`/`v0.1.1` |
-| **`SnapshotSchema()` + `CheckpointSchema()`**   | DDL helper functions for snapshots and checkpoints tables (PostgreSQL-specific)                  |
-| **Breaking changes (sessions 25–29)**            | `projection.NewRunner` returns `(*Runner, error)` (no panic). `NewCore` returns `(*Core, error)`. `Bus` interface includes `Use()`. `CheckpointStore` embeds `io.Closer`. |
+| **`SQLSnapshotStore` added to `storage/`**       | Full implementation of `event.SnapshotStore` with upsert, version-aware `LoadAtVersion`, delete. Uses `ON CONFLICT` for idempotent saves.                                                                                                                                         |
+| **`SQLCheckpointStore` added to `storage/`**     | Full implementation of `event.CheckpointStore` with upsert, `sql.ErrNoRows` → zero-value `EventID`. Enables SQL-backed projection checkpointing.                                                                                                                                  |
+| **OTel tracing middleware**                      | `CommandTracing`, `EventTracing`, `QueryTracing` — creates spans with `cqrs.message.kind` and type attributes. Depends on `go.opentelemetry.io/otel`.                                                                                                                             |
+| **Slog adapter**                                 | `SlogAdapter(*slog.Logger) Logger` bridges `log/slog` to the middleware `Logger` interface.                                                                                                                                                                                       |
+| **Git tags published**                           | `core/v1.0.0`, `memory/v1.0.0`, `testhelpers/v1.0.0`, `catalog/v0.1.0`, `middleware/v0.1.0`, `testhelpers/v0.1.0`/`v0.1.1`, `core/v0.1.0`/`v0.1.1`, `memory/v0.1.0`/`v0.1.1`                                                                                                      |
+| **`SnapshotSchema()` + `CheckpointSchema()`**    | DDL helper functions for snapshots and checkpoints tables (PostgreSQL-specific)                                                                                                                                                                                                   |
+| **Breaking changes (sessions 25–29)**            | `projection.NewRunner` returns `(*Runner, error)` (no panic). `NewCore` returns `(*Core, error)`. `Bus` interface includes `Use()`. `CheckpointStore` embeds `io.Closer`.                                                                                                         |
 
 ### What's In Core That Was Planned for Separate Modules
 
 The dual-location pattern from the 2026-05-01 update remains: interfaces in `core/event/`, implementations in dedicated modules.
 
-| Feature            | Planned Location     | Actual Location                            | Status                                                  |
-| ------------------ | -------------------- | ------------------------------------------ | ------------------------------------------------------- |
-| `Projection`       | `projection/` module | `core/event/projection.go`                 | Interface definition (implements in `projection/` now)  |
-| `InMemoryRunner`   | `projection/` module | `core/event/runner.go`                    | Still in core — lightweight test utility                |
-| `CheckpointStore`  | `projection/` module | `core/event/checkpoint.go`                | Interface; `MemoryCheckpointStore` in `memory/`, `SQLCheckpointStore` in `storage/` |
-| `Upcaster`         | `core/upcasting/`    | `core/event/upcaster.go`                  | Interface + `UpcasterRegistry` with cycle detection     |
-| `Codec`            | `core/event/`        | `core/event/codec.go`                     | Interface + `JSONCodec`, `DecodePayload[T]`             |
-| `SnapshotStore`    | `snapshot/` module   | `core/event/snapshot.go`                  | Interface; `MemorySnapshotStore` in `memory/`, `SQLSnapshotStore` in `storage/` |
-| `SnapshotStrategy` | `snapshot/` module   | `core/aggregate/`                         | `EveryNEvents` strategy                                 |
-| `Outbox`           | `storage/` module    | `core/event/outbox.go`                    | Interface; `MemoryOutbox` in `memory/`                  |
-| `ContextEnricher`  | — (not planned)      | `core/event/enricher.go`                  | Event metadata enrichment from context                  |
+| Feature            | Planned Location     | Actual Location            | Status                                                                              |
+| ------------------ | -------------------- | -------------------------- | ----------------------------------------------------------------------------------- |
+| `Projection`       | `projection/` module | `core/event/projection.go` | Interface definition (implements in `projection/` now)                              |
+| `InMemoryRunner`   | `projection/` module | `core/event/runner.go`     | Still in core — lightweight test utility                                            |
+| `CheckpointStore`  | `projection/` module | `core/event/checkpoint.go` | Interface; `MemoryCheckpointStore` in `memory/`, `SQLCheckpointStore` in `storage/` |
+| `Upcaster`         | `core/upcasting/`    | `core/event/upcaster.go`   | Interface + `UpcasterRegistry` with cycle detection                                 |
+| `Codec`            | `core/event/`        | `core/event/codec.go`      | Interface + `JSONCodec`, `DecodePayload[T]`                                         |
+| `SnapshotStore`    | `snapshot/` module   | `core/event/snapshot.go`   | Interface; `MemorySnapshotStore` in `memory/`, `SQLSnapshotStore` in `storage/`     |
+| `SnapshotStrategy` | `snapshot/` module   | `core/aggregate/`          | `EveryNEvents` strategy                                                             |
+| `Outbox`           | `storage/` module    | `core/event/outbox.go`     | Interface; `MemoryOutbox` in `memory/`                                              |
+| `ContextEnricher`  | — (not planned)      | `core/event/enricher.go`   | Event metadata enrichment from context                                              |
 
 **Key change since last update:** `projection/` now has its own `Runner` that is more capable
 than `core/event.InMemoryRunner` — it supports replay from `GlobalLoader`, live subscription
@@ -1004,25 +1005,26 @@ core remains as a simple synchronous fail-fast alternative for testing.
 All 19 packages pass. Zero vet errors. Zero race conditions (Go version mismatch prevents
 full race test on this machine; CI validates with `-race`). **Overall: 97.2%**.
 
-| Package                | Coverage | Change from 2026-05-01 |
-| ---------------------- | -------- | ---------------------- |
-| `core/command`         | 100.0%   | —                      |
-| `core/query`           | 100.0%   | —                      |
-| `core/pkg/dispatcher`  | 100.0%   | —                      |
-| `core/pkg/id`          | 100.0%   | —                      |
-| `catalog/adapters`     | 100.0%   | **+4.5%** (was 95.5%; fixed session 30) |
+| Package                | Coverage | Change from 2026-05-01                   |
+| ---------------------- | -------- | ---------------------------------------- |
+| `core/command`         | 100.0%   | —                                        |
+| `core/query`           | 100.0%   | —                                        |
+| `core/pkg/dispatcher`  | 100.0%   | —                                        |
+| `core/pkg/id`          | 100.0%   | —                                        |
+| `catalog/adapters`     | 100.0%   | **+4.5%** (was 95.5%; fixed session 30)  |
 | `projection`           | 100.0%   | **+19.0%** (was 81.0%; fixed session 30) |
-| `middleware`           | 99.4%    | —                      |
-| `memory`               | 99.5%    | **+7.6%** (was 91.9%; fixed session 30) |
-| `catalog/d2`           | 97.7%    | —                      |
-| `core/event`           | 97.0%    | +0.7%                  |
-| `catalog/asyncapi`     | 95.9%    | −1.0% (refactoring)    |
-| `catalog/eventcatalog` | 95.6%    | +0.1%                  |
-| `catalog`              | 94.4%    | —                      |
+| `middleware`           | 99.4%    | —                                        |
+| `memory`               | 99.5%    | **+7.6%** (was 91.9%; fixed session 30)  |
+| `catalog/d2`           | 97.7%    | —                                        |
+| `core/event`           | 97.0%    | +0.7%                                    |
+| `catalog/asyncapi`     | 95.9%    | −1.0% (refactoring)                      |
+| `catalog/eventcatalog` | 95.6%    | +0.1%                                    |
+| `catalog`              | 94.4%    | —                                        |
 | `storage`              | 93.1%    | **+13.5%** (snapshot + checkpoint tests) |
-| `core/aggregate`       | 92.9%    | +0.2%                  |
+| `core/aggregate`       | 92.9%    | +0.2%                                    |
 
 **Notable changes (session 30):**
+
 - **memory** recovered from 91.9% to 99.5% — added tests for LoadAll, Close, Ack partial
 - **catalog/adapters** recovered from 95.5% to 100% — added ExportD2 and auto-service-creation tests
 - **projection** recovered from 81.0% to 100% — added Close, options, replay errors, subscribe error, filtered replay tests
@@ -1030,60 +1032,60 @@ full race test on this machine; CI validates with `-race`). **Overall: 97.2%**.
 
 ### Code Size Metrics
 
-| Module         | Production Lines | Test Lines | Total  |
-| -------------- | ---------------: | ---------: | -----: |
-| core           |          3,075   |    6,509   | 9,584  |
-| catalog        |          2,602   |    4,264   | 6,866  |
-| memory         |            653   |    1,146   | 1,799  |
-| testhelpers    |            686   |        0   |   686  |
-| storage        |            635   |    1,212   | 1,847  |
-| middleware     |            584   |    1,245   | 1,829  |
-| projection     |            329   |      640   |   969  |
-| integration    |              0   |    3,389   | 3,389  |
-| **Total**      |        **8,564** | **18,405** | **26,969** |
+| Module      | Production Lines | Test Lines |      Total |
+| ----------- | ---------------: | ---------: | ---------: |
+| core        |            3,075 |      6,509 |      9,584 |
+| catalog     |            2,602 |      4,264 |      6,866 |
+| memory      |              653 |      1,146 |      1,799 |
+| testhelpers |              686 |          0 |        686 |
+| storage     |              635 |      1,212 |      1,847 |
+| middleware  |              584 |      1,245 |      1,829 |
+| projection  |              329 |        640 |        969 |
+| integration |                0 |      3,389 |      3,389 |
+| **Total**   |        **8,564** | **18,405** | **26,969** |
 
 Production-to-test ratio: **1:2.15** (excellent test density).
 
 ### Open Questions Resolution (from original plan)
 
-| # | Question                                      | Resolution                                                                                          |
-|---|-----------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| 1 | Should core be truly zero-dep?                | **No** — `cockroachdb/errors` + `oklog/ulid` + `go-branded-id` + `go-json-experiment/json` remain. Value > purity. |
-| 2 | Should middleware be split further?           | **No** — `tracing.go` adds OTel dep but it's optional (users who don't use tracing don't import it). The dep is in `go.mod` but only invoked at runtime if used. |
-| 3 | Module priorities?                             | **Validated** — `storage/` was highest-value (done). `projection/` second (done). `watermill/` third (not started). |
-| 4 | go-import hosting strategy?                   | **Unresolved** — Still not configured. Needed before public discovery works.                        |
-| 5 | sqlc query sharing?                           | **Deferred** — Single-engine (PostgreSQL) with hand-written SQL. sqlc remains a future option.       |
-| 6 | Event Codec?                                  | **In core** — `Codec` interface + `JSONCodec` in `core/event/codec.go`. Not a separate module.       |
-| 7 | Event Upcasting?                              | **In core** — `Upcaster` interface + `UpcasterRegistry` with cycle detection in `core/event/`.       |
-| 8 | Schema migration tool?                        | **Unresolved** — `Schema()`, `SnapshotSchema()`, `CheckpointSchema()` return DDL strings. No migration tool yet. |
+| #   | Question                            | Resolution                                                                                                                                                       |
+| --- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Should core be truly zero-dep?      | **No** — `cockroachdb/errors` + `oklog/ulid` + `go-branded-id` + `go-json-experiment/json` remain. Value > purity.                                               |
+| 2   | Should middleware be split further? | **No** — `tracing.go` adds OTel dep but it's optional (users who don't use tracing don't import it). The dep is in `go.mod` but only invoked at runtime if used. |
+| 3   | Module priorities?                  | **Validated** — `storage/` was highest-value (done). `projection/` second (done). `watermill/` third (not started).                                              |
+| 4   | go-import hosting strategy?         | **Unresolved** — Still not configured. Needed before public discovery works.                                                                                     |
+| 5   | sqlc query sharing?                 | **Deferred** — Single-engine (PostgreSQL) with hand-written SQL. sqlc remains a future option.                                                                   |
+| 6   | Event Codec?                        | **In core** — `Codec` interface + `JSONCodec` in `core/event/codec.go`. Not a separate module.                                                                   |
+| 7   | Event Upcasting?                    | **In core** — `Upcaster` interface + `UpcasterRegistry` with cycle detection in `core/event/`.                                                                   |
+| 8   | Schema migration tool?              | **Unresolved** — `Schema()`, `SnapshotSchema()`, `CheckpointSchema()` return DDL strings. No migration tool yet.                                                 |
 
 ### Remaining Work (Prioritized)
 
-| Priority | Item                                              | Effort | Notes                                                       |
-| -------- | ------------------------------------------------- | ------ | ----------------------------------------------------------- |
-| ~~HIGH~~ | ~~Memory coverage regression (91.9%)~~             | ~~Small~~ | **✅ Fixed (session 30): 99.5%**                          |
-| ~~HIGH~~ | ~~Projection coverage (81.0%)~~                    | ~~Small~~ | **✅ Fixed (session 30): 100%**                            |
-| ~~HIGH~~ | ~~Catalog/adapters coverage regression~~           | ~~Small~~ | **✅ Fixed (session 30): 100%**                            |
-| HIGH     | PostgreSQL integration tests for `storage/`        | Medium | Current tests use go-sqlmock; need real DB in CI            |
-| HIGH     | `example/user/` smoke tests                        | Small  | Demo app has no test files                                   |
-| MEDIUM   | `watermill/` module (Phase 6)                      | Large  | Depends on Watermill library evaluation                      |
-| MEDIUM   | `go-import` meta tags for module resolution        | Small  | Needed before public discovery works                         |
-| MEDIUM   | Storage constructor nil-DB validation tests         | Small  | `NewSQL*Store` at 66.7% coverage                             |
-| MEDIUM   | Version tagging (catalog, storage, projection)     | Small  | core/memory/testhelpers tagged; others still at v0.0.0       |
-| LOW      | Multi-engine storage (MySQL, SQLite) via sqlc      | Large  | PostgreSQL-only for now; sqlc ready when needed              |
-| LOW      | High-level test utilities (`AggregateTester` etc.) | Medium | `testhelpers/` has fakes; fluent API is a bonus             |
-| LOW      | Schema migration tool                              | Medium | DDL strings exist; no versioned migration framework          |
-| LOW      | `CatalogMeta` deduplication across 3 packages      | Medium | Nearly identical types in event/command/query                |
+| Priority | Item                                               | Effort    | Notes                                                  |
+| -------- | -------------------------------------------------- | --------- | ------------------------------------------------------ |
+| ~~HIGH~~ | ~~Memory coverage regression (91.9%)~~             | ~~Small~~ | **✅ Fixed (session 30): 99.5%**                       |
+| ~~HIGH~~ | ~~Projection coverage (81.0%)~~                    | ~~Small~~ | **✅ Fixed (session 30): 100%**                        |
+| ~~HIGH~~ | ~~Catalog/adapters coverage regression~~           | ~~Small~~ | **✅ Fixed (session 30): 100%**                        |
+| HIGH     | PostgreSQL integration tests for `storage/`        | Medium    | Current tests use go-sqlmock; need real DB in CI       |
+| HIGH     | `example/user/` smoke tests                        | Small     | Demo app has no test files                             |
+| MEDIUM   | `watermill/` module (Phase 6)                      | Large     | Depends on Watermill library evaluation                |
+| MEDIUM   | `go-import` meta tags for module resolution        | Small     | Needed before public discovery works                   |
+| MEDIUM   | Storage constructor nil-DB validation tests        | Small     | `NewSQL*Store` at 66.7% coverage                       |
+| MEDIUM   | Version tagging (catalog, storage, projection)     | Small     | core/memory/testhelpers tagged; others still at v0.0.0 |
+| LOW      | Multi-engine storage (MySQL, SQLite) via sqlc      | Large     | PostgreSQL-only for now; sqlc ready when needed        |
+| LOW      | High-level test utilities (`AggregateTester` etc.) | Medium    | `testhelpers/` has fakes; fluent API is a bonus        |
+| LOW      | Schema migration tool                              | Medium    | DDL strings exist; no versioned migration framework    |
+| LOW      | `CatalogMeta` deduplication across 3 packages      | Medium    | Nearly identical types in event/command/query          |
 
 ### Remaining Items from "What Gets Fixed" (Original Plan)
 
-| Issue                                   | Status     | Notes                                                      |
-| --------------------------------------- | ---------- | ---------------------------------------------------------- |
-| Query handler missing `context.Context` | ✅ Fixed   | Done in Phase 0                                             |
-| `err113` sentinel errors               | ✅ Fixed   | All modules use sentinel errors                             |
-| `marshalValue` complexity (14)          | ✅ Fixed   | Deleted, replaced by `go-faster/yaml`                      |
-| `catalog/adapters` coverage 66%         | ✅ Fixed   | Now 100% (session 30; recovered from 95.5% regression)      |
-| Examples not CI-tested                  | ⚠️ Partial | `example/user/` is in `go.work` but has no test files       |
+| Issue                                   | Status     | Notes                                                  |
+| --------------------------------------- | ---------- | ------------------------------------------------------ |
+| Query handler missing `context.Context` | ✅ Fixed   | Done in Phase 0                                        |
+| `err113` sentinel errors                | ✅ Fixed   | All modules use sentinel errors                        |
+| `marshalValue` complexity (14)          | ✅ Fixed   | Deleted, replaced by `go-faster/yaml`                  |
+| `catalog/adapters` coverage 66%         | ✅ Fixed   | Now 100% (session 30; recovered from 95.5% regression) |
+| Examples not CI-tested                  | ⚠️ Partial | `example/user/` is in `go.work` but has no test files  |
 
 ### Summary
 
