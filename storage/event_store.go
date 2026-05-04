@@ -224,3 +224,28 @@ func (s *SQLEventStore) Delete(
 }
 
 var _ event.Store = (*SQLEventStore)(nil)
+var _ event.GlobalLoader = (*SQLEventStore)(nil)
+
+// LoadAll retrieves all events across all aggregates, ordered by occurrence time.
+// Returns an empty slice (not an error) if no events exist.
+func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+		FROM events
+		ORDER BY occurred_at ASC`
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query all events: %w", err)
+	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	events, err := scanEvents(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
