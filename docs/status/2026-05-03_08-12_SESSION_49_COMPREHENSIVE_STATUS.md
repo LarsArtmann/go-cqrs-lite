@@ -19,25 +19,25 @@
 
 ### Module Coverage Matrix
 
-| Module                 | Coverage | Benchmark Count | Status       |
-| ---------------------- | -------- | --------------- | ------------ |
-| `core/command`         | 100.0%   | 2               | ✅ Stable    |
-| `core/query`           | 100.0%   | 2               | ✅ Stable    |
-| `core/pkg/dispatcher`  | 100.0%   | 0               | ✅ Stable    |
-| `core/pkg/id`          | 100.0%   | 6               | ✅ Stable    |
-| `middleware`           | 100.0%   | 0               | ✅ Stable    |
-| `memory`               | 99.1%    | 0               | ✅ Excellent |
-| `catalog/d2`           | 97.6%    | 0               | ✅ Excellent |
-| `catalog/asyncapi`     | 95.9%    | 5               | ✅ Excellent |
-| `catalog/adapters`     | 95.5%    | 3               | ✅ Excellent |
-| `catalog/eventcatalog` | 95.6%    | 0               | ✅ Excellent |
-| `catalog`              | 94.4%    | 0               | ✅ Good      |
-| `core/decider`         | 95.6%    | 0               | ✅ Good      |
-| `core/aggregate`       | 95.3%    | 4               | ✅ Good      |
-| `core/event`           | 93.6%    | 4               | ✅ Good      |
-| `storage`              | 93.6%    | 0               | ✅ Good      |
-| `projection`           | 92.5%    | 0               | ✅ Good      |
-| **TOTAL**              | **84.5%** | **26**         |              |
+| Module                 | Coverage  | Benchmark Count | Status       |
+| ---------------------- | --------- | --------------- | ------------ |
+| `core/command`         | 100.0%    | 2               | ✅ Stable    |
+| `core/query`           | 100.0%    | 2               | ✅ Stable    |
+| `core/pkg/dispatcher`  | 100.0%    | 0               | ✅ Stable    |
+| `core/pkg/id`          | 100.0%    | 6               | ✅ Stable    |
+| `middleware`           | 100.0%    | 0               | ✅ Stable    |
+| `memory`               | 99.1%     | 0               | ✅ Excellent |
+| `catalog/d2`           | 97.6%     | 0               | ✅ Excellent |
+| `catalog/asyncapi`     | 95.9%     | 5               | ✅ Excellent |
+| `catalog/adapters`     | 95.5%     | 3               | ✅ Excellent |
+| `catalog/eventcatalog` | 95.6%     | 0               | ✅ Excellent |
+| `catalog`              | 94.4%     | 0               | ✅ Good      |
+| `core/decider`         | 95.6%     | 0               | ✅ Good      |
+| `core/aggregate`       | 95.3%     | 4               | ✅ Good      |
+| `core/event`           | 93.6%     | 4               | ✅ Good      |
+| `storage`              | 93.6%     | 0               | ✅ Good      |
+| `projection`           | 92.5%     | 0               | ✅ Good      |
+| **TOTAL**              | **84.5%** | **26**          |              |
 
 ### BDD Test Suites (34 specs across 3 modules)
 
@@ -49,43 +49,43 @@
 
 ### Benchmark Results (26 benchmarks, all passing)
 
-| Benchmark                                   | ns/op    | B/op  | allocs/op |
-| ------------------------------------------- | -------- | ----- | --------- |
-| `Aggregate_RecordEvent`                     | 0.96     | 0     | 0         |
-| `Command_Dispatch`                          | 25.89    | 0     | 0         |
-| `Command_Dispatch_WithMiddleware`           | 27.22    | 0     | 0         |
-| `Query_Dispatch`                            | 26.03    | 0     | 0         |
-| `Query_Dispatch_WithMiddleware`             | 27.16    | 0     | 0         |
-| `MemoryBus_Publish`                         | 41.78    | 16    | 1         |
-| `Aggregate_LoadFromHistory` (100 events)    | 135.7    | 0     | 0         |
-| `id_Parse`                                  | 14.35    | 0     | 0         |
-| `MemoryStore_Load`                          | 81.93    | 80    | 3         |
-| `id_New`                                    | 107.0    | 16    | 1         |
-| `NewEvent`                                  | 255.9    | 336   | 4         |
-| `Registry_Build`                            | 1002     | 1184  | 11        |
-| `SchemaFromType`                            | 1139     | 1120  | 15        |
-| `MemoryStore_Save`                          | 1193     | 849   | 13        |
-| `Repository_Save`                           | 1407     | 841   | 16        |
-| `AsyncAPI_Export`                           | 4466     | 6151  | 45        |
-| `Repository_Load`                           | 606.2    | 448   | 13        |
-| `Builder_Build`                             | 1611     | 2144  | 27        |
-| `Builder_FromCommandDispatcher`             | 9808     | 8464  | 14        |
-| `AsyncAPI_MarshalYAML`                      | 31657    | 7629  | 235       |
-| `EventCatalog_Export`                       | 1494238  | 22906 | 358       |
-| `Builder_ExportEventCatalog`                | 623516   | 10403 | 137       |
+| Benchmark                                | ns/op   | B/op  | allocs/op |
+| ---------------------------------------- | ------- | ----- | --------- |
+| `Aggregate_RecordEvent`                  | 0.96    | 0     | 0         |
+| `Command_Dispatch`                       | 25.89   | 0     | 0         |
+| `Command_Dispatch_WithMiddleware`        | 27.22   | 0     | 0         |
+| `Query_Dispatch`                         | 26.03   | 0     | 0         |
+| `Query_Dispatch_WithMiddleware`          | 27.16   | 0     | 0         |
+| `MemoryBus_Publish`                      | 41.78   | 16    | 1         |
+| `Aggregate_LoadFromHistory` (100 events) | 135.7   | 0     | 0         |
+| `id_Parse`                               | 14.35   | 0     | 0         |
+| `MemoryStore_Load`                       | 81.93   | 80    | 3         |
+| `id_New`                                 | 107.0   | 16    | 1         |
+| `NewEvent`                               | 255.9   | 336   | 4         |
+| `Registry_Build`                         | 1002    | 1184  | 11        |
+| `SchemaFromType`                         | 1139    | 1120  | 15        |
+| `MemoryStore_Save`                       | 1193    | 849   | 13        |
+| `Repository_Save`                        | 1407    | 841   | 16        |
+| `AsyncAPI_Export`                        | 4466    | 6151  | 45        |
+| `Repository_Load`                        | 606.2   | 448   | 13        |
+| `Builder_Build`                          | 1611    | 2144  | 27        |
+| `Builder_FromCommandDispatcher`          | 9808    | 8464  | 14        |
+| `AsyncAPI_MarshalYAML`                   | 31657   | 7629  | 235       |
+| `EventCatalog_Export`                    | 1494238 | 22906 | 358       |
+| `Builder_ExportEventCatalog`             | 623516  | 10403 | 137       |
 
 ### Completed Phases (Sessions 48-49)
 
 | Phase | Description                                     | Status |
 | ----- | ----------------------------------------------- | ------ |
-| 1     | Extract SnapshotStrategy to core/event           | ✅     |
-| 2     | ISP Activation — Publisher/Subscriber            | ✅     |
-| 3     | Error Classification Completion                  | ✅     |
-| 4     | Fix all lint issues (50+ → 0)                    | ✅     |
-| 5     | Test Coverage Gaps (4 modules improved)          | ✅     |
-| 6     | Code Quality Cleanup (go.mod path, go mod tidy)  | ✅     |
-| 7     | Deduplicate publishChanges + saveSnapshot         | ✅     |
-| 8     | Documentation + Release Prep                      | ✅     |
+| 1     | Extract SnapshotStrategy to core/event          | ✅     |
+| 2     | ISP Activation — Publisher/Subscriber           | ✅     |
+| 3     | Error Classification Completion                 | ✅     |
+| 4     | Fix all lint issues (50+ → 0)                   | ✅     |
+| 5     | Test Coverage Gaps (4 modules improved)         | ✅     |
+| 6     | Code Quality Cleanup (go.mod path, go mod tidy) | ✅     |
+| 7     | Deduplicate publishChanges + saveSnapshot       | ✅     |
+| 8     | Documentation + Release Prep                    | ✅     |
 
 ### Architecture Achievements
 
@@ -100,38 +100,38 @@
 
 ## B) PARTIALLY DONE
 
-| Item                         | What's Done                        | What's Missing                                  |
-| ---------------------------- | ---------------------------------- | ----------------------------------------------- |
-| Phase 9 (Future-Looking)     | Phase plan exists                  | Tasks 62-66 not started (see section C)         |
-| Decider benchmarks           | Attempted (had compile errors)     | Need `event.Type` casts, 3-return Load signature |
-| TODO_LIST.md accuracy        | Rewritten in Phase 8               | Claims "zero benchmarks exist" — FALSE (26 exist) |
-| FEATURES.md accuracy         | Updated coverage numbers           | Coverage values stale (event 93.6% not 97.0%, etc.) |
-| `memory/go.mod` + `projection/go.mod` | tidied in prior session  | gopls still reports ginkgo/gomega "should be direct" warnings |
+| Item                                  | What's Done                    | What's Missing                                                |
+| ------------------------------------- | ------------------------------ | ------------------------------------------------------------- |
+| Phase 9 (Future-Looking)              | Phase plan exists              | Tasks 62-66 not started (see section C)                       |
+| Decider benchmarks                    | Attempted (had compile errors) | Need `event.Type` casts, 3-return Load signature              |
+| TODO_LIST.md accuracy                 | Rewritten in Phase 8           | Claims "zero benchmarks exist" — FALSE (26 exist)             |
+| FEATURES.md accuracy                  | Updated coverage numbers       | Coverage values stale (event 93.6% not 97.0%, etc.)           |
+| `memory/go.mod` + `projection/go.mod` | tidied in prior session        | gopls still reports ginkgo/gomega "should be direct" warnings |
 
 ---
 
 ## C) NOT STARTED
 
-| Task # | Description                                      | Priority | Effort  |
-| ------ | ------------------------------------------------ | -------- | ------- |
-| 62     | Performance benchmarks for decider package         | LOW      | 1 hour  |
-| 63     | Performance benchmarks for projection package      | LOW      | 1 hour  |
-| 64     | Design outbox transaction co-participation API     | MEDIUM   | 2 hours |
-| 65     | Design `query.Handler` generics migration plan     | MEDIUM   | 2 hours |
-| 66     | Review SAGA_DESIGN.md for concrete next steps      | LOW      | 30 min  |
-| —      | Fix TODO_LIST.md "zero benchmarks" claim           | HIGH     | 5 min   |
-| —      | Fix FEATURES.md stale coverage numbers             | HIGH     | 15 min  |
-| —      | Fix memory/projection go.mod ginkgo direct deps    | MEDIUM   | 5 min   |
-| —      | Tag `v0.1.0-alpha`                                | LOW      | 5 min   |
+| Task # | Description                                     | Priority | Effort  |
+| ------ | ----------------------------------------------- | -------- | ------- |
+| 62     | Performance benchmarks for decider package      | LOW      | 1 hour  |
+| 63     | Performance benchmarks for projection package   | LOW      | 1 hour  |
+| 64     | Design outbox transaction co-participation API  | MEDIUM   | 2 hours |
+| 65     | Design `query.Handler` generics migration plan  | MEDIUM   | 2 hours |
+| 66     | Review SAGA_DESIGN.md for concrete next steps   | LOW      | 30 min  |
+| —      | Fix TODO_LIST.md "zero benchmarks" claim        | HIGH     | 5 min   |
+| —      | Fix FEATURES.md stale coverage numbers          | HIGH     | 15 min  |
+| —      | Fix memory/projection go.mod ginkgo direct deps | MEDIUM   | 5 min   |
+| —      | Tag `v0.1.0-alpha`                              | LOW      | 5 min   |
 
 ---
 
 ## D) TOTALLY FUCKED UP ✗
 
-| Item | What Happened | Fix |
-| ---- | ------------- | --- |
-| `core/decider/benchmark_test.go` | Created in prior session with compile errors (string→`event.Type` cast, 2→3 return values on `Load`) | Deleted. File must be recreated with correct types. |
-| `memory/go.mod` + `projection/go.mod` | `go mod tidy` was run with `GOWORK=off` but gopls still warns ginkgo/gomega should be direct | Needs re-verification; may need `go get` to explicitly add them |
+| Item                                  | What Happened                                                                                        | Fix                                                             |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `core/decider/benchmark_test.go`      | Created in prior session with compile errors (string→`event.Type` cast, 2→3 return values on `Load`) | Deleted. File must be recreated with correct types.             |
+| `memory/go.mod` + `projection/go.mod` | `go mod tidy` was run with `GOWORK=off` but gopls still warns ginkgo/gomega should be direct         | Needs re-verification; may need `go get` to explicitly add them |
 
 ---
 
@@ -176,58 +176,58 @@
 
 ### Tier 1: Truth & Trust (fix documentation lies) — 30 min
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 1  | Fix TODO_LIST.md "zero benchmarks" → "26 benchmarks"    | HIGH   | 2 min  |
-| 2  | Fix FEATURES.md coverage numbers to match actual        | HIGH   | 10 min |
-| 3  | Add ISP Publisher/Subscriber to FEATURES.md Event table | HIGH   | 5 min  |
-| 4  | Add decider package to FEATURES.md Module Maturity Matrix | HIGH   | 3 min  |
-| 5  | Fix FEATURES.md "Last audited" date to 2026-05-03       | HIGH   | 1 min  |
+| #   | Task                                                      | Impact | Effort |
+| --- | --------------------------------------------------------- | ------ | ------ |
+| 1   | Fix TODO_LIST.md "zero benchmarks" → "26 benchmarks"      | HIGH   | 2 min  |
+| 2   | Fix FEATURES.md coverage numbers to match actual          | HIGH   | 10 min |
+| 3   | Add ISP Publisher/Subscriber to FEATURES.md Event table   | HIGH   | 5 min  |
+| 4   | Add decider package to FEATURES.md Module Maturity Matrix | HIGH   | 3 min  |
+| 5   | Fix FEATURES.md "Last audited" date to 2026-05-03         | HIGH   | 1 min  |
 
 ### Tier 2: Fill Performance Gaps — 2 hours
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 6  | Add `core/decider/benchmark_test.go` (Execute, Load, Fold) | MEDIUM | 45 min |
-| 7  | Add `projection/benchmark_test.go` (Runner dispatch)     | MEDIUM | 30 min |
-| 8  | Add `middleware/benchmark_test.go` (logging, retry, recovery) | LOW    | 30 min |
-| 9  | Add `core/event/benchmark_test.go` (PublishChanges, SaveSnapshot, Classify) | LOW    | 15 min |
+| #   | Task                                                                        | Impact | Effort |
+| --- | --------------------------------------------------------------------------- | ------ | ------ |
+| 6   | Add `core/decider/benchmark_test.go` (Execute, Load, Fold)                  | MEDIUM | 45 min |
+| 7   | Add `projection/benchmark_test.go` (Runner dispatch)                        | MEDIUM | 30 min |
+| 8   | Add `middleware/benchmark_test.go` (logging, retry, recovery)               | LOW    | 30 min |
+| 9   | Add `core/event/benchmark_test.go` (PublishChanges, SaveSnapshot, Classify) | LOW    | 15 min |
 
 ### Tier 3: Fix Technical Debt — 30 min
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 10 | Investigate memory/projection go.mod ginkgo direct deps | MEDIUM | 10 min |
-| 11 | Fix CHANGELOG.md duplicate "### Changed" sections       | MEDIUM | 5 min  |
-| 12 | Verify `core/event` coverage gap (93.6% → target 95%+)  | MEDIUM | 15 min |
+| #   | Task                                                    | Impact | Effort |
+| --- | ------------------------------------------------------- | ------ | ------ |
+| 10  | Investigate memory/projection go.mod ginkgo direct deps | MEDIUM | 10 min |
+| 11  | Fix CHANGELOG.md duplicate "### Changed" sections       | MEDIUM | 5 min  |
+| 12  | Verify `core/event` coverage gap (93.6% → target 95%+)  | MEDIUM | 15 min |
 
 ### Tier 4: Future-Looking Design — 4 hours
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 13 | Design outbox transaction co-participation API (doc)     | MEDIUM | 2 hours |
-| 14 | Design `query.Handler` generics migration plan (doc)     | MEDIUM | 2 hours |
+| #   | Task                                                 | Impact | Effort  |
+| --- | ---------------------------------------------------- | ------ | ------- |
+| 13  | Design outbox transaction co-participation API (doc) | MEDIUM | 2 hours |
+| 14  | Design `query.Handler` generics migration plan (doc) | MEDIUM | 2 hours |
 
 ### Tier 5: Planning & Release — 1 hour
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 15 | Review SAGA_DESIGN.md and add concrete implementation plan | LOW    | 30 min |
-| 16 | Update AGENTS.md Known Issues section                    | LOW    | 15 min |
-| 17 | Tag `v0.1.0-alpha`                                       | LOW    | 5 min  |
-| 18 | Update Session 49 entry in AGENTS.md                     | LOW    | 10 min |
+| #   | Task                                                       | Impact | Effort |
+| --- | ---------------------------------------------------------- | ------ | ------ |
+| 15  | Review SAGA_DESIGN.md and add concrete implementation plan | LOW    | 30 min |
+| 16  | Update AGENTS.md Known Issues section                      | LOW    | 15 min |
+| 17  | Tag `v0.1.0-alpha`                                         | LOW    | 5 min  |
+| 18  | Update Session 49 entry in AGENTS.md                       | LOW    | 10 min |
 
 ### Tier 6: Long-Term Improvements
 
-| #  | Task                                                    | Impact | Effort |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 19 | Consolidate `CatalogMeta` across event/command/query     | LOW    | 2 hours |
-| 20 | Add PostgreSQL integration tests for `storage` module    | HIGH   | 4 hours |
-| 21 | Design Watermill adapter module                          | LOW    | 8 hours |
-| 22 | Implement Saga/Process Manager from SAGA_DESIGN.md       | MEDIUM | 16 hours |
-| 23 | Add `example/user` to showcase ISP + error classification | LOW    | 2 hours |
-| 24 | Create CONTRIBUTING.md with architecture guidelines       | LOW    | 2 hours |
-| 25 | Remove replace directives from go.mod (publish modules)   | LOW    | 1 hour  |
+| #   | Task                                                      | Impact | Effort   |
+| --- | --------------------------------------------------------- | ------ | -------- |
+| 19  | Consolidate `CatalogMeta` across event/command/query      | LOW    | 2 hours  |
+| 20  | Add PostgreSQL integration tests for `storage` module     | HIGH   | 4 hours  |
+| 21  | Design Watermill adapter module                           | LOW    | 8 hours  |
+| 22  | Implement Saga/Process Manager from SAGA_DESIGN.md        | MEDIUM | 16 hours |
+| 23  | Add `example/user` to showcase ISP + error classification | LOW    | 2 hours  |
+| 24  | Create CONTRIBUTING.md with architecture guidelines       | LOW    | 2 hours  |
+| 25  | Remove replace directives from go.mod (publish modules)   | LOW    | 1 hour   |
 
 ---
 

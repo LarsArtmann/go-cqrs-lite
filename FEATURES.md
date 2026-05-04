@@ -88,10 +88,10 @@
 | Event sourcing         | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store)                | ✅     |
 | Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save`                                                 | ✅     |
 | Snapshot support       | `WithSnapshotStore` option — loads from snapshot then replays remaining events                  | ✅     |
-| Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                  | ✅     |
+| Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                    | ✅     |
 | Snapshot codec         | `WithCodec` option for custom snapshot serialization                                            | ✅     |
 | Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
-| ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                    | ✅     |
+| ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                     | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
 **Coverage:** 95.3%
@@ -175,8 +175,7 @@
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
-**Coverage:** 99.1%
----
+## **Coverage:** 99.1%
 
 ## Middleware Suite ✅ FULLY_FUNCTIONAL
 

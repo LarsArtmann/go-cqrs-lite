@@ -21,60 +21,7 @@ func benchEvent(tb testing.TB, eventType string, aggID id.AggregateID, version i
 	return evt
 }
 
-func BenchmarkRunner_Replay(b *testing.B) {
-	store := memory.NewMemoryStore()
-	b.Cleanup(func() { _ = store.Close() })
-
-	ctx := context.Background()
-
-	events := make([][]event.Event, 10)
-
-	for i := range 10 {
-		aggID := id.NewAggregateID()
-		events[i] = []event.Event{benchEvent(b, "UserCreated", aggID, 1)}
-
-		err := store.Save(ctx, "User", aggID, events[i], 0)
-		if err != nil {
-			b.Fatalf("Save: %v", err)
-		}
-	}
-
-	for b.Loop() {
-		bus := memory.NewMemoryBus()
-		b.Cleanup(func() { _ = bus.Close() })
-
-		checkpoint := memory.NewCheckpointStore()
-		b.Cleanup(func() { _ = checkpoint.Close() })
-
-		runner, err := projection.NewRunner(store, bus, checkpoint)
-		if err != nil {
-			b.Fatalf("NewRunner: %v", err)
-		}
-
-		err = runner.Register(event.NewProjection("bench-proj",
-			func(_ context.Context, _ event.Event) error { return nil },
-			[]event.Type{"UserCreated"},
-		))
-		if err != nil {
-			b.Fatalf("Register: %v", err)
-		}
-
-		runCtx, cancel := context.WithCancel(ctx)
-
-		done := make(chan struct{})
-
-		go func() {
-			_ = runner.Run(runCtx)
-			close(done)
-		}()
-
-		<-done
-
-		cancel()
-	}
-}
-
-func BenchmarkRunner_FilterEvents(b *testing.B) {
+func BenchmarkRunner_Register(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
@@ -86,22 +33,57 @@ func BenchmarkRunner_FilterEvents(b *testing.B) {
 		b.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection("bench-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		b.Fatalf("Register: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-
 	for b.Loop() {
-		_ = runner.Register(event.NewProjection("noop-proj",
+		err = runner.Register(event.NewProjection("noop",
 			func(_ context.Context, _ event.Event) error { return nil },
 			[]event.Type{"UserCreated"},
 		))
+		if err != nil {
+			b.Fatalf("Register: %v", err)
+		}
+	}
+}
+
+func BenchmarkRunner_NewRunner(b *testing.B) {
+	for b.Loop() {
+		bus := memory.NewMemoryBus()
+		checkpoint := memory.NewCheckpointStore()
+
+		_, err := projection.NewRunner(nil, bus, checkpoint)
+		if err != nil {
+			b.Fatalf("NewRunner: %v", err)
+		}
+
+		_ = bus.Close()
+		_ = checkpoint.Close()
+	}
+}
+
+func BenchmarkRunner_CurrentCheckpoint(b *testing.B) {
+	bus := memory.NewMemoryBus()
+	b.Cleanup(func() { _ = bus.Close() })
+
+	checkpoint := memory.NewCheckpointStore()
+	b.Cleanup(func() { _ = checkpoint.Close() })
+
+	ctx := context.Background()
+
+	evtID := id.NewEventID()
+
+	err := checkpoint.Save(ctx, "bench-proj", evtID)
+	if err != nil {
+		b.Fatalf("Save checkpoint: %v", err)
 	}
 
-	_ = aggID
+	runner, err := projection.NewRunner(nil, bus, checkpoint)
+	if err != nil {
+		b.Fatalf("NewRunner: %v", err)
+	}
+
+	for b.Loop() {
+		_, err = runner.CurrentCheckpoint(ctx, "bench-proj")
+		if err != nil {
+			b.Fatalf("CurrentCheckpoint: %v", err)
+		}
+	}
 }
