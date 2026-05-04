@@ -50,14 +50,14 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	aggID := evt.AggregateID()
 
 	switch evt.Type() {
-	case "UserCreated":
+	case eventUserCreated:
 		var p UserCreatedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
 			return fmt.Errorf("unmarshal UserCreated in projection: %w", err)
 		}
 
 		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
-	case "UserNameChanged":
+	case eventUserNameChanged:
 		var p UserNameChangedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
 			return fmt.Errorf("unmarshal UserNameChanged in projection: %w", err)

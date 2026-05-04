@@ -23,7 +23,7 @@ func decideCreateUser(
 		}
 
 		evt, err := event.NewEvent(
-			"UserCreated", aggID, "User", version.Int()+1,
+			eventUserCreated, aggID, aggregateType, version.Int()+1,
 			mustMarshal(UserCreatedPayload{Email: email, Name: name}),
 		)
 		if err != nil {
@@ -50,7 +50,7 @@ func decideChangeName(
 		}
 
 		evt, err := event.NewEvent(
-			"UserNameChanged", aggID, "User", version.Int()+1,
+			eventUserNameChanged, aggID, aggregateType, version.Int()+1,
 			mustMarshal(UserNameChangedPayload{Name: name}),
 		)
 		if err != nil {

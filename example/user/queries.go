@@ -9,8 +9,8 @@ type GetUserQuery struct {
 	aggregateID id.AggregateID
 }
 
-func (q *GetUserQuery) Type() query.Type { return "GetUser" }
+func (q *GetUserQuery) Type() query.Type { return queryGetUser }
 
 type ListUsersQuery struct{}
 
-func (q *ListUsersQuery) Type() query.Type { return "ListUsers" }
+func (q *ListUsersQuery) Type() query.Type { return queryListUsers }

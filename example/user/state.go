@@ -14,14 +14,14 @@ type UserState struct {
 
 func foldUser(state UserState, evt event.Event) (UserState, error) {
 	switch evt.Type() {
-	case "UserCreated":
+	case eventUserCreated:
 		var p UserCreatedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
 			return state, fmt.Errorf("unmarshal UserCreated: %w", err)
 		}
 
 		return UserState{Email: p.Email, Name: p.Name}, nil
-	case "UserNameChanged":
+	case eventUserNameChanged:
 		var p UserNameChangedPayload
 		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
 			return state, fmt.Errorf("unmarshal UserNameChanged: %w", err)
