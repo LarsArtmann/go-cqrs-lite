@@ -7,11 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Deleter interface for deleting aggregate data.
-type Deleter interface {
-	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
-}
-
 // GlobalLoader loads all events across all aggregates, ordered by occurrence.
 // Implementations return events sorted by OccurredAt for deterministic replay.
 // This is the core interface for projection replay.
@@ -57,5 +52,6 @@ type Store interface {
 		version Version,
 	) ([]Event, error)
 
-	Deleter
+	// Delete removes all events for an aggregate
+	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }

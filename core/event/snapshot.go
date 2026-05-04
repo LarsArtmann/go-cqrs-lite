@@ -40,5 +40,6 @@ type SnapshotStore interface {
 		version Version,
 	) (*Snapshot, error)
 
-	Deleter
+	// Delete removes the snapshot for an aggregate.
+	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }
