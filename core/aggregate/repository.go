@@ -78,7 +78,13 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	aggregateID := root.ID()
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	if err := r.persistChanges(ctx, aggregateType, aggregateID, changes, expectedVersion); err != nil {
+	if err := r.persistChanges(
+		ctx,
+		aggregateType,
+		aggregateID,
+		changes,
+		expectedVersion,
+	); err != nil {
 		return err
 	}
 
