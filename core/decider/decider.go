@@ -230,7 +230,14 @@ func (r *Repository[State]) foldEvents(
 		if err != nil {
 			var zero State
 
-			return zero, opError(aggType, aggID, "%w (event %s): %w", ErrFoldFailed, evt.Type(), err)
+			return zero, opError(
+				aggType,
+				aggID,
+				"%w (event %s): %w",
+				ErrFoldFailed,
+				evt.Type(),
+				err,
+			)
 		}
 	}
 

@@ -15,6 +15,6 @@ const (
 	cmdCreateUser     command.Type = "CreateUser"
 	cmdChangeUserName command.Type = "ChangeUserName"
 
-	queryGetUser  query.Type = "GetUser"
+	queryGetUser   query.Type = "GetUser"
 	queryListUsers query.Type = "ListUsers"
 )
