@@ -178,7 +178,7 @@ nix develop             # enter dev shell
 | Package                | Purpose                                   | Key Types                                                                                                                      |
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                       |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]` |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`               |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                              |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                         |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                         |
@@ -214,8 +214,8 @@ nix develop             # enter dev shell
 
 ### Middleware Module (`middleware/`)
 
-| Package       | Purpose                       | Key Types                                                                                                                        |
-| ------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Package       | Purpose                       | Key Types                                                                                                                                                                                                             |
+| ------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `middleware/` | Cross-cutting CQRS middleware | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics`, `ErrValidationFailed`, `ErrRetryExhausted`, `ErrRetryCanceled`, `ErrPanicRecovered` |
 
 ### Testhelpers Module (`testhelpers/`)
@@ -343,11 +343,11 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ### Production
 
-| Dependency                | Version | Purpose                           | Module           |
-| ------------------------- | ------- | --------------------------------- | ---------------- |
-| `oklog/ulid/v2`           | v2.1.0  | ULID generation (binary-sortable) | core             |
-| `go-branded-id`           | v0.1.0  | Branded ID type backing           | core             |
-| `go-faster/yaml`          | v0.4.6  | YAML marshaling                   | catalog          |
+| Dependency       | Version | Purpose                           | Module  |
+| ---------------- | ------- | --------------------------------- | ------- |
+| `oklog/ulid/v2`  | v2.1.0  | ULID generation (binary-sortable) | core    |
+| `go-branded-id`  | v0.1.0  | Branded ID type backing           | core    |
+| `go-faster/yaml` | v0.4.6  | YAML marshaling                   | catalog |
 
 ### Test-only
 
@@ -483,12 +483,12 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity | Detail                                                                                |
-| -------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                            |
+| Issue                                                    | Severity | Detail                                                                                                                      |
+| -------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                                                                  |
 | `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
-| `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical    |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`         |
+| `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical                                          |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
 
 - **Session 28 (Branching-Flow Context Review)**:
   - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.
