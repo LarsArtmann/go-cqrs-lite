@@ -1,7 +1,7 @@
 # TODO List
 
-**Audited:** 2026-05-04 · **Session 50**
-**Sources:** Sessions 48-50 execution (ISP, dedup, lint, coverage, benchmarks, design docs)
+**Audited:** 2026-05-04 · **Session 54**
+**Sources:** Sessions 48-54 execution (ISP, dedup, lint, coverage, benchmarks, deps, sentinels)
 
 ---
 
@@ -19,10 +19,10 @@ None — all critical items resolved.
   - Options: shared base package, or accept as intentional per-package types
   - LOW effort, LOW impact — consider accepting duplication
 
-- [ ] **Implement `query.TypedHandler[T]`** — design done, implementation pending
-  - Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md`
-  - `DispatchTyped[T]` is the workaround but interface still uses `any`
-  - Non-breaking migration via `RegisterTyped[T]` + `TypedHandler[T]` interface
+- [x] **Implement `query.TypedHandler[T]`** — DONE in Session 54
+  - `TypedHandler[T any]` type in `core/query/query.go`
+  - `RegisterTyped[T]()` function in `core/query/dispatcher.go`
+  - Compile-time type safety at registration; 4 tests
 
 - [ ] **Implement `TransactionalStore`** — design done, implementation pending
   - Design doc: `docs/planning/OUTBOX_TRANSACTION_API.md`
@@ -41,6 +41,13 @@ None — all critical items resolved.
 - [ ] **Create CONTRIBUTING.md** — architecture guidelines for contributors
 
 ---
+
+## ✅ COMPLETED (Session 54)
+
+- [x] **Middleware sentinel errors** — `ErrValidationFailed`, `ErrRetryExhausted`, `ErrRetryCanceled`, `ErrPanicRecovered`
+- [x] **Replace `go-json-experiment/json` with `encoding/json`** — zero API changes, one fewer dep
+- [x] **Replace `cockroachdb/errors` with stdlib** — `errors.New`/`errors.Is`/`errors.As` stay, `Wrap`/`Wrapf` → `fmt.Errorf` with `%w`. Removed 6 transitive deps. Net -169 lines.
+- [x] **Add `query.TypedHandler[T]` and `RegisterTyped[T]`** — type-safe query handler registration
 
 ## ✅ COMPLETED (Session 50)
 

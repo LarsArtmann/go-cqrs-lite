@@ -40,8 +40,7 @@ go-cqrs-lite/
 ├── go.work                          # ties modules together
 │
 ├── core/                            # github.com/larsartmann/go-cqrs-lite/core
-│   └── go.mod                       # deps: cockroachdb/errors, oklog/ulid,
-│                                    #       go-json-experiment/json
+│   └── go.mod                       # deps: oklog/ulid, go-branded-id
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
@@ -61,7 +60,7 @@ go-cqrs-lite/
 │   └── snapshot.go                  # MemorySnapshotStore (implements event.SnapshotStore)
 │
 ├── catalog/                         # github.com/larsartmann/go-cqrs-lite/catalog
-│   └── go.mod                       # deps: core, go-faster/yaml, go-json-experiment/json
+│   └── go.mod                       # deps: core, go-faster/yaml
 │   ├── types.go                     # Message, Service, Domain, Channel, Schema, MessageID()
 │   ├── schema.go                    # SchemaFromType[T]() via reflect
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
@@ -72,7 +71,7 @@ go-cqrs-lite/
 │   └── internal/cattest/            # test helpers
 │
 ├── middleware/                       # github.com/larsartmann/go-cqrs-lite/middleware
-│   └── go.mod                       # deps: core, cockroachdb/errors
+│   └── go.mod                       # deps: core
 │   ├── logging.go                   # CommandLogging, EventLogging
 │   ├── metrics.go                   # CommandMetrics, EventMetrics
 │   ├── recovery.go                  # CommandRecovery, EventRecovery
@@ -179,7 +178,7 @@ nix develop             # enter dev shell
 | Package                | Purpose                                   | Key Types                                                                                                                      |
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                       |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`                                                      |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]` |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `Event`, `Core`, `Metadata`, `Option`                              |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                         |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                         |
@@ -217,7 +216,7 @@ nix develop             # enter dev shell
 
 | Package       | Purpose                       | Key Types                                                                                                                        |
 | ------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `middleware/` | Cross-cutting CQRS middleware | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics` |
+| `middleware/` | Cross-cutting CQRS middleware | `CommandLogging`, `CommandRetry`, `CommandRecovery`, `CommandValidation`, `EventValidation`, `QueryValidation`, `CommandMetrics`, `ErrValidationFailed`, `ErrRetryExhausted`, `ErrRetryCanceled`, `ErrPanicRecovered` |
 
 ### Testhelpers Module (`testhelpers/`)
 
@@ -246,7 +245,7 @@ nix develop             # enter dev shell
 
 1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
 2. **Every module must be trustworthy on its own** — Quality gate: "Would a consumer trust this enough to import it?" Means: tests, stable API, clear docs. Does NOT mean "another module in this repo uses it."
-3. **Minimal core dependencies** — core depends on `cockroachdb/errors`, `oklog/ulid`, `go-branded-id`, `go-json-experiment/json`
+3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`
 4. **Composition over inheritance** — Per Go best practices
 5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 6. **Context-aware** — All handlers accept `context.Context`
@@ -257,7 +256,7 @@ nix develop             # enter dev shell
 ## Code Conventions
 
 - Use `fmt.Errorf` for error messages with context
-- Use `errors.New` (cockroachdb/errors) for sentinel errors
+- Use `errors.New` (stdlib) for sentinel errors
 - Wrap errors with context using `errors.Wrapf` or `errors.Wrap`
 - Context as first parameter in all public functions
 - Max 30 lines per function
@@ -346,11 +345,9 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Dependency                | Version | Purpose                           | Module           |
 | ------------------------- | ------- | --------------------------------- | ---------------- |
-| `cockroachdb/errors`      | v1.12.0 | Error wrapping                    | core, middleware |
 | `oklog/ulid/v2`           | v2.1.0  | ULID generation (binary-sortable) | core             |
 | `go-branded-id`           | v0.1.0  | Branded ID type backing           | core             |
 | `go-faster/yaml`          | v0.4.6  | YAML marshaling                   | catalog          |
-| `go-json-experiment/json` | v0.0.0  | JSON v2                           | core, catalog    |
 
 ### Test-only
 
@@ -751,3 +748,13 @@ Interfaces now return branded types instead of primitives:
   - **FIX**: Updated stale benchmark count in `TODO_LIST.md` (33→43, middleware+event now covered)
   - **FIX**: Updated coverage numbers in `FEATURES.md` to match actual (event 93.6→94.4%, aggregate 95.3→95.5%, decider 95.6→95.0%, storage 93.6→94.8%)
   - Total 91.6% coverage, zero lint, all 22 test packages pass
+
+- **Session 54 (Sentinel Errors + Dependency Elimination + TypedHandler)**:
+  - **NEW**: `middleware/errors.go` — 4 sentinel errors: `ErrValidationFailed`, `ErrRetryExhausted`, `ErrRetryCanceled`, `ErrPanicRecovered`
+  - **NEW**: `query.TypedHandler[T any]` type and `RegisterTyped[T]()` function — compile-time type-safe query handler registration
+  - **BREAKING**: Removed `cockroachdb/errors` dependency from all modules. `errors.Wrap`/`errors.Wrapf` → `fmt.Errorf` with `%w`. No API changes — all sentinel errors are stdlib `errors.New`. Removed 6 transitive deps (cockroachdb/errors, logtags, redact, getsentry/sentry-go, gogo/protobuf, pkg/errors).
+  - **BREAKING**: Removed `go-json-experiment/json` dependency from core and storage. Replaced with `encoding/json`. No API changes — only plain `Marshal`/`Unmarshal` was used.
+  - **FIX**: All middleware validation/retry/recovery functions now wrap errors with sentinels — callers can use `errors.Is(err, middleware.ErrValidationFailed)`
+  - **TEST**: 5 new middleware sentinel tests, 4 new TypedHandler tests
+  - **REFACTOR**: `core/event/event.go` doc comment updated — no longer claims cockroachdb/errors dependency
+  - Net -169 lines from cockroachdb removal, 4 commits, zero lint, all 22 test packages pass
