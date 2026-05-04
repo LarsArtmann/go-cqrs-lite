@@ -1,6 +1,9 @@
 package query
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // Type identifies a query type.
 type Type string
@@ -45,3 +48,7 @@ func MustNew(queryType Type) *Core {
 
 // Middleware wraps query handlers for cross-cutting concerns.
 type Middleware func(Handler) Handler
+
+// TypedHandler processes a query and returns a typed result.
+// Use with RegisterTyped for compile-time type safety at registration.
+type TypedHandler[T any] func(ctx context.Context, q Query) (T, error)
