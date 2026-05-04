@@ -115,7 +115,8 @@ func (e *Core) Version() Version { return e.version }
 // Used by upcasters to determine if an event needs transformation.
 func (e *Core) SchemaVersion() int { return e.schemaVersion }
 
-// Payload returns a copy of the event payload.
+// Payload returns the event payload. The returned slice is safe to mutate;
+// the event stores its own copy at construction time.
 func (e *Core) Payload() []byte {
 	if e.payload == nil {
 		return nil
@@ -169,6 +170,12 @@ func NewEvent(
 
 	v, _ := ParseVersion(version)
 
+	var safePayload []byte
+	if payload != nil {
+		safePayload = make([]byte, len(payload))
+		copy(safePayload, payload)
+	}
+
 	evt := &Core{
 		id:            id.NewEventID(),
 		eventType:     eventType,
@@ -176,7 +183,7 @@ func NewEvent(
 		aggregateType: aggregateType,
 		version:       v,
 		schemaVersion: 1,
-		payload:       payload,
+		payload:       safePayload,
 		metadata:      NewMetadata(),
 		occurredAt:    time.Now(),
 	}
