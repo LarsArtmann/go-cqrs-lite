@@ -190,3 +190,49 @@ func TestMemoryOutboxStore_DefensiveCopy(t *testing.T) {
 		)
 	}
 }
+
+func TestMemoryOutboxStore_Ack_PartialAck(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	outbox := memory.NewMemoryOutboxStore()
+
+	aggID1 := id.NewAggregateID()
+	aggID2 := id.NewAggregateID()
+
+	evt1 := testhelpers.NewEvent(t, "Event1", aggID1, "Test", 1, nil)
+	evt2 := testhelpers.NewEvent(t, "Event2", aggID2, "Test", 1, nil)
+
+	err := outbox.Append(ctx, []event.Event{evt1})
+	if err != nil {
+		t.Fatalf("append event 1: %v", err)
+	}
+
+	err = outbox.Append(ctx, []event.Event{evt2})
+	if err != nil {
+		t.Fatalf("append event 2: %v", err)
+	}
+
+	entries, err := outbox.PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("poll pending: %v", err)
+	}
+
+	testhelpers.AssertLenFatal(t, "entries", entries, 2)
+
+	err = outbox.Ack(ctx, []event.OutboxID{entries[0].ID})
+	if err != nil {
+		t.Fatalf("ack first entry: %v", err)
+	}
+
+	remaining, err := outbox.PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("poll remaining: %v", err)
+	}
+
+	testhelpers.AssertLen(t, "remaining entries", remaining, 1)
+
+	if remaining[0].Events[0].Type() != "Event2" {
+		t.Errorf("expected Event2 remaining, got %s", remaining[0].Events[0].Type())
+	}
+}

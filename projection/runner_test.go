@@ -2,6 +2,7 @@ package projection_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -515,6 +516,83 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 	}
 }
 
+func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+
+	t.Cleanup(func() { _ = store.Close() })
+
+	userEvt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+	orderEvt := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
+
+	ctx := context.Background()
+
+	err := store.Save(ctx, "User", userEvt.AggregateID(), []event.Event{userEvt}, 0)
+	if err != nil {
+		t.Fatalf("Save userEvt: %v", err)
+	}
+
+	err = store.Save(ctx, "Order", orderEvt.AggregateID(), []event.Event{orderEvt}, 0)
+	if err != nil {
+		t.Fatalf("Save orderEvt: %v", err)
+	}
+
+	bus := memory.NewMemoryBus()
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	runner, err := projection.NewRunner(store, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	var replayed []string
+
+	var replayMu sync.Mutex
+
+	err = runner.Register(event.NewProjection("user-only-proj",
+		func(_ context.Context, evt event.Event) error {
+			replayMu.Lock()
+			replayed = append(replayed, string(evt.Type()))
+			replayMu.Unlock()
+			return nil
+		},
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runCtx, cancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+
+	go func() {
+		_ = runner.Run(runCtx)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	replayMu.Lock()
+	defer replayMu.Unlock()
+
+	if len(replayed) != 1 {
+		t.Errorf("replayed %d events, want 1 (OrderPlaced should be filtered)", len(replayed))
+	}
+
+	if len(replayed) > 0 && replayed[0] != "UserCreated" {
+		t.Errorf("replayed event = %q, want UserCreated", replayed[0])
+	}
+}
+
 func TestRunner_RetryOnTransientError(t *testing.T) {
 	t.Parallel()
 
@@ -700,6 +778,245 @@ func newTestRunner(t *testing.T) *projection.Runner {
 
 	return r
 }
+
+func TestHandlerRegistry_OnAll_NilHandler(t *testing.T) {
+	t.Parallel()
+
+	registry := projection.NewHandlerRegistry()
+
+	err := registry.OnAll(nil)
+	if err == nil {
+		t.Fatal("expected error for nil handler")
+	}
+}
+
+func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() {
+		_ = bus.Close()
+		_ = checkpoint.Close()
+	})
+
+	loader := &failingGlobalLoader{err: errors.New("load all failed")}
+
+	runner, err := projection.NewRunner(loader, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	err = runner.Register(event.NewProjection("test-proj",
+		func(_ context.Context, _ event.Event) error { return nil },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runErr := runner.Run(context.Background())
+	if runErr == nil {
+		t.Fatal("expected error when LoadAll fails")
+	}
+}
+
+func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	store := memory.NewMemoryStore()
+
+	t.Cleanup(func() { _ = store.Close() })
+
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+
+	saveErr := store.Save(context.Background(), "User", evt.AggregateID(), []event.Event{evt}, 0)
+	if saveErr != nil {
+		t.Fatalf("Save: %v", saveErr)
+	}
+
+	checkpoint := &failingCheckpointStore{loadErr: errors.New("checkpoint load failed")}
+
+	runner, err := projection.NewRunner(store, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	err = runner.Register(event.NewProjection("test-proj",
+		func(_ context.Context, _ event.Event) error { return nil },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runErr := runner.Run(context.Background())
+	if runErr == nil {
+		t.Fatal("expected error when checkpoint load fails")
+	}
+}
+
+func TestRunner_ReplayError_HandlerFails(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	store := memory.NewMemoryStore()
+
+	t.Cleanup(func() { _ = store.Close() })
+
+	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+
+	saveErr := store.Save(context.Background(), "User", evt.AggregateID(), []event.Event{evt}, 0)
+	if saveErr != nil {
+		t.Fatalf("Save: %v", saveErr)
+	}
+
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	runner, err := projection.NewRunner(store, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	handlerErr := errors.New("handler failed")
+
+	err = runner.Register(event.NewProjection("fail-proj",
+		func(_ context.Context, _ event.Event) error { return handlerErr },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runErr := runner.Run(context.Background())
+	if runErr == nil {
+		t.Fatal("expected error when handler fails during replay")
+	}
+}
+
+type failingGlobalLoader struct {
+	err error
+}
+
+func (f *failingGlobalLoader) LoadAll(_ context.Context) ([]event.Event, error) {
+	return nil, f.err
+}
+
+type failingCheckpointStore struct {
+	loadErr error
+}
+
+func (f *failingCheckpointStore) Load(_ context.Context, _ string) (id.EventID, error) {
+	return id.EventID{}, f.loadErr
+}
+
+func (f *failingCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error {
+	return nil
+}
+
+func (f *failingCheckpointStore) Close() error { return nil }
+
+func TestRunner_ReplayEmptyStore(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() {
+		_ = bus.Close()
+		_ = checkpoint.Close()
+	})
+
+	loader := &emptyGlobalLoader{}
+
+	runner, err := projection.NewRunner(loader, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	err = runner.Register(event.NewProjection("test-proj",
+		func(_ context.Context, _ event.Event) error { return nil },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runCtx, cancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+
+	go func() {
+		_ = runner.Run(runCtx)
+		close(done)
+	}()
+
+	time.Sleep(30 * time.Millisecond)
+	cancel()
+	<-done
+}
+
+func TestRunner_SubscribeError(t *testing.T) {
+	t.Parallel()
+
+	bus := &failingSubscribeBus{}
+
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	runner, err := projection.NewRunner(nil, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	err = runner.Register(event.NewProjection("test-proj",
+		func(_ context.Context, _ event.Event) error { return nil },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runErr := runner.Run(context.Background())
+	if runErr == nil {
+		t.Fatal("expected error when SubscribeAll fails")
+	}
+}
+
+type emptyGlobalLoader struct{}
+
+func (e *emptyGlobalLoader) LoadAll(_ context.Context) ([]event.Event, error) {
+	return nil, nil
+}
+
+type failingSubscribeBus struct{}
+
+func (f *failingSubscribeBus) Publish(_ context.Context, _ ...event.Event) error {
+	return nil
+}
+
+func (f *failingSubscribeBus) Subscribe(_ event.Type, _ event.Handler) error {
+	return nil
+}
+
+func (f *failingSubscribeBus) SubscribeAll(_ event.Handler) error {
+	return errors.New("subscribe all failed")
+}
+
+func (f *failingSubscribeBus) Use(_ ...event.Middleware) error { return nil }
+
+func (f *failingSubscribeBus) Close() error { return nil }
 
 func mustNewEvent(
 	t *testing.T,

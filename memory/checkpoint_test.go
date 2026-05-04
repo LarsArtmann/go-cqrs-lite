@@ -74,3 +74,14 @@ func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 		t.Errorf("Load = %v, want %v (second save)", loaded, second)
 	}
 }
+
+func TestMemoryCheckpointStore_Close(t *testing.T) {
+	t.Parallel()
+
+	store := NewCheckpointStore()
+
+	err := store.Close()
+	if err != nil {
+		t.Errorf("Close() = %v, want nil", err)
+	}
+}

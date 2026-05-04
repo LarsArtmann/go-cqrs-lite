@@ -235,3 +235,43 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	cfgPath := filepath.Join(tmpDir, "eventcatalog.config.js")
 	cattest.AssertFileExists(t, cfgPath)
 }
+
+func TestBuilder_ExportD2(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders")
+
+	cmd := newTestCreateUser(
+		"order.create",
+		command.CatalogMeta{Name: "CreateOrder", Version: "1.0.0", Summary: "Create an order"},
+	)
+	builder.AddCommand("order-svc", cmd)
+
+	result := builder.ExportD2("Test API", "1.0.0")
+	if result == "" {
+		t.Error("ExportD2 returned empty string")
+	}
+}
+
+func TestBuilder_AddMessageToNewService(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+
+	cmd := newTestCreateUser(
+		"user.create",
+		command.CatalogMeta{Name: "CreateUser", Version: "1.0.0", Summary: "Create a user"},
+	)
+	builder.AddCommand("auto-svc", cmd)
+
+	cat := builder.Build()
+	cattest.AssertSliceLen(t, "cat.Services", cat.Services, 1)
+
+	svc := cat.Services[0]
+	if svc.ID != "auto-svc" {
+		t.Errorf("service ID = %q, want auto-svc", svc.ID)
+	}
+
+	cattest.AssertSliceLen(t, "svc.Commands", svc.Commands, 1)
+}
