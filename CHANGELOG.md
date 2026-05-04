@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **PublishChanges** (`core/event`): Shared function for outbox/bus event dispatch. Eliminates duplication in aggregate and decider repositories.
 - **SaveSnapshot** (`core/event`): Shared function for snapshot persistence with pre-encoded state.
 - **Coverage tests**: New test files for memory (99.1%), projection (92.5%), storage (93.6%), aggregate (95.8%).
+- **Performance benchmarks** (Session 50): `core/decider` (4 benchmarks), `projection` (3 benchmarks), `middleware` (4 benchmarks), `core/event` (6 benchmarks). Total: 43 benchmarks across 12 files.
+- **Design documents** (Session 50): Outbox transaction co-participation API (`docs/planning/OUTBOX_TRANSACTION_API.md`), query handler generics migration (`docs/planning/QUERY_HANDLER_GENERICS.md`), saga design answers and implementation plan (`docs/planning/SAGA_DESIGN.md`).
 
 ### Changed
 

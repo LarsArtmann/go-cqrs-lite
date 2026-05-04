@@ -489,10 +489,9 @@ Interfaces now return branded types instead of primitives:
 | Issue                                                    | Severity | Detail                                                                                |
 | -------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                            |
-| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround                  |
+| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
 | `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical    |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`         |
-| Cross-package sentinels not in `Classify()`              | MEDIUM   | Circular dependency prevents mapping aggregate/projection/storage errors. Documented. |
 
 - **Session 28 (Branching-Flow Context Review)**:
   - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.
@@ -716,5 +715,8 @@ Interfaces now return branded types instead of primitives:
   - **DOCS**: `docs/planning/OUTBOX_TRANSACTION_API.md` — TransactionalStore interface design for atomic save+outbox
   - **DOCS**: `docs/planning/QUERY_HANDLER_GENERICS.md` — TypedHandler[T] migration plan
   - **DOCS**: `docs/planning/SAGA_DESIGN.md` — added answers to open questions, integration with existing types, 4-phase implementation plan (18h estimate)
+  - **NEW**: `core/event/benchmark_test.go` — 6 benchmarks (NewEvent, NewEvent_WithOptions, Classify, IsRetryable, PublishChanges, DecodePayload)
+  - **NEW**: `middleware/benchmark_test.go` — 4 benchmarks (CommandLogging, CommandRecovery, CommandValidation, CommandRetry)
+  - **DOCS**: `docs/planning/2026-05-04_05-54-SESSION_50_EXECUTION_PLAN.md` — comprehensive Pareto-based execution plan with mermaid graph
   - **INVESTIGATED**: `memory/go.mod` and `projection/go.mod` ginkgo/gomega warnings — already direct deps, gopls workspace false positive
-  - Total 33 benchmarks across 10 files, zero lint, all 22 test packages pass
+  - Total 43 benchmarks across 12 files, zero lint, all 22 test packages pass
