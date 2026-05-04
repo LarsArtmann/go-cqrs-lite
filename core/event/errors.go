@@ -1,6 +1,6 @@
 package event
 
-import "github.com/cockroachdb/errors"
+import "errors"
 
 // ErrInvalidSnapshotInterval is returned by EveryNEvents when n <= 0.
 var ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")

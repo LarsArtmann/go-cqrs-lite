@@ -3,9 +3,10 @@ package command
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
@@ -36,7 +37,7 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 	err := d.base.Lifecycle().CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return errors.Wrapf(err, "registering command type %s", cmdType)
+		return fmt.Errorf("registering command type %s: %w", cmdType, err)
 	}
 
 	err = d.base.Register(
@@ -47,7 +48,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return errors.Wrapf(err, "registering handler for command type %s", cmdType)
+		return fmt.Errorf("registering handler for command type %s: %w", cmdType, err)
 	}
 
 	return nil
@@ -58,10 +59,10 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 	wrapped, err := d.base.Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return errors.Wrapf(ErrHandlerNotFound, "command type: %s", cmd.Type())
+			return fmt.Errorf("%w: command type: %s", ErrHandlerNotFound, cmd.Type())
 		}
 
-		return errors.Wrapf(err, "command type: %s", cmd.Type())
+		return fmt.Errorf("command type %s: %w", cmd.Type(), err)
 	}
 
 	return wrapped(ctx, cmd)

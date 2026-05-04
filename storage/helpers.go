@@ -3,11 +3,10 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/cockroachdb/errors"
-	"encoding/json"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -151,7 +150,7 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 
 	data, err := json.Marshal(m)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshal metadata")
+		return nil, fmt.Errorf("marshal metadata: %w", err)
 	}
 
 	return data, nil

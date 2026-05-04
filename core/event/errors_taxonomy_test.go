@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cockroachdb/errors"
+	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"

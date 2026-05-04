@@ -8,7 +8,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -35,11 +34,11 @@ func NewRunner(
 	opts ...RunnerOption,
 ) (*Runner, error) {
 	if subscriber == nil {
-		return nil, errors.Wrap(ErrNilBus, "create runner")
+		return nil, fmt.Errorf("create runner: %w", ErrNilBus)
 	}
 
 	if checkpoint == nil {
-		return nil, errors.Wrap(ErrNilCheckpoint, "create runner")
+		return nil, fmt.Errorf("create runner: %w", ErrNilCheckpoint)
 	}
 
 	o := runnerOptions{}

@@ -3,13 +3,12 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/errors"
-	"encoding/json"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -166,7 +165,7 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 
 	data, err := json.Marshal(rows)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshal outbox events")
+		return nil, fmt.Errorf("marshal outbox events: %w", err)
 	}
 
 	return data, nil

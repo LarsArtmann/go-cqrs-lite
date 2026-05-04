@@ -2,10 +2,10 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"sync"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -44,7 +44,7 @@ func (s *MemoryStore) Save(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return errors.Wrap(err, "memory store save")
+		return fmt.Errorf("memory store save: %w", err)
 	}
 
 	s.mu.Lock()
@@ -54,8 +54,7 @@ func (s *MemoryStore) Save(
 	existing := s.events[key]
 
 	if len(existing) != expectedVersion.Int() {
-		return errors.Wrapf(event.ErrVersionConflict,
-			"expected version %d, got %d", expectedVersion, len(existing))
+		return fmt.Errorf("%w: expected version %d, got %d", event.ErrVersionConflict, expectedVersion, len(existing))
 	}
 
 	s.events[key] = append(existing, events...)
@@ -72,7 +71,7 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return errors.Wrap(err, "memory store append batch")
+		return fmt.Errorf("memory store append batch: %w", err)
 	}
 
 	s.mu.Lock()
@@ -93,7 +92,7 @@ func (s *MemoryStore) Load(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, errors.Wrap(err, "memory store load")
+		return nil, fmt.Errorf("memory store load: %w", err)
 	}
 
 	s.mu.RLock()
@@ -122,7 +121,7 @@ func (s *MemoryStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, errors.Wrap(err, "memory store load from version")
+		return nil, fmt.Errorf("memory store load from version: %w", err)
 	}
 
 	s.mu.RLock()
@@ -154,7 +153,7 @@ func (s *MemoryStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return errors.Wrap(err, "memory store delete")
+		return fmt.Errorf("memory store delete: %w", err)
 	}
 
 	s.mu.Lock()
@@ -171,7 +170,7 @@ func (s *MemoryStore) Delete(
 func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, errors.Wrap(err, "memory store load all")
+		return nil, fmt.Errorf("memory store load all: %w", err)
 	}
 
 	s.mu.RLock()

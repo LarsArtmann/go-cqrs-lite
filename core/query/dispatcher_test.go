@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cockroachdb/errors"
+	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )

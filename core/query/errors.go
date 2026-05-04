@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/cockroachdb/errors"
+	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 

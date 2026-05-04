@@ -12,7 +12,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -95,9 +94,8 @@ func checkVersion(
 	}
 
 	if currentVersion != expectedVersion.Int() {
-		return errors.Wrapf(
+		return fmt.Errorf("%w: expected version %d, got %d for %s %s",
 			ErrConcurrencyConflict,
-			"expected version %d, got %d for %s %s",
 			expectedVersion.Int(),
 			currentVersion,
 			aggregateType,

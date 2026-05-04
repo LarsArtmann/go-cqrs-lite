@@ -2,9 +2,9 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
@@ -35,7 +35,7 @@ func NewMemoryBus() *MemoryBus {
 func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return errors.Wrap(err, "bus use middleware")
+		return fmt.Errorf("bus use middleware: %w", err)
 	}
 
 	b.mu.Lock()
@@ -64,7 +64,7 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return errors.Wrap(err, "bus publish")
+		return fmt.Errorf("bus publish: %w", err)
 	}
 
 	b.mu.RLock()
@@ -73,12 +73,12 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	for i, evt := range events {
 		err := b.publishEvent(ctx, evt)
 		if err != nil {
-			return errors.Wrapf(
-				err,
-				"failed to publish event %d (%s) from batch of %d events",
+			return fmt.Errorf(
+				"failed to publish event %d (%s) from batch of %d events: %w",
 				i,
 				evt.Type(),
 				len(events),
+				err,
 			)
 		}
 	}
@@ -117,7 +117,7 @@ func (b *MemoryBus) notifyHandlers(
 	for idx, h := range handlers {
 		err := h(ctx, evt)
 		if err != nil {
-			return errors.Wrapf(err, "%s %d failed for event %s", prefix, idx, evt.Type())
+			return fmt.Errorf("%s %d failed for event %s: %w", prefix, idx, evt.Type(), err)
 		}
 	}
 
@@ -129,7 +129,7 @@ func (b *MemoryBus) notifyHandlers(
 func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return errors.Wrap(err, "bus subscribe")
+		return fmt.Errorf("bus subscribe: %w", err)
 	}
 
 	if handler == nil {
@@ -149,7 +149,7 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return errors.Wrap(err, "bus subscribe all")
+		return fmt.Errorf("bus subscribe all: %w", err)
 	}
 
 	if handler == nil {

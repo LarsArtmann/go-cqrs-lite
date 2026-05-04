@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cockroachdb/errors"
+	"errors"
 )
 
 // Family classifies an error's behavioral profile for automated handling.
