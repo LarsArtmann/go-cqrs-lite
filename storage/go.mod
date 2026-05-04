@@ -5,7 +5,6 @@ go 1.26.2
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cockroachdb/errors v1.12.0
-	github.com/go-json-experiment/json v0.0.0-20260430182902-b6187a392ed4
 	github.com/larsartmann/go-cqrs-lite/core v0.0.0
 )
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-	json "github.com/go-json-experiment/json"
+	"encoding/json"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )

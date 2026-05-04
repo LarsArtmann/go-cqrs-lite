@@ -3,7 +3,7 @@ package event
 import (
 	"fmt"
 
-	jsonv2 "github.com/go-json-experiment/json"
+	"encoding/json"
 )
 
 // Codec serializes and deserializes event payloads.
@@ -14,7 +14,7 @@ type Codec interface {
 	Decode(data []byte, v any) error
 }
 
-// JSONCodec implements Codec using go-json-experiment/json (JSON v2).
+// JSONCodec implements Codec using encoding/json.
 type JSONCodec struct{}
 
 var _ Codec = JSONCodec{}
@@ -22,13 +22,13 @@ var _ Codec = JSONCodec{}
 // Encode marshals a value to JSON bytes.
 func (JSONCodec) Encode(v any) ([]byte, error) {
 	//nolint:wrapcheck // thin wrapper over json.Marshal
-	return jsonv2.Marshal(v)
+	return json.Marshal(v)
 }
 
 // Decode unmarshals JSON bytes into a value.
 func (JSONCodec) Decode(data []byte, v any) error {
 	//nolint:wrapcheck // thin wrapper over json.Unmarshal
-	return jsonv2.Unmarshal(data, v)
+	return json.Unmarshal(data, v)
 }
 
 // DecodePayload decodes an event's payload bytes into a typed value using
