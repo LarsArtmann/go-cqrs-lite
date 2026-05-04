@@ -16,9 +16,9 @@ func generateEventCatalog(outputDir string) error {
 	builder := catalogadapters.NewBuilder("User Service", "1.0.0")
 	builder.AddService("user-svc", "User Service", "1.0.0", "Manages user accounts")
 
-	builder.AddEvent("user-svc", newCatalogEvent("UserCreated",
+	builder.AddEvent("user-svc", mustNewCatalogEvent("UserCreated",
 		"User Created", "Fired when a new user account is created"))
-	builder.AddEvent("user-svc", newCatalogEvent("UserNameChanged",
+	builder.AddEvent("user-svc", mustNewCatalogEvent("UserNameChanged",
 		"User Name Changed", "Fired when a user changes their display name"))
 
 	builder.AddDomain("identity", "Identity",
@@ -36,7 +36,7 @@ func generateEventCatalog(outputDir string) error {
 	return builder.ExportEventCatalog(outputDir)
 }
 
-func newCatalogEvent(eventType, name, summary string) event.Catalogable {
+func mustNewCatalogEvent(eventType, name, summary string) event.Catalogable {
 	aggID := id.NewAggregateID()
 
 	core, err := event.NewCatalogCore(
