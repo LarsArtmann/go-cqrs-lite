@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
+// AddEvent registers an event with a service, inferring schema from reflection.
 func (b *CatalogBuilder) AddEvent(serviceID string, evt event.Catalogable) {
 	meta := evt.CatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(evt).Elem())
@@ -14,6 +15,7 @@ func (b *CatalogBuilder) AddEvent(serviceID string, evt event.Catalogable) {
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
 }
 
+// AddEventWithDirection registers an event with an explicit message direction.
 func (b *CatalogBuilder) AddEventWithDirection(
 	serviceID string,
 	evt event.Catalogable,
@@ -25,6 +27,7 @@ func (b *CatalogBuilder) AddEventWithDirection(
 	b.addMessageToService(serviceID, catalog.EventMessage, msg)
 }
 
+// AddEventFromType registers an event using generic type inference for schema generation.
 func AddEventFromType[T event.Catalogable](
 	builder *CatalogBuilder,
 	serviceID, eventType string,

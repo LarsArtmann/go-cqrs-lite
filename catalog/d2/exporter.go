@@ -5,6 +5,7 @@ const (
 	shapeQueue     = "queue"
 )
 
+// Exporter generates a D2 diagram from a catalog.
 type Exporter struct {
 	title       string
 	version     string
@@ -12,20 +13,24 @@ type Exporter struct {
 	direction   string
 }
 
+// Option configures an Exporter.
 type Option func(*Exporter)
 
+// WithDescription sets the diagram description.
 func WithDescription(desc string) Option {
 	return func(e *Exporter) {
 		e.description = desc
 	}
 }
 
+// WithDirection sets the diagram direction ("up" or "down").
 func WithDirection(dir string) Option {
 	return func(e *Exporter) {
 		e.direction = dir
 	}
 }
 
+// NewExporter creates a D2 exporter with the given title and version.
 func NewExporter(title, version string, opts ...Option) *Exporter {
 	e := &Exporter{ //nolint:exhaustruct // Description is optional, filled by WithDescription
 		title:     title,

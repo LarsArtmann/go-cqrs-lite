@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+// Export generates a D2 diagram string from the given catalog.
 func (e *Exporter) Export(cat *catalog.Catalog) string {
 	var buf strings.Builder
 

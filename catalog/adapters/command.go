@@ -5,12 +5,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 )
 
+// AddCommand registers a command with a service, inferring schema from reflection.
 func (b *CatalogBuilder) AddCommand(serviceID string, cmd command.Catalogable) {
 	meta := cmd.CatalogInfo()
 	msg := buildCommandMessageFromReflect(string(cmd.Type()), meta, cmd)
 	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }
 
+// AddCommandWithSchema registers a command with an explicit schema.
 func (b *CatalogBuilder) AddCommandWithSchema(
 	serviceID string,
 	cmd command.Catalogable,
@@ -21,6 +23,7 @@ func (b *CatalogBuilder) AddCommandWithSchema(
 	b.addMessageToService(serviceID, catalog.CommandMessage, msg)
 }
 
+// AddCommandFromType registers a command using generic type inference for schema generation.
 func AddCommandFromType[T command.Catalogable](
 	builder *CatalogBuilder,
 	serviceID, cmdType string,

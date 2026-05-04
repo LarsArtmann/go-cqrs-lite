@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
+// AddQuery registers a query with a service, inferring schema from reflection.
 func (b *CatalogBuilder) AddQuery(serviceID string, qry query.Catalogable) {
 	meta := qry.CatalogInfo()
 	schema := catalog.SchemaFromReflect(reflect.TypeOf(qry).Elem())
@@ -14,6 +15,7 @@ func (b *CatalogBuilder) AddQuery(serviceID string, qry query.Catalogable) {
 	b.addMessageToService(serviceID, catalog.QueryMessage, msg)
 }
 
+// AddQueryFromType registers a query using generic type inference for schema generation.
 func AddQueryFromType[T query.Catalogable](
 	builder *CatalogBuilder,
 	serviceID, queryType string,
