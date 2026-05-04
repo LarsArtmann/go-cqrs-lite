@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -122,8 +124,12 @@ func (p *OutboxPublisher) Close() error {
 
 func (p *OutboxPublisher) run(ctx context.Context) {
 	defer func() {
-		_ = recover()
-
+		if r := recover(); r != nil {
+			slog.Error("outbox publisher recovered from panic",
+				"error", r,
+				"stack", string(debug.Stack()),
+			)
+		}
 		close(p.done)
 	}()
 
