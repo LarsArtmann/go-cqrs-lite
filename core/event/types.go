@@ -3,6 +3,7 @@ package event
 import (
 	"fmt"
 	"net/netip"
+	"strconv"
 	"strings"
 )
 
@@ -97,4 +98,4 @@ func (v Version) IsZero() bool { return v == 0 }
 func (v Version) Increment() Version { return v + 1 }
 
 // String returns the version as a decimal string.
-func (v Version) String() string { return fmt.Sprintf("%d", v) }
+func (v Version) String() string { return strconv.Itoa(int(v)) }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,16 +88,37 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 }
 
 // Ack removes outbox entries by their IDs.
+// Deletes in batches of maxAckBatchSize to avoid exceeding PostgreSQL's
+// parameter limit (65535).
 func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 	if len(ids) == 0 {
 		return nil
 	}
 
+	for start := 0; start < len(ids); start += maxAckBatchSize {
+		end := min(start+maxAckBatchSize, len(ids))
+
+		batch := ids[start:end]
+
+		err := o.ackBatch(ctx, batch)
+		if err != nil {
+			return fmt.Errorf("ack outbox entries [%d:%d]: %w", start, end, err)
+		}
+	}
+
+	return nil
+}
+
+// maxAckBatchSize limits the number of IDs in a single DELETE to avoid
+// exceeding PostgreSQL's 65535 parameter limit.
+const maxAckBatchSize = 500
+
+func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
 	placeholders := make([]string, len(ids))
 	args := make([]any, len(ids))
 
 	for i, oid := range ids {
-		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		placeholders[i] = "$" + strconv.Itoa(i+1)
 		args[i] = string(oid)
 	}
 

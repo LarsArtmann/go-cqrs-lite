@@ -32,6 +32,8 @@ func MustEveryNEvents(n int) SnapshotStrategy {
 
 type everyN struct{ interval int }
 
+var _ SnapshotStrategy = (*everyN)(nil)
+
 func (s *everyN) ShouldSnapshot(_ AggregateType, version Version) bool {
 	return version.Int() > 0 && version.Int()%s.interval == 0
 }
