@@ -1,9 +1,8 @@
 package event
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 )
 
 // Codec serializes and deserializes event payloads.

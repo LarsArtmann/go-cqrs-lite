@@ -2,6 +2,7 @@ package query
 
 import (
 	"errors"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 

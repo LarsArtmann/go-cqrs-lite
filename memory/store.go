@@ -54,7 +54,12 @@ func (s *MemoryStore) Save(
 	existing := s.events[key]
 
 	if len(existing) != expectedVersion.Int() {
-		return fmt.Errorf("%w: expected version %d, got %d", event.ErrVersionConflict, expectedVersion, len(existing))
+		return fmt.Errorf(
+			"%w: expected version %d, got %d",
+			event.ErrVersionConflict,
+			expectedVersion,
+			len(existing),
+		)
 	}
 
 	s.events[key] = append(existing, events...)

@@ -82,7 +82,13 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 		}
 	}
 
-	return fmt.Errorf("%w: all %d attempts failed for %s: %w", ErrRetryExhausted, config.MaxAttempts, opName, err)
+	return fmt.Errorf(
+		"%w: all %d attempts failed for %s: %w",
+		ErrRetryExhausted,
+		config.MaxAttempts,
+		opName,
+		err,
+	)
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {

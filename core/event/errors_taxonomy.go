@@ -1,10 +1,9 @@
 package event
 
 import (
+	"errors"
 	"fmt"
 	"sync"
-
-	"errors"
 )
 
 // Family classifies an error's behavioral profile for automated handling.

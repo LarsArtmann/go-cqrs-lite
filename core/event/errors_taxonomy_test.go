@@ -1,11 +1,11 @@
 package event_test
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
-	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"

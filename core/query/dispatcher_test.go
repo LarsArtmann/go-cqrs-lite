@@ -2,9 +2,9 @@ package query_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -323,9 +323,13 @@ func TestRegisterTyped_HandlerError(t *testing.T) {
 
 	handlerErr := errors.New("db down")
 
-	err := query.RegisterTyped(d, "FailQuery", func(_ context.Context, _ query.Query) (string, error) {
-		return "", handlerErr
-	})
+	err := query.RegisterTyped(
+		d,
+		"FailQuery",
+		func(_ context.Context, _ query.Query) (string, error) {
+			return "", handlerErr
+		},
+	)
 	if err != nil {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}

@@ -15,7 +15,12 @@ func CommandValidation(validate CommandValidator) command.Middleware {
 		return func(ctx context.Context, cmd command.Command) error {
 			err := validate(cmd)
 			if err != nil {
-				return fmt.Errorf("%w: validation failed for command %s: %w", ErrValidationFailed, cmd.Type(), err)
+				return fmt.Errorf(
+					"%w: validation failed for command %s: %w",
+					ErrValidationFailed,
+					cmd.Type(),
+					err,
+				)
 			}
 
 			return next(ctx, cmd)
@@ -29,7 +34,12 @@ func EventValidation(validate EventValidator) event.Middleware {
 		return func(ctx context.Context, evt event.Event) error {
 			err := validate(evt)
 			if err != nil {
-				return fmt.Errorf("%w: validation failed for event %s: %w", ErrValidationFailed, evt.Type(), err)
+				return fmt.Errorf(
+					"%w: validation failed for event %s: %w",
+					ErrValidationFailed,
+					evt.Type(),
+					err,
+				)
 			}
 
 			return next(ctx, evt)
@@ -43,7 +53,12 @@ func QueryValidation(validate QueryValidator) query.Middleware {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			err := validate(q)
 			if err != nil {
-				return nil, fmt.Errorf("%w: validation failed for query %s: %w", ErrValidationFailed, q.Type(), err)
+				return nil, fmt.Errorf(
+					"%w: validation failed for query %s: %w",
+					ErrValidationFailed,
+					q.Type(),
+					err,
+				)
 			}
 
 			return next(ctx, q)

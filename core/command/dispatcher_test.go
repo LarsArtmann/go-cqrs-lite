@@ -2,9 +2,9 @@ package command_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
