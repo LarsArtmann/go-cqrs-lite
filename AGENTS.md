@@ -720,3 +720,18 @@ Interfaces now return branded types instead of primitives:
   - **DOCS**: `docs/planning/2026-05-04_05-54-SESSION_50_EXECUTION_PLAN.md` — comprehensive Pareto-based execution plan with mermaid graph
   - **INVESTIGATED**: `memory/go.mod` and `projection/go.mod` ginkgo/gomega warnings — already direct deps, gopls workspace false positive
   - Total 43 benchmarks across 12 files, zero lint, all 22 test packages pass
+
+- **Session 51 (Error Sentinel Audit + EveryNEvents + Status Report)**:
+  - **BREAKING**: `event.EveryNEvents` returns `(SnapshotStrategy, error)` instead of `SnapshotStrategy`. Added `MustEveryNEvents` for panic behavior.
+  - **NEW**: `ErrInvalidSnapshotInterval` sentinel — classified as `Rejection`
+  - **NEW**: `ErrEmptyEventType`, `ErrNilAggregateID`, `ErrEmptyAggregateType` sentinels in `event` — classified as `Rejection`
+  - **NEW**: `ErrEmptyCommandType`, `ErrNilAggregateID` sentinels in `command` — classified as `Rejection`
+  - **NEW**: `core/decider/errors.go` — extracted 6 sentinels from `decider.go`, registered all via `init()` with `RegisterClassification`
+  - **NEW**: `ErrProjectionPanicked` classified as `Corruption` in `Classify()`
+  - **REFACTOR**: All validation errors in `event.NewEvent` and `command.New` now wrap sentinels with `%w` — callers can use `errors.Is()`
+  - **REFACTOR**: Split `event/errors.go` (259→51 lines) into `errors.go` (sentinels) + `errors_taxonomy.go` (Family, Error, Classify, RegisterClassification, 211 lines)
+  - **REFACTOR**: Updated aggregate/decider `EveryNEvents` aliases to `MustEveryNEvents` for backward compat
+  - **TEST**: Added `core/event/snapshot_strategy_test.go` (5 tests) for EveryNEvents error/MustEveryNEvents
+  - **TEST**: Updated `TestNewEvent_InvalidInputErrors` and command tests to assert `errors.Is()` for sentinels
+  - **DOCS**: `docs/status/2026-05-02_SESSION_51_COMPREHENSIVE_STATUS.md`
+  - 38 sentinel errors across 7 modules, all classified. Zero lint, all 22 test packages pass
