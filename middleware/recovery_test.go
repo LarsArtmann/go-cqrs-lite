@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -108,5 +109,17 @@ func TestQueryRecovery_Panic(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "panic recovered in query test.query: query boom") {
 		t.Errorf("unexpected error message: %s", err.Error())
+	}
+}
+
+func TestCommandRecovery_SentinelError(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandRecovery()
+	handler := mw(testhelpers.PanicCommandHandler("boom"))
+
+	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
+	if !errors.Is(err, ErrPanicRecovered) {
+		t.Errorf("expected errors.Is(err, ErrPanicRecovered), got %v", err)
 	}
 }

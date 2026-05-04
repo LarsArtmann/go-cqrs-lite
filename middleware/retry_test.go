@@ -146,6 +146,55 @@ func TestDefaultRetryConfig(t *testing.T) {
 	}
 }
 
+func TestRetryExhausted_SentinelError(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 2
+	config.InitialDelay = time.Millisecond
+	config.IsRetryable = func(_ error) bool { return true }
+
+	mw := CommandRetry(config)
+	handler := mw(testhelpers.FailingCommandHandler("always fail"))
+
+	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
+	err := handler(context.Background(), cmd)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, ErrRetryExhausted) {
+		t.Errorf("expected errors.Is(err, ErrRetryExhausted), got: %v", err)
+	}
+}
+
+func TestRetryCanceled_SentinelError(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+	config.MaxAttempts = 5
+	config.InitialDelay = 50 * time.Millisecond
+	config.IsRetryable = func(_ error) bool { return true }
+
+	mw := CommandRetry(config)
+	handler := mw(testhelpers.FailingCommandHandler("transient"))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
+	err := handler(ctx, cmd)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, ErrRetryCanceled) {
+		t.Errorf("expected errors.Is(err, ErrRetryCanceled), got: %v", err)
+	}
+}
+
 func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
 	t.Parallel()
 

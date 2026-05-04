@@ -78,11 +78,11 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 		case <-ctx.Done():
 			timer.Stop()
 
-			return fmt.Errorf("retry canceled for %s: %w", opName, err)
+			return fmt.Errorf("%w: %s: %w", ErrRetryCanceled, opName, err)
 		}
 	}
 
-	return fmt.Errorf("all %d attempts failed for %s: %w", config.MaxAttempts, opName, err)
+	return fmt.Errorf("%w: all %d attempts failed for %s: %w", ErrRetryExhausted, config.MaxAttempts, opName, err)
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {

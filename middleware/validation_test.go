@@ -130,3 +130,36 @@ func TestQueryValidation_Fail(t *testing.T) {
 		t.Fatal("expected validation error")
 	}
 }
+
+func TestCommandValidation_SentinelError(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandValidation(func(_ command.Command) error {
+		return errors.New("invalid")
+	})
+	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
+
+	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
+	if !errors.Is(err, ErrValidationFailed) {
+		t.Errorf("expected errors.Is(err, ErrValidationFailed), got %v", err)
+	}
+}
+
+func TestEventValidation_SentinelError(t *testing.T) {
+	t.Parallel()
+
+	mw := EventValidation(func(_ event.Event) error {
+		return errors.New("invalid")
+	})
+	handler := mw(func(_ context.Context, _ event.Event) error { return nil })
+
+	evt, evtErr := testhelpers.NewTestEvent()
+	if evtErr != nil {
+		t.Fatalf("NewTestEvent: %v", evtErr)
+	}
+
+	err := handler(context.Background(), evt)
+	if !errors.Is(err, ErrValidationFailed) {
+		t.Errorf("expected errors.Is(err, ErrValidationFailed), got %v", err)
+	}
+}

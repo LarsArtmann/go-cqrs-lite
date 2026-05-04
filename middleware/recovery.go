@@ -12,8 +12,8 @@ import (
 
 // panicError formats a recovered panic into an error message.
 func panicError(msgKind, typeName string, r any) error {
-	return fmt.Errorf( //nolint:err113
-		"panic recovered in %s %s: %v\n%s",
+	return fmt.Errorf("%w: panic recovered in %s %s: %v\n%s", //nolint:err113
+		ErrPanicRecovered,
 		msgKind,
 		typeName,
 		r,
