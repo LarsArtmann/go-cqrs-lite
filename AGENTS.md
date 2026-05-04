@@ -771,3 +771,14 @@ Interfaces now return branded types instead of primitives:
   - **EVALUATED**: `io.Closer` removal from interfaces — deferred (breaking change, needs focused design session)
   - **EVALUATED**: `IdempotencyKey` auto-generation — rejected (correct by design, `""` means no dedup key)
   - Zero lint, all 22 test packages pass
+
+- **Session 57–58 (Code Quality Sweep: Deduplication + Function Decomposition)**:
+  - **REFACTOR**: Extracted typed constants in `example/user/` — 18 bare string literals replaced with `event.Type`, `event.AggregateType`, `command.Type`, `query.Type` constants across 7 files
+  - **REFACTOR**: Extracted `foldEvents` method in `core/decider` — deduplicated identical fold loop between `loadFromStore` and `loadFromSnapshot`
+  - **REFACTOR**: Unified `Classify()` to use registered map — event package sentinels now registered via `init()` + `RegisterClassification()`, eliminated 30-line hardcoded switch. Single code path for all classification
+  - **REFACTOR**: Extracted `kindToTagName` helper in `catalog/asyncapi` — maps `MessageKind` to tag name string, replacing inline switch in `addMessageSchema`
+  - **REFACTOR**: Extracted `collectMessageIDs` helper in `catalog/eventcatalog` — collects sends/receives/commands/queries from service messages, reducing `writeService` from 47 to ~35 lines
+  - **REFACTOR**: Extracted `persistChanges` helper in `core/aggregate` — separated persistence routing (outbox/transactional/direct) from aggregate lifecycle. `Save()` from 54 to 21 lines
+  - **REFACTOR**: Simplified `SQLEventStore.LoadAll` — `return scanEvents(rows)` instead of assign+check+return. File from 253 to 248 lines (under 250 limit)
+  - Zero files over 250 lines, all functions under 30 lines (except `Export` in asyncapi at 55 lines — already well-decomposed with helpers)
+  - Zero lint, all 22 test packages pass
