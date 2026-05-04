@@ -121,24 +121,45 @@ func (r *Repository[State]) Execute(
 
 	newVersion := event.Version(len(newEvents)) + currentVersion
 
-	if r.shouldSnapshot(aggType, newVersion) {
-		finalState := state
-		for _, evt := range newEvents {
-			finalState, err = r.decider.Fold(finalState, evt)
-			if err != nil {
-				break
-			}
-		}
+	r.saveSnapshotAfterEvents(ctx, aggType, aggID, newVersion, state, newEvents)
 
-		encoded, encErr := r.codec.Encode(finalState)
-		if encErr != nil {
-			_ = opError(aggType, aggID, "encode snapshot: %w", encErr)
-		} else {
-			_ = event.SaveSnapshot(ctx, r.snapshotStore, aggType, aggID, newVersion, encoded)
+	return nil
+}
+
+// saveSnapshotAfterEvents folds new events onto state to get the final state,
+// then attempts to save a snapshot. Errors are logged and swallowed — snapshots
+// are best-effort and must not block the write path.
+func (r *Repository[State]) saveSnapshotAfterEvents(
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	newVersion event.Version,
+	state State,
+	newEvents []event.Event,
+) {
+	if !r.shouldSnapshot(aggType, newVersion) {
+		return
+	}
+
+	finalState := state
+
+	for _, evt := range newEvents {
+		var foldErr error
+
+		finalState, foldErr = r.decider.Fold(finalState, evt)
+		if foldErr != nil {
+			break
 		}
 	}
 
-	return nil
+	encoded, encErr := r.codec.Encode(finalState)
+	if encErr != nil {
+		_ = opError(aggType, aggID, "encode snapshot: %w", encErr)
+
+		return
+	}
+
+	_ = event.SaveSnapshot(ctx, r.snapshotStore, aggType, aggID, newVersion, encoded)
 }
 
 // Load reconstructs state from the aggregate's event history without any

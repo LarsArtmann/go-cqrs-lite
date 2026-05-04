@@ -90,29 +90,40 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 
 	root.MarkChangesAsCommitted()
 
-	if r.shouldSnapshot(root) {
-		var state []byte
+	err = r.trySnapshot(ctx, root)
+	if err != nil {
+		return err
+	}
 
-		if r.codec != nil {
-			encoded, err := r.codec.Encode(root)
-			if err != nil {
-				return fmt.Errorf("encode snapshot state: %w", err)
-			}
+	return nil
+}
 
-			state = encoded
-		}
+func (r *EventSourcedRepository) trySnapshot(ctx context.Context, root Root) error {
+	if !r.shouldSnapshot(root) {
+		return nil
+	}
 
-		err := event.SaveSnapshot(
-			ctx,
-			r.snapshotStore,
-			aggregateType,
-			aggregateID,
-			root.Version(),
-			state,
-		)
+	var state []byte
+
+	if r.codec != nil {
+		encoded, err := r.codec.Encode(root)
 		if err != nil {
-			return opError("save snapshot", aggregateType, aggregateID, err)
+			return fmt.Errorf("encode snapshot state: %w", err)
 		}
+
+		state = encoded
+	}
+
+	err := event.SaveSnapshot(
+		ctx,
+		r.snapshotStore,
+		root.Type(),
+		root.ID(),
+		root.Version(),
+		state,
+	)
+	if err != nil {
+		return fmt.Errorf("save snapshot: %w", err)
 	}
 
 	return nil
