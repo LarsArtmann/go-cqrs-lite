@@ -10,13 +10,24 @@ type SnapshotStrategy interface {
 }
 
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
-// Panics if n <= 0.
-func EveryNEvents(n int) SnapshotStrategy {
+// Returns ErrInvalidSnapshotInterval if n <= 0.
+func EveryNEvents(n int) (SnapshotStrategy, error) {
 	if n <= 0 {
-		panic(fmt.Sprintf("EveryNEvents: interval must be positive, got %d", n))
+		return nil, fmt.Errorf("EveryNEvents: %w", ErrInvalidSnapshotInterval)
 	}
 
-	return &everyN{interval: n}
+	return &everyN{interval: n}, nil
+}
+
+// MustEveryNEvents creates a SnapshotStrategy that snapshots every N events.
+// Panics if n <= 0. Use only in tests where inputs are guaranteed valid.
+func MustEveryNEvents(n int) SnapshotStrategy {
+	s, err := EveryNEvents(n)
+	if err != nil {
+		panic(fmt.Sprintf("event.MustEveryNEvents: %v", err))
+	}
+
+	return s
 }
 
 type everyN struct{ interval int }

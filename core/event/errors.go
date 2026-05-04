@@ -7,6 +7,9 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
+// ErrInvalidSnapshotInterval is returned by EveryNEvents when n <= 0.
+var ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
+
 // ErrVersionConflict is returned when there is a version conflict.
 var ErrVersionConflict = errors.New("version conflict")
 
@@ -187,7 +190,8 @@ func Classify(err error) Family {
 		errors.Is(err, ErrDuplicateProjection):
 		return Conflict
 	case errors.Is(err, ErrAggregateNotFound),
-		errors.Is(err, ErrSnapshotNotFound):
+		errors.Is(err, ErrSnapshotNotFound),
+		errors.Is(err, ErrInvalidSnapshotInterval):
 		return Rejection
 	case errors.Is(err, ErrStoreClosed),
 		errors.Is(err, ErrBusClosed),

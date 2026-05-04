@@ -17,9 +17,9 @@ type SnapshotStrategy = event.SnapshotStrategy
 // EveryNEvents creates a SnapshotStrategy that snapshots every N events.
 // Panics if n <= 0.
 //
-// Deprecated: Use event.EveryNEvents instead. This function is provided
-// for backward compatibility and will be removed in a future version.
-var EveryNEvents = event.EveryNEvents //nolint:gochecknoglobals
+// Deprecated: Use event.EveryNEvents (returns error) or event.MustEveryNEvents instead.
+// This function is provided for backward compatibility and will be removed in a future version.
+var EveryNEvents = event.MustEveryNEvents //nolint:gochecknoglobals
 
 // RepositoryOption configures a Repository.
 type RepositoryOption[State any] func(*Repository[State])
