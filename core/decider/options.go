@@ -101,20 +101,11 @@ func (r *Repository[State]) loadFromSnapshot(
 		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
 	}
 
-	for _, evt := range events {
-		state, err = r.decider.Fold(state, evt)
-		if err != nil {
-			var zero State
+	state, err = r.foldEvents(state, events, aggType, aggID)
+	if err != nil {
+		var zero State
 
-			return zero, 0, opError(
-				aggType,
-				aggID,
-				"%w (event %s): %w",
-				ErrFoldFailed,
-				evt.Type(),
-				err,
-			)
-		}
+		return zero, 0, err
 	}
 
 	return state, snap.Version + event.Version(len(events)), nil

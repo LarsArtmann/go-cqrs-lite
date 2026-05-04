@@ -207,24 +207,34 @@ func (r *Repository[State]) loadFromStore(
 		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
 	}
 
-	state := r.decider.Initial
+	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
+	if err != nil {
+		var zero State
+
+		return zero, 0, err
+	}
+
+	return state, event.Version(len(events)), nil
+}
+
+func (r *Repository[State]) foldEvents(
+	state State,
+	events []event.Event,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) (State, error) {
+	var err error
+
 	for _, evt := range events {
 		state, err = r.decider.Fold(state, evt)
 		if err != nil {
 			var zero State
 
-			return zero, 0, opError(
-				aggType,
-				aggID,
-				"%w (event %s): %w",
-				ErrFoldFailed,
-				evt.Type(),
-				err,
-			)
+			return zero, opError(aggType, aggID, "%w (event %s): %w", ErrFoldFailed, evt.Type(), err)
 		}
 	}
 
-	return state, event.Version(len(events)), nil
+	return state, nil
 }
 
 // Delete removes all events for the aggregate from the store.
