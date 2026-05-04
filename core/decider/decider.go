@@ -109,14 +109,21 @@ func (r *Repository[State]) Execute(
 		return nil
 	}
 
-	err = r.store.Save(ctx, aggType, aggID, newEvents, currentVersion)
-	if err != nil {
-		return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
-	}
+	if ts, ok := r.store.(event.TransactionalStore); ok && r.outbox != nil {
+		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion, r.outbox)
+		if err != nil {
+			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
+		}
+	} else {
+		err = r.store.Save(ctx, aggType, aggID, newEvents, currentVersion)
+		if err != nil {
+			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
+		}
 
-	err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
-	if err != nil {
-		return opError(aggType, aggID, "publish events: %w", err)
+		err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
+		if err != nil {
+			return opError(aggType, aggID, "publish events: %w", err)
+		}
 	}
 
 	newVersion := event.Version(len(newEvents)) + currentVersion

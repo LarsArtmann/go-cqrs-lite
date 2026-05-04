@@ -78,20 +78,38 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	aggregateType := root.Type()
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
-	if err != nil {
-		return opError("save", aggregateType, aggregateID, err)
-	}
+	if r.outbox != nil {
+		if ts, ok := r.store.(event.TransactionalStore); ok {
+			err := ts.SaveWithOutbox(ctx, aggregateType, aggregateID, changes, expectedVersion, r.outbox)
+			if err != nil {
+				return opError("save with outbox", aggregateType, aggregateID, err)
+			}
+		} else {
+			err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
+			if err != nil {
+				return opError("save", aggregateType, aggregateID, err)
+			}
 
-	err = event.PublishChanges(ctx, r.publisher, r.outbox, changes)
-	if err != nil {
-		return opError("publish events", aggregateType, aggregateID, err)
+			err = r.outbox.Append(ctx, changes)
+			if err != nil {
+				return opError("stage events in outbox", aggregateType, aggregateID, err)
+			}
+		}
+	} else {
+		err := r.store.Save(ctx, aggregateType, aggregateID, changes, expectedVersion)
+		if err != nil {
+			return opError("save", aggregateType, aggregateID, err)
+		}
+
+		err = r.publisher.Publish(ctx, changes...)
+		if err != nil {
+			return opError("publish events", aggregateType, aggregateID, err)
+		}
 	}
 
 	root.MarkChangesAsCommitted()
 
-	err = r.trySnapshot(ctx, root)
-	if err != nil {
+	if err := r.trySnapshot(ctx, root); err != nil {
 		return err
 	}
 
