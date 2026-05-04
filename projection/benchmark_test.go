@@ -10,17 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection"
 )
 
-func benchEvent(tb testing.TB, eventType string, aggID id.AggregateID, version int) event.Event {
-	tb.Helper()
-
-	evt, err := event.NewEvent(event.Type(eventType), aggID, "User", version, nil)
-	if err != nil {
-		tb.Fatalf("NewEvent: %v", err)
-	}
-
-	return evt
-}
-
 func BenchmarkRunner_Register(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })

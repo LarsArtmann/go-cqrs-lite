@@ -704,3 +704,17 @@ Interfaces now return branded types instead of primitives:
   - **REFACTOR**: Deleted duplicate `publishChanges` and `saveSnapshot` from aggregate/decider repositories; replaced with shared `event.PublishChanges()` / `event.SaveSnapshot()`
   - **REFACTOR**: Type aliases for `SnapshotStrategy` in aggregate and decider (backward-compatible)
   - 6 commits (7437986, d28d03d, 09bbbba, 57b3939, 6f8d8f6, 7bc841b), zero lint, all 22 test packages pass
+
+- **Session 50 (Documentation Fixes + Benchmarks + Design Docs)**:
+  - **FIX**: TODO_LIST.md — corrected false "zero benchmarks exist" claim (26 benchmarks existed in 7 files)
+  - **FIX**: FEATURES.md — corrected 9 stale coverage numbers, added `core/decider` to Module Maturity Matrix, added ISP Publisher row to Aggregate features, updated "Last audited" date to 2026-05-03
+  - **FIX**: CHANGELOG.md — merged duplicate `### Changed` sections under `[Unreleased]`
+  - **NEW**: `core/decider/benchmark_test.go` — 4 benchmarks (Execute, Execute_Update, Load, Fold)
+  - **NEW**: `projection/benchmark_test.go` — 3 benchmarks (Register, NewRunner, CurrentCheckpoint)
+  - **FIX**: Replaced deadlocking `BenchmarkRunner_Replay` (from Session 49) with non-blocking benchmarks
+  - **FIX**: Removed unused `benchEvent` helper from projection benchmark
+  - **DOCS**: `docs/planning/OUTBOX_TRANSACTION_API.md` — TransactionalStore interface design for atomic save+outbox
+  - **DOCS**: `docs/planning/QUERY_HANDLER_GENERICS.md` — TypedHandler[T] migration plan
+  - **DOCS**: `docs/planning/SAGA_DESIGN.md` — added answers to open questions, integration with existing types, 4-phase implementation plan (18h estimate)
+  - **INVESTIGATED**: `memory/go.mod` and `projection/go.mod` ginkgo/gomega warnings — already direct deps, gopls workspace false positive
+  - Total 33 benchmarks across 10 files, zero lint, all 22 test packages pass

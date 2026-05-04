@@ -175,7 +175,9 @@
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
-## **Coverage:** 99.1%
+**Coverage:** 99.1%
+
+---
 
 ## Middleware Suite ✅ FULLY_FUNCTIONAL
 
