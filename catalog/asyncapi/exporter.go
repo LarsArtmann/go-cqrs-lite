@@ -217,20 +217,20 @@ func operationTitleAndName(
 	}
 }
 
+func kindToTagName(kind catalog.MessageKind) string {
+	switch kind {
+	case catalog.EventMessage:
+		return "events"
+	case catalog.QueryMessage:
+		return "queries"
+	default:
+		return "commands"
+	}
+}
+
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	id := catalog.MessageID(msg)
 	componentKey := string(msg.Kind) + "." + id
-
-	tagName := "commands"
-
-	switch msg.Kind {
-	case catalog.EventMessage:
-		tagName = "events"
-	case catalog.QueryMessage:
-		tagName = "queries"
-	case catalog.CommandMessage:
-		tagName = "commands"
-	}
 
 	doc.Components.Messages[componentKey] = Message{
 		Name:        id,
@@ -238,7 +238,7 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		Summary:     msg.Summary,
 		ContentType: "application/json",
 		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
-		Tags:        []Tag{{Name: tagName}},
+		Tags:        []Tag{{Name: kindToTagName(msg.Kind)}},
 		Examples:    toExamples(msg.Examples),
 	}
 

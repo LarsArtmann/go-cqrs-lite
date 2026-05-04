@@ -87,8 +87,18 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 
 	md.addListField("owners", svc.Owners)
 
-	var sends, receives, commands, queries []string
+	sends, receives, commands, queries := collectMessageIDs(svc)
 
+	md.addObjectIDsListField("sends", sends)
+	md.addObjectIDsListField("receives", receives)
+	md.addObjectIDsListField("commands", commands)
+	md.addObjectIDsListField("queries", queries)
+	md.finish(svc.Name, svc.Summary)
+
+	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+}
+
+func collectMessageIDs(svc catalog.Service) (sends, receives, commands, queries []string) {
 	for _, msg := range svc.Events {
 		id := catalog.MessageID(msg)
 
@@ -107,13 +117,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		queries = append(queries, catalog.MessageID(q))
 	}
 
-	md.addObjectIDsListField("sends", sends)
-	md.addObjectIDsListField("receives", receives)
-	md.addObjectIDsListField("commands", commands)
-	md.addObjectIDsListField("queries", queries)
-	md.finish(svc.Name, svc.Summary)
-
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return sends, receives, commands, queries
 }
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
