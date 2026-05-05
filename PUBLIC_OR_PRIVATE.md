@@ -16,21 +16,21 @@ The project is genuinely useful, technically impressive, and ready for eyes. But
 
 ## Project Snapshot
 
-| Metric | Value |
-|---|---|
-| Total Go LOC | 33,780 |
-| Test LOC | 23,211 (69% of codebase) |
-| Production LOC | ~10,569 |
-| Test packages | 22 (all passing) |
-| Test coverage | 91–100% per module |
-| Benchmarks | 43 across 12 files |
-| Modules | 9 (multi-module monorepo) |
-| Dependencies (prod) | 4 (ulid, go-branded-id, go-faster/yaml, go-sqlmock) |
-| Commits | 678 (single author) |
-| Lint issues | 0 |
-| TODO/FIXME markers | 0 |
-| Version tags | 15 (core v1.0.0, memory v1.0.0, etc.) |
-| CI | GitHub Actions (Nix-based: build, vet, test, race, lint, coverage) |
+| Metric              | Value                                                              |
+| ------------------- | ------------------------------------------------------------------ |
+| Total Go LOC        | 33,780                                                             |
+| Test LOC            | 23,211 (69% of codebase)                                           |
+| Production LOC      | ~10,569                                                            |
+| Test packages       | 22 (all passing)                                                   |
+| Test coverage       | 91–100% per module                                                 |
+| Benchmarks          | 43 across 12 files                                                 |
+| Modules             | 9 (multi-module monorepo)                                          |
+| Dependencies (prod) | 4 (ulid, go-branded-id, go-faster/yaml, go-sqlmock)                |
+| Commits             | 678 (single author)                                                |
+| Lint issues         | 0                                                                  |
+| TODO/FIXME markers  | 0                                                                  |
+| Version tags        | 15 (core v1.0.0, memory v1.0.0, etc.)                              |
+| CI                  | GitHub Actions (Nix-based: build, vet, test, race, lint, coverage) |
 
 ---
 
@@ -39,6 +39,7 @@ The project is genuinely useful, technically impressive, and ready for eyes. But
 ### 1. Fills a real gap in the Go ecosystem
 
 Go has few opinionated-but-unopinionated CQRS/ES libraries. The landscape is:
+
 - **Watermill** — heavy, Kafka/transport-first, not focused on domain modeling
 - **Eventuous** — .NET primarily, Go is secondary
 - **Commanded** — Elixir only
@@ -131,6 +132,7 @@ No case studies, no "used in production by X" testimonials. The storage module u
 ### 7. **Replace directives won't work for external consumers**
 
 All inter-module `replace` directives point to `../sibling`. For the monorepo to work as public importable modules, you need either:
+
 - Published module versions (remove replace directives for consumers)
 - Or a `go.work` that only works locally
 
@@ -186,11 +188,11 @@ Before making the repo public, address these in order:
 
 This is ultimately a question of what you want go-cqrs-lite to become:
 
-| Path | Outcome | Tradeoff |
-|---|---|---|
-| **Stay private** | Personal toolkit, full control, no community maintenance burden | No network effects, no reputation building, no external validation |
-| **Go public now** | First-mover advantage, start building community early | Users hit rough edges, support burden, breaking changes hurt early adopters |
-| **Go public after conditions met** | Professional first impression, higher-quality adoption | Delayed network effects, more prep work |
+| Path                               | Outcome                                                         | Tradeoff                                                                    |
+| ---------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Stay private**                   | Personal toolkit, full control, no community maintenance burden | No network effects, no reputation building, no external validation          |
+| **Go public now**                  | First-mover advantage, start building community early           | Users hit rough edges, support burden, breaking changes hurt early adopters |
+| **Go public after conditions met** | Professional first impression, higher-quality adoption          | Delayed network effects, more prep work                                     |
 
 **Recommendation:** Go public after conditions 1–5 (must-do). The should-do items can follow within 2 weeks of going public.
 
@@ -200,16 +202,16 @@ The library is good enough. The code quality speaks for itself. The gap between 
 
 ## Competitive Landscape Summary
 
-| Library | Language | Transport-agnostic | Auto-docs | Branded IDs | Decider Pattern | Error Taxonomy |
-|---|---|---|---|---|---|---|
-| **go-cqrs-lite** | Go | ✅ | ✅ AsyncAPI + EventCatalog + D2 | ✅ | ✅ | ✅ (5 families) |
-| Watermill | Go | ❌ (transport-first) | ❌ | ❌ | ❌ | ❌ |
-| Eventuous | Go/.NET | ⚠️ | ❌ | ❌ | ⚠️ (.NET only) | ❌ |
-| go-eventstream | Go | ✅ | ❌ | ❌ | ❌ | ❌ |
-| commanded | Elixir | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Library          | Language | Transport-agnostic   | Auto-docs                       | Branded IDs | Decider Pattern | Error Taxonomy  |
+| ---------------- | -------- | -------------------- | ------------------------------- | ----------- | --------------- | --------------- |
+| **go-cqrs-lite** | Go       | ✅                   | ✅ AsyncAPI + EventCatalog + D2 | ✅          | ✅              | ✅ (5 families) |
+| Watermill        | Go       | ❌ (transport-first) | ❌                              | ❌          | ❌              | ❌              |
+| Eventuous        | Go/.NET  | ⚠️                   | ❌                              | ❌          | ⚠️ (.NET only)  | ❌              |
+| go-eventstream   | Go       | ✅                   | ❌                              | ❌          | ❌              | ❌              |
+| commanded        | Elixir   | ✅                   | ❌                              | ❌          | ❌              | ❌              |
 
 **go-cqrs-lite is the only Go library offering all six features simultaneously.** This is a defensible niche.
 
 ---
 
-*Assessment by Crush (AI architecture review), commissioned by the project author.*
+_Assessment by Crush (AI architecture review), commissioned by the project author._
