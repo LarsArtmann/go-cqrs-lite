@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/memory
 go 1.26.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v0.0.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.1.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.0.0
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
 )
@@ -24,9 +24,4 @@ require (
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/core => ../core
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

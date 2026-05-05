@@ -2,7 +2,7 @@ module github.com/larsartmann/go-cqrs-lite/testhelpers
 
 go 1.26.2
 
-require github.com/larsartmann/go-cqrs-lite/core v0.0.0
+require github.com/larsartmann/go-cqrs-lite/core v1.1.0
 
 require (
 	github.com/getsentry/sentry-go v0.45.1 // indirect
@@ -16,5 +16,3 @@ require (
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
