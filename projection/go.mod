@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/projection
 go 1.26.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v0.0.0
-	github.com/larsartmann/go-cqrs-lite/memory v0.0.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.1.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.1.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
 )
@@ -18,6 +18,7 @@ require (
 	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.0 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.53.0 // indirect
