@@ -314,30 +314,34 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 ---
 
-## SQL Event Store ⚠️ PARTIALLY_FUNCTIONAL
+## SQL Event Store ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage"`
 
 | Feature                         | Detail                                                               | Status |
 | ------------------------------- | -------------------------------------------------------------------- | ------ |
 | PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅     |
-| Schema DDL                      | `Schema()` returns `CREATE TABLE events` with concurrency constraint | ✅     |
+| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL            | ✅     |
+| Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database       | ✅     |
+| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull     | ✅     |
+| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                      | ✅     |
+| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso            | ✅     |
 | Optimistic concurrency          | `Save` checks version in transaction                                 | ✅     |
 | AppendBatch                     | Appends without concurrency check                                    | ✅     |
-| Load / LoadFromVersion / Delete | All implemented                                                      | ✅     |
+| Load / LoadFromVersion / Delete | All implemented for both engines                                     | ✅     |
 | Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅     |
-| SQL SnapshotStore               | PostgreSQL-backed with upsert, version-aware load, delete            | ✅     |
-| SQL CheckpointStore             | PostgreSQL-backed with upsert, `sql.ErrNoRows` handling              | ✅     |
+| SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete     | ✅     |
+| SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling       | ✅     |
+| SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                        | ✅     |
+| TransactionalStore              | Atomic save + outbox append, both engines                            | ✅     |
 | Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle | ✅     |
 
 **Remaining gaps:**
 
 | Issue                          | Severity  | Detail                                                                         |
 | ------------------------------ | --------- | ------------------------------------------------------------------------------ |
+| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
 | `SQLEventStoreOption` unused   | ⚠️ LOW    | Type does not exist — consider adding table name or logger options             |
-| PostgreSQL-specific DDL        | ⚠️ LOW    | `BYTEA`, `JSONB` — doc says "compatible with any SQL" but DDL is Postgres-only |
-| No integration tests (real DB) | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
-| Duplicate INSERT query string  | ✅ FIX    | Extracted to `insertEventSQL` package-level constant                           |
 
 **Coverage:** 94.8% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
 
