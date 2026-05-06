@@ -62,7 +62,13 @@ func (o *SQLiteOutbox) Append(ctx context.Context, events []event.Event) error {
 
 	outboxID := events[0].ID()
 
-	_, err = o.db.ExecContext(ctx, sqliteOutboxInsertSQL, outboxID, serialized, time.Now())
+	_, err = o.db.ExecContext(
+		ctx,
+		sqliteOutboxInsertSQL,
+		outboxID,
+		serialized,
+		time.Now().Format(time.RFC3339Nano),
+	)
 	if err != nil {
 		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
 	}

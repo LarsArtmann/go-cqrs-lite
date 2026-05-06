@@ -321,11 +321,11 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Feature                         | Detail                                                               | Status |
 | ------------------------------- | -------------------------------------------------------------------- | ------ |
 | PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅     |
-| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL            | ✅     |
+| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL             | ✅     |
 | Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database       | ✅     |
-| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull     | ✅     |
-| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                      | ✅     |
-| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso            | ✅     |
+| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull       | ✅     |
+| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                       | ✅     |
+| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso             | ✅     |
 | Optimistic concurrency          | `Save` checks version in transaction                                 | ✅     |
 | AppendBatch                     | Appends without concurrency check                                    | ✅     |
 | Load / LoadFromVersion / Delete | All implemented for both engines                                     | ✅     |
@@ -338,10 +338,10 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 **Remaining gaps:**
 
-| Issue                          | Severity  | Detail                                                                         |
-| ------------------------------ | --------- | ------------------------------------------------------------------------------ |
-| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification                |
-| `SQLEventStoreOption` unused   | ⚠️ LOW    | Type does not exist — consider adding table name or logger options             |
+| Issue                           | Severity  | Detail                                                             |
+| ------------------------------- | --------- | ------------------------------------------------------------------ |
+| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification    |
+| `SQLEventStoreOption` unused    | ⚠️ LOW    | Type does not exist — consider adding table name or logger options |
 
 **Coverage:** 94.8% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -54,7 +55,7 @@ func (s *SQLiteSnapshotStore) Save(ctx context.Context, snap event.Snapshot) err
 		snap.AggregateID,
 		snap.Version.Int(),
 		snap.State,
-		snap.CreatedAt,
+		snap.CreatedAt.Format(time.RFC3339Nano),
 	)
 	if err != nil {
 		return fmt.Errorf("save snapshot for %s %s: %w", snap.AggregateType, snap.AggregateID, err)

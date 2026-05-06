@@ -143,3 +143,10 @@ func TestTursoConnector_CheckpointStore(t *testing.T) {
 		t.Fatalf("expected %s, got %s", checkpoint, loaded)
 	}
 }
+
+func TestTursoConnector_SyncRejectsMemoryDB(t *testing.T) {
+	_, err := OpenTursoSync(context.Background(), ":memory:", "https://example.com", "token")
+	if err == nil {
+		t.Fatal("expected error for :memory: with remote URL")
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -141,7 +142,7 @@ func sqliteInsertEvents(
 			evt.Version(),
 			evt.Payload(),
 			metadata,
-			evt.OccurredAt(),
+			evt.OccurredAt().Format(time.RFC3339Nano),
 		)
 		if err != nil {
 			return fmt.Errorf("insert event %s: %w", evt.Type(), err)

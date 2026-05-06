@@ -38,7 +38,10 @@ func SQLiteCheckpointSchema() string {
 }
 
 // Load returns the last processed event ID for a projection.
-func (s *SQLiteCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {
+func (s *SQLiteCheckpointStore) Load(
+	ctx context.Context,
+	projectionName string,
+) (id.EventID, error) {
 	query := `SELECT event_id FROM checkpoints WHERE projection_name = ?`
 
 	var eventIDStr string

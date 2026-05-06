@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	turso "turso.tech/database/tursogo"
 )
@@ -40,10 +41,17 @@ type TursoSyncDB struct {
 //
 // The caller is responsible for closing the returned TursoSyncDB.
 func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*TursoSyncDB, error) {
+	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
+		return nil, fmt.Errorf(
+			"turso sync requires a file path for dbPath, got %q: in-memory databases lose data on restart when using remote sync",
+			dbPath,
+		)
+	}
+
 	syncDb, err := turso.NewTursoSyncDb(ctx, turso.TursoSyncDbConfig{
-		Path:       dbPath,
-		RemoteUrl:  remoteURL,
-		AuthToken:  authToken,
+		Path:      dbPath,
+		RemoteUrl: remoteURL,
+		AuthToken: authToken,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create turso sync db: %w", err)

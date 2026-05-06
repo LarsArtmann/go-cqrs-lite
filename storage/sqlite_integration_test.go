@@ -10,7 +10,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-
 	_ "modernc.org/sqlite"
 )
 
@@ -54,7 +53,12 @@ func newSQLiteTestStore(t *testing.T) *SQLiteEventStore {
 	return store
 }
 
-func sqliteTestEvent(t *testing.T, aggID id.AggregateID, version int, opts ...event.Option) *event.Core {
+func sqliteTestEvent(
+	t *testing.T,
+	aggID id.AggregateID,
+	version int,
+	opts ...event.Option,
+) *event.Core {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -236,8 +240,18 @@ func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	evt1 := sqliteTestEvent(t, aggID1, 1, event.WithOccurredAt(time.Now().Truncate(time.Microsecond)))
-	evt2 := sqliteTestEvent(t, aggID2, 1, event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)))
+	evt1 := sqliteTestEvent(
+		t,
+		aggID1,
+		1,
+		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
+	)
+	evt2 := sqliteTestEvent(
+		t,
+		aggID2,
+		1,
+		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
+	)
 
 	err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1})
 	if err != nil {

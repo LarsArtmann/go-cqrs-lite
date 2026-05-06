@@ -150,5 +150,7 @@ func SQLiteInitSchema(db *sql.DB) error {
 	return nil
 }
 
-var _ = parseSQLiteTimestamp
-var _ = sqliteUnmarshalEventMetadata
+var (
+	_ = parseSQLiteTimestamp
+	_ = sqliteUnmarshalEventMetadata
+)
