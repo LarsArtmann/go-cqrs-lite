@@ -52,24 +52,26 @@ func NewCatalogCore(
 	return core, nil
 }
 
+const testVersion = "1.0.0"
+
 func BuildTestCatalog() *catalog.Catalog {
-	reg := catalog.NewRegistry("E-Commerce", "1.0.0")
+	reg := catalog.NewRegistry("E-Commerce", testVersion)
 	reg.AddService(catalog.Service{
-		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
+		ID: "order-svc", Name: "Order Service", Version: testVersion, Summary: "Manages orders",
 	})
 	reg.AddCommand("order-svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order", Version: "1.0.0",
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order", Version: testVersion,
 		Summary: "Create a new order",
 		Schema: &catalog.Schema{Type: "object", Properties: map[string]catalog.Property{
 			"orderId": {Type: "string"},
 		}},
 	})
 	reg.AddEvent("order-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created", Version: "1.0.0",
+		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created", Version: testVersion,
 		Summary: "Order was created", Direction: catalog.Sends,
 	})
 	reg.AddQuery("order-svc", catalog.Message{
-		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order", Version: "1.0.0",
+		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order", Version: testVersion,
 		Summary: "Get order by ID",
 	})
 

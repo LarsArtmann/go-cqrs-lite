@@ -7,15 +7,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+const (
+	asyncAPIVersion = "3.0.0"
+	contentType     = "application/json"
+	typeObject      = "object"
+
+	actionSend    = "send"
+	actionReceive = "receive"
+)
+
 type messageKind string
 
 const (
 	kindCommand messageKind = "commands"
 	kindEvent   messageKind = "events"
 	kindQuery   messageKind = "queries"
-
-	actionSend    = "send"
-	actionReceive = "receive"
 )
 
 // Exporter generates an AsyncAPI 3.0 document from a catalog.
@@ -68,12 +74,12 @@ func NewExporter(serviceName, version string, opts ...Option) *Exporter {
 // Export generates an AsyncAPI 3.0 Document from the given catalog.
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	doc := &Document{
-		AsyncAPI: "3.0.0",
+		AsyncAPI: asyncAPIVersion,
 		ID: fmt.Sprintf(
 			"urn:%s:api",
 			strings.ToLower(strings.ReplaceAll(e.ServiceName, " ", "")),
 		),
-		DefaultContentType: "application/json",
+		DefaultContentType: contentType,
 		Servers:            nil,
 		Info: Info{
 			Title:       e.ServiceName,
@@ -219,6 +225,8 @@ func operationTitleAndName(
 
 func kindToTagName(kind catalog.MessageKind) string {
 	switch kind {
+	case catalog.CommandMessage:
+		return "commands"
 	case catalog.EventMessage:
 		return "events"
 	case catalog.QueryMessage:
@@ -236,7 +244,7 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		Name:        id,
 		Title:       msg.Name,
 		Summary:     msg.Summary,
-		ContentType: "application/json",
+		ContentType: contentType,
 		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
 		Tags:        []Tag{{Name: kindToTagName(msg.Kind)}},
 		Examples:    toExamples(msg.Examples),
@@ -245,6 +253,6 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	if msg.Schema != nil {
 		doc.Components.Schemas[componentKey] = SchemaToAny(msg.Schema)
 	} else {
-		doc.Components.Schemas[componentKey] = map[string]string{"type": "object"}
+		doc.Components.Schemas[componentKey] = map[string]string{"type": typeObject}
 	}
 }

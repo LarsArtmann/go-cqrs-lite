@@ -348,3 +348,107 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 		t.Errorf("Type = %q, want IssueCreated", loaded[0].Type())
 	}
 }
+
+func TestPebbleEventStore_Save_AggregateTypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := pebbleTestEvent(t, aggID, 1)
+
+	err := store.Save(context.Background(), "Project", aggID, []event.Event{evt}, event.Version(0))
+	if err == nil {
+		t.Fatal("expected error for aggregate type mismatch")
+	}
+}
+
+func TestPebbleEventStore_Save_AggregateIDMismatch(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+	otherID := id.NewAggregateID()
+
+	evt := pebbleTestEvent(t, otherID, 1)
+
+	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
+	if err == nil {
+		t.Fatal("expected error for aggregate ID mismatch")
+	}
+}
+
+func TestPebbleEventStore_Save_VersionMismatch(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := pebbleTestEvent(t, aggID, 5)
+
+	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
+	if err == nil {
+		t.Fatal("expected error for version mismatch")
+	}
+}
+
+func TestPebbleEventStore_Close_NilDB(t *testing.T) {
+	store := NewCQRSAdapter(nil, slog.Default())
+
+	err := store.Close()
+	if err != nil {
+		t.Fatalf("Close with nil db should return nil, got %v", err)
+	}
+}
+
+func TestPebbleEventStore_Save_EmptyEvents(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	err := store.Save(context.Background(), "Issue", aggID, nil, event.Version(0))
+	if err != nil {
+		t.Fatalf("Save with empty events should return nil, got %v", err)
+	}
+}
+
+func TestPebbleEventStore_AppendBatch_EmptyEvents(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	err := store.AppendBatch(context.Background(), "Issue", aggID, nil)
+	if err != nil {
+		t.Fatalf("AppendBatch with empty events should return nil, got %v", err)
+	}
+}
+
+func TestPebbleEventStore_Load_Empty(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	loaded, err := store.Load(context.Background(), "Issue", aggID)
+	if err != nil {
+		t.Fatalf("Load empty: %v", err)
+	}
+
+	if len(loaded) != 0 {
+		t.Fatalf("expected 0 events for empty aggregate, got %d", len(loaded))
+	}
+}
+
+func TestPebbleEventStore_Delete_Empty(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	err := store.Delete(context.Background(), "Issue", aggID)
+	if err != nil {
+		t.Fatalf("Delete empty aggregate should succeed, got %v", err)
+	}
+}

@@ -7,22 +7,26 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+func objectSchema() map[string]string {
+	return map[string]string{"type": typeObject}
+}
+
 // SchemaToAny converts a catalog.Schema to a generic map for JSON serialization.
 func SchemaToAny(s *catalog.Schema) any {
 	if s == nil {
-		return map[string]string{"type": "object"}
+		return objectSchema()
 	}
 
 	raw, err := json.Marshal(s)
 	if err != nil {
-		return map[string]string{"type": "object"}
+		return objectSchema()
 	}
 
 	var result any
 
 	err = json.Unmarshal(raw, &result)
 	if err != nil {
-		return map[string]string{"type": "object"}
+		return objectSchema()
 	}
 
 	return result

@@ -98,7 +98,12 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }
 
-func collectMessageIDs(svc catalog.Service) (sends, receives, commands, queries []string) {
+func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []string) {
+	sends := make([]string, 0, len(svc.Events))
+	receives := make([]string, 0, len(svc.Events))
+	commands := make([]string, 0, len(svc.Commands))
+	queries := make([]string, 0, len(svc.Queries))
+
 	for _, msg := range svc.Events {
 		id := catalog.MessageID(msg)
 
