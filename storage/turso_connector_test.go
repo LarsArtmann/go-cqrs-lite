@@ -14,9 +14,9 @@ func TestTursoConnector_OpenLocalDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTurso: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	if err := db.Ping(); err != nil {
+	if err := db.PingContext(context.Background()); err != nil {
 		t.Fatalf("Ping: %v", err)
 	}
 }
@@ -26,9 +26,9 @@ func TestTursoConnector_EventStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTurso: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	if _, err := db.Exec(SQLiteSchema()); err != nil {
+	if _, err := db.ExecContext(context.Background(), SQLiteSchema()); err != nil {
 		t.Fatalf("exec schema: %v", err)
 	}
 
@@ -74,9 +74,9 @@ func TestTursoConnector_SnapshotStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTurso: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	if _, err := db.Exec(SQLiteSnapshotSchema()); err != nil {
+	if _, err := db.ExecContext(context.Background(), SQLiteSnapshotSchema()); err != nil {
 		t.Fatalf("exec snapshot schema: %v", err)
 	}
 
@@ -116,9 +116,9 @@ func TestTursoConnector_CheckpointStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTurso: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	if _, err := db.Exec(SQLiteCheckpointSchema()); err != nil {
+	if _, err := db.ExecContext(context.Background(), SQLiteCheckpointSchema()); err != nil {
 		t.Fatalf("exec checkpoint schema: %v", err)
 	}
 

@@ -22,7 +22,8 @@ func sqliteScanEvents(rows *sql.Rows) ([]event.Event, error) {
 		events = append(events, evt)
 	}
 
-	if err := rows.Err(); err != nil {
+	err := rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("iterate event rows: %w", err)
 	}
 
@@ -115,7 +116,8 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 		"2006-01-02 15:04:05Z07:00",
 		"2006-01-02 15:04:05",
 	} {
-		if t, err := time.Parse(layout, s); err == nil {
+		t, err := time.Parse(layout, s)
+		if err == nil {
 			return t, nil
 		}
 	}
