@@ -86,7 +86,7 @@ func sqliteScanSnapshot(
 
 	err := row.Scan(&version, &stateBytes, &createdAtStr)
 	if err != nil {
-		return nil, fmt.Errorf("scan snapshot row: %w", err)
+		return nil, fmt.Errorf("scan snapshot for %s/%s: %w", aggregateType, aggregateID, err)
 	}
 
 	createdAt, err := parseSQLiteTimestamp(createdAtStr)

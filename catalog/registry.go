@@ -186,7 +186,7 @@ func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
 
 	d, ok := r.domains[domainID]
 	if !ok {
-		return fmt.Errorf("%w: %q", ErrDomainNotFound, domainID)
+		return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, ErrDomainNotFound)
 	}
 
 	d.Services = append(d.Services, serviceID)

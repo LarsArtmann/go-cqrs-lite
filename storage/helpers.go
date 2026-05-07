@@ -97,17 +97,19 @@ func reconstructEvent(
 ) (event.Event, error) {
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
-		return nil, fmt.Errorf("parse aggregate ID %q: %w", aggIDStr, err)
+		return nil, fmt.Errorf(
+			"parse aggregate ID %q for %s v%d: %w", aggIDStr, aggType, version, err,
+		)
 	}
 
 	parsedEventID, err := id.ParseEventID(idStr)
 	if err != nil {
-		return nil, fmt.Errorf("parse event ID %q: %w", idStr, err)
+		return nil, fmt.Errorf("parse event ID %q for %s v%d: %w", idStr, aggType, version, err)
 	}
 
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("metadata for %s/%s v%d: %w", aggType, eventType, version, err)
 	}
 
 	opts := make([]event.Option, 0, 2+len(metaOpts)) //nolint:mnd

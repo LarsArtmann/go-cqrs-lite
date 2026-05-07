@@ -161,7 +161,9 @@ func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string
 func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
 	d, ok := b.domains[domainID]
 	if !ok {
-		return fmt.Errorf("%w: %q", catalog.ErrDomainNotFound, domainID)
+		return fmt.Errorf(
+			"add service %q to domain %q: %w", serviceID, domainID, catalog.ErrDomainNotFound,
+		)
 	}
 
 	d.Services = append(d.Services, serviceID)

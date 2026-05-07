@@ -80,7 +80,7 @@ func (o *SQLiteOutbox) Append(ctx context.Context, events []event.Event) error {
 func (o *SQLiteOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
 	rows, err := o.db.QueryContext(ctx, sqlitePollPendingQuery, limit)
 	if err != nil {
-		return nil, fmt.Errorf("poll pending outbox: %w", err)
+		return nil, fmt.Errorf("poll pending outbox (limit %d): %w", limit, err)
 	}
 
 	defer func() {

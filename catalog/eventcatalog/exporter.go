@@ -132,7 +132,7 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create message dir: %w", err)
+		return fmt.Errorf("create message dir for %s/%s: %w", svcID, kind, err)
 	}
 
 	md := newFrontmatterWriter()
@@ -152,13 +152,13 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 
 	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 	if err != nil {
-		return fmt.Errorf("write message file: %w", err)
+		return fmt.Errorf("write message file for %s/%s: %w", svcID, kind, err)
 	}
 
 	if msg.Schema != nil {
 		err := e.writeSchema(dir, msg.Schema)
 		if err != nil {
-			return err
+			return fmt.Errorf("write schema for %s/%s: %w", svcID, kind, err)
 		}
 	}
 

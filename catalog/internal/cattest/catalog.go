@@ -46,7 +46,7 @@ func NewCatalogCore(
 		meta,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("new event catalog core: %w", err)
+		return nil, fmt.Errorf("new event catalog core for %s: %w", eventType, err)
 	}
 
 	return core, nil

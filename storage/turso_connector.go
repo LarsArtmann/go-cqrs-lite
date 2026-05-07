@@ -56,12 +56,12 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 		AuthToken: authToken,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("create turso sync db: %w", err)
+		return nil, fmt.Errorf("create turso sync db for %s: %w", remoteURL, err)
 	}
 
 	db, err := syncDb.Connect(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("connect turso sync db: %w", err)
+		return nil, fmt.Errorf("connect turso sync db for %s: %w", remoteURL, err)
 	}
 
 	return &TursoSyncDB{DB: db, syncDb: syncDb}, nil

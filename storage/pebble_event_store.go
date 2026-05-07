@@ -151,7 +151,7 @@ func (a *CQRSAdapter) commitAndLog(
 ) error {
 	err := batch.Commit(pebble.Sync)
 	if err != nil {
-		return fmt.Errorf("failed to commit events: %w", err)
+		return fmt.Errorf("failed to commit %d events (%s): %w", count, logMsg, err)
 	}
 
 	a.logEventOperation(logMsg, aggregateType, aggregateID, count)

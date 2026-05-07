@@ -131,10 +131,12 @@ func scanSnapshot(
 	err := row.Scan(&version, &stateBytes, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, event.ErrSnapshotNotFound
+			return nil, fmt.Errorf(
+				"%s/%s: %w", aggregateType, aggregateID, event.ErrSnapshotNotFound,
+			)
 		}
 
-		return nil, fmt.Errorf("scan snapshot row: %w", err)
+		return nil, fmt.Errorf("scan snapshot for %s/%s: %w", aggregateType, aggregateID, err)
 	}
 
 	return &event.Snapshot{

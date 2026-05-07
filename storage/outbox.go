@@ -75,7 +75,7 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
 	rows, err := o.db.QueryContext(ctx, pollPendingQuery, limit)
 	if err != nil {
-		return nil, fmt.Errorf("poll pending outbox: %w", err)
+		return nil, fmt.Errorf("poll pending outbox (limit %d): %w", limit, err)
 	}
 
 	defer func() {

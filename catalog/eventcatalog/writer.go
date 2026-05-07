@@ -119,7 +119,7 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 
 	err := os.MkdirAll(schemaDir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create schema dir: %w", err)
+		return fmt.Errorf("create schema dir %s: %w", schemaDir, err)
 	}
 
 	data, err := catalog.SchemaToJSON(schema)
