@@ -266,7 +266,7 @@ func TestPebbleConfig_BackendPebble(t *testing.T) {
 }
 
 func TestPebbleConfig_WithProvider(t *testing.T) {
-	provider := func(logger *slog.Logger) (event.Store, error) { //nolint:nilnil
+	provider := func(logger *slog.Logger) (event.Store, error) {
 		return nil, nil
 	}
 

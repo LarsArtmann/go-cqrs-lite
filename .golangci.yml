@@ -247,6 +247,16 @@ linters:
         linters:
           - wrapcheck
           - err113
+      - path: storage/
+        linters:
+          - dupl
+          - exhaustruct
+          - gosec
+          - nestif
+          - nilnil
+          - tagliatelle
+          - varnamelen
+          - wrapcheck
 formatters:
   enable:
     - gci

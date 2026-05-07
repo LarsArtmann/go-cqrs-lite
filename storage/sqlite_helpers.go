@@ -86,7 +86,7 @@ func sqliteScanSnapshot(
 
 	err := row.Scan(&version, &stateBytes, &createdAtStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("scan snapshot row: %w", err)
 	}
 
 	createdAt, err := parseSQLiteTimestamp(createdAtStr)
@@ -122,7 +122,7 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, fmt.Errorf("unsupported timestamp format: %q", s)
+	return time.Time{}, fmt.Errorf("%w: %q", ErrUnsupportedTimestamp, s)
 }
 
 // SQLiteInitSchema creates all required tables in the SQLite database.

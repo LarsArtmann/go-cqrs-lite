@@ -66,7 +66,8 @@ func (a *CQRSAdapter) Save(
 		// Verify event belongs to this aggregate
 		if evt.AggregateType() != aggregateType {
 			return fmt.Errorf(
-				"event aggregate type mismatch: expected %s, got %s",
+				"%w: expected %s, got %s",
+				ErrAggregateTypeMismatch,
 				aggregateType,
 				evt.AggregateType(),
 			)
@@ -74,7 +75,8 @@ func (a *CQRSAdapter) Save(
 
 		if evt.AggregateID() != aggregateID {
 			return fmt.Errorf(
-				"event aggregate ID mismatch: expected %s, got %s",
+				"%w: expected %s, got %s",
+				ErrAggregateIDMismatch,
 				aggregateID,
 				evt.AggregateID(),
 			)
@@ -83,7 +85,8 @@ func (a *CQRSAdapter) Save(
 		expectedEventVersion := expectedVersion.Int() + i + 1
 		if evt.Version() != event.Version(expectedEventVersion) {
 			return fmt.Errorf(
-				"event version mismatch: expected %d, got %d",
+				"%w: expected %d, got %d",
+				ErrVersionMismatch,
 				expectedEventVersion,
 				evt.Version(),
 			)
@@ -429,7 +432,10 @@ func (a *CQRSAdapter) AppendBatch(
 // Close releases the Pebble database.
 func (a *CQRSAdapter) Close() error {
 	if a.db != nil {
-		return a.db.Close()
+		err := a.db.Close()
+		if err != nil {
+			return fmt.Errorf("close pebble db: %w", err)
+		}
 	}
 
 	return nil

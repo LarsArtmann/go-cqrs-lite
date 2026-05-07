@@ -120,7 +120,6 @@ func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
 		args[i] = string(oid)
 	}
 
-	//nolint:gosec // G201: placeholders are parameterized ($1, $2...), not user input
 	query := fmt.Sprintf("DELETE FROM outbox WHERE id IN (%s)", strings.Join(placeholders, ", "))
 
 	_, err := o.db.ExecContext(ctx, query, args...)
@@ -134,8 +133,7 @@ func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
 var _ event.Outbox = (*SQLOutbox)(nil)
 
 // outboxEvent uses snake_case JSON tags matching database column names.
-//
-//nolint:tagliatelle
+// outboxEvent represents an outbox entry for JSON serialization.
 type outboxEvent struct {
 	ID            string          `json:"id"`
 	Type          string          `json:"type"`

@@ -44,7 +44,8 @@ type TursoSyncDB struct {
 func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*TursoSyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
 		return nil, fmt.Errorf(
-			"turso sync requires a file path for dbPath, got %q: in-memory databases lose data on restart when using remote sync",
+			"%w: got %q: in-memory databases lose data on restart when using remote sync",
+			ErrTursoMemorySync,
 			dbPath,
 		)
 	}
@@ -68,21 +69,41 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 
 // Push sends local writes to the remote Turso server.
 func (t *TursoSyncDB) Push(ctx context.Context) error {
-	return t.syncDb.Push(ctx)
+	err := t.syncDb.Push(ctx)
+	if err != nil {
+		return fmt.Errorf("turso push: %w", err)
+	}
+
+	return nil
 }
 
 // Pull fetches remote changes into the local database.
 // Returns true if any changes were received.
 func (t *TursoSyncDB) Pull(ctx context.Context) (bool, error) {
-	return t.syncDb.Pull(ctx)
+	changed, err := t.syncDb.Pull(ctx)
+	if err != nil {
+		return changed, fmt.Errorf("turso pull: %w", err)
+	}
+
+	return changed, nil
 }
 
 // Checkpoint writes the WAL into the main database file.
 func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
-	return t.syncDb.Checkpoint(ctx)
+	err := t.syncDb.Checkpoint(ctx)
+	if err != nil {
+		return fmt.Errorf("turso checkpoint: %w", err)
+	}
+
+	return nil
 }
 
 // Stats returns sync statistics (WAL size, bytes sent/received).
 func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error) {
-	return t.syncDb.Stats(ctx)
+	stats, err := t.syncDb.Stats(ctx)
+	if err != nil {
+		return stats, fmt.Errorf("turso stats: %w", err)
+	}
+
+	return stats, nil
 }

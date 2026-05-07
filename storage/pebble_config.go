@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -60,14 +59,16 @@ func NewPebbleEventStore(cfg PebbleConfig, logger *slog.Logger) (cqrsEvent.Store
 
 	switch cfg.Backend {
 	case PebbleBackendPebble:
-		return nil, errors.New(
-			"pebble backend requires a Provider: use WithPebbleProvider",
+		return nil, fmt.Errorf(
+			"%w: use WithPebbleProvider",
+			ErrPebbleProviderRequired,
 		)
 	case PebbleBackendMemory:
 		return memory.NewMemoryStore(), nil
 	default:
 		return nil, fmt.Errorf(
-			"unknown event store backend %q: use WithPebbleBackend or WithPebbleProvider",
+			"%w: %q: use WithPebbleBackend or WithPebbleProvider",
+			ErrUnknownBackend,
 			cfg.Backend,
 		)
 	}
