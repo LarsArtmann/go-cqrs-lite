@@ -32,7 +32,7 @@ func initSQLiteSchema(t *testing.T, db *sql.DB) {
 	t.Helper()
 
 	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
-		_, err := db.Exec(ddl)
+		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			t.Fatalf("exec DDL: %v\nDDL: %s", err, ddl)
 		}

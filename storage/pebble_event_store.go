@@ -255,8 +255,9 @@ func (a *CQRSAdapter) Delete(
 		count++
 	}
 
-	if err := batch.Commit(pebble.Sync); err != nil {
-		return fmt.Errorf("failed to commit deletions: %w", err)
+	commitErr := batch.Commit(pebble.Sync)
+	if commitErr != nil {
+		return fmt.Errorf("failed to commit deletions: %w", commitErr)
 	}
 
 	a.logger.Debug("events deleted",
@@ -305,7 +306,8 @@ func (a *CQRSAdapter) serializeEvent(evt event.Event) ([]byte, error) {
 func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 	var s serializableEvent
 
-	if err := json.Unmarshal(data, &s); err != nil {
+	err := json.Unmarshal(data, &s)
+	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
