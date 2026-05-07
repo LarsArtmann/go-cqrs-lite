@@ -33,6 +33,7 @@ func OpenTursoInMemory() (*sql.DB, error) {
 // for sync control.
 type TursoSyncDB struct {
 	*sql.DB
+
 	syncDb *turso.TursoSyncDb
 }
 

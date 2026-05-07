@@ -144,6 +144,9 @@ linters:
             - github.com/onsi/gomega
             - github.com/samber/ro
             - go.opentelemetry.io/otel
+            - github.com/cockroachdb/pebble
+            - modernc.org/sqlite
+            - turso.tech/database/tursogo
     gci:
       sections:
         - standard

@@ -16,6 +16,7 @@ import (
 // Both the event store and outbox must share the same *sql.DB instance.
 type SQLTransactionalStore struct {
 	*SQLEventStore
+
 	outbox *SQLOutbox
 	db     *sql.DB
 }
@@ -51,7 +52,7 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	aggregateID id.AggregateID,
 	events []event.Event,
 	expectedVersion event.Version,
-	outbox event.Outbox,
+	outbox event.Outbox, //nolint:revive // required by interface, implementation uses own outbox field
 ) error {
 	if len(events) == 0 {
 		return nil

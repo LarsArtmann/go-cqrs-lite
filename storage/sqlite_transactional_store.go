@@ -14,6 +14,7 @@ import (
 // save+outbox-append in a single database transaction.
 type SQLiteTransactionalStore struct {
 	*SQLiteEventStore
+
 	outbox *SQLiteOutbox
 	db     *sql.DB
 }
@@ -48,7 +49,7 @@ func (s *SQLiteTransactionalStore) SaveWithOutbox(
 	aggregateID id.AggregateID,
 	events []event.Event,
 	expectedVersion event.Version,
-	outbox event.Outbox,
+	outbox event.Outbox, //nolint:revive // required by interface, implementation uses own outbox field
 ) error {
 	if len(events) == 0 {
 		return nil

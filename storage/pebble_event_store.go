@@ -408,7 +408,7 @@ func (a *CQRSAdapter) AppendBatch(
 	defer func() { _ = batch.Close() }()
 
 	for _, evt := range events {
-		key := a.eventKey(aggregateType, aggregateID, event.Version(evt.Version()))
+		key := a.eventKey(aggregateType, aggregateID, evt.Version())
 
 		err := a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
