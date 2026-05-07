@@ -758,3 +758,118 @@ func TestNewRepository_WithSnapshotStrategy(t *testing.T) {
 		t.Fatal("expected non-nil repository with snapshot strategy")
 	}
 }
+
+type mockTransactionalStore struct {
+	*testhelpers.FakeStore
+}
+
+func (m *mockTransactionalStore) SaveWithOutbox(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	events []event.Event,
+	_ event.Version,
+	_ event.Outbox,
+) error {
+	if len(events) == 0 {
+		return nil
+	}
+
+	return errors.New("tx failed")
+}
+
+func TestRepository_Save_WithOutboxAndTransactionalStore(t *testing.T) {
+	t.Parallel()
+
+	store := &mockTransactionalStore{FakeStore: testhelpers.NewFakeStore()}
+	outbox := testhelpers.NewFakeOutbox()
+	repo, _ := aggregate.NewRepository(
+		store,
+		testhelpers.NewFakeBus(),
+		aggregate.WithOutbox(outbox),
+	)
+	root := newTestRoot()
+	root.RecordEvent(context.Background(), makeUserEvent(t))
+
+	err := repo.Save(context.Background(), root)
+	if err == nil {
+		t.Fatal("expected error from SaveWithOutbox failure")
+	}
+}
+
+func TestRepository_Save_WithOutboxAndTransactionalStore_Success(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	outbox := testhelpers.NewFakeOutbox()
+	bus := testhelpers.NewFakeBus()
+	repo, _ := aggregate.NewRepository(
+		store,
+		bus,
+		aggregate.WithOutbox(outbox),
+	)
+	root := newTestRoot()
+	root.RecordEvent(context.Background(), makeUserEvent(t))
+
+	err := repo.Save(context.Background(), root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+type failingLoadStore struct {
+	*testhelpers.FakeStore
+}
+
+func (s *failingLoadStore) Load(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+) ([]event.Event, error) {
+	return nil, errors.New("db connection lost")
+}
+
+func TestRepository_Load_StoreLoadError(t *testing.T) {
+	t.Parallel()
+
+	store := &failingLoadStore{FakeStore: testhelpers.NewFakeStore()}
+	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	root := newTestRoot()
+
+	err := repo.Load(context.Background(), root)
+	if err == nil {
+		t.Fatal("expected error from store load failure")
+	}
+}
+
+type failingApplyRoot struct {
+	*aggregate.Core
+}
+
+func (r *failingApplyRoot) Apply(_ event.Event) error {
+	return errors.New("apply failed")
+}
+
+func (r *failingApplyRoot) ApplySnapshot(_ []byte) error { return nil }
+
+func (r *failingApplyRoot) LoadEvents(events []event.Event) error {
+	return r.LoadFromHistory(r, events)
+}
+
+func TestRepository_Load_ApplyError(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	store := testhelpers.NewFakeStore()
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+
+	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
+	root := &failingApplyRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
+
+	err := repo.Load(context.Background(), root)
+	if err == nil {
+		t.Fatal("expected error from Apply failure")
+	}
+}

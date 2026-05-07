@@ -1,8 +1,8 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -123,25 +123,10 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("unsupported timestamp format: %q", s)
 }
 
-func sqliteUnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
-	if len(data) == 0 {
-		return nil, nil
-	}
-
-	var meta event.Metadata
-
-	err := json.Unmarshal(data, &meta)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
-	}
-
-	return []event.Option{event.WithMetadata(&meta)}, nil
-}
-
 // SQLiteInitSchema creates all required tables in the SQLite database.
-func SQLiteInitSchema(db *sql.DB) error {
+func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
-		_, err := db.Exec(ddl)
+		_, err := db.ExecContext(ctx, ddl)
 		if err != nil {
 			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
 		}
@@ -150,7 +135,4 @@ func SQLiteInitSchema(db *sql.DB) error {
 	return nil
 }
 
-var (
-	_ = parseSQLiteTimestamp
-	_ = sqliteUnmarshalEventMetadata
-)
+var _ = parseSQLiteTimestamp
