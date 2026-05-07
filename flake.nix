@@ -23,7 +23,6 @@
           goTags = [
             "goexperiment.arenas"
             "goexperiment.goroutineleakprofile"
-            "goexperiment.jsonv2"
             "goexperiment.runtimesecret"
             "goexperiment.simd"
           ];

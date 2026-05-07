@@ -265,7 +265,7 @@ var _ = Describe("Decider Repository", func() {
 					store, bus, bddCounterDecider(),
 					decider.WithSnapshotStore[bddCounter](snapStore),
 					decider.WithCodec[bddCounter](event.JSONCodec{}),
-					decider.WithSnapshotStrategy[bddCounter](decider.EveryNEvents(2)),
+					decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(2)),
 				)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -294,7 +294,7 @@ var _ = Describe("Decider Repository", func() {
 					store, bus, bddCounterDecider(),
 					decider.WithSnapshotStore[bddCounter](snapStore),
 					decider.WithCodec[bddCounter](event.JSONCodec{}),
-					decider.WithSnapshotStrategy[bddCounter](decider.EveryNEvents(2)),
+					decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(2)),
 				)
 				Expect(err).ToNot(HaveOccurred())
 

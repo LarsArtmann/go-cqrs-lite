@@ -482,7 +482,7 @@ func TestRepository_Load_LoadFromVersionError(t *testing.T) {
 func TestEveryNEvents(t *testing.T) {
 	t.Parallel()
 
-	strategy := aggregate.EveryNEvents(5)
+	strategy := event.MustEveryNEvents(5)
 
 	tests := []struct {
 		version  int
@@ -516,7 +516,7 @@ func TestRepository_Save_CreatesSnapshot(t *testing.T) {
 		store,
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(1)),
 		aggregate.WithCodec(event.JSONCodec{}),
 	)
 
@@ -583,7 +583,7 @@ func TestRepository_Save_SnapshotWithCodec(t *testing.T) {
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(1)),
 		aggregate.WithCodec(event.JSONCodec{}),
 	)
 
@@ -620,7 +620,7 @@ func TestRepository_Save_SnapshotStoreError(t *testing.T) {
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(1)),
 		aggregate.WithCodec(event.JSONCodec{}),
 	)
 
@@ -644,7 +644,7 @@ func TestRepository_Save_NoSnapshotWithoutStore(t *testing.T) {
 	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(1)),
 	)
 
 	root := newTestRoot()
@@ -664,7 +664,7 @@ func TestRepository_Save_NoSnapshotWithoutCodec(t *testing.T) {
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
 		aggregate.WithSnapshotStore(snapStore),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(1)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(1)),
 	)
 
 	root := newTestRoot()
@@ -751,7 +751,7 @@ func TestNewRepository_WithSnapshotStrategy(t *testing.T) {
 	repo, _ := aggregate.NewRepository(
 		testhelpers.NewFakeStore(),
 		testhelpers.NewFakeBus(),
-		aggregate.WithSnapshotStrategy(aggregate.EveryNEvents(10)),
+		aggregate.WithSnapshotStrategy(event.MustEveryNEvents(10)),
 	)
 
 	if repo == nil {

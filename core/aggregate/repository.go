@@ -29,7 +29,7 @@ type EventSourcedRepository struct {
 	snapshotStore    event.SnapshotStore
 	outbox           event.Outbox
 	codec            event.Codec
-	snapshotStrategy SnapshotStrategy
+	snapshotStrategy event.SnapshotStrategy
 }
 
 var _ Repository = (*EventSourcedRepository)(nil)

@@ -394,7 +394,7 @@ func TestEveryNEvents_PanicsOnZeroOrNegative(t *testing.T) {
 		func() {
 			defer func() { _ = recover() }()
 
-			aggregate.EveryNEvents(n)
+			event.MustEveryNEvents(n)
 			t.Errorf("expected panic for n=%d", n)
 		}()
 	}

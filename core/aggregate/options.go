@@ -4,19 +4,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-// SnapshotStrategy decides when to create a snapshot after saving events.
-//
-// Deprecated: Use event.SnapshotStrategy instead. This type alias is provided
-// for backward compatibility and will be removed in a future version.
-type SnapshotStrategy = event.SnapshotStrategy
-
-// EveryNEvents creates a SnapshotStrategy that snapshots every N events.
-// Panics if n <= 0.
-//
-// Deprecated: Use event.EveryNEvents (returns error) or event.MustEveryNEvents instead.
-// This function is provided for backward compatibility and will be removed in a future version.
-var EveryNEvents = event.MustEveryNEvents //nolint:gochecknoglobals
-
 // RepositoryOption configures an EventSourcedRepository.
 type RepositoryOption func(*EventSourcedRepository)
 
@@ -50,7 +37,7 @@ func WithCodec(codec event.Codec) RepositoryOption {
 // WithSnapshotStrategy sets the strategy for automatic snapshotting.
 // When set, Save checks the strategy after persisting events and
 // creates a snapshot if the strategy triggers.
-func WithSnapshotStrategy(strategy SnapshotStrategy) RepositoryOption {
+func WithSnapshotStrategy(strategy event.SnapshotStrategy) RepositoryOption {
 	return func(r *EventSourcedRepository) {
 		r.snapshotStrategy = strategy
 	}

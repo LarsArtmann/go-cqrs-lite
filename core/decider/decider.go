@@ -34,7 +34,7 @@ type Repository[State any] struct {
 	outbox           event.Outbox
 	snapshotStore    event.SnapshotStore
 	codec            event.Codec
-	snapshotStrategy SnapshotStrategy
+	snapshotStrategy event.SnapshotStrategy
 	decider          Decider[State]
 }
 

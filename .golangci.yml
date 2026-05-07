@@ -5,7 +5,6 @@ run:
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
     - goexperiment.runtimesecret
     - goexperiment.simd
   allow-parallel-runners: true

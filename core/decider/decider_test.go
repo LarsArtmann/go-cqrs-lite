@@ -477,7 +477,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 	repo, err := decider.NewRepository(store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](decider.EveryNEvents(2)),
+		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(2)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -786,7 +786,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 	repo, err := decider.NewRepository(store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](decider.EveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -882,7 +882,7 @@ func TestEveryNEvents_PanicsOnZero(t *testing.T) {
 		}
 	}()
 
-	decider.EveryNEvents(0)
+	event.MustEveryNEvents(0)
 }
 
 func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
@@ -895,7 +895,7 @@ func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 		}
 	}()
 
-	decider.EveryNEvents(-1)
+	event.MustEveryNEvents(-1)
 }
 
 func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
