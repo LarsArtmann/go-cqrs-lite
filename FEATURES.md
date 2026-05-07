@@ -70,7 +70,7 @@
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
 | Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
 | Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
-| JSON Codec            | `JSONCodec` using `go-json-experiment/json` (JSON v2)                                                                                                                                | ✅     |
+| JSON Codec            | `JSONCodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
