@@ -78,13 +78,14 @@ func (r *EventSourcedRepository) Save(ctx context.Context, root Root) error {
 	aggregateID := root.ID()
 	expectedVersion := root.Version() - event.Version(len(changes))
 
-	if err := r.persistChanges(
+	err := r.persistChanges(
 		ctx,
 		aggregateType,
 		aggregateID,
 		changes,
 		expectedVersion,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
 
@@ -100,29 +101,39 @@ func (r *EventSourcedRepository) persistChanges(
 	changes []event.Event,
 	expectedVersion event.Version,
 ) error {
-	if r.outbox != nil {
-		if ts, ok := r.store.(event.TransactionalStore); ok {
-			err := ts.SaveWithOutbox(ctx, aggType, aggID, changes, expectedVersion, r.outbox)
-			if err != nil {
-				return opError("save with outbox", aggType, aggID, err)
-			}
+	if r.outbox == nil {
+		return r.persistDirect(ctx, aggType, aggID, changes, expectedVersion)
+	}
 
-			return nil
-		}
-
-		err := r.store.Save(ctx, aggType, aggID, changes, expectedVersion)
+	if ts, ok := r.store.(event.TransactionalStore); ok {
+		err := ts.SaveWithOutbox(ctx, aggType, aggID, changes, expectedVersion, r.outbox)
 		if err != nil {
-			return opError("save", aggType, aggID, err)
-		}
-
-		err = r.outbox.Append(ctx, changes)
-		if err != nil {
-			return opError("stage events in outbox", aggType, aggID, err)
+			return opError("save with outbox", aggType, aggID, err)
 		}
 
 		return nil
 	}
 
+	err := r.store.Save(ctx, aggType, aggID, changes, expectedVersion)
+	if err != nil {
+		return opError("save", aggType, aggID, err)
+	}
+
+	err = r.outbox.Append(ctx, changes)
+	if err != nil {
+		return opError("stage events in outbox", aggType, aggID, err)
+	}
+
+	return nil
+}
+
+func (r *EventSourcedRepository) persistDirect(
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	changes []event.Event,
+	expectedVersion event.Version,
+) error {
 	err := r.store.Save(ctx, aggType, aggID, changes, expectedVersion)
 	if err != nil {
 		return opError("save", aggType, aggID, err)

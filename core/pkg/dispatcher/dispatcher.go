@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"sync"
 )
 
@@ -72,8 +73,8 @@ func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	defer c.mu.RUnlock()
 
 	wrapped := handler
-	for i := len(c.middleware) - 1; i >= 0; i-- {
-		wrapped = wrap(c.middleware[i], wrapped)
+	for _, m := range slices.Backward(c.middleware) {
+		wrapped = wrap(m, wrapped)
 	}
 
 	return wrapped

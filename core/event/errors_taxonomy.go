@@ -125,6 +125,7 @@ func NewInfrastructure(code, msg string) *Error {
 	return &Error{Code: code, Message: msg, Family: Infrastructure, cause: nil}
 }
 
+//nolint:gochecknoinits // init is required for package-level error classification registration
 func init() {
 	classifications := map[error]Family{
 		ErrVersionConflict:         Conflict,

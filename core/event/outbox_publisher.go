@@ -130,6 +130,7 @@ func (p *OutboxPublisher) run(ctx context.Context) {
 				"stack", string(debug.Stack()),
 			)
 		}
+
 		close(p.done)
 	}()
 

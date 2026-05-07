@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -101,8 +102,8 @@ func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {
 		return nil
 	}
 
-	for i := len(b.middleware) - 1; i >= 0; i-- {
-		handler = b.middleware[i](handler)
+	for _, m := range slices.Backward(b.middleware) {
+		handler = m(handler)
 	}
 
 	return handler(ctx, evt)
