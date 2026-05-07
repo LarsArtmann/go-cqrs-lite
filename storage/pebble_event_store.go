@@ -1,4 +1,3 @@
-// Package store provides Pebble-based implementations of go-cqrs-lite interfaces.
 package storage
 
 import (
