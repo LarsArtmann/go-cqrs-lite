@@ -136,5 +136,3 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 
 	return nil
 }
-
-var _ = parseSQLiteTimestamp
