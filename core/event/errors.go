@@ -1,51 +1,110 @@
 package event
 
-import "errors"
+import (
+	"errors"
 
-// ErrInvalidSnapshotInterval is returned by EveryNEvents when n <= 0.
-var ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
-// ErrEmptyEventType is returned by NewEvent when the event type is empty.
-var ErrEmptyEventType = errors.New("event type is required")
+// Re-export errorfamily types and functions so consumers use event.Family,
+// event.Error, event.Classify, etc. without changing import paths.
+type (
+	// Family classifies an error's behavioral profile for automated handling.
+	Family = errorfamily.Family
 
-// ErrNilAggregateID is returned by NewEvent when the aggregate ID is zero.
-var ErrNilAggregateID = errors.New("aggregate ID is required")
+	// Error is a classified error with machine-readable code and family.
+	Error = errorfamily.Error
+)
 
-// ErrEmptyAggregateType is returned by NewEvent when the aggregate type is empty.
-var ErrEmptyAggregateType = errors.New("aggregate type is required")
+// Family constants.
+const (
+	// Rejection indicates bad input, unauthorized access, or resource not found.
+	Rejection = errorfamily.Rejection
 
-// ErrVersionConflict is returned when there is a version conflict.
-var ErrVersionConflict = errors.New("version conflict")
+	// Conflict indicates a version mismatch, duplicate creation, or state machine violation.
+	Conflict = errorfamily.Conflict
 
-// ErrAggregateNotFound is returned when an aggregate is not found.
-var ErrAggregateNotFound = errors.New("aggregate not found")
+	// Transient indicates a temporary infrastructure failure.
+	Transient = errorfamily.Transient
 
-// ErrStoreClosed is returned when the event store is closed.
-var ErrStoreClosed = errors.New("event store is closed")
+	// Corruption indicates the source of truth is damaged (unparseable payload, schema break).
+	Corruption = errorfamily.Corruption
 
-// ErrBusClosed is returned when the event bus is closed.
-var ErrBusClosed = errors.New("event bus is closed")
+	// Infrastructure indicates the system cannot serve (closed, nil deps, startup failure).
+	Infrastructure = errorfamily.Infrastructure
+)
 
-// ErrSnapshotNotFound is returned when a snapshot is not found.
-var ErrSnapshotNotFound = errors.New("snapshot not found")
+// Classify forwards to errorfamily.Classify.
+func Classify(err error) Family { return errorfamily.Classify(err) }
 
-// ErrSnapshotStoreClosed is returned when the snapshot store is closed.
-var ErrSnapshotStoreClosed = errors.New("snapshot store is closed")
+// IsRetryable reports whether the error is classified as Transient.
+func IsRetryable(err error) bool { return errorfamily.IsRetryable(err) }
 
-// ErrNilProjection is returned when a nil projection is registered.
-var ErrNilProjection = errors.New("event: nil projection")
+// RegisterClassification maps a sentinel error to a Family. Thread-safe.
+func RegisterClassification(sentinel error, family Family) {
+	errorfamily.RegisterClassification(sentinel, family)
+}
 
-// ErrNilCheckpointStore is returned when a nil checkpoint store is passed to NewInMemoryRunner.
-var ErrNilCheckpointStore = errors.New("event: nil checkpoint store")
+// Constructors. Kept as aliases for backward compatibility.
 
-// ErrDuplicateProjection is returned when a projection with the same name is already registered.
-var ErrDuplicateProjection = errors.New("event: duplicate projection")
+// NewRejection creates a Rejection-classified error.
+func NewRejection(code, msg string) *Error { return errorfamily.NewRejection(code, msg) }
 
-// ErrNilOutbox is returned when a nil outbox is passed to NewOutboxPublisher.
-var ErrNilOutbox = errors.New("event: nil outbox")
+// NewConflict creates a Conflict-classified error.
+func NewConflict(code, msg string) *Error { return errorfamily.NewConflict(code, msg) }
 
-// ErrNilBus is returned when a nil bus is passed to NewOutboxPublisher.
-var ErrNilBus = errors.New("event: nil bus")
+// NewTransient creates a Transient-classified error.
+func NewTransient(code, msg string) *Error { return errorfamily.NewTransient(code, msg) }
 
-// ErrAlreadyStarted is returned when OutboxPublisher.Start is called more than once.
-var ErrAlreadyStarted = errors.New("event: outbox publisher already started")
+// NewCorruption creates a Corruption-classified error.
+func NewCorruption(code, msg string) *Error { return errorfamily.NewCorruption(code, msg) }
+
+// NewInfrastructure creates an Infrastructure-classified error.
+func NewInfrastructure(code, msg string) *Error { return errorfamily.NewInfrastructure(code, msg) }
+
+// Event domain sentinel errors.
+var (
+	ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
+	ErrEmptyEventType          = errors.New("event type is required")
+	ErrNilAggregateID          = errors.New("aggregate ID is required")
+	ErrEmptyAggregateType      = errors.New("aggregate type is required")
+	ErrVersionConflict         = errors.New("version conflict")
+	ErrAggregateNotFound       = errors.New("aggregate not found")
+	ErrStoreClosed             = errors.New("event store is closed")
+	ErrBusClosed               = errors.New("event bus is closed")
+	ErrSnapshotNotFound        = errors.New("snapshot not found")
+	ErrSnapshotStoreClosed     = errors.New("snapshot store is closed")
+	ErrNilProjection           = errors.New("event: nil projection")
+	ErrNilCheckpointStore      = errors.New("event: nil checkpoint store")
+	ErrDuplicateProjection     = errors.New("event: duplicate projection")
+	ErrNilOutbox               = errors.New("event: nil outbox")
+	ErrNilBus                  = errors.New("event: nil bus")
+	ErrAlreadyStarted          = errors.New("event: outbox publisher already started")
+	ErrProjectionPanicked      = errors.New("event: projection handler panicked")
+)
+
+//nolint:gochecknoinits
+func init() {
+	classifications := map[error]Family{
+		ErrInvalidSnapshotInterval: Rejection,
+		ErrEmptyEventType:          Rejection,
+		ErrNilAggregateID:          Rejection,
+		ErrEmptyAggregateType:      Rejection,
+		ErrAggregateNotFound:       Rejection,
+		ErrSnapshotNotFound:        Rejection,
+		ErrVersionConflict:         Conflict,
+		ErrDuplicateProjection:     Conflict,
+		ErrStoreClosed:             Infrastructure,
+		ErrBusClosed:               Infrastructure,
+		ErrSnapshotStoreClosed:     Infrastructure,
+		ErrNilProjection:           Infrastructure,
+		ErrNilCheckpointStore:      Infrastructure,
+		ErrNilOutbox:               Infrastructure,
+		ErrNilBus:                  Infrastructure,
+		ErrAlreadyStarted:          Infrastructure,
+		ErrProjectionPanicked:      Corruption,
+	}
+	for sentinel, family := range classifications {
+		RegisterClassification(sentinel, family)
+	}
+}

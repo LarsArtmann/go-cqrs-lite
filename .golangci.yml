@@ -57,7 +57,7 @@ linters:
     - godot
     - godox
     - goheader
-    - gomodguard_v2
+    - gomodguard
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -144,6 +144,7 @@ linters:
             - github.com/samber/ro
             - go.opentelemetry.io/otel
             - github.com/cockroachdb/pebble
+            - github.com/larsartmann/go-error-family
             - modernc.org/sqlite
             - turso.tech/database/tursogo
     gci:

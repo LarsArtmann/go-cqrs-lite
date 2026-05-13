@@ -76,16 +76,12 @@ func TestError_Constructors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.err.Family != tc.family {
-				t.Errorf("Family = %v, want %v", tc.err.Family, tc.family)
+			if tc.err.Family() != tc.family {
+				t.Errorf("Family() = %v, want %v", tc.err.Family(), tc.family)
 			}
 
-			if tc.err.Code != tc.code {
-				t.Errorf("Code = %q, want %q", tc.err.Code, tc.code)
-			}
-
-			if tc.err.Error() != tc.err.Message {
-				t.Errorf("Error() = %q, want %q", tc.err.Error(), tc.err.Message)
+			if tc.err.Code() != tc.code {
+				t.Errorf("Code() = %q, want %q", tc.err.Code(), tc.code)
 			}
 
 			if tc.err.Unwrap() != nil {
@@ -118,8 +114,8 @@ func TestError_WithCause_chaining(t *testing.T) {
 		t.Fatal("errors.AsType should find *event.Error in wrapped chain")
 	}
 
-	if extracted.Code != "test.c" {
-		t.Errorf("Code = %q, want %q", extracted.Code, "test.c")
+	if extracted.Code() != "test.c" {
+		t.Errorf("Code() = %q, want %q", extracted.Code(), "test.c")
 	}
 
 	if !errors.Is(extracted.Unwrap(), inner) {
@@ -147,6 +143,7 @@ func TestClassify_sentinelMapping(t *testing.T) {
 		{"nil bus", event.ErrNilBus, event.Infrastructure},
 		{"already started", event.ErrAlreadyStarted, event.Infrastructure},
 		{"duplicate projection", event.ErrDuplicateProjection, event.Conflict},
+		{"projection panicked", event.ErrProjectionPanicked, event.Corruption},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -213,6 +210,7 @@ func TestIsRetryable(t *testing.T) {
 		{"ErrVersionConflict", event.ErrVersionConflict, false},
 		{"ErrDuplicateProjection", event.ErrDuplicateProjection, false},
 		{"ErrStoreClosed", event.ErrStoreClosed, false},
+		{"ErrProjectionPanicked", event.ErrProjectionPanicked, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -231,8 +229,9 @@ func TestError_Format(t *testing.T) {
 	err := event.NewTransient("db.timeout", "connection lost")
 
 	got := fmt.Sprintf("%v", err)
-	if got != "connection lost" {
-		t.Errorf("%%v = %q, want %q", got, "connection lost")
+	want := "[transient:db.timeout] connection lost"
+	if got != want {
+		t.Errorf("%%v = %q, want %q", got, want)
 	}
 
 	got = fmt.Sprintf("%s", err)
@@ -241,10 +240,14 @@ func TestError_Format(t *testing.T) {
 	}
 
 	got = fmt.Sprintf("%+v", err)
-
-	want := "transient:db.timeout: connection lost"
-	if got != want {
-		t.Errorf("%%+v = %q, want %q", got, want)
+	if !strings.Contains(got, "transient") {
+		t.Errorf("%%+v should contain family, got %q", got)
+	}
+	if !strings.Contains(got, "db.timeout") {
+		t.Errorf("%%+v should contain code, got %q", got)
+	}
+	if !strings.Contains(got, "connection lost") {
+		t.Errorf("%%+v should contain message, got %q", got)
 	}
 }
 

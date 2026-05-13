@@ -140,7 +140,7 @@ func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {
 	if err != nil {
 		evtErr, ok := errors.AsType[*event.Error](err)
 		if ok {
-			fmt.Printf("→ Rejected [%s]: %s\n\n", evtErr.Family, evtErr.Message)
+			fmt.Printf("→ Rejected [%s]: %s\n\n", evtErr.Family(), evtErr.Message())
 		} else {
 			fmt.Printf("→ Error: %v\n\n", err)
 		}

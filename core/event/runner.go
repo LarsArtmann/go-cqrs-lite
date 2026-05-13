@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"sync"
@@ -125,9 +124,6 @@ func (r *InMemoryRunner) matchingProjections(evtType Type) []Projection {
 
 	return matched
 }
-
-// ErrProjectionPanicked is returned when a projection handler panics during parallel execution.
-var ErrProjectionPanicked = errors.New("projection panicked")
 
 type parallelResult struct {
 	proj Projection
