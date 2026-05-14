@@ -96,7 +96,8 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 					continue
 				}
 
-				fmt.Fprintf(b, "%s.%s -> %s.%s: %q {\n",
+				fmt.Fprintf(
+					b, "%s.%s -> %s.%s: %q {\n",
 					pub.svcID, pub.evtID,
 					recv.svcID, recv.evtID,
 					evtID,

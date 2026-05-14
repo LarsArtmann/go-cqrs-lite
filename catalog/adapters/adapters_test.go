@@ -97,7 +97,8 @@ func TestBuilder_AddEvent(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := cattest.NewCatalogCore(t,
+	evtCore, err := cattest.NewCatalogCore(
+		t,
 		"order.created",
 		event.CatalogMeta{
 			Name:    "OrderCreated",

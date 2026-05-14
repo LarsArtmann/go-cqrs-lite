@@ -281,7 +281,8 @@ func TestSQLiteEventStore_MetadataRoundtrip(t *testing.T) {
 	cid := id.NewCorrelationID()
 	uid := id.NewUserID()
 
-	evt := sqliteTestEvent(t, aggID, 1,
+	evt := sqliteTestEvent(
+		t, aggID, 1,
 		event.WithCorrelationID(cid),
 		event.WithUserID(uid),
 		event.WithCustom("env", "test"),

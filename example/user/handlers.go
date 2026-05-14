@@ -15,19 +15,23 @@ func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
 	deciderRepo *decider.Repository[UserState],
 ) {
-	_ = dispatcher.Register(cmdCreateUser,
+	_ = dispatcher.Register(
+		cmdCreateUser,
 		func(ctx context.Context, cmd command.Command) error {
 			c := cmd.(*CreateUserCmd)
-			return deciderRepo.Execute(ctx, c.AggregateID(), "User",
+			return deciderRepo.Execute(
+				ctx, c.AggregateID(), "User",
 				decideCreateUser(c.AggregateID(), c.email, c.name),
 			)
 		},
 	)
 
-	_ = dispatcher.Register(cmdChangeUserName,
+	_ = dispatcher.Register(
+		cmdChangeUserName,
 		func(ctx context.Context, cmd command.Command) error {
 			c := cmd.(*ChangeUserNameCmd)
-			return deciderRepo.Execute(ctx, c.AggregateID(), aggregateType,
+			return deciderRepo.Execute(
+				ctx, c.AggregateID(), aggregateType,
 				decideChangeName(c.AggregateID(), c.name),
 			)
 		},
@@ -38,7 +42,8 @@ func registerQueryHandlers(
 	dispatcher *query.Dispatcher,
 	readModel *ReadModelStore,
 ) {
-	_ = dispatcher.Register(queryGetUser,
+	_ = dispatcher.Register(
+		queryGetUser,
 		func(_ context.Context, q query.Query) (any, error) {
 			gq := q.(*GetUserQuery)
 			rm, ok := readModel.Get(gq.aggregateID)
@@ -50,7 +55,8 @@ func registerQueryHandlers(
 		},
 	)
 
-	_ = dispatcher.Register(queryListUsers,
+	_ = dispatcher.Register(
+		queryListUsers,
 		func(_ context.Context, _ query.Query) (any, error) {
 			return readModel.List(), nil
 		},

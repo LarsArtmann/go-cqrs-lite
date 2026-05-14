@@ -817,9 +817,10 @@ func TestSQLEventStore_LoadAll_Success(t *testing.T) {
 	ts2 := ts1.Add(time.Second)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).
-			AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, []byte(`{}`), nil, ts1).
-			AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, []byte(`{}`), nil, ts2),
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).
+				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, []byte(`{}`), nil, ts1).
+				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, []byte(`{}`), nil, ts2),
 		)
 
 	events, err := store.LoadAll(context.Background())

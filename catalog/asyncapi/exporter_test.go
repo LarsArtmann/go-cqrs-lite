@@ -231,7 +231,8 @@ func TestExporter_WithOptions(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	exp := NewExporter("Test", "1.0.0",
+	exp := NewExporter(
+		"Test", "1.0.0",
 		WithServer("staging", "kafka.staging:9092", "kafka"),
 		WithDescription("Staging API"),
 	)
@@ -452,7 +453,8 @@ func TestExporter_Export_Examples(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
-	cattest.AddCommandWithExamples(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+	cattest.AddCommandWithExamples(
+		t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
 		json.RawMessage(`{"orderId":"abc","amount":42.5}`),
 	)
 

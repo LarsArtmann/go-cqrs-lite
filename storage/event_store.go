@@ -83,27 +83,9 @@ func checkVersion(
 	aggregateID id.AggregateID,
 	expectedVersion event.Version,
 ) error {
-	var currentVersion int
+	query := fmt.Sprintf(checkVersionQuery, "$1", "$2")
 
-	query := `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
-
-	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
-		Scan(&currentVersion)
-	if err != nil {
-		return fmt.Errorf("check current version: %w", err)
-	}
-
-	if currentVersion != expectedVersion.Int() {
-		return fmt.Errorf("%w: expected version %d, got %d for %s %s",
-			ErrConcurrencyConflict,
-			expectedVersion.Int(),
-			currentVersion,
-			aggregateType,
-			aggregateID,
-		)
-	}
-
-	return nil
+	return sharedCheckVersion(ctx, tx, aggregateType, aggregateID, expectedVersion, query)
 }
 
 // AppendBatch appends events without optimistic concurrency checks.
@@ -213,7 +195,7 @@ func (s *SQLEventStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "$1, $2", "events")
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "$1", "$2", "events")
 }
 
 var (

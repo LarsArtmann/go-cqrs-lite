@@ -25,7 +25,8 @@ func TestBuilder_ExportAsyncAPI(t *testing.T) {
 	)
 	builder.AddCommand("order-svc", cmd)
 
-	doc, err := builder.ExportAsyncAPI("E-Commerce API", "1.0.0",
+	doc, err := builder.ExportAsyncAPI(
+		"E-Commerce API", "1.0.0",
 		asyncapi.WithServer("production", "kafka:9092", "kafka"),
 	)
 	if err != nil {
@@ -226,7 +227,8 @@ func TestBuilder_AddEventWithDirection(t *testing.T) {
 	builder := adapters.NewBuilder("Test API", "1.0.0")
 	builder.AddService("order-svc", "Order Service", "1.0.0", "")
 
-	evtCore, err := cattest.NewCatalogCore(t,
+	evtCore, err := cattest.NewCatalogCore(
+		t,
 		"order.shipped",
 		event.CatalogMeta{
 			Name:    "OrderShipped",

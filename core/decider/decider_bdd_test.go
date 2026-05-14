@@ -56,7 +56,8 @@ func createCounter(
 	repo *decider.Repository[bddCounter],
 	aggID id.AggregateID,
 ) {
-	err := repo.Execute(ctx, aggID, "Counter",
+	err := repo.Execute(
+		ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeCreateEvent(aggID, v+1)}, nil
 		},
@@ -69,7 +70,8 @@ func incrementCounter(
 	repo *decider.Repository[bddCounter],
 	aggID id.AggregateID,
 ) {
-	err := repo.Execute(ctx, aggID, "Counter",
+	err := repo.Execute(
+		ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
 		},
@@ -100,7 +102,8 @@ var _ = Describe("Decider Repository", func() {
 	Describe("As a developer using the Decider pattern", func() {
 		Context("when I create a new aggregate", func() {
 			It("should save and publish the decision events", func() {
-				err := repo.Execute(ctx, aggID, "Counter",
+				err := repo.Execute(
+					ctx, aggID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
 						return []event.Event{makeCreateEvent(aggID, v+1)}, nil
 					},
@@ -129,7 +132,8 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when my decide function returns no events", func() {
 			It("should not save or publish anything", func() {
-				err := repo.Execute(ctx, aggID, "Counter",
+				err := repo.Execute(
+					ctx, aggID, "Counter",
 					func(_ bddCounter, _ event.Version) ([]event.Event, error) {
 						return nil, nil
 					},
@@ -145,7 +149,8 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when my decide function returns an error", func() {
 			It("should not save any events", func() {
-				err := repo.Execute(ctx, aggID, "Counter",
+				err := repo.Execute(
+					ctx, aggID, "Counter",
 					func(_ bddCounter, _ event.Version) ([]event.Event, error) {
 						return nil, errBDDRejected
 					},
@@ -174,7 +179,8 @@ var _ = Describe("Decider Repository", func() {
 
 				var receivedState bddCounter
 				var receivedVersion event.Version
-				err := repo.Execute(ctx, aggID, "Counter",
+				err := repo.Execute(
+					ctx, aggID, "Counter",
 					func(state bddCounter, v event.Version) ([]event.Event, error) {
 						receivedState = state
 						receivedVersion = v
@@ -190,7 +196,8 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when I emit multiple events in a single decision", func() {
 			It("should save and publish all of them atomically", func() {
-				err := repo.Execute(ctx, aggID, "Counter",
+				err := repo.Execute(
+					ctx, aggID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
 						return []event.Event{
 							makeCreateEvent(aggID, v+1),
@@ -270,7 +277,8 @@ var _ = Describe("Decider Repository", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				for i := 0; i < 4; i++ {
-					err = repo.Execute(ctx, aggID, "Counter",
+					err = repo.Execute(
+						ctx, aggID, "Counter",
 						func(_ bddCounter, v event.Version) ([]event.Event, error) {
 							if v == 0 {
 								return []event.Event{makeCreateEvent(aggID, v+1)}, nil
@@ -299,7 +307,8 @@ var _ = Describe("Decider Repository", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				for i := 0; i < 3; i++ {
-					err = repo.Execute(ctx, aggID, "Counter",
+					err = repo.Execute(
+						ctx, aggID, "Counter",
 						func(_ bddCounter, v event.Version) ([]event.Event, error) {
 							if v == 0 {
 								return []event.Event{makeCreateEvent(aggID, v+1)}, nil

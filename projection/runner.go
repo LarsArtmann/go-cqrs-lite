@@ -157,7 +157,8 @@ func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
 
 		err := r.handleWithRetry(ctx, p, evt)
 		if err != nil {
-			r.logger.ErrorContext(ctx, "projection handler failed",
+			r.logger.ErrorContext(
+				ctx, "projection handler failed",
 				"projection", p.Name(),
 				"event_id", evt.ID(),
 				"event_type", evt.Type(),

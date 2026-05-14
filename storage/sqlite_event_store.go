@@ -96,27 +96,9 @@ func sqliteCheckVersion(
 	aggregateID id.AggregateID,
 	expectedVersion event.Version,
 ) error {
-	var currentVersion int
+	query := fmt.Sprintf(checkVersionQuery, "?", "?")
 
-	query := `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = ? AND aggregate_id = ?`
-
-	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
-		Scan(&currentVersion)
-	if err != nil {
-		return fmt.Errorf("check current version: %w", err)
-	}
-
-	if currentVersion != expectedVersion.Int() {
-		return fmt.Errorf("%w: expected version %d, got %d for %s %s",
-			ErrConcurrencyConflict,
-			expectedVersion.Int(),
-			currentVersion,
-			aggregateType,
-			aggregateID,
-		)
-	}
-
-	return nil
+	return sharedCheckVersion(ctx, tx, aggregateType, aggregateID, expectedVersion, query)
 }
 
 func sqliteInsertEvents(
@@ -228,7 +210,7 @@ func (s *SQLiteEventStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "?,?", "events")
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "?", "?", "events")
 }
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.

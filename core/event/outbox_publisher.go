@@ -125,7 +125,8 @@ func (p *OutboxPublisher) Close() error {
 func (p *OutboxPublisher) run(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			slog.Error("outbox publisher recovered from panic",
+			slog.Error(
+				"outbox publisher recovered from panic",
 				"error", r,
 				"stack", string(debug.Stack()),
 			)

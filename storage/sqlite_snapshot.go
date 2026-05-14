@@ -120,7 +120,16 @@ func (s *SQLiteSnapshotStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "snapshots", "?,?", "snapshot")
+	return deleteByAggregate(
+		s.db,
+		ctx,
+		aggregateType,
+		aggregateID,
+		"snapshots",
+		"?",
+		"?",
+		"snapshot",
+	)
 }
 
 var _ event.SnapshotStore = (*SQLiteSnapshotStore)(nil)

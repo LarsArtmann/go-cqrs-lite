@@ -89,7 +89,8 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		t.Errorf("service file missing id: %s", content)
 	}
 
-	cattest.ReadFileAndAssert(t, svcPath, "service file",
+	cattest.ReadFileAndAssert(
+		t, svcPath, "service file",
 		"name: Order Service",
 		"# Order Service",
 	)
@@ -109,7 +110,8 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	}
 
 	content = string(data)
-	cattest.AssertContentContains(t, content, "command file",
+	cattest.AssertContentContains(
+		t, content, "command file",
 		"id: CreateOrder",
 	)
 
@@ -180,7 +182,8 @@ func TestExporter_Export_Event(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "event file",
+	cattest.AssertContentContains(
+		t, content, "event file",
 		"id: PaymentCompleted",
 		"# PaymentCompleted",
 	)
@@ -257,7 +260,8 @@ func TestExporter_Export_Domain(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "domain file",
+	cattest.AssertContentContains(
+		t, content, "domain file",
 		"id: ordering",
 		"services:",
 		"- id: order-svc",
@@ -484,7 +488,8 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "service file",
+	cattest.AssertContentContains(
+		t, content, "service file",
 		"id: order-svc",
 		"sends:",
 		"- id: OrderCreated",
@@ -569,7 +574,8 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "service file",
+	cattest.AssertContentContains(
+		t, content, "service file",
 		"commands:",
 		"- id: CreateOrder",
 		"queries:",
@@ -619,7 +625,8 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "llms.txt",
+	cattest.AssertContentContains(
+		t, content, "llms.txt",
 		"# MyCatalog",
 		"## Order Service (order-svc)",
 		"### Commands",
@@ -637,7 +644,8 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
-	cattest.AddCommandWithExamples(t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+	cattest.AddCommandWithExamples(
+		t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
 		json.RawMessage(`{"orderId":"abc-123","amount":42.5}`),
 	)
 
@@ -665,7 +673,8 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "examples.json",
+	cattest.AssertContentContains(
+		t, content, "examples.json",
 		"orderId",
 		"42.5",
 	)
@@ -702,7 +711,8 @@ func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 	}
 
 	content := string(data)
-	cattest.AssertContentContains(t, content, "service index.mdx",
+	cattest.AssertContentContains(
+		t, content, "service index.mdx",
 		"owners:",
 		"- team-platform",
 		"- john-doe",

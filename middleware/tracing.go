@@ -27,7 +27,8 @@ func recordError(span trace.Span, err error) {
 func CommandTracing(tracer trace.Tracer) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			ctx, span := tracer.Start(ctx, "command.handle",
+			ctx, span := tracer.Start(
+				ctx, "command.handle",
 				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "command"),
@@ -54,7 +55,8 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 func EventTracing(tracer trace.Tracer) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			ctx, span := tracer.Start(ctx, "event.handle",
+			ctx, span := tracer.Start(
+				ctx, "event.handle",
 				trace.WithSpanKind(trace.SpanKindConsumer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "event"),
@@ -81,7 +83,8 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 func QueryTracing(tracer trace.Tracer) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, qry query.Query) (any, error) {
-			ctx, span := tracer.Start(ctx, "query.handle",
+			ctx, span := tracer.Start(
+				ctx, "query.handle",
 				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(
 					attribute.String("cqrs.message.kind", "query"),

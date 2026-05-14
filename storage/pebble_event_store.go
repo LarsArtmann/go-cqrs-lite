@@ -110,7 +110,8 @@ func (a *CQRSAdapter) logEventOperation(
 	aggregateID id.AggregateID,
 	count int,
 ) {
-	a.logger.Debug(msg,
+	a.logger.Debug(
+		msg,
 		slog.String("aggregate_type", string(aggregateType)),
 		slog.String("aggregate_id", aggregateID.String()),
 		slog.Int("count", count),
@@ -262,7 +263,8 @@ func (a *CQRSAdapter) Delete(
 		return fmt.Errorf("failed to commit deletions: %w", commitErr)
 	}
 
-	a.logger.Debug("events deleted",
+	a.logger.Debug(
+		"events deleted",
 		slog.String("aggregate_type", string(aggregateType)),
 		slog.String("aggregate_id", aggregateID.String()),
 		slog.Int("count", count),
@@ -325,7 +327,8 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		return nil, fmt.Errorf("failed to parse event ID: %w", err)
 	}
 
-	opts = append(opts,
+	opts = append(
+		opts,
 		event.WithEventID(eventID),
 		event.WithOccurredAt(time.Unix(0, s.OccurredAt)),
 	)

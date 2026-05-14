@@ -68,7 +68,8 @@ func MustNewCatalogCore(
 		version,
 		payload,
 		meta,
-		opts...)
+		opts...,
+	)
 	if err != nil {
 		panic(fmt.Sprintf("event.MustNewCatalogCore: %v", err))
 	}

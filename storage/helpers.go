@@ -33,18 +33,21 @@ CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
 
 // deleteByAggregate is the shared implementation for Delete methods across event
 // and snapshot stores. It deduplicates the identical 7-line Delete bodies that
-// differ only by placeholder syntax ($1 vs ?) and error message prefix.
+// differ only by placeholder syntax ($1/$2 vs ?) and error message prefix.
 func deleteByAggregate(
 	db *sql.DB,
 	ctx context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 	table string,
-	placeholder string,
+	placeholder1 string,
+	placeholder2 string,
 	what string,
 ) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE aggregate_type = %s AND aggregate_id = %s",
-		table, placeholder, placeholder)
+	query := fmt.Sprintf(
+		"DELETE FROM %s WHERE aggregate_type = %s AND aggregate_id = %s",
+		table, placeholder1, placeholder2,
+	)
 
 	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
@@ -68,7 +71,8 @@ func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 		result = append(result, item)
 	}
 
-	if err := rows.Err(); err != nil {
+	err := rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("iterate rows: %w", err)
 	}
 
@@ -150,7 +154,8 @@ func reconstructEvent(
 		event.AggregateType(aggType),
 		version,
 		payload,
-		opts...)
+		opts...,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
 	}
@@ -231,5 +236,49 @@ func insertEvents(
 	aggregateID id.AggregateID,
 	events []event.Event,
 ) error {
-	return sharedInsertEvents(ctx, tx, aggregateType, aggregateID, events, insertEventSQL, func(t time.Time) any { return t })
+	return sharedInsertEvents(
+		ctx,
+		tx,
+		aggregateType,
+		aggregateID,
+		events,
+		insertEventSQL,
+		func(t time.Time) any { return t },
+	)
+}
+
+// checkVersionQuery is the SQL query template for checking aggregate version.
+// Placeholders must be in the database driver's native format ($1, $2 for PostgreSQL, ?, ? for SQLite).
+const checkVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = %s AND aggregate_id = %s`
+
+// sharedCheckVersion is the common implementation for checkVersion (PostgreSQL) and
+// sqliteCheckVersion (SQLite), separated only by the SQL placeholder format.
+func sharedCheckVersion(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	expectedVersion event.Version,
+	query string,
+) error {
+	var currentVersion int
+
+	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
+		Scan(&currentVersion)
+	if err != nil {
+		return fmt.Errorf("check current version: %w", err)
+	}
+
+	if currentVersion != expectedVersion.Int() {
+		return fmt.Errorf(
+			"%w: expected version %d, got %d for %s %s",
+			ErrConcurrencyConflict,
+			expectedVersion.Int(),
+			currentVersion,
+			aggregateType,
+			aggregateID,
+		)
+	}
+
+	return nil
 }

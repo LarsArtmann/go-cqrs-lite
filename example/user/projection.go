@@ -43,6 +43,14 @@ func (s *ReadModelStore) List() []ReadModel {
 	return result
 }
 
+func (s *ReadModelStore) unmarshalPayload(evt event.Event, payload any) error {
+	if err := json.Unmarshal(evt.Payload(), payload); err != nil {
+		return fmt.Errorf("unmarshal %s in projection: %w", evt.Type(), err)
+	}
+
+	return nil
+}
+
 func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -52,15 +60,15 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	switch evt.Type() {
 	case eventUserCreated:
 		var p UserCreatedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserCreated in projection: %w", err)
+		if err := s.unmarshalPayload(evt, &p); err != nil {
+			return err
 		}
 
 		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
 	case eventUserNameChanged:
 		var p UserNameChangedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserNameChanged in projection: %w", err)
+		if err := s.unmarshalPayload(evt, &p); err != nil {
+			return err
 		}
 
 		if existing, ok := s.users[aggID]; ok {

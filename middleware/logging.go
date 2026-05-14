@@ -19,7 +19,8 @@ type logContext struct {
 func logWithContext(logger Logger, lc logContext, fn func() error) error {
 	start := time.Now()
 
-	logger.Info(lc.prefix+" dispatching",
+	logger.Info(
+		lc.prefix+" dispatching",
 		"type", lc.msgType,
 		"aggregateID", lc.aggregateID,
 	)
@@ -28,7 +29,8 @@ func logWithContext(logger Logger, lc logContext, fn func() error) error {
 	duration := time.Since(start)
 
 	if err != nil {
-		logger.Error(lc.prefix+" failed",
+		logger.Error(
+			lc.prefix+" failed",
 			"type", lc.msgType,
 			"aggregateID", lc.aggregateID,
 			"duration", duration,
@@ -38,7 +40,8 @@ func logWithContext(logger Logger, lc logContext, fn func() error) error {
 		return err
 	}
 
-	logger.Info(lc.prefix+" succeeded",
+	logger.Info(
+		lc.prefix+" succeeded",
 		"type", lc.msgType,
 		"aggregateID", lc.aggregateID,
 		"duration", duration,

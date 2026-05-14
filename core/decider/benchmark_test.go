@@ -40,7 +40,8 @@ func BenchmarkDecider_Execute(b *testing.B) {
 	for b.Loop() {
 		aggID := id.NewAggregateID()
 
-		err = repo.Execute(ctx, aggID, "Counter",
+		err = repo.Execute(
+			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterCreated", aggID, v.Int()+1)}, nil
 			},
@@ -69,7 +70,8 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	aggID := id.NewAggregateID()
 
 	for i := range 100 {
-		err = repo.Execute(ctx, aggID, "Counter",
+		err = repo.Execute(
+			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
 			},
@@ -82,7 +84,8 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		err = repo.Execute(ctx, aggID, "Counter",
+		err = repo.Execute(
+			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
 			},
@@ -111,7 +114,8 @@ func BenchmarkDecider_Load(b *testing.B) {
 	aggID := id.NewAggregateID()
 
 	for i := range 100 {
-		err = repo.Execute(ctx, aggID, "Counter",
+		err = repo.Execute(
+			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
 			},

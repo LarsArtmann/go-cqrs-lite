@@ -127,7 +127,8 @@ func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) stri
 func AssertServiceFrontmatter(tb testing.TB, content, svcID, svcName string) {
 	tb.Helper()
 
-	AssertContentContains(tb, content, "service frontmatter",
+	AssertContentContains(
+		tb, content, "service frontmatter",
 		"id: "+svcID,
 		"name: "+svcName,
 		"# "+svcName,
@@ -140,12 +141,14 @@ func AssertMessageFrontmatter(tb testing.TB, content, msgID string, checkHeading
 
 	tb.Helper()
 
-	AssertContentContains(tb, content, "message frontmatter",
+	AssertContentContains(
+		tb, content, "message frontmatter",
 		"id: "+msgID,
 	)
 
 	if checkHeading {
-		AssertContentContains(tb, content, "message frontmatter heading",
+		AssertContentContains(
+			tb, content, "message frontmatter heading",
 			"# "+msgID,
 		)
 	}

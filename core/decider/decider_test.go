@@ -103,7 +103,8 @@ func TestExecute_Create(t *testing.T) {
 	repo, _, bus := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	err := repo.Execute(t.Context(), aggID, "Counter",
+	err := repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(state counterState, version event.Version) ([]event.Event, error) {
 			if state.Value != 0 {
 				t.Fatalf("expected initial state, got Value=%d", state.Value)
@@ -131,7 +132,8 @@ func TestExecute_Update(t *testing.T) {
 	repo, _, _ := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	err := repo.Execute(t.Context(), aggID, "Counter",
+	err := repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
 		},
@@ -140,7 +142,8 @@ func TestExecute_Update(t *testing.T) {
 		t.Fatalf("first Execute: %v", err)
 	}
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(state counterState, version event.Version) ([]event.Event, error) {
 			if state.Value != 1 {
 				t.Fatalf("expected Value=1 after fold, got %d", state.Value)
@@ -166,7 +169,8 @@ func TestExecute_DecideError(t *testing.T) {
 
 	decideErr := errors.New("rejection: email required")
 
-	err := repo.Execute(t.Context(), aggID, "Counter",
+	err := repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return nil, decideErr
 		},
@@ -198,7 +202,8 @@ func TestExecute_FoldError(t *testing.T) {
 	existing := makeEvent(t, "CounterCreated", aggID, 1)
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{existing})
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
 		},
@@ -232,7 +237,8 @@ func TestExecute_SaveError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, _ event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
 		},
@@ -261,7 +267,8 @@ func TestExecute_PublishError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, _ event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
 		},
@@ -281,7 +288,8 @@ func TestExecute_NoEvents(t *testing.T) {
 	repo, _, bus := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	err := repo.Execute(t.Context(), aggID, "Counter",
+	err := repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, _ event.Version) ([]event.Event, error) {
 			return nil, nil
 		},
@@ -413,7 +421,8 @@ func TestExecute_WithOutbox(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
 		},
@@ -451,7 +460,8 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
 		},
@@ -474,7 +484,8 @@ func TestExecute_WithSnapshot(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(2)),
@@ -485,7 +496,8 @@ func TestExecute_WithSnapshot(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
 		},
@@ -494,7 +506,8 @@ func TestExecute_WithSnapshot(t *testing.T) {
 		t.Fatalf("first Execute: %v", err)
 	}
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
 		},
@@ -540,7 +553,8 @@ func TestLoad_WithSnapshot(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)
@@ -584,7 +598,8 @@ func TestExecute_Concurrent(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_ = repo.Execute(t.Context(), aggID, "Counter",
+			_ = repo.Execute(
+				t.Context(), aggID, "Counter",
 				func(_ counterState, v event.Version) ([]event.Event, error) {
 					return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
 				},
@@ -614,7 +629,8 @@ func TestExecute_ContextCancellation(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(ctx, aggID, "Counter",
+	err = repo.Execute(
+		ctx, aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
 		},
@@ -678,7 +694,8 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 	})
 
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)
@@ -702,7 +719,8 @@ func TestLoad_SnapshotStoreLoadError(t *testing.T) {
 	codec := event.JSONCodec{}
 
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)
@@ -751,7 +769,8 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 		},
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)
@@ -783,7 +802,8 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
@@ -794,7 +814,8 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(t.Context(), aggID, "Counter",
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
 		},
@@ -927,7 +948,8 @@ func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)
@@ -1011,7 +1033,8 @@ func TestLoad_SnapshotNil(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 	)

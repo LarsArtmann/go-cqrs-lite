@@ -89,14 +89,16 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry := event.NewUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
 
-	registry.Register(event.NewUpcaster("UserCreated", 2,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
 			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
 				[]byte(`{"name":"Alice","email":"","active":true}`))
@@ -127,7 +129,8 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	registry := event.NewUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			return event.NewEvent(
 				"UserCreated",
@@ -160,7 +163,8 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster("UserCreated", 2,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
@@ -174,7 +178,8 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 		},
 	))
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
@@ -209,7 +214,8 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
@@ -223,7 +229,8 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 		},
 	))
 
-	registry.Register(event.NewUpcaster("UserCreated", 2,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
@@ -262,7 +269,8 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 1)
 
@@ -276,7 +284,8 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 		},
 	))
 
-	registry.Register(event.NewUpcaster("UserCreated", 2,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
 			applied = append(applied, 2)
 
@@ -317,7 +326,8 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	registry := event.NewUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster("UserCreated", 1,
+	registry.Register(event.NewUpcaster(
+		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
 			return event.NewEvent(
 				"UserCreated",

@@ -23,7 +23,8 @@ func BenchmarkRunner_Register(b *testing.B) {
 	}
 
 	for b.Loop() {
-		err = runner.Register(event.NewProjection("noop",
+		err = runner.Register(event.NewProjection(
+			"noop",
 			func(_ context.Context, _ event.Event) error { return nil },
 			[]event.Type{"UserCreated"},
 		))

@@ -84,7 +84,8 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection("user-proj",
+	err := runner.Register(event.NewProjection(
+		"user-proj",
 		func(_ context.Context, evt event.Event) error {
 			handled <- string(evt.Type())
 
@@ -133,7 +134,8 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReadyAndCheckpoint(t, checkpoint)
 
-	err := runner.Register(event.NewProjection("user-proj",
+	err := runner.Register(event.NewProjection(
+		"user-proj",
 		func(_ context.Context, _ event.Event) error {
 			close(done)
 
@@ -184,7 +186,8 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection("user-proj",
+	err := runner.Register(event.NewProjection(
+		"user-proj",
 		func(_ context.Context, evt event.Event) error {
 			handled <- string(evt.Type())
 
@@ -223,7 +226,8 @@ func TestRunner_WildcardProjection(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection("all-proj",
+	err := runner.Register(event.NewProjection(
+		"all-proj",
 		func(_ context.Context, evt event.Event) error {
 			handled <- string(evt.Type())
 
@@ -298,7 +302,8 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 
 	var replayMu sync.Mutex
 
-	err = runner.Register(event.NewProjection("replay-proj",
+	err = runner.Register(event.NewProjection(
+		"replay-proj",
 		func(_ context.Context, evt event.Event) error {
 			replayMu.Lock()
 
@@ -363,7 +368,8 @@ func TestRunner_MultipleProjections(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection("user-proj",
+	err := runner.Register(event.NewProjection(
+		"user-proj",
 		func(_ context.Context, evt event.Event) error {
 			userHandled <- string(evt.Type())
 
@@ -375,7 +381,8 @@ func TestRunner_MultipleProjections(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = runner.Register(event.NewProjection("order-proj",
+	err = runner.Register(event.NewProjection(
+		"order-proj",
 		func(_ context.Context, evt event.Event) error {
 			orderHandled <- string(evt.Type())
 
@@ -464,7 +471,8 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	var replayMu sync.Mutex
 
-	err = runner.Register(event.NewProjection("replay-proj",
+	err = runner.Register(event.NewProjection(
+		"replay-proj",
 		func(_ context.Context, evt event.Event) error {
 			replayMu.Lock()
 
@@ -555,7 +563,8 @@ func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
 
 	var replayMu sync.Mutex
 
-	err = runner.Register(event.NewProjection("user-only-proj",
+	err = runner.Register(event.NewProjection(
+		"user-only-proj",
 		func(_ context.Context, evt event.Event) error {
 			replayMu.Lock()
 			replayed = append(replayed, string(evt.Type()))
@@ -605,7 +614,8 @@ func TestRunner_RetryOnTransientError(t *testing.T) {
 		projection.WithRetry(3, time.Millisecond),
 	)
 
-	err := runner.Register(event.NewProjection("retry-proj",
+	err := runner.Register(event.NewProjection(
+		"retry-proj",
 		func(_ context.Context, _ event.Event) error {
 			callCount++
 			attempts <- callCount
@@ -661,7 +671,8 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 		projection.WithRetry(3, time.Millisecond),
 	)
 
-	err := runner.Register(event.NewProjection("no-retry-proj",
+	err := runner.Register(event.NewProjection(
+		"no-retry-proj",
 		func(_ context.Context, _ event.Event) error {
 			callCount++
 			attempts <- callCount
@@ -809,7 +820,8 @@ func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection("test-proj",
+	err = runner.Register(event.NewProjection(
+		"test-proj",
 		func(_ context.Context, _ event.Event) error { return nil },
 		[]event.Type{"UserCreated"},
 	))
@@ -848,7 +860,8 @@ func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection("test-proj",
+	err = runner.Register(event.NewProjection(
+		"test-proj",
 		func(_ context.Context, _ event.Event) error { return nil },
 		[]event.Type{"UserCreated"},
 	))
@@ -891,7 +904,8 @@ func TestRunner_ReplayError_HandlerFails(t *testing.T) {
 
 	handlerErr := errors.New("handler failed")
 
-	err = runner.Register(event.NewProjection("fail-proj",
+	err = runner.Register(event.NewProjection(
+		"fail-proj",
 		func(_ context.Context, _ event.Event) error { return handlerErr },
 		[]event.Type{"UserCreated"},
 	))
@@ -945,7 +959,8 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection("test-proj",
+	err = runner.Register(event.NewProjection(
+		"test-proj",
 		func(_ context.Context, _ event.Event) error { return nil },
 		[]event.Type{"UserCreated"},
 	))
@@ -981,7 +996,8 @@ func TestRunner_SubscribeError(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection("test-proj",
+	err = runner.Register(event.NewProjection(
+		"test-proj",
 		func(_ context.Context, _ event.Event) error { return nil },
 		[]event.Type{"UserCreated"},
 	))
