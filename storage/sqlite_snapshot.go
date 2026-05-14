@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -80,6 +82,10 @@ func (s *SQLiteSnapshotStore) Load(
 		aggregateID,
 	)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, event.ErrSnapshotNotFound
+		}
+
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
