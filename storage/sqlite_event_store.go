@@ -126,30 +126,8 @@ func sqliteInsertEvents(
 	aggregateID id.AggregateID,
 	events []event.Event,
 ) error {
-	for _, evt := range events {
-		metadata, err := marshalMetadata(evt.Metadata())
-		if err != nil {
-			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
-		}
-
-		_, err = tx.ExecContext(
-			ctx,
-			sqliteInsertEventSQL,
-			evt.ID(),
-			string(evt.Type()),
-			string(aggregateType),
-			aggregateID,
-			evt.Version(),
-			evt.Payload(),
-			metadata,
-			evt.OccurredAt().Format(time.RFC3339Nano),
-		)
-		if err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
-		}
-	}
-
-	return nil
+	return sharedInsertEvents(ctx, tx, aggregateType, aggregateID, events, sqliteInsertEventSQL,
+		func(t time.Time) any { return t.Format(time.RFC3339Nano) })
 }
 
 // AppendBatch appends events without optimistic concurrency checks.

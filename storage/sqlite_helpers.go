@@ -11,23 +11,7 @@ import (
 )
 
 func sqliteScanEvents(rows *sql.Rows) ([]event.Event, error) {
-	var events []event.Event
-
-	for rows.Next() {
-		evt, err := sqliteScanEvent(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		events = append(events, evt)
-	}
-
-	err := rows.Err()
-	if err != nil {
-		return nil, fmt.Errorf("iterate event rows: %w", err)
-	}
-
-	return events, nil
+	return scanSlice(rows, sqliteScanEvent)
 }
 
 func sqliteScanEvent(rows *sql.Rows) (event.Event, error) {

@@ -31,24 +31,52 @@ CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
 }
 
-func scanEvents(rows *sql.Rows) ([]event.Event, error) {
-	var events []event.Event
+// deleteByAggregate is the shared implementation for Delete methods across event
+// and snapshot stores. It deduplicates the identical 7-line Delete bodies that
+// differ only by placeholder syntax ($1 vs ?) and error message prefix.
+func deleteByAggregate(
+	db *sql.DB,
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	table string,
+	placeholder string,
+	what string,
+) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE aggregate_type = %s AND aggregate_id = %s",
+		table, placeholder, placeholder)
+
+	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
+	if err != nil {
+		return fmt.Errorf("delete %s for %s %s: %w", what, aggregateType, aggregateID, err)
+	}
+
+	return nil
+}
+
+// scanSlice is a generic helper that deduplicates scanEvents and sqliteScanEvents.
+// Both iterate rows, apply a per-row scan function, and return a slice.
+func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
+	var result []T
 
 	for rows.Next() {
-		evt, err := scanEvent(rows)
+		item, err := fn(rows)
 		if err != nil {
 			return nil, err
 		}
 
-		events = append(events, evt)
+		result = append(result, item)
 	}
 
-	err := rows.Err()
-	if err != nil {
-		return nil, fmt.Errorf("iterate event rows: %w", err)
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate rows: %w", err)
 	}
 
-	return events, nil
+	return result, nil
+}
+
+func scanEvents(rows *sql.Rows) ([]event.Event, error) {
+	return scanSlice(rows, scanEvent)
 }
 
 func scanEvent(rows *sql.Rows) (event.Event, error) {
@@ -158,12 +186,16 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 	return data, nil
 }
 
-func insertEvents(
+// sharedInsertEvents is the common loop body for insertEvents (PostgreSQL) and
+// sqliteInsertEvents (SQLite), separated only by the time formatter and SQL template.
+func sharedInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 	events []event.Event,
+	sql string,
+	formatTime func(time.Time) any,
 ) error {
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
@@ -173,7 +205,7 @@ func insertEvents(
 
 		_, err = tx.ExecContext(
 			ctx,
-			insertEventSQL,
+			sql,
 			evt.ID(),
 			string(evt.Type()),
 			string(aggregateType),
@@ -181,7 +213,7 @@ func insertEvents(
 			evt.Version(),
 			evt.Payload(),
 			metadata,
-			evt.OccurredAt(),
+			formatTime(evt.OccurredAt()),
 		)
 		if err != nil {
 			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
@@ -189,4 +221,15 @@ func insertEvents(
 	}
 
 	return nil
+}
+
+// insertEvents persists events using PostgreSQL's native time.Time.
+func insertEvents(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	events []event.Event,
+) error {
+	return sharedInsertEvents(ctx, tx, aggregateType, aggregateID, events, insertEventSQL, func(t time.Time) any { return t })
 }

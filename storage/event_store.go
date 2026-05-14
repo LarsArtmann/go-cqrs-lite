@@ -213,14 +213,7 @@ func (s *SQLEventStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	query := `DELETE FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
-
-	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID)
-	if err != nil {
-		return fmt.Errorf("delete events for %s %s: %w", aggregateType, aggregateID, err)
-	}
-
-	return nil
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "$1, $2", "events")
 }
 
 var (
