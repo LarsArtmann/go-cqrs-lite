@@ -228,14 +228,7 @@ func (s *SQLiteEventStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	query := `DELETE FROM events WHERE aggregate_type = ? AND aggregate_id = ?`
-
-	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID)
-	if err != nil {
-		return fmt.Errorf("delete events for %s %s: %w", aggregateType, aggregateID, err)
-	}
-
-	return nil
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "?,?", "events")
 }
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.
