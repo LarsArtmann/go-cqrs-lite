@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -278,6 +280,36 @@ func sharedCheckVersion(
 			aggregateType,
 			aggregateID,
 		)
+	}
+
+	return nil
+}
+
+// sharedAckBatch deletes outbox entries by ID, using the provided placeholder format.
+// placeholderFormat is "$" for PostgreSQL or "?" for SQLite.
+func sharedAckBatch(
+	ctx context.Context,
+	db *sql.DB,
+	ids []event.OutboxID,
+	placeholderFormat string,
+) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]any, len(ids))
+
+	for i, oid := range ids {
+		placeholders[i] = placeholderFormat + strconv.Itoa(i+1)
+		args[i] = string(oid)
+	}
+
+	query := fmt.Sprintf("DELETE FROM outbox WHERE id IN (%s)", strings.Join(placeholders, ", "))
+
+	_, err := db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("ack outbox entries: %w", err)
 	}
 
 	return nil

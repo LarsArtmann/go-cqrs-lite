@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -111,22 +109,7 @@ func (o *SQLiteOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 }
 
 func (o *SQLiteOutbox) sqliteAckBatch(ctx context.Context, ids []event.OutboxID) error {
-	placeholders := make([]string, len(ids))
-	args := make([]any, len(ids))
-
-	for i, oid := range ids {
-		placeholders[i] = "?" + strconv.Itoa(i+1)
-		args[i] = string(oid)
-	}
-
-	query := fmt.Sprintf("DELETE FROM outbox WHERE id IN (%s)", strings.Join(placeholders, ", "))
-
-	_, err := o.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("ack outbox entries: %w", err)
-	}
-
-	return nil
+	return sharedAckBatch(ctx, o.db, ids, "?")
 }
 
 var _ event.Outbox = (*SQLiteOutbox)(nil)
