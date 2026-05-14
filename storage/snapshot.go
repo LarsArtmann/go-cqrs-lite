@@ -154,14 +154,7 @@ func (s *SQLSnapshotStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	query := `DELETE FROM snapshots WHERE aggregate_type = $1 AND aggregate_id = $2`
-
-	_, err := s.db.ExecContext(ctx, query, string(aggregateType), aggregateID)
-	if err != nil {
-		return fmt.Errorf("delete snapshot for %s %s: %w", aggregateType, aggregateID, err)
-	}
-
-	return nil
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "snapshots", "$1, $2", "snapshot")
 }
 
 var _ event.SnapshotStore = (*SQLSnapshotStore)(nil)
