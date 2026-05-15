@@ -360,7 +360,7 @@ func TestEncoding(t *testing.T) {
 		name          string
 		testValue     string
 		marshal       func(string) ([]byte, error)
-		unmarshal     func(*AggregateID, []byte) error
+		unmarshal     func(*EventID, []byte) error
 		marshalName   string
 		unmarshalName string
 	}{
@@ -368,9 +368,9 @@ func TestEncoding(t *testing.T) {
 			name:      "binary",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return MustParseAggregateID(id).MarshalBinary()
+				return MustParseEventID(id).MarshalBinary()
 			},
-			unmarshal: func(id *AggregateID, data []byte) error {
+			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalBinary(data)
 			},
 			marshalName:   "MarshalBinary",
@@ -380,9 +380,9 @@ func TestEncoding(t *testing.T) {
 			name:      "text",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return MustParseAggregateID(id).MarshalText()
+				return MustParseEventID(id).MarshalText()
 			},
-			unmarshal: func(id *AggregateID, data []byte) error {
+			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalText(data)
 			},
 			marshalName:   "MarshalText",
@@ -414,11 +414,11 @@ func TestEncoding(t *testing.T) {
 			t.Run("unmarshal", func(t *testing.T) {
 				t.Parallel()
 
-				var id AggregateID
+				var id EventID
 
 				var data []byte
 				if tc.name == "binary" {
-					data, _ = MustParseAggregateID(tc.testValue).MarshalBinary()
+					data, _ = MustParseEventID(tc.testValue).MarshalBinary()
 				} else {
 					data = []byte(tc.testValue)
 				}
@@ -571,6 +571,33 @@ func TestAggregateID(t *testing.T) {
 	if parsed.String() != testULID {
 		t.Errorf("ParseAggregateID() = %q, want %q", parsed.String(), testULID)
 	}
+
+	t.Run("accepts non-ULID strings", func(t *testing.T) {
+		t.Parallel()
+
+		domainID := "lock_user1_user2"
+		parsed, err := ParseAggregateID(domainID)
+		if err != nil {
+			t.Fatalf("ParseAggregateID(%q) error = %v", domainID, err)
+		}
+
+		if parsed.String() != domainID {
+			t.Errorf("ParseAggregateID(%q) = %q, want %q", domainID, parsed.String(), domainID)
+		}
+
+		if parsed.IsZero() {
+			t.Error("parsed domain ID should not be zero")
+		}
+	})
+
+	t.Run("rejects empty string", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := ParseAggregateID("")
+		if err == nil {
+			t.Error("ParseAggregateID() should error on empty string")
+		}
+	})
 }
 
 func TestEventID(t *testing.T) {
@@ -813,7 +840,7 @@ func TestUnmarshalJSON_InvalidData(t *testing.T) {
 func TestUnmarshalJSON_InvalidULID(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id EventID
 
 	err := json.Unmarshal([]byte(`"not-a-ulid"`), &id)
 	if err == nil {
@@ -839,7 +866,7 @@ func TestScan_Nil(t *testing.T) {
 func TestScan_InvalidString(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id EventID
 
 	err := id.Scan("not-a-ulid")
 	if err == nil {
@@ -880,7 +907,7 @@ func TestUnmarshalBinary_EmptyData(t *testing.T) {
 func TestUnmarshalBinary_InvalidSize(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id EventID
 
 	err := id.UnmarshalBinary([]byte{1, 2, 3})
 	if err == nil {
@@ -906,7 +933,7 @@ func TestMarshalText_Zero(t *testing.T) {
 func TestUnmarshalText_InvalidData(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id EventID
 
 	err := id.UnmarshalText([]byte("not-a-ulid"))
 	if err == nil {
@@ -947,7 +974,7 @@ func TestPtr(t *testing.T) {
 func TestFromPtr_NonNil(t *testing.T) {
 	t.Parallel()
 
-	id := NewAggregateID()
+	id := NewEventID()
 	result := FromPtr(id.Ptr())
 
 	if result != id {
@@ -958,7 +985,7 @@ func TestFromPtr_NonNil(t *testing.T) {
 func TestFromPtr_Nil(t *testing.T) {
 	t.Parallel()
 
-	result := FromPtr[AggregateID](nil)
+	result := FromPtr[EventID](nil)
 
 	if !result.IsZero() {
 		t.Errorf("FromPtr(nil) = %v, want zero value", result)
