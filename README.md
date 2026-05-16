@@ -17,15 +17,18 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 - **Event Store** - Interface for event persistence with in-memory implementation
 - **Event Bus** - Publish/subscribe pattern for domain events
 - **Aggregate Roots** - Base implementation for domain-driven design aggregates
+- **Decider Pattern** - Functional aggregate approach with pure functions (recommended)
+- **Projections** - Build read models from events with replay support
 - **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs (UserId, AggregateId, etc.)
-- **Extended Types** - Type-safe wrappers for commands, queries, and events with built-in ID types
+- **Error Classification** - Structured errors with retry semantics (Rejection, Conflict, Transient, etc.)
+- **Auto-documentation** - Generate AsyncAPI 3.0 specs and EventCatalog from code
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-# Core CQRS types (commands, queries, events, aggregates, IDs)
+# Core CQRS types (commands, queries, events, IDs, decider)
 go get github.com/larsartmann/go-cqrs-lite/core
 
 # In-memory implementations (testing)
@@ -36,6 +39,9 @@ go get github.com/larsartmann/go-cqrs-lite/catalog
 
 # Cross-cutting middleware (logging, retry, validation, recovery, metrics)
 go get github.com/larsartmann/go-cqrs-lite/middleware
+
+# Projection runner with replay and live subscription
+go get github.com/larsartmann/go-cqrs-lite/projection
 ```
 
 ### Requirements
@@ -55,28 +61,27 @@ go get github.com/larsartmann/go-cqrs-lite/middleware
 
 ### Commands (Write Side)
 
-Commands represent intent to change state:
+Commands implement the `command.Command` interface with the domain payload:
 
 ```go
-type CreateUser struct {
-    command.Base
-    Email string
-    Name  string
+type CreateUserCmd struct {
+    aggregateID id.AggregateID
+    Email       string
+    Name        string
+    idempotency string
 }
+
+func (c *CreateUserCmd) Type() command.Type          { return "user.create" }
+func (c *CreateUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *CreateUserCmd) IdempotencyKey() string      { return c.idempotency }
 
 type CreateUserHandler struct {
-    eventStore event.Store
+    repo *decider.Repository[UserState]
 }
 
-func (h *CreateUserHandler) Handle(ctx context.Context, cmd *CreateUserCommand) error {
-    user, _ := aggregate.NewUser(cmd.AggregateID(), cmd.Email, cmd.Name)
-    for _, evt := range user.UncommittedChanges() {
-        if err := h.eventStore.Append(ctx, evt); err != nil {
-            return err
-        }
-    }
-    user.MarkChangesAsCommitted()
-    return nil
+func (h *CreateUserHandler) Handle(ctx context.Context, cmd command.Command) error {
+    c := cmd.(*CreateUserCmd)
+    return h.repo.Execute(ctx, c.AggregateID(), "User", decideCreateUser(c.Email, c.Name))
 }
 ```
 
@@ -86,9 +91,9 @@ Events represent state changes with rich metadata:
 
 ```go
 event, err := event.NewEvent(
-    "user.created",
+    event.Type("user.created"),
     userID,
-    "User",
+    event.AggregateType("User"),
     1,
     payload,
     event.WithCorrelationID(requestID),
@@ -101,13 +106,20 @@ event, err := event.NewEvent(
 Prevents mixing up different ID types:
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+
 // Instead of string IDs
-userID := user_id.NewUserID()
-aggregateID := aggregate_id.New()
+userID := id.NewAggregateID()
+orderID := id.NewAggregateID()
 
 // These won't compile - type mismatch:
-// store.GetByID(ctx, userID)  // expects AggregateID, got UserID
+// store.Save(ctx, orderID, events)  // expects AggregateID, got UserID (if you used userID)
+
+// Create domain-specific ID types
+type OrderID = id.Of[orderMarker]
 ```
+
+All IDs are branded types backed by ULID strings:
 
 ## Module Structure
 
@@ -216,10 +228,10 @@ func main() {
 
     // Create dispatcher and register handler
     cmdDispatcher := command.NewDispatcher()
-    cmdDispatcher.Register("user.create", func(ctx context.Context, cmd *command.Core) error {
+    cmdDispatcher.Register(command.Type("user.create"), func(ctx context.Context, cmd command.Command) error {
         // Use repository to execute command
         payload, _ := json.Marshal(map[string]any{"email": "test@example.com"})
-        evt, _ := event.NewEvent("user.created", id.NewAggregateID(), "User", 1, payload)
+        evt, _ := event.NewEvent(event.Type("user.created"), id.NewAggregateID(), event.AggregateType("User"), 1, payload)
         return bus.Publish(ctx, evt)
     })
 
@@ -455,7 +467,7 @@ evt, err := event.NewBuilder(
 
 ## Project Status
 
-**Phase:** Active Development (core stable, storage module experimental)
+**Phase:** Active Development (core stable, storage module partially functional)
 
 | Phase         | Status      | Description                                       |
 | ------------- | ----------- | ------------------------------------------------- |
@@ -464,6 +476,9 @@ evt, err := event.NewBuilder(
 | Command Layer | ✅ Complete | Command dispatcher with middleware support        |
 | Query Layer   | ✅ Complete | Query dispatcher with typed results               |
 | Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
+| Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
+| Projections   | ✅ Complete | Projection runner with replay and live subscribe   |
+| Storage       | ⚠️ Partial | PostgreSQL/SQLite/Pebble (partially functional)   |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
