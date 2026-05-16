@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -42,34 +41,7 @@ func (s *SQLiteCheckpointStore) Load(
 	ctx context.Context,
 	projectionName string,
 ) (id.EventID, error) {
-	query := `SELECT event_id FROM checkpoints WHERE projection_name = ?`
-
-	var eventIDStr string
-
-	err := s.db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return id.EventID{}, nil
-		}
-
-		return id.EventID{}, fmt.Errorf(
-			"load checkpoint for projection %q: %w",
-			projectionName,
-			err,
-		)
-	}
-
-	parsed, err := id.ParseEventID(eventIDStr)
-	if err != nil {
-		return id.EventID{}, fmt.Errorf(
-			"parse event ID %q for projection %q: %w",
-			eventIDStr,
-			projectionName,
-			err,
-		)
-	}
-
-	return parsed, nil
+	return sharedCheckpointLoad(ctx, s.db, projectionName, "?")
 }
 
 // Save persists the last processed event ID for a projection.
@@ -78,17 +50,7 @@ func (s *SQLiteCheckpointStore) Save(
 	projectionName string,
 	eventID id.EventID,
 ) error {
-	query := `INSERT INTO checkpoints (projection_name, event_id)
-		VALUES (?, ?)
-		ON CONFLICT (projection_name)
-		DO UPDATE SET event_id = excluded.event_id`
-
-	_, err := s.db.ExecContext(ctx, query, projectionName, eventID)
-	if err != nil {
-		return fmt.Errorf("save checkpoint for projection %q: %w", projectionName, err)
-	}
-
-	return nil
+	return sharedCheckpointSave(ctx, s.db, projectionName, eventID, "?")
 }
 
 var _ event.CheckpointStore = (*SQLiteCheckpointStore)(nil)

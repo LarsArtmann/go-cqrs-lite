@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -280,6 +281,111 @@ func sharedCheckVersion(
 			aggregateType,
 			aggregateID,
 		)
+	}
+
+	return nil
+}
+
+// saveWithOutboxTx is the shared implementation for SaveWithOutbox in both
+// SQLTransactionalStore and SQLiteTransactionalStore. It performs version checking,
+// event insertion, and outbox append in a single transaction.
+func saveWithOutboxTx(
+	ctx context.Context,
+	db *sql.DB,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	events []event.Event,
+	expectedVersion event.Version,
+	checkVersionFn func(context.Context, *sql.Tx, event.AggregateType, id.AggregateID, event.Version) error,
+	insertEventsFn func(context.Context, *sql.Tx, event.AggregateType, id.AggregateID, []event.Event) error,
+	appendOutboxFn func(context.Context, *sql.Tx, []event.Event) error,
+) error {
+	if len(events) == 0 {
+		return nil
+	}
+
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	err = checkVersionFn(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	if err != nil {
+		return err
+	}
+
+	err = insertEventsFn(ctx, tx, aggregateType, aggregateID, events)
+	if err != nil {
+		return err
+	}
+
+	err = appendOutboxFn(ctx, tx, events)
+	if err != nil {
+		return err
+	}
+
+	return commitTx(tx)
+}
+
+// sharedCheckpointLoad returns the last processed event ID for a projection
+// using the provided placeholder format.
+func sharedCheckpointLoad(
+	ctx context.Context,
+	db *sql.DB,
+	projectionName string,
+	placeholder string,
+) (id.EventID, error) {
+	query := fmt.Sprintf("SELECT event_id FROM checkpoints WHERE projection_name = %s", placeholder)
+
+	var eventIDStr string
+
+	err := db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return id.EventID{}, nil
+		}
+
+		return id.EventID{}, fmt.Errorf(
+			"load checkpoint for projection %q: %w",
+			projectionName,
+			err,
+		)
+	}
+
+	parsed, err := id.ParseEventID(eventIDStr)
+	if err != nil {
+		return id.EventID{}, fmt.Errorf(
+			"parse event ID %q for projection %q: %w",
+			eventIDStr,
+			projectionName,
+			err,
+		)
+	}
+
+	return parsed, nil
+}
+
+// sharedCheckpointSave persists a checkpoint using the provided placeholder format.
+// placeholderFormat is "$" for PostgreSQL or "?" for SQLite.
+func sharedCheckpointSave(
+	ctx context.Context,
+	db *sql.DB,
+	projectionName string,
+	eventID id.EventID,
+	placeholderFormat string,
+) error {
+	query := fmt.Sprintf(
+		"INSERT INTO checkpoints (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
+		placeholderFormat, placeholderFormat,
+	)
+
+	_, err := db.ExecContext(ctx, query, projectionName, eventID)
+	if err != nil {
+		return fmt.Errorf("save checkpoint for projection %q: %w", projectionName, err)
 	}
 
 	return nil

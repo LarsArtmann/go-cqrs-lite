@@ -54,35 +54,17 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	expectedVersion event.Version,
 	outbox event.Outbox, //nolint:revive // required by interface, implementation uses own outbox field
 ) error {
-	if len(events) == 0 {
-		return nil
-	}
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
-	if err != nil {
-		return err
-	}
-
-	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
-	if err != nil {
-		return err
-	}
-
-	err = appendOutboxTx(ctx, tx, events)
-	if err != nil {
-		return err
-	}
-
-	return commitTx(tx)
+	return saveWithOutboxTx(
+		ctx,
+		s.db,
+		aggregateType,
+		aggregateID,
+		events,
+		expectedVersion,
+		checkVersion,
+		insertEvents,
+		appendOutboxTx,
+	)
 }
 
 func appendOutboxTx(
