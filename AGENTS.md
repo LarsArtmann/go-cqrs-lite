@@ -175,15 +175,15 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                                   | Key Types                                                                                                                               |
-| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                        |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                  |
-| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                  |
-| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`          |
-| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                           |
+| Package                | Purpose                                   | Key Types                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                     |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                             |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType` |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                                                                       |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                                                                       |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`                                                               |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                |
 
 ### Decider Module (`core/decider/`)
 
@@ -312,7 +312,7 @@ evt, err := event.NewEvent(
     "user.created",
     userID,                     // id.AggregateID (branded, no string conversion)
     "User",
-    1,
+    event.Version(1),           // event.Version (typed, not bare int)
     payload,
     event.WithCorrelationID(correlationID),
 )
@@ -787,4 +787,19 @@ Interfaces now return branded types instead of primitives:
   - **REFACTOR**: Extracted `persistChanges` helper in `core/aggregate` — separated persistence routing (outbox/transactional/direct) from aggregate lifecycle. `Save()` from 54 to 21 lines
   - **REFACTOR**: Simplified `SQLEventStore.LoadAll` — `return scanEvents(rows)` instead of assign+check+return. File from 253 to 248 lines (under 250 limit)
   - Zero files over 250 lines, all functions under 30 lines (except `Export` in asyncapi at 55 lines — already well-decomposed with helpers)
+  - Zero lint, all 22 test packages pass
+
+- **Session 65 (Architectural Type Safety Sweep)**:
+  - **BREAKING**: `NewEvent` signature: `version int` → `version Version`. All callers updated across 40+ files to pass `event.Version(n)` or `version.Increment()`.
+  - **NEW**: `event.SchemaVersion` type — distinct from `Version` (stream position) to prevent mixing schema version with event version. `ParseSchemaVersion`, `Int()`, `String()`, `IsZero()`.
+  - **BREAKING**: `Event.SchemaVersion()` returns `SchemaVersion` instead of `int`. `Core.schemaVersion` field typed.
+  - **BREAKING**: `Upcaster.SourceVersion()` returns `SchemaVersion`. `NewUpcaster` takes `SchemaVersion`.
+  - **BREAKING**: `WithSchemaVersion` takes `SchemaVersion` instead of `int`.
+  - **BREAKING**: `NewCatalogCore`/`MustNewCatalogCore` take `Version` instead of `int`.
+  - **NEW**: `ErrVersionNotPositive` sentinel — classified as `Rejection`. `validateEventParams` now checks `version.IsZero()` (no longer accepts `int`).
+  - **NEW**: `storage.OutboxStatus` type with `OutboxStatusPending` constant — documents outbox status values.
+  - **NEW**: `middleware.RetryConfig.Validate()` — validates `MaxAttempts >= 1`, `InitialDelay > 0`, `Multiplier > 1`. Returns `ErrValidationFailed`.
+  - **NEW**: Middleware error classification — `ErrValidationFailed → Rejection`, `ErrRetryExhausted → Infrastructure`, `ErrRetryCanceled → Infrastructure`, `ErrPanicRecovered → Corruption`.
+  - **NEW**: `memory.ErrHandlerNil → Rejection`, `catalog.ErrDomainNotFound → Rejection`, `catalog.ErrNilSchema → Rejection` classifications.
+  - **FIX**: `storage/helpers.go:342` — `fmt.Sprintf` replaced with string concatenation (perfsprint lint).
   - Zero lint, all 22 test packages pass

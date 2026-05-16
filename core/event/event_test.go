@@ -53,7 +53,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		eventType     event.Type
 		aggregateID   id.AggregateID
 		aggregateType event.AggregateType
-		version       int
+		version       event.Version
 		wantErr       error
 	}{
 		{
@@ -81,11 +81,11 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			wantErr:       event.ErrEmptyAggregateType,
 		},
 		{
-			name:          "negative version",
+			name:          "zero version",
 			eventType:     "UserCreated",
 			aggregateID:   id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "User",
-			version:       -1,
+			version:       0,
 		},
 	}
 
@@ -119,7 +119,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		eventType     event.Type
 		aggregateID   id.AggregateID
 		aggregateType event.AggregateType
-		version       int
+		version       event.Version
 		wantContains  []string
 	}{
 		{
@@ -143,13 +143,13 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 			},
 		},
 		{
-			name:          "negative version includes version, aggregate ID and event type",
+			name:          "zero version includes aggregate ID and event type",
 			eventType:     "PaymentProcessed",
 			aggregateID:   id.MustParseAggregateID("01HK154CM00YYJAJGC0GE589E2"),
 			aggregateType: "Payment",
-			version:       -5,
+			version:       0,
 			wantContains: []string{
-				"version -5 invalid",
+				"version must be positive",
 				"01HK154CM00YYJAJGC0GE589E2",
 				"PaymentProcessed",
 			},

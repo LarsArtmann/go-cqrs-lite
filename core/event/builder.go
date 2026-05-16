@@ -74,7 +74,7 @@ func (b *Builder) Build() (*Core, error) {
 		b.eventType,
 		b.aggregateID,
 		b.aggregateType,
-		b.version.Int(),
+		b.version,
 		b.payload,
 		b.opts...,
 	)

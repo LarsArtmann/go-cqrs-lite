@@ -107,7 +107,7 @@ func (e *expense) Submit(ctx context.Context, description string, amount float64
 		"ExpenseSubmitted",
 		e.ID(),
 		expenseType,
-		e.Version().Int()+1,
+		e.Version().Increment(),
 		payload,
 	)
 	if err != nil {
@@ -126,7 +126,7 @@ func (e *expense) Approve(ctx context.Context) error {
 		"ExpenseApproved",
 		e.ID(),
 		expenseType,
-		e.Version().Int()+1,
+		e.Version().Increment(),
 		nil,
 	)
 	if err != nil {
@@ -144,7 +144,7 @@ func (e *expense) Pay(ctx context.Context) error {
 		"ExpensePaid",
 		e.ID(),
 		expenseType,
-		e.Version().Int()+1,
+		e.Version().Increment(),
 		nil,
 	)
 	if err != nil {

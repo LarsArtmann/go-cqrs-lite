@@ -80,7 +80,7 @@ func TestMemoryOutboxStore_PollPendingLimit(t *testing.T) {
 
 	for i := range 5 {
 		aggID := id.NewAggregateID()
-		evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", i+1, nil)
+		evt := testhelpers.NewEvent(t, "TestEvent", aggID, "Test", event.Version(i+1), nil)
 
 		err := outbox.Append(ctx, []event.Event{evt})
 		if err != nil {

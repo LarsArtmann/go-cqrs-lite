@@ -38,14 +38,14 @@ func bddCounterDecider() decider.Decider[bddCounter] {
 }
 
 func makeCreateEvent(aggID id.AggregateID, version event.Version) event.Event {
-	evt, err := event.NewEvent("CounterCreated", aggID, "Counter", version.Int(), []byte(`{}`))
+	evt, err := event.NewEvent("CounterCreated", aggID, "Counter", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
 }
 
 func makeIncrementEvent(aggID id.AggregateID, version event.Version) event.Event {
-	evt, err := event.NewEvent("CounterIncremented", aggID, "Counter", version.Int(), []byte(`{}`))
+	evt, err := event.NewEvent("CounterIncremented", aggID, "Counter", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt

@@ -155,7 +155,7 @@ func reconstructEvent(
 		event.Type(eventType),
 		parsedAggID,
 		event.AggregateType(aggType),
-		version,
+		event.Version(version),
 		payload,
 		opts...,
 	)
@@ -339,7 +339,7 @@ func sharedCheckpointLoad(
 	projectionName string,
 	placeholder string,
 ) (id.EventID, error) {
-	query := fmt.Sprintf("SELECT event_id FROM checkpoints WHERE projection_name = %s", placeholder)
+	query := "SELECT event_id FROM checkpoints WHERE projection_name = " + placeholder
 
 	var eventIDStr string
 

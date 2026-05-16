@@ -22,14 +22,14 @@ After 62 sessions of incremental improvements, the codebase has accumulated stru
 
 `storage/` has **6 near-identical file pairs**:
 
-| PostgreSQL | SQLite | Diff |
-|-----------|--------|------|
-| `event_store.go` (223 lines) | `sqlite_event_store.go` (238 lines) | `$1/$2` vs `?` |
-| `outbox.go` (217 lines) | `sqlite_outbox.go` (~120 lines) | `$N` vs `?`, time format |
-| `snapshot.go` (169 lines) | `sqlite_snapshot.go` (140 lines) | `$N` vs `?`, `EXCLUDED` vs `excluded` |
-| `checkpoint.go` | `sqlite_checkpoint.go` | `$N` vs `?` |
-| `transactional_store.go` | `sqlite_transactional_store.go` | `$N` vs `?` |
-| `helpers.go` (scanEvent) | `sqlite_helpers.go` (sqliteScanEvent) | `time.Time` vs `string` parse |
+| PostgreSQL                   | SQLite                                | Diff                                  |
+| ---------------------------- | ------------------------------------- | ------------------------------------- |
+| `event_store.go` (223 lines) | `sqlite_event_store.go` (238 lines)   | `$1/$2` vs `?`                        |
+| `outbox.go` (217 lines)      | `sqlite_outbox.go` (~120 lines)       | `$N` vs `?`, time format              |
+| `snapshot.go` (169 lines)    | `sqlite_snapshot.go` (140 lines)      | `$N` vs `?`, `EXCLUDED` vs `excluded` |
+| `checkpoint.go`              | `sqlite_checkpoint.go`                | `$N` vs `?`                           |
+| `transactional_store.go`     | `sqlite_transactional_store.go`       | `$N` vs `?`                           |
+| `helpers.go` (scanEvent)     | `sqlite_helpers.go` (sqliteScanEvent) | `time.Time` vs `string` parse         |
 
 Every method body is copy-pasted. The `Save/Load/Delete/Append` boilerplate (begin tx, defer rollback, call helpers, commit) is identical. The only semantic differences:
 
@@ -71,14 +71,14 @@ func NewSQLiteEventStore(db *sql.DB) (*SQLEventStore, error) { ... }
 
 ### What changes
 
-| Before (12 files) | After (7 files) |
-|-------------------|-----------------|
-| `event_store.go` + `sqlite_event_store.go` | `event_store.go` (single) |
-| `outbox.go` + `sqlite_outbox.go` | `outbox.go` (single) |
-| `snapshot.go` + `sqlite_snapshot.go` | `snapshot.go` (single) |
-| `checkpoint.go` + `sqlite_checkpoint.go` | `checkpoint.go` (single) |
+| Before (12 files)                                          | After (7 files)                   |
+| ---------------------------------------------------------- | --------------------------------- |
+| `event_store.go` + `sqlite_event_store.go`                 | `event_store.go` (single)         |
+| `outbox.go` + `sqlite_outbox.go`                           | `outbox.go` (single)              |
+| `snapshot.go` + `sqlite_snapshot.go`                       | `snapshot.go` (single)            |
+| `checkpoint.go` + `sqlite_checkpoint.go`                   | `checkpoint.go` (single)          |
 | `transactional_store.go` + `sqlite_transactional_store.go` | `transactional_store.go` (single) |
-| `helpers.go` + `sqlite_helpers.go` | `helpers.go` + `dialect.go` (new) |
+| `helpers.go` + `sqlite_helpers.go`                         | `helpers.go` + `dialect.go` (new) |
 
 ### Effort & Risk
 
@@ -191,6 +191,7 @@ type CatalogMeta = catalog.Meta
 ### Problem
 
 `cattest` is a test helper package with **0% coverage**. It contains:
+
 - `assertions.go` (155 lines) — 13 assertion functions
 - `builders.go` (220 lines) — 12 builder functions
 - `catalog.go` (67 lines) — `BuildTestCatalog`
@@ -322,15 +323,15 @@ Then each `Add*` method becomes a one-liner delegation.
 
 ## Summary
 
-| # | Opportunity | Lines Saved | Effort | Risk | Priority |
-|---|------------|-------------|--------|------|----------|
-| 1 | SQL Dialect abstraction | **~250** | 4h | MEDIUM | HIGH — biggest win |
-| 2 | Merge aggregate/decider persist | **~60** | 2h | LOW | HIGH — architectural clarity |
-| 3 | Unify CatalogMeta | **~30** | 30min | LOW | LOW — easy win |
-| 4 | Delete cattest package | **~220** | 1h | LOW | MEDIUM — dead weight |
-| 5 | Consolidate fake boilerplate | **~80** | 1h | LOW | LOW — nice cleanup |
-| 6 | Generic catalog adapters | **~50** | 1h | LOW | LOW — nice cleanup |
-| | **Total** | **~730** | ~10h | | |
+| #   | Opportunity                     | Lines Saved | Effort | Risk   | Priority                     |
+| --- | ------------------------------- | ----------- | ------ | ------ | ---------------------------- |
+| 1   | SQL Dialect abstraction         | **~250**    | 4h     | MEDIUM | HIGH — biggest win           |
+| 2   | Merge aggregate/decider persist | **~60**     | 2h     | LOW    | HIGH — architectural clarity |
+| 3   | Unify CatalogMeta               | **~30**     | 30min  | LOW    | LOW — easy win               |
+| 4   | Delete cattest package          | **~220**    | 1h     | LOW    | MEDIUM — dead weight         |
+| 5   | Consolidate fake boilerplate    | **~80**     | 1h     | LOW    | LOW — nice cleanup           |
+| 6   | Generic catalog adapters        | **~50**     | 1h     | LOW    | LOW — nice cleanup           |
+|     | **Total**                       | **~730**    | ~10h   |        |                              |
 
 ### Recommended Execution Order
 

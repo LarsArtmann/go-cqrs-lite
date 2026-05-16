@@ -19,8 +19,8 @@ func TestMemoryStore_LoadAll(t *testing.T) {
 	agg1 := id.NewAggregateID()
 	agg2 := id.NewAggregateID()
 
-	evt1 := testhelpers.QuickEvent("UserCreated", agg1, "User", 0, nil)
-	evt2 := testhelpers.QuickEvent("OrderPlaced", agg2, "Order", 0, nil)
+	evt1 := testhelpers.QuickEvent("UserCreated", agg1, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("OrderPlaced", agg2, "Order", 1, nil)
 
 	err := store.Save(ctx, event.AggregateType("User"), agg1, []event.Event{evt1}, 0)
 	if err != nil {

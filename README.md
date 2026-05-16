@@ -50,12 +50,12 @@ go get github.com/larsartmann/go-cqrs-lite/projection
 
 ### Core Dependencies
 
-| Dependency               | Purpose                                         | Module |
-| ------------------------ | ----------------------------------------------- | ------ |
-| `oklog/ulid/v2`          | ULID generation (binary-sortable, time-ordered) | core   |
-| `go-branded-id`          | Branded ID type backing                         | core   |
-| `go-error-family`        | Error classification taxonomy                   | core   |
-| `go-faster/yaml`         | YAML marshaling                                 | catalog only |
+| Dependency        | Purpose                                         | Module       |
+| ----------------- | ----------------------------------------------- | ------------ |
+| `oklog/ulid/v2`   | ULID generation (binary-sortable, time-ordered) | core         |
+| `go-branded-id`   | Branded ID type backing                         | core         |
+| `go-error-family` | Error classification taxonomy                   | core         |
+| `go-faster/yaml`  | YAML marshaling                                 | catalog only |
 
 ## Core Concepts
 
@@ -123,18 +123,18 @@ All IDs are branded types backed by ULID strings:
 
 ## Module Structure
 
-| Module           | Import Path                            | Purpose                                         | Dependencies            |
-| --------------- | -------------------------------------- | ----------------------------------------------- | ---------------------- |
-| **core**        | `.../core/command`, `.../core/event`   | CQRS types, dispatchers, event sourcing        | ulid, branded-id, go-error-family |
-| **core/decider**| `.../core/decider`                     | Functional aggregate pattern (recommended)      | core                   |
-| **memory**      | `.../memory`                           | In-memory store/bus/snapshot (testing)          | core                   |
-| **catalog**     | `.../catalog`, `.../catalog/asyncapi`  | AsyncAPI + EventCatalog generation               | core, yaml             |
-| **middleware**  | `.../middleware`                       | Logging, retry, validation, recovery, metrics   | core                   |
-| **projection**  | `.../projection`                       | Projection runner with replay and live subscribe | core, memory           |
-| **storage**     | `.../storage`                          | PostgreSQL/SQLite/Pebble event store            | core                   |
-| **testhelpers** | `.../testhelpers`                      | Shared test utilities (fakes, handlers, mocks)  | core                   |
-| **integration** | `.../integration`                      | Cross-module integration tests                  | core, memory, helpers  |
-| **example/user**| `.../example/user`                     | Complete demo: CQRS + Decider + projections     | core, memory, catalog, middleware |
+| Module           | Import Path                           | Purpose                                          | Dependencies                      |
+| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- |
+| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family |
+| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              |
+| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              |
+| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        |
+| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |
+| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |
+| **storage**      | `.../storage`                         | PostgreSQL/SQLite/Pebble event store             | core                              |
+| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |
+| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |
+| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |
 
 ## Design Principles
 
@@ -477,8 +477,8 @@ evt, err := event.NewBuilder(
 | Query Layer   | ✅ Complete | Query dispatcher with typed results               |
 | Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
 | Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
-| Projections   | ✅ Complete | Projection runner with replay and live subscribe   |
-| Storage       | ⚠️ Partial | PostgreSQL/SQLite/Pebble (partially functional)   |
+| Projections   | ✅ Complete | Projection runner with replay and live subscribe  |
+| Storage       | ⚠️ Partial  | PostgreSQL/SQLite/Pebble (partially functional)   |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |

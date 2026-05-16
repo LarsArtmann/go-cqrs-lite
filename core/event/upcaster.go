@@ -17,7 +17,7 @@ type Upcaster interface {
 	SourceType() Type
 
 	// SourceVersion returns the schema version this upcaster transforms from.
-	SourceVersion() int
+	SourceVersion() SchemaVersion
 
 	// Upcast transforms the event to the next schema version.
 	Upcast(evt Event) (*Core, error)
@@ -26,14 +26,14 @@ type Upcaster interface {
 // UpcasterFunc is a convenience type for creating upcasters.
 type UpcasterFunc struct {
 	sourceType    Type
-	sourceVersion int
+	sourceVersion SchemaVersion
 	upcast        func(evt Event) (*Core, error)
 }
 
 // NewUpcaster creates an UpcasterFunc.
 func NewUpcaster(
 	sourceType Type,
-	sourceVersion int,
+	sourceVersion SchemaVersion,
 	upcast func(evt Event) (*Core, error),
 ) *UpcasterFunc {
 	return &UpcasterFunc{
@@ -47,7 +47,7 @@ func NewUpcaster(
 func (u *UpcasterFunc) SourceType() Type { return u.sourceType }
 
 // SourceVersion returns the source schema version.
-func (u *UpcasterFunc) SourceVersion() int { return u.sourceVersion }
+func (u *UpcasterFunc) SourceVersion() SchemaVersion { return u.sourceVersion }
 
 // Upcast delegates to the upcast function.
 func (u *UpcasterFunc) Upcast(evt Event) (*Core, error) {

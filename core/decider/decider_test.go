@@ -64,7 +64,12 @@ func newTestRepo(
 	return repo, store, bus
 }
 
-func makeEvent(t *testing.T, eventType string, aggID id.AggregateID, version int) *event.Core {
+func makeEvent(
+	t *testing.T,
+	eventType string,
+	aggID id.AggregateID,
+	version event.Version,
+) *event.Core {
 	t.Helper()
 
 	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))
@@ -424,7 +429,7 @@ func TestExecute_WithOutbox(t *testing.T) {
 	err = repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
 		},
 	)
 	if err != nil {
@@ -463,7 +468,7 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 	err = repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
 		},
 	)
 	if err == nil {
@@ -499,7 +504,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 	err = repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
 		},
 	)
 	if err != nil {
@@ -509,7 +514,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 	err = repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
 		},
 	)
 	if err != nil {
@@ -601,7 +606,9 @@ func TestExecute_Concurrent(t *testing.T) {
 			_ = repo.Execute(
 				t.Context(), aggID, "Counter",
 				func(_ counterState, v event.Version) ([]event.Event, error) {
-					return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Int()+1)}, nil
+					return []event.Event{
+						makeEvent(t, "CounterIncremented", aggID, v.Increment()),
+					}, nil
 				},
 			)
 		}()
@@ -632,7 +639,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	err = repo.Execute(
 		ctx, aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
 		},
 	)
 	if err == nil {
@@ -817,7 +824,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 	err = repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Int()+1)}, nil
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
 		},
 	)
 	if err != nil {

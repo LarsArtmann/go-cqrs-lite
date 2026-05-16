@@ -25,7 +25,7 @@ func newPebbleTestStore(t *testing.T) *CQRSAdapter {
 	return NewCQRSAdapter(db, slog.Default())
 }
 
-func pebbleTestEvent(t *testing.T, aggID id.AggregateID, version int) *event.Core {
+func pebbleTestEvent(t *testing.T, aggID id.AggregateID, version event.Version) *event.Core {
 	t.Helper()
 
 	evt, err := event.NewEvent(

@@ -40,7 +40,7 @@ func BenchmarkAggregate_LoadFromHistory(b *testing.B) {
 			"Benched",
 			core.ID(),
 			"BenchAggregate",
-			i+1,
+			event.Version(i+1),
 			nil,
 		)
 		if err != nil {

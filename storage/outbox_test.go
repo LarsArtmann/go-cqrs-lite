@@ -278,7 +278,12 @@ func TestMarshalUnmarshalOutboxEvents_RoundTrip(t *testing.T) {
 	}
 }
 
-func newTestEvent(t *testing.T, eventType string, aggID id.AggregateID, version int) *event.Core {
+func newTestEvent(
+	t *testing.T,
+	eventType string,
+	aggID id.AggregateID,
+	version event.Version,
+) *event.Core {
 	t.Helper()
 
 	evt, err := event.NewEvent(

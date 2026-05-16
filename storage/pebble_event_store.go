@@ -369,7 +369,7 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		event.Type(s.Type),
 		aggregateID,
 		event.AggregateType(s.AggregateType),
-		s.Version,
+		event.Version(s.Version),
 		s.Payload,
 		opts...,
 	)

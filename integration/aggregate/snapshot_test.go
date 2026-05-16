@@ -240,7 +240,13 @@ func TestEventSourcedRepository_Load_SnapshotLoadsFromVersion(t *testing.T) {
 			t.Fatalf("marshal payload for event %d: %v", i, err)
 		}
 
-		evt, err := event.NewEvent("OrderPlaced", orderID, orderAggregateType, i, payload)
+		evt, err := event.NewEvent(
+			"OrderPlaced",
+			orderID,
+			orderAggregateType,
+			event.Version(i),
+			payload,
+		)
 		if err != nil {
 			t.Fatalf("create event %d: %v", i, err)
 		}

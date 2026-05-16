@@ -89,7 +89,7 @@ func testEvent(t *testing.T) *event.Core {
 func testEventWithAggID(
 	t *testing.T,
 	aggID id.AggregateID,
-	version int,
+	version event.Version,
 	opts ...event.Option,
 ) *event.Core {
 	t.Helper()

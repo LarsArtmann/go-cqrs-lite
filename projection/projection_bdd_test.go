@@ -34,7 +34,7 @@ func (h *countingHandler) Handle(ctx context.Context, evt event.Event) error {
 	return nil
 }
 
-func makeBDDEvent(eventType event.Type, version int) event.Event {
+func makeBDDEvent(eventType event.Type, version event.Version) event.Event {
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent(eventType, aggID, "TestAggregate", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())

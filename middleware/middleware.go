@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -45,6 +46,31 @@ func DefaultRetryConfig() RetryConfig {
 		Multiplier:   defaultRetryMultiplier,
 		IsRetryable:  event.IsRetryable,
 	}
+}
+
+// Validate checks that the retry configuration is valid.
+func (c RetryConfig) Validate() error {
+	if c.MaxAttempts < 1 {
+		return fmt.Errorf(
+			"%w: MaxAttempts must be >= 1, got %d",
+			ErrValidationFailed,
+			c.MaxAttempts,
+		)
+	}
+
+	if c.InitialDelay <= 0 {
+		return fmt.Errorf(
+			"%w: InitialDelay must be positive, got %s",
+			ErrValidationFailed,
+			c.InitialDelay,
+		)
+	}
+
+	if c.Multiplier <= 1 {
+		return fmt.Errorf("%w: Multiplier must be > 1, got %f", ErrValidationFailed, c.Multiplier)
+	}
+
+	return nil
 }
 
 // CommandValidator checks a command and returns an error if invalid.

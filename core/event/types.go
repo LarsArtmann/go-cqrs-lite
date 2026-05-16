@@ -99,3 +99,27 @@ func (v Version) Increment() Version { return v + 1 }
 
 // String returns the version as a decimal string.
 func (v Version) String() string { return strconv.Itoa(int(v)) }
+
+// SchemaVersion represents the schema version of an event payload.
+// Distinct from Version (stream position) to prevent accidental mixing.
+type SchemaVersion int
+
+// ParseSchemaVersion validates and creates a SchemaVersion from an int.
+// Returns an error if the schema version is negative or zero.
+func ParseSchemaVersion(v int) (SchemaVersion, error) {
+	if v < 1 {
+		//nolint:err113 // dynamic error required to include the invalid version number
+		return 0, fmt.Errorf("schema version must be positive: %d", v)
+	}
+
+	return SchemaVersion(v), nil
+}
+
+// Int returns the underlying int value.
+func (sv SchemaVersion) Int() int { return int(sv) }
+
+// String returns the schema version as a decimal string.
+func (sv SchemaVersion) String() string { return strconv.Itoa(int(sv)) }
+
+// IsZero returns true if the schema version is zero.
+func (sv SchemaVersion) IsZero() bool { return sv == 0 }

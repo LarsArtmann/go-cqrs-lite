@@ -16,7 +16,7 @@ import (
 func createTestEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
-	version int,
+	version event.Version,
 	payload []byte,
 ) event.Event {
 	if payload == nil {
@@ -402,14 +402,14 @@ var _ = Describe("Event Creation", func() {
 			})
 		})
 
-		Context("when I create an event with a negative version", func() {
+		Context("when I create an event with a zero version", func() {
 			It("should reject it with a descriptive error", func() {
 				aggID := id.NewAggregateID()
 				_, err := event.NewEvent(
 					event.Type("BadEvent"),
 					aggID,
 					event.AggregateType("User"),
-					-1,
+					0,
 					nil,
 				)
 				Expect(err).To(HaveOccurred())

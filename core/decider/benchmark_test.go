@@ -10,7 +10,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-func benchEvent(tb testing.TB, eventType string, aggID id.AggregateID, version int) *event.Core {
+func benchEvent(
+	tb testing.TB,
+	eventType string,
+	aggID id.AggregateID,
+	version event.Version,
+) *event.Core {
 	tb.Helper()
 
 	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))
@@ -43,7 +48,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 		err = repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterCreated", aggID, v.Int()+1)}, nil
+				return []event.Event{benchEvent(b, "CounterCreated", aggID, v.Increment())}, nil
 			},
 		)
 		if err != nil {
@@ -73,7 +78,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 		err = repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
+				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
 			},
 		)
 		if err != nil {
@@ -87,7 +92,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 		err = repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
+				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
 			},
 		)
 		if err != nil {
@@ -117,7 +122,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 		err = repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Int()+1)}, nil
+				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
 			},
 		)
 		if err != nil {
@@ -140,7 +145,7 @@ func BenchmarkDecider_Fold(b *testing.B) {
 	aggID := id.NewAggregateID()
 
 	for i := range 100 {
-		events[i] = benchEvent(b, "CounterIncremented", aggID, i+1)
+		events[i] = benchEvent(b, "CounterIncremented", aggID, event.Version(i+1))
 	}
 
 	state := counterState{Value: 0}

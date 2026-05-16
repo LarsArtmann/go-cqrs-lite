@@ -61,7 +61,7 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 		"UserCreated",
 		1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
@@ -92,7 +92,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 	registry.Register(event.NewUpcaster(
 		"UserCreated", 1,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
@@ -100,7 +100,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 	registry.Register(event.NewUpcaster(
 		"UserCreated", 2,
 		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version().Int(),
+			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":"","active":true}`))
 		},
 	))
@@ -136,7 +136,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -172,7 +172,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -187,7 +187,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -223,7 +223,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -238,7 +238,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -278,7 +278,7 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -293,7 +293,7 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},
@@ -333,7 +333,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
-				evt.Version().Int(),
+				evt.Version(),
 				nil,
 			)
 		},

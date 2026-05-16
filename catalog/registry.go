@@ -4,10 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // ErrDomainNotFound is returned when a domain ID does not exist in the registry.
 var ErrDomainNotFound = errors.New("domain not found")
+
+func init() { //nolint:gochecknoinits
+	event.RegisterClassification(ErrDomainNotFound, event.Rejection)
+	event.RegisterClassification(ErrNilSchema, event.Rejection)
+}
 
 func copySlice[T any](s []T) []T {
 	if s == nil {

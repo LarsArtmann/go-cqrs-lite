@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func makeMemEvent(eventType event.Type, aggID id.AggregateID, version int) event.Event {
+func makeMemEvent(eventType event.Type, aggID id.AggregateID, version event.Version) event.Event {
 	evt, err := event.NewEvent(eventType, aggID, "TestAggregate", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 

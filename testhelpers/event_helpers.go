@@ -18,7 +18,7 @@ func NewEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
 	aggType event.AggregateType,
-	version int,
+	version event.Version,
 	payload []byte,
 ) event.Event {
 	t.Helper()
@@ -36,7 +36,7 @@ func MakeEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
 	aggType event.AggregateType,
-	version int,
+	version event.Version,
 	payload []byte,
 ) (event.Event, error) {
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, payload)
@@ -49,7 +49,7 @@ func QuickEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
 	aggType event.AggregateType,
-	version int,
+	version event.Version,
 	payload []byte,
 ) event.Event {
 	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload)

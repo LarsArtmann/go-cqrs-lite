@@ -113,7 +113,7 @@ func TestCoreLoadFromHistory_MultipleEvents(t *testing.T) {
 			"OrderUpdated",
 			aggID,
 			"Order",
-			i+1,
+			event.Version(i+1),
 			nil,
 		)
 		if err != nil {
@@ -196,7 +196,7 @@ func TestCoreRecordEvent_Multiple(t *testing.T) {
 			"UserUpdated",
 			aggID,
 			"User",
-			i+1,
+			event.Version(i+1),
 			nil,
 		)
 		if err != nil {

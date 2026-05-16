@@ -48,7 +48,7 @@ type Event interface {
 	AggregateID() id.AggregateID
 	AggregateType() AggregateType
 	Version() Version
-	SchemaVersion() int
+	SchemaVersion() SchemaVersion
 	Payload() []byte
 	Metadata() *Metadata
 	OccurredAt() time.Time
@@ -73,7 +73,7 @@ type Core struct {
 	aggregateID   id.AggregateID
 	aggregateType AggregateType
 	version       Version
-	schemaVersion int
+	schemaVersion SchemaVersion
 	payload       []byte
 	metadata      *Metadata
 	occurredAt    time.Time
@@ -113,7 +113,7 @@ func (e *Core) Version() Version { return e.version }
 // SchemaVersion returns the schema version of the event payload.
 // Defaults to 1 for events created with NewEvent.
 // Used by upcasters to determine if an event needs transformation.
-func (e *Core) SchemaVersion() int { return e.schemaVersion }
+func (e *Core) SchemaVersion() SchemaVersion { return e.schemaVersion }
 
 // Payload returns the event payload. The returned slice is safe to mutate;
 // the event stores its own copy at construction time.
@@ -153,7 +153,7 @@ func NewEvent(
 	eventType Type,
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
-	version int,
+	version Version,
 	payload []byte,
 	opts ...Option,
 ) (*Core, error) {
@@ -168,21 +168,21 @@ func NewEvent(
 		return nil, err
 	}
 
-	v, _ := ParseVersion(version)
-
 	var safePayload []byte
 	if payload != nil {
 		safePayload = make([]byte, len(payload))
 		copy(safePayload, payload)
 	}
 
+	schemaV, _ := ParseSchemaVersion(1)
+
 	evt := &Core{
 		id:            id.NewEventID(),
 		eventType:     eventType,
 		aggregateID:   aggregateID,
 		aggregateType: aggregateType,
-		version:       v,
-		schemaVersion: 1,
+		version:       version,
+		schemaVersion: schemaV,
 		payload:       safePayload,
 		metadata:      NewMetadata(),
 		occurredAt:    time.Now(),
@@ -199,7 +199,7 @@ func validateEventParams(
 	eventType Type,
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
-	version int,
+	version Version,
 	payload []byte,
 ) error {
 	if eventType == "" {
@@ -231,16 +231,14 @@ func validateEventParams(
 		)
 	}
 
-	_, err := ParseVersion(version)
-	if err != nil {
+	if version.IsZero() {
 		return fmt.Errorf(
-			"version %d invalid for aggregate %q of type %q (event type %q, payload size %d): %w",
-			version,
+			"%w: for aggregate %q of type %q (event type %q, payload size %d)",
+			ErrVersionNotPositive,
 			aggregateID,
 			aggregateType,
 			eventType,
 			len(payload),
-			err,
 		)
 	}
 

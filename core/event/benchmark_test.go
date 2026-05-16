@@ -68,7 +68,13 @@ func BenchmarkPublishChanges(b *testing.B) {
 	events := make([]event.Event, 10)
 
 	for i := range 10 {
-		evt, err := event.NewEvent(event.Type("UserCreated"), aggID, "User", i+1, nil)
+		evt, err := event.NewEvent(
+			event.Type("UserCreated"),
+			aggID,
+			"User",
+			event.Version(i+1),
+			nil,
+		)
 		if err != nil {
 			b.Fatalf("NewEvent: %v", err)
 		}

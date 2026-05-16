@@ -68,6 +68,7 @@ var (
 	ErrEmptyEventType          = errors.New("event type is required")
 	ErrNilAggregateID          = errors.New("aggregate ID is required")
 	ErrEmptyAggregateType      = errors.New("aggregate type is required")
+	ErrVersionNotPositive      = errors.New("version must be positive")
 	ErrVersionConflict         = errors.New("version conflict")
 	ErrAggregateNotFound       = errors.New("aggregate not found")
 	ErrStoreClosed             = errors.New("event store is closed")
@@ -90,6 +91,7 @@ func init() {
 		ErrEmptyEventType:          Rejection,
 		ErrNilAggregateID:          Rejection,
 		ErrEmptyAggregateType:      Rejection,
+		ErrVersionNotPositive:      Rejection,
 		ErrAggregateNotFound:       Rejection,
 		ErrSnapshotNotFound:        Rejection,
 		ErrVersionConflict:         Conflict,

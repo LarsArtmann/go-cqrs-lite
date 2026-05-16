@@ -118,7 +118,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 				"test.event",
 				aggID,
 				"Test",
-				i,
+				event.Version(i),
 				[]byte(`{}`),
 				event.WithCorrelationID(corrID),
 			)

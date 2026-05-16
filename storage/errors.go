@@ -6,6 +6,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
+// OutboxStatus represents the status of an outbox entry.
+type OutboxStatus string
+
+const (
+	// OutboxStatusPending indicates the entry has not yet been published.
+	OutboxStatusPending OutboxStatus = "pending"
+)
+
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
 var ErrNilDB = errors.New("storage: nil database connection")
 
