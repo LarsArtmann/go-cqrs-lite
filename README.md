@@ -44,13 +44,12 @@ go get github.com/larsartmann/go-cqrs-lite/middleware
 
 ### Core Dependencies
 
-| Dependency                | Purpose                                         | Module       |
-| ------------------------- | ----------------------------------------------- | ------------ |
-| `cockroachdb/errors`      | Error wrapping                                  | core         |
-| `oklog/ulid/v2`           | ULID generation (binary-sortable, time-ordered) | core         |
-| `go-branded-id`           | Branded ID type backing                         | core         |
-| `go-json-experiment/json` | JSON v2                                         | core         |
-| `go-faster/yaml`          | YAML marshaling                                 | catalog only |
+| Dependency               | Purpose                                         | Module |
+| ------------------------ | ----------------------------------------------- | ------ |
+| `oklog/ulid/v2`          | ULID generation (binary-sortable, time-ordered) | core   |
+| `go-branded-id`          | Branded ID type backing                         | core   |
+| `go-error-family`        | Error classification taxonomy                   | core   |
+| `go-faster/yaml`         | YAML marshaling                                 | catalog only |
 
 ## Core Concepts
 
@@ -112,15 +111,18 @@ aggregateID := aggregate_id.New()
 
 ## Module Structure
 
-| Module          | Import Path       | Purpose                                        | Dependencies          |
-| --------------- | ----------------- | ---------------------------------------------- | --------------------- |
-| **core**        | `.../core/...`    | CQRS types, dispatchers, event sourcing        | errors, ulid, json    |
-| **memory**      | `.../memory`      | In-memory store/bus/snapshot (testing)         | core                  |
-| **catalog**     | `.../catalog/...` | AsyncAPI + EventCatalog generation             | core, yaml            |
-| **middleware**  | `.../middleware`  | Logging, retry, validation, recovery, metrics  | core                  |
-| **storage**     | `.../storage`     | PostgreSQL event store                         | core                  |
-| **testhelpers** | `.../testhelpers` | Shared test utilities (fakes, handlers, mocks) | core                  |
-| **integration** | `.../integration` | Cross-module integration tests                 | core, memory, helpers |
+| Module           | Import Path                            | Purpose                                         | Dependencies            |
+| --------------- | -------------------------------------- | ----------------------------------------------- | ---------------------- |
+| **core**        | `.../core/command`, `.../core/event`   | CQRS types, dispatchers, event sourcing        | ulid, branded-id, go-error-family |
+| **core/decider**| `.../core/decider`                     | Functional aggregate pattern (recommended)      | core                   |
+| **memory**      | `.../memory`                           | In-memory store/bus/snapshot (testing)          | core                   |
+| **catalog**     | `.../catalog`, `.../catalog/asyncapi`  | AsyncAPI + EventCatalog generation               | core, yaml             |
+| **middleware**  | `.../middleware`                       | Logging, retry, validation, recovery, metrics   | core                   |
+| **projection**  | `.../projection`                       | Projection runner with replay and live subscribe | core, memory           |
+| **storage**     | `.../storage`                          | PostgreSQL/SQLite/Pebble event store            | core                   |
+| **testhelpers** | `.../testhelpers`                      | Shared test utilities (fakes, handlers, mocks)  | core                   |
+| **integration** | `.../integration`                      | Cross-module integration tests                  | core, memory, helpers  |
+| **example/user**| `.../example/user`                     | Complete demo: CQRS + Decider + projections     | core, memory, catalog, middleware |
 
 ## Design Principles
 
@@ -141,17 +143,22 @@ aggregateID := aggregate_id.New()
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      CQRS-LITE CORE                          │
+│                      CORE MODULES                            │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │   Command    │  │    Query     │  │    Event     │       │
-│  │  Dispatcher  │  │  Dispatcher  │  │     Bus      │       │
+│  │   Command    │  │    Query    │  │    Event    │       │
+│  │  Dispatcher  │  │  Dispatcher │  │  Store/Bus   │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │  Aggregate   │  │   Decider   │  │ Projection  │       │
+│  │  Repository │  │ Repository  │  │    Runner   │       │
 │  └──────────────┘  └──────────────┘  └──────────────┘       │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     DOMAIN LAYER                             │
-│   Aggregates ──► Entities ──► Strongly-Typed IDs           │
+│                    INFRASTRUCTURE LAYER                      │
+│   MemoryStore ──► Storage (PostgreSQL/SQLite/Pebble)        │
+│   MemoryBus ─────► Catalog (AsyncAPI/EventCatalog)          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -162,22 +169,59 @@ package main
 
 import (
     "context"
+    "encoding/json"
     "log"
 
     "github.com/larsartmann/go-cqrs-lite/core/command"
+    "github.com/larsartmann/go-cqrs-lite/core/decider"
+    "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
     "github.com/larsartmann/go-cqrs-lite/memory"
 )
 
+// UserState represents the aggregate state
+type UserState struct {
+    Email string
+    Name  string
+}
+
+// Decide handles commands and returns events (pure function)
+func decide(state UserState, cmd *command.Core) ([]event.Event, error) {
+    return nil, nil // simplified
+}
+
+// Fold reconstructs state from events (pure function)
+func fold(state UserState, evt event.Event) (UserState, error) {
+    return state, nil // simplified
+}
+
 func main() {
     ctx := context.Background()
 
-    // Create in-memory event store and bus (testing)
-    _ = memory.NewMemoryStore()
-    _ = memory.NewMemoryBus()
+    // Create infrastructure
+    store := memory.NewMemoryStore()
+    bus := memory.NewMemoryBus()
 
-    // Register command dispatcher
+    // Create decider (recommended pattern - pure functions)
+    userDecider := decider.Decider[UserState]{
+        Initial: UserState{},
+        Fold:    fold,
+    }
+
+    // Create repository
+    repo, err := decider.NewRepository(store, bus, userDecider)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create dispatcher and register handler
     cmdDispatcher := command.NewDispatcher()
+    cmdDispatcher.Register("user.create", func(ctx context.Context, cmd *command.Core) error {
+        // Use repository to execute command
+        payload, _ := json.Marshal(map[string]any{"email": "test@example.com"})
+        evt, _ := event.NewEvent("user.created", id.NewAggregateID(), "User", 1, payload)
+        return bus.Publish(ctx, evt)
+    })
 
     // Use strongly-typed IDs
     userID := id.NewAggregateID()
@@ -192,6 +236,8 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+
+    _ = repo // repository ready for use
 }
 ```
 
@@ -372,21 +418,25 @@ Fluent builder for events with compile-time type safety:
 
 ```go
 import (
+    "encoding/json"
+
     "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 aggregateID := id.NewAggregateID()
 
+payload, _ := json.Marshal(map[string]any{"order_id": aggregateID.String()})
+
 evt, err := event.NewBuilder(
-    "order.created",
+    event.Type("order.created"),
     aggregateID,
-    "Order",
-    1,
+    event.AggregateType("Order"),
+    event.Version(1),
 ).
-    WithPayload(jsonPayload).
-    WithCorrelationID(correlationID).
-    WithUserID(operatorID).
+    WithPayload(payload).
+    WithCorrelationID(id.NewCorrelationID()).
+    WithUserID(id.NewUserID()).
     Build()
 ```
 
@@ -426,9 +476,5 @@ MIT
 
 ## References
 
-- [HOW_TO_GOLANG.md](https://github.com/larsartmann/library-policy) - Coding standards
+- [CONTEXT.md](CONTEXT.md) - Domain context and project understanding
 - [CQRS pattern](https://martinfowler.com/bliki/CQRS.html) - Martin Fowler
-
-```
-
-```
