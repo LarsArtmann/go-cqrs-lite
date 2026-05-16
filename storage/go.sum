@@ -68,6 +68,8 @@ github.com/larsartmann/go-branded-id v0.1.0 h1:rVGEylUJ3CbDB2Rz3HUEUCHRnAhakpio+
 github.com/larsartmann/go-branded-id v0.1.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0 h1:9kIR5i4RXySzmGHWF0S3BCsPug+JsrGgxLItkepJq+M=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0/go.mod h1:tmzWfqDyap1LuEVCyGwi2xBXB+tXXMzRoYddwPPDToA=
+github.com/larsartmann/go-error-family v0.1.0 h1:iWy1iZd1/CALHvmk9pB7vbx9/NB/zKilqGUupgFFupU=
+github.com/larsartmann/go-error-family v0.1.0/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zkfA9PSy5pEvNWRP0ET0TIVo=

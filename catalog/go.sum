@@ -12,6 +12,8 @@ github.com/larsartmann/go-cqrs-lite/memory v1.1.0 h1:tI7V9X2Qe9ZhpVQ4+wRS61qBnC5
 github.com/larsartmann/go-cqrs-lite/memory v1.1.0/go.mod h1:ujm4qED6iakUok0ei6GdYqz+BYThLeNCLDT10hLLTC4=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0 h1:9kIR5i4RXySzmGHWF0S3BCsPug+JsrGgxLItkepJq+M=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0/go.mod h1:tmzWfqDyap1LuEVCyGwi2xBXB+tXXMzRoYddwPPDToA=
+github.com/larsartmann/go-error-family v0.1.0 h1:iWy1iZd1/CALHvmk9pB7vbx9/NB/zKilqGUupgFFupU=
+github.com/larsartmann/go-error-family v0.1.0/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
 github.com/oklog/ulid/v2 v2.1.0 h1:+9lhoxAP56we25tyYETBBY1YLA2SaoLvUFgrP2miPJU=
 github.com/oklog/ulid/v2 v2.1.0/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
@@ -24,6 +26,7 @@ github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df h1:UA2aFVmmsIlefxMk29Dp2juaUSth8Pyn3Tq5Y5mJGME=
+golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
 golang.org/x/sys v0.43.0 h1:Rlag2XtaFTxp19wS8MXlJwTvoh8ArU6ezoyFsMyCTNI=
 golang.org/x/sys v0.43.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

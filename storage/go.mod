@@ -31,6 +31,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
+	github.com/larsartmann/go-error-family v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -50,4 +51,9 @@ require (
 	modernc.org/libc v1.72.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
+)
+
+replace (
+	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 )
