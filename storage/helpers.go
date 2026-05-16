@@ -380,7 +380,8 @@ func sharedCheckpointSave(
 ) error {
 	query := fmt.Sprintf(
 		"INSERT INTO checkpoints (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
-		placeholderFormat, placeholderFormat,
+		placeholderFormat,
+		placeholderFormat,
 	)
 
 	_, err := db.ExecContext(ctx, query, projectionName, eventID)
