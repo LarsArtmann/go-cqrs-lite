@@ -245,7 +245,7 @@ nix develop             # enter dev shell
 
 1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
 2. **Every module must be trustworthy on its own** — Quality gate: "Would a consumer trust this enough to import it?" Means: tests, stable API, clear docs. Does NOT mean "another module in this repo uses it."
-3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`
+3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`, `go-error-family`
 4. **Composition over inheritance** — Per Go best practices
 5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
 6. **Context-aware** — All handlers accept `context.Context`
@@ -257,7 +257,7 @@ nix develop             # enter dev shell
 
 - Use `fmt.Errorf` for error messages with context
 - Use `errors.New` (stdlib) for sentinel errors
-- Wrap errors with context using `errors.Wrapf` or `errors.Wrap`
+- Wrap errors with context using `fmt.Errorf` with `%w` (cockroachdb/errors removed in Session 54)
 - Context as first parameter in all public functions
 - Max 30 lines per function
 - No `any` types
@@ -275,8 +275,12 @@ if id == "" {
 
 // Error wrapping
 if err != nil {
-    return errors.Wrapf(err, "failed to process %s", name)
+    return fmt.Errorf("failed to process %s: %w", name, err)
 }
+
+// Classified errors (via go-error-family)
+return event.NewRejection("user.create.empty_email", "email is required")
+return event.NewConflict("user.create.duplicate", "user already exists")
 ```
 
 ## Key Patterns
@@ -343,18 +347,19 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ### Production
 
-| Dependency       | Version | Purpose                           | Module  |
-| ---------------- | ------- | --------------------------------- | ------- |
-| `oklog/ulid/v2`  | v2.1.0  | ULID generation (binary-sortable) | core    |
-| `go-branded-id`  | v0.1.0  | Branded ID type backing           | core    |
-| `go-faster/yaml` | v0.4.6  | YAML marshaling                   | catalog |
+| Dependency        | Version | Purpose                           | Module  |
+| ----------------- | ------- | --------------------------------- | ------- |
+| `oklog/ulid/v2`   | v2.1.0  | ULID generation (binary-sortable) | core    |
+| `go-branded-id`   | v0.1.0  | Branded ID type backing           | core    |
+| `go-error-family` | v0.1.0  | Error classification taxonomy     | core    |
+| `go-faster/yaml`  | v0.4.6  | YAML marshaling                   | catalog |
 
 ### Test-only
 
-| Dependency       | Version | Purpose      | Module |
-| ---------------- | ------- | ------------ | ------ |
-| `onsi/ginkgo/v2` | v2.28.1 | BDD testing  | core   |
-| `onsi/gomega`    | v1.39.1 | BDD matchers | core   |
+| Dependency       | Version | Purpose      | Module            |
+| ---------------- | ------- | ------------ | ----------------- |
+| `onsi/ginkgo/v2` | v2.28.3 | BDD testing  | core, memory, etc |
+| `onsi/gomega`    | v1.40.0 | BDD matchers | core, memory, etc |
 
 ## Test Coverage Summary
 
@@ -363,18 +368,19 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/command`         | 100.0%   |
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
-| `core/pkg/id`          | 100.0%   |
 | `catalog/adapters`     | 100.0%   |
-| `projection`           | 100.0%   |
-| `middleware`           | 99.4%    |
+| `middleware`           | 100.0%   |
 | `memory`               | 99.5%    |
-| `catalog/d2`           | 97.7%    |
-| `core/event`           | 97.0%    |
-| `catalog/asyncapi`     | 95.9%    |
-| `catalog/eventcatalog` | 95.6%    |
+| `projection`           | 98.3%    |
+| `core/pkg/id`          | 97.8%    |
+| `catalog/d2`           | 97.6%    |
+| `core/aggregate`       | 96.9%    |
+| `catalog/eventcatalog` | 95.7%    |
 | `catalog`              | 94.4%    |
-| `storage`              | 93.1%    |
-| `core/aggregate`       | 92.9%    |
+| `core/event`           | 93.9%    |
+| `catalog/asyncapi`     | 93.9%    |
+| `core/decider`         | 92.7%    |
+| `storage`              | 85.1%    |
 
 ## Module Dependency Graph
 
