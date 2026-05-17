@@ -302,3 +302,29 @@ func TestQueryRetry_InvalidConfig(t *testing.T) {
 		t.Errorf("expected ErrValidationFailed, got: %v", err)
 	}
 }
+
+func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
+	t.Parallel()
+
+	config := DefaultRetryConfig()
+
+	if !config.IsRetryable(errors.New("any error")) {
+		t.Error("default IsRetryable should return true for unknown errors")
+	}
+
+	if !config.IsRetryable(event.NewTransient("test", "transient")) {
+		t.Error("default IsRetryable should return true for Transient errors")
+	}
+
+	if config.IsRetryable(event.NewRejection("test", "rejected")) {
+		t.Error("default IsRetryable should return false for Rejection errors")
+	}
+
+	if config.IsRetryable(event.NewConflict("test", "conflict")) {
+		t.Error("default IsRetryable should return false for Conflict errors")
+	}
+
+	if config.IsRetryable(event.ErrStoreClosed) {
+		t.Error("default IsRetryable should return false for Infrastructure errors")
+	}
+}
