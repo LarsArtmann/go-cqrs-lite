@@ -1,0 +1,51 @@
+package commands
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+)
+
+type ChangeStatusCommand struct {
+	command.Core
+	Status domain.TodoStatus `json:"status"`
+}
+
+func NewChangeStatusCommand(
+	todoID id.AggregateID,
+	status domain.TodoStatus,
+) (*ChangeStatusCommand, error) {
+	core, err := command.New(aggregate.CommandChangeStatus, todoID)
+	if err != nil {
+		return nil, fmt.Errorf("new change status command for todo %s: %w", todoID, err)
+	}
+	return &ChangeStatusCommand{
+		Core:   *core,
+		Status: status,
+	}, nil
+}
+
+type ChangeStatusHandler struct{ CommandHandler }
+
+func NewChangeStatusHandler(events event.Store, eventBus event.Publisher) *ChangeStatusHandler {
+	return &ChangeStatusHandler{CommandHandler: NewHandler(events, eventBus)}
+}
+
+func (h *ChangeStatusHandler) Handle(ctx context.Context, cmd command.Command) error {
+	typed, err := requireCommandType[*ChangeStatusCommand](cmd, "*ChangeStatusCommand")
+	if err != nil {
+		return err
+	}
+	return h.execute(ctx, typed.AggregateID(),
+		aggregate.DecideChangeStatus(typed.AggregateID(), typed.Status),
+	)
+}
+
+func (c *ChangeStatusCommand) MarshalJSON() ([]byte, error) {
+	return MarshalCommandJSON(c, CommandTypeChangeStatus)
+}
