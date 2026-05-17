@@ -46,7 +46,8 @@ func NewSQLOutbox(db *sql.DB) (*SQLOutbox, error) {
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (o *SQLOutbox) Close() error { return nil }
 
-const outboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES ($1, '` + string(OutboxStatusPending) + `'` + `, $2, $3)`
+const outboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at)` +
+	` VALUES ($1, '` + string(OutboxStatusPending) + `', $2, $3)`
 
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {

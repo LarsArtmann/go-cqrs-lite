@@ -40,7 +40,8 @@ func NewSQLiteOutbox(db *sql.DB) (*SQLiteOutbox, error) {
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (o *SQLiteOutbox) Close() error { return nil }
 
-const sqliteOutboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES (?, '` + string(OutboxStatusPending) + `'` + `, ?, ?)`
+const sqliteOutboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at)` +
+	` VALUES (?, '` + string(OutboxStatusPending) + `', ?, ?)`
 
 const sqlitePollPendingQuery = `SELECT id, events FROM outbox
 		WHERE status = '` + string(OutboxStatusPending) + `'` + `

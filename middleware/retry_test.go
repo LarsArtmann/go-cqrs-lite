@@ -195,28 +195,110 @@ func TestRetryCanceled_SentinelError(t *testing.T) {
 	}
 }
 
-func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
+func TestRetryConfig_Validate(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
+	t.Run("valid config", func(t *testing.T) {
+		t.Parallel()
 
-	if !config.IsRetryable(errors.New("any error")) {
-		t.Error("default IsRetryable should return true for unknown errors (Transient)")
+		config := DefaultRetryConfig()
+		if err := config.Validate(); err != nil {
+			t.Fatalf("expected no error, got: %v", err)
+		}
+	})
+
+	t.Run("MaxAttempts zero", func(t *testing.T) {
+		t.Parallel()
+
+		config := RetryConfig{MaxAttempts: 0, InitialDelay: time.Second, Multiplier: 2.0}
+		err := config.Validate()
+		if err == nil {
+			t.Fatal("expected error for MaxAttempts=0")
+		}
+
+		if !errors.Is(err, ErrValidationFailed) {
+			t.Errorf("expected ErrValidationFailed, got: %v", err)
+		}
+	})
+
+	t.Run("InitialDelay zero", func(t *testing.T) {
+		t.Parallel()
+
+		config := RetryConfig{MaxAttempts: 3, InitialDelay: 0, Multiplier: 2.0}
+		err := config.Validate()
+		if err == nil {
+			t.Fatal("expected error for InitialDelay=0")
+		}
+
+		if !errors.Is(err, ErrValidationFailed) {
+			t.Errorf("expected ErrValidationFailed, got: %v", err)
+		}
+	})
+
+	t.Run("Multiplier one", func(t *testing.T) {
+		t.Parallel()
+
+		config := RetryConfig{MaxAttempts: 3, InitialDelay: time.Second, Multiplier: 1.0}
+		err := config.Validate()
+		if err == nil {
+			t.Fatal("expected error for Multiplier=1.0")
+		}
+
+		if !errors.Is(err, ErrValidationFailed) {
+			t.Errorf("expected ErrValidationFailed, got: %v", err)
+		}
+	})
+}
+
+func TestCommandRetry_InvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandRetry(RetryConfig{})
+	handler := mw(testhelpers.NoopCommandHandler())
+
+	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
+	if err == nil {
+		t.Fatal("expected error for invalid config")
 	}
 
-	if !config.IsRetryable(event.NewTransient("test", "transient")) {
-		t.Error("default IsRetryable should return true for Transient errors")
+	if !errors.Is(err, ErrValidationFailed) {
+		t.Errorf("expected ErrValidationFailed, got: %v", err)
+	}
+}
+
+func TestEventRetry_InvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	mw := EventRetry(RetryConfig{})
+	handler := mw(testhelpers.NoopEventHandler())
+
+	evt, evtErr := testhelpers.NewTestEvent()
+	if evtErr != nil {
+		t.Fatalf("unexpected error: %v", evtErr)
 	}
 
-	if config.IsRetryable(event.NewRejection("test", "rejected")) {
-		t.Error("default IsRetryable should return false for Rejection errors")
+	err := handler(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error for invalid config")
 	}
 
-	if config.IsRetryable(event.NewConflict("test", "conflict")) {
-		t.Error("default IsRetryable should return false for Conflict errors")
+	if !errors.Is(err, ErrValidationFailed) {
+		t.Errorf("expected ErrValidationFailed, got: %v", err)
+	}
+}
+
+func TestQueryRetry_InvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	mw := QueryRetry(RetryConfig{})
+	handler := mw(testhelpers.NoopQueryHandler())
+
+	_, err := handler(context.Background(), &testQuery{})
+	if err == nil {
+		t.Fatal("expected error for invalid config")
 	}
 
-	if config.IsRetryable(event.ErrStoreClosed) {
-		t.Error("default IsRetryable should return false for Infrastructure errors")
+	if !errors.Is(err, ErrValidationFailed) {
+		t.Errorf("expected ErrValidationFailed, got: %v", err)
 	}
 }
