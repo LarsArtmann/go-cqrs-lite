@@ -4,6 +4,5 @@ github.com/larsartmann/go-cqrs-lite/core v1.1.0 h1:fqHfHqUHCJ7h9SF62H1Oo5u+IaL0u
 github.com/larsartmann/go-cqrs-lite/core v1.1.0/go.mod h1:TdPot8FzRWc5h7ZWrqMGUydpFvZYaJJl9sveIbjHJkY=
 github.com/larsartmann/go-cqrs-lite/memory v1.1.0 h1:tI7V9X2Qe9ZhpVQ4+wRS61qBnC5FjYrqQDz0HVQ2aA4=
 github.com/larsartmann/go-cqrs-lite/memory v1.1.0/go.mod h1:ujm4qED6iakUok0ei6GdYqz+BYThLeNCLDT10hLLTC4=
-github.com/oklog/ulid/v2 v2.1.0 h1:+9lhoxAP56we25tyYETBBY1YLA2SaoLvUFgrP2miPJU=
-github.com/oklog/ulid/v2 v2.1.0/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
+github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
