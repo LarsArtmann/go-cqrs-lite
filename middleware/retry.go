@@ -15,8 +15,9 @@ import (
 // CommandRetry returns a command middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func CommandRetry(config RetryConfig) command.Middleware {
-	if err := config.Validate(); err != nil {
-		return func(next command.Handler) command.Handler {
+	err := config.Validate()
+	if err != nil {
+		return func(_ command.Handler) command.Handler {
 			return func(_ context.Context, _ command.Command) error {
 				return err
 			}
@@ -35,8 +36,9 @@ func CommandRetry(config RetryConfig) command.Middleware {
 // EventRetry returns an event middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func EventRetry(config RetryConfig) event.Middleware {
-	if err := config.Validate(); err != nil {
-		return func(next event.Handler) event.Handler {
+	err := config.Validate()
+	if err != nil {
+		return func(_ event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
 				return err
 			}
@@ -55,8 +57,9 @@ func EventRetry(config RetryConfig) event.Middleware {
 // QueryRetry returns a query middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func QueryRetry(config RetryConfig) query.Middleware {
-	if err := config.Validate(); err != nil {
-		return func(next query.Handler) query.Handler {
+	err := config.Validate()
+	if err != nil {
+		return func(_ query.Handler) query.Handler {
 			return func(_ context.Context, _ query.Query) (any, error) {
 				return nil, err
 			}
