@@ -9,13 +9,14 @@ const (
 )
 
 // Pagination controls page-based result sets.
+// Uses uint to make negative values unrepresentable at the type level.
 type Pagination struct {
-	Page     int
-	PageSize int
+	Page     uint
+	PageSize uint
 }
 
 // NewPagination creates pagination with defaults for zero values.
-func NewPagination(page, pageSize int) Pagination {
+func NewPagination(page, pageSize uint) Pagination {
 	if page < 1 {
 		page = defaultPage
 	}
@@ -33,21 +34,21 @@ func NewPagination(page, pageSize int) Pagination {
 
 // Offset calculates the zero-based skip for database queries.
 func (p Pagination) Offset() int {
-	return (p.Page - 1) * p.PageSize
+	return int((p.Page - 1) * p.PageSize)
 }
 
 // PaginatedResult wraps a page of data with total count metadata.
 type PaginatedResult[T any] struct {
 	Data       []T
-	TotalCount int
-	Page       int
-	PageSize   int
-	TotalPages int
+	TotalCount uint
+	Page       uint
+	PageSize   uint
+	TotalPages uint
 }
 
 // NewPaginatedResult creates a paginated result, computing TotalPages.
-func NewPaginatedResult[T any](data []T, totalCount int, p Pagination) PaginatedResult[T] {
-	totalPages := 0
+func NewPaginatedResult[T any](data []T, totalCount uint, p Pagination) PaginatedResult[T] {
+	var totalPages uint
 	if totalCount > 0 {
 		totalPages = (totalCount + p.PageSize - 1) / p.PageSize
 	}

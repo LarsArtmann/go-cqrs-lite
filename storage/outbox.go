@@ -11,7 +11,7 @@ import (
 )
 
 const pollPendingQuery = `SELECT id, events FROM outbox
-		WHERE status = 'pending'
+		WHERE status = '` + string(OutboxStatusPending) + `'` + `
 		ORDER BY created_at ASC
 		LIMIT $1`
 
@@ -19,12 +19,12 @@ const pollPendingQuery = `SELECT id, events FROM outbox
 func OutboxSchema() string {
 	return `CREATE TABLE IF NOT EXISTS outbox (
     id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT 'pending',
+    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
     events      JSONB NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = 'pending';`
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
 // SQLOutbox persists events for reliable eventual publishing in a SQL database.
@@ -46,7 +46,7 @@ func NewSQLOutbox(db *sql.DB) (*SQLOutbox, error) {
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (o *SQLOutbox) Close() error { return nil }
 
-const outboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES ($1, 'pending', $2, $3)`
+const outboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES ($1, '` + string(OutboxStatusPending) + `'` + `, $2, $3)`
 
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {

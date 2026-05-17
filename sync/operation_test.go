@@ -24,7 +24,7 @@ func TestNewOperation(t *testing.T) {
 	payload := map[string]string{"name": "test"}
 	before := time.Now().UTC()
 
-	op := NewOperation("op-1", OpCreate, "node-a", payload)
+	op := NewOperation("op-1", OpCreate, MustParseNodeID("node-a"), payload)
 
 	if op.ID != "op-1" {
 		t.Errorf("ID = %q, want %q", op.ID, "op-1")
@@ -34,7 +34,7 @@ func TestNewOperation(t *testing.T) {
 		t.Errorf("Type = %q, want %q", op.Type, OpCreate)
 	}
 
-	if op.NodeID != "node-a" {
+	if op.NodeID != NodeID("node-a") {
 		t.Errorf("NodeID = %q, want %q", op.NodeID, "node-a")
 	}
 
@@ -57,14 +57,14 @@ func TestNewOperation(t *testing.T) {
 
 func TestNewOperation_WithDifferentTypes(t *testing.T) {
 	t.Run("string payload", func(t *testing.T) {
-		op := NewOperation("op-1", OpCreate, "node-a", "hello")
+		op := NewOperation("op-1", OpCreate, MustParseNodeID("node-a"), "hello")
 		if op.Payload != "hello" {
 			t.Errorf("Payload = %q, want %q", op.Payload, "hello")
 		}
 	})
 
 	t.Run("int payload", func(t *testing.T) {
-		op := NewOperation("op-2", OpUpdate, "node-b", 42)
+		op := NewOperation("op-2", OpUpdate, MustParseNodeID("node-b"), 42)
 		if op.Payload != 42 {
 			t.Errorf("Payload = %d, want 42", op.Payload)
 		}
@@ -75,7 +75,7 @@ func TestNewOperation_WithDifferentTypes(t *testing.T) {
 			Name string `json:"name"`
 		}
 
-		op := NewOperation("op-3", OpDelete, "node-c", Item{Name: "item1"})
+		op := NewOperation("op-3", OpDelete, MustParseNodeID("node-c"), Item{Name: "item1"})
 		if op.Payload.Name != "item1" {
 			t.Errorf("Payload.Name = %q, want %q", op.Payload.Name, "item1")
 		}
@@ -88,7 +88,7 @@ func TestOperation_Serialize_Deserialize(t *testing.T) {
 		Value int    `json:"value"`
 	}
 
-	original := NewOperation("op-1", OpUpdate, "node-a", TestPayload{
+	original := NewOperation("op-1", OpUpdate, MustParseNodeID("node-a"), TestPayload{
 		Name:  "test",
 		Value: 42,
 	})
@@ -171,7 +171,7 @@ func TestOperation_RoundTrip_PreservesAllFields(t *testing.T) {
 	original := &Operation[ComplexPayload]{
 		ID:        "complex-op",
 		Type:      OpCreate,
-		NodeID:    "node-x",
+		NodeID:    MustParseNodeID("node-x"),
 		Timestamp: now,
 		VectorClock: VectorClock{
 			"node-x": 5,

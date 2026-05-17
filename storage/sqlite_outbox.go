@@ -13,12 +13,12 @@ import (
 func SQLiteOutboxSchema() string {
 	return `CREATE TABLE IF NOT EXISTS outbox (
     id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT 'pending',
+    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
     events      TEXT NOT NULL,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = 'pending';`
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
 // SQLiteOutbox persists events for reliable eventual publishing in a SQLite database.
@@ -40,10 +40,10 @@ func NewSQLiteOutbox(db *sql.DB) (*SQLiteOutbox, error) {
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (o *SQLiteOutbox) Close() error { return nil }
 
-const sqliteOutboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES (?, 'pending', ?, ?)`
+const sqliteOutboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at) VALUES (?, '` + string(OutboxStatusPending) + `'` + `, ?, ?)`
 
 const sqlitePollPendingQuery = `SELECT id, events FROM outbox
-		WHERE status = 'pending'
+		WHERE status = '` + string(OutboxStatusPending) + `'` + `
 		ORDER BY created_at ASC
 		LIMIT ?`
 

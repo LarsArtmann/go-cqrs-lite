@@ -27,7 +27,7 @@ type Operation[T any] struct {
 	// Type classifies the operation (create, update, delete).
 	Type OperationType `json:"type"`
 	// NodeID identifies which node produced this operation.
-	NodeID string `json:"nodeId"`
+	NodeID NodeID `json:"nodeId"`
 	// Timestamp is when the operation was created.
 	Timestamp time.Time `json:"timestamp"`
 	// VectorClock captures the causal context at operation creation time.
@@ -37,7 +37,7 @@ type Operation[T any] struct {
 }
 
 // NewOperation creates a new operation with the given parameters.
-func NewOperation[T any](id string, opType OperationType, nodeID string, payload T) *Operation[T] {
+func NewOperation[T any](id string, opType OperationType, nodeID NodeID, payload T) *Operation[T] {
 	return &Operation[T]{
 		ID:          id,
 		Type:        opType,

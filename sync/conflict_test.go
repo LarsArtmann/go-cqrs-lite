@@ -223,7 +223,7 @@ func TestMergeResult_Values(t *testing.T) {
 
 func TestSyncMessage_JSON(t *testing.T) {
 	msg := SyncMessage{
-		Type:    "sync_request",
+		Type:    SyncMessageTypeRequest,
 		Payload: json.RawMessage(`{"test":true}`),
 	}
 
@@ -232,14 +232,14 @@ func TestSyncMessage_JSON(t *testing.T) {
 	var decoded SyncMessage
 	unmarshalJSON(t, data, &decoded)
 
-	assert.Equal(t, "sync_request", decoded.Type)
+	assert.Equal(t, SyncMessageTypeRequest, decoded.Type)
 }
 
 func TestSyncRequest_JSON(t *testing.T) {
 	since := time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)
 	req := SyncRequest{
 		SyncContextMixin: SyncContextMixin{
-			NodeID: "node-1",
+			NodeID: MustParseNodeID("node-1"),
 			Clock:  VectorClock{"node-1": 5},
 		},
 		Since: since,
@@ -250,21 +250,21 @@ func TestSyncRequest_JSON(t *testing.T) {
 	var decoded SyncRequest
 	unmarshalJSON(t, data, &decoded)
 
-	assert.Equal(t, "node-1", decoded.NodeID)
+	assert.Equal(t, "node-1", decoded.NodeID.String())
 	assert.Equal(t, int64(5), decoded.Clock.Get("node-1"))
 }
 
 func TestSyncResponse_JSON(t *testing.T) {
 	resp := SyncResponse[testItem]{
 		SyncContextMixin: SyncContextMixin{
-			NodeID: "node-2",
+			NodeID: MustParseNodeID("node-2"),
 			Clock:  VectorClock{"node-1": 5, "node-2": 3},
 		},
 		Operations: []*Operation[testItem]{
 			NewOperation(
 				"op-1",
 				OpCreate,
-				"node-2",
+				MustParseNodeID("node-2"),
 				testItem{Name: "item1", UpdatedAt: time.Now()},
 			),
 		},
@@ -275,7 +275,7 @@ func TestSyncResponse_JSON(t *testing.T) {
 	var decoded SyncResponse[testItem]
 	unmarshalJSON(t, data, &decoded)
 
-	assert.Equal(t, "node-2", decoded.NodeID)
+	assert.Equal(t, "node-2", decoded.NodeID.String())
 	assert.Len(t, decoded.Operations, 1)
 	assert.Equal(t, "item1", decoded.Operations[0].Payload.Name)
 }

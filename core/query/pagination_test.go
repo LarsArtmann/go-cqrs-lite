@@ -7,16 +7,14 @@ func TestNewPagination(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		page         int
-		pageSize     int
-		wantPage     int
-		wantPageSize int
+		page         uint
+		pageSize     uint
+		wantPage     uint
+		wantPageSize uint
 	}{
 		{"defaults for zeros", 0, 0, defaultPage, defaultPageSize},
-		{"negative page defaults", -1, 10, defaultPage, 10},
-		{"negative page size defaults", 1, -1, 1, defaultPageSize},
-		{"page size capped at max", 1, 200, 1, maxPageSize},
 		{"valid values kept", 3, 50, 3, 50},
+		{"page size capped at max", 1, 200, 1, maxPageSize},
 	}
 
 	for _, tt := range tests {
@@ -40,8 +38,8 @@ func TestPagination_Offset(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		page       int
-		pageSize   int
+		page       uint
+		pageSize   uint
 		wantOffset int
 	}{
 		{"first page", 1, 20, 0},
@@ -66,14 +64,13 @@ func TestPagination_Validate(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		page    int
-		pageSz  int
+		page    uint
+		pageSz  uint
 		wantErr bool
 	}{
 		{"valid", 1, 20, false},
 		{"zero page", 0, 20, true},
 		{"zero page size", 1, 0, true},
-		{"negative page", -1, 20, true},
 		{"over max page size", 1, 200, true},
 		{"max page size valid", 1, maxPageSize, false},
 	}
@@ -126,8 +123,8 @@ func TestPaginatedResult_HasNext_HasPrev(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		page     int
-		total    int
+		page     uint
+		total    uint
 		wantNext bool
 		wantPrev bool
 	}{

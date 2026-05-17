@@ -5,6 +5,7 @@ go 1.26.2
 require (
 	github.com/larsartmann/go-cqrs-lite/core v1.1.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.1.0
+	github.com/larsartmann/go-cqrs-lite/middleware v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/projection v0.0.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.0.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0
@@ -16,7 +17,7 @@ require (
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
@@ -46,6 +47,8 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.5.3 // indirect
+	go.opentelemetry.io/otel v1.43.0 // indirect
+	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.35.0 // indirect
@@ -61,6 +64,7 @@ require (
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+	github.com/larsartmann/go-cqrs-lite/middleware => ../middleware
 	github.com/larsartmann/go-cqrs-lite/projection => ../projection
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers

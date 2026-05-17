@@ -88,18 +88,18 @@ const (
 
 // SyncMessage is the envelope for sync protocol messages.
 type SyncMessage struct {
-	Type    string          `json:"type"`
+	Type    SyncMessageType  `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
 // SyncContextMixin contains shared fields for sync request and response.
 type SyncContextMixin struct {
-	NodeID string      `json:"nodeId"`
+	NodeID NodeID      `json:"nodeId"`
 	Clock  VectorClock `json:"clock"`
 }
 
 // NewSyncContextMixin creates a new SyncContextMixin with the given node ID and clock.
-func NewSyncContextMixin(nodeID string, clock VectorClock) SyncContextMixin {
+func NewSyncContextMixin(nodeID NodeID, clock VectorClock) SyncContextMixin {
 	return SyncContextMixin{
 		NodeID: nodeID,
 		Clock:  clock,
