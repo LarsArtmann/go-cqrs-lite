@@ -62,13 +62,11 @@ func NewOutboxPublisher(
 		return nil, fmt.Errorf("%w", ErrNilBus)
 	}
 
-	p := &OutboxPublisher{
+	p := &OutboxPublisher{ //nolint:exhaustruct // options fill remaining fields
 		outbox:    outbox,
 		publisher: publisher,
 		interval:  defaultPollInterval,
 		batchSize: defaultBatchSize,
-		mu:        sync.Mutex{},
-		cancel:    nil,
 		done:      make(chan struct{}),
 	}
 

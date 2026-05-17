@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
+
 // Decider defines how to reconstruct state from events.
 //
 // State is the aggregate's domain state. Fold applies a single event to the
