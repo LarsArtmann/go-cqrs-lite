@@ -16,14 +16,15 @@ func sqliteScanEvents(rows *sql.Rows) ([]event.Event, error) {
 
 func sqliteScanEvent(rows *sql.Rows) (event.Event, error) {
 	var (
-		idStr        string
-		eventType    string
-		aggType      string
-		aggIDStr     string
-		version      int
-		payload      []byte
-		metadataJSON []byte
-		occurredAt   string
+		idStr         string
+		eventType     string
+		aggType       string
+		aggIDStr      string
+		version       int
+		schemaVersion int
+		payload       []byte
+		metadataJSON  []byte
+		occurredAt    string
 	)
 
 	err := rows.Scan(
@@ -32,6 +33,7 @@ func sqliteScanEvent(rows *sql.Rows) (event.Event, error) {
 		&aggType,
 		&aggIDStr,
 		&version,
+		&schemaVersion,
 		&payload,
 		&metadataJSON,
 		&occurredAt,
@@ -51,6 +53,7 @@ func sqliteScanEvent(rows *sql.Rows) (event.Event, error) {
 		aggType,
 		aggIDStr,
 		version,
+		schemaVersion,
 		payload,
 		metadataJSON,
 		parsedTime,

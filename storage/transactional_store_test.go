@@ -93,7 +93,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_Success(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(
@@ -195,7 +195,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_InsertEventFailure(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnError(errors.New("insert event failed"))
 	mock.ExpectRollback()
@@ -223,7 +223,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_OutboxInsertFailure(t *testing.T) 
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(
@@ -254,7 +254,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_CommitFailure(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).WithArgs(

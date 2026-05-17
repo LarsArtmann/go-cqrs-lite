@@ -32,22 +32,22 @@ func newTestStore(t *testing.T) (*SQLEventStore, sqlmock.Sqlmock) {
 func eventColumns() []string {
 	return []string{
 		"id", "event_type", "aggregate_type", "aggregate_id",
-		"version", "payload", "metadata", "occurred_at",
+		"version", "schema_version", "payload", "metadata", "occurred_at",
 	}
 }
 
-const loadQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+const loadQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version ASC`
 
-const loadFromVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+const loadFromVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
 		ORDER BY version ASC`
 
-const insertQuery = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+const insertQuery = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 const versionQuery = `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
 
@@ -74,7 +74,7 @@ func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
@@ -192,12 +192,12 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt1.ID(),
-		"UserCreated", "User", evt1.AggregateID(), 1, evt1.Payload(), sqlmock.AnyArg(), evt1.OccurredAt(),
+		"UserCreated", "User", evt1.AggregateID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), evt1.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt2.ID(),
-		"UserCreated", "User", evt2.AggregateID(), 2, evt2.Payload(), sqlmock.AnyArg(), evt2.OccurredAt(),
+		"UserCreated", "User", evt2.AggregateID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), evt2.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(2, 1))
 	mock.ExpectCommit()
@@ -245,6 +245,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		"UserCreated",
 		"User",
 		aggID.String(),
+		1,
 		1,
 		[]byte(`{"name":"test"}`),
 		nil,
@@ -312,7 +313,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 		WithArgs("User", aggID, 2).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			eventID.String(),
-			"UserUpdated", "User", aggID.String(), 3, []byte(`{"name":"updated"}`), nil, ts,
+			"UserUpdated", "User", aggID.String(), 3, 1, []byte(`{"name":"updated"}`), nil, ts,
 		))
 
 	events, err := store.LoadFromVersion(context.Background(), "User", aggID, event.Version(2))
@@ -426,6 +427,7 @@ func TestSQLEventStore_Save_InsertError(t *testing.T) {
 		"User",
 		evt.AggregateID(),
 		1,
+		evt.SchemaVersion().Int(),
 		evt.Payload(),
 		sqlmock.AnyArg(),
 		evt.OccurredAt(),
@@ -458,6 +460,7 @@ func TestSQLEventStore_Save_CommitError(t *testing.T) {
 		"User",
 		evt.AggregateID(),
 		1,
+		evt.SchemaVersion().Int(),
 		evt.Payload(),
 		sqlmock.AnyArg(),
 		evt.OccurredAt(),
@@ -530,6 +533,7 @@ func TestSQLEventStore_AppendBatch_CommitError(t *testing.T) {
 		"User",
 		evt.AggregateID(),
 		1,
+		evt.SchemaVersion().Int(),
 		evt.Payload(),
 		sqlmock.AnyArg(),
 		evt.OccurredAt(),
@@ -587,7 +591,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", "bad").
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, nil, nil, time.Now(),
+			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, 1, nil, nil, time.Now(),
 		))
 
 	_, err := store.Load(context.Background(), "User", id.NewAggregateID())
@@ -605,7 +609,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, nil, nil, time.Now(),
+			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, nil, time.Now(),
 		))
 
 	_, err := store.Load(context.Background(), "User", aggID)
@@ -643,7 +647,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(eventColumns()).
 			AddRow(
 				eventID.String(),
-				"UserCreated", "User", aggID.String(), 1, nil, []byte(`{invalid`), time.Now(),
+				"UserCreated", "User", aggID.String(), 1, 1, nil, []byte(`{invalid`), time.Now(),
 			))
 
 	_, err := store.Load(context.Background(), "User", aggID)
@@ -763,7 +767,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(eventColumns()).
 			AddRow(
 				eventID.String(),
-				"UserCreated", "User", aggID.String(), 1, []byte(`{"name":"test"}`), metaJSON, ts,
+				"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), metaJSON, ts,
 			))
 
 	loaded, err := store.Load(context.Background(), "User", aggID)
@@ -801,7 +805,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 	}
 }
 
-const loadAllQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+const loadAllQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		ORDER BY occurred_at ASC`
 
@@ -819,8 +823,8 @@ func TestSQLEventStore_LoadAll_Success(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(
 			sqlmock.NewRows(eventColumns()).
-				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, []byte(`{}`), nil, ts1).
-				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, []byte(`{}`), nil, ts2),
+				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), nil, ts1).
+				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), nil, ts2),
 		)
 
 	events, err := store.LoadAll(context.Background())

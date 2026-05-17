@@ -124,6 +124,7 @@ type outboxEvent struct {
 	AggregateType string          `json:"aggregate_type"`
 	AggregateID   string          `json:"aggregate_id"`
 	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
 	Payload       []byte          `json:"payload"`
 	Metadata      *event.Metadata `json:"metadata,omitempty"`
 	OccurredAt    time.Time       `json:"occurred_at"`
@@ -139,6 +140,7 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 			AggregateType: string(evt.AggregateType()),
 			AggregateID:   evt.AggregateID().String(),
 			Version:       evt.Version().Int(),
+			SchemaVersion: evt.SchemaVersion().Int(),
 			Payload:       evt.Payload(),
 			Metadata:      evt.Metadata(),
 			OccurredAt:    evt.OccurredAt(),
@@ -180,7 +182,7 @@ func reconstructOutboxEvent(row outboxEvent) (event.Event, error) {
 
 	return reconstructEvent(
 		row.ID, row.Type, row.AggregateType, row.AggregateID,
-		row.Version, row.Payload, metadataJSON, row.OccurredAt,
+		row.Version, row.SchemaVersion, row.Payload, metadataJSON, row.OccurredAt,
 	)
 }
 

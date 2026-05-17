@@ -40,6 +40,7 @@ func SQLiteSchema() string {
     aggregate_type  TEXT NOT NULL,
     aggregate_id    TEXT NOT NULL,
     version         INTEGER NOT NULL,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
     payload         BLOB,
     metadata        TEXT,
     occurred_at     TEXT NOT NULL,
@@ -52,8 +53,8 @@ CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
 }
 
-const sqliteInsertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+const sqliteInsertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 // Save persists events with optimistic concurrency check.
 func (s *SQLiteEventStore) Save(
@@ -148,7 +149,7 @@ func (s *SQLiteEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = ? AND aggregate_id = ?
 		ORDER BY version ASC`
@@ -181,7 +182,7 @@ func (s *SQLiteEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = ? AND aggregate_id = ? AND version > ?
 		ORDER BY version ASC`
@@ -216,7 +217,7 @@ func (s *SQLiteEventStore) Delete(
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.
 func (s *SQLiteEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		ORDER BY occurred_at ASC`
 

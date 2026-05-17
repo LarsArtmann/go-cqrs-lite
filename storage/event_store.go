@@ -36,8 +36,8 @@ func NewSQLEventStore(db *sql.DB) (*SQLEventStore, error) {
 // Alias of event.ErrVersionConflict for unified errors.Is checking.
 var ErrConcurrencyConflict = event.ErrVersionConflict
 
-const insertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+const insertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (s *SQLEventStore) Close() error { return nil }
@@ -133,7 +133,7 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version ASC`
@@ -166,7 +166,7 @@ func (s *SQLEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
 		ORDER BY version ASC`
@@ -206,7 +206,7 @@ var (
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.
 func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		ORDER BY occurred_at ASC`
 

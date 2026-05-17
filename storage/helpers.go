@@ -22,6 +22,7 @@ func Schema() string {
     aggregate_type  VARCHAR(255) NOT NULL,
     aggregate_id    TEXT NOT NULL,
     version         INTEGER NOT NULL,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
     payload         BYTEA,
     metadata        JSONB,
     occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -88,14 +89,15 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 
 func scanEvent(rows *sql.Rows) (event.Event, error) {
 	var (
-		idStr        string
-		eventType    string
-		aggType      string
-		aggIDStr     string
-		version      int
-		payload      []byte
-		metadataJSON []byte
-		occurredAt   time.Time
+		idStr          string
+		eventType      string
+		aggType        string
+		aggIDStr       string
+		version        int
+		schemaVersion  int
+		payload        []byte
+		metadataJSON   []byte
+		occurredAt     time.Time
 	)
 
 	err := rows.Scan(
@@ -104,6 +106,7 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 		&aggType,
 		&aggIDStr,
 		&version,
+		&schemaVersion,
 		&payload,
 		&metadataJSON,
 		&occurredAt,
@@ -118,6 +121,7 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 		aggType,
 		aggIDStr,
 		version,
+		schemaVersion,
 		payload,
 		metadataJSON,
 		occurredAt,
@@ -126,7 +130,7 @@ func scanEvent(rows *sql.Rows) (event.Event, error) {
 
 func reconstructEvent(
 	idStr, eventType, aggType, aggIDStr string,
-	version int,
+	version, schemaVersion int,
 	payload, metadataJSON []byte,
 	occurredAt time.Time,
 ) (event.Event, error) {
@@ -147,8 +151,11 @@ func reconstructEvent(
 		return nil, fmt.Errorf("metadata for %s/%s v%d: %w", aggType, eventType, version, err)
 	}
 
-	opts := make([]event.Option, 0, 2+len(metaOpts)) //nolint:mnd
+	opts := make([]event.Option, 0, 3+len(metaOpts)) //nolint:mnd
 	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
+	if schemaVersion > 0 {
+		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(schemaVersion)))
+	}
 	opts = append(opts, metaOpts...)
 
 	evt, err := event.NewEvent(
@@ -219,6 +226,7 @@ func sharedInsertEvents(
 			string(aggregateType),
 			aggregateID,
 			evt.Version(),
+			evt.SchemaVersion().Int(),
 			evt.Payload(),
 			metadata,
 			formatTime(evt.OccurredAt()),

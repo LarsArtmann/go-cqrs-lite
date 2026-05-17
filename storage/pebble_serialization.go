@@ -17,6 +17,7 @@ func (a *CQRSAdapter) serializeEvent(evt event.Event) ([]byte, error) {
 		AggregateID:   evt.AggregateID().String(),
 		AggregateType: string(evt.AggregateType()),
 		Version:       evt.Version().Int(),
+		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       evt.Payload(),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
 	}
@@ -101,6 +102,10 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		opts = append(opts, event.WithMetadata(m))
 	}
 
+	if s.SchemaVersion > 0 {
+		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(s.SchemaVersion)))
+	}
+
 	return event.NewEvent(
 		event.Type(s.Type),
 		aggregateID,
@@ -118,6 +123,7 @@ type serializableEvent struct {
 	AggregateID   string                `json:"aggregate_id"`
 	AggregateType string                `json:"aggregate_type"`
 	Version       int                   `json:"version"`
+	SchemaVersion int                   `json:"schema_version,omitempty"`
 	Payload       []byte                `json:"payload"`
 	OccurredAt    int64                 `json:"occurred_at"`
 	Metadata      *serializableMetadata `json:"metadata,omitempty"`
