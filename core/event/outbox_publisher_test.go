@@ -185,6 +185,47 @@ func TestOutboxPublisher_DoubleClose(t *testing.T) {
 	_ = p.Close()
 }
 
+func TestOutboxPublisher_StartAfterClose(t *testing.T) {
+	t.Parallel()
+
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
+
+	_ = p.Start()
+	_ = p.Close()
+
+	err = p.Start()
+	if err == nil {
+		t.Fatal("expected error when starting after close")
+	}
+
+	if !errors.Is(err, ErrPublisherClosed) {
+		t.Fatalf("error = %q, want ErrPublisherClosed", err.Error())
+	}
+}
+
+func TestOutboxPublisher_StartAfterCloseWithoutStart(t *testing.T) {
+	t.Parallel()
+
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
+
+	_ = p.Close()
+
+	err = p.Start()
+	if err == nil {
+		t.Fatal("expected error when starting after close")
+	}
+
+	if !errors.Is(err, ErrPublisherClosed) {
+		t.Fatalf("error = %q, want ErrPublisherClosed", err.Error())
+	}
+}
+
 func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 	t.Parallel()
 

@@ -27,6 +27,7 @@ type OutboxPublisher struct {
 	mu     sync.Mutex
 	cancel context.CancelFunc
 	done   chan struct{}
+	closed bool
 }
 
 var _ io.Closer = (*OutboxPublisher)(nil)
@@ -87,10 +88,14 @@ func NewOutboxPublisher(
 }
 
 // Start begins the background polling loop.
-// Returns an error if already started.
+// Returns ErrAlreadyStarted if already running, or ErrPublisherClosed if closed.
 func (p *OutboxPublisher) Start() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	if p.closed {
+		return ErrPublisherClosed
+	}
 
 	if p.cancel != nil {
 		return ErrAlreadyStarted
@@ -105,17 +110,23 @@ func (p *OutboxPublisher) Start() error {
 }
 
 // Close stops the background polling loop and waits for it to finish.
+// After Close, Start returns ErrPublisherClosed. Close is idempotent.
 func (p *OutboxPublisher) Close() error {
 	p.mu.Lock()
 
 	if p.cancel == nil {
+		p.closed = true
 		p.mu.Unlock()
 
 		return nil
 	}
 
-	p.cancel()
+	p.closed = true
+	cancel := p.cancel
+	p.cancel = nil
 	p.mu.Unlock()
+
+	cancel()
 
 	<-p.done
 

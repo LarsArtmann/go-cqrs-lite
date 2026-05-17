@@ -81,6 +81,7 @@ var (
 	ErrNilOutbox               = errors.New("event: nil outbox")
 	ErrNilBus                  = errors.New("event: nil bus")
 	ErrAlreadyStarted          = errors.New("event: outbox publisher already started")
+	ErrPublisherClosed         = errors.New("event: outbox publisher is closed")
 	ErrProjectionPanicked      = errors.New("event: projection handler panicked")
 )
 
@@ -104,6 +105,7 @@ func init() {
 		ErrNilOutbox:               Infrastructure,
 		ErrNilBus:                  Infrastructure,
 		ErrAlreadyStarted:          Infrastructure,
+		ErrPublisherClosed:         Infrastructure,
 		ErrProjectionPanicked:      Corruption,
 	}
 	for sentinel, family := range classifications {
