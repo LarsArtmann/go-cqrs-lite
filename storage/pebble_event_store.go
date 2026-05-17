@@ -2,10 +2,8 @@ package storage
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
