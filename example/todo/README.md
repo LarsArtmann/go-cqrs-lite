@@ -115,13 +115,13 @@ GOPRIVATE='github.com/larsartmann/*' GONOSUMCHECK='*' go run ./cmd/api
 
 ## Dependencies
 
-| Package                            | Purpose                                                |
-| ---------------------------------- | ------------------------------------------------------ |
-| `go-cqrs-lite/core`                | CQRS framework (decider, commands, queries, events)    |
-| `go-cqrs-lite/memory`              | In-memory event bus                                    |
-| `go-cqrs-lite/storage`             | Pebble event store adapter                             |
-| `cqrs-htmx`                        | HTTP middleware composition                            |
-| `cockroachdb/pebble`               | Embedded key-value storage                             |
+| Package                | Purpose                                             |
+| ---------------------- | --------------------------------------------------- |
+| `go-cqrs-lite/core`    | CQRS framework (decider, commands, queries, events) |
+| `go-cqrs-lite/memory`  | In-memory event bus                                 |
+| `go-cqrs-lite/storage` | Pebble event store adapter                          |
+| `cqrs-htmx`            | HTTP middleware composition                         |
+| `cockroachdb/pebble`   | Embedded key-value storage                          |
 
 ## Related
 

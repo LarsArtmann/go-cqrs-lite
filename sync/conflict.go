@@ -88,7 +88,7 @@ const (
 
 // SyncMessage is the envelope for sync protocol messages.
 type SyncMessage struct {
-	Type    SyncMessageType  `json:"type"`
+	Type    SyncMessageType `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 

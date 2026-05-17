@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	cqrsMemory "github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+	cqrsMemory "github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 func setupCommandHandlers(

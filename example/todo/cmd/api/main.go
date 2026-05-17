@@ -15,14 +15,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-	"github.com/larsartmann/go-cqrs-lite/memory"
-	cqrsStorage "github.com/larsartmann/go-cqrs-lite/storage"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
+	"github.com/larsartmann/go-cqrs-lite/memory"
+	cqrsStorage "github.com/larsartmann/go-cqrs-lite/storage"
 )
 
 func main() {
