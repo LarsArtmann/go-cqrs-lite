@@ -9,50 +9,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 )
 
-// CatalogBuilder accumulates services and their messages, then builds a catalog.
+// CatalogBuilder accumulates services and their messages, then builds a catalog
+// with export capabilities. It wraps a catalog.Registry for accumulation and
+// adds convenience methods for export formats.
 type CatalogBuilder struct {
-	title    string
-	version  string
-	services map[string]catalog.Service
-	domains  map[string]catalog.Domain
-	channels map[string]catalog.Channel
+	registry *catalog.Registry
 }
 
 // NewBuilder creates a new catalog builder with the given title and version.
 func NewBuilder(title, version string) *CatalogBuilder {
 	return &CatalogBuilder{
-		title:    title,
-		version:  version,
-		services: make(map[string]catalog.Service),
-		domains:  make(map[string]catalog.Domain),
-		channels: make(map[string]catalog.Channel),
+		registry: catalog.NewRegistry(title, version),
 	}
 }
 
 // Build creates the final immutable catalog from all registered services and domains.
 func (b *CatalogBuilder) Build() *catalog.Catalog {
-	services := make([]catalog.Service, 0, len(b.services))
-	for _, svc := range b.services {
-		services = append(services, svc)
-	}
-
-	domains := make([]catalog.Domain, 0, len(b.domains))
-	for _, d := range b.domains {
-		domains = append(domains, d)
-	}
-
-	channels := make([]catalog.Channel, 0, len(b.channels))
-	for _, ch := range b.channels {
-		channels = append(channels, ch)
-	}
-
-	return &catalog.Catalog{
-		Title:    b.title,
-		Version:  b.version,
-		Services: services,
-		Domains:  domains,
-		Channels: channels,
-	}
+	return b.registry.Build()
 }
 
 // ExportEventCatalog writes the catalog to disk in EventCatalog format.
@@ -91,88 +64,43 @@ func (b *CatalogBuilder) addMessageToService(
 	kind catalog.MessageKind,
 	msg catalog.Message,
 ) {
-	svc, ok := b.services[serviceID]
-	if !ok {
-		svc = catalog.Service{
-			ID:       serviceID,
-			Name:     serviceID,
-			Version:  "",
-			Summary:  "",
-			Owners:   nil,
-			Commands: []catalog.Message{},
-			Events:   []catalog.Message{},
-			Queries:  []catalog.Message{},
-		}
-	}
-
 	switch kind {
 	case catalog.CommandMessage:
-		svc.Commands = append(svc.Commands, msg)
+		b.registry.AddCommand(serviceID, msg)
 	case catalog.EventMessage:
-		svc.Events = append(svc.Events, msg)
+		b.registry.AddEvent(serviceID, msg)
 	case catalog.QueryMessage:
-		svc.Queries = append(svc.Queries, msg)
-	}
-
-	b.services[serviceID] = svc
-}
-
-// ensureService creates the service entry if it doesn't exist.
-func (b *CatalogBuilder) ensureService(id, name string) {
-	if _, ok := b.services[id]; !ok {
-		b.services[id] = catalog.Service{
-			ID:       id,
-			Name:     name,
-			Version:  "",
-			Summary:  "",
-			Owners:   nil,
-			Commands: []catalog.Message{},
-			Events:   []catalog.Message{},
-			Queries:  []catalog.Message{},
-		}
+		b.registry.AddQuery(serviceID, msg)
 	}
 }
 
 // AddService registers a service with optional summary.
 func (b *CatalogBuilder) AddService(id, name, version, summary string) {
-	b.ensureService(id, name)
-	svc := b.services[id]
-	svc.Version = version
-	b.services[id] = svc
-
-	if summary != "" {
-		svc.Summary = summary
-		b.services[id] = svc
-	}
+	b.registry.SetServiceMeta(id, name, version, summary)
 }
 
 // AddDomain registers a domain and associates it with services.
 func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string) {
-	b.domains[id] = catalog.Domain{
+	b.registry.AddDomain(catalog.Domain{
 		ID:       id,
 		Name:     name,
 		Version:  "1.0.0",
 		Summary:  summary,
 		Services: serviceIDs,
-	}
+	})
 }
 
 // AddServiceToDomain associates an existing service with a domain.
 func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
-	d, ok := b.domains[domainID]
-	if !ok {
-		return fmt.Errorf(
-			"add service %q to domain %q: %w", serviceID, domainID, catalog.ErrDomainNotFound,
-		)
+	err := b.registry.AddServiceToDomain(serviceID, domainID)
+	if err != nil {
+		return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, err)
 	}
-
-	d.Services = append(d.Services, serviceID)
-	b.domains[domainID] = d
 
 	return nil
 }
 
 // AddChannel registers a channel in the catalog.
 func (b *CatalogBuilder) AddChannel(ch catalog.Channel) {
-	b.channels[ch.ID] = ch
+	b.registry.AddChannel(ch)
 }

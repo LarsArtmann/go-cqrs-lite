@@ -85,6 +85,21 @@ func NewRegistry(title, version string) *Registry {
 	}
 }
 
+// SetServiceMeta updates the metadata fields of an existing service.
+// If the service does not exist, it is created with the given metadata.
+func (r *Registry) SetServiceMeta(serviceID, name, version, summary string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	svc := r.ensureServiceEntry(serviceID)
+	svc.Name = name
+	svc.Version = version
+
+	if summary != "" {
+		svc.Summary = summary
+	}
+}
+
 // AddService registers a service or merges messages into an existing service.
 func (r *Registry) AddService(svc Service) {
 	r.mu.Lock()
