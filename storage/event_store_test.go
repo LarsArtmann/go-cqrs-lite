@@ -768,7 +768,8 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 			AddRow(
 				eventID.String(),
 				"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), metaJSON, ts,
-			))
+			),
+		)
 
 	loaded, err := store.Load(context.Background(), "User", aggID)
 	if err != nil {

@@ -256,7 +256,8 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 
 	userID := id.NewAggregateID()
 
-	err = deciderRepo.Execute(ctx, userID, "User",
+	err = deciderRepo.Execute(
+		ctx, userID, "User",
 		decideCreateUser(userID, "test@example.com", "Test User"),
 	)
 	if err != nil {
@@ -272,7 +273,8 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Errorf("expected email test@example.com, got %s", rm.Email)
 	}
 
-	err = deciderRepo.Execute(ctx, userID, "User",
+	err = deciderRepo.Execute(
+		ctx, userID, "User",
 		decideChangeName(userID, "Updated User"),
 	)
 	if err != nil {

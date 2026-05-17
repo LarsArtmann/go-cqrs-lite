@@ -31,7 +31,8 @@ func (h *DeleteTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
-	return h.execute(ctx, typed.AggregateID(),
+	return h.execute(
+		ctx, typed.AggregateID(),
 		aggregate.DecideDelete(typed.AggregateID()),
 	)
 }

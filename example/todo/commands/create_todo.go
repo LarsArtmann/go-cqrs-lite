@@ -48,7 +48,8 @@ func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
-	return h.execute(ctx, createCmd.AggregateID(),
+	return h.execute(
+		ctx, createCmd.AggregateID(),
 		aggregate.DecideCreate(
 			createCmd.AggregateID(),
 			createCmd.Title,

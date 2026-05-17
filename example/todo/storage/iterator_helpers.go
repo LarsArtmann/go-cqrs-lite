@@ -13,7 +13,8 @@ import (
 func unmarshalFromIter[T any](iter *pebble.Iterator, logger *slog.Logger, dest *T) bool {
 	err := json.Unmarshal(iter.Value(), dest)
 	if err != nil {
-		logger.Warn("failed to unmarshal, skipping",
+		logger.Warn(
+			"failed to unmarshal, skipping",
 			slog.String("key", string(iter.Key())),
 			slog.String("error", err.Error()),
 		)

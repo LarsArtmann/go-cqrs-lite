@@ -299,7 +299,8 @@ func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			next.ServeHTTP(w, r)
-			logger.Info("HTTP",
+			logger.Info(
+				"HTTP",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Duration("latency", time.Since(start)),

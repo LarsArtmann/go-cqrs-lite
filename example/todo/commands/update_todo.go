@@ -42,7 +42,8 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
-	return h.execute(ctx, typed.AggregateID(),
+	return h.execute(
+		ctx, typed.AggregateID(),
 		aggregate.DecideUpdate(typed.AggregateID(), typed.Title, typed.Description),
 	)
 }

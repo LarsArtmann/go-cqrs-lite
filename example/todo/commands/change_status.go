@@ -41,7 +41,8 @@ func (h *ChangeStatusHandler) Handle(ctx context.Context, cmd command.Command) e
 	if err != nil {
 		return err
 	}
-	return h.execute(ctx, typed.AggregateID(),
+	return h.execute(
+		ctx, typed.AggregateID(),
 		aggregate.DecideChangeStatus(typed.AggregateID(), typed.Status),
 	)
 }

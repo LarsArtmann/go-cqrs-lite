@@ -89,15 +89,15 @@ func scanEvents(rows *sql.Rows) ([]event.Event, error) {
 
 func scanEvent(rows *sql.Rows) (event.Event, error) {
 	var (
-		idStr          string
-		eventType      string
-		aggType        string
-		aggIDStr       string
-		version        int
-		schemaVersion  int
-		payload        []byte
-		metadataJSON   []byte
-		occurredAt     time.Time
+		idStr         string
+		eventType     string
+		aggType       string
+		aggIDStr      string
+		version       int
+		schemaVersion int
+		payload       []byte
+		metadataJSON  []byte
+		occurredAt    time.Time
 	)
 
 	err := rows.Scan(
@@ -152,10 +152,12 @@ func reconstructEvent(
 	}
 
 	opts := make([]event.Option, 0, 3+len(metaOpts)) //nolint:mnd
+
 	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
 	if schemaVersion > 0 {
 		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(schemaVersion)))
 	}
+
 	opts = append(opts, metaOpts...)
 
 	evt, err := event.NewEvent(
