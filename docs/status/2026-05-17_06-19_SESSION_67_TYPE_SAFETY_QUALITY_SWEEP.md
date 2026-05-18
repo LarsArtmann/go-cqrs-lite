@@ -18,12 +18,14 @@ Continued execution of the architectural type safety and quality sweep plan (`do
 ## a) FULLY DONE
 
 ### S28–S30: RetryConfig.Validate() Wiring
+
 - **What:** `RetryConfig.Validate()` method existed (checks MaxAttempts≥1, InitialDelay>0, Multiplier>1) but was never called in any constructor.
 - **Fix:** Added `err := config.Validate()` at the top of `CommandRetry()`, `EventRetry()`, `QueryRetry()`. Invalid config returns a middleware that always fails with `ErrValidationFailed`.
 - **Tests:** 7 new tests — 4 for `Validate()` method (valid, zero MaxAttempts, zero InitialDelay, Multiplier=1), 3 for constructor rejection (`TestCommandRetry_InvalidConfig`, `TestEventRetry_InvalidConfig`, `TestQueryRetry_InvalidConfig`).
 - **Files:** `middleware/retry.go`, `middleware/retry_test.go`
 
 ### S22–S24: OutboxPublisher Lifecycle Fix
+
 - **What:** After `Close()`, `cancel` stayed non-nil so `Start()` returned `ErrAlreadyStarted`. The `done` channel was closed but never recreated. No way to distinguish "never started" from "started then closed".
 - **Fix:** Added `closed bool` field to `OutboxPublisher`. `Start()` checks `closed` first → returns `ErrPublisherClosed`. `Close()` sets `closed = true` and nils `cancel`. Single-use `io.Closer` semantics.
 - **New sentinel:** `event.ErrPublisherClosed` — classified as `Infrastructure`.
@@ -31,18 +33,20 @@ Continued execution of the architectural type safety and quality sweep plan (`do
 - **Files:** `core/event/outbox_publisher.go`, `core/event/errors.go`, `core/event/outbox_publisher_test.go`
 
 ### Golines Fix (storage/outbox.go, storage/sqlite_outbox.go)
+
 - **What:** Long SQL string concatenation with `OutboxStatusPending` exceeded line length.
 - **Fix:** Broke `outboxInsertSQL` and `sqliteOutboxInsertSQL` across two lines with `+` concatenation.
 
 ### File Splits
 
-| File | Before | After | Extracted To | Lines |
-|------|--------|-------|-------------|-------|
-| `storage/pebble_event_store.go` | 448 | 321 | `storage/pebble_serialization.go` | 135 |
-| `core/aggregate/repository.go` | 279 | 99 | `core/aggregate/load_helpers.go` | 188 |
-| `core/decider/decider.go` | 265 | 192 | `core/decider/load.go` | 81 |
+| File                            | Before | After | Extracted To                      | Lines |
+| ------------------------------- | ------ | ----- | --------------------------------- | ----- |
+| `storage/pebble_event_store.go` | 448    | 321   | `storage/pebble_serialization.go` | 135   |
+| `core/aggregate/repository.go`  | 279    | 99    | `core/aggregate/load_helpers.go`  | 188   |
+| `core/decider/decider.go`       | 265    | 192   | `core/decider/load.go`            | 81    |
 
 ### Lint Fixes
+
 - `exhaustruct` on `OutboxPublisher` struct literal → removed explicit zero-value fields, added `//nolint:exhaustruct` comment
 - `gci` formatting in `decider.go` → missing blank line between imports and first comment
 - `noinlineerr` in `middleware/retry.go` → replaced `if err := ...; err != nil` with plain `err := ...; if err != nil`
@@ -59,11 +63,13 @@ None. All tasks started were completed.
 ## c) NOT STARTED (from original plan)
 
 ### S43–S50: BDD Tests for New Types
+
 - Tests for: `Version`, `SchemaVersion`, `OutboxStatus`, `uint Pagination`, `NodeID`, `SyncMessageType`
 - These types have basic tests already (from session 65), but comprehensive BDD-style tests (Ginkgo/Gomega) are not written.
 - **Impact:** Medium — existing tests cover happy paths. BDD would cover edge cases.
 
 ### S51–S54: Cleanup
+
 - `cattest` package (454 lines, 0% coverage) — evaluate for removal
 - `AGENTS.md` update with all type changes from sessions 65–67
 - Planning doc status update (PLANNED → PARTIAL)
@@ -136,6 +142,7 @@ None. All tasks started were completed.
 Current implementation is single-use (Option A): after `Close()`, `Start()` returns `ErrPublisherClosed`. This follows `io.Closer` convention where Close means "shut down permanently."
 
 The alternative (Option B) would be a restartable publisher where `Close()` resets state and allows `Start()` again. This would require:
+
 - Recreating the `done` channel
 - Resetting `cancel` to nil
 - Resetting `closed` to false
@@ -148,36 +155,36 @@ The alternative (Option B) would be a restartable publisher where `Close()` rese
 
 ## Metrics
 
-| Metric | Value |
-|--------|-------|
-| Test packages | 21/21 pass |
-| Test functions | 806 pass, 0 fail |
-| Benchmarks | 43 |
-| Total coverage | 84.5% (may be skewed by example/todo) |
-| Production LOC | 14,180 |
-| Test LOC | 27,071 |
-| Total LOC | 41,251 |
-| Lint issues | 0 (across 8 modules) |
+| Metric               | Value                                                                          |
+| -------------------- | ------------------------------------------------------------------------------ |
+| Test packages        | 21/21 pass                                                                     |
+| Test functions       | 806 pass, 0 fail                                                               |
+| Benchmarks           | 43                                                                             |
+| Total coverage       | 84.5% (may be skewed by example/todo)                                          |
+| Production LOC       | 14,180                                                                         |
+| Test LOC             | 27,071                                                                         |
+| Total LOC            | 41,251                                                                         |
+| Lint issues          | 0 (across 8 modules)                                                           |
 | Files over 250 lines | 3 (storage/helpers.go:423, example/todo main.go:329, asyncapi/exporter.go:258) |
-| Sentinel errors | 39+ across 7 modules |
-| Commits since May 1 | ~160 |
+| Sentinel errors      | 39+ across 7 modules                                                           |
+| Commits since May 1  | ~160                                                                           |
 
 ---
 
 ## Files Modified This Session
 
-| File | Change |
-|------|--------|
-| `storage/outbox.go` | Break long SQL constant across lines |
-| `storage/sqlite_outbox.go` | Break long SQL constant across lines |
-| `middleware/retry.go` | Wire `Validate()` into 3 constructors; fix lint |
-| `middleware/retry_test.go` | Add 7 Validate/InvalidConfig tests + restore IsRetryable test |
-| `core/event/outbox_publisher.go` | Add `closed` field, fix lifecycle, fix exhaustruct |
-| `core/event/errors.go` | Add `ErrPublisherClosed` sentinel + classification |
-| `core/event/outbox_publisher_test.go` | Add 2 lifecycle tests |
-| `storage/pebble_event_store.go` | Extract serialization (448→321 lines) |
-| `storage/pebble_serialization.go` | NEW — serialization types + methods (135 lines) |
-| `core/aggregate/repository.go` | Extract load/save helpers (279→99 lines) |
-| `core/aggregate/load_helpers.go` | NEW — Save, persist, load, snapshot helpers (188 lines) |
-| `core/decider/decider.go` | Extract load helpers (265→192 lines) |
-| `core/decider/load.go` | NEW — load, fold, delete, opError (81 lines) |
+| File                                  | Change                                                        |
+| ------------------------------------- | ------------------------------------------------------------- |
+| `storage/outbox.go`                   | Break long SQL constant across lines                          |
+| `storage/sqlite_outbox.go`            | Break long SQL constant across lines                          |
+| `middleware/retry.go`                 | Wire `Validate()` into 3 constructors; fix lint               |
+| `middleware/retry_test.go`            | Add 7 Validate/InvalidConfig tests + restore IsRetryable test |
+| `core/event/outbox_publisher.go`      | Add `closed` field, fix lifecycle, fix exhaustruct            |
+| `core/event/errors.go`                | Add `ErrPublisherClosed` sentinel + classification            |
+| `core/event/outbox_publisher_test.go` | Add 2 lifecycle tests                                         |
+| `storage/pebble_event_store.go`       | Extract serialization (448→321 lines)                         |
+| `storage/pebble_serialization.go`     | NEW — serialization types + methods (135 lines)               |
+| `core/aggregate/repository.go`        | Extract load/save helpers (279→99 lines)                      |
+| `core/aggregate/load_helpers.go`      | NEW — Save, persist, load, snapshot helpers (188 lines)       |
+| `core/decider/decider.go`             | Extract load helpers (265→192 lines)                          |
+| `core/decider/load.go`                | NEW — load, fold, delete, opError (81 lines)                  |

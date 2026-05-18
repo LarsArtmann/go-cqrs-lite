@@ -27,12 +27,12 @@ Deep architectural analysis and execution of the go-cqrs-lite multi-module monor
 
 ### S2: File Size Compliance — All Production Files Under 250 Lines
 
-| File | Before | After | Extracted To | Lines |
-|------|--------|-------|-------------|-------|
-| `storage/helpers.go` | 433 | 239 | `storage/sql_helpers.go` | 205 |
-| `catalog/asyncapi/exporter.go` | 258 | 79 | `catalog/asyncapi/builder.go` | 182 |
-| `storage/pebble_event_store.go` | 321 | 156 | `storage/pebble_helpers.go` | 176 |
-| `catalog/registry.go` | 254 | 208 | `catalog/registry_helpers.go` | 47 |
+| File                            | Before | After | Extracted To                  | Lines |
+| ------------------------------- | ------ | ----- | ----------------------------- | ----- |
+| `storage/helpers.go`            | 433    | 239   | `storage/sql_helpers.go`      | 205   |
+| `catalog/asyncapi/exporter.go`  | 258    | 79    | `catalog/asyncapi/builder.go` | 182   |
+| `storage/pebble_event_store.go` | 321    | 156   | `storage/pebble_helpers.go`   | 176   |
+| `catalog/registry.go`           | 254    | 208   | `catalog/registry_helpers.go` | 47    |
 
 **Result:** `find . -name "*.go" -not -name "*_test.go" -not -path "*/example/*" | xargs wc -l | awk '$1 > 250'` returns **zero files**.
 
@@ -45,6 +45,7 @@ Deep architectural analysis and execution of the go-cqrs-lite multi-module monor
 ### S4: Comprehensive 86-Task Execution Plan
 
 Created `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md` with:
+
 - Pareto-sorted tasks (1%→51%, 4%→64%, 20%→80%)
 - Each task ≤12 minutes
 - Dependency graph (D2)
@@ -60,6 +61,7 @@ Created `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md` with:
 ### S6: Architecture Discovery — flake.nix Uses GOWORK=off
 
 **Critical discovery:** `flake.nix` sets `GOWORK=off` in its `shellHook`. This means:
+
 - The project intentionally uses replace directives in sub-module go.mod files
 - `go.work` is only for IDE tooling (gopls), not for builds
 - All `nix run .#*` commands use GOWORK=off + replace directives
@@ -194,48 +196,48 @@ Attempted to remove all `replace` directives from sub-module go.mod files based 
 
 ## Metrics
 
-| Metric | Value |
-|--------|-------|
-| Test packages | 20/20 pass |
-| Test functions | ~878 (across 78 test files) |
-| Benchmarks | 43 |
-| Total coverage | 84.0% |
-| Production LOC | 11,954 |
-| Test LOC | 25,641 |
-| Total LOC | 37,595 |
-| Modules | 10 (incl. 2 example modules) |
-| Lint issues | 0 (across 8 modules) |
-| Lint warnings | 0 (was 8 before gomodguard_v2 fix) |
-| Files over 250 lines (prod) | 0 (was 3) |
-| DAG violations | 0 (was 1: storage→memory) |
-| Sentinel errors | 35+ |
-| Error classifications registered | 39 |
-| Commits since May 1 | ~170 |
-| Commits this session | 3 |
+| Metric                           | Value                              |
+| -------------------------------- | ---------------------------------- |
+| Test packages                    | 20/20 pass                         |
+| Test functions                   | ~878 (across 78 test files)        |
+| Benchmarks                       | 43                                 |
+| Total coverage                   | 84.0%                              |
+| Production LOC                   | 11,954                             |
+| Test LOC                         | 25,641                             |
+| Total LOC                        | 37,595                             |
+| Modules                          | 10 (incl. 2 example modules)       |
+| Lint issues                      | 0 (across 8 modules)               |
+| Lint warnings                    | 0 (was 8 before gomodguard_v2 fix) |
+| Files over 250 lines (prod)      | 0 (was 3)                          |
+| DAG violations                   | 0 (was 1: storage→memory)          |
+| Sentinel errors                  | 35+                                |
+| Error classifications registered | 39                                 |
+| Commits since May 1              | ~170                               |
+| Commits this session             | 3                                  |
 
 ---
 
 ## Files Modified This Session
 
-| File | Change |
-|------|--------|
-| `storage/pebble_config.go` | Remove memory import, return ErrPebbleProviderRequired for memory backend |
-| `storage/pebble_event_store_test.go` | Update memory backend test to expect error |
-| `storage/go.mod` | Remove memory dependency + replace directive |
-| `storage/helpers.go` | Split: 433→239 lines (event scanning stays) |
-| `storage/sql_helpers.go` | NEW — SQL-agnostic shared helpers (205 lines) |
-| `storage/pebble_event_store.go` | Split: 321→156 lines (Save, Load, LoadFromVersion stay) |
-| `storage/pebble_helpers.go` | NEW — Delete, AppendBatch, Close, internal helpers (176 lines) |
-| `catalog/asyncapi/exporter.go` | Split: 258→79 lines (struct, options, constructor), remove empty import |
-| `catalog/asyncapi/builder.go` | NEW — Export logic, message/channel/operation building (182 lines) |
-| `catalog/registry.go` | Split: 254→208 lines (Registry struct + methods stay) |
-| `catalog/registry_helpers.go` | NEW — Copy helpers (47 lines) |
-| `core/go.mod` | Removed memory+testhelpers direct deps, go mod tidy |
-| `.golangci.yml` | `gomodguard` → `gomodguard_v2` |
-| `CHANGELOG.md` | Added session 68 changes |
-| `AGENTS.md` | Added session 68 history |
-| `docs/modularization/PROJECT_GROUPS_IMPROVEMENTS.md` | NEW — Architectural analysis |
-| `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md` | NEW — 86-task plan |
+| File                                                             | Change                                                                    |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `storage/pebble_config.go`                                       | Remove memory import, return ErrPebbleProviderRequired for memory backend |
+| `storage/pebble_event_store_test.go`                             | Update memory backend test to expect error                                |
+| `storage/go.mod`                                                 | Remove memory dependency + replace directive                              |
+| `storage/helpers.go`                                             | Split: 433→239 lines (event scanning stays)                               |
+| `storage/sql_helpers.go`                                         | NEW — SQL-agnostic shared helpers (205 lines)                             |
+| `storage/pebble_event_store.go`                                  | Split: 321→156 lines (Save, Load, LoadFromVersion stay)                   |
+| `storage/pebble_helpers.go`                                      | NEW — Delete, AppendBatch, Close, internal helpers (176 lines)            |
+| `catalog/asyncapi/exporter.go`                                   | Split: 258→79 lines (struct, options, constructor), remove empty import   |
+| `catalog/asyncapi/builder.go`                                    | NEW — Export logic, message/channel/operation building (182 lines)        |
+| `catalog/registry.go`                                            | Split: 254→208 lines (Registry struct + methods stay)                     |
+| `catalog/registry_helpers.go`                                    | NEW — Copy helpers (47 lines)                                             |
+| `core/go.mod`                                                    | Removed memory+testhelpers direct deps, go mod tidy                       |
+| `.golangci.yml`                                                  | `gomodguard` → `gomodguard_v2`                                            |
+| `CHANGELOG.md`                                                   | Added session 68 changes                                                  |
+| `AGENTS.md`                                                      | Added session 68 history                                                  |
+| `docs/modularization/PROJECT_GROUPS_IMPROVEMENTS.md`             | NEW — Architectural analysis                                              |
+| `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md` | NEW — 86-task plan                                                        |
 
 ---
 
