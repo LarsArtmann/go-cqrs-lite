@@ -803,3 +803,11 @@ Interfaces now return branded types instead of primitives:
   - **NEW**: `memory.ErrHandlerNil → Rejection`, `catalog.ErrDomainNotFound → Rejection`, `catalog.ErrNilSchema → Rejection` classifications.
   - **FIX**: `storage/helpers.go:342` — `fmt.Sprintf` replaced with string concatenation (perfsprint lint).
   - Zero lint, all 22 test packages pass
+
+- **Session 68 (Module Hygiene + File Size Compliance)**:
+  - **FIX**: Removed `storage` production dependency on `memory` module — `PebbleBackendMemory` now returns `ErrPebbleProviderRequired` instead of calling `memory.NewMemoryStore()`. Restores ADR-0003 DAG rule.
+  - **REFACTOR**: Split `storage/helpers.go` (433→239) → `storage/sql_helpers.go` (205) — SQL-agnostic shared helpers extracted.
+  - **REFACTOR**: Split `catalog/asyncapi/exporter.go` (258→79) → `catalog/asyncapi/builder.go` (182) — Export logic extracted.
+  - **REFACTOR**: Split `storage/pebble_event_store.go` (321→156) → `storage/pebble_helpers.go` (176) — Delete, AppendBatch, Close, helpers extracted.
+  - **REFACTOR**: Split `catalog/registry.go` (254→208) → `catalog/registry_helpers.go` (47) — Copy helpers extracted.
+  - **RESULT**: Zero production files exceed 250 lines. All test packages pass.

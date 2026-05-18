@@ -1,7 +1,5 @@
 package asyncapi
 
-import ()
-
 const (
 	asyncAPIVersion = "3.0.0"
 	contentType     = "application/json"

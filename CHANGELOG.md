@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Coverage tests**: New test files for memory (99.1%), projection (92.5%), storage (93.6%), aggregate (95.8%).
 - **Performance benchmarks** (Session 50): `core/decider` (4 benchmarks), `projection` (3 benchmarks), `middleware` (4 benchmarks), `core/event` (6 benchmarks). Total: 43 benchmarks across 12 files.
 - **Design documents** (Session 50): Outbox transaction co-participation API (`docs/planning/OUTBOX_TRANSACTION_API.md`), query handler generics migration (`docs/planning/QUERY_HANDLER_GENERICS.md`), saga design answers and implementation plan (`docs/planning/SAGA_DESIGN.md`).
+- **Comprehensive execution plan** (Session 68): 86-task plan in `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md`.
 
 ### Changed
 
@@ -29,6 +30,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SnapshotStrategy deduplication**: Removed 22-line duplicate from aggregate and decider; replaced with type aliases.
 - `FakeSnapshotStore.Save` now records snapshots for verification (was no-op)
 - Updated `dispatcher.Typed` documentation to clarify string-backed named types require explicit `string()` conversion
+- **storage: PebbleBackendMemory** no longer pulls in `memory` module. Returns `ErrPebbleProviderRequired` — users must provide `WithPebbleProvider`.
+- **File splits**: `storage/helpers.go`, `storage/pebble_event_store.go`, `catalog/asyncapi/exporter.go`, `catalog/registry.go` all under 250 lines.
+- **Linter**: `gomodguard` → `gomodguard_v2` (deprecated linter replaced).
 
 ### Fixed
 
