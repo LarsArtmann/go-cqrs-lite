@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	cqrsEvent "github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 // PebbleBackend identifies an event store backend.
@@ -64,7 +63,10 @@ func NewPebbleEventStore(cfg PebbleConfig, logger *slog.Logger) (cqrsEvent.Store
 			ErrPebbleProviderRequired,
 		)
 	case PebbleBackendMemory:
-		return memory.NewMemoryStore(), nil
+		return nil, fmt.Errorf(
+			"%w: use WithPebbleProvider",
+			ErrPebbleProviderRequired,
+		)
 	default:
 		return nil, fmt.Errorf(
 			"%w: %q: use WithPebbleBackend or WithPebbleProvider",

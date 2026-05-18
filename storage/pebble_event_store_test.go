@@ -276,15 +276,11 @@ func TestPebbleConfig_WithProvider(t *testing.T) {
 	}
 }
 
-func TestPebbleConfig_NewEventStore_MemoryBackend(t *testing.T) {
+func TestPebbleConfig_NewEventStore_MemoryBackend_RequiresProvider(t *testing.T) {
 	cfg := NewPebbleConfig(WithPebbleBackend(PebbleBackendMemory))
-	store, err := NewPebbleEventStore(cfg, slog.Default())
-	if err != nil {
-		t.Fatalf("NewEventStore: %v", err)
-	}
-
-	if store == nil {
-		t.Fatal("store should not be nil")
+	_, err := NewPebbleEventStore(cfg, slog.Default())
+	if err == nil {
+		t.Fatal("expected error for memory backend without provider")
 	}
 }
 
