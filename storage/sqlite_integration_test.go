@@ -519,9 +519,9 @@ func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
 		t.Fatalf("NewSQLiteOutbox: %v", err)
 	}
 
-	txStore, err := NewSQLiteTransactionalStore(store, outbox)
+	txStore, err := NewSQLTransactionalStore(store, outbox)
 	if err != nil {
-		t.Fatalf("NewSQLiteTransactionalStore: %v", err)
+		t.Fatalf("NewSQLTransactionalStore: %v", err)
 	}
 
 	aggID := id.NewAggregateID()
@@ -584,7 +584,7 @@ func TestNewSQLiteOutbox_NilDB(t *testing.T) {
 	}
 }
 
-func TestNewSQLiteTransactionalStore_NilStore(t *testing.T) {
+func TestNewSQLTransactionalStore_NilStore_SQLite(t *testing.T) {
 	db := newSQLiteTestDB(t)
 	initSQLiteSchema(t, db)
 
@@ -593,13 +593,13 @@ func TestNewSQLiteTransactionalStore_NilStore(t *testing.T) {
 		t.Fatalf("NewSQLiteOutbox: %v", err)
 	}
 
-	_, err = NewSQLiteTransactionalStore(nil, outbox)
+	_, err = NewSQLTransactionalStore(nil, outbox)
 	if err == nil {
 		t.Fatal("expected error for nil store")
 	}
 }
 
-func TestNewSQLiteTransactionalStore_NilOutbox(t *testing.T) {
+func TestNewSQLTransactionalStore_NilOutbox_SQLite(t *testing.T) {
 	db := newSQLiteTestDB(t)
 	initSQLiteSchema(t, db)
 
@@ -608,7 +608,7 @@ func TestNewSQLiteTransactionalStore_NilOutbox(t *testing.T) {
 		t.Fatalf("NewSQLiteEventStore: %v", err)
 	}
 
-	_, err = NewSQLiteTransactionalStore(store, nil)
+	_, err = NewSQLTransactionalStore(store, nil)
 	if err == nil {
 		t.Fatal("expected error for nil outbox")
 	}

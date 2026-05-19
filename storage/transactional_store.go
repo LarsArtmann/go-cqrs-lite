@@ -41,16 +41,6 @@ func NewSQLTransactionalStore(
 	}, nil
 }
 
-// NewSQLiteTransactionalStore creates a SQLite store that atomically saves events and
-// appends them to the outbox within a single transaction.
-// Returns an error if any parameter is nil.
-func NewSQLiteTransactionalStore(
-	store *SQLEventStore,
-	outbox *SQLOutbox,
-) (*SQLTransactionalStore, error) {
-	return NewSQLTransactionalStore(store, outbox)
-}
-
 // SaveWithOutbox atomically persists events and appends them to the outbox
 // within a single database transaction. If either operation fails, the entire
 // transaction rolls back.
