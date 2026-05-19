@@ -1,18 +1,23 @@
 package query
 
-import (
-	"fmt"
-
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/catalogmeta"
-)
+import "fmt"
 
 // CatalogMeta contains documentation metadata for auto-catalog generation.
+//
+// Deprecated: The zero-cost catalog API in github.com/larsartmann/go-cqrs-lite/catalog
+// auto-derives all metadata from Go struct types. Use catalog.Command[T](),
+// catalog.Event[T](), or catalog.Query[T]() instead of implementing Catalogable.
 type CatalogMeta struct {
-	catalogmeta.Meta
+	Name    string
+	Version string
+	Summary string
 }
 
 // Catalogable is implemented by queries that want to be auto-documented
 // by the catalog/adapters package.
+//
+// Deprecated: Use the zero-cost catalog API. Register types with
+// catalog.Query[T](id) instead of implementing this interface.
 type Catalogable interface {
 	Query
 	CatalogInfo() CatalogMeta
@@ -20,6 +25,9 @@ type Catalogable interface {
 
 // CatalogCore combines query.Core with catalog metadata.
 // Embed this struct in your query to make it auto-catalogable.
+//
+// Deprecated: Use catalog.Query[T]() from the zero-cost catalog API
+// instead of embedding CatalogCore.
 //
 // Example:
 //

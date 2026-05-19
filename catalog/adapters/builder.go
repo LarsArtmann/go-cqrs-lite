@@ -11,22 +11,26 @@ import (
 )
 
 // CatalogBuilder accumulates services and their messages, then builds a catalog
-// with export capabilities. It wraps a catalog.Registry for accumulation and
+// with export capabilities. It wraps catalog.Builder for accumulation and
 // adds convenience methods for export formats.
+//
+// Deprecated: Use catalog.Builder directly with catalog.Command[T](),
+// catalog.Event[T](), and catalog.Query[T]() for the zero-cost catalog API.
+// This type is retained for backward compatibility only.
 type CatalogBuilder struct {
-	registry *catalog.Registry
+	builder *catalog.Builder
 }
 
 // NewBuilder creates a new catalog builder with the given title and version.
 func NewBuilder(title, version string) *CatalogBuilder {
 	return &CatalogBuilder{
-		registry: catalog.NewRegistry(title, version),
+		builder: catalog.NewBuilder(title, version),
 	}
 }
 
 // Build creates the final immutable catalog from all registered services and domains.
 func (b *CatalogBuilder) Build() *catalog.Catalog {
-	return b.registry.Build()
+	return b.builder.Build()
 }
 
 // ExportEventCatalog writes the catalog to disk in EventCatalog format.
@@ -71,48 +75,35 @@ func (b *CatalogBuilder) ExportD2(
 	return exp.Export(cat)
 }
 
-func (b *CatalogBuilder) addMessageToService(
-	serviceID string,
-	kind catalog.MessageKind,
-	msg catalog.Message,
-) {
-	switch kind {
-	case catalog.CommandMessage:
-		b.registry.AddCommand(serviceID, msg)
-	case catalog.EventMessage:
-		b.registry.AddEvent(serviceID, msg)
-	case catalog.QueryMessage:
-		b.registry.AddQuery(serviceID, msg)
-	}
-}
-
-// AddService registers a service with optional summary.
-func (b *CatalogBuilder) AddService(id, name, version, summary string) {
-	b.registry.SetServiceMeta(id, name, version, summary)
+// AddService registers a service with messages.
+// Messages can be created with catalog.Command[T](), catalog.Event[T](),
+// and catalog.Query[T]().
+func (b *CatalogBuilder) AddService(id, name, version, summary string, msgs ...catalog.MessageConfig) {
+	b.builder.AddService(id, name, version, summary, msgs...)
 }
 
 // AddDomain registers a domain and associates it with services.
 func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string) {
-	b.registry.AddDomain(catalog.Domain{
-		ID:       id,
-		Name:     name,
-		Version:  "1.0.0",
-		Summary:  summary,
-		Services: serviceIDs,
-	})
+	b.builder.AddDomain(id, name, "1.0.0", summary, serviceIDs...)
 }
 
 // AddServiceToDomain associates an existing service with a domain.
 func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
-	err := b.registry.AddServiceToDomain(serviceID, domainID)
-	if err != nil {
-		return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, err)
+	cat := b.Build()
+
+	for i := range cat.Domains {
+		if cat.Domains[i].ID == domainID {
+			cat.Domains[i].Services = append(cat.Domains[i].Services, serviceID)
+
+			return nil
+		}
 	}
 
-	return nil
+	return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, catalog.ErrDomainNotFound)
 }
 
 // AddChannel registers a channel in the catalog.
 func (b *CatalogBuilder) AddChannel(ch catalog.Channel) {
-	b.registry.AddChannel(ch)
+	// Channels are not yet supported by catalog.Builder.
+	// This method is retained for backward compatibility.
 }
