@@ -1,8 +1,6 @@
 package adapters
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	d2exporter "github.com/larsartmann/go-cqrs-lite/catalog/d2"
@@ -78,7 +76,10 @@ func (b *CatalogBuilder) ExportD2(
 // AddService registers a service with messages.
 // Messages can be created with catalog.Command[T](), catalog.Event[T](),
 // and catalog.Query[T]().
-func (b *CatalogBuilder) AddService(id, name, version, summary string, msgs ...catalog.MessageConfig) {
+func (b *CatalogBuilder) AddService(
+	id, name, version, summary string,
+	msgs ...catalog.MessageConfig,
+) {
 	b.builder.AddService(id, name, version, summary, msgs...)
 }
 
@@ -89,17 +90,7 @@ func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string
 
 // AddServiceToDomain associates an existing service with a domain.
 func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
-	cat := b.Build()
-
-	for i := range cat.Domains {
-		if cat.Domains[i].ID == domainID {
-			cat.Domains[i].Services = append(cat.Domains[i].Services, serviceID)
-
-			return nil
-		}
-	}
-
-	return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, catalog.ErrDomainNotFound)
+	return b.builder.Registry().AddServiceToDomain(serviceID, domainID)
 }
 
 // AddChannel registers a channel in the catalog.

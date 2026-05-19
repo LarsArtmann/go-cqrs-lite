@@ -4,33 +4,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 type benchCreateUser struct {
-	*command.CatalogCore
-
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
-func benchCommand() *benchCreateUser {
-	aggID := id.NewAggregateID()
-
-	return &benchCreateUser{
-		CatalogCore: command.MustNewCatalogCore("user.create", aggID, command.CatalogMeta{
-			Name: "CreateUser", Version: "1.0.0",
-		}),
-	}
-}
-
 func benchBuilderWithCommand() *adapters.CatalogBuilder {
 	builder := adapters.NewBuilder("Bench API", "1.0.0")
-	builder.AddService("svc", "Service", "1.0.0", "")
-	builder.AddCommand("svc", benchCommand())
+	builder.AddService("svc", "Service", "1.0.0", "",
+		catalog.Command[benchCreateUser]("user.create"),
+	)
 
 	return builder
 }

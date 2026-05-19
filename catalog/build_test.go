@@ -8,7 +8,7 @@ import (
 
 type TestCreateUser struct {
 	Email string `json:"email" doc:"User email address"`
-	Name  string `json:"name" doc:"Display name"`
+	Name  string `json:"name"  doc:"Display name"`
 }
 
 type TestUserCreated struct {

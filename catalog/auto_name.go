@@ -37,11 +37,14 @@ func camelCaseToHuman(s string) string {
 	var result strings.Builder
 
 	for i, r := range s {
-		if i > 0 && unicode.IsUpper(r) {
+		if i == 0 {
+			result.WriteRune(unicode.ToUpper(r))
+		} else if unicode.IsUpper(r) {
 			result.WriteRune(' ')
+			result.WriteRune(r)
+		} else {
+			result.WriteRune(r)
 		}
-
-		result.WriteRune(r)
 	}
 
 	return result.String()
