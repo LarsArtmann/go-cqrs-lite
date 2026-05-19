@@ -32,8 +32,28 @@ CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
 }
 
-// scanSlice is a generic helper that deduplicates scanEvents and sqliteScanEvents.
-// Both iterate rows, apply a per-row scan function, and return a slice.
+// SQLiteSchema returns the SQL DDL for creating the events table in SQLite.
+func SQLiteSchema() string {
+	return `CREATE TABLE IF NOT EXISTS events (
+    id              TEXT PRIMARY KEY,
+    event_type      TEXT NOT NULL,
+    aggregate_type  TEXT NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
+    payload         BLOB,
+    metadata        TEXT,
+    occurred_at     TEXT NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(aggregate_type, aggregate_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
+}
+
+// scanSlice is a generic helper that deduplicates event scanning.
 func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
 	var result []T
 
@@ -52,51 +72,6 @@ func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 	}
 
 	return result, nil
-}
-
-func scanEvents(rows *sql.Rows) ([]event.Event, error) {
-	return scanSlice(rows, scanEvent)
-}
-
-func scanEvent(rows *sql.Rows) (event.Event, error) {
-	var (
-		idStr         string
-		eventType     string
-		aggType       string
-		aggIDStr      string
-		version       int
-		schemaVersion int
-		payload       []byte
-		metadataJSON  []byte
-		occurredAt    time.Time
-	)
-
-	err := rows.Scan(
-		&idStr,
-		&eventType,
-		&aggType,
-		&aggIDStr,
-		&version,
-		&schemaVersion,
-		&payload,
-		&metadataJSON,
-		&occurredAt,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("scan event row: %w", err)
-	}
-
-	return reconstructEvent(
-		idStr,
-		eventType,
-		aggType,
-		aggIDStr,
-		version,
-		schemaVersion,
-		payload,
-		metadataJSON,
-		occurredAt,
-	)
 }
 
 func reconstructEvent(
@@ -174,28 +149,17 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 	return data, nil
 }
 
-// insertEvents persists events using PostgreSQL's native time.Time.
-func insertEvents(
-	ctx context.Context,
-	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-	events []event.Event,
-) error {
-	return sharedInsertEvents(
-		ctx,
-		tx,
-		aggregateType,
-		aggregateID,
-		events,
-		insertEventSQL,
-		func(t time.Time) any { return t },
-	)
+func commitTx(tx *sql.Tx) error {
+	err := tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+
+	return nil
 }
 
-// saveWithOutboxTx is the shared implementation for SaveWithOutbox in both
-// SQLTransactionalStore and SQLiteTransactionalStore. It performs version checking,
-// event insertion, and outbox append in a single transaction.
+// saveWithOutboxTx is the shared implementation for SaveWithOutbox.
+// It performs version checking, event insertion, and outbox append in a single transaction.
 func saveWithOutboxTx(
 	ctx context.Context,
 	db *sql.DB,

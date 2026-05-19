@@ -10,10 +10,36 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-const pollPendingQuery = `SELECT id, events FROM outbox
-		WHERE status = '` + string(OutboxStatusPending) + `'` + `
-		ORDER BY created_at ASC
-		LIMIT $1`
+// SQLOutbox persists events for reliable eventual publishing in a SQL database.
+type SQLOutbox struct {
+	db      *sql.DB
+	dialect Dialect
+}
+
+// NewSQLOutbox creates a new SQL-backed outbox using PostgreSQL dialect.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLOutbox(db *sql.DB) (*SQLOutbox, error) {
+	return newSQLOutboxWithDialect(db, PostgresDialect{})
+}
+
+// NewSQLiteOutbox creates a new SQLite-backed outbox.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLiteOutbox(db *sql.DB) (*SQLOutbox, error) {
+	return newSQLOutboxWithDialect(db, SQLiteDialect{})
+}
+
+func newSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
+	if db == nil {
+		return nil, fmt.Errorf("%w", ErrNilDB)
+	}
+
+	return &SQLOutbox{db: db, dialect: d}, nil
+}
+
+// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
+func (o *SQLOutbox) Close() error { return nil }
 
 // OutboxSchema returns the SQL DDL for creating the outbox table.
 func OutboxSchema() string {
@@ -27,27 +53,17 @@ func OutboxSchema() string {
 CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
-// SQLOutbox persists events for reliable eventual publishing in a SQL database.
-type SQLOutbox struct {
-	db *sql.DB
+// SQLiteOutboxSchema returns the SQL DDL for creating the outbox table in SQLite.
+func SQLiteOutboxSchema() string {
+	return `CREATE TABLE IF NOT EXISTS outbox (
+    id          TEXT PRIMARY KEY,
+    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
+    events      TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
-
-// NewSQLOutbox creates a new SQL-backed outbox.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
-func NewSQLOutbox(db *sql.DB) (*SQLOutbox, error) {
-	if db == nil {
-		return nil, fmt.Errorf("%w", ErrNilDB)
-	}
-
-	return &SQLOutbox{db: db}, nil
-}
-
-// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
-func (o *SQLOutbox) Close() error { return nil }
-
-const outboxInsertSQL = `INSERT INTO outbox (id, status, events, created_at)` +
-	` VALUES ($1, '` + string(OutboxStatusPending) + `', $2, $3)`
 
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
@@ -62,7 +78,14 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 	outboxID := events[0].ID()
 
-	_, err = o.db.ExecContext(ctx, outboxInsertSQL, outboxID, serialized, time.Now())
+	p1, p2, p3 := o.dialect.Placeholder(1), o.dialect.Placeholder(2), o.dialect.Placeholder(3)
+
+	insertSQL := fmt.Sprintf(
+		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, '%s', %s, %s)`,
+		p1, OutboxStatusPending, p2, p3,
+	)
+
+	_, err = o.db.ExecContext(ctx, insertSQL, outboxID, serialized, o.dialect.FormatTime(time.Now()))
 	if err != nil {
 		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
 	}
@@ -72,7 +95,14 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 // PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
-	rows, err := o.db.QueryContext(ctx, pollPendingQuery, limit)
+	p1 := o.dialect.Placeholder(1)
+
+	query := fmt.Sprintf(`SELECT id, events FROM outbox
+		WHERE status = '%s'
+		ORDER BY created_at ASC
+		LIMIT %s`, OutboxStatusPending, p1)
+
+	rows, err := o.db.QueryContext(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("poll pending outbox (limit %d): %w", limit, err)
 	}
@@ -111,12 +141,11 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 const maxAckBatchSize = 500
 
 func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
-	return sharedAckBatch(ctx, o.db, ids, "$")
+	return sharedAckBatch(ctx, o.db, ids, o.dialect.Placeholder(1))
 }
 
 var _ event.Outbox = (*SQLOutbox)(nil)
 
-// outboxEvent uses snake_case JSON tags matching database column names.
 // outboxEvent represents an outbox entry for JSON serialization.
 type outboxEvent struct {
 	ID            string          `json:"id"`

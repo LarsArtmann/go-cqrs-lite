@@ -1,10 +1,3 @@
-// Package storage provides SQL-backed implementations of core event interfaces.
-//
-// Design decisions:
-//   - Accepts *sql.DB for maximum flexibility (connection pooling, transactions)
-//   - Uses parameterized queries for SQL injection prevention
-//   - Supports optimistic concurrency via version checking
-//   - DDL targets PostgreSQL (BYTEA, JSONB, TIMESTAMP WITH TIME ZONE)
 package storage
 
 import (
@@ -18,26 +11,35 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	db *sql.DB
+	db      *sql.DB
+	dialect Dialect
 }
 
-// NewSQLEventStore creates a new SQL-backed event store.
+// NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.
 func NewSQLEventStore(db *sql.DB) (*SQLEventStore, error) {
+	return newSQLEventStoreWithDialect(db, PostgresDialect{})
+}
+
+// NewSQLiteEventStore creates a new SQLite-backed event store.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLiteEventStore(db *sql.DB) (*SQLEventStore, error) {
+	return newSQLEventStoreWithDialect(db, SQLiteDialect{})
+}
+
+func newSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)
 	}
 
-	return &SQLEventStore{db: db}, nil
+	return &SQLEventStore{db: db, dialect: d}, nil
 }
 
 // ErrConcurrencyConflict indicates an optimistic concurrency violation.
 // Alias of event.ErrVersionConflict for unified errors.Is checking.
 var ErrConcurrencyConflict = event.ErrVersionConflict
-
-const insertEventSQL = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
 func (s *SQLEventStore) Close() error { return nil }
@@ -63,29 +65,17 @@ func (s *SQLEventStore) Save(
 		_ = tx.Rollback()
 	}()
 
-	err = checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
 	if err != nil {
 		return err
 	}
 
-	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
 		return err
 	}
 
 	return commitTx(tx)
-}
-
-func checkVersion(
-	ctx context.Context,
-	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-	expectedVersion event.Version,
-) error {
-	query := fmt.Sprintf(checkVersionQuery, "$1", "$2")
-
-	return sharedCheckVersion(ctx, tx, aggregateType, aggregateID, expectedVersion, query)
 }
 
 // AppendBatch appends events without optimistic concurrency checks.
@@ -109,21 +99,12 @@ func (s *SQLEventStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	err = insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
 		return err
 	}
 
 	return commitTx(tx)
-}
-
-func commitTx(tx *sql.Tx) error {
-	err := tx.Commit()
-	if err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
-	}
-
-	return nil
 }
 
 // Load retrieves all events for an aggregate, ordered by version.
@@ -133,10 +114,16 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
+
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
-		WHERE aggregate_type = $1 AND aggregate_id = $2
-		ORDER BY version ASC`
+		WHERE aggregate_type = %s AND aggregate_id = %s
+		ORDER BY version ASC`,
+		p1,
+		p2,
+	)
 
 	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
@@ -147,7 +134,7 @@ func (s *SQLEventStore) Load(
 		_ = rows.Close()
 	}()
 
-	events, err := scanEvents(rows)
+	events, err := s.scanEvents(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -166,10 +153,17 @@ func (s *SQLEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+	p1, p2, p3 := s.dialect.Placeholder(1), s.dialect.Placeholder(2), s.dialect.Placeholder(3)
+
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
-		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
-		ORDER BY version ASC`
+		WHERE aggregate_type = %s AND aggregate_id = %s AND version > %s
+		ORDER BY version ASC`,
+		p1,
+		p2,
+		p3,
+	)
 
 	rows, err := s.db.QueryContext(
 		ctx,
@@ -186,7 +180,7 @@ func (s *SQLEventStore) LoadFromVersion(
 		_ = rows.Close()
 	}()
 
-	return scanEvents(rows)
+	return s.scanEvents(rows)
 }
 
 // Delete removes all events for an aggregate.
@@ -195,13 +189,10 @@ func (s *SQLEventStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", "$1", "$2", "events")
-}
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
-var (
-	_ event.Store        = (*SQLEventStore)(nil)
-	_ event.GlobalLoader = (*SQLEventStore)(nil)
-)
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", p1, p2, "events")
+}
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.
@@ -219,5 +210,96 @@ func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 		_ = rows.Close()
 	}()
 
-	return scanEvents(rows)
+	return s.scanEvents(rows)
 }
+
+func (s *SQLEventStore) checkVersion(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	expectedVersion event.Version,
+) error {
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
+
+	query := fmt.Sprintf(checkVersionQuery, p1, p2)
+
+	return sharedCheckVersion(ctx, tx, aggregateType, aggregateID, expectedVersion, query)
+}
+
+func (s *SQLEventStore) insertEvents(
+	ctx context.Context,
+	tx *sql.Tx,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	events []event.Event,
+) error {
+	ph := make([]string, 9)
+
+	for i := range 9 {
+		ph[i] = s.dialect.Placeholder(i + 1)
+	}
+
+	insertSQL := fmt.Sprintf(
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)`,
+		ph[0],
+		ph[1],
+		ph[2],
+		ph[3],
+		ph[4],
+		ph[5],
+		ph[6],
+		ph[7],
+		ph[8],
+	)
+
+	return sharedInsertEvents(
+		ctx, tx, aggregateType, aggregateID, events,
+		insertSQL, s.dialect.FormatTime,
+	)
+}
+
+func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
+	return scanSlice(rows, s.scanEvent)
+}
+
+func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
+	var (
+		idStr         string
+		eventType     string
+		aggType       string
+		aggIDStr      string
+		version       int
+		schemaVersion int
+		payload       []byte
+		metadataJSON  []byte
+	)
+
+	timeDest := s.dialect.ScanTimeDest()
+
+	err := rows.Scan(
+		&idStr, &eventType, &aggType, &aggIDStr,
+		&version, &schemaVersion, &payload, &metadataJSON,
+		timeDest,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("scan event row: %w", err)
+	}
+
+	occurredAt, err := s.dialect.ParseTime(timeDest)
+	if err != nil {
+		return nil, fmt.Errorf("parse occurred_at: %w", err)
+	}
+
+	return reconstructEvent(
+		idStr, eventType, aggType, aggIDStr,
+		version, schemaVersion, payload, metadataJSON,
+		occurredAt,
+	)
+}
+
+var (
+	_ event.Store        = (*SQLEventStore)(nil)
+	_ event.GlobalLoader = (*SQLEventStore)(nil)
+)

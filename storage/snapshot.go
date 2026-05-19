@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -13,18 +12,30 @@ import (
 
 // SQLSnapshotStore persists aggregate snapshots in a SQL database.
 type SQLSnapshotStore struct {
-	db *sql.DB
+	db      *sql.DB
+	dialect Dialect
 }
 
-// NewSQLSnapshotStore creates a new SQL-backed snapshot store.
+// NewSQLSnapshotStore creates a new SQL-backed snapshot store using PostgreSQL dialect.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.
 func NewSQLSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
+	return newSQLSnapshotStoreWithDialect(db, PostgresDialect{})
+}
+
+// NewSQLiteSnapshotStore creates a new SQLite-backed snapshot store.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLiteSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
+	return newSQLSnapshotStoreWithDialect(db, SQLiteDialect{})
+}
+
+func newSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)
 	}
 
-	return &SQLSnapshotStore{db: db}, nil
+	return &SQLSnapshotStore{db: db, dialect: d}, nil
 }
 
 // Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
@@ -42,13 +53,29 @@ func SnapshotSchema() string {
 );`
 }
 
+// SQLiteSnapshotSchema returns the SQL DDL for creating the snapshots table in SQLite.
+func SQLiteSnapshotSchema() string {
+	return `CREATE TABLE IF NOT EXISTS snapshots (
+    aggregate_type  TEXT NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    state           BLOB NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);`
+}
+
 // Save persists a snapshot for an aggregate.
 // State is stored as-is ([]byte) — no additional marshaling is applied.
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
-	query := `INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
-		VALUES ($1, $2, $3, $4, $5)
+	p1, p2, p3, p4, p5 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
+		s.dialect.Placeholder(3), s.dialect.Placeholder(4), s.dialect.Placeholder(5)
+
+	query := fmt.Sprintf(`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
+		VALUES (%s, %s, %s, %s, %s)
 		ON CONFLICT (aggregate_type, aggregate_id)
-		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`
+		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
+		p1, p2, p3, p4, p5)
 
 	_, err := s.db.ExecContext(
 		ctx,
@@ -57,7 +84,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 		snap.AggregateID,
 		snap.Version.Int(),
 		snap.State,
-		snap.CreatedAt,
+		s.dialect.FormatTime(snap.CreatedAt),
 	)
 	if err != nil {
 		return fmt.Errorf("save snapshot for %s %s: %w", snap.AggregateType, snap.AggregateID, err)
@@ -73,10 +100,12 @@ func (s *SQLSnapshotStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (*event.Snapshot, error) {
-	query := `SELECT version, state, created_at FROM snapshots
-		WHERE aggregate_type = $1 AND aggregate_id = $2`
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
-	snap, err := scanSnapshot(
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
+		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
+
+	snap, err := s.scanSnapshot(
 		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
 		aggregateType,
 		aggregateID,
@@ -96,10 +125,12 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) (*event.Snapshot, error) {
-	query := `SELECT version, state, created_at FROM snapshots
-		WHERE aggregate_type = $1 AND aggregate_id = $2`
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
-	snap, err := scanSnapshot(
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
+		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
+
+	snap, err := s.scanSnapshot(
 		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
 		aggregateType,
 		aggregateID,
@@ -117,7 +148,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	return snap, nil
 }
 
-func scanSnapshot(
+func (s *SQLSnapshotStore) scanSnapshot(
 	row *sql.Row,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -125,10 +156,11 @@ func scanSnapshot(
 	var (
 		version    int
 		stateBytes []byte
-		createdAt  time.Time
 	)
 
-	err := row.Scan(&version, &stateBytes, &createdAt)
+	timeDest := s.dialect.ScanTimeDest()
+
+	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf(
@@ -137,6 +169,11 @@ func scanSnapshot(
 		}
 
 		return nil, fmt.Errorf("scan snapshot for %s/%s: %w", aggregateType, aggregateID, err)
+	}
+
+	createdAt, err := s.dialect.ParseTime(timeDest)
+	if err != nil {
+		return nil, fmt.Errorf("parse created_at: %w", err)
 	}
 
 	return &event.Snapshot{
@@ -154,15 +191,11 @@ func (s *SQLSnapshotStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
+
 	return deleteByAggregate(
-		s.db,
-		ctx,
-		aggregateType,
-		aggregateID,
-		"snapshots",
-		"$1",
-		"$2",
-		"snapshot",
+		s.db, ctx, aggregateType, aggregateID,
+		"snapshots", p1, p2, "snapshot",
 	)
 }
 

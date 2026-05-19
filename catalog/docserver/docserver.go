@@ -133,7 +133,10 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
 
 	// Serve embedded static assets (Scalar JS, AsyncAPI React JS/CSS)
-	mux.Handle("GET "+prefix+"/static/", http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())))
+	mux.Handle(
+		"GET "+prefix+"/static/",
+		http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())),
+	)
 }
 
 // registerRoutesPrefix registers all documentation routes with a pattern prefix.
@@ -148,7 +151,10 @@ func (ds *DocsServer) registerRoutesPrefix(mux *http.ServeMux, prefix string) {
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
 
 	// Serve embedded static assets
-	mux.Handle("GET "+prefix+"/static/", http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())))
+	mux.Handle(
+		"GET "+prefix+"/static/",
+		http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())),
+	)
 }
 
 func (ds *DocsServer) buildOpenAPI() *openapi.Document {

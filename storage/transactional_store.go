@@ -19,6 +19,7 @@ type SQLTransactionalStore struct {
 
 	outbox *SQLOutbox
 	db     *sql.DB
+	dialect Dialect
 }
 
 // NewSQLTransactionalStore creates a store that atomically saves events and
@@ -40,7 +41,18 @@ func NewSQLTransactionalStore(
 		SQLEventStore: store,
 		outbox:        outbox,
 		db:            store.db,
+		dialect:       store.dialect,
 	}, nil
+}
+
+// NewSQLiteTransactionalStore creates a SQLite store that atomically saves events and
+// appends them to the outbox within a single transaction.
+// Returns an error if any parameter is nil.
+func NewSQLiteTransactionalStore(
+	store *SQLEventStore,
+	outbox *SQLOutbox,
+) (*SQLTransactionalStore, error) {
+	return NewSQLTransactionalStore(store, outbox)
 }
 
 // SaveWithOutbox atomically persists events and appends them to the outbox
@@ -61,13 +73,13 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 		aggregateID,
 		events,
 		expectedVersion,
-		checkVersion,
-		insertEvents,
-		appendOutboxTx,
+		s.SQLEventStore.checkVersion,
+		s.SQLEventStore.insertEvents,
+		s.appendOutboxTx,
 	)
 }
 
-func appendOutboxTx(
+func (s *SQLTransactionalStore) appendOutboxTx(
 	ctx context.Context,
 	tx *sql.Tx,
 	events []event.Event,
@@ -79,7 +91,14 @@ func appendOutboxTx(
 
 	outboxID := events[0].ID()
 
-	_, err = tx.ExecContext(ctx, outboxInsertSQL, outboxID, serialized, time.Now())
+	p1, p2, p3 := s.dialect.Placeholder(1), s.dialect.Placeholder(2), s.dialect.Placeholder(3)
+
+	insertSQL := fmt.Sprintf(
+		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, '%s', %s, %s)`,
+		p1, OutboxStatusPending, p2, p3,
+	)
+
+	_, err = tx.ExecContext(ctx, insertSQL, outboxID, serialized, s.dialect.FormatTime(time.Now()))
 	if err != nil {
 		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
 	}
