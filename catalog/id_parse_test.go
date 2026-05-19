@@ -1,10 +1,8 @@
 package catalog
 
 import (
+	"errors"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestParseServiceID(t *testing.T) {
@@ -27,14 +25,24 @@ func TestParseServiceID(t *testing.T) {
 
 			got, err := ParseServiceID(tt.input)
 			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "service ID cannot be empty")
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+
+				if !errors.Is(err, ErrEmptyServiceID) {
+					t.Fatalf("expected ErrEmptyServiceID, got %v", err)
+				}
 
 				return
 			}
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got != tt.want {
+				t.Fatalf("expected %q, got %q", tt.want, got)
+			}
 		})
 	}
 }
@@ -46,23 +54,34 @@ func TestMustParseServiceID(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseServiceID("orders")
-		assert.Equal(t, ServiceID("orders"), id)
+		if id != ServiceID("orders") {
+			t.Fatalf("expected %q, got %q", "orders", id)
+		}
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			MustParseServiceID("")
-		})
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected panic")
+			}
+		}()
+
+		MustParseServiceID("")
 	})
 }
 
 func TestServiceID_IsZero(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, ServiceID("").IsZero())
-	assert.False(t, ServiceID("users").IsZero())
+	if !ServiceID("").IsZero() {
+		t.Fatal("empty ServiceID should be zero")
+	}
+
+	if ServiceID("users").IsZero() {
+		t.Fatal(`"users" ServiceID should not be zero`)
+	}
 }
 
 func TestParseDomainID(t *testing.T) {
@@ -84,14 +103,24 @@ func TestParseDomainID(t *testing.T) {
 
 			got, err := ParseDomainID(tt.input)
 			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "domain ID cannot be empty")
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+
+				if !errors.Is(err, ErrEmptyDomainID) {
+					t.Fatalf("expected ErrEmptyDomainID, got %v", err)
+				}
 
 				return
 			}
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got != tt.want {
+				t.Fatalf("expected %q, got %q", tt.want, got)
+			}
 		})
 	}
 }
@@ -103,23 +132,34 @@ func TestMustParseDomainID(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseDomainID("billing")
-		assert.Equal(t, DomainID("billing"), id)
+		if id != DomainID("billing") {
+			t.Fatalf("expected %q, got %q", "billing", id)
+		}
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			MustParseDomainID("")
-		})
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected panic")
+			}
+		}()
+
+		MustParseDomainID("")
 	})
 }
 
 func TestDomainID_IsZero(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, DomainID("").IsZero())
-	assert.False(t, DomainID("orders").IsZero())
+	if !DomainID("").IsZero() {
+		t.Fatal("empty DomainID should be zero")
+	}
+
+	if DomainID("orders").IsZero() {
+		t.Fatal(`"orders" DomainID should not be zero`)
+	}
 }
 
 func TestParseMessageID(t *testing.T) {
@@ -142,14 +182,24 @@ func TestParseMessageID(t *testing.T) {
 
 			got, err := ParseMessageID(tt.input)
 			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "message ID cannot be empty")
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+
+				if !errors.Is(err, ErrEmptyMessageID) {
+					t.Fatalf("expected ErrEmptyMessageID, got %v", err)
+				}
 
 				return
 			}
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got != tt.want {
+				t.Fatalf("expected %q, got %q", tt.want, got)
+			}
 		})
 	}
 }
@@ -161,23 +211,34 @@ func TestMustParseMessageID(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseMessageID("CreateUser")
-		assert.Equal(t, MessageID("CreateUser"), id)
+		if id != MessageID("CreateUser") {
+			t.Fatalf("expected %q, got %q", "CreateUser", id)
+		}
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			MustParseMessageID("")
-		})
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected panic")
+			}
+		}()
+
+		MustParseMessageID("")
 	})
 }
 
 func TestMessageID_IsZero(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, MessageID("").IsZero())
-	assert.False(t, MessageID("CreateUser").IsZero())
+	if !MessageID("").IsZero() {
+		t.Fatal("empty MessageID should be zero")
+	}
+
+	if MessageID("CreateUser").IsZero() {
+		t.Fatal(`"CreateUser" MessageID should not be zero`)
+	}
 }
 
 func TestParseChannelID(t *testing.T) {
@@ -199,14 +260,24 @@ func TestParseChannelID(t *testing.T) {
 
 			got, err := ParseChannelID(tt.input)
 			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "channel ID cannot be empty")
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+
+				if !errors.Is(err, ErrEmptyChannelID) {
+					t.Fatalf("expected ErrEmptyChannelID, got %v", err)
+				}
 
 				return
 			}
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got != tt.want {
+				t.Fatalf("expected %q, got %q", tt.want, got)
+			}
 		})
 	}
 }
@@ -218,21 +289,32 @@ func TestMustParseChannelID(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseChannelID("user.events")
-		assert.Equal(t, ChannelID("user.events"), id)
+		if id != ChannelID("user.events") {
+			t.Fatalf("expected %q, got %q", "user.events", id)
+		}
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			MustParseChannelID("")
-		})
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected panic")
+			}
+		}()
+
+		MustParseChannelID("")
 	})
 }
 
 func TestChannelID_IsZero(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, ChannelID("").IsZero())
-	assert.False(t, ChannelID("user.commands").IsZero())
+	if !ChannelID("").IsZero() {
+		t.Fatal("empty ChannelID should be zero")
+	}
+
+	if ChannelID("user.commands").IsZero() {
+		t.Fatal(`"user.commands" ChannelID should not be zero`)
+	}
 }

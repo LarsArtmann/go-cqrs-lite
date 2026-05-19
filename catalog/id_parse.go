@@ -1,12 +1,19 @@
 package catalog
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
-	_ fmt.Stringer = ServiceID("")
-	_ fmt.Stringer = DomainID("")
-	_ fmt.Stringer = MessageID("")
-	_ fmt.Stringer = ChannelID("")
+	_                 fmt.Stringer = ServiceID("")
+	_                 fmt.Stringer = DomainID("")
+	_                 fmt.Stringer = MessageID("")
+	_                 fmt.Stringer = ChannelID("")
+	ErrEmptyServiceID              = errors.New("service ID cannot be empty")
+	ErrEmptyDomainID               = errors.New("domain ID cannot be empty")
+	ErrEmptyMessageID              = errors.New("message ID cannot be empty")
+	ErrEmptyChannelID              = errors.New("channel ID cannot be empty")
 )
 
 // IsZero returns true if the ServiceID is empty.
@@ -16,7 +23,7 @@ func (id ServiceID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseServiceID(s string) (ServiceID, error) {
 	if s == "" {
-		return "", fmt.Errorf("service ID cannot be empty") //nolint:err113 // specific value required
+		return "", fmt.Errorf("parse service ID: %w", ErrEmptyServiceID)
 	}
 
 	return ServiceID(s), nil
@@ -39,7 +46,7 @@ func (id DomainID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseDomainID(s string) (DomainID, error) {
 	if s == "" {
-		return "", fmt.Errorf("domain ID cannot be empty") //nolint:err113 // specific value required
+		return "", fmt.Errorf("parse domain ID: %w", ErrEmptyDomainID)
 	}
 
 	return DomainID(s), nil
@@ -62,7 +69,7 @@ func (id MessageID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseMessageID(s string) (MessageID, error) {
 	if s == "" {
-		return "", fmt.Errorf("message ID cannot be empty") //nolint:err113 // specific value required
+		return "", fmt.Errorf("parse message ID: %w", ErrEmptyMessageID)
 	}
 
 	return MessageID(s), nil
@@ -85,7 +92,7 @@ func (id ChannelID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseChannelID(s string) (ChannelID, error) {
 	if s == "" {
-		return "", fmt.Errorf("channel ID cannot be empty") //nolint:err113 // specific value required
+		return "", fmt.Errorf("parse channel ID: %w", ErrEmptyChannelID)
 	}
 
 	return ChannelID(s), nil

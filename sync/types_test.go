@@ -17,7 +17,12 @@ func TestParseOperationID(t *testing.T) {
 		wantErr bool
 	}{
 		{"valid ID", "op-123", OperationID("op-123"), false},
-		{"UUID-like", "550e8400-e29b-41d4-a716-446655440000", OperationID("550e8400-e29b-41d4-a716-446655440000"), false},
+		{
+			"UUID-like",
+			"550e8400-e29b-41d4-a716-446655440000",
+			OperationID("550e8400-e29b-41d4-a716-446655440000"),
+			false,
+		},
 		{"empty string", "", "", true},
 	}
 
