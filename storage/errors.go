@@ -42,9 +42,9 @@ var ErrTursoMemorySync = errors.New("storage: turso sync requires a file path fo
 
 func init() { //nolint:gochecknoinits
 	event.RegisterClassification(ErrNilDB, event.Infrastructure)
-	event.RegisterClassification(ErrAggregateTypeMismatch, event.Corruption)
-	event.RegisterClassification(ErrAggregateIDMismatch, event.Corruption)
-	event.RegisterClassification(ErrVersionMismatch, event.Corruption)
+	event.RegisterClassification(ErrAggregateTypeMismatch, event.Conflict)
+	event.RegisterClassification(ErrAggregateIDMismatch, event.Conflict)
+	event.RegisterClassification(ErrVersionMismatch, event.Conflict)
 	event.RegisterClassification(ErrPebbleProviderRequired, event.Infrastructure)
 	event.RegisterClassification(ErrUnknownBackend, event.Infrastructure)
 	event.RegisterClassification(ErrUnsupportedTimestamp, event.Corruption)
