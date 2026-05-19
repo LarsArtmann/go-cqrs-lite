@@ -9,8 +9,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection v0.0.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.0.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0
-	github.com/onsi/ginkgo/v2 v2.28.3
-	github.com/onsi/gomega v1.40.0
+	github.com/onsi/ginkgo/v2 v2.29.0
+	github.com/onsi/gomega v1.41.0
 )
 
 require (
