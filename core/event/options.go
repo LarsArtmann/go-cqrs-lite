@@ -35,9 +35,18 @@ func WithOccurredAt(v time.Time) Option {
 	return func(e *Core) { e.occurredAt = v }
 }
 
-// WithMetadata sets custom metadata.
+// WithMetadata merges the given metadata into the event's existing metadata.
+// Existing fields are overwritten by the provided metadata.
 func WithMetadata(m *Metadata) Option {
-	return func(e *Core) { e.metadata = m }
+	return func(e *Core) {
+		if e.metadata == nil {
+			e.metadata = m
+
+			return
+		}
+
+		e.metadata.mergeFrom(m)
+	}
 }
 
 // WithCorrelationID sets the correlation ID for distributed tracing.

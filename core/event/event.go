@@ -66,6 +66,44 @@ type Metadata struct {
 	Custom        map[MetadataKey]string `json:"custom,omitempty"`
 }
 
+func (m *Metadata) mergeFrom(other *Metadata) {
+	if !other.CorrelationID.IsZero() {
+		m.CorrelationID = other.CorrelationID
+	}
+
+	if !other.CausationID.IsZero() {
+		m.CausationID = other.CausationID
+	}
+
+	if !other.UserID.IsZero() {
+		m.UserID = other.UserID
+	}
+
+	if !other.RequestID.IsZero() {
+		m.RequestID = other.RequestID
+	}
+
+	if other.Source != "" {
+		m.Source = other.Source
+	}
+
+	if other.IPAddress != "" {
+		m.IPAddress = other.IPAddress
+	}
+
+	if other.UserAgent != "" {
+		m.UserAgent = other.UserAgent
+	}
+
+	for k, v := range other.Custom {
+		if m.Custom == nil {
+			m.Custom = make(map[MetadataKey]string)
+		}
+
+		m.Custom[k] = v
+	}
+}
+
 // Core provides a default implementation of Event interface.
 type Core struct {
 	id            id.EventID
