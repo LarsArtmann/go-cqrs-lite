@@ -17,9 +17,7 @@ import (
 type SQLTransactionalStore struct {
 	*SQLEventStore
 
-	outbox  *SQLOutbox
-	db      *sql.DB
-	dialect Dialect
+	outbox *SQLOutbox
 }
 
 // NewSQLTransactionalStore creates a store that atomically saves events and
@@ -40,8 +38,6 @@ func NewSQLTransactionalStore(
 	return &SQLTransactionalStore{
 		SQLEventStore: store,
 		outbox:        outbox,
-		db:            store.db,
-		dialect:       store.dialect,
 	}, nil
 }
 
