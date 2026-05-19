@@ -3,23 +3,22 @@ package main
 import (
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog"
 	catalogadapters "github.com/larsartmann/go-cqrs-lite/catalog/adapters"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
-
-type catalogableEvent struct {
-	*event.CatalogCore
-}
 
 func generateEventCatalog(outputDir string) error {
 	builder := catalogadapters.NewBuilder("User Service", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages user accounts")
-
-	builder.AddEvent("user-svc", mustNewCatalogEvent(string(eventUserCreated),
-		"User Created", "Fired when a new user account is created"))
-	builder.AddEvent("user-svc", mustNewCatalogEvent(string(eventUserNameChanged),
-		"User Name Changed", "Fired when a user changes their display name"))
+	builder.AddService("user-svc", "User Service", "1.0.0", "Manages user accounts",
+		catalog.Event[UserCreatedPayload](string(eventUserCreated), catalog.Sends,
+			catalog.Name("User Created"),
+			catalog.Summary("Fired when a new user account is created"),
+		),
+		catalog.Event[UserNameChangedPayload](string(eventUserNameChanged), catalog.Sends,
+			catalog.Name("User Name Changed"),
+			catalog.Summary("Fired when a user changes their display name"),
+		),
+	)
 
 	builder.AddDomain("identity", "Identity",
 		"User identity and account management", []string{"user-svc"})
@@ -34,23 +33,4 @@ func generateEventCatalog(outputDir string) error {
 	}
 
 	return builder.ExportEventCatalog(outputDir)
-}
-
-func mustNewCatalogEvent(eventType, name, summary string) event.Catalogable {
-	aggID := id.NewAggregateID()
-
-	core, err := event.NewCatalogCore(
-		event.Type(eventType), aggID, aggregateType, 1, nil,
-		event.CatalogMeta{
-			Name:          name,
-			Version:       "1.0.0",
-			Summary:       summary,
-			AggregateType: aggregateType,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return &catalogableEvent{CatalogCore: core}
 }

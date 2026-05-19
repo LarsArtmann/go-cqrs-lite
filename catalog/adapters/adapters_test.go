@@ -13,7 +13,7 @@ import (
 )
 
 type createUserCmd struct {
-	Name  string `json:"name" doc:"Full name of the user"`
+	Name  string `json:"name"  doc:"Full name of the user"`
 	Email string `json:"email" doc:"Email address"`
 }
 
@@ -23,7 +23,7 @@ type changeEmailCmd struct {
 
 type userCreatedEvt struct {
 	UserID string `json:"userId" doc:"User ID"`
-	Email  string `json:"email" doc:"Email address"`
+	Email  string `json:"email"  doc:"Email address"`
 }
 
 type getUserQry struct {
