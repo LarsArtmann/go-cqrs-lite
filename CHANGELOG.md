@@ -20,13 +20,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Performance benchmarks** (Session 50): `core/decider` (4 benchmarks), `projection` (3 benchmarks), `middleware` (4 benchmarks), `core/event` (6 benchmarks). Total: 43 benchmarks across 12 files.
 - **Design documents** (Session 50): Outbox transaction co-participation API (`docs/planning/OUTBOX_TRANSACTION_API.md`), query handler generics migration (`docs/planning/QUERY_HANDLER_GENERICS.md`), saga design answers and implementation plan (`docs/planning/SAGA_DESIGN.md`).
 - **Comprehensive execution plan** (Session 68): 86-task plan in `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md`.
+- **Dialect tests** (`storage`): 15 tests for PostgresDialect, SQLiteDialect, `placeholders()`.
+- **OpenAPI coverage tests** (`catalog/openapi`): WithBasePath, nil schema, empty catalog, schemaToAny(nil), toKebab edge cases.
 
 ### Changed
 
 - **ISP activation**: `aggregate.Repository` accepts `event.Publisher` (not `event.Bus`). `decider.Repository` accepts `event.Publisher`. `projection.Runner` accepts `event.Subscriber`. `event.OutboxPublisher` accepts `event.Publisher`. All backward-compatible — `event.Bus` satisfies both sub-interfaces.
 - **Root go.mod module path**: `github.com/LarsArtmann/go-cqrs-lite` → `github.com/larsartmann/go-cqrs-lite` (consistent with sub-modules).
 - **Zero lint issues** across all 8 linted modules (was 50+).
-- **go.mod tidy**: ginkgo/gomega moved from indirect to direct in memory and projection modules.
+- **File splits** (Session 73): `catalog/openapi/exporter.go` → `convert.go`, `storage/event_store.go` → `event_store_scan.go`, `storage/outbox.go` → `outbox_helpers.go`, `catalog/docserver/docserver.go` → `builders.go`, `catalog/adapters/adapters_test.go` → `dispatcher_test.go` + `export_test.go`.
+- **outboxEvent type safety**: `Version` and `SchemaVersion` fields changed from bare `int` to `event.Version`/`event.SchemaVersion`.
+- **Golden test refresh**: Updated asyncapi.yaml, eventcatalog-config.js, package.json to match current output.
+- **Zero catalog lint**: All gci and golines issues resolved.
 - **SnapshotStrategy deduplication**: Removed 22-line duplicate from aggregate and decider; replaced with type aliases.
 - `FakeSnapshotStore.Save` now records snapshots for verification (was no-op)
 - Updated `dispatcher.Typed` documentation to clarify string-backed named types require explicit `string()` conversion

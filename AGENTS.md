@@ -368,19 +368,21 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/command`         | 100.0%   |
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
-| `catalog/adapters`     | 100.0%   |
 | `middleware`           | 100.0%   |
+| `catalog/adapters`     | 97.1%    |
 | `memory`               | 99.5%    |
 | `projection`           | 98.3%    |
 | `core/pkg/id`          | 97.8%    |
 | `catalog/d2`           | 97.6%    |
+| `catalog/openapi`      | 96.6%    |
 | `core/aggregate`       | 96.9%    |
 | `catalog/eventcatalog` | 95.7%    |
-| `catalog`              | 94.4%    |
-| `core/event`           | 93.9%    |
+| `catalog`              | 95.3%    |
+| `core/event`           | 96.3%    |
 | `catalog/asyncapi`     | 93.9%    |
+| `catalog/docserver`    | 92.3%    |
 | `core/decider`         | 92.7%    |
-| `storage`              | 85.1%    |
+| `storage`              | 88.1%    |
 
 ## Module Dependency Graph
 
@@ -811,3 +813,15 @@ Interfaces now return branded types instead of primitives:
   - **REFACTOR**: Split `storage/pebble_event_store.go` (321→156) → `storage/pebble_helpers.go` (176) — Delete, AppendBatch, Close, helpers extracted.
   - **REFACTOR**: Split `catalog/registry.go` (254→208) → `catalog/registry_helpers.go` (47) — Copy helpers extracted.
   - **RESULT**: Zero production files exceed 250 lines. All test packages pass.
+
+- **Session 73 (File Splits + Coverage + Type Safety + Golden Tests)**:
+  - **REFACTOR**: Split `catalog/openapi/exporter.go` (318→254) → `catalog/openapi/convert.go` (68) — extracted `toKebab`/`toPascal`.
+  - **REFACTOR**: Split `storage/event_store.go` (305→233) → `storage/event_store_scan.go` — extracted `scanEvents`/`scanEvent`/`insertEvents`.
+  - **REFACTOR**: Split `storage/outbox.go` (255→152) → `storage/outbox_helpers.go` — extracted outbox serialization helpers.
+  - **REFACTOR**: Split `catalog/docserver/docserver.go` (265→229) → `catalog/docserver/builders.go` — extracted `buildOpenAPI`/`buildAsyncAPI`/`buildCatalog`.
+  - **REFACTOR**: Split `catalog/adapters/adapters_test.go` (543→250) → `catalog/adapters/dispatcher_test.go` + `catalog/adapters/export_test.go`.
+  - **TEST**: `storage/dialect_test.go` — 15 tests for PostgresDialect, SQLiteDialect, `placeholders()`. Storage coverage: 86.9% → 88.1%.
+  - **TEST**: `catalog/openapi/exporter_test.go` — 5 new tests (WithBasePath, nil schema, schemaToAny(nil), empty catalog, toKebab edge cases). Coverage: 83.9% → 96.6%.
+  - **FIX**: `outboxEvent.Version` and `outboxEvent.SchemaVersion` changed from bare `int` to `event.Version`/`event.SchemaVersion` — type safety.
+  - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json).
+  - Zero catalog lint, all 22 test packages pass
