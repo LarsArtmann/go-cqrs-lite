@@ -64,7 +64,6 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	aggregateID id.AggregateID,
 	events []event.Event,
 	expectedVersion event.Version,
-	outbox event.Outbox, //nolint:revive // required by interface, implementation uses own outbox field
 ) error {
 	return saveWithOutboxTx(
 		ctx,

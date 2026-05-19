@@ -532,7 +532,6 @@ func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
 		"Issue", aggID,
 		[]event.Event{evt},
 		event.Version(0),
-		outbox,
 	)
 	if err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)

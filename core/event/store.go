@@ -65,7 +65,7 @@ type Store interface {
 // two-step Save+Append approach when available:
 //
 //	if ts, ok := store.(TransactionalStore); ok {
-//	    return ts.SaveWithOutbox(ctx, aggType, aggID, events, ver, outbox)
+//	    return ts.SaveWithOutbox(ctx, aggType, aggID, events, ver)
 //	}
 type TransactionalStore interface {
 	Store
@@ -77,6 +77,5 @@ type TransactionalStore interface {
 		aggregateID id.AggregateID,
 		events []Event,
 		expectedVersion Version,
-		outbox Outbox,
 	) error
 }

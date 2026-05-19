@@ -108,7 +108,7 @@ func (r *Repository[State]) Execute(
 	}
 
 	if ts, ok := r.store.(event.TransactionalStore); ok && r.outbox != nil {
-		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion, r.outbox)
+		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion)
 		if err != nil {
 			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
 		}

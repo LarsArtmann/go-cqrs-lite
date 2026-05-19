@@ -769,7 +769,6 @@ func (m *mockTransactionalStore) SaveWithOutbox(
 	_ id.AggregateID,
 	events []event.Event,
 	_ event.Version,
-	_ event.Outbox,
 ) error {
 	if len(events) == 0 {
 		return nil

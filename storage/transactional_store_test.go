@@ -109,7 +109,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_Success(t *testing.T) {
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil, // outbox param unused by SQL implementation
 	)
 	if err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
@@ -132,7 +131,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_EmptyEvents(t *testing.T) {
 		id.NewAggregateID(),
 		nil,
 		event.Version(0),
-		nil,
 	)
 	if err != nil {
 		t.Fatalf("SaveWithOutbox with empty events: %v", err)
@@ -153,7 +151,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_BeginTxFailure(t *testing.T) {
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil,
 	)
 	if err == nil {
 		t.Fatal("expected error for BeginTx failure")
@@ -176,7 +173,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_VersionConflict(t *testing.T) {
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil,
 	)
 	if err == nil {
 		t.Fatal("expected version conflict error")
@@ -208,7 +204,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_InsertEventFailure(t *testing.T) {
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil,
 	)
 	if err == nil {
 		t.Fatal("expected error for event insert failure")
@@ -241,7 +236,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_OutboxInsertFailure(t *testing.T) 
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil,
 	)
 	if err == nil {
 		t.Fatal("expected error for outbox insert failure")
@@ -274,7 +268,6 @@ func TestSQLTransactionalStore_SaveWithOutbox_CommitFailure(t *testing.T) {
 		evt.AggregateID(),
 		[]event.Event{evt},
 		event.Version(0),
-		nil,
 	)
 	if err == nil {
 		t.Fatal("expected error for commit failure")

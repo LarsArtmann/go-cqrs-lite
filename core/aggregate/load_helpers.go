@@ -49,7 +49,7 @@ func (r *EventSourcedRepository) persistChanges(
 	}
 
 	if ts, ok := r.store.(event.TransactionalStore); ok {
-		err := ts.SaveWithOutbox(ctx, aggType, aggID, changes, expectedVersion, r.outbox)
+		err := ts.SaveWithOutbox(ctx, aggType, aggID, changes, expectedVersion)
 		if err != nil {
 			return opError("save with outbox", aggType, aggID, err)
 		}
