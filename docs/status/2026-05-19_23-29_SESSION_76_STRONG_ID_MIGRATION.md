@@ -15,7 +15,9 @@ Ran `branching-flow strong-id` analysis revealing 75 violations of bare `string`
 ## a) FULLY DONE
 
 ### 1. Strong ID Audit (75 violations analyzed)
+
 Ran `branching-flow strong-id .` tool and categorized all 75 violations into 5 categories:
+
 - Catalog domain IDs (59) — human-readable slugs needing named types
 - Sync module (6) — consistency with existing `NodeID`
 - Storage serialization (8) — internal JSON wire-format
@@ -24,59 +26,59 @@ Ran `branching-flow strong-id .` tool and categorized all 75 violations into 5 c
 
 ### 2. Sync Module Strong IDs (8 violations fixed)
 
-| Change | File | Detail |
-|--------|------|--------|
-| NEW `OperationID` type | `sync/types.go` | `type OperationID string` with Parse, MustParse, String, IsZero |
-| `Operation.ID` typed | `sync/operation.go` | `string` → `OperationID` |
-| `NewOperation` signature | `sync/operation.go` | First param `string` → `OperationID` |
-| `VectorClock` key type | `sync/vectorclock.go` | `map[string]int64` → `map[NodeID]int64` |
-| All VectorClock methods | `sync/vectorclock.go` | `Increment`, `Get`, etc. take `NodeID` |
-| NEW `NewVectorClockFromMap` | `sync/vectorclock.go` | Convenience constructor |
-| Doc example updated | `sync/doc.go` | Shows `sync.NodeID("node-1")` |
-| All test files updated | `*_test.go` | `NodeID("a")` in map literals |
+| Change                      | File                  | Detail                                                          |
+| --------------------------- | --------------------- | --------------------------------------------------------------- |
+| NEW `OperationID` type      | `sync/types.go`       | `type OperationID string` with Parse, MustParse, String, IsZero |
+| `Operation.ID` typed        | `sync/operation.go`   | `string` → `OperationID`                                        |
+| `NewOperation` signature    | `sync/operation.go`   | First param `string` → `OperationID`                            |
+| `VectorClock` key type      | `sync/vectorclock.go` | `map[string]int64` → `map[NodeID]int64`                         |
+| All VectorClock methods     | `sync/vectorclock.go` | `Increment`, `Get`, etc. take `NodeID`                          |
+| NEW `NewVectorClockFromMap` | `sync/vectorclock.go` | Convenience constructor                                         |
+| Doc example updated         | `sync/doc.go`         | Shows `sync.NodeID("node-1")`                                   |
+| All test files updated      | `*_test.go`           | `NodeID("a")` in map literals                                   |
 
 ### 3. Catalog Module Strong IDs (53 violations fixed)
 
-| Change | File | Detail |
-|--------|------|--------|
-| NEW `ServiceID` type | `catalog/types.go` | `type ServiceID string` with `String()` |
-| NEW `DomainID` type | `catalog/types.go` | `type DomainID string` with `String()` |
-| NEW `MessageID` type | `catalog/types.go` | `type MessageID string` with `String()` |
-| NEW `ChannelID` type | `catalog/types.go` | `type ChannelID string` with `String()` |
-| `Message.ID` typed | `catalog/types.go` | `string` → `MessageID` |
-| `Service.ID` typed | `catalog/types.go` | `string` → `ServiceID` |
-| `Domain.ID` typed | `catalog/types.go` | `string` → `DomainID` |
-| `Channel.ID` typed | `catalog/types.go` | `string` → `ChannelID` |
-| `Domain.Services` typed | `catalog/types.go` | `[]string` → `[]ServiceID` |
-| `Channel.Messages` typed | `catalog/types.go` | `[]string` → `[]MessageID` |
-| NEW `GetID()` function | `catalog/types.go` | Returns `MessageID`, replaces `MessageID()` |
-| Deprecated `MessageIDString()` | `catalog/types.go` | Backward-compatible string return |
-| Registry map types | `catalog/registry.go` | `map[string]*Service` → `map[ServiceID]*Service` etc. |
-| Registry method signatures | `catalog/registry.go` | All `serviceID string` → `ServiceID` |
-| `SetServiceMeta` | `catalog/registry.go` | Takes `ServiceID` |
-| `AddServiceToDomain` | `catalog/registry.go` | Takes `ServiceID, DomainID` |
-| `MessageConfig.apply` | `catalog/message_config.go` | Takes `ServiceID` |
-| `messageBuilder.id` | `catalog/message_config.go` | `string` → `MessageID` |
-| Builder conversions | `catalog/build.go` | `ServiceID(id)` / `DomainID(id)` at API boundary |
-| Adapters bridge | `catalog/adapters/builder.go` | Casts `string` → typed at API boundary |
-| AsyncAPI builder | `catalog/asyncapi/builder.go` | `svcID ServiceID`, `catalog.GetID(msg)` |
-| D2 connections | `catalog/d2/connections.go` | `string(svc.ID)`, `catalog.GetID()` |
-| D2 services | `catalog/d2/services.go` | `string()` conversions for `sanitizeID` |
-| EventCatalog exporter | `catalog/eventcatalog/exporter.go` | `string()` conversions for filepath/IO |
-| OpenAPI exporter | `catalog/openapi/exporter.go` | `string()` conversions for path building |
-| OpenAPI schema key | `catalog/openapi/schema_helpers.go` | `string(msg.ID)` in concatenation |
-| Test helpers | `catalog/internal/cattest/builders.go` | All builders use typed constructors |
-| Golden test files | `catalog/testdata/golden/` | Refreshed asyncapi.yaml, eventcatalog-config.js, package.json |
+| Change                         | File                                   | Detail                                                        |
+| ------------------------------ | -------------------------------------- | ------------------------------------------------------------- |
+| NEW `ServiceID` type           | `catalog/types.go`                     | `type ServiceID string` with `String()`                       |
+| NEW `DomainID` type            | `catalog/types.go`                     | `type DomainID string` with `String()`                        |
+| NEW `MessageID` type           | `catalog/types.go`                     | `type MessageID string` with `String()`                       |
+| NEW `ChannelID` type           | `catalog/types.go`                     | `type ChannelID string` with `String()`                       |
+| `Message.ID` typed             | `catalog/types.go`                     | `string` → `MessageID`                                        |
+| `Service.ID` typed             | `catalog/types.go`                     | `string` → `ServiceID`                                        |
+| `Domain.ID` typed              | `catalog/types.go`                     | `string` → `DomainID`                                         |
+| `Channel.ID` typed             | `catalog/types.go`                     | `string` → `ChannelID`                                        |
+| `Domain.Services` typed        | `catalog/types.go`                     | `[]string` → `[]ServiceID`                                    |
+| `Channel.Messages` typed       | `catalog/types.go`                     | `[]string` → `[]MessageID`                                    |
+| NEW `GetID()` function         | `catalog/types.go`                     | Returns `MessageID`, replaces `MessageID()`                   |
+| Deprecated `MessageIDString()` | `catalog/types.go`                     | Backward-compatible string return                             |
+| Registry map types             | `catalog/registry.go`                  | `map[string]*Service` → `map[ServiceID]*Service` etc.         |
+| Registry method signatures     | `catalog/registry.go`                  | All `serviceID string` → `ServiceID`                          |
+| `SetServiceMeta`               | `catalog/registry.go`                  | Takes `ServiceID`                                             |
+| `AddServiceToDomain`           | `catalog/registry.go`                  | Takes `ServiceID, DomainID`                                   |
+| `MessageConfig.apply`          | `catalog/message_config.go`            | Takes `ServiceID`                                             |
+| `messageBuilder.id`            | `catalog/message_config.go`            | `string` → `MessageID`                                        |
+| Builder conversions            | `catalog/build.go`                     | `ServiceID(id)` / `DomainID(id)` at API boundary              |
+| Adapters bridge                | `catalog/adapters/builder.go`          | Casts `string` → typed at API boundary                        |
+| AsyncAPI builder               | `catalog/asyncapi/builder.go`          | `svcID ServiceID`, `catalog.GetID(msg)`                       |
+| D2 connections                 | `catalog/d2/connections.go`            | `string(svc.ID)`, `catalog.GetID()`                           |
+| D2 services                    | `catalog/d2/services.go`               | `string()` conversions for `sanitizeID`                       |
+| EventCatalog exporter          | `catalog/eventcatalog/exporter.go`     | `string()` conversions for filepath/IO                        |
+| OpenAPI exporter               | `catalog/openapi/exporter.go`          | `string()` conversions for path building                      |
+| OpenAPI schema key             | `catalog/openapi/schema_helpers.go`    | `string(msg.ID)` in concatenation                             |
+| Test helpers                   | `catalog/internal/cattest/builders.go` | All builders use typed constructors                           |
+| Golden test files              | `catalog/testdata/golden/`             | Refreshed asyncapi.yaml, eventcatalog-config.js, package.json |
 
 ### 4. Pre-existing Fixes (from earlier session, auto-committed)
 
-| Change | File | Detail |
-|--------|------|--------|
-| Decider fold error | `core/decider/decider.go` | `break` → `return` with error context |
-| Outbox publish logging | `core/event/outbox_publisher.go` | `publishPending` logs errors instead of swallowing |
-| LWW nil guard | `sync/conflict.go` | `NewLWWResolver` panics on nil timestampFunc |
-| Middleware retry fix | `middleware/retry.go` | Stop timer after normal fire |
-| Pebble optimistic concurrency | `storage/pebble_event_store.go` | Added version check on Save |
+| Change                        | File                             | Detail                                             |
+| ----------------------------- | -------------------------------- | -------------------------------------------------- |
+| Decider fold error            | `core/decider/decider.go`        | `break` → `return` with error context              |
+| Outbox publish logging        | `core/event/outbox_publisher.go` | `publishPending` logs errors instead of swallowing |
+| LWW nil guard                 | `sync/conflict.go`               | `NewLWWResolver` panics on nil timestampFunc       |
+| Middleware retry fix          | `middleware/retry.go`            | Stop timer after normal fire                       |
+| Pebble optimistic concurrency | `storage/pebble_event_store.go`  | Added version check on Save                        |
 
 ---
 
@@ -89,15 +91,18 @@ Nothing partially done — all started work is complete.
 ## c) NOT STARTED
 
 ### Storage Serialization (13 violations intentionally deferred)
+
 - `storage/pebble_serialization.go` — 8 violations: `serializableEvent` and `serializableMetadata` structs use bare `string` for `ID`, `AggregateID`, `CorrelationID`, `CausationID`, `UserID`, `RequestID`
 - `storage/outbox_helpers.go` — 2 violations: `outboxEvent` uses `string` for `ID`, `AggregateID`
 - **Rationale**: These are internal JSON wire-format structs. Adding branded types would require custom JSON marshalers for zero domain value — these exist solely for serialization/deserialization.
 
 ### Middleware Logging (1 violation deferred)
-- `middleware/logging.go` — `logContext.aggregateID string` 
+
+- `middleware/logging.go` — `logContext.aggregateID string`
 - **Rationale**: Already converts via `.String()` at call site. Internal struct for log formatting only.
 
 ### Memory Outbox (1 violation deferred)
+
 - `memory/outbox.go` — `nextID int`
 - **Rationale**: Auto-increment counter, not a domain identifier.
 
@@ -132,6 +137,7 @@ One thing that was surprising: the pre-commit hooks auto-committed changes acros
 ## f) Top 25 Things to Do Next
 
 ### High Impact (Architecture & Quality)
+
 1. **Lint sweep** — Run `nix run .#lint` to check if strong-id changes introduced any lint issues
 2. **Storage serialization branded types** — Re-evaluate if `outboxEvent`/`serializableEvent` should use branded types (currently deferred)
 3. **`example/user/` module** — Update to use new catalog typed IDs if it references catalog types directly
@@ -142,6 +148,7 @@ One thing that was surprising: the pre-commit hooks auto-committed changes acros
 8. **Breaking change documentation** — Document the catalog API changes in CHANGELOG.md
 
 ### Medium Impact (Consistency & Cleanup)
+
 9. **Consistent `String()` methods** — Verify all named types have `String()` methods
 10. **`fmt.Stringer` interface check** — Add compile-time `var _ fmt.Stringer` checks for all named types
 11. **ID validation** — `ServiceID`, `DomainID`, etc. have no validation. Consider `ParseServiceID` with empty-string check
@@ -151,6 +158,7 @@ One thing that was surprising: the pre-commit hooks auto-committed changes acros
 15. **`sync/conflict.go` test coverage** — New `NewLWWResolver` nil-guard panic has no test
 
 ### Lower Impact (Polish & Future)
+
 16. **`sync.VectorClock` JSON** — Verify `map[NodeID]int64` serializes correctly with `encoding/json`
 17. **Doc comments on sync types** — Add godoc to `OperationID` methods
 18. **Doc comments on catalog types** — Expand godoc on `ServiceID`, `DomainID`, `MessageID`, `ChannelID`
@@ -169,6 +177,7 @@ One thing that was surprising: the pre-commit hooks auto-committed changes acros
 **Should the catalog named types (`ServiceID`, `MessageID`, etc.) remain as `type X string` (opaque named types requiring explicit `string()` casts everywhere), or should they become `type X = string` (type aliases that are interchangeable with string)?**
 
 The tradeoff:
+
 - **Named types** (current): Compiler catches type mixups (passing `ServiceID` where `DomainID` expected). But requires `string()` casts at every IO/format boundary. ~40 call sites need casts.
 - **Type aliases**: Zero friction with existing string-based APIs. But loses the compile-time safety that was the entire point of this exercise.
 
@@ -187,11 +196,11 @@ This is a philosophical question about the project's values: safety vs ergonomic
 
 ## Commits (this session)
 
-| Commit | Message |
-|--------|---------|
-| `4dabeb4` | style(catalog): auto-format from nix fmt |
+| Commit    | Message                                                                 |
+| --------- | ----------------------------------------------------------------------- |
+| `4dabeb4` | style(catalog): auto-format from nix fmt                                |
 | `b1833e2` | fix(decider,sync,event,catalog): correct bugs and improve observability |
-| `ad8cd8b` | fix(middleware): stop timer after normal fire in retry backoff loop |
-| `26acfa4` | fix(storage): add optimistic concurrency check to Pebble Save |
-| `1f7a13d` | style: final formatting stabilization |
-| `7137aa3` | style: finalize auto-format from pre-commit hooks |
+| `ad8cd8b` | fix(middleware): stop timer after normal fire in retry backoff loop     |
+| `26acfa4` | fix(storage): add optimistic concurrency check to Pebble Save           |
+| `1f7a13d` | style: final formatting stabilization                                   |
+| `7137aa3` | style: finalize auto-format from pre-commit hooks                       |

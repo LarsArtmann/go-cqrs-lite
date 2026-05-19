@@ -14,24 +14,24 @@ Continued execution of the Session 74 audit findings. Fixed 3 correctness bugs a
 
 ### Bugs Fixed
 
-| # | Module | Fix | Severity | Commit |
-|---|--------|-----|----------|--------|
-| 1 | `storage/pebble` | Added optimistic concurrency check in `Save()` — loads existing events, returns `ErrVersionConflict` if count doesn't match `expectedVersion`. Aligns Pebble with MemoryStore and SQLEventStore. | CRITICAL | `26acfa4` |
-| 2 | `middleware/retry` | Added `timer.Stop()` after normal `timer.C` fire path. Previously only context cancellation stopped the timer, leaking timer resources. | HIGH | `ad8cd8b` |
-| 3 | `core/decider` | `saveSnapshotAfterEvents` now returns early on fold error instead of continuing to encode partial state. The fold error is logged via `opError`. | HIGH | `b1833e2` |
+| #   | Module             | Fix                                                                                                                                                                                              | Severity | Commit    |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | --------- |
+| 1   | `storage/pebble`   | Added optimistic concurrency check in `Save()` — loads existing events, returns `ErrVersionConflict` if count doesn't match `expectedVersion`. Aligns Pebble with MemoryStore and SQLEventStore. | CRITICAL | `26acfa4` |
+| 2   | `middleware/retry` | Added `timer.Stop()` after normal `timer.C` fire path. Previously only context cancellation stopped the timer, leaking timer resources.                                                          | HIGH     | `ad8cd8b` |
+| 3   | `core/decider`     | `saveSnapshotAfterEvents` now returns early on fold error instead of continuing to encode partial state. The fold error is logged via `opError`.                                                 | HIGH     | `b1833e2` |
 
 ### Safety Improvements
 
-| # | Module | Fix | Commit |
-|---|--------|-----|--------|
-| 4 | `sync` | `NewLWWResolver` panics with clear message on nil `TimestampFunc` — prevents nil dereference at Resolve time. | `b1833e2` |
-| 5 | `core/event` | `OutboxPublisher.publishPending` logs `slog.Warn` instead of silently swallowing errors. Keeps background loop running but provides observability. | `b1833e2` |
-| 6 | `catalog/eventcatalog` | Fixed `wsl_v5` and `golines` lint issues. | `b1833e2` |
+| #   | Module                 | Fix                                                                                                                                                | Commit    |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 4   | `sync`                 | `NewLWWResolver` panics with clear message on nil `TimestampFunc` — prevents nil dereference at Resolve time.                                      | `b1833e2` |
+| 5   | `core/event`           | `OutboxPublisher.publishPending` logs `slog.Warn` instead of silently swallowing errors. Keeps background loop running but provides observability. | `b1833e2` |
+| 6   | `catalog/eventcatalog` | Fixed `wsl_v5` and `golines` lint issues.                                                                                                          | `b1833e2` |
 
 ### Style
 
-| Commit | Description |
-|--------|-------------|
+| Commit    | Description                              |
+| --------- | ---------------------------------------- |
 | `4dabeb4` | Auto-format catalog files from `nix fmt` |
 
 ---
@@ -40,11 +40,11 @@ Continued execution of the Session 74 audit findings. Fixed 3 correctness bugs a
 
 The previous session identified several "bugs" that turned out to be already guarded:
 
-| Claimed Bug | Reality |
-|-------------|---------|
-| Aggregate snapshot with nil state when codec is nil | `event.ShouldSnapshot` checks `codec != nil` — `trySnapshot` never reached with nil codec |
-| Decider `saveSnapshotAfterEvents` nil-dereferences codec | Same guard via `shouldSnapshot` → `event.ShouldSnapshot` |
-| `catalog.SchemaFromType` panics on interface types | `schemaFromReflect(nil)` returns `{Type: "null"}` — not a panic |
+| Claimed Bug                                              | Reality                                                                                       |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Aggregate snapshot with nil state when codec is nil      | `event.ShouldSnapshot` checks `codec != nil` — `trySnapshot` never reached with nil codec     |
+| Decider `saveSnapshotAfterEvents` nil-dereferences codec | Same guard via `shouldSnapshot` → `event.ShouldSnapshot`                                      |
+| `catalog.SchemaFromType` panics on interface types       | `schemaFromReflect(nil)` returns `{Type: "null"}` — not a panic                               |
 | Decider dual `%w` wrapping makes first error unreachable | Go 1.20+ supports multiple `%w` in `fmt.Errorf` — both errors are findable via `errors.Is/As` |
 
 **Root cause:** The audit traced individual functions in isolation without following the call chain through `shouldSnapshot` → `event.ShouldSnapshot` (which checks codec != nil).
@@ -71,12 +71,12 @@ The previous session identified several "bugs" that turned out to be already gua
 
 ### Code Metrics
 
-| Metric | Value |
-|--------|-------|
+| Metric         | Value  |
+| -------------- | ------ |
 | Production LOC | 14,713 |
-| Test LOC | 28,576 |
-| Total Go files | 277 |
-| Total LOC | 43,289 |
+| Test LOC       | 28,576 |
+| Total Go files | 277    |
+| Total LOC      | 43,289 |
 
 ### Commits This Session
 
@@ -91,13 +91,13 @@ ad8cd8b fix(middleware): stop timer after normal fire in retry backoff loop
 
 ## Known Issues (Unchanged)
 
-| Issue | Severity | Status |
-|-------|----------|--------|
-| `testhelpers v1.1.0` incompatible with current `core` | HIGH | Workspace masks it; needs tag re-release |
-| `example/todo` broken build | MEDIUM | Stale storage/core API; needs rewrite or removal |
-| `core/go.mod` has test deps in production requires | LOW | `memory` + `testhelpers` only used in `_test.go` |
-| 2 pre-existing staticcheck deprecation warnings | LOW | In middleware test code |
-| Pre-commit hook golangci-lint workspace error | LOW | "directory prefix . does not contain modules listed in go.work" |
+| Issue                                                 | Severity | Status                                                          |
+| ----------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| `testhelpers v1.1.0` incompatible with current `core` | HIGH     | Workspace masks it; needs tag re-release                        |
+| `example/todo` broken build                           | MEDIUM   | Stale storage/core API; needs rewrite or removal                |
+| `core/go.mod` has test deps in production requires    | LOW      | `memory` + `testhelpers` only used in `_test.go`                |
+| 2 pre-existing staticcheck deprecation warnings       | LOW      | In middleware test code                                         |
+| Pre-commit hook golangci-lint workspace error         | LOW      | "directory prefix . does not contain modules listed in go.work" |
 
 ---
 
