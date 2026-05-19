@@ -34,10 +34,10 @@ func (b *Builder) AddService(
 	id, name, version, summary string,
 	msgs ...MessageConfig,
 ) {
-	b.registry.SetServiceMeta(id, name, version, summary)
+	b.registry.SetServiceMeta(ServiceID(id), name, version, summary)
 
 	for _, m := range msgs {
-		m.apply(id, b.registry)
+		m.apply(ServiceID(id), b.registry)
 	}
 }
 
@@ -46,12 +46,17 @@ func (b *Builder) AddDomain(
 	id, name, version, summary string,
 	serviceIDs ...string,
 ) {
+	sids := make([]ServiceID, len(serviceIDs))
+	for i, s := range serviceIDs {
+		sids[i] = ServiceID(s)
+	}
+
 	b.registry.AddDomain(Domain{
-		ID:       id,
+		ID:       DomainID(id),
 		Name:     name,
 		Version:  version,
 		Summary:  summary,
-		Services: serviceIDs,
+		Services: sids,
 	})
 }
 

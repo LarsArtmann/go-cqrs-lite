@@ -20,9 +20,9 @@ func FromCommandDispatcher(
 	reg := builder.builder.Registry()
 
 	for cmdType, meta := range dispatcher.CatalogEntries() {
-		reg.AddCommand(serviceID, catalog.Message{ //nolint:exhaustruct
+		reg.AddCommand(catalog.ServiceID(serviceID), catalog.Message{ //nolint:exhaustruct
 			Kind:      catalog.CommandMessage,
-			ID:        string(cmdType),
+			ID:        catalog.MessageID(cmdType),
 			Name:      meta.Name,
 			Version:   meta.Version,
 			Summary:   meta.Summary,
@@ -45,9 +45,9 @@ func FromQueryDispatcher(
 	reg := builder.builder.Registry()
 
 	for queryType, meta := range dispatcher.CatalogEntries() {
-		reg.AddQuery(serviceID, catalog.Message{ //nolint:exhaustruct
+		reg.AddQuery(catalog.ServiceID(serviceID), catalog.Message{ //nolint:exhaustruct
 			Kind:      catalog.QueryMessage,
-			ID:        string(queryType),
+			ID:        catalog.MessageID(queryType),
 			Name:      meta.Name,
 			Version:   meta.Version,
 			Summary:   meta.Summary,

@@ -5,12 +5,12 @@ import "reflect"
 // MessageConfig is implemented by message builders produced by Command[T](),
 // Event[T](), and Query[T]().
 type MessageConfig interface {
-	apply(serviceID string, reg *Registry)
+	apply(serviceID ServiceID, reg *Registry)
 }
 
 type messageBuilder struct {
 	kind      MessageKind
-	id        string
+	id        MessageID
 	name      string
 	version   string
 	summary   string
@@ -18,7 +18,7 @@ type messageBuilder struct {
 	direction Direction
 }
 
-func (m *messageBuilder) apply(serviceID string, reg *Registry) {
+func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 	msg := Message{ //nolint:exhaustruct
 		Kind:      m.kind,
 		ID:        m.id,
@@ -68,7 +68,7 @@ func Version(version string) MessageOption {
 // The name is auto-derived from T's type name (e.g. CreateUserCmd → "Create User").
 // Direction defaults to Receives.
 func Command[T any](id string, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](CommandMessage, id, Receives, opts)
+	return newMessageBuilder[T](CommandMessage, MessageID(id), Receives, opts)
 }
 
 // Event creates an event message configuration for catalog.Builder.AddService.
@@ -76,7 +76,7 @@ func Command[T any](id string, opts ...MessageOption) MessageConfig {
 // The name is auto-derived from T's type name (e.g. UserCreatedEvent → "User Created").
 // Direction must be explicit (Sends or Receives).
 func Event[T any](id string, direction Direction, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](EventMessage, id, direction, opts)
+	return newMessageBuilder[T](EventMessage, MessageID(id), direction, opts)
 }
 
 // Query creates a query message configuration for catalog.Builder.AddService.
@@ -84,12 +84,12 @@ func Event[T any](id string, direction Direction, opts ...MessageOption) Message
 // The name is auto-derived from T's type name (e.g. GetUserQuery → "Get User").
 // Direction defaults to Receives.
 func Query[T any](id string, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](QueryMessage, id, Receives, opts)
+	return newMessageBuilder[T](QueryMessage, MessageID(id), Receives, opts)
 }
 
 func newMessageBuilder[T any](
 	kind MessageKind,
-	id string,
+	id MessageID,
 	direction Direction,
 	opts []MessageOption,
 ) MessageConfig {

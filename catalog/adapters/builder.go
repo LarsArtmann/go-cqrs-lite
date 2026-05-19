@@ -91,7 +91,8 @@ func (b *CatalogBuilder) AddDomain(id, name, summary string, serviceIDs []string
 // AddServiceToDomain associates an existing service with a domain.
 func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
 	//nolint:wrapcheck
-	return b.builder.Registry().AddServiceToDomain(serviceID, domainID)
+	return b.builder.Registry().
+		AddServiceToDomain(catalog.ServiceID(serviceID), catalog.DomainID(domainID))
 }
 
 // AddChannel registers a channel in the catalog.
@@ -104,19 +105,19 @@ func (b *CatalogBuilder) AddChannel(_ catalog.Channel) {
 //
 // Deprecated: Use AddService with catalog.Command[T]() instead.
 func (b *CatalogBuilder) AddCommand(serviceID string, msg catalog.Message) {
-	b.builder.Registry().AddCommand(serviceID, msg)
+	b.builder.Registry().AddCommand(catalog.ServiceID(serviceID), msg)
 }
 
 // AddEvent adds an event message directly to a service.
 //
 // Deprecated: Use AddService with catalog.Event[T]() instead.
 func (b *CatalogBuilder) AddEvent(serviceID string, msg catalog.Message) {
-	b.builder.Registry().AddEvent(serviceID, msg)
+	b.builder.Registry().AddEvent(catalog.ServiceID(serviceID), msg)
 }
 
 // AddQuery adds a query message directly to a service.
 //
 // Deprecated: Use AddService with catalog.Query[T]() instead.
 func (b *CatalogBuilder) AddQuery(serviceID string, msg catalog.Message) {
-	b.builder.Registry().AddQuery(serviceID, msg)
+	b.builder.Registry().AddQuery(catalog.ServiceID(serviceID), msg)
 }
