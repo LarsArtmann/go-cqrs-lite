@@ -1,12 +1,9 @@
 package cattest
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
@@ -28,28 +25,6 @@ func MustExport(
 	if err != nil {
 		tb.Fatalf("export catalog: %v", err)
 	}
-}
-
-func NewCatalogCore(
-	tb testing.TB,
-	eventType string,
-	meta event.CatalogMeta, //nolint:staticcheck
-) (*event.CatalogCore, error) { //nolint:staticcheck
-	tb.Helper()
-
-	core, err := event.NewCatalogCore(
-		event.Type(eventType),
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
-		meta,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("new event catalog core for %s: %w", eventType, err)
-	}
-
-	return core, nil
 }
 
 const testVersion = "1.0.0"
