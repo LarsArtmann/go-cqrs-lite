@@ -14,8 +14,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
-	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/openapi"
 )
 
 // CatalogProvider returns a fresh catalog on each call.
@@ -141,40 +139,6 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	)
 }
 
-func (ds *DocsServer) buildOpenAPI() *openapi.Document {
-	cat := ds.provider()
-
-	var opts []openapi.Option
-
-	if ds.config.Description != "" {
-		opts = append(opts, openapi.WithDescription(ds.config.Description))
-	}
-
-	if ds.config.BasePath != "" {
-		opts = append(opts, openapi.WithBasePath(ds.config.BasePath))
-	}
-
-	return openapi.NewExporter(ds.config.ServiceName, ds.config.Version, opts...).Export(cat)
-}
-
-func (ds *DocsServer) buildAsyncAPI() *asyncapi.Document {
-	cat := ds.provider()
-
-	opts := []asyncapi.Option{
-		asyncapi.WithServer(
-			ds.config.AsyncAPIServer.Name,
-			ds.config.AsyncAPIServer.Host,
-			ds.config.AsyncAPIServer.Protocol,
-		),
-	}
-
-	if ds.config.Description != "" {
-		opts = append(opts, asyncapi.WithDescription(ds.config.Description))
-	}
-
-	return asyncapi.NewExporter(ds.config.ServiceName, ds.config.Version, opts...).Export(cat)
-}
-
 func (ds *DocsServer) serveOpenAPIJSON(writer http.ResponseWriter, _ *http.Request) {
 	doc := ds.buildOpenAPI()
 
@@ -253,7 +217,7 @@ func (ds *DocsServer) serveAsyncAPIHTML(writer http.ResponseWriter, _ *http.Requ
 }
 
 func (ds *DocsServer) serveCatalogJSON(writer http.ResponseWriter, _ *http.Request) {
-	cat := ds.provider()
+	cat := ds.buildCatalog()
 
 	writer.Header().Set("Content-Type", "application/json")
 
