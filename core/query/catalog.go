@@ -1,12 +1,14 @@
 package query
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/catalogmeta"
+)
 
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 type CatalogMeta struct {
-	Name    string
-	Version string
-	Summary string
+	catalogmeta.Meta
 }
 
 // Catalogable is implemented by queries that want to be auto-documented

@@ -3,14 +3,13 @@ package command
 import (
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/catalogmeta"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 type CatalogMeta struct {
-	Name    string
-	Version string
-	Summary string
+	catalogmeta.Meta
 }
 
 // Catalogable is implemented by commands that want to be auto-documented

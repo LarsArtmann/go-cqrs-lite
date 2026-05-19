@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	d2exporter "github.com/larsartmann/go-cqrs-lite/catalog/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/openapi"
 )
 
 // CatalogBuilder accumulates services and their messages, then builds a catalog
@@ -46,6 +47,17 @@ func (b *CatalogBuilder) ExportAsyncAPI(
 	exp := asyncapi.NewExporter(serviceName, version, opts...)
 
 	return exp.Export(cat), nil
+}
+
+// ExportOpenAPI creates an OpenAPI 3.0 document from the catalog.
+func (b *CatalogBuilder) ExportOpenAPI(
+	title, version string,
+	opts ...openapi.Option,
+) *openapi.Document {
+	cat := b.Build()
+	exp := openapi.NewExporter(title, version, opts...)
+
+	return exp.Export(cat)
 }
 
 // ExportD2 creates a D2 diagram string from the catalog.

@@ -11,7 +11,14 @@
     systems.url = "github:nix-systems/default";
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-parts, treefmt-nix, systems }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      flake-parts,
+      treefmt-nix,
+      systems,
+    }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import systems;
 
@@ -19,7 +26,13 @@
         treefmt-nix.flakeModule
       ];
 
-      perSystem = { config, pkgs, system, ... }:
+      perSystem =
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         let
           goPkg = pkgs.go_1_26;
 
@@ -31,7 +44,16 @@
           ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
-          testModules = [ "core" "memory" "catalog" "middleware" "integration" "projection" "storage" "testhelpers" ];
+          testModules = [
+            "core"
+            "memory"
+            "catalog"
+            "middleware"
+            "integration"
+            "projection"
+            "storage"
+            "testhelpers"
+          ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           examplePaths = "./example/user/...";
