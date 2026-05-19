@@ -216,10 +216,13 @@ func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 }
 
 // publishPending performs a single poll-publish-ack cycle.
-// Errors are silently swallowed to keep the background loop running.
-// For error visibility, use PublishNow which returns errors to the caller.
+// Errors are logged but do not stop the background loop.
+// For error visibility with caller control, use PublishNow which returns errors.
 func (p *OutboxPublisher) publishPending(ctx context.Context) {
-	_ = p.pollPublishAck(ctx)
+	err := p.pollPublishAck(ctx)
+	if err != nil {
+		slog.Warn("outbox publish cycle failed", "error", err)
+	}
 }
 
 // PublishNow performs a single poll-publish-ack cycle immediately.

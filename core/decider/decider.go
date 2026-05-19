@@ -153,7 +153,9 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
-			break
+			_ = opError(aggType, aggID, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+
+			return
 		}
 	}
 

@@ -32,21 +32,21 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 
 		for _, cmd := range svc.Commands {
-			err := e.writeMessage(svc.ID, "commands", cmd)
+			err := e.writeMessage(string(svc.ID), "commands", cmd)
 			if err != nil {
 				return fmt.Errorf("write command %s: %w", cmd.ID, err)
 			}
 		}
 
 		for _, evt := range svc.Events {
-			err := e.writeMessage(svc.ID, "events", evt)
+			err := e.writeMessage(string(svc.ID), "events", evt)
 			if err != nil {
 				return fmt.Errorf("write event %s: %w", evt.ID, err)
 			}
 		}
 
 		for _, q := range svc.Queries {
-			err := e.writeMessage(svc.ID, "queries", q)
+			err := e.writeMessage(string(svc.ID), "queries", q)
 			if err != nil {
 				return fmt.Errorf("write query %s: %w", q.ID, err)
 			}
@@ -69,7 +69,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {
-	dir := filepath.Join(e.OutputDir, "services", svc.ID)
+	dir := filepath.Join(e.OutputDir, "services", string(svc.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -77,7 +77,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", svc.ID)
+	md.addField("id", string(svc.ID))
 	md.addField("name", svc.Name)
 	md.addField("version", svc.Version)
 
@@ -105,7 +105,7 @@ func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []str
 	queries := make([]string, 0, len(svc.Queries))
 
 	for _, msg := range svc.Events {
-		id := catalog.MessageID(msg)
+		id := string(catalog.GetID(msg))
 
 		if msg.IsSend() {
 			sends = append(sends, id)
@@ -115,18 +115,18 @@ func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []str
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, catalog.MessageID(cmd))
+		commands = append(commands, string(catalog.GetID(cmd)))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, catalog.MessageID(q))
+		queries = append(queries, string(catalog.GetID(q)))
 	}
 
 	return sends, receives, commands, queries
 }
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
-	id := catalog.MessageID(msg)
+	id := string(catalog.GetID(msg))
 
 	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
 
@@ -166,7 +166,7 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
-	dir := filepath.Join(e.OutputDir, "domains", domain.ID)
+	dir := filepath.Join(e.OutputDir, "domains", string(domain.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -174,7 +174,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", domain.ID)
+	md.addField("id", string(domain.ID))
 	md.addField("name", domain.Name)
 	md.addField("version", domain.Version)
 
@@ -182,7 +182,12 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 		md.addQuotedField("summary", domain.Summary)
 	}
 
-	md.addObjectIDsListField("services", domain.Services)
+	strs := make([]string, len(domain.Services))
+	for i, s := range domain.Services {
+		strs[i] = string(s)
+	}
+
+	md.addObjectIDsListField("services", strs)
 	md.finish(domain.Name, domain.Summary)
 
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())

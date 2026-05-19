@@ -61,7 +61,10 @@ func TestExporter_Export_WriteDomainError(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddDomain(
-		catalog.Domain{ID: "dom", Name: "Dom", Version: "1.0.0", Services: []string{"svc"}},
+		catalog.Domain{
+			ID: "dom", Name: "Dom",
+			Version: "1.0.0", Services: []catalog.ServiceID{"svc"},
+		},
 	)
 
 	cat := reg.Build()
