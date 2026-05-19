@@ -2,12 +2,12 @@ package openapi
 
 // Document represents an OpenAPI 3.0 specification document.
 type Document struct {
-	OpenAPI    string                `json:"openapi"`
-	Info       Info                  `json:"info"`
-	Servers    []Server              `json:"servers,omitempty"`
-	Paths      map[string]*PathItem  `json:"paths"`
-	Components Components            `json:"components"`
-	Tags       []Tag                 `json:"tags,omitempty"`
+	OpenAPI    string               `json:"openapi"`
+	Info       Info                 `json:"info"`
+	Servers    []Server             `json:"servers,omitempty"`
+	Paths      map[string]*PathItem `json:"paths"`
+	Components Components           `json:"components"`
+	Tags       []Tag                `json:"tags,omitempty"`
 }
 
 // Info contains metadata about the API.
@@ -43,13 +43,13 @@ type PathItem struct {
 
 // Operation describes a single API operation.
 type Operation struct {
-	Tags        []string    `json:"tags,omitempty"`
-	Summary     string      `json:"summary,omitempty"`
-	Description string      `json:"description,omitempty"`
-	OperationID string      `json:"operationId,omitempty"`
-	RequestBody *RequestBody `json:"requestBody,omitempty"`
+	Tags        []string             `json:"tags,omitempty"`
+	Summary     string               `json:"summary,omitempty"`
+	Description string               `json:"description,omitempty"`
+	OperationID string               `json:"operationId,omitempty"`
+	RequestBody *RequestBody         `json:"requestBody,omitempty"`
 	Responses   map[string]*Response `json:"responses"`
-	Parameters  []Parameter `json:"parameters,omitempty"`
+	Parameters  []Parameter          `json:"parameters,omitempty"`
 }
 
 // RequestBody describes a request body.
@@ -67,8 +67,8 @@ type Response struct {
 
 // MediaType describes the media type of a request or response body.
 type MediaType struct {
-	Schema  any     `json:"schema,omitempty"`
-	Example any     `json:"example,omitempty"`
+	Schema  any `json:"schema,omitempty"`
+	Example any `json:"example,omitempty"`
 }
 
 // Parameter describes an operation parameter.

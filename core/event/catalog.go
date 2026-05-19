@@ -3,14 +3,13 @@ package event
 import (
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/catalogmeta"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 type CatalogMeta struct {
-	Name          string
-	Version       string
-	Summary       string
+	catalogmeta.Meta
 	AggregateType AggregateType
 }
 

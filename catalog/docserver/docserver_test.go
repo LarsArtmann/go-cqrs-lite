@@ -286,7 +286,10 @@ func TestDocsServer_DefaultConfig(t *testing.T) {
 	}
 
 	if ds.config.AsyncAPIServer.Protocol != "http" {
-		t.Errorf("expected default asyncapi protocol http, got %s", ds.config.AsyncAPIServer.Protocol)
+		t.Errorf(
+			"expected default asyncapi protocol http, got %s",
+			ds.config.AsyncAPIServer.Protocol,
+		)
 	}
 }
 
