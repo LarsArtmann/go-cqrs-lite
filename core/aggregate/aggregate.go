@@ -73,8 +73,10 @@ func (a *Core) Version() event.Version {
 
 // SetVersion sets the aggregate version directly.
 // Used by repositories when loading aggregates from snapshots.
+// Clears any uncommitted changes to prevent version/changes drift.
 func (a *Core) SetVersion(v event.Version) {
 	a.version = v
+	a.changes = a.changes[:0]
 }
 
 // RecordEvent records an event and increments version.

@@ -14,6 +14,17 @@ const defaultBatchSize = 100
 
 const defaultPollInterval = time.Second
 
+// publisherState represents the lifecycle state of an OutboxPublisher.
+// Using an enum instead of multiple bools prevents split-brain conditions
+// where state variables could drift out of sync.
+type publisherState int
+
+const (
+	publisherIdle publisherState = iota
+	publisherRunning
+	publisherClosed
+)
+
 // OutboxPublisher polls an Outbox for pending entries and publishes them
 // to a Bus. Intended for reliable eventual publishing in event-sourced systems.
 //
@@ -25,9 +36,9 @@ type OutboxPublisher struct {
 	batchSize int
 
 	mu     sync.Mutex
+	state  publisherState
 	cancel context.CancelFunc
 	done   chan struct{}
-	closed bool
 }
 
 var _ io.Closer = (*OutboxPublisher)(nil)
@@ -91,14 +102,14 @@ func (p *OutboxPublisher) Start() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.closed {
+	switch p.state {
+	case publisherClosed:
 		return ErrPublisherClosed
-	}
-
-	if p.cancel != nil {
+	case publisherRunning:
 		return ErrAlreadyStarted
 	}
 
+	p.state = publisherRunning
 	ctx, cancel := context.WithCancel(context.Background())
 	p.cancel = cancel
 
@@ -112,14 +123,20 @@ func (p *OutboxPublisher) Start() error {
 func (p *OutboxPublisher) Close() error {
 	p.mu.Lock()
 
-	if p.cancel == nil {
-		p.closed = true
+	if p.state == publisherClosed {
 		p.mu.Unlock()
 
 		return nil
 	}
 
-	p.closed = true
+	p.state = publisherClosed
+
+	if p.cancel == nil {
+		p.mu.Unlock()
+
+		return nil
+	}
+
 	cancel := p.cancel
 	p.cancel = nil
 	p.mu.Unlock()
