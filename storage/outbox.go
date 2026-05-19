@@ -77,17 +77,26 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 	outboxID := events[0].ID()
 
-	p1, p2, p3 := o.dialect.Placeholder(1), o.dialect.Placeholder(2), o.dialect.Placeholder(3)
+	p1, p2, p3, p4 := o.dialect.Placeholder(
+		1,
+	), o.dialect.Placeholder(
+		2,
+	), o.dialect.Placeholder(
+		3,
+	), o.dialect.Placeholder(
+		4,
+	)
 
 	insertSQL := fmt.Sprintf(
-		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, '%s', %s, %s)`,
-		p1, OutboxStatusPending, p2, p3,
+		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
+		p1, p2, p3, p4,
 	)
 
 	_, err = o.db.ExecContext(
 		ctx,
 		insertSQL,
 		outboxID,
+		string(OutboxStatusPending),
 		serialized,
 		o.dialect.FormatTime(time.Now()),
 	)
@@ -100,14 +109,14 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 // PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
-	p1 := o.dialect.Placeholder(1)
+	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
 
 	query := fmt.Sprintf(`SELECT id, events FROM outbox
-		WHERE status = '%s'
+		WHERE status = %s
 		ORDER BY created_at ASC
-		LIMIT %s`, OutboxStatusPending, p1)
+		LIMIT %s`, p1, p2)
 
-	rows, err := o.db.QueryContext(ctx, query, limit)
+	rows, err := o.db.QueryContext(ctx, query, string(OutboxStatusPending), limit)
 	if err != nil {
 		return nil, fmt.Errorf("poll pending outbox (limit %d): %w", limit, err)
 	}

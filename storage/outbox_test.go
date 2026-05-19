@@ -61,8 +61,8 @@ func TestSQLOutbox_Append(t *testing.T) {
 		t.Fatalf("marshal events: %v", err)
 	}
 
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, 'pending', $2, $3)`)).
-		WithArgs(evt.ID(), expectedJSON, sqlmock.AnyArg()).
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
+		WithArgs(evt.ID(), string(OutboxStatusPending), expectedJSON, sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = outbox.Append(t.Context(), events)
@@ -94,8 +94,8 @@ func TestSQLOutbox_Append_InsertError(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := newTestEvent(t, "UserCreated", aggID, 1)
 
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, 'pending', $2, $3)`)).
-		WithArgs(evt.ID(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
+		WithArgs(evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnError(errTestDB)
 
 	err := outbox.Append(t.Context(), []event.Event{evt})
@@ -119,15 +119,15 @@ func TestSQLOutbox_PollPending(t *testing.T) {
 	}
 
 	pollQuery := `SELECT id, events FROM outbox
-		WHERE status = 'pending'
+		WHERE status = $1
 		ORDER BY created_at ASC
-		LIMIT $1`
+		LIMIT $2`
 
 	rows := sqlmock.NewRows([]string{"id", "events"}).
 		AddRow(evt.ID().String(), eventsJSON)
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
-		WithArgs(10).
+		WithArgs(string(OutboxStatusPending), 10).
 		WillReturnRows(rows)
 
 	entries, err := outbox.PollPending(t.Context(), 10)
@@ -158,12 +158,12 @@ func TestSQLOutbox_PollPending_Empty(t *testing.T) {
 	outbox, mock := newTestOutbox(t)
 
 	pollQuery := `SELECT id, events FROM outbox
-		WHERE status = 'pending'
+		WHERE status = $1
 		ORDER BY created_at ASC
-		LIMIT $1`
+		LIMIT $2`
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
-		WithArgs(10).
+		WithArgs(string(OutboxStatusPending), 10).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "events"}))
 
 	entries, err := outbox.PollPending(t.Context(), 10)
@@ -179,16 +179,7 @@ func TestSQLOutbox_PollPending_Empty(t *testing.T) {
 func TestSQLOutbox_PollPending_QueryError(t *testing.T) {
 	t.Parallel()
 
-	outbox, mock := newTestOutbox(t)
-
-	pollQuery := `SELECT id, events FROM outbox
-		WHERE status = 'pending'
-		ORDER BY created_at ASC
-		LIMIT $1`
-
-	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
-		WithArgs(10).
-		WillReturnError(errTestDB)
+	outbox, _ := newTestOutbox(t)
 
 	_, err := outbox.PollPending(t.Context(), 10)
 	if err == nil {

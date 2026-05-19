@@ -91,14 +91,29 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 
 	outboxID := events[0].ID()
 
-	p1, p2, p3 := s.dialect.Placeholder(1), s.dialect.Placeholder(2), s.dialect.Placeholder(3)
-
-	insertSQL := fmt.Sprintf(
-		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, '%s', %s, %s)`,
-		p1, OutboxStatusPending, p2, p3,
+	p1, p2, p3, p4 := s.dialect.Placeholder(
+		1,
+	), s.dialect.Placeholder(
+		2,
+	), s.dialect.Placeholder(
+		3,
+	), s.dialect.Placeholder(
+		4,
 	)
 
-	_, err = tx.ExecContext(ctx, insertSQL, outboxID, serialized, s.dialect.FormatTime(time.Now()))
+	insertSQL := fmt.Sprintf(
+		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
+		p1, p2, p3, p4,
+	)
+
+	_, err = tx.ExecContext(
+		ctx,
+		insertSQL,
+		outboxID,
+		string(OutboxStatusPending),
+		serialized,
+		s.dialect.FormatTime(time.Now()),
+	)
 	if err != nil {
 		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
 	}
