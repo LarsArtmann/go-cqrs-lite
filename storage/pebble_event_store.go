@@ -44,7 +44,7 @@ func (a *CQRSAdapter) aggregatePrefix(
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, aggregateType, aggregateID)
 }
 
-// Save implements event.Store.Save.
+// Save implements event.Store.Save with optimistic concurrency control.
 func (a *CQRSAdapter) Save(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -54,6 +54,23 @@ func (a *CQRSAdapter) Save(
 ) error {
 	if len(events) == 0 {
 		return nil
+	}
+
+	// Optimistic concurrency check: verify current stream length matches expectedVersion.
+	prefix := a.aggregatePrefix(aggregateType, aggregateID)
+	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
+	existing, err := a.iterateEvents(prefix, upperBound)
+	if err != nil {
+		return fmt.Errorf("concurrency check: %w", err)
+	}
+
+	if len(existing) != expectedVersion.Int() {
+		return fmt.Errorf(
+			"%w: expected version %d, got %d",
+			event.ErrVersionConflict,
+			expectedVersion,
+			len(existing),
+		)
 	}
 
 	batch := a.db.NewBatch()
