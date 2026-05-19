@@ -78,6 +78,11 @@ func WithUserAgent(v UserAgent) Option {
 // MetadataKey represents a custom metadata key.
 type MetadataKey string
 
+const (
+	MetadataKeyClientID         MetadataKey = "client.id"
+	MetadataKeyClientOccurredAt MetadataKey = "client.occurred_at"
+)
+
 // WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) Option {
 	return func(e *Core) {
@@ -103,11 +108,11 @@ func WithSchemaVersion(v SchemaVersion) Option {
 // WithClientID sets the client device ID in event metadata.
 // Used for offline-first attribution and conflict detection.
 func WithClientID(v id.ClientID) Option {
-	return WithCustom("client.id", v.String())
+	return WithCustom(MetadataKeyClientID, v.String())
 }
 
 // WithClientOccurredAt sets the timestamp when the event occurred on the client device.
 // Used for offline-first timing analysis.
 func WithClientOccurredAt(t time.Time) Option {
-	return WithCustom("client.occurred_at", t.Format(time.RFC3339Nano))
+	return WithCustom(MetadataKeyClientOccurredAt, t.Format(time.RFC3339Nano))
 }
