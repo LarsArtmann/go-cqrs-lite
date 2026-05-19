@@ -246,5 +246,3 @@ func TestBuilder_AddServiceToDomain_NonexistentDomain(t *testing.T) {
 		t.Fatal("expected error when adding service to nonexistent domain")
 	}
 }
-
-

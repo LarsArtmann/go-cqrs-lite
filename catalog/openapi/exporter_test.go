@@ -168,7 +168,10 @@ func TestExporter_NilSchema(t *testing.T) {
 		Name:    "Svc",
 		Version: "1.0.0",
 		Commands: []catalog.Message{
-			{ID: "no-schema", Name: "NoSchema", Version: "1.0.0", Kind: catalog.CommandMessage, Schema: nil},
+			{
+				ID: "no-schema", Name: "NoSchema", Version: "1.0.0",
+				Kind: catalog.CommandMessage, Schema: nil,
+			},
 		},
 	})
 
