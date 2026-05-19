@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Performance benchmarks** (Session 50): `core/decider` (4 benchmarks), `projection` (3 benchmarks), `middleware` (4 benchmarks), `core/event` (6 benchmarks). Total: 43 benchmarks across 12 files.
 - **Design documents** (Session 50): Outbox transaction co-participation API (`docs/planning/OUTBOX_TRANSACTION_API.md`), query handler generics migration (`docs/planning/QUERY_HANDLER_GENERICS.md`), saga design answers and implementation plan (`docs/planning/SAGA_DESIGN.md`).
 - **Comprehensive execution plan** (Session 68): 86-task plan in `docs/planning/2026-05-18_15-10-COMPREHENSIVE-EXECUTION-PLAN.md`.
+- **Strong ID migration** (Session 76): 62 bare `string`/`int` violations replaced with named types across `sync` and `catalog` modules.
+  - `sync`: `OperationID`, `NodeID`, `SyncMessageType` named types for operation identity, vector clock keys, and message classification.
+  - `catalog`: `ServiceID`, `DomainID`, `MessageID`, `ChannelID` named types for catalog entry identity.
+  - All types have `String()`, `IsZero()`, `Parse*()`, `MustParse*()` methods with compile-time `fmt.Stringer` checks.
+  - `catalog.MessageID()` function renamed to `GetID()` (returns typed `MessageID`). `MessageIDString()` deprecated.
+  - API boundary pattern: public methods accept bare `string`, convert internally to typed IDs.
 - **Dialect tests** (`storage`): 15 tests for PostgresDialect, SQLiteDialect, `placeholders()`.
 - **OpenAPI coverage tests** (`catalog/openapi`): WithBasePath, nil schema, empty catalog, schemaToAny(nil), toKebab edge cases.
 
