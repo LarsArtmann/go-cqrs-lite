@@ -4,7 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     systems.url = "github:nix-systems/default";
   };
 
@@ -66,8 +69,13 @@
           };
 
           checks = {
-            # Formatting check via treefmt-nix is available as:
-            #   nix fmt -- --check
+            build = pkgs.runCommand "go-cqrs-lite-build" { nativeBuildInputs = [ goPkg ]; } ''
+              export GOFLAGS="${tagFlags}"
+              export GOWORK=off
+              cp -r ${./.} src && chmod -R u+w src && cd src
+              ${goPkg}/bin/go build ${modulePaths}
+              touch $out
+            '';
           };
 
           apps = {
