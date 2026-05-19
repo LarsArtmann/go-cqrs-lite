@@ -48,6 +48,7 @@
               gofumpt.enable = true;
               goimports.enable = true;
               golines.enable = true;
+              nixfmt.enable = true;
             };
           };
 
