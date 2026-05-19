@@ -113,6 +113,12 @@ func (ds *DocsServer) CatalogJSON() http.HandlerFunc {
 	return ds.serveCatalogJSON
 }
 
+// StaticFS returns an http.FileSystem for the embedded static assets
+// (Scalar JS, AsyncAPI React JS/CSS) from the binary.
+func (ds *DocsServer) StaticFS() http.FileSystem {
+	return http.FS(staticAssets)
+}
+
 // RegisterRoutes registers all documentation routes on the given mux.
 // Uses the DocsPath prefix from config.
 func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
@@ -125,6 +131,9 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
+
+	// Serve embedded static assets (Scalar JS, AsyncAPI React JS/CSS)
+	mux.Handle("GET "+prefix+"/static/", http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())))
 }
 
 // registerRoutesPrefix registers all documentation routes with a pattern prefix.
@@ -137,6 +146,9 @@ func (ds *DocsServer) registerRoutesPrefix(mux *http.ServeMux, prefix string) {
 	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
+
+	// Serve embedded static assets
+	mux.Handle("GET "+prefix+"/static/", http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())))
 }
 
 func (ds *DocsServer) buildOpenAPI() *openapi.Document {

@@ -13,7 +13,7 @@ func scalarHTML(specURL, title string) string {
 </head>
 <body>
   <div id="app"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  <script src="static/scalar.js"></script>
   <script>
     Scalar.createApiReference('#app', {
       spec: {
@@ -32,12 +32,12 @@ func asyncAPIHTML(specURL, title string) string {
   <title>%s - Event Reference</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/@asyncapi/react-component@latest/styles/default.min.css">
+  <link rel="stylesheet" href="static/asyncapi-react.css">
   <style>body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }</style>
 </head>
 <body>
   <div id="asyncapi"></div>
-  <script src="https://unpkg.com/@asyncapi/react-component@latest/browser/standalone/index.js"></script>
+  <script src="static/asyncapi-react.js"></script>
   <script>
     AsyncApiStandalone.render({
       schema: {
