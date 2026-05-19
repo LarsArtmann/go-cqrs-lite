@@ -7,7 +7,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/core v1.1.0
 	modernc.org/sqlite v1.50.0
-	turso.tech/database/tursogo v0.5.3
+	turso.tech/database/tursogo v0.6.0
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/tursodatabase/turso-go-platform-libs v0.5.3 // indirect
+	github.com/tursodatabase/turso-go-platform-libs v0.6.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/sys v0.43.0 // indirect
