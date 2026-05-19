@@ -28,16 +28,16 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 		return
 	}
 
-	svcID := sanitizeID(svc.ID)
+	svcID := sanitizeID(string(svc.ID))
 
 	for _, cmd := range svc.Commands {
-		cmdID := sanitizeID(catalog.MessageID(cmd))
+		cmdID := sanitizeID(string(catalog.GetID(cmd)))
 
 		fmt.Fprintf(buf, "  %s -> %s.%s: \"receives\"\n", svcID, svcID, cmdID)
 	}
 
 	for _, evt := range svc.Events {
-		evtID := sanitizeID(catalog.MessageID(evt))
+		evtID := sanitizeID(string(catalog.GetID(evt)))
 
 		action := "publishes"
 
@@ -49,7 +49,7 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 	}
 
 	for _, q := range svc.Queries {
-		qID := sanitizeID(catalog.MessageID(q))
+		qID := sanitizeID(string(catalog.GetID(q)))
 
 		fmt.Fprintf(buf, "  %s -> %s.%s: \"handles\"\n", svcID, svcID, qID)
 	}
@@ -67,17 +67,17 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 	receivers := make(map[string][]eventOwner)
 
 	for _, svc := range cat.Services {
-		svcID := sanitizeID(svc.ID)
+		svcID := sanitizeID(string(svc.ID))
 
 		for _, evt := range svc.Events {
-			evtID := catalog.MessageID(evt)
-			owner := eventOwner{svcID: svcID, evtID: sanitizeID(evtID)}
+			evtID := catalog.GetID(evt)
+			owner := eventOwner{svcID: svcID, evtID: sanitizeID(string(evtID))}
 
 			switch evt.Direction {
 			case catalog.Sends:
-				publishers[evtID] = append(publishers[evtID], owner)
+				publishers[string(evtID)] = append(publishers[string(evtID)], owner)
 			case catalog.Receives:
-				receivers[evtID] = append(receivers[evtID], owner)
+				receivers[string(evtID)] = append(receivers[string(evtID)], owner)
 			}
 		}
 	}
@@ -124,7 +124,7 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 			continue
 		}
 
-		domainID := sanitizeID(domain.ID)
+		domainID := sanitizeID(string(domain.ID))
 
 		fmt.Fprintf(buf, "domain_%s: {\n", domainID)
 		fmt.Fprintf(buf, "  label: %q\n  shape: text\n", domain.Name)
@@ -134,7 +134,7 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 		)
 
 		for _, svcRef := range domain.Services {
-			svcID := sanitizeID(svcRef)
+			svcID := sanitizeID(string(svcRef))
 
 			fmt.Fprintf(buf, "domain_%s -> %s: \"contains\" {\n", domainID, svcID)
 

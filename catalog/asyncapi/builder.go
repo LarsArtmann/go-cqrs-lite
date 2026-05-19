@@ -66,7 +66,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 func (e *Exporter) addMessage(
 	doc *Document,
-	svcID string,
+	svcID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	opts ...messageOption,
@@ -77,13 +77,13 @@ func (e *Exporter) addMessage(
 		opt(cfg)
 	}
 
-	msgID := catalog.MessageID(msg)
-	channelKey := string(kind) + "." + msgID
-	componentKey := string(msg.Kind) + "." + msgID
+	msgID := catalog.GetID(msg)
+	channelKey := string(kind) + "." + string(msgID)
+	componentKey := string(msg.Kind) + "." + string(msgID)
 	ref := "#/components/messages/" + componentKey
 
-	addChannel(doc, svcID, msg, kind, channelKey, ref)
-	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, msgID)
+	addChannel(doc, string(svcID), msg, kind, channelKey, ref)
+	addOperation(doc, string(svcID), msg, kind, cfg, channelKey, ref, string(msgID))
 
 	e.addMessageSchema(doc, msg)
 }
@@ -96,7 +96,7 @@ func addChannel(
 	channelKey, ref string,
 ) {
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(catalog.MessageID(msg))),
+		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(string(catalog.GetID(msg)))),
 		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
@@ -161,11 +161,11 @@ func kindToTagName(kind catalog.MessageKind) string {
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	id := catalog.MessageID(msg)
-	componentKey := string(msg.Kind) + "." + id
+	id := catalog.GetID(msg)
+	componentKey := string(msg.Kind) + "." + string(id)
 
 	doc.Components.Messages[componentKey] = Message{
-		Name:        id,
+		Name:        string(id),
 		Title:       msg.Name,
 		Summary:     msg.Summary,
 		ContentType: contentType,

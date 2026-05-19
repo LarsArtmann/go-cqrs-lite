@@ -61,7 +61,7 @@ func (e *Exporter) writeClasses(buf *strings.Builder) {
 
 func (e *Exporter) writeServices(buf *strings.Builder, cat *catalog.Catalog) {
 	for _, svc := range cat.Services {
-		svcID := sanitizeID(svc.ID)
+		svcID := sanitizeID(string(svc.ID))
 
 		fmt.Fprintf(buf, "%s: {\n", svcID)
 		fmt.Fprintf(buf, "  class: service\n  label: %q\n", svc.Name)
@@ -90,7 +90,7 @@ func (e *Exporter) writeMessageNode(
 	msg catalog.Message,
 	class, shape string,
 ) {
-	msgID := sanitizeID(catalog.MessageID(msg))
+	msgID := sanitizeID(string(catalog.GetID(msg)))
 
 	fmt.Fprintf(buf, "  %s: {\n", msgID)
 	fmt.Fprintf(buf, "    class: %s\n", class)
