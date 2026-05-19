@@ -2,6 +2,12 @@ package sync
 
 import "fmt"
 
+var (
+	_ fmt.Stringer = NodeID("")
+	_ fmt.Stringer = OperationID("")
+	_ fmt.Stringer = SyncMessageType("")
+)
+
 // NodeID identifies a node in the distributed sync system.
 // Using a named type prevents accidental mixing with arbitrary strings.
 type NodeID string

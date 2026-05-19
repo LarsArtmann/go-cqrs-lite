@@ -2,6 +2,13 @@ package catalog
 
 import "fmt"
 
+var (
+	_ fmt.Stringer = ServiceID("")
+	_ fmt.Stringer = DomainID("")
+	_ fmt.Stringer = MessageID("")
+	_ fmt.Stringer = ChannelID("")
+)
+
 // IsZero returns true if the ServiceID is empty.
 func (id ServiceID) IsZero() bool { return id == "" }
 
