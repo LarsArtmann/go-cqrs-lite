@@ -393,7 +393,10 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 
 	meta := evt.Metadata()
 	if meta.CorrelationID != correlationID {
-		t.Errorf("correlation ID should be preserved after WithMetadata, got %s", meta.CorrelationID)
+		t.Errorf(
+			"correlation ID should be preserved after WithMetadata, got %s",
+			meta.CorrelationID,
+		)
 	}
 
 	if meta.UserID != userID {
@@ -430,7 +433,11 @@ func TestMetadataKeyConstants(t *testing.T) {
 	}
 
 	if event.MetadataKeyClientOccurredAt != "client.occurred_at" {
-		t.Errorf("MetadataKeyClientOccurredAt = %q, want %q", event.MetadataKeyClientOccurredAt, "client.occurred_at")
+		t.Errorf(
+			"MetadataKeyClientOccurredAt = %q, want %q",
+			event.MetadataKeyClientOccurredAt,
+			"client.occurred_at",
+		)
 	}
 }
 

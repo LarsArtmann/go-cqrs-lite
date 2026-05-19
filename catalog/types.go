@@ -2,6 +2,30 @@ package catalog
 
 import "encoding/json"
 
+// ServiceID identifies a service in the catalog (e.g., "user-service").
+type ServiceID string
+
+// String returns the underlying string value.
+func (id ServiceID) String() string { return string(id) }
+
+// DomainID identifies a business domain in the catalog (e.g., "users").
+type DomainID string
+
+// String returns the underlying string value.
+func (id DomainID) String() string { return string(id) }
+
+// MessageID identifies a message in the catalog (e.g., "CreateUser").
+type MessageID string
+
+// String returns the underlying string value.
+func (id MessageID) String() string { return string(id) }
+
+// ChannelID identifies a messaging channel in the catalog (e.g., "user.commands").
+type ChannelID string
+
+// String returns the underlying string value.
+func (id ChannelID) String() string { return string(id) }
+
 // Direction represents the flow direction of a message relative to a service.
 type Direction string
 
@@ -27,7 +51,7 @@ const (
 // Message describes a single command, event, or query in the catalog.
 type Message struct {
 	Kind      MessageKind       `json:"kind"`
-	ID        string            `json:"id"`
+	ID        MessageID         `json:"id"`
 	Name      string            `json:"name"`
 	Version   string            `json:"version"`
 	Summary   string            `json:"summary,omitempty"`
@@ -61,7 +85,7 @@ type Property struct {
 
 // Service groups related commands, events, and queries under a logical service.
 type Service struct {
-	ID       string    `json:"id"`
+	ID       ServiceID `json:"id"`
 	Name     string    `json:"name"`
 	Version  string    `json:"version"`
 	Summary  string    `json:"summary,omitempty"`
@@ -73,22 +97,22 @@ type Service struct {
 
 // Domain represents a business domain that groups multiple services.
 type Domain struct {
-	ID       string   `json:"id"`
-	Name     string   `json:"name"`
-	Version  string   `json:"version"`
-	Summary  string   `json:"summary,omitempty"`
-	Services []string `json:"services,omitempty"`
+	ID       DomainID    `json:"id"`
+	Name     string      `json:"name"`
+	Version  string      `json:"version"`
+	Summary  string      `json:"summary,omitempty"`
+	Services []ServiceID `json:"services,omitempty"`
 }
 
 // Channel represents a messaging channel used for message transport.
 type Channel struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	Version   string   `json:"version"`
-	Summary   string   `json:"summary,omitempty"`
-	Address   string   `json:"address,omitempty"`
-	Protocols []string `json:"protocols,omitempty"`
-	Messages  []string `json:"messages,omitempty"`
+	ID        ChannelID   `json:"id"`
+	Name      string      `json:"name"`
+	Version   string      `json:"version"`
+	Summary   string      `json:"summary,omitempty"`
+	Address   string      `json:"address,omitempty"`
+	Protocols []string    `json:"protocols,omitempty"`
+	Messages  []MessageID `json:"messages,omitempty"`
 }
 
 // Catalog is an immutable snapshot of all registered services, domains, and channels.
@@ -100,10 +124,21 @@ type Catalog struct {
 	Channels []Channel `json:"channels,omitempty"`
 }
 
-// MessageID returns the ID of a message, falling back to its Name if ID is empty.
-func MessageID(msg Message) string {
+// GetID returns the ID of a message, falling back to its Name if ID is empty.
+func GetID(msg Message) MessageID {
 	if msg.ID != "" {
 		return msg.ID
+	}
+
+	return MessageID(msg.Name)
+}
+
+// MessageIDString returns the string ID of a message, falling back to its Name if ID is empty.
+//
+// Deprecated: Use GetID instead for typed return.
+func MessageIDString(msg Message) string {
+	if msg.ID != "" {
+		return string(msg.ID)
 	}
 
 	return msg.Name

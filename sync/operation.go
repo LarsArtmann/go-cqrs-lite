@@ -37,7 +37,12 @@ type Operation[T any] struct {
 }
 
 // NewOperation creates a new operation with the given parameters.
-func NewOperation[T any](id OperationID, opType OperationType, nodeID NodeID, payload T) *Operation[T] {
+func NewOperation[T any](
+	id OperationID,
+	opType OperationType,
+	nodeID NodeID,
+	payload T,
+) *Operation[T] {
 	return &Operation[T]{
 		ID:          id,
 		Type:        opType,

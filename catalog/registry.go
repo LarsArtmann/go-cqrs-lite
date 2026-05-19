@@ -22,9 +22,9 @@ type Registry struct {
 	mu       sync.RWMutex
 	title    string
 	version  string
-	services map[string]*Service
-	domains  map[string]*Domain
-	channels map[string]*Channel
+	services map[ServiceID]*Service
+	domains  map[DomainID]*Domain
+	channels map[ChannelID]*Channel
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
@@ -33,15 +33,15 @@ func NewRegistry(title, version string) *Registry {
 		mu:       sync.RWMutex{},
 		title:    title,
 		version:  version,
-		services: make(map[string]*Service),
-		domains:  make(map[string]*Domain),
-		channels: make(map[string]*Channel),
+		services: make(map[ServiceID]*Service),
+		domains:  make(map[DomainID]*Domain),
+		channels: make(map[ChannelID]*Channel),
 	}
 }
 
 // SetServiceMeta updates the metadata fields of an existing service.
 // If the service does not exist, it is created with the given metadata.
-func (r *Registry) SetServiceMeta(serviceID, name, version, summary string) {
+func (r *Registry) SetServiceMeta(serviceID ServiceID, name, version, summary string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -80,12 +80,12 @@ func (r *Registry) AddService(svc Service) {
 }
 
 // ensureServiceEntry returns a service entry for the given ID, creating it if needed.
-func (r *Registry) ensureServiceEntry(serviceID string) *Service {
+func (r *Registry) ensureServiceEntry(serviceID ServiceID) *Service {
 	svc, ok := r.services[serviceID]
 	if !ok {
 		svc = &Service{
 			ID:       serviceID,
-			Name:     serviceID,
+			Name:     string(serviceID),
 			Version:  "",
 			Summary:  "",
 			Owners:   nil,
@@ -100,7 +100,7 @@ func (r *Registry) ensureServiceEntry(serviceID string) *Service {
 }
 
 func (r *Registry) addMessage(
-	serviceID string,
+	serviceID ServiceID,
 	kind MessageKind,
 	getter func(*Service) []Message,
 	setter func(*Service, []Message),
@@ -115,7 +115,7 @@ func (r *Registry) addMessage(
 }
 
 // AddCommand adds a command message to a service, creating the service if needed.
-func (r *Registry) AddCommand(serviceID string, msg Message) {
+func (r *Registry) AddCommand(serviceID ServiceID, msg Message) {
 	r.addMessage(
 		serviceID,
 		CommandMessage,
@@ -126,7 +126,7 @@ func (r *Registry) AddCommand(serviceID string, msg Message) {
 }
 
 // AddEvent adds an event message to a service, creating the service if needed.
-func (r *Registry) AddEvent(serviceID string, msg Message) {
+func (r *Registry) AddEvent(serviceID ServiceID, msg Message) {
 	r.addMessage(
 		serviceID,
 		EventMessage,
@@ -137,7 +137,7 @@ func (r *Registry) AddEvent(serviceID string, msg Message) {
 }
 
 // AddQuery adds a query message to a service, creating the service if needed.
-func (r *Registry) AddQuery(serviceID string, msg Message) {
+func (r *Registry) AddQuery(serviceID ServiceID, msg Message) {
 	r.addMessage(
 		serviceID,
 		QueryMessage,
@@ -156,7 +156,7 @@ func (r *Registry) AddDomain(domain Domain) {
 }
 
 // AddServiceToDomain associates an existing service with an existing domain.
-func (r *Registry) AddServiceToDomain(serviceID, domainID string) error {
+func (r *Registry) AddServiceToDomain(serviceID ServiceID, domainID DomainID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

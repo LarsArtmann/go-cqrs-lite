@@ -40,7 +40,9 @@ type OperationID string
 // Returns an error if the string is empty.
 func ParseOperationID(s string) (OperationID, error) {
 	if s == "" {
-		return "", fmt.Errorf("operation ID cannot be empty") //nolint:err113 // specific value required
+		return "", fmt.Errorf(
+			"operation ID cannot be empty",
+		) //nolint:err113 // specific value required
 	}
 
 	return OperationID(s), nil

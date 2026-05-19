@@ -203,7 +203,15 @@ func sharedAckBatch(
 }
 
 func outboxInsertSQL(dialect Dialect) string {
-	p1, p2, p3, p4 := dialect.Placeholder(1), dialect.Placeholder(2), dialect.Placeholder(3), dialect.Placeholder(4)
+	p1, p2, p3, p4 := dialect.Placeholder(
+		1,
+	), dialect.Placeholder(
+		2,
+	), dialect.Placeholder(
+		3,
+	), dialect.Placeholder(
+		4,
+	)
 
 	return fmt.Sprintf(
 		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,

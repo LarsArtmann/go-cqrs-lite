@@ -75,7 +75,12 @@ func TestNewOperation_WithDifferentTypes(t *testing.T) {
 			Name string `json:"name"`
 		}
 
-		op := NewOperation(OperationID("op-3"), OpDelete, MustParseNodeID("node-c"), Item{Name: "item1"})
+		op := NewOperation(
+			OperationID("op-3"),
+			OpDelete,
+			MustParseNodeID("node-c"),
+			Item{Name: "item1"},
+		)
 		if op.Payload.Name != "item1" {
 			t.Errorf("Payload.Name = %q, want %q", op.Payload.Name, "item1")
 		}

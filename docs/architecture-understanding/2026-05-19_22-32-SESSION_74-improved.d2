@@ -142,23 +142,23 @@ improvements: {
   style.fill: "#ffcdd2"
   style.stroke: "#d32f2f"
 
-  "1. Unified Repository[State]" {
+  "1. Unified Repository[State]": {
     style.bold: true
     detail: "aggregate + decider share one code path"
   }
-  "2. Unified Runner" {
+  "2. Unified Runner": {
     style.bold: true
     detail: "projection/ merged into core/event\nInMemoryRunner + ReplayRunner\none module eliminated"
   }
-  "3. Dialect Interface" {
+  "3. Dialect Interface": {
     style.bold: true
     detail: "Schema DDL as methods, not free funcs\nstorage files: 7 → 4"
   }
-  "4. Exporter Interface" {
+  "4. Exporter Interface": {
     style.bold: true
     detail: "WalkMessages() shared iteration\nnew format = implement 4 methods"
   }
-  "5. Clock Injection" {
+  "5. Clock Injection": {
     style.bold: true
     detail: "func() time.Time option in NewEvent\ndeterministic testing"
   }

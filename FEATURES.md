@@ -70,9 +70,9 @@
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
 | Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
 | Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
-| ISP sub-interfaces      | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                 | ✅     |
-| GlobalLoader            | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                   | ✅     |
-| TransactionalStore      | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                | ✅     |
+| ISP sub-interfaces    | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                                                                                | ✅     |
+| GlobalLoader          | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
+| TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
 | JSON Codec            | `JSONCodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
@@ -105,17 +105,17 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"`
 
-| Feature              | Detail                                                                          | Status |
-| -------------------- | ------------------------------------------------------------------------------- | ------ |
-| Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                     | ✅     |
-| ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                              | ✅     |
+| Feature              | Detail                                                                                      | Status |
+| -------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                                 | ✅     |
+| ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                                          | ✅     |
 | 7 built-in types     | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID` | ✅     |
-| Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                | ✅     |
-| All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                           | ✅     |
-| Convenience funcs    | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()`                | ✅     |
-| Comparison           | `Equal`, `Compare` (lexicographic), `IsZero`, `Or` (default value)              | ✅     |
-| fmt.Formatter        | `%s`, `%v`, `%#v`, `%q`                                                         | ✅     |
-| Timestamp extraction | `ULID(id)` extracts embedded timestamp                                          | ✅     |
+| Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                            | ✅     |
+| All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                       | ✅     |
+| Convenience funcs    | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()`                            | ✅     |
+| Comparison           | `Equal`, `Compare` (lexicographic), `IsZero`, `Or` (default value)                          | ✅     |
+| fmt.Formatter        | `%s`, `%v`, `%#v`, `%q`                                                                     | ✅     |
+| Timestamp extraction | `ULID(id)` extracts embedded timestamp                                                      | ✅     |
 
 **Coverage:** 97.8%
 
@@ -236,7 +236,6 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 
 OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`.
 
-
 ### Validation ✅
 
 | Factory                        | Behavior                                                  |
@@ -322,13 +321,13 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/openapi"`
 
-|| Feature            | Detail                                                                                   | Status |
-| ------------------ | ---------------------------------------------------------------------------------------- | ------ |
-| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document`                        | ✅     |
-| JSON output        | `Document` serializes to JSON                                                            | ✅     |
-| Schema generation  | Auto-generates JSON Schema from catalog types                                            | ✅     |
-| Base path support  | `WithBasePath(path)` option for API path prefix                                           | ✅     |
-| Description option | `WithDescription(desc)` for document metadata                                            | ✅     |
+|                     | Feature                                                           | Detail | Status |
+| ------------------- | ----------------------------------------------------------------- | ------ | ------ |
+| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document` | ✅     |
+| JSON output         | `Document` serializes to JSON                                     | ✅     |
+| Schema generation   | Auto-generates JSON Schema from catalog types                     | ✅     |
+| Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
+| Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
 
 **Coverage:** 96.6%
 
@@ -338,14 +337,14 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/docserver"`
 
-|| Feature            | Detail                                                                                   | Status |
-| ------------------ | ---------------------------------------------------------------------------------------- | ------ |
-| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs                                  | ✅     |
-| OpenAPI rendering  | Scalar UI for interactive API documentation                                               | ✅     |
-| AsyncAPI rendering | AsyncAPI React for event documentation                                                   | ✅     |
-| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                                         | ✅     |
-| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request                          | ✅     |
-| Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies                    | ✅     |
+|                    | Feature                                                               | Detail | Status |
+| ------------------ | --------------------------------------------------------------------- | ------ | ------ |
+| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs               | ✅     |
+| OpenAPI rendering  | Scalar UI for interactive API documentation                           | ✅     |
+| AsyncAPI rendering | AsyncAPI React for event documentation                                | ✅     |
+| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                     | ✅     |
+| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request      | ✅     |
+| Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies | ✅     |
 
 **Coverage:** 92.3%
 
@@ -359,7 +358,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | ------------------------------- | -------------------------------------------------------------------- | ------ |
 | PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅     |
 | SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL             | ✅     |
-| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble     | ✅     |
+| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble      | ✅     |
 | Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database       | ✅     |
 | Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull       | ✅     |
 | Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                       | ✅     |
@@ -389,16 +388,16 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/sync"`
 
-|| Feature               | Detail                                                                                      | Status |
-| --------------------- | ------------------------------------------------------------------------------------------- | ------ |
-| VectorClock           | `map[string]int64` with `Increment`, `Get`, `Merge`, `Compare`, `Clone`, `Equal`           | ✅     |
-| Operation[T]          | Generic typed sync operation with ID, type, nodeID, timestamp, vector clock, payload       | ✅     |
-| OperationType         | `OpCreate`, `OpUpdate`, `OpDelete` constants                                               | ✅     |
-| ConflictResolver[T]   | Interface for pluggable conflict resolution strategies                                     | ✅     |
-| LWWResolver[T]        | Last-Write-Wins: vector clock comparison → timestamp fallback → tiebreaker                  | ✅     |
-| SyncMessage           | Envelope for sync protocol messages (request/response)                                     | ✅     |
-| NodeID                | Named type with `ParseNodeID`, `MustParseNodeID` validation                                | ✅     |
-| JSON serialization    | `Operation.Serialize()` and `DeserializeOperation[T]()` for transport                       | ✅     |
+|                     | Feature                                                                              | Detail | Status |
+| ------------------- | ------------------------------------------------------------------------------------ | ------ | ------ |
+| VectorClock         | `map[string]int64` with `Increment`, `Get`, `Merge`, `Compare`, `Clone`, `Equal`     | ✅     |
+| Operation[T]        | Generic typed sync operation with ID, type, nodeID, timestamp, vector clock, payload | ✅     |
+| OperationType       | `OpCreate`, `OpUpdate`, `OpDelete` constants                                         | ✅     |
+| ConflictResolver[T] | Interface for pluggable conflict resolution strategies                               | ✅     |
+| LWWResolver[T]      | Last-Write-Wins: vector clock comparison → timestamp fallback → tiebreaker           | ✅     |
+| SyncMessage         | Envelope for sync protocol messages (request/response)                               | ✅     |
+| NodeID              | Named type with `ParseNodeID`, `MustParseNodeID` validation                          | ✅     |
+| JSON serialization  | `Operation.Serialize()` and `DeserializeOperation[T]()` for transport                | ✅     |
 
 **Zero external dependencies** (stdlib only). **Coverage:** Tested
 
@@ -479,7 +478,7 @@ Features mentioned in project docs/planning but with **no production code**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Zero lint issues       | 1 lint issue (golines in test file)                                  |
+| Zero lint issues       | 1 lint issue (golines in test file)                                              |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |
