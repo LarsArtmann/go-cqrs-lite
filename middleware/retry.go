@@ -110,6 +110,8 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 
 			return fmt.Errorf("%w: %s: %w", ErrRetryCanceled, opName, err)
 		}
+
+		timer.Stop()
 	}
 
 	return fmt.Errorf(
