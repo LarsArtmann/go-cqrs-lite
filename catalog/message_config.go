@@ -93,7 +93,7 @@ func newMessageBuilder[T any](
 	direction Direction,
 	opts []MessageOption,
 ) MessageConfig {
-	rt := reflect.TypeOf((*T)(nil)).Elem()
+	rt := reflect.TypeFor[T]()
 
 	name := camelCaseToHuman(rt.Name())
 	schema := schemaFromReflect(rt)
