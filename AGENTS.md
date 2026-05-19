@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 9 modules (10 including example/user demo):
+Multi-module Go workspace with 12 modules:
 
 ```
 go-cqrs-lite/
@@ -61,7 +61,7 @@ go-cqrs-lite/
 │
 ├── catalog/                         # github.com/larsartmann/go-cqrs-lite/catalog
 │   └── go.mod                       # deps: core, go-faster/yaml
-│   ├── types.go                     # Message, Service, Domain, Channel, Schema, MessageID()
+│   ├── types.go                     # Message, Service, Domain, Channel, Schema, ServiceID, DomainID, MessageID, ChannelID, GetID()
 │   ├── schema.go                    # SchemaFromType[T]() via reflect
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
 │   ├── adapters/                    # CatalogBuilder, FromDispatcher adapters
@@ -206,7 +206,7 @@ nix develop             # enter dev shell
 
 | Package                 | Purpose                                | Key Types                                                 |
 | ----------------------- | -------------------------------------- | --------------------------------------------------------- |
-| `catalog/`              | Registry, schema reflection, MessageID | `Registry`, `Catalog`, `SchemaFromType[T]`, `MessageID()` |
+| `catalog/`              | Registry, schema reflection, typed IDs | `Registry`, `Catalog`, `SchemaFromType[T]`, `GetID()`, `ServiceID`, `DomainID`, `MessageID`, `ChannelID` |
 | `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                 |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                     |
 | `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                   |
@@ -240,6 +240,16 @@ nix develop             # enter dev shell
 - **Per-projection checkpoint**: Each projection tracked by `Name()`. Events past checkpoint are skipped during replay.
 - **Wildcard**: `EventTypes() == nil` subscribes to all event types.
 - **HandlerRegistry**: Maps event types to handlers. Useful for building custom projection dispatch.
+
+### Sync Module (`sync/`)
+
+| Package  | Purpose                        | Key Types                                                                         |
+| -------- | ------------------------------ | --------------------------------------------------------------------------------- |
+| `sync/`  | Distributed sync primitives    | `NodeID`, `OperationID`, `SyncMessageType`, `VectorClock`, `Operation`, `ConflictResolver` |
+
+- **Named ID types**: `NodeID`, `OperationID` — typed strings with `Parse*`/`MustParse*`/`String()`/`IsZero()`.
+- **VectorClock**: `map[NodeID]int64` — typed keys prevent mixing with arbitrary strings.
+- **SyncMessageType**: `sync_request` / `sync_response` constants.
 
 ## Design Principles
 
@@ -482,7 +492,7 @@ Interfaces now return branded types instead of primitives:
 | Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`                | `1862eae`  |
 | Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                           | `8e5150c`  |
 | EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                | `4fdd447`  |
-| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.MessageID()`                        | `c1bc261`  |
+| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.GetID()` (was `MessageID()`, renamed in Session 76)                      | `c1bc261`  |
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                    | `699d247`  |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                         | `b23a781`  |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                 | `e84e3a1`  |
