@@ -86,20 +86,7 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 
 	outboxID := events[0].ID()
 
-	p1, p2, p3, p4 := s.dialect.Placeholder(
-		1,
-	), s.dialect.Placeholder(
-		2,
-	), s.dialect.Placeholder(
-		3,
-	), s.dialect.Placeholder(
-		4,
-	)
-
-	insertSQL := fmt.Sprintf(
-		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
-		p1, p2, p3, p4,
-	)
+	insertSQL := outboxInsertSQL(s.dialect)
 
 	_, err = tx.ExecContext(
 		ctx,
