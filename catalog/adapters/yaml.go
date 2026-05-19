@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/go-faster/yaml"
 )
@@ -9,9 +10,16 @@ import (
 // JSONToYAML converts JSON bytes to YAML bytes.
 func JSONToYAML(jsonBytes []byte) ([]byte, error) {
 	var obj any
-	if err := json.Unmarshal(jsonBytes, &obj); err != nil {
-		return nil, err
+
+	err := json.Unmarshal(jsonBytes, &obj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	return yaml.Marshal(obj)
+	out, err := yaml.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal YAML: %w", err)
+	}
+
+	return out, nil
 }

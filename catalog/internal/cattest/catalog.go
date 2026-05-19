@@ -33,8 +33,8 @@ func MustExport(
 func NewCatalogCore(
 	tb testing.TB,
 	eventType string,
-	meta event.CatalogMeta,
-) (*event.CatalogCore, error) {
+	meta event.CatalogMeta, //nolint:staticcheck
+) (*event.CatalogCore, error) { //nolint:staticcheck
 	tb.Helper()
 
 	core, err := event.NewCatalogCore(

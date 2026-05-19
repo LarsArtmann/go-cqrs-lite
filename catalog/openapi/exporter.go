@@ -11,6 +11,7 @@ import (
 const (
 	openAPIVersion = "3.0.3"
 	contentType    = "application/json"
+	objectType     = "object"
 )
 
 // Exporter generates an OpenAPI 3.0 document from a catalog.
@@ -102,8 +103,9 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(msg.ID))
 	schemaRef := e.addSchema(doc, msg)
 
+	//nolint:exhaustruct
 	doc.Paths[path] = &PathItem{
-		Post: &Operation{
+		Post: &Operation{ //nolint:exhaustruct
 			Tags:        []string{tagName},
 			Summary:     msg.Name,
 			Description: msg.Summary,
@@ -111,7 +113,7 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 			RequestBody: &RequestBody{
 				Description: msg.Name + " request",
 				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef},
+					contentType: {Schema: schemaRef}, //nolint:exhaustruct
 				},
 				Required: true,
 			},
@@ -119,13 +121,13 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 				"200": {
 					Description: "Success",
 					Content: map[string]MediaType{
-						contentType: {Schema: objectSchema()},
+						contentType: {Schema: objectSchema()}, //nolint:exhaustruct
 					},
 				},
 				"400": {
 					Description: "Bad Request",
 					Content: map[string]MediaType{
-						contentType: {Schema: objectSchema()},
+						contentType: {Schema: objectSchema()}, //nolint:exhaustruct
 					},
 				},
 			},
@@ -137,7 +139,7 @@ func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Me
 	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(msg.ID))
 	schemaRef := e.addSchema(doc, msg)
 
-	op := &Operation{
+	op := &Operation{ //nolint:exhaustruct
 		Tags:        []string{tagName},
 		Summary:     msg.Name,
 		Description: msg.Summary,
@@ -146,24 +148,25 @@ func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Me
 			"200": {
 				Description: "Success",
 				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef},
+					contentType: {Schema: schemaRef}, //nolint:exhaustruct
 				},
 			},
 			"404": {
 				Description: "Not Found",
 				Content: map[string]MediaType{
-					contentType: {Schema: objectSchema()},
+					contentType: {Schema: objectSchema()}, //nolint:exhaustruct
 				},
 			},
 		},
 	}
 
-	// If query has a schema with aggregate_id or id field, add it as path parameter
 	if msg.Schema != nil && msg.Schema.Properties != nil {
 		for fieldName, prop := range msg.Schema.Properties {
 			lower := strings.ToLower(fieldName)
+
 			if lower == "id" || lower == "aggregate_id" || strings.HasSuffix(lower, "_id") {
 				path = fmt.Sprintf("%s/{%s}", path, fieldName)
+
 				op.Parameters = append(op.Parameters, Parameter{
 					Name:        fieldName,
 					In:          "path",
@@ -171,11 +174,13 @@ func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Me
 					Required:    true,
 					Schema:      prop,
 				})
+
 				break
 			}
 		}
 	}
 
+	//nolint:exhaustruct
 	doc.Paths[path] = &PathItem{
 		Get: op,
 	}
@@ -185,8 +190,9 @@ func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Me
 	path := fmt.Sprintf("%s/%s/events/%s", e.BasePath, svcID, toKebab(msg.ID))
 	schemaRef := e.addSchema(doc, msg)
 
+	//nolint:exhaustruct
 	doc.Paths[path] = &PathItem{
-		Post: &Operation{
+		Post: &Operation{ //nolint:exhaustruct
 			Tags:        []string{tagName},
 			Summary:     "Event: " + msg.Name,
 			Description: msg.Summary,
@@ -194,7 +200,7 @@ func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Me
 			RequestBody: &RequestBody{
 				Description: msg.Name + " event payload",
 				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef},
+					contentType: {Schema: schemaRef}, //nolint:exhaustruct
 				},
 				Required: true,
 			},
@@ -243,7 +249,7 @@ func schemaToAny(s *catalog.Schema) any {
 }
 
 func objectSchema() map[string]string {
-	return map[string]string{"type": "object"}
+	return map[string]string{"type": objectType}
 }
 
 func toKebab(s string) string {
@@ -301,6 +307,7 @@ func toPascal(s string) string {
 	for _, w := range words {
 		if len(w) > 0 {
 			result.WriteRune(rune(w[0] - 'a' + 'A'))
+
 			if len(w) > 1 {
 				result.WriteString(strings.ToLower(w[1:]))
 			}

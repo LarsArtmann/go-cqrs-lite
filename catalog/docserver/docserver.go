@@ -61,9 +61,11 @@ func NewDocsServer(provider CatalogProvider, cfg Config) *DocsServer {
 	if cfg.BasePath == "" {
 		cfg.BasePath = "/api"
 	}
+
 	if cfg.DocsPath == "" {
 		cfg.DocsPath = "/docs"
 	}
+
 	if cfg.AsyncAPIServer.Protocol == "" {
 		cfg.AsyncAPIServer = AsyncAPIServerConfig{
 			Name:     "development",
@@ -139,30 +141,15 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	)
 }
 
-// registerRoutesPrefix registers all documentation routes with a pattern prefix.
-// Compatible with Go 1.22+ ServeMux patterns.
-func (ds *DocsServer) registerRoutesPrefix(mux *http.ServeMux, prefix string) {
-	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
-	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
-	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
-	mux.HandleFunc("GET "+prefix+"/asyncapi", ds.serveAsyncAPIHTML)
-	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
-	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
-	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
-
-	// Serve embedded static assets
-	mux.Handle(
-		"GET "+prefix+"/static/",
-		http.StripPrefix(prefix+"/static/", http.FileServer(ds.StaticFS())),
-	)
-}
-
 func (ds *DocsServer) buildOpenAPI() *openapi.Document {
 	cat := ds.provider()
-	opts := []openapi.Option{}
+
+	var opts []openapi.Option
+
 	if ds.config.Description != "" {
 		opts = append(opts, openapi.WithDescription(ds.config.Description))
 	}
+
 	if ds.config.BasePath != "" {
 		opts = append(opts, openapi.WithBasePath(ds.config.BasePath))
 	}
@@ -172,6 +159,7 @@ func (ds *DocsServer) buildOpenAPI() *openapi.Document {
 
 func (ds *DocsServer) buildAsyncAPI() *asyncapi.Document {
 	cat := ds.provider()
+
 	opts := []asyncapi.Option{
 		asyncapi.WithServer(
 			ds.config.AsyncAPIServer.Name,
@@ -179,6 +167,7 @@ func (ds *DocsServer) buildAsyncAPI() *asyncapi.Document {
 			ds.config.AsyncAPIServer.Protocol,
 		),
 	}
+
 	if ds.config.Description != "" {
 		opts = append(opts, asyncapi.WithDescription(ds.config.Description))
 	}
@@ -186,73 +175,91 @@ func (ds *DocsServer) buildAsyncAPI() *asyncapi.Document {
 	return asyncapi.NewExporter(ds.config.ServiceName, ds.config.Version, opts...).Export(cat)
 }
 
-func (ds *DocsServer) serveOpenAPIJSON(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveOpenAPIJSON(writer http.ResponseWriter, _ *http.Request) {
 	doc := ds.buildOpenAPI()
-	w.Header().Set("Content-Type", "application/json")
 
-	enc := json.NewEncoder(w)
+	writer.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(writer)
 	enc.SetIndent("", "  ")
+
+	//nolint:errchkjson
 	_ = enc.Encode(doc)
 }
 
-func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveOpenAPIYAML(writer http.ResponseWriter, _ *http.Request) {
 	doc := ds.buildOpenAPI()
-	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
 
 	b, err := json.Marshal(doc)
 	if err != nil {
-		http.Error(w, "failed to marshal OpenAPI spec", http.StatusInternalServerError)
+		http.Error(writer, "failed to marshal OpenAPI spec", http.StatusInternalServerError)
+
 		return
 	}
 
 	yamlStr, err := adapters.JSONToYAML(b)
 	if err != nil {
-		http.Error(w, "failed to convert to YAML", http.StatusInternalServerError)
+		http.Error(writer, "failed to convert to YAML", http.StatusInternalServerError)
+
 		return
 	}
 
-	_, _ = w.Write(yamlStr)
+	writer.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+
+	_, _ = writer.Write(yamlStr)
 }
 
-func (ds *DocsServer) serveOpenAPIHTML(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveOpenAPIHTML(writer http.ResponseWriter, _ *http.Request) {
 	specURL := ds.config.DocsPath + "/openapi.json"
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(scalarHTML(specURL, ds.config.ServiceName)))
+
+	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	_, _ = writer.Write([]byte(scalarHTML(specURL, ds.config.ServiceName)))
 }
 
-func (ds *DocsServer) serveAsyncAPIJSON(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveAsyncAPIJSON(writer http.ResponseWriter, _ *http.Request) {
 	doc := ds.buildAsyncAPI()
-	w.Header().Set("Content-Type", "application/json")
 
-	enc := json.NewEncoder(w)
+	writer.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(writer)
 	enc.SetIndent("", "  ")
+
+	//nolint:errchkjson
 	_ = enc.Encode(doc)
 }
 
-func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveAsyncAPIYAML(writer http.ResponseWriter, _ *http.Request) {
 	doc := ds.buildAsyncAPI()
 
 	b, err := doc.MarshalYAML()
 	if err != nil {
-		http.Error(w, "failed to marshal AsyncAPI YAML", http.StatusInternalServerError)
+		http.Error(writer, "failed to marshal AsyncAPI YAML", http.StatusInternalServerError)
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
-	_, _ = w.Write(b)
+	writer.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+
+	_, _ = writer.Write(b)
 }
 
-func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveAsyncAPIHTML(writer http.ResponseWriter, _ *http.Request) {
 	specURL := ds.config.DocsPath + "/asyncapi.json"
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(asyncAPIHTML(specURL, ds.config.ServiceName)))
+
+	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	_, _ = writer.Write([]byte(asyncAPIHTML(specURL, ds.config.ServiceName)))
 }
 
-func (ds *DocsServer) serveCatalogJSON(w http.ResponseWriter, _ *http.Request) {
+func (ds *DocsServer) serveCatalogJSON(writer http.ResponseWriter, _ *http.Request) {
 	cat := ds.provider()
-	w.Header().Set("Content-Type", "application/json")
 
-	enc := json.NewEncoder(w)
+	writer.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(writer)
 	enc.SetIndent("", "  ")
+
+	//nolint:errchkjson
 	_ = enc.Encode(cat)
 }

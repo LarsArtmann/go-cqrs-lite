@@ -1,6 +1,7 @@
 package adapters_test
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"testing"
 
@@ -357,12 +358,12 @@ func TestBuilder_FromCommandDispatcher(t *testing.T) {
 	t.Parallel()
 
 	d := command.NewDispatcher()
-	d.RegisterCatalogEntry("user.create", command.CatalogMeta{
+	d.RegisterCatalogEntry("user.create", command.CatalogMeta{ //nolint:staticcheck
 		Name:    "CreateUser",
 		Version: "1.0.0",
 		Summary: "Creates a new user",
 	})
-	d.RegisterCatalogEntry("user.change_email", command.CatalogMeta{
+	d.RegisterCatalogEntry("user.change_email", command.CatalogMeta{ //nolint:staticcheck
 		Name:    "ChangeEmail",
 		Version: "1.0.0",
 		Summary: "Changes user email",
@@ -401,7 +402,7 @@ func TestBuilder_FromQueryDispatcher(t *testing.T) {
 	t.Parallel()
 
 	d := query.NewDispatcher()
-	d.RegisterCatalogEntry("user.get", query.CatalogMeta{
+	d.RegisterCatalogEntry("user.get", query.CatalogMeta{ //nolint:staticcheck
 		Name:    "GetUser",
 		Version: "1.0.0",
 		Summary: "Gets a user by ID",
@@ -422,5 +423,121 @@ func TestBuilder_FromQueryDispatcher(t *testing.T) {
 
 	if qry.Name != "GetUser" {
 		t.Errorf("name = %q, want GetUser", qry.Name)
+	}
+}
+
+func TestBuilder_ExportOpenAPI(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "",
+		catalog.Command[createUserCmd]("user.create"),
+	)
+
+	doc := builder.ExportOpenAPI("Test Service", "1.0.0")
+	if doc.OpenAPI != "3.0.3" {
+		t.Errorf("openapi = %q, want 3.0.3", doc.OpenAPI)
+	}
+
+	if doc.Info.Title != "Test Service" {
+		t.Errorf("title = %q, want Test Service", doc.Info.Title)
+	}
+}
+
+func TestBuilder_AddCommand(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("svc", "Svc", "1.0.0", "")
+	builder.AddCommand("svc", catalog.Message{
+		Kind:      catalog.CommandMessage,
+		ID:        "test-cmd",
+		Name:      "TestCmd",
+		Version:   "1.0.0",
+		Direction: catalog.Receives,
+	})
+
+	cat := builder.Build()
+	if len(cat.Services[0].Commands) != 1 {
+		t.Fatalf("commands = %d, want 1", len(cat.Services[0].Commands))
+	}
+
+	if cat.Services[0].Commands[0].ID != "test-cmd" {
+		t.Errorf("ID = %q, want test-cmd", cat.Services[0].Commands[0].ID)
+	}
+}
+
+func TestBuilder_AddEvent(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("svc", "Svc", "1.0.0", "")
+	builder.AddEvent("svc", catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        "test-evt",
+		Name:      "TestEvt",
+		Version:   "1.0.0",
+		Direction: catalog.Sends,
+	})
+
+	cat := builder.Build()
+	if len(cat.Services[0].Events) != 1 {
+		t.Fatalf("events = %d, want 1", len(cat.Services[0].Events))
+	}
+
+	if cat.Services[0].Events[0].ID != "test-evt" {
+		t.Errorf("ID = %q, want test-evt", cat.Services[0].Events[0].ID)
+	}
+}
+
+func TestBuilder_AddQuery(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddService("svc", "Svc", "1.0.0", "")
+	builder.AddQuery("svc", catalog.Message{
+		Kind:      catalog.QueryMessage,
+		ID:        "test-qry",
+		Name:      "TestQry",
+		Version:   "1.0.0",
+		Direction: catalog.Receives,
+	})
+
+	cat := builder.Build()
+	if len(cat.Services[0].Queries) != 1 {
+		t.Fatalf("queries = %d, want 1", len(cat.Services[0].Queries))
+	}
+
+	if cat.Services[0].Queries[0].ID != "test-qry" {
+		t.Errorf("ID = %q, want test-qry", cat.Services[0].Queries[0].ID)
+	}
+}
+
+func TestJSONToYAML(t *testing.T) {
+	t.Parallel()
+
+	obj := map[string]any{"type": "object"}
+	jsonBytes, err := json.Marshal(obj)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	yamlBytes, err := adapters.JSONToYAML(jsonBytes)
+	if err != nil {
+		t.Fatalf("JSONToYAML: %v", err)
+	}
+
+	if len(yamlBytes) == 0 {
+		t.Fatal("yaml output is empty")
+	}
+}
+
+func TestJSONToYAML_InvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	_, err := adapters.JSONToYAML([]byte("{invalid"))
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
 	}
 }

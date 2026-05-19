@@ -36,7 +36,9 @@ func BenchmarkBuilder_FromCommandDispatcher(b *testing.B) {
 	for i := range 10 {
 		d.RegisterCatalogEntry(
 			command.Type(fmt.Sprintf("cmd.%d", i)),
-			command.CatalogMeta{Name: fmt.Sprintf("Cmd%d", i), Version: "1.0.0"},
+			command.CatalogMeta{ //nolint:staticcheck
+				Name: fmt.Sprintf("Cmd%d", i), Version: "1.0.0",
+			},
 		)
 	}
 

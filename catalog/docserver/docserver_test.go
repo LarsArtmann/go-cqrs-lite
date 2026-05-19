@@ -1,6 +1,7 @@
 package docserver
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -69,24 +70,26 @@ func testServer(t *testing.T) *DocsServer {
 }
 
 func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.OpenAPISpec()
+	srv := testServer(t)
+	handler := srv.OpenAPISpec()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/openapi.json", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/openapi.json", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	ct := w.Header().Get("Content-Type")
+	ct := recorder.Header().Get("Content-Type")
 	if !strings.Contains(ct, "application/json") {
 		t.Errorf("expected application/json content type, got %s", ct)
 	}
 
 	var doc map[string]any
-	if err := json.NewDecoder(w.Body).Decode(&doc); err != nil {
+	if err := json.NewDecoder(recorder.Body).Decode(&doc); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
 
@@ -105,46 +108,50 @@ func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
 }
 
 func TestDocsServer_OpenAPISpecYAML(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.OpenAPISpecYAML()
+	srv := testServer(t)
+	handler := srv.OpenAPISpecYAML()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/openapi.yaml", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	ct := w.Header().Get("Content-Type")
+	ct := recorder.Header().Get("Content-Type")
 	if !strings.Contains(ct, "text/yaml") {
 		t.Errorf("expected text/yaml content type, got %s", ct)
 	}
 
-	body := w.Body.String()
+	body := recorder.Body.String()
 	if !strings.Contains(body, "openapi:") || !strings.Contains(body, "3.0.3") {
 		t.Errorf("expected YAML to contain openapi version, got:\n%s", body)
 	}
 }
 
 func TestDocsServer_OpenAPIUI(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.OpenAPIUI()
+	srv := testServer(t)
+	handler := srv.OpenAPIUI()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/openapi", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/openapi", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	ct := w.Header().Get("Content-Type")
+	ct := recorder.Header().Get("Content-Type")
 	if !strings.Contains(ct, "text/html") {
 		t.Errorf("expected text/html content type, got %s", ct)
 	}
 
-	body := w.Body.String()
+	body := recorder.Body.String()
 	if !strings.Contains(body, "Scalar.createApiReference") {
 		t.Error("expected Scalar JS initialization in HTML")
 	}
@@ -155,19 +162,21 @@ func TestDocsServer_OpenAPIUI(t *testing.T) {
 }
 
 func TestDocsServer_AsyncAPISpecJSON(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.AsyncAPISpec()
+	srv := testServer(t)
+	handler := srv.AsyncAPISpec()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/asyncapi.json", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/asyncapi.json", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
 	var doc map[string]any
-	if err := json.NewDecoder(w.Body).Decode(&doc); err != nil {
+	if err := json.NewDecoder(recorder.Body).Decode(&doc); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
 
@@ -177,41 +186,45 @@ func TestDocsServer_AsyncAPISpecJSON(t *testing.T) {
 }
 
 func TestDocsServer_AsyncAPISpecYAML(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.AsyncAPISpecYAML()
+	srv := testServer(t)
+	handler := srv.AsyncAPISpecYAML()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/asyncapi.yaml", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/asyncapi.yaml", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	ct := w.Header().Get("Content-Type")
+	ct := recorder.Header().Get("Content-Type")
 	if !strings.Contains(ct, "text/yaml") {
 		t.Errorf("expected text/yaml content type, got %s", ct)
 	}
 
-	body := w.Body.String()
+	body := recorder.Body.String()
 	if !strings.Contains(body, "asyncapi:") || !strings.Contains(body, "3.0.0") {
 		t.Errorf("expected YAML to contain asyncapi version, got:\n%s", body)
 	}
 }
 
 func TestDocsServer_AsyncAPIUI(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.AsyncAPIUI()
+	srv := testServer(t)
+	handler := srv.AsyncAPIUI()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/asyncapi", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/asyncapi", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	body := w.Body.String()
+	body := recorder.Body.String()
 	if !strings.Contains(body, "AsyncApiStandalone.render") {
 		t.Error("expected AsyncApiStandalone JS initialization in HTML")
 	}
@@ -222,19 +235,21 @@ func TestDocsServer_AsyncAPIUI(t *testing.T) {
 }
 
 func TestDocsServer_CatalogJSON(t *testing.T) {
-	ds := testServer(t)
-	handler := ds.CatalogJSON()
+	srv := testServer(t)
+	handler := srv.CatalogJSON()
 
-	req := httptest.NewRequest(http.MethodGet, "/docs/catalog.json", nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/docs/catalog.json", nil,
+	)
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
 	var cat map[string]any
-	if err := json.NewDecoder(w.Body).Decode(&cat); err != nil {
+	if err := json.NewDecoder(recorder.Body).Decode(&cat); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
 
@@ -244,9 +259,9 @@ func TestDocsServer_CatalogJSON(t *testing.T) {
 }
 
 func TestDocsServer_RegisterRoutes(t *testing.T) {
-	ds := testServer(t)
+	srv := testServer(t)
 	mux := http.NewServeMux()
-	ds.RegisterRoutes(mux)
+	srv.RegisterRoutes(mux)
 
 	routes := []struct {
 		path string
@@ -261,53 +276,57 @@ func TestDocsServer_RegisterRoutes(t *testing.T) {
 	}
 
 	for _, tc := range routes {
-		req := httptest.NewRequest(http.MethodGet, tc.path, nil)
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
+		req := httptest.NewRequestWithContext(
+			context.Background(), http.MethodGet, tc.path, nil,
+		)
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
 
-		if w.Code != http.StatusOK {
-			t.Errorf("route %s: expected 200, got %d", tc.path, w.Code)
+		if recorder.Code != http.StatusOK {
+			t.Errorf("route %s: expected 200, got %d", tc.path, recorder.Code)
 		}
 	}
 }
 
 func TestDocsServer_DefaultConfig(t *testing.T) {
-	ds := NewDocsServer(testProvider, Config{
+	srv := NewDocsServer(testProvider, Config{
 		ServiceName: "Test",
 		Version:     "1.0.0",
 	})
 
-	if ds.config.DocsPath != "/docs" {
-		t.Errorf("expected default DocsPath /docs, got %s", ds.config.DocsPath)
+	if srv.config.DocsPath != "/docs" {
+		t.Errorf("expected default DocsPath /docs, got %s", srv.config.DocsPath)
 	}
 
-	if ds.config.BasePath != "/api" {
-		t.Errorf("expected default BasePath /api, got %s", ds.config.BasePath)
+	if srv.config.BasePath != "/api" {
+		t.Errorf("expected default BasePath /api, got %s", srv.config.BasePath)
 	}
 
-	if ds.config.AsyncAPIServer.Protocol != "http" {
+	if srv.config.AsyncAPIServer.Protocol != "http" {
 		t.Errorf(
 			"expected default asyncapi protocol http, got %s",
-			ds.config.AsyncAPIServer.Protocol,
+			srv.config.AsyncAPIServer.Protocol,
 		)
 	}
 }
 
 func TestDocsServer_CustomDocsPath(t *testing.T) {
-	ds := NewDocsServer(testProvider, Config{
+	srv := NewDocsServer(testProvider, Config{
 		ServiceName: "Test",
 		Version:     "1.0.0",
 		DocsPath:    "/api/v1/docs",
 	})
 
 	mux := http.NewServeMux()
-	ds.RegisterRoutes(mux)
+	srv.RegisterRoutes(mux)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/docs/openapi.json", nil)
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
+	req := httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, "/api/v1/docs/openapi.json", nil,
+	)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 }
