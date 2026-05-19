@@ -71,11 +71,17 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 	p1, p2, p3, p4, p5 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
 		s.dialect.Placeholder(3), s.dialect.Placeholder(4), s.dialect.Placeholder(5)
 
-	query := fmt.Sprintf(`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
+	query := fmt.Sprintf(
+		`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s)
 		ON CONFLICT (aggregate_type, aggregate_id)
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
-		p1, p2, p3, p4, p5)
+		p1,
+		p2,
+		p3,
+		p4,
+		p5,
+	)
 
 	_, err := s.db.ExecContext(
 		ctx,

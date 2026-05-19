@@ -17,7 +17,8 @@ type benchCreateUser struct {
 
 func benchBuilderWithCommand() *adapters.CatalogBuilder {
 	builder := adapters.NewBuilder("Bench API", "1.0.0")
-	builder.AddService("svc", "Service", "1.0.0", "",
+	builder.AddService(
+		"svc", "Service", "1.0.0", "",
 		catalog.Command[benchCreateUser]("user.create"),
 	)
 

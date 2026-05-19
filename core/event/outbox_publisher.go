@@ -107,6 +107,8 @@ func (p *OutboxPublisher) Start() error {
 		return ErrPublisherClosed
 	case publisherRunning:
 		return ErrAlreadyStarted
+	case publisherIdle:
+		// valid — proceed to start
 	}
 
 	p.state = publisherRunning

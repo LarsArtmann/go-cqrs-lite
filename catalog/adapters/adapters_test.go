@@ -34,7 +34,8 @@ func TestBuilder_AddService_WithCommand(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "Manages users",
 		catalog.Command[createUserCmd]("user.create"),
 	)
 
@@ -73,7 +74,8 @@ func TestBuilder_AddService_WithEvent(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "1.0.0", "",
+	builder.AddService(
+		"order-svc", "Order Service", "1.0.0", "",
 		catalog.Event[userCreatedEvt]("user.created", catalog.Sends),
 	)
 
@@ -105,7 +107,8 @@ func TestBuilder_AddService_WithQuery(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "",
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "",
 		catalog.Query[getUserQry]("user.get"),
 	)
 
@@ -133,8 +136,10 @@ func TestBuilder_AddService_WithOptions(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "",
-		catalog.Command[createUserCmd]("user.create",
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "",
+		catalog.Command[createUserCmd](
+			"user.create",
 			catalog.Name("Create User Account"),
 			catalog.Summary("Creates a new user with email verification"),
 			catalog.Version("2.0.0"),
@@ -161,7 +166,8 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "Manages users",
 		catalog.Command[createUserCmd]("user.create"),
 		catalog.Command[changeEmailCmd]("user.change_email"),
 		catalog.Event[userCreatedEvt]("user.created", catalog.Sends),
@@ -250,7 +256,8 @@ func TestBuilder_ExportEventCatalog(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders",
+	builder.AddService(
+		"order-svc", "Order Service", "1.0.0", "Manages orders",
 		catalog.Command[createUserCmd]("order.create"),
 	)
 
@@ -280,7 +287,8 @@ func TestBuilder_ExportAsyncAPI(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("E-Commerce", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "1.0.0", "",
+	builder.AddService(
+		"order-svc", "Order Service", "1.0.0", "",
 		catalog.Command[createUserCmd]("order.create"),
 	)
 
@@ -314,7 +322,8 @@ func TestBuilder_ExportD2(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders",
+	builder.AddService(
+		"order-svc", "Order Service", "1.0.0", "Manages orders",
 		catalog.Command[createUserCmd]("order.create"),
 	)
 
@@ -328,7 +337,8 @@ func TestBuilder_AddMessageToNewService(t *testing.T) {
 	t.Parallel()
 
 	builder := adapters.NewBuilder("Test API", "1.0.0")
-	builder.AddService("auto-svc", "Auto Service", "1.0.0", "",
+	builder.AddService(
+		"auto-svc", "Auto Service", "1.0.0", "",
 		catalog.Command[createUserCmd]("user.create"),
 	)
 

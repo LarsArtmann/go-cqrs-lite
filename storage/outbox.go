@@ -85,7 +85,13 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 		p1, OutboxStatusPending, p2, p3,
 	)
 
-	_, err = o.db.ExecContext(ctx, insertSQL, outboxID, serialized, o.dialect.FormatTime(time.Now()))
+	_, err = o.db.ExecContext(
+		ctx,
+		insertSQL,
+		outboxID,
+		serialized,
+		o.dialect.FormatTime(time.Now()),
+	)
 	if err != nil {
 		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
 	}
@@ -141,7 +147,7 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 const maxAckBatchSize = 500
 
 func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
-	return sharedAckBatch(ctx, o.db, ids, o.dialect.Placeholder(1))
+	return sharedAckBatch(ctx, o.db, ids, o.dialect)
 }
 
 var _ event.Outbox = (*SQLOutbox)(nil)

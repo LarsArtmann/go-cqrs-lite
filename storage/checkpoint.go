@@ -58,7 +58,7 @@ func SQLiteCheckpointSchema() string {
 
 // Load returns the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {
-	return sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect.Placeholder(1))
+	return sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
 }
 
 // Save persists the last processed event ID for a projection.
@@ -67,7 +67,7 @@ func (s *SQLCheckpointStore) Save(
 	projectionName string,
 	eventID id.EventID,
 ) error {
-	return sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect.Placeholder(1))
+	return sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
 }
 
 var _ event.CheckpointStore = (*SQLCheckpointStore)(nil)

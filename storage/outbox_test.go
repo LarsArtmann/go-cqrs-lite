@@ -61,7 +61,7 @@ func TestSQLOutbox_Append(t *testing.T) {
 		t.Fatalf("marshal events: %v", err)
 	}
 
-	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, 'pending', $2, $3)`)).
 		WithArgs(evt.ID(), expectedJSON, sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -94,7 +94,7 @@ func TestSQLOutbox_Append_InsertError(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := newTestEvent(t, "UserCreated", aggID, 1)
 
-	mock.ExpectExec(regexp.QuoteMeta(outboxInsertSQL)).
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, 'pending', $2, $3)`)).
 		WithArgs(evt.ID(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnError(errTestDB)
 

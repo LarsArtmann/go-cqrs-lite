@@ -24,7 +24,8 @@ func TestBuilder_AddService_WithCommand(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Test Service", "1.0.0")
-	builder.AddService("test-svc", "Test Service", "1.0.0", "A test service",
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "A test service",
 		catalog.Command[TestCreateUser]("user.create"),
 	)
 
@@ -66,7 +67,8 @@ func TestBuilder_AddService_WithEvent(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Test Service", "1.0.0")
-	builder.AddService("test-svc", "Test Service", "1.0.0", "A test service",
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "A test service",
 		catalog.Event[TestUserCreated]("user.created", catalog.Sends),
 	)
 
@@ -95,7 +97,8 @@ func TestBuilder_AddService_WithQuery(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Test Service", "1.0.0")
-	builder.AddService("test-svc", "Test Service", "1.0.0", "A test service",
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "A test service",
 		catalog.Query[TestGetUser]("user.get"),
 	)
 
@@ -121,8 +124,10 @@ func TestBuilder_AddService_WithOptions(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Test Service", "1.0.0")
-	builder.AddService("test-svc", "Test Service", "1.0.0", "A test service",
-		catalog.Command[TestCreateUser]("user.create",
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "A test service",
+		catalog.Command[TestCreateUser](
+			"user.create",
 			catalog.Name("Create User Account"),
 			catalog.Summary("Creates a new user with email verification"),
 			catalog.Version("2.0.0"),
@@ -171,7 +176,8 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Test Service", "1.0.0")
-	builder.AddService("test-svc", "Test Service", "1.0.0", "A test service",
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "A test service",
 		catalog.Command[TestCreateUser]("user.create"),
 		catalog.Event[TestUserCreated]("user.created", catalog.Sends),
 		catalog.Query[TestGetUser]("user.get"),
@@ -195,10 +201,12 @@ func TestBuilder_MultipleServices(t *testing.T) {
 	t.Parallel()
 
 	builder := catalog.NewBuilder("Platform", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "Manages users",
 		catalog.Command[TestCreateUser]("user.create"),
 	)
-	builder.AddService("order-svc", "Order Service", "1.0.0", "Manages orders",
+	builder.AddService(
+		"order-svc", "Order Service", "1.0.0", "Manages orders",
 		catalog.Event[TestUserCreated]("order.placed", catalog.Sends),
 	)
 

@@ -24,7 +24,7 @@ func (m *mockSnapshotStore) Load(
 	_ event.AggregateType,
 	_ id.AggregateID,
 ) (*event.Snapshot, error) {
-	return nil, nil
+	return nil, nil //nolint:nilnil
 }
 
 func (m *mockSnapshotStore) LoadAtVersion(
@@ -33,7 +33,7 @@ func (m *mockSnapshotStore) LoadAtVersion(
 	_ id.AggregateID,
 	_ event.Version,
 ) (*event.Snapshot, error) {
-	return nil, nil
+	return nil, nil //nolint:nilnil
 }
 
 func (m *mockSnapshotStore) Delete(

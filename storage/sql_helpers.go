@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -119,9 +118,9 @@ func sharedCheckpointLoad(
 	ctx context.Context,
 	db *sql.DB,
 	projectionName string,
-	placeholder string,
+	d Dialect,
 ) (id.EventID, error) {
-	query := "SELECT event_id FROM checkpoints WHERE projection_name = " + placeholder
+	query := "SELECT event_id FROM checkpoints WHERE projection_name = " + d.Placeholder(1)
 
 	var eventIDStr string
 
@@ -158,12 +157,12 @@ func sharedCheckpointSave(
 	db *sql.DB,
 	projectionName string,
 	eventID id.EventID,
-	placeholderFormat string,
+	d Dialect,
 ) error {
 	query := fmt.Sprintf(
 		"INSERT INTO checkpoints (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
-		placeholderFormat,
-		placeholderFormat,
+		d.Placeholder(1),
+		d.Placeholder(2),
 	)
 
 	_, err := db.ExecContext(ctx, query, projectionName, eventID)
@@ -174,13 +173,12 @@ func sharedCheckpointSave(
 	return nil
 }
 
-// sharedAckBatch deletes outbox entries by ID, using the provided placeholder format.
-// placeholderFormat is "$" for PostgreSQL or "?" for SQLite.
+// sharedAckBatch deletes outbox entries by ID, using the provided dialect for placeholders.
 func sharedAckBatch(
 	ctx context.Context,
 	db *sql.DB,
 	ids []event.OutboxID,
-	placeholderFormat string,
+	d Dialect,
 ) error {
 	if len(ids) == 0 {
 		return nil
@@ -190,7 +188,7 @@ func sharedAckBatch(
 	args := make([]any, len(ids))
 
 	for i, oid := range ids {
-		placeholders[i] = placeholderFormat + strconv.Itoa(i+1)
+		placeholders[i] = d.Placeholder(i + 1)
 		args[i] = string(oid)
 	}
 

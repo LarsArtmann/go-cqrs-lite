@@ -17,8 +17,8 @@ import (
 type SQLTransactionalStore struct {
 	*SQLEventStore
 
-	outbox *SQLOutbox
-	db     *sql.DB
+	outbox  *SQLOutbox
+	db      *sql.DB
 	dialect Dialect
 }
 

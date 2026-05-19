@@ -39,7 +39,7 @@ func initSQLiteSchema(t *testing.T, db *sql.DB) {
 	}
 }
 
-func newSQLiteTestStore(t *testing.T) *SQLiteEventStore {
+func newSQLiteTestStore(t *testing.T) *SQLEventStore {
 	t.Helper()
 
 	db := newSQLiteTestDB(t)

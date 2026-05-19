@@ -9,12 +9,15 @@ import (
 
 func generateEventCatalog(outputDir string) error {
 	builder := catalogadapters.NewBuilder("User Service", "1.0.0")
-	builder.AddService("user-svc", "User Service", "1.0.0", "Manages user accounts",
-		catalog.Event[UserCreatedPayload](string(eventUserCreated), catalog.Sends,
+	builder.AddService(
+		"user-svc", "User Service", "1.0.0", "Manages user accounts",
+		catalog.Event[UserCreatedPayload](
+			string(eventUserCreated), catalog.Sends,
 			catalog.Name("User Created"),
 			catalog.Summary("Fired when a new user account is created"),
 		),
-		catalog.Event[UserNameChangedPayload](string(eventUserNameChanged), catalog.Sends,
+		catalog.Event[UserNameChangedPayload](
+			string(eventUserNameChanged), catalog.Sends,
 			catalog.Name("User Name Changed"),
 			catalog.Summary("Fired when a user changes their display name"),
 		),
