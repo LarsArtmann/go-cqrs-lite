@@ -32,6 +32,36 @@ func (n NodeID) String() string { return string(n) }
 // IsZero returns true if the NodeID is empty.
 func (n NodeID) IsZero() bool { return n == "" }
 
+// OperationID uniquely identifies a sync operation.
+// Using a named type prevents accidental mixing with arbitrary strings.
+type OperationID string
+
+// ParseOperationID validates and creates an OperationID from a string.
+// Returns an error if the string is empty.
+func ParseOperationID(s string) (OperationID, error) {
+	if s == "" {
+		return "", fmt.Errorf("operation ID cannot be empty") //nolint:err113 // specific value required
+	}
+
+	return OperationID(s), nil
+}
+
+// MustParseOperationID parses an OperationID or panics.
+func MustParseOperationID(s string) OperationID {
+	id, err := ParseOperationID(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return id
+}
+
+// String returns the underlying string value.
+func (id OperationID) String() string { return string(id) }
+
+// IsZero returns true if the OperationID is empty.
+func (id OperationID) IsZero() bool { return id == "" }
+
 // SyncMessageType classifies the kind of sync protocol message.
 type SyncMessageType string
 

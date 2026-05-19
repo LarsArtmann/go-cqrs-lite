@@ -23,7 +23,7 @@ const (
 // Type parameter T is the payload type (e.g., a domain entity).
 type Operation[T any] struct {
 	// ID is the unique identifier for this operation.
-	ID string `json:"id"`
+	ID OperationID `json:"id"`
 	// Type classifies the operation (create, update, delete).
 	Type OperationType `json:"type"`
 	// NodeID identifies which node produced this operation.
@@ -37,7 +37,7 @@ type Operation[T any] struct {
 }
 
 // NewOperation creates a new operation with the given parameters.
-func NewOperation[T any](id string, opType OperationType, nodeID NodeID, payload T) *Operation[T] {
+func NewOperation[T any](id OperationID, opType OperationType, nodeID NodeID, payload T) *Operation[T] {
 	return &Operation[T]{
 		ID:          id,
 		Type:        opType,

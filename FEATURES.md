@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-03 · **Module count:** 9 · **Go version:** 1.26
+**Last audited:** 2026-05-19 · **Module count:** 11 · **Go version:** 1.26.2
 
 ## Status Legend
 
@@ -70,11 +70,14 @@
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
 | Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
 | Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
+| ISP sub-interfaces      | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                 | ✅     |
+| GlobalLoader            | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                   | ✅     |
+| TransactionalStore      | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                | ✅     |
 | JSON Codec            | `JSONCodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
-**Coverage:** 93.6%
+**Coverage:** 94.4%
 
 ---
 
@@ -106,7 +109,7 @@
 | -------------------- | ------------------------------------------------------------------------------- | ------ |
 | Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                     | ✅     |
 | ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                              | ✅     |
-| 6 built-in types     | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID` | ✅     |
+| 7 built-in types     | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID` | ✅     |
 | Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                | ✅     |
 | All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                           | ✅     |
 | Convenience funcs    | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()`                | ✅     |
@@ -114,7 +117,7 @@
 | fmt.Formatter        | `%s`, `%v`, `%#v`, `%q`                                                         | ✅     |
 | Timestamp extraction | `ULID(id)` extracts embedded timestamp                                          | ✅     |
 
-**Coverage:** 100.0%
+**Coverage:** 97.8%
 
 ---
 
@@ -183,7 +186,7 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/middleware"`
 
-All 6 concerns are provided for all 3 message types (command, event, query) — **18 middleware factories** total.
+All 6 concerns are provided for all 3 message types (command, event, query) — **21 middleware factories** total.
 
 ### Logging ✅
 
@@ -232,6 +235,7 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 | `QueryTracing(tracer)`   | `"query.handle"`, SpanKindServer, attributes: `cqrs.query.type`     |
 
 OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`.
+
 
 ### Validation ✅
 
@@ -314,7 +318,40 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 ---
 
-## SQL Event Store ✅ FULLY_FUNCTIONAL
+### OpenAPI 3.0 Export ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/openapi"`
+
+|| Feature            | Detail                                                                                   | Status |
+| ------------------ | ---------------------------------------------------------------------------------------- | ------ |
+| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document`                        | ✅     |
+| JSON output        | `Document` serializes to JSON                                                            | ✅     |
+| Schema generation  | Auto-generates JSON Schema from catalog types                                            | ✅     |
+| Base path support  | `WithBasePath(path)` option for API path prefix                                           | ✅     |
+| Description option | `WithDescription(desc)` for document metadata                                            | ✅     |
+
+**Coverage:** 96.6%
+
+---
+
+### Doc Server ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/docserver"`
+
+|| Feature            | Detail                                                                                   | Status |
+| ------------------ | ---------------------------------------------------------------------------------------- | ------ |
+| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs                                  | ✅     |
+| OpenAPI rendering  | Scalar UI for interactive API documentation                                               | ✅     |
+| AsyncAPI rendering | AsyncAPI React for event documentation                                                   | ✅     |
+| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                                         | ✅     |
+| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request                          | ✅     |
+| Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies                    | ✅     |
+
+**Coverage:** 92.3%
+
+---
+
+## SQL & Key-Value Event Store ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage"`
 
@@ -322,6 +359,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | ------------------------------- | -------------------------------------------------------------------- | ------ |
 | PostgreSQL event store          | `SQLEventStore` implements `event.Store`                             | ✅     |
 | SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL             | ✅     |
+| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble     | ✅     |
 | Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database       | ✅     |
 | Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull       | ✅     |
 | Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                       | ✅     |
@@ -343,7 +381,26 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification    |
 | `SQLEventStoreOption` unused    | ⚠️ LOW    | Type does not exist — consider adding table name or logger options |
 
-**Coverage:** 94.8% (SQL event store, checkpoint store, snapshot store with go-sqlmock)
+**Coverage:** 88.1% (SQL + Pebble stores, checkpoint, snapshot, outbox with go-sqlmock)
+
+---
+
+## Sync Primitives ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/sync"`
+
+|| Feature               | Detail                                                                                      | Status |
+| --------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| VectorClock           | `map[string]int64` with `Increment`, `Get`, `Merge`, `Compare`, `Clone`, `Equal`           | ✅     |
+| Operation[T]          | Generic typed sync operation with ID, type, nodeID, timestamp, vector clock, payload       | ✅     |
+| OperationType         | `OpCreate`, `OpUpdate`, `OpDelete` constants                                               | ✅     |
+| ConflictResolver[T]   | Interface for pluggable conflict resolution strategies                                     | ✅     |
+| LWWResolver[T]        | Last-Write-Wins: vector clock comparison → timestamp fallback → tiebreaker                  | ✅     |
+| SyncMessage           | Envelope for sync protocol messages (request/response)                                     | ✅     |
+| NodeID                | Named type with `ParseNodeID`, `MustParseNodeID` validation                                | ✅     |
+| JSON serialization    | `Operation.Serialize()` and `DeserializeOperation[T]()` for transport                       | ✅     |
+
+**Zero external dependencies** (stdlib only). **Coverage:** Tested
 
 ---
 
@@ -413,7 +470,7 @@ Features mentioned in project docs/planning but with **no production code**:
 | `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~614       | 31          | 94.8%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~800       | 31          | 88.1%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---
@@ -422,7 +479,7 @@ Features mentioned in project docs/planning but with **no production code**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Zero lint issues       | 125+ linters via `.golangci.yml`, strict config                                  |
+| Zero lint issues       | 1 lint issue (golines in test file)                                  |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

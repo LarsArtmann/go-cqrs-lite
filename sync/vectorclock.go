@@ -6,20 +6,31 @@ package sync
 // Vector clocks enable detection of concurrent operations and causal relationships:
 //   - If A < B, then A "happened before" B (causal order)
 //   - If A || B, then A and B are concurrent (potential conflict)
-type VectorClock map[string]int64
+type VectorClock map[NodeID]int64
 
 // NewVectorClock creates a new empty vector clock.
 func NewVectorClock() VectorClock {
 	return make(VectorClock)
 }
 
+// NewVectorClockFromMap creates a VectorClock from a map of node IDs to counters.
+func NewVectorClockFromMap(entries map[NodeID]int64) VectorClock {
+	vc := make(VectorClock, len(entries))
+
+	for node, t := range entries {
+		vc[node] = t
+	}
+
+	return vc
+}
+
 // Increment increments the clock counter for a node.
-func (vc VectorClock) Increment(nodeID string) {
+func (vc VectorClock) Increment(nodeID NodeID) {
 	vc[nodeID]++
 }
 
 // Get returns the counter value for a node, or 0 if not present.
-func (vc VectorClock) Get(nodeID string) int64 {
+func (vc VectorClock) Get(nodeID NodeID) int64 {
 	return vc[nodeID]
 }
 
@@ -41,7 +52,7 @@ func (vc VectorClock) Merge(other VectorClock) {
 //   - 1 if vc "happened after" other (vc > other)
 //   - 0 if they are concurrent or equal (vc || other)
 func (vc VectorClock) Compare(other VectorClock) int {
-	allNodes := make(map[string]bool)
+	allNodes := make(map[NodeID]bool)
 	for node := range vc {
 		allNodes[node] = true
 	}

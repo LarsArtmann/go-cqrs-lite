@@ -15,8 +15,8 @@
 //	import "github.com/larsartmann/go-cqrs-lite/sync"
 //
 //	vc := sync.NewVectorClock()
-//	vc.Increment("node-1")
-//	vc.Increment("node-2")
+//	vc.Increment(sync.NodeID("node-1"))
+//	vc.Increment(sync.NodeID("node-2"))
 //	vc.Clone()
 //	vc.Compare(otherVC)
 //

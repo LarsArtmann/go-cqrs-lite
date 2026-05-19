@@ -17,15 +17,15 @@ var sharedVC = struct {
 	DisjointA   VectorClock
 	DisjointB   VectorClock
 }{
-	IdenticalAB: VectorClock{"a": 1, "b": 2},
-	Concurrent1: VectorClock{"a": 3, "b": 1},
-	Concurrent2: VectorClock{"a": 1, "b": 3},
-	GreaterA:    VectorClock{"a": 5, "b": 2},
-	LessB:       VectorClock{"a": 3, "b": 2},
-	Superset:    VectorClock{"a": 3, "b": 2},
-	Subset:      VectorClock{"a": 3},
-	DisjointA:   VectorClock{"a": 2},
-	DisjointB:   VectorClock{"b": 3},
+	IdenticalAB: VectorClock{NodeID("a"): 1, NodeID("b"): 2},
+	Concurrent1: VectorClock{NodeID("a"): 3, NodeID("b"): 1},
+	Concurrent2: VectorClock{NodeID("a"): 1, NodeID("b"): 3},
+	GreaterA:    VectorClock{NodeID("a"): 5, NodeID("b"): 2},
+	LessB:       VectorClock{NodeID("a"): 3, NodeID("b"): 2},
+	Superset:    VectorClock{NodeID("a"): 3, NodeID("b"): 2},
+	Subset:      VectorClock{NodeID("a"): 3},
+	DisjointA:   VectorClock{NodeID("a"): 2},
+	DisjointB:   VectorClock{NodeID("b"): 3},
 }
 
 func TestNewVectorClock(t *testing.T) {
@@ -42,20 +42,20 @@ func TestNewVectorClock(t *testing.T) {
 func TestVectorClock_Increment(t *testing.T) {
 	vc := NewVectorClock()
 
-	vc.Increment("node-a")
-	assert.Equal(t, int64(1), vc.Get("node-a"), "first increment")
+	vc.Increment(NodeID("node-a"))
+	assert.Equal(t, int64(1), vc.Get(NodeID("node-a")), "first increment")
 
-	vc.Increment("node-a")
-	assert.Equal(t, int64(2), vc.Get("node-a"), "second increment")
+	vc.Increment(NodeID("node-a"))
+	assert.Equal(t, int64(2), vc.Get(NodeID("node-a")), "second increment")
 
-	vc.Increment("node-b")
-	assert.Equal(t, int64(1), vc.Get("node-b"), "new node")
-	assert.Equal(t, int64(2), vc.Get("node-a"), "original unchanged")
+	vc.Increment(NodeID("node-b"))
+	assert.Equal(t, int64(1), vc.Get(NodeID("node-b")), "new node")
+	assert.Equal(t, int64(2), vc.Get(NodeID("node-a")), "original unchanged")
 }
 
 func TestVectorClock_Get_MissingNode(t *testing.T) {
 	vc := NewVectorClock()
-	assert.Equal(t, int64(0), vc.Get("nonexistent"), "missing node returns 0")
+	assert.Equal(t, int64(0), vc.Get(NodeID("nonexistent")), "missing node returns 0")
 }
 
 func TestVectorClock_Merge(t *testing.T) {
@@ -74,26 +74,26 @@ func TestVectorClock_Merge(t *testing.T) {
 		{
 			name:     "non-empty into empty",
 			base:     NewVectorClock(),
-			other:    VectorClock{"a": 3, "b": 5},
-			expected: VectorClock{"a": 3, "b": 5},
+			other:    VectorClock{NodeID("a"): 3, NodeID("b"): 5},
+			expected: VectorClock{NodeID("a"): 3, NodeID("b"): 5},
 		},
 		{
 			name:     "empty into non-empty",
-			base:     VectorClock{"a": 3, "b": 5},
+			base:     VectorClock{NodeID("a"): 3, NodeID("b"): 5},
 			other:    NewVectorClock(),
-			expected: VectorClock{"a": 3, "b": 5},
+			expected: VectorClock{NodeID("a"): 3, NodeID("b"): 5},
 		},
 		{
 			name:     "merge takes max per node",
-			base:     VectorClock{"a": 3, "b": 2},
-			other:    VectorClock{"a": 1, "b": 5, "c": 4},
-			expected: VectorClock{"a": 3, "b": 5, "c": 4},
+			base:     VectorClock{NodeID("a"): 3, NodeID("b"): 2},
+			other:    VectorClock{NodeID("a"): 1, NodeID("b"): 5, NodeID("c"): 4},
+			expected: VectorClock{NodeID("a"): 3, NodeID("b"): 5, NodeID("c"): 4},
 		},
 		{
 			name:     "disjoint nodes merged",
-			base:     VectorClock{"a": 2},
-			other:    VectorClock{"b": 3},
-			expected: VectorClock{"a": 2, "b": 3},
+			base:     VectorClock{NodeID("a"): 2},
+			other:    VectorClock{NodeID("b"): 3},
+			expected: VectorClock{NodeID("a"): 2, NodeID("b"): 3},
 		},
 	}
 
@@ -135,7 +135,7 @@ func TestVectorClock_Compare(t *testing.T) {
 		},
 		{
 			name:     "a < b (happened before)",
-			a:        VectorClock{"a": 1, "b": 2},
+			a:        VectorClock{NodeID("a"): 1, NodeID("b"): 2},
 			b:        sharedVC.LessB,
 			expected: -1,
 		},
@@ -153,14 +153,14 @@ func TestVectorClock_Compare(t *testing.T) {
 		},
 		{
 			name:     "one node vs empty",
-			a:        VectorClock{"a": 1},
+			a:        VectorClock{NodeID("a"): 1},
 			b:        NewVectorClock(),
 			expected: 1,
 		},
 		{
 			name:     "empty vs one node",
 			a:        NewVectorClock(),
-			b:        VectorClock{"a": 1},
+			b:        VectorClock{NodeID("a"): 1},
 			expected: -1,
 		},
 		{
@@ -182,8 +182,8 @@ func TestVectorClock_Compare(t *testing.T) {
 }
 
 func TestVectorClock_Compare_Symmetric(t *testing.T) {
-	a := VectorClock{"a": 1}
-	b := VectorClock{"a": 3}
+	a := VectorClock{NodeID("a"): 1}
+	b := VectorClock{NodeID("a"): 3}
 
 	if a.Compare(b) != -1 {
 		t.Error("a < b expected")
@@ -195,17 +195,17 @@ func TestVectorClock_Compare_Symmetric(t *testing.T) {
 }
 
 func TestVectorClock_Clone(t *testing.T) {
-	original := VectorClock{"a": 3, "b": 5}
+	original := VectorClock{NodeID("a"): 3, NodeID("b"): 5}
 	cloned := original.Clone()
 
 	if !original.Equal(cloned) {
 		t.Fatal("clone should be equal to original")
 	}
 
-	cloned.Increment("a")
+	cloned.Increment(NodeID("a"))
 
-	if original.Get("a") != 3 {
-		t.Fatalf("modifying clone should not affect original, got %d", original.Get("a"))
+	if original.Get(NodeID("a")) != 3 {
+		t.Fatalf("modifying clone should not affect original, got %d", original.Get(NodeID("a")))
 	}
 }
 
@@ -267,8 +267,8 @@ func TestVectorClock_Equal(t *testing.T) {
 }
 
 func TestVectorClock_Equal_Symmetric(t *testing.T) {
-	a := VectorClock{"a": 1, "b": 2}
-	b := VectorClock{"a": 1, "b": 2}
+	a := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
+	b := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
 
 	if !a.Equal(b) || !b.Equal(a) {
 		t.Error("Equal should be symmetric")

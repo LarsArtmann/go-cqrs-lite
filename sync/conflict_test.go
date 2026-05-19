@@ -20,9 +20,9 @@ var sharedTestVCs = struct {
 	ConcurrentClock2 VectorClock
 	TiedClock        VectorClock
 }{
-	ConcurrentClock1: VectorClock{"a": 1, "b": 2},
-	ConcurrentClock2: VectorClock{"a": 2, "b": 1},
-	TiedClock:        VectorClock{"a": 1},
+	ConcurrentClock1: VectorClock{NodeID("a"): 1, NodeID("b"): 2},
+	ConcurrentClock2: VectorClock{NodeID("a"): 2, NodeID("b"): 1},
+	TiedClock:        VectorClock{NodeID("a"): 1},
 }
 
 func itemTimestamp(item testItem) time.Time {
@@ -56,14 +56,14 @@ func TestLWWResolver_WinsByVectorClock(t *testing.T) {
 	}{
 		{
 			"remote wins with higher clock",
-			VectorClock{"node-a": 1},
-			VectorClock{"node-a": 3},
+			VectorClock{NodeID("node-a"): 1},
+			VectorClock{NodeID("node-a"): 3},
 			"remote",
 		},
 		{
 			"local wins with higher clock",
-			VectorClock{"node-a": 5},
-			VectorClock{"node-a": 2},
+			VectorClock{NodeID("node-a"): 5},
+			VectorClock{NodeID("node-a"): 2},
 			"local",
 		},
 	}
@@ -191,8 +191,8 @@ func TestConflict_JSON_RoundTrip(t *testing.T) {
 	conflict := Conflict[testItem]{
 		Local:     testItem{Name: "local", UpdatedAt: now},
 		Remote:    testItem{Name: "remote", UpdatedAt: now.Add(time.Hour)},
-		LocalVC:   VectorClock{"a": 1},
-		RemoteVC:  VectorClock{"b": 2},
+		LocalVC:   VectorClock{NodeID("a"): 1},
+		RemoteVC:  VectorClock{NodeID("b"): 2},
 		Timestamp: now,
 	}
 
@@ -203,8 +203,8 @@ func TestConflict_JSON_RoundTrip(t *testing.T) {
 
 	assert.Equal(t, "local", decoded.Local.Name)
 	assert.Equal(t, "remote", decoded.Remote.Name)
-	assert.Equal(t, int64(1), decoded.LocalVC.Get("a"))
-	assert.Equal(t, int64(2), decoded.RemoteVC.Get("b"))
+	assert.Equal(t, int64(1), decoded.LocalVC.Get(NodeID("a")))
+	assert.Equal(t, int64(2), decoded.RemoteVC.Get(NodeID("b")))
 }
 
 func TestMergeResult_Values(t *testing.T) {
@@ -240,7 +240,7 @@ func TestSyncRequest_JSON(t *testing.T) {
 	req := SyncRequest{
 		SyncContextMixin: SyncContextMixin{
 			NodeID: MustParseNodeID("node-1"),
-			Clock:  VectorClock{"node-1": 5},
+			Clock:  VectorClock{NodeID("node-1"): 5},
 		},
 		Since: since,
 	}
@@ -251,18 +251,18 @@ func TestSyncRequest_JSON(t *testing.T) {
 	unmarshalJSON(t, data, &decoded)
 
 	assert.Equal(t, "node-1", decoded.NodeID.String())
-	assert.Equal(t, int64(5), decoded.Clock.Get("node-1"))
+	assert.Equal(t, int64(5), decoded.Clock.Get(NodeID("node-1")))
 }
 
 func TestSyncResponse_JSON(t *testing.T) {
 	resp := SyncResponse[testItem]{
 		SyncContextMixin: SyncContextMixin{
 			NodeID: MustParseNodeID("node-2"),
-			Clock:  VectorClock{"node-1": 5, "node-2": 3},
+			Clock:  VectorClock{NodeID("node-1"): 5, NodeID("node-2"): 3},
 		},
 		Operations: []*Operation[testItem]{
 			NewOperation(
-				"op-1",
+				OperationID("op-1"),
 				OpCreate,
 				MustParseNodeID("node-2"),
 				testItem{Name: "item1", UpdatedAt: time.Now()},

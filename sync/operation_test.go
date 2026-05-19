@@ -24,9 +24,9 @@ func TestNewOperation(t *testing.T) {
 	payload := map[string]string{"name": "test"}
 	before := time.Now().UTC()
 
-	op := NewOperation("op-1", OpCreate, MustParseNodeID("node-a"), payload)
+	op := NewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), payload)
 
-	if op.ID != "op-1" {
+	if op.ID != OperationID("op-1") {
 		t.Errorf("ID = %q, want %q", op.ID, "op-1")
 	}
 
@@ -57,14 +57,14 @@ func TestNewOperation(t *testing.T) {
 
 func TestNewOperation_WithDifferentTypes(t *testing.T) {
 	t.Run("string payload", func(t *testing.T) {
-		op := NewOperation("op-1", OpCreate, MustParseNodeID("node-a"), "hello")
+		op := NewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), "hello")
 		if op.Payload != "hello" {
 			t.Errorf("Payload = %q, want %q", op.Payload, "hello")
 		}
 	})
 
 	t.Run("int payload", func(t *testing.T) {
-		op := NewOperation("op-2", OpUpdate, MustParseNodeID("node-b"), 42)
+		op := NewOperation(OperationID("op-2"), OpUpdate, MustParseNodeID("node-b"), 42)
 		if op.Payload != 42 {
 			t.Errorf("Payload = %d, want 42", op.Payload)
 		}
@@ -75,7 +75,7 @@ func TestNewOperation_WithDifferentTypes(t *testing.T) {
 			Name string `json:"name"`
 		}
 
-		op := NewOperation("op-3", OpDelete, MustParseNodeID("node-c"), Item{Name: "item1"})
+		op := NewOperation(OperationID("op-3"), OpDelete, MustParseNodeID("node-c"), Item{Name: "item1"})
 		if op.Payload.Name != "item1" {
 			t.Errorf("Payload.Name = %q, want %q", op.Payload.Name, "item1")
 		}
@@ -88,12 +88,12 @@ func TestOperation_Serialize_Deserialize(t *testing.T) {
 		Value int    `json:"value"`
 	}
 
-	original := NewOperation("op-1", OpUpdate, MustParseNodeID("node-a"), TestPayload{
+	original := NewOperation(OperationID("op-1"), OpUpdate, MustParseNodeID("node-a"), TestPayload{
 		Name:  "test",
 		Value: 42,
 	})
-	original.VectorClock.Increment("node-a")
-	original.VectorClock.Increment("node-b")
+	original.VectorClock.Increment(NodeID("node-a"))
+	original.VectorClock.Increment(NodeID("node-b"))
 
 	data, err := original.Serialize()
 	if err != nil {
@@ -169,13 +169,13 @@ func TestOperation_RoundTrip_PreservesAllFields(t *testing.T) {
 
 	now := time.Date(2025, 1, 15, 10, 30, 0, 0, time.UTC)
 	original := &Operation[ComplexPayload]{
-		ID:        "complex-op",
+		ID:        OperationID("complex-op"),
 		Type:      OpCreate,
 		NodeID:    MustParseNodeID("node-x"),
 		Timestamp: now,
 		VectorClock: VectorClock{
-			"node-x": 5,
-			"node-y": 3,
+			NodeID("node-x"): 5,
+			NodeID("node-y"): 3,
 		},
 		Payload: ComplexPayload{
 			Tags:  []string{"a", "b", "c"},
