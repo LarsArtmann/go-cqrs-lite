@@ -372,6 +372,68 @@ func TestWithMetadata(t *testing.T) {
 	}
 }
 
+func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
+	t.Parallel()
+
+	correlationID := id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
+	userID := id.NewUserID()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithCorrelationID(correlationID),
+		event.WithMetadata(&event.Metadata{UserID: userID}),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	meta := evt.Metadata()
+	if meta.CorrelationID != correlationID {
+		t.Errorf("correlation ID should be preserved after WithMetadata, got %s", meta.CorrelationID)
+	}
+
+	if meta.UserID != userID {
+		t.Errorf("user ID should be merged from WithMetadata, got %s", meta.UserID)
+	}
+}
+
+func TestWithMetadata_NilExisting(t *testing.T) {
+	t.Parallel()
+
+	meta := &event.Metadata{Source: "test"}
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		nil,
+		event.WithMetadata(meta),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.Metadata().Source != "test" {
+		t.Errorf("expected source=test, got %s", evt.Metadata().Source)
+	}
+}
+
+func TestMetadataKeyConstants(t *testing.T) {
+	t.Parallel()
+
+	if event.MetadataKeyClientID != "client.id" {
+		t.Errorf("MetadataKeyClientID = %q, want %q", event.MetadataKeyClientID, "client.id")
+	}
+
+	if event.MetadataKeyClientOccurredAt != "client.occurred_at" {
+		t.Errorf("MetadataKeyClientOccurredAt = %q, want %q", event.MetadataKeyClientOccurredAt, "client.occurred_at")
+	}
+}
+
 func TestWithCustom_NilCustomMap(t *testing.T) {
 	t.Parallel()
 
