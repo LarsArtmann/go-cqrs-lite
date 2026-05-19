@@ -17,7 +17,7 @@ type Handler = func(context.Context, Query) (any, error)
 type Dispatcher struct {
 	dispatcher.CatalogDispatcher[Type, CatalogMeta]
 
-	base dispatcher.BaseDispatcher[Handler, Middleware]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 var _ io.Closer = (*Dispatcher)(nil)
@@ -26,26 +26,24 @@ var _ io.Closer = (*Dispatcher)(nil)
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
 	d.InitCatalogDispatcher()
-
-	base := dispatcher.NewBaseDispatcher[Handler, Middleware]()
-	d.base = base
+	d.inner = dispatcher.NewDispatcher[Handler, Middleware]()
 
 	return d
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.base.Use(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	err := d.base.Lifecycle().CheckClosed(ErrDispatcherClosed)
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return fmt.Errorf("registering query type %s: %w", queryType, err)
 	}
 
-	err = d.base.Register(
+	err = d.inner.Register(
 		string(queryType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -70,7 +68,7 @@ func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	wrapped, err := d.base.Dispatch(string(query.Type()))
+	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return nil, fmt.Errorf("%w: query type: %s", ErrQueryNotSupported, query.Type())
@@ -113,5 +111,5 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
 	//nolint:wrapcheck // Close returns lifecycle error; caller handles it
-	return d.base.Lifecycle().Close()
+	return d.inner.Close()
 }

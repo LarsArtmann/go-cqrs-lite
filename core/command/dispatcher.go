@@ -14,7 +14,7 @@ import (
 type Dispatcher struct {
 	dispatcher.CatalogDispatcher[Type, CatalogMeta]
 
-	base dispatcher.BaseDispatcher[Handler, Middleware]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 var _ io.Closer = (*Dispatcher)(nil)
@@ -23,24 +23,24 @@ var _ io.Closer = (*Dispatcher)(nil)
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
 	d.InitCatalogDispatcher()
-	d.base = dispatcher.NewBaseDispatcher[Handler, Middleware]()
+	d.inner = dispatcher.NewDispatcher[Handler, Middleware]()
 
 	return d
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.base.Use(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
-	err := d.base.Lifecycle().CheckClosed(ErrDispatcherClosed)
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return fmt.Errorf("registering command type %s: %w", cmdType, err)
 	}
 
-	err = d.base.Register(
+	err = d.inner.Register(
 		string(cmdType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -56,7 +56,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 
 // Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
-	wrapped, err := d.base.Dispatch(string(cmd.Type()))
+	wrapped, err := d.inner.Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return fmt.Errorf("%w: command type: %s", ErrHandlerNotFound, cmd.Type())
@@ -70,5 +70,5 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	return d.base.Lifecycle().Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
+	return d.inner.Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
 }
