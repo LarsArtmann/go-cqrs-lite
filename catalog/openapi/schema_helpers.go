@@ -7,7 +7,7 @@ import (
 )
 
 func schemaKey(msg catalog.Message) string {
-	return string(msg.Kind) + "." + msg.ID
+	return string(msg.Kind) + "." + string(msg.ID)
 }
 
 func schemaToAny(s *catalog.Schema) any {

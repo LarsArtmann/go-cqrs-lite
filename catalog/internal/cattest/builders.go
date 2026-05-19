@@ -17,7 +17,7 @@ func AddService(tb testing.TB, r *catalog.Registry, id, name, version string) *c
 	tb.Helper()
 
 	r.AddService(catalog.Service{
-		ID:      id,
+		ID:      catalog.ServiceID(id),
 		Name:    name,
 		Version: version,
 	})
@@ -33,12 +33,17 @@ func AddDomain(
 ) {
 	tb.Helper()
 
+	sids := make([]catalog.ServiceID, len(services))
+	for i, s := range services {
+		sids[i] = catalog.ServiceID(s)
+	}
+
 	r.AddDomain(catalog.Domain{
-		ID:       id,
+		ID:       catalog.DomainID(id),
 		Name:     name,
 		Version:  version,
 		Summary:  summary,
-		Services: services,
+		Services: sids,
 	})
 }
 
@@ -50,7 +55,7 @@ func AddServiceWithSummary(
 	tb.Helper()
 
 	r.AddService(catalog.Service{
-		ID:      id,
+		ID:      catalog.ServiceID(id),
 		Name:    name,
 		Version: version,
 		Summary: summary,
@@ -62,9 +67,9 @@ func AddServiceWithSummary(
 func addMessage(
 	tb testing.TB,
 	r *catalog.Registry,
-	svcID string,
+	svcID catalog.ServiceID,
 	msg catalog.Message,
-	fn func(string, catalog.Message),
+	fn func(catalog.ServiceID, catalog.Message),
 ) *catalog.Registry {
 	tb.Helper()
 
@@ -81,13 +86,15 @@ func AddMessage(
 ) *catalog.Registry {
 	tb.Helper()
 
+	sid := catalog.ServiceID(svcID)
+
 	switch msg.Kind {
 	case catalog.CommandMessage:
-		return addMessage(tb, r, svcID, msg, r.AddCommand)
+		return addMessage(tb, r, sid, msg, r.AddCommand)
 	case catalog.EventMessage:
-		return addMessage(tb, r, svcID, msg, r.AddEvent)
+		return addMessage(tb, r, sid, msg, r.AddEvent)
 	case catalog.QueryMessage:
-		return addMessage(tb, r, svcID, msg, r.AddQuery)
+		return addMessage(tb, r, sid, msg, r.AddQuery)
 	default:
 		tb.Fatalf("unknown message kind: %v", msg.Kind)
 
@@ -100,19 +107,19 @@ func AddMessageSimple(
 	r *catalog.Registry,
 	svcID, id, name, version, summary string,
 	kind catalog.MessageKind,
-	addFn func(string, catalog.Message),
+	addFn func(catalog.ServiceID, catalog.Message),
 ) *catalog.Registry {
 	tb.Helper()
 
 	msg := catalog.Message{
 		Kind:    kind,
-		ID:      id,
+		ID:      catalog.MessageID(id),
 		Name:    name,
 		Version: version,
 		Summary: summary,
 	}
 
-	addFn(svcID, msg)
+	addFn(catalog.ServiceID(svcID), msg)
 
 	return r
 }
@@ -127,13 +134,13 @@ func AddEventSimple(
 
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
-		ID:        id,
+		ID:        catalog.MessageID(id),
 		Name:      name,
 		Version:   version,
 		Direction: direction,
 	}
 
-	r.AddEvent(svcID, msg)
+	r.AddEvent(catalog.ServiceID(svcID), msg)
 
 	return r
 }
@@ -148,12 +155,12 @@ func AddCommandWithSchema(
 
 	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
-		ID:      id,
+		ID:      catalog.MessageID(id),
 		Name:    name,
 		Version: version,
 		Schema:  schema,
 	}
-	r.AddCommand(svcID, msg)
+	r.AddCommand(catalog.ServiceID(svcID), msg)
 
 	return r
 }
@@ -168,13 +175,13 @@ func AddEventWithSummary(
 
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
-		ID:        id,
+		ID:        catalog.MessageID(id),
 		Name:      name,
 		Version:   version,
 		Summary:   summary,
 		Direction: direction,
 	}
-	r.AddEvent(svcID, msg)
+	r.AddEvent(catalog.ServiceID(svcID), msg)
 
 	return r
 }
@@ -189,12 +196,12 @@ func AddCommandWithExamples(
 
 	msg := catalog.Message{
 		Kind:     catalog.CommandMessage,
-		ID:       id,
+		ID:       catalog.MessageID(id),
 		Name:     name,
 		Version:  version,
 		Examples: examples,
 	}
-	r.AddCommand(svcID, msg)
+	r.AddCommand(catalog.ServiceID(svcID), msg)
 
 	return r
 }
@@ -208,13 +215,13 @@ func AddQuerySimple(
 
 	msg := catalog.Message{
 		Kind:    catalog.QueryMessage,
-		ID:      id,
+		ID:      catalog.MessageID(id),
 		Name:    name,
 		Version: version,
 		Summary: summary,
 	}
 
-	r.AddQuery(svcID, msg)
+	r.AddQuery(catalog.ServiceID(svcID), msg)
 
 	return r
 }

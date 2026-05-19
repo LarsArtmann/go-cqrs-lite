@@ -267,8 +267,8 @@ func TestMessageID_FallbackToName(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{Name: "CreateUser"}
-	if catalog.MessageID(msg) != "CreateUser" {
-		t.Errorf("expected CreateUser, got %s", catalog.MessageID(msg))
+	if catalog.MessageIDString(msg) != "CreateUser" {
+		t.Errorf("expected CreateUser, got %s", catalog.MessageIDString(msg))
 	}
 }
 
@@ -276,8 +276,8 @@ func TestMessageID_UsesID(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{ID: "cmd-123", Name: "CreateUser"}
-	if catalog.MessageID(msg) != "cmd-123" {
-		t.Errorf("expected cmd-123, got %s", catalog.MessageID(msg))
+	if catalog.MessageIDString(msg) != "cmd-123" {
+		t.Errorf("expected cmd-123, got %s", catalog.MessageIDString(msg))
 	}
 }
 
@@ -309,7 +309,7 @@ func TestRegistry_BuildWithChannels(t *testing.T) {
 		Version:   "1.0.0",
 		Address:   "topic1",
 		Protocols: []string{"kafka"},
-		Messages:  []string{"msg1"},
+		Messages:  []catalog.MessageID{"msg1"},
 		Summary:   "A test channel",
 	})
 

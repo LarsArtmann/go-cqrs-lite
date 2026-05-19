@@ -14,7 +14,7 @@ import (
 func newCommand(id string) catalog.Message {
 	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
-		ID:      id,
+		ID:      catalog.MessageID(id),
 		Name:    id,
 		Version: "1.0.0",
 	}

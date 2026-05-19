@@ -227,7 +227,7 @@ func TestBuilder_AddServiceToDomain(t *testing.T) {
 
 	found := map[string]bool{}
 	for _, sid := range d.Services {
-		found[sid] = true
+		found[string(sid)] = true
 	}
 
 	if !found["order-svc"] || !found["payment-svc"] {

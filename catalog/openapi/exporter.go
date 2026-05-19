@@ -74,7 +74,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	for _, svc := range cat.Services {
 		tagName := svc.Name
 		if tagName == "" {
-			tagName = svc.ID
+			tagName = string(svc.ID)
 		}
 
 		doc.Tags = append(doc.Tags, Tag{
@@ -83,15 +83,15 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 		})
 
 		for _, cmd := range svc.Commands {
-			e.addCommand(doc, svc.ID, tagName, cmd)
+			e.addCommand(doc, string(svc.ID), tagName, cmd)
 		}
 
 		for _, qry := range svc.Queries {
-			e.addQuery(doc, svc.ID, tagName, qry)
+			e.addQuery(doc, string(svc.ID), tagName, qry)
 		}
 
 		for _, evt := range svc.Events {
-			e.addEvent(doc, svc.ID, tagName, evt)
+			e.addEvent(doc, string(svc.ID), tagName, evt)
 		}
 	}
 
@@ -99,7 +99,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 }
 
 func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(msg.ID))
+	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	//nolint:exhaustruct
@@ -108,7 +108,7 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 			Tags:        []string{tagName},
 			Summary:     msg.Name,
 			Description: msg.Summary,
-			OperationID: "post" + toPascal(msg.ID),
+			OperationID: "post" + toPascal(string(msg.ID)),
 			RequestBody: &RequestBody{
 				Description: msg.Name + " request",
 				Content: map[string]MediaType{
@@ -135,14 +135,14 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 }
 
 func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(msg.ID))
+	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	op := &Operation{ //nolint:exhaustruct
 		Tags:        []string{tagName},
 		Summary:     msg.Name,
 		Description: msg.Summary,
-		OperationID: "get" + toPascal(msg.ID),
+		OperationID: "get" + toPascal(string(msg.ID)),
 		Responses: map[string]*Response{
 			"200": {
 				Description: "Success",
@@ -186,7 +186,7 @@ func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Me
 }
 
 func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/events/%s", e.BasePath, svcID, toKebab(msg.ID))
+	path := fmt.Sprintf("%s/%s/events/%s", e.BasePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	//nolint:exhaustruct
@@ -195,7 +195,7 @@ func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Me
 			Tags:        []string{tagName},
 			Summary:     "Event: " + msg.Name,
 			Description: msg.Summary,
-			OperationID: "event" + toPascal(msg.ID),
+			OperationID: "event" + toPascal(string(msg.ID)),
 			RequestBody: &RequestBody{
 				Description: msg.Name + " event payload",
 				Content: map[string]MediaType{

@@ -35,7 +35,7 @@ func TestBuilder_FromCommandDispatcher(t *testing.T) {
 
 	found := map[string]bool{}
 	for _, cmd := range svc.Commands {
-		found[cmd.ID] = true
+		found[string(cmd.ID)] = true
 		if cmd.Kind != catalog.CommandMessage {
 			t.Errorf("kind = %v, want command", cmd.Kind)
 		}
