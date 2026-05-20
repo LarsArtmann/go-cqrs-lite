@@ -9,9 +9,10 @@ import (
 
 // FakeBus implements event.Bus for testing.
 type FakeBus struct {
-	mu         sync.Mutex
-	Published  []event.Event
-	PublishErr error
+	mu              sync.Mutex
+	Published       []event.Event
+	PublishErr      error
+	subscribeAllFn  func(event.Handler) error
 }
 
 // NewFakeBus creates a FakeBus with no published events.
@@ -36,8 +37,21 @@ func (b *FakeBus) Publish(_ context.Context, events ...event.Event) error {
 // Subscribe is a no-op for testing.
 func (b *FakeBus) Subscribe(_ event.Type, _ event.Handler) error { return nil }
 
+// SubscribeAllFn sets an optional override for SubscribeAll calls.
+func (b *FakeBus) SubscribeAllFn(fn func(event.Handler) error) *FakeBus {
+	b.subscribeAllFn = fn
+
+	return b
+}
+
 // SubscribeAll is a no-op for testing.
-func (b *FakeBus) SubscribeAll(_ event.Handler) error { return nil }
+func (b *FakeBus) SubscribeAll(handler event.Handler) error {
+	if b.subscribeAllFn != nil {
+		return b.subscribeAllFn(handler)
+	}
+
+	return nil
+}
 
 // Use is a no-op for testing.
 func (b *FakeBus) Use(_ ...event.Middleware) error { return nil }

@@ -439,25 +439,15 @@ func (r *serializableRoot) recordEvent(_ context.Context, evt event.Event) {
 	r.Ver++
 }
 
-// failingLoadFromVersionStore wraps a FakeStore and overrides LoadFromVersion.
-type failingLoadFromVersionStore struct {
-	*testhelpers.FakeStore
-}
-
-func (s *failingLoadFromVersionStore) LoadFromVersion(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ event.Version,
-) ([]event.Event, error) {
-	return nil, errors.New("db connection lost")
-}
-
 func TestRepository_Load_LoadFromVersionError(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	store := &failingLoadFromVersionStore{FakeStore: testhelpers.NewFakeStore()}
+	store := testhelpers.NewFakeStore().LoadFromVersionFn(
+		func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+			return nil, errors.New("db connection lost")
+		},
+	)
 	snapStore := testhelpers.NewFakeSnapshotStore()
 	snapStore.SetSnapshot(&event.Snapshot{
 		AggregateID:   aggID,
@@ -708,7 +698,11 @@ func TestRepository_Delete_StoreError(t *testing.T) {
 	t.Parallel()
 
 	repo, _ := aggregate.NewRepository(
-		&failingDeleteStore{FakeStore: testhelpers.NewFakeStore()},
+		testhelpers.NewFakeStore().DeleteFn(
+			func(_ event.AggregateType, _ id.AggregateID) error {
+				return errors.New("connection lost")
+			},
+		),
 		testhelpers.NewFakeBus(),
 	)
 	root := newTestRoot()
@@ -717,18 +711,6 @@ func TestRepository_Delete_StoreError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error from store delete failure")
 	}
-}
-
-type failingDeleteStore struct {
-	*testhelpers.FakeStore
-}
-
-func (s *failingDeleteStore) Delete(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) error {
-	return errors.New("connection lost")
 }
 
 func TestNewRepository_WithCodec(t *testing.T) {
@@ -816,22 +798,14 @@ func TestRepository_Save_WithOutboxAndTransactionalStore_Success(t *testing.T) {
 	}
 }
 
-type failingLoadStore struct {
-	*testhelpers.FakeStore
-}
-
-func (s *failingLoadStore) Load(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) ([]event.Event, error) {
-	return nil, errors.New("db connection lost")
-}
-
 func TestRepository_Load_StoreLoadError(t *testing.T) {
 	t.Parallel()
 
-	store := &failingLoadStore{FakeStore: testhelpers.NewFakeStore()}
+	store := testhelpers.NewFakeStore().LoadFn(
+		func(_ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+			return nil, errors.New("db connection lost")
+		},
+	)
 	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 	root := newTestRoot()
 

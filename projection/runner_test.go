@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestNewRunner_NilBus(t *testing.T) {
@@ -1072,7 +1073,9 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 func TestRunner_SubscribeError(t *testing.T) {
 	t.Parallel()
 
-	bus := &failingSubscribeBus{}
+	bus := testhelpers.NewFakeBus().SubscribeAllFn(
+		func(_ event.Handler) error { return errors.New("subscribe all failed") },
+	)
 
 	checkpoint := memory.NewCheckpointStore()
 
@@ -1137,24 +1140,6 @@ func (p *positionalLoaderStore) LoadAllFromPosition(
 
 	return result, nil
 }
-
-type failingSubscribeBus struct{}
-
-func (f *failingSubscribeBus) Publish(_ context.Context, _ ...event.Event) error {
-	return nil
-}
-
-func (f *failingSubscribeBus) Subscribe(_ event.Type, _ event.Handler) error {
-	return nil
-}
-
-func (f *failingSubscribeBus) SubscribeAll(_ event.Handler) error {
-	return errors.New("subscribe all failed")
-}
-
-func (f *failingSubscribeBus) Use(_ ...event.Middleware) error { return nil }
-
-func (f *failingSubscribeBus) Close() error { return nil }
 
 func mustNewEvent(
 	t *testing.T,

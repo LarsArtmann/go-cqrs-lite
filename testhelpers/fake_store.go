@@ -21,6 +21,10 @@ type FakeStore struct {
 		events []event.Event,
 		expectedVersion event.Version,
 	) error
+	loadFn           func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
+	loadFromVersionFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
+	deleteFn         func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
+	closeFn          func() error
 }
 
 // NewFakeStore creates a FakeStore with empty state.
@@ -92,6 +96,14 @@ func (s *FakeStore) Load(
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
 	s.mu.RLock()
+	fn := s.loadFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID)
+	}
+
+	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
@@ -106,6 +118,14 @@ func (s *FakeStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
+	s.mu.RLock()
+	fn := s.loadFromVersionFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID, version)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -169,6 +189,14 @@ func (s *FakeStore) Delete(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) error {
+	s.mu.RLock()
+	fn := s.deleteFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID)
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -179,7 +207,48 @@ func (s *FakeStore) Delete(
 }
 
 // Close is a no-op for testing.
-func (s *FakeStore) Close() error { return nil }
+func (s *FakeStore) Close() error {
+	s.mu.RLock()
+	fn := s.closeFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn()
+	}
+
+	return nil
+}
+
+// LoadFn sets an optional override for Load calls.
+// Return an error to simulate load failures.
+func (s *FakeStore) LoadFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)) *FakeStore {
+	s.loadFn = fn
+
+	return s
+}
+
+// LoadFromVersionFn sets an optional override for LoadFromVersion calls.
+// Return an error to simulate load-from-version failures.
+func (s *FakeStore) LoadFromVersionFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)) *FakeStore {
+	s.loadFromVersionFn = fn
+
+	return s
+}
+
+// DeleteFn sets an optional override for Delete calls.
+// Return an error to simulate delete failures.
+func (s *FakeStore) DeleteFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) error) *FakeStore {
+	s.deleteFn = fn
+
+	return s
+}
+
+// CloseFn sets an optional override for Close calls.
+func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
+	s.closeFn = fn
+
+	return s
+}
 
 var _ event.Store = (*FakeStore)(nil)
 

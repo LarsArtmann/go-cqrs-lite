@@ -835,7 +835,11 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 func TestDelete_StoreError(t *testing.T) {
 	t.Parallel()
 
-	store := &failingDeleteStore{}
+	store := testhelpers.NewFakeStore().DeleteFn(
+		func(_ event.AggregateType, _ id.AggregateID) error {
+			return errors.New("disk error")
+		},
+	)
 	bus := testhelpers.NewFakeBus()
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
 
@@ -851,54 +855,6 @@ func TestDelete_StoreError(t *testing.T) {
 		t.Fatal("expected error from store delete failure")
 	}
 }
-
-type failingDeleteStore struct{ event.Store }
-
-func (f *failingDeleteStore) Save(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ []event.Event,
-	_ event.Version,
-) error {
-	return nil
-}
-
-func (f *failingDeleteStore) AppendBatch(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ []event.Event,
-) error {
-	return nil
-}
-
-func (f *failingDeleteStore) Load(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) ([]event.Event, error) {
-	return nil, nil
-}
-
-func (f *failingDeleteStore) LoadFromVersion(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ event.Version,
-) ([]event.Event, error) {
-	return nil, nil
-}
-
-func (f *failingDeleteStore) Delete(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) error {
-	return errors.New("disk error")
-}
-
-func (f *failingDeleteStore) Close() error { return nil }
 
 func TestEveryNEvents_PanicsOnZero(t *testing.T) {
 	t.Parallel()
@@ -1006,8 +962,14 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
+	store2 := store.LoadFromVersionFn(
+		func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+			return nil, errors.New("db unavailable")
+		},
+	)
+
 	repo, err := decider.NewRepository(
-		&failingLoadFromVersionStore{Store: store},
+		store2,
 		bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
@@ -1066,7 +1028,11 @@ func TestLoad_SnapshotNil(t *testing.T) {
 func TestLoad_StoreLoadError(t *testing.T) {
 	t.Parallel()
 
-	store := &failingLoadStore{}
+	store := testhelpers.NewFakeStore().LoadFn(
+		func(_ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+			return nil, errors.New("db unavailable")
+		},
+	)
 	bus := testhelpers.NewFakeBus()
 
 	d := decider.Decider[counterState]{
@@ -1084,83 +1050,6 @@ func TestLoad_StoreLoadError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error from store load failure")
 	}
-}
-
-type failingLoadStore struct{}
-
-func (f *failingLoadStore) Save(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ []event.Event,
-	_ event.Version,
-) error {
-	return nil
-}
-
-func (f *failingLoadStore) AppendBatch(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ []event.Event,
-) error {
-	return nil
-}
-
-func (f *failingLoadStore) Load(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) ([]event.Event, error) {
-	return nil, errors.New("db unavailable")
-}
-
-func (f *failingLoadStore) LoadFromVersion(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ event.Version,
-) ([]event.Event, error) {
-	return nil, nil
-}
-
-func (f *failingLoadStore) LoadToVersion(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ event.Version,
-) ([]event.Event, error) {
-	return nil, nil
-}
-
-func (f *failingLoadStore) LoadToTimestamp(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ time.Time,
-) ([]event.Event, error) {
-	return nil, nil
-}
-
-func (f *failingLoadStore) Delete(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-) error {
-	return nil
-}
-
-func (f *failingLoadStore) Close() error { return nil }
-
-type failingLoadFromVersionStore struct{ event.Store }
-
-func (f *failingLoadFromVersionStore) LoadFromVersion(
-	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
-	_ event.Version,
-) ([]event.Event, error) {
-	return nil, errors.New("db unavailable")
 }
 
 func TestExecute_SaveSnapshotFoldError(t *testing.T) {
