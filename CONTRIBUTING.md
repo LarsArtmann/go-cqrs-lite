@@ -1,121 +1,93 @@
 # Contributing to go-cqrs-lite
 
-Thank you for your interest in contributing! This guide covers the multi-module workflow.
+## Architecture
 
-## Module Structure
+go-cqrs-lite is a **library/SDK**, not an application. Consumers import modules into their own projects. There is no main app.
 
-This is a multi-module Go workspace with 5 independent modules:
+### Module Structure
 
-| Module         | Import Path                                       | Purpose                                             |
-| -------------- | ------------------------------------------------- | --------------------------------------------------- |
-| `core/`        | `github.com/larsartmann/go-cqrs-lite/core`        | Command, query, event, aggregate, IDs               |
-| `memory/`      | `github.com/larsartmann/go-cqrs-lite/memory`      | In-memory test implementations                      |
-| `catalog/`     | `github.com/larsartmann/go-cqrs-lite/catalog`     | AsyncAPI + EventCatalog generators                  |
-| `middleware/`  | `github.com/larsartmann/go-cqrs-lite/middleware`  | Cross-cutting middleware (logging, retry, recovery) |
-| `testhelpers/` | `github.com/larsartmann/go-cqrs-lite/testhelpers` | Shared test utilities                               |
-
-## Prerequisites
-
-- [Nix](https://nixos.org/download.html) with flakes enabled
-- Go 1.26+ (provided by the Nix dev shell)
-
-## Development Workflow
-
-### Nix Dev Shell (Recommended)
-
-Enter the development environment with all tools pinned:
-
-```bash
-nix develop
+```
+core/          — Zero-dep interfaces and types (event, command, query, aggregate, decider)
+memory/        — In-memory implementations for testing
+catalog/       — Auto-documentation: AsyncAPI, D2, EventCatalog generators
+middleware/    — Cross-cutting: logging, retry, recovery, validation, metrics
+testhelpers/   — Shared test utilities
+projection/    — Projection runner with replay + live subscription
+storage/       — SQL (Postgres/SQLite/Turso) and Pebble event stores
+sync/          — CRDT-inspired sync primitives (LWW Register, Vector Clock)
+integration/   — Cross-module integration tests
+example/       — Usage demos (user, todo)
 ```
 
-Or with [direnv](https://direnv.net/):
+### Design Principles
+
+1. **Library, not framework** — No opinionated transport, broker, or driver
+2. **Interface-first** — All core types are interfaces
+3. **Strong types** — Branded IDs, typed versions, sentinel errors
+4. **Composition over inheritance**
+5. **Context-aware** — All handlers accept `context.Context`
+6. **No panics in production code** — Return errors, use `Must*` for test helpers
+
+## Development
+
+### Prerequisites
+
+- Nix with flakes enabled (recommended), or Go 1.26+
+
+### Commands
 
 ```bash
-echo "use flake" > .envrc
-direnv allow
+nix develop             # Enter dev shell
+nix run .#build         # Build all modules
+nix run .#test          # Run all tests
+nix run .#test-race     # Race detector
+nix run .#coverage      # Coverage report
+nix run .#lint          # golangci-lint (8 modules)
+nix fmt                 # Format all Go files
 ```
 
-### Workspace Mode
-
-From the repo root, the `go.work` file ties all modules together:
+### Without Nix
 
 ```bash
-# Build all modules
-nix run .#build
-
-# Test all modules
-nix run .#test
-
-# Test with race detection
-nix run .#test-race
-
-# Lint all modules
-nix run .#lint
-
-# Format all Go files
-nix fmt
-
-# Coverage report
-nix run .#coverage
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./storage/... -count=1
 ```
 
-### Per-Module Isolation
+## Code Conventions
 
-When working on a single module, use `GOWORK=off` to isolate it:
+- **Max 250 lines per file**, max 30 lines per function
+- **Sentinel errors** via `errors.New` in `errors.go`, wrapped with `fmt.Errorf("%w", ...)`
+- **No `any` types** (use generics or concrete types)
+- **No TODO/FIXME** in committed code
+- **Table-driven tests** preferred, `t.Parallel()` for independent tests
+- **Doc comments** on all exported types and functions
 
-```bash
-cd core && GOWORK=off go test ./... -count=1
-cd memory && GOWORK=off go test ./... -count=1
-cd catalog && GOWORK=off go test ./... -count=1
-cd middleware && GOWORK=off go test ./... -count=1
-cd testhelpers && GOWORK=off go test ./... -count=1
-```
-
-## Code Style
-
-- Max 250 lines per file, max 30 lines per function
-- Use `fmt.Errorf` for contextual errors, `errors.New` for sentinel errors
-- Wrap errors with `fmt.Errorf("...: %w", err)` or `errors.Wrap`
-- Context as first parameter in all public functions
-- No `any` types
-- Table-driven tests preferred
-- Use `t.Parallel()` for independent tests
-
-## Adding a New Module
-
-1. Create the directory with its own `go.mod`
-2. Add `replace` directives for local development:
+### Error Handling
 
 ```go
-replace (
-    github.com/larsartmann/go-cqrs-lite/core => ../core
-    github.com/larsartmann/go-cqrs-lite/memory => ../memory
-)
+// Sentinel errors
+var ErrNotFound = errors.New("not found")
+
+// Contextual errors
+return fmt.Errorf("load user %s: %w", id, ErrNotFound)
+
+// Classified errors (for retry/circuit-breaker logic)
+return event.NewRejection("user.create.empty_email", "email is required")
+return event.NewConflict("user.create.duplicate", "user already exists")
 ```
 
-3. Add the module to `go.work`
-4. Add the module to the `testModules` list in `flake.nix`
-5. Update `AGENTS.md` with the new module's info
+### Adding New Features
 
-## Replace Directives
+1. Define interfaces in `core/`
+2. Implement in the appropriate module (memory, storage, etc.)
+3. Add tests with >80% coverage
+4. Add doc comments to all exported symbols
+5. Register error classifications via `init()` + `event.RegisterClassification()`
+6. Update `FEATURES.md` and `AGENTS.md`
 
-Each module that depends on another uses `replace` directives in `go.mod` for local development. These point to sibling directories:
+### Adding New Event Store Methods
 
-```
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
-```
+All `event.Store` implementations must implement every method. When adding a method:
 
-The `memory` replace directive is needed even if you don't directly import it, because `core`'s tests use `memory` as a transitive test dependency. Running `GOWORK=off go mod tidy` requires it.
-
-## Examples
-
-Examples live in `example/` and use `GOWORK=off` with their own `go.mod` files. They are not part of `go.work` to avoid cluttering the main workspace.
-
-## Pull Request Checklist
-
-- [ ] `nix run .#build && nix run .#test && nix run .#lint` passes
-- [ ] New code has tests
-- [ ] No `any` types introduced
-- [ ] Error messages include context
-- [ ] Public APIs have Go doc comments
+1. Add to `core/event/store.go`
+2. Implement in `memory/store.go`, `storage/event_store.go`, `storage/pebble_event_store.go`, `testhelpers/fake_store.go`
+3. Update any test mock stores that implement `event.Store`

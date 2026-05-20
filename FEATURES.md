@@ -32,6 +32,7 @@
 | Validation           | `New()` rejects empty type and zero aggregateID                               | ✅     |
 | MustNew panic helper | `MustNew()` for test convenience                                              | ✅     |
 | Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation          | ✅     |
+| TypedHandler[T]      | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command` | ✅     |
 
 **Coverage:** 100.0%
 
@@ -73,8 +74,13 @@
 | ISP sub-interfaces    | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                                                                                | ✅     |
 | GlobalLoader          | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
 | TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
-| JSON Codec            | `JSONCodec` using `encoding/json`                                                                                                                                                    | ✅     |
+| PositionalLoader      | `LoadAllFromPosition(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                      | ✅     |
+| Time-travel queries   | `LoadToVersion(ctx, aggType, aggID, maxVersion)` and `LoadToTimestamp(ctx, aggType, aggID, maxTime)` — read aggregate state at a point in time                                      | ✅     |
+| JSON Codec            | `JSONcodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
+| DecodePayloads[T]     | `DecodePayloads[T](events, codec)` — batch payload deserialization                                                                                                                   | ✅     |
+| NewEvents             | `NewEvents(aggID, aggType, version, types, payloads)` — batch event creation with auto-marshal                                                                                       | ✅     |
+| NewTypedProjection[T] | `NewTypedProjection[T](name, types, handler)` — auto-decoding projection handler                                                                                                     | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
 **Coverage:** 94.4%
