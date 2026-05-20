@@ -9,6 +9,7 @@ This guide covers breaking changes and migration paths for go-cqrs-lite consumer
 The `command.Command` interface now requires an `IdempotencyKey() string` method.
 
 **Before:**
+
 ```go
 type CreateOrder struct { /* ... */ }
 func (c *CreateOrder) Type() command.Type          { return "create_order" }
@@ -16,6 +17,7 @@ func (c *CreateOrder) AggregateID() id.AggregateID { return c.aggregateID }
 ```
 
 **After:**
+
 ```go
 type CreateOrder struct { /* ... */ }
 func (c *CreateOrder) Type() command.Type          { return "create_order" }
@@ -35,11 +37,13 @@ type CreateOrder struct {
 ### `Event.Version()` returns `event.Version` instead of `int`
 
 **Before:**
+
 ```go
 version := evt.Version() // int
 ```
 
 **After:**
+
 ```go
 version := evt.Version() // event.Version
 v := version.Int()       // int, when needed
@@ -52,11 +56,13 @@ v := version.Int()       // int, when needed
 ### `event.EveryNEvents` returns `(SnapshotStrategy, error)` instead of `SnapshotStrategy`
 
 **Before:**
+
 ```go
 strategy := event.EveryNEvents(10)
 ```
 
 **After:**
+
 ```go
 strategy, err := event.EveryNEvents(10)
 // or

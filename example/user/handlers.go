@@ -15,7 +15,8 @@ func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
 	deciderRepo *decider.Repository[UserState],
 ) {
-	_ = command.RegisterTyped(dispatcher, cmdCreateUser,
+	_ = command.RegisterTyped(
+		dispatcher, cmdCreateUser,
 		func(ctx context.Context, c *CreateUserCmd) error {
 			return deciderRepo.Execute(
 				ctx, c.AggregateID(), aggregateType,
@@ -24,7 +25,8 @@ func registerCommandHandlers(
 		},
 	)
 
-	_ = command.RegisterTyped(dispatcher, cmdChangeUserName,
+	_ = command.RegisterTyped(
+		dispatcher, cmdChangeUserName,
 		func(ctx context.Context, c *ChangeUserNameCmd) error {
 			return deciderRepo.Execute(
 				ctx, c.AggregateID(), aggregateType,
@@ -38,7 +40,8 @@ func registerQueryHandlers(
 	dispatcher *query.Dispatcher,
 	readModel *ReadModelStore,
 ) {
-	_ = query.RegisterTyped(dispatcher, queryGetUser,
+	_ = query.RegisterTyped(
+		dispatcher, queryGetUser,
 		func(_ context.Context, q query.Query) (ReadModel, error) {
 			gq := q.(*GetUserQuery)
 			rm, ok := readModel.Get(gq.aggregateID)
@@ -50,7 +53,8 @@ func registerQueryHandlers(
 		},
 	)
 
-	_ = query.RegisterTyped(dispatcher, queryListUsers,
+	_ = query.RegisterTyped(
+		dispatcher, queryListUsers,
 		func(_ context.Context, _ query.Query) ([]ReadModel, error) {
 			return readModel.List(), nil
 		},

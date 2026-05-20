@@ -23,15 +23,15 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/command"`
 
-| Feature              | Detail                                                                        | Status |
-| -------------------- | ----------------------------------------------------------------------------- | ------ |
-| Command dispatch     | `Dispatcher.Dispatch(ctx, cmd)` routes to registered handler                  | ✅     |
-| Handler registration | `Dispatcher.Register(cmdType, handler)` with duplicate guard                  | ✅     |
-| Middleware chain     | `Dispatcher.Use(middleware...)` — applied at registration time, reverse order | ✅     |
-| Lifecycle            | `Dispatcher.Close()` — rejects all ops after close                            | ✅     |
-| Validation           | `New()` rejects empty type and zero aggregateID                               | ✅     |
-| MustNew panic helper | `MustNew()` for test convenience                                              | ✅     |
-| Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation          | ✅     |
+| Feature              | Detail                                                                               | Status |
+| -------------------- | ------------------------------------------------------------------------------------ | ------ |
+| Command dispatch     | `Dispatcher.Dispatch(ctx, cmd)` routes to registered handler                         | ✅     |
+| Handler registration | `Dispatcher.Register(cmdType, handler)` with duplicate guard                         | ✅     |
+| Middleware chain     | `Dispatcher.Use(middleware...)` — applied at registration time, reverse order        | ✅     |
+| Lifecycle            | `Dispatcher.Close()` — rejects all ops after close                                   | ✅     |
+| Validation           | `New()` rejects empty type and zero aggregateID                                      | ✅     |
+| MustNew panic helper | `MustNew()` for test convenience                                                     | ✅     |
+| Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation                 | ✅     |
 | TypedHandler[T]      | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command` | ✅     |
 
 **Coverage:** 100.0%
@@ -75,7 +75,7 @@
 | GlobalLoader          | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
 | TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
 | PositionalLoader      | `LoadAllFromPosition(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                      | ✅     |
-| Time-travel queries   | `LoadToVersion(ctx, aggType, aggID, maxVersion)` and `LoadToTimestamp(ctx, aggType, aggID, maxTime)` — read aggregate state at a point in time                                      | ✅     |
+| Time-travel queries   | `LoadToVersion(ctx, aggType, aggID, maxVersion)` and `LoadToTimestamp(ctx, aggType, aggID, maxTime)` — read aggregate state at a point in time                                       | ✅     |
 | JSON Codec            | `JSONcodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
 | DecodePayloads[T]     | `DecodePayloads[T](events, codec)` — batch payload deserialization                                                                                                                   | ✅     |
