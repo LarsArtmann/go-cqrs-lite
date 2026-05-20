@@ -372,8 +372,22 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	now := time.Now()
-	evt1, _ := event.NewEvent("Created", aggID, "User", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2, _ := event.NewEvent("Updated", aggID, "User", 1, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt1, _ := event.NewEvent(
+		"Created",
+		aggID,
+		"User",
+		1,
+		nil,
+		event.WithOccurredAt(now.Add(-2*time.Hour)),
+	)
+	evt2, _ := event.NewEvent(
+		"Updated",
+		aggID,
+		"User",
+		1,
+		nil,
+		event.WithOccurredAt(now.Add(-1*time.Hour)),
+	)
 	evt3, _ := event.NewEvent("Deleted", aggID, "User", 2, nil, event.WithOccurredAt(now))
 
 	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
@@ -420,8 +434,22 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	aggID2 := id.NewAggregateID()
 
 	now := time.Now()
-	evt1, _ := event.NewEvent("Created", aggID1, "User", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2, _ := event.NewEvent("Created", aggID2, "Order", 1, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt1, _ := event.NewEvent(
+		"Created",
+		aggID1,
+		"User",
+		1,
+		nil,
+		event.WithOccurredAt(now.Add(-2*time.Hour)),
+	)
+	evt2, _ := event.NewEvent(
+		"Created",
+		aggID2,
+		"Order",
+		1,
+		nil,
+		event.WithOccurredAt(now.Add(-1*time.Hour)),
+	)
 	evt3, _ := event.NewEvent("Updated", aggID1, "User", 1, nil, event.WithOccurredAt(now))
 
 	_ = store.AppendBatch(ctx, "User", aggID1, []event.Event{evt1, evt3})
