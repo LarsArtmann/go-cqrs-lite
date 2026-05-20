@@ -533,56 +533,6 @@ func TestWithClientOccurredAt(t *testing.T) {
 	}
 }
 
-func TestNewCatalogCore(t *testing.T) {
-	t.Parallel()
-
-	core, err := event.NewCatalogCore(
-		"OrderCreated",
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
-		event.CatalogMeta{
-			Name:          "OrderCreated",
-			Version:       "1.0.0",
-			Summary:       "An order was created",
-			AggregateType: "Order",
-		},
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if core.Type() != "OrderCreated" {
-		t.Errorf("expected type OrderCreated, got %s", core.Type())
-	}
-
-	meta := core.CatalogInfo()
-	if meta.Name != "OrderCreated" {
-		t.Errorf("expected catalog name OrderCreated, got %s", meta.Name)
-	}
-
-	if meta.Version != "1.0.0" {
-		t.Errorf("expected catalog version 1.0.0, got %s", meta.Version)
-	}
-}
-
-func TestNewCatalogCore_Error(t *testing.T) {
-	t.Parallel()
-
-	_, err := event.NewCatalogCore(
-		"",
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
-		event.CatalogMeta{},
-	)
-	if err == nil {
-		t.Error("expected error for empty event type")
-	}
-}
-
 func TestCore_MetadataNil(t *testing.T) {
 	t.Parallel()
 

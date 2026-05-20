@@ -5,8 +5,8 @@ go 1.26.2
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/cqrs-htmx v0.0.0-20260507034922-7ebeb8976863
-	github.com/larsartmann/go-cqrs-lite/core v1.3.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.1.0
+	github.com/larsartmann/go-cqrs-lite/core v0.0.0
+	github.com/larsartmann/go-cqrs-lite/memory v0.0.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.0.0
 	github.com/stretchr/testify v1.11.1
 )
@@ -57,5 +57,4 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../../testhelpers
 )

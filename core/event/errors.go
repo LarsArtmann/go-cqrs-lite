@@ -1,124 +1,66 @@
 package event
 
 import (
-	"errors"
-
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// Re-export errorfamily types and functions so consumers use event.Family,
-// event.Error, event.Classify, etc. without changing import paths.
 type (
-	// Family classifies an error's behavioral profile for automated handling.
 	Family = errorfamily.Family
-
-	// Error is a classified error with machine-readable code and family.
-	Error = errorfamily.Error
+	Error  = errorfamily.Error
 )
 
-// Family constants.
 const (
-	// Rejection indicates bad input, unauthorized access, or resource not found.
-	Rejection = errorfamily.Rejection
-
-	// Conflict indicates a version mismatch, duplicate creation, or state machine violation.
-	Conflict = errorfamily.Conflict
-
-	// Transient indicates a temporary infrastructure failure.
-	Transient = errorfamily.Transient
-
-	// Corruption indicates the source of truth is damaged (unparseable payload, schema break).
-	Corruption = errorfamily.Corruption
-
-	// Infrastructure indicates the system cannot serve (closed, nil deps, startup failure).
+	Rejection      = errorfamily.Rejection
+	Conflict       = errorfamily.Conflict
+	Transient      = errorfamily.Transient
+	Corruption     = errorfamily.Corruption
 	Infrastructure = errorfamily.Infrastructure
 )
 
-// Classify forwards to errorfamily.Classify.
-func Classify(err error) Family { return errorfamily.Classify(err) }
-
-// IsRetryable reports whether the error is classified as Transient.
-func IsRetryable(err error) bool { return errorfamily.IsRetryable(err) }
-
-// RegisterClassification maps a sentinel error to a Family. Thread-safe.
+func Classify(err error) Family          { return errorfamily.Classify(err) }
+func IsRetryable(err error) bool         { return errorfamily.IsRetryable(err) }
 func RegisterClassification(sentinel error, family Family) {
 	errorfamily.RegisterClassification(sentinel, family)
 }
 
-// Constructors. Kept as aliases for backward compatibility.
+func NewRejection(code, msg string) *Error {
+	return errorfamily.NewRejection(code, msg)
+}
 
-// NewRejection creates a Rejection-classified error.
-func NewRejection(code, msg string) *Error { return errorfamily.NewRejection(code, msg) }
-
-// NewConflict creates a Conflict-classified error.
 func NewConflict(code, msg string) *Error { return errorfamily.NewConflict(code, msg) }
 
-// NewTransient creates a Transient-classified error.
-func NewTransient(code, msg string) *Error { return errorfamily.NewTransient(code, msg) }
-
-// NewCorruption creates a Corruption-classified error.
-func NewCorruption(code, msg string) *Error { return errorfamily.NewCorruption(code, msg) }
-
-// NewInfrastructure creates an Infrastructure-classified error.
-func NewInfrastructure(code, msg string) *Error { return errorfamily.NewInfrastructure(code, msg) }
-
-// ErrMismatchedSlices is returned by NewEvents when event types and payloads have different lengths.
-var ErrMismatchedSlices = errors.New(
-	"mismatched slices: event types and payloads must have equal length",
-)
-
-// ErrPayloadMarshal is returned by NewEvents when a payload cannot be marshaled to JSON.
-var ErrPayloadMarshal = errors.New("failed to marshal event payload")
-
-// Event domain sentinel errors.
-var (
-	ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
-	ErrEmptyEventType          = errors.New("event type is required")
-	ErrNilAggregateID          = errors.New("aggregate ID is required")
-	ErrEmptyAggregateType      = errors.New("aggregate type is required")
-	ErrVersionNotPositive      = errors.New("version must be positive")
-	ErrVersionConflict         = errors.New("version conflict")
-	ErrAggregateNotFound       = errors.New("aggregate not found")
-	ErrStoreClosed             = errors.New("event store is closed")
-	ErrBusClosed               = errors.New("event bus is closed")
-	ErrSnapshotNotFound        = errors.New("snapshot not found")
-	ErrSnapshotStoreClosed     = errors.New("snapshot store is closed")
-	ErrNilProjection           = errors.New("event: nil projection")
-	ErrNilCheckpointStore      = errors.New("event: nil checkpoint store")
-	ErrDuplicateProjection     = errors.New("event: duplicate projection")
-	ErrNilOutbox               = errors.New("event: nil outbox")
-	ErrNilBus                  = errors.New("event: nil bus")
-	ErrAlreadyStarted          = errors.New("event: outbox publisher already started")
-	ErrPublisherClosed         = errors.New("event: outbox publisher is closed")
-	ErrProjectionPanicked      = errors.New("event: projection handler panicked")
-)
-
-//nolint:gochecknoinits
-func init() {
-	classifications := map[error]Family{
-		ErrInvalidSnapshotInterval: Rejection,
-		ErrEmptyEventType:          Rejection,
-		ErrNilAggregateID:          Rejection,
-		ErrEmptyAggregateType:      Rejection,
-		ErrVersionNotPositive:      Rejection,
-		ErrAggregateNotFound:       Rejection,
-		ErrSnapshotNotFound:        Rejection,
-		ErrMismatchedSlices:        Rejection,
-		ErrPayloadMarshal:          Corruption,
-		ErrVersionConflict:         Conflict,
-		ErrDuplicateProjection:     Conflict,
-		ErrStoreClosed:             Infrastructure,
-		ErrBusClosed:               Infrastructure,
-		ErrSnapshotStoreClosed:     Infrastructure,
-		ErrNilProjection:           Infrastructure,
-		ErrNilCheckpointStore:      Infrastructure,
-		ErrNilOutbox:               Infrastructure,
-		ErrNilBus:                  Infrastructure,
-		ErrAlreadyStarted:          Infrastructure,
-		ErrPublisherClosed:         Infrastructure,
-		ErrProjectionPanicked:      Corruption,
-	}
-	for sentinel, family := range classifications {
-		RegisterClassification(sentinel, family)
-	}
+func NewTransient(code, msg string) *Error {
+	return errorfamily.NewTransient(code, msg)
 }
+
+func NewCorruption(code, msg string) *Error {
+	return errorfamily.NewCorruption(code, msg)
+}
+
+func NewInfrastructure(code, msg string) *Error {
+	return errorfamily.NewInfrastructure(code, msg)
+}
+
+var (
+	ErrMismatchedSlices      = NewRejection("event.mismatched_slices", "event types and payloads must have equal length")
+	ErrPayloadMarshal        = NewCorruption("event.payload_marshal", "failed to marshal event payload")
+	ErrInvalidSnapshotInterval = NewRejection("event.invalid_snapshot_interval", "snapshot interval must be positive")
+	ErrEmptyEventType         = NewRejection("event.empty_event_type", "event type is required")
+	ErrNilAggregateID         = NewRejection("event.nil_aggregate_id", "aggregate ID is required")
+	ErrEmptyAggregateType     = NewRejection("event.empty_aggregate_type", "aggregate type is required")
+	ErrVersionNotPositive     = NewRejection("event.version_not_positive", "version must be positive")
+	ErrVersionConflict        = NewConflict("event.version_conflict", "version conflict")
+	ErrAggregateNotFound      = NewRejection("event.aggregate_not_found", "aggregate not found")
+	ErrSnapshotNotFound       = NewRejection("event.snapshot_not_found", "snapshot not found")
+	ErrDuplicateProjection    = NewConflict("event.duplicate_projection", "duplicate projection")
+	ErrStoreClosed            = NewInfrastructure("event.store_closed", "event store is closed")
+	ErrBusClosed              = NewInfrastructure("event.bus_closed", "event bus is closed")
+	ErrSnapshotStoreClosed    = NewInfrastructure("event.snapshot_store_closed", "snapshot store is closed")
+	ErrNilProjection          = NewInfrastructure("event.nil_projection", "nil projection")
+	ErrNilCheckpointStore     = NewInfrastructure("event.nil_checkpoint_store", "nil checkpoint store")
+	ErrNilOutbox              = NewInfrastructure("event.nil_outbox", "nil outbox")
+	ErrNilBus                 = NewInfrastructure("event.nil_bus", "nil bus")
+	ErrAlreadyStarted         = NewInfrastructure("event.already_started", "outbox publisher already started")
+	ErrPublisherClosed        = NewInfrastructure("event.publisher_closed", "outbox publisher is closed")
+	ErrProjectionPanicked     = NewCorruption("event.projection_panicked", "projection handler panicked")
+)

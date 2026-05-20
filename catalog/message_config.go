@@ -1,6 +1,10 @@
 package catalog
 
-import "reflect"
+import (
+	"reflect"
+	"strings"
+	"unicode"
+)
 
 // MessageConfig is implemented by message builders produced by Command[T](),
 // Event[T](), and Query[T]().
@@ -113,4 +117,32 @@ func newMessageBuilder[T any](
 	}
 
 	return msgBuilder
+}
+
+func camelCaseToHuman(s string) string {
+	knownSuffixes := []string{"Command", "Cmd", "Event", "Evt", "Query", "Qry"} //nolint:goconst
+
+	for _, suffix := range knownSuffixes {
+		if stripped, ok := strings.CutSuffix(s, suffix); ok && stripped != "" {
+			s = stripped
+
+			break
+		}
+	}
+
+	var result strings.Builder
+
+	for i, r := range s {
+		switch {
+		case i == 0:
+			result.WriteRune(unicode.ToUpper(r))
+		case unicode.IsUpper(r):
+			result.WriteRune(' ')
+			result.WriteRune(r)
+		default:
+			result.WriteRune(r)
+		}
+	}
+
+	return result.String()
 }

@@ -1,7 +1,5 @@
 package query
 
-import "fmt"
-
 // CatalogMeta contains documentation metadata for auto-catalog generation.
 //
 // Deprecated: The zero-cost catalog API in github.com/larsartmann/go-cqrs-lite/catalog
@@ -12,62 +10,3 @@ type CatalogMeta struct {
 	Version string
 	Summary string
 }
-
-// Catalogable is implemented by queries that want to be auto-documented
-// by the catalog/adapters package.
-//
-// Deprecated: Use the zero-cost catalog API. Register types with
-// catalog.Query[T](id) instead of implementing this interface.
-type Catalogable interface {
-	Query
-	CatalogInfo() CatalogMeta
-}
-
-// CatalogCore combines query.Core with catalog metadata.
-// Embed this struct in your query to make it auto-catalogable.
-//
-// Deprecated: Use catalog.Query[T]() from the zero-cost catalog API
-// instead of embedding CatalogCore.
-//
-// Example:
-//
-//	type GetUser struct {
-//	    *CatalogCore
-//	    UserID string `json:"userId"`
-//	}
-type CatalogCore struct {
-	*Core
-
-	Meta CatalogMeta
-}
-
-// NewCatalogCore creates a CatalogCore with query metadata.
-func NewCatalogCore(qtype Type, meta CatalogMeta) (*CatalogCore, error) {
-	core, err := New(qtype)
-	if err != nil {
-		return nil, err
-	}
-
-	return &CatalogCore{
-		Core: core,
-		Meta: meta,
-	}, nil
-}
-
-// MustNewCatalogCore creates a CatalogCore or panics on validation failure.
-// Use only in tests where inputs are guaranteed valid.
-func MustNewCatalogCore(qtype Type, meta CatalogMeta) *CatalogCore {
-	cc, err := NewCatalogCore(qtype, meta)
-	if err != nil {
-		panic(fmt.Sprintf("query.MustNewCatalogCore: %v", err))
-	}
-
-	return cc
-}
-
-// CatalogInfo returns the catalog metadata for this query.
-func (c *CatalogCore) CatalogInfo() CatalogMeta {
-	return c.Meta
-}
-
-var _ Catalogable = (*CatalogCore)(nil)
