@@ -2,9 +2,11 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -446,5 +448,81 @@ func TestPebbleEventStore_Delete_Empty(t *testing.T) {
 	err := store.Delete(context.Background(), "Issue", aggID)
 	if err != nil {
 		t.Fatalf("Delete empty aggregate should succeed, got %v", err)
+	}
+}
+
+func TestPebbleEventStore_LoadToVersion(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt1 := pebbleTestEvent(t, aggID, 1)
+	evt2 := pebbleTestEvent(t, aggID, 2)
+	evt3 := pebbleTestEvent(t, aggID, 3)
+
+	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	events, err := store.LoadToVersion(ctx, "Issue", aggID, 2)
+	if err != nil {
+		t.Fatalf("LoadToVersion: %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(events))
+	}
+}
+
+func TestPebbleEventStore_LoadToVersion_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+
+	_, err := store.LoadToVersion(context.Background(), "Issue", id.NewAggregateID(), 5)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	}
+}
+
+func TestPebbleEventStore_LoadToTimestamp(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	now := time.Now()
+
+	evt1, _ := event.NewEvent("Created", aggID, "Issue", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2, _ := event.NewEvent("Updated", aggID, "Issue", 2, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3, _ := event.NewEvent("Deleted", aggID, "Issue", 3, nil, event.WithOccurredAt(now))
+
+	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	events, err := store.LoadToTimestamp(ctx, "Issue", aggID, now.Add(-30*time.Minute))
+	if err != nil {
+		t.Fatalf("LoadToTimestamp: %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(events))
+	}
+}
+
+func TestPebbleEventStore_LoadToTimestamp_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+
+	_, err := store.LoadToTimestamp(context.Background(), "Issue", id.NewAggregateID(), time.Now())
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
 }
