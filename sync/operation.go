@@ -17,6 +17,14 @@ const (
 	OpDelete OperationType = "delete"
 )
 
+// String returns the underlying string value.
+func (t OperationType) String() string { return string(t) }
+
+// Valid returns true if the OperationType is a known value.
+func (t OperationType) Valid() bool {
+	return t == OpCreate || t == OpUpdate || t == OpDelete
+}
+
 // Operation represents a single sync operation with a generic payload.
 // Operations are the fundamental unit of change in an operation-based sync system.
 //

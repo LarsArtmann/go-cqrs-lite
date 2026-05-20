@@ -80,3 +80,8 @@ const (
 
 // String returns the underlying string value.
 func (t SyncMessageType) String() string { return string(t) }
+
+// Valid returns true if the SyncMessageType is a known value.
+func (t SyncMessageType) Valid() bool {
+	return t == SyncMessageTypeRequest || t == SyncMessageTypeResponse
+}

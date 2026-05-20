@@ -10,6 +10,9 @@ import (
 // PebbleBackend identifies an event store backend.
 type PebbleBackend string
 
+// String returns the underlying string value.
+func (b PebbleBackend) String() string { return string(b) }
+
 const (
 	// PebbleBackendPebble uses the embedded Pebble key-value store (default).
 	PebbleBackendPebble PebbleBackend = "pebble"
