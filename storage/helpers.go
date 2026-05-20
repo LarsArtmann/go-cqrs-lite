@@ -97,7 +97,7 @@ func reconstructEvent(
 		return nil, fmt.Errorf("metadata for %s/%s v%d: %w", aggType, eventType, version, err)
 	}
 
-	opts := make([]event.Option, 0, 3+len(metaOpts)) //nolint:mnd
+	opts := make([]event.Option, 0, 3+len(metaOpts))
 
 	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
 	if schemaVersion > 0 {

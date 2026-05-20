@@ -252,6 +252,7 @@ linters:
           - dupl
           - exhaustruct
           - gosec
+          - mnd
           - nestif
           - nilnil
           - tagliatelle

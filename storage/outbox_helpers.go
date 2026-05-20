@@ -88,7 +88,10 @@ func reconstructOutboxEvent(row outboxEvent) (event.Event, error) {
 		return nil, err
 	}
 
-	opts := make([]event.Option, 0, 3+len(metaOpts))
+	// baseEventOpts: eventID + occurredAt + schemaVersion
+	const baseEventOpts = 3
+
+	opts := make([]event.Option, 0, baseEventOpts+len(metaOpts))
 	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(row.OccurredAt))
 
 	if row.SchemaVersion.Int() > 0 {

@@ -9,6 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+const eventColumnCount = 9
+
 func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
 	return scanSlice(rows, s.scanEvent)
 }
@@ -55,9 +57,9 @@ func (s *SQLEventStore) insertEvents(
 	aggregateID id.AggregateID,
 	events []event.Event,
 ) error {
-	ph := make([]string, 9)
+	ph := make([]string, eventColumnCount)
 
-	for i := range 9 {
+	for i := range eventColumnCount {
 		ph[i] = s.dialect.Placeholder(i + 1)
 	}
 
