@@ -33,7 +33,7 @@ func NewEvents(
 			eventType,
 			aggregateID,
 			aggregateType,
-			expectedVersion.Add(i + 1),
+			expectedVersion.Add(i+1),
 			data,
 			options...,
 		)

@@ -14,6 +14,7 @@ type VectorClock map[NodeID]int64
 func NewVectorClock() VectorClock {
 	return make(VectorClock)
 }
+
 // NewVectorClockFromMap creates a VectorClock from a map of node IDs to counters.
 func NewVectorClockFromMap(entries map[NodeID]int64) VectorClock {
 	return maps.Clone(entries)

@@ -160,7 +160,12 @@ func TestVectorClock_Cmp_Table(t *testing.T) {
 	}{
 		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), OrderEqual},
 		{"identical clocks are equal", superset, superset, OrderEqual},
-		{"a < b (happened before)", VectorClock{NodeID("a"): 1, NodeID("b"): 2}, lessB, OrderBefore},
+		{
+			"a < b (happened before)",
+			VectorClock{NodeID("a"): 1, NodeID("b"): 2},
+			lessB,
+			OrderBefore,
+		},
 		{"a > b (happened after)", greaterA, lessB, OrderAfter},
 		{
 			"concurrent clocks",
