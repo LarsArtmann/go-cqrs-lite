@@ -48,7 +48,7 @@
 - [x] ~~**VectorClock.Compare returns enum**~~ — Session 82: added `Cmp()` returning `ClockOrder` enum (Before/After/Concurrent/Equal); `Compare()` deprecated
 - [ ] **Implement Saga/Process Manager** — design done, implementation pending
 - [ ] **PostgreSQL integration tests for storage** — unit tests use go-sqlmock only
-- [x] ~~**Standardize logger injection across all modules**~~ — Already standardized (constructors accept *slog.Logger, optional via functional options)
+- [x] ~~**Standardize logger injection across all modules**~~ — Already standardized (constructors accept \*slog.Logger, optional via functional options)
 - [ ] **Add `event.Context` propagation to time.Now() calls**
 
 ---

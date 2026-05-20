@@ -49,10 +49,10 @@ func (vc VectorClock) Merge(other VectorClock) {
 type ClockOrder int
 
 const (
-	OrderBefore      ClockOrder = iota - 1 // this happened before other
-	OrderConcurrent                        // this and other are concurrent
-	OrderAfter                              // this happened after other
-	OrderEqual                              // this and other are identical
+	OrderBefore     ClockOrder = iota - 1 // this happened before other
+	OrderConcurrent                       // this and other are concurrent
+	OrderAfter                            // this happened after other
+	OrderEqual                            // this and other are identical
 )
 
 // Cmp compares two vector clocks and returns a typed result.

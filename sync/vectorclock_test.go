@@ -286,7 +286,12 @@ func TestVectorClock_Cmp(t *testing.T) {
 		expected ClockOrder
 	}{
 		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), OrderEqual},
-		{"identical clocks are equal", VectorClock{NodeID("a"): 1}, VectorClock{NodeID("a"): 1}, OrderEqual},
+		{
+			"identical clocks are equal",
+			VectorClock{NodeID("a"): 1},
+			VectorClock{NodeID("a"): 1},
+			OrderEqual,
+		},
 		{"before", VectorClock{NodeID("a"): 1}, VectorClock{NodeID("a"): 3}, OrderBefore},
 		{"after", VectorClock{NodeID("a"): 3}, VectorClock{NodeID("a"): 1}, OrderAfter},
 		{
@@ -296,7 +301,12 @@ func TestVectorClock_Cmp(t *testing.T) {
 			OrderConcurrent,
 		},
 		{"empty vs non-empty", NewVectorClock(), VectorClock{NodeID("a"): 1}, OrderBefore},
-		{"superset is after", VectorClock{NodeID("a"): 3, NodeID("b"): 2}, VectorClock{NodeID("a"): 3}, OrderAfter},
+		{
+			"superset is after",
+			VectorClock{NodeID("a"): 3, NodeID("b"): 2},
+			VectorClock{NodeID("a"): 3},
+			OrderAfter,
+		},
 	}
 
 	for _, tt := range tests {
