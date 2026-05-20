@@ -135,14 +135,12 @@ func (a *CQRSAdapter) iterateEvents(lowerBound, upperBound []byte) ([]event.Even
 	var events []event.Event
 
 	for iter.First(); iter.Valid(); iter.Next() {
-		event, err := a.deserializeEvent(iter.Value())
+		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			a.logger.Warn("failed to deserialize event", slog.String("error", err.Error()))
-
-			continue
+			return nil, fmt.Errorf("corrupt event at key %s: %w", string(iter.Key()), err)
 		}
 
-		events = append(events, event)
+		events = append(events, evt)
 	}
 
 	return events, checkIteratorError(iter)

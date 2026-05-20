@@ -196,7 +196,7 @@ func (r *Repository[State]) Delete(
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.
-// Useful for time-travel queries: "what was the state at version N?"
+// Useful for time-travel queries: "what was the state at version N?".
 func (r *Repository[State]) LoadAtVersion(
 	ctx context.Context,
 	aggID id.AggregateID,
@@ -212,7 +212,7 @@ func (r *Repository[State]) LoadAtVersion(
 }
 
 // LoadAtTime reconstructs state from events up to and including maxTime.
-// Useful for temporal queries: "what was the state at this point in time?"
+// Useful for temporal queries: "what was the state at this point in time?".
 func (r *Repository[State]) LoadAtTime(
 	ctx context.Context,
 	aggID id.AggregateID,

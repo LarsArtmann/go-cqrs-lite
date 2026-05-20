@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -48,5 +49,12 @@ func (h *ChangeStatusHandler) Handle(ctx context.Context, cmd command.Command) e
 }
 
 func (c *ChangeStatusCommand) MarshalJSON() ([]byte, error) {
-	return MarshalCommandJSON(c, CommandTypeChangeStatus)
+	type Alias ChangeStatusCommand
+	return json.Marshal(&struct {
+		Type string `json:"type"`
+		*Alias
+	}{
+		Type:  string(CommandTypeChangeStatus),
+		Alias: (*Alias)(c),
+	})
 }

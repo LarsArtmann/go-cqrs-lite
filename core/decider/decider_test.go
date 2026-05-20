@@ -1219,6 +1219,7 @@ func TestRepository_LoadAtTime_NotFound(t *testing.T) {
 
 type errStore struct {
 	event.Store
+
 	loadToVersionErr   error
 	loadToTimestampErr error
 }

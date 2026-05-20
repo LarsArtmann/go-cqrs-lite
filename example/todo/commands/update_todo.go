@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -49,5 +50,12 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 }
 
 func (c *UpdateTodoCommand) MarshalJSON() ([]byte, error) {
-	return MarshalCommandJSON(c, CommandTypeUpdate)
+	type Alias UpdateTodoCommand
+	return json.Marshal(&struct {
+		Type string `json:"type"`
+		*Alias
+	}{
+		Type:  string(CommandTypeUpdate),
+		Alias: (*Alias)(c),
+	})
 }

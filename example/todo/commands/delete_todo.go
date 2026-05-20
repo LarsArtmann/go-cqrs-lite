@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -38,5 +39,12 @@ func (h *DeleteTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 }
 
 func (c *DeleteTodoCommand) MarshalJSON() ([]byte, error) {
-	return MarshalCommandJSON(c, CommandTypeDelete)
+	type Alias DeleteTodoCommand
+	return json.Marshal(&struct {
+		Type string `json:"type"`
+		*Alias
+	}{
+		Type:  string(CommandTypeDelete),
+		Alias: (*Alias)(c),
+	})
 }
