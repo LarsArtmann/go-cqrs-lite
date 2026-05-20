@@ -15,21 +15,17 @@ func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
 	deciderRepo *decider.Repository[UserState],
 ) {
-	_ = dispatcher.Register(
-		cmdCreateUser,
-		func(ctx context.Context, cmd command.Command) error {
-			c := cmd.(*CreateUserCmd)
+	_ = command.RegisterTyped(dispatcher, cmdCreateUser,
+		func(ctx context.Context, c *CreateUserCmd) error {
 			return deciderRepo.Execute(
-				ctx, c.AggregateID(), "User",
+				ctx, c.AggregateID(), aggregateType,
 				decideCreateUser(c.AggregateID(), c.email, c.name),
 			)
 		},
 	)
 
-	_ = dispatcher.Register(
-		cmdChangeUserName,
-		func(ctx context.Context, cmd command.Command) error {
-			c := cmd.(*ChangeUserNameCmd)
+	_ = command.RegisterTyped(dispatcher, cmdChangeUserName,
+		func(ctx context.Context, c *ChangeUserNameCmd) error {
 			return deciderRepo.Execute(
 				ctx, c.AggregateID(), aggregateType,
 				decideChangeName(c.AggregateID(), c.name),
@@ -42,22 +38,20 @@ func registerQueryHandlers(
 	dispatcher *query.Dispatcher,
 	readModel *ReadModelStore,
 ) {
-	_ = dispatcher.Register(
-		queryGetUser,
-		func(_ context.Context, q query.Query) (any, error) {
+	_ = query.RegisterTyped(dispatcher, queryGetUser,
+		func(_ context.Context, q query.Query) (ReadModel, error) {
 			gq := q.(*GetUserQuery)
 			rm, ok := readModel.Get(gq.aggregateID)
 			if !ok {
-				return nil, fmt.Errorf("user %s: %w", gq.aggregateID, event.ErrAggregateNotFound)
+				return rm, fmt.Errorf("user %s: %w", gq.aggregateID, event.ErrAggregateNotFound)
 			}
 
 			return rm, nil
 		},
 	)
 
-	_ = dispatcher.Register(
-		queryListUsers,
-		func(_ context.Context, _ query.Query) (any, error) {
+	_ = query.RegisterTyped(dispatcher, queryListUsers,
+		func(_ context.Context, _ query.Query) ([]ReadModel, error) {
 			return readModel.List(), nil
 		},
 	)

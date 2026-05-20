@@ -121,14 +121,12 @@ func runDemoSteps(
 	fmt.Printf("→ Changed name to %q, version %d\n\n", "Alice Johnson", len(*publishedEvents))
 
 	fmt.Println("--- Step 3: Query User ---")
-	getResult, err := qryDisp.Dispatch(ctx, &GetUserQuery{aggregateID: userID})
+	rm, err := query.DispatchTyped[ReadModel](ctx, qryDisp, &GetUserQuery{aggregateID: userID})
 	if err != nil {
 		log.Fatalf("get user: %v", err)
 	}
 
-	if rm, ok := getResult.(ReadModel); ok {
-		fmt.Printf("→ User{Email: %q, Name: %q}\n\n", rm.Email, rm.Name)
-	}
+	fmt.Printf("→ User{Email: %q, Name: %q}\n\n", rm.Email, rm.Name)
 
 	return userID
 }

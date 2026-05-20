@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -48,19 +47,20 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	defer s.mu.Unlock()
 
 	aggID := evt.AggregateID()
+	codec := event.JSONCodec{}
 
 	switch evt.Type() {
 	case eventUserCreated:
-		var p UserCreatedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserCreated in projection: %w", err)
+		p, err := event.DecodePayload[UserCreatedPayload](evt, codec)
+		if err != nil {
+			return fmt.Errorf("decode UserCreated in projection: %w", err)
 		}
 
 		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
 	case eventUserNameChanged:
-		var p UserNameChangedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return fmt.Errorf("unmarshal UserNameChanged in projection: %w", err)
+		p, err := event.DecodePayload[UserNameChangedPayload](evt, codec)
+		if err != nil {
+			return fmt.Errorf("decode UserNameChanged in projection: %w", err)
 		}
 
 		if existing, ok := s.users[aggID]; ok {
