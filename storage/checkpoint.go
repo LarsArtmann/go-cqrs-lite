@@ -43,6 +43,7 @@ func (s *SQLCheckpointStore) Close() error { return nil }
 // CheckpointSchema returns the SQL DDL for creating the checkpoints table.
 func CheckpointSchema() string { return PostgresDialect{}.CheckpointSchema() }
 
+// SQLiteCheckpointSchema returns the SQL DDL for creating the checkpoints table (SQLite variant).
 func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema() }
 
 // Load returns the last processed event ID for a projection.

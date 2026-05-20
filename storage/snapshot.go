@@ -44,6 +44,7 @@ func (s *SQLSnapshotStore) Close() error { return nil }
 // SnapshotSchema returns the SQL DDL for creating the snapshots table.
 func SnapshotSchema() string { return PostgresDialect{}.SnapshotSchema() }
 
+// SQLiteSnapshotSchema returns the SQL DDL for creating the snapshots table (SQLite variant).
 func SQLiteSnapshotSchema() string { return SQLiteDialect{}.SnapshotSchema() }
 
 // Save persists a snapshot for an aggregate.

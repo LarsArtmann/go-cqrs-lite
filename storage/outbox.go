@@ -43,6 +43,7 @@ func (o *SQLOutbox) Close() error { return nil }
 // OutboxSchema returns the SQL DDL for creating the outbox table.
 func OutboxSchema() string { return PostgresDialect{}.OutboxSchema() }
 
+// SQLiteOutboxSchema returns the SQL DDL for creating the outbox table (SQLite variant).
 func SQLiteOutboxSchema() string { return SQLiteDialect{}.OutboxSchema() }
 
 // Append writes events to the outbox in a single transaction.
