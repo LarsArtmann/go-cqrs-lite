@@ -862,3 +862,14 @@ Interfaces now return branded types instead of primitives:
   - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json)
   - **SQL**: Added composite index `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)` to both PostgreSQL and SQLite DDL
   - 24/24 test packages pass (including sync), zero lint, all pass with `-race`
+
+- **Session 83 (File Splits + Type API + Deprecated API Removal)**:
+  - **REFACTOR**: Split `projection/runner.go` (268→203) → `projection/runner_live.go` (72 lines). Extracted subscribeLive, dispatchToProjections, handleWithRetry.
+  - **REFACTOR**: Split `core/decider/decider.go` (254→194) → moved LoadAtVersion/LoadAtTime/loadByEvents to `core/decider/load.go`.
+  - **BREAKING**: Removed deprecated `VectorClock.Compare()` — all callers migrated to `Cmp()` returning typed `ClockOrder`.
+  - **REFACTOR**: `NewVectorClockFromMap` uses `maps.Clone` instead of manual loop.
+  - **NEW**: `event.Version.Add/Sub/Cmp/IsPositive/Mod` — type-safe version arithmetic eliminating `.Int()` escape hatches. Updated 8 callers across core, decider, aggregate, memory, storage.
+  - **BREAKING**: Renamed `Source.IsEmpty()`/`IPAddress.IsEmpty()`/`UserAgent.IsEmpty()` → `IsZero()` for Go convention consistency. Zero production callers.
+  - **NEW**: `OutboxID.String()`/`IsZero()`, `OutboxStatus.String()`/`OutboxStatusAcked` constant.
+  - **NEW**: `OperationType.Valid()`/`String()`, `SyncMessageType.Valid()`, `PebbleBackend.String()`.
+  - 24/24 test packages pass, zero files over 250 lines
