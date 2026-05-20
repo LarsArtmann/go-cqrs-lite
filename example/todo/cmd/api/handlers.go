@@ -102,7 +102,13 @@ func writeErrorInvalidID(w http.ResponseWriter) {
 	writeError(w, http.StatusBadRequest, "invalid id")
 }
 
-func dispatchAndRespond(w http.ResponseWriter, r *http.Request, disp *command.Dispatcher, cmd command.Command, successFn func()) {
+func dispatchAndRespond(
+	w http.ResponseWriter,
+	r *http.Request,
+	disp *command.Dispatcher,
+	cmd command.Command,
+	successFn func(),
+) {
 	if err := disp.Dispatch(r.Context(), cmd); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return

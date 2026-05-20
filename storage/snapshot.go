@@ -106,16 +106,7 @@ func (s *SQLSnapshotStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (*event.Snapshot, error) {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
-
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
-		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
-
-	snap, err := s.scanSnapshot(
-		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
-		aggregateType,
-		aggregateID,
-	)
+	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
 	}
@@ -131,16 +122,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) (*event.Snapshot, error) {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
-
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
-		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
-
-	snap, err := s.scanSnapshot(
-		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
-		aggregateType,
-		aggregateID,
-	)
+	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, err)
@@ -152,6 +134,23 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	}
 
 	return snap, nil
+}
+
+func (s *SQLSnapshotStore) querySnapshot(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) (*event.Snapshot, error) {
+	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
+
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
+		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
+
+	return s.scanSnapshot(
+		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
+		aggregateType,
+		aggregateID,
+	)
 }
 
 func (s *SQLSnapshotStore) scanSnapshot(

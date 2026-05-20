@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"io"
 	"slices"
 	"sync"
 
@@ -21,7 +22,10 @@ type MemoryBus struct {
 	middleware  []event.Middleware
 }
 
-var _ event.Bus = (*MemoryBus)(nil)
+var (
+	_ event.Bus = (*MemoryBus)(nil)
+	_ io.Closer = (*MemoryBus)(nil)
+)
 
 // NewMemoryBus creates a new in-memory event bus.
 func NewMemoryBus() *MemoryBus {

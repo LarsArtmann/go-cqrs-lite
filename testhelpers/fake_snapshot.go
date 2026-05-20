@@ -74,10 +74,7 @@ func (s *FakeSnapshotStore) Load(
 	_ event.AggregateType,
 	_ id.AggregateID,
 ) (*event.Snapshot, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return s.snapshot, s.loadErr
+	return s.loadSnapshot()
 }
 
 // LoadAtVersion returns the configured snapshot or error.
@@ -87,6 +84,10 @@ func (s *FakeSnapshotStore) LoadAtVersion(
 	_ id.AggregateID,
 	_ event.Version,
 ) (*event.Snapshot, error) {
+	return s.loadSnapshot()
+}
+
+func (s *FakeSnapshotStore) loadSnapshot() (*event.Snapshot, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

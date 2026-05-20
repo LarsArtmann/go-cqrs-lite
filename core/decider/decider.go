@@ -203,25 +203,12 @@ func (r *Repository[State]) LoadAtVersion(
 	aggType event.AggregateType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	events, err := r.store.LoadToVersion(ctx, aggType, aggID, maxVersion)
-	if err != nil {
-		if errors.Is(err, event.ErrAggregateNotFound) {
-			return r.decider.Initial, 0, nil
-		}
-
-		var zero State
-
-		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
-	}
-
-	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
-	if err != nil {
-		var zero State
-
-		return zero, 0, err
-	}
-
-	return state, event.Version(len(events)), nil
+	return r.loadByEvents(
+		func() ([]event.Event, error) {
+			return r.store.LoadToVersion(ctx, aggType, aggID, maxVersion)
+		},
+		aggType, aggID,
+	)
 }
 
 // LoadAtTime reconstructs state from events up to and including maxTime.
@@ -232,7 +219,20 @@ func (r *Repository[State]) LoadAtTime(
 	aggType event.AggregateType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	events, err := r.store.LoadToTimestamp(ctx, aggType, aggID, maxTime)
+	return r.loadByEvents(
+		func() ([]event.Event, error) {
+			return r.store.LoadToTimestamp(ctx, aggType, aggID, maxTime)
+		},
+		aggType, aggID,
+	)
+}
+
+func (r *Repository[State]) loadByEvents(
+	loadFn func() ([]event.Event, error),
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) (State, event.Version, error) {
+	events, err := loadFn()
 	if err != nil {
 		if errors.Is(err, event.ErrAggregateNotFound) {
 			return r.decider.Initial, 0, nil

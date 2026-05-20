@@ -17,25 +17,12 @@ func (s *MemoryStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
+	events, err := s.getEvents(aggregateType, aggregateID, "load")
 	if err != nil {
-		return nil, fmt.Errorf("memory store load: %w", err)
+		return nil, err
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := streamKey(aggregateType, aggregateID)
-
-	events, exists := s.events[key]
-	if !exists {
-		return nil, event.ErrAggregateNotFound
-	}
-
-	result := make([]event.Event, len(events))
-	copy(result, events)
-
-	return result, nil
+	return copyEvents(events), nil
 }
 
 // LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.
@@ -46,30 +33,16 @@ func (s *MemoryStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
+	events, err := s.getEvents(aggregateType, aggregateID, "load from version")
 	if err != nil {
-		return nil, fmt.Errorf("memory store load from version: %w", err)
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := streamKey(aggregateType, aggregateID)
-
-	events, exists := s.events[key]
-	if !exists {
-		return nil, event.ErrAggregateNotFound
+		return nil, err
 	}
 
 	if version.Int() >= len(events) {
 		return []event.Event{}, nil
 	}
 
-	sub := events[version.Int():]
-	result := make([]event.Event, len(sub))
-	copy(result, sub)
-
-	return result, nil
+	return copyEvents(events[version.Int():]), nil
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
@@ -80,27 +53,14 @@ func (s *MemoryStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
+	events, err := s.getEvents(aggregateType, aggregateID, "load to version")
 	if err != nil {
-		return nil, fmt.Errorf("memory store load to version: %w", err)
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := streamKey(aggregateType, aggregateID)
-
-	events, exists := s.events[key]
-	if !exists {
-		return nil, event.ErrAggregateNotFound
+		return nil, err
 	}
 
 	end := min(maxVersion.Int(), len(events))
 
-	result := make([]event.Event, end)
-	copy(result, events[:end])
-
-	return result, nil
+	return copyEvents(events[:end]), nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
@@ -111,9 +71,30 @@ func (s *MemoryStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
+	events, err := s.getEvents(aggregateType, aggregateID, "load to timestamp")
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []event.Event
+
+	for _, e := range events {
+		if !e.OccurredAt().After(maxTime) {
+			filtered = append(filtered, e)
+		}
+	}
+
+	return copyEvents(filtered), nil
+}
+
+func (s *MemoryStore) getEvents(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	op string,
+) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store load to timestamp: %w", err)
+		return nil, fmt.Errorf("memory store %s: %w", op, err)
 	}
 
 	s.mu.RLock()
@@ -126,18 +107,28 @@ func (s *MemoryStore) LoadToTimestamp(
 		return nil, event.ErrAggregateNotFound
 	}
 
-	var filtered []event.Event
+	return events, nil
+}
 
-	for _, e := range events {
-		if !e.OccurredAt().After(maxTime) {
-			filtered = append(filtered, e)
-		}
+func copyEvents(events []event.Event) []event.Event {
+	result := make([]event.Event, len(events))
+	copy(result, events)
+
+	return result
+}
+
+func (s *MemoryStore) collectAllSorted() ([]event.Event, error) {
+	var all []event.Event
+
+	for _, events := range s.events {
+		all = append(all, events...)
 	}
 
-	result := make([]event.Event, len(filtered))
-	copy(result, filtered)
+	slices.SortFunc(all, func(a, b event.Event) int {
+		return a.OccurredAt().Compare(b.OccurredAt())
+	})
 
-	return result, nil
+	return all, nil
 }
 
 // LoadAll returns all events across all aggregates, sorted by OccurredAt.
@@ -151,20 +142,9 @@ func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var all []event.Event
+	all, _ := s.collectAllSorted()
 
-	for _, events := range s.events {
-		all = append(all, events...)
-	}
-
-	slices.SortFunc(all, func(a, b event.Event) int {
-		return a.OccurredAt().Compare(b.OccurredAt())
-	})
-
-	result := make([]event.Event, len(all))
-	copy(result, all)
-
-	return result, nil
+	return copyEvents(all), nil
 }
 
 // LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
@@ -182,15 +162,7 @@ func (s *MemoryStore) LoadAllFromPosition(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var all []event.Event
-
-	for _, events := range s.events {
-		all = append(all, events...)
-	}
-
-	slices.SortFunc(all, func(a, b event.Event) int {
-		return a.OccurredAt().Compare(b.OccurredAt())
-	})
+	all, _ := s.collectAllSorted()
 
 	startIdx := 0
 
@@ -209,8 +181,5 @@ func (s *MemoryStore) LoadAllFromPosition(
 		filtered = filtered[:limit]
 	}
 
-	result := make([]event.Event, len(filtered))
-	copy(result, filtered)
-
-	return result, nil
+	return copyEvents(filtered), nil
 }

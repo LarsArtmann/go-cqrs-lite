@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -23,6 +24,7 @@ var (
 	_ event.Store            = (*MemoryStore)(nil)
 	_ event.GlobalLoader     = (*MemoryStore)(nil)
 	_ event.PositionalLoader = (*MemoryStore)(nil)
+	_ io.Closer              = (*MemoryStore)(nil)
 )
 
 // NewMemoryStore creates a new in-memory event store.
