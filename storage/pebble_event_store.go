@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -171,4 +172,60 @@ func (a *CQRSAdapter) LoadFromVersion(
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
 	return a.iterateEvents(lowerBound, upperBound)
+}
+
+// LoadToVersion retrieves events up to and including maxVersion.
+func (a *CQRSAdapter) LoadToVersion(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	prefix := a.aggregatePrefix(aggregateType, aggregateID)
+	upperBound := a.eventKey(aggregateType, aggregateID, maxVersion+1)
+
+	events, err := a.iterateEvents(prefix, upperBound)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return events, nil
+}
+
+// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
+func (a *CQRSAdapter) LoadToTimestamp(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	prefix := a.aggregatePrefix(aggregateType, aggregateID)
+	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
+
+	all, err := a.iterateEvents(prefix, upperBound)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(all) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	var filtered []event.Event
+
+	for _, e := range all {
+		if !e.OccurredAt().After(maxTime) {
+			filtered = append(filtered, e)
+		}
+	}
+
+	if len(filtered) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return filtered, nil
 }
