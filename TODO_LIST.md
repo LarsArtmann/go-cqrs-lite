@@ -1,7 +1,7 @@
 # TODO List
 
-**Audited:** 2026-05-20 · **Session 82**
-**Sources:** Session 78-79 Execution Plan, Session 82 Implementation, Full Codebase Analysis
+**Audited:** 2026-05-21 · **Session 84**
+**Sources:** Full Architecture Review, Naming Review, Codebase Deep Analysis
 
 ---
 
@@ -10,57 +10,65 @@
 - [x] ~~**Pebble Store: optimistic concurrency check**~~ — Fixed in Session 77
 - [x] ~~**Retry middleware timer leak**~~ — Already fixed (defer timer.Stop present)
 - [x] ~~**Aggregate snapshot with nil codec**~~ — Fixed in Session 78
-- [x] ~~**example/todo build broken**~~ — Fixed in Session 82 (added replace directives for core/memory/testhelpers, fixed MarshalJSON infinite recursion in queries + commands, fixed test assertion)
+- [x] ~~**example/todo build broken**~~ — Fixed in Session 82
 
 ---
 
-## 🟠 HIGH Priority (Data Safety & Observability)
+## 🟠 HIGH Priority (Architecture & API Quality)
 
-- [x] ~~**Pebble corrupt ID warnings**~~ — Added slog.Warn in Session 78
-- [x] ~~**Pebble iterateEvents silently skips corrupt events**~~ — Fixed in Session 82 (returns error instead of silently continuing)
-- [x] ~~**OutboxPublisher.publishPending swallows all errors**~~ — Already logs with slog.Warn (verified in Session 82)
-- [x] ~~**sync.NewLWWResolver nil TimestampFunc guard**~~ — Already has nil check + panic
-- [x] ~~**projection.Runner.Register duplicate check**~~ — Added in Session 78
-- [ ] **Decider Execute dual %w wrapping** — `core/decider/decider.go:113`
-  - Works in Go 1.20+ (multi-unwrap). Low priority.
-- [x] ~~**projection.Runner.filterEvents O(n)**~~ — Added PositionalLoader interface in Session 79
-- [x] ~~**core depends on memory + testhelpers in production go.mod**~~ — Fixed (test deps are indirect)
+- [ ] **Formally deprecate `aggregate` package** — Add deprecation notice; ADR-0001 recommends `decider`. Package has 70% structural overlap with `decider` (Session 84 finding).
+- [ ] **Remove deprecated catalog API (21 exports)** — `Catalogable`, `CatalogMeta`, `CatalogCore`, `MustNewCatalogCore` in `event`, `command`, `query` packages. Also `catalog/adapters.CatalogBuilder` and `MessageIDString`. All superseded by zero-cost `catalog.Command[T]()` API.
+- [ ] **Extract `middleware/tracing` to separate module** — `tracing.go` depends on `go.opentelemetry.io/otel`, forcing the transitive dependency on all middleware consumers. Should be `middleware/tracing/` sub-module.
+- [ ] **Unify `ErrNilBus` sentinels** — 3 independent sentinels (intentional per-package context)
+- [ ] **Decider Execute dual %w wrapping** — `core/decider/decider.go:113`. Works in Go 1.20+ (multi-unwrap). Low priority.
 
 ---
 
-## 🟡 MEDIUM Priority (Architecture & Quality)
+## 🟡 MEDIUM Priority (Consistency & Naming)
 
-- [x] ~~**Unify aggregate/decider repository logic**~~ — Shared PublishChanges + SaveSnapshot in core/event (Session 48)
-- [x] ~~**Add WalkMessages helper**~~ — Added `catalog.WalkMessages` in Session 79
 - [ ] **Remove replace directives from go.mod files** — BLOCKED: required until modules are tagged
 - [ ] **Standardize version references across go.mod files** — inconsistent v0.0.0 vs v1.1.0
-- [x] ~~**Move schema DDL onto Dialect interface**~~ — Session 82: EventSchema/SnapshotSchema/CheckpointSchema/OutboxSchema now on Dialect; free functions delegate
-- [ ] **Unify ErrNilBus sentinels** — 3 independent sentinels (intentional per-package context)
-- [x] ~~**Add clock injection to NewEvent**~~ — Already injectable via `WithOccurredAt(time.Time)` option
-- [x] ~~**Split storage helper files**~~ — Session 82: extracted `deserializeMetadata` from `deserializeEvent`
+- [ ] **Fix inconsistent `memory/` constructor naming** — `NewMemoryBus()` vs `NewCheckpointStore()` (no "Memory" prefix). Should be `NewMemoryCheckpointStore()`.
+- [ ] **Rename `sync` package** — Shadows stdlib `sync`, requiring import aliases. Consider `syncx` or `crdt`.
+- [ ] **Consolidate HandlerRegistry + MemoryBus dispatch** — Both independently implement type-specific + wildcard handler dispatch pattern. Should share.
+- [ ] **Share error classification setup** — Every package calls `event.RegisterClassification()` in `init()`. Hidden global side effects with no conflict detection. Consider explicit setup.
 
 ---
 
 ## 🟢 LOW Priority (Nice-to-Have)
 
-- [x] ~~**Consolidate CatalogMeta**~~ — Intentional per-package context (event has extra AggregateType field)
 - [ ] **Add BDD tests for catalog, storage, sync**
-- [x] ~~**VectorClock.Compare returns enum**~~ — Session 82: added `Cmp()` returning `ClockOrder` enum (Before/After/Concurrent/Equal); `Compare()` deprecated
 - [ ] **Implement Saga/Process Manager** — design done, implementation pending
 - [ ] **PostgreSQL integration tests for storage** — unit tests use go-sqlmock only
-- [x] ~~**Standardize logger injection across all modules**~~ — Already standardized (constructors accept \*slog.Logger, optional via functional options)
 - [ ] **Add `event.Context` propagation to time.Now() calls**
+- [ ] **Consolidate `Core` naming** — 4 packages export `Core` struct (`event`, `command`, `query`, `aggregate`). Consider domain-specific names.
+- [ ] **Move `sync` to its own repository** — Zero imports from any other module. Fully isolated.
+- [ ] **Rename `Of[T]` to something more descriptive** — `ID[T]` or `Branded[T]`
 
 ---
+
+## ✅ COMPLETED (Session 84)
+
+- [x] **Architecture review** — Full analysis: module depth, coupling, scalability, composability. Report at `docs/architecture-understanding/2026-05-21_00-20-SESSION_84_ARCHITECTURE_REVIEW.md`
+- [x] **Architecture diagrams** — Current + ideal state D2 diagrams at `docs/architecture-understanding/`
+- [x] **Naming review** — Automated detection + manual review. Fixed CQRSAdapter, Mixin suffixes, helpers.go files.
+- [x] **Rename `CQRSAdapter` → `PebbleEventStore`** — Terrible name → honest name. `NewCQRSAdapter` → `NewPebbleStore`. Updated across storage, tests, example/todo.
+- [x] **Rename `LifecycleMixin` → `Lifecycle`** — Idiomatic Go naming. Updated in dispatcher, memory (bus/store/snapshot).
+- [x] **Rename `SyncContextMixin` → `SyncContext`** — Updated in sync package.
+- [x] **Rename `PebbleMixin` → `PebbleBase`** — Updated in example/todo.
+- [x] **Rename `helpers.go` files** — `storage/helpers.go` → `storage/event_reconstruction.go`, `memory/helpers.go` → `memory/keys.go`, `catalog/asyncapi/helpers.go` → `catalog/asyncapi/serde.go`
+- [x] **Unify event serialization (3→1)** — `outbox_helpers.go` and `pebble_serialization.go` now both call shared `reconstructEvent()` from `event_reconstruction.go`. Eliminated ~60 lines of duplication.
+- [x] **Refresh stale golden test files** — asyncapi.yaml, eventcatalog-config.js, package.json
+- [x] **Zero lint across all 8 modules**
+- [x] **All 24 test packages pass**
 
 ## ✅ COMPLETED (Session 82)
 
 - [x] **example/todo build fix** — replace directives for core/memory/testhelpers, MarshalJSON recursion fix, test assertion fix
 - [x] **Pebble iterateEvents corrupt event handling** — returns error instead of silently skipping
-- [x] **Zero lint across all 8 modules** — fixed embeddedstructfieldcheck, godot, unparam, exhaustruct, godoclint, varnamelen, errchkjson, prealloc, noinlineerr
-- [x] **DDL on Dialect interface** — EventSchema/SnapshotSchema/CheckpointSchema/OutboxSchema on Dialect
-- [x] **Pebble deserializeEvent split** — extracted `deserializeMetadata` helper
-- [x] **VectorClock.Cmp() with ClockOrder enum** — Before/After/Concurrent/Equal with String() method
+- [x] **Zero lint across all 8 modules**
+- [x] **DDL on Dialect interface**
+- [x] **VectorClock.Cmp() with ClockOrder enum**
 - [x] **All tests pass (27 main + 7 example/todo packages)**
 
 ## ✅ COMPLETED (Sessions 77-79)
@@ -78,8 +86,6 @@
 - [x] **docs/MIGRATION.md** — Session 79
 - [x] **CONTRIBUTING.md** — Session 79
 - [x] **example/user updated to TypedHandler + DecodePayload** — Session 79
-- [x] **All lint issues fixed (0 issues across 8 modules)** — Session 79
-- [x] **All tests pass (24/24 packages)** — Session 79
 
 ## ✅ COMPLETED (Earlier Sessions)
 
@@ -91,6 +97,5 @@
 - [x] **Extract SnapshotStrategy to core/event** — Session 48
 - [x] **ISP: Publisher/Subscriber sub-interfaces** — Session 48
 - [x] **Error classification registration** — Session 48
-- [x] **Test coverage gaps** — Session 48
 - [x] **Extract shared PublishChanges + SaveSnapshot** — Session 48
 - [x] **43 benchmarks across 12 files** — Session 50

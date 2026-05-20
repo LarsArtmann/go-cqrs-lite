@@ -280,7 +280,7 @@ func TestSyncRequest_JSON(t *testing.T) {
 
 	since := time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)
 	req := SyncRequest{
-		SyncContextMixin: SyncContextMixin{
+		SyncContext: SyncContext{
 			NodeID: MustParseNodeID("node-1"),
 			Clock:  VectorClock{NodeID("node-1"): 5},
 		},
@@ -311,7 +311,7 @@ func TestSyncResponse_JSON(t *testing.T) {
 	t.Parallel()
 
 	resp := SyncResponse[testItem]{
-		SyncContextMixin: SyncContextMixin{
+		SyncContext: SyncContext{
 			NodeID: MustParseNodeID("node-2"),
 			Clock:  VectorClock{NodeID("node-1"): 5, NodeID("node-2"): 3},
 		},

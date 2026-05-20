@@ -98,15 +98,15 @@ type SyncMessage struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-// SyncContextMixin contains shared fields for sync request and response.
-type SyncContextMixin struct {
+// SyncContext contains shared fields for sync request and response.
+type SyncContext struct {
 	NodeID NodeID      `json:"nodeId"`
 	Clock  VectorClock `json:"clock"`
 }
 
-// NewSyncContextMixin creates a new SyncContextMixin with the given node ID and clock.
-func NewSyncContextMixin(nodeID NodeID, clock VectorClock) SyncContextMixin {
-	return SyncContextMixin{
+// NewSyncContext creates a new SyncContext with the given node ID and clock.
+func NewSyncContext(nodeID NodeID, clock VectorClock) SyncContext {
+	return SyncContext{
 		NodeID: nodeID,
 		Clock:  clock,
 	}
@@ -114,14 +114,14 @@ func NewSyncContextMixin(nodeID NodeID, clock VectorClock) SyncContextMixin {
 
 // SyncRequest requests sync from a peer.
 type SyncRequest struct {
-	SyncContextMixin
+	SyncContext
 
 	Since time.Time `json:"since"`
 }
 
 // SyncResponse contains operations from a peer.
 type SyncResponse[T any] struct {
-	SyncContextMixin
+	SyncContext
 
 	Operations []*Operation[T] `json:"operations"`
 }

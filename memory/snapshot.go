@@ -13,7 +13,7 @@ import (
 // MemorySnapshotStore is an in-memory implementation of event.SnapshotStore.
 // It stores at most one snapshot per aggregate (the latest version).
 type MemorySnapshotStore struct {
-	dispatcher.LifecycleMixin
+	dispatcher.Lifecycle
 
 	mu        sync.RWMutex
 	snapshots map[string]*event.Snapshot
@@ -23,7 +23,7 @@ var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
 
 // NewMemorySnapshotStore creates a new in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
-	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
+	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemorySnapshotStore{
 		snapshots: make(map[string]*event.Snapshot),
 	}
@@ -143,5 +143,5 @@ func (s *MemorySnapshotStore) Delete(
 
 // Close marks the store as closed. Subsequent operations return ErrSnapshotStoreClosed.
 func (s *MemorySnapshotStore) Close() error {
-	return s.LifecycleMixin.Close() //nolint:wrapcheck
+	return s.Lifecycle.Close() //nolint:wrapcheck
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func newPebbleTestStore(t *testing.T) *CQRSAdapter {
+func newPebbleTestStore(t *testing.T) *PebbleEventStore {
 	t.Helper()
 
 	dir := t.TempDir()
@@ -24,7 +24,7 @@ func newPebbleTestStore(t *testing.T) *CQRSAdapter {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	return NewCQRSAdapter(db, slog.Default())
+	return NewPebbleStore(db, slog.Default())
 }
 
 func pebbleTestEvent(t *testing.T, aggID id.AggregateID, version event.Version) *event.Core {
@@ -252,7 +252,7 @@ func TestPebbleEventStore_Close(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewCQRSAdapter(db, slog.Default())
+	store := NewPebbleStore(db, slog.Default())
 
 	err = store.Close()
 	if err != nil {
@@ -310,7 +310,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewCQRSAdapter(db, slog.Default())
+	store := NewPebbleStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 
 	evt := pebbleTestEvent(t, aggID, 1)
@@ -332,7 +332,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 
 	t.Cleanup(func() { _ = db2.Close() })
 
-	store2 := NewCQRSAdapter(db2, slog.Default())
+	store2 := NewPebbleStore(db2, slog.Default())
 	loaded, err := store2.Load(context.Background(), "Issue", aggID)
 	if err != nil {
 		t.Fatalf("Load after reopen: %v", err)
@@ -391,7 +391,7 @@ func TestPebbleEventStore_Save_VersionMismatch(t *testing.T) {
 }
 
 func TestPebbleEventStore_Close_NilDB(t *testing.T) {
-	store := NewCQRSAdapter(nil, slog.Default())
+	store := NewPebbleStore(nil, slog.Default())
 
 	err := store.Close()
 	if err != nil {

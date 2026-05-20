@@ -14,7 +14,7 @@ import (
 // MemoryBus is an in-memory implementation of event.Bus for testing and single-process deployments.
 // It is safe for concurrent use. Handler execution blocks publishers (see Publish docs).
 type MemoryBus struct {
-	dispatcher.LifecycleMixin
+	dispatcher.Lifecycle
 
 	mu          sync.RWMutex
 	handlers    map[event.Type][]event.Handler
@@ -29,7 +29,7 @@ var (
 
 // NewMemoryBus creates a new in-memory event bus.
 func NewMemoryBus() *MemoryBus {
-	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
+	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryBus{
 		handlers: make(map[event.Type][]event.Handler),
 	}
@@ -171,5 +171,5 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 
 // Close marks the bus as closed. Subsequent Publish, Subscribe, or Use calls return ErrBusClosed.
 func (b *MemoryBus) Close() error {
-	return b.LifecycleMixin.Close() //nolint:wrapcheck
+	return b.Lifecycle.Close() //nolint:wrapcheck
 }

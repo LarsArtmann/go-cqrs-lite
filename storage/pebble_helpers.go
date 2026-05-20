@@ -11,7 +11,7 @@ import (
 )
 
 // Delete implements event.Store.Delete.
-func (a *CQRSAdapter) Delete(
+func (a *PebbleEventStore) Delete(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -61,7 +61,7 @@ func (a *CQRSAdapter) Delete(
 
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
-func (a *CQRSAdapter) AppendBatch(
+func (a *PebbleEventStore) AppendBatch(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -94,7 +94,7 @@ func (a *CQRSAdapter) AppendBatch(
 }
 
 // Close releases the Pebble database.
-func (a *CQRSAdapter) Close() error {
+func (a *PebbleEventStore) Close() error {
 	if a.db != nil {
 		err := a.db.Close()
 		if err != nil {
@@ -106,7 +106,7 @@ func (a *CQRSAdapter) Close() error {
 }
 
 // logEventOperation logs a debug message for event operations.
-func (a *CQRSAdapter) logEventOperation(
+func (a *PebbleEventStore) logEventOperation(
 	msg string,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -121,7 +121,7 @@ func (a *CQRSAdapter) logEventOperation(
 }
 
 // serializeAndAddToBatch serializes an event and adds it to the batch.
-func (a *CQRSAdapter) serializeAndAddToBatch(
+func (a *PebbleEventStore) serializeAndAddToBatch(
 	batch *pebble.Batch,
 	key []byte,
 	evt event.Event,
@@ -135,7 +135,7 @@ func (a *CQRSAdapter) serializeAndAddToBatch(
 }
 
 // addToBatch is a helper that adds a key-value pair to a batch with error handling.
-func (a *CQRSAdapter) addToBatch(batch *pebble.Batch, key, data []byte) error {
+func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 	err := batch.Set(key, data, nil)
 	if err != nil {
 		return fmt.Errorf("failed to add event to batch: %w", err)
@@ -145,7 +145,7 @@ func (a *CQRSAdapter) addToBatch(batch *pebble.Batch, key, data []byte) error {
 }
 
 // commitAndLog commits the batch and logs the operation.
-func (a *CQRSAdapter) commitAndLog(
+func (a *PebbleEventStore) commitAndLog(
 	batch *pebble.Batch,
 	logMsg string,
 	aggregateType event.AggregateType,
@@ -172,5 +172,5 @@ func checkIteratorError(iter *pebble.Iterator) error {
 	return nil
 }
 
-// Ensure CQRSAdapter implements event.Store.
-var _ event.Store = (*CQRSAdapter)(nil)
+// Ensure PebbleEventStore implements event.Store.
+var _ event.Store = (*PebbleEventStore)(nil)

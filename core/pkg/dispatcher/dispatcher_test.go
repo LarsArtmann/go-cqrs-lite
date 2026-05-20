@@ -36,52 +36,10 @@ func assertCallOrder(t *testing.T, order, expected []string) {
 	}
 }
 
-func TestLifecycleMixin_Close(t *testing.T) {
-	t.Parallel()
-
-	m := &LifecycleMixin{}
-	if m.IsClosed() {
-		t.Error("new mixin should not be closed")
-	}
-
-	err := m.Close()
-	if err != nil {
-		t.Errorf("Close() error = %v", err)
-	}
-
-	if !m.IsClosed() {
-		t.Error("should be closed after Close()")
-	}
-
-	err = m.Close()
-	if err != nil {
-		t.Errorf("second Close() error = %v", err)
-	}
-}
-
-func TestLifecycleMixin_CheckClosed(t *testing.T) {
-	t.Parallel()
-
-	m := &LifecycleMixin{}
-	closedErr := errors.New("closed")
-
-	err := m.CheckClosed(closedErr)
-	if err != nil {
-		t.Errorf("CheckClosed() on open mixin should return nil, got %v", err)
-	}
-
-	_ = m.Close()
-
-	err = m.CheckClosed(closedErr)
-	if !errors.Is(err, closedErr) {
-		t.Errorf("CheckClosed() on closed mixin should return closedErr, got %v", err)
-	}
-}
-
 func TestLifecycle_Close(t *testing.T) {
 	t.Parallel()
 
-	l := &LifecycleMixin{}
+	l := &Lifecycle{}
 	if l.IsClosed() {
 		t.Error("new lifecycle should not be closed")
 	}
@@ -99,7 +57,7 @@ func TestLifecycle_Close(t *testing.T) {
 func TestLifecycle_CheckClosed(t *testing.T) {
 	t.Parallel()
 
-	l := &LifecycleMixin{}
+	l := &Lifecycle{}
 	closedErr := errors.New("closed")
 
 	err := l.CheckClosed(closedErr)
@@ -338,10 +296,10 @@ func TestDispatcher_Close(t *testing.T) {
 	}
 }
 
-func TestLifecycleMixin_ConcurrentAccess(t *testing.T) {
+func TestLifecycle_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
-	m := &LifecycleMixin{}
+	m := &Lifecycle{}
 
 	var wg sync.WaitGroup
 

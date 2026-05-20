@@ -11,7 +11,7 @@ import (
 )
 
 // serializeEvent converts a CQRS event to JSON.
-func (a *CQRSAdapter) serializeEvent(evt event.Event) ([]byte, error) {
+func (a *PebbleEventStore) serializeEvent(evt event.Event) ([]byte, error) {
 	s := serializableEvent{
 		ID:            evt.ID().String(),
 		Type:          string(evt.Type()),
@@ -45,7 +45,7 @@ func (a *CQRSAdapter) serializeEvent(evt event.Event) ([]byte, error) {
 }
 
 // deserializeEvent converts JSON to a CQRS-compatible event.
-func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
+func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 	var s serializableEvent
 
 	err := json.Unmarshal(data, &s)
@@ -53,39 +53,16 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		return nil, fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	aggregateID, err := id.ParseAggregateID(s.AggregateID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse aggregate ID: %w", err)
-	}
-
-	var opts []event.Option
-
-	eventID, err := id.ParseEventID(s.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse event ID: %w", err)
-	}
-
-	opts = append(
-		opts,
-		event.WithEventID(eventID),
-		event.WithOccurredAt(time.Unix(0, s.OccurredAt)),
-	)
-
+	var metadataJSON []byte
 	if s.Metadata != nil {
-		opts = append(opts, event.WithMetadata(deserializeMetadata(s.Metadata)))
+		metadataJSON, _ = marshalMetadata(deserializeMetadata(s.Metadata))
 	}
 
-	if s.SchemaVersion > 0 {
-		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(s.SchemaVersion)))
-	}
-
-	return event.NewEvent(
-		event.Type(s.Type),
-		aggregateID,
-		event.AggregateType(s.AggregateType),
-		event.Version(s.Version),
-		s.Payload,
-		opts...,
+	return reconstructEvent(
+		s.ID, s.Type, s.AggregateType, s.AggregateID,
+		s.Version, s.SchemaVersion,
+		s.Payload, metadataJSON,
+		time.Unix(0, s.OccurredAt),
 	)
 }
 

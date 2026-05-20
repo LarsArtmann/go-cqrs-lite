@@ -11,16 +11,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// CQRSAdapter implements go-cqrs-lite/event.Store using Pebble.
-type CQRSAdapter struct {
+// PebbleEventStore implements go-cqrs-lite/event.Store using Pebble.
+type PebbleEventStore struct {
 	db     *pebble.DB
 	logger *slog.Logger
 	prefix string
 }
 
-// NewCQRSAdapter creates a new adapter using an existing Pebble DB.
-func NewCQRSAdapter(db *pebble.DB, logger *slog.Logger) *CQRSAdapter {
-	return &CQRSAdapter{
+// NewPebbleStore creates a new store using an existing Pebble DB.
+func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *PebbleEventStore {
+	return &PebbleEventStore{
 		db:     db,
 		logger: logger,
 		prefix: "cqrs_event:",
@@ -29,7 +29,7 @@ func NewCQRSAdapter(db *pebble.DB, logger *slog.Logger) *CQRSAdapter {
 
 // eventKey generates a storage key for an event.
 // Pattern: cqrs_event:{aggregateType}:{aggregateID}:{version}.
-func (a *CQRSAdapter) eventKey(
+func (a *PebbleEventStore) eventKey(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 	version event.Version,
@@ -38,7 +38,7 @@ func (a *CQRSAdapter) eventKey(
 }
 
 // aggregatePrefix returns the prefix for all events of an aggregate.
-func (a *CQRSAdapter) aggregatePrefix(
+func (a *PebbleEventStore) aggregatePrefix(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) []byte {
@@ -46,7 +46,7 @@ func (a *CQRSAdapter) aggregatePrefix(
 }
 
 // Save implements event.Store.Save with optimistic concurrency control.
-func (a *CQRSAdapter) Save(
+func (a *PebbleEventStore) Save(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -121,7 +121,7 @@ func (a *CQRSAdapter) Save(
 }
 
 // iterateEvents iterates over events in the database using the provided iterator configuration.
-func (a *CQRSAdapter) iterateEvents(lowerBound, upperBound []byte) ([]event.Event, error) {
+func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event.Event, error) {
 	iter, err := a.db.NewIter(&pebble.IterOptions{
 		LowerBound: lowerBound,
 		UpperBound: upperBound,
@@ -147,7 +147,7 @@ func (a *CQRSAdapter) iterateEvents(lowerBound, upperBound []byte) ([]event.Even
 }
 
 // Load implements event.Store.Load.
-func (a *CQRSAdapter) Load(
+func (a *PebbleEventStore) Load(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -160,7 +160,7 @@ func (a *CQRSAdapter) Load(
 
 // LoadFromVersion implements event.Store.LoadFromVersion.
 // Returns events with version strictly greater than the given version.
-func (a *CQRSAdapter) LoadFromVersion(
+func (a *PebbleEventStore) LoadFromVersion(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -173,7 +173,7 @@ func (a *CQRSAdapter) LoadFromVersion(
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
-func (a *CQRSAdapter) LoadToVersion(
+func (a *PebbleEventStore) LoadToVersion(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -195,7 +195,7 @@ func (a *CQRSAdapter) LoadToVersion(
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
-func (a *CQRSAdapter) LoadToTimestamp(
+func (a *PebbleEventStore) LoadToTimestamp(
 	_ context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,

@@ -14,7 +14,7 @@ import (
 var ErrBackupNotImplemented = errors.New("backup not implemented - use file-level backup")
 
 type PebbleStore struct {
-	PebbleMixin
+	PebbleBase
 }
 
 func NewPebbleStore(dbPath string, logger *slog.Logger) (*PebbleStore, error) {
@@ -27,7 +27,7 @@ func NewPebbleStore(dbPath string, logger *slog.Logger) (*PebbleStore, error) {
 		return nil, fmt.Errorf("failed to open pebble db at %s: %w", dbPath, err)
 	}
 	return &PebbleStore{
-		PebbleMixin: PebbleMixin{db: db, logger: logger, prefix: "todo:"},
+		PebbleBase: PebbleBase{db: db, logger: logger, prefix: "todo:"},
 	}, nil
 }
 

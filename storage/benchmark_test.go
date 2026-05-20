@@ -105,7 +105,7 @@ func BenchmarkPebbleSerialize(b *testing.B) {
 		event.WithCorrelationID(id.NewCorrelationID()),
 	)
 
-	adapter := &CQRSAdapter{prefix: "test"}
+	adapter := &PebbleEventStore{prefix: "test"}
 
 	for b.Loop() {
 		_, err := adapter.serializeEvent(evt)
@@ -170,7 +170,7 @@ func BenchmarkPebbleDeserialize(b *testing.B) {
 		event.WithCorrelationID(id.NewCorrelationID()),
 	)
 
-	adapter := &CQRSAdapter{prefix: "test"}
+	adapter := &PebbleEventStore{prefix: "test"}
 	data, _ := adapter.serializeEvent(evt)
 
 	for b.Loop() {

@@ -14,7 +14,7 @@ import (
 // MemoryStore is an in-memory implementation of event.Store and event.GlobalLoader.
 // It is safe for concurrent use. Designed for testing and single-process deployments.
 type MemoryStore struct {
-	dispatcher.LifecycleMixin
+	dispatcher.Lifecycle
 
 	mu     sync.RWMutex
 	events map[string][]event.Event
@@ -29,7 +29,7 @@ var (
 
 // NewMemoryStore creates a new in-memory event store.
 func NewMemoryStore() *MemoryStore {
-	//nolint:exhaustruct // embedded LifecycleMixin has unexported fields from different package
+	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryStore{
 		events: make(map[string][]event.Event),
 	}
@@ -112,5 +112,5 @@ func (s *MemoryStore) Delete(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryStore) Close() error {
-	return s.LifecycleMixin.Close() //nolint:wrapcheck
+	return s.Lifecycle.Close() //nolint:wrapcheck
 }
