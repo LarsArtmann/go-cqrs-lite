@@ -189,9 +189,12 @@ func TestLWWResolver_Tiebreaker(t *testing.T) {
 }
 
 func TestLWWResolver_ImplementsInterface(t *testing.T) {
-	var _ ConflictResolver[testItem] = &LWWResolver[testItem]{
+	t.Parallel()
+
+	var resolver ConflictResolver[testItem] = &LWWResolver[testItem]{
 		TimestampFunc: itemTimestamp,
 	}
+	_ = resolver
 }
 
 func TestConflict_JSON_RoundTrip(t *testing.T) {
