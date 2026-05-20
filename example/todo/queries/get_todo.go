@@ -1,7 +1,6 @@
 package queries
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -63,11 +62,7 @@ func (h *GetTodoHandler) Handle(q query.Query) (any, error) {
 }
 
 func (q *GetTodoQuery) MarshalJSON() ([]byte, error) {
-	type Alias GetTodoQuery
-	return json.Marshal(&struct {
-		*Alias
-		Type string `json:"type"`
-	}{Alias: (*Alias)(q), Type: string(GetTodoQueryType)})
+	return marshalQueryJSON(q, GetTodoQueryType)
 }
 
 var _ query.Query = (*GetTodoQuery)(nil)

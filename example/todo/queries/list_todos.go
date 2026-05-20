@@ -1,7 +1,6 @@
 package queries
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -60,11 +59,7 @@ func (h *ListTodosHandler) Handle(q query.Query) (any, error) {
 }
 
 func (q *ListTodosQuery) MarshalJSON() ([]byte, error) {
-	type Alias ListTodosQuery
-	return json.Marshal(&struct {
-		Type string `json:"type"`
-		*Alias
-	}{Type: string(ListTodosQueryType), Alias: (*Alias)(q)})
+	return marshalQueryJSON(q, ListTodosQueryType)
 }
 
 var _ query.Query = (*ListTodosQuery)(nil)

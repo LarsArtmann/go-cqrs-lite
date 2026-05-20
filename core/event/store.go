@@ -18,6 +18,10 @@ type GlobalLoader interface {
 // PositionalLoader extends GlobalLoader with position-based loading.
 // Implementations load events ordered by OccurredAt, starting after the given event ID.
 // This enables efficient projection catch-up without loading all events into memory.
+//
+// Position is based on event ID ordering. ULID-based IDs are time-sortable, making
+// them suitable for position-based loading. Using non-monotonic IDs may produce
+// incorrect results.
 type PositionalLoader interface {
 	GlobalLoader
 

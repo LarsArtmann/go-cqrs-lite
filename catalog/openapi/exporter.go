@@ -97,9 +97,28 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	return doc
 }
 
+func jsonContent(schema any) map[string]MediaType {
+	return map[string]MediaType{
+		contentType: {Schema: schema}, //nolint:exhaustruct
+	}
+}
+
+func responseWithContent(desc string, schema any) *Response {
+	return &Response{
+		Description: desc,
+		Content:     jsonContent(schema),
+	}
+}
+
+func responseNoContent(desc string) *Response {
+	return &Response{Description: desc}
+}
+
 func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.Message) {
 	path := fmt.Sprintf("%s/%s/%s", e.BasePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
+
+	obj := objectSchema()
 
 	//nolint:exhaustruct
 	doc.Paths[path] = &PathItem{
@@ -110,24 +129,12 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 			OperationID: "post" + toPascal(string(msg.ID)),
 			RequestBody: &RequestBody{
 				Description: msg.Name + " request",
-				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef}, //nolint:exhaustruct
-				},
-				Required: true,
+				Content:     jsonContent(schemaRef),
+				Required:    true,
 			},
 			Responses: map[string]*Response{
-				"200": {
-					Description: "Success",
-					Content: map[string]MediaType{
-						contentType: {Schema: objectSchema()}, //nolint:exhaustruct
-					},
-				},
-				"400": {
-					Description: "Bad Request",
-					Content: map[string]MediaType{
-						contentType: {Schema: objectSchema()}, //nolint:exhaustruct
-					},
-				},
+				"200": responseWithContent("Success", obj),
+				"400": responseWithContent("Bad Request", obj),
 			},
 		},
 	}
@@ -143,18 +150,8 @@ func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Me
 		Description: msg.Summary,
 		OperationID: "get" + toPascal(string(msg.ID)),
 		Responses: map[string]*Response{
-			"200": {
-				Description: "Success",
-				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef}, //nolint:exhaustruct
-				},
-			},
-			"404": {
-				Description: "Not Found",
-				Content: map[string]MediaType{
-					contentType: {Schema: objectSchema()}, //nolint:exhaustruct
-				},
-			},
+			"200": responseWithContent("Success", schemaRef),
+			"404": responseWithContent("Not Found", objectSchema()),
 		},
 	}
 
@@ -197,15 +194,11 @@ func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Me
 			OperationID: "event" + toPascal(string(msg.ID)),
 			RequestBody: &RequestBody{
 				Description: msg.Name + " event payload",
-				Content: map[string]MediaType{
-					contentType: {Schema: schemaRef}, //nolint:exhaustruct
-				},
-				Required: true,
+				Content:     jsonContent(schemaRef),
+				Required:    true,
 			},
 			Responses: map[string]*Response{
-				"200": {
-					Description: "Event received",
-				},
+				"200": responseNoContent("Event received"),
 			},
 		},
 	}

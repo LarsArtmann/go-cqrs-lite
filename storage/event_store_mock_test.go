@@ -1,0 +1,164 @@
+package storage
+
+import (
+	"context"
+	"errors"
+	"regexp"
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
+
+const loadToVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version <= $3 ORDER BY version ASC`
+
+const loadToTimestampQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2 AND occurred_at <= $3 ORDER BY version ASC`
+
+const loadAllFromPositionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE id > $1
+		ORDER BY occurred_at ASC LIMIT $2`
+
+func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := testEventWithAggID(t, aggID, 1)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
+		WithArgs("User", aggID, 1).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			evt.ID(), "UserCreated", "User", aggID,
+			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		))
+
+	events, err := store.LoadToVersion(context.Background(), "User", aggID, 1)
+	if err != nil {
+		t.Fatalf("LoadToVersion: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
+		WithArgs("User", aggID, 5).
+		WillReturnRows(sqlmock.NewRows(eventColumns()))
+
+	_, err := store.LoadToVersion(context.Background(), "User", aggID, 5)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	}
+}
+
+func TestSQLEventStore_LoadToVersion_Mock_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
+		WithArgs("User", aggID, 5).
+		WillReturnError(errors.New("connection lost"))
+
+	_, err := store.LoadToVersion(context.Background(), "User", aggID, 5)
+	if err == nil {
+		t.Fatal("expected error from query failure")
+	}
+}
+
+func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := testEventWithAggID(t, aggID, 1)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
+		WithArgs("User", aggID, evt.OccurredAt()).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			evt.ID(), "UserCreated", "User", aggID,
+			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		))
+
+	events, err := store.LoadToTimestamp(context.Background(), "User", aggID, evt.OccurredAt())
+	if err != nil {
+		t.Fatalf("LoadToTimestamp: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
+		WithArgs("User", aggID, sqlmock.AnyArg()).
+		WillReturnError(errors.New("connection lost"))
+
+	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, testEvent(t).OccurredAt())
+	if err == nil {
+		t.Fatal("expected error from query failure")
+	}
+}
+
+func TestSQLEventStore_LoadAllFromPosition_Mock_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := testEventWithAggID(t, aggID, 1)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
+		WithArgs(evt.ID().String(), 10).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			evt.ID(), "UserCreated", "User", aggID,
+			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		))
+
+	events, err := store.LoadAllFromPosition(context.Background(), evt.ID(), 10)
+	if err != nil {
+		t.Fatalf("LoadAllFromPosition: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLEventStore_LoadAllFromPosition_Mock_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evtID := id.NewEventID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
+		WithArgs(evtID.String(), 10).
+		WillReturnError(errors.New("connection lost"))
+
+	_, err := store.LoadAllFromPosition(context.Background(), evtID, 10)
+	if err == nil {
+		t.Fatal("expected error from query failure")
+	}
+}

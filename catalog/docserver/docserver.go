@@ -139,91 +139,77 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	)
 }
 
-func (ds *DocsServer) serveOpenAPIJSON(writer http.ResponseWriter, _ *http.Request) {
-	doc := ds.buildOpenAPI()
-
-	writer.Header().Set("Content-Type", "application/json")
-
-	enc := json.NewEncoder(writer)
-	enc.SetIndent("", "  ")
-
-	//nolint:errchkjson
-	_ = enc.Encode(doc)
+func (ds *DocsServer) serveOpenAPIJSON(w http.ResponseWriter, _ *http.Request) {
+	ds.serveJSON(w, ds.buildOpenAPI())
 }
 
-func (ds *DocsServer) serveOpenAPIYAML(writer http.ResponseWriter, _ *http.Request) {
-	doc := ds.buildOpenAPI()
-
-	b, err := json.Marshal(doc)
+func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, _ *http.Request) {
+	b, err := json.Marshal(ds.buildOpenAPI())
 	if err != nil {
-		http.Error(writer, "failed to marshal OpenAPI spec", http.StatusInternalServerError)
+		http.Error(w, "failed to marshal OpenAPI spec", http.StatusInternalServerError)
 
 		return
 	}
 
-	yamlStr, err := adapters.JSONToYAML(b)
+	ds.serveYAML(w, b, "failed to convert to YAML")
+}
+
+func (ds *DocsServer) serveOpenAPIHTML(w http.ResponseWriter, _ *http.Request) {
+	ds.serveHTML(w, ds.config.DocsPath+"/openapi.json", scalarHTML)
+}
+
+func (ds *DocsServer) serveAsyncAPIJSON(w http.ResponseWriter, _ *http.Request) {
+	ds.serveJSON(w, ds.buildAsyncAPI())
+}
+
+func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) {
+	b, err := ds.buildAsyncAPI().MarshalYAML()
 	if err != nil {
-		http.Error(writer, "failed to convert to YAML", http.StatusInternalServerError)
+		http.Error(w, "failed to marshal AsyncAPI YAML", http.StatusInternalServerError)
 
 		return
 	}
 
-	writer.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
 
-	_, _ = writer.Write(yamlStr)
+	_, _ = w.Write(b)
 }
 
-func (ds *DocsServer) serveOpenAPIHTML(writer http.ResponseWriter, _ *http.Request) {
-	specURL := ds.config.DocsPath + "/openapi.json"
-
-	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	_, _ = writer.Write([]byte(scalarHTML(specURL, ds.config.ServiceName)))
+func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, _ *http.Request) {
+	ds.serveHTML(w, ds.config.DocsPath+"/asyncapi.json", asyncAPIHTML)
 }
 
-func (ds *DocsServer) serveAsyncAPIJSON(writer http.ResponseWriter, _ *http.Request) {
-	doc := ds.buildAsyncAPI()
+func (ds *DocsServer) serveCatalogJSON(w http.ResponseWriter, _ *http.Request) {
+	ds.serveJSON(w, ds.buildCatalog())
+}
 
-	writer.Header().Set("Content-Type", "application/json")
+func (ds *DocsServer) serveJSON(w http.ResponseWriter, v any) {
+	w.Header().Set("Content-Type", "application/json")
 
-	enc := json.NewEncoder(writer)
+	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 
 	//nolint:errchkjson
-	_ = enc.Encode(doc)
+	_ = enc.Encode(v)
 }
 
-func (ds *DocsServer) serveAsyncAPIYAML(writer http.ResponseWriter, _ *http.Request) {
-	doc := ds.buildAsyncAPI()
-
-	b, err := doc.MarshalYAML()
+func (ds *DocsServer) serveYAML(w http.ResponseWriter, jsonBytes []byte, errMsg string) {
+	yamlStr, err := adapters.JSONToYAML(jsonBytes)
 	if err != nil {
-		http.Error(writer, "failed to marshal AsyncAPI YAML", http.StatusInternalServerError)
+		http.Error(w, errMsg, http.StatusInternalServerError)
 
 		return
 	}
 
-	writer.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
 
-	_, _ = writer.Write(b)
+	_, _ = w.Write(yamlStr)
 }
 
-func (ds *DocsServer) serveAsyncAPIHTML(writer http.ResponseWriter, _ *http.Request) {
-	specURL := ds.config.DocsPath + "/asyncapi.json"
+type htmlRenderer func(specURL, serviceName string) string
 
-	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+func (ds *DocsServer) serveHTML(w http.ResponseWriter, specURL string, render htmlRenderer) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	_, _ = writer.Write([]byte(asyncAPIHTML(specURL, ds.config.ServiceName)))
-}
-
-func (ds *DocsServer) serveCatalogJSON(writer http.ResponseWriter, _ *http.Request) {
-	cat := ds.buildCatalog()
-
-	writer.Header().Set("Content-Type", "application/json")
-
-	enc := json.NewEncoder(writer)
-	enc.SetIndent("", "  ")
-
-	//nolint:errchkjson
-	_ = enc.Encode(cat)
+	_, _ = w.Write([]byte(render(specURL, ds.config.ServiceName)))
 }
