@@ -1,9 +1,8 @@
 package openapi
 
 import (
-	"encoding/json"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
 )
 
 func schemaKey(msg catalog.Message) string {
@@ -11,25 +10,9 @@ func schemaKey(msg catalog.Message) string {
 }
 
 func schemaToAny(s *catalog.Schema) any {
-	if s == nil {
-		return objectSchema()
-	}
-
-	raw, err := json.Marshal(s)
-	if err != nil {
-		return objectSchema()
-	}
-
-	var result any
-
-	err = json.Unmarshal(raw, &result)
-	if err != nil {
-		return objectSchema()
-	}
-
-	return result
+	return schemautil.SchemaToAny(s)
 }
 
 func objectSchema() map[string]string {
-	return map[string]string{"type": objectType}
+	return schemautil.ObjectSchema()
 }

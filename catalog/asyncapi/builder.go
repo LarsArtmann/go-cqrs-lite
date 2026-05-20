@@ -177,6 +177,6 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	if msg.Schema != nil {
 		doc.Components.Schemas[componentKey] = SchemaToAny(msg.Schema)
 	} else {
-		doc.Components.Schemas[componentKey] = map[string]string{"type": typeObject}
+		doc.Components.Schemas[componentKey] = SchemaToAny(nil)
 	}
 }

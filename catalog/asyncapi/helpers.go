@@ -5,31 +5,12 @@ import (
 
 	"github.com/go-faster/yaml"
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
 )
-
-func objectSchema() map[string]string {
-	return map[string]string{"type": typeObject}
-}
 
 // SchemaToAny converts a catalog.Schema to a generic map for JSON serialization.
 func SchemaToAny(s *catalog.Schema) any {
-	if s == nil {
-		return objectSchema()
-	}
-
-	raw, err := json.Marshal(s)
-	if err != nil {
-		return objectSchema()
-	}
-
-	var result any
-
-	err = json.Unmarshal(raw, &result)
-	if err != nil {
-		return objectSchema()
-	}
-
-	return result
+	return schemautil.SchemaToAny(s)
 }
 
 func toDotAddress(s string) string {

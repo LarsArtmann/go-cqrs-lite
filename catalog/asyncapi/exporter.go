@@ -3,7 +3,6 @@ package asyncapi
 const (
 	asyncAPIVersion = "3.0.0"
 	contentType     = "application/json"
-	typeObject      = "object"
 
 	actionSend    = "send"
 	actionReceive = "receive"

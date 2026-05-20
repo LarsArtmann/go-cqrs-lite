@@ -10,7 +10,6 @@ import (
 const (
 	openAPIVersion = "3.0.3"
 	contentType    = "application/json"
-	objectType     = "object"
 )
 
 // Exporter generates an OpenAPI 3.0 document from a catalog.
