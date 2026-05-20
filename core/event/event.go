@@ -11,7 +11,7 @@
 // HOW_TO_GOLANG.md coding standards
 //   - Max 250 lines per file
 //   - Max 30 lines per function
-//   - No `any` types
+//   - No unnecessary `any` types (Codec/Query use `any` where dynamically required)
 //   - Context as first parameter
 //   - Sentinels for common error states
 //   - No external dependencies (except oklog/ulid)
