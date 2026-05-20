@@ -53,3 +53,21 @@ func (p *ProjectionFunc) Handle(ctx context.Context, evt Event) error {
 func (p *ProjectionFunc) EventTypes() []Type { return p.eventTypes }
 
 var _ Projection = (*ProjectionFunc)(nil)
+
+// NewTypedProjection creates a Projection that auto-decodes event payloads
+// before passing them to the typed handler function.
+func NewTypedProjection[T any](
+	name string,
+	codec Codec,
+	handle func(ctx context.Context, evt Event, payload T) error,
+	eventTypes []Type,
+) *ProjectionFunc {
+	return NewProjection(name, func(ctx context.Context, evt Event) error {
+		payload, err := DecodePayload[T](evt, codec)
+		if err != nil {
+			return err
+		}
+
+		return handle(ctx, evt, payload)
+	}, eventTypes)
+}

@@ -17,7 +17,11 @@ func RegisterTyped[T Command](d *Dispatcher, cmdType Type, handler TypedHandler[
 	return d.Register(cmdType, func(ctx context.Context, cmd Command) error {
 		typed, ok := cmd.(T)
 		if !ok {
-			return fmt.Errorf("command type assertion failed: expected %T, got %T", typed, cmd) //nolint:err113
+			return fmt.Errorf(
+				"command type assertion failed: expected %T, got %T",
+				typed,
+				cmd,
+			) //nolint:err113
 		}
 
 		return handler(ctx, typed)

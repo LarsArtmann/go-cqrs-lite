@@ -55,7 +55,6 @@ func TestNewEvents_WithExpectedVersion(t *testing.T) {
 
 	events, err := NewEvents(id.NewAggregateID(), "User", 5,
 		[]Type{"user.updated"}, []any{map[string]string{"k": "v"}})
-
 	if err != nil {
 		t.Fatalf("NewEvents() error = %v", err)
 	}
@@ -103,7 +102,6 @@ func TestDecodePayloads(t *testing.T) {
 	p := payload{Name: "Bob"}
 	events, err := NewEvents(id.NewAggregateID(), "User", 0,
 		[]Type{"user.created"}, []any{p})
-
 	if err != nil {
 		t.Fatalf("NewEvents() error = %v", err)
 	}
