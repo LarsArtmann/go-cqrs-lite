@@ -941,6 +941,93 @@ func (f *failingCheckpointStore) Save(_ context.Context, _ string, _ id.EventID)
 
 func (f *failingCheckpointStore) Close() error { return nil }
 
+func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
+	t.Parallel()
+
+	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
+	evt3 := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
+
+	store := &positionalLoaderStore{events: []event.Event{evt1, evt2, evt3}}
+
+	bus := memory.NewMemoryBus()
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	checkpoint := memory.NewCheckpointStore()
+
+	t.Cleanup(func() { _ = checkpoint.Close() })
+
+	ctx := context.Background()
+
+	err := checkpoint.Save(ctx, "user-proj", evt1.ID())
+	if err != nil {
+		t.Fatalf("Save checkpoint: %v", err)
+	}
+
+	runner, err := projection.NewRunner(store, bus, checkpoint)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	replayDone := make(chan struct{})
+
+	var replayed []id.EventID
+
+	var replayMu sync.Mutex
+
+	err = runner.Register(event.NewProjection(
+		"user-proj",
+		func(_ context.Context, evt event.Event) error {
+			replayMu.Lock()
+
+			replayed = append(replayed, evt.ID())
+
+			if len(replayed) == 1 {
+				close(replayDone)
+			}
+
+			replayMu.Unlock()
+
+			return nil
+		},
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runCtx, cancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+
+	go func() {
+		_ = runner.Run(runCtx)
+		close(done)
+	}()
+
+	select {
+	case <-replayDone:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for positional replay")
+	}
+
+	cancel()
+
+	<-done
+
+	replayMu.Lock()
+	defer replayMu.Unlock()
+
+	if len(replayed) != 1 {
+		t.Errorf("replayed %d events, want 1 (evt2 via PositionalLoader)", len(replayed))
+	}
+
+	if len(replayed) > 0 && replayed[0] != evt2.ID() {
+		t.Errorf("replayed event = %v, want %v", replayed[0], evt2.ID())
+	}
+}
+
 func TestRunner_ReplayEmptyStore(t *testing.T) {
 	t.Parallel()
 
@@ -1015,6 +1102,40 @@ type emptyGlobalLoader struct{}
 
 func (e *emptyGlobalLoader) LoadAll(_ context.Context) ([]event.Event, error) {
 	return nil, nil
+}
+
+type positionalLoaderStore struct {
+	events []event.Event
+}
+
+func (p *positionalLoaderStore) LoadAll(_ context.Context) ([]event.Event, error) {
+	return p.events, nil
+}
+
+func (p *positionalLoaderStore) LoadAllFromPosition(
+	_ context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	result := make([]event.Event, 0)
+
+	for _, evt := range p.events {
+		if !afterEventID.IsZero() {
+			if evt.ID() == afterEventID {
+				afterEventID = id.EventID{}
+			}
+
+			continue
+		}
+
+		result = append(result, evt)
+
+		if limit > 0 && len(result) >= limit {
+			break
+		}
+	}
+
+	return result, nil
 }
 
 type failingSubscribeBus struct{}

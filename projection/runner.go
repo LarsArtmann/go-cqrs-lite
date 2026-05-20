@@ -97,14 +97,7 @@ func (r *Runner) Run(ctx context.Context) error {
 }
 
 func (r *Runner) replay(ctx context.Context) error {
-	allEvents, err := r.loader.LoadAll(ctx)
-	if err != nil {
-		return fmt.Errorf("load all events: %w", err)
-	}
-
-	if len(allEvents) == 0 {
-		return nil
-	}
+	positional, hasPositional := r.loader.(event.PositionalLoader)
 
 	for _, p := range r.projections {
 		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
@@ -112,9 +105,25 @@ func (r *Runner) replay(ctx context.Context) error {
 			return fmt.Errorf("load checkpoint for %q: %w", p.Name(), cpErr)
 		}
 
-		filtered := filterEvents(allEvents, p.EventTypes(), checkpoint)
+		var events []event.Event
 
-		for _, evt := range filtered {
+		if hasPositional && !checkpoint.IsZero() {
+			loaded, lErr := positional.LoadAllFromPosition(ctx, checkpoint, 0)
+			if lErr != nil {
+				return fmt.Errorf("load events from position for %q: %w", p.Name(), lErr)
+			}
+
+			events = filterByTypes(loaded, p.EventTypes())
+		} else {
+			allEvents, lErr := r.loader.LoadAll(ctx)
+			if lErr != nil {
+				return fmt.Errorf("load all events: %w", lErr)
+			}
+
+			events = filterEvents(allEvents, p.EventTypes(), checkpoint)
+		}
+
+		for _, evt := range events {
 			hErr := r.handleAndCheckpoint(ctx, p, evt)
 			if hErr != nil {
 				return fmt.Errorf("replay projection %q event %s: %w", p.Name(), evt.ID(), hErr)
@@ -123,6 +132,22 @@ func (r *Runner) replay(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func filterByTypes(events []event.Event, types []event.Type) []event.Event {
+	if len(types) == 0 {
+		return events
+	}
+
+	result := make([]event.Event, 0, len(events))
+
+	for _, evt := range events {
+		if slices.Contains(types, evt.Type()) {
+			result = append(result, evt)
+		}
+	}
+
+	return result
 }
 
 func (r *Runner) handleAndCheckpoint(

@@ -391,7 +391,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/event`           | 92.9%    |
 | `catalog/asyncapi`     | 97.1%    |
 | `catalog/docserver`    | 92.3%    |
-| `core/decider`         | 85.6%    |
+| `core/decider`         | 91.7%    |
 | `storage`              | 87.6%    |
 
 ## Module Dependency Graph
@@ -848,3 +848,17 @@ Interfaces now return branded types instead of primitives:
   - **FIX**: False-positive TODO match in `catalog/internal/caseutil/convert.go` godoc (buildflow regex matched "ToDotAddress").
   - **FIX**: Replaced `LoadAllFromPositionNoLimit` with unexported `loadAllFromStart` (not part of public interface).
   - Zero lint, all 22 test packages pass
+
+- **Session 81 (Position-Based Replay + Test Coverage + SQL Optimization)**:
+  - **NEW**: `projection.Runner` auto-detects `event.PositionalLoader` — uses `LoadAllFromPosition` for efficient catch-up instead of `LoadAll` + linear scan
+  - **NEW**: `filterByTypes` helper in projection — type filtering for position-based path
+  - **TEST**: `TestRunner_ReplayWithPositionalLoader` — verifies position-based replay with checkpoint
+  - **TEST**: 3 new decider error-path tests (store error, timestamp error, fold error). Coverage: 85.6% → 91.7%
+  - **TEST**: 3 integration tests for time-travel (LoadToVersion, LoadToTimestamp, PositionalLoader)
+  - **TEST**: `TestNewVectorClockFromMap`, `TestNewVectorClockFromMap_Empty` — sync module coverage
+  - **TEST**: 5 sync benchmarks (VectorClock: New, Increment, Merge, Compare; LWWResolver: New)
+  - **TEST**: `BenchmarkSQLEventStore_LoadToVersion` — storage benchmark for time-travel
+  - **FIX**: Flaky `TestSQLiteEventStore_LoadAllFromPosition` — ULIDs within same millisecond are non-monotonic; added `time.Sleep` to ensure ordering
+  - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json)
+  - **SQL**: Added composite index `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)` to both PostgreSQL and SQLite DDL
+  - 24/24 test packages pass (including sync), zero lint, all pass with `-race`

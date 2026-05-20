@@ -131,16 +131,17 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/event"`
 
-| Feature                   | Detail                                                                 | Status |
-| ------------------------- | ---------------------------------------------------------------------- | ------ |
-| Projection interface      | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅     |
-| ProjectionFunc            | Convenience adapter from a function                                    | ✅     |
-| CheckpointStore interface | `Load`/`Save` last processed event ID per projection                   | ✅     |
-| InMemoryRunner            | Single-process runner with per-projection checkpointing, thread-safe   | ✅     |
-| HandleParallel            | Concurrent dispatch to all matching projections via goroutines         | ✅     |
-| Event type filtering      | Runner filters events by `Projection.EventTypes()`                     | ✅     |
-| OutboxPublisher           | Background goroutine polls outbox and publishes to bus                 | ✅     |
-| PublishNow                | Synchronous poll-publish-ack for testing or manual triggering          | ✅     |
+| Feature                          | Detail                                                                 | Status |
+| -------------------------        | ---------------------------------------------------------------------- | ------ |
+| Projection interface             | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅     |
+| ProjectionFunc                   | Convenience adapter from a function                                    | ✅     |
+| CheckpointStore interface        | `Load`/`Save` last processed event ID per projection                   | ✅     |
+| InMemoryRunner                   | Single-process runner with per-projection checkpointing, thread-safe   | ✅     |
+| HandleParallel                   | Concurrent dispatch to all matching projections via goroutines         | ✅     |
+| Event type filtering             | Runner filters events by `Projection.EventTypes()`                     | ✅     |
+| Position-based replay            | Auto-detects `PositionalLoader`, skips loaded events via position      | ✅     |
+| OutboxPublisher                  | Background goroutine polls outbox and publishes to bus                 | ✅     |
+| PublishNow                       | Synchronous poll-publish-ack for testing or manual triggering          | ✅     |
 
 **Gaps in InMemoryRunner:**
 
@@ -372,6 +373,8 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Optimistic concurrency          | `Save` checks version in transaction                                 | ✅     |
 | AppendBatch                     | Appends without concurrency check                                    | ✅     |
 | Load / LoadFromVersion / Delete | All implemented for both engines                                     | ✅     |
+| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `LoadAllFromPosition` with indexes | ✅     |
+| Composite timestamp index       | `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)`     | ✅     |
 | Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata           | ✅     |
 | SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete     | ✅     |
 | SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling       | ✅     |

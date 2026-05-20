@@ -95,22 +95,19 @@ func TestSQLiteEventStore_LoadAllFromPosition(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	ctx := context.Background()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID := id.NewAggregateID()
 
-	now := time.Now()
-	evt1 := sqliteTestEvent(t, aggID1, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2 := sqliteTestEvent(t, aggID2, 1, event.WithOccurredAt(now.Add(-1*time.Hour)))
-	evt3 := sqliteTestEvent(t, aggID1, 2, event.WithOccurredAt(now))
+	evt1 := sqliteTestEvent(t, aggID, 1)
 
-	err := store.AppendBatch(ctx, "Issue", aggID1, []event.Event{evt1, evt3})
+	time.Sleep(2 * time.Millisecond)
+	evt2 := sqliteTestEvent(t, aggID, 2)
+
+	time.Sleep(2 * time.Millisecond)
+	evt3 := sqliteTestEvent(t, aggID, 3)
+
+	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
 	if err != nil {
-		t.Fatalf("AppendBatch agg1: %v", err)
-	}
-
-	err = store.AppendBatch(ctx, "Issue", aggID2, []event.Event{evt2})
-	if err != nil {
-		t.Fatalf("AppendBatch agg2: %v", err)
+		t.Fatalf("AppendBatch: %v", err)
 	}
 
 	events, err := store.LoadAllFromPosition(ctx, evt1.ID(), 1)
@@ -120,6 +117,19 @@ func TestSQLiteEventStore_LoadAllFromPosition(t *testing.T) {
 
 	if len(events) != 1 {
 		t.Fatalf("expected 1 event after position, got %d", len(events))
+	}
+
+	if events[0].ID() != evt2.ID() {
+		t.Fatalf("expected evt2 (version 2), got event with version %d", events[0].Version())
+	}
+
+	all, err := store.LoadAllFromPosition(ctx, evt1.ID(), 0)
+	if err != nil {
+		t.Fatalf("LoadAllFromPosition no limit: %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 events after position with no limit, got %d", len(all))
 	}
 }
 

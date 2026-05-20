@@ -1327,3 +1327,102 @@ func TestRepository_LoadAtTime_NotFound(t *testing.T) {
 		t.Fatalf("expected initial state, got %d", state.Value)
 	}
 }
+
+type errStore struct {
+	event.Store
+	loadToVersionErr   error
+	loadToTimestampErr error
+}
+
+func (e *errStore) LoadToVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, e.loadToVersionErr
+}
+
+func (e *errStore) LoadToTimestamp(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ time.Time,
+) ([]event.Event, error) {
+	return nil, e.loadToTimestampErr
+}
+
+func TestRepository_LoadAtVersion_StoreError(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	store := &errStore{
+		Store:            testhelpers.NewFakeStore(),
+		loadToVersionErr: errors.New("db connection lost"),
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	_, _, err = repo.LoadAtVersion(context.Background(), id.NewAggregateID(), "Counter", 5)
+	if err == nil {
+		t.Fatal("expected error from LoadAtVersion")
+	}
+}
+
+func TestRepository_LoadAtTime_StoreError(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+
+	store := &errStore{
+		Store:              testhelpers.NewFakeStore(),
+		loadToTimestampErr: errors.New("db connection lost"),
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	_, _, err = repo.LoadAtTime(context.Background(), id.NewAggregateID(), "Counter", time.Now())
+	if err == nil {
+		t.Fatal("expected error from LoadAtTime")
+	}
+}
+
+func TestRepository_LoadAtVersion_FoldError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+			return counterState{}, errors.New("corrupted payload")
+		},
+	}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+	evt := makeEvent(t, "CounterCreated", aggID, 1)
+
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt})
+
+	_, _, err = repo.LoadAtVersion(context.Background(), aggID, "Counter", 5)
+	if err == nil {
+		t.Fatal("expected fold error from LoadAtVersion")
+	}
+}

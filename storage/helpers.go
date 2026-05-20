@@ -29,7 +29,8 @@ func Schema() string {
 
 CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
-CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
 }
 
 // SQLiteSchema returns the SQL DDL for creating the events table in SQLite.
@@ -50,7 +51,8 @@ func SQLiteSchema() string {
 
 CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
-CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);`
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
 }
 
 // scanSlice is a generic helper that deduplicates event scanning.

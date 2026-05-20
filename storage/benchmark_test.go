@@ -115,6 +115,45 @@ func BenchmarkPebbleSerialize(b *testing.B) {
 	}
 }
 
+func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		b.Fatalf("create sqlmock: %v", err)
+	}
+
+	store, err := NewSQLEventStore(db)
+	if err != nil {
+		b.Fatalf("NewSQLEventStore: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+	now := time.Now()
+	payload, _ := json.Marshal(map[string]string{"name": "test"})
+	metaJSON, _ := json.Marshal(map[string]string{})
+	columns := []string{
+		"id", "event_type", "aggregate_type", "aggregate_id",
+		"version", "schema_version", "payload", "metadata", "occurred_at",
+	}
+
+	for b.Loop() {
+		rows := sqlmock.NewRows(columns).
+			AddRow(
+				id.NewEventID().String(), "user.created", "User",
+				aggID.String(), 1, 1, payload, metaJSON, now,
+			)
+
+		mock.ExpectQuery("SELECT (.+) FROM events WHERE aggregate_type").
+			WithArgs("User", aggID.String(), 2).
+			WillReturnRows(rows)
+
+		_, _ = store.LoadToVersion(context.Background(), "User", aggID, 2)
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			b.Fatalf("unmet expectations: %v", err)
+		}
+	}
+}
+
 func BenchmarkPebbleDeserialize(b *testing.B) {
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent(

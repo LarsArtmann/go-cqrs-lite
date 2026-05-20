@@ -17,6 +17,38 @@ func TestNewVectorClock(t *testing.T) {
 	}
 }
 
+func TestNewVectorClockFromMap(t *testing.T) {
+	t.Parallel()
+
+	entries := map[NodeID]int64{
+		"node-a": 3,
+		"node-b": 1,
+	}
+
+	clock := NewVectorClockFromMap(entries)
+
+	if len(clock) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(clock))
+	}
+
+	if clock.Get("node-a") != 3 {
+		t.Errorf("expected node-a=3, got %d", clock.Get("node-a"))
+	}
+
+	if clock.Get("node-b") != 1 {
+		t.Errorf("expected node-b=1, got %d", clock.Get("node-b"))
+	}
+}
+
+func TestNewVectorClockFromMap_Empty(t *testing.T) {
+	t.Parallel()
+
+	clock := NewVectorClockFromMap(nil)
+	if len(clock) != 0 {
+		t.Fatalf("expected empty clock, got %d entries", len(clock))
+	}
+}
+
 func TestVectorClock_Increment(t *testing.T) {
 	t.Parallel()
 
