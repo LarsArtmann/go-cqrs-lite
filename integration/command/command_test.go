@@ -125,6 +125,7 @@ func TestDispatcher_RegisterCatalogEntry(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
+	//nolint:staticcheck // testing deprecated CatalogEntries API
 	meta := command.CatalogMeta{
 		Name:    "CreateUser",
 		Version: "1.0.0",
@@ -152,9 +153,11 @@ func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
+	//nolint:staticcheck // testing deprecated CatalogEntries API
 	dispatcher.RegisterCatalogEntry("cmd.a", command.CatalogMeta{Name: "A"})
 
 	entries := dispatcher.CatalogEntries()
+	//nolint:staticcheck // testing deprecated CatalogEntries API
 	entries["cmd.b"] = command.CatalogMeta{Name: "B"}
 
 	if len(dispatcher.CatalogEntries()) != 1 {
