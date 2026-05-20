@@ -25,7 +25,10 @@ func TestNewVectorClockFromMap(t *testing.T) {
 		"node-b": 1,
 	}
 
-	clock := NewVectorClockFromMap(entries)
+	clock, err := NewVectorClockFromMap(entries)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if len(clock) != 2 {
 		t.Fatalf("expected 2 entries, got %d", len(clock))
@@ -43,9 +46,22 @@ func TestNewVectorClockFromMap(t *testing.T) {
 func TestNewVectorClockFromMap_Empty(t *testing.T) {
 	t.Parallel()
 
-	clock := NewVectorClockFromMap(nil)
+	clock, err := NewVectorClockFromMap(nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if len(clock) != 0 {
 		t.Fatalf("expected empty clock, got %d entries", len(clock))
+	}
+}
+
+func TestNewVectorClockFromMap_NegativeCounter(t *testing.T) {
+	t.Parallel()
+
+	entries := map[NodeID]int64{"node-a": -1}
+	_, err := NewVectorClockFromMap(entries)
+	if err == nil {
+		t.Fatal("expected error for negative counter")
 	}
 }
 

@@ -23,11 +23,11 @@ func BenchmarkVectorClock_Increment(b *testing.B) {
 }
 
 func BenchmarkVectorClock_Merge(b *testing.B) {
-	clock1 := NewVectorClockFromMap(map[NodeID]int64{
+	clock1, _ := NewVectorClockFromMap(map[NodeID]int64{
 		"node-a": 5,
 		"node-b": 3,
 	})
-	clock2 := NewVectorClockFromMap(map[NodeID]int64{
+	clock2, _ := NewVectorClockFromMap(map[NodeID]int64{
 		"node-a": 2,
 		"node-c": 7,
 	})
@@ -41,11 +41,11 @@ func BenchmarkVectorClock_Merge(b *testing.B) {
 }
 
 func BenchmarkVectorClock_Compare(b *testing.B) {
-	clock1 := NewVectorClockFromMap(map[NodeID]int64{
+	clock1, _ := NewVectorClockFromMap(map[NodeID]int64{
 		"node-a": 5,
 		"node-b": 3,
 	})
-	clock2 := NewVectorClockFromMap(map[NodeID]int64{
+	clock2, _ := NewVectorClockFromMap(map[NodeID]int64{
 		"node-a": 5,
 		"node-b": 4,
 	})
