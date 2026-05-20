@@ -21,7 +21,7 @@ func TestParseSource(t *testing.T) {
 			t.Errorf("expected api, got %s", s)
 		}
 
-		if s.IsEmpty() {
+		if s.IsZero() {
 			t.Error("source should not be empty")
 		}
 	})
@@ -63,11 +63,11 @@ func TestParseSource(t *testing.T) {
 	})
 }
 
-func TestSourceIsEmpty(t *testing.T) {
+func TestSourceIsZero(t *testing.T) {
 	t.Parallel()
 
 	var s event.Source
-	if !s.IsEmpty() {
+	if !s.IsZero() {
 		t.Error("zero-value Source should be empty")
 	}
 }
@@ -87,7 +87,7 @@ func TestParseIPAddress(t *testing.T) {
 			t.Errorf("expected 192.168.1.1, got %s", ip)
 		}
 
-		if ip.IsEmpty() {
+		if ip.IsZero() {
 			t.Error("IP should not be empty")
 		}
 	})
@@ -100,7 +100,7 @@ func TestParseIPAddress(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if ip.IsEmpty() {
+		if ip.IsZero() {
 			t.Error("IP should not be empty")
 		}
 	})
@@ -113,7 +113,7 @@ func TestParseIPAddress(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if !ip.IsEmpty() {
+		if !ip.IsZero() {
 			t.Error("empty IP should be empty")
 		}
 	})
@@ -141,11 +141,11 @@ func TestParseIPAddress(t *testing.T) {
 	})
 }
 
-func TestIPAddressIsEmpty(t *testing.T) {
+func TestIPAddressIsZero(t *testing.T) {
 	t.Parallel()
 
 	var ip event.IPAddress
-	if !ip.IsEmpty() {
+	if !ip.IsZero() {
 		t.Error("zero-value IPAddress should be empty")
 	}
 }
@@ -161,7 +161,7 @@ func TestParseUserAgent(t *testing.T) {
 			t.Errorf("expected Mozilla/5.0, got %s", ua)
 		}
 
-		if ua.IsEmpty() {
+		if ua.IsZero() {
 			t.Error("user agent should not be empty")
 		}
 	})
@@ -191,7 +191,7 @@ func TestParseUserAgent(t *testing.T) {
 				t.Parallel()
 
 				ua := event.ParseUserAgent(tt.uaString)
-				if !ua.IsEmpty() {
+				if !ua.IsZero() {
 					t.Errorf("%s user agent should be empty", tt.name)
 				}
 			})
@@ -199,11 +199,11 @@ func TestParseUserAgent(t *testing.T) {
 	})
 }
 
-func TestUserAgentIsEmpty(t *testing.T) {
+func TestUserAgentIsZero(t *testing.T) {
 	t.Parallel()
 
 	var ua event.UserAgent
-	if !ua.IsEmpty() {
+	if !ua.IsZero() {
 		t.Error("zero-value UserAgent should be empty")
 	}
 }

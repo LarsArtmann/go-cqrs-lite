@@ -28,8 +28,8 @@ func ParseSource(s string) (Source, error) {
 // String returns the underlying string value.
 func (s Source) String() string { return string(s) }
 
-// IsEmpty returns true if the source is empty.
-func (s Source) IsEmpty() bool { return s == "" }
+// IsZero returns true if the source is zero-valued.
+func (s Source) IsZero() bool { return s == "" }
 
 // IPAddress represents a validated IP address.
 // Using a phantom type ensures type safety and validation.
@@ -54,8 +54,8 @@ func ParseIPAddress(s string) (IPAddress, error) {
 // String returns the underlying string value.
 func (ip IPAddress) String() string { return string(ip) }
 
-// IsEmpty returns true if the IP address is empty.
-func (ip IPAddress) IsEmpty() bool { return ip == "" }
+// IsZero returns true if the IP address is zero-valued.
+func (ip IPAddress) IsZero() bool { return ip == "" }
 
 // UserAgent represents an HTTP User-Agent string.
 // Using a phantom type prevents accidental mixing with other string fields.
@@ -70,8 +70,8 @@ func ParseUserAgent(s string) UserAgent {
 // String returns the underlying string value.
 func (ua UserAgent) String() string { return string(ua) }
 
-// IsEmpty returns true if the user agent is empty.
-func (ua UserAgent) IsEmpty() bool { return ua == "" }
+// IsZero returns true if the user agent is zero-valued.
+func (ua UserAgent) IsZero() bool { return ua == "" }
 
 // Version represents an event/aggregate version number.
 // Using a phantom type ensures type safety and prevents mixing with other ints.
