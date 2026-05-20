@@ -1,28 +1,24 @@
 # TODO List
 
-**Audited:** 2026-05-20 · **Session 79**
-**Sources:** Session 78 Execution Plan, Session 79 Implementation, Full Codebase Analysis
+**Audited:** 2026-05-20 · **Session 82**
+**Sources:** Session 78-79 Execution Plan, Session 82 Implementation, Full Codebase Analysis
 
 ---
 
 ## 🔴 CRITICAL (Correctness Bugs)
 
-- [x] ~~**Pebble Store: optimistic concurrency check**~~ — Fixed in Session 77 (already existed)
+- [x] ~~**Pebble Store: optimistic concurrency check**~~ — Fixed in Session 77
 - [x] ~~**Retry middleware timer leak**~~ — Already fixed (defer timer.Stop present)
 - [x] ~~**Aggregate snapshot with nil codec**~~ — Fixed in Session 78
-- [ ] **example/todo build broken** — stale storage/core API references
-  - `SaveWithOutbox` signature changed, `event.SchemaVersion` undefined, `event.Version` type mismatch
-  - Files: `example/todo/`
+- [x] ~~**example/todo build broken**~~ — Fixed in Session 82 (added replace directives for core/memory/testhelpers, fixed MarshalJSON infinite recursion in queries + commands, fixed test assertion)
 
 ---
 
 ## 🟠 HIGH Priority (Data Safety & Observability)
 
 - [x] ~~**Pebble corrupt ID warnings**~~ — Added slog.Warn in Session 78
-- [ ] **Pebble iterateEvents silently skips corrupt events** — `storage/pebble_event_store.go`
-  - Produces incomplete results with no error return
-- [ ] **OutboxPublisher.publishPending swallows all errors** — `core/event/outbox_publisher.go`
-  - `_ = p.pollPublishAck(ctx)` — zero observability for publish failures
+- [x] ~~**Pebble iterateEvents silently skips corrupt events**~~ — Fixed in Session 82 (returns error instead of silently continuing)
+- [x] ~~**OutboxPublisher.publishPending swallows all errors**~~ — Already logs with slog.Warn (verified in Session 82)
 - [x] ~~**sync.NewLWWResolver nil TimestampFunc guard**~~ — Already has nil check + panic
 - [x] ~~**projection.Runner.Register duplicate check**~~ — Added in Session 78
 - [ ] **Decider Execute dual %w wrapping** — `core/decider/decider.go:113`
@@ -38,24 +34,34 @@
 - [x] ~~**Add WalkMessages helper**~~ — Added `catalog.WalkMessages` in Session 79
 - [ ] **Remove replace directives from go.mod files** — BLOCKED: required until modules are tagged
 - [ ] **Standardize version references across go.mod files** — inconsistent v0.0.0 vs v1.1.0
-- [ ] **Move schema DDL onto Dialect interface** — currently free functions
+- [x] ~~**Move schema DDL onto Dialect interface**~~ — Session 82: EventSchema/SnapshotSchema/CheckpointSchema/OutboxSchema now on Dialect; free functions delegate
 - [ ] **Unify ErrNilBus sentinels** — 3 independent sentinels (intentional per-package context)
-- [ ] **Add clock injection to NewEvent** — `time.Now()` not injectable
-- [ ] **Split storage helper files** — `pebble_serialization.go` deserializeEvent is 71 lines
+- [x] ~~**Add clock injection to NewEvent**~~ — Already injectable via `WithOccurredAt(time.Time)` option
+- [x] ~~**Split storage helper files**~~ — Session 82: extracted `deserializeMetadata` from `deserializeEvent`
 
 ---
 
 ## 🟢 LOW Priority (Nice-to-Have)
 
-- [ ] **Consolidate CatalogMeta** — duplicated in event/command/query packages
+- [x] ~~**Consolidate CatalogMeta**~~ — Intentional per-package context (event has extra AggregateType field)
 - [ ] **Add BDD tests for catalog, storage, sync**
-- [ ] **VectorClock.Compare returns enum** — Before/After/Equal/Concurrent
+- [x] ~~**VectorClock.Compare returns enum**~~ — Session 82: added `Cmp()` returning `ClockOrder` enum (Before/After/Concurrent/Equal); `Compare()` deprecated
 - [ ] **Implement Saga/Process Manager** — design done, implementation pending
 - [ ] **PostgreSQL integration tests for storage** — unit tests use go-sqlmock only
-- [ ] **Standardize logger injection across all modules**
+- [x] ~~**Standardize logger injection across all modules**~~ — Already standardized (constructors accept *slog.Logger, optional via functional options)
 - [ ] **Add `event.Context` propagation to time.Now() calls**
 
 ---
+
+## ✅ COMPLETED (Session 82)
+
+- [x] **example/todo build fix** — replace directives for core/memory/testhelpers, MarshalJSON recursion fix, test assertion fix
+- [x] **Pebble iterateEvents corrupt event handling** — returns error instead of silently skipping
+- [x] **Zero lint across all 8 modules** — fixed embeddedstructfieldcheck, godot, unparam, exhaustruct, godoclint, varnamelen, errchkjson, prealloc, noinlineerr
+- [x] **DDL on Dialect interface** — EventSchema/SnapshotSchema/CheckpointSchema/OutboxSchema on Dialect
+- [x] **Pebble deserializeEvent split** — extracted `deserializeMetadata` helper
+- [x] **VectorClock.Cmp() with ClockOrder enum** — Before/After/Concurrent/Equal with String() method
+- [x] **All tests pass (27 main + 7 example/todo packages)**
 
 ## ✅ COMPLETED (Sessions 77-79)
 

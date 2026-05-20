@@ -41,28 +41,9 @@ func newSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
 func (o *SQLOutbox) Close() error { return nil }
 
 // OutboxSchema returns the SQL DDL for creating the outbox table.
-func OutboxSchema() string {
-	return `CREATE TABLE IF NOT EXISTS outbox (
-    id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
-    events      JSONB NOT NULL,
-    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
+func OutboxSchema() string { return PostgresDialect{}.OutboxSchema() }
 
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
-}
-
-// SQLiteOutboxSchema returns the SQL DDL for creating the outbox table in SQLite.
-func SQLiteOutboxSchema() string {
-	return `CREATE TABLE IF NOT EXISTS outbox (
-    id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
-    events      TEXT NOT NULL,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
-}
+func SQLiteOutboxSchema() string { return SQLiteDialect{}.OutboxSchema() }
 
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {

@@ -90,7 +90,8 @@ func (s *SQLEventStore) queryEvents(
 		whereSuffix,
 	)
 
-	args := []any{string(aggregateType), aggregateID}
+	args := make([]any, 0, 2+len(extraArgs))
+	args = append(args, string(aggregateType), aggregateID)
 	args = append(args, extraArgs...)
 
 	rows, err := s.db.QueryContext(ctx, query, args...)

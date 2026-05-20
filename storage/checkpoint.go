@@ -41,20 +41,9 @@ func newSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStor
 func (s *SQLCheckpointStore) Close() error { return nil }
 
 // CheckpointSchema returns the SQL DDL for creating the checkpoints table.
-func CheckpointSchema() string {
-	return `CREATE TABLE IF NOT EXISTS checkpoints (
-    projection_name VARCHAR(255) PRIMARY KEY,
-    event_id        TEXT NOT NULL
-);`
-}
+func CheckpointSchema() string { return PostgresDialect{}.CheckpointSchema() }
 
-// SQLiteCheckpointSchema returns the SQL DDL for creating the checkpoints table in SQLite.
-func SQLiteCheckpointSchema() string {
-	return `CREATE TABLE IF NOT EXISTS checkpoints (
-    projection_name TEXT PRIMARY KEY,
-    event_id        TEXT NOT NULL
-);`
-}
+func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema() }
 
 // Load returns the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {

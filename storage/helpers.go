@@ -12,48 +12,10 @@ import (
 )
 
 // Schema returns the SQL DDL for creating the events table.
-func Schema() string {
-	return `CREATE TABLE IF NOT EXISTS events (
-    id              TEXT PRIMARY KEY,
-    event_type      VARCHAR(255) NOT NULL,
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    schema_version  INTEGER NOT NULL DEFAULT 1,
-    payload         BYTEA,
-    metadata        JSONB,
-    occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE(aggregate_type, aggregate_id, version)
-);
-
-CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
-CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
-CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
-CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
-}
+func Schema() string { return PostgresDialect{}.EventSchema() }
 
 // SQLiteSchema returns the SQL DDL for creating the events table in SQLite.
-func SQLiteSchema() string {
-	return `CREATE TABLE IF NOT EXISTS events (
-    id              TEXT PRIMARY KEY,
-    event_type      TEXT NOT NULL,
-    aggregate_type  TEXT NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    schema_version  INTEGER NOT NULL DEFAULT 1,
-    payload         BLOB,
-    metadata        TEXT,
-    occurred_at     TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(aggregate_type, aggregate_id, version)
-);
-
-CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
-CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
-CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
-CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
-}
+func SQLiteSchema() string { return SQLiteDialect{}.EventSchema() }
 
 // scanSlice is a generic helper that deduplicates event scanning.
 func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {

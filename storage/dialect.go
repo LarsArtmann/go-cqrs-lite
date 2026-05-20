@@ -11,25 +11,14 @@ import (
 // Each store method delegates placeholder formatting and time handling to a Dialect,
 // eliminating the duplicated PostgreSQL/SQLite store pairs.
 type Dialect interface {
-	// Placeholder returns the positional placeholder for the given 1-based index.
-	// PostgreSQL: "$1", "$2", etc.
-	// SQLite: "?" for all positions.
 	Placeholder(index int) string
-
-	// FormatTime converts a time.Time to the driver-compatible representation.
-	// PostgreSQL: time.Time directly.
-	// SQLite: RFC3339Nano string.
 	FormatTime(t time.Time) any
-
-	// ScanTimeDest returns a destination for scanning a timestamp column.
-	// PostgreSQL: *time.Time.
-	// SQLite: *string (parsed after scan).
 	ScanTimeDest() any
-
-	// ParseTime converts the scanned value back to time.Time.
-	// PostgreSQL: identity (already time.Time).
-	// SQLite: parse the string.
 	ParseTime(src any) (time.Time, error)
+	EventSchema() string
+	SnapshotSchema() string
+	CheckpointSchema() string
+	OutboxSchema() string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -57,6 +46,56 @@ func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 	return *tp, nil
 }
 
+func (PostgresDialect) EventSchema() string {
+	return `CREATE TABLE IF NOT EXISTS events (
+    id              TEXT PRIMARY KEY,
+    event_type      VARCHAR(255) NOT NULL,
+    aggregate_type  VARCHAR(255) NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
+    payload         BYTEA,
+    metadata        JSONB,
+    occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(aggregate_type, aggregate_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
+}
+
+func (PostgresDialect) SnapshotSchema() string {
+	return `CREATE TABLE IF NOT EXISTS snapshots (
+    aggregate_type  VARCHAR(255) NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    state           JSONB NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);`
+}
+
+func (PostgresDialect) CheckpointSchema() string {
+	return `CREATE TABLE IF NOT EXISTS checkpoints (
+    projection_name VARCHAR(255) PRIMARY KEY,
+    event_id        TEXT NOT NULL
+);`
+}
+
+func (PostgresDialect) OutboxSchema() string {
+	return `CREATE TABLE IF NOT EXISTS outbox (
+    id          TEXT PRIMARY KEY,
+    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
+    events      JSONB NOT NULL,
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
+}
+
 // SQLiteDialect is the Dialect for SQLite databases.
 type SQLiteDialect struct{}
 
@@ -80,6 +119,56 @@ func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 	}
 
 	return parseSQLiteTimestamp(*sp)
+}
+
+func (SQLiteDialect) EventSchema() string {
+	return `CREATE TABLE IF NOT EXISTS events (
+    id              TEXT PRIMARY KEY,
+    event_type      TEXT NOT NULL,
+    aggregate_type  TEXT NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
+    payload         BLOB,
+    metadata        TEXT,
+    occurred_at     TEXT NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(aggregate_type, aggregate_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
+}
+
+func (SQLiteDialect) SnapshotSchema() string {
+	return `CREATE TABLE IF NOT EXISTS snapshots (
+    aggregate_type  TEXT NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    state           BLOB NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);`
+}
+
+func (SQLiteDialect) CheckpointSchema() string {
+	return `CREATE TABLE IF NOT EXISTS checkpoints (
+    projection_name TEXT PRIMARY KEY,
+    event_id        TEXT NOT NULL
+);`
+}
+
+func (SQLiteDialect) OutboxSchema() string {
+	return `CREATE TABLE IF NOT EXISTS outbox (
+    id          TEXT PRIMARY KEY,
+    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
+    events      TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
 // placeholders returns a comma-separated list of placeholders for the given count.

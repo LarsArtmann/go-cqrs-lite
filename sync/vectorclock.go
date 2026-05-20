@@ -45,7 +45,74 @@ func (vc VectorClock) Merge(other VectorClock) {
 	}
 }
 
+// ClockOrder represents the result of comparing two vector clocks.
+type ClockOrder int
+
+const (
+	OrderBefore      ClockOrder = iota - 1 // this happened before other
+	OrderConcurrent                        // this and other are concurrent
+	OrderAfter                              // this happened after other
+	OrderEqual                              // this and other are identical
+)
+
+// Cmp compares two vector clocks and returns a typed result.
+//
+// Unlike Compare (which conflates concurrent and equal), Cmp distinguishes all four cases.
+func (vc VectorClock) Cmp(other VectorClock) ClockOrder {
+	if vc.Equal(other) {
+		return OrderEqual
+	}
+
+	allNodes := make(map[NodeID]bool)
+	for node := range vc {
+		allNodes[node] = true
+	}
+
+	for node := range other {
+		allNodes[node] = true
+	}
+
+	less, greater := false, false
+
+	for node := range allNodes {
+		v1, v2 := vc[node], other[node]
+
+		if v1 < v2 {
+			less = true
+		} else if v1 > v2 {
+			greater = true
+		}
+	}
+
+	if less && !greater {
+		return OrderBefore
+	}
+
+	if greater && !less {
+		return OrderAfter
+	}
+
+	return OrderConcurrent
+}
+
+func (o ClockOrder) String() string {
+	switch o {
+	case OrderBefore:
+		return "before"
+	case OrderAfter:
+		return "after"
+	case OrderConcurrent:
+		return "concurrent"
+	case OrderEqual:
+		return "equal"
+	default:
+		return "unknown"
+	}
+}
+
 // Compare compares two vector clocks for causal ordering.
+//
+// Deprecated: Use Cmp() for typed results with equal/concurrent distinction.
 //
 // Returns:
 //   - -1 if vc "happened before" other (vc < other)

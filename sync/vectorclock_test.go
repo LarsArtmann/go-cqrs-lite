@@ -275,3 +275,63 @@ func TestVectorClock_Equal_Symmetric(t *testing.T) {
 		t.Error("Equal should be symmetric")
 	}
 }
+
+func TestVectorClock_Cmp(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		a        VectorClock
+		b        VectorClock
+		expected ClockOrder
+	}{
+		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), OrderEqual},
+		{"identical clocks are equal", VectorClock{NodeID("a"): 1}, VectorClock{NodeID("a"): 1}, OrderEqual},
+		{"before", VectorClock{NodeID("a"): 1}, VectorClock{NodeID("a"): 3}, OrderBefore},
+		{"after", VectorClock{NodeID("a"): 3}, VectorClock{NodeID("a"): 1}, OrderAfter},
+		{
+			"concurrent",
+			VectorClock{NodeID("a"): 3, NodeID("b"): 1},
+			VectorClock{NodeID("a"): 1, NodeID("b"): 3},
+			OrderConcurrent,
+		},
+		{"empty vs non-empty", NewVectorClock(), VectorClock{NodeID("a"): 1}, OrderBefore},
+		{"superset is after", VectorClock{NodeID("a"): 3, NodeID("b"): 2}, VectorClock{NodeID("a"): 3}, OrderAfter},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.a.Cmp(tt.b)
+			if got != tt.expected {
+				t.Errorf("Cmp() = %v (%s), want %v (%s)", got, got, tt.expected, tt.expected)
+			}
+		})
+	}
+}
+
+func TestClockOrder_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		order    ClockOrder
+		expected string
+	}{
+		{OrderBefore, "before"},
+		{OrderAfter, "after"},
+		{OrderConcurrent, "concurrent"},
+		{OrderEqual, "equal"},
+		{ClockOrder(99), "unknown"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.order.String(); got != tt.expected {
+				t.Errorf("String() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}

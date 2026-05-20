@@ -72,68 +72,7 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 	)
 
 	if s.Metadata != nil {
-		m := event.NewMetadata()
-
-		var parseErr error
-
-		if s.Metadata.CorrelationID != "" {
-			m.CorrelationID, parseErr = id.ParseCorrelationID(s.Metadata.CorrelationID)
-			if parseErr != nil {
-				slog.Warn(
-					"pebble: corrupt correlation ID",
-					"value",
-					s.Metadata.CorrelationID,
-					"error",
-					parseErr,
-				)
-			}
-		}
-
-		if s.Metadata.CausationID != "" {
-			m.CausationID, parseErr = id.ParseCausationID(s.Metadata.CausationID)
-			if parseErr != nil {
-				slog.Warn(
-					"pebble: corrupt causation ID",
-					"value",
-					s.Metadata.CausationID,
-					"error",
-					parseErr,
-				)
-			}
-		}
-
-		if s.Metadata.UserID != "" {
-			m.UserID, parseErr = id.ParseUserID(s.Metadata.UserID)
-			if parseErr != nil {
-				slog.Warn("pebble: corrupt user ID", "value", s.Metadata.UserID, "error", parseErr)
-			}
-		}
-
-		if s.Metadata.RequestID != "" {
-			m.RequestID, parseErr = id.ParseRequestID(s.Metadata.RequestID)
-			if parseErr != nil {
-				slog.Warn(
-					"pebble: corrupt request ID",
-					"value",
-					s.Metadata.RequestID,
-					"error",
-					parseErr,
-				)
-			}
-		}
-
-		m.Source = event.Source(s.Metadata.Source)
-		m.IPAddress = event.IPAddress(s.Metadata.IPAddress)
-
-		m.UserAgent = event.UserAgent(s.Metadata.UserAgent)
-		if len(s.Metadata.Custom) > 0 {
-			m.Custom = make(map[event.MetadataKey]string, len(s.Metadata.Custom))
-			for k, v := range s.Metadata.Custom {
-				m.Custom[event.MetadataKey(k)] = v
-			}
-		}
-
-		opts = append(opts, event.WithMetadata(m))
+		opts = append(opts, event.WithMetadata(deserializeMetadata(s.Metadata)))
 	}
 
 	if s.SchemaVersion > 0 {
@@ -148,6 +87,59 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		s.Payload,
 		opts...,
 	)
+}
+
+func deserializeMetadata(s *serializableMetadata) *event.Metadata {
+	m := event.NewMetadata()
+
+	if s.CorrelationID != "" {
+		parsed, err := id.ParseCorrelationID(s.CorrelationID)
+		if err != nil {
+			slog.Warn("pebble: corrupt correlation ID", "value", s.CorrelationID, "error", err)
+		} else {
+			m.CorrelationID = parsed
+		}
+	}
+
+	if s.CausationID != "" {
+		parsed, err := id.ParseCausationID(s.CausationID)
+		if err != nil {
+			slog.Warn("pebble: corrupt causation ID", "value", s.CausationID, "error", err)
+		} else {
+			m.CausationID = parsed
+		}
+	}
+
+	if s.UserID != "" {
+		parsed, err := id.ParseUserID(s.UserID)
+		if err != nil {
+			slog.Warn("pebble: corrupt user ID", "value", s.UserID, "error", err)
+		} else {
+			m.UserID = parsed
+		}
+	}
+
+	if s.RequestID != "" {
+		parsed, err := id.ParseRequestID(s.RequestID)
+		if err != nil {
+			slog.Warn("pebble: corrupt request ID", "value", s.RequestID, "error", err)
+		} else {
+			m.RequestID = parsed
+		}
+	}
+
+	m.Source = event.Source(s.Source)
+	m.IPAddress = event.IPAddress(s.IPAddress)
+	m.UserAgent = event.UserAgent(s.UserAgent)
+
+	if len(s.Custom) > 0 {
+		m.Custom = make(map[event.MetadataKey]string, len(s.Custom))
+		for k, v := range s.Custom {
+			m.Custom[event.MetadataKey(k)] = v
+		}
+	}
+
+	return m
 }
 
 // serializableEvent represents the JSON storage format for events.

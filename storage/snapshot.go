@@ -42,28 +42,9 @@ func newSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, e
 func (s *SQLSnapshotStore) Close() error { return nil }
 
 // SnapshotSchema returns the SQL DDL for creating the snapshots table.
-func SnapshotSchema() string {
-	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    state           JSONB NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (aggregate_type, aggregate_id)
-);`
-}
+func SnapshotSchema() string { return PostgresDialect{}.SnapshotSchema() }
 
-// SQLiteSnapshotSchema returns the SQL DDL for creating the snapshots table in SQLite.
-func SQLiteSnapshotSchema() string {
-	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  TEXT NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    state           BLOB NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    PRIMARY KEY (aggregate_type, aggregate_id)
-);`
-}
+func SQLiteSnapshotSchema() string { return SQLiteDialect{}.SnapshotSchema() }
 
 // Save persists a snapshot for an aggregate.
 // State is stored as-is ([]byte) — no additional marshaling is applied.
