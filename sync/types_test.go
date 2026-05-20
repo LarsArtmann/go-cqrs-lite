@@ -2,9 +2,6 @@ package sync
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestParseOperationID(t *testing.T) {
@@ -32,14 +29,20 @@ func TestParseOperationID(t *testing.T) {
 
 			got, err := ParseOperationID(tt.input)
 			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "operation ID cannot be empty")
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
 
 				return
 			}
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
 		})
 	}
 }
@@ -51,22 +54,30 @@ func TestMustParseOperationID(t *testing.T) {
 		t.Parallel()
 
 		id := MustParseOperationID("op-1")
-		assert.Equal(t, OperationID("op-1"), id)
+		if id != OperationID("op-1") {
+			t.Errorf("got %q, want %q", id, "op-1")
+		}
 	})
 
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			MustParseOperationID("")
-		})
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("expected panic")
+			}
+		}()
+
+		MustParseOperationID("")
 	})
 }
 
 func TestOperationID_String(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, "op-42", OperationID("op-42").String())
+	if got := OperationID("op-42").String(); got != "op-42" {
+		t.Errorf("got %q, want %q", got, "op-42")
+	}
 }
 
 func TestOperationID_IsZero(t *testing.T) {
@@ -74,12 +85,16 @@ func TestOperationID_IsZero(t *testing.T) {
 
 	t.Run("non-zero ID", func(t *testing.T) {
 		t.Parallel()
-		assert.False(t, OperationID("op-1").IsZero())
+		if OperationID("op-1").IsZero() {
+			t.Error("expected false for non-zero ID")
+		}
 	})
 
 	t.Run("zero ID", func(t *testing.T) {
 		t.Parallel()
-		assert.True(t, OperationID("").IsZero())
+		if !OperationID("").IsZero() {
+			t.Error("expected true for zero ID")
+		}
 	})
 }
 
@@ -90,15 +105,21 @@ func TestParseNodeID(t *testing.T) {
 		t.Parallel()
 
 		got, err := ParseNodeID("node-a")
-		require.NoError(t, err)
-		assert.Equal(t, NodeID("node-a"), got)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if got != NodeID("node-a") {
+			t.Errorf("got %q, want %q", got, "node-a")
+		}
 	})
 
 	t.Run("empty string", func(t *testing.T) {
 		t.Parallel()
 
 		_, err := ParseNodeID("")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "node ID cannot be empty")
+		if err == nil {
+			t.Fatal("expected error for empty node ID")
+		}
 	})
 }

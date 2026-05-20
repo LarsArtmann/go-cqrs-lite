@@ -1,12 +1,12 @@
 package sync
 
-import "fmt"
+import "errors"
 
-var (
-	_ fmt.Stringer = NodeID("")
-	_ fmt.Stringer = OperationID("")
-	_ fmt.Stringer = SyncMessageType("")
-)
+// ErrEmptyNodeID is returned when parsing an empty node ID.
+var ErrEmptyNodeID = errors.New("node ID cannot be empty")
+
+// ErrEmptyOperationID is returned when parsing an empty operation ID.
+var ErrEmptyOperationID = errors.New("operation ID cannot be empty")
 
 // NodeID identifies a node in the distributed sync system.
 // Using a named type prevents accidental mixing with arbitrary strings.
@@ -16,7 +16,7 @@ type NodeID string
 // Returns an error if the string is empty.
 func ParseNodeID(s string) (NodeID, error) {
 	if s == "" {
-		return "", fmt.Errorf("node ID cannot be empty") //nolint:err113 // specific value required
+		return "", ErrEmptyNodeID
 	}
 
 	return NodeID(s), nil
@@ -46,9 +46,7 @@ type OperationID string
 // Returns an error if the string is empty.
 func ParseOperationID(s string) (OperationID, error) {
 	if s == "" {
-		return "", fmt.Errorf(
-			"operation ID cannot be empty",
-		) //nolint:err113 // specific value required
+		return "", ErrEmptyOperationID
 	}
 
 	return OperationID(s), nil

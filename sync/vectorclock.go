@@ -15,13 +15,13 @@ func NewVectorClock() VectorClock {
 
 // NewVectorClockFromMap creates a VectorClock from a map of node IDs to counters.
 func NewVectorClockFromMap(entries map[NodeID]int64) VectorClock {
-	vc := make(VectorClock, len(entries))
+	clock := make(VectorClock, len(entries))
 
-	for node, t := range entries {
-		vc[node] = t
+	for node, counter := range entries {
+		clock[node] = counter
 	}
 
-	return vc
+	return clock
 }
 
 // Increment increments the clock counter for a node.

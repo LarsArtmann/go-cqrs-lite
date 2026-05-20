@@ -2,63 +2,58 @@ package sync
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-var sharedVC = struct {
-	IdenticalAB VectorClock
-	Concurrent1 VectorClock
-	Concurrent2 VectorClock
-	GreaterA    VectorClock
-	LessB       VectorClock
-	Superset    VectorClock
-	Subset      VectorClock
-	DisjointA   VectorClock
-	DisjointB   VectorClock
-}{
-	IdenticalAB: VectorClock{NodeID("a"): 1, NodeID("b"): 2},
-	Concurrent1: VectorClock{NodeID("a"): 3, NodeID("b"): 1},
-	Concurrent2: VectorClock{NodeID("a"): 1, NodeID("b"): 3},
-	GreaterA:    VectorClock{NodeID("a"): 5, NodeID("b"): 2},
-	LessB:       VectorClock{NodeID("a"): 3, NodeID("b"): 2},
-	Superset:    VectorClock{NodeID("a"): 3, NodeID("b"): 2},
-	Subset:      VectorClock{NodeID("a"): 3},
-	DisjointA:   VectorClock{NodeID("a"): 2},
-	DisjointB:   VectorClock{NodeID("b"): 3},
-}
-
 func TestNewVectorClock(t *testing.T) {
-	vc := NewVectorClock()
-	if vc == nil {
+	t.Parallel()
+
+	clock := NewVectorClock()
+	if clock == nil {
 		t.Fatal("NewVectorClock returned nil")
 	}
 
-	if len(vc) != 0 {
-		t.Fatalf("expected empty vector clock, got %d entries", len(vc))
+	if len(clock) != 0 {
+		t.Fatalf("expected empty vector clock, got %d entries", len(clock))
 	}
 }
 
 func TestVectorClock_Increment(t *testing.T) {
-	vc := NewVectorClock()
+	t.Parallel()
 
-	vc.Increment(NodeID("node-a"))
-	assert.Equal(t, int64(1), vc.Get(NodeID("node-a")), "first increment")
+	clock := NewVectorClock()
 
-	vc.Increment(NodeID("node-a"))
-	assert.Equal(t, int64(2), vc.Get(NodeID("node-a")), "second increment")
+	clock.Increment(NodeID("node-a"))
+	if got := clock.Get(NodeID("node-a")); got != 1 {
+		t.Errorf("first increment: got %d, want 1", got)
+	}
 
-	vc.Increment(NodeID("node-b"))
-	assert.Equal(t, int64(1), vc.Get(NodeID("node-b")), "new node")
-	assert.Equal(t, int64(2), vc.Get(NodeID("node-a")), "original unchanged")
+	clock.Increment(NodeID("node-a"))
+	if got := clock.Get(NodeID("node-a")); got != 2 {
+		t.Errorf("second increment: got %d, want 2", got)
+	}
+
+	clock.Increment(NodeID("node-b"))
+	if got := clock.Get(NodeID("node-b")); got != 1 {
+		t.Errorf("new node: got %d, want 1", got)
+	}
+
+	if got := clock.Get(NodeID("node-a")); got != 2 {
+		t.Errorf("original unchanged: got %d, want 2", got)
+	}
 }
 
 func TestVectorClock_Get_MissingNode(t *testing.T) {
-	vc := NewVectorClock()
-	assert.Equal(t, int64(0), vc.Get(NodeID("nonexistent")), "missing node returns 0")
+	t.Parallel()
+
+	clock := NewVectorClock()
+	if got := clock.Get(NodeID("nonexistent")); got != 0 {
+		t.Errorf("missing node: got %d, want 0", got)
+	}
 }
 
 func TestVectorClock_Merge(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		base     VectorClock
@@ -99,11 +94,13 @@ func TestVectorClock_Merge(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tt.base.Merge(tt.other)
 
 			for node, expected := range tt.expected {
 				if got := tt.base.Get(node); got != expected {
-					t.Errorf("node %q: expected %d, got %d", node, expected, got)
+					t.Errorf("node %q: got %d, want %d", node, got, expected)
 				}
 			}
 
@@ -115,86 +112,69 @@ func TestVectorClock_Merge(t *testing.T) {
 }
 
 func TestVectorClock_Compare(t *testing.T) {
+	t.Parallel()
+
+	identicalAB := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
+	greaterA := VectorClock{NodeID("a"): 5, NodeID("b"): 2}
+	lessB := VectorClock{NodeID("a"): 3, NodeID("b"): 2}
+	superset := VectorClock{NodeID("a"): 3, NodeID("b"): 2}
+	subset := VectorClock{NodeID("a"): 3}
+
 	tests := []struct {
 		name     string
 		a        VectorClock
 		b        VectorClock
 		expected int
 	}{
+		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), 0},
+		{"identical clocks are equal", superset, superset, 0},
+		{"a < b (happened before)", VectorClock{NodeID("a"): 1, NodeID("b"): 2}, lessB, -1},
+		{"a > b (happened after)", greaterA, lessB, 1},
 		{
-			name:     "empty clocks are equal",
-			a:        NewVectorClock(),
-			b:        NewVectorClock(),
-			expected: 0,
+			"concurrent clocks",
+			VectorClock{NodeID("a"): 3, NodeID("b"): 1},
+			VectorClock{NodeID("a"): 1, NodeID("b"): 3},
+			0,
 		},
-		{
-			name:     "identical clocks are equal",
-			a:        sharedVC.Superset,
-			b:        sharedVC.Superset,
-			expected: 0,
-		},
-		{
-			name:     "a < b (happened before)",
-			a:        VectorClock{NodeID("a"): 1, NodeID("b"): 2},
-			b:        sharedVC.LessB,
-			expected: -1,
-		},
-		{
-			name:     "a > b (happened after)",
-			a:        sharedVC.GreaterA,
-			b:        sharedVC.LessB,
-			expected: 1,
-		},
-		{
-			name:     "concurrent clocks",
-			a:        sharedVC.Concurrent1,
-			b:        sharedVC.Concurrent2,
-			expected: 0,
-		},
-		{
-			name:     "one node vs empty",
-			a:        VectorClock{NodeID("a"): 1},
-			b:        NewVectorClock(),
-			expected: 1,
-		},
-		{
-			name:     "empty vs one node",
-			a:        NewVectorClock(),
-			b:        VectorClock{NodeID("a"): 1},
-			expected: -1,
-		},
-		{
-			name:     "superset clock is greater",
-			a:        sharedVC.Superset,
-			b:        sharedVC.Subset,
-			expected: 1,
-		},
+		{"one node vs empty", VectorClock{NodeID("a"): 1}, NewVectorClock(), 1},
+		{"empty vs one node", NewVectorClock(), VectorClock{NodeID("a"): 1}, -1},
+		{"superset clock is greater", superset, subset, 1},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tt.a.Compare(tt.b)
 			if got != tt.expected {
 				t.Errorf("Compare() = %d, want %d", got, tt.expected)
 			}
 		})
 	}
+
+	if got := identicalAB.Get(NodeID("a")); got != 1 {
+		t.Errorf("identicalAB sanity: got %d", got)
+	}
 }
 
 func TestVectorClock_Compare_Symmetric(t *testing.T) {
-	a := VectorClock{NodeID("a"): 1}
-	b := VectorClock{NodeID("a"): 3}
+	t.Parallel()
 
-	if a.Compare(b) != -1 {
+	clockA := VectorClock{NodeID("a"): 1}
+	clockB := VectorClock{NodeID("a"): 3}
+
+	if clockA.Compare(clockB) != -1 {
 		t.Error("a < b expected")
 	}
 
-	if b.Compare(a) != 1 {
+	if clockB.Compare(clockA) != 1 {
 		t.Error("b > a expected")
 	}
 }
 
 func TestVectorClock_Clone(t *testing.T) {
+	t.Parallel()
+
 	original := VectorClock{NodeID("a"): 3, NodeID("b"): 5}
 	cloned := original.Clone()
 
@@ -210,6 +190,8 @@ func TestVectorClock_Clone(t *testing.T) {
 }
 
 func TestVectorClock_Clone_Empty(t *testing.T) {
+	t.Parallel()
+
 	original := NewVectorClock()
 	cloned := original.Clone()
 
@@ -219,46 +201,31 @@ func TestVectorClock_Clone_Empty(t *testing.T) {
 }
 
 func TestVectorClock_Equal(t *testing.T) {
+	t.Parallel()
+
+	identicalAB := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
+	concurrent1 := VectorClock{NodeID("a"): 3, NodeID("b"): 1}
+	concurrent2 := VectorClock{NodeID("a"): 1, NodeID("b"): 3}
+	disjointA := VectorClock{NodeID("a"): 2}
+	disjointB := VectorClock{NodeID("b"): 3}
+
 	tests := []struct {
 		name     string
 		a        VectorClock
 		b        VectorClock
 		expected bool
 	}{
-		{
-			name:     "empty clocks equal",
-			a:        NewVectorClock(),
-			b:        NewVectorClock(),
-			expected: true,
-		},
-		{
-			name:     "identical clocks equal",
-			a:        sharedVC.IdenticalAB,
-			b:        sharedVC.IdenticalAB,
-			expected: true,
-		},
-		{
-			name:     "concurrent clocks not equal",
-			a:        sharedVC.Concurrent1,
-			b:        sharedVC.Concurrent2,
-			expected: false,
-		},
-		{
-			name:     "different sizes not equal",
-			a:        sharedVC.DisjointA,
-			b:        sharedVC.IdenticalAB,
-			expected: false,
-		},
-		{
-			name:     "same compare result but different nodes",
-			a:        sharedVC.DisjointA,
-			b:        sharedVC.DisjointB,
-			expected: false,
-		},
+		{"empty clocks equal", NewVectorClock(), NewVectorClock(), true},
+		{"identical clocks equal", identicalAB, identicalAB, true},
+		{"concurrent clocks not equal", concurrent1, concurrent2, false},
+		{"different sizes not equal", disjointA, identicalAB, false},
+		{"same compare result but different nodes", disjointA, disjointB, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.a.Equal(tt.b); got != tt.expected {
 				t.Errorf("Equal() = %v, want %v", got, tt.expected)
 			}
@@ -267,6 +234,8 @@ func TestVectorClock_Equal(t *testing.T) {
 }
 
 func TestVectorClock_Equal_Symmetric(t *testing.T) {
+	t.Parallel()
+
 	a := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
 	b := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
 

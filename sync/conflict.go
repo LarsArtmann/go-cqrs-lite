@@ -10,8 +10,8 @@ import (
 type Conflict[T any] struct {
 	Local     T           `json:"local"`
 	Remote    T           `json:"remote"`
-	LocalVC   VectorClock `json:"local_vc"`
-	RemoteVC  VectorClock `json:"remote_vc"`
+	LocalVC   VectorClock `json:"localVc"`
+	RemoteVC  VectorClock `json:"remoteVc"`
 	Timestamp time.Time   `json:"timestamp"`
 }
 
@@ -45,6 +45,7 @@ func NewLWWResolver[T any](timestampFunc func(T) time.Time) *LWWResolver[T] {
 
 	return &LWWResolver[T]{
 		TimestampFunc: timestampFunc,
+		Tiebreaker:    nil,
 	}
 }
 
