@@ -81,7 +81,9 @@ func (s *SQLEventStore) queryEvents(
 		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = %s AND aggregate_id = %s %s`,
-		p1, p2, whereSuffix,
+		p1,
+		p2,
+		whereSuffix,
 	)
 
 	args := []any{string(aggregateType), aggregateID}

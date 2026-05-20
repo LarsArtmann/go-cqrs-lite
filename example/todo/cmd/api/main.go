@@ -116,7 +116,11 @@ func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) 
 	registerQuery(qDisp, queries.CountTodosQueryType, queries.NewCountTodosHandler(store).Handle)
 }
 
-func registerQuery(qDisp *query.Dispatcher, qType query.Type, handler func(query.Query) (any, error)) {
+func registerQuery(
+	qDisp *query.Dispatcher,
+	qType query.Type,
+	handler func(query.Query) (any, error),
+) {
 	_ = qDisp.Register(qType, func(_ context.Context, q query.Query) (any, error) {
 		return handler(q)
 	})
