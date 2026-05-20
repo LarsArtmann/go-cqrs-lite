@@ -2,6 +2,7 @@ package projection
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -16,7 +17,7 @@ func (r *Runner) subscribeLive(ctx context.Context) error {
 
 	err := r.subscriber.SubscribeAll(handler)
 	if err != nil {
-		return err
+		return fmt.Errorf("subscribe: %w", err)
 	}
 
 	<-ctx.Done()
@@ -58,7 +59,7 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("retry cancelled: %w", ctx.Err())
 		case <-time.After(delay):
 		}
 
