@@ -1,5 +1,7 @@
 package sync
 
+import "maps"
+
 // VectorClock tracks logical time across nodes for causal ordering.
 // It maps node identifiers to monotonically increasing counters.
 //
@@ -12,16 +14,9 @@ type VectorClock map[NodeID]int64
 func NewVectorClock() VectorClock {
 	return make(VectorClock)
 }
-
 // NewVectorClockFromMap creates a VectorClock from a map of node IDs to counters.
 func NewVectorClockFromMap(entries map[NodeID]int64) VectorClock {
-	clock := make(VectorClock, len(entries))
-
-	for node, counter := range entries {
-		clock[node] = counter
-	}
-
-	return clock
+	return maps.Clone(entries)
 }
 
 // Increment increments the clock counter for a node.
