@@ -110,47 +110,6 @@ func (o ClockOrder) String() string {
 	}
 }
 
-// Compare compares two vector clocks for causal ordering.
-//
-// Deprecated: Use Cmp() for typed results with equal/concurrent distinction.
-//
-// Returns:
-//   - -1 if vc "happened before" other (vc < other)
-//   - 1 if vc "happened after" other (vc > other)
-//   - 0 if they are concurrent or equal (vc || other)
-func (vc VectorClock) Compare(other VectorClock) int {
-	allNodes := make(map[NodeID]bool)
-	for node := range vc {
-		allNodes[node] = true
-	}
-
-	for node := range other {
-		allNodes[node] = true
-	}
-
-	less, greater := false, false
-
-	for node := range allNodes {
-		v1, v2 := vc[node], other[node]
-
-		if v1 < v2 {
-			less = true
-		} else if v1 > v2 {
-			greater = true
-		}
-	}
-
-	if less && !greater {
-		return -1
-	}
-
-	if greater && !less {
-		return 1
-	}
-
-	return 0
-}
-
 // Clone creates a deep copy of the vector clock.
 func (vc VectorClock) Clone() VectorClock {
 	clone := NewVectorClock()

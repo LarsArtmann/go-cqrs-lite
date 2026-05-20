@@ -18,7 +18,7 @@
 //	vc.Increment(sync.NodeID("node-1"))
 //	vc.Increment(sync.NodeID("node-2"))
 //	vc.Clone()
-//	vc.Compare(otherVC)
+//	vc.Cmp(otherVC)
 //
 //	resolver := sync.NewLWWResolver[*MyEntity](func(e *MyEntity) time.Time {
 //	    return e.UpdatedAt

@@ -53,7 +53,7 @@ func BenchmarkVectorClock_Compare(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		clock1.Compare(clock2)
+		clock1.Cmp(clock2)
 	}
 }
 

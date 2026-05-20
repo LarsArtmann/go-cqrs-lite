@@ -51,12 +51,12 @@ func NewLWWResolver[T any](timestampFunc func(T) time.Time) *LWWResolver[T] {
 
 // Resolve implements ConflictResolver using vector clock comparison with LWW fallback.
 func (r *LWWResolver[T]) Resolve(conflict *Conflict[T]) (T, error) {
-	comparison := conflict.LocalVC.Compare(conflict.RemoteVC)
+	comparison := conflict.LocalVC.Cmp(conflict.RemoteVC)
 
 	switch comparison {
-	case -1:
+	case OrderBefore:
 		return conflict.Remote, nil
-	case 1:
+	case OrderAfter:
 		return conflict.Local, nil
 	default:
 		localTime := r.TimestampFunc(conflict.Local)

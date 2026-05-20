@@ -143,7 +143,7 @@ func TestVectorClock_Merge(t *testing.T) {
 	}
 }
 
-func TestVectorClock_Compare(t *testing.T) {
+func TestVectorClock_Cmp_Table(t *testing.T) {
 	t.Parallel()
 
 	identicalAB := VectorClock{NodeID("a"): 1, NodeID("b"): 2}
@@ -156,30 +156,30 @@ func TestVectorClock_Compare(t *testing.T) {
 		name     string
 		a        VectorClock
 		b        VectorClock
-		expected int
+		expected ClockOrder
 	}{
-		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), 0},
-		{"identical clocks are equal", superset, superset, 0},
-		{"a < b (happened before)", VectorClock{NodeID("a"): 1, NodeID("b"): 2}, lessB, -1},
-		{"a > b (happened after)", greaterA, lessB, 1},
+		{"empty clocks are equal", NewVectorClock(), NewVectorClock(), OrderEqual},
+		{"identical clocks are equal", superset, superset, OrderEqual},
+		{"a < b (happened before)", VectorClock{NodeID("a"): 1, NodeID("b"): 2}, lessB, OrderBefore},
+		{"a > b (happened after)", greaterA, lessB, OrderAfter},
 		{
 			"concurrent clocks",
 			VectorClock{NodeID("a"): 3, NodeID("b"): 1},
 			VectorClock{NodeID("a"): 1, NodeID("b"): 3},
-			0,
+			OrderConcurrent,
 		},
-		{"one node vs empty", VectorClock{NodeID("a"): 1}, NewVectorClock(), 1},
-		{"empty vs one node", NewVectorClock(), VectorClock{NodeID("a"): 1}, -1},
-		{"superset clock is greater", superset, subset, 1},
+		{"one node vs empty", VectorClock{NodeID("a"): 1}, NewVectorClock(), OrderAfter},
+		{"empty vs one node", NewVectorClock(), VectorClock{NodeID("a"): 1}, OrderBefore},
+		{"superset clock is greater", superset, subset, OrderAfter},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := tt.a.Compare(tt.b)
+			got := tt.a.Cmp(tt.b)
 			if got != tt.expected {
-				t.Errorf("Compare() = %d, want %d", got, tt.expected)
+				t.Errorf("Cmp() = %v, want %v", got, tt.expected)
 			}
 		})
 	}
@@ -195,11 +195,11 @@ func TestVectorClock_Compare_Symmetric(t *testing.T) {
 	clockA := VectorClock{NodeID("a"): 1}
 	clockB := VectorClock{NodeID("a"): 3}
 
-	if clockA.Compare(clockB) != -1 {
+	if clockA.Cmp(clockB) != OrderBefore {
 		t.Error("a < b expected")
 	}
 
-	if clockB.Compare(clockA) != 1 {
+	if clockB.Cmp(clockA) != OrderAfter {
 		t.Error("b > a expected")
 	}
 }
