@@ -27,13 +27,13 @@ func listTodos(qDisp *query.Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q, qErr := queries.NewListTodosQuery()
 		if qErr != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": qErr.Error()})
+			writeError(w, http.StatusInternalServerError, qErr.Error())
 			return
 		}
 
 		result, err := qDisp.Dispatch(r.Context(), q)
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -51,7 +51,7 @@ func createTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
 		}
 
 		if err := decodeJSON(r, &req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -60,16 +60,13 @@ func createTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
 			aggregateID, req.Title, req.Description, req.Priority, req.Tags,
 		)
 		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
+			writeError(w, http.StatusBadRequest, cmdErr.Error())
 			return
 		}
 
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-
-		writeJSON(w, http.StatusCreated, map[string]string{"id": aggregateID.String()})
+		dispatchAndRespond(w, r, cmdDisp, cmd, func() {
+			writeJSON(w, http.StatusCreated, map[string]string{"id": aggregateID.String()})
+		})
 	}
 }
 
@@ -77,19 +74,19 @@ func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		todoID, err := domain.ParseTodoID(r.PathValue("id"))
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
+			writeErrorInvalidID(w)
 			return
 		}
 
 		q, qErr := queries.NewGetTodoQuery(todoID)
 		if qErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": qErr.Error()})
+			writeError(w, http.StatusBadRequest, qErr.Error())
 			return
 		}
 
 		result, err := qDisp.Dispatch(r.Context(), q)
 		if err != nil {
-			writeJSON(w, http.StatusNotFound, map[string]string{"error": "todo not found"})
+			writeError(w, http.StatusNotFound, "todo not found")
 			return
 		}
 
@@ -97,11 +94,27 @@ func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
 	}
 }
 
+func writeError(w http.ResponseWriter, status int, msg string) {
+	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+func writeErrorInvalidID(w http.ResponseWriter) {
+	writeError(w, http.StatusBadRequest, "invalid id")
+}
+
+func dispatchAndRespond(w http.ResponseWriter, r *http.Request, disp *command.Dispatcher, cmd command.Command, successFn func()) {
+	if err := disp.Dispatch(r.Context(), cmd); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	successFn()
+}
+
 func updateTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		aggregateID, err := parseAggregateID(r)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
+			writeErrorInvalidID(w)
 			return
 		}
 
@@ -111,22 +124,19 @@ func updateTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
 		}
 
 		if err := decodeJSON(r, &req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
 		cmd, cmdErr := commands.NewUpdateTodoCommand(aggregateID, req.Title, req.Description)
 		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
+			writeError(w, http.StatusBadRequest, cmdErr.Error())
 			return
 		}
 
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-
-		writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+		dispatchAndRespond(w, r, cmdDisp, cmd, func() {
+			writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+		})
 	}
 }
 
@@ -134,22 +144,19 @@ func deleteTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		aggregateID, err := parseAggregateID(r)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
+			writeErrorInvalidID(w)
 			return
 		}
 
 		cmd, cmdErr := commands.NewDeleteTodoCommand(aggregateID)
 		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
+			writeError(w, http.StatusBadRequest, cmdErr.Error())
 			return
 		}
 
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
+		dispatchAndRespond(w, r, cmdDisp, cmd, func() {
+			w.WriteHeader(http.StatusNoContent)
+		})
 	}
 }
 
@@ -157,7 +164,7 @@ func changeStatus(cmdDisp *command.Dispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		aggregateID, err := parseAggregateID(r)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
+			writeErrorInvalidID(w)
 			return
 		}
 
@@ -166,21 +173,18 @@ func changeStatus(cmdDisp *command.Dispatcher) http.HandlerFunc {
 		}
 
 		if err := decodeJSON(r, &req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
 		cmd, cmdErr := commands.NewChangeStatusCommand(aggregateID, req.Status)
 		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
+			writeError(w, http.StatusBadRequest, cmdErr.Error())
 			return
 		}
 
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
+		dispatchAndRespond(w, r, cmdDisp, cmd, func() {
+			w.WriteHeader(http.StatusNoContent)
+		})
 	}
 }

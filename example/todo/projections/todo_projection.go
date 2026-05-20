@@ -19,58 +19,28 @@ func NewTodoProjection(store domain.TodoReadModel) *TodoProjection {
 
 func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error {
 	switch evt.Type() {
-	case aggregate.EventCreated:
-		return p.handleCreated(evt)
-	case aggregate.EventUpdated:
-		return p.handleUpdated(evt)
-	case aggregate.EventStatusChanged:
-		return p.handleStatusChanged(evt)
-	case aggregate.EventCompleted:
-		return p.handleCompleted(evt)
 	case aggregate.EventDeleted:
-		return p.handleDeleted(evt)
+		todoID, err := domain.ParseTodoID(evt.AggregateID().String())
+		if err != nil {
+			return fmt.Errorf("failed to parse aggregate ID %s: %w", evt.AggregateID(), err)
+		}
+
+		return p.store.Delete(todoID)
+	case aggregate.EventCreated, aggregate.EventUpdated,
+		aggregate.EventStatusChanged, aggregate.EventCompleted:
+		return p.handleUpsert(evt)
 	}
+
 	return nil
 }
 
-func (p *TodoProjection) handleCreated(evt event.Event) error {
+func (p *TodoProjection) handleUpsert(evt event.Event) error {
 	todo, err := payloadToTodo(evt)
 	if err != nil {
-		return fmt.Errorf("handle created event %s: %w", evt.AggregateID(), err)
+		return fmt.Errorf("handle %s event %s: %w", evt.Type(), evt.AggregateID(), err)
 	}
-	return p.store.Put(todo)
-}
 
-func (p *TodoProjection) handleUpdated(evt event.Event) error {
-	todo, err := payloadToTodo(evt)
-	if err != nil {
-		return fmt.Errorf("handle updated event %s: %w", evt.AggregateID(), err)
-	}
 	return p.store.Put(todo)
-}
-
-func (p *TodoProjection) handleStatusChanged(evt event.Event) error {
-	todo, err := payloadToTodo(evt)
-	if err != nil {
-		return fmt.Errorf("handle status changed event %s: %w", evt.AggregateID(), err)
-	}
-	return p.store.Put(todo)
-}
-
-func (p *TodoProjection) handleCompleted(evt event.Event) error {
-	todo, err := payloadToTodo(evt)
-	if err != nil {
-		return fmt.Errorf("handle completed event %s: %w", evt.AggregateID(), err)
-	}
-	return p.store.Put(todo)
-}
-
-func (p *TodoProjection) handleDeleted(evt event.Event) error {
-	todoID, err := domain.ParseTodoID(evt.AggregateID().String())
-	if err != nil {
-		return fmt.Errorf("failed to parse aggregate ID %s: %w", evt.AggregateID(), err)
-	}
-	return p.store.Delete(todoID)
 }
 
 var codec = event.JSONCodec{}
