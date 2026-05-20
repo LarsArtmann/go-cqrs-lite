@@ -17,7 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
-	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
@@ -70,31 +69,11 @@ func main() {
 		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
 	)
 
-	getHandler := queries.NewGetTodoHandler(readModelStore)
-	_ = queryDisp.Register(
-		queries.GetTodoQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return getHandler.Handle(q)
-		},
-	)
-	listHandler := queries.NewListTodosHandler(readModelStore)
-	_ = queryDisp.Register(
-		queries.ListTodosQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return listHandler.Handle(q)
-		},
-	)
-	countHandler := queries.NewCountTodosHandler(readModelStore)
-	_ = queryDisp.Register(
-		queries.CountTodosQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return countHandler.Handle(q)
-		},
-	)
+	registerQueryHandlers(queryDisp, readModelStore)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(
 			w,
 			http.StatusOK,
@@ -131,161 +110,29 @@ func main() {
 	logger.Info("Server exited")
 }
 
-func registerTodoRoutes(
-	mux *http.ServeMux,
-	cmdDisp *command.Dispatcher,
-	queryDisp *query.Dispatcher,
-) {
-	mux.Handle("GET /api/v1/todos", listTodos(queryDisp))
-	mux.Handle("POST /api/v1/todos", createTodo(cmdDisp))
-	mux.Handle("GET /api/v1/todos/{id}", getTodo(queryDisp))
-	mux.Handle("PUT /api/v1/todos/{id}", updateTodo(cmdDisp))
-	mux.Handle("DELETE /api/v1/todos/{id}", deleteTodo(cmdDisp))
-	mux.Handle("PATCH /api/v1/todos/{id}/status", changeStatus(cmdDisp))
+func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) {
+	getHandler := queries.NewGetTodoHandler(store)
+	_ = qDisp.Register(queries.GetTodoQueryType, func(_ context.Context, q query.Query) (any, error) {
+		return getHandler.Handle(q)
+	})
+
+	listHandler := queries.NewListTodosHandler(store)
+	_ = qDisp.Register(queries.ListTodosQueryType, func(_ context.Context, q query.Query) (any, error) {
+		return listHandler.Handle(q)
+	})
+
+	countHandler := queries.NewCountTodosHandler(store)
+	_ = qDisp.Register(queries.CountTodosQueryType, func(_ context.Context, q query.Query) (any, error) {
+		return countHandler.Handle(q)
+	})
 }
 
-func listTodos(qDisp *query.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		q, qErr := queries.NewListTodosQuery()
-		if qErr != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": qErr.Error()})
-			return
-		}
-		result, err := qDisp.Dispatch(r.Context(), q)
-		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		writeJSON(w, http.StatusOK, result)
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-}
 
-func createTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req struct {
-			Title       string   `json:"title"`
-			Description string   `json:"description"`
-			Priority    int      `json:"priority"`
-			Tags        []string `json:"tags"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
-		}
-		aggregateID := id.NewAggregateID()
-		cmd, cmdErr := commands.NewCreateTodoCommand(
-			aggregateID,
-			req.Title,
-			req.Description,
-			req.Priority,
-			req.Tags,
-		)
-		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
-			return
-		}
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		writeJSON(w, http.StatusCreated, map[string]string{"id": aggregateID.String()})
-	}
-}
-
-func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		todoID, err := domain.ParseTodoID(r.PathValue("id"))
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
-			return
-		}
-		q, qErr := queries.NewGetTodoQuery(todoID)
-		if qErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": qErr.Error()})
-			return
-		}
-		result, err := qDisp.Dispatch(r.Context(), q)
-		if err != nil {
-			writeJSON(w, http.StatusNotFound, map[string]string{"error": "todo not found"})
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]any{"data": result})
-	}
-}
-
-func updateTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		aggregateID, err := id.ParseAggregateID(r.PathValue("id"))
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
-			return
-		}
-		var req struct {
-			Title       string `json:"title"`
-			Description string `json:"description"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
-		}
-		cmd, cmdErr := commands.NewUpdateTodoCommand(aggregateID, req.Title, req.Description)
-		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
-			return
-		}
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]bool{"success": true})
-	}
-}
-
-func deleteTodo(cmdDisp *command.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		aggregateID, err := id.ParseAggregateID(r.PathValue("id"))
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
-			return
-		}
-		cmd, cmdErr := commands.NewDeleteTodoCommand(aggregateID)
-		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
-			return
-		}
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func changeStatus(cmdDisp *command.Dispatcher) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		aggregateID, err := id.ParseAggregateID(r.PathValue("id"))
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
-			return
-		}
-		var req struct {
-			Status domain.TodoStatus `json:"status"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
-		}
-		cmd, cmdErr := commands.NewChangeStatusCommand(aggregateID, req.Status)
-		if cmdErr != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": cmdErr.Error()})
-			return
-		}
-		if err := cmdDisp.Dispatch(r.Context(), cmd); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
-	}
+	return defaultValue
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -294,37 +141,14 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			next.ServeHTTP(w, r)
-			logger.Info(
-				"HTTP",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				slog.Duration("latency", time.Since(start)),
-			)
-		})
-	}
+func parseAggregateID(r *http.Request) (id.AggregateID, error) {
+	return id.ParseAggregateID(r.PathValue("id"))
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+func newAggregateID() id.AggregateID {
+	return id.NewAggregateID()
 }
 
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
+func decodeJSON(r *http.Request, v any) error {
+	return json.NewDecoder(r.Body).Decode(v)
 }
