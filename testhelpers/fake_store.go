@@ -21,10 +21,10 @@ type FakeStore struct {
 		events []event.Event,
 		expectedVersion event.Version,
 	) error
-	loadFn           func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
+	loadFn            func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
 	loadFromVersionFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
-	deleteFn         func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
-	closeFn          func() error
+	deleteFn          func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
+	closeFn           func() error
 }
 
 // NewFakeStore creates a FakeStore with empty state.
@@ -221,7 +221,9 @@ func (s *FakeStore) Close() error {
 
 // LoadFn sets an optional override for Load calls.
 // Return an error to simulate load failures.
-func (s *FakeStore) LoadFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)) *FakeStore {
+func (s *FakeStore) LoadFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error),
+) *FakeStore {
 	s.loadFn = fn
 
 	return s
@@ -229,7 +231,9 @@ func (s *FakeStore) LoadFn(fn func(aggregateType event.AggregateType, aggregateI
 
 // LoadFromVersionFn sets an optional override for LoadFromVersion calls.
 // Return an error to simulate load-from-version failures.
-func (s *FakeStore) LoadFromVersionFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)) *FakeStore {
+func (s *FakeStore) LoadFromVersionFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error),
+) *FakeStore {
 	s.loadFromVersionFn = fn
 
 	return s
@@ -237,7 +241,9 @@ func (s *FakeStore) LoadFromVersionFn(fn func(aggregateType event.AggregateType,
 
 // DeleteFn sets an optional override for Delete calls.
 // Return an error to simulate delete failures.
-func (s *FakeStore) DeleteFn(fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) error) *FakeStore {
+func (s *FakeStore) DeleteFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) error,
+) *FakeStore {
 	s.deleteFn = fn
 
 	return s

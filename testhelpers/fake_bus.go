@@ -9,10 +9,10 @@ import (
 
 // FakeBus implements event.Bus for testing.
 type FakeBus struct {
-	mu              sync.Mutex
-	Published       []event.Event
-	PublishErr      error
-	subscribeAllFn  func(event.Handler) error
+	mu             sync.Mutex
+	Published      []event.Event
+	PublishErr     error
+	subscribeAllFn func(event.Handler) error
 }
 
 // NewFakeBus creates a FakeBus with no published events.

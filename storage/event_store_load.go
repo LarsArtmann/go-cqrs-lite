@@ -16,7 +16,8 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	return s.queryEvents(ctx, aggregateType, aggregateID,
+	return s.queryEvents(
+		ctx, aggregateType, aggregateID,
 		"ORDER BY version ASC", nil,
 		true, "query events",
 	)
@@ -29,7 +30,8 @@ func (s *SQLEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	return s.queryEvents(ctx, aggregateType, aggregateID,
+	return s.queryEvents(
+		ctx, aggregateType, aggregateID,
 		fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		[]any{version.Int()},
 		false, "query events from version",
@@ -44,7 +46,8 @@ func (s *SQLEventStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	return s.queryEvents(ctx, aggregateType, aggregateID,
+	return s.queryEvents(
+		ctx, aggregateType, aggregateID,
 		fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		[]any{maxVersion.Int()},
 		true, "query events to version",
@@ -59,7 +62,8 @@ func (s *SQLEventStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	return s.queryEvents(ctx, aggregateType, aggregateID,
+	return s.queryEvents(
+		ctx, aggregateType, aggregateID,
 		fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		[]any{s.dialect.FormatTime(maxTime)},
 		true, "query events to timestamp",
