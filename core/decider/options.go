@@ -95,5 +95,5 @@ func (r *Repository[State]) loadFromSnapshot(
 		return zero, 0, err
 	}
 
-	return state, snap.Version + event.Version(len(events)), nil
+	return state, snap.Version.Add(len(events)), nil
 }

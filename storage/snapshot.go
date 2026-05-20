@@ -109,7 +109,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			version, aggregateType, aggregateID, err)
 	}
 
-	if snap.Version.Int() > version.Int() {
+	if snap.Version.Cmp(version) > 0 {
 		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
 			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
 	}

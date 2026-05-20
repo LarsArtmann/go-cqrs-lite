@@ -100,6 +100,31 @@ func (v Version) Increment() Version { return v + 1 }
 // String returns the version as a decimal string.
 func (v Version) String() string { return strconv.Itoa(int(v)) }
 
+// IsPositive returns true if the version is greater than zero.
+func (v Version) IsPositive() bool { return v > 0 }
+
+// Add returns a new Version incremented by n.
+func (v Version) Add(n int) Version { return v + Version(n) }
+
+// Sub returns a new Version decremented by n.
+func (v Version) Sub(n int) Version { return v - Version(n) }
+
+// Mod returns v modulo n.
+func (v Version) Mod(n int) int { return int(v) % n }
+
+// Cmp compares two Versions. Returns -1, 0, or +1.
+func (v Version) Cmp(other Version) int {
+	if v < other {
+		return -1
+	}
+
+	if v > other {
+		return 1
+	}
+
+	return 0
+}
+
 // SchemaVersion represents the schema version of an event payload.
 // Distinct from Version (stream position) to prevent accidental mixing.
 type SchemaVersion int

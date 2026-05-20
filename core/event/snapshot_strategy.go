@@ -35,5 +35,5 @@ type everyN struct{ interval int }
 var _ SnapshotStrategy = (*everyN)(nil)
 
 func (s *everyN) ShouldSnapshot(_ AggregateType, version Version) bool {
-	return version.Int() > 0 && version.Int()%s.interval == 0
+	return version.IsPositive() && version.Mod(s.interval) == 0
 }

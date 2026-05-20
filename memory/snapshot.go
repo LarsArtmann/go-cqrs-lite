@@ -101,7 +101,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 		return nil, event.ErrSnapshotNotFound
 	}
 
-	if snapshot.Version.Int() > version.Int() {
+	if snapshot.Version.Cmp(version) > 0 {
 		return nil, event.ErrSnapshotNotFound
 	}
 

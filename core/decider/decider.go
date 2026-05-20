@@ -124,7 +124,7 @@ func (r *Repository[State]) Execute(
 		}
 	}
 
-	newVersion := event.Version(len(newEvents)) + currentVersion
+	newVersion := currentVersion.Add(len(newEvents))
 
 	r.saveSnapshotAfterEvents(ctx, aggType, aggID, newVersion, state, newEvents)
 
