@@ -46,7 +46,7 @@ func TestSchemaFromType_Struct(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateUser]()
 
-	if schema.Type != "object" {
+	if schema.Type != catalog.SchemaType("object" {
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
 
@@ -67,7 +67,7 @@ func TestSchemaFromType_Slice(t *testing.T) {
 	t.Parallel()
 
 	schema := catalog.SchemaFromType[CreateOrder]()
-	if schema.Type != "object" {
+	if schema.Type != catalog.SchemaType("object" {
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
 
@@ -105,9 +105,9 @@ func TestSchemaFromType_FieldTypes(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateOrder]()
 
-	tests := map[string]string{
-		"items":  "array",
-		"total":  "number",
+	tests := map[string]catalog.SchemaType{
+		"items":  catalog.TypeArray,
+		"total":  catalog.TypeNumber,
 		"active": "boolean",
 	}
 	for field, expected := range tests {
@@ -167,11 +167,11 @@ func TestSchemaFromType_PrimitiveTypes(t *testing.T) {
 
 	schema := catalog.SchemaFromType[Primitives]()
 
-	expected := map[string]string{
-		"str":    "string",
-		"intVal": "integer",
-		"boolV":  "boolean",
-		"flt":    "number",
+	expected := map[string]catalog.SchemaType{
+		"str":    catalog.TypeString,
+		"intVal": catalog.TypeInteger,
+		"boolV":  catalog.TypeBoolean,
+		"flt":    catalog.TypeNumber,
 	}
 	for name, exp := range expected {
 		prop, ok := schema.Properties[name]
@@ -229,7 +229,7 @@ func TestSchemaFromType_PointerField(t *testing.T) {
 		t.Fatal("expected name property")
 	}
 
-	if prop.Type != "string" {
+	if prop.Type != catalog.SchemaType("string" {
 		t.Errorf("expected string, got %s", prop.Type)
 	}
 }
@@ -248,7 +248,7 @@ func TestSchemaFromType_MapField(t *testing.T) {
 		t.Fatal("expected meta property")
 	}
 
-	if prop.Type != "object" {
+	if prop.Type != catalog.SchemaType("object" {
 		t.Errorf("expected object, got %s", prop.Type)
 	}
 }
@@ -325,7 +325,7 @@ func TestSchemaFromType_ArrayField(t *testing.T) {
 		t.Fatal("expected ids property")
 	}
 
-	if prop.Type != "array" {
+	if prop.Type != catalog.SchemaType("array" {
 		t.Errorf("expected array, got %s", prop.Type)
 	}
 }
@@ -434,7 +434,7 @@ func TestSchemaFromType_PointerTimeTime(t *testing.T) {
 		t.Fatal("expected updatedAt property")
 	}
 
-	if prop.Type != "string" {
+	if prop.Type != catalog.SchemaType("string" {
 		t.Errorf("expected type string for *time.Time, got %q", prop.Type)
 	}
 
@@ -449,25 +449,25 @@ func TestSchemaFromReflect_AllPrimitiveKinds(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    any
-		expected string
+		expected catalog.SchemaType
 	}{
-		{"string", "", "string"},
-		{"int", int(0), "integer"},
-		{"int8", int8(0), "integer"},
-		{"int16", int16(0), "integer"},
-		{"int32", int32(0), "integer"},
-		{"int64", int64(0), "integer"},
-		{"uint", uint(0), "integer"},
-		{"uint8", uint8(0), "integer"},
-		{"uint16", uint16(0), "integer"},
-		{"uint32", uint32(0), "integer"},
-		{"uint64", uint64(0), "integer"},
-		{"uintptr", uintptr(0), "integer"},
+		{"string", "", catalog.TypeString},
+		{"int", int(0), catalog.TypeInteger},
+		{"int8", int8(0), catalog.TypeInteger},
+		{"int16", int16(0), catalog.TypeInteger},
+		{"int32", int32(0), catalog.TypeInteger},
+		{"int64", int64(0), catalog.TypeInteger},
+		{"uint", uint(0), catalog.TypeInteger},
+		{"uint8", uint8(0), catalog.TypeInteger},
+		{"uint16", uint16(0), catalog.TypeInteger},
+		{"uint32", uint32(0), catalog.TypeInteger},
+		{"uint64", uint64(0), catalog.TypeInteger},
+		{"uintptr", uintptr(0), catalog.TypeInteger},
 		{"float32", float32(0), "number"},
-		{"float64", float64(0), "number"},
-		{"bool", true, "boolean"},
-		{"complex64", complex64(0), "string"},
-		{"complex128", complex128(0), "string"},
+		{"float64", float64(0), catalog.TypeNumber},
+		{"bool", true, catalog.TypeBoolean},
+		{"complex64", complex64(0), catalog.TypeString},
+		{"complex128", complex128(0), catalog.TypeString},
 	}
 
 	for _, tt := range tests {
@@ -487,7 +487,7 @@ func TestSchemaFromReflect_Interface(t *testing.T) {
 
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[any]())
 
-	if schema.Type != "object" {
+	if schema.Type != catalog.SchemaType("object" {
 		t.Errorf("expected interface to map to object, got %q", schema.Type)
 	}
 }
@@ -497,7 +497,7 @@ func TestPropertyFromReflect_Map(t *testing.T) {
 
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[map[string]int]())
 
-	if schema.Type != "object" {
+	if schema.Type != catalog.SchemaType("object" {
 		t.Errorf("expected map to map to object, got %q", schema.Type)
 	}
 }
@@ -509,7 +509,7 @@ func TestCollectionSchema_NonSlice(t *testing.T) {
 	// This tests the else branch that's normally unreachable
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[string]())
 
-	if schema.Type != "string" {
+	if schema.Type != catalog.SchemaType("string" {
 		t.Errorf("expected string for direct string type, got %q", schema.Type)
 	}
 }
@@ -535,7 +535,7 @@ func TestSchemaFromReflect_UnsignedIntegers(t *testing.T) {
 			continue
 		}
 
-		if prop.Type != "integer" {
+		if prop.Type != catalog.SchemaType("integer" {
 			t.Errorf("property %s: expected integer, got %s", name, prop.Type)
 		}
 	}
@@ -559,7 +559,7 @@ func TestSchemaFromReflect_ComplexTypes(t *testing.T) {
 			continue
 		}
 
-		if prop.Type != "string" {
+		if prop.Type != catalog.SchemaType("string" {
 			t.Errorf("property %s: expected string (complex), got %s", name, prop.Type)
 		}
 	}
@@ -579,7 +579,7 @@ func TestSchemaFromReflect_InterfaceType(t *testing.T) {
 		t.Fatal("missing property val")
 	}
 
-	if prop.Type != "object" {
+	if prop.Type != catalog.SchemaType("object" {
 		t.Errorf("expected object for interface, got %s", prop.Type)
 	}
 }
@@ -598,7 +598,7 @@ func TestCollectionSchema_ArrayType(t *testing.T) {
 		t.Fatal("missing property items")
 	}
 
-	if prop.Type != "array" {
+	if prop.Type != catalog.SchemaType("array" {
 		t.Errorf("expected array for fixed-size array, got %s", prop.Type)
 	}
 }

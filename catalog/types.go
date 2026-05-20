@@ -5,6 +5,26 @@ import "encoding/json"
 // ServiceID identifies a service in the catalog (e.g., "user-service").
 type ServiceID string
 
+// SchemaType represents a JSON Schema type value (e.g., "string", "object", "array").
+type SchemaType string
+
+const (
+	// TypeString represents the JSON Schema "string" type.
+	TypeString SchemaType = "string"
+	// TypeObject represents the JSON Schema "object" type.
+	TypeObject SchemaType = "object"
+	// TypeInteger represents the JSON Schema "integer" type.
+	TypeInteger SchemaType = "integer"
+	// TypeNumber represents the JSON Schema "number" type.
+	TypeNumber SchemaType = "number"
+	// TypeBoolean represents the JSON Schema "boolean" type.
+	TypeBoolean SchemaType = "boolean"
+	// TypeArray represents the JSON Schema "array" type.
+	TypeArray SchemaType = "array"
+	// TypeNull represents the JSON Schema "null" type.
+	TypeNull SchemaType = "null"
+)
+
 // String returns the underlying string value.
 func (id ServiceID) String() string { return string(id) }
 
@@ -62,7 +82,7 @@ type Message struct {
 
 // Schema represents a JSON Schema object with properties, required fields, and items.
 type Schema struct {
-	Type       string              `json:"type"`
+	Type       SchemaType          `json:"type"`
 	Properties map[string]Property `json:"properties,omitempty"`
 	Required   []string            `json:"required,omitempty"`
 	Items      *Property           `json:"items,omitempty"`
@@ -70,7 +90,7 @@ type Schema struct {
 
 // Property describes a single field within a JSON Schema.
 type Property struct {
-	Type        string              `json:"type"`
+	Type        SchemaType          `json:"type"`
 	Description string              `json:"description,omitempty"`
 	Format      string              `json:"format,omitempty"`
 	Properties  map[string]Property `json:"properties,omitempty"`

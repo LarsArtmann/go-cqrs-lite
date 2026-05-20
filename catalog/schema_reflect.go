@@ -9,7 +9,7 @@ import (
 
 func schemaFromReflect(t reflect.Type) *Schema {
 	if t == nil {
-		return &Schema{Type: jsonTypeNull}
+		return &Schema{Type: TypeNull}
 	}
 
 	if t.Kind() == reflect.Pointer {
@@ -18,14 +18,14 @@ func schemaFromReflect(t reflect.Type) *Schema {
 
 	if isCollectionKind(t.Kind()) {
 		return &Schema{
-			Type:  "array",
+			Type:  TypeArray,
 			Items: propertyFromReflect(t.Elem()),
 		}
 	}
 
 	if t.Kind() == reflect.Map {
 		return &Schema{
-			Type: jsonTypeObject,
+			Type: TypeObject,
 			Properties: map[string]Property{
 				"(key)":   *propertyFromReflect(t.Key()),
 				"(value)": *propertyFromReflect(t.Elem()),
@@ -38,7 +38,7 @@ func schemaFromReflect(t reflect.Type) *Schema {
 	}
 
 	if t == reflect.TypeFor[time.Time]() {
-		return &Schema{Type: jsonTypeString}
+		return &Schema{Type: TypeString}
 	}
 
 	return structSchema(t)
@@ -63,7 +63,7 @@ func structSchema(t reflect.Type) *Schema {
 	}
 
 	return &Schema{
-		Type:       "object",
+		Type:       TypeObject,
 		Properties: props,
 		Required:   required,
 	}

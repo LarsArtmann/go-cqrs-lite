@@ -127,7 +127,7 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 		props := make([]string, 0, len(msg.Schema.Properties))
 
 		for name, p := range msg.Schema.Properties {
-			propStr := name + ": " + p.Type
+			propStr := name + ": " + string(p.Type)
 
 			if p.Description != "" {
 				propStr += " — " + p.Description

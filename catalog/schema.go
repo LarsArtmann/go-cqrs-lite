@@ -10,16 +10,6 @@ import (
 	"time"
 )
 
-const (
-	jsonTypeString  = "string"
-	jsonTypeObject  = "object"
-	jsonTypeInteger = "integer"
-	jsonTypeNumber  = "number"
-	jsonTypeBoolean = "boolean"
-	jsonTypeArray   = "array"
-	jsonTypeNull    = "null"
-)
-
 // SchemaFromType generates a JSON Schema from the struct type T using reflection.
 // It reads json, doc/description, and format struct tags.
 func SchemaFromType[T any]() *Schema {
@@ -36,12 +26,12 @@ func SchemaFromReflect(t reflect.Type) *Schema {
 func collectionSchema(t reflect.Type) *Property {
 	if isCollectionKind(t.Kind()) {
 		return &Property{
-			Type:  "array",
+			Type:  TypeArray,
 			Items: propertyFromReflect(t.Elem()),
 		}
 	}
 
-	return &Property{Type: jsonTypeObject}
+	return &Property{Type: TypeObject}
 }
 
 func isCollectionKind(k reflect.Kind) bool {
@@ -50,7 +40,7 @@ func isCollectionKind(k reflect.Kind) bool {
 
 func propertyFromReflect(t reflect.Type) *Property {
 	if t == nil {
-		return &Property{Type: jsonTypeNull}
+		return &Property{Type: TypeNull}
 	}
 
 	if t.Kind() == reflect.Pointer {
@@ -62,12 +52,12 @@ func propertyFromReflect(t reflect.Type) *Property {
 	}
 
 	if t.Kind() == reflect.Map {
-		return &Property{Type: jsonTypeObject}
+		return &Property{Type: TypeObject}
 	}
 
 	if t.Kind() == reflect.Struct {
 		if t == reflect.TypeFor[time.Time]() {
-			return &Property{Type: jsonTypeString, Format: "date-time"}
+			return &Property{Type: TypeString, Format: "date-time"}
 		}
 
 		schema := schemaFromReflect(t)
@@ -82,39 +72,39 @@ func propertyFromReflect(t reflect.Type) *Property {
 	return &Property{Type: goTypeToJSON(t.Kind())}
 }
 
-func goTypeToJSON(k reflect.Kind) string {
+func goTypeToJSON(k reflect.Kind) SchemaType {
 	switch k {
 	case reflect.String:
-		return jsonTypeString
+		return TypeString
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return jsonTypeInteger
+		return TypeInteger
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
-		return jsonTypeInteger
+		return TypeInteger
 	case reflect.Float32, reflect.Float64:
-		return jsonTypeNumber
+		return TypeNumber
 	case reflect.Bool:
-		return jsonTypeBoolean
+		return TypeBoolean
 	case reflect.Interface:
-		return jsonTypeObject
+		return TypeObject
 	case reflect.Complex64, reflect.Complex128:
-		return jsonTypeString
+		return TypeString
 	case reflect.Array, reflect.Slice:
-		return jsonTypeArray
+		return TypeArray
 	case reflect.Map, reflect.Struct:
-		return jsonTypeObject
+		return TypeObject
 	case reflect.Pointer:
-		return jsonTypeObject
+		return TypeObject
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-		return jsonTypeString
+		return TypeString
 	case reflect.Invalid:
-		return jsonTypeNull
+		return TypeNull
 	default:
-		return jsonTypeString
+		return TypeString
 	}
 }
 

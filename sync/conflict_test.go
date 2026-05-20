@@ -81,7 +81,7 @@ func testVCConflict(
 	localVC, remoteVC VectorClock,
 	expectWinner string,
 ) {
-	resolver := NewLWWResolver[testItem](itemTimestamp)
+	resolver := NewLWWResolver(itemTimestamp)
 
 	winner := resolveConflict(t, resolver, local, remote, localVC, remoteVC)
 	if winner.Name != expectWinner {
@@ -111,7 +111,7 @@ func resolveConflict(
 }
 
 func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
-	resolver := NewLWWResolver[testItem](itemTimestamp)
+	resolver := NewLWWResolver(itemTimestamp)
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now.Add(2 * time.Hour)}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -124,7 +124,7 @@ func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
 }
 
 func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
-	resolver := NewLWWResolver[testItem](itemTimestamp)
+	resolver := NewLWWResolver(itemTimestamp)
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now.Add(2 * time.Hour)}
@@ -137,7 +137,7 @@ func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
 }
 
 func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
-	resolver := NewLWWResolver[testItem](itemTimestamp)
+	resolver := NewLWWResolver(itemTimestamp)
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -150,7 +150,7 @@ func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
 }
 
 func TestLWWResolver_Tiebreaker(t *testing.T) {
-	resolver := NewLWWResolver[testItem](itemTimestamp)
+	resolver := NewLWWResolver(itemTimestamp)
 	resolver.Tiebreaker = nameTiebreaker
 	now := time.Now()
 
@@ -183,7 +183,9 @@ var nameTiebreaker = func(local, remote testItem) bool {
 }
 
 func TestLWWResolver_ImplementsInterface(t *testing.T) {
-	var _ ConflictResolver[testItem] = NewLWWResolver[testItem](itemTimestamp)
+	var _ ConflictResolver[testItem] = &LWWResolver[testItem]{
+		TimestampFunc: itemTimestamp,
+	}
 }
 
 func TestConflict_JSON_RoundTrip(t *testing.T) {
@@ -278,4 +280,24 @@ func TestSyncResponse_JSON(t *testing.T) {
 	assert.Equal(t, "node-2", decoded.NodeID.String())
 	assert.Len(t, decoded.Operations, 1)
 	assert.Equal(t, "item1", decoded.Operations[0].Payload.Name)
+}
+
+func TestNewLWWResolver_NilTimestampFunc_Panics(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic when TimestampFunc is nil")
+		}
+
+		msg, ok := r.(string)
+		if !ok {
+			t.Fatalf("expected string panic, got %T: %v", r, r)
+		}
+
+		if msg != "sync: NewLWWResolver requires a non-nil TimestampFunc" {
+			t.Fatalf("unexpected panic message: %s", msg)
+		}
+	}()
+
+	NewLWWResolver[testItem](nil)
 }

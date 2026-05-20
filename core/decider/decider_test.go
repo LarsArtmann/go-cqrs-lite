@@ -1144,3 +1144,47 @@ func (f *failingLoadFromVersionStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	return nil, errors.New("db unavailable")
 }
+
+func TestExecute_SaveSnapshotFoldError(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	codec := event.JSONCodec{}
+
+	foldErr := errors.New("corrupt payload")
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{Value: 0},
+		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+			return counterState{}, foldErr
+		},
+	}
+
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithSnapshotStore[counterState](snapshotStore),
+		decider.WithCodec[counterState](codec),
+		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(
+		t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute should succeed despite fold error during snapshot save: %v", err)
+	}
+
+	if len(snapshotStore.Saved()) > 0 {
+		t.Fatal("snapshot should not be saved when fold fails")
+	}
+}

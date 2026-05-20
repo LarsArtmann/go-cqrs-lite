@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/cqrs-htmx v0.0.0-20260507034922-7ebeb8976863
-	github.com/larsartmann/go-cqrs-lite/core v1.1.0
+	github.com/larsartmann/go-cqrs-lite/core v1.3.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.1.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.0.0
 	github.com/stretchr/testify v1.11.1
@@ -33,10 +33,9 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
+	github.com/larsartmann/go-error-family v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/onsi/ginkgo/v2 v2.29.0 // indirect
-	github.com/onsi/gomega v1.41.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
