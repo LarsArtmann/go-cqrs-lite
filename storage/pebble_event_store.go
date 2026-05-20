@@ -57,64 +57,20 @@ func (a *PebbleEventStore) Save(
 		return nil
 	}
 
-	// Optimistic concurrency check: verify current stream length matches expectedVersion.
-	prefix := a.aggregatePrefix(aggregateType, aggregateID)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
-
-	existing, err := a.iterateEvents(prefix, upperBound)
+	err := a.checkVersion(aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return fmt.Errorf("concurrency check: %w", err)
-	}
-
-	if len(existing) != expectedVersion.Int() {
-		return fmt.Errorf(
-			"%w: expected version %d, got %d",
-			event.ErrVersionConflict,
-			expectedVersion,
-			len(existing),
-		)
+		return err
 	}
 
 	batch := a.db.NewBatch()
 
 	defer func() { _ = batch.Close() }()
 
-	for i, evt := range events {
-		// Verify event belongs to this aggregate
-		if evt.AggregateType() != aggregateType {
-			return fmt.Errorf(
-				"%w: expected %s, got %s",
-				ErrAggregateTypeMismatch,
-				aggregateType,
-				evt.AggregateType(),
-			)
-		}
-
-		if evt.AggregateID() != aggregateID {
-			return fmt.Errorf(
-				"%w: expected %s, got %s",
-				ErrAggregateIDMismatch,
-				aggregateID,
-				evt.AggregateID(),
-			)
-		}
-
-		expectedEventVersion := expectedVersion.Int() + i + 1
-		if evt.Version() != event.Version(expectedEventVersion) {
-			return fmt.Errorf(
-				"%w: expected %d, got %d",
-				ErrVersionMismatch,
-				expectedEventVersion,
-				evt.Version(),
-			)
-		}
-
-		key := a.eventKey(aggregateType, aggregateID, event.Version(expectedEventVersion))
-
-		err := a.serializeAndAddToBatch(batch, key, evt)
-		if err != nil {
-			return err
-		}
+	err = a.writeEventsToBatch(
+		batch, aggregateType, aggregateID, events, expectedVersion,
+	)
+	if err != nil {
+		return err
 	}
 
 	return a.commitAndLog(batch, "events saved", aggregateType, aggregateID, len(events))
