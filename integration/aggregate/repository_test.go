@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -385,6 +386,24 @@ func (f *failingStore) LoadFromVersion(
 	_ event.Version,
 ) ([]event.Event, error) {
 	return nil, errors.New("store load from version failed")
+}
+
+func (f *failingStore) LoadToVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, errors.New("store load to version failed")
+}
+
+func (f *failingStore) LoadToTimestamp(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ time.Time,
+) ([]event.Event, error) {
+	return nil, errors.New("store load to timestamp failed")
 }
 
 func (f *failingStore) Delete(_ context.Context, _ event.AggregateType, _ id.AggregateID) error {

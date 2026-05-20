@@ -1124,6 +1124,24 @@ func (f *failingLoadStore) LoadFromVersion(
 	return nil, nil
 }
 
+func (f *failingLoadStore) LoadToVersion(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (f *failingLoadStore) LoadToTimestamp(
+	_ context.Context,
+	_ event.AggregateType,
+	_ id.AggregateID,
+	_ time.Time,
+) ([]event.Event, error) {
+	return nil, nil
+}
+
 func (f *failingLoadStore) Delete(
 	_ context.Context,
 	_ event.AggregateType,

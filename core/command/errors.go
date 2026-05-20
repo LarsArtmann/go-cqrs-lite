@@ -18,9 +18,13 @@ var ErrEmptyCommandType = errors.New("command type is required")
 // ErrNilAggregateID is returned by New when the aggregate ID is zero.
 var ErrNilAggregateID = errors.New("aggregate ID is required")
 
+// ErrTypeAssertion is returned when a command cannot be type-asserted to the expected type.
+var ErrTypeAssertion = errors.New("command type assertion failed")
+
 func init() { //nolint:gochecknoinits // registers error classifications for cross-package Classify()
 	event.RegisterClassification(ErrHandlerNotFound, event.Rejection)
 	event.RegisterClassification(ErrDispatcherClosed, event.Infrastructure)
 	event.RegisterClassification(ErrEmptyCommandType, event.Rejection)
 	event.RegisterClassification(ErrNilAggregateID, event.Rejection)
+	event.RegisterClassification(ErrTypeAssertion, event.Corruption)
 }

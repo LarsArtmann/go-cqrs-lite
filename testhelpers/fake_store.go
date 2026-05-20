@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -118,6 +119,48 @@ func (s *FakeStore) LoadFromVersion(
 	}
 
 	return nil, nil
+}
+
+// LoadToVersion returns events up to and including maxVersion.
+func (s *FakeStore) LoadToVersion(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := fakeStreamKey(aggregateType, aggregateID)
+	all := s.events[key]
+
+	end := min(maxVersion.Int(), len(all))
+
+	return all[:end], nil
+}
+
+// LoadToTimestamp returns events where OccurredAt <= maxTime.
+func (s *FakeStore) LoadToTimestamp(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := fakeStreamKey(aggregateType, aggregateID)
+	all := s.events[key]
+
+	var filtered []event.Event
+
+	for _, e := range all {
+		if !e.OccurredAt().After(maxTime) {
+			filtered = append(filtered, e)
+		}
+	}
+
+	return filtered, nil
 }
 
 // Delete removes all events for an aggregate.

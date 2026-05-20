@@ -73,19 +73,32 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 
 	if s.Metadata != nil {
 		m := event.NewMetadata()
+
 		var parseErr error
 
 		if s.Metadata.CorrelationID != "" {
 			m.CorrelationID, parseErr = id.ParseCorrelationID(s.Metadata.CorrelationID)
 			if parseErr != nil {
-				slog.Warn("pebble: corrupt correlation ID", "value", s.Metadata.CorrelationID, "error", parseErr)
+				slog.Warn(
+					"pebble: corrupt correlation ID",
+					"value",
+					s.Metadata.CorrelationID,
+					"error",
+					parseErr,
+				)
 			}
 		}
 
 		if s.Metadata.CausationID != "" {
 			m.CausationID, parseErr = id.ParseCausationID(s.Metadata.CausationID)
 			if parseErr != nil {
-				slog.Warn("pebble: corrupt causation ID", "value", s.Metadata.CausationID, "error", parseErr)
+				slog.Warn(
+					"pebble: corrupt causation ID",
+					"value",
+					s.Metadata.CausationID,
+					"error",
+					parseErr,
+				)
 			}
 		}
 
@@ -99,7 +112,13 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 		if s.Metadata.RequestID != "" {
 			m.RequestID, parseErr = id.ParseRequestID(s.Metadata.RequestID)
 			if parseErr != nil {
-				slog.Warn("pebble: corrupt request ID", "value", s.Metadata.RequestID, "error", parseErr)
+				slog.Warn(
+					"pebble: corrupt request ID",
+					"value",
+					s.Metadata.RequestID,
+					"error",
+					parseErr,
+				)
 			}
 		}
 

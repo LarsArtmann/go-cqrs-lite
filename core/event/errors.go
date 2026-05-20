@@ -62,6 +62,14 @@ func NewCorruption(code, msg string) *Error { return errorfamily.NewCorruption(c
 // NewInfrastructure creates an Infrastructure-classified error.
 func NewInfrastructure(code, msg string) *Error { return errorfamily.NewInfrastructure(code, msg) }
 
+// ErrMismatchedSlices is returned by NewEvents when event types and payloads have different lengths.
+var ErrMismatchedSlices = errors.New(
+	"mismatched slices: event types and payloads must have equal length",
+)
+
+// ErrPayloadMarshal is returned by NewEvents when a payload cannot be marshaled to JSON.
+var ErrPayloadMarshal = errors.New("failed to marshal event payload")
+
 // Event domain sentinel errors.
 var (
 	ErrInvalidSnapshotInterval = errors.New("snapshot interval must be positive")
@@ -95,6 +103,8 @@ func init() {
 		ErrVersionNotPositive:      Rejection,
 		ErrAggregateNotFound:       Rejection,
 		ErrSnapshotNotFound:        Rejection,
+		ErrMismatchedSlices:        Rejection,
+		ErrPayloadMarshal:          Corruption,
 		ErrVersionConflict:         Conflict,
 		ErrDuplicateProjection:     Conflict,
 		ErrStoreClosed:             Infrastructure,

@@ -13,6 +13,7 @@ var errTestFailure = errors.New("test failure")
 
 type testTypedCmd struct {
 	*command.Core
+
 	Payload string
 }
 

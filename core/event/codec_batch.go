@@ -18,8 +18,7 @@ func NewEvents(
 	options ...Option,
 ) ([]Event, error) {
 	if len(eventTypes) != len(payloads) {
-		return nil, fmt.Errorf("mismatched slices: %d event types, %d payloads",
-			len(eventTypes), len(payloads))
+		return nil, ErrMismatchedSlices
 	}
 
 	events := make([]Event, 0, len(eventTypes))
@@ -27,7 +26,7 @@ func NewEvents(
 	for i, eventType := range eventTypes {
 		data, err := json.Marshal(payloads[i])
 		if err != nil {
-			return nil, fmt.Errorf("marshal payload for %s: %w", eventType, err)
+			return nil, fmt.Errorf("%w: %s: %w", ErrPayloadMarshal, eventType, err)
 		}
 
 		evt, err := NewEvent(
@@ -64,7 +63,8 @@ func MustNewEvents(
 		expectedVersion,
 		eventTypes,
 		payloads,
-		options...)
+		options...,
+	)
 	if err != nil {
 		panic(fmt.Sprintf("event.MustNewEvents: %v", err))
 	}

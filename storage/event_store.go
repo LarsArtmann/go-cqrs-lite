@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -183,6 +184,93 @@ func (s *SQLEventStore) LoadFromVersion(
 	return s.scanEvents(rows)
 }
 
+// LoadToVersion retrieves events up to and including maxVersion.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *SQLEventStore) LoadToVersion(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	p1, p2, p3 := s.dialect.Placeholder(1), s.dialect.Placeholder(2), s.dialect.Placeholder(3)
+
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = %s AND aggregate_id = %s AND version <= %s
+		ORDER BY version ASC`,
+		p1,
+		p2,
+		p3,
+	)
+
+	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID, maxVersion.Int())
+	if err != nil {
+		return nil, fmt.Errorf("query events to version: %w", err)
+	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	events, err := s.scanEvents(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return events, nil
+}
+
+// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *SQLEventStore) LoadToTimestamp(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	p1, p2, p3 := s.dialect.Placeholder(1), s.dialect.Placeholder(2), s.dialect.Placeholder(3)
+
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = %s AND aggregate_id = %s AND occurred_at <= %s
+		ORDER BY version ASC`,
+		p1,
+		p2,
+		p3,
+	)
+
+	rows, err := s.db.QueryContext(
+		ctx, query,
+		string(aggregateType),
+		aggregateID,
+		s.dialect.FormatTime(maxTime),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query events to timestamp: %w", err)
+	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	events, err := s.scanEvents(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return events, nil
+}
+
 // Delete removes all events for an aggregate.
 func (s *SQLEventStore) Delete(
 	ctx context.Context,
@@ -213,6 +301,76 @@ func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 	return s.scanEvents(rows)
 }
 
+// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
+// Returns up to limit events. Implements event.PositionalLoader.
+func (s *SQLEventStore) LoadAllFromPosition(
+	ctx context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	if afterEventID.IsZero() {
+		return s.LoadAllFromPositionNoLimit(ctx, limit)
+	}
+
+	p1 := s.dialect.Placeholder(1)
+	p2 := s.dialect.Placeholder(2)
+
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE id > %s
+		ORDER BY occurred_at ASC`,
+		p1,
+	)
+
+	args := []any{afterEventID.String()}
+
+	if limit > 0 {
+		query += " LIMIT " + p2
+
+		args = append(args, limit)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query events from position: %w", err)
+	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	return s.scanEvents(rows)
+}
+
+// LoadAllFromPositionNoLimit loads from the beginning when no position is given.
+func (s *SQLEventStore) LoadAllFromPositionNoLimit(
+	ctx context.Context,
+	limit int,
+) ([]event.Event, error) {
+	if limit <= 0 {
+		return s.LoadAll(ctx)
+	}
+
+	p1 := s.dialect.Placeholder(1)
+
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		ORDER BY occurred_at ASC
+		LIMIT ` + p1
+
+	rows, err := s.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query events from start: %w", err)
+	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	return s.scanEvents(rows)
+}
+
 func (s *SQLEventStore) checkVersion(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -228,6 +386,7 @@ func (s *SQLEventStore) checkVersion(
 }
 
 var (
-	_ event.Store        = (*SQLEventStore)(nil)
-	_ event.GlobalLoader = (*SQLEventStore)(nil)
+	_ event.Store            = (*SQLEventStore)(nil)
+	_ event.GlobalLoader     = (*SQLEventStore)(nil)
+	_ event.PositionalLoader = (*SQLEventStore)(nil)
 )

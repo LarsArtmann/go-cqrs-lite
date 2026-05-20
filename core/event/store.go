@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -12,6 +13,17 @@ import (
 // This is the core interface for projection replay.
 type GlobalLoader interface {
 	LoadAll(ctx context.Context) ([]Event, error)
+}
+
+// PositionalLoader extends GlobalLoader with position-based loading.
+// Implementations load events ordered by OccurredAt, starting after the given event ID.
+// This enables efficient projection catch-up without loading all events into memory.
+type PositionalLoader interface {
+	GlobalLoader
+
+	// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after
+	// the given event ID. Returns up to limit events. Pass limit <= 0 for no limit.
+	LoadAllFromPosition(ctx context.Context, afterEventID id.EventID, limit int) ([]Event, error)
 }
 
 // Store defines the interface for event persistence.
@@ -50,6 +62,24 @@ type Store interface {
 		aggregateType AggregateType,
 		aggregateID id.AggregateID,
 		version Version,
+	) ([]Event, error)
+
+	// LoadToVersion retrieves events up to and including maxVersion.
+	// Returns ErrAggregateNotFound if no events exist for the aggregate.
+	LoadToVersion(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID id.AggregateID,
+		maxVersion Version,
+	) ([]Event, error)
+
+	// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
+	// Returns ErrAggregateNotFound if no events exist for the aggregate.
+	LoadToTimestamp(
+		ctx context.Context,
+		aggregateType AggregateType,
+		aggregateID id.AggregateID,
+		maxTime time.Time,
 	) ([]Event, error)
 
 	// Delete removes all events for an aggregate

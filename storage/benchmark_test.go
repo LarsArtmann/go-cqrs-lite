@@ -24,8 +24,15 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 
 	aggID := id.NewAggregateID()
 	now := time.Now()
-	payload, _ := json.Marshal(map[string]string{"name": "test"})
-	metaJSON, _ := json.Marshal(map[string]string{})
+	payload, err := json.Marshal(map[string]string{"name": "test"})
+	if err != nil {
+		b.Fatalf("marshal payload: %v", err)
+	}
+
+	metaJSON, err := json.Marshal(map[string]string{})
+	if err != nil {
+		b.Fatalf("marshal meta: %v", err)
+	}
 	columns := []string{
 		"id", "event_type", "aggregate_type", "aggregate_id",
 		"version", "schema_version", "payload", "metadata", "occurred_at",

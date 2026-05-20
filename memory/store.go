@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
@@ -21,8 +22,9 @@ type MemoryStore struct {
 }
 
 var (
-	_ event.Store        = (*MemoryStore)(nil)
-	_ event.GlobalLoader = (*MemoryStore)(nil)
+	_ event.Store            = (*MemoryStore)(nil)
+	_ event.GlobalLoader     = (*MemoryStore)(nil)
+	_ event.PositionalLoader = (*MemoryStore)(nil)
 )
 
 // NewMemoryStore creates a new in-memory event store.
@@ -150,6 +152,74 @@ func (s *MemoryStore) LoadFromVersion(
 	return result, nil
 }
 
+// LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *MemoryStore) LoadToVersion(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	err := s.CheckClosed(event.ErrStoreClosed)
+	if err != nil {
+		return nil, fmt.Errorf("memory store load to version: %w", err)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := streamKey(aggregateType, aggregateID)
+
+	events, exists := s.events[key]
+	if !exists {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	end := min(maxVersion.Int(), len(events))
+
+	result := make([]event.Event, end)
+	copy(result, events[:end])
+
+	return result, nil
+}
+
+// LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *MemoryStore) LoadToTimestamp(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	err := s.CheckClosed(event.ErrStoreClosed)
+	if err != nil {
+		return nil, fmt.Errorf("memory store load to timestamp: %w", err)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := streamKey(aggregateType, aggregateID)
+
+	events, exists := s.events[key]
+	if !exists {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	var filtered []event.Event
+
+	for _, e := range events {
+		if !e.OccurredAt().After(maxTime) {
+			filtered = append(filtered, e)
+		}
+	}
+
+	result := make([]event.Event, len(filtered))
+	copy(result, filtered)
+
+	return result, nil
+}
+
 // Delete removes all events for an aggregate.
 func (s *MemoryStore) Delete(
 	_ context.Context,
@@ -193,6 +263,54 @@ func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 
 	result := make([]event.Event, len(all))
 	copy(result, all)
+
+	return result, nil
+}
+
+// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
+// Implements event.PositionalLoader for efficient projection catch-up.
+func (s *MemoryStore) LoadAllFromPosition(
+	_ context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	err := s.CheckClosed(event.ErrStoreClosed)
+	if err != nil {
+		return nil, fmt.Errorf("memory store load all from position: %w", err)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var all []event.Event
+
+	for _, events := range s.events {
+		all = append(all, events...)
+	}
+
+	slices.SortFunc(all, func(a, b event.Event) int {
+		return a.OccurredAt().Compare(b.OccurredAt())
+	})
+
+	startIdx := 0
+
+	if !afterEventID.IsZero() {
+		for i, e := range all {
+			if e.ID() == afterEventID {
+				startIdx = i + 1
+
+				break
+			}
+		}
+	}
+
+	filtered := all[startIdx:]
+	if limit > 0 && len(filtered) > limit {
+		filtered = filtered[:limit]
+	}
+
+	result := make([]event.Event, len(filtered))
+	copy(result, filtered)
 
 	return result, nil
 }
