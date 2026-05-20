@@ -48,6 +48,67 @@ go get github.com/larsartmann/go-cqrs-lite/projection
 
 - Go 1.26+
 
+### Your First CQRS App (5 minutes)
+
+A minimal CQRS + Event Sourcing app using typed handlers and batch event creation:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/larsartmann/go-cqrs-lite/core/command"
+    "github.com/larsartmann/go-cqrs-lite/core/event"
+    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/memory"
+)
+
+type CreateUserCmd struct {
+    *command.Core
+    Name string
+}
+
+type UserCreated struct{ Name string }
+
+func main() {
+    store := memory.NewMemoryStore()
+    bus := memory.NewMemoryBus()
+    aggID := id.NewAggregateID()
+
+    // Register a type-safe command handler — no manual type assertions
+    cmds := command.NewDispatcher()
+    command.RegisterTyped(cmds, "user.create",
+        func(ctx context.Context, cmd *CreateUserCmd) error {
+            // Create events from typed payloads in one call
+            events, err := event.NewEvents(aggID, "User", 0,
+                []event.Type{"user.created"},
+                []any{UserCreated{Name: cmd.Name}},
+            )
+            if err != nil { return err }
+            if err := store.Save(ctx, "User", aggID, events, 0); err != nil { return err }
+            for _, e := range events { _ = bus.Publish(ctx, e) }
+            return nil
+        },
+    )
+
+    // Dispatch
+    cmd := &CreateUserCmd{Core: command.MustNew("user.create", aggID), Name: "Alice"}
+    if err := cmds.Dispatch(context.Background(), cmd); err != nil { log.Fatal(err) }
+
+    // Load and read
+    events, _ := store.Load(context.Background(), "User", aggID)
+    for _, e := range events {
+        p, _ := event.DecodePayload[UserCreated](e, event.JSONCodec{})
+        fmt.Printf("User created: %s\n", p.Name)
+    }
+}
+```
+
+See `example/user/` for a complete example with the Decider pattern, middleware, and catalog generation.
+
 ### Core Dependencies
 
 | Dependency        | Purpose                                         | Module       |
@@ -61,28 +122,20 @@ go get github.com/larsartmann/go-cqrs-lite/projection
 
 ### Commands (Write Side)
 
-Commands implement the `command.Command` interface with the domain payload:
+Commands embed `command.Core` for the required interface methods. Register typed handlers
+with `command.RegisterTyped` to receive the concrete command type directly — no type assertions needed:
 
 ```go
 type CreateUserCmd struct {
-    aggregateID id.AggregateID
-    Email       string
-    Name        string
-    idempotency string
+    *command.Core
+    Email string
+    Name  string
 }
 
-func (c *CreateUserCmd) Type() command.Type          { return "user.create" }
-func (c *CreateUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
-func (c *CreateUserCmd) IdempotencyKey() string      { return c.idempotency }
-
-type CreateUserHandler struct {
-    repo *decider.Repository[UserState]
-}
-
-func (h *CreateUserHandler) Handle(ctx context.Context, cmd command.Command) error {
-    c := cmd.(*CreateUserCmd)
-    return h.repo.Execute(ctx, c.AggregateID(), "User", decideCreateUser(c.Email, c.Name))
-}
+// Type-safe handler — cmd is *CreateUserCmd, not command.Command
+command.RegisterTyped(d, "user.create", func(ctx context.Context, cmd *CreateUserCmd) error {
+    return h.repo.Execute(ctx, cmd.AggregateID(), "User", decideCreateUser(cmd.Email, cmd.Name))
+})
 ```
 
 ### Events (Event Sourcing)
