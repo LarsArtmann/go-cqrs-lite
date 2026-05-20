@@ -46,7 +46,7 @@ func ToSeparated(s string, sep byte) string {
 	return string(result)
 }
 
-// ToDotAddress converts CamelCase to dot.separated format.
+// DotAddress converts CamelCase to dot.separated format.
 func ToDotAddress(s string) string {
 	return ToSeparated(s, '.')
 }
