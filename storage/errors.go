@@ -1,10 +1,6 @@
 package storage
 
-import (
-	"errors"
-
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-)
+import "github.com/larsartmann/go-cqrs-lite/core/event"
 
 // OutboxStatus represents the status of an outbox entry.
 type OutboxStatus string
@@ -20,42 +16,55 @@ const (
 func (s OutboxStatus) String() string { return string(s) }
 
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
-var ErrNilDB = errors.New("storage: nil database connection")
+var ErrNilDB = event.NewInfrastructure(
+	"storage.nil_db",
+	"storage: nil database connection",
+)
 
 // ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match the expected type.
-var ErrAggregateTypeMismatch = errors.New("storage: event aggregate type mismatch")
+var ErrAggregateTypeMismatch = event.NewConflict(
+	"storage.aggregate_type_mismatch",
+	"storage: event aggregate type mismatch",
+)
 
 // ErrAggregateIDMismatch is returned when an event's aggregate ID doesn't match the expected ID.
-var ErrAggregateIDMismatch = errors.New("storage: event aggregate ID mismatch")
+var ErrAggregateIDMismatch = event.NewConflict(
+	"storage.aggregate_id_mismatch",
+	"storage: event aggregate ID mismatch",
+)
 
 // ErrVersionMismatch is returned when an event's version doesn't match the expected version.
-var ErrVersionMismatch = errors.New("storage: event version mismatch")
+var ErrVersionMismatch = event.NewConflict(
+	"storage.version_mismatch",
+	"storage: event version mismatch",
+)
 
 // ErrPebbleProviderRequired is returned when no PebbleProvider is configured.
-var ErrPebbleProviderRequired = errors.New(
+var ErrPebbleProviderRequired = event.NewInfrastructure(
+	"storage.pebble_provider_required",
 	"storage: pebble requires a Provider: use WithPebbleProvider",
 )
 
 // ErrUnknownBackend is returned when an unknown event store backend is specified.
-var ErrUnknownBackend = errors.New("storage: unknown event store backend")
+var ErrUnknownBackend = event.NewInfrastructure(
+	"storage.unknown_backend",
+	"storage: unknown event store backend",
+)
 
 // ErrUnsupportedTimestamp is returned when a timestamp format cannot be parsed.
-var ErrUnsupportedTimestamp = errors.New("storage: unsupported timestamp format")
+var ErrUnsupportedTimestamp = event.NewCorruption(
+	"storage.unsupported_timestamp",
+	"storage: unsupported timestamp format",
+)
 
 // ErrTursoMemorySync is returned when trying to sync an in-memory Turso database.
-var ErrTursoMemorySync = errors.New("storage: turso sync requires a file path for dbPath")
+var ErrTursoMemorySync = event.NewRejection(
+	"storage.turso_memory_sync",
+	"storage: turso sync requires a file path for dbPath",
+)
 
 // ErrUnexpectedTimeType is returned when a time scan destination has an unexpected type.
-var ErrUnexpectedTimeType = errors.New("storage: unexpected time type")
-
-func init() { //nolint:gochecknoinits
-	event.RegisterClassification(ErrNilDB, event.Infrastructure)
-	event.RegisterClassification(ErrAggregateTypeMismatch, event.Conflict)
-	event.RegisterClassification(ErrAggregateIDMismatch, event.Conflict)
-	event.RegisterClassification(ErrVersionMismatch, event.Conflict)
-	event.RegisterClassification(ErrPebbleProviderRequired, event.Infrastructure)
-	event.RegisterClassification(ErrUnknownBackend, event.Infrastructure)
-	event.RegisterClassification(ErrUnsupportedTimestamp, event.Corruption)
-	event.RegisterClassification(ErrTursoMemorySync, event.Rejection)
-	event.RegisterClassification(ErrUnexpectedTimeType, event.Corruption)
-}
+var ErrUnexpectedTimeType = event.NewCorruption(
+	"storage.unexpected_time_type",
+	"storage: unexpected time type",
+)

@@ -1,7 +1,6 @@
 package catalog
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -9,12 +8,10 @@ import (
 )
 
 // ErrDomainNotFound is returned when a domain ID does not exist in the registry.
-var ErrDomainNotFound = errors.New("domain not found")
-
-func init() { //nolint:gochecknoinits
-	event.RegisterClassification(ErrDomainNotFound, event.Rejection)
-	event.RegisterClassification(ErrNilSchema, event.Rejection)
-}
+var ErrDomainNotFound = event.NewRejection(
+	"catalog.domain_not_found",
+	"domain not found",
+)
 
 // Registry is a thread-safe catalog builder that accumulates services,
 // domains, and channels before producing an immutable Catalog.
