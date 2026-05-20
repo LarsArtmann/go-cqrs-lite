@@ -2,8 +2,10 @@ package memory_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -299,4 +301,183 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestMemoryStore_LoadToVersion(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt1 := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 1, nil)
+	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 2, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+
+	events, err := store.LoadToVersion(ctx, "User", aggID, 2)
+	testhelpers.AssertNoError(t, err, "LoadToVersion")
+	testhelpers.AssertLen(t, "events", events, 2)
+}
+
+func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+
+	events, err := store.LoadToVersion(ctx, "User", aggID, 100)
+	testhelpers.AssertNoError(t, err, "LoadToVersion")
+	testhelpers.AssertLen(t, "events", events, 1)
+}
+
+func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	_, err := store.LoadToVersion(ctx, "User", aggID, 5)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	}
+}
+
+func TestMemoryStore_LoadToVersion_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	_ = store.Close()
+
+	_, err := store.LoadToVersion(context.Background(), "User", id.NewAggregateID(), 1)
+	if err == nil {
+		t.Fatal("expected error for closed store")
+	}
+}
+
+func TestMemoryStore_LoadToTimestamp(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	now := time.Now()
+	evt1, _ := event.NewEvent("Created", aggID, "User", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2, _ := event.NewEvent("Updated", aggID, "User", 1, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3, _ := event.NewEvent("Deleted", aggID, "User", 2, nil, event.WithOccurredAt(now))
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+
+	events, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
+	testhelpers.AssertNoError(t, err, "LoadToTimestamp")
+	testhelpers.AssertLen(t, "events", events, 2)
+}
+
+func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+
+	_, err := store.LoadToTimestamp(
+		context.Background(), "User",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		time.Now(),
+	)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	}
+}
+
+func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	_ = store.Close()
+
+	_, err := store.LoadToTimestamp(context.Background(), "User", id.NewAggregateID(), time.Now())
+	if err == nil {
+		t.Fatal("expected error for closed store")
+	}
+}
+
+func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID1 := id.NewAggregateID()
+	aggID2 := id.NewAggregateID()
+
+	now := time.Now()
+	evt1, _ := event.NewEvent("Created", aggID1, "User", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2, _ := event.NewEvent("Created", aggID2, "Order", 1, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3, _ := event.NewEvent("Updated", aggID1, "User", 1, nil, event.WithOccurredAt(now))
+
+	_ = store.AppendBatch(ctx, "User", aggID1, []event.Event{evt1, evt3})
+	_ = store.AppendBatch(ctx, "Order", aggID2, []event.Event{evt2})
+
+	all, err := store.LoadAll(ctx)
+	testhelpers.AssertNoError(t, err, "LoadAll")
+	testhelpers.AssertLen(t, "all events", all, 3)
+
+	fromPos, err := store.LoadAllFromPosition(ctx, evt1.ID(), 1)
+	testhelpers.AssertNoError(t, err, "LoadAllFromPosition")
+	testhelpers.AssertLen(t, "from position", fromPos, 1)
+}
+
+func TestMemoryStore_LoadAllFromPosition_ZeroID(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+
+	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 10)
+	testhelpers.AssertNoError(t, err, "LoadAllFromPosition with zero ID")
+	testhelpers.AssertLen(t, "events", events, 1)
+}
+
+func TestMemoryStore_LoadAllFromPosition_WithLimit(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	for i := range 5 {
+		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
+		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+	}
+
+	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 3)
+	testhelpers.AssertNoError(t, err, "LoadAllFromPosition with limit")
+	testhelpers.AssertLen(t, "events", events, 3)
+}
+
+func TestMemoryStore_LoadAllFromPosition_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	_ = store.Close()
+
+	_, err := store.LoadAllFromPosition(context.Background(), id.EventID{}, 10)
+	if err == nil {
+		t.Fatal("expected error for closed store")
+	}
 }
