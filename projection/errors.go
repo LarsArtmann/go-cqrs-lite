@@ -18,6 +18,9 @@ var (
 
 	// ErrNoProjections is returned when Run is called without any registered projections.
 	ErrNoProjections = errors.New("projection: no projections registered")
+
+	// ErrDuplicateProjection is returned when a projection with the same name is registered twice.
+	ErrDuplicateProjection = errors.New("projection: duplicate projection name")
 )
 
 func init() { //nolint:gochecknoinits
@@ -25,4 +28,5 @@ func init() { //nolint:gochecknoinits
 	event.RegisterClassification(ErrNilBus, event.Infrastructure)
 	event.RegisterClassification(ErrNilCheckpoint, event.Infrastructure)
 	event.RegisterClassification(ErrNoProjections, event.Rejection)
+	event.RegisterClassification(ErrDuplicateProjection, event.Conflict)
 }

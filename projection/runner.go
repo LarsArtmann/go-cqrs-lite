@@ -68,6 +68,12 @@ func (r *Runner) Register(p event.Projection) error {
 		return ErrNilHandler
 	}
 
+	for _, existing := range r.projections {
+		if existing.Name() == p.Name() {
+			return fmt.Errorf("%w: %q", ErrDuplicateProjection, p.Name())
+		}
+	}
+
 	r.projections = append(r.projections, p)
 
 	return nil

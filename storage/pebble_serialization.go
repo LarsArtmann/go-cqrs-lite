@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -72,20 +73,34 @@ func (a *CQRSAdapter) deserializeEvent(data []byte) (event.Event, error) {
 
 	if s.Metadata != nil {
 		m := event.NewMetadata()
+		var parseErr error
+
 		if s.Metadata.CorrelationID != "" {
-			m.CorrelationID, _ = id.ParseCorrelationID(s.Metadata.CorrelationID)
+			m.CorrelationID, parseErr = id.ParseCorrelationID(s.Metadata.CorrelationID)
+			if parseErr != nil {
+				slog.Warn("pebble: corrupt correlation ID", "value", s.Metadata.CorrelationID, "error", parseErr)
+			}
 		}
 
 		if s.Metadata.CausationID != "" {
-			m.CausationID, _ = id.ParseCausationID(s.Metadata.CausationID)
+			m.CausationID, parseErr = id.ParseCausationID(s.Metadata.CausationID)
+			if parseErr != nil {
+				slog.Warn("pebble: corrupt causation ID", "value", s.Metadata.CausationID, "error", parseErr)
+			}
 		}
 
 		if s.Metadata.UserID != "" {
-			m.UserID, _ = id.ParseUserID(s.Metadata.UserID)
+			m.UserID, parseErr = id.ParseUserID(s.Metadata.UserID)
+			if parseErr != nil {
+				slog.Warn("pebble: corrupt user ID", "value", s.Metadata.UserID, "error", parseErr)
+			}
 		}
 
 		if s.Metadata.RequestID != "" {
-			m.RequestID, _ = id.ParseRequestID(s.Metadata.RequestID)
+			m.RequestID, parseErr = id.ParseRequestID(s.Metadata.RequestID)
+			if parseErr != nil {
+				slog.Warn("pebble: corrupt request ID", "value", s.Metadata.RequestID, "error", parseErr)
+			}
 		}
 
 		m.Source = event.Source(s.Metadata.Source)
