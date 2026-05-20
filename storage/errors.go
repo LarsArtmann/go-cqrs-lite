@@ -40,6 +40,9 @@ var ErrUnsupportedTimestamp = errors.New("storage: unsupported timestamp format"
 // ErrTursoMemorySync is returned when trying to sync an in-memory Turso database.
 var ErrTursoMemorySync = errors.New("storage: turso sync requires a file path for dbPath")
 
+// ErrUnexpectedTimeType is returned when a time scan destination has an unexpected type.
+var ErrUnexpectedTimeType = errors.New("storage: unexpected time type")
+
 func init() { //nolint:gochecknoinits
 	event.RegisterClassification(ErrNilDB, event.Infrastructure)
 	event.RegisterClassification(ErrAggregateTypeMismatch, event.Conflict)
@@ -49,4 +52,5 @@ func init() { //nolint:gochecknoinits
 	event.RegisterClassification(ErrUnknownBackend, event.Infrastructure)
 	event.RegisterClassification(ErrUnsupportedTimestamp, event.Corruption)
 	event.RegisterClassification(ErrTursoMemorySync, event.Rejection)
+	event.RegisterClassification(ErrUnexpectedTimeType, event.Corruption)
 }

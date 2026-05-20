@@ -13,7 +13,7 @@ import (
 )
 
 type slogTestCommand struct {
-	*command.CatalogCore
+	*command.Core
 }
 
 func TestSlogAdapter_CommandLogging(t *testing.T) {
@@ -29,15 +29,14 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 	mw := middleware.CommandLogging(middleware.SlogAdapter(logger))
 	handler := mw(testhelpers.NoopCommandHandler())
 
-	cmd := &slogTestCommand{
-		CatalogCore: command.MustNewCatalogCore(
-			"test.cmd",
-			id.NewAggregateID(),
-			command.CatalogMeta{},
-		),
+	core, err := command.New("test.cmd", id.NewAggregateID())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err := handler(context.Background(), cmd)
+	cmd := &slogTestCommand{Core: core}
+
+	err = handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -71,15 +70,14 @@ func TestSlogAdapter_CommandLogging_Error(t *testing.T) {
 		return context.Canceled
 	})
 
-	cmd := &slogTestCommand{
-		CatalogCore: command.MustNewCatalogCore(
-			"test.cmd",
-			id.NewAggregateID(),
-			command.CatalogMeta{},
-		),
+	core, err := command.New("test.cmd", id.NewAggregateID())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err := handler(context.Background(), cmd)
+	cmd := &slogTestCommand{Core: core}
+
+	err = handler(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error")
 	}

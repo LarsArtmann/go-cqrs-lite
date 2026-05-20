@@ -48,7 +48,7 @@ func (PostgresDialect) ScanTimeDest() any {
 func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 	tp, ok := src.(*time.Time)
 	if !ok {
-		return time.Time{}, fmt.Errorf("postgres dialect: expected *time.Time, got %T", src)
+		return time.Time{}, fmt.Errorf("postgres dialect: expected *time.Time, got %T: %w", src, ErrUnexpectedTimeType) //nolint:err113
 	}
 
 	return *tp, nil
@@ -70,7 +70,7 @@ func (SQLiteDialect) ScanTimeDest() any {
 func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 	sp, ok := src.(*string)
 	if !ok {
-		return time.Time{}, fmt.Errorf("sqlite dialect: expected *string, got %T", src)
+		return time.Time{}, fmt.Errorf("sqlite dialect: expected *string, got %T: %w", src, ErrUnexpectedTimeType) //nolint:err113
 	}
 
 	return parseSQLiteTimestamp(*sp)

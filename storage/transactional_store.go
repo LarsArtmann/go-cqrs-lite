@@ -58,8 +58,8 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 		aggregateID,
 		events,
 		expectedVersion,
-		s.SQLEventStore.checkVersion,
-		s.SQLEventStore.insertEvents,
+		s.checkVersion,
+		s.insertEvents,
 		s.appendOutboxTx,
 	)
 }

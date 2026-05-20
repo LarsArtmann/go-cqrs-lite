@@ -59,6 +59,7 @@ func (a *CQRSAdapter) Save(
 	// Optimistic concurrency check: verify current stream length matches expectedVersion.
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
+
 	existing, err := a.iterateEvents(prefix, upperBound)
 	if err != nil {
 		return fmt.Errorf("concurrency check: %w", err)
