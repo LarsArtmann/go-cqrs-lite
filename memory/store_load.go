@@ -117,7 +117,7 @@ func copyEvents(events []event.Event) []event.Event {
 	return result
 }
 
-func (s *MemoryStore) collectAllSorted() ([]event.Event, error) {
+func (s *MemoryStore) collectAllSorted() []event.Event {
 	var all []event.Event
 
 	for _, events := range s.events {
@@ -128,7 +128,7 @@ func (s *MemoryStore) collectAllSorted() ([]event.Event, error) {
 		return a.OccurredAt().Compare(b.OccurredAt())
 	})
 
-	return all, nil
+	return all
 }
 
 // LoadAll returns all events across all aggregates, sorted by OccurredAt.
@@ -142,7 +142,7 @@ func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	all, _ := s.collectAllSorted()
+	all := s.collectAllSorted()
 
 	return copyEvents(all), nil
 }
@@ -162,7 +162,7 @@ func (s *MemoryStore) LoadAllFromPosition(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	all, _ := s.collectAllSorted()
+	all := s.collectAllSorted()
 
 	startIdx := 0
 

@@ -111,7 +111,7 @@ func responseWithContent(desc string, schema any) *Response {
 }
 
 func responseNoContent(desc string) *Response {
-	return &Response{Description: desc}
+	return &Response{Description: desc, Content: nil}
 }
 
 func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.Message) {
