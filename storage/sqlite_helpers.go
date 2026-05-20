@@ -29,9 +29,72 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("%w: %q", ErrUnsupportedTimestamp, s)
 }
 
+// OpenSQLite opens a SQLite database file and returns a *sql.DB.
+// The caller is responsible for closing the returned *sql.DB.
+//
+// Uses modernc.org/sqlite (pure Go, no CGO). The DSN is configured with
+// auto-location and SQLite timestamp format for consistent time handling.
+func OpenSQLite(dbPath string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")
+	if err != nil {
+		return nil, fmt.Errorf("open sqlite database at %s: %w", dbPath, err)
+	}
+
+	return db, nil
+}
+
+// OpenSQLiteInMemory opens an in-memory SQLite database and returns a *sql.DB.
+// Useful for testing and development. Data is lost when the process exits.
+func OpenSQLiteInMemory() (*sql.DB, error) {
+	return OpenSQLite("file::memory:")
+}
+
 // SQLiteInitSchema creates all required tables in the SQLite database.
 func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
+		_, err := db.ExecContext(ctx, ddl)
+		if err != nil {
+			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
+		}
+	}
+
+	return nil
+}
+
+// SQLiteEnableWAL enables Write-Ahead Logging for better concurrent read
+// performance. WAL mode allows readers and a single writer to operate
+// simultaneously without blocking each other.
+//
+// Must be called before any writes. Not compatible with shared-cache
+// connections across multiple processes.
+func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
+	_, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL")
+	if err != nil {
+		return fmt.Errorf("enable WAL mode: %w", err)
+	}
+
+	return nil
+}
+
+// ConfigureSQLitePool sets connection pool limits suitable for SQLite.
+// SQLite requires at most one writer at a time, so MaxOpenConns is set to 1
+// to prevent "database is locked" errors under concurrent access.
+func ConfigureSQLitePool(db *sql.DB) {
+	db.SetMaxOpenConns(1)
+}
+
+// ConfigureTursoPool sets connection pool limits suitable for Turso.
+// Turso supports concurrent reads but serializes writes through its own
+// busy timeout mechanism. MaxOpenConns is set to 1 for safe write behavior.
+func ConfigureTursoPool(db *sql.DB) {
+	db.SetMaxOpenConns(1)
+}
+
+// PostgresInitSchema creates all required tables in a PostgreSQL database.
+func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
+	pg := PostgresDialect{}
+
+	for _, ddl := range []string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema(), pg.OutboxSchema()} {
 		_, err := db.ExecContext(ctx, ddl)
 		if err != nil {
 			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
