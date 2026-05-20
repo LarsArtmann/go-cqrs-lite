@@ -122,7 +122,7 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 		ID:      "Cmd",
 		Name:    "Cmd",
 		Version: "1.0.0",
-		Schema:  &catalog.Schema{Type: "object"},
+		Schema:  &catalog.Schema{Type: catalog.TypeObject},
 	})
 
 	cat := reg.Build()
@@ -270,7 +270,7 @@ func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {
 		Name:    "Cmd",
 		Version: "1.0.0",
 		Summary: "A command with summary and schema",
-		Schema:  &catalog.Schema{Type: "object"},
+		Schema:  &catalog.Schema{Type: catalog.TypeObject},
 	})
 
 	cat := reg.Build()

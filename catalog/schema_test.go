@@ -46,7 +46,7 @@ func TestSchemaFromType_Struct(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateUser]()
 
-	if schema.Type != catalog.SchemaType("object" {
+	if schema.Type != catalog.TypeObject {
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
 
@@ -67,7 +67,7 @@ func TestSchemaFromType_Slice(t *testing.T) {
 	t.Parallel()
 
 	schema := catalog.SchemaFromType[CreateOrder]()
-	if schema.Type != catalog.SchemaType("object" {
+	if schema.Type != catalog.TypeObject {
 		t.Fatalf("expected object, got %s", schema.Type)
 	}
 
@@ -229,7 +229,7 @@ func TestSchemaFromType_PointerField(t *testing.T) {
 		t.Fatal("expected name property")
 	}
 
-	if prop.Type != catalog.SchemaType("string" {
+	if prop.Type != catalog.TypeString {
 		t.Errorf("expected string, got %s", prop.Type)
 	}
 }
@@ -248,7 +248,7 @@ func TestSchemaFromType_MapField(t *testing.T) {
 		t.Fatal("expected meta property")
 	}
 
-	if prop.Type != catalog.SchemaType("object" {
+	if prop.Type != catalog.TypeObject {
 		t.Errorf("expected object, got %s", prop.Type)
 	}
 }
@@ -325,7 +325,7 @@ func TestSchemaFromType_ArrayField(t *testing.T) {
 		t.Fatal("expected ids property")
 	}
 
-	if prop.Type != catalog.SchemaType("array" {
+	if prop.Type != catalog.TypeArray {
 		t.Errorf("expected array, got %s", prop.Type)
 	}
 }
@@ -434,7 +434,7 @@ func TestSchemaFromType_PointerTimeTime(t *testing.T) {
 		t.Fatal("expected updatedAt property")
 	}
 
-	if prop.Type != catalog.SchemaType("string" {
+	if prop.Type != catalog.TypeString {
 		t.Errorf("expected type string for *time.Time, got %q", prop.Type)
 	}
 
@@ -463,7 +463,7 @@ func TestSchemaFromReflect_AllPrimitiveKinds(t *testing.T) {
 		{"uint32", uint32(0), catalog.TypeInteger},
 		{"uint64", uint64(0), catalog.TypeInteger},
 		{"uintptr", uintptr(0), catalog.TypeInteger},
-		{"float32", float32(0), "number"},
+		{"float32", float32(0), catalog.TypeNumber},
 		{"float64", float64(0), catalog.TypeNumber},
 		{"bool", true, catalog.TypeBoolean},
 		{"complex64", complex64(0), catalog.TypeString},
@@ -487,7 +487,7 @@ func TestSchemaFromReflect_Interface(t *testing.T) {
 
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[any]())
 
-	if schema.Type != catalog.SchemaType("object" {
+	if schema.Type != catalog.TypeObject {
 		t.Errorf("expected interface to map to object, got %q", schema.Type)
 	}
 }
@@ -497,7 +497,7 @@ func TestPropertyFromReflect_Map(t *testing.T) {
 
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[map[string]int]())
 
-	if schema.Type != catalog.SchemaType("object" {
+	if schema.Type != catalog.TypeObject {
 		t.Errorf("expected map to map to object, got %q", schema.Type)
 	}
 }
@@ -509,7 +509,7 @@ func TestCollectionSchema_NonSlice(t *testing.T) {
 	// This tests the else branch that's normally unreachable
 	schema := catalog.SchemaFromReflect(reflect.TypeFor[string]())
 
-	if schema.Type != catalog.SchemaType("string" {
+	if schema.Type != catalog.TypeString {
 		t.Errorf("expected string for direct string type, got %q", schema.Type)
 	}
 }
@@ -535,7 +535,7 @@ func TestSchemaFromReflect_UnsignedIntegers(t *testing.T) {
 			continue
 		}
 
-		if prop.Type != catalog.SchemaType("integer" {
+		if prop.Type != catalog.TypeInteger {
 			t.Errorf("property %s: expected integer, got %s", name, prop.Type)
 		}
 	}
@@ -559,7 +559,7 @@ func TestSchemaFromReflect_ComplexTypes(t *testing.T) {
 			continue
 		}
 
-		if prop.Type != catalog.SchemaType("string" {
+		if prop.Type != catalog.TypeString {
 			t.Errorf("property %s: expected string (complex), got %s", name, prop.Type)
 		}
 	}
@@ -579,7 +579,7 @@ func TestSchemaFromReflect_InterfaceType(t *testing.T) {
 		t.Fatal("missing property val")
 	}
 
-	if prop.Type != catalog.SchemaType("object" {
+	if prop.Type != catalog.TypeObject {
 		t.Errorf("expected object for interface, got %s", prop.Type)
 	}
 }
@@ -598,7 +598,7 @@ func TestCollectionSchema_ArrayType(t *testing.T) {
 		t.Fatal("missing property items")
 	}
 
-	if prop.Type != catalog.SchemaType("array" {
+	if prop.Type != catalog.TypeArray {
 		t.Errorf("expected array for fixed-size array, got %s", prop.Type)
 	}
 }

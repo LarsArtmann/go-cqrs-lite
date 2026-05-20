@@ -391,7 +391,7 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 		"CreateOrder",
 		"CreateOrder",
 		"1.0.0",
-		&catalog.Schema{Type: "object"},
+		&catalog.Schema{Type: catalog.TypeObject},
 	)
 
 	cat := reg.Build()

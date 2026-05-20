@@ -22,7 +22,7 @@ func benchmarkRegistryWithCommand() *catalog.Catalog {
 		ID:      "CreateOrder",
 		Name:    "CreateOrder",
 		Version: "1.0.0",
-		Schema:  &catalog.Schema{Type: "object"},
+		Schema:  &catalog.Schema{Type: catalog.TypeObject},
 	})
 
 	return reg.Build()
