@@ -48,9 +48,9 @@ This is clean, consistent, and works both with and without the workspace.
 
 The project correctly supports both development modes:
 
-| Mode | Command | How it works |
-|------|---------|-------------|
-| **Workspace** | `go build ./core/...` | `go.work` resolves local modules |
+| Mode           | Command                                   | How it works                               |
+| -------------- | ----------------------------------------- | ------------------------------------------ |
+| **Workspace**  | `go build ./core/...`                     | `go.work` resolves local modules           |
 | **Standalone** | `cd storage && GOWORK=off go build ./...` | `replace` directives resolve local modules |
 
 Both modes work. Every module builds independently.
@@ -107,19 +107,19 @@ These are minor polish items, not quality issues:
 
 ## Module-by-Module Report Card
 
-| Module | DAG | Independent Build | go.mod Hygiene | Version Strategy | Verdict |
-|--------|:---:|:-----------------:|:--------------:|:----------------:|---------|
-| **core** | ✅ Leaf | ✅ Yes | ✅ Replace for test deps | ✅ v0.0.0 | **Superb** |
-| **memory** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **catalog** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **middleware** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **testhelpers** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **projection** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **storage** | ✅ → core | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **sync** | ✅ Leaf | ✅ Yes | ✅ Clean | ✅ N/A (no deps) | **Superb** |
-| **integration** | ✅ → many | ✅ Yes (test-only) | ✅ Clean | ✅ v0.0.0 | **Superb** |
-| **example/todo** | ✅ → core, memory, storage | ✅ Yes | 🟡 testify | ✅ v0.0.0 | Good |
-| **example/user** | ✅ → core, memory, middleware, catalog | ✅ Yes | ✅ Clean | ✅ v0.0.0 | **Superb** |
+| Module           |                  DAG                   | Independent Build  |      go.mod Hygiene      | Version Strategy | Verdict    |
+| ---------------- | :------------------------------------: | :----------------: | :----------------------: | :--------------: | ---------- |
+| **core**         |                ✅ Leaf                 |       ✅ Yes       | ✅ Replace for test deps |    ✅ v0.0.0     | **Superb** |
+| **memory**       |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **catalog**      |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **middleware**   |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **testhelpers**  |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **projection**   |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **storage**      |               ✅ → core                |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **sync**         |                ✅ Leaf                 |       ✅ Yes       |         ✅ Clean         | ✅ N/A (no deps) | **Superb** |
+| **integration**  |               ✅ → many                | ✅ Yes (test-only) |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
+| **example/todo** |       ✅ → core, memory, storage       |       ✅ Yes       |        🟡 testify        |    ✅ v0.0.0     | Good       |
+| **example/user** | ✅ → core, memory, middleware, catalog |       ✅ Yes       |         ✅ Clean         |    ✅ v0.0.0     | **Superb** |
 
 **9 of 11 modules are Superb.** The 2 example modules are Good (not Superb only due to testify in example/todo).
 

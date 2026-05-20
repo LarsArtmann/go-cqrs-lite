@@ -52,11 +52,15 @@
             "integration"
             "projection"
             "storage"
+            "sync"
             "testhelpers"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
-          examplePaths = "./example/user/...";
+          examplePaths = builtins.concatStringsSep " " [
+            "./example/todo/..."
+            "./example/user/..."
+          ];
 
           mkApp = name: script: {
             type = "app";

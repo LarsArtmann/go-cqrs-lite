@@ -808,6 +808,10 @@ func TestTurso_FullWorkflow(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Save event %d: %v", i+1, err)
 		}
+
+		if i < 4 {
+			time.Sleep(time.Millisecond)
+		}
 	}
 
 	events, err := store.Load(ctx, "Order", aggID)
