@@ -98,6 +98,12 @@ func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
 	return nil
 }
 
+// Close closes the underlying SQL database connection.
+// Does not disconnect from remote sync — Push/Pull will fail after Close.
+func (t *TursoSyncDB) Close() error {
+	return t.DB.Close()
+}
+
 // Stats returns sync statistics (WAL size, bytes sent/received).
 func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error) {
 	stats, err := t.syncDb.Stats(ctx)
@@ -106,4 +112,43 @@ func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error)
 	}
 
 	return stats, nil
+}
+
+// TursoInitSchema creates all required tables in a Turso database.
+// Turso uses the same DDL as SQLite.
+func TursoInitSchema(ctx context.Context, db *sql.DB) error {
+	return SQLiteInitSchema(ctx, db)
+}
+
+// NewTursoEventStore creates an event store backed by a Turso database.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewTursoEventStore(db *sql.DB) (*SQLEventStore, error) {
+	return NewSQLiteEventStore(db)
+}
+
+// NewTursoSnapshotStore creates a snapshot store backed by a Turso database.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewTursoSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
+	return NewSQLiteSnapshotStore(db)
+}
+
+// NewTursoOutbox creates an outbox backed by a Turso database.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewTursoOutbox(db *sql.DB) (*SQLOutbox, error) {
+	return NewSQLiteOutbox(db)
+}
+
+// NewTursoCheckpointStore creates a checkpoint store backed by a Turso database.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewTursoCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
+	return NewSQLiteCheckpointStore(db)
+}
+
+// NewTursoTransactionalStore creates a transactional store backed by a Turso database.
+// Combines event persistence and outbox append in a single transaction.
+func NewTursoTransactionalStore(
+	store *SQLEventStore,
+	outbox *SQLOutbox,
+) (*SQLTransactionalStore, error) {
+	return NewSQLTransactionalStore(store, outbox)
 }
