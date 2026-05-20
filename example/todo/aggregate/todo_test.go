@@ -1,6 +1,7 @@
 package aggregate_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -9,8 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func testAggID() id.AggregateID { return id.NewAggregateID() }
@@ -22,16 +21,34 @@ func TestFold_Created(t *testing.T) {
 	events := mustDecide(aggregate.DecideCreate(aggID, "Title", "desc", 1, []string{"tag"}))
 
 	state, err := aggregate.Fold(aggregate.InitialState, events[0])
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Fold: %v", err)
+	}
 
-	assert.Equal(t, "Title", state.Title)
-	assert.Equal(t, "desc", state.Description)
-	assert.Equal(t, domain.StatusPending, state.Status)
-	assert.Equal(t, 1, state.Priority)
-	assert.Equal(t, []string{"tag"}, state.Tags)
-	assert.WithinDuration(t, now, state.CreatedAt, time.Second)
-	assert.False(t, state.Deleted)
-	assert.True(t, state.CreatedAt.Equal(state.UpdatedAt))
+	if state.Title != "Title" {
+		t.Errorf("Title = %q, want %q", state.Title, "Title")
+	}
+	if state.Description != "desc" {
+		t.Errorf("Description = %q, want %q", state.Description, "desc")
+	}
+	if state.Status != domain.StatusPending {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusPending)
+	}
+	if state.Priority != 1 {
+		t.Errorf("Priority = %d, want 1", state.Priority)
+	}
+	if len(state.Tags) != 1 || state.Tags[0] != "tag" {
+		t.Errorf("Tags = %v, want [tag]", state.Tags)
+	}
+	if now.Sub(state.CreatedAt) > time.Second {
+		t.Errorf("CreatedAt = %v, want near %v", state.CreatedAt, now)
+	}
+	if state.Deleted {
+		t.Error("Deleted = true, want false")
+	}
+	if !state.CreatedAt.Equal(state.UpdatedAt) {
+		t.Errorf("CreatedAt != UpdatedAt: %v vs %v", state.CreatedAt, state.UpdatedAt)
+	}
 }
 
 func TestFold_Updated(t *testing.T) {
@@ -41,10 +58,18 @@ func TestFold_Updated(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	assert.Equal(t, "New Title", state.Title)
-	assert.Equal(t, "new desc", state.Description)
-	assert.Equal(t, domain.StatusPending, state.Status)
-	assert.False(t, state.Deleted)
+	if state.Title != "New Title" {
+		t.Errorf("Title = %q, want %q", state.Title, "New Title")
+	}
+	if state.Description != "new desc" {
+		t.Errorf("Description = %q, want %q", state.Description, "new desc")
+	}
+	if state.Status != domain.StatusPending {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusPending)
+	}
+	if state.Deleted {
+		t.Error("Deleted = true, want false")
+	}
 }
 
 func TestFold_StatusChanged(t *testing.T) {
@@ -58,7 +83,9 @@ func TestFold_StatusChanged(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	assert.Equal(t, domain.StatusInProgress, state.Status)
+	if state.Status != domain.StatusInProgress {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusInProgress)
+	}
 }
 
 func TestFold_Completed(t *testing.T) {
@@ -72,9 +99,15 @@ func TestFold_Completed(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	assert.Equal(t, domain.StatusCompleted, state.Status)
-	require.NotNil(t, state.CompletedAt)
-	assert.WithinDuration(t, time.Now().UTC(), *state.CompletedAt, time.Second)
+	if state.Status != domain.StatusCompleted {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusCompleted)
+	}
+	if state.CompletedAt == nil {
+		t.Fatal("CompletedAt is nil, want non-nil")
+	}
+	if time.Now().UTC().Sub(*state.CompletedAt) > time.Second {
+		t.Errorf("CompletedAt = %v, want near now", *state.CompletedAt)
+	}
 }
 
 func TestFold_Deleted(t *testing.T) {
@@ -84,21 +117,29 @@ func TestFold_Deleted(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	assert.True(t, state.Deleted)
+	if !state.Deleted {
+		t.Error("Deleted = false, want true")
+	}
 }
 
 func TestDecideCreate_Success(t *testing.T) {
 	t.Parallel()
 	events := mustDecide(aggregate.DecideCreate(testAggID(), "Title", "desc", 1, nil))
 
-	require.Len(t, events, 1)
-	assert.Equal(t, aggregate.EventCreated, events[0].Type())
+	if len(events) != 1 {
+		t.Fatalf("events count = %d, want 1", len(events))
+	}
+	if events[0].Type() != aggregate.EventCreated {
+		t.Errorf("Type = %v, want %v", events[0].Type(), aggregate.EventCreated)
+	}
 }
 
 func TestDecideCreate_EmptyTitle(t *testing.T) {
 	t.Parallel()
 	_, err := invoke(aggregate.DecideCreate(testAggID(), "", "desc", 1, nil))
-	assert.ErrorIs(t, err, domain.ErrEmptyTitle)
+	if !errors.Is(err, domain.ErrEmptyTitle) {
+		t.Errorf("error = %v, want ErrEmptyTitle", err)
+	}
 }
 
 func TestDecideCreate_AlreadyExists(t *testing.T) {
@@ -112,7 +153,9 @@ func TestDecideCreate_AlreadyExists(t *testing.T) {
 		withState(state),
 		withVersion(1),
 	)
-	assert.ErrorIs(t, err, aggregate.ErrTodoAlreadyExists)
+	if !errors.Is(err, aggregate.ErrTodoAlreadyExists) {
+		t.Errorf("error = %v, want ErrTodoAlreadyExists", err)
+	}
 }
 
 func TestDecideUpdate_Success(t *testing.T) {
@@ -120,9 +163,15 @@ func TestDecideUpdate_Success(t *testing.T) {
 	aggID := testAggID()
 	events := createThenDecide(t, aggID, aggregate.DecideUpdate(aggID, "Updated", "new desc"))
 
-	require.Len(t, events, 2)
-	assert.Equal(t, aggregate.EventCreated, events[0].Type())
-	assert.Equal(t, aggregate.EventUpdated, events[1].Type())
+	if len(events) != 2 {
+		t.Fatalf("events count = %d, want 2", len(events))
+	}
+	if events[0].Type() != aggregate.EventCreated {
+		t.Errorf("events[0] Type = %v, want %v", events[0].Type(), aggregate.EventCreated)
+	}
+	if events[1].Type() != aggregate.EventUpdated {
+		t.Errorf("events[1] Type = %v, want %v", events[1].Type(), aggregate.EventUpdated)
+	}
 }
 
 func TestDecideUpdate_EmptyTitle(t *testing.T) {
@@ -132,7 +181,9 @@ func TestDecideUpdate_EmptyTitle(t *testing.T) {
 	state := foldAll(t, created)
 
 	_, err := invoke(aggregate.DecideUpdate(aggID, "", "desc"), withState(state), withVersion(1))
-	assert.ErrorIs(t, err, domain.ErrEmptyTitle)
+	if !errors.Is(err, domain.ErrEmptyTitle) {
+		t.Errorf("error = %v, want ErrEmptyTitle", err)
+	}
 }
 
 func TestDecideUpdate_Deleted(t *testing.T) {
@@ -141,7 +192,9 @@ func TestDecideUpdate_Deleted(t *testing.T) {
 	state := createDeleteState(t, aggID)
 
 	_, err := invoke(aggregate.DecideUpdate(aggID, "New", "desc"), withState(state), withVersion(2))
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	if !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("error = %v, want ErrNotFound", err)
+	}
 }
 
 func TestDecideDelete_Success(t *testing.T) {
@@ -149,8 +202,12 @@ func TestDecideDelete_Success(t *testing.T) {
 	aggID := testAggID()
 	events := createThenDecide(t, aggID, aggregate.DecideDelete(aggID))
 
-	require.Len(t, events, 2)
-	assert.Equal(t, aggregate.EventDeleted, events[1].Type())
+	if len(events) != 2 {
+		t.Fatalf("events count = %d, want 2", len(events))
+	}
+	if events[1].Type() != aggregate.EventDeleted {
+		t.Errorf("events[1] Type = %v, want %v", events[1].Type(), aggregate.EventDeleted)
+	}
 }
 
 func TestDecideDelete_AlreadyDeleted(t *testing.T) {
@@ -159,13 +216,17 @@ func TestDecideDelete_AlreadyDeleted(t *testing.T) {
 	state := createDeleteState(t, aggID)
 
 	_, err := invoke(aggregate.DecideDelete(aggID), withState(state), withVersion(2))
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	if !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("error = %v, want ErrNotFound", err)
+	}
 }
 
 func TestDecideDelete_NotExists(t *testing.T) {
 	t.Parallel()
 	_, err := invoke(aggregate.DecideDelete(testAggID()))
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	if !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("error = %v, want ErrNotFound", err)
+	}
 }
 
 func TestDecideChangeStatus_Success(t *testing.T) {
@@ -177,8 +238,12 @@ func TestDecideChangeStatus_Success(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusInProgress),
 	)
 
-	require.Len(t, events, 2)
-	assert.Equal(t, aggregate.EventStatusChanged, events[1].Type())
+	if len(events) != 2 {
+		t.Fatalf("events count = %d, want 2", len(events))
+	}
+	if events[1].Type() != aggregate.EventStatusChanged {
+		t.Errorf("events[1] Type = %v, want %v", events[1].Type(), aggregate.EventStatusChanged)
+	}
 }
 
 func TestDecideChangeStatus_Completed(t *testing.T) {
@@ -190,8 +255,12 @@ func TestDecideChangeStatus_Completed(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusCompleted),
 	)
 
-	require.Len(t, events, 2)
-	assert.Equal(t, aggregate.EventCompleted, events[1].Type())
+	if len(events) != 2 {
+		t.Fatalf("events count = %d, want 2", len(events))
+	}
+	if events[1].Type() != aggregate.EventCompleted {
+		t.Errorf("events[1] Type = %v, want %v", events[1].Type(), aggregate.EventCompleted)
+	}
 }
 
 func TestDecideChangeStatus_Invalid(t *testing.T) {
@@ -205,7 +274,9 @@ func TestDecideChangeStatus_Invalid(t *testing.T) {
 		withState(state),
 		withVersion(1),
 	)
-	assert.ErrorIs(t, err, domain.ErrInvalidStatus)
+	if !errors.Is(err, domain.ErrInvalidStatus) {
+		t.Errorf("error = %v, want ErrInvalidStatus", err)
+	}
 }
 
 func TestDecideChangeStatus_Deleted(t *testing.T) {
@@ -218,7 +289,9 @@ func TestDecideChangeStatus_Deleted(t *testing.T) {
 		withState(state),
 		withVersion(2),
 	)
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	if !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("error = %v, want ErrNotFound", err)
+	}
 }
 
 func TestTodoState_ToDomain(t *testing.T) {
@@ -234,21 +307,35 @@ func TestTodoState_ToDomain(t *testing.T) {
 	todoID, _ := domain.ParseTodoID(aggID.String())
 	todo := state.ToDomain(todoID, int64(len(events)))
 
-	assert.Equal(t, todoID, todo.ID)
-	assert.Equal(t, "Title", todo.Title)
-	assert.Equal(t, domain.StatusCompleted, todo.Status)
-	assert.Equal(t, int64(2), todo.Version)
-	assert.NotNil(t, todo.CompletedAt)
+	if todo.ID != todoID {
+		t.Errorf("ID = %v, want %v", todo.ID, todoID)
+	}
+	if todo.Title != "Title" {
+		t.Errorf("Title = %q, want %q", todo.Title, "Title")
+	}
+	if todo.Status != domain.StatusCompleted {
+		t.Errorf("Status = %v, want %v", todo.Status, domain.StatusCompleted)
+	}
+	if todo.Version != 2 {
+		t.Errorf("Version = %d, want 2", todo.Version)
+	}
+	if todo.CompletedAt == nil {
+		t.Error("CompletedAt is nil, want non-nil")
+	}
 }
 
 func TestTodoState_IsNew(t *testing.T) {
 	t.Parallel()
-	assert.True(t, aggregate.InitialState.IsNew())
+	if !aggregate.InitialState.IsNew() {
+		t.Error("InitialState.IsNew() = false, want true")
+	}
 
 	aggID := testAggID()
 	events := mustDecide(aggregate.DecideCreate(aggID, "Title", "", 1, nil))
 	state := foldAll(t, events)
-	assert.False(t, state.IsNew())
+	if state.IsNew() {
+		t.Error("state after create.IsNew() = true, want false")
+	}
 }
 
 func TestFullLifecycle(t *testing.T) {
@@ -259,13 +346,21 @@ func TestFullLifecycle(t *testing.T) {
 		aggregate.DecideCreate(aggID, "Buy milk", "from store", 2, []string{"errands"}),
 	)
 	state := foldAll(t, created)
-	assert.Equal(t, "Buy milk", state.Title)
-	assert.False(t, state.Deleted)
+	if state.Title != "Buy milk" {
+		t.Errorf("Title = %q, want %q", state.Title, "Buy milk")
+	}
+	if state.Deleted {
+		t.Error("Deleted = true, want false")
+	}
 
 	updated := mustDecideFrom(t, state, 1, aggregate.DecideUpdate(aggID, "Buy oat milk", "organic"))
 	state = foldAllFrom(t, state, updated)
-	assert.Equal(t, "Buy oat milk", state.Title)
-	assert.Equal(t, "organic", state.Description)
+	if state.Title != "Buy oat milk" {
+		t.Errorf("Title = %q, want %q", state.Title, "Buy oat milk")
+	}
+	if state.Description != "organic" {
+		t.Errorf("Description = %q, want %q", state.Description, "organic")
+	}
 
 	statusChanged := mustDecideFrom(
 		t,
@@ -274,7 +369,9 @@ func TestFullLifecycle(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusInProgress),
 	)
 	state = foldAllFrom(t, state, statusChanged)
-	assert.Equal(t, domain.StatusInProgress, state.Status)
+	if state.Status != domain.StatusInProgress {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusInProgress)
+	}
 
 	completed := mustDecideFrom(
 		t,
@@ -283,12 +380,18 @@ func TestFullLifecycle(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusCompleted),
 	)
 	state = foldAllFrom(t, state, completed)
-	assert.Equal(t, domain.StatusCompleted, state.Status)
-	assert.NotNil(t, state.CompletedAt)
+	if state.Status != domain.StatusCompleted {
+		t.Errorf("Status = %v, want %v", state.Status, domain.StatusCompleted)
+	}
+	if state.CompletedAt == nil {
+		t.Error("CompletedAt is nil, want non-nil")
+	}
 
 	deleted := mustDecideFrom(t, state, 4, aggregate.DecideDelete(aggID))
 	state = foldAllFrom(t, state, deleted)
-	assert.True(t, state.Deleted)
+	if !state.Deleted {
+		t.Error("Deleted = false, want true")
+	}
 }
 
 func mustDecide(f decider.DecideFunc[aggregate.TodoState], opts ...decideOption) []event.Event {
@@ -333,7 +436,9 @@ func mustDecideFrom(
 ) []event.Event {
 	t.Helper()
 	events, err := f(state, event.Version(version))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	return events
 }
 
@@ -363,7 +468,9 @@ func foldAllFrom(
 	for _, evt := range events {
 		var err error
 		state, err = aggregate.Fold(state, evt)
-		require.NoError(t, err)
+		if err != nil {
+			t.Fatalf("Fold: %v", err)
+		}
 	}
 	return state
 }

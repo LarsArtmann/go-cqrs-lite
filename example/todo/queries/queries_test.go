@@ -2,13 +2,12 @@ package queries
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetTodoHandler_Handle(t *testing.T) {
@@ -30,16 +29,27 @@ func TestGetTodoHandler_Handle(t *testing.T) {
 	}
 	h := NewGetTodoHandler(rm)
 	q, err := NewGetTodoQuery(testTodoID)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewGetTodoQuery: %v", err)
+	}
 
 	result, err := h.Handle(q)
-
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
 	getResult, ok := result.(*GetTodoResult)
-	require.True(t, ok)
-	assert.Equal(t, "Test Todo", getResult.Title)
-	assert.Equal(t, "Test Description", getResult.Description)
-	assert.Equal(t, StatusPending, getResult.Status)
+	if !ok {
+		t.Fatalf("result type = %T, want *GetTodoResult", result)
+	}
+	if getResult.Title != "Test Todo" {
+		t.Errorf("Title = %q, want %q", getResult.Title, "Test Todo")
+	}
+	if getResult.Description != "Test Description" {
+		t.Errorf("Description = %q, want %q", getResult.Description, "Test Description")
+	}
+	if getResult.Status != StatusPending {
+		t.Errorf("Status = %v, want %v", getResult.Status, StatusPending)
+	}
 }
 
 func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
@@ -47,13 +57,21 @@ func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 	rm := &fakeReadModel{todos: map[domain.TodoID]*domain.Todo{}}
 	h := NewGetTodoHandler(rm)
 	q, err := NewGetTodoQuery(testTodoID)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewGetTodoQuery: %v", err)
+	}
 
 	result, err := h.Handle(q)
 
-	assert.Nil(t, result)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to get todo")
+	if result != nil {
+		t.Errorf("result = %v, want nil", result)
+	}
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "failed to get todo") {
+		t.Errorf("error = %q, want containing %q", err.Error(), "failed to get todo")
+	}
 }
 
 func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
@@ -64,9 +82,15 @@ func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
 
 	result, err := h.Handle(wrongQuery)
 
-	assert.Nil(t, result)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid query type")
+	if result != nil {
+		t.Errorf("result = %v, want nil", result)
+	}
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "invalid query type") {
+		t.Errorf("error = %q, want containing %q", err.Error(), "invalid query type")
+	}
 }
 
 func TestListTodosHandler_Handle(t *testing.T) {
@@ -83,17 +107,26 @@ func TestListTodosHandler_Handle(t *testing.T) {
 	}
 	h := NewListTodosHandler(rm)
 	q, err := NewListTodosQuery()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewListTodosQuery: %v", err)
+	}
 	q.Priority = &priority
 	q.Limit = 10
 
 	result, err := h.Handle(q)
-
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
 	listResult, ok := result.(*ListTodosResult)
-	require.True(t, ok)
-	assert.Len(t, listResult.Todos, 2)
-	assert.Equal(t, 10, listResult.Limit)
+	if !ok {
+		t.Fatalf("result type = %T, want *ListTodosResult", result)
+	}
+	if len(listResult.Todos) != 2 {
+		t.Errorf("Todos count = %d, want 2", len(listResult.Todos))
+	}
+	if listResult.Limit != 10 {
+		t.Errorf("Limit = %d, want 10", listResult.Limit)
+	}
 }
 
 func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
@@ -101,13 +134,21 @@ func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 	rm := &fakeReadModel{listErr: errors.New("read model unavailable")}
 	h := NewListTodosHandler(rm)
 	q, err := NewListTodosQuery()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewListTodosQuery: %v", err)
+	}
 
 	result, err := h.Handle(q)
 
-	assert.Nil(t, result)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to list todos")
+	if result != nil {
+		t.Errorf("result = %v, want nil", result)
+	}
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "failed to list todos") {
+		t.Errorf("error = %q, want containing %q", err.Error(), "failed to list todos")
+	}
 }
 
 func TestCountTodosHandler_Handle(t *testing.T) {
@@ -121,14 +162,21 @@ func TestCountTodosHandler_Handle(t *testing.T) {
 	}
 	h := NewCountTodosHandler(rm)
 	q, err := NewCountTodosQuery()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewCountTodosQuery: %v", err)
+	}
 
 	result, err := h.Handle(q)
-
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
 	countResult, ok := result.(*CountTodosResult)
-	require.True(t, ok)
-	assert.Equal(t, 3, countResult.Count)
+	if !ok {
+		t.Fatalf("result type = %T, want *CountTodosResult", result)
+	}
+	if countResult.Count != 3 {
+		t.Errorf("Count = %d, want 3", countResult.Count)
+	}
 }
 
 func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
@@ -136,48 +184,83 @@ func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 	rm := &fakeReadModel{countErr: errors.New("db unavailable")}
 	h := NewCountTodosHandler(rm)
 	q, err := NewCountTodosQuery()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewCountTodosQuery: %v", err)
+	}
 
 	result, err := h.Handle(q)
 
-	assert.Nil(t, result)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to count todos")
+	if result != nil {
+		t.Errorf("result = %v, want nil", result)
+	}
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "failed to count todos") {
+		t.Errorf("error = %q, want containing %q", err.Error(), "failed to count todos")
+	}
 }
 
 func TestNewGetTodoQuery(t *testing.T) {
 	t.Parallel()
 	q, err := NewGetTodoQuery(testTodoID)
-	require.NoError(t, err)
-	require.NotNil(t, q)
-	assert.Equal(t, testTodoID, q.TodoID)
+	if err != nil {
+		t.Fatalf("NewGetTodoQuery: %v", err)
+	}
+	if q == nil {
+		t.Fatal("query is nil")
+	}
+	if q.TodoID != testTodoID {
+		t.Errorf("TodoID = %v, want %v", q.TodoID, testTodoID)
+	}
 }
 
 func TestNewListTodosQuery(t *testing.T) {
 	t.Parallel()
 	q, err := NewListTodosQuery()
-	require.NoError(t, err)
-	require.NotNil(t, q)
-	assert.Equal(t, 20, q.Limit)
-	assert.Equal(t, 0, q.Offset)
+	if err != nil {
+		t.Fatalf("NewListTodosQuery: %v", err)
+	}
+	if q == nil {
+		t.Fatal("query is nil")
+	}
+	if q.Limit != 20 {
+		t.Errorf("Limit = %d, want 20", q.Limit)
+	}
+	if q.Offset != 0 {
+		t.Errorf("Offset = %d, want 0", q.Offset)
+	}
 }
 
 func TestNewCountTodosQuery(t *testing.T) {
 	t.Parallel()
 	q, err := NewCountTodosQuery()
-	require.NoError(t, err)
-	require.NotNil(t, q)
+	if err != nil {
+		t.Fatalf("NewCountTodosQuery: %v", err)
+	}
+	if q == nil {
+		t.Fatal("query is nil")
+	}
 }
 
 func TestGetTodoQuery_MarshalJSON(t *testing.T) {
 	t.Parallel()
 	q, err := NewGetTodoQuery(testTodoID)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewGetTodoQuery: %v", err)
+	}
 
 	data, err := q.MarshalJSON()
-	require.NoError(t, err)
-	assert.Contains(t, string(data), `"type":"todo.get"`)
-	assert.Contains(t, string(data), testTodoID.String())
+	if err != nil {
+		t.Fatalf("MarshalJSON: %v", err)
+	}
+	s := string(data)
+	if !strings.Contains(s, `"type":"todo.get"`) {
+		t.Errorf("JSON = %s, want containing type", s)
+	}
+	if !strings.Contains(s, testTodoID.String()) {
+		t.Errorf("JSON = %s, want containing todo ID", s)
+	}
 }
 
 var testTodoID = domain.NewTodoID()

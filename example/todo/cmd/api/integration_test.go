@@ -16,8 +16,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
 	cqrsmemory "github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func setupTestMux(t *testing.T) *http.ServeMux {
@@ -39,65 +37,58 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
 
-	require.NoError(
-		t,
-		cmdDisp.Register(
-			aggregate.CommandCreate,
-			commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
-		),
-	)
-	require.NoError(
-		t,
-		cmdDisp.Register(
-			aggregate.CommandUpdate,
-			commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
-		),
-	)
-	require.NoError(
-		t,
-		cmdDisp.Register(
-			aggregate.CommandDelete,
-			commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
-		),
-	)
-	require.NoError(
-		t,
-		cmdDisp.Register(
-			aggregate.CommandChangeStatus,
-			commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
-		),
-	)
+	if err := cmdDisp.Register(
+		aggregate.CommandCreate,
+		commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
+	); err != nil {
+		t.Fatalf("Register CommandCreate: %v", err)
+	}
+	if err := cmdDisp.Register(
+		aggregate.CommandUpdate,
+		commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
+	); err != nil {
+		t.Fatalf("Register CommandUpdate: %v", err)
+	}
+	if err := cmdDisp.Register(
+		aggregate.CommandDelete,
+		commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
+	); err != nil {
+		t.Fatalf("Register CommandDelete: %v", err)
+	}
+	if err := cmdDisp.Register(
+		aggregate.CommandChangeStatus,
+		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
+	); err != nil {
+		t.Fatalf("Register CommandChangeStatus: %v", err)
+	}
 
 	getHandler := queries.NewGetTodoHandler(readModelStore)
-	require.NoError(
-		t,
-		queryDisp.Register(
-			queries.GetTodoQueryType,
-			func(_ context.Context, q query.Query) (any, error) {
-				return getHandler.Handle(q)
-			},
-		),
-	)
+	if err := queryDisp.Register(
+		queries.GetTodoQueryType,
+		func(_ context.Context, q query.Query) (any, error) {
+			return getHandler.Handle(q)
+		},
+	); err != nil {
+		t.Fatalf("Register GetTodo: %v", err)
+	}
 	listHandler := queries.NewListTodosHandler(readModelStore)
-	require.NoError(
-		t,
-		queryDisp.Register(
-			queries.ListTodosQueryType,
-			func(_ context.Context, q query.Query) (any, error) {
-				return listHandler.Handle(q)
-			},
-		),
-	)
+	if err := queryDisp.Register(
+		queries.ListTodosQueryType,
+		func(_ context.Context, q query.Query) (any, error) {
+			return listHandler.Handle(q)
+		},
+	); err != nil {
+		t.Fatalf("Register ListTodos: %v", err)
+	}
 	countHandler := queries.NewCountTodosHandler(readModelStore)
-	require.NoError(
-		t,
-		queryDisp.Register(
-			queries.CountTodosQueryType,
-			func(_ context.Context, q query.Query) (any, error) {
-				return countHandler.Handle(q)
-			},
-		),
-	)
+	if err := queryDisp.Register(
+		queries.CountTodosQueryType,
+		func(_ context.Context, q query.Query) (any, error) {
+			return countHandler.Handle(q)
+		},
+	); err != nil {
+		t.Fatalf("Register CountTodos: %v", err)
+	}
 
 	mux := http.NewServeMux()
 	registerTodoRoutes(mux, cmdDisp, queryDisp)
@@ -115,14 +106,22 @@ func TestHealthEndpoint(t *testing.T) {
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/health")
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
 
 	var body map[string]any
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
-	assert.Equal(t, "healthy", body["status"])
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode: %v", err)
+	}
+	if body["status"] != "healthy" {
+		t.Errorf("status = %v, want %q", body["status"], "healthy")
+	}
 }
 
 func TestCreateTodo_Success(t *testing.T) {
@@ -133,14 +132,22 @@ func TestCreateTodo_Success(t *testing.T) {
 
 	body := `{"title":"Buy milk","description":"from store","priority":2,"tags":["errands"]}`
 	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Post: %v", err)
+	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("Status = %d, want %d", resp.StatusCode, http.StatusCreated)
+	}
 
 	var result map[string]any
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
-	assert.NotEmpty(t, result["id"])
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode: %v", err)
+	}
+	if result["id"] == nil || result["id"] == "" {
+		t.Error("id is empty, want non-empty")
+	}
 }
 
 func TestCreateTodo_EmptyTitle(t *testing.T) {
@@ -151,12 +158,14 @@ func TestCreateTodo_EmptyTitle(t *testing.T) {
 
 	body := `{"title":"","description":"no title"}`
 	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Post: %v", err)
+	}
 	defer resp.Body.Close()
 
-	// Handler currently returns 500 for all dispatch errors.
-	// Wire cqrs-htmx error taxonomy to get proper 400 for domain validation errors.
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusInternalServerError)
+	}
 }
 
 func TestListTodos_Empty(t *testing.T) {
@@ -166,10 +175,14 @@ func TestListTodos_Empty(t *testing.T) {
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/api/v1/todos")
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
 }
 
 func TestGetTodo_NotFound(t *testing.T) {
@@ -179,10 +192,14 @@ func TestGetTodo_NotFound(t *testing.T) {
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/api/v1/todos/nonexistent")
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusBadRequest)
+	}
 }
 
 func TestFullCommandLifecycle(t *testing.T) {
@@ -196,18 +213,30 @@ func TestFullCommandLifecycle(t *testing.T) {
 		"application/json",
 		strings.NewReader(createBody),
 	)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	if err != nil {
+		t.Fatalf("Post: %v", err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("Create Status = %d, want %d", resp.StatusCode, http.StatusCreated)
+	}
 
 	var createResult map[string]any
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&createResult))
+	if err := json.NewDecoder(resp.Body).Decode(&createResult); err != nil {
+		t.Fatalf("Decode: %v", err)
+	}
 	resp.Body.Close()
 	todoID := createResult["id"].(string)
-	require.NotEmpty(t, todoID)
+	if todoID == "" {
+		t.Fatal("todoID is empty")
+	}
 
 	resp, err = http.Get(srv.URL + "/api/v1/todos/" + todoID)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Get Status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
 	resp.Body.Close()
 
 	updateBody := `{"title":"Updated Todo","description":"updated"}`
@@ -218,8 +247,12 @@ func TestFullCommandLifecycle(t *testing.T) {
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err = http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	if err != nil {
+		t.Fatalf("Put: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Update Status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
 	resp.Body.Close()
 
 	statusBody := `{"status":"completed"}`
@@ -230,14 +263,22 @@ func TestFullCommandLifecycle(t *testing.T) {
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err = http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+	if err != nil {
+		t.Fatalf("Patch: %v", err)
+	}
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("StatusChange Status = %d, want %d", resp.StatusCode, http.StatusNoContent)
+	}
 	resp.Body.Close()
 
 	req, _ = http.NewRequest(http.MethodDelete, srv.URL+"/api/v1/todos/"+todoID, nil)
 	resp, err = http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+	if err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("Delete Status = %d, want %d", resp.StatusCode, http.StatusNoContent)
+	}
 	resp.Body.Close()
 }
 
@@ -255,8 +296,12 @@ func TestUpdateTodo_InvalidID(t *testing.T) {
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Do: %v", err)
+	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusInternalServerError)
+	}
 }
