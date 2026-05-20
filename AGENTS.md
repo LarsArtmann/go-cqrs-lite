@@ -375,24 +375,24 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                | Coverage |
 | ---------------------- | -------- |
-| `core/command`         | 100.0%   |
+| `core/command`         | 98.1%    |
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
 | `middleware`           | 100.0%   |
 | `catalog/adapters`     | 97.1%    |
-| `memory`               | 99.5%    |
-| `projection`           | 98.3%    |
+| `memory`               | 99.6%    |
+| `projection`           | 97.6%    |
 | `core/pkg/id`          | 97.8%    |
 | `catalog/d2`           | 97.6%    |
-| `catalog/openapi`      | 96.6%    |
-| `core/aggregate`       | 96.9%    |
-| `catalog/eventcatalog` | 95.7%    |
-| `catalog`              | 95.3%    |
-| `core/event`           | 96.3%    |
-| `catalog/asyncapi`     | 93.9%    |
+| `catalog/openapi`      | 97.9%    |
+| `core/aggregate`       | 96.1%    |
+| `catalog/eventcatalog` | 95.8%    |
+| `catalog`              | 91.3%    |
+| `core/event`           | 92.9%    |
+| `catalog/asyncapi`     | 97.1%    |
 | `catalog/docserver`    | 92.3%    |
-| `core/decider`         | 92.7%    |
-| `storage`              | 88.1%    |
+| `core/decider`         | 85.6%    |
+| `storage`              | 87.6%    |
 
 ## Module Dependency Graph
 
@@ -835,3 +835,16 @@ Interfaces now return branded types instead of primitives:
   - **FIX**: `outboxEvent.Version` and `outboxEvent.SchemaVersion` changed from bare `int` to `event.Version`/`event.SchemaVersion` — type safety.
   - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json).
   - Zero catalog lint, all 22 test packages pass
+
+- **Session 80 (Time-Travel: Tests + Decider API + File Splits)**:
+  - **REFACTOR**: Split `storage/event_store.go` (394→128+184+98) into 3 files. Split `memory/store.go` (321→114+216) into 2 files. Zero production files over 250 lines.
+  - **TEST**: 30 new tests for time-travel methods across all store implementations:
+    - MemoryStore: 11 tests (LoadToVersion×4, LoadToTimestamp×3, LoadAllFromPosition×4). Coverage: 80.2% → 99.6%.
+    - SQLEventStore: 7 SQLite integration tests. Coverage: 77.8% → 87.6%.
+    - PebbleStore: 4 tests (LoadToVersion×2, LoadToTimestamp×2).
+    - FakeStore: 4 tests (LoadToVersion×2, LoadToTimestamp×2).
+  - **NEW**: `decider.Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel state reconstruction at specific version.
+  - **NEW**: `decider.Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — temporal state reconstruction at specific timestamp.
+  - **FIX**: False-positive TODO match in `catalog/internal/caseutil/convert.go` godoc (buildflow regex matched "ToDotAddress").
+  - **FIX**: Replaced `LoadAllFromPositionNoLimit` with unexported `loadAllFromStart` (not part of public interface).
+  - Zero lint, all 22 test packages pass
