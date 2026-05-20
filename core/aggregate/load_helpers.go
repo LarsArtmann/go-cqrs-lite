@@ -95,24 +95,22 @@ func (r *EventSourcedRepository) trySnapshot(ctx context.Context, root Root) err
 		return nil
 	}
 
-	var state []byte
-
-	if r.codec != nil {
-		encoded, err := r.codec.Encode(root)
-		if err != nil {
-			return fmt.Errorf("encode snapshot state: %w", err)
-		}
-
-		state = encoded
+	if r.codec == nil {
+		return nil
 	}
 
-	err := event.SaveSnapshot(
+	encoded, err := r.codec.Encode(root)
+	if err != nil {
+		return fmt.Errorf("encode snapshot state: %w", err)
+	}
+
+	err = event.SaveSnapshot(
 		ctx,
 		r.snapshotStore,
 		root.Type(),
 		root.ID(),
 		root.Version(),
-		state,
+		encoded,
 	)
 	if err != nil {
 		return fmt.Errorf("save snapshot: %w", err)
