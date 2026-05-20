@@ -8,6 +8,12 @@ import (
 // OutboxID identifies an entry in the outbox.
 type OutboxID string
 
+// String returns the underlying string value.
+func (id OutboxID) String() string { return string(id) }
+
+// IsZero returns true if the outbox ID is zero-valued.
+func (id OutboxID) IsZero() bool { return id == "" }
+
 // OutboxEntry represents a batch of events staged for reliable publishing.
 type OutboxEntry struct {
 	ID     OutboxID

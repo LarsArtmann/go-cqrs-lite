@@ -12,7 +12,12 @@ type OutboxStatus string
 const (
 	// OutboxStatusPending indicates the entry has not yet been published.
 	OutboxStatusPending OutboxStatus = "pending"
+	// OutboxStatusAcked indicates the entry has been successfully published.
+	OutboxStatusAcked OutboxStatus = "acked"
 )
+
+// String returns the underlying string value.
+func (s OutboxStatus) String() string { return string(s) }
 
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
 var ErrNilDB = errors.New("storage: nil database connection")
