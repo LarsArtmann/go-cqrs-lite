@@ -544,5 +544,5 @@ MIT
 
 ## References
 
-- [CONTEXT.md](CONTEXT.md) - Domain context and project understanding
+- [DOMAIN_GLOSSARY.md](DOMAIN_GLOSSARY.md) - Domain context and project understanding
 - [CQRS pattern](https://martinfowler.com/bliki/CQRS.html) - Martin Fowler
