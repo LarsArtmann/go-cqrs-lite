@@ -764,11 +764,12 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).
-			AddRow(
-				eventID.String(),
-				"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), metaJSON, ts,
-			),
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).
+				AddRow(
+					eventID.String(),
+					"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), metaJSON, ts,
+				),
 		)
 
 	loaded, err := store.Load(context.Background(), "User", aggID)
