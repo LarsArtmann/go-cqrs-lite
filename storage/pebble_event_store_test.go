@@ -497,8 +497,22 @@ func TestPebbleEventStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1, _ := event.NewEvent("Created", aggID, "Issue", 1, nil, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2, _ := event.NewEvent("Updated", aggID, "Issue", 2, nil, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt1, _ := event.NewEvent(
+		"Created",
+		aggID,
+		"Issue",
+		1,
+		nil,
+		event.WithOccurredAt(now.Add(-2*time.Hour)),
+	)
+	evt2, _ := event.NewEvent(
+		"Updated",
+		aggID,
+		"Issue",
+		2,
+		nil,
+		event.WithOccurredAt(now.Add(-1*time.Hour)),
+	)
 	evt3, _ := event.NewEvent("Deleted", aggID, "Issue", 3, nil, event.WithOccurredAt(now))
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})

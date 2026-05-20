@@ -2,6 +2,8 @@ package decider
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -191,4 +193,62 @@ func (r *Repository[State]) Delete(
 	}
 
 	return nil
+}
+
+// LoadAtVersion reconstructs state from events up to and including maxVersion.
+// Useful for time-travel queries: "what was the state at version N?"
+func (r *Repository[State]) LoadAtVersion(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	maxVersion event.Version,
+) (State, event.Version, error) {
+	events, err := r.store.LoadToVersion(ctx, aggType, aggID, maxVersion)
+	if err != nil {
+		if errors.Is(err, event.ErrAggregateNotFound) {
+			return r.decider.Initial, 0, nil
+		}
+
+		var zero State
+
+		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+	}
+
+	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
+	if err != nil {
+		var zero State
+
+		return zero, 0, err
+	}
+
+	return state, event.Version(len(events)), nil
+}
+
+// LoadAtTime reconstructs state from events up to and including maxTime.
+// Useful for temporal queries: "what was the state at this point in time?"
+func (r *Repository[State]) LoadAtTime(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	maxTime time.Time,
+) (State, event.Version, error) {
+	events, err := r.store.LoadToTimestamp(ctx, aggType, aggID, maxTime)
+	if err != nil {
+		if errors.Is(err, event.ErrAggregateNotFound) {
+			return r.decider.Initial, 0, nil
+		}
+
+		var zero State
+
+		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+	}
+
+	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
+	if err != nil {
+		var zero State
+
+		return zero, 0, err
+	}
+
+	return state, event.Version(len(events)), nil
 }

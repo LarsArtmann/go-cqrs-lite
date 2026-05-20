@@ -1206,3 +1206,124 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 		t.Fatal("snapshot should not be saved when fold fails")
 	}
 }
+
+func TestRepository_LoadAtVersion(t *testing.T) {
+	t.Parallel()
+
+	repo, store, _ := newTestRepo(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
+	evt2 := makeEvent(t, "CounterIncremented", aggID, 2)
+	evt3 := makeEvent(t, "CounterIncremented", aggID, 3)
+
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2, evt3})
+
+	state, version, err := repo.LoadAtVersion(ctx, aggID, "Counter", 2)
+	if err != nil {
+		t.Fatalf("LoadAtVersion: %v", err)
+	}
+
+	if version != 2 {
+		t.Fatalf("expected version 2, got %d", version)
+	}
+
+	if state.Value != 2 {
+		t.Fatalf("expected state value 2 (created + incremented), got %d", state.Value)
+	}
+}
+
+func TestRepository_LoadAtVersion_NotFound(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	state, version, err := repo.LoadAtVersion(ctx, aggID, "Counter", 5)
+	if err != nil {
+		t.Fatalf("LoadAtVersion not found: %v", err)
+	}
+
+	if version != 0 {
+		t.Fatalf("expected version 0, got %d", version)
+	}
+
+	if state.Value != 0 {
+		t.Fatalf("expected initial state, got %d", state.Value)
+	}
+}
+
+func TestRepository_LoadAtTime(t *testing.T) {
+	t.Parallel()
+
+	repo, store, _ := newTestRepo(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	now := time.Now()
+
+	evt1, _ := event.NewEvent(
+		"CounterCreated",
+		aggID,
+		"Counter",
+		1,
+		[]byte("{}"),
+		event.WithOccurredAt(now.Add(-2*time.Hour)),
+	)
+	evt2, _ := event.NewEvent(
+		"CounterIncremented",
+		aggID,
+		"Counter",
+		2,
+		[]byte("{}"),
+		event.WithOccurredAt(now.Add(-1*time.Hour)),
+	)
+	evt3, _ := event.NewEvent(
+		"CounterIncremented",
+		aggID,
+		"Counter",
+		3,
+		[]byte("{}"),
+		event.WithOccurredAt(now),
+	)
+
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2, evt3})
+
+	state, version, err := repo.LoadAtTime(ctx, aggID, "Counter", now.Add(-30*time.Minute))
+	if err != nil {
+		t.Fatalf("LoadAtTime: %v", err)
+	}
+
+	if version != 2 {
+		t.Fatalf("expected version 2, got %d", version)
+	}
+
+	if state.Value != 2 {
+		t.Fatalf("expected state value 2, got %d", state.Value)
+	}
+}
+
+func TestRepository_LoadAtTime_NotFound(t *testing.T) {
+	t.Parallel()
+
+	repo, _, _ := newTestRepo(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	state, version, err := repo.LoadAtTime(ctx, aggID, "Counter", time.Now())
+	if err != nil {
+		t.Fatalf("LoadAtTime not found: %v", err)
+	}
+
+	if version != 0 {
+		t.Fatalf("expected version 0, got %d", version)
+	}
+
+	if state.Value != 0 {
+		t.Fatalf("expected initial state, got %d", state.Value)
+	}
+}
