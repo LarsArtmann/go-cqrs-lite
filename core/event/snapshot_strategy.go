@@ -1,7 +1,5 @@
 package event
 
-import "fmt"
-
 // SnapshotStrategy decides when to create a snapshot after saving events.
 type SnapshotStrategy interface {
 	// ShouldSnapshot returns true if a snapshot should be created
@@ -13,7 +11,7 @@ type SnapshotStrategy interface {
 // Returns ErrInvalidSnapshotInterval if n <= 0.
 func EveryNEvents(n int) (SnapshotStrategy, error) {
 	if n <= 0 {
-		return nil, fmt.Errorf("EveryNEvents: %w", ErrInvalidSnapshotInterval)
+		return nil, ErrInvalidSnapshotInterval
 	}
 
 	return &everyN{interval: n}, nil
@@ -24,7 +22,7 @@ func EveryNEvents(n int) (SnapshotStrategy, error) {
 func MustEveryNEvents(n int) SnapshotStrategy {
 	s, err := EveryNEvents(n)
 	if err != nil {
-		panic(fmt.Sprintf("event.MustEveryNEvents: %v", err))
+		panic("event.MustEveryNEvents: " + err.Error())
 	}
 
 	return s

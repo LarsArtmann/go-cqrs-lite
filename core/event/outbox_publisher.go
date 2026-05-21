@@ -66,11 +66,11 @@ func NewOutboxPublisher(
 	opts ...OutboxPublisherOption,
 ) (*OutboxPublisher, error) {
 	if outbox == nil {
-		return nil, fmt.Errorf("%w", ErrNilOutbox)
+		return nil, ErrNilOutbox
 	}
 
 	if publisher == nil {
-		return nil, fmt.Errorf("%w", ErrNilBus)
+		return nil, ErrNilBus
 	}
 
 	p := &OutboxPublisher{ //nolint:exhaustruct // options fill remaining fields

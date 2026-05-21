@@ -29,7 +29,7 @@ type InMemoryRunner struct {
 // Returns an error if checkpoint is nil.
 func NewInMemoryRunner(checkpoint CheckpointStore) (*InMemoryRunner, error) {
 	if checkpoint == nil {
-		return nil, fmt.Errorf("%w", ErrNilCheckpointStore)
+		return nil, ErrNilCheckpointStore
 	}
 
 	return &InMemoryRunner{
@@ -44,7 +44,7 @@ func NewInMemoryRunner(checkpoint CheckpointStore) (*InMemoryRunner, error) {
 // the same name is already registered.
 func (r *InMemoryRunner) Register(projection Projection) error {
 	if projection == nil {
-		return fmt.Errorf("%w", ErrNilProjection)
+		return ErrNilProjection
 	}
 
 	r.mu.Lock()
@@ -52,7 +52,7 @@ func (r *InMemoryRunner) Register(projection Projection) error {
 
 	for _, existing := range r.projections {
 		if existing.Name() == projection.Name() {
-			return fmt.Errorf("%w: %q", ErrDuplicateProjection, projection.Name())
+			return ErrDuplicateProjection.WithContext("projection_name", projection.Name())
 		}
 	}
 
@@ -145,7 +145,7 @@ func (r *InMemoryRunner) dispatchProjections(
 				if r := recover(); r != nil {
 					res = parallelResult{
 						proj: p,
-						err:  fmt.Errorf("%w: %q: %v", ErrProjectionPanicked, p.Name(), r),
+						err:  ErrProjectionPanicked.WithContext("projection_name", p.Name()).WithContext("recovered", fmt.Sprintf("%v", r)),
 					}
 				}
 
