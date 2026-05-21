@@ -186,4 +186,24 @@ If we continue deduplication:
 
 ---
 
+## Appendix A: Decision — Accept Remaining 15 Clone Groups
+
+**Verdict: Stop deduplicating. Move to production work.**
+
+### Reasoning
+
+1. **Test code should be self-contained.** Each test tells a story. Extracting helpers across packages creates invisible coupling — you read a test, then have to jump to another file to understand what it does. That's worse than 6 lines of duplication.
+
+2. **The "cross-package problem" is a non-problem.** The `aggregate_test` vs `decider_test` clone is literally `store.SaveFn(func(...) error { return errors.New("...") })` — 5 lines of boilerplate that means nothing when duplicated. It's like deduplicating `t.Parallel()`.
+
+3. **Diminishing returns are real.** Went from 19 → 15 groups. Remaining groups average 2 clones each, ~25 tokens. The juice isn't worth the squeeze.
+
+4. **The real signal: `decider_test.go` is 1291 lines.** That's the actual problem — not duplication, but size. If investing effort, split that file by concern (outbox tests, snapshot tests, error-path tests) before chasing remaining clones.
+
+### Recommendation
+
+Add `art-dupl` to CI with a **budget of max 15 groups at t=40** as a regression gate. Then spend energy on production code, not test aesthetics.
+
+---
+
 **Report Generated:** 2026-05-21_18-25_SESSION_87_DEDUPLICATION_STATUS.md
