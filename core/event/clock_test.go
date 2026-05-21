@@ -75,7 +75,11 @@ func TestWithClock_WithOccurredAtTakesPrecedence(t *testing.T) {
 	}
 
 	if !evt.OccurredAt().Equal(overrideTime) {
-		t.Errorf("OccurredAt = %v, want %v (WithOccurredAt should override)", evt.OccurredAt(), overrideTime)
+		t.Errorf(
+			"OccurredAt = %v, want %v (WithOccurredAt should override)",
+			evt.OccurredAt(),
+			overrideTime,
+		)
 	}
 }
 
