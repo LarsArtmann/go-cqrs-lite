@@ -145,7 +145,8 @@ func (r *InMemoryRunner) dispatchProjections(
 				if r := recover(); r != nil {
 					res = parallelResult{
 						proj: p,
-						err:  ErrProjectionPanicked.WithContext("projection_name", p.Name()).WithContext("recovered", fmt.Sprintf("%v", r)),
+						err: ErrProjectionPanicked.WithContext("projection_name", p.Name()).
+							WithContext("recovered", fmt.Sprintf("%v", r)),
 					}
 				}
 
