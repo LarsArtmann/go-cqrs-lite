@@ -175,15 +175,15 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                                   | Key Types                                                                                                                                                                                    |
-| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                     |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                             |
+| Package                | Purpose                                   | Key Types                                                                                                                                                                                                             |
+| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                                              |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                      |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `DefaultClock` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                                                                       |
-| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                                                                       |
-| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`                                                               |
-| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                                                                                                |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                                                                                                |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`                                                                                        |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                         |
 
 ### Decider Module (`core/decider/`)
 
@@ -521,29 +521,28 @@ Interfaces now return branded types instead of primitives:
 | `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical                                          |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
 
-
 ## Session History
 
 > Detailed per-session change logs have been extracted to [`docs/sessions/SESSION_HISTORY.md`](docs/sessions/SESSION_HISTORY.md) for brevity. This section previously covered Sessions 20–86.
 
 Key milestones:
 
-| Session | Milestone |
-|---------|-----------|
-| 20      | Zero lint, storage error path tests 79.8→92.3% |
+| Session | Milestone                                                          |
+| ------- | ------------------------------------------------------------------ |
+| 20      | Zero lint, storage error path tests 79.8→92.3%                     |
 | 25      | Bug fixes: double-marshal, Close() ownership, Version branded type |
-| 27      | No-panic convention: `New*` returns `(*T, error)` |
-| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command |
-| 37      | `core/decider` package + example/user rewrite |
-| 44      | ISP (Publisher/Subscriber), extensible error classification |
-| 45      | `id.Of[T]` as type alias for `go-branded-id` |
-| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot |
-| 54      | Removed cockroachdb/errors, added TypedHandler[T] |
-| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType` |
-| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus |
-| 68      | Module hygiene, file splits, 0 production files >250 lines |
-| 73      | File splits, golden test refresh, coverage improvements |
-| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API |
-| 81      | Position-based replay, SQL composite index |
-| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal |
-| 86      | Catalog quality sweep, MemorySnapshotStore deep copy |
+| 27      | No-panic convention: `New*` returns `(*T, error)`                  |
+| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command   |
+| 37      | `core/decider` package + example/user rewrite                      |
+| 44      | ISP (Publisher/Subscriber), extensible error classification        |
+| 45      | `id.Of[T]` as type alias for `go-branded-id`                       |
+| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot              |
+| 54      | Removed cockroachdb/errors, added TypedHandler[T]                  |
+| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`           |
+| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus    |
+| 68      | Module hygiene, file splits, 0 production files >250 lines         |
+| 73      | File splits, golden test refresh, coverage improvements            |
+| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API           |
+| 81      | Position-based replay, SQL composite index                         |
+| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal           |
+| 86      | Catalog quality sweep, MemorySnapshotStore deep copy               |

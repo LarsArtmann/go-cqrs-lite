@@ -527,7 +527,7 @@ evt, err := event.NewBuilder(
 | Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
 | Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
 | Projections   | ✅ Complete | Projection runner with replay and live subscribe  |
-| Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory       |
+| Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
