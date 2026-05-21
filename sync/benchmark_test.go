@@ -63,6 +63,6 @@ func BenchmarkNewLWWResolver(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = NewLWWResolver(ts)
+		_, _ = NewLWWResolver(ts)
 	}
 }

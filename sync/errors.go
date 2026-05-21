@@ -1,6 +1,6 @@
 package sync
 
-import "github.com/larsartmann/go-error-family"
+import errorfamily "github.com/larsartmann/go-error-family"
 
 // ErrNilTimestampFunc is returned when NewLWWResolver is called with a nil timestamp function.
 var ErrNilTimestampFunc = errorfamily.NewRejection(
