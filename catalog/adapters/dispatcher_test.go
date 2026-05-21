@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -14,12 +15,12 @@ func TestBuilder_FromCommandDispatcher(t *testing.T) {
 	t.Parallel()
 
 	d := command.NewDispatcher()
-	d.RegisterCatalogEntry("user.create", command.CatalogMeta{ //nolint:staticcheck
+	d.RegisterCatalogEntry("user.create", dispatcher.CatalogEntry{
 		Name:    "CreateUser",
 		Version: "1.0.0",
 		Summary: "Creates a new user",
 	})
-	d.RegisterCatalogEntry("user.change_email", command.CatalogMeta{ //nolint:staticcheck
+	d.RegisterCatalogEntry("user.change_email", dispatcher.CatalogEntry{
 		Name:    "ChangeEmail",
 		Version: "1.0.0",
 		Summary: "Changes user email",
@@ -58,7 +59,7 @@ func TestBuilder_FromQueryDispatcher(t *testing.T) {
 	t.Parallel()
 
 	d := query.NewDispatcher()
-	d.RegisterCatalogEntry("user.get", query.CatalogMeta{ //nolint:staticcheck
+	d.RegisterCatalogEntry("user.get", dispatcher.CatalogEntry{
 		Name:    "GetUser",
 		Version: "1.0.0",
 		Summary: "Gets a user by ID",

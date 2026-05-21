@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -125,8 +126,7 @@ func TestDispatcher_RegisterCatalogEntry(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
-	//nolint:staticcheck // testing deprecated CatalogEntries API
-	meta := command.CatalogMeta{
+	meta := dispatcher.CatalogEntry{
 		Name:    "CreateUser",
 		Version: "1.0.0",
 		Summary: "Creates a new user",
@@ -153,12 +153,10 @@ func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
-	//nolint:staticcheck // testing deprecated CatalogEntries API
-	dispatcher.RegisterCatalogEntry("cmd.a", command.CatalogMeta{Name: "A"})
+	dispatcher.RegisterCatalogEntry("cmd.a", dispatcher.CatalogEntry{Name: "A"})
 
 	entries := dispatcher.CatalogEntries()
-	//nolint:staticcheck // testing deprecated CatalogEntries API
-	entries["cmd.b"] = command.CatalogMeta{Name: "B"}
+	entries["cmd.b"] = dispatcher.CatalogEntry{Name: "B"}
 
 	if len(dispatcher.CatalogEntries()) != 1 {
 		t.Error("CatalogEntries should return a copy, not a reference")

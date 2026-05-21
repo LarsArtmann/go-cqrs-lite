@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/adapters"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
 type benchCreateUser struct {
@@ -36,7 +37,7 @@ func BenchmarkBuilder_FromCommandDispatcher(b *testing.B) {
 	for i := range 10 {
 		d.RegisterCatalogEntry(
 			command.Type(fmt.Sprintf("cmd.%d", i)),
-			command.CatalogMeta{ //nolint:staticcheck
+			dispatcher.CatalogEntry{
 				Name: fmt.Sprintf("Cmd%d", i), Version: "1.0.0",
 			},
 		)
