@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-19 · **Module count:** 11 · **Go version:** 1.26.2
+**Last audited:** 2026-05-21 · **Module count:** 12 · **Go version:** 1.26.2
 
 ## Status Legend
 
@@ -34,11 +34,7 @@
 | Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation                 | ✅     |
 | TypedHandler[T]      | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command` | ✅     |
 
-**Coverage:** 100.0%
-
----
-
-### Query Dispatcher ✅ FULLY_FUNCTIONAL
+**Coverage:** 94.7%
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/query"`
 
@@ -83,11 +79,7 @@
 | NewTypedProjection[T] | `NewTypedProjection[T](name, types, handler)` — auto-decoding projection handler                                                                                                     | ✅     |
 | Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
 
-**Coverage:** 94.4%
-
----
-
-### Aggregate & Repository ✅ FULLY_FUNCTIONAL
+**Coverage:** 89.1%
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/aggregate"`
 
@@ -103,11 +95,7 @@
 | ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                     | ✅     |
 | Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
 
-**Coverage:** 95.5%
-
----
-
-### Branded IDs ✅ FULLY_FUNCTIONAL
+**Coverage:** 95.9%
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"`
 
@@ -148,11 +136,7 @@
 - No retry or dead-letter mechanism
 - No background polling (push-model only via `Handle`)
 
-**Coverage:** Tested via unit + integration tests
-
----
-
-### Event Upcasting ✅ FULLY_FUNCTIONAL
+**Coverage:** 93.9%
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/event"`
 
@@ -185,7 +169,7 @@
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
 
-**Coverage:** 99.1%
+**Coverage:** 99.6%
 
 ---
 
@@ -270,11 +254,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Dispatcher introspection | `FromCommandDispatcher`, `FromQueryDispatcher` — auto-import entries from live dispatchers                      | ✅     |
 | Immutable catalog        | `Build()` returns deep-copied, immutable `*Catalog`                                                             | ✅     |
 
-**Coverage:** 94.4%
-
----
-
-### AsyncAPI 3.0 Export ✅ FULLY_FUNCTIONAL
+**Coverage:** 90.5%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"`
 
@@ -287,11 +267,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
 | Examples            | `toExamples()` converts `json.RawMessage` to AsyncAPI examples                                              | ✅     |
 
-**Coverage:** 95.9%
-
----
-
-### EventCatalog Export ✅ FULLY_FUNCTIONAL
+**Coverage:** 93.7%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"`
 
@@ -303,11 +279,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
-**Coverage:** 95.6%
-
----
-
-### D2 Diagram Export ✅ FULLY_FUNCTIONAL
+**Coverage:** 91.3%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/d2"`
 
@@ -320,11 +292,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Schema tooltips     | Field names and types shown on hover                        | ✅     |
 | Options             | `WithDescription`, `WithDirection` for layout customization | ✅     |
 
-**Coverage:** 97.6%
-
----
-
-### OpenAPI 3.0 Export ✅ FULLY_FUNCTIONAL
+**Coverage:** 95.0%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/openapi"`
 
@@ -336,11 +304,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
 | Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
 
-**Coverage:** 96.6%
-
----
-
-### Doc Server ✅ FULLY_FUNCTIONAL
+**Coverage:** 94.4%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/docserver"`
 
@@ -353,7 +317,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request      | ✅     |
 | Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies | ✅     |
 
-**Coverage:** 92.3%
+**Coverage:** 91.0%
 
 ---
 
@@ -408,7 +372,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | NodeID              | Named type with `ParseNodeID`, `MustParseNodeID` validation                          | ✅     |
 | JSON serialization  | `Operation.Serialize()` and `DeserializeOperation[T]()` for transport                | ✅     |
 
-**Zero external dependencies** (stdlib only). **Coverage:** Tested
+**Coverage:** 92.2%
 
 ---
 

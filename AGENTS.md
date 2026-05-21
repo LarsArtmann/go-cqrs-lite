@@ -375,24 +375,26 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                | Coverage |
 | ---------------------- | -------- |
-| `core/command`         | 98.1%    |
 | `core/query`           | 100.0%   |
 | `core/pkg/dispatcher`  | 100.0%   |
 | `middleware`           | 100.0%   |
-| `catalog/adapters`     | 97.1%    |
+| `catalog/adapters`     | 100.0%   |
 | `memory`               | 99.6%    |
-| `projection`           | 97.6%    |
 | `core/pkg/id`          | 97.8%    |
-| `catalog/d2`           | 97.6%    |
-| `catalog/openapi`      | 97.9%    |
-| `core/aggregate`       | 96.1%    |
-| `catalog/eventcatalog` | 95.8%    |
-| `catalog`              | 91.3%    |
-| `core/event`           | 92.9%    |
-| `catalog/asyncapi`     | 97.1%    |
-| `catalog/docserver`    | 92.3%    |
-| `core/decider`         | 91.7%    |
-| `storage`              | 87.6%    |
+| `core/aggregate`       | 95.9%    |
+| `catalog/d2`           | 95.0%    |
+| `projection`           | 93.9%    |
+| `core/command`         | 94.7%    |
+| `catalog/openapi`      | 94.4%    |
+| `sync`                 | 92.2%    |
+| `catalog/eventcatalog` | 91.3%    |
+| `catalog/docserver`    | 91.0%    |
+| `catalog`              | 90.5%    |
+| `catalog/asyncapi`     | 93.7%    |
+| `core/decider`         | 93.3%    |
+| `core/event`           | 89.1%    |
+| `storage`              | 88.1%    |
+| `testhelpers`          | 10.5%    |
 
 ## Module Dependency Graph
 
@@ -507,390 +509,29 @@ Interfaces now return branded types instead of primitives:
 | `CatalogMeta` duplicated across 3 packages               | LOW      | `event.CatalogMeta`, `command.CatalogMeta`, `query.CatalogMeta` — nearly identical                                          |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
 
-- **Session 28 (Branching-Flow Context Review)**:
-  - **CRITICAL FIX**: `repository.loadEvents` now propagates non-`ErrSnapshotNotFound` snapshot errors instead of silently discarding them. Genuine DB errors are no longer masked.
-  - **HIGH FIX**: `SQLEventStore.Load` now returns `event.ErrAggregateNotFound` for empty result sets, consistent with `MemoryStore.Load`.
-  - **HIGH FIX**: `SQLSnapshotStore.Load` now translates `sql.ErrNoRows` to `event.ErrSnapshotNotFound`, consistent with `MemorySnapshotStore.Load`.
-  - **MEDIUM FIX**: `HandleParallel` now respects context cancellation — returns context error when canceled mid-processing.
-  - **DOCUMENTED**: `Save` partial-failure contract (events persisted but unpublished on bus/outbox failure).
-  - **DOCUMENTED**: `publishPending` silently swallows errors in background loop; use `PublishNow` for error visibility.
-  - **DOCUMENTED**: `MemoryBus` handler ordering (all-handlers before type-specific) and partial-publish semantics.
-  - **DOCUMENTED**: `NewRepository` requires non-nil store/bus (undefined behavior if nil).
-  - Removed `Load() empty semantics differ` from Known Issues (now fixed).
-  - Zero lint, all tests pass across all modules
 
-- **Session 29 (Honest Quality Self-Assessment)**:
-  - **BREAKING**: `projection.NewRunner` returns `(*Runner, error)` instead of panicking on nil deps. Added `ErrNilStore`, `ErrNilBus`, `ErrNilCheckpoint` sentinels.
-  - **Cleanup**: Removed stale `memory` replace directives from `testhelpers/go.mod` and `middleware/go.mod`.
-  - **Interface checks**: Added compile-time `var _ Interface = (*Impl)(nil)` for `JSONCodec`, `slogLogger`, `FakeCheckpointStore`.
-  - **Sentinel errors**: Extracted `ErrHandlerNil` to `memory/errors.go`, `ErrAlreadyStarted` to `core/event/errors.go`. Tests updated to `errors.Is`.
-  - **Godoc**: Added doc comments to all exported types in `catalog/types.go` and exported functions in `catalog/schema.go`.
-  - **Documented**: `samber/ro` forces `[]any` for `Pipe` operator pipeline — acceptable exception to "no any" rule.
-  - All tests pass across all modules
+## Session History
 
-- **Session 27 (No-Panic Convention + Code Quality)**:
-  - **BREAKING**: `NewInMemoryRunner` returns `(*InMemoryRunner, error)` instead of panicking on nil checkpoint. Added `ErrNilCheckpointStore` sentinel.
-  - **BREAKING**: `NewOutboxPublisher` returns `(*OutboxPublisher, error)` instead of panicking on nil outbox/bus. Added `ErrNilOutbox`, `ErrNilBus` sentinels.
-  - **BREAKING**: `NewCore` returns `(*Core, error)` with validation for zero ID/empty type. Added `MustNewCore` helper. Added `ErrNilAggregateID`, `ErrEmptyAggregateType` sentinels.
-  - **BREAKING**: `Bus` interface now includes `Use(middleware ...Middleware) error`. Updated `FakeBus` and test stubs.
-  - **Fix**: `SQLSnapshotStore.LoadAtVersion` now returns snapshot at or before version (was exact match). Matches interface contract and MemorySnapshotStore behavior.
-  - **Fix**: `catalog/go.mod` stale replace directives caused 33+ gopls errors.
-  - **Fix**: `TestSQLEventStore_Close` was false-positive (`ExpectClose` never fulfilled).
-  - **Fix**: `FEATURES.md` stale entries — removed implemented items from "Not Yet Implemented", corrected Bus.Use and Close() claims.
-  - **Fix**: D2 exporter field reference `e.Description` → `e.description` after unexporting.
-  - **Code quality**: Added doc comments to `event/catalog.go` (CatalogMeta, Catalogable, etc.). Added `MustNewCatalogCore` to event for consistency. Added compile-time interface checks for `ProjectionFunc`, `UpcasterFunc`, `CatalogCore` across all 3 packages. Replaced custom `contains()` helper with `strings.Contains` in outbox publisher tests.
-  - Zero lint, all 18 test packages pass
+> Detailed per-session change logs have been extracted to [`docs/sessions/SESSION_HISTORY.md`](docs/sessions/SESSION_HISTORY.md) for brevity. This section previously covered Sessions 20–86.
 
-- **Session 20 (Lint Fix + Comprehensive Plan Execution)**:
-  - **Lint cleanup**: Fixed 48 lint issues → 0. Added `go-sqlmock` to depguard, `tx`/`ts` to varnamelen ignores, `example/` + `testhelpers/fakes.go` exclusions. Fixed `noinlineerr` (17), `err113` (1), `wrapcheck` (2), `godoclint` (1).
-  - **Storage error path tests**: 79.8% → 92.3% (13 → 31 tests). Added BeginTx/query/insert/commit errors, scanEvents parse/scan errors, DDL test, SQL injection safety test.
-  - **Code quality**: Extracted `validateEventParams` from `NewEvent` (66→25 lines). Extracted `addChannel`/`addOperation` from `addMessage` (55→25 lines).
-  - **toDotAddress**: Fixed digit handling — digits after letters get dot separator, consecutive digits stay grouped.
-  - **UpcasterRegistry**: Added cycle detection (visited version tracking).
-  - **Documentation**: Documented `InMemoryRunner` fail-fast, `MemoryBus.Publish` RLock. Updated FEATURES.md storage status (BROKEN → PARTIALLY_FUNCTIONAL). Pruned 6 stale TODO_LIST.md items.
-  - **Housekeeping**: Deleted orphaned `/user` binary. Added `/user` to `.gitignore`. Documented `storage.Close()` ownership contract.
-  - Zero lint, all tests pass across all 9 modules
+Key milestones:
 
-- **Session 25 (Bug Fixes + Type Safety)**:
-  - **CRITICAL FIX**: `SQLSnapshotStore.Save()` double-marshal — `json.Marshal(snap.State)` stored double-encoded JSON (`State` is already `[]byte`). Now stores `snap.State` directly.
-  - **CRITICAL FIX**: `storage.Close()` ownership — all 3 SQL stores now return nil (no-op). `*sql.DB` is borrowed, not owned. Previously `Close()` on one store broke others sharing the same DB.
-  - **DESIGN FIX**: `CheckpointStore` interface now embeds `io.Closer`, consistent with all other store interfaces (`Store`, `Bus`, `SnapshotStore`, `Outbox`).
-  - **BREAKING**: `Event.Version()` and `Root.Version()` return `event.Version` instead of `int`. Consistent with branded ID types. Callers needing `int` use `.Int()`. `SnapshotStrategy.ShouldSnapshot()` parameter also changed.
-  - **Tests**: Added `storage/snapshot_test.go` (11 tests) and `storage/checkpoint_test.go` (8 tests) with go-sqlmock.
-  - Zero lint, all tests pass across all 9 modules
-
-- **Session 30 (Architecture Roadmap Planning)**:
-  - **Research synthesis**: Reviewed 11 planning/research documents across go-cqrs-lite and go-localfirst projects, including error handling brainstorm (9 families, 74 issues), offline-first dimensions (15 topics), hybrid architecture proposal, and 13 innovative CQRS/ES projects.
-  - **Roadmap created**: `docs/planning/2026-05-01_ARCHITECTURE_ROADMAP.md` — 5-phase plan with 3 initiatives (Error Taxonomy in library, Offline-First Primitives, Error Handling in go-localfirst).
-  - **Key decisions**:
-    - Error taxonomy: 5 families in go-cqrs-lite (Rejection, Conflict, Transient, Corruption, Infrastructure), 4 more in go-localfirst (Staleness, Divergence, Pipeline, Transport)
-    - `core/pkg/errors/` package for library-level error classification
-    - `IdempotencyKey()` added to Command interface (breaking, with BaseCommand migration helper)
-    - Client metadata options: `WithClientID`, `WithClientOccurredAt`, `WithClientTimezone`, `WithCausationID`
-    - Single write path in go-localfirst (sync operations become commands)
-    - Dual bus pattern (event bus + notification bus) for error broadcasting
-  - **Explicit non-goals documented**: No sync protocol, no client-side store, no event signing, no WASM/mobile SDK
-  - No code changes this session — planning only
-
-- **Session 31 (Error Taxonomy + Offline-First Primitives)**:
-  - **NEW**: `event.Family` enum (Rejection, Conflict, Transient, Corruption, Infrastructure) in `core/event/errors.go`
-  - **NEW**: `event.Error` struct with Code, Message, Family, cause — extractable via `errors.As`
-  - **NEW**: `event.Classify(err) Family` — maps sentinels to families, defaults to Transient
-  - **NEW**: `event.IsRetryable(err) bool` — returns true for Transient family
-  - **NEW**: Constructors: `NewRejection`, `NewConflict`, `NewTransient`, `NewCorruption`, `NewInfrastructure`
-  - **NEW**: `id.ClientID` branded type in `core/pkg/id/client_id.go`
-  - **NEW**: `event.WithClientID(id.ClientID)` and `event.WithClientOccurredAt(time.Time)` options
-  - **BREAKING**: `command.Command` interface now requires `IdempotencyKey() string`
-  - **FIX**: `projection/runner.go` — stopped silently discarding handler errors (`_ =` → proper error handling with retry)
-  - **ENHANCEMENT**: `projection/runner.go` — wired `WithRetry` option with exponential backoff using `event.IsRetryable()`
-  - **ENHANCEMENT**: `middleware.DefaultRetryConfig()` — `IsRetryable` now defaults to `event.IsRetryable` (was: always false)
-  - **DOCS**: `docs/OFFLINE_FIRST_METADATA.md` — convention-based metadata keys for offline-first
-  - **DOCS**: `docs/planning/2026-05-01_EXECUTION_PLAN.md` — comprehensive task list with effort/impact estimates
-  - Zero lint, all tests pass across all modules
-
-- **Session 32 (Test Coverage + Type Quality + Cleanup)**:
-  - **FIX**: `Classify(nil)` returns `Rejection` (was `Transient`), `IsRetryable(nil)` returns `false`
-  - **FIX**: `ErrDuplicateProjection` classified as `Conflict` in `Classify()`
-  - **NEW**: `event.Error` implements `fmt.Formatter` — `%+v` shows `family:code: message` with cause chain
-  - **NEW**: `event.Version.String()` — returns decimal representation
-  - **TEST**: Projection retry: `TestRunner_RetryOnTransientError`, `TestRunner_NoRetryOnNonRetryableError`
-  - **TEST**: `TestWithClientID`, `TestWithClientOccurredAt`, `TestClientID`, `MustParseClientID` panic test
-  - **DOCS**: `RetryConfig.IsRetryable` field documented
-  - **CLEANUP**: Removed stale "FakeStore/MemoryStore key separator mismatch" Known Issue
-  - **KNOWN ISSUE**: Cross-package sentinels (aggregate, projection, storage) not classified — circular dependency. Documented in `Classify()` doc comment.
-  - **KNOWN ISSUE**: `WithBatchSize`/`WithBatchWindow`/`WithConcurrency` options set fields but runner never reads them — dead API surface.
-  - Zero lint, all 20 test packages pass
-
-- **Session 34 (World-Class Library Cleanup)**:
-  - **BREAKING**: Removed dead public API — `WithBatchSize`, `WithBatchWindow`, `WithConcurrency` (3 options that silently did nothing)
-  - **BREAKING**: Removed 5 unused error sentinels from `projection/errors.go` (`ErrRunnerStopped`, `ErrDuplicateHandler`, `ErrCheckpointLoad`, `ErrStoreLoad`, `ErrNilStore`)
-  - **BREAKING**: Removed unused `FakeCheckpointStore` from `testhelpers/`
-  - **DOCS**: Added godoc to 57 exported symbols across 8 files: `projection/runner.go`, `projection/errors.go`, `memory/bus.go`, `memory/store.go`, `memory/snapshot.go`, `core/aggregate/errors.go`, `catalog/eventcatalog/exporter.go`, `catalog/asyncapi/types.go`
-  - **NEW**: `String()` on `event.Type`, `event.AggregateType`, `command.Type`, `query.Type`
-  - **NEW**: `*event.Error.Is(error) bool` — matches by Code+Family for `errors.Is` support
-  - **NEW**: Compile-time `var _ io.Closer` for `*projection.Runner`, `*event.OutboxPublisher`, `*command.Dispatcher`, `*query.Dispatcher`
-  - **RESOLVED**: "WithBatchSize/WithBatchWindow/WithConcurrency dead API surface" Known Issue — removed
-  - Zero lint, all 21 test packages pass
-
-- **Session 36 (Continuation — Cleanup + Audit)**:
-  - **TEST**: `command.Core.IdempotencyKey()` — default returns `""`, embed override test
-  - **REFACTOR**: Split `testhelpers/helpers.go` (293 lines) into 3 files: `handlers.go` (131), `event_helpers.go` (58), `assertions.go` (113)
-  - **REFACTOR**: Trimmed `aggregate/repository.go` from 254 → 244 lines (extracted `publishChanges` helper)
-  - **QUALITY**: Added compile-time `var _` interface checks for `event.Core→Event`, `command.Core→Command`, `query.Core→Query`
-  - **QUALITY**: Added godoc to 4 `*event.Error` methods (`Error`, `Unwrap`, `Is`, `Format`)
-  - **AUDIT**: Full codebase audit — all files ≤250 lines, zero TODO/FIXME, all exported errors use correct patterns
-  - Zero lint, all 21 test packages pass
-
-- **Session 37 (Decider Package + Example Rewrite)**:
-  - **NEW**: `core/decider` package — functional aggregate pattern using pure functions
-  - **NEW**: `decider.Decider[State]` — holds Initial state + Fold function (pure)
-  - **NEW**: `decider.Repository[State]` — wraps event.Store + event.Bus, provides Execute (load→fold→decide→save→publish) and Load (read-only)
-  - **NEW**: `decider.DecideFunc[State]` — `func(state State, version event.Version) ([]event.Event, error)`
-  - **NEW**: Sentinel errors: `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
-  - **DESIGN**: `aggregate` package stays for existing consumers; `decider` is recommended for new consumers
-  - **DESIGN**: `Execute` handles `ErrAggregateNotFound` as empty stream (new aggregate, version 0)
-  - **TEST**: 11 tests covering create, update, decide error, fold error, save error, publish error, no events, load, nil checks
-  - **EXAMPLE**: Complete rewrite of `example/user/` — 10 files, full CQRS stack using Decider pattern
-  - **EXAMPLE**: Demonstrates commands, events, projections, queries, middleware chain, error classification, EventCatalog
-  - **EXAMPLE**: No split-brain types, no `log.Fatalf` in helpers, uses library's `SlogAdapter`
-  - **EXAMPLE**: README with architecture diagram, file structure, and pattern explanations
-  - Zero lint, all 22 test packages pass
-
-- **Session 38 (Deep Cleanup + Deduplication + Type Safety)**:
-  - **FIX**: `EveryNEvents` now validates `n > 0` (prevents division-by-zero)
-  - **FIX**: `FakeOutbox.Ack` now respects IDs parameter (was clearing all entries)
-  - **FIX**: Golden tests use `strings.TrimSpace` for comparison (prevents trailing-newline drift)
-  - **REFACTOR**: Extracted `insertEvents` helper in `storage/event_store.go` (removes duplicated loop from Save/AppendBatch)
-  - **REFACTOR**: Extracted `pollPublishAck` in `core/event/outbox_publisher.go` (publishPending/PublishNow now share one cycle)
-  - **REFACTOR**: Exported `event.SubscribesTo` and removed duplicated `subscribesTo` from `projection/runner.go`
-  - **REFACTOR**: Removed dead `dispatcher.Typed` interface (no production references)
-  - **REFACTOR**: Replaced 2 dynamic errors with sentinels (`query.ErrEmptyQueryType`, `catalog.ErrNilSchema`)
-  - **API**: `projection/HandlerRegistry.On` now accepts `event.Type` instead of `string`
-  - Zero lint, all 21 test packages pass
-
-- **Session 39 (Deep Cleanup + Dead Code Removal)**:
-  - **CHORE**: Removed stale `.golangci-lint.yml` (minimal 12-linter config replaced by comprehensive 60+ linter `.golangci.yml`)
-  - **CHORE**: Removed 6 dead `//nolint:ireturn` directives (ireturn linter is not enabled)
-  - **REFACTOR(middleware)**: Replaced `crypto/rand` with `math/rand/v2` for jitter — simpler, faster, no modulo bias
-  - **REFACTOR(testhelpers)**: Extracted `fakeStreamKey` helper — deduplicated 5× inline `string(aggregateType) + ":" + aggregateID.String()`
-  - **REFACTOR(catalog)**: Added `catalog.ErrDomainNotFound` sentinel, replaced 2× `fmt.Errorf("domain %q not found")` with `errors.Is`-compatible sentinel
-  - **FIX(aggregate)**: `MustNewCore` panic now includes context prefix (`"aggregate.MustNewCore: ..."`), consistent with all other `Must*` helpers
-  - **REFACTOR(catalog/d2)**: Simplified `sanitizeID` to single-pass `strings.Map`; removed redundant `Sends` case in action switch
-  - **FIX(testhelpers)**: `FakeOutbox` uses monotonic counter for IDs (was `len(Entries)`, produced duplicates after `Ack`)
-  - Net -69 lines across 11 files, zero lint, all 21 test packages pass
-
-- **Session 43 (Bug Fixes + Test Quality + Coverage)**:
-  - **FIX(event)**: `HandleParallel` goroutine now has panic recovery — prevents deadlock from panicking projection handlers
-  - **FIX(event)**: `OutboxPublisher.run()` goroutine now has panic recovery — prevents process crash from panicked publish cycle
-  - **FIX(aggregate)**: `TestCoreDoesNotImplementRootDirectly` now has proper assertions (was zero-assertion always-passing test)
-  - **FIX(event)**: `TestOutboxPublisher_PublishNow_ContextCanceled` now asserts error (stub also made context-aware)
-  - **FIX(testhelpers)**: `FakeOutbox` uses `sync.RWMutex` + `RLock()` for `PollPending` (was exclusive `Lock()` for read-only)
-  - **FIX(testhelpers)**: `FakeStore.Save` reads `saveFn` under `RLock` (was data race with `SaveFn()`)
-  - **FIX(testhelpers)**: All `FakeStore`/`FakeOutbox` methods use `defer` unlock (was manual unlock without defer)
-  - **REFACTOR(decider)**: Split `decider.go` (292→243 lines) by extracting `loadFromSnapshot` to `options.go`
-  - **TEST(decider)**: Coverage 77.4%→94.3% — added 8 tests: snapshot decode error, store load error, fold error during replay, save snapshot error, Delete error, EveryNEvents validation, snapshot+events after, nil snapshot fallback
-  - **TEST(projection)**: Replaced all 9× `time.Sleep` with channel-based sync via `subscribeSignalBus` wrapper — no flaky CI timing
-  - **TEST(memory)**: Added concurrent access tests for `MemoryStore` (10 goroutines × 50 saves + 50 loads) and `MemoryBus` (5 publishers × 20 events) — passes with `-race`
-  - Zero lint, all 20 test packages pass
-
-- **Session 44 (Architecture: ISP + Error Classification + DI + Lint)**:
-  - **NEW**: `event.Publisher` and `event.Subscriber` sub-interfaces — `event.Bus` composes both. Non-breaking ISP improvement. Repositories accept `Publisher`, projections accept `Subscriber`.
-  - **NEW**: `RegisterClassification(sentinel, family)` — extensible error classification. External packages register sentinels via `init()` without circular deps. `Classify()` checks registered map.
-  - **NEW**: `command` and `query` packages register their sentinels (`ErrHandlerNotFound` → Rejection, `ErrDispatcherClosed` → Infrastructure, etc.)
-  - **NEW**: `WithLogger(*slog.Logger)` option for `projection.Runner` — replaces global `slog.Default()`. DI over globals.
-  - **STYLE**: `errors.As` → `errors.AsType` in `example/user/main.go` (Go 1.26 API)
-  - **LINT**: Resolved `gochecknoglobals` (inline struct initialization for classifier), `gochecknoinits` (nolint directives for registration pattern), `wsl_v5` in test file
-  - **SKIPPED**: `CatalogMeta` consolidation — `event.CatalogMeta` has extra `AggregateType` field; no clean shared location
-  - Zero lint (all 46 remaining issues are pre-existing), all 21 test packages pass
-
-- **Session 45 (go-branded-id Integration: Type Alias)**:
-  - **REFACTOR**: `id.Of[T]` changed from wrapper struct to type alias `cbid.ID[T, ulid.ULID]` — eliminates all delegation boilerplate
-  - **DELETED**: `core/pkg/id/id_encoding.go` (32 lines) — all encoding (JSON, SQL, Text, Binary, Gob) now inherited from `go-branded-id`
-  - **REMOVED**: Delegated methods from `id.go` — `IsZero`, `Equal`, `Or`, `Reset`, `Get`, `String`, `GoString`, `Format`, `Ptr` all inherited from `cbid.ID`
-  - **NEW**: `CompareIDs[T](a, b Of[T]) int` — replaces `Compare()` method (cbid.ID.Compare returns ErrNotOrdered for ulid.ULID)
-  - **RE-EXPORT**: `FromPtr[T]` — delegates to `cbid.FromPtr` (package-level functions not promoted by type alias)
-  - Net -89 lines (141→84 in id.go, id_encoding.go deleted), all 21 test packages pass
-
-- **Session 46 (Deep Duplication Audit + Status Report)**:
-  - **AUDIT**: Identified 5 duplication targets: SnapshotStrategy (aggregate↔decider), publishChanges (aggregate↔decider), saveSnapshot (aggregate↔decider), ISP (Bus used everywhere), error classification gaps
-  - **STATUS**: 21 test packages pass, 90.9% total coverage, 46 pre-existing lint issues, 0 TODOs
-  - **PLANNING**: Prioritized deduplication and ISP as highest-impact, lowest-effort improvements
-
-- **Session 47 (Execution Plan + Status Report)**:
-  - **PLAN**: 66-task, 9-phase execution plan — Phases 1-7 (implementation), Phase 8 (docs), Phase 9 (future-looking)
-  - **STATUS**: 21 packages pass, 31,509 LOC (10,067 production + 21,442 test), 154 commits since May 1
-  - **PHASES**: (1) SnapshotStrategy extraction, (2) ISP activation, (3) error classification completion, (4) zero lint, (5) test coverage gaps, (6) code quality cleanup, (7) deduplicate publishChanges/saveSnapshot, (8) documentation, (9) future-looking
-
-- **Session 48 (Execution: Phases 1–7)**:
-  - **NEW**: `core/event/snapshot_strategy.go` — canonical `SnapshotStrategy` interface, `EveryNEvents(n)`, shared `ShouldSnapshot()` helper
-  - **NEW**: `event.Publisher` and `event.Subscriber` sub-interfaces — `event.Bus` composes both. Backward-compatible ISP.
-  - **NEW**: `event.RegisterClassification(sentinel, family)` — extensible error classification; `aggregate`, `projection`, `storage` register via `init()`
-  - **NEW**: `event.ErrProjectionPanicked` sentinel for panic recovery in `HandleParallel` and `OutboxPublisher`
-  - **NEW**: `event.PublishChanges()` and `event.SaveSnapshot()` — shared helpers eliminating duplication in aggregate/decider repositories
-  - **NEW**: Cross-module classification tests in `integration/event/classify_test.go`
-  - **NEW**: Coverage tests for memory (99.1%), projection (92.5%), storage (93.6%), aggregate (95.8%)
-  - **FIX**: Root `go.mod` module path `LarsArtmann` → `larsartmann` (consistent with sub-modules)
-  - **FIX**: All 50+ lint issues → 0 across 8 linted modules (exhaustruct, wrapcheck, noinlineerr, gosec, goconst, prealloc, tagliatelle, fatcontext)
-  - **FIX**: `storage/snapshot.go` scanSignature fills all struct fields, wraps `sql.Row.Scan` error
-  - **FIX**: `storage/outbox.go` extracted `pollPendingQuery` constant, nolint for G201/tagliatelle
-  - **REFACTOR**: `aggregate.Repository` accepts `event.Publisher`, `decider.Repository` accepts `event.Publisher`, `projection.Runner` accepts `event.Subscriber`
-  - **REFACTOR**: Deleted duplicate `publishChanges` and `saveSnapshot` from aggregate/decider repositories; replaced with shared `event.PublishChanges()` / `event.SaveSnapshot()`
-  - **REFACTOR**: Type aliases for `SnapshotStrategy` in aggregate and decider (backward-compatible)
-  - 6 commits (7437986, d28d03d, 09bbbba, 57b3939, 6f8d8f6, 7bc841b), zero lint, all 22 test packages pass
-
-- **Session 50 (Documentation Fixes + Benchmarks + Design Docs)**:
-  - **FIX**: TODO_LIST.md — corrected false "zero benchmarks exist" claim (26 benchmarks existed in 7 files)
-  - **FIX**: FEATURES.md — corrected 9 stale coverage numbers, added `core/decider` to Module Maturity Matrix, added ISP Publisher row to Aggregate features, updated "Last audited" date to 2026-05-03
-  - **FIX**: CHANGELOG.md — merged duplicate `### Changed` sections under `[Unreleased]`
-  - **NEW**: `core/decider/benchmark_test.go` — 4 benchmarks (Execute, Execute_Update, Load, Fold)
-  - **NEW**: `projection/benchmark_test.go` — 3 benchmarks (Register, NewRunner, CurrentCheckpoint)
-  - **FIX**: Replaced deadlocking `BenchmarkRunner_Replay` (from Session 49) with non-blocking benchmarks
-  - **FIX**: Removed unused `benchEvent` helper from projection benchmark
-  - **DOCS**: `docs/planning/OUTBOX_TRANSACTION_API.md` — TransactionalStore interface design for atomic save+outbox
-  - **DOCS**: `docs/planning/QUERY_HANDLER_GENERICS.md` — TypedHandler[T] migration plan
-  - **DOCS**: `docs/planning/SAGA_DESIGN.md` — added answers to open questions, integration with existing types, 4-phase implementation plan (18h estimate)
-  - **NEW**: `core/event/benchmark_test.go` — 6 benchmarks (NewEvent, NewEvent_WithOptions, Classify, IsRetryable, PublishChanges, DecodePayload)
-  - **NEW**: `middleware/benchmark_test.go` — 4 benchmarks (CommandLogging, CommandRecovery, CommandValidation, CommandRetry)
-  - **DOCS**: `docs/planning/2026-05-04_05-54-SESSION_50_EXECUTION_PLAN.md` — comprehensive Pareto-based execution plan with mermaid graph
-  - **INVESTIGATED**: `memory/go.mod` and `projection/go.mod` ginkgo/gomega warnings — already direct deps, gopls workspace false positive
-  - Total 43 benchmarks across 12 files, zero lint, all 22 test packages pass
-
-- **Session 51 (Error Sentinel Audit + EveryNEvents + Status Report)**:
-  - **BREAKING**: `event.EveryNEvents` returns `(SnapshotStrategy, error)` instead of `SnapshotStrategy`. Added `MustEveryNEvents` for panic behavior.
-  - **NEW**: `ErrInvalidSnapshotInterval` sentinel — classified as `Rejection`
-  - **NEW**: `ErrEmptyEventType`, `ErrNilAggregateID`, `ErrEmptyAggregateType` sentinels in `event` — classified as `Rejection`
-  - **NEW**: `ErrEmptyCommandType`, `ErrNilAggregateID` sentinels in `command` — classified as `Rejection`
-  - **NEW**: `core/decider/errors.go` — extracted 6 sentinels from `decider.go`, registered all via `init()` with `RegisterClassification`
-  - **NEW**: `ErrProjectionPanicked` classified as `Corruption` in `Classify()`
-  - **REFACTOR**: All validation errors in `event.NewEvent` and `command.New` now wrap sentinels with `%w` — callers can use `errors.Is()`
-  - **REFACTOR**: Split `event/errors.go` (259→51 lines) into `errors.go` (sentinels) + `errors_taxonomy.go` (Family, Error, Classify, RegisterClassification, 211 lines)
-  - **REFACTOR**: Updated aggregate/decider `EveryNEvents` aliases to `MustEveryNEvents` for backward compat
-  - **TEST**: Added `core/event/snapshot_strategy_test.go` (5 tests) for EveryNEvents error/MustEveryNEvents
-  - **TEST**: Updated `TestNewEvent_InvalidInputErrors` and command tests to assert `errors.Is()` for sentinels
-  - **DOCS**: `docs/status/2026-05-02_SESSION_51_COMPREHENSIVE_STATUS.md`
-  - 38 sentinel errors across 7 modules, all classified. Zero lint, all 22 test packages pass
-
-- **Session 52 (Code Quality: No-Panic Convention + Interface Checks + Outbox Safety)**:
-  - **FIX**: Renamed `newCatalogEvent` → `mustNewCatalogEvent` in `example/user/catalog.go` (no-panic convention)
-  - **NEW**: Compile-time `var _ SnapshotStrategy = (*everyN)(nil)` interface check
-  - **PERF**: Replaced `fmt.Sprintf` with `strconv.Itoa` in `event.Version.String()` and `storage/outbox.go`
-  - **FIX**: Added batch chunking to `storage/outbox.Ack()` (max 500 IDs per DELETE) to prevent PostgreSQL parameter overflow
-  - **REFACTOR**: Extracted `trySnapshot` from `aggregate.Save`, `saveSnapshotAfterEvents` from `decider.Execute`
-  - **DOCS**: Added godoc to 14 exported symbols in `catalog/asyncapi` (9) and `catalog/types` (5)
-  - Zero lint, all 22 test packages pass
-
-- **Session 53 (Godoc Completion + Deduplication + Coverage Accuracy)**:
-  - **DOCS**: Added godoc to 14 exported symbols in `catalog/d2` (5) and `catalog/adapters` (8)
-  - **REFACTOR**: Extracted `reconstructEvent` from `storage/helpers.go:scanEvent` (58→28 lines). Reused in `storage/outbox.go:reconstructOutboxEvent` (33→8 lines). Removed unused `id` import from outbox.
-  - **FIX**: Updated stale benchmark count in `TODO_LIST.md` (33→43, middleware+event now covered)
-  - **FIX**: Updated coverage numbers in `FEATURES.md` to match actual (event 93.6→94.4%, aggregate 95.3→95.5%, decider 95.6→95.0%, storage 93.6→94.8%)
-  - Total 91.6% coverage, zero lint, all 22 test packages pass
-
-- **Session 54 (Sentinel Errors + Dependency Elimination + TypedHandler)**:
-  - **NEW**: `middleware/errors.go` — 4 sentinel errors: `ErrValidationFailed`, `ErrRetryExhausted`, `ErrRetryCanceled`, `ErrPanicRecovered`
-  - **NEW**: `query.TypedHandler[T any]` type and `RegisterTyped[T]()` function — compile-time type-safe query handler registration
-  - **BREAKING**: Removed `cockroachdb/errors` dependency from all modules. `errors.Wrap`/`errors.Wrapf` → `fmt.Errorf` with `%w`. No API changes — all sentinel errors are stdlib `errors.New`. Removed 6 transitive deps (cockroachdb/errors, logtags, redact, getsentry/sentry-go, gogo/protobuf, pkg/errors).
-  - **BREAKING**: Removed `go-json-experiment/json` dependency from core and storage. Replaced with `encoding/json`. No API changes — only plain `Marshal`/`Unmarshal` was used.
-  - **FIX**: All middleware validation/retry/recovery functions now wrap errors with sentinels — callers can use `errors.Is(err, middleware.ErrValidationFailed)`
-  - **TEST**: 5 new middleware sentinel tests, 4 new TypedHandler tests
-  - **REFACTOR**: `core/event/event.go` doc comment updated — no longer claims cockroachdb/errors dependency
-  - Net -169 lines from cockroachdb removal, 4 commits, zero lint, all 22 test packages pass
-
-- **Session 55–56 (Comprehensive Codebase Improvement Sweep)**:
-  - **FIX**: Golden test files updated to match go-faster/yaml indentation
-  - **REFACTOR**: `errors.As` → `errors.AsType[*Error]` (Go 1.22+ API) across all modules
-  - **FIX**: `OutboxPublisher.run()` logs panics instead of silently swallowing
-  - **FIX**: `NewEvent` copies payload bytes to prevent caller mutation
-  - **REFACTOR**: Inlined `Deleter` interface into `Store` and `SnapshotStore` — removed unnecessary sub-interface
-  - **NEW**: `event.TransactionalStore` interface — `SaveWithOutbox(ctx, aggregateID, expectedVersion, events, outbox)` for atomic save+outbox append
-  - **NEW**: `storage.SQLTransactionalStore` — single `*sql.Tx` wraps event insert + outbox append + commit
-  - **NEW**: `event.GlobalLoader` implemented on `SQLEventStore` — `LoadAll()` returns all events ordered by `occurred_at ASC`
-  - **EVALUATED**: Shared repository core — rejected (aggregate vs decider have fundamentally different API shapes)
-  - **EVALUATED**: `io.Closer` removal from interfaces — deferred (breaking change, needs focused design session)
-  - **EVALUATED**: `IdempotencyKey` auto-generation — rejected (correct by design, `""` means no dedup key)
-  - Zero lint, all 22 test packages pass
-
-- **Session 57–58 (Code Quality Sweep: Deduplication + Function Decomposition)**:
-  - **REFACTOR**: Extracted typed constants in `example/user/` — 18 bare string literals replaced with `event.Type`, `event.AggregateType`, `command.Type`, `query.Type` constants across 7 files
-  - **REFACTOR**: Extracted `foldEvents` method in `core/decider` — deduplicated identical fold loop between `loadFromStore` and `loadFromSnapshot`
-  - **REFACTOR**: Unified `Classify()` to use registered map — event package sentinels now registered via `init()` + `RegisterClassification()`, eliminated 30-line hardcoded switch. Single code path for all classification
-  - **REFACTOR**: Extracted `kindToTagName` helper in `catalog/asyncapi` — maps `MessageKind` to tag name string, replacing inline switch in `addMessageSchema`
-  - **REFACTOR**: Extracted `collectMessageIDs` helper in `catalog/eventcatalog` — collects sends/receives/commands/queries from service messages, reducing `writeService` from 47 to ~35 lines
-  - **REFACTOR**: Extracted `persistChanges` helper in `core/aggregate` — separated persistence routing (outbox/transactional/direct) from aggregate lifecycle. `Save()` from 54 to 21 lines
-  - **REFACTOR**: Simplified `SQLEventStore.LoadAll` — `return scanEvents(rows)` instead of assign+check+return. File from 253 to 248 lines (under 250 limit)
-  - Zero files over 250 lines, all functions under 30 lines (except `Export` in asyncapi at 55 lines — already well-decomposed with helpers)
-  - Zero lint, all 22 test packages pass
-
-- **Session 65 (Architectural Type Safety Sweep)**:
-  - **BREAKING**: `NewEvent` signature: `version int` → `version Version`. All callers updated across 40+ files to pass `event.Version(n)` or `version.Increment()`.
-  - **NEW**: `event.SchemaVersion` type — distinct from `Version` (stream position) to prevent mixing schema version with event version. `ParseSchemaVersion`, `Int()`, `String()`, `IsZero()`.
-  - **BREAKING**: `Event.SchemaVersion()` returns `SchemaVersion` instead of `int`. `Core.schemaVersion` field typed.
-  - **BREAKING**: `Upcaster.SourceVersion()` returns `SchemaVersion`. `NewUpcaster` takes `SchemaVersion`.
-  - **BREAKING**: `WithSchemaVersion` takes `SchemaVersion` instead of `int`.
-  - **BREAKING**: `NewCatalogCore`/`MustNewCatalogCore` take `Version` instead of `int`.
-  - **NEW**: `ErrVersionNotPositive` sentinel — classified as `Rejection`. `validateEventParams` now checks `version.IsZero()` (no longer accepts `int`).
-  - **NEW**: `storage.OutboxStatus` type with `OutboxStatusPending` constant — documents outbox status values.
-  - **NEW**: `middleware.RetryConfig.Validate()` — validates `MaxAttempts >= 1`, `InitialDelay > 0`, `Multiplier > 1`. Returns `ErrValidationFailed`.
-  - **NEW**: Middleware error classification — `ErrValidationFailed → Rejection`, `ErrRetryExhausted → Infrastructure`, `ErrRetryCanceled → Infrastructure`, `ErrPanicRecovered → Corruption`.
-  - **NEW**: `memory.ErrHandlerNil → Rejection`, `catalog.ErrDomainNotFound → Rejection`, `catalog.ErrNilSchema → Rejection` classifications.
-  - **FIX**: `storage/helpers.go:342` — `fmt.Sprintf` replaced with string concatenation (perfsprint lint).
-  - Zero lint, all 22 test packages pass
-
-- **Session 68 (Module Hygiene + File Size Compliance)**:
-  - **FIX**: Removed `storage` production dependency on `memory` module — `PebbleBackendMemory` now returns `ErrPebbleProviderRequired` instead of calling `memory.NewMemoryStore()`. Restores ADR-0003 DAG rule.
-  - **REFACTOR**: Split `storage/helpers.go` (433→239) → `storage/sql_helpers.go` (205) — SQL-agnostic shared helpers extracted.
-  - **REFACTOR**: Split `catalog/asyncapi/exporter.go` (258→79) → `catalog/asyncapi/builder.go` (182) — Export logic extracted.
-  - **REFACTOR**: Split `storage/pebble_event_store.go` (321→156) → `storage/pebble_helpers.go` (176) — Delete, AppendBatch, Close, helpers extracted.
-  - **REFACTOR**: Split `catalog/registry.go` (254→208) → `catalog/registry_helpers.go` (47) — Copy helpers extracted.
-  - **RESULT**: Zero production files exceed 250 lines. All test packages pass.
-
-- **Session 73 (File Splits + Coverage + Type Safety + Golden Tests)**:
-  - **REFACTOR**: Split `catalog/openapi/exporter.go` (318→254) → `catalog/openapi/convert.go` (68) — extracted `toKebab`/`toPascal`.
-  - **REFACTOR**: Split `storage/event_store.go` (305→233) → `storage/event_store_scan.go` — extracted `scanEvents`/`scanEvent`/`insertEvents`.
-  - **REFACTOR**: Split `storage/outbox.go` (255→152) → `storage/outbox_helpers.go` — extracted outbox serialization helpers.
-  - **REFACTOR**: Split `catalog/docserver/docserver.go` (265→229) → `catalog/docserver/builders.go` — extracted `buildOpenAPI`/`buildAsyncAPI`/`buildCatalog`.
-  - **REFACTOR**: Split `catalog/adapters/adapters_test.go` (543→250) → `catalog/adapters/dispatcher_test.go` + `catalog/adapters/export_test.go`.
-  - **TEST**: `storage/dialect_test.go` — 15 tests for PostgresDialect, SQLiteDialect, `placeholders()`. Storage coverage: 86.9% → 88.1%.
-  - **TEST**: `catalog/openapi/exporter_test.go` — 5 new tests (WithBasePath, nil schema, schemaToAny(nil), empty catalog, toKebab edge cases). Coverage: 83.9% → 96.6%.
-  - **FIX**: `outboxEvent.Version` and `outboxEvent.SchemaVersion` changed from bare `int` to `event.Version`/`event.SchemaVersion` — type safety.
-  - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json).
-  - Zero catalog lint, all 22 test packages pass
-
-- **Session 80 (Time-Travel: Tests + Decider API + File Splits)**:
-  - **REFACTOR**: Split `storage/event_store.go` (394→128+184+98) into 3 files. Split `memory/store.go` (321→114+216) into 2 files. Zero production files over 250 lines.
-  - **TEST**: 30 new tests for time-travel methods across all store implementations:
-    - MemoryStore: 11 tests (LoadToVersion×4, LoadToTimestamp×3, LoadAllFromPosition×4). Coverage: 80.2% → 99.6%.
-    - SQLEventStore: 7 SQLite integration tests. Coverage: 77.8% → 87.6%.
-    - PebbleStore: 4 tests (LoadToVersion×2, LoadToTimestamp×2).
-    - FakeStore: 4 tests (LoadToVersion×2, LoadToTimestamp×2).
-  - **NEW**: `decider.Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel state reconstruction at specific version.
-  - **NEW**: `decider.Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — temporal state reconstruction at specific timestamp.
-  - **FIX**: False-positive TODO match in `catalog/internal/caseutil/convert.go` godoc (buildflow regex matched "ToDotAddress").
-  - **FIX**: Replaced `LoadAllFromPositionNoLimit` with unexported `loadAllFromStart` (not part of public interface).
-  - Zero lint, all 22 test packages pass
-
-- **Session 81 (Position-Based Replay + Test Coverage + SQL Optimization)**:
-  - **NEW**: `projection.Runner` auto-detects `event.PositionalLoader` — uses `LoadAllFromPosition` for efficient catch-up instead of `LoadAll` + linear scan
-  - **NEW**: `filterByTypes` helper in projection — type filtering for position-based path
-  - **TEST**: `TestRunner_ReplayWithPositionalLoader` — verifies position-based replay with checkpoint
-  - **TEST**: 3 new decider error-path tests (store error, timestamp error, fold error). Coverage: 85.6% → 91.7%
-  - **TEST**: 3 integration tests for time-travel (LoadToVersion, LoadToTimestamp, PositionalLoader)
-  - **TEST**: `TestNewVectorClockFromMap`, `TestNewVectorClockFromMap_Empty` — sync module coverage
-  - **TEST**: 5 sync benchmarks (VectorClock: New, Increment, Merge, Compare; LWWResolver: New)
-  - **TEST**: `BenchmarkSQLEventStore_LoadToVersion` — storage benchmark for time-travel
-  - **FIX**: Flaky `TestSQLiteEventStore_LoadAllFromPosition` — ULIDs within same millisecond are non-monotonic; added `time.Sleep` to ensure ordering
-  - **FIX**: Refreshed 3 stale golden test files (asyncapi.yaml, eventcatalog-config.js, package.json)
-  - **SQL**: Added composite index `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)` to both PostgreSQL and SQLite DDL
-  - 24/24 test packages pass (including sync), zero lint, all pass with `-race`
-
-- **Session 83 (File Splits + Type API + Deprecated API Removal)**:
-  - **REFACTOR**: Split `projection/runner.go` (268→203) → `projection/runner_live.go` (72 lines). Extracted subscribeLive, dispatchToProjections, handleWithRetry.
-  - **REFACTOR**: Split `core/decider/decider.go` (254→194) → moved LoadAtVersion/LoadAtTime/loadByEvents to `core/decider/load.go`.
-  - **BREAKING**: Removed deprecated `VectorClock.Compare()` — all callers migrated to `Cmp()` returning typed `ClockOrder`.
-  - **REFACTOR**: `NewVectorClockFromMap` uses `maps.Clone` instead of manual loop.
-  - **NEW**: `event.Version.Add/Sub/Cmp/IsPositive/Mod` — type-safe version arithmetic eliminating `.Int()` escape hatches. Updated 8 callers across core, decider, aggregate, memory, storage.
-  - **BREAKING**: Renamed `Source.IsEmpty()`/`IPAddress.IsEmpty()`/`UserAgent.IsEmpty()` → `IsZero()` for Go convention consistency. Zero production callers.
-  - **NEW**: `OutboxID.String()`/`IsZero()`, `OutboxStatus.String()`/`OutboxStatusAcked` constant.
-  - **NEW**: `OperationType.Valid()`/`String()`, `SyncMessageType.Valid()`, `PebbleBackend.String()`.
-  - 24/24 test packages pass, zero files over 250 lines
-
-- **Session 86 (Catalog Quality Sweep: Errors, Fields, Encapsulation, Validation)**:
-  - **BREAKING**: Removed all `MustParse*` functions from `catalog` package. Users get `(T, error)` returns only — no panics.
-  - **REFACTOR**: Replaced 4 copy-paste `Parse*`/`MustParse*` functions with generic `parseID[T idType]` in `catalog/id_parse.go`.
-  - **REFACTOR**: Changed `catalog` errors to use `go-error-family` directly instead of through `core/event` wrapper.
-  - **FIX**: `adapters.AddChannel` was a silent no-op (discarded parameter with `_`). Now delegates to `registry.AddChannel`.
-  - **NEW**: `Message.Owners []string`, `Message.Labels map[string]string`, `Message.Deprecated bool`, `Message.Changelog []Change` fields.
-  - **NEW**: `Domain.Owners []string` field. `Schema.Examples []json.RawMessage`, `Property.Examples []json.RawMessage` fields.
-  - **NEW**: `catalog.Change` struct with `Version`, `Date`, `Summary` fields.
-  - **NEW**: `catalog.Violation` struct and `Catalog.Validate() []Violation` method for catalog validation.
-  - **NEW**: `catalog.Owners(owners ...string)` and `catalog.Labels(labels map[string]string)` message options.
-  - **REFACTOR**: Unexported all `asyncapi.Exporter`, `openapi.Exporter`, and `eventcatalog.Exporter` fields. Configure via `NewExporter()` + `Option` functions only.
-  - **REFACTOR**: Moved `JSONToYAML` from `adapters` to `internal/schemautil`. Docserver now uses `schemautil` instead of deprecated `adapters`.
-  - **REFACTOR**: Deep-copy immutability in `Registry.Build()` — `copyMessages`, `copyMessage`, `copyMap[K,V]` ensure `Labels` maps and slice fields are properly cloned.
-  - **REFACTOR**: Fixed `d2.WithDirection` option — `e.direction` was set but never read (hardcoded to `"down"`). Now wired into `writeServices`.
-  - **REFACTOR**: Split 7 long functions (>30 lines) into focused helpers across d2, asyncapi, eventcatalog, and openapi packages.
-  - **REFACTOR**: Replaced manual map copy loop with `maps.Clone` in `registry_helpers.go`.
-  - **REFACTOR**: Converted all inline error checks in eventcatalog to plain assignments (`noinlineerr` lint).
-  - **NEW**: Tests for `internal/caseutil`, `internal/schemautil`, `docserver.StaticFS()`, `d2.WithDirection`, `adapters.AddChannel`, `Catalog.Validate()`.
-  - **DOCS**: Refreshed 3 golden test files (asyncapi.yaml, eventcatalog-config.js, package.json).
-  - Zero lint in catalog module, all 24 test packages pass
+| Session | Milestone |
+|---------|-----------|
+| 20      | Zero lint, storage error path tests 79.8→92.3% |
+| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type |
+| 27      | No-panic convention: `New*` returns `(*T, error)` |
+| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command |
+| 37      | `core/decider` package + example/user rewrite |
+| 44      | ISP (Publisher/Subscriber), extensible error classification |
+| 45      | `id.Of[T]` as type alias for `go-branded-id` |
+| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot |
+| 54      | Removed cockroachdb/errors, added TypedHandler[T] |
+| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType` |
+| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus |
+| 68      | Module hygiene, file splits, 0 production files >250 lines |
+| 73      | File splits, golden test refresh, coverage improvements |
+| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API |
+| 81      | Position-based replay, SQL composite index |
+| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal |
+| 86      | Catalog quality sweep, MemorySnapshotStore deep copy |
