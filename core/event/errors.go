@@ -41,6 +41,36 @@ func NewInfrastructure(code, msg string) *Error {
 	return errorfamily.NewInfrastructure(code, msg)
 }
 
+// Wrap wraps an existing error with a family, code, and message.
+func Wrap(err error, family Family, code, msg string) *Error {
+	return errorfamily.Wrap(err, family, code, msg)
+}
+
+// WrapRejection wraps an error as a Rejection.
+func WrapRejection(err error, code, msg string) *Error {
+	return errorfamily.WrapRejection(err, code, msg)
+}
+
+// WrapConflict wraps an error as a Conflict.
+func WrapConflict(err error, code, msg string) *Error {
+	return errorfamily.WrapConflict(err, code, msg)
+}
+
+// WrapTransient wraps an error as a Transient (retryable).
+func WrapTransient(err error, code, msg string) *Error {
+	return errorfamily.WrapTransient(err, code, msg)
+}
+
+// WrapCorruption wraps an error as a Corruption.
+func WrapCorruption(err error, code, msg string) *Error {
+	return errorfamily.WrapCorruption(err, code, msg)
+}
+
+// WrapInfrastructure wraps an error as an Infrastructure error.
+func WrapInfrastructure(err error, code, msg string) *Error {
+	return errorfamily.WrapInfrastructure(err, code, msg)
+}
+
 var (
 	ErrMismatchedSlices = NewRejection(
 		"event.mismatched_slices",

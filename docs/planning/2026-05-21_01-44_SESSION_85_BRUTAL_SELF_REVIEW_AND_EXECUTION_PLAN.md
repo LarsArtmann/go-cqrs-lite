@@ -69,21 +69,23 @@ We also overstated go-error-family utilization as "~60%" when the wrap chain (th
 4. **Make examples consistent** — two contradictory examples are worse than one good one
 5. **Invest in error wraps, not more sentinels** — 194 wraps > 3 remaining sentinels
 
-### g) Ghost Systems Found
+### g) Library Modules — All Correctly Isolated
 
-| Ghost | Lines | Value | Recommendation |
-|-------|-------|-------|----------------|
-| `sync/` module | ~1,017 | Could be valuable for offline-first consumers | **KEEP but document as "incubating"** |
-| `catalog/docserver/` | ~350 | Potential value for dev-time doc browsing | **KEEP — it's a library feature consumers could use** |
-| `catalog/openapi/` | ~320 | Exporter for API docs | **KEEP — library export feature** |
-| `catalog/d2/` | ~200 | Exporter for architecture diagrams | **KEEP — library export feature** |
-| `RegisterClassification` | ~3 | Public API for external consumers | **KEEP — it's the extensibility point** |
+These are NOT ghosts. Zero internal consumers = correct isolation for a library.
 
-**Decision:** All ghosts are actually library features that consumers WOULD use. The issue is that our examples don't demonstrate them. They're not dead code — they're undemonstrated features.
+| Module | Lines | Value |
+|--------|-------|-------|
+| `sync/` | ~1,017 | Distributed sync primitives for offline-first consumers. Correctly isolated. |
+| `catalog/docserver/` | ~350 | HTTP doc server consumers can start. Independently importable. |
+| `catalog/openapi/` | ~320 | OpenAPI exporter consumers call in their apps. Independently importable. |
+| `catalog/d2/` | ~200 | D2 diagram exporter. Independently importable. |
+| `RegisterClassification` | ~3 | Public extensibility point for consumers to register custom sentinels. |
 
 ### h) Scope creep?
 
 **YES.** The sentinel migration was scope creep from the original question "are we using go-error-family superbly?" We spent the entire session converting sentinels (valuable work) but never addressed the core utilization gap: **0% wrap utilization, 0% WithContext utilization, 0% HandleError utilization**. We polished the entry points and ignored the pipeline.
+
+I also incorrectly labeled 5 library modules as "ghosts" — applying the application lens to a library. Zero internal consumers is the CORRECT and DESIRED state for a library/SDK.
 
 ### i) Did we remove something useful?
 

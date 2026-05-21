@@ -322,7 +322,13 @@ func TestTurso_TransactionalStore_SaveWithOutbox(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := tursoTestEvent(t, aggID, 1)
 
-	err = txStore.SaveWithOutbox(context.Background(), "Order", aggID, []event.Event{evt}, event.Version(0))
+	err = txStore.SaveWithOutbox(
+		context.Background(),
+		"Order",
+		aggID,
+		[]event.Event{evt},
+		event.Version(0),
+	)
 	if err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
@@ -381,7 +387,8 @@ func TestTurso_MetadataRoundtrip(t *testing.T) {
 	cid := id.NewCorrelationID()
 	uid := id.NewUserID()
 
-	evt := tursoTestEvent(t, aggID, 1,
+	evt := tursoTestEvent(
+		t, aggID, 1,
 		event.WithCorrelationID(cid),
 		event.WithUserID(uid),
 		event.WithCustom("env", "production"),
