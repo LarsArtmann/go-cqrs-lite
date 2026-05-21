@@ -1,8 +1,9 @@
 package catalog
 
 import (
-	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var (
@@ -10,10 +11,22 @@ var (
 	_                 fmt.Stringer = DomainID("")
 	_                 fmt.Stringer = MessageID("")
 	_                 fmt.Stringer = ChannelID("")
-	ErrEmptyServiceID              = errors.New("service ID cannot be empty")
-	ErrEmptyDomainID               = errors.New("domain ID cannot be empty")
-	ErrEmptyMessageID              = errors.New("message ID cannot be empty")
-	ErrEmptyChannelID              = errors.New("channel ID cannot be empty")
+	ErrEmptyServiceID              = errorfamily.NewRejection(
+		"catalog.empty_service_id",
+		"service ID cannot be empty",
+	)
+	ErrEmptyDomainID = errorfamily.NewRejection(
+		"catalog.empty_domain_id",
+		"domain ID cannot be empty",
+	)
+	ErrEmptyMessageID = errorfamily.NewRejection(
+		"catalog.empty_message_id",
+		"message ID cannot be empty",
+	)
+	ErrEmptyChannelID = errorfamily.NewRejection(
+		"catalog.empty_channel_id",
+		"channel ID cannot be empty",
+	)
 )
 
 // IsZero returns true if the ServiceID is empty.
@@ -23,7 +36,11 @@ func (id ServiceID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseServiceID(s string) (ServiceID, error) {
 	if s == "" {
-		return "", fmt.Errorf("parse service ID: %w", ErrEmptyServiceID)
+		return "", errorfamily.WrapRejection(
+			ErrEmptyServiceID,
+			"catalog.parse_service_id",
+			"parse service ID",
+		)
 	}
 
 	return ServiceID(s), nil
@@ -46,7 +63,11 @@ func (id DomainID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseDomainID(s string) (DomainID, error) {
 	if s == "" {
-		return "", fmt.Errorf("parse domain ID: %w", ErrEmptyDomainID)
+		return "", errorfamily.WrapRejection(
+			ErrEmptyDomainID,
+			"catalog.parse_domain_id",
+			"parse domain ID",
+		)
 	}
 
 	return DomainID(s), nil
@@ -69,7 +90,11 @@ func (id MessageID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseMessageID(s string) (MessageID, error) {
 	if s == "" {
-		return "", fmt.Errorf("parse message ID: %w", ErrEmptyMessageID)
+		return "", errorfamily.WrapRejection(
+			ErrEmptyMessageID,
+			"catalog.parse_message_id",
+			"parse message ID",
+		)
 	}
 
 	return MessageID(s), nil
@@ -92,7 +117,11 @@ func (id ChannelID) IsZero() bool { return id == "" }
 // Returns an error if the string is empty.
 func ParseChannelID(s string) (ChannelID, error) {
 	if s == "" {
-		return "", fmt.Errorf("parse channel ID: %w", ErrEmptyChannelID)
+		return "", errorfamily.WrapRejection(
+			ErrEmptyChannelID,
+			"catalog.parse_channel_id",
+			"parse channel ID",
+		)
 	}
 
 	return ChannelID(s), nil
