@@ -5,7 +5,15 @@ import (
 	"net/netip"
 	"strconv"
 	"strings"
+	"time"
 )
+
+// Clock returns the current time. Override for deterministic testing.
+// The default is time.Now.
+type Clock func() time.Time
+
+// DefaultClock is the clock used when no WithClock option is provided.
+var DefaultClock Clock = time.Now
 
 // Source identifies where an event originated (e.g., "api", "scheduler", "cli").
 // Using a phantom type prevents accidental mixing with other string fields.

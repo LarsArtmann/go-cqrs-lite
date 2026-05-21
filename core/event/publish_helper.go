@@ -3,7 +3,6 @@ package event
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -46,7 +45,7 @@ func SaveSnapshot(
 		AggregateType: aggType,
 		Version:       version,
 		State:         state,
-		CreatedAt:     time.Now().UTC(),
+		CreatedAt:     DefaultClock().UTC(),
 	})
 	if err != nil {
 		return fmt.Errorf("save snapshot for %s %s: %w", aggType, aggID, err)

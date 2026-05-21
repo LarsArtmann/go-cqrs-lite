@@ -114,6 +114,12 @@ func WithSchemaVersion(v SchemaVersion) Option {
 	return func(e *Core) { e.schemaVersion = v }
 }
 
+// WithClock sets the clock function used to determine OccurredAt.
+// Override for deterministic testing. Without this option, events use time.Now.
+func WithClock(clock Clock) Option {
+	return func(e *Core) { e.clock = clock }
+}
+
 // WithClientID sets the client device ID in event metadata.
 // Used for offline-first attribution and conflict detection.
 func WithClientID(v id.ClientID) Option {

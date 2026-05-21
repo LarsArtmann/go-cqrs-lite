@@ -34,6 +34,9 @@ go get github.com/larsartmann/go-cqrs-lite/core
 # In-memory implementations (testing)
 go get github.com/larsartmann/go-cqrs-lite/memory
 
+# Persistent storage (SQLite, Turso, PostgreSQL, Pebble)
+go get github.com/larsartmann/go-cqrs-lite/storage
+
 # API documentation generation (AsyncAPI 3.0 + EventCatalog)
 go get github.com/larsartmann/go-cqrs-lite/catalog
 
@@ -184,7 +187,7 @@ All IDs are branded types backed by ULID strings:
 | **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        |
 | **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |
 | **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |
-| **storage**      | `.../storage`                         | PostgreSQL/SQLite/Pebble event store             | core                              |
+| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              |
 | **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |
 | **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |
 | **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |
@@ -222,88 +225,81 @@ All IDs are branded types backed by ULID strings:
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    INFRASTRUCTURE LAYER                      │
-│   MemoryStore ──► Storage (PostgreSQL/SQLite/Pebble)        │
+│   MemoryStore ──► Storage (SQLite/Turso/Pebble)             │
 │   MemoryBus ─────► Catalog (AsyncAPI/EventCatalog)          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Usage Example
+## Persistent Storage
+
+### SQLite (recommended for single-process)
 
 ```go
 package main
 
 import (
     "context"
-    "encoding/json"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/decider"
     "github.com/larsartmann/go-cqrs-lite/core/event"
     "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
     "github.com/larsartmann/go-cqrs-lite/memory"
+    "github.com/larsartmann/go-cqrs-lite/storage"
 )
-
-// UserState represents the aggregate state
-type UserState struct {
-    Email string
-    Name  string
-}
-
-// Decide handles commands and returns events (pure function)
-func decide(state UserState, cmd *command.Core) ([]event.Event, error) {
-    return nil, nil // simplified
-}
-
-// Fold reconstructs state from events (pure function)
-func fold(state UserState, evt event.Event) (UserState, error) {
-    return state, nil // simplified
-}
 
 func main() {
     ctx := context.Background()
 
-    // Create infrastructure
-    store := memory.NewMemoryStore()
+    // Open SQLite database
+    db, err := storage.OpenSQLite("myapp.db")
+    if err != nil { log.Fatal(err) }
+
+    // Production safety
+    storage.SQLiteEnableWAL(ctx, db)
+    storage.ConfigureSQLitePool(db)
+    storage.SQLiteInitSchema(ctx, db)
+
+    // Create event store + in-memory bus
+    store, _ := storage.NewSQLiteEventStore(db)
     bus := memory.NewMemoryBus()
 
-    // Create decider (recommended pattern - pure functions)
-    userDecider := decider.Decider[UserState]{
-        Initial: UserState{},
-        Fold:    fold,
-    }
-
-    // Create repository
-    repo, err := decider.NewRepository(store, bus, userDecider)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Create dispatcher and register handler
-    cmdDispatcher := command.NewDispatcher()
-    cmdDispatcher.Register(command.Type("user.create"), func(ctx context.Context, cmd command.Command) error {
-        // Use repository to execute command
-        payload, _ := json.Marshal(map[string]any{"email": "test@example.com"})
-        evt, _ := event.NewEvent(event.Type("user.created"), id.NewAggregateID(), event.AggregateType("User"), 1, payload)
-        return bus.Publish(ctx, evt)
-    })
-
-    // Use strongly-typed IDs
-    userID := id.NewAggregateID()
-
-    // Create and dispatch command
-    cmd, err := command.New(command.Type("user.create"), userID)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    err = cmdDispatcher.Dispatch(ctx, cmd)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    _ = repo // repository ready for use
+    // Use with decider, aggregate, or directly
+    aggID := id.NewAggregateID()
+    evt, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+    store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
+    bus.Publish(ctx, evt)
 }
+```
+
+### Turso (offline-first with sync)
+
+```go
+// Local Turso database
+-db, _ := storage.OpenTurso("myapp.db")
+storage.TursoInitSchema(ctx, db)
+store, _ := storage.NewTursoEventStore(db)
+
+// Synced Turso database (push/pull with remote)
+syncDB, _ := storage.OpenTursoSync(ctx, "myapp.db", "libsql://db.turso.io", "token")
+syncDB.Push(ctx)       // send local writes to remote
+-syncDB.Pull(ctx)       // fetch remote changes
+syncDB.Checkpoint(ctx) // compact WAL
+store, _ := storage.NewTursoEventStore(syncDB.DB())
+```
+
+### Deterministic Testing with Clock
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/core/event"
+
+fixedTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+clock := func() time.Time { return fixedTime }
+
+evt, _ := event.NewEvent(
+    "user.created", aggID, "User", 1, payload,
+    event.WithClock(clock), // deterministic OccurredAt
+)
+// evt.OccurredAt() == fixedTime, every time
 ```
 
 ## Catalog Integration
@@ -520,7 +516,7 @@ evt, err := event.NewBuilder(
 
 ## Project Status
 
-**Phase:** Active Development (core stable, storage module partially functional)
+**Phase:** Active Development (core stable, storage module complete for SQLite/Turso)
 
 | Phase         | Status      | Description                                       |
 | ------------- | ----------- | ------------------------------------------------- |
@@ -531,7 +527,7 @@ evt, err := event.NewBuilder(
 | Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
 | Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
 | Projections   | ✅ Complete | Projection runner with replay and live subscribe  |
-| Storage       | ⚠️ Partial  | PostgreSQL/SQLite/Pebble (partially functional)   |
+| Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory       |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |

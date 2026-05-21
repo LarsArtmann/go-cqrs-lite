@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-cqrs-lite/core v0.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.4.0
 	github.com/larsartmann/go-error-family v0.1.0
 )
 

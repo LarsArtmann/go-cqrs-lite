@@ -65,6 +65,7 @@ type Core struct {
 	payload       []byte
 	metadata      *Metadata
 	occurredAt    time.Time
+	clock         Clock
 }
 
 var _ Event = (*Core)(nil)
@@ -150,6 +151,8 @@ func NewEvent(
 
 	schemaV, _ := ParseSchemaVersion(1)
 
+	clk := DefaultClock
+
 	evt := &Core{
 		id:            id.NewEventID(),
 		eventType:     eventType,
@@ -159,11 +162,15 @@ func NewEvent(
 		schemaVersion: schemaV,
 		payload:       safePayload,
 		metadata:      NewMetadata(),
-		occurredAt:    time.Now(),
+		clock:         clk,
 	}
 
 	for _, opt := range opts {
 		opt(evt)
+	}
+
+	if evt.occurredAt.IsZero() {
+		evt.occurredAt = evt.clock()
 	}
 
 	return evt, nil

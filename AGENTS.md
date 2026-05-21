@@ -179,7 +179,7 @@ nix develop             # enter dev shell
 | ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                     |
 | `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                             |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType` |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `DefaultClock` |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                                                                       |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                                                                       |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`                                                               |
@@ -326,6 +326,18 @@ evt, err := event.NewEvent(
     payload,
     event.WithCorrelationID(correlationID),
 )
+```
+
+### Clock Interface (Deterministic Testing)
+
+```go
+fixedTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+clock := func() time.Time { return fixedTime }
+
+evt, _ := event.NewEvent("user.created", aggID, "User", 1, payload,
+    event.WithClock(clock), // deterministic OccurredAt
+)
+// evt.OccurredAt() == fixedTime, every time
 ```
 
 ### Branded IDs

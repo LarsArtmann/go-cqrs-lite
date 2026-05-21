@@ -1,12 +1,15 @@
 module github.com/larsartmann/go-cqrs-lite/storage
+
 go 1.26.2
+
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/core v0.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.4.0
 	modernc.org/sqlite v1.50.0
 	turso.tech/database/tursogo v0.6.0
 )
+
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
