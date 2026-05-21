@@ -10,6 +10,7 @@ package docserver
 
 import (
 	"encoding/json"
+	"io/fs"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
@@ -115,8 +116,15 @@ func (ds *DocsServer) CatalogJSON() http.HandlerFunc {
 
 // StaticFS returns an http.FileSystem for the embedded static assets
 // (Scalar JS, AsyncAPI React JS/CSS) from the binary.
+// The FS is rooted at the "static" subdirectory, so files are accessible
+// as "asyncapi-react.js", "scalar.js", etc. (no "static/" prefix needed).
 func (ds *DocsServer) StaticFS() http.FileSystem {
-	return http.FS(staticAssets)
+	sub, err := fs.Sub(staticAssets, "static")
+	if err != nil {
+		panic("docserver: static assets sub: " + err.Error())
+	}
+
+	return http.FS(sub)
 }
 
 // RegisterRoutes registers all documentation routes on the given mux.

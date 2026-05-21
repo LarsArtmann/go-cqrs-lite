@@ -297,9 +297,9 @@ func TestDocsServer_StaticFS(t *testing.T) {
 	}
 
 	for _, name := range []string{
-		"static/scalar.js",
-		"static/asyncapi-react.js",
-		"static/asyncapi-react.css",
+		"scalar.js",
+		"asyncapi-react.js",
+		"asyncapi-react.css",
 	} {
 		f, err := fsys.Open(name)
 		if err != nil {
@@ -352,5 +352,40 @@ func TestDocsServer_CustomDocsPath(t *testing.T) {
 
 	if recorder.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", recorder.Code)
+	}
+}
+
+func TestDocsServer_RegisterRoutes_StaticFiles(t *testing.T) {
+	srv := NewDocsServer(testProvider, Config{
+		ServiceName: "Test",
+		Version:     "1.0.0",
+	})
+	mux := http.NewServeMux()
+	srv.RegisterRoutes(mux)
+
+	for _, tc := range []struct {
+		path        string
+		contentType string
+	}{
+		{"/docs/static/asyncapi-react.js", "text/javascript"},
+		{"/docs/static/asyncapi-react.css", "text/css"},
+		{"/docs/static/scalar.js", "text/javascript"},
+	} {
+		req := httptest.NewRequestWithContext(
+			context.Background(), http.MethodGet, tc.path, nil,
+		)
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("GET %s: expected 200, got %d", tc.path, recorder.Code)
+
+			continue
+		}
+
+		ct := recorder.Header().Get("Content-Type")
+		if !strings.Contains(ct, tc.contentType) {
+			t.Errorf("GET %s: expected %s content type, got %s", tc.path, tc.contentType, ct)
+		}
 	}
 }
