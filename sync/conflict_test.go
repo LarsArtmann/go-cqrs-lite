@@ -46,7 +46,7 @@ func TestLWWResolver_WinsByVectorClock(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			resolver, err := NewLWWResolver(itemTimestamp)
+			resolver, _ := NewLWWResolver(itemTimestamp)
 
 			if err != nil {
 				t.Fatalf("NewLWWResolver error: %v", err)
@@ -74,7 +74,7 @@ func TestLWWResolver_WinsByVectorClock(t *testing.T) {
 func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
-	resolver, err := NewLWWResolver(itemTimestamp)
+	resolver, _ := NewLWWResolver(itemTimestamp)
 
 			if err != nil {
 				t.Fatalf("NewLWWResolver error: %v", err)
@@ -103,7 +103,7 @@ func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
 func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
-	resolver, err := NewLWWResolver(itemTimestamp)
+	resolver, _ := NewLWWResolver(itemTimestamp)
 
 			if err != nil {
 				t.Fatalf("NewLWWResolver error: %v", err)
@@ -132,7 +132,7 @@ func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
 func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
 	t.Parallel()
 
-	resolver, err := NewLWWResolver(itemTimestamp)
+	resolver, _ := NewLWWResolver(itemTimestamp)
 
 			if err != nil {
 				t.Fatalf("NewLWWResolver error: %v", err)
@@ -161,7 +161,7 @@ func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
 func TestLWWResolver_Tiebreaker(t *testing.T) {
 	t.Parallel()
 
-	resolver, err := NewLWWResolver(itemTimestamp)
+	resolver, _ := NewLWWResolver(itemTimestamp)
 
 			if err != nil {
 				t.Fatalf("NewLWWResolver error: %v", err)
