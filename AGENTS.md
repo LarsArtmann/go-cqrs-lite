@@ -175,21 +175,21 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                                   | Key Types                                                                                                                                                                                             |
-| ---------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                              |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                      |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository`                                                                                                                                                |
-| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `DecideFunc`                                                                                                                                |
-| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`                                                                        |
-| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                         |
+| Package                | Purpose                                   | Key Types                                                                                                                                                                                                                              |
+| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                                                               |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                       |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                  |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                 |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                          |
 
 ### Decider Module (`core/decider/`)
 
-| Package         | Purpose                                    | Key Types                                                |
-| --------------- | ------------------------------------------ | -------------------------------------------------------- |
-| `core/decider/` | Functional aggregate pattern (recommended) | `Decider[State]`, `Repository[State]`, `Execute`, `Load` |
+| Package         | Purpose                                    | Key Types                                                                     |
+| --------------- | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| `core/decider/` | Functional aggregate pattern (recommended) | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load` |
 
 - **Recommended over `aggregate`** for new consumers: pure functions, no mutable state, no 9-method interface, zero-infrastructure testing.
 - `Decider[State]` holds `Initial` state and `Fold func(State, Event) (State, error)`.
@@ -232,14 +232,16 @@ nix develop             # enter dev shell
 
 ### Projection Module (`projection/`)
 
-| Package       | Purpose                                             | Key Types                                                                      |
-| ------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `NewRunner`, `Register(Projection)`, `WithLogger` |
+| Package       | Purpose                                             | Key Types                                                                                                        |
+| ------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `projection/` | Projection runner with replay and live subscription | `Runner`, `HandlerRegistry`, `Builder`, `NewBuilder`, `On[T]`, `NewRunner`, `Register(Projection)`, `WithLogger` |
 
 - **Runner**: Accepts `event.GlobalLoader` (for replay) + `event.Bus` (for live). Register `event.Projection` instances before `Run()`.
 - **Per-projection checkpoint**: Each projection tracked by `Name()`. Events past checkpoint are skipped during replay.
 - **Wildcard**: `EventTypes() == nil` subscribes to all event types.
 - **HandlerRegistry**: Maps event types to handlers. Useful for building custom projection dispatch.
+- **Builder**: Fluent API for defining projections with `On[T]()` type-safe handlers. JSON-decodes payloads into typed structs.
+- **Replay context**: `event.WithReplay(ctx, true)` / `event.IsReplay(ctx)` — handlers can distinguish replay from live events.
 
 ### Sync Module (`sync/`)
 
@@ -317,13 +319,28 @@ typed, err := query.DispatchTyped[User](ctx, dispatcher, query)
 
 ### Event Creation
 
+**Typed constructor (recommended)**:
+
+```go
+evt, err := event.New(
+    "user.created",        // event.Type
+    userID,                  // id.AggregateID
+    "User",                  // event.AggregateType
+    event.Version(1),        // event.Version
+    UserCreated{Name: "Alice"}, // struct payload (auto-marshaled)
+    event.WithCorrelationID(correlationID),
+)
+```
+
+**Raw constructor (for []byte payloads)**:
+
 ```go
 evt, err := event.NewEvent(
     "user.created",
     userID,                     // id.AggregateID (branded, no string conversion)
     "User",
     event.Version(1),           // event.Version (typed, not bare int)
-    payload,
+    payload,                    // []byte
     event.WithCorrelationID(correlationID),
 )
 ```
@@ -527,23 +544,24 @@ Interfaces now return branded types instead of primitives:
 
 Key milestones:
 
-| Session | Milestone                                                          |
-| ------- | ------------------------------------------------------------------ |
-| 20      | Zero lint, storage error path tests 79.8→92.3%                     |
-| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type |
-| 27      | No-panic convention: `New*` returns `(*T, error)`                  |
-| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command   |
-| 37      | `core/decider` package + example/user rewrite                      |
-| 44      | ISP (Publisher/Subscriber), extensible error classification        |
-| 45      | `id.Of[T]` as type alias for `go-branded-id`                       |
-| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot              |
-| 54      | Removed cockroachdb/errors, added TypedHandler[T]                  |
-| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`           |
-| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus    |
-| 68      | Module hygiene, file splits, 0 production files >250 lines         |
-| 73      | File splits, golden test refresh, coverage improvements            |
-| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API           |
-| 81      | Position-based replay, SQL composite index                         |
-| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal           |
-| 86      | Catalog quality sweep, MemorySnapshotStore deep copy               |
-| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage    |
+| Session | Milestone                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| 20      | Zero lint, storage error path tests 79.8→92.3%                                                               |
+| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type                                           |
+| 27      | No-panic convention: `New*` returns `(*T, error)`                                                            |
+| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command                                             |
+| 37      | `core/decider` package + example/user rewrite                                                                |
+| 44      | ISP (Publisher/Subscriber), extensible error classification                                                  |
+| 45      | `id.Of[T]` as type alias for `go-branded-id`                                                                 |
+| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot                                                        |
+| 54      | Removed cockroachdb/errors, added TypedHandler[T]                                                            |
+| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`                                                     |
+| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus                                              |
+| 68      | Module hygiene, file splits, 0 production files >250 lines                                                   |
+| 73      | File splits, golden test refresh, coverage improvements                                                      |
+| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API                                                     |
+| 81      | Position-based replay, SQL composite index                                                                   |
+| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal                                                     |
+| 86      | Catalog quality sweep, MemorySnapshotStore deep copy                                                         |
+| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                              |
+| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation |

@@ -1,4 +1,8 @@
 // Package aggregate provides aggregate root functionality for CQRS.
+//
+// Deprecated: Use core/decider for new code. The decider package uses pure
+// functions (Decide + Fold) instead of mutable state and the 9-method Root
+// interface. Existing consumers can continue using this package.
 package aggregate
 
 import (

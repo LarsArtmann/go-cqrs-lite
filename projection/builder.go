@@ -66,7 +66,7 @@ type builtProjection struct {
 	eventTypes []event.Type
 }
 
-func (p *builtProjection) Name() string            { return p.name }
+func (p *builtProjection) Name() string             { return p.name }
 func (p *builtProjection) EventTypes() []event.Type { return p.eventTypes }
 
 func (p *builtProjection) Handle(ctx context.Context, evt event.Event) error {
