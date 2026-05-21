@@ -64,8 +64,8 @@ func (e *Exporter) writeServices(buf *strings.Builder, cat *catalog.Catalog) {
 		svcID := sanitizeID(string(svc.ID))
 
 		fmt.Fprintf(buf, "%s: {\n", svcID)
-		fmt.Fprintf(buf, "  class: service\n  label: %q\n", svc.Name)
-		buf.WriteString("  direction: down\n\n")
+		fmt.Fprintf(buf, "  class: service\n")
+		fmt.Fprintf(buf, "  label: %q\n  direction: %s\n\n", svc.Name, e.direction)
 
 		for _, cmd := range svc.Commands {
 			e.writeMessageNode(buf, cmd, "command", shapeRectangle)
@@ -101,6 +101,10 @@ func (e *Exporter) writeMessageNode(
 
 	label := msg.Name
 
+	if msg.Deprecated {
+		label += " [DEPRECATED]"
+	}
+
 	if msg.Version != "" {
 		label += fmt.Sprintf(" (v%s)", msg.Version)
 	}
@@ -121,6 +125,20 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 
 	if msg.Summary != "" {
 		parts = append(parts, msg.Summary)
+	}
+
+	if len(msg.Owners) > 0 {
+		parts = append(parts, "Owners: "+strings.Join(msg.Owners, ", "))
+	}
+
+	if len(msg.Labels) > 0 {
+		labelParts := make([]string, 0, len(msg.Labels))
+
+		for k, v := range msg.Labels {
+			labelParts = append(labelParts, k+"="+v)
+		}
+
+		parts = append(parts, "Labels: "+strings.Join(labelParts, ", "))
 	}
 
 	if msg.Schema != nil && len(msg.Schema.Properties) > 0 {

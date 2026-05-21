@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ErrDomainNotFound is returned when a domain ID does not exist in the registry.
-var ErrDomainNotFound = event.NewRejection(
-	"catalog.domain_not_found",
-	"domain not found",
-)
+var ErrDomainNotFound = errorfamily.NewRejection("catalog.domain_not_found", "domain not found")
 
 // Registry is a thread-safe catalog builder that accumulates services,
 // domains, and channels before producing an immutable Catalog.

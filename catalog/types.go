@@ -70,14 +70,18 @@ const (
 
 // Message describes a single command, event, or query in the catalog.
 type Message struct {
-	Kind      MessageKind       `json:"kind"`
-	ID        MessageID         `json:"id"`
-	Name      string            `json:"name"`
-	Version   string            `json:"version"`
-	Summary   string            `json:"summary,omitempty"`
-	Schema    *Schema           `json:"schema,omitempty"`
-	Direction Direction         `json:"direction"`
-	Examples  []json.RawMessage `json:"examples,omitempty"`
+	Kind       MessageKind       `json:"kind"`
+	ID         MessageID         `json:"id"`
+	Name       string            `json:"name"`
+	Version    string            `json:"version"`
+	Summary    string            `json:"summary,omitempty"`
+	Schema     *Schema           `json:"schema,omitempty"`
+	Direction  Direction         `json:"direction"`
+	Examples   []json.RawMessage `json:"examples,omitempty"`
+	Owners     []string          `json:"owners,omitempty"`
+	Labels     map[string]string `json:"labels,omitempty"`
+	Deprecated bool              `json:"deprecated,omitempty"`
+	Changelog  []Change          `json:"changelog,omitempty"`
 }
 
 // Schema represents a JSON Schema object with properties, required fields, and items.
@@ -86,6 +90,7 @@ type Schema struct {
 	Properties map[string]Property `json:"properties,omitempty"`
 	Required   []string            `json:"required,omitempty"`
 	Items      *Property           `json:"items,omitempty"`
+	Examples   []json.RawMessage   `json:"examples,omitempty"`
 }
 
 // Property describes a single field within a JSON Schema.
@@ -101,6 +106,7 @@ type Property struct {
 	Nullable    bool                `json:"nullable,omitempty"`
 	Deprecated  bool                `json:"deprecated,omitempty"`
 	Pattern     string              `json:"pattern,omitempty"`
+	Examples    []json.RawMessage   `json:"examples,omitempty"`
 }
 
 // Service groups related commands, events, and queries under a logical service.
@@ -121,6 +127,7 @@ type Domain struct {
 	Name     string      `json:"name"`
 	Version  string      `json:"version"`
 	Summary  string      `json:"summary,omitempty"`
+	Owners   []string    `json:"owners,omitempty"`
 	Services []ServiceID `json:"services,omitempty"`
 }
 
@@ -162,6 +169,13 @@ func MessageIDString(msg Message) string {
 	}
 
 	return msg.Name
+}
+
+// Change describes a single modification to a message over time.
+type Change struct {
+	Version string `json:"version"`
+	Date    string `json:"date,omitempty"`
+	Summary string `json:"summary"`
 }
 
 // IsSend reports whether the message direction is Sends.

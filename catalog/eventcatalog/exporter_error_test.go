@@ -98,7 +98,11 @@ func TestExporter_Export_WriteConfigAndLLMsErrors(t *testing.T) {
 		chmod   os.FileMode
 		wantErr string
 	}{
-		{name: "config_write", chmod: 0o000, wantErr: "expected error when output dir is read-only for config write"},
+		{
+			name:    "config_write",
+			chmod:   0o000,
+			wantErr: "expected error when output dir is read-only for config write",
+		},
 		{name: "llms_txt_write", chmod: 0o500, wantErr: "expected error when llms.txt write fails"},
 	}
 

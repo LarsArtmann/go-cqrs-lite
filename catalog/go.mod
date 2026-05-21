@@ -5,13 +5,13 @@ go 1.26.2
 require (
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-cqrs-lite/core v0.0.0
+	github.com/larsartmann/go-error-family v0.1.0
 )
 
 require (
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-faster/jx v1.0.0 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
-	github.com/larsartmann/go-error-family v0.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

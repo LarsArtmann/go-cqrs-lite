@@ -206,7 +206,7 @@ nix develop             # enter dev shell
 
 | Package                 | Purpose                                | Key Types                                                                                                |
 | ----------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `catalog/`              | Registry, schema reflection, typed IDs | `Registry`, `Catalog`, `SchemaFromType[T]`, `GetID()`, `ServiceID`, `DomainID`, `MessageID`, `ChannelID` |
+| `catalog/`              | Registry, schema reflection, typed IDs | `Registry`, `Catalog`, `SchemaFromType[T]`, `GetID()`, `Validate()`, `ServiceID`, `DomainID`, `MessageID`, `ChannelID`, `Change`, `Violation` |
 | `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                                                                |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                                                                    |
 | `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                                                                  |
@@ -873,3 +873,24 @@ Interfaces now return branded types instead of primitives:
   - **NEW**: `OutboxID.String()`/`IsZero()`, `OutboxStatus.String()`/`OutboxStatusAcked` constant.
   - **NEW**: `OperationType.Valid()`/`String()`, `SyncMessageType.Valid()`, `PebbleBackend.String()`.
   - 24/24 test packages pass, zero files over 250 lines
+
+- **Session 86 (Catalog Quality Sweep: Errors, Fields, Encapsulation, Validation)**:
+  - **BREAKING**: Removed all `MustParse*` functions from `catalog` package. Users get `(T, error)` returns only — no panics.
+  - **REFACTOR**: Replaced 4 copy-paste `Parse*`/`MustParse*` functions with generic `parseID[T idType]` in `catalog/id_parse.go`.
+  - **REFACTOR**: Changed `catalog` errors to use `go-error-family` directly instead of through `core/event` wrapper.
+  - **FIX**: `adapters.AddChannel` was a silent no-op (discarded parameter with `_`). Now delegates to `registry.AddChannel`.
+  - **NEW**: `Message.Owners []string`, `Message.Labels map[string]string`, `Message.Deprecated bool`, `Message.Changelog []Change` fields.
+  - **NEW**: `Domain.Owners []string` field. `Schema.Examples []json.RawMessage`, `Property.Examples []json.RawMessage` fields.
+  - **NEW**: `catalog.Change` struct with `Version`, `Date`, `Summary` fields.
+  - **NEW**: `catalog.Violation` struct and `Catalog.Validate() []Violation` method for catalog validation.
+  - **NEW**: `catalog.Owners(owners ...string)` and `catalog.Labels(labels map[string]string)` message options.
+  - **REFACTOR**: Unexported all `asyncapi.Exporter`, `openapi.Exporter`, and `eventcatalog.Exporter` fields. Configure via `NewExporter()` + `Option` functions only.
+  - **REFACTOR**: Moved `JSONToYAML` from `adapters` to `internal/schemautil`. Docserver now uses `schemautil` instead of deprecated `adapters`.
+  - **REFACTOR**: Deep-copy immutability in `Registry.Build()` — `copyMessages`, `copyMessage`, `copyMap[K,V]` ensure `Labels` maps and slice fields are properly cloned.
+  - **REFACTOR**: Fixed `d2.WithDirection` option — `e.direction` was set but never read (hardcoded to `"down"`). Now wired into `writeServices`.
+  - **REFACTOR**: Split 7 long functions (>30 lines) into focused helpers across d2, asyncapi, eventcatalog, and openapi packages.
+  - **REFACTOR**: Replaced manual map copy loop with `maps.Clone` in `registry_helpers.go`.
+  - **REFACTOR**: Converted all inline error checks in eventcatalog to plain assignments (`noinlineerr` lint).
+  - **NEW**: Tests for `internal/caseutil`, `internal/schemautil`, `docserver.StaticFS()`, `d2.WithDirection`, `adapters.AddChannel`, `Catalog.Validate()`.
+  - **DOCS**: Refreshed 3 golden test files (asyncapi.yaml, eventcatalog-config.js, package.json).
+  - Zero lint in catalog module, all 24 test packages pass

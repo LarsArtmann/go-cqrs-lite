@@ -12,6 +12,8 @@ type MessageConfig interface {
 	apply(serviceID ServiceID, reg *Registry)
 }
 
+const defaultVersion = "1.0.0"
+
 type messageBuilder struct {
 	kind      MessageKind
 	id        MessageID
@@ -20,6 +22,8 @@ type messageBuilder struct {
 	summary   string
 	schema    *Schema
 	direction Direction
+	owners    []string
+	labels    map[string]string
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
@@ -31,6 +35,8 @@ func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 		Summary:   m.summary,
 		Schema:    m.schema,
 		Direction: m.direction,
+		Owners:    m.owners,
+		Labels:    m.labels,
 	}
 
 	switch m.kind {
@@ -64,6 +70,20 @@ func Summary(summary string) MessageOption {
 func Version(version string) MessageOption {
 	return func(m *messageBuilder) {
 		m.version = version
+	}
+}
+
+// Owners sets the list of owners (teams or individuals) for the message.
+func Owners(owners ...string) MessageOption {
+	return func(m *messageBuilder) {
+		m.owners = owners
+	}
+}
+
+// Labels sets key-value labels for cross-cutting grouping.
+func Labels(labels map[string]string) MessageOption {
+	return func(m *messageBuilder) {
+		m.labels = labels
 	}
 }
 
@@ -102,11 +122,11 @@ func newMessageBuilder[T any](
 	name := camelCaseToHuman(rt.Name())
 	schema := schemaFromReflect(rt)
 
-	msgBuilder := &messageBuilder{
+	msgBuilder := &messageBuilder{ //nolint:exhaustruct
 		kind:      kind,
 		id:        id,
 		name:      name,
-		version:   "1.0.0",
+		version:   defaultVersion,
 		summary:   "",
 		schema:    schema,
 		direction: direction,

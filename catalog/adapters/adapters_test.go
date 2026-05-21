@@ -246,3 +246,27 @@ func TestBuilder_AddServiceToDomain_NonexistentDomain(t *testing.T) {
 		t.Fatal("expected error when adding service to nonexistent domain")
 	}
 }
+
+func TestBuilder_AddChannel(t *testing.T) {
+	t.Parallel()
+
+	builder := adapters.NewBuilder("Test API", "1.0.0")
+	builder.AddChannel(catalog.Channel{
+		ID:      "user.commands",
+		Name:    "User Commands",
+		Version: "1.0.0",
+		Address: "user.commands",
+	})
+
+	cat := builder.Build()
+	cattest.AssertSliceLen(t, "cat.Channels", cat.Channels, 1)
+
+	ch := cat.Channels[0]
+	if ch.ID != "user.commands" {
+		t.Errorf("channel ID = %q, want user.commands", ch.ID)
+	}
+
+	if ch.Name != "User Commands" {
+		t.Errorf("channel Name = %q, want User Commands", ch.Name)
+	}
+}

@@ -314,6 +314,28 @@ func TestSanitizeID(t *testing.T) {
 	}
 }
 
+func TestExporter_Export_WithDirection(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
+	cattest.AddMessageSimple(
+		t, reg, "svc", "DoWork", "DoWork", "1.0.0", "",
+		catalog.CommandMessage, reg.AddCommand,
+	)
+
+	cat := cattest.Build(t, reg)
+	output := NewExporter("Test", "1.0.0", WithDirection("up")).Export(cat)
+
+	if !strings.Contains(output, "direction: up") {
+		t.Error("expected 'direction: up' in output")
+	}
+
+	if strings.Contains(output, "direction: down") {
+		t.Error("should not contain 'direction: down' when WithDirection(\"up\") is set")
+	}
+}
+
 func TestExporter_Export_ValidD2(t *testing.T) {
 	t.Parallel()
 

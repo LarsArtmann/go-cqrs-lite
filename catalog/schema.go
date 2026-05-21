@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SchemaFromType generates a JSON Schema from the struct type T using reflection.
@@ -122,10 +122,7 @@ func parseJSONTag(tag string) (string, bool) {
 }
 
 // ErrNilSchema is returned when a nil schema is passed to SchemaToJSON.
-var ErrNilSchema = event.NewRejection(
-	"catalog.nil_schema",
-	"schema is nil",
-)
+var ErrNilSchema = errorfamily.NewRejection("catalog.nil_schema", "schema is nil")
 
 // SchemaToJSON serializes a Schema to indented JSON.
 func SchemaToJSON(schema *Schema) ([]byte, error) {

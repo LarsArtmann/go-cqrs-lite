@@ -16,31 +16,6 @@ func TestParseServiceID(t *testing.T) {
 	})
 }
 
-func TestMustParseServiceID(t *testing.T) {
-	t.Parallel()
-
-	t.Run("valid ID returns ID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseServiceID("orders")
-		if id != ServiceID("orders") {
-			t.Fatalf("expected %q, got %q", "orders", id)
-		}
-	})
-
-	t.Run("empty string panics", func(t *testing.T) {
-		t.Parallel()
-
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected panic")
-			}
-		}()
-
-		MustParseServiceID("")
-	})
-}
-
 func TestServiceID_IsZero(t *testing.T) {
 	t.Parallel()
 
@@ -59,31 +34,6 @@ func TestParseDomainID(t *testing.T) {
 	testParseID(t, "DomainID", ParseDomainID, []idTestCase[DomainID]{
 		{"valid ID", "ecommerce", DomainID("ecommerce"), false, ErrEmptyDomainID},
 		{"empty string", "", "", true, ErrEmptyDomainID},
-	})
-}
-
-func TestMustParseDomainID(t *testing.T) {
-	t.Parallel()
-
-	t.Run("valid ID returns ID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseDomainID("billing")
-		if id != DomainID("billing") {
-			t.Fatalf("expected %q, got %q", "billing", id)
-		}
-	})
-
-	t.Run("empty string panics", func(t *testing.T) {
-		t.Parallel()
-
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected panic")
-			}
-		}()
-
-		MustParseDomainID("")
 	})
 }
 
@@ -109,31 +59,6 @@ func TestParseMessageID(t *testing.T) {
 	})
 }
 
-func TestMustParseMessageID(t *testing.T) {
-	t.Parallel()
-
-	t.Run("valid ID returns ID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseMessageID("CreateUser")
-		if id != MessageID("CreateUser") {
-			t.Fatalf("expected %q, got %q", "CreateUser", id)
-		}
-	})
-
-	t.Run("empty string panics", func(t *testing.T) {
-		t.Parallel()
-
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected panic")
-			}
-		}()
-
-		MustParseMessageID("")
-	})
-}
-
 func TestMessageID_IsZero(t *testing.T) {
 	t.Parallel()
 
@@ -152,31 +77,6 @@ func TestParseChannelID(t *testing.T) {
 	testParseID(t, "ChannelID", ParseChannelID, []idTestCase[ChannelID]{
 		{"valid ID", "user.commands", ChannelID("user.commands"), false, ErrEmptyChannelID},
 		{"empty string", "", "", true, ErrEmptyChannelID},
-	})
-}
-
-func TestMustParseChannelID(t *testing.T) {
-	t.Parallel()
-
-	t.Run("valid ID returns ID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseChannelID("user.events")
-		if id != ChannelID("user.events") {
-			t.Fatalf("expected %q, got %q", "user.events", id)
-		}
-	})
-
-	t.Run("empty string panics", func(t *testing.T) {
-		t.Parallel()
-
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected panic")
-			}
-		}()
-
-		MustParseChannelID("")
 	})
 }
 

@@ -288,6 +288,30 @@ func TestDocsServer_RegisterRoutes(t *testing.T) {
 	}
 }
 
+func TestDocsServer_StaticFS(t *testing.T) {
+	srv := testServer(t)
+	fsys := srv.StaticFS()
+
+	if fsys == nil {
+		t.Fatal("expected non-nil FileSystem")
+	}
+
+	for _, name := range []string{
+		"static/scalar.js",
+		"static/asyncapi-react.js",
+		"static/asyncapi-react.css",
+	} {
+		f, err := fsys.Open(name)
+		if err != nil {
+			t.Errorf("expected to open %s: %v", name, err)
+
+			continue
+		}
+
+		_ = f.Close()
+	}
+}
+
 func TestDocsServer_DefaultConfig(t *testing.T) {
 	srv := NewDocsServer(testProvider, Config{
 		ServiceName: "Test",

@@ -15,12 +15,12 @@ const (
 
 // Exporter generates EventCatalog-compatible MDX files from a catalog.
 type Exporter struct {
-	OutputDir string
+	outputDir string
 }
 
 // NewExporter creates an exporter that writes MDX files to the given output directory.
 func NewExporter(outputDir string) *Exporter {
-	return &Exporter{OutputDir: outputDir}
+	return &Exporter{outputDir: outputDir}
 }
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
@@ -31,25 +31,9 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 			return fmt.Errorf("write service %s: %w", svc.ID, err)
 		}
 
-		for _, cmd := range svc.Commands {
-			err := e.writeMessage(string(svc.ID), "commands", cmd)
-			if err != nil {
-				return fmt.Errorf("write command %s: %w", cmd.ID, err)
-			}
-		}
-
-		for _, evt := range svc.Events {
-			err := e.writeMessage(string(svc.ID), "events", evt)
-			if err != nil {
-				return fmt.Errorf("write event %s: %w", evt.ID, err)
-			}
-		}
-
-		for _, q := range svc.Queries {
-			err := e.writeMessage(string(svc.ID), "queries", q)
-			if err != nil {
-				return fmt.Errorf("write query %s: %w", q.ID, err)
-			}
+		err = e.writeServiceMessages(svc)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -68,8 +52,35 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 	return e.writeLLMsTxt(cat)
 }
 
+func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
+	svcID := string(svc.ID)
+
+	for _, cmd := range svc.Commands {
+		err := e.writeMessage(svcID, "commands", cmd)
+		if err != nil {
+			return fmt.Errorf("write command %s: %w", cmd.ID, err)
+		}
+	}
+
+	for _, evt := range svc.Events {
+		err := e.writeMessage(svcID, "events", evt)
+		if err != nil {
+			return fmt.Errorf("write event %s: %w", evt.ID, err)
+		}
+	}
+
+	for _, q := range svc.Queries {
+		err := e.writeMessage(svcID, "queries", q)
+		if err != nil {
+			return fmt.Errorf("write query %s: %w", q.ID, err)
+		}
+	}
+
+	return nil
+}
+
 func (e *Exporter) writeService(svc catalog.Service) error {
-	dir := filepath.Join(e.OutputDir, "services", string(svc.ID))
+	dir := filepath.Join(e.outputDir, "services", string(svc.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -127,14 +138,31 @@ func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []str
 
 func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 	id := string(catalog.GetID(msg))
-
-	dir := filepath.Join(e.OutputDir, "services", svcID, kind, id)
+	dir := filepath.Join(e.outputDir, "services", svcID, kind, id)
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create message dir for %s/%s: %w", svcID, kind, err)
 	}
 
+	md := buildMessageFrontmatter(id, msg)
+
+	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	if err != nil {
+		return fmt.Errorf("write message file for %s/%s: %w", svcID, kind, err)
+	}
+
+	if msg.Schema != nil {
+		err = e.writeSchema(dir, msg.Schema)
+		if err != nil {
+			return fmt.Errorf("write schema for %s/%s: %w", svcID, kind, err)
+		}
+	}
+
+	return e.writeExamples(dir, msg.Examples)
+}
+
+func buildMessageFrontmatter(id string, msg catalog.Message) *frontmatterWriter {
 	md := newFrontmatterWriter()
 	md.addField("id", id)
 	md.addField("name", msg.Name)
@@ -144,29 +172,55 @@ func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
 		md.addQuotedField("summary", msg.Summary)
 	}
 
+	if msg.Deprecated {
+		md.addField("deprecated", "true")
+	}
+
+	md.addListField("owners", msg.Owners)
+	writeLabels(md, msg.Labels)
+	writeChangelog(md, msg.Changelog)
+
 	if msg.Schema != nil {
 		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
 	}
 
 	md.finish(msg.Name, msg.Summary)
 
-	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
-	if err != nil {
-		return fmt.Errorf("write message file for %s/%s: %w", svcID, kind, err)
+	return md
+}
+
+func writeLabels(md *frontmatterWriter, labels map[string]string) {
+	if len(labels) == 0 {
+		return
 	}
 
-	if msg.Schema != nil {
-		err := e.writeSchema(dir, msg.Schema)
-		if err != nil {
-			return fmt.Errorf("write schema for %s/%s: %w", svcID, kind, err)
+	_, _ = md.WriteString("labels:\n")
+
+	for k, v := range labels {
+		_, _ = fmt.Fprintf(md, "  %s: %q\n", k, v)
+	}
+}
+
+func writeChangelog(md *frontmatterWriter, changelog []catalog.Change) {
+	if len(changelog) == 0 {
+		return
+	}
+
+	_, _ = md.WriteString("changelog:\n")
+
+	for _, c := range changelog {
+		_, _ = fmt.Fprintf(md, "  - version: %q\n    summary: %q", c.Version, c.Summary)
+
+		if c.Date != "" {
+			_, _ = fmt.Fprintf(md, "\n    date: %q", c.Date)
 		}
-	}
 
-	return e.writeExamples(dir, msg.Examples)
+		_, _ = md.WriteString("\n")
+	}
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
-	dir := filepath.Join(e.OutputDir, "domains", string(domain.ID))
+	dir := filepath.Join(e.outputDir, "domains", string(domain.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -181,6 +235,8 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	if domain.Summary != "" {
 		md.addQuotedField("summary", domain.Summary)
 	}
+
+	md.addListField("owners", domain.Owners)
 
 	strs := make([]string, len(domain.Services))
 	for i, s := range domain.Services {

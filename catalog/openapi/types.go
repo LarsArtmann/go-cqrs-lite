@@ -47,6 +47,7 @@ type Operation struct {
 	Summary     string               `json:"summary,omitempty"`
 	Description string               `json:"description,omitempty"`
 	OperationID string               `json:"operationId,omitempty"`
+	Deprecated  bool                 `json:"deprecated,omitempty"`
 	RequestBody *RequestBody         `json:"requestBody,omitempty"`
 	Responses   map[string]*Response `json:"responses"`
 	Parameters  []Parameter          `json:"parameters,omitempty"`

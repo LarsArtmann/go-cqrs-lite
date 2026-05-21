@@ -96,9 +96,8 @@ func (b *CatalogBuilder) AddServiceToDomain(serviceID, domainID string) error {
 }
 
 // AddChannel registers a channel in the catalog.
-func (b *CatalogBuilder) AddChannel(_ catalog.Channel) {
-	// Channels are not yet supported by catalog.Builder.
-	// This method is retained for backward compatibility.
+func (b *CatalogBuilder) AddChannel(ch catalog.Channel) {
+	b.builder.Registry().AddChannel(ch)
 }
 
 // AddCommand adds a command message directly to a service.

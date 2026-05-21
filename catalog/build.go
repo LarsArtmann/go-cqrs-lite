@@ -51,7 +51,7 @@ func (b *Builder) AddDomain(
 		sids[i] = ServiceID(s)
 	}
 
-	b.registry.AddDomain(Domain{
+	b.registry.AddDomain(Domain{ //nolint:exhaustruct
 		ID:       DomainID(id),
 		Name:     name,
 		Version:  version,

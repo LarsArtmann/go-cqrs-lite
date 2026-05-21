@@ -17,49 +17,57 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 	buf.WriteString("> Auto-generated catalog summary for LLM consumption.\n\n")
 
 	for _, svc := range cat.Services {
-		fmt.Fprintf(&buf, "## %s (%s)\n", svc.Name, svc.ID)
-
-		if svc.Summary != "" {
-			fmt.Fprintf(&buf, "%s\n", svc.Summary)
-		}
-
-		if len(svc.Commands) > 0 {
-			buf.WriteString("\n### Commands\n")
-
-			for _, cmd := range svc.Commands {
-				fmt.Fprintf(&buf, "- %s (v%s): %s\n", cmd.Name, cmd.Version, cmd.Summary)
-			}
-		}
-
-		if len(svc.Events) > 0 {
-			buf.WriteString("\n### Events\n")
-
-			for _, evt := range svc.Events {
-				dir := "receives"
-				if evt.IsSend() {
-					dir = "sends"
-				}
-
-				fmt.Fprintf(&buf, "- %s (v%s) [%s]: %s\n", evt.Name, evt.Version, dir, evt.Summary)
-			}
-		}
-
-		if len(svc.Queries) > 0 {
-			buf.WriteString("\n### Queries\n")
-
-			for _, q := range svc.Queries {
-				fmt.Fprintf(&buf, "- %s (v%s): %s\n", q.Name, q.Version, q.Summary)
-			}
-		}
-
-		buf.WriteString("\n")
+		writeLLMsTxtService(&buf, svc)
 	}
 
 	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
-		filepath.Join(e.OutputDir, "llms.txt"),
+		filepath.Join(e.outputDir, "llms.txt"),
 		[]byte(buf.String()),
 		filePerm,
 	)
+}
+
+func writeLLMsTxtService(buf *strings.Builder, svc catalog.Service) {
+	fmt.Fprintf(buf, "## %s (%s)\n", svc.Name, svc.ID)
+
+	if svc.Summary != "" {
+		fmt.Fprintf(buf, "%s\n", svc.Summary)
+	}
+
+	writeLLMsTxtMessages(buf, "Commands", svc.Commands)
+	writeLLMsTxtEvents(buf, svc.Events)
+	writeLLMsTxtMessages(buf, "Queries", svc.Queries)
+
+	buf.WriteString("\n")
+}
+
+func writeLLMsTxtMessages(buf *strings.Builder, section string, msgs []catalog.Message) {
+	if len(msgs) == 0 {
+		return
+	}
+
+	fmt.Fprintf(buf, "\n### %s\n", section)
+
+	for _, msg := range msgs {
+		fmt.Fprintf(buf, "- %s (v%s): %s\n", msg.Name, msg.Version, msg.Summary)
+	}
+}
+
+func writeLLMsTxtEvents(buf *strings.Builder, events []catalog.Message) {
+	if len(events) == 0 {
+		return
+	}
+
+	buf.WriteString("\n### Events\n")
+
+	for _, evt := range events {
+		dir := "receives"
+		if evt.IsSend() {
+			dir = "sends"
+		}
+
+		fmt.Fprintf(buf, "- %s (v%s) [%s]: %s\n", evt.Name, evt.Version, dir, evt.Summary)
+	}
 }
 
 type frontmatterWriter struct {
@@ -153,7 +161,7 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	cfg.WriteString("};\n")
 
 	err := os.WriteFile(
-		filepath.Join(e.OutputDir, "eventcatalog.config.js"),
+		filepath.Join(e.outputDir, "eventcatalog.config.js"),
 		[]byte(cfg.String()),
 		filePerm,
 	)
@@ -182,7 +190,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	}
 
 	return os.WriteFile( //nolint:wrapcheck
-		filepath.Join(e.OutputDir, "package.json"),
+		filepath.Join(e.outputDir, "package.json"),
 		data,
 		filePerm,
 	)

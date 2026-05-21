@@ -207,9 +207,10 @@ func TestExporter_Export_Servers(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	exp := NewExporter("Test", "1.0.0")
-	exp.Protocol = "amqp"
-	exp.Host = "rabbitmq.example.com:5672"
+	exp := NewExporter(
+		"Test", "1.0.0",
+		WithServer("production", "rabbitmq.example.com:5672", "amqp"),
+	)
 
 	doc := exp.Export(reg.Build())
 
@@ -257,8 +258,10 @@ func TestExporter_Export_NoHost(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	exp := NewExporter("Test", "1.0.0")
-	exp.Host = ""
+	exp := NewExporter(
+		"Test", "1.0.0",
+		WithServer("production", "", "kafka"),
+	)
 
 	doc := exp.Export(reg.Build())
 

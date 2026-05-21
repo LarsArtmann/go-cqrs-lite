@@ -7,6 +7,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
+type eventOwner struct {
+	svcID string
+	evtID string
+}
+
 // Export generates a D2 diagram string from the given catalog.
 func (e *Exporter) Export(cat *catalog.Catalog) string {
 	var buf strings.Builder
@@ -30,39 +35,40 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 
 	svcID := sanitizeID(string(svc.ID))
 
+	writeInternalEdges(buf, svcID, svc)
+
+	buf.WriteString("\n")
+}
+
+func writeInternalEdges(buf *strings.Builder, svcID string, svc catalog.Service) {
 	for _, cmd := range svc.Commands {
 		cmdID := sanitizeID(string(catalog.GetID(cmd)))
-
 		fmt.Fprintf(buf, "  %s -> %s.%s: \"receives\"\n", svcID, svcID, cmdID)
 	}
 
 	for _, evt := range svc.Events {
 		evtID := sanitizeID(string(catalog.GetID(evt)))
-
-		action := "publishes"
-
-		if evt.Direction == catalog.Receives {
-			action = "receives"
-		}
-
+		action := eventAction(evt)
 		fmt.Fprintf(buf, "  %s.%s -> %s: %q\n", svcID, evtID, svcID, action)
 	}
 
 	for _, q := range svc.Queries {
 		qID := sanitizeID(string(catalog.GetID(q)))
-
 		fmt.Fprintf(buf, "  %s -> %s.%s: \"handles\"\n", svcID, svcID, qID)
 	}
-
-	buf.WriteString("\n")
 }
 
-func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog.Catalog) {
-	type eventOwner struct {
-		svcID string
-		evtID string
+func eventAction(evt catalog.Message) string {
+	if evt.Direction == catalog.Receives {
+		return "receives"
 	}
 
+	return "publishes"
+}
+
+func buildPublisherReceiverMaps(
+	cat *catalog.Catalog,
+) (map[string][]eventOwner, map[string][]eventOwner) {
 	publishers := make(map[string][]eventOwner)
 	receivers := make(map[string][]eventOwner)
 
@@ -82,6 +88,24 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 		}
 	}
 
+	return publishers, receivers
+}
+
+func writeCrossServiceEdge(b *strings.Builder, pub, recv eventOwner, evtID string) {
+	fmt.Fprintf(
+		b, "%s.%s -> %s.%s: %q {\n",
+		pub.svcID, pub.evtID, recv.svcID, recv.evtID, evtID,
+	)
+	b.WriteString("  style: {\n")
+	b.WriteString("    stroke: \"#c62828\"\n")
+	b.WriteString("    stroke-width: 2\n")
+	b.WriteString("    animated: true\n")
+	b.WriteString("  }\n}\n\n")
+}
+
+func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog.Catalog) {
+	publishers, receivers := buildPublisherReceiverMaps(cat)
+
 	var hasCrossService bool
 
 	for evtID, pubs := range publishers {
@@ -96,17 +120,7 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 					continue
 				}
 
-				fmt.Fprintf(
-					b, "%s.%s -> %s.%s: %q {\n",
-					pub.svcID, pub.evtID,
-					recv.svcID, recv.evtID,
-					evtID,
-				)
-				b.WriteString("  style: {\n")
-				b.WriteString("    stroke: \"#c62828\"\n")
-				b.WriteString("    stroke-width: 2\n")
-				b.WriteString("    animated: true\n")
-				b.WriteString("  }\n}\n\n")
+				writeCrossServiceEdge(b, pub, recv, evtID)
 
 				hasCrossService = true
 			}

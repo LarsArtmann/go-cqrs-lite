@@ -9,39 +9,42 @@ import (
 
 // Export generates an AsyncAPI 3.0 Document from the given catalog.
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
-	doc := &Document{
-		AsyncAPI: asyncAPIVersion,
-		ID: fmt.Sprintf(
-			"urn:%s:api",
-			strings.ToLower(strings.ReplaceAll(e.ServiceName, " ", "")),
-		),
-		DefaultContentType: contentType,
-		Servers:            nil,
-		Info: Info{
-			Title:       e.ServiceName,
-			Version:     e.Version,
-			Description: e.Description,
-		},
-		Channels:   make(map[string]Channel),
-		Operations: make(map[string]Operation),
-		Components: Components{
-			Schemas:  make(map[string]any),
-			Messages: make(map[string]Message),
-		},
-	}
+	doc := e.newDocument()
 
-	if e.Host != "" {
+	if e.host != "" {
 		doc.Servers = map[string]Server{
-			e.ServerName: {
-				Host:            e.Host,
-				Protocol:        e.Protocol,
-				ProtocolVersion: "",
-				Description:     "Message broker",
-				Tags:            nil,
+			e.serverName: { //nolint:exhaustruct
+				Host: e.host, Protocol: e.protocol,
+				Description: "Message broker",
 			},
 		}
 	}
 
+	exportMessages(e, doc, cat)
+
+	return doc
+}
+
+func (e *Exporter) newDocument() *Document {
+	return &Document{ //nolint:exhaustruct
+		AsyncAPI: asyncAPIVersion,
+		ID: fmt.Sprintf(
+			"urn:%s:api",
+			strings.ToLower(strings.ReplaceAll(e.serviceName, " ", "")),
+		),
+		DefaultContentType: contentType,
+		Info: Info{
+			Title: e.serviceName, Version: e.version, Description: e.description,
+		},
+		Channels:   make(map[string]Channel),
+		Operations: make(map[string]Operation),
+		Components: Components{
+			Schemas: make(map[string]any), Messages: make(map[string]Message),
+		},
+	}
+}
+
+func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
 	for _, svc := range cat.Services {
 		for _, cmd := range svc.Commands {
 			e.addMessage(doc, svc.ID, cmd, kindCommand, withAction(actionReceive))
@@ -60,8 +63,6 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 			e.addMessage(doc, svc.ID, q, kindQuery)
 		}
 	}
-
-	return doc
 }
 
 func (e *Exporter) addMessage(
@@ -119,7 +120,7 @@ func addOperation(
 		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
-		Tags:     []Tag{{Name: string(kind)}, {Name: svcID}},
+		Tags:     buildTags(kind, svcID, msg),
 		Reply:    nil,
 	}
 }
@@ -160,6 +161,24 @@ func kindToTagName(kind catalog.MessageKind) string {
 	}
 }
 
+func buildTags(kind messageKind, svcID string, msg catalog.Message) []Tag {
+	tags := []Tag{{Name: string(kind)}, {Name: svcID}}
+
+	if msg.Deprecated {
+		tags = append(tags, Tag{Name: "deprecated"})
+	}
+
+	for _, owner := range msg.Owners {
+		tags = append(tags, Tag{Name: "owner:" + owner})
+	}
+
+	for k, v := range msg.Labels {
+		tags = append(tags, Tag{Name: k + ":" + v})
+	}
+
+	return tags
+}
+
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 	id := catalog.GetID(msg)
 	componentKey := string(msg.Kind) + "." + string(id)
@@ -172,6 +191,7 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
 		Tags:        []Tag{{Name: kindToTagName(msg.Kind)}},
 		Examples:    toExamples(msg.Examples),
+		Deprecated:  msg.Deprecated,
 	}
 
 	if msg.Schema != nil {
