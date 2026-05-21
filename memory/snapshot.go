@@ -46,7 +46,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 		return nil
 	}
 
-	s.snapshots[key] = &snapshot
+	s.snapshots[key] = copySnapshot(&snapshot)
 
 	return nil
 }
