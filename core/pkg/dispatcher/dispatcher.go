@@ -9,6 +9,14 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// CatalogEntry holds basic metadata for a catalog item.
+// Used by command and query dispatchers for per-type documentation.
+type CatalogEntry struct {
+	Name    string
+	Version string
+	Summary string
+}
+
 // Lifecycle provides thread-safe closed state management for composable types.
 type Lifecycle struct {
 	mu     sync.RWMutex

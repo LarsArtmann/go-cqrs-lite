@@ -15,7 +15,7 @@ type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
 type Dispatcher struct {
-	dispatcher.CatalogDispatcher[Type, CatalogMeta]
+	dispatcher.CatalogDispatcher[Type, dispatcher.CatalogEntry]
 
 	inner *dispatcher.Dispatcher[Handler, Middleware]
 }

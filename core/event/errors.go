@@ -61,6 +61,7 @@ var (
 		"event.version_not_positive",
 		"version must be positive",
 	)
+	ErrNilPayload = NewRejection("event.nil_payload", "payload is required")
 	ErrVersionConflict     = NewConflict("event.version_conflict", "version conflict")
 	ErrAggregateNotFound   = NewRejection("event.aggregate_not_found", "aggregate not found")
 	ErrSnapshotNotFound    = NewRejection("event.snapshot_not_found", "snapshot not found")
