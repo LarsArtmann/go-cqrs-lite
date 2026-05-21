@@ -48,6 +48,10 @@ func TestLWWResolver_WinsByVectorClock(t *testing.T) {
 
 			resolver, err := NewLWWResolver(itemTimestamp)
 
+			if err != nil {
+				t.Fatalf("NewLWWResolver error: %v", err)
+			}
+
 			conflict := &Conflict[testItem]{
 				Local:    local,
 				Remote:   remote,
@@ -71,6 +75,10 @@ func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
 	resolver, err := NewLWWResolver(itemTimestamp)
+
+			if err != nil {
+				t.Fatalf("NewLWWResolver error: %v", err)
+			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now.Add(2 * time.Hour)}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -96,6 +104,10 @@ func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
 	resolver, err := NewLWWResolver(itemTimestamp)
+
+			if err != nil {
+				t.Fatalf("NewLWWResolver error: %v", err)
+			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now.Add(2 * time.Hour)}
@@ -121,6 +133,10 @@ func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
 	t.Parallel()
 
 	resolver, err := NewLWWResolver(itemTimestamp)
+
+			if err != nil {
+				t.Fatalf("NewLWWResolver error: %v", err)
+			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -146,6 +162,10 @@ func TestLWWResolver_Tiebreaker(t *testing.T) {
 	t.Parallel()
 
 	resolver, err := NewLWWResolver(itemTimestamp)
+
+			if err != nil {
+				t.Fatalf("NewLWWResolver error: %v", err)
+			}
 	resolver.Tiebreaker = func(local, remote testItem) bool {
 		return local.Name < remote.Name
 	}
