@@ -16,6 +16,9 @@ func (t Type) String() string { return string(t) }
 type Command interface {
 	Type() Type
 	AggregateID() id.AggregateID
+
+	// Deprecated: Idempotency handling should be managed at the application layer,
+	// not embedded in the command interface. This method will be removed in a future version.
 	IdempotencyKey() string
 }
 
