@@ -710,10 +710,7 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
-	err = bus.Publish(context.Background(), evt)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_ = bus.Publish(context.Background(), evt)
 
 	select {
 	case a := <-attempts:

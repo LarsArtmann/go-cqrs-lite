@@ -415,11 +415,11 @@ builder.AddCommand("user-svc", myCmd)
 // Generic zero-instance: no construction needed, uses reflection on type T
 adapters.AddCommandFromType[CreateUser](
     builder, "user-svc", "user.create",
-    command.CatalogMeta{Name: "CreateUser", Version: "1.0.0", Summary: "Create a user"},
+    dispatcher.CatalogEntry{Name: "CreateUser", Version: "1.0.0", Summary: "Create a user"},
 )
 
 // Auto-discover from dispatcher entries
-cmdDispatcher.RegisterCatalogEntry("user.create", command.CatalogMeta{...})
+cmdDispatcher.RegisterCatalogEntry("user.create", dispatcher.CatalogEntry{...})
 adapters.FromCommandDispatcher(builder, "user-svc", cmdDispatcher)
 
 // Export

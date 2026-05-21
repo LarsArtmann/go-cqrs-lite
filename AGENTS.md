@@ -514,12 +514,12 @@ Interfaces now return branded types instead of primitives:
 
 ## Known Issues
 
-| Issue                                                    | Severity | Detail                                                                                                                      |
-| -------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW      | Subscribers block publishers (acceptable for test utility)                                                                  |
-| `query.Handler` returns `any`                            | LOW      | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
-| `CatalogMeta` duplicated across 2 packages               | LOW      | `command.CatalogMeta`, `query.CatalogMeta` — nearly identical (event.CatalogMeta removed in Session 89)                     |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW      | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
+| Issue                                                    | Severity  | Detail                                                                                                                      |
+| -------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `MemoryBus.Publish` holds RLock during handler execution | LOW       | Subscribers block publishers (acceptable for test utility)                                                                  |
+| `query.Handler` returns `any`                            | LOW       | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
+| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.CatalogEntry`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW       | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
 
 ## Session History
 
