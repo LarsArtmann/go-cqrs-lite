@@ -2,6 +2,7 @@ package id
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
 	"time"
 
@@ -51,4 +52,25 @@ func MustParseAggregateID(s string) AggregateID {
 	}
 
 	return parsed
+}
+
+// DeriveAggregateID creates a deterministic AggregateID from a namespace and
+// one or more key strings using SHA-256. Same inputs always produce the same ID.
+// Useful for stable IDs in idempotent workflows (e.g., "lock:" + userID + ":" + resourceID).
+func DeriveAggregateID(namespace string, keys ...string) AggregateID {
+	h := sha256.New()
+	_, _ = h.Write([]byte(namespace))
+
+	for _, k := range keys {
+		_, _ = h.Write([]byte{0})
+		_, _ = h.Write([]byte(k))
+	}
+
+	return cbid.NewID[AggregateMarker](fmt.Sprintf("%x", h.Sum(nil)))
+}
+
+// AggregateIDFrom creates an AggregateID from any fmt.Stringer.
+// Useful for interop with consumer-side branded IDs that implement String().
+func AggregateIDFrom(s fmt.Stringer) AggregateID {
+	return cbid.NewID[AggregateMarker](s.String())
 }

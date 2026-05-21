@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
+	catdispatcher "github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -188,7 +188,7 @@ func TestDispatcher_RegisterCatalogEntry(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := query.NewDispatcher()
-	meta := dispatcher.CatalogEntry{
+	meta := catdispatcher.CatalogEntry{
 		Name:    "GetUser",
 		Version: "1.0.0",
 		Summary: "Gets a user by ID",
@@ -215,10 +215,10 @@ func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := query.NewDispatcher()
-	dispatcher.RegisterCatalogEntry("q.a", dispatcher.CatalogEntry{Name: "A"})
+	dispatcher.RegisterCatalogEntry("q.a", catdispatcher.CatalogEntry{Name: "A"})
 
 	entries := dispatcher.CatalogEntries()
-	entries["q.b"] = dispatcher.CatalogEntry{Name: "B"}
+	entries["q.b"] = catdispatcher.CatalogEntry{Name: "B"}
 
 	if len(dispatcher.CatalogEntries()) != 1 {
 		t.Error("CatalogEntries should return a copy, not a reference")
