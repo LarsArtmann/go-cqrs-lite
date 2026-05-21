@@ -22,7 +22,7 @@ const (
 	publisherClosed
 )
 
-type outboxPublisher struct {
+type OutboxPublisher struct {
 	outbox    Outbox
 	publisher Publisher
 	interval  time.Duration
@@ -34,29 +34,29 @@ type outboxPublisher struct {
 	done   chan struct{}
 }
 
-var _ io.Closer = (*outboxPublisher)(nil)
+var _ io.Closer = (*OutboxPublisher)(nil)
 
-type outboxPublisherOption func(*outboxPublisher)
+type OutboxPublisherOption func(*OutboxPublisher)
 
-func withPollInterval(d time.Duration) outboxPublisherOption {
-	return func(p *outboxPublisher) { p.interval = d }
+func WithPollInterval(d time.Duration) OutboxPublisherOption {
+	return func(p *OutboxPublisher) { p.interval = d }
 }
 
-func withBatchSize(n int) outboxPublisherOption {
-	return func(p *outboxPublisher) { p.batchSize = n }
+func WithBatchSize(n int) OutboxPublisherOption {
+	return func(p *OutboxPublisher) { p.batchSize = n }
 }
 
-func newOutboxPublisher(
+func NewOutboxPublisher(
 	outbox Outbox,
 	publisher Publisher,
-	opts ...outboxPublisherOption,
-) (*outboxPublisher, error) {
+	opts ...OutboxPublisherOption,
+) (*OutboxPublisher, error) {
 	if outbox == nil {
-		return nil, errNilOutbox
+		return nil, ErrNilOutbox
 	}
 
 	if publisher == nil {
-		return nil, errNilBus
+		return nil, ErrNilBus
 	}
 
 	p := &outboxPublisher{ //nolint:exhaustruct // options fill remaining fields
@@ -82,15 +82,15 @@ func newOutboxPublisher(
 	return p, nil
 }
 
-func (p *outboxPublisher) Start() error {
+func (p *OutboxPublisher) Start() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	switch p.state {
 	case publisherClosed:
-		return errPublisherClosed
+		return ErrPublisherClosed
 	case publisherRunning:
-		return errAlreadyStarted
+		return ErrAlreadyStarted
 	case publisherIdle:
 	}
 
@@ -103,7 +103,7 @@ func (p *outboxPublisher) Start() error {
 	return nil
 }
 
-func (p *outboxPublisher) Close() error {
+func (p *OutboxPublisher) Close() error {
 	p.mu.Lock()
 
 	if p.state == publisherClosed {
@@ -131,7 +131,7 @@ func (p *outboxPublisher) Close() error {
 	return nil
 }
 
-func (p *outboxPublisher) run(ctx context.Context) {
+func (p *OutboxPublisher) run(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error(
@@ -157,7 +157,7 @@ func (p *outboxPublisher) run(ctx context.Context) {
 	}
 }
 
-func (p *outboxPublisher) pollPublishAck(ctx context.Context) error {
+func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {
 		return fmt.Errorf("poll pending: %w", err)
@@ -194,13 +194,13 @@ func (p *outboxPublisher) pollPublishAck(ctx context.Context) error {
 	return nil
 }
 
-func (p *outboxPublisher) publishPending(ctx context.Context) {
+func (p *OutboxPublisher) publishPending(ctx context.Context) {
 	err := p.pollPublishAck(ctx)
 	if err != nil {
 		slog.Warn("outbox publish cycle failed", "error", err)
 	}
 }
 
-func (p *outboxPublisher) PublishNow(ctx context.Context) error {
+func (p *OutboxPublisher) PublishNow(ctx context.Context) error {
 	return p.pollPublishAck(ctx)
 }

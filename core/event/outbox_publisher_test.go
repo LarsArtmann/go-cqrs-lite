@@ -14,35 +14,35 @@ import (
 func TestNewOutboxPublisher_NilOutbox(t *testing.T) {
 	t.Parallel()
 
-	_, err := newOutboxPublisher(nil, &stubPublisher{})
+	_, err := NewOutboxPublisher(nil, &stubPublisher{})
 	if err == nil {
 		t.Fatal("expected error for nil outbox")
 	}
 
-	if !errors.Is(err, errNilOutbox) {
-		t.Errorf("error = %v, want errNilOutbox", err)
+	if !errors.Is(err, ErrNilOutbox) {
+		t.Errorf("error = %v, want ErrNilOutbox", err)
 	}
 }
 
 func TestNewOutboxPublisher_NilBus(t *testing.T) {
 	t.Parallel()
 
-	_, err := newOutboxPublisher(&stubOutbox{}, nil)
+	_, err := NewOutboxPublisher(&stubOutbox{}, nil)
 	if err == nil {
 		t.Fatal("expected error for nil bus")
 	}
 
-	if !errors.Is(err, errNilBus) {
-		t.Errorf("error = %v, want errNilBus", err)
+	if !errors.Is(err, ErrNilBus) {
+		t.Errorf("error = %v, want ErrNilBus", err)
 	}
 }
 
 func TestNewOutboxPublisher_Defaults(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.interval != time.Second {
@@ -57,13 +57,13 @@ func TestNewOutboxPublisher_Defaults(t *testing.T) {
 func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(
+	p, err := NewOutboxPublisher(
 		&stubOutbox{},
 		&stubPublisher{},
-		withPollInterval(50*time.Millisecond),
+		WithPollInterval(50*time.Millisecond),
 	)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.interval != 50*time.Millisecond {
@@ -74,9 +74,9 @@ func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 func TestNewOutboxPublisher_WithBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{}, withBatchSize(10))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(10))
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.batchSize != 10 {
@@ -87,9 +87,9 @@ func TestNewOutboxPublisher_WithBatchSize(t *testing.T) {
 func TestNewOutboxPublisher_ZeroIntervalResetsToDefault(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{}, withPollInterval(0))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithPollInterval(0))
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.interval != time.Second {
@@ -100,9 +100,9 @@ func TestNewOutboxPublisher_ZeroIntervalResetsToDefault(t *testing.T) {
 func TestNewOutboxPublisher_ZeroBatchSizeResetsToDefault(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{}, withBatchSize(0))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(0))
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.batchSize != 100 {
@@ -113,13 +113,13 @@ func TestNewOutboxPublisher_ZeroBatchSizeResetsToDefault(t *testing.T) {
 func TestOutboxPublisher_StartStop(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(
+	p, err := NewOutboxPublisher(
 		&stubOutbox{},
 		&stubPublisher{},
-		withPollInterval(10*time.Millisecond),
+		WithPollInterval(10*time.Millisecond),
 	)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	err = p.Start()
@@ -136,9 +136,9 @@ func TestOutboxPublisher_StartStop(t *testing.T) {
 func TestOutboxPublisher_DoubleStart(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	err = p.Start()
@@ -153,17 +153,17 @@ func TestOutboxPublisher_DoubleStart(t *testing.T) {
 		t.Fatal("expected error on double start")
 	}
 
-	if !errors.Is(err, errAlreadyStarted) {
-		t.Fatalf("error = %q, want errAlreadyStarted", err.Error())
+	if !errors.Is(err, ErrAlreadyStarted) {
+		t.Fatalf("error = %q, want ErrAlreadyStarted", err.Error())
 	}
 }
 
 func TestOutboxPublisher_CloseWithoutStart(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	err = p.Close()
@@ -175,9 +175,9 @@ func TestOutboxPublisher_CloseWithoutStart(t *testing.T) {
 func TestOutboxPublisher_DoubleClose(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	_ = p.Start()
@@ -188,9 +188,9 @@ func TestOutboxPublisher_DoubleClose(t *testing.T) {
 func TestOutboxPublisher_StartAfterClose(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	_ = p.Start()
@@ -201,17 +201,17 @@ func TestOutboxPublisher_StartAfterClose(t *testing.T) {
 		t.Fatal("expected error when starting after close")
 	}
 
-	if !errors.Is(err, errPublisherClosed) {
-		t.Fatalf("error = %q, want errPublisherClosed", err.Error())
+	if !errors.Is(err, ErrPublisherClosed) {
+		t.Fatalf("error = %q, want ErrPublisherClosed", err.Error())
 	}
 }
 
 func TestOutboxPublisher_StartAfterCloseWithoutStart(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{})
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{})
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	_ = p.Close()
@@ -221,8 +221,8 @@ func TestOutboxPublisher_StartAfterCloseWithoutStart(t *testing.T) {
 		t.Fatal("expected error when starting after close")
 	}
 
-	if !errors.Is(err, errPublisherClosed) {
-		t.Fatalf("error = %q, want errPublisherClosed", err.Error())
+	if !errors.Is(err, ErrPublisherClosed) {
+		t.Fatalf("error = %q, want ErrPublisherClosed", err.Error())
 	}
 }
 
@@ -235,9 +235,9 @@ func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 	}}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus, withPollInterval(10*time.Millisecond))
+	p, err := NewOutboxPublisher(outbox, bus, WithPollInterval(10*time.Millisecond))
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	err = p.Start()
@@ -280,9 +280,9 @@ func TestOutboxPublisher_PublishNow_Empty(t *testing.T) {
 	outbox := &stubOutbox{}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -302,9 +302,9 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 	}}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -344,9 +344,9 @@ func TestOutboxPublisher_PublishNow_MultipleEntries(t *testing.T) {
 	}}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -378,9 +378,9 @@ func TestOutboxPublisher_PublishNow_PollError(t *testing.T) {
 	outbox := &stubOutbox{pollErr: wantErr}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -405,9 +405,9 @@ func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
 	wantErr := errors.New("publish failed")
 	bus := &stubPublisher{publishErr: wantErr}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -443,9 +443,9 @@ func TestOutboxPublisher_PublishNow_PublishError_StopsAtFailure(t *testing.T) {
 		return nil
 	}}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -473,9 +473,9 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 	}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	ctx := context.Background()
@@ -493,9 +493,9 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 func TestOutboxPublisher_PublishNow_RespectsBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p, err := newOutboxPublisher(&stubOutbox{}, &stubPublisher{}, withBatchSize(5))
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(5))
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	if p.batchSize != 5 {
@@ -514,9 +514,9 @@ func TestOutboxPublisher_PublishNow_ContextCanceled(t *testing.T) {
 	}}
 	bus := &stubPublisher{}
 
-	p, err := newOutboxPublisher(outbox, bus)
+	p, err := NewOutboxPublisher(outbox, bus)
 	if err != nil {
-		t.Fatalf("newOutboxPublisher: %v", err)
+		t.Fatalf("NewOutboxPublisher: %v", err)
 	}
 
 	err = p.PublishNow(ctx)

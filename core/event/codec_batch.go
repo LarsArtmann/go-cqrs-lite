@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func newEvents(
+func NewEvents(
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	expectedVersion Version,
@@ -45,7 +45,7 @@ func newEvents(
 	return events, nil
 }
 
-func mustNewEvents(
+func MustNewEvents(
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	expectedVersion Version,
@@ -68,7 +68,7 @@ func mustNewEvents(
 	return events
 }
 
-func decodePayloads[T any](events []Event, codec Codec) ([]T, error) {
+func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
 	results := make([]T, 0, len(events))
 
 	for _, evt := range events {
