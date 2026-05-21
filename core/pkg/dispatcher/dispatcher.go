@@ -2,11 +2,12 @@
 package dispatcher
 
 import (
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
 	"sync"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Lifecycle provides thread-safe closed state management for composable types.
@@ -46,10 +47,22 @@ func (m *Lifecycle) CheckClosed(closedErr error) error {
 }
 
 // ErrHandlerNotFound is returned when no handler is registered for a type.
-var ErrHandlerNotFound = errors.New("handler not found")
+var ErrHandlerNotFound = errorfamily.NewRejection(
+	"dispatcher.handler_not_found",
+	"handler not found",
+)
 
 // ErrDispatcherClosed is returned when the dispatcher is closed.
-var ErrDispatcherClosed = errors.New("dispatcher is closed")
+var ErrDispatcherClosed = errorfamily.NewInfrastructure(
+	"dispatcher.dispatcher_closed",
+	"dispatcher is closed",
+)
+
+// ErrHandlerAlreadyRegistered is returned when a handler is already registered for a type.
+var ErrHandlerAlreadyRegistered = errorfamily.NewConflict(
+	"dispatcher.handler_already_registered",
+	"handler already registered for type",
+)
 
 // MiddlewareChain stores and applies middleware in a thread-safe manner.
 // H is the handler type, and M is the middleware type that wraps handlers.
@@ -114,26 +127,22 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 	d.Middleware.Add(middleware...)
 }
 
-// ErrHandlerAlreadyRegistered is returned when a handler is already registered for a type.
-var ErrHandlerAlreadyRegistered = errors.New("handler already registered for type")
-
 // Register binds a handler to a type, applying middleware immediately.
 // The wrap function converts middleware and handler into a wrapped handler.
 // Middleware must be configured via Use() before Register() is called.
 func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) error {
-	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return fmt.Errorf("dispatcher is closed: %w", err)
+	if err := d.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return err
 	}
 
 	d.handlersMu.Lock()
 	defer d.handlersMu.Unlock()
 
 	if _, exists := d.handlers[t]; exists {
-		return fmt.Errorf(
-			"handler already registered for type %s: %w",
-			t,
+		return errorfamily.WrapConflict(
 			ErrHandlerAlreadyRegistered,
+			"dispatcher.handler_registered",
+			fmt.Sprintf("handler already registered for type %s", t),
 		)
 	}
 
@@ -155,18 +164,21 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 // Dispatch returns the wrapped handler for a type.
 // The caller is responsible for invoking the returned handler with appropriate arguments.
 func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
-	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
+	if err := d.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
 		var zero H
 
-		return zero, fmt.Errorf("dispatcher is closed: %w", err)
+		return zero, err
 	}
 
 	h, ok := d.GetHandler(t)
 	if !ok {
 		var zero H
 
-		return zero, fmt.Errorf("handler not found for type %s: %w", t, ErrHandlerNotFound)
+		return zero, errorfamily.WrapRejection(
+			ErrHandlerNotFound,
+			"dispatcher.handler_not_found",
+			fmt.Sprintf("handler not found for type %s", t),
+		)
 	}
 
 	return h, nil
