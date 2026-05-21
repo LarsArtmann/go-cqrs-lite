@@ -149,9 +149,9 @@ func NewEvent(
 		copy(safePayload, payload)
 	}
 
-	schemaV, _ := ParseSchemaVersion(1)
+	schemaV, _ := parseSchemaVersion(1)
 
-	clk := DefaultClock
+	clk := defaultClock
 
 	evt := &Core{
 		id:            id.NewEventID(),

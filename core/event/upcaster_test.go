@@ -1,50 +1,49 @@
-package event_test
+package event
 
 import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 func TestUpcasterFunc(t *testing.T) {
 	t.Parallel()
 
-	upcaster := event.NewUpcaster(
+	u := newUpcaster(
 		"UserCreated",
 		1,
-		func(_ event.Event) (*event.Core, error) {
+		func(_ Event) (*Core, error) {
 			aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
+			return NewEvent("UserCreated", aggID, "User", 2, nil)
 		},
 	)
 
-	if upcaster.SourceType() != "UserCreated" {
-		t.Errorf("SourceType = %q, want UserCreated", upcaster.SourceType())
+	if u.SourceType() != "UserCreated" {
+		t.Errorf("SourceType = %q, want UserCreated", u.SourceType())
 	}
 
-	if upcaster.SourceVersion() != 1 {
-		t.Errorf("SourceVersion = %d, want 1", upcaster.SourceVersion())
+	if u.SourceVersion() != 1 {
+		t.Errorf("SourceVersion = %d, want 1", u.SourceVersion())
 	}
 }
 
 func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if result.ID() != evt.ID() {
@@ -55,24 +54,24 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated",
 		1,
-		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+		func(evt Event) (*Core, error) {
+			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, []byte(`{"name":"Alice"}`))
+	evt, _ := NewEvent("UserCreated", aggID, "User", 5, []byte(`{"name":"Alice"}`))
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if string(result.Payload()) != `{"name":"Alice","email":""}` {
@@ -87,31 +86,31 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+		func(evt Event) (*Core, error) {
+			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
 	))
 
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated", 2,
-		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
+		func(evt Event) (*Core, error) {
+			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":"","active":true}`))
 		},
 	))
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 7, []byte(`{"name":"Alice"}`))
+	evt, _ := NewEvent("UserCreated", aggID, "User", 7, []byte(`{"name":"Alice"}`))
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	want := `{"name":"Alice","email":"","active":true}`
@@ -127,12 +126,12 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent(
+		func(evt Event) (*Core, error) {
+			return NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
@@ -144,11 +143,11 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
+	evt, _ := NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if result.ID() != evt.ID() {
@@ -157,16 +156,16 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 }
 
 func registerTrackingUpcaster(
-	registry *event.UpcasterRegistry,
-	version event.SchemaVersion,
+	registry *upcasterRegistry,
+	version SchemaVersion,
 	applied *[]int,
 ) {
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated", version,
-		func(evt event.Event) (*event.Core, error) {
+		func(evt Event) (*Core, error) {
 			*applied = append(*applied, int(version))
 
-			return event.NewEvent(
+			return NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
@@ -180,7 +179,7 @@ func registerTrackingUpcaster(
 func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
 	var applied []int
 
@@ -189,11 +188,11 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
+	evt, _ := NewEvent("UserCreated", aggID, "User", 3, nil)
 
-	_, err := registry.Upcast(evt)
+	_, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if len(applied) != 2 || applied[0] != 1 || applied[1] != 2 {
@@ -204,7 +203,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
 	var applied []int
 
@@ -213,11 +212,11 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 10, nil, event.WithSchemaVersion(3))
+	evt, _ := NewEvent("UserCreated", aggID, "User", 10, nil, WithSchemaVersion(3))
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if len(applied) != 0 {
@@ -232,7 +231,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 func TestUpcasterRegistry_PartialChain(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
 	var applied []int
 
@@ -241,11 +240,11 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 8, nil, event.WithSchemaVersion(2))
+	evt, _ := NewEvent("UserCreated", aggID, "User", 8, nil, WithSchemaVersion(2))
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if len(applied) != 1 || applied[0] != 2 {
@@ -264,12 +263,12 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 	t.Parallel()
 
-	registry := event.NewUpcasterRegistry()
+	registry := newUpcasterRegistry()
 
-	registry.Register(event.NewUpcaster(
+	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			return event.NewEvent(
+		func(evt Event) (*Core, error) {
+			return NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
@@ -281,11 +280,11 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
+	evt, _ := NewEvent("UserCreated", aggID, "User", 5, nil)
 
-	result, err := registry.Upcast(evt)
+	result, err := registry.upcast(evt)
 	if err != nil {
-		t.Fatalf("Upcast: %v", err)
+		t.Fatalf("upcast: %v", err)
 	}
 
 	if result.SchemaVersion() != 2 {
@@ -296,7 +295,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 func TestNewProjection_WithDecode(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := JSONCodec{}
 
 	type userPayload struct {
 		Name string `json:"name"`
@@ -304,10 +303,10 @@ func TestNewProjection_WithDecode(t *testing.T) {
 
 	var name string
 
-	proj := event.NewProjection(
+	proj := NewProjection(
 		"user-name",
-		func(_ context.Context, evt event.Event) error {
-			p, err := event.DecodePayload[userPayload](evt, codec)
+		func(_ context.Context, evt Event) error {
+			p, err := DecodePayload[userPayload](evt, codec)
 			if err != nil {
 				return err
 			}
@@ -316,12 +315,12 @@ func TestNewProjection_WithDecode(t *testing.T) {
 
 			return nil
 		},
-		[]event.Type{"UserCreated"},
+		[]Type{"UserCreated"},
 	)
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, _ := NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 
 	err := proj.Handle(context.Background(), evt)
 	if err != nil {

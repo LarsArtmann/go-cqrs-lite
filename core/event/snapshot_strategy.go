@@ -11,7 +11,7 @@ type SnapshotStrategy interface {
 // Returns ErrInvalidSnapshotInterval if n <= 0.
 func EveryNEvents(n int) (SnapshotStrategy, error) {
 	if n <= 0 {
-		return nil, ErrInvalidSnapshotInterval
+		return nil, errInvalidSnapshotInterval
 	}
 
 	return &everyN{interval: n}, nil

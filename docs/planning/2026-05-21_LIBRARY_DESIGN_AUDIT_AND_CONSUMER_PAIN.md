@@ -33,15 +33,15 @@ Fully implemented module (6 files + tests, 92% coverage) with **zero consumers**
 
 `core/aggregate/aggregate.go` — Forces every aggregate to implement infrastructure bookkeeping (`SetVersion`, `LoadEvents`, `UncommittedChanges`, `MarkChangesAsCommitted`, `ApplySnapshot`) alongside domain logic (`Apply`). The `decider` package was created to solve this exact problem, yet both coexist with duplicated options, errors, and load helpers.
 
-| Method on `Root` | Concern | Belongs in |
-|---|---|---|
-| `Apply(event.Event)` | Domain | ✅ Stays |
-| `ID()`, `Type()` | Identity | ✅ Stays |
+| Method on `Root`            | Concern        | Belongs in |
+| --------------------------- | -------------- | ---------- |
+| `Apply(event.Event)`        | Domain         | ✅ Stays   |
+| `ID()`, `Type()`            | Identity       | ✅ Stays   |
 | `Version()`, `SetVersion()` | Infrastructure | Repository |
-| `LoadEvents([]Event)` | Infrastructure | Repository |
-| `UncommittedChanges()` | Infrastructure | Repository |
-| `MarkChangesAsCommitted()` | Infrastructure | Repository |
-| `ApplySnapshot(Snapshot)` | Infrastructure | Repository |
+| `LoadEvents([]Event)`       | Infrastructure | Repository |
+| `UncommittedChanges()`      | Infrastructure | Repository |
+| `MarkChangesAsCommitted()`  | Infrastructure | Repository |
+| `ApplySnapshot(Snapshot)`   | Infrastructure | Repository |
 
 **Action:** Deprecate `aggregate` package. Invest in `decider` as the single aggregate pattern.
 
@@ -144,17 +144,17 @@ Constructing `RetryConfig{MaxAttempts: 3}` directly gives a nil `IsRetryable` th
 
 ## 3. Moderate Issues
 
-| Issue | Detail |
-|---|---|
+| Issue                                                          | Detail                                                            |
+| -------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `aggregate` uses `fmt.Errorf("%w", ErrNilStore)` unnecessarily | Wrapping sentinel in identical message — just return the sentinel |
-| `reconstructEvent` has 9 positional parameters | Should use a struct or options |
-| `Catalog` package IDs (`ServiceID`, etc.) are bare strings | No `Parse` functions, no format enforcement |
-| `OutboxStatus` is a bare string | Could be an enum with typed constructors |
-| Constructor return patterns inconsistent | Value / pointer / pointer+error with no clear rule |
-| `MustParse*` only in `sync`, not in `id` package | Inconsistent convention |
-| `sync` module uses `errorfamily` directly | Bypasses `event` error taxonomy |
-| Storage `Save` doesn't validate event consistency | No check that versions are sequential, IDs match |
-| `Register` on `projection.Runner` has no sync | Data race if called concurrently |
+| `reconstructEvent` has 9 positional parameters                 | Should use a struct or options                                    |
+| `Catalog` package IDs (`ServiceID`, etc.) are bare strings     | No `Parse` functions, no format enforcement                       |
+| `OutboxStatus` is a bare string                                | Could be an enum with typed constructors                          |
+| Constructor return patterns inconsistent                       | Value / pointer / pointer+error with no clear rule                |
+| `MustParse*` only in `sync`, not in `id` package               | Inconsistent convention                                           |
+| `sync` module uses `errorfamily` directly                      | Bypasses `event` error taxonomy                                   |
+| Storage `Save` doesn't validate event consistency              | No check that versions are sequential, IDs match                  |
+| `Register` on `projection.Runner` has no sync                  | Data race if called concurrently                                  |
 
 ---
 
@@ -302,17 +302,17 @@ proj := projection.Build("todo_projection",
 
 The `decider` package is 80% of the way there. The missing 20%:
 
-| Today | Ideal |
-|---|---|
-| `DecideFunc` = closure factory | `Decide(ctx, cmd, state, version) → []any` |
-| `repo.Execute(ctx, id, type, decideFn)` | `app.HandleCommand(ctx, cmd)` |
-| Events are `event.Core` structs | Events are plain payload structs |
-| `event.NewEvent(5 positional args)` | Auto-derived from payload type |
-| `command.Core` embedding | Plain struct with `ID` field |
-| Manual `bus.Subscribe` per type | Auto-subscribe from projection registration |
-| `JSONCodec{}` threaded everywhere | Default JSON, override when needed |
-| `aggregateType` string everywhere | Bound once at registration |
-| `version.Increment()` in domain code | Invisible, handled by infrastructure |
+| Today                                   | Ideal                                       |
+| --------------------------------------- | ------------------------------------------- |
+| `DecideFunc` = closure factory          | `Decide(ctx, cmd, state, version) → []any`  |
+| `repo.Execute(ctx, id, type, decideFn)` | `app.HandleCommand(ctx, cmd)`               |
+| Events are `event.Core` structs         | Events are plain payload structs            |
+| `event.NewEvent(5 positional args)`     | Auto-derived from payload type              |
+| `command.Core` embedding                | Plain struct with `ID` field                |
+| Manual `bus.Subscribe` per type         | Auto-subscribe from projection registration |
+| `JSONCodec{}` threaded everywhere       | Default JSON, override when needed          |
+| `aggregateType` string everywhere       | Bound once at registration                  |
+| `version.Increment()` in domain code    | Invisible, handled by infrastructure        |
 
 **The shift:** stop making the domain adapt to the infrastructure. Today the domain code calls infrastructure APIs (`NewEvent`, `Increment`, `codec.Encode`). In a perfect world, the domain returns plain values and the infrastructure wraps them.
 
@@ -327,28 +327,29 @@ The `decider` package is 80% of the way there. The missing 20%:
 
 ### What SEC Does Badly (Their Fault)
 
-| Issue | Detail |
-|---|---|
-| **Built parallel event system** | `decider.DomainEvent` with typed payloads instead of `event.Event`. `Fold` takes `DomainEvent`, so `decider.Repository[State]` can't be used. Built ~70-line `persistAndPublish()` translation layer. Cascades into ~250 lines of unnecessary code. |
-| **Bus with zero subscribers** | Events published to `MemoryBus` but nothing subscribes. Dead infrastructure. |
-| **Hand-rolled `foldEvents()`** | 40 lines in query handler that reimplements `Repository.Load()`. Every query loads and folds entire event history from scratch. |
-| **Didn't use `command.RegisterTyped[T]`** | Wrote own `assertCmd[T]()` helper instead. |
+| Issue                                     | Detail                                                                                                                                                                                                                                              |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Built parallel event system**           | `decider.DomainEvent` with typed payloads instead of `event.Event`. `Fold` takes `DomainEvent`, so `decider.Repository[State]` can't be used. Built ~70-line `persistAndPublish()` translation layer. Cascades into ~250 lines of unnecessary code. |
+| **Bus with zero subscribers**             | Events published to `MemoryBus` but nothing subscribes. Dead infrastructure.                                                                                                                                                                        |
+| **Hand-rolled `foldEvents()`**            | 40 lines in query handler that reimplements `Repository.Load()`. Every query loads and folds entire event history from scratch.                                                                                                                     |
+| **Didn't use `command.RegisterTyped[T]`** | Wrote own `assertCmd[T]()` helper instead.                                                                                                                                                                                                          |
 
 ### What's Our Fault (Library Gaps)
 
-| Issue | Detail | Lines Wasted |
-|---|---|---|
-| **`event.NewEvent` requires raw `[]byte`** | SEC built `encodeJSONPayload()` + `decode.go` to work around. `NewEvents` takes `[]any` but `NewEvent` takes `[]byte` — inconsistent. | ~40 |
-| **No aggregate-bound repository** | `"game"` passed on every `Execute` call. Aggregate type should be bound at registration. | noise everywhere |
-| **`id.AggregateID` vs consumer's branded IDs** | SEC uses `go-branded-id` for `GameID`. Every boundary requires `gameID.String()` → `id.ParseAggregateID()`. | ~30 |
-| **`storage.SQLEventStore` doesn't own `*sql.DB`** | SEC wrote 150-line `tursoStore` wrapper — pure delegation with error wrapping, just to manage DB lifecycle. | ~150 |
-| **`Execute` returns only `error`** | SEC can't tell what happened (created? updated? no-op?) without reverse-engineering from state. | ~20 |
+| Issue                                             | Detail                                                                                                                                | Lines Wasted     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **`event.NewEvent` requires raw `[]byte`**        | SEC built `encodeJSONPayload()` + `decode.go` to work around. `NewEvents` takes `[]any` but `NewEvent` takes `[]byte` — inconsistent. | ~40              |
+| **No aggregate-bound repository**                 | `"game"` passed on every `Execute` call. Aggregate type should be bound at registration.                                              | noise everywhere |
+| **`id.AggregateID` vs consumer's branded IDs**    | SEC uses `go-branded-id` for `GameID`. Every boundary requires `gameID.String()` → `id.ParseAggregateID()`.                           | ~30              |
+| **`storage.SQLEventStore` doesn't own `*sql.DB`** | SEC wrote 150-line `tursoStore` wrapper — pure delegation with error wrapping, just to manage DB lifecycle.                           | ~150             |
+| **`Execute` returns only `error`**                | SEC can't tell what happened (created? updated? no-op?) without reverse-engineering from state.                                       | ~20              |
 
 **Total library-attributable boilerplate in SEC: ~240 lines**
 
 ### Key Code Smells
 
 **The `DomainEvent` ↔ `event.Event` translation** (`command_handler.go:193-256`):
+
 ```go
 // SEC's decider returns DomainEvent (typed payloads)
 // Then translates to event.Event ([]byte payloads) in persistAndPublish():
@@ -361,6 +362,7 @@ The `decider` package is 80% of the way there. The missing 20%:
 This entire function (~63 lines) would disappear if the library accepted typed payloads or if SEC used `decider.Repository`.
 
 **The branded ID conversion** (every command factory and query handler):
+
 ```go
 // Converting between GameID and AggregateID — happens at every boundary
 func parseAndCreateCore(gameIDStr string, cmdType command.Type) (*command.Core, error) {
@@ -381,28 +383,29 @@ func parseAndCreateCore(gameIDStr string, cmdType command.Type) (*command.Core, 
 
 ### What go-localsync Does Badly (Their Fault)
 
-| Issue | Detail |
-|---|---|
+| Issue                                 | Detail                                                                                                                                                                                               |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Outbox poller has a data loss bug** | Acks outbox entries even when `bus.Publish` fails: `_ = bus.Publish(ctx, evt); _ = outbox.Ack(ctx, ...)` — silent event loss. Library provides `event.OutboxPublisher` which handles this correctly. |
-| **`countingDecide` hack** | Wraps decide function to count emitted events + check `state.IsNew()` to reverse-engineer what happened (created/updated/conflict/unchanged). Fragile. |
-| **Outbox poller at 1ms interval** | Essentially a busy loop. Library's `OutboxPublisher` defaults to 1 second. |
+| **`countingDecide` hack**             | Wraps decide function to count emitted events + check `state.IsNew()` to reverse-engineer what happened (created/updated/conflict/unchanged). Fragile.                                               |
+| **Outbox poller at 1ms interval**     | Essentially a busy loop. Library's `OutboxPublisher` defaults to 1 second.                                                                                                                           |
 
 ### What's Our Fault (Library Gaps)
 
-| Issue | Detail | Lines Wasted |
-|---|---|---|
-| **`Command.AggregateID()` required upfront** | go-localsync computes aggregate IDs *inside* decide (SHA256 hash of source+sourceID). Makes entire `command.Dispatcher` + middleware pipeline unusable. | entire command system unused |
-| **`Execute` returns no domain result** | The `countingDecide` + `classifyAction` hack exists because `Repository.Execute` returns only `error`. | ~40 |
-| **`NewTypedProjection[T]` assumes single payload type** | Real projections handle 3+ event types with different payloads. go-localsync forced to write manual `Handle()` with switch. | ~30 |
-| **No deterministic ID generation** | SHA256 + `sync.Map` cache hand-rolled because library only offers random ULID generation. | ~25 |
-| **No read model infrastructure** | `MemoryReadModel` (148 lines) + `TursoReadModel` (315 lines) fully hand-rolled. | ~460 |
-| **`NewEvent` vs `NewEvents` inconsistency** | Tests use `NewEvent` (raw bytes), production uses `NewEvents` (typed payloads). Different serialization contracts. | ~15 |
+| Issue                                                   | Detail                                                                                                                                                  | Lines Wasted                 |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| **`Command.AggregateID()` required upfront**            | go-localsync computes aggregate IDs _inside_ decide (SHA256 hash of source+sourceID). Makes entire `command.Dispatcher` + middleware pipeline unusable. | entire command system unused |
+| **`Execute` returns no domain result**                  | The `countingDecide` + `classifyAction` hack exists because `Repository.Execute` returns only `error`.                                                  | ~40                          |
+| **`NewTypedProjection[T]` assumes single payload type** | Real projections handle 3+ event types with different payloads. go-localsync forced to write manual `Handle()` with switch.                             | ~30                          |
+| **No deterministic ID generation**                      | SHA256 + `sync.Map` cache hand-rolled because library only offers random ULID generation.                                                               | ~25                          |
+| **No read model infrastructure**                        | `MemoryReadModel` (148 lines) + `TursoReadModel` (315 lines) fully hand-rolled.                                                                         | ~460                         |
+| **`NewEvent` vs `NewEvents` inconsistency**             | Tests use `NewEvent` (raw bytes), production uses `NewEvents` (typed payloads). Different serialization contracts.                                      | ~15                          |
 
 **Total library-attributable boilerplate in go-localsync: ~570 lines**
 
 ### Key Code Smells
 
 **The `countingDecide` hack** (`stack.go`):
+
 ```go
 countingDecide := func(state SyncItemState, ver event.Version) ([]event.Event, error) {
     wasNew = state.IsNew()
@@ -418,6 +421,7 @@ action := classifyAction(err, eventCount, wasNew)
 This entire pattern exists because `Execute` returns only `error`. A result type would eliminate it.
 
 **Deterministic aggregate ID with SHA256 cache** (`aggregate_id.go`):
+
 ```go
 func AggregateID(source, sourceID string) id.AggregateID {
     key := itemKey(source, sourceID)
@@ -443,20 +447,20 @@ A library-provided `id.DeriveAggregateID(namespace, keys...)` would replace this
 
 ## 7. Unified Problem Map
 
-| Problem | Who's at fault | Impact | Should we fix? |
-|---|---|---|---|
-| `event.NewEvent` takes `[]byte`, `NewEvents` takes `[]any` | **Library** | Both consumers build marshal helpers | **Yes** |
-| `Execute` returns only `error` | **Library** | Both consumers hack around it | **Yes** |
-| `Command.AggregateID()` required upfront | **Library** | go-localsync can't use command system | **Yes** |
-| `id.AggregateID` incompatible with consumer branded IDs | **Library** | SEC converts at every boundary | **Yes** |
-| `storage.SQLEventStore` doesn't own DB | **Library** | 150-line wrapper in SEC | **Yes** |
-| No read model base | **Library** | 460 lines in go-localsync | **Yes** |
-| No deterministic ID helper | **Library** | SHA256 cache in go-localsync | **Yes** |
-| `NewTypedProjection` single-payload | **Library** | Manual switch in both consumers | **Yes** |
-| `aggregateType` threaded everywhere | **Library** | Noise in every call | **Yes** |
-| SEC built parallel event system | **Consumer** | 250 lines waste | Make it easier not to |
-| SEC bus with no subscribers | **Consumer** | Dead code | No |
-| go-localsync outbox data loss bug | **Consumer** | Silent event loss | No — but they should use `OutboxPublisher` |
+| Problem                                                    | Who's at fault | Impact                                | Should we fix?                             |
+| ---------------------------------------------------------- | -------------- | ------------------------------------- | ------------------------------------------ |
+| `event.NewEvent` takes `[]byte`, `NewEvents` takes `[]any` | **Library**    | Both consumers build marshal helpers  | **Yes**                                    |
+| `Execute` returns only `error`                             | **Library**    | Both consumers hack around it         | **Yes**                                    |
+| `Command.AggregateID()` required upfront                   | **Library**    | go-localsync can't use command system | **Yes**                                    |
+| `id.AggregateID` incompatible with consumer branded IDs    | **Library**    | SEC converts at every boundary        | **Yes**                                    |
+| `storage.SQLEventStore` doesn't own DB                     | **Library**    | 150-line wrapper in SEC               | **Yes**                                    |
+| No read model base                                         | **Library**    | 460 lines in go-localsync             | **Yes**                                    |
+| No deterministic ID helper                                 | **Library**    | SHA256 cache in go-localsync          | **Yes**                                    |
+| `NewTypedProjection` single-payload                        | **Library**    | Manual switch in both consumers       | **Yes**                                    |
+| `aggregateType` threaded everywhere                        | **Library**    | Noise in every call                   | **Yes**                                    |
+| SEC built parallel event system                            | **Consumer**   | 250 lines waste                       | Make it easier not to                      |
+| SEC bus with no subscribers                                | **Consumer**   | Dead code                             | No                                         |
+| go-localsync outbox data loss bug                          | **Consumer**   | Silent event loss                     | No — but they should use `OutboxPublisher` |
 
 **Three problems cause 80% of consumer pain:**
 
@@ -501,7 +505,7 @@ type AggregateCommand interface {
 }
 ```
 
-Or better: make commands plain structs and derive everything from convention. go-localsync *cannot use* the library's command dispatcher because of this one method.
+Or better: make commands plain structs and derive everything from convention. go-localsync _cannot use_ the library's command dispatcher because of this one method.
 
 #### 8.3 Unify `NewEvent` and `NewEvents` — Both Should Accept Typed Payloads
 
@@ -586,12 +590,12 @@ storage.NewCheckpointStore(db, storage.WithDialect(storage.Turso))
 
 ### Quick Wins (< 30 min each)
 
-| Issue | Fix | Effort |
-|---|---|---|
-| `RetryConfig.IsRetryable` nil panic | Add nil check to `Validate()` | 2 min |
-| `aggregate` unnecessary `fmt.Errorf("%w", sentinel)` | Return sentinel directly | 5 min |
-| `projection.Runner.Register` no synchronization | Add mutex | 10 min |
-| Storage constructor aliases → `WithDialect` option | Replace 12 aliases with 4 constructors | 30 min |
+| Issue                                                | Fix                                    | Effort |
+| ---------------------------------------------------- | -------------------------------------- | ------ |
+| `RetryConfig.IsRetryable` nil panic                  | Add nil check to `Validate()`          | 2 min  |
+| `aggregate` unnecessary `fmt.Errorf("%w", sentinel)` | Return sentinel directly               | 5 min  |
+| `projection.Runner.Register` no synchronization      | Add mutex                              | 10 min |
+| Storage constructor aliases → `WithDialect` option   | Replace 12 aliases with 4 constructors | 30 min |
 
 ---
 

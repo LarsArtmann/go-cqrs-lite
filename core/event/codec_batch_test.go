@@ -17,9 +17,9 @@ func TestNewEvents(t *testing.T) {
 		struct{ At string }{At: "now"},
 	}
 
-	events, err := NewEvents(aggID, "User", 0, types, payloads)
+	events, err := newEvents(aggID, "User", 0, types, payloads)
 	if err != nil {
-		t.Fatalf("NewEvents() error = %v", err)
+		t.Fatalf("newEvents() error = %v", err)
 	}
 
 	if len(events) != 2 {
@@ -42,7 +42,7 @@ func TestNewEvents(t *testing.T) {
 func TestNewEvents_MismatchedSlices(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewEvents(id.NewAggregateID(), "User", 0,
+	_, err := newEvents(id.NewAggregateID(), "User", 0,
 		[]Type{"a"}, []any{"x", "y"})
 
 	if err == nil {
@@ -53,10 +53,10 @@ func TestNewEvents_MismatchedSlices(t *testing.T) {
 func TestNewEvents_WithExpectedVersion(t *testing.T) {
 	t.Parallel()
 
-	events, err := NewEvents(id.NewAggregateID(), "User", 5,
+	events, err := newEvents(id.NewAggregateID(), "User", 5,
 		[]Type{"user.updated"}, []any{map[string]string{"k": "v"}})
 	if err != nil {
-		t.Fatalf("NewEvents() error = %v", err)
+		t.Fatalf("newEvents() error = %v", err)
 	}
 
 	if events[0].Version() != 6 {
@@ -70,7 +70,7 @@ func TestMustNewEvents(t *testing.T) {
 	t.Run("valid inputs", func(t *testing.T) {
 		t.Parallel()
 
-		events := MustNewEvents(id.NewAggregateID(), "User", 0,
+		events := mustNewEvents(id.NewAggregateID(), "User", 0,
 			[]Type{"x"}, []any{map[string]string{}})
 
 		if len(events) != 1 {
@@ -87,7 +87,7 @@ func TestMustNewEvents(t *testing.T) {
 			}
 		}()
 
-		MustNewEvents(id.AggregateID{}, "", 0,
+		mustNewEvents(id.AggregateID{}, "", 0,
 			[]Type{"x"}, []any{"y"})
 	})
 }
@@ -100,15 +100,15 @@ func TestDecodePayloads(t *testing.T) {
 	}
 
 	p := payload{Name: "Bob"}
-	events, err := NewEvents(id.NewAggregateID(), "User", 0,
+	events, err := newEvents(id.NewAggregateID(), "User", 0,
 		[]Type{"user.created"}, []any{p})
 	if err != nil {
-		t.Fatalf("NewEvents() error = %v", err)
+		t.Fatalf("newEvents() error = %v", err)
 	}
 
-	results, err := DecodePayloads[payload](events, JSONCodec{})
+	results, err := decodePayloads[payload](events, JSONCodec{})
 	if err != nil {
-		t.Fatalf("DecodePayloads() error = %v", err)
+		t.Fatalf("decodePayloads() error = %v", err)
 	}
 
 	if len(results) != 1 {
@@ -125,7 +125,7 @@ func TestDecodePayloads_InvalidJSON(t *testing.T) {
 
 	evt, _ := NewEvent("bad", id.NewAggregateID(), "User", 1, []byte("not json"))
 
-	_, err := DecodePayloads[struct{}]([]Event{evt}, JSONCodec{})
+	_, err := decodePayloads[struct{}]([]Event{evt}, JSONCodec{})
 
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
@@ -135,7 +135,7 @@ func TestDecodePayloads_InvalidJSON(t *testing.T) {
 func TestNewEvents_EncodeError(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewEvents(id.NewAggregateID(), "User", 0,
+	_, err := newEvents(id.NewAggregateID(), "User", 0,
 		[]Type{"x"}, []any{func() {}})
 
 	if err == nil {
@@ -146,7 +146,7 @@ func TestNewEvents_EncodeError(t *testing.T) {
 func TestNewEvents_Validation(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewEvents(id.AggregateID{}, "User", 0,
+	_, err := newEvents(id.AggregateID{}, "User", 0,
 		[]Type{"x"}, []any{"y"})
 
 	if err == nil {

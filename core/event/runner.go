@@ -29,7 +29,7 @@ type InMemoryRunner struct {
 // Returns an error if checkpoint is nil.
 func NewInMemoryRunner(checkpoint CheckpointStore) (*InMemoryRunner, error) {
 	if checkpoint == nil {
-		return nil, ErrNilCheckpointStore
+		return nil, errNilCheckpointStore
 	}
 
 	return &InMemoryRunner{
@@ -44,7 +44,7 @@ func NewInMemoryRunner(checkpoint CheckpointStore) (*InMemoryRunner, error) {
 // the same name is already registered.
 func (r *InMemoryRunner) Register(projection Projection) error {
 	if projection == nil {
-		return ErrNilProjection
+		return errNilProjection
 	}
 
 	r.mu.Lock()
@@ -52,7 +52,7 @@ func (r *InMemoryRunner) Register(projection Projection) error {
 
 	for _, existing := range r.projections {
 		if existing.Name() == projection.Name() {
-			return ErrDuplicateProjection.WithContext("projection_name", projection.Name())
+			return errDuplicateProjection.WithContext("projection_name", projection.Name())
 		}
 	}
 
@@ -100,7 +100,7 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 // Checkpoints are saved only for projections that succeed.
 // Respects context cancellation: if the context is canceled, remaining
 // goroutines are waited for but their results are ignored.
-func (r *InMemoryRunner) HandleParallel(ctx context.Context, evt Event) error {
+func (r *InMemoryRunner) handleParallel(ctx context.Context, evt Event) error {
 	projections := r.matchingProjections(evt.Type())
 	if len(projections) == 0 {
 		return nil
@@ -145,7 +145,7 @@ func (r *InMemoryRunner) dispatchProjections(
 				if r := recover(); r != nil {
 					res = parallelResult{
 						proj: p,
-						err: ErrProjectionPanicked.WithContext("projection_name", p.Name()).
+						err: errProjectionPanicked.WithContext("projection_name", p.Name()).
 							WithContext("recovered", fmt.Sprintf("%v", r)),
 					}
 				}

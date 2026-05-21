@@ -13,7 +13,7 @@ import (
 type Clock func() time.Time
 
 // DefaultClock is the clock used when no WithClock option is provided.
-var DefaultClock Clock = time.Now
+var defaultClock Clock = time.Now
 
 // Source identifies where an event originated (e.g., "api", "scheduler", "cli").
 // Using a phantom type prevents accidental mixing with other string fields.
@@ -105,9 +105,6 @@ func (v Version) IsZero() bool { return v == 0 }
 // Increment returns a new Version incremented by 1.
 func (v Version) Increment() Version { return v + 1 }
 
-// Decrement returns a new Version decremented by 1.
-func (v Version) Decrement() Version { return v - 1 }
-
 // String returns the version as a decimal string.
 func (v Version) String() string { return strconv.Itoa(int(v)) }
 
@@ -142,7 +139,7 @@ type SchemaVersion int
 
 // ParseSchemaVersion validates and creates a SchemaVersion from an int.
 // Returns an error if the schema version is negative or zero.
-func ParseSchemaVersion(v int) (SchemaVersion, error) {
+func parseSchemaVersion(v int) (SchemaVersion, error) {
 	if v < 1 {
 		//nolint:err113 // dynamic error required to include the invalid version number
 		return 0, fmt.Errorf("schema version must be positive: %d", v)

@@ -6,41 +6,31 @@ import (
 	"sync"
 )
 
-// UpcasterRegistry stores and applies upcasters to transform events
-// from old schema versions to the current version.
-type UpcasterRegistry struct {
+type upcasterRegistry struct {
 	mu        sync.RWMutex
-	upcasters map[Type][]Upcaster
+	upcasters map[Type][]upcaster
 }
 
-// NewUpcasterRegistry creates an empty registry.
-func NewUpcasterRegistry() *UpcasterRegistry {
-	return &UpcasterRegistry{
-		upcasters: make(map[Type][]Upcaster),
+func newUpcasterRegistry() *upcasterRegistry {
+	return &upcasterRegistry{
+		upcasters: make(map[Type][]upcaster),
 		mu:        sync.RWMutex{},
 	}
 }
 
-// Register adds an upcaster to the registry.
-// Upcasters for the same event type are sorted by source version.
-func (r *UpcasterRegistry) Register(upcaster Upcaster) {
+func (r *upcasterRegistry) register(u upcaster) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	eventType := upcaster.SourceType()
-	r.upcasters[eventType] = append(r.upcasters[eventType], upcaster)
+	eventType := u.SourceType()
+	r.upcasters[eventType] = append(r.upcasters[eventType], u)
 
 	sort.Slice(r.upcasters[eventType], func(i, j int) bool {
 		return r.upcasters[eventType][i].SourceVersion() < r.upcasters[eventType][j].SourceVersion()
 	})
 }
 
-// Upcast applies all registered upcasters for the event's type, starting
-// from the event's schema version. Returns the fully upcasted event.
-// If no upcasters are registered, returns the original event unchanged.
-// After each successful upcast, the result's schema version is auto-incremented
-// to sourceVersion + 1, ensuring forward progress and preventing cycles.
-func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
+func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
 	r.mu.RLock()
 	upcasters := r.upcasters[evt.Type()]
 	r.mu.RUnlock()
@@ -51,22 +41,22 @@ func (r *UpcasterRegistry) Upcast(evt Event) (Event, error) {
 
 	current := evt
 
-	for _, upcaster := range upcasters {
-		if current.SchemaVersion() != upcaster.SourceVersion() {
+	for _, u := range upcasters {
+		if current.SchemaVersion() != u.SourceVersion() {
 			continue
 		}
 
-		next, err := upcaster.Upcast(current)
+		next, err := u.Upcast(current)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"upcast %s from schema version %d: %w",
-				upcaster.SourceType(),
-				upcaster.SourceVersion(),
+				u.SourceType(),
+				u.SourceVersion(),
 				err,
 			)
 		}
 
-		next.schemaVersion = upcaster.SourceVersion() + 1
+		next.schemaVersion = u.SourceVersion() + 1
 		current = next
 	}
 

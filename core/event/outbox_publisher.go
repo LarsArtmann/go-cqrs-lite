@@ -14,9 +14,6 @@ const defaultBatchSize = 100
 
 const defaultPollInterval = time.Second
 
-// publisherState represents the lifecycle state of an OutboxPublisher.
-// Using an enum instead of multiple bools prevents split-brain conditions
-// where state variables could drift out of sync.
 type publisherState int
 
 const (
@@ -25,11 +22,7 @@ const (
 	publisherClosed
 )
 
-// OutboxPublisher polls an Outbox for pending entries and publishes them
-// to a Bus. Intended for reliable eventual publishing in event-sourced systems.
-//
-// Start the background loop with Start; stop it with Close (implements io.Closer).
-type OutboxPublisher struct {
+type outboxPublisher struct {
 	outbox    Outbox
 	publisher Publisher
 	interval  time.Duration
@@ -41,39 +34,32 @@ type OutboxPublisher struct {
 	done   chan struct{}
 }
 
-var _ io.Closer = (*OutboxPublisher)(nil)
+var _ io.Closer = (*outboxPublisher)(nil)
 
-// OutboxPublisherOption configures an OutboxPublisher.
-type OutboxPublisherOption func(*OutboxPublisher)
+type outboxPublisherOption func(*outboxPublisher)
 
-// WithPollInterval sets the interval between outbox polls.
-// Default is 1 second. Must be positive.
-func WithPollInterval(d time.Duration) OutboxPublisherOption {
-	return func(p *OutboxPublisher) { p.interval = d }
+func withPollInterval(d time.Duration) outboxPublisherOption {
+	return func(p *outboxPublisher) { p.interval = d }
 }
 
-// WithBatchSize sets the maximum number of entries fetched per poll.
-// Default is 100. Must be positive.
-func WithBatchSize(n int) OutboxPublisherOption {
-	return func(p *OutboxPublisher) { p.batchSize = n }
+func withBatchSize(n int) outboxPublisherOption {
+	return func(p *outboxPublisher) { p.batchSize = n }
 }
 
-// NewOutboxPublisher creates a publisher that polls outbox and publishes via the Publisher.
-// Returns an error if outbox or publisher is nil.
-func NewOutboxPublisher(
+func newOutboxPublisher(
 	outbox Outbox,
 	publisher Publisher,
-	opts ...OutboxPublisherOption,
-) (*OutboxPublisher, error) {
+	opts ...outboxPublisherOption,
+) (*outboxPublisher, error) {
 	if outbox == nil {
-		return nil, ErrNilOutbox
+		return nil, errNilOutbox
 	}
 
 	if publisher == nil {
-		return nil, ErrNilBus
+		return nil, errNilBus
 	}
 
-	p := &OutboxPublisher{ //nolint:exhaustruct // options fill remaining fields
+	p := &outboxPublisher{ //nolint:exhaustruct // options fill remaining fields
 		outbox:    outbox,
 		publisher: publisher,
 		interval:  defaultPollInterval,
@@ -96,19 +82,16 @@ func NewOutboxPublisher(
 	return p, nil
 }
 
-// Start begins the background polling loop.
-// Returns ErrAlreadyStarted if already running, or ErrPublisherClosed if closed.
-func (p *OutboxPublisher) Start() error {
+func (p *outboxPublisher) Start() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	switch p.state {
 	case publisherClosed:
-		return ErrPublisherClosed
+		return errPublisherClosed
 	case publisherRunning:
-		return ErrAlreadyStarted
+		return errAlreadyStarted
 	case publisherIdle:
-		// valid — proceed to start
 	}
 
 	p.state = publisherRunning
@@ -120,9 +103,7 @@ func (p *OutboxPublisher) Start() error {
 	return nil
 }
 
-// Close stops the background polling loop and waits for it to finish.
-// After Close, Start returns ErrPublisherClosed. Close is idempotent.
-func (p *OutboxPublisher) Close() error {
+func (p *outboxPublisher) Close() error {
 	p.mu.Lock()
 
 	if p.state == publisherClosed {
@@ -150,7 +131,7 @@ func (p *OutboxPublisher) Close() error {
 	return nil
 }
 
-func (p *OutboxPublisher) run(ctx context.Context) {
+func (p *outboxPublisher) run(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error(
@@ -176,9 +157,7 @@ func (p *OutboxPublisher) run(ctx context.Context) {
 	}
 }
 
-// pollPublishAck performs a single poll-publish-ack cycle.
-// Returns the poll error, publish error, and ack error (in that priority).
-func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
+func (p *outboxPublisher) pollPublishAck(ctx context.Context) error {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {
 		return fmt.Errorf("poll pending: %w", err)
@@ -215,18 +194,13 @@ func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	return nil
 }
 
-// publishPending performs a single poll-publish-ack cycle.
-// Errors are logged but do not stop the background loop.
-// For error visibility with caller control, use PublishNow which returns errors.
-func (p *OutboxPublisher) publishPending(ctx context.Context) {
+func (p *outboxPublisher) publishPending(ctx context.Context) {
 	err := p.pollPublishAck(ctx)
 	if err != nil {
 		slog.Warn("outbox publish cycle failed", "error", err)
 	}
 }
 
-// PublishNow performs a single poll-publish-ack cycle immediately.
-// Useful for testing or triggering from application code.
-func (p *OutboxPublisher) PublishNow(ctx context.Context) error {
+func (p *outboxPublisher) PublishNow(ctx context.Context) error {
 	return p.pollPublishAck(ctx)
 }

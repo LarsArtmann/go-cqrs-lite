@@ -1,10 +1,9 @@
-package event_test
+package event
 
 import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -13,19 +12,19 @@ func TestEnrichEvent(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	enricher := event.ContextEnricher(func(_ context.Context) []event.Option {
-		return []event.Option{
-			event.WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
-			event.WithUserID(id.MustParseUserID("01JBUSER0ID000000000000001")),
+	enricher := contextEnricher(func(_ context.Context) []Option {
+		return []Option{
+			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
+			WithUserID(id.MustParseUserID("01JBUSER0ID000000000000001")),
 		}
 	})
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	event.EnrichEvent(context.Background(), evt, enricher)
+	enrichEvent(context.Background(), evt, enricher)
 
 	meta := evt.Metadata()
 	if meta.CorrelationID.IsZero() {
@@ -42,26 +41,26 @@ func TestCompositeEnricher(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	first := event.ContextEnricher(func(_ context.Context) []event.Option {
-		return []event.Option{
-			event.WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
+	first := contextEnricher(func(_ context.Context) []Option {
+		return []Option{
+			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
 		}
 	})
 
-	second := event.ContextEnricher(func(_ context.Context) []event.Option {
-		return []event.Option{
-			event.WithSource("test-service"),
+	second := contextEnricher(func(_ context.Context) []Option {
+		return []Option{
+			WithSource("test-service"),
 		}
 	})
 
-	composite := event.CompositeEnricher(first, second)
+	composite := compositeEnricher(first, second)
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	event.EnrichEvent(context.Background(), evt, composite)
+	enrichEvent(context.Background(), evt, composite)
 
 	meta := evt.Metadata()
 	if meta.CorrelationID.IsZero() {
@@ -76,16 +75,16 @@ func TestCompositeEnricher(t *testing.T) {
 func TestCompositeEnricher_Empty(t *testing.T) {
 	t.Parallel()
 
-	composite := event.CompositeEnricher()
+	composite := compositeEnricher()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	event.EnrichEvent(context.Background(), evt, composite)
+	enrichEvent(context.Background(), evt, composite)
 
 	meta := evt.Metadata()
 	if !meta.CorrelationID.IsZero() {

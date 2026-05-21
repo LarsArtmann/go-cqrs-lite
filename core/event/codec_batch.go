@@ -7,9 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// NewEvents creates multiple events from typed payloads, auto-marshaling to JSON.
-// Events are numbered sequentially starting from expectedVersion+1.
-func NewEvents(
+func newEvents(
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	expectedVersion Version,
@@ -18,7 +16,7 @@ func NewEvents(
 	options ...Option,
 ) ([]Event, error) {
 	if len(eventTypes) != len(payloads) {
-		return nil, ErrMismatchedSlices
+		return nil, errMismatchedSlices
 	}
 
 	events := make([]Event, 0, len(eventTypes))
@@ -26,7 +24,7 @@ func NewEvents(
 	for i, eventType := range eventTypes {
 		data, err := json.Marshal(payloads[i])
 		if err != nil {
-			return nil, fmt.Errorf("%w: %s: %w", ErrPayloadMarshal, eventType, err)
+			return nil, fmt.Errorf("%w: %s: %w", errPayloadMarshal, eventType, err)
 		}
 
 		evt, err := NewEvent(
@@ -47,9 +45,7 @@ func NewEvents(
 	return events, nil
 }
 
-// MustNewEvents creates multiple events or panics.
-// Use only in tests where inputs are guaranteed valid.
-func MustNewEvents(
+func mustNewEvents(
 	aggregateID id.AggregateID,
 	aggregateType AggregateType,
 	expectedVersion Version,
@@ -57,7 +53,7 @@ func MustNewEvents(
 	payloads []any,
 	options ...Option,
 ) []Event {
-	events, err := NewEvents(
+	events, err := newEvents(
 		aggregateID,
 		aggregateType,
 		expectedVersion,
@@ -66,15 +62,13 @@ func MustNewEvents(
 		options...,
 	)
 	if err != nil {
-		panic(fmt.Sprintf("event.MustNewEvents: %v", err))
+		panic(fmt.Sprintf("event.mustNewEvents: %v", err))
 	}
 
 	return events
 }
 
-// DecodePayloads decodes multiple events' payloads into typed values.
-// Returns the decoded values in the same order as the input events.
-func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
+func decodePayloads[T any](events []Event, codec Codec) ([]T, error) {
 	results := make([]T, 0, len(events))
 
 	for _, evt := range events {

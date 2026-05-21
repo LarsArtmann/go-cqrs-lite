@@ -29,8 +29,8 @@ func TestInMemoryRunner_NilCheckpoint(t *testing.T) {
 		t.Fatal("expected error for nil CheckpointStore")
 	}
 
-	if !errors.Is(err, ErrNilCheckpointStore) {
-		t.Errorf("error = %v, want ErrNilCheckpointStore", err)
+	if !errors.Is(err, errNilCheckpointStore) {
+		t.Errorf("error = %v, want errNilCheckpointStore", err)
 	}
 }
 
@@ -253,7 +253,7 @@ func TestInMemoryRunner_HandleParallel_DispatchesConcurrently(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("HandleParallel: %v", err)
 	}
@@ -292,7 +292,7 @@ func TestInMemoryRunner_HandleParallel_SkipsNonMatching(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("HandleParallel: %v", err)
 	}
@@ -324,7 +324,7 @@ func TestInMemoryRunner_HandleParallel_ProjectionError(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error from failing projection")
 	}
@@ -343,7 +343,7 @@ func TestInMemoryRunner_HandleParallel_NoProjections(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("HandleParallel with no projections: %v", err)
 	}
@@ -369,7 +369,7 @@ func TestInMemoryRunner_HandleParallel_PanicRecovery(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error from panicked projection")
 	}
@@ -425,7 +425,7 @@ func TestInMemoryRunner_HandleParallel_PartialFailure_StillRunsOthers(t *testing
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = runner.HandleParallel(context.Background(), evt)
+	err = runner.handleParallel(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error from failing projection")
 	}

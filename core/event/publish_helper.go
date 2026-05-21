@@ -45,7 +45,7 @@ func SaveSnapshot(
 		AggregateType: aggType,
 		Version:       version,
 		State:         state,
-		CreatedAt:     DefaultClock().UTC(),
+		CreatedAt:     defaultClock().UTC(),
 	})
 	if err != nil {
 		return fmt.Errorf("save snapshot for %s %s: %w", aggType, aggID, err)

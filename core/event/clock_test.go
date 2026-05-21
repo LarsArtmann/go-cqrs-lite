@@ -90,22 +90,19 @@ func TestWithClock_BatchNewEvents(t *testing.T) {
 	clock := func() time.Time { return fixedTime }
 	aggID := id.NewAggregateID()
 
-	events, err := event.NewEvents(
-		aggID,
-		"Order",
-		0,
-		[]event.Type{"order.created", "order.confirmed"},
-		[]any{
-			map[string]string{"item": "widget"},
-			map[string]bool{"confirmed": true},
-		},
-		event.WithClock(clock),
-	)
+	evt1, err := event.NewEvent("order.created", aggID, "Order", 1,
+		[]byte(`{"item":"widget"}`), event.WithClock(clock))
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("NewEvent 1: %v", err)
 	}
 
-	for i, evt := range events {
+	evt2, err := event.NewEvent("order.confirmed", aggID, "Order", 2,
+		[]byte(`{"confirmed":true}`), event.WithClock(clock))
+	if err != nil {
+		t.Fatalf("NewEvent 2: %v", err)
+	}
+
+	for i, evt := range []event.Event{evt1, evt2} {
 		if !evt.OccurredAt().Equal(fixedTime) {
 			t.Errorf("event[%d] OccurredAt = %v, want %v", i, evt.OccurredAt(), fixedTime)
 		}
@@ -118,14 +115,14 @@ func TestWithClock_BuilderPattern(t *testing.T) {
 	fixedTime := time.Date(2026, 7, 4, 12, 0, 0, 0, time.UTC)
 	clock := func() time.Time { return fixedTime }
 
-	evt, err := event.NewBuilder(
+	evt, err := event.NewEvent(
 		"OrderPlaced",
 		id.NewAggregateID(),
 		"Order",
 		1,
-	).WithOptions(
+		nil,
 		event.WithClock(clock),
-	).Build()
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -138,12 +135,16 @@ func TestWithClock_BuilderPattern(t *testing.T) {
 func TestDefaultClock_IsTimeNow(t *testing.T) {
 	t.Parallel()
 
-	if event.DefaultClock == nil {
-		t.Fatal("DefaultClock should not be nil")
+	before := time.Now().UTC()
+	evt, err := event.NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
 	}
 
-	result := event.DefaultClock()
-	if result.IsZero() {
-		t.Error("DefaultClock() should return non-zero time")
+	after := time.Now().UTC()
+	occurred := evt.OccurredAt().UTC()
+
+	if occurred.Before(before) || occurred.After(after) {
+		t.Errorf("OccurredAt = %v, expected between %v and %v", occurred, before, after)
 	}
 }

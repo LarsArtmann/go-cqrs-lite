@@ -34,19 +34,6 @@ func ExampleNewEvent() {
 	// 1
 }
 
-func ExampleNewBuilder() {
-	aggID := id.NewAggregateID()
-
-	evt := event.NewBuilder("UserCreated", aggID, "User", 1).
-		WithPayload([]byte(`{"name":"Alice"}`)).
-		MustBuild()
-
-	fmt.Println(evt.Type())
-
-	// Output:
-	// UserCreated
-}
-
 func ExampleInMemoryRunner() {
 	checkpoint := memory.NewCheckpointStore()
 

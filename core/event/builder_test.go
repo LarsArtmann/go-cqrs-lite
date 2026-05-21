@@ -1,9 +1,8 @@
-package event_test
+package event
 
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -11,9 +10,9 @@ func TestBuilder_Build(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
-	builder := event.NewBuilder("TestEvent", aggID, "TestAggregate", event.Version(1))
+	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
 
-	evt, err := builder.Build()
+	evt, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -41,10 +40,10 @@ func TestBuilder_Build_WithPayload(t *testing.T) {
 	aggID := id.NewAggregateID()
 	payload := []byte(`{"key":"value"}`)
 
-	builder := event.NewBuilder("TestEvent", aggID, "TestAggregate", event.Version(1)).
+	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
 		WithPayload(payload)
 
-	evt, err := builder.Build()
+	evt, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -62,12 +61,12 @@ func TestBuilder_Build_WithMetadata(t *testing.T) {
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
 
-	builder := event.NewBuilder("TestEvent", aggID, "TestAggregate", event.Version(1)).
+	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
 		WithCorrelationID(correlationID).
 		WithCausationID(causationID).
 		WithUserID(userID)
 
-	evt, err := builder.Build()
+	evt, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -94,9 +93,9 @@ func TestBuilder_Build_InvalidEventType(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
-	builder := event.NewBuilder("", aggID, "TestAggregate", event.Version(1))
+	b := newBuilder("", aggID, "TestAggregate", Version(1))
 
-	_, err := builder.Build()
+	_, err := b.Build()
 	if err == nil {
 		t.Error("expected error for empty event type")
 	}
@@ -106,9 +105,9 @@ func TestBuilder_MustBuild(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
-	builder := event.NewBuilder("TestEvent", aggID, "TestAggregate", event.Version(1))
+	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
 
-	evt := builder.MustBuild()
+	evt := b.MustBuild()
 
 	if evt.Type() != "TestEvent" {
 		t.Errorf("expected type TestEvent, got %s", evt.Type())
@@ -118,7 +117,7 @@ func TestBuilder_MustBuild(t *testing.T) {
 func TestBuilder_MustBuild_Panics(t *testing.T) {
 	t.Parallel()
 
-	builder := event.NewBuilder("", id.AggregateID{}, "", event.Version(0))
+	b := newBuilder("", id.AggregateID{}, "", Version(0))
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -126,7 +125,7 @@ func TestBuilder_MustBuild_Panics(t *testing.T) {
 		}
 	}()
 
-	builder.MustBuild()
+	b.MustBuild()
 }
 
 func TestBuilder_Build_WithOptions(t *testing.T) {
@@ -135,10 +134,10 @@ func TestBuilder_Build_WithOptions(t *testing.T) {
 	aggID := id.NewAggregateID()
 	correlationID := id.NewCorrelationID()
 
-	builder := event.NewBuilder("TestEvent", aggID, "TestAggregate", event.Version(1)).
-		WithOptions(event.WithCorrelationID(correlationID))
+	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
+		WithOptions(WithCorrelationID(correlationID))
 
-	evt, err := builder.Build()
+	evt, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

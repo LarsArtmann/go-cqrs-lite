@@ -1,7 +1,6 @@
 package event_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -11,8 +10,8 @@ func TestEveryNEvents_ReturnsErrorForZero(t *testing.T) {
 	t.Parallel()
 
 	_, err := event.EveryNEvents(0)
-	if !errors.Is(err, event.ErrInvalidSnapshotInterval) {
-		t.Errorf("EveryNEvents(0) err = %v, want ErrInvalidSnapshotInterval", err)
+	if err == nil {
+		t.Error("EveryNEvents(0) should return error")
 	}
 }
 
@@ -20,8 +19,8 @@ func TestEveryNEvents_ReturnsErrorForNegative(t *testing.T) {
 	t.Parallel()
 
 	_, err := event.EveryNEvents(-5)
-	if !errors.Is(err, event.ErrInvalidSnapshotInterval) {
-		t.Errorf("EveryNEvents(-5) err = %v, want ErrInvalidSnapshotInterval", err)
+	if err == nil {
+		t.Error("EveryNEvents(-5) should return error")
 	}
 }
 

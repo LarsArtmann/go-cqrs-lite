@@ -137,13 +137,6 @@ func TestClassify_sentinelMapping(t *testing.T) {
 		{"store closed", event.ErrStoreClosed, event.Infrastructure},
 		{"bus closed", event.ErrBusClosed, event.Infrastructure},
 		{"snapshot store closed", event.ErrSnapshotStoreClosed, event.Infrastructure},
-		{"nil projection", event.ErrNilProjection, event.Infrastructure},
-		{"nil checkpoint", event.ErrNilCheckpointStore, event.Infrastructure},
-		{"nil outbox", event.ErrNilOutbox, event.Infrastructure},
-		{"nil bus", event.ErrNilBus, event.Infrastructure},
-		{"already started", event.ErrAlreadyStarted, event.Infrastructure},
-		{"duplicate projection", event.ErrDuplicateProjection, event.Conflict},
-		{"projection panicked", event.ErrProjectionPanicked, event.Corruption},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -208,9 +201,7 @@ func TestIsRetryable(t *testing.T) {
 		{"corruption", event.NewCorruption("x", "msg"), false},
 		{"infrastructure", event.NewInfrastructure("i", "msg"), false},
 		{"ErrVersionConflict", event.ErrVersionConflict, false},
-		{"ErrDuplicateProjection", event.ErrDuplicateProjection, false},
 		{"ErrStoreClosed", event.ErrStoreClosed, false},
-		{"ErrProjectionPanicked", event.ErrProjectionPanicked, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -284,26 +275,6 @@ func TestError_Is(t *testing.T) {
 
 	if err1.Is(errors.New("unrelated")) {
 		t.Error("Is should not match non-*Error targets")
-	}
-}
-
-func TestClassify_RegisteredSentinels(t *testing.T) {
-	t.Parallel()
-
-	sentinel := errors.New("test.sentinel")
-	event.RegisterClassification(sentinel, event.Corruption)
-
-	got := event.Classify(sentinel)
-	if got != event.Corruption {
-		t.Errorf("Classify(registered) = %v, want Corruption", got)
-	}
-
-	wrapped := fmt.Errorf("wrapped: %w", sentinel)
-
-	got = event.Classify(wrapped)
-
-	if got != event.Corruption {
-		t.Errorf("Classify(wrapped registered) = %v, want Corruption", got)
 	}
 }
 
