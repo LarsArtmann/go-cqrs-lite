@@ -53,7 +53,7 @@ func MustNewEvents(
 	payloads []any,
 	options ...Option,
 ) []Event {
-	events, err := newEvents(
+	events, err := NewEvents(
 		aggregateID,
 		aggregateType,
 		expectedVersion,
@@ -62,7 +62,7 @@ func MustNewEvents(
 		options...,
 	)
 	if err != nil {
-		panic(fmt.Sprintf("event.mustNewEvents: %v", err))
+		panic(fmt.Sprintf("event.MustNewEvents: %v", err))
 	}
 
 	return events

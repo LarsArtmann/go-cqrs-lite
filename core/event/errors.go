@@ -76,9 +76,9 @@ var (
 		"event.nil_checkpoint_store",
 		"nil checkpoint store",
 	)
-	ErrNilOutbox       = NewInfrastructure("event.nil_outbox", "nil outbox")
-	ErrNilBus          = NewInfrastructure("event.nil_bus", "nil bus")
-	ErrAlreadyStarted  = NewInfrastructure(
+	ErrNilOutbox      = NewInfrastructure("event.nil_outbox", "nil outbox")
+	ErrNilBus         = NewInfrastructure("event.nil_bus", "nil bus")
+	ErrAlreadyStarted = NewInfrastructure(
 		"event.already_started",
 		"outbox publisher already started",
 	)
