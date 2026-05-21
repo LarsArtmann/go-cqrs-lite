@@ -96,7 +96,7 @@ func (s *SQLEventStore) queryEvents(
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", errMsg, err)
+		return nil, fmt.Errorf("%s (where=%s): %w", errMsg, whereSuffix, err)
 	}
 
 	defer func() {
@@ -105,7 +105,7 @@ func (s *SQLEventStore) queryEvents(
 
 	events, err := s.scanEvents(rows)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s (where=%s): %w", errMsg, whereSuffix, err)
 	}
 
 	if requireNonEmpty && len(events) == 0 {

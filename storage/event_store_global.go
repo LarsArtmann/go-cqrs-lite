@@ -59,7 +59,7 @@ func (s *SQLEventStore) LoadAllFromPosition(
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query events from position: %w", err)
+		return nil, fmt.Errorf("query events from position (limit=%d): %w", limit, err)
 	}
 
 	defer func() {
@@ -87,7 +87,7 @@ func (s *SQLEventStore) loadAllFromStart(
 
 	rows, err := s.db.QueryContext(ctx, query, limit)
 	if err != nil {
-		return nil, fmt.Errorf("query events from start: %w", err)
+		return nil, fmt.Errorf("query events from start (limit=%d): %w", limit, err)
 	}
 
 	defer func() {

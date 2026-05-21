@@ -211,9 +211,18 @@ func TestRetryConfig_Validate(t *testing.T) {
 		name   string
 		config RetryConfig
 	}{
-		{name: "MaxAttempts zero", config: RetryConfig{MaxAttempts: 0, InitialDelay: time.Second, Multiplier: 2.0}},
-		{name: "InitialDelay zero", config: RetryConfig{MaxAttempts: 3, InitialDelay: 0, Multiplier: 2.0}},
-		{name: "Multiplier one", config: RetryConfig{MaxAttempts: 3, InitialDelay: time.Second, Multiplier: 1.0}},
+		{
+			name:   "MaxAttempts zero",
+			config: RetryConfig{MaxAttempts: 0, InitialDelay: time.Second, Multiplier: 2.0},
+		},
+		{
+			name:   "InitialDelay zero",
+			config: RetryConfig{MaxAttempts: 3, InitialDelay: 0, Multiplier: 2.0},
+		},
+		{
+			name:   "Multiplier one",
+			config: RetryConfig{MaxAttempts: 3, InitialDelay: time.Second, Multiplier: 1.0},
+		},
 	}
 
 	for _, tt := range invalidConfigs {

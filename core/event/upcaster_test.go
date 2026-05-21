@@ -156,7 +156,11 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	}
 }
 
-func registerTrackingUpcaster(registry *event.UpcasterRegistry, version event.SchemaVersion, applied *[]int) {
+func registerTrackingUpcaster(
+	registry *event.UpcasterRegistry,
+	version event.SchemaVersion,
+	applied *[]int,
+) {
 	registry.Register(event.NewUpcaster(
 		"UserCreated", version,
 		func(evt event.Event) (*event.Core, error) {

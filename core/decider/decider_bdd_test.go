@@ -51,7 +51,12 @@ func makeIncrementEvent(aggID id.AggregateID, version event.Version) event.Event
 	return evt
 }
 
-func executeCounterNTimes(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID, n int) {
+func executeCounterNTimes(
+	ctx context.Context,
+	repo *decider.Repository[bddCounter],
+	aggID id.AggregateID,
+	n int,
+) {
 	for i := 0; i < n; i++ {
 		err := repo.Execute(
 			ctx, aggID, "Counter",

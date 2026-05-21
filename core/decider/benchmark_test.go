@@ -26,7 +26,12 @@ func benchEvent(
 	return evt
 }
 
-func seedCounterBench(b *testing.B, repo *decider.Repository[counterState], aggID id.AggregateID, n int) {
+func seedCounterBench(
+	b *testing.B,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+	n int,
+) {
 	b.Helper()
 
 	ctx := context.Background()

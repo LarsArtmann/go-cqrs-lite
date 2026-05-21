@@ -151,11 +151,15 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf(
-				"%s/%s: %w", aggregateType, aggregateID, event.ErrSnapshotNotFound,
+				"%s/%s at v%d: %w",
+				aggregateType, aggregateID, event.Version(version), event.ErrSnapshotNotFound,
 			)
 		}
 
-		return nil, fmt.Errorf("scan snapshot for %s/%s: %w", aggregateType, aggregateID, err)
+		return nil, fmt.Errorf(
+			"scan snapshot for %s/%s at v%d: %w",
+			aggregateType, aggregateID, event.Version(version), err,
+		)
 	}
 
 	createdAt, err := s.dialect.ParseTime(timeDest)

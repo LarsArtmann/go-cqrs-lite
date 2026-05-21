@@ -35,12 +35,18 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 		timeDest,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("scan event row: %w", err)
+		return nil, fmt.Errorf(
+			"scan event row for %s/%s v%d (schema v%d): %w",
+			aggIDStr, aggType, version, schemaVersion, err,
+		)
 	}
 
 	occurredAt, err := s.dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, fmt.Errorf("parse occurred_at: %w", err)
+		return nil, fmt.Errorf(
+			"parse occurred_at for %s/%s v%d (schema v%d): %w",
+			aggIDStr, aggType, version, schemaVersion, err,
+		)
 	}
 
 	return reconstructEvent(

@@ -351,15 +351,33 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		saveAggType event.AggregateType
-		saveAggID   id.AggregateID
-		eventAggID  id.AggregateID
+		name         string
+		saveAggType  event.AggregateType
+		saveAggID    id.AggregateID
+		eventAggID   id.AggregateID
 		eventVersion event.Version
 	}{
-		{name: "aggregate_type", saveAggType: "Project", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 1},
-		{name: "aggregate_id", saveAggType: "Issue", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 1},
-		{name: "version", saveAggType: "Issue", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 5},
+		{
+			name:         "aggregate_type",
+			saveAggType:  "Project",
+			saveAggID:    id.NewAggregateID(),
+			eventAggID:   id.NewAggregateID(),
+			eventVersion: 1,
+		},
+		{
+			name:         "aggregate_id",
+			saveAggType:  "Issue",
+			saveAggID:    id.NewAggregateID(),
+			eventAggID:   id.NewAggregateID(),
+			eventVersion: 1,
+		},
+		{
+			name:         "version",
+			saveAggType:  "Issue",
+			saveAggID:    id.NewAggregateID(),
+			eventAggID:   id.NewAggregateID(),
+			eventVersion: 5,
+		},
 	}
 
 	for _, tt := range tests {
@@ -369,7 +387,13 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 			store := newPebbleTestStore(t)
 			evt := pebbleTestEvent(t, tt.eventAggID, tt.eventVersion)
 
-			err := store.Save(context.Background(), tt.saveAggType, tt.saveAggID, []event.Event{evt}, event.Version(0))
+			err := store.Save(
+				context.Background(),
+				tt.saveAggType,
+				tt.saveAggID,
+				[]event.Event{evt},
+				event.Version(0),
+			)
 			if err == nil {
 				t.Fatalf("expected error for %s mismatch", tt.name)
 			}

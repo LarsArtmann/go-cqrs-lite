@@ -156,7 +156,7 @@ func (s *MemoryStore) LoadAllFromPosition(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store load all from position: %w", err)
+		return nil, fmt.Errorf("memory store load all from position (limit=%d): %w", limit, err)
 	}
 
 	s.mu.RLock()

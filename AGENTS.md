@@ -204,13 +204,13 @@ nix develop             # enter dev shell
 
 ### Catalog Module (`catalog/`)
 
-| Package                 | Purpose                                | Key Types                                                                                                |
-| ----------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Package                 | Purpose                                | Key Types                                                                                                                                     |
+| ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `catalog/`              | Registry, schema reflection, typed IDs | `Registry`, `Catalog`, `SchemaFromType[T]`, `GetID()`, `Validate()`, `ServiceID`, `DomainID`, `MessageID`, `ChannelID`, `Change`, `Violation` |
-| `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                                                                |
-| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                                                                    |
-| `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                                                                  |
-| `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                                                               |
+| `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                                                                                                     |
+| `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                                                                                                         |
+| `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                                                                                                       |
+| `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                                                                                                    |
 
 ### Middleware Module (`middleware/`)
 

@@ -52,7 +52,7 @@ func sharedInsertEvents(
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
 		if err != nil {
-			return fmt.Errorf("marshal metadata for event %s: %w", evt.Type(), err)
+			return fmt.Errorf("marshal metadata for event %s (sql=%s): %w", evt.Type(), sql, err)
 		}
 
 		_, err = tx.ExecContext(
@@ -95,7 +95,7 @@ func sharedCheckVersion(
 	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
 		Scan(&currentVersion)
 	if err != nil {
-		return fmt.Errorf("check current version: %w", err)
+		return fmt.Errorf("check current version (query=%s): %w", query, err)
 	}
 
 	if currentVersion != expectedVersion.Int() {

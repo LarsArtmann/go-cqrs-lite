@@ -182,7 +182,13 @@ func BenchmarkTursoEventStore_Load(b *testing.B) {
 	}
 }
 
-func benchSaveNewAggregate(b *testing.B, store *SQLEventStore, aggType event.AggregateType, eventType event.Type, payload []byte) {
+func benchSaveNewAggregate(
+	b *testing.B,
+	store *SQLEventStore,
+	aggType event.AggregateType,
+	eventType event.Type,
+	payload []byte,
+) {
 	ctx := context.Background()
 
 	b.ResetTimer()
@@ -202,7 +208,15 @@ func benchSaveNewAggregate(b *testing.B, store *SQLEventStore, aggType event.Agg
 	}
 }
 
-func seedSQLiteEvents(b *testing.B, store *SQLEventStore, aggType event.AggregateType, aggID id.AggregateID, eventType event.Type, payload []byte, n int) {
+func seedSQLiteEvents(
+	b *testing.B,
+	store *SQLEventStore,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	eventType event.Type,
+	payload []byte,
+	n int,
+) {
 	b.Helper()
 
 	ctx := context.Background()

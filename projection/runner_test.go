@@ -14,7 +14,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-func registerReplayProjection(t *testing.T, runner *projection.Runner, name string, replayDone chan struct{}, replayed *[]id.EventID, replayMu *sync.Mutex) {
+func registerReplayProjection(
+	t *testing.T,
+	runner *projection.Runner,
+	name string,
+	replayDone chan struct{},
+	replayed *[]id.EventID,
+	replayMu *sync.Mutex,
+) {
 	t.Helper()
 
 	err := runner.Register(event.NewProjection(
