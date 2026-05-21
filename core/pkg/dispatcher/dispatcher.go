@@ -2,7 +2,6 @@
 package dispatcher
 
 import (
-	"fmt"
 	"maps"
 	"slices"
 	"sync"
@@ -131,7 +130,8 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 // The wrap function converts middleware and handler into a wrapped handler.
 // Middleware must be configured via Use() before Register() is called.
 func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) error {
-	if err := d.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
 		return err
 	}
 
@@ -142,7 +142,7 @@ func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) erro
 		return errorfamily.WrapConflict(
 			ErrHandlerAlreadyRegistered,
 			"dispatcher.handler_registered",
-			fmt.Sprintf("handler already registered for type %s", t),
+			"handler already registered for type "+t,
 		)
 	}
 
@@ -164,7 +164,8 @@ func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
 // Dispatch returns the wrapped handler for a type.
 // The caller is responsible for invoking the returned handler with appropriate arguments.
 func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
-	if err := d.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
 		var zero H
 
 		return zero, err
@@ -177,7 +178,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
 		return zero, errorfamily.WrapRejection(
 			ErrHandlerNotFound,
 			"dispatcher.handler_not_found",
-			fmt.Sprintf("handler not found for type %s", t),
+			"handler not found for type "+t,
 		)
 	}
 

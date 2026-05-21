@@ -27,7 +27,7 @@ func NewCreateTodoCommand(
 ) (*CreateTodoCommand, error) {
 	core, err := command.New(aggregate.CommandCreate, todoID)
 	if err != nil {
-		return nil, fmt.Errorf("new create todo command for todo %s: %w", todoID, err)
+		return nil, fmt.Errorf("new create todo command for todo %s (title=%q): %w", todoID, title, err)
 	}
 	return &CreateTodoCommand{
 		Core:        *core,

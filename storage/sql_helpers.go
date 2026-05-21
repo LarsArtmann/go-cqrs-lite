@@ -32,7 +32,10 @@ func deleteByAggregate(
 
 	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
-		return fmt.Errorf("delete %s for %s %s: %w", what, aggregateType, aggregateID, err)
+		return fmt.Errorf(
+		"delete %s from table %s (placeholder1=%s, placeholder2=%s) for %s %s: %w",
+		what, table, placeholder1, placeholder2, aggregateType, aggregateID, err,
+	)
 	}
 
 	return nil
