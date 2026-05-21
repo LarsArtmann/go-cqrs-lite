@@ -20,8 +20,11 @@
 //	vc.Clone()
 //	vc.Cmp(otherVC)
 //
-//	resolver := sync.NewLWWResolver[*MyEntity](func(e *MyEntity) time.Time {
+//	resolver, err := sync.NewLWWResolver[*MyEntity](func(e *MyEntity) time.Time {
 //	    return e.UpdatedAt
 //	})
+//	if err != nil {
+//	    return err
+//	}
 //	winner, err := resolver.Resolve(&sync.Conflict[*MyEntity]{...})
 package sync

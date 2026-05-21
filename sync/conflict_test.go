@@ -48,10 +48,6 @@ func TestLWWResolver_WinsByVectorClock(t *testing.T) {
 
 			resolver, _ := NewLWWResolver(itemTimestamp)
 
-			if err != nil {
-				t.Fatalf("NewLWWResolver error: %v", err)
-			}
-
 			conflict := &Conflict[testItem]{
 				Local:    local,
 				Remote:   remote,
@@ -75,10 +71,6 @@ func TestLWWResolver_LocalWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
 	resolver, _ := NewLWWResolver(itemTimestamp)
-
-			if err != nil {
-				t.Fatalf("NewLWWResolver error: %v", err)
-			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now.Add(2 * time.Hour)}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -104,10 +96,6 @@ func TestLWWResolver_RemoteWinsByTimestamp(t *testing.T) {
 	t.Parallel()
 
 	resolver, _ := NewLWWResolver(itemTimestamp)
-
-			if err != nil {
-				t.Fatalf("NewLWWResolver error: %v", err)
-			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now.Add(2 * time.Hour)}
@@ -133,10 +121,6 @@ func TestLWWResolver_RemoteWinsOnTie_NoTiebreaker(t *testing.T) {
 	t.Parallel()
 
 	resolver, _ := NewLWWResolver(itemTimestamp)
-
-			if err != nil {
-				t.Fatalf("NewLWWResolver error: %v", err)
-			}
 	now := time.Now()
 	local := testItem{Name: "local", UpdatedAt: now}
 	remote := testItem{Name: "remote", UpdatedAt: now}
@@ -162,10 +146,6 @@ func TestLWWResolver_Tiebreaker(t *testing.T) {
 	t.Parallel()
 
 	resolver, _ := NewLWWResolver(itemTimestamp)
-
-			if err != nil {
-				t.Fatalf("NewLWWResolver error: %v", err)
-			}
 	resolver.Tiebreaker = func(local, remote testItem) bool {
 		return local.Name < remote.Name
 	}
@@ -372,24 +352,11 @@ func TestSyncResponse_JSON(t *testing.T) {
 	}
 }
 
-func TestNewLWWResolver_NilTimestampFunc_Panics(t *testing.T) {
+func TestNewLWWResolver_NilTimestampFunc_ReturnsError(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic when TimestampFunc is nil")
-		}
-
-		msg, ok := r.(string)
-		if !ok {
-			t.Fatalf("expected string panic, got %T: %v", r, r)
-		}
-
-		if msg != "sync: NewLWWResolver requires a non-nil TimestampFunc" {
-			t.Fatalf("unexpected panic message: %s", msg)
-		}
-	}()
-
-	NewLWWResolver[testItem](nil)
+	_, err := NewLWWResolver[testItem](nil)
+	if err == nil {
+		t.Fatal("expected error when TimestampFunc is nil")
+	}
 }
