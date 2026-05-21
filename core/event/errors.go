@@ -71,6 +71,12 @@ func WrapInfrastructure(err error, code, msg string) *Error {
 	return errorfamily.WrapInfrastructure(err, code, msg)
 }
 
+// WrapFrom wraps an error while preserving its classified family.
+// Use this when you don't know the error's family but want to add context.
+func WrapFrom(err error, code, msg string) *Error {
+	return errorfamily.Wrap(err, Classify(err), code, msg)
+}
+
 var (
 	ErrMismatchedSlices = NewRejection(
 		"event.mismatched_slices",
