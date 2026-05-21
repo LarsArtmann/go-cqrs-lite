@@ -13,6 +13,7 @@ import (
 type SQLEventStore struct {
 	db      *sql.DB
 	dialect Dialect
+	ownDB   bool
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -41,8 +42,14 @@ func newSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) 
 // Alias of event.ErrVersionConflict for unified errors.Is checking.
 var ErrConcurrencyConflict = event.ErrVersionConflict
 
-// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
-func (s *SQLEventStore) Close() error { return nil }
+// Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
+func (s *SQLEventStore) Close() error {
+	if s.ownDB {
+		return s.db.Close() //nolint:wrapcheck // caller owns lifecycle
+	}
+
+	return nil
+}
 
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
