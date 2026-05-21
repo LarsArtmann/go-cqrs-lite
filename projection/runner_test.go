@@ -14,6 +14,31 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func registerReplayProjection(t *testing.T, runner *projection.Runner, name string, replayDone chan struct{}, replayed *[]id.EventID, replayMu *sync.Mutex) {
+	t.Helper()
+
+	err := runner.Register(event.NewProjection(
+		name,
+		func(_ context.Context, evt event.Event) error {
+			replayMu.Lock()
+
+			*replayed = append(*replayed, evt.ID())
+
+			if len(*replayed) == 1 {
+				close(replayDone)
+			}
+
+			replayMu.Unlock()
+
+			return nil
+		},
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestNewRunner_NilBus(t *testing.T) {
 	t.Parallel()
 
@@ -472,26 +497,7 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	var replayMu sync.Mutex
 
-	err = runner.Register(event.NewProjection(
-		"replay-proj",
-		func(_ context.Context, evt event.Event) error {
-			replayMu.Lock()
-
-			replayed = append(replayed, evt.ID())
-
-			if len(replayed) == 1 {
-				close(replayDone)
-			}
-
-			replayMu.Unlock()
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerReplayProjection(t, runner, "replay-proj", replayDone, &replayed, &replayMu)
 
 	runCtx, cancel := context.WithCancel(context.Background())
 
@@ -977,26 +983,7 @@ func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
 
 	var replayMu sync.Mutex
 
-	err = runner.Register(event.NewProjection(
-		"user-proj",
-		func(_ context.Context, evt event.Event) error {
-			replayMu.Lock()
-
-			replayed = append(replayed, evt.ID())
-
-			if len(replayed) == 1 {
-				close(replayDone)
-			}
-
-			replayMu.Unlock()
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerReplayProjection(t, runner, "user-proj", replayDone, &replayed, &replayMu)
 
 	runCtx, cancel := context.WithCancel(context.Background())
 

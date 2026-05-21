@@ -347,46 +347,33 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_Save_AggregateTypeMismatch(t *testing.T) {
+func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 	t.Parallel()
 
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := pebbleTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Project", aggID, []event.Event{evt}, event.Version(0))
-	if err == nil {
-		t.Fatal("expected error for aggregate type mismatch")
+	tests := []struct {
+		name       string
+		saveAggType event.AggregateType
+		saveAggID   id.AggregateID
+		eventAggID  id.AggregateID
+		eventVersion event.Version
+	}{
+		{name: "aggregate_type", saveAggType: "Project", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 1},
+		{name: "aggregate_id", saveAggType: "Issue", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 1},
+		{name: "version", saveAggType: "Issue", saveAggID: id.NewAggregateID(), eventAggID: id.NewAggregateID(), eventVersion: 5},
 	}
-}
 
-func TestPebbleEventStore_Save_AggregateIDMismatch(t *testing.T) {
-	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-	otherID := id.NewAggregateID()
+			store := newPebbleTestStore(t)
+			evt := pebbleTestEvent(t, tt.eventAggID, tt.eventVersion)
 
-	evt := pebbleTestEvent(t, otherID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err == nil {
-		t.Fatal("expected error for aggregate ID mismatch")
-	}
-}
-
-func TestPebbleEventStore_Save_VersionMismatch(t *testing.T) {
-	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := pebbleTestEvent(t, aggID, 5)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err == nil {
-		t.Fatal("expected error for version mismatch")
+			err := store.Save(context.Background(), tt.saveAggType, tt.saveAggID, []event.Event{evt}, event.Version(0))
+			if err == nil {
+				t.Fatalf("expected error for %s mismatch", tt.name)
+			}
+		})
 	}
 }
 

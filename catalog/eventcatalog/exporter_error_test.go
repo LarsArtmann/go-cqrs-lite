@@ -90,24 +90,39 @@ func TestExporter_Export_WriteDomainError(t *testing.T) {
 	}
 }
 
-func TestExporter_Export_WriteConfigError(t *testing.T) {
+func TestExporter_Export_WriteConfigAndLLMsErrors(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	cat := reg.Build()
-
-	err := os.Chmod(tmpDir, 0o000)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name    string
+		chmod   os.FileMode
+		wantErr string
+	}{
+		{name: "config_write", chmod: 0o000, wantErr: "expected error when output dir is read-only for config write"},
+		{name: "llms_txt_write", chmod: 0o500, wantErr: "expected error when llms.txt write fails"},
 	}
-	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
 
-	exp := NewExporter(tmpDir)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tmpDir := t.TempDir()
 
-	err = exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when output dir is read-only for config write")
+			reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+			cat := reg.Build()
+
+			err := os.Chmod(tmpDir, tt.chmod)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
+
+			exp := NewExporter(tmpDir)
+
+			err = exp.Export(cat)
+			if err == nil {
+				t.Error(tt.wantErr)
+			}
+		})
 	}
 }
 
@@ -145,27 +160,6 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 	err = exp.Export(cat)
 	if err == nil {
 		t.Error("expected error when schema dir creation fails")
-	}
-}
-
-func TestExporter_Export_LLMsTxtWriteError(t *testing.T) {
-	t.Parallel()
-	tmpDir := t.TempDir()
-
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	cat := reg.Build()
-
-	err := os.Chmod(tmpDir, 0o500)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(tmpDir, 0o750) //nolint:errcheck // cleanup
-
-	exp := NewExporter(tmpDir)
-
-	err = exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when llms.txt write fails")
 	}
 }
 

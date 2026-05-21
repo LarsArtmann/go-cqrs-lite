@@ -29,6 +29,12 @@ func createTestEvent(
 	return evt
 }
 
+func expectNewEventValidationFails(aggID id.AggregateID, aggType event.AggregateType, version event.Version, expectedMsg string) {
+	_, err := event.NewEvent(event.Type("BadEvent"), aggID, aggType, version, nil)
+	Expect(err).To(HaveOccurred())
+	Expect(err.Error()).To(ContainSubstring(expectedMsg))
+}
+
 var _ = Describe("Event Store", func() {
 	var (
 		ctx     context.Context
@@ -389,31 +395,13 @@ var _ = Describe("Event Creation", func() {
 
 		Context("when I create an event with an empty aggregate type", func() {
 			It("should reject it with a descriptive error", func() {
-				aggID := id.NewAggregateID()
-				_, err := event.NewEvent(
-					event.Type("BadEvent"),
-					aggID,
-					event.AggregateType(""),
-					1,
-					nil,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate type is required"))
+				expectNewEventValidationFails(id.NewAggregateID(), event.AggregateType(""), 1, "aggregate type is required")
 			})
 		})
 
 		Context("when I create an event with a zero version", func() {
 			It("should reject it with a descriptive error", func() {
-				aggID := id.NewAggregateID()
-				_, err := event.NewEvent(
-					event.Type("BadEvent"),
-					aggID,
-					event.AggregateType("User"),
-					0,
-					nil,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("version"))
+				expectNewEventValidationFails(id.NewAggregateID(), event.AggregateType("User"), 0, "version")
 			})
 		})
 

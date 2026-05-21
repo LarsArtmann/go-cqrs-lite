@@ -72,12 +72,16 @@ func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int)
 func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
+	expectInsertSuccess(mock, evt)
+	mock.ExpectCommit()
+}
+
+func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
 }
 
 func testEvent(t *testing.T) *event.Core {
@@ -454,17 +458,7 @@ func TestSQLEventStore_Save_CommitError(t *testing.T) {
 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated",
-		"User",
-		evt.AggregateID(),
-		1,
-		evt.SchemaVersion().Int(),
-		evt.Payload(),
-		sqlmock.AnyArg(),
-		evt.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 
 	err := store.Save(
@@ -527,17 +521,7 @@ func TestSQLEventStore_AppendBatch_CommitError(t *testing.T) {
 	evt := testEvent(t)
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated",
-		"User",
-		evt.AggregateID(),
-		1,
-		evt.SchemaVersion().Int(),
-		evt.Payload(),
-		sqlmock.AnyArg(),
-		evt.OccurredAt(),
-	).WillReturnResult(sqlmock.NewResult(1, 1))
+	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 
 	err := store.AppendBatch(

@@ -207,47 +207,29 @@ func TestRetryConfig_Validate(t *testing.T) {
 		}
 	})
 
-	t.Run("MaxAttempts zero", func(t *testing.T) {
-		t.Parallel()
+	invalidConfigs := []struct {
+		name   string
+		config RetryConfig
+	}{
+		{name: "MaxAttempts zero", config: RetryConfig{MaxAttempts: 0, InitialDelay: time.Second, Multiplier: 2.0}},
+		{name: "InitialDelay zero", config: RetryConfig{MaxAttempts: 3, InitialDelay: 0, Multiplier: 2.0}},
+		{name: "Multiplier one", config: RetryConfig{MaxAttempts: 3, InitialDelay: time.Second, Multiplier: 1.0}},
+	}
 
-		config := RetryConfig{MaxAttempts: 0, InitialDelay: time.Second, Multiplier: 2.0}
-		err := config.Validate()
-		if err == nil {
-			t.Fatal("expected error for MaxAttempts=0")
-		}
+	for _, tt := range invalidConfigs {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		if !errors.Is(err, ErrValidationFailed) {
-			t.Errorf("expected ErrValidationFailed, got: %v", err)
-		}
-	})
+			err := tt.config.Validate()
+			if err == nil {
+				t.Fatalf("expected error for %s", tt.name)
+			}
 
-	t.Run("InitialDelay zero", func(t *testing.T) {
-		t.Parallel()
-
-		config := RetryConfig{MaxAttempts: 3, InitialDelay: 0, Multiplier: 2.0}
-		err := config.Validate()
-		if err == nil {
-			t.Fatal("expected error for InitialDelay=0")
-		}
-
-		if !errors.Is(err, ErrValidationFailed) {
-			t.Errorf("expected ErrValidationFailed, got: %v", err)
-		}
-	})
-
-	t.Run("Multiplier one", func(t *testing.T) {
-		t.Parallel()
-
-		config := RetryConfig{MaxAttempts: 3, InitialDelay: time.Second, Multiplier: 1.0}
-		err := config.Validate()
-		if err == nil {
-			t.Fatal("expected error for Multiplier=1.0")
-		}
-
-		if !errors.Is(err, ErrValidationFailed) {
-			t.Errorf("expected ErrValidationFailed, got: %v", err)
-		}
-	})
+			if !errors.Is(err, ErrValidationFailed) {
+				t.Errorf("expected ErrValidationFailed, got: %v", err)
+			}
+		})
+	}
 }
 
 func TestCommandRetry_InvalidConfig(t *testing.T) {

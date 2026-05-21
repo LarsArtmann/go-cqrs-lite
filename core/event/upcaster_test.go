@@ -156,6 +156,23 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	}
 }
 
+func registerTrackingUpcaster(registry *event.UpcasterRegistry, version event.SchemaVersion, applied *[]int) {
+	registry.Register(event.NewUpcaster(
+		"UserCreated", version,
+		func(evt event.Event) (*event.Core, error) {
+			*applied = append(*applied, int(version))
+
+			return event.NewEvent(
+				"UserCreated",
+				evt.AggregateID(),
+				"User",
+				evt.Version(),
+				nil,
+			)
+		},
+	))
+}
+
 func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	t.Parallel()
 
@@ -163,35 +180,8 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 2,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 2)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
-
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 1)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
+	registerTrackingUpcaster(registry, 2, &applied)
+	registerTrackingUpcaster(registry, 1, &applied)
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
@@ -214,35 +204,8 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 1)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
-
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 2,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 2)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
+	registerTrackingUpcaster(registry, 1, &applied)
+	registerTrackingUpcaster(registry, 2, &applied)
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
@@ -269,35 +232,8 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 
 	var applied []int
 
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 1,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 1)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
-
-	registry.Register(event.NewUpcaster(
-		"UserCreated", 2,
-		func(evt event.Event) (*event.Core, error) {
-			applied = append(applied, 2)
-
-			return event.NewEvent(
-				"UserCreated",
-				evt.AggregateID(),
-				"User",
-				evt.Version(),
-				nil,
-			)
-		},
-	))
+	registerTrackingUpcaster(registry, 1, &applied)
+	registerTrackingUpcaster(registry, 2, &applied)
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 

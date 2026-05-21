@@ -26,6 +26,24 @@ func benchEvent(
 	return evt
 }
 
+func seedCounterBench(b *testing.B, repo *decider.Repository[counterState], aggID id.AggregateID, n int) {
+	b.Helper()
+
+	ctx := context.Background()
+
+	for i := range n {
+		err := repo.Execute(
+			ctx, aggID, "Counter",
+			func(_ counterState, v event.Version) ([]event.Event, error) {
+				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
+			},
+		)
+		if err != nil {
+			b.Fatalf("setup Execute %d: %v", i, err)
+		}
+	}
+}
+
 func BenchmarkDecider_Execute(b *testing.B) {
 	store := testhelpers.NewFakeStore()
 	bus := testhelpers.NewFakeBus()
@@ -74,17 +92,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
 
-	for i := range 100 {
-		err = repo.Execute(
-			ctx, aggID, "Counter",
-			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("setup Execute %d: %v", i, err)
-		}
-	}
+	seedCounterBench(b, repo, aggID, 100)
 
 	b.ResetTimer()
 
@@ -118,17 +126,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
 
-	for i := range 100 {
-		err = repo.Execute(
-			ctx, aggID, "Counter",
-			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("setup Execute %d: %v", i, err)
-		}
-	}
+	seedCounterBench(b, repo, aggID, 100)
 
 	b.ResetTimer()
 

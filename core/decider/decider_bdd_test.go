@@ -51,6 +51,22 @@ func makeIncrementEvent(aggID id.AggregateID, version event.Version) event.Event
 	return evt
 }
 
+func executeCounterNTimes(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID, n int) {
+	for i := 0; i < n; i++ {
+		err := repo.Execute(
+			ctx, aggID, "Counter",
+			func(_ bddCounter, v event.Version) ([]event.Event, error) {
+				if v == 0 {
+					return []event.Event{makeCreateEvent(aggID, v+1)}, nil
+				}
+
+				return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
+			},
+		)
+		Expect(err).ToNot(HaveOccurred())
+	}
+}
+
 func createCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
@@ -276,19 +292,7 @@ var _ = Describe("Decider Repository", func() {
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				for i := 0; i < 4; i++ {
-					err = repo.Execute(
-						ctx, aggID, "Counter",
-						func(_ bddCounter, v event.Version) ([]event.Event, error) {
-							if v == 0 {
-								return []event.Event{makeCreateEvent(aggID, v+1)}, nil
-							}
-
-							return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
-						},
-					)
-					Expect(err).ToNot(HaveOccurred())
-				}
+				executeCounterNTimes(ctx, repo, aggID, 4)
 
 				state, _, err := repo.Load(ctx, aggID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
@@ -306,19 +310,7 @@ var _ = Describe("Decider Repository", func() {
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				for i := 0; i < 3; i++ {
-					err = repo.Execute(
-						ctx, aggID, "Counter",
-						func(_ bddCounter, v event.Version) ([]event.Event, error) {
-							if v == 0 {
-								return []event.Event{makeCreateEvent(aggID, v+1)}, nil
-							}
-
-							return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
-						},
-					)
-					Expect(err).ToNot(HaveOccurred())
-				}
+				executeCounterNTimes(ctx, repo, aggID, 3)
 
 				state, version, err := repo.Load(ctx, aggID, "Counter")
 				Expect(err).ToNot(HaveOccurred())

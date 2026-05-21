@@ -80,6 +80,36 @@ func makeEvent(
 	return evt
 }
 
+func executeCounter(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+	expectedValue int,
+	expectedVersion event.Version,
+	eventType string,
+	eventVersion event.Version,
+) {
+	t.Helper()
+
+	err := repo.Execute(
+		t.Context(), aggID, "Counter",
+		func(state counterState, version event.Version) ([]event.Event, error) {
+			if state.Value != expectedValue {
+				t.Fatalf("expected Value=%d, got %d", expectedValue, state.Value)
+			}
+
+			if version != expectedVersion {
+				t.Fatalf("expected version %d, got %d", expectedVersion, version)
+			}
+
+			return []event.Event{makeEvent(t, eventType, aggID, eventVersion)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+}
+
 func TestNewRepository_NilChecks(t *testing.T) {
 	t.Parallel()
 
@@ -108,23 +138,7 @@ func TestExecute_Create(t *testing.T) {
 	repo, _, bus := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	err := repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(state counterState, version event.Version) ([]event.Event, error) {
-			if state.Value != 0 {
-				t.Fatalf("expected initial state, got Value=%d", state.Value)
-			}
-
-			if version != 0 {
-				t.Fatalf("expected version 0, got %d", version)
-			}
-
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
-		},
-	)
-	if err != nil {
-		t.Fatalf("Execute: %v", err)
-	}
+	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
 
 	if len(bus.Published) != 1 {
 		t.Fatalf("expected 1 published event, got %d", len(bus.Published))
@@ -137,33 +151,8 @@ func TestExecute_Update(t *testing.T) {
 	repo, _, _ := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	err := repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, version event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
-		},
-	)
-	if err != nil {
-		t.Fatalf("first Execute: %v", err)
-	}
-
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(state counterState, version event.Version) ([]event.Event, error) {
-			if state.Value != 1 {
-				t.Fatalf("expected Value=1 after fold, got %d", state.Value)
-			}
-
-			if version != 1 {
-				t.Fatalf("expected version 1, got %d", version)
-			}
-
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
-		},
-	)
-	if err != nil {
-		t.Fatalf("second Execute: %v", err)
-	}
+	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
+	executeCounter(t, repo, aggID, 1, 1, "CounterIncremented", 2)
 }
 
 func TestExecute_DecideError(t *testing.T) {
