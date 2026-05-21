@@ -154,7 +154,7 @@
 - [ ] Wire Codec into snapshot serialization — ApplySnapshot receives raw []byte (source: SESSION13)
 - [ ] Add Delete, snapshot, and outbox support to decider.Repository for feature parity with aggregate.Repository (source: core/decider/)
 - [ ] Add command.TypedHandler[T] + command.RegisterTyped[T] for type-safe handlers (source: core/command/typed.go)
-- [ ] Convert DispatchTyped to method on *query.Dispatcher for API discoverability (source: SESSION_70)
+- [ ] Convert DispatchTyped to method on \*query.Dispatcher for API discoverability (source: SESSION_70)
 - [ ] Add query/pagination.go helpers (source: SESSION23)
 - [ ] Add catalog.Exporter interface + WalkMessages helper for extensibility (source: multiple sessions)
 - [ ] Delete catalog/internal/cattest/ package (454 lines, 0% coverage, no external imports) (source: COMPREHENSIVE_PLAN)

@@ -17,17 +17,20 @@ The brutal self-review identified that the single highest-value work is structur
 ## A. FULLY DONE ✅
 
 ### Sentinels (COMPLETE)
+
 - **57/57 sentinels** converted from `errors.New()` to `errorfamily.New*()` with dot-notation codes
 - **11 packages** fully converted: core/event, core/command, core/query, core/aggregate, core/decider, projection, storage, middleware, memory, catalog, sync
 - **Zero `errors.New` remaining** in all library production code (dispatcher, catalog/id_parse, sync sentinels all done)
 - **Zero `init()` blocks** in all library production code
 
 ### Wrap Re-exports (COMPLETE)
+
 - `event.Wrap`, `WrapRejection`, `WrapConflict`, `WrapTransient`, `WrapCorruption`, `WrapInfrastructure`
 - `event.WrapFrom(err, code, msg)` — preserves classified family via `Classify(err)`
 - All available in `core/event/errors.go`
 
 ### Simple Wrap Removals (COMPLETE)
+
 - core/event: 6 wraps removed — `ErrNilOutbox`, `ErrNilBus`, `ErrNilCheckpointStore`, `ErrNilProjection`, `ErrDuplicateProjection`, `ErrProjectionPanicked`, `ErrInvalidSnapshotInterval`
 - Replaced `fmt.Errorf("%w", Sentinel)` with direct sentinel returns
 - Added `.WithContext()` for structured metadata on `ErrDuplicateProjection` and `ErrProjectionPanicked`
@@ -37,22 +40,24 @@ The brutal self-review identified that the single highest-value work is structur
 ## B. PARTIALLY DONE 🔶
 
 ### Structured Error Wraps (IN PROGRESS)
-| Package | Total Wraps | Converted | Remaining |
-|---------|------------|-----------|-----------|
-| core/event | 22 | 7 | 15 |
-| storage | 69 | 0 | 69 |
-| catalog | 23 | 0 | 23 |
-| memory | 15 | 0 | 15 |
-| projection | 10 | 0 | 10 |
-| core/aggregate | 6 | 0 | 6 |
-| core/command | 4 | 0 | 4 |
-| core/query | 4 | 0 | 4 |
-| middleware | 2 | 0 | 2 |
-| **TOTAL** | **155** | **7** | **148** |
 
-*Note: 39 wraps are in test/example code, not counted here.*
+| Package        | Total Wraps | Converted | Remaining |
+| -------------- | ----------- | --------- | --------- |
+| core/event     | 22          | 7         | 15        |
+| storage        | 69          | 0         | 69        |
+| catalog        | 23          | 0         | 23        |
+| memory         | 15          | 0         | 15        |
+| projection     | 10          | 0         | 10        |
+| core/aggregate | 6           | 0         | 6         |
+| core/command   | 4           | 0         | 4         |
+| core/query     | 4           | 0         | 4         |
+| middleware     | 2           | 0         | 2         |
+| **TOTAL**      | **155**     | **7**     | **148**   |
+
+_Note: 39 wraps are in test/example code, not counted here._
 
 ### Remaining core/event wraps (15):
+
 ```
 types.go:48     invalid IP address → WrapRejection
 codec.go:48     decode payload → WrapCorruption
@@ -72,6 +77,7 @@ codec_batch.go:41   create event → WrapFrom
 ```
 
 ### go.mod Updates (PARTIAL)
+
 - `sync/go.mod`: Added `go-error-family` direct dependency ✅
 - `catalog/go.mod`: Made `go-error-family` direct dependency ✅
 - `core/pkg/dispatcher`: Uses `errorfamily` directly (within core module, already has dep) ✅
@@ -81,6 +87,7 @@ codec_batch.go:41   create event → WrapFrom
 ## C. NOT STARTED ⬜
 
 ### Remaining Wrap Packages (148 wraps)
+
 - storage (69) — highest count
 - catalog (23)
 - memory (15)
@@ -91,17 +98,20 @@ codec_batch.go:41   create event → WrapFrom
 - middleware (2)
 
 ### Phase 3: Dead Code Removal
+
 - Deprecate `aggregate` package
 - Remove 21 deprecated catalog exports
 - Remove `CatalogMeta` from event/command/query
 - Remove deprecated `CatalogBuilder`
 
 ### Phase 4: Example Unification
+
 - Update example/user to use `catalog.Command[T]()` API
 - Align example patterns
 - Add catalog exports to examples
 
 ### Phase 5: Type Safety
+
 - Brand `OutboxID`
 - Brand catalog ID types
 - Add `ErrorCode` branded type
@@ -113,6 +123,7 @@ codec_batch.go:41   create event → WrapFrom
 **Nothing.** All 24 test packages pass. Zero lint. Zero build errors.
 
 **Gopls false positives** (stale cache, not real errors):
+
 - `camelCaseToHuman` "undefined" in `message_config.go` — function IS defined in same file
 - `TursoInitSchema` "undefined" in `sqlite_bench_test.go` — function IS defined in `turso_connector.go`
 - `go-error-family not in go.mod` for catalog/id_parse.go — IS in go.mod
@@ -131,18 +142,18 @@ codec_batch.go:41   create event → WrapFrom
 
 ## F. TOP 10 NEXT TASKS (sorted by impact/effort)
 
-| # | Task | Effort | Impact |
-|---|------|--------|--------|
-| 1 | Replace 15 remaining core/event wraps | 30min | HIGH |
-| 2 | Replace 69 storage wraps | 90min | HIGH |
-| 3 | Replace 15 memory wraps | 20min | MED |
-| 4 | Replace 10 projection wraps | 15min | MED |
-| 5 | Replace 23 catalog wraps | 30min | LOW |
-| 6 | Replace 6 core/aggregate wraps | 10min | MED |
-| 7 | Replace 4 core/command + 4 query wraps | 15min | MED |
-| 8 | Add WithContext to storage errors | 20min | MED |
-| 9 | Deprecate aggregate package | 10min | MED |
-| 10 | Brand OutboxID | 20min | MED |
+| #   | Task                                   | Effort | Impact |
+| --- | -------------------------------------- | ------ | ------ |
+| 1   | Replace 15 remaining core/event wraps  | 30min  | HIGH   |
+| 2   | Replace 69 storage wraps               | 90min  | HIGH   |
+| 3   | Replace 15 memory wraps                | 20min  | MED    |
+| 4   | Replace 10 projection wraps            | 15min  | MED    |
+| 5   | Replace 23 catalog wraps               | 30min  | LOW    |
+| 6   | Replace 6 core/aggregate wraps         | 10min  | MED    |
+| 7   | Replace 4 core/command + 4 query wraps | 15min  | MED    |
+| 8   | Add WithContext to storage errors      | 20min  | MED    |
+| 9   | Deprecate aggregate package            | 10min  | MED    |
+| 10  | Brand OutboxID                         | 20min  | MED    |
 
 ---
 
@@ -163,27 +174,27 @@ Current leaning: Option 2 (wrap sentinel, set cause) since `ErrPayloadMarshal` i
 
 ## Project Metrics
 
-| Metric | Value |
-|--------|-------|
-| Total commits | 900 |
-| Production LOC | ~15,470 |
-| Test LOC | ~30,431 |
-| Test packages | 24 (all passing) |
-| Benchmarks | 53 |
-| Structured sentinels | 57 |
-| Converted wraps | 7/155 |
-| Lint issues | 0 |
+| Metric               | Value            |
+| -------------------- | ---------------- |
+| Total commits        | 900              |
+| Production LOC       | ~15,470          |
+| Test LOC             | ~30,431          |
+| Test packages        | 24 (all passing) |
+| Benchmarks           | 53               |
+| Structured sentinels | 57               |
+| Converted wraps      | 7/155            |
+| Lint issues          | 0                |
 
 ---
 
 ## Session 85 Commit History
 
-| Commit | Description |
-|--------|-------------|
-| `7d6d2c2` | refactor(event): remove redundant fmt.Errorf wraps around sentinels |
-| `0bde2af` | feat(event): add WrapFrom helper that preserves error family |
+| Commit    | Description                                                               |
+| --------- | ------------------------------------------------------------------------- |
+| `7d6d2c2` | refactor(event): remove redundant fmt.Errorf wraps around sentinels       |
+| `0bde2af` | feat(event): add WrapFrom helper that preserves error family              |
 | `6a945c7` | refactor(errors): convert remaining 9 bare sentinels to structured errors |
-| `6437ae7` | feat(core/event): add Wrap* helper functions for errorfamily |
-| `9aca05f` | refactor(dispatcher): migrate sentinels to errorfamily |
-| `d62e222` | refactor(catalog): migrate ID sentinels to errorfamily |
-| `367dcb5` | refactor(sync): migrate sentinels to errorfamily |
+| `6437ae7` | feat(core/event): add Wrap\* helper functions for errorfamily             |
+| `9aca05f` | refactor(dispatcher): migrate sentinels to errorfamily                    |
+| `d62e222` | refactor(catalog): migrate ID sentinels to errorfamily                    |
+| `367dcb5` | refactor(sync): migrate sentinels to errorfamily                          |

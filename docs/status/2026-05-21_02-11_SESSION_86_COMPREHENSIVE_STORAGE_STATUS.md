@@ -22,26 +22,26 @@ Deep audit and improvement of the `storage` module's persistent storage backends
 
 ### Session 86 Delivered Changes
 
-| # | Change | Files | Impact |
-|---|--------|-------|--------|
-| 1 | **`OpenSQLite(path)` / `OpenSQLiteInMemory()`** | `sqlite_helpers.go` | Production-critical: encapsulates driver name + DSN format |
-| 2 | **`SQLiteEnableWAL(db)`** | `sqlite_helpers.go` | Production-critical: WAL mode prevents "database is locked" |
-| 3 | **`ConfigureSQLitePool(db)` / `ConfigureTursoPool(db)`** | `sqlite_helpers.go` | Production-critical: MaxOpenConns(1) for safe concurrent access |
-| 4 | **`PostgresInitSchema(ctx, db)`** | `sqlite_helpers.go` | Parity: all backends have InitSchema convenience |
-| 5 | **6 tests for new helpers** | `sqlite_helpers_test.go` (new) | Open, WAL, pool config, schema init all tested |
-| 6 | **Turso test deduplication** | `turso_connector_test.go` | 880→506 lines (-374 lines). Removed 12 tests that were identical to SQLite tests |
-| 7 | **Clarified `NewTurso*` delegation** | `turso_connector.go` | Doc comments now explain each delegates to SQLite equivalent |
-| 8 | **`Wrap*` helpers** | `core/event/errors.go` | 6 new wrappers (WrapRejection, WrapConflict, etc.) for errorfamily |
+| #   | Change                                                   | Files                          | Impact                                                                           |
+| --- | -------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------- |
+| 1   | **`OpenSQLite(path)` / `OpenSQLiteInMemory()`**          | `sqlite_helpers.go`            | Production-critical: encapsulates driver name + DSN format                       |
+| 2   | **`SQLiteEnableWAL(db)`**                                | `sqlite_helpers.go`            | Production-critical: WAL mode prevents "database is locked"                      |
+| 3   | **`ConfigureSQLitePool(db)` / `ConfigureTursoPool(db)`** | `sqlite_helpers.go`            | Production-critical: MaxOpenConns(1) for safe concurrent access                  |
+| 4   | **`PostgresInitSchema(ctx, db)`**                        | `sqlite_helpers.go`            | Parity: all backends have InitSchema convenience                                 |
+| 5   | **6 tests for new helpers**                              | `sqlite_helpers_test.go` (new) | Open, WAL, pool config, schema init all tested                                   |
+| 6   | **Turso test deduplication**                             | `turso_connector_test.go`      | 880→506 lines (-374 lines). Removed 12 tests that were identical to SQLite tests |
+| 7   | **Clarified `NewTurso*` delegation**                     | `turso_connector.go`           | Doc comments now explain each delegates to SQLite equivalent                     |
+| 8   | **`Wrap*` helpers**                                      | `core/event/errors.go`         | 6 new wrappers (WrapRejection, WrapConflict, etc.) for errorfamily               |
 
 ### Storage Backend Matrix (End-User Choice at Deployment)
 
-| Backend | Driver | Constructor | InitSchema | Pool Config | WAL | Status |
-|---------|--------|-------------|------------|-------------|-----|--------|
-| **SQLite** | `modernc.org/sqlite` | `OpenSQLite(path)` | `SQLiteInitSchema` | `ConfigureSQLitePool` | `SQLiteEnableWAL` | **Superb** |
-| **Turso** | `turso.tech/database/tursogo` | `OpenTurso(path)` | `TursoInitSchema` | `ConfigureTursoPool` | N/A (server-side) | **Superb** |
-| **PostgreSQL** | `database/sql` (dialect only) | — (no driver yet) | `PostgresInitSchema` | — | N/A | DDL-ready |
-| **Pebble** | `cockroachdb/pebble` | `NewPebbleStore(db, logger)` | N/A | N/A | N/A | Functional |
-| **Memory** | `memory` module | `memory.NewMemoryStore()` | N/A | N/A | N/A | Production-ready |
+| Backend        | Driver                        | Constructor                  | InitSchema           | Pool Config           | WAL               | Status           |
+| -------------- | ----------------------------- | ---------------------------- | -------------------- | --------------------- | ----------------- | ---------------- |
+| **SQLite**     | `modernc.org/sqlite`          | `OpenSQLite(path)`           | `SQLiteInitSchema`   | `ConfigureSQLitePool` | `SQLiteEnableWAL` | **Superb**       |
+| **Turso**      | `turso.tech/database/tursogo` | `OpenTurso(path)`            | `TursoInitSchema`    | `ConfigureTursoPool`  | N/A (server-side) | **Superb**       |
+| **PostgreSQL** | `database/sql` (dialect only) | — (no driver yet)            | `PostgresInitSchema` | —                     | N/A               | DDL-ready        |
+| **Pebble**     | `cockroachdb/pebble`          | `NewPebbleStore(db, logger)` | N/A                  | N/A                   | N/A               | Functional       |
+| **Memory**     | `memory` module               | `memory.NewMemoryStore()`    | N/A                  | N/A                   | N/A               | Production-ready |
 
 ### Turso API Surface
 
@@ -89,57 +89,57 @@ store, _ := storage.NewSQLiteEventStore(db)
 
 ### Project-Wide Quality Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Modules** | 11 (go.work) |
-| **Production LOC** | 15,631 |
-| **Test LOC** | 31,462 |
-| **Test files** | 127 |
-| **Test functions** | 989 |
-| **Benchmark functions** | 59 |
-| **Sentinel errors** | 94 (all classified with errorfamily) |
+| Metric                          | Value                                                   |
+| ------------------------------- | ------------------------------------------------------- |
+| **Modules**                     | 11 (go.work)                                            |
+| **Production LOC**              | 15,631                                                  |
+| **Test LOC**                    | 31,462                                                  |
+| **Test files**                  | 127                                                     |
+| **Test functions**              | 989                                                     |
+| **Benchmark functions**         | 59                                                      |
+| **Sentinel errors**             | 94 (all classified with errorfamily)                    |
 | **Production files >250 lines** | 1 (`testhelpers/fake_store.go` at 263 — test utilities) |
-| **TODO/FIXME markers** | 0 (1 info-level in caseutil godoc, not actionable) |
-| **Commits since May 1** | 517 |
+| **TODO/FIXME markers**          | 0 (1 info-level in caseutil godoc, not actionable)      |
+| **Commits since May 1**         | 517                                                     |
 
 ### Per-Package Coverage (24 Tested Packages)
 
-| Package | Coverage | Notes |
-|---------|----------|-------|
-| `core/query` | 100.0% | |
-| `core/pkg/dispatcher` | 100.0% | |
-| `middleware` | 100.0% | |
-| `memory` | 99.6% | |
-| `core/pkg/id` | 97.8% | |
-| `catalog/openapi` | 98.1% | |
-| `catalog/d2` | 97.6% | |
-| `catalog/adapters` | 97.1% | |
-| `catalog/asyncapi` | 97.1% | |
-| `catalog/eventcatalog` | 95.8% | |
-| `core/aggregate` | 95.9% | |
-| `core/decider` | 93.3% | |
-| `projection` | 93.9% | |
-| `core/event` | 89.3% | |
-| `storage` | 88.3% | |
-| `catalog` | 91.2% | |
-| `catalog/docserver` | 91.0% | |
-| `core/command` | 94.7% | |
-| `testhelpers` | 10.5% | By design — utility code |
-| `catalog/internal/caseutil` | 0.0% | No test files |
-| `catalog/internal/cattest` | 0.0% | No test files |
-| `catalog/internal/schemautil` | 0.0% | No test files |
-| `integration/*` | [no statements] | Integration tests, no production code |
+| Package                       | Coverage        | Notes                                 |
+| ----------------------------- | --------------- | ------------------------------------- |
+| `core/query`                  | 100.0%          |                                       |
+| `core/pkg/dispatcher`         | 100.0%          |                                       |
+| `middleware`                  | 100.0%          |                                       |
+| `memory`                      | 99.6%           |                                       |
+| `core/pkg/id`                 | 97.8%           |                                       |
+| `catalog/openapi`             | 98.1%           |                                       |
+| `catalog/d2`                  | 97.6%           |                                       |
+| `catalog/adapters`            | 97.1%           |                                       |
+| `catalog/asyncapi`            | 97.1%           |                                       |
+| `catalog/eventcatalog`        | 95.8%           |                                       |
+| `core/aggregate`              | 95.9%           |                                       |
+| `core/decider`                | 93.3%           |                                       |
+| `projection`                  | 93.9%           |                                       |
+| `core/event`                  | 89.3%           |                                       |
+| `storage`                     | 88.3%           |                                       |
+| `catalog`                     | 91.2%           |                                       |
+| `catalog/docserver`           | 91.0%           |                                       |
+| `core/command`                | 94.7%           |                                       |
+| `testhelpers`                 | 10.5%           | By design — utility code              |
+| `catalog/internal/caseutil`   | 0.0%            | No test files                         |
+| `catalog/internal/cattest`    | 0.0%            | No test files                         |
+| `catalog/internal/schemautil` | 0.0%            | No test files                         |
+| `integration/*`               | [no statements] | Integration tests, no production code |
 
 ### Storage Module Detail
 
-| Metric | Value |
-|--------|-------|
-| Production files | 22 files, 2,544 LOC |
-| Test files | 14 files, ~6,400 LOC |
-| Tests | 168 |
-| Benchmarks | 11 (5 sqlmock + 6 real DB) |
-| Coverage | 88.3% |
-| `go vet` | Clean |
+| Metric           | Value                      |
+| ---------------- | -------------------------- |
+| Production files | 22 files, 2,544 LOC        |
+| Test files       | 14 files, ~6,400 LOC       |
+| Tests            | 168                        |
+| Benchmarks       | 11 (5 sqlmock + 6 real DB) |
+| Coverage         | 88.3%                      |
+| `go vet`         | Clean                      |
 
 ---
 
@@ -147,33 +147,33 @@ store, _ := storage.NewSQLiteEventStore(db)
 
 ### Turso Sync Integration
 
-| What | Status |
-|------|--------|
-| `OpenTursoSync` constructor | ✅ Implemented with validation |
-| `Push` / `Pull` / `Checkpoint` / `Stats` methods | ✅ Implemented |
-| `ErrTursoMemorySync` sentinel | ✅ Classified as Rejection |
-| In-memory sync rejection test | ✅ Passing |
-| **Live Push/Pull roundtrip test** | ❌ Needs running sync server |
-| **Conflict resolution test** | ❌ Needs multi-node scenario |
+| What                                             | Status                         |
+| ------------------------------------------------ | ------------------------------ |
+| `OpenTursoSync` constructor                      | ✅ Implemented with validation |
+| `Push` / `Pull` / `Checkpoint` / `Stats` methods | ✅ Implemented                 |
+| `ErrTursoMemorySync` sentinel                    | ✅ Classified as Rejection     |
+| In-memory sync rejection test                    | ✅ Passing                     |
+| **Live Push/Pull roundtrip test**                | ❌ Needs running sync server   |
+| **Conflict resolution test**                     | ❌ Needs multi-node scenario   |
 
 ### PostgreSQL Support
 
-| What | Status |
-|------|--------|
-| PostgreSQL dialect (`PostgresDialect`) | ✅ Full implementation |
-| `PostgresInitSchema` | ✅ Added this session |
-| Schema DDL (events, snapshots, checkpoints, outbox) | ✅ Complete |
-| Mock tests (go-sqlmock) | ✅ Comprehensive |
-| **Actual PostgreSQL driver** | ❌ No `pgx` or `lib/pq` in go.mod |
-| **Real PostgreSQL integration tests** | ❌ Not possible without driver |
+| What                                                | Status                            |
+| --------------------------------------------------- | --------------------------------- |
+| PostgreSQL dialect (`PostgresDialect`)              | ✅ Full implementation            |
+| `PostgresInitSchema`                                | ✅ Added this session             |
+| Schema DDL (events, snapshots, checkpoints, outbox) | ✅ Complete                       |
+| Mock tests (go-sqlmock)                             | ✅ Comprehensive                  |
+| **Actual PostgreSQL driver**                        | ❌ No `pgx` or `lib/pq` in go.mod |
+| **Real PostgreSQL integration tests**               | ❌ Not possible without driver    |
 
 ### Error Family Wrap Utilization
 
-| What | Status |
-|------|--------|
-| Wrap constructors added | ✅ 6 new helpers (Session 85 carryover) |
-| **Usage in production code** | ❌ 0% — no wraps used anywhere yet |
-| `WithContext` / `HandleError` | ❌ 0% utilization |
+| What                          | Status                                  |
+| ----------------------------- | --------------------------------------- |
+| Wrap constructors added       | ✅ 6 new helpers (Session 85 carryover) |
+| **Usage in production code**  | ❌ 0% — no wraps used anywhere yet      |
+| `WithContext` / `HandleError` | ❌ 0% utilization                       |
 
 ---
 
@@ -240,48 +240,48 @@ All 23 test packages pass. Zero `go vet` issues. Zero TODO/FIXME markers in prod
 
 ### P0 — Critical (Do Next)
 
-| # | Task | Effort | Impact | Rationale |
-|---|------|--------|--------|-----------|
-| 1 | **Add `pgx/v5` driver + `OpenPostgres(dsn)`** | 30 min | CRITICAL | PostgreSQL support is documented but non-functional |
-| 2 | **Document WAL + pool configuration** | 30 min | HIGH | Every SQLite deployment will hit "database is locked" without this |
-| 3 | **Add `StorageBackend` enum + guide** | 1h | HIGH | End-users need to know which backend to choose |
-| 4 | **Split storage into sub-modules** | 4h | HIGH | Consumers shouldn't pull Pebble+Turso deps for SQLite-only use |
+| #   | Task                                          | Effort | Impact   | Rationale                                                          |
+| --- | --------------------------------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| 1   | **Add `pgx/v5` driver + `OpenPostgres(dsn)`** | 30 min | CRITICAL | PostgreSQL support is documented but non-functional                |
+| 2   | **Document WAL + pool configuration**         | 30 min | HIGH     | Every SQLite deployment will hit "database is locked" without this |
+| 3   | **Add `StorageBackend` enum + guide**         | 1h     | HIGH     | End-users need to know which backend to choose                     |
+| 4   | **Split storage into sub-modules**            | 4h     | HIGH     | Consumers shouldn't pull Pebble+Turso deps for SQLite-only use     |
 
 ### P1 — High Value
 
-| # | Task | Effort | Impact | Rationale |
-|---|------|--------|--------|-----------|
-| 5 | **PostgreSQL integration tests (testcontainers)** | 3h | HIGH | Real database validation for the "production" backend |
-| 6 | **Turso sync live tests** | 2h | HIGH | The killer feature (8.9x faster sync) has zero live validation |
-| 7 | **Add `OpenSQLite` options pattern** | 1h | MEDIUM | `WithBusyTimeout(5000)`, `WithForeignKeys`, `WithJournalMode` |
-| 8 | **Schema migration support** | 3h | MEDIUM | Currently all-or-nothing `CREATE TABLE IF NOT EXISTS` |
-| 9 | **Use `Wrap*` in production error paths** | 2h | MEDIUM | Convert 20+ `fmt.Errorf("...: %w", err)` to structured wraps |
-| 10 | **Add `ConfigurePostgresPool(db)`** | 15 min | LOW | Parity with SQLite/Turso pool helpers |
+| #   | Task                                              | Effort | Impact | Rationale                                                      |
+| --- | ------------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
+| 5   | **PostgreSQL integration tests (testcontainers)** | 3h     | HIGH   | Real database validation for the "production" backend          |
+| 6   | **Turso sync live tests**                         | 2h     | HIGH   | The killer feature (8.9x faster sync) has zero live validation |
+| 7   | **Add `OpenSQLite` options pattern**              | 1h     | MEDIUM | `WithBusyTimeout(5000)`, `WithForeignKeys`, `WithJournalMode`  |
+| 8   | **Schema migration support**                      | 3h     | MEDIUM | Currently all-or-nothing `CREATE TABLE IF NOT EXISTS`          |
+| 9   | **Use `Wrap*` in production error paths**         | 2h     | MEDIUM | Convert 20+ `fmt.Errorf("...: %w", err)` to structured wraps   |
+| 10  | **Add `ConfigurePostgresPool(db)`**               | 15 min | LOW    | Parity with SQLite/Turso pool helpers                          |
 
 ### P2 — Medium Value
 
-| # | Task | Effort | Impact | Rationale |
-|---|------|--------|--------|-----------|
-| 11 | **Pebble benchmarks** | 30 min | LOW | Match SQLite/Turso benchmark coverage |
-| 12 | **Storage module README** | 1h | MEDIUM | Deployment guide for each backend |
-| 13 | **Split `testhelpers/fake_store.go` (263→2 files)** | 30 min | LOW | File size compliance |
-| 14 | **Add `OpenTursoSync` options** | 1h | LOW | `WithSyncClientName`, `WithPartialSync` |
-| 15 | **Benchmark comparison report** | 1h | LOW | Document SQLite vs Turso vs Pebble performance |
+| #   | Task                                                | Effort | Impact | Rationale                                      |
+| --- | --------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
+| 11  | **Pebble benchmarks**                               | 30 min | LOW    | Match SQLite/Turso benchmark coverage          |
+| 12  | **Storage module README**                           | 1h     | MEDIUM | Deployment guide for each backend              |
+| 13  | **Split `testhelpers/fake_store.go` (263→2 files)** | 30 min | LOW    | File size compliance                           |
+| 14  | **Add `OpenTursoSync` options**                     | 1h     | LOW    | `WithSyncClientName`, `WithPartialSync`        |
+| 15  | **Benchmark comparison report**                     | 1h     | LOW    | Document SQLite vs Turso vs Pebble performance |
 
 ### P3 — Future / Exploratory
 
-| # | Task | Effort | Impact | Rationale |
-|---|------|--------|--------|-----------|
-| 16 | **Connection health check helper** | 1h | LOW | `storage.Ping(ctx, db, timeout)` |
-| 17 | **Query timeout helper** | 1h | LOW | `storage.WithQueryTimeout(ctx, timeout)` |
-| 18 | **SQLite FTS for event search** | 4h | MEDIUM | Full-text search over event payloads |
-| 19 | **Event archival / compaction** | 4h | MEDIUM | Delete old events, keep snapshots |
-| 20 | **Multi-tenant schema support** | 3h | MEDIUM | Schema-per-tenant for SaaS deployments |
-| 21 | **Prometheus metrics exporter** | 2h | LOW | Storage operation counters/latency |
-| 22 | **Distributed tracing spans** | 2h | LOW | OpenTelemetry spans for storage ops |
-| 23 | **Pebble snapshot store** | 2h | LOW | Currently only SQL snapshot store exists |
-| 24 | **Pebble checkpoint store** | 2h | LOW | Currently only SQL checkpoint store exists |
-| 25 | **In-memory transactional store** | 1h | LOW | For testing the outbox pattern without SQL |
+| #   | Task                               | Effort | Impact | Rationale                                  |
+| --- | ---------------------------------- | ------ | ------ | ------------------------------------------ |
+| 16  | **Connection health check helper** | 1h     | LOW    | `storage.Ping(ctx, db, timeout)`           |
+| 17  | **Query timeout helper**           | 1h     | LOW    | `storage.WithQueryTimeout(ctx, timeout)`   |
+| 18  | **SQLite FTS for event search**    | 4h     | MEDIUM | Full-text search over event payloads       |
+| 19  | **Event archival / compaction**    | 4h     | MEDIUM | Delete old events, keep snapshots          |
+| 20  | **Multi-tenant schema support**    | 3h     | MEDIUM | Schema-per-tenant for SaaS deployments     |
+| 21  | **Prometheus metrics exporter**    | 2h     | LOW    | Storage operation counters/latency         |
+| 22  | **Distributed tracing spans**      | 2h     | LOW    | OpenTelemetry spans for storage ops        |
+| 23  | **Pebble snapshot store**          | 2h     | LOW    | Currently only SQL snapshot store exists   |
+| 24  | **Pebble checkpoint store**        | 2h     | LOW    | Currently only SQL checkpoint store exists |
+| 25  | **In-memory transactional store**  | 1h     | LOW    | For testing the outbox pattern without SQL |
 
 ---
 
@@ -292,11 +292,13 @@ All 23 test packages pass. Zero `go vet` issues. Zero TODO/FIXME markers in prod
 **Current state:** `storage/go.mod` bundles SQLite (modernc.org/sqlite) + Turso (tursogo) + Pebble + sqlmock. A consumer who only wants SQLite gets ~50 transitive deps including Turso platform libs and Pebble.
 
 **Option A: Add pgx first, split later**
+
 - Pro: PostgreSQL works immediately
 - Con: Makes the dependency bloat worse (adds pgx + 20+ transitive deps)
 - Con: Breaking change when we eventually split
 
 **Option B: Split first, then add pgx to a new `storage/postgres` module**
+
 - Pro: Clean module boundaries from the start
 - Pro: Consumers only pull what they need
 - Con: More work upfront (need `go.work` updates, import path changes)
