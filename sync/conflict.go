@@ -37,16 +37,16 @@ type LWWResolver[T any] struct {
 }
 
 // NewLWWResolver creates a Last-Write-Wins resolver with the given timestamp extractor.
-// Panics if timestampFunc is nil.
-func NewLWWResolver[T any](timestampFunc func(T) time.Time) *LWWResolver[T] {
+// Returns ErrNilTimestampFunc if timestampFunc is nil.
+func NewLWWResolver[T any](timestampFunc func(T) time.Time) (*LWWResolver[T], error) {
 	if timestampFunc == nil {
-		panic("sync: NewLWWResolver requires a non-nil TimestampFunc")
+		return nil, ErrNilTimestampFunc
 	}
 
 	return &LWWResolver[T]{
 		TimestampFunc: timestampFunc,
 		Tiebreaker:    nil,
-	}
+	}, nil
 }
 
 // Resolve implements ConflictResolver using vector clock comparison with LWW fallback.
