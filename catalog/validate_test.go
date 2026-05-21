@@ -27,34 +27,31 @@ func TestValidate_ValidCatalog(t *testing.T) {
 	}
 }
 
-func TestValidate_EmptyTitle(t *testing.T) {
-	t.Parallel()
-
-	cat := &Catalog{Title: "", Version: "1.0.0"}
+func expectViolation(t *testing.T, cat *Catalog, wantPath string) {
+	t.Helper()
 
 	violations := cat.Validate()
 	if len(violations) != 1 {
 		t.Fatalf("expected 1 violation, got %d", len(violations))
 	}
 
-	if violations[0].Path != "title" {
-		t.Errorf("path = %q, want title", violations[0].Path)
+	if violations[0].Path != wantPath {
+		t.Errorf("path = %q, want %s", violations[0].Path, wantPath)
 	}
+}
+
+func TestValidate_EmptyTitle(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{Title: "", Version: "1.0.0"}
+	expectViolation(t, cat, "title")
 }
 
 func TestValidate_EmptyVersion(t *testing.T) {
 	t.Parallel()
 
 	cat := &Catalog{Title: "Test", Version: ""}
-
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d", len(violations))
-	}
-
-	if violations[0].Path != "version" {
-		t.Errorf("path = %q, want version", violations[0].Path)
-	}
+	expectViolation(t, cat, "version")
 }
 
 func TestValidate_EmptyServiceID(t *testing.T) {

@@ -110,6 +110,37 @@ func executeCounter(
 	}
 }
 
+func executeAndIncrement(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+	eventType string,
+) error {
+	t.Helper()
+
+	return repo.Execute(
+		t.Context(), aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, eventType, aggID, v.Increment())}, nil
+		},
+	)
+}
+
+func executeCreate(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+) error {
+	t.Helper()
+
+	return repo.Execute(
+		t.Context(), aggID, "Counter",
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+		},
+	)
+}
+
 func TestNewRepository_NilChecks(t *testing.T) {
 	t.Parallel()
 
@@ -231,12 +262,7 @@ func TestExecute_SaveError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, _ event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
-		},
-	)
+	err = executeCreate(t, repo, aggID)
 	if err == nil {
 		t.Fatal("expected save error")
 	}
@@ -261,12 +287,7 @@ func TestExecute_PublishError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, _ event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
-		},
-	)
+	err = executeCreate(t, repo, aggID)
 	if err == nil {
 		t.Fatal("expected publish error")
 	}
@@ -415,12 +436,7 @@ func TestExecute_WithOutbox(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterIncremented")
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -454,12 +470,7 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterIncremented")
 	if err == nil {
 		t.Fatal("expected outbox append error")
 	}
@@ -490,22 +501,12 @@ func TestExecute_WithSnapshot(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
 		t.Fatalf("first Execute: %v", err)
 	}
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterIncremented")
 	if err != nil {
 		t.Fatalf("second Execute: %v", err)
 	}
@@ -592,14 +593,7 @@ func TestExecute_Concurrent(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_ = repo.Execute(
-				t.Context(), aggID, "Counter",
-				func(_ counterState, v event.Version) ([]event.Event, error) {
-					return []event.Event{
-						makeEvent(t, "CounterIncremented", aggID, v.Increment()),
-					}, nil
-				},
-			)
+			_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
 		}()
 
 		_ = i
@@ -810,12 +804,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
 		t.Fatalf("Execute should succeed despite snapshot save error: %v", err)
 	}
@@ -1070,12 +1059,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		t.Context(), aggID, "Counter",
-		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
-		},
-	)
+	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
 		t.Fatalf("Execute should succeed despite fold error during snapshot save: %v", err)
 	}

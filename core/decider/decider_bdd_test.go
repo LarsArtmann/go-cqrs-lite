@@ -72,6 +72,20 @@ func executeCounterNTimes(
 	}
 }
 
+func newSnapshotRepo(
+	store event.Store,
+	bus event.Bus,
+	snapStore *memory.MemorySnapshotStore,
+	n int,
+) (*decider.Repository[bddCounter], error) {
+	return decider.NewRepository[bddCounter](
+		store, bus, bddCounterDecider(),
+		decider.WithSnapshotStore[bddCounter](snapStore),
+		decider.WithCodec[bddCounter](event.JSONCodec{}),
+		decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(n)),
+	)
+}
+
 func createCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
@@ -289,12 +303,7 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when I configure a snapshot strategy", func() {
 			It("should save a snapshot every N events", func() {
-				repo, err := decider.NewRepository[bddCounter](
-					store, bus, bddCounterDecider(),
-					decider.WithSnapshotStore[bddCounter](snapStore),
-					decider.WithCodec[bddCounter](event.JSONCodec{}),
-					decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(2)),
-				)
+				repo, err := newSnapshotRepo(store, bus, snapStore, 2)
 				Expect(err).ToNot(HaveOccurred())
 
 				executeCounterNTimes(ctx, repo, aggID, 4)
@@ -307,12 +316,7 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when I load from a snapshot", func() {
 			It("should replay only events after the snapshot version", func() {
-				repo, err := decider.NewRepository[bddCounter](
-					store, bus, bddCounterDecider(),
-					decider.WithSnapshotStore[bddCounter](snapStore),
-					decider.WithCodec[bddCounter](event.JSONCodec{}),
-					decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(2)),
-				)
+				repo, err := newSnapshotRepo(store, bus, snapStore, 2)
 				Expect(err).ToNot(HaveOccurred())
 
 				executeCounterNTimes(ctx, repo, aggID, 3)
