@@ -20,6 +20,7 @@ type Runner struct {
 	opts        runnerOptions
 	logger      *slog.Logger
 	projections []event.Projection
+	cancel      context.CancelFunc
 }
 
 var _ io.Closer = (*Runner)(nil)
@@ -51,12 +52,15 @@ func NewRunner(
 		logger = slog.Default()
 	}
 
+	cancel := context.CancelFunc(func() {})
+
 	return &Runner{
 		loader:     loader,
 		subscriber: subscriber,
 		checkpoint: checkpoint,
 		opts:       o,
 		logger:     logger,
+		cancel:     cancel,
 	}, nil
 }
 
@@ -79,11 +83,13 @@ func (r *Runner) Register(p event.Projection) error {
 }
 
 // Run replays historical events from the loader (if non-nil), then subscribes to live events.
-// Blocks until the context is cancelled. Returns ErrNoProjections if no projections are registered.
+// Blocks until the context is cancelled or Close is called. Returns ErrNoProjections if no projections are registered.
 func (r *Runner) Run(ctx context.Context) error {
 	if len(r.projections) == 0 {
 		return ErrNoProjections
 	}
+
+	ctx, r.cancel = context.WithCancel(ctx)
 
 	if r.loader != nil {
 		err := r.replay(ctx)
@@ -169,8 +175,12 @@ func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (
 	return r.checkpoint.Load(ctx, projectionName)
 }
 
-// Close releases resources held by the runner. Currently a no-op.
-func (r *Runner) Close() error { return nil }
+// Close cancels the internal context, causing Run to return gracefully.
+func (r *Runner) Close() error {
+	r.cancel()
+
+	return nil
+}
 
 func subscribesTo(p event.Projection, evtType event.Type) bool {
 	return event.SubscribesTo(p, evtType)

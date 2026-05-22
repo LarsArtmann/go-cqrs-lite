@@ -1061,6 +1061,41 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 	<-done
 }
 
+func TestRunner_CloseStopsRun(t *testing.T) {
+	t.Parallel()
+
+	runner, _, ready := newTestRunnerWithReady(t)
+
+	err := runner.Register(event.NewProjection(
+		"close-proj",
+		func(_ context.Context, _ event.Event) error { return nil },
+		[]event.Type{"UserCreated"},
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	done := make(chan struct{})
+
+	go func() {
+		_ = runner.Run(context.Background())
+		close(done)
+	}()
+
+	<-ready
+
+	err = runner.Close()
+	if err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("Run did not return after Close")
+	}
+}
+
 func TestRunner_SubscribeError(t *testing.T) {
 	t.Parallel()
 
