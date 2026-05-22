@@ -9,12 +9,12 @@ import (
 func TestOutboxStatus_String(t *testing.T) {
 	t.Parallel()
 
-	if OutboxStatusPending.String() != "pending" {
-		t.Errorf("OutboxStatusPending.String() = %q, want %q", OutboxStatusPending.String(), "pending")
+	if got := OutboxStatusPending.String(); got != "pending" {
+		t.Errorf("OutboxStatusPending.String() = %q, want %q", got, "pending")
 	}
 
-	if OutboxStatusAcked.String() != "acked" {
-		t.Errorf("OutboxStatusAcked.String() = %q, want %q", OutboxStatusAcked.String(), "acked")
+	if got := OutboxStatusAcked.String(); got != "acked" {
+		t.Errorf("OutboxStatusAcked.String() = %q, want %q", got, "acked")
 	}
 }
 

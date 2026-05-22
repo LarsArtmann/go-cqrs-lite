@@ -131,7 +131,8 @@ func TestPostgresInitSchema_ExecError(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	mock.ExpectExec("CREATE TABLE IF NOT EXISTS events").WillReturnError(errors.New("connection refused"))
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS events").
+		WillReturnError(errors.New("connection refused"))
 
 	err = PostgresInitSchema(context.Background(), db)
 	if err == nil {
