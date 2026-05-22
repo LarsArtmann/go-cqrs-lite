@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-22 10:35 UTC  
 **Focus:** Catalog Module Quality Sweep — Bug fixes, dead code removal, API improvements, coverage boost  
-**Commits:** Uncommitted (on branch: master, HEAD at `8b3f518`)  
+**Commits:** Uncommitted (on branch: master, HEAD at `8b3f518`)
 
 ---
 
@@ -10,66 +10,66 @@
 
 ### Catalog Module Bug Fixes (Critical)
 
-1. **Registry pointer escape bug** (`catalog/registry.go`) — FIXED  
+1. **Registry pointer escape bug** (`catalog/registry.go`) — FIXED
    - `AddService()`, `AddDomain()`, `AddChannel()` were storing `&param` (pointer to stack-allocated parameter, which escapes to heap but remains mutable by caller)
    - Added `copyServicePtr()`, `copyDomainPtr()`, `copyChannelPtr()` — defensive copy constructors that deep-clone slices before storing
    - Every field on Service/Domain/Channel is now defensively copied (slices via `copySlice`, nested Messages via `copyMessages`)
    - This was a **silent data corruption bug** — caller mutating a `Service{}` literal after `AddService(svc)` could corrupt the registry's internal state
 
-2. **Validate() missing channel validation** (`catalog/validate.go`) — FIXED  
+2. **Validate() missing channel validation** (`catalog/validate.go`) — FIXED
    - `Validate()` iterated `Services` and `Domains` but completely skipped `Channels`
    - Added `validateChannel()` — checks empty channel IDs + duplicate message references within channel.Messages
 
-3. **Violation type doesn't implement error** (`catalog/validate.go`) — FIXED  
+3. **Violation type doesn't implement error** (`catalog/validate.go`) — FIXED
    - Added `Error() string` method to `Violation` struct
    - Consumers can now pass `Violation` where `error` is expected
 
 ### Dead Code Removal
 
-4. **Unreachable `goTypeToJSON` cases removed** (`catalog/schema.go`) — 5 dead branches deleted  
-   - `reflect.Array`, `reflect.Slice`, `reflect.Map`, `reflect.Struct`, `reflect.Pointer`  
+4. **Unreachable `goTypeToJSON` cases removed** (`catalog/schema.go`) — 5 dead branches deleted
+   - `reflect.Array`, `reflect.Slice`, `reflect.Map`, `reflect.Struct`, `reflect.Pointer`
    - These are unreachable because `propertyFromReflect` and `schemaFromReflect` handle all these kinds upstream before `goTypeToJSON` is ever called
    - Reduced from ~110 lines to ~104 lines
 
-5. **Deprecated `MessageIDString` removed** (`catalog/types.go`) — DELETED  
+5. **Deprecated `MessageIDString` removed** (`catalog/types.go`) — DELETED
    - Was marked deprecated since Session 76 ("Use GetID instead")
    - All callers already using `GetID()`; removed 8 lines
    - Test renamed from `TestMessageID_*` → `TestGetID_*`
 
-6. **id_parse.go cleanup** (`catalog/id_parse.go`) — FIXED  
-   - Removed 4 useless blank imports (`_ = fmt.Stringer(ServiceID(""))` etc.)  
-   - These served zero purpose — `fmt.Stringer` verification doesn't make sense for string-based type aliases  
+6. **id_parse.go cleanup** (`catalog/id_parse.go`) — FIXED
+   - Removed 4 useless blank imports (`_ = fmt.Stringer(ServiceID(""))` etc.)
+   - These served zero purpose — `fmt.Stringer` verification doesn't make sense for string-based type aliases
    - Param name changed: `err` → `sentinel` (clearer intent)
 
 ### Dependency & Golden File Fixes
 
-7. **Removed `go-faster/yaml` explicit use** — REMOVED from `catalog/go.mod`  
+7. **Removed `go-faster/yaml` explicit use** — REMOVED from `catalog/go.mod`
    - `go mod tidy` determined `catalog` module no longer directly imports `go-faster/yaml` (it's pulled in by `yaml.go` in `adapters/` but indirect)
    - Actually: `stretchr/testify` added to indirect deps, `go-faster/yaml` stays, `core` dependency removed
 
-8. **Golden files refreshed** (`catalog/testdata/golden/`) — UPDATED  
+8. **Golden files refreshed** (`catalog/testdata/golden/`) — UPDATED
    - `asyncapi.yaml` — refreshed (generated YAML output changed)
    - `eventcatalog-config.js` — updated (hardcoded landingPage now empty)
    - `package.json` — updated (version bump)
 
 ### Test Additions (Coverage Boost)
 
-9. **WalkMessages tests** (`catalog/integration_test.go`) — 3 NEW TESTS  
+9. **WalkMessages tests** (`catalog/integration_test.go`) — 3 NEW TESTS
    - `TestWalkMessages_VisitsAllMessages` — validates commands→events→queries order per service
    - `TestWalkMessages_StopsEarly` — validates `return false` stops iteration mid-catalog
    - `TestWalkMessages_EmptyCatalog` — validates fn is never called for empty catalog
 
-10. **Owners & Labels option tests** (`catalog/build_test.go`) — 1 NEW TEST  
+10. **Owners & Labels option tests** (`catalog/build_test.go`) — 1 NEW TEST
     - `TestBuilder_AddService_WithOwnersAndLabels` — exercises `catalog.Owners(...)` and `catalog.Labels(...)` `MessageOption` funcs
 
-11. **Builder.Registry() test** (`catalog/build_test.go`) — 1 NEW TEST  
+11. **Builder.Registry() test** (`catalog/build_test.go`) — 1 NEW TEST
     - `TestBuilder_Registry` — covers the `Builder.Registry()` accessor that exposes internal Registry
 
-12. **Channel validation tests** (`catalog/validate_test.go`) — 2 NEW TESTS  
+12. **Channel validation tests** (`catalog/validate_test.go`) — 2 NEW TESTS
     - `TestValidate_Channel` — duplicate message IDs in channel.Messages
     - `TestValidate_ChannelEmptyID` — empty channel ID violation
 
-13. **Violation.Error() test** (`catalog/validate_test.go`) — 1 NEW TEST  
+13. **Violation.Error() test** (`catalog/validate_test.go`) — 1 NEW TEST
     - `TestViolation_Error` — validates `Violation` satisfies `error` interface
 
 ---
@@ -84,14 +84,14 @@ None — all planned improvements for this session completed in full.
 
 ### From Session 92 Phase Plan (carried forward):
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| Phase 1 | Fix cqrs-htmx dependency (blocks todo example build) | NOT STARTED |
-| Phase 2 | Refresh golden files (asyncapi + eventcatalog) | **DONE** (this session) |
-| Phase 3 | Execute Tier 2 deletion (CatalogBuilder + example/user migration) | NOT STARTED |
-| Phase 4 | Execute Tier 3 deletion (Command.IdempotencyKey, OutboxPublisher) | NOT STARTED |
-| Phase 5 | Execute Tier 4 deletion (core/aggregate package + integration tests) | NOT STARTED |
-| Phase 6 | Fix LSP errors (10 remaining phantom diagnostics) | NOT STARTED |
+| Phase   | Description                                                          | Status                  |
+| ------- | -------------------------------------------------------------------- | ----------------------- |
+| Phase 1 | Fix cqrs-htmx dependency (blocks todo example build)                 | NOT STARTED             |
+| Phase 2 | Refresh golden files (asyncapi + eventcatalog)                       | **DONE** (this session) |
+| Phase 3 | Execute Tier 2 deletion (CatalogBuilder + example/user migration)    | NOT STARTED             |
+| Phase 4 | Execute Tier 3 deletion (Command.IdempotencyKey, OutboxPublisher)    | NOT STARTED             |
+| Phase 5 | Execute Tier 4 deletion (core/aggregate package + integration tests) | NOT STARTED             |
+| Phase 6 | Fix LSP errors (10 remaining phantom diagnostics)                    | NOT STARTED             |
 
 ---
 
@@ -191,16 +191,19 @@ All 25 test packages pass. `go vet` clean. Zero files >250 lines. Zero TODO/FIXM
 ### Why does `gopls` report 12 "UndeclaredName" errors on `core/pkg/dispatcher/dispatcher_test.go` for symbols that compile fine?
 
 **Evidence:**
+
 - `go test ./core/pkg/dispatcher` → PASS (compiles and runs)
 - `go build ./core/pkg/dispatcher` → PASS (no build errors)
 - gopls diagnostics → 12 errors: `undefined: MiddlewareChain`, `d.GetHandler undefined`, `d.Middleware undefined`, `CopyCatalogEntries undefined`, `NewCatalogDispatcher undefined`
 
 **What I know:**
+
 - These symbols were UNEXPORTED in Session 92 (`bfc01cc` + `3489b5a`): `MiddlewareChain` → `middlewareChain`, `GetHandler` → `getHandler`, etc.
 - The test file is in the same package (`package dispatcher`) and uses the unexported names (verified by reading the file)
 - gopls seems to be analyzing against the OLD public API, not the current code
 
 **What I've tried:**
+
 - `go mod tidy` in core module — clean
 - `go build ./...` — passes
 - gopls is persistent and survives reload
@@ -213,40 +216,40 @@ All 25 test packages pass. `go vet` clean. Zero files >250 lines. Zero TODO/FIXM
 
 ## Metrics
 
-| Metric | Value |
-|--------|-------|
-| Production files | 180 |
-| Test files | 131 |
-| Production lines | 15,960 |
-| Test lines | 32,051 |
-| Files >250 lines | 0 |
-| `go vet` issues | 0 |
-| Test failures | 0 |
-| TODO/FIXME/HACK in prod | 0 |
-| Catalog coverage | **96.7%** (was 90.5%) |
-| Total packages passing | 25/25 (100%) |
+| Metric                    | Value                            |
+| ------------------------- | -------------------------------- |
+| Production files          | 180                              |
+| Test files                | 131                              |
+| Production lines          | 15,960                           |
+| Test lines                | 32,051                           |
+| Files >250 lines          | 0                                |
+| `go vet` issues           | 0                                |
+| Test failures             | 0                                |
+| TODO/FIXME/HACK in prod   | 0                                |
+| Catalog coverage          | **96.7%** (was 90.5%)            |
+| Total packages passing    | 25/25 (100%)                     |
 | Public exports in catalog | ~78 (removed 1: MessageIDString) |
 
 ---
 
 ## Files Changed This Session
 
-| File | Lines | Nature |
-|------|-------|--------|
-| `catalog/registry.go` | +42 | Bug fix: pointer escapes + 3 new copy helpers |
-| `catalog/validate.go` | +35 | Error impl + validateChannel function |
-| `catalog/types.go` | −11 | Removed deprecated MessageIDString |
-| `catalog/id_parse.go` | −6 | Cleaned blank imports, renamed param |
-| `catalog/schema.go` | −6 | Removed unreachable cases |
-| `catalog/build_test.go` | +36 | Registry + Owners/Labels tests |
-| `catalog/integration_test.go` | +90 | 3 WalkMessages tests |
-| `catalog/validate_test.go` | +52 | Channel + Error() tests |
-| `catalog/registry_test.go` | +12 | Renamed MessageIDString → GetID tests |
-| `catalog/go.mod` | ±4 | go mod tidy |
-| `catalog/go.sum` | −9 | go mod tidy |
-| `catalog/testdata/golden/asyncapi.yaml` | ±197 | Refreshed |
-| `catalog/testdata/golden/eventcatalog-config.js` | ±2 | Refreshed |
-| `catalog/testdata/golden/package.json` | ±12 | Refreshed |
+| File                                             | Lines | Nature                                        |
+| ------------------------------------------------ | ----- | --------------------------------------------- |
+| `catalog/registry.go`                            | +42   | Bug fix: pointer escapes + 3 new copy helpers |
+| `catalog/validate.go`                            | +35   | Error impl + validateChannel function         |
+| `catalog/types.go`                               | −11   | Removed deprecated MessageIDString            |
+| `catalog/id_parse.go`                            | −6    | Cleaned blank imports, renamed param          |
+| `catalog/schema.go`                              | −6    | Removed unreachable cases                     |
+| `catalog/build_test.go`                          | +36   | Registry + Owners/Labels tests                |
+| `catalog/integration_test.go`                    | +90   | 3 WalkMessages tests                          |
+| `catalog/validate_test.go`                       | +52   | Channel + Error() tests                       |
+| `catalog/registry_test.go`                       | +12   | Renamed MessageIDString → GetID tests         |
+| `catalog/go.mod`                                 | ±4    | go mod tidy                                   |
+| `catalog/go.sum`                                 | −9    | go mod tidy                                   |
+| `catalog/testdata/golden/asyncapi.yaml`          | ±197  | Refreshed                                     |
+| `catalog/testdata/golden/eventcatalog-config.js` | ±2    | Refreshed                                     |
+| `catalog/testdata/golden/package.json`           | ±12   | Refreshed                                     |
 
 **Net change:** +367 additions, −152 deletions = **+215 total**
 

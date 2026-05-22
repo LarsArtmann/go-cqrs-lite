@@ -9,63 +9,63 @@
 
 ## Vital Signs
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Build | ✅ Clean (`go build` passes all modules) | OK |
-| Tests | 28/30 packages pass, 2 FAIL (golden files stale) | NEEDS FIX |
-| Coverage | 83.7% total (27 packages) | GOOD |
-| `go vet` | ✅ Zero issues | OK |
-| Files >250 lines | ✅ Zero production files exceed limit | OK |
-| Production lines | 15,913 across 180 files | — |
-| Test lines | 31,873 across 131 files (2:1 test:prod ratio) | EXCELLENT |
-| Public exports | 492 total (funcs 276, types/vars/consts 216) | HIGH |
-| Modules | 11 in go.work (example/todo excluded due to cqrs-htmx breakage) | — |
+| Metric           | Value                                                           | Status    |
+| ---------------- | --------------------------------------------------------------- | --------- |
+| Build            | ✅ Clean (`go build` passes all modules)                        | OK        |
+| Tests            | 28/30 packages pass, 2 FAIL (golden files stale)                | NEEDS FIX |
+| Coverage         | 83.7% total (27 packages)                                       | GOOD      |
+| `go vet`         | ✅ Zero issues                                                  | OK        |
+| Files >250 lines | ✅ Zero production files exceed limit                           | OK        |
+| Production lines | 15,913 across 180 files                                         | —         |
+| Test lines       | 31,873 across 131 files (2:1 test:prod ratio)                   | EXCELLENT |
+| Public exports   | 492 total (funcs 276, types/vars/consts 216)                    | HIGH      |
+| Modules          | 11 in go.work (example/todo excluded due to cqrs-htmx breakage) | —         |
 
 ### Test Coverage Per Package
 
-| Package | Coverage | Trend |
-|---------|----------|-------|
-| `core/query` | 100.0% | — |
-| `core/pkg/dispatcher` | 100.0% | — |
-| `middleware` | 100.0% | — |
-| `catalog/adapters` | 100.0% | — |
-| `memory` | 99.6% | — |
-| `core/pkg/id` | 98.1% | — |
-| `core/aggregate` | 95.9% | — |
-| `catalog/d2` | 95.0% | — |
-| `core/command` | 94.7% | — |
-| `catalog/openapi` | 94.4% | — |
-| `projection` | 94.2% | — |
-| `catalog/asyncapi` | 93.7% | — |
-| `sync` | 92.2% | — |
-| `core/event` | 92.1% | ↑ (+0.9%) |
-| `catalog/eventcatalog` | 91.3% | — |
-| `catalog/docserver` | 90.0% | — |
-| `catalog` | 90.5% | — |
-| `core/decider` | 93.3% | ↑ (+4.0%) |
-| `storage` | 86.9% | — |
-| `catalog/internal/schemautil` | 84.2% | — |
-| `catalog/internal/caseutil` | 76.5% | — |
-| `testhelpers` | 10.5% | LOW |
-| `example/todo/storage` | 29.2% | — |
-| `example/todo/commands` | 68.4% | — |
-| `example/todo/projections` | 78.9% | — |
-| `example/todo/queries` | 81.8% | — |
-| `example/todo/domain` | 100.0% | — |
-| `integration/*` | N/A (no statements) | — |
+| Package                       | Coverage            | Trend     |
+| ----------------------------- | ------------------- | --------- |
+| `core/query`                  | 100.0%              | —         |
+| `core/pkg/dispatcher`         | 100.0%              | —         |
+| `middleware`                  | 100.0%              | —         |
+| `catalog/adapters`            | 100.0%              | —         |
+| `memory`                      | 99.6%               | —         |
+| `core/pkg/id`                 | 98.1%               | —         |
+| `core/aggregate`              | 95.9%               | —         |
+| `catalog/d2`                  | 95.0%               | —         |
+| `core/command`                | 94.7%               | —         |
+| `catalog/openapi`             | 94.4%               | —         |
+| `projection`                  | 94.2%               | —         |
+| `catalog/asyncapi`            | 93.7%               | —         |
+| `sync`                        | 92.2%               | —         |
+| `core/event`                  | 92.1%               | ↑ (+0.9%) |
+| `catalog/eventcatalog`        | 91.3%               | —         |
+| `catalog/docserver`           | 90.0%               | —         |
+| `catalog`                     | 90.5%               | —         |
+| `core/decider`                | 93.3%               | ↑ (+4.0%) |
+| `storage`                     | 86.9%               | —         |
+| `catalog/internal/schemautil` | 84.2%               | —         |
+| `catalog/internal/caseutil`   | 76.5%               | —         |
+| `testhelpers`                 | 10.5%               | LOW       |
+| `example/todo/storage`        | 29.2%               | —         |
+| `example/todo/commands`       | 68.4%               | —         |
+| `example/todo/projections`    | 78.9%               | —         |
+| `example/todo/queries`        | 81.8%               | —         |
+| `example/todo/domain`         | 100.0%              | —         |
+| `integration/*`               | N/A (no statements) | —         |
 
 ### Failing Tests (2 packages — pre-existing)
 
-| Package | Test | Cause |
-|---------|------|-------|
-| `catalog/asyncapi` | `TestGolden_AsyncAPIYAML` | Golden file stale — needs `-update` |
-| `catalog/eventcatalog` | `TestGolden_EventCatalog_Config` | Golden file stale |
-| `catalog/eventcatalog` | `TestGolden_EventCatalog_PackageJSON` | Golden file stale |
+| Package                | Test                                  | Cause                               |
+| ---------------------- | ------------------------------------- | ----------------------------------- |
+| `catalog/asyncapi`     | `TestGolden_AsyncAPIYAML`             | Golden file stale — needs `-update` |
+| `catalog/eventcatalog` | `TestGolden_EventCatalog_Config`      | Golden file stale                   |
+| `catalog/eventcatalog` | `TestGolden_EventCatalog_PackageJSON` | Golden file stale                   |
 
 ### External Dependency Issues
 
-| Dependency | Issue | Impact |
-|------------|-------|--------|
+| Dependency                  | Issue                                    | Impact                                                                                        |
+| --------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `cqrs-htmx` v0.0.0-20260507 | `event.RegisterClassification` undefined | Breaks `example/todo/cmd/api` build. This symbol was removed from go-cqrs-lite in Session 89. |
 
 ---
@@ -74,33 +74,33 @@
 
 ### Session 92 — Query Quality Improvements (6 commits)
 
-| Commit | Description |
-|--------|-------------|
-| `f608969` | **Handler doc comment:** Added 10-line doc on `query.Handler` explaining why `any` is required and pointing to `RegisterTyped[T]` + `DispatchTyped[T]`. |
-| `77d1360` | **Design doc closure:** Closed `docs/planning/QUERY_HANDLER_GENERICS.md`. Documented why function type was chosen over interface. |
-| `73f23f8` | **Lost-context fix:** Added `context.Context` to todo query handlers (was silently discarded by `registerQuery` wrapper). Eliminated `registerQuery` wrapper. |
+| Commit    | Description                                                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `f608969` | **Handler doc comment:** Added 10-line doc on `query.Handler` explaining why `any` is required and pointing to `RegisterTyped[T]` + `DispatchTyped[T]`.        |
+| `77d1360` | **Design doc closure:** Closed `docs/planning/QUERY_HANDLER_GENERICS.md`. Documented why function type was chosen over interface.                              |
+| `73f23f8` | **Lost-context fix:** Added `context.Context` to todo query handlers (was silently discarded by `registerQuery` wrapper). Eliminated `registerQuery` wrapper.  |
 | `4e57d71` | **Typed handlers:** Todo handlers return concrete types (`*GetTodoResult`, etc.). Registration uses `RegisterTyped[T]`. HTTP dispatch uses `DispatchTyped[T]`. |
-| `ed0cb1e` | **Pagination integration:** Replaced raw `Limit`/`Offset` in `ListTodosQuery` with `query.Pagination` + `query.PaginatedResult`. First real consumer. |
-| `de1a31d` | **AGENTS.md update:** Updated Query Handler code example. Added Session 92 milestone. |
+| `ed0cb1e` | **Pagination integration:** Replaced raw `Limit`/`Offset` in `ListTodosQuery` with `query.Pagination` + `query.PaginatedResult`. First real consumer.          |
+| `de1a31d` | **AGENTS.md update:** Updated Query Handler code example. Added Session 92 milestone.                                                                          |
 
 ### Session 92 — Tier 1 Deletion Execution (2 commits)
 
-| Commit | Description |
-|--------|-------------|
+| Commit    | Description                                                                                                                                                                                                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bfc01cc` | **Deleted 217 lines across 7 files:** `event.IsReplay` (5 lines), `event.NewEvents`/`MustNewEvents`/`DecodePayloads` (84 lines), `decider.Result` + `ExecuteWithResult` (71 lines), `FromCommandDispatcher` + `FromQueryDispatcher` (57 lines). Removed 4 test files. |
-| `3489b5a` | **Unexported 4 dispatcher internals:** `MiddlewareChain` → `middlewareChain`, `GetHandler` → `getHandler`, `NewCatalogDispatcher` → `newCatalogDispatcher`, `CopyCatalogEntries` → `copyCatalogEntries`. Updated `dispatcher_test.go`. |
+| `3489b5a` | **Unexported 4 dispatcher internals:** `MiddlewareChain` → `middlewareChain`, `GetHandler` → `getHandler`, `NewCatalogDispatcher` → `newCatalogDispatcher`, `CopyCatalogEntries` → `copyCatalogEntries`. Updated `dispatcher_test.go`.                                |
 
 ### Changes Since Session 91 Status
 
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| Public exports | 504 | 492 | **−12** |
-| Production lines | 16,134 | 15,913 | **−221** |
-| Test lines | 32,312 | 31,873 | **−439** |
-| Production files | 183 | 180 | **−3** |
-| Test files | 135 | 131 | **−4** |
-| `core/decider` coverage | 89.3% | 93.3% | **+4.0%** |
-| `core/event` coverage | 91.2% | 92.1% | **+0.9%** |
+| Metric                  | Before | After  | Delta     |
+| ----------------------- | ------ | ------ | --------- |
+| Public exports          | 504    | 492    | **−12**   |
+| Production lines        | 16,134 | 15,913 | **−221**  |
+| Test lines              | 32,312 | 31,873 | **−439**  |
+| Production files        | 183    | 180    | **−3**    |
+| Test files              | 135    | 131    | **−4**    |
+| `core/decider` coverage | 89.3%  | 93.3%  | **+4.0%** |
+| `core/event` coverage   | 91.2%  | 92.1%  | **+0.9%** |
 
 ### Deleted Files (7 total)
 
@@ -114,12 +114,12 @@
 
 ### Quality Metrics Maintained
 
-| Metric | Value |
-|--------|-------|
-| TODO/FIXME/HACK in production | **0** |
-| `go vet` issues | **0** |
-| Race conditions | **0** |
-| Files >250 lines | **0** (largest: `catalog/eventcatalog/exporter.go` at 250 exactly) |
+| Metric                        | Value                                                              |
+| ----------------------------- | ------------------------------------------------------------------ |
+| TODO/FIXME/HACK in production | **0**                                                              |
+| `go vet` issues               | **0**                                                              |
+| Race conditions               | **0**                                                              |
+| Files >250 lines              | **0** (largest: `catalog/eventcatalog/exporter.go` at 250 exactly) |
 
 ---
 
@@ -148,13 +148,13 @@
 
 ### LSP Build Errors — Pre-existing
 
-| File | Error |
-|------|-------|
-| `core/event/codec_typed.go:31` | `undefined: ErrNilPayload` |
-| `core/event/codec_typed_test.go:94` | `undefined: event.ErrNilPayload` |
-| `catalog/adapters/benchmark_test.go:40` | `undefined: command.CatalogMeta` |
+| File                                       | Error                            |
+| ------------------------------------------ | -------------------------------- |
+| `core/event/codec_typed.go:31`             | `undefined: ErrNilPayload`       |
+| `core/event/codec_typed_test.go:94`        | `undefined: event.ErrNilPayload` |
+| `catalog/adapters/benchmark_test.go:40`    | `undefined: command.CatalogMeta` |
 | `integration/command/command_test.go` (3×) | `undefined: command.CatalogMeta` |
-| `integration/query/query_test.go` (3×) | `undefined: query.CatalogMeta` |
+| `integration/query/query_test.go` (3×)     | `undefined: query.CatalogMeta`   |
 
 Note: `catalog/adapters/benchmark_test.go` was deleted in this session, so that error is resolved.
 
@@ -233,53 +233,53 @@ Note: `catalog/adapters/benchmark_test.go` was deleted in this session, so that 
 
 ### Priority 1: Immediate Blockers
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **Fix `cqrs-htmx` dependency** (blocks todo example build) | Critical | Low |
-| 2 | **Refresh golden files** (`go test -update`) | Medium | Trivial |
-| 3 | **Investigate LSP errors** (10 phantom diagnostics) | Medium | Low |
+| #   | Task                                                       | Impact   | Effort  |
+| --- | ---------------------------------------------------------- | -------- | ------- |
+| 1   | **Fix `cqrs-htmx` dependency** (blocks todo example build) | Critical | Low     |
+| 2   | **Refresh golden files** (`go test -update`)               | Medium   | Trivial |
+| 3   | **Investigate LSP errors** (10 phantom diagnostics)        | Medium   | Low     |
 
 ### Priority 2: API Cleanup (High Value)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 4 | **Delete `core/aggregate/` package** (1,756 lines deprecated) | High | Medium |
-| 5 | **Delete `integration/aggregate/`** (tests for deprecated package) | Medium | Low |
-| 6 | **Remove `Command.IdempotencyKey()` from interface** | Medium | Medium |
-| 7 | **Delete `event.OutboxPublisher`** (206 lines, zero consumers) | Medium | Low |
-| 8 | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
+| #   | Task                                                                             | Impact | Effort |
+| --- | -------------------------------------------------------------------------------- | ------ | ------ |
+| 4   | **Delete `core/aggregate/` package** (1,756 lines deprecated)                    | High   | Medium |
+| 5   | **Delete `integration/aggregate/`** (tests for deprecated package)               | Medium | Low    |
+| 6   | **Remove `Command.IdempotencyKey()` from interface**                             | Medium | Medium |
+| 7   | **Delete `event.OutboxPublisher`** (206 lines, zero consumers)                   | Medium | Low    |
+| 8   | **Delete deprecated `catalog/adapters.CatalogBuilder`** + migrate `example/user` | Medium | Medium |
 
 ### Priority 3: Quality
 
-| # | Task | Impact | Effort |
-|---|------|--------|------|
-| 9 | **Fix `testhelpers` coverage** (10.5% → 60%+) | Medium | Medium |
-| 10 | **Improve `storage` coverage** (86.9% → 90%+) | Medium | Medium |
-| 11 | **Add `catalog/internal/cattest` basic tests** | Low | Low |
-| 12 | **Improve `catalog/internal/caseutil`** (76.5% → 90%+) | Low | Low |
+| #   | Task                                                   | Impact | Effort |
+| --- | ------------------------------------------------------ | ------ | ------ |
+| 9   | **Fix `testhelpers` coverage** (10.5% → 60%+)          | Medium | Medium |
+| 10  | **Improve `storage` coverage** (86.9% → 90%+)          | Medium | Medium |
+| 11  | **Add `catalog/internal/cattest` basic tests**         | Low    | Low    |
+| 12  | **Improve `catalog/internal/caseutil`** (76.5% → 90%+) | Low    | Low    |
 
 ### Priority 4: Developer Experience
 
-| # | Task | Impact | Effort |
-|---|------|--------|------|
-| 13 | **Add CHANGELOG.md** | Medium | Low |
-| 14 | **Golden file auto-refresh in CI** | Low | Medium |
-| 15 | **Archive old status reports** (18 in docs/status/) | Low | Trivial |
-| 16 | **Decide fate of `sync` module** | Low | Low |
+| #   | Task                                                | Impact | Effort  |
+| --- | --------------------------------------------------- | ------ | ------- |
+| 13  | **Add CHANGELOG.md**                                | Medium | Low     |
+| 14  | **Golden file auto-refresh in CI**                  | Low    | Medium  |
+| 15  | **Archive old status reports** (18 in docs/status/) | Low    | Trivial |
+| 16  | **Decide fate of `sync` module**                    | Low    | Low     |
 
 ### Priority 5: Strategic
 
-| # | Task | Impact | Effort |
-|---|------|--------|------|
-| 17 | **Versioned module tags** (git tag per module) | High | Medium |
-| 18 | **Watermill integration module** | High | High |
-| 19 | **Saga/Process Manager** (`docs/planning/SAGA_DESIGN.md`) | High | High |
-| 20 | **Nix flake migration** (from justfile) | Medium | Medium |
-| 21 | **Query handler generics** (full rewrite, breaking) | High | High |
-| 22 | **Outbox transaction API** (`docs/planning/OUTBOX_TRANSACTION_API.md`) | Medium | Medium |
-| 23 | **Projection `OnError` callback option** | Medium | Low |
-| 24 | **`event.New()` with schema validation** | Medium | Medium |
-| 25 | **`DeriveAggregateID` documentation + examples** | Low | Low |
+| #   | Task                                                                   | Impact | Effort |
+| --- | ---------------------------------------------------------------------- | ------ | ------ |
+| 17  | **Versioned module tags** (git tag per module)                         | High   | Medium |
+| 18  | **Watermill integration module**                                       | High   | High   |
+| 19  | **Saga/Process Manager** (`docs/planning/SAGA_DESIGN.md`)              | High   | High   |
+| 20  | **Nix flake migration** (from justfile)                                | Medium | Medium |
+| 21  | **Query handler generics** (full rewrite, breaking)                    | High   | High   |
+| 22  | **Outbox transaction API** (`docs/planning/OUTBOX_TRANSACTION_API.md`) | Medium | Medium |
+| 23  | **Projection `OnError` callback option**                               | Medium | Low    |
+| 24  | **`event.New()` with schema validation**                               | Medium | Medium |
+| 25  | **`DeriveAggregateID` documentation + examples**                       | Low    | Low    |
 
 ---
 
@@ -288,11 +288,13 @@ Note: `catalog/adapters/benchmark_test.go` was deleted in this session, so that 
 **How do the LSP build errors exist when `go build` passes?**
 
 Specifically:
+
 - `integration/command/command_test.go` references `command.CatalogMeta` (6 locations) — LSP says `undefined`
 - `core/event/codec_typed.go` references `ErrNilPayload` — LSP says `undefined`
 - Yet `go build ./...` and `go test ./...` both pass cleanly
 
 Three hypotheses, none confirmed:
+
 1. **Build tags** — Test files might have build tags that exclude them
 2. **Stale gopls cache** — gopls might be seeing an older state
 3. **go.work vs module-local resolution** — Workspace resolves differently than gopls
