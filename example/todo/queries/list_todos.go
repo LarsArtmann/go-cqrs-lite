@@ -39,7 +39,7 @@ func NewListTodosHandler(readModel domain.TodoReadModel) *ListTodosHandler {
 	return &ListTodosHandler{readModel: readModel}
 }
 
-func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (any, error) {
+func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodosResult, error) {
 	listQuery, err := requireQueryType[*ListTodosQuery](q, "*ListTodosQuery")
 	if err != nil {
 		return nil, err

@@ -31,7 +31,7 @@ func listTodos(qDisp *query.Dispatcher) http.HandlerFunc {
 			return
 		}
 
-		result, err := qDisp.Dispatch(r.Context(), q)
+		result, err := query.DispatchTyped[*queries.ListTodosResult](r.Context(), qDisp, q)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -84,7 +84,7 @@ func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
 			return
 		}
 
-		result, err := qDisp.Dispatch(r.Context(), q)
+		result, err := query.DispatchTyped[*queries.GetTodoResult](r.Context(), qDisp, q)
 		if err != nil {
 			writeError(w, http.StatusNotFound, "todo not found")
 			return

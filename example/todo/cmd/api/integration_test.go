@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -63,30 +62,15 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	}
 
 	getHandler := queries.NewGetTodoHandler(readModelStore)
-	if err := queryDisp.Register(
-		queries.GetTodoQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return getHandler.Handle(q)
-		},
-	); err != nil {
+	if err := query.RegisterTyped(queryDisp, queries.GetTodoQueryType, getHandler.Handle); err != nil {
 		t.Fatalf("Register GetTodo: %v", err)
 	}
 	listHandler := queries.NewListTodosHandler(readModelStore)
-	if err := queryDisp.Register(
-		queries.ListTodosQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return listHandler.Handle(q)
-		},
-	); err != nil {
+	if err := query.RegisterTyped(queryDisp, queries.ListTodosQueryType, listHandler.Handle); err != nil {
 		t.Fatalf("Register ListTodos: %v", err)
 	}
 	countHandler := queries.NewCountTodosHandler(readModelStore)
-	if err := queryDisp.Register(
-		queries.CountTodosQueryType,
-		func(_ context.Context, q query.Query) (any, error) {
-			return countHandler.Handle(q)
-		},
-	); err != nil {
+	if err := query.RegisterTyped(queryDisp, queries.CountTodosQueryType, countHandler.Handle); err != nil {
 		t.Fatalf("Register CountTodos: %v", err)
 	}
 

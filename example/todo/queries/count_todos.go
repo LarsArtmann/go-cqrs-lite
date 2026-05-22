@@ -35,7 +35,7 @@ func NewCountTodosHandler(readModel domain.TodoReadModel) *CountTodosHandler {
 	return &CountTodosHandler{readModel: readModel}
 }
 
-func (h *CountTodosHandler) Handle(ctx context.Context, q query.Query) (any, error) {
+func (h *CountTodosHandler) Handle(ctx context.Context, q query.Query) (*CountTodosResult, error) {
 	countQuery, err := requireQueryType[*CountTodosQuery](q, "*CountTodosQuery")
 	if err != nil {
 		return nil, err

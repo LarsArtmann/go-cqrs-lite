@@ -38,18 +38,14 @@ func TestGetTodoHandler_Handle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
-	getResult, ok := result.(*GetTodoResult)
-	if !ok {
-		t.Fatalf("result type = %T, want *GetTodoResult", result)
+	if result.Title != "Test Todo" {
+		t.Errorf("Title = %q, want %q", result.Title, "Test Todo")
 	}
-	if getResult.Title != "Test Todo" {
-		t.Errorf("Title = %q, want %q", getResult.Title, "Test Todo")
+	if result.Description != "Test Description" {
+		t.Errorf("Description = %q, want %q", result.Description, "Test Description")
 	}
-	if getResult.Description != "Test Description" {
-		t.Errorf("Description = %q, want %q", getResult.Description, "Test Description")
-	}
-	if getResult.Status != StatusPending {
-		t.Errorf("Status = %v, want %v", getResult.Status, StatusPending)
+	if result.Status != StatusPending {
+		t.Errorf("Status = %v, want %v", result.Status, StatusPending)
 	}
 }
 
@@ -118,15 +114,11 @@ func TestListTodosHandler_Handle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
-	listResult, ok := result.(*ListTodosResult)
-	if !ok {
-		t.Fatalf("result type = %T, want *ListTodosResult", result)
+	if len(result.Todos) != 2 {
+		t.Errorf("Todos count = %d, want 2", len(result.Todos))
 	}
-	if len(listResult.Todos) != 2 {
-		t.Errorf("Todos count = %d, want 2", len(listResult.Todos))
-	}
-	if listResult.Limit != 10 {
-		t.Errorf("Limit = %d, want 10", listResult.Limit)
+	if result.Limit != 10 {
+		t.Errorf("Limit = %d, want 10", result.Limit)
 	}
 }
 
@@ -171,12 +163,8 @@ func TestCountTodosHandler_Handle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
-	countResult, ok := result.(*CountTodosResult)
-	if !ok {
-		t.Fatalf("result type = %T, want *CountTodosResult", result)
-	}
-	if countResult.Count != 3 {
-		t.Errorf("Count = %d, want 3", countResult.Count)
+	if result.Count != 3 {
+		t.Errorf("Count = %d, want 3", result.Count)
 	}
 }
 

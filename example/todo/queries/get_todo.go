@@ -51,7 +51,7 @@ func NewGetTodoHandler(readModel domain.TodoReadModel) *GetTodoHandler {
 	return &GetTodoHandler{readModel: readModel}
 }
 
-func (h *GetTodoHandler) Handle(ctx context.Context, q query.Query) (any, error) {
+func (h *GetTodoHandler) Handle(ctx context.Context, q query.Query) (*GetTodoResult, error) {
 	getQuery, err := requireQueryType[*GetTodoQuery](q, "*GetTodoQuery")
 	if err != nil {
 		return nil, err
