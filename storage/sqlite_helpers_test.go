@@ -2,7 +2,10 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func TestOpenSQLite_InMemory(t *testing.T) {
@@ -93,6 +96,46 @@ func TestConfigureTursoPool(t *testing.T) {
 	stats := db.Stats()
 	if stats.MaxOpenConnections != 1 {
 		t.Errorf("MaxOpenConnections = %d, want 1", stats.MaxOpenConnections)
+	}
+}
+
+func TestParseSQLiteTimestamp_InvalidFormat(t *testing.T) {
+	t.Parallel()
+
+	_, err := parseSQLiteTimestamp("not-a-date")
+	if err == nil {
+		t.Fatal("expected error for invalid timestamp")
+	}
+}
+
+func TestParseSQLiteTimestamp_Empty(t *testing.T) {
+	t.Parallel()
+
+	result, err := parseSQLiteTimestamp("")
+	if err != nil {
+		t.Fatalf("empty string should not error: %v", err)
+	}
+
+	if !result.IsZero() {
+		t.Errorf("expected zero time for empty string, got %v", result)
+	}
+}
+
+func TestPostgresInitSchema_ExecError(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("create sqlmock: %v", err)
+	}
+
+	defer func() { _ = db.Close() }()
+
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS events").WillReturnError(errors.New("connection refused"))
+
+	err = PostgresInitSchema(context.Background(), db)
+	if err == nil {
+		t.Fatal("expected error from PostgresInitSchema")
 	}
 }
 

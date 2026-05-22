@@ -162,3 +162,38 @@ func TestSQLEventStore_LoadAllFromPosition_Mock_QueryError(t *testing.T) {
 		t.Fatal("expected error from query failure")
 	}
 }
+
+func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
+		WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
+		))
+
+	_, err := store.Load(context.Background(), "User", aggID)
+	if err == nil {
+		t.Fatal("expected error from scan with invalid event ID")
+	}
+}
+
+func TestSQLEventStore_LoadAll_Mock_ScanError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
+		))
+
+	_, err := store.LoadAll(context.Background())
+	if err == nil {
+		t.Fatal("expected error from scan with invalid event ID in LoadAll")
+	}
+}

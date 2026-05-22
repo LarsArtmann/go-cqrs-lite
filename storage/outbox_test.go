@@ -307,4 +307,15 @@ func TestOutboxSchema(t *testing.T) {
 	}
 }
 
+func TestUnmarshalOutboxEvents_InvalidAggregateID(t *testing.T) {
+	t.Parallel()
+
+	data := `[{"id":"01HXXXX","type":"UserCreated","aggregate_type":"User","aggregate_id":"invalid","version":1,"payload":null,"occurred_at":"2024-01-01T00:00:00Z"}]`
+
+	_, err := unmarshalOutboxEvents([]byte(data))
+	if err == nil {
+		t.Fatal("expected error for invalid aggregate ID in outbox event")
+	}
+}
+
 var errTestDB = errors.New("test db error")
