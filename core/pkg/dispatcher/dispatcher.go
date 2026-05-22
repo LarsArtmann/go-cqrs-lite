@@ -211,7 +211,7 @@ func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 
 // CatalogDispatcher is a mixin that provides catalog entry management.
 // KT is the type key (e.g., command.Type or query.Type).
-// VT is the catalog metadata type (e.g., command.CatalogMeta or query.CatalogMeta).
+// VT is the catalog metadata type (e.g., dispatcher.CatalogEntry).
 type CatalogDispatcher[KT comparable, VT any] struct {
 	catalogEntries map[KT]VT
 }
