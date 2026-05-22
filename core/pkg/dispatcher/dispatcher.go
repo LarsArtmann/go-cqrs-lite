@@ -71,15 +71,15 @@ var ErrHandlerAlreadyRegistered = errorfamily.NewConflict(
 	"handler already registered for type",
 )
 
-// MiddlewareChain stores and applies middleware in a thread-safe manner.
+// middlewareChain stores and applies middleware in a thread-safe manner.
 // H is the handler type, and M is the middleware type that wraps handlers.
-type MiddlewareChain[H, M any] struct {
+type middlewareChain[H, M any] struct {
 	mu         sync.RWMutex
 	middleware []M
 }
 
 // Add appends middleware to the chain.
-func (c *MiddlewareChain[H, M]) Add(middleware ...M) {
+func (c *middlewareChain[H, M]) Add(middleware ...M) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -88,7 +88,7 @@ func (c *MiddlewareChain[H, M]) Add(middleware ...M) {
 
 // Apply wraps a handler with all middleware in reverse order (last added runs first).
 // The wrap function converts a middleware and handler into a wrapped handler.
-func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
+func (c *middlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -101,7 +101,7 @@ func (c *MiddlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 }
 
 // Middleware returns a copy of the middleware slice for read access.
-func (c *MiddlewareChain[H, M]) Middleware() []M {
+func (c *middlewareChain[H, M]) Middleware() []M {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -116,7 +116,7 @@ type Dispatcher[H any, M any] struct {
 	handlers   map[string]H
 	handlersMu sync.RWMutex
 	Lifecycle  Lifecycle
-	Middleware MiddlewareChain[H, M]
+	middleware middlewareChain[H, M]
 }
 
 // NewDispatcher creates a new dispatcher.
@@ -125,13 +125,13 @@ func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 		handlers:   make(map[string]H),
 		handlersMu: sync.RWMutex{},
 		Lifecycle:  Lifecycle{mu: sync.RWMutex{}, closed: false},
-		Middleware: MiddlewareChain[H, M]{mu: sync.RWMutex{}, middleware: nil},
+		middleware: middlewareChain[H, M]{mu: sync.RWMutex{}, middleware: nil},
 	}
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher[H, M]) Use(middleware ...M) {
-	d.Middleware.Add(middleware...)
+	d.middleware.Add(middleware...)
 }
 
 // Register binds a handler to a type, applying middleware immediately.
@@ -154,13 +154,13 @@ func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) erro
 		)
 	}
 
-	d.handlers[t] = d.Middleware.Apply(handler, wrap)
+	d.handlers[t] = d.middleware.Apply(handler, wrap)
 
 	return nil
 }
 
-// GetHandler returns the handler for a type and whether it exists.
-func (d *Dispatcher[H, M]) GetHandler(t string) (H, bool) {
+// getHandler returns the handler for a type and whether it exists.
+func (d *Dispatcher[H, M]) getHandler(t string) (H, bool) {
 	d.handlersMu.RLock()
 	defer d.handlersMu.RUnlock()
 
@@ -179,7 +179,7 @@ func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
 		return zero, err
 	}
 
-	h, ok := d.GetHandler(t)
+	h, ok := d.getHandler(t)
 	if !ok {
 		var zero H
 
@@ -198,8 +198,8 @@ func (d *Dispatcher[H, M]) Close() error {
 	return d.Lifecycle.Close()
 }
 
-// CopyCatalogEntries copies entries from src to dest and returns dest.
-func CopyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
+// copyCatalogEntries copies entries from src to dest and returns dest.
+func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 	if dest == nil {
 		dest = make(map[KT]VT, len(src))
 	}
@@ -221,8 +221,8 @@ func (c *CatalogDispatcher[KT, VT]) InitCatalogDispatcher() {
 	c.catalogEntries = make(map[KT]VT)
 }
 
-// NewCatalogDispatcher creates a new initialized CatalogDispatcher.
-func NewCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
+// newCatalogDispatcher creates a new initialized CatalogDispatcher.
+func newCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
 	c := CatalogDispatcher[KT, VT]{} //nolint:exhaustruct // unexported field requires Init method
 	c.InitCatalogDispatcher()
 
@@ -237,5 +237,5 @@ func (c *CatalogDispatcher[KT, VT]) RegisterCatalogEntry(key KT, meta VT) {
 
 // CatalogEntries returns a copy of all registered catalog entries.
 func (c *CatalogDispatcher[KT, VT]) CatalogEntries() map[KT]VT {
-	return CopyCatalogEntries(nil, c.catalogEntries)
+	return copyCatalogEntries(nil, c.catalogEntries)
 }

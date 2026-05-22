@@ -76,7 +76,7 @@ func TestLifecycle_CheckClosed(t *testing.T) {
 func TestMiddlewareChain_Add(t *testing.T) {
 	t.Parallel()
 
-	c := &MiddlewareChain[testHandler, testMiddleware]{}
+	c := &middlewareChain[testHandler, testMiddleware]{}
 
 	count := 0
 	middleware := func(h testHandler) testHandler {
@@ -97,7 +97,7 @@ func TestMiddlewareChain_Add(t *testing.T) {
 func TestMiddlewareChain_Apply(t *testing.T) {
 	t.Parallel()
 
-	c := &MiddlewareChain[testHandler, testMiddleware]{}
+	c := &middlewareChain[testHandler, testMiddleware]{}
 
 	var order []string
 
@@ -122,7 +122,7 @@ func TestMiddlewareChain_Apply(t *testing.T) {
 func TestMiddlewareChain_Apply_NoMiddleware(t *testing.T) {
 	t.Parallel()
 
-	c := &MiddlewareChain[testHandler, testMiddleware]{}
+	c := &middlewareChain[testHandler, testMiddleware]{}
 
 	handler := func(s string) string { return "result:" + s }
 	wrapped := c.Apply(handler, testWrap)
@@ -140,7 +140,7 @@ func TestNewDispatcher(t *testing.T) {
 		t.Fatal("NewDispatcher() returned nil")
 	}
 
-	if _, ok := d.GetHandler("nonexistent"); ok {
+	if _, ok := d.getHandler("nonexistent"); ok {
 		t.Error("should not find handler for unregistered type")
 	}
 }
@@ -154,7 +154,7 @@ func TestDispatcher_Use(t *testing.T) {
 		return func(s string) string { return h(s) }
 	})
 
-	if len(d.Middleware.Middleware()) != 1 {
+	if len(d.middleware.Middleware()) != 1 {
 		t.Error("expected 1 middleware after Use()")
 	}
 }
@@ -171,7 +171,7 @@ func TestDispatcher_Register(t *testing.T) {
 		t.Errorf("Register() error = %v", err)
 	}
 
-	if h, ok := d.GetHandler("test"); !ok || h == nil {
+	if h, ok := d.getHandler("test"); !ok || h == nil {
 		t.Error("handler should be registered")
 	}
 }
@@ -318,7 +318,7 @@ func TestLifecycle_ConcurrentAccess(t *testing.T) {
 func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
-	c := &MiddlewareChain[testHandler, testMiddleware]{}
+	c := &middlewareChain[testHandler, testMiddleware]{}
 
 	var wg sync.WaitGroup
 
@@ -347,7 +347,7 @@ func TestCopyCatalogEntries(t *testing.T) {
 
 	src := map[string]int{"a": 1, "b": 2}
 
-	dest := CopyCatalogEntries(nil, src)
+	dest := copyCatalogEntries(nil, src)
 	if len(dest) != 2 {
 		t.Errorf("expected 2 entries, got %d", len(dest))
 	}
@@ -358,7 +358,7 @@ func TestCopyCatalogEntries(t *testing.T) {
 
 	existing := map[string]int{"c": 3}
 
-	merged := CopyCatalogEntries(existing, src)
+	merged := copyCatalogEntries(existing, src)
 	if len(merged) != 3 {
 		t.Errorf("expected 3 entries after merge, got %d", len(merged))
 	}
@@ -367,9 +367,9 @@ func TestCopyCatalogEntries(t *testing.T) {
 func TestNewCatalogDispatcher(t *testing.T) {
 	t.Parallel()
 
-	catalogDisp := NewCatalogDispatcher[string, int]()
+	catalogDisp := newCatalogDispatcher[string, int]()
 	if catalogDisp.CatalogEntries() == nil {
-		t.Error("CatalogEntries() should not return nil after NewCatalogDispatcher")
+		t.Error("CatalogEntries() should not return nil after newCatalogDispatcher")
 	}
 
 	if len(catalogDisp.CatalogEntries()) != 0 {
@@ -380,7 +380,7 @@ func TestNewCatalogDispatcher(t *testing.T) {
 func TestCatalogDispatcher_RegisterCatalogEntry(t *testing.T) {
 	t.Parallel()
 
-	catalogDisp := NewCatalogDispatcher[string, int]()
+	catalogDisp := newCatalogDispatcher[string, int]()
 	catalogDisp.RegisterCatalogEntry("cmd1", 42)
 
 	entries := catalogDisp.CatalogEntries()
@@ -392,7 +392,7 @@ func TestCatalogDispatcher_RegisterCatalogEntry(t *testing.T) {
 func TestCatalogDispatcher_CatalogEntries_Copy(t *testing.T) {
 	t.Parallel()
 
-	catalogDisp := NewCatalogDispatcher[string, int]()
+	catalogDisp := newCatalogDispatcher[string, int]()
 	catalogDisp.RegisterCatalogEntry("cmd1", 1)
 
 	entries := catalogDisp.CatalogEntries()
