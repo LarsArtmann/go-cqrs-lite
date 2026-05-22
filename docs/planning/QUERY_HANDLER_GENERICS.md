@@ -1,8 +1,26 @@
 # Query Handler Generics Migration
 
-**Status:** Design | **Date:** 2026-05-04
+**Status:** Implemented (differently) | **Date:** 2026-05-04 | **Closed:** 2026-05-22
 
-## Problem
+## Resolution
+
+Implemented as the "typed bookend" pattern using **function types** (not interfaces):
+
+- `TypedHandler[T any] func(ctx context.Context, q Query) (T, error)` — typed handler function
+- `RegisterTyped[T]` — wraps typed handler into legacy `Handler` at registration
+- `DispatchTyped[T]` — runtime-asserts result back to `T` after dispatch
+
+**Why function type instead of interface (Option A):** Function types are more Go-idiomatic for
+handler patterns (see `http.HandlerFunc`, `command.Handler`). Consumers pass closures directly —
+no struct boilerplate needed. The interface approach was considered but added ceremony without benefit.
+
+**Why `any` at the boundary is correct:** Heterogeneous dispatch (one dispatcher, many result types)
+requires type erasure at the interface level in Go's type system. This is the same pattern as
+`database/sql.Scan(any)`, `json.Unmarshal([]byte, any)`, and `http.Handler.ServeHTTP`. The typed
+bookend pattern pushes the `any` ↔ T conversion to framework boundaries, giving consumers
+compile-time safety in their handler and caller code.
+
+## Original Problem
 
 `query.Handler` returns `(any, error)`, violating the project's "no `any` types" convention. `DispatchTyped[T]` is a runtime cast workaround that can panic on type mismatch.
 
