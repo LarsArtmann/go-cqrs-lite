@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -33,7 +34,7 @@ func TestGetTodoHandler_Handle(t *testing.T) {
 		t.Fatalf("NewGetTodoQuery: %v", err)
 	}
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
@@ -61,7 +62,7 @@ func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 		t.Fatalf("NewGetTodoQuery: %v", err)
 	}
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 
 	if result != nil {
 		t.Errorf("result = %v, want nil", result)
@@ -80,7 +81,7 @@ func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
 	h := NewGetTodoHandler(rm)
 	wrongQuery, _ := query.New(query.Type("wrong.type"))
 
-	result, err := h.Handle(wrongQuery)
+	result, err := h.Handle(context.Background(), wrongQuery)
 
 	if result != nil {
 		t.Errorf("result = %v, want nil", result)
@@ -113,7 +114,7 @@ func TestListTodosHandler_Handle(t *testing.T) {
 	q.Priority = &priority
 	q.Limit = 10
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
@@ -138,7 +139,7 @@ func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 		t.Fatalf("NewListTodosQuery: %v", err)
 	}
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 
 	if result != nil {
 		t.Errorf("result = %v, want nil", result)
@@ -166,7 +167,7 @@ func TestCountTodosHandler_Handle(t *testing.T) {
 		t.Fatalf("NewCountTodosQuery: %v", err)
 	}
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 	if err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
@@ -188,7 +189,7 @@ func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 		t.Fatalf("NewCountTodosQuery: %v", err)
 	}
 
-	result, err := h.Handle(q)
+	result, err := h.Handle(context.Background(), q)
 
 	if result != nil {
 		t.Errorf("result = %v, want nil", result)

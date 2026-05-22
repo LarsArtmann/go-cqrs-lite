@@ -111,19 +111,9 @@ func main() {
 }
 
 func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) {
-	registerQuery(qDisp, queries.GetTodoQueryType, queries.NewGetTodoHandler(store).Handle)
-	registerQuery(qDisp, queries.ListTodosQueryType, queries.NewListTodosHandler(store).Handle)
-	registerQuery(qDisp, queries.CountTodosQueryType, queries.NewCountTodosHandler(store).Handle)
-}
-
-func registerQuery(
-	qDisp *query.Dispatcher,
-	qType query.Type,
-	handler func(query.Query) (any, error),
-) {
-	_ = qDisp.Register(qType, func(_ context.Context, q query.Query) (any, error) {
-		return handler(q)
-	})
+	_ = qDisp.Register(queries.GetTodoQueryType, queries.NewGetTodoHandler(store).Handle)
+	_ = qDisp.Register(queries.ListTodosQueryType, queries.NewListTodosHandler(store).Handle)
+	_ = qDisp.Register(queries.CountTodosQueryType, queries.NewCountTodosHandler(store).Handle)
 }
 
 func getEnv(key, defaultValue string) string {
