@@ -3,7 +3,6 @@ package decider_test
 import (
 	"context"
 	"errors"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -268,8 +267,8 @@ func TestExecute_SaveError(t *testing.T) {
 		t.Fatal("expected save error")
 	}
 
-	if !strings.Contains(err.Error(), "db connection lost") {
-		t.Fatalf("expected save error containing 'db connection lost', got %v", err)
+	if !errors.Is(err, decider.ErrSaveFailed) {
+		t.Fatalf("expected ErrSaveFailed, got %v", err)
 	}
 }
 
