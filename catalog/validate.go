@@ -8,6 +8,11 @@ type Violation struct {
 	Message string
 }
 
+// Error implements the error interface for Violation.
+func (v Violation) Error() string {
+	return v.String()
+}
+
 const pathTitle = "title"
 
 // String returns a human-readable description of the violation.
@@ -42,6 +47,10 @@ func (c *Catalog) Validate() []Violation {
 
 	for _, domain := range c.Domains {
 		violations = append(violations, validateDomain(domain)...)
+	}
+
+	for _, ch := range c.Channels {
+		violations = append(violations, validateChannel(ch)...)
 	}
 
 	return violations
@@ -124,6 +133,32 @@ func validateDomain(domain Domain) []Violation {
 		}
 
 		seen[svcID] = true
+	}
+
+	return violations
+}
+
+func validateChannel(ch Channel) []Violation {
+	var violations []Violation
+
+	if ch.ID == "" {
+		violations = append(violations, Violation{
+			Path:    fmt.Sprintf("channels[%s].id", ch.Name),
+			Message: "channel ID must not be empty",
+		})
+	}
+
+	seen := make(map[MessageID]bool, len(ch.Messages))
+
+	for _, msgID := range ch.Messages {
+		if seen[msgID] {
+			violations = append(violations, Violation{
+				Path:    fmt.Sprintf("channels[%s].messages", ch.ID),
+				Message: fmt.Sprintf("duplicate message %q", msgID),
+			})
+		}
+
+		seen[msgID] = true
 	}
 
 	return violations

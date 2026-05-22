@@ -70,7 +70,20 @@ func (r *Registry) AddService(svc Service) {
 		return
 	}
 
-	r.services[svc.ID] = &svc
+	r.services[svc.ID] = copyServicePtr(svc)
+}
+
+func copyServicePtr(s Service) *Service {
+	return &Service{
+		ID:       s.ID,
+		Name:     s.Name,
+		Version:  s.Version,
+		Summary:  s.Summary,
+		Owners:   copySlice(s.Owners),
+		Commands: copyMessages(s.Commands),
+		Events:   copyMessages(s.Events),
+		Queries:  copyMessages(s.Queries),
+	}
 }
 
 // ensureServiceEntry returns a service entry for the given ID, creating it if needed.
@@ -146,7 +159,18 @@ func (r *Registry) AddDomain(domain Domain) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.domains[domain.ID] = &domain
+	r.domains[domain.ID] = copyDomainPtr(domain)
+}
+
+func copyDomainPtr(d Domain) *Domain {
+	return &Domain{
+		ID:       d.ID,
+		Name:     d.Name,
+		Version:  d.Version,
+		Summary:  d.Summary,
+		Owners:   copySlice(d.Owners),
+		Services: copySlice(d.Services),
+	}
 }
 
 // AddServiceToDomain associates an existing service with an existing domain.
@@ -169,7 +193,19 @@ func (r *Registry) AddChannel(ch Channel) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.channels[ch.ID] = &ch
+	r.channels[ch.ID] = copyChannelPtr(ch)
+}
+
+func copyChannelPtr(ch Channel) *Channel {
+	return &Channel{
+		ID:        ch.ID,
+		Name:      ch.Name,
+		Version:   ch.Version,
+		Summary:   ch.Summary,
+		Address:   ch.Address,
+		Protocols: copySlice(ch.Protocols),
+		Messages:  copySlice(ch.Messages),
+	}
 }
 
 // Build returns an immutable Catalog with all registered entries.

@@ -94,12 +94,6 @@ func goTypeToJSON(k reflect.Kind) SchemaType {
 		return TypeObject
 	case reflect.Complex64, reflect.Complex128:
 		return TypeString
-	case reflect.Array, reflect.Slice:
-		return TypeArray
-	case reflect.Map, reflect.Struct:
-		return TypeObject
-	case reflect.Pointer:
-		return TypeObject
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		return TypeString
 	case reflect.Invalid:

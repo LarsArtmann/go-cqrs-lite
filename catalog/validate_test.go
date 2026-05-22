@@ -160,3 +160,55 @@ func TestViolation_String(t *testing.T) {
 		t.Errorf("got %q", v.String())
 	}
 }
+
+func TestViolation_Error(t *testing.T) {
+	t.Parallel()
+
+	v := Violation{Path: "version", Message: "missing"}
+	if v.Error() != "version: missing" {
+		t.Errorf("got %q", v.Error())
+	}
+
+	var err error = v
+	if err.Error() != "version: missing" {
+		t.Errorf("as error: got %q", err.Error())
+	}
+}
+
+func TestValidate_Channel(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Channels: []Channel{{ID: "ch1", Name: "Channel 1", Messages: []MessageID{"msg-a", "msg-a"}}},
+	}
+
+	violations := cat.Validate()
+	if len(violations) != 1 {
+		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
+	}
+
+	if !strings.Contains(violations[0].Message, "duplicate message") {
+		t.Errorf("message = %q", violations[0].Message)
+	}
+}
+
+func TestValidate_ChannelEmptyID(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:    "Test",
+		Version:  "1.0.0",
+		Channels: []Channel{{Name: "No ID"}},
+	}
+
+	violations := cat.Validate()
+	if len(violations) != 1 {
+		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
+	}
+
+	if !strings.Contains(violations[0].Message, "channel ID must not be empty") {
+		t.Errorf("message = %q", violations[0].Message)
+	}
+}

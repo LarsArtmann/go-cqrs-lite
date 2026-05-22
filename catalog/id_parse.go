@@ -1,17 +1,10 @@
 package catalog
 
 import (
-	"fmt"
-
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var (
-	_ = fmt.Stringer(ServiceID(""))
-	_ = fmt.Stringer(DomainID(""))
-	_ = fmt.Stringer(MessageID(""))
-	_ = fmt.Stringer(ChannelID(""))
-
 	ErrEmptyServiceID = errorfamily.NewRejection(
 		"catalog.empty_service_id",
 		"service ID cannot be empty",
@@ -34,9 +27,9 @@ type idType interface {
 	~string
 }
 
-func parseID[T idType](s string, err error) (T, error) {
+func parseID[T idType](s string, sentinel error) (T, error) {
 	if s == "" {
-		return "", err
+		return "", sentinel
 	}
 
 	return T(s), nil

@@ -197,6 +197,42 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 	}
 }
 
+func TestBuilder_Registry(t *testing.T) {
+	t.Parallel()
+
+	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder.AddService("test-svc", "Test Service", "1.0.0", "")
+
+	reg := builder.Registry()
+
+	reg.Build()
+}
+
+func TestBuilder_AddService_WithOwnersAndLabels(t *testing.T) {
+	t.Parallel()
+
+	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder.AddService(
+		"test-svc", "Test Service", "1.0.0", "",
+		catalog.Command[TestCreateUser](
+			"user.create",
+			catalog.Owners("team-a", "team-b"),
+			catalog.Labels(map[string]string{"domain": "identity", "priority": "high"}),
+		),
+	)
+
+	cat := builder.Build()
+	cmd := cat.Services[0].Commands[0]
+
+	if len(cmd.Owners) != 2 || cmd.Owners[0] != "team-a" || cmd.Owners[1] != "team-b" {
+		t.Errorf("owners = %v", cmd.Owners)
+	}
+
+	if len(cmd.Labels) != 2 || cmd.Labels["domain"] != "identity" {
+		t.Errorf("labels = %v", cmd.Labels)
+	}
+}
+
 func TestBuilder_MultipleServices(t *testing.T) {
 	t.Parallel()
 

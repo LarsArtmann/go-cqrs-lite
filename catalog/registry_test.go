@@ -263,21 +263,21 @@ func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
 	}
 }
 
-func TestMessageID_FallbackToName(t *testing.T) {
+func TestGetID_FallbackToName(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{Name: "CreateUser"}
-	if catalog.MessageIDString(msg) != "CreateUser" {
-		t.Errorf("expected CreateUser, got %s", catalog.MessageIDString(msg))
+	if catalog.GetID(msg) != "CreateUser" {
+		t.Errorf("expected CreateUser, got %s", catalog.GetID(msg))
 	}
 }
 
-func TestMessageID_UsesID(t *testing.T) {
+func TestGetID_UsesID(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{ID: "cmd-123", Name: "CreateUser"}
-	if catalog.MessageIDString(msg) != "cmd-123" {
-		t.Errorf("expected cmd-123, got %s", catalog.MessageIDString(msg))
+	if catalog.GetID(msg) != "cmd-123" {
+		t.Errorf("expected cmd-123, got %s", catalog.GetID(msg))
 	}
 }
 

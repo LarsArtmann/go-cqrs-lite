@@ -160,17 +160,6 @@ func GetID(msg Message) MessageID {
 	return MessageID(msg.Name)
 }
 
-// MessageIDString returns the string ID of a message, falling back to its Name if ID is empty.
-//
-// Deprecated: Use GetID instead for typed return.
-func MessageIDString(msg Message) string {
-	if msg.ID != "" {
-		return string(msg.ID)
-	}
-
-	return msg.Name
-}
-
 // Change describes a single modification to a message over time.
 type Change struct {
 	Version string `json:"version"`
