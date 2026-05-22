@@ -62,15 +62,27 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	}
 
 	getHandler := queries.NewGetTodoHandler(readModelStore)
-	if err := query.RegisterTyped(queryDisp, queries.GetTodoQueryType, getHandler.Handle); err != nil {
+	if err := query.RegisterTyped(
+		queryDisp,
+		queries.GetTodoQueryType,
+		getHandler.Handle,
+	); err != nil {
 		t.Fatalf("Register GetTodo: %v", err)
 	}
 	listHandler := queries.NewListTodosHandler(readModelStore)
-	if err := query.RegisterTyped(queryDisp, queries.ListTodosQueryType, listHandler.Handle); err != nil {
+	if err := query.RegisterTyped(
+		queryDisp,
+		queries.ListTodosQueryType,
+		listHandler.Handle,
+	); err != nil {
 		t.Fatalf("Register ListTodos: %v", err)
 	}
 	countHandler := queries.NewCountTodosHandler(readModelStore)
-	if err := query.RegisterTyped(queryDisp, queries.CountTodosQueryType, countHandler.Handle); err != nil {
+	if err := query.RegisterTyped(
+		queryDisp,
+		queries.CountTodosQueryType,
+		countHandler.Handle,
+	); err != nil {
 		t.Fatalf("Register CountTodos: %v", err)
 	}
 

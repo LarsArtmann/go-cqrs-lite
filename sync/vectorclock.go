@@ -1,7 +1,6 @@
 package sync
 
 import (
-	"fmt"
 	"maps"
 )
 
@@ -23,7 +22,7 @@ func NewVectorClock() VectorClock {
 func NewVectorClockFromMap(entries map[NodeID]int64) (VectorClock, error) {
 	for node, counter := range entries {
 		if counter < 0 {
-			return nil, fmt.Errorf("negative counter %d for node %s", counter, node)
+			return nil, NegativeCounterError{Node: node, Counter: counter}
 		}
 	}
 
@@ -104,11 +103,11 @@ func (vc VectorClock) Cmp(other VectorClock) ClockOrder {
 func (o ClockOrder) String() string {
 	switch o {
 	case OrderBefore:
-		return "before"
+		return clockOrderBefore
 	case OrderAfter:
-		return "after"
+		return clockOrderAfter
 	case OrderConcurrent:
-		return "concurrent"
+		return clockOrderConcurrent
 	case OrderEqual:
 		return "equal"
 	default:

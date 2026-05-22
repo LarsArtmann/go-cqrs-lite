@@ -162,6 +162,7 @@ func NewEvent(
 		schemaVersion: schemaV,
 		payload:       safePayload,
 		metadata:      NewMetadata(),
+		occurredAt:    time.Time{},
 		clock:         clk,
 	}
 

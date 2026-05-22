@@ -181,7 +181,9 @@ func TestValidate_Channel(t *testing.T) {
 	cat := &Catalog{
 		Title:   "Test",
 		Version: "1.0.0",
-		Channels: []Channel{{ID: "ch1", Name: "Channel 1", Messages: []MessageID{"msg-a", "msg-a"}}},
+		Channels: []Channel{
+			{ID: "ch1", Name: "Channel 1", Messages: []MessageID{"msg-a", "msg-a"}},
+		},
 	}
 
 	violations := cat.Validate()

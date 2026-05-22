@@ -3,7 +3,7 @@ package catalog
 import "fmt"
 
 // Violation represents a single validation issue found in a Catalog.
-type Violation struct {
+type Violation struct { //nolint:errname // domain type, not a pure error wrapper
 	Path    string
 	Message string
 }

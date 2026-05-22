@@ -10,7 +10,7 @@ import (
 func TestUpcasterFunc(t *testing.T) {
 	t.Parallel()
 
-	u := newUpcaster(
+	uc := newUpcaster(
 		"UserCreated",
 		1,
 		func(_ Event) (*Core, error) {
@@ -20,12 +20,12 @@ func TestUpcasterFunc(t *testing.T) {
 		},
 	)
 
-	if u.SourceType() != "UserCreated" {
-		t.Errorf("SourceType = %q, want UserCreated", u.SourceType())
+	if uc.SourceType() != "UserCreated" {
+		t.Errorf("SourceType = %q, want UserCreated", uc.SourceType())
 	}
 
-	if u.SourceVersion() != 1 {
-		t.Errorf("SourceVersion = %d, want 1", u.SourceVersion())
+	if uc.SourceVersion() != 1 {
+		t.Errorf("SourceVersion = %d, want 1", uc.SourceVersion())
 	}
 }
 

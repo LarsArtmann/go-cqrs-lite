@@ -30,8 +30,8 @@ func NewListTodosQuery() (*ListTodosQuery, error) {
 }
 
 type ListTodosResult struct {
-	Todos  []*GetTodoResult   `json:"todos"`
-	Page   query.PaginatedResult[*GetTodoResult] `json:"page"`
+	Todos []*GetTodoResult                      `json:"todos"`
+	Page  query.PaginatedResult[*GetTodoResult] `json:"page"`
 }
 
 type ListTodosHandler struct{ readModel domain.TodoReadModel }

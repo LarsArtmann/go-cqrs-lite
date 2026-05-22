@@ -39,14 +39,6 @@ func NewInfrastructure(code, msg string) *Error {
 }
 
 var (
-	errMismatchedSlices = NewRejection(
-		"event.mismatched_slices",
-		"event types and payloads must have equal length",
-	)
-	errPayloadMarshal = NewCorruption(
-		"event.payload_marshal",
-		"failed to marshal event payload",
-	)
 	errInvalidSnapshotInterval = NewRejection(
 		"event.invalid_snapshot_interval",
 		"snapshot interval must be positive",

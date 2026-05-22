@@ -32,8 +32,8 @@ func NewFakeStore() *FakeStore {
 	return &FakeStore{events: make(map[string][]event.Event)}
 }
 
-// SaveFn sets an optional override for Save calls.
 // Save appends events to the aggregate's stream.
+// SaveFn sets an optional override for Save calls.
 func (s *FakeStore) Save(
 	ctx context.Context,
 	aggregateType event.AggregateType,

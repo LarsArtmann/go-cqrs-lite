@@ -203,6 +203,7 @@ linters:
         - lc
         - h
         - q
+        - uc
         - fn
         - tx
         - ts
@@ -230,9 +231,15 @@ linters:
           - thelper
           - exhaustruct
           - gosec
+      - path: upcaster\.go$
+        linters:
+          - unparam
       - path: schema.*\.go$
         linters:
           - exhaustruct
+      - path: integration/
+        linters:
+          - staticcheck
       - path: example/
         linters:
           - forbidigo
@@ -245,6 +252,8 @@ linters:
       - path: projection/
         linters:
           - exhaustruct
+          - tagliatelle
+          - nlreturn
       - path: projection/runner\.go$
         linters:
           - wrapcheck

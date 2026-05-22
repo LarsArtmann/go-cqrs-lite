@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// SaveFn sets an optional override for Save calls.
 // Return an error to simulate store failures.
 func (s *FakeStore) SaveFn(
 	fn func(

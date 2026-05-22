@@ -2,6 +2,8 @@ package catalog
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -213,19 +215,25 @@ func (r *Registry) Build() *Catalog {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
+	serviceKeys := slices.Sorted(maps.Keys(r.services))
+
 	services := make([]Service, 0, len(r.services))
-	for _, svc := range r.services {
-		services = append(services, copyService(svc))
+	for _, key := range serviceKeys {
+		services = append(services, copyService(r.services[key]))
 	}
+
+	domainKeys := slices.Sorted(maps.Keys(r.domains))
 
 	domains := make([]Domain, 0, len(r.domains))
-	for _, d := range r.domains {
-		domains = append(domains, copyDomain(d))
+	for _, key := range domainKeys {
+		domains = append(domains, copyDomain(r.domains[key]))
 	}
 
+	channelKeys := slices.Sorted(maps.Keys(r.channels))
+
 	channels := make([]Channel, 0, len(r.channels))
-	for _, ch := range r.channels {
-		channels = append(channels, copyChannel(ch))
+	for _, key := range channelKeys {
+		channels = append(channels, copyChannel(r.channels[key]))
 	}
 
 	return &Catalog{

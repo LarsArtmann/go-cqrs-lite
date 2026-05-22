@@ -45,7 +45,7 @@ var ErrConcurrencyConflict = event.ErrVersionConflict
 // Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
 func (s *SQLEventStore) Close() error {
 	if s.ownDB {
-		return s.db.Close() //nolint:wrapcheck // caller owns lifecycle
+		return s.db.Close()
 	}
 
 	return nil

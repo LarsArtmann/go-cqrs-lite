@@ -30,7 +30,8 @@ func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T
 		var payload T
 
 		if len(evt.Payload()) > 0 {
-			if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+			err := json.Unmarshal(evt.Payload(), &payload)
+			if err != nil {
 				return fmt.Errorf("decode payload for %s: %w", eventType, err)
 			}
 		}
@@ -38,7 +39,8 @@ func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T
 		return handler(ctx, payload)
 	}
 
-	if err := b.registry.On(eventType, wrapper); err != nil {
+	err := b.registry.On(eventType, wrapper)
+	if err != nil {
 		return err
 	}
 
@@ -73,7 +75,8 @@ func (p *builtProjection) Handle(ctx context.Context, evt event.Event) error {
 	handlers := p.registry.Lookup(evt.Type())
 
 	for _, h := range handlers {
-		if err := h(ctx, evt); err != nil {
+		err := h(ctx, evt)
+		if err != nil {
 			return err
 		}
 	}

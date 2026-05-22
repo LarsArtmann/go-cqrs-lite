@@ -74,6 +74,7 @@ func propertyFromReflect(t reflect.Type) *Property {
 }
 
 func goTypeToJSON(k reflect.Kind) SchemaType {
+	//nolint:exhaustive // default handles remaining kinds
 	switch k {
 	case reflect.String:
 		return TypeString

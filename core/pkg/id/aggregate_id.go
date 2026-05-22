@@ -3,6 +3,7 @@ package id
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -66,7 +67,7 @@ func DeriveAggregateID(namespace string, keys ...string) AggregateID {
 		_, _ = h.Write([]byte(k))
 	}
 
-	return cbid.NewID[AggregateMarker](fmt.Sprintf("%x", h.Sum(nil)))
+	return cbid.NewID[AggregateMarker](hex.EncodeToString(h.Sum(nil)))
 }
 
 // AggregateIDFrom creates an AggregateID from any fmt.Stringer.

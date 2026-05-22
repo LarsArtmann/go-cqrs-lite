@@ -58,7 +58,7 @@ func (r *LWWResolver[T]) Resolve(conflict *Conflict[T]) (T, error) {
 		return conflict.Remote, nil
 	case OrderAfter:
 		return conflict.Local, nil
-	default:
+	case OrderConcurrent, OrderEqual:
 		localTime := r.TimestampFunc(conflict.Local)
 		remoteTime := r.TimestampFunc(conflict.Remote)
 
@@ -74,6 +74,8 @@ func (r *LWWResolver[T]) Resolve(conflict *Conflict[T]) (T, error) {
 			return conflict.Local, nil
 		}
 
+		return conflict.Remote, nil
+	default:
 		return conflict.Remote, nil
 	}
 }

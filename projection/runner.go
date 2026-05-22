@@ -124,6 +124,7 @@ func (r *Runner) replay(ctx context.Context) error {
 
 		for _, evt := range events {
 			replayCtx := event.WithReplay(ctx, true)
+
 			hErr := r.handleAndCheckpoint(replayCtx, p, evt)
 			if hErr != nil {
 				return fmt.Errorf("replay projection %q event %s: %w", p.Name(), evt.ID(), hErr)

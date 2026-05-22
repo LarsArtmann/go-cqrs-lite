@@ -111,9 +111,21 @@ func main() {
 }
 
 func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) {
-	_ = query.RegisterTyped(qDisp, queries.GetTodoQueryType, queries.NewGetTodoHandler(store).Handle)
-	_ = query.RegisterTyped(qDisp, queries.ListTodosQueryType, queries.NewListTodosHandler(store).Handle)
-	_ = query.RegisterTyped(qDisp, queries.CountTodosQueryType, queries.NewCountTodosHandler(store).Handle)
+	_ = query.RegisterTyped(
+		qDisp,
+		queries.GetTodoQueryType,
+		queries.NewGetTodoHandler(store).Handle,
+	)
+	_ = query.RegisterTyped(
+		qDisp,
+		queries.ListTodosQueryType,
+		queries.NewListTodosHandler(store).Handle,
+	)
+	_ = query.RegisterTyped(
+		qDisp,
+		queries.CountTodosQueryType,
+		queries.NewCountTodosHandler(store).Handle,
+	)
 }
 
 func getEnv(key, defaultValue string) string {
