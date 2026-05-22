@@ -308,13 +308,20 @@ func (h *Handler) Handle(ctx context.Context, cmd *CreateUser) error {
 }
 ```
 
-### Query Handler (with context)
+### Query Handler (typed bookend pattern)
 
 ```go
+// Handler returns `any` at the boundary (required for heterogeneous dispatch).
+// Use RegisterTyped[T] + DispatchTyped[T] for type-safe results.
 type Handler = func(context.Context, Query) (any, error)
 
-result, err := dispatcher.Dispatch(ctx, query)
-typed, err := query.DispatchTyped[User](ctx, dispatcher, query)
+// Registration (type-safe result)
+_ = query.RegisterTyped[*GetUserResult](dispatcher, "GetUser", func(ctx context.Context, q query.Query) (*GetUserResult, error) {
+    return &GetUserResult{Name: "Alice"}, nil
+})
+
+// Dispatch (type-safe result)
+result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, query)
 ```
 
 ### Event Creation
@@ -565,3 +572,4 @@ Key milestones:
 | 86      | Catalog quality sweep, MemorySnapshotStore deep copy                                                         |
 | 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                              |
 | 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation |
+| 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed               |
