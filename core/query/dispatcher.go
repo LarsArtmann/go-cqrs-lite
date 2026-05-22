@@ -11,6 +11,18 @@ import (
 )
 
 // Handler processes a query and returns a result.
+//
+// The return type is `any` because a single dispatcher handles heterogeneous query types
+// — each query type produces a different result. This is a fundamental Go limitation:
+// heterogeneous dispatch requires type erasure at the interface level (same as
+// database/sql.Scan, json.Unmarshal, etc.).
+//
+// For type-safe dispatch, use the "typed bookend" pattern:
+//   - Register side: [RegisterTyped] wraps a [TypedHandler] that returns a concrete type T.
+//   - Dispatch side: [DispatchTyped] asserts the result back to T with a clear error on mismatch.
+//
+// This pushes the `any` ↔ T conversion to the framework boundary, giving consumers
+// compile-time type safety in their handler and caller code.
 type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
