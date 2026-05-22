@@ -11,12 +11,11 @@ import (
 
 type ListTodosQuery struct {
 	*query.Core
-	Status   *domain.TodoStatus `json:"status,omitempty"`
-	Tags     []string           `json:"tags,omitempty"`
-	Priority *int               `json:"priority,omitempty"`
-	Search   string             `json:"search,omitempty"`
-	Limit    int                `json:"limit"`
-	Offset   int                `json:"offset"`
+	Status     *domain.TodoStatus `json:"status,omitempty"`
+	Tags       []string           `json:"tags,omitempty"`
+	Priority   *int               `json:"priority,omitempty"`
+	Search     string             `json:"search,omitempty"`
+	Pagination query.Pagination   `json:"pagination"`
 }
 
 func NewListTodosQuery() (*ListTodosQuery, error) {
@@ -24,13 +23,15 @@ func NewListTodosQuery() (*ListTodosQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new list todos query: %w", err)
 	}
-	return &ListTodosQuery{Core: core, Limit: 20, Offset: 0}, nil
+	return &ListTodosQuery{
+		Core:       core,
+		Pagination: query.NewPagination(1, 20),
+	}, nil
 }
 
 type ListTodosResult struct {
-	Todos  []*GetTodoResult `json:"todos"`
-	Limit  int              `json:"limit"`
-	Offset int              `json:"offset"`
+	Todos  []*GetTodoResult   `json:"todos"`
+	Page   query.PaginatedResult[*GetTodoResult] `json:"page"`
 }
 
 type ListTodosHandler struct{ readModel domain.TodoReadModel }
@@ -47,7 +48,8 @@ func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodo
 	filter := domain.TodoFilter{
 		Status: listQuery.Status, Tags: listQuery.Tags,
 		Priority: listQuery.Priority, Search: listQuery.Search,
-		Limit: listQuery.Limit, Offset: listQuery.Offset,
+		Limit:  int(listQuery.Pagination.PageSize),
+		Offset: listQuery.Pagination.Offset(),
 	}
 	todos, err := h.readModel.List(filter)
 	if err != nil {
@@ -57,7 +59,10 @@ func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodo
 	for i, todo := range todos {
 		results[i] = FromDomain(todo)
 	}
-	return &ListTodosResult{Todos: results, Limit: listQuery.Limit, Offset: listQuery.Offset}, nil
+	return &ListTodosResult{
+		Todos: results,
+		Page:  query.NewPaginatedResult(results, uint(len(todos)), listQuery.Pagination),
+	}, nil
 }
 
 func (q *ListTodosQuery) MarshalJSON() ([]byte, error) {

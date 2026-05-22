@@ -108,7 +108,7 @@ func TestListTodosHandler_Handle(t *testing.T) {
 		t.Fatalf("NewListTodosQuery: %v", err)
 	}
 	q.Priority = &priority
-	q.Limit = 10
+	q.Pagination = query.NewPagination(1, 10)
 
 	result, err := h.Handle(context.Background(), q)
 	if err != nil {
@@ -117,8 +117,8 @@ func TestListTodosHandler_Handle(t *testing.T) {
 	if len(result.Todos) != 2 {
 		t.Errorf("Todos count = %d, want 2", len(result.Todos))
 	}
-	if result.Limit != 10 {
-		t.Errorf("Limit = %d, want 10", result.Limit)
+	if result.Page.PageSize != 10 {
+		t.Errorf("PageSize = %d, want 10", result.Page.PageSize)
 	}
 }
 
@@ -213,11 +213,11 @@ func TestNewListTodosQuery(t *testing.T) {
 	if q == nil {
 		t.Fatal("query is nil")
 	}
-	if q.Limit != 20 {
-		t.Errorf("Limit = %d, want 20", q.Limit)
+	if q.Pagination.PageSize != 20 {
+		t.Errorf("PageSize = %d, want 20", q.Pagination.PageSize)
 	}
-	if q.Offset != 0 {
-		t.Errorf("Offset = %d, want 0", q.Offset)
+	if q.Pagination.Offset() != 0 {
+		t.Errorf("Offset = %d, want 0", q.Pagination.Offset())
 	}
 }
 
