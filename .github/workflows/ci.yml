@@ -42,3 +42,21 @@ jobs:
         with:
           files: coverage.out
           fail_ci_if_error: false
+
+  per-module-test:
+    name: Per-Module Test (GOWORK=off)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Test each module in isolation
+        run: |
+          for mod in core memory catalog middleware testhelpers integration projection storage sync; do
+            echo "::group::$mod"
+            (cd "$mod" && GOWORK=off go test ./... -count=1 -race)
+            echo "::endgroup::"
+          done
