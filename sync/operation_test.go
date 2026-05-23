@@ -20,6 +20,32 @@ func TestOperationType_Constants(t *testing.T) {
 	}
 }
 
+func TestOperationType_Valid(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		op   OperationType
+		want bool
+	}{
+		{"create is valid", OpCreate, true},
+		{"update is valid", OpUpdate, true},
+		{"delete is valid", OpDelete, true},
+		{"unknown is invalid", OperationType("unknown"), false},
+		{"empty is invalid", OperationType(""), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.op.Valid(); got != tt.want {
+				t.Errorf("Valid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestNewOperation(t *testing.T) {
 	payload := map[string]string{"name": "test"}
 	before := time.Now().UTC()

@@ -58,7 +58,7 @@ func executeCounterNTimes(
 	aggID id.AggregateID,
 	n int,
 ) {
-	for i := 0; i < n; i++ {
+	for range n {
 		err := repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ bddCounter, v event.Version) ([]event.Event, error) {
@@ -79,7 +79,7 @@ func newSnapshotRepo(
 	snapStore *memory.MemorySnapshotStore,
 	n int,
 ) (*decider.Repository[bddCounter], error) {
-	return decider.NewRepository[bddCounter](
+	return decider.NewRepository(
 		store, bus, bddCounterDecider(),
 		decider.WithSnapshotStore[bddCounter](snapStore),
 		decider.WithCodec[bddCounter](event.JSONCodec{}),
@@ -271,21 +271,21 @@ var _ = Describe("Decider Repository", func() {
 	Describe("As a developer validating my setup", func() {
 		Context("when I create a repository without a store", func() {
 			It("should return ErrNilStore", func() {
-				_, err := decider.NewRepository[bddCounter](nil, bus, bddCounterDecider())
+				_, err := decider.NewRepository(nil, bus, bddCounterDecider())
 				Expect(err).To(MatchError(decider.ErrNilStore))
 			})
 		})
 
 		Context("when I create a repository without a bus", func() {
 			It("should return ErrNilBus", func() {
-				_, err := decider.NewRepository[bddCounter](store, nil, bddCounterDecider())
+				_, err := decider.NewRepository(store, nil, bddCounterDecider())
 				Expect(err).To(MatchError(decider.ErrNilBus))
 			})
 		})
 
 		Context("when I create a repository without a fold function", func() {
 			It("should return ErrNilFold", func() {
-				_, err := decider.NewRepository[bddCounter](
+				_, err := decider.NewRepository(
 					store,
 					bus,
 					decider.Decider[bddCounter]{},

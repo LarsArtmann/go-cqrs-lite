@@ -360,3 +360,20 @@ func TestNewLWWResolver_NilTimestampFunc_ReturnsError(t *testing.T) {
 		t.Fatal("expected error when TimestampFunc is nil")
 	}
 }
+
+func TestNewSyncContext(t *testing.T) {
+	t.Parallel()
+
+	nodeID := MustParseNodeID("node-1")
+	clock := VectorClock{nodeID: 5}
+
+	ctx := NewSyncContext(nodeID, clock)
+
+	if ctx.NodeID != nodeID {
+		t.Errorf("NodeID = %q, want %q", ctx.NodeID, nodeID)
+	}
+
+	if ctx.Clock.Get(nodeID) != 5 {
+		t.Errorf("Clock[nodeID] = %d, want 5", ctx.Clock.Get(nodeID))
+	}
+}

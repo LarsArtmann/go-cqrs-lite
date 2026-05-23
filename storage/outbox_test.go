@@ -1,8 +1,11 @@
 package storage
 
 import (
+	"database/sql/driver"
 	"errors"
+	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -320,3 +323,92 @@ func TestUnmarshalOutboxEvents_InvalidAggregateID(t *testing.T) {
 }
 
 var errTestDB = errors.New("test db error")
+
+func TestSQLOutbox_Ack_MultiBatch(t *testing.T) {
+	t.Parallel()
+
+	outbox, mock := newTestOutbox(t)
+
+	ids := make([]event.OutboxID, maxAckBatchSize+3)
+	for i := range ids {
+		ids[i] = event.OutboxID(fmt.Sprintf("outbox-%d", i))
+	}
+
+	batch1Placeholders := make([]string, maxAckBatchSize)
+	batch1Args := make([]driver.Value, maxAckBatchSize)
+	for i := range maxAckBatchSize {
+		batch1Placeholders[i] = fmt.Sprintf("$%d", i+1)
+		batch1Args[i] = string(ids[i])
+	}
+
+	batch1SQL := fmt.Sprintf(
+		"DELETE FROM outbox WHERE id IN (%s)",
+		strings.Join(batch1Placeholders, ", "),
+	)
+
+	mock.ExpectExec(regexp.QuoteMeta(batch1SQL)).
+		WithArgs(batch1Args...).
+		WillReturnResult(sqlmock.NewResult(0, int64(maxAckBatchSize)))
+
+	remainder := 3
+	batch2Placeholders := []string{"$1", "$2", "$3"}
+	batch2Args := []driver.Value{
+		string(ids[maxAckBatchSize]),
+		string(ids[maxAckBatchSize+1]),
+		string(ids[maxAckBatchSize+2]),
+	}
+
+	batch2SQL := fmt.Sprintf(
+		"DELETE FROM outbox WHERE id IN (%s)",
+		strings.Join(batch2Placeholders, ", "),
+	)
+
+	mock.ExpectExec(regexp.QuoteMeta(batch2SQL)).
+		WithArgs(batch2Args...).
+		WillReturnResult(sqlmock.NewResult(0, int64(remainder)))
+
+	err := outbox.Ack(t.Context(), ids)
+	if err != nil {
+		t.Fatalf("Ack multi-batch: %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("unmet expectations: %v", err)
+	}
+}
+
+func TestSQLOutbox_Ack_MultiBatch_SecondBatchError(t *testing.T) {
+	t.Parallel()
+
+	outbox, mock := newTestOutbox(t)
+
+	ids := make([]event.OutboxID, maxAckBatchSize+1)
+	for i := range ids {
+		ids[i] = event.OutboxID(fmt.Sprintf("outbox-%d", i))
+	}
+
+	batch1Placeholders := make([]string, maxAckBatchSize)
+	batch1Args := make([]driver.Value, maxAckBatchSize)
+	for i := range maxAckBatchSize {
+		batch1Placeholders[i] = fmt.Sprintf("$%d", i+1)
+		batch1Args[i] = string(ids[i])
+	}
+
+	batch1SQL := fmt.Sprintf(
+		"DELETE FROM outbox WHERE id IN (%s)",
+		strings.Join(batch1Placeholders, ", "),
+	)
+
+	mock.ExpectExec(regexp.QuoteMeta(batch1SQL)).
+		WithArgs(batch1Args...).
+		WillReturnResult(sqlmock.NewResult(0, maxAckBatchSize))
+
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM outbox WHERE id IN ($1)")).
+		WithArgs(string(ids[maxAckBatchSize])).
+		WillReturnError(errTestDB)
+
+	err := outbox.Ack(t.Context(), ids)
+	if err == nil {
+		t.Fatal("expected error when second batch fails")
+	}
+}

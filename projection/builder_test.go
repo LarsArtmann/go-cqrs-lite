@@ -22,7 +22,7 @@ func TestBuilder_On_TypedHandler(t *testing.T) {
 
 	builder := projection.NewBuilder("order-proj")
 
-	err := projection.On[OrderCreated](
+	err := projection.On(
 		builder, "order.created",
 		func(_ context.Context, evt OrderCreated) error {
 			received = evt
@@ -85,7 +85,7 @@ func TestBuilder_On_MultipleEventTypes(t *testing.T) {
 
 	builder := projection.NewBuilder("multi-proj")
 
-	err := projection.On[OrderCreated](
+	err := projection.On(
 		builder, "order.created",
 		func(_ context.Context, _ OrderCreated) error {
 			handled <- "order.created"
@@ -96,7 +96,7 @@ func TestBuilder_On_MultipleEventTypes(t *testing.T) {
 		t.Fatalf("On OrderCreated: %v", err)
 	}
 
-	err = projection.On[OrderShipped](
+	err = projection.On(
 		builder, "order.shipped",
 		func(_ context.Context, _ OrderShipped) error {
 			handled <- "order.shipped"
@@ -190,7 +190,7 @@ func TestBuilder_Handle_UnregisteredType(t *testing.T) {
 
 	handled := false
 
-	err := projection.On[OrderCreated](
+	err := projection.On(
 		builder, "order.created", func(_ context.Context, _ OrderCreated) error {
 			handled = true
 			return nil
@@ -230,7 +230,7 @@ func TestBuilder_Handle_InvalidPayload(t *testing.T) {
 
 	builder := projection.NewBuilder("decode-proj")
 
-	err := projection.On[Strict](
+	err := projection.On(
 		builder, "bad.payload",
 		func(_ context.Context, _ Strict) error { return nil },
 	)

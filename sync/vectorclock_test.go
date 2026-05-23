@@ -50,8 +50,16 @@ func TestNewVectorClockFromMap_Empty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+	if clock == nil {
+		t.Fatal("expected non-nil clock for nil input")
+	}
 	if len(clock) != 0 {
 		t.Fatalf("expected empty clock, got %d entries", len(clock))
+	}
+
+	clock.Increment("node-a")
+	if clock.Get("node-a") != 1 {
+		t.Errorf("expected Increment to work on nil-input clock, got %d", clock.Get("node-a"))
 	}
 }
 

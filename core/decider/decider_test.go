@@ -619,16 +619,10 @@ func TestExecute_Concurrent(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	for i := range 5 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+	for range 5 {
+		wg.Go(func() {
 			_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
-		}()
-
-		_ = i
+		})
 	}
 
 	wg.Wait()

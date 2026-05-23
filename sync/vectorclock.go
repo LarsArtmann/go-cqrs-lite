@@ -26,6 +26,10 @@ func NewVectorClockFromMap(entries map[NodeID]int64) (VectorClock, error) {
 		}
 	}
 
+	if entries == nil {
+		return NewVectorClock(), nil
+	}
+
 	return maps.Clone(entries), nil
 }
 
