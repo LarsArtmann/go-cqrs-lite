@@ -1,0 +1,35 @@
+# BuildFlow Configuration
+# See: https://github.com/larsartmann/buildflow
+
+# Build mode: full, fast, ci, dev, pre-commit
+build_mode: full
+
+# Parallel execution
+parallel: true
+max_concurrency: 4
+
+# File settings
+max_file_size: 350  # lines
+dupl_threshold: 30  # tokens
+
+# TODO comment severity: info, error
+# "info" fails on false positives (e.g. "// ToDotAddress" parsed as "TODO:")
+# "error" only fails on actual error-level TODOs
+todo_severity: error
+
+# Patterns to exclude from checks
+exclude:
+  - vendor
+  - .git
+  - node_modules
+  - .next
+  - dist
+  - "*.pb.go"
+  - "*.gen.go"
+
+# Auto-fix settings
+auto_fix: false
+
+# Logging
+verbose: false
+log_level: info
