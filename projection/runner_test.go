@@ -14,6 +14,24 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func startRunner(
+	t *testing.T,
+	runner *projection.Runner,
+	ready <-chan struct{},
+) context.CancelFunc {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(t.Context())
+
+	go func() {
+		_ = runner.Run(ctx)
+	}()
+
+	<-ready
+
+	return cancel
+}
+
 func registerNoopProjection(
 	t *testing.T,
 	runner *projection.Runner,
@@ -148,14 +166,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -198,14 +209,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -250,14 +254,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	otherEvt := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
 
@@ -290,14 +287,7 @@ func TestRunner_WildcardProjection(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
@@ -445,14 +435,7 @@ func TestRunner_MultipleProjections(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
@@ -664,14 +647,7 @@ func TestRunner_RetryOnTransientError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
@@ -717,14 +693,7 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	go func() {
-		_ = runner.Run(ctx)
-	}()
-
-	<-ready
+	defer startRunner(t, runner, ready)()
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 

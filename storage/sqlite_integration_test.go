@@ -154,6 +154,16 @@ func TestSQLiteEventStore_MetadataRoundtrip(t *testing.T) {
 	testEventStore_MetadataRoundtrip(t, newSQLiteTestStore(t), issueStoreConfig(), "test")
 }
 
+func newTestSnapshot(aggID id.AggregateID, version event.Version, state []byte) event.Snapshot {
+	return event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Issue",
+		Version:       version,
+		State:         state,
+		CreatedAt:     time.Now().Truncate(time.Microsecond),
+	}
+}
+
 func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 	t.Parallel()
 
@@ -166,13 +176,7 @@ func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	snap := event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Issue",
-		Version:       event.Version(5),
-		State:         []byte(`{"title":"snapshot-issue"}`),
-		CreatedAt:     time.Now().Truncate(time.Microsecond),
-	}
+	snap := newTestSnapshot(aggID, 5, []byte(`{"title":"snapshot-issue"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {
@@ -205,13 +209,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	snap := event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Issue",
-		Version:       event.Version(10),
-		State:         []byte(`{"title":"v10"}`),
-		CreatedAt:     time.Now().Truncate(time.Microsecond),
-	}
+	snap := newTestSnapshot(aggID, 10, []byte(`{"title":"v10"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {

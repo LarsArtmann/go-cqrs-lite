@@ -59,6 +59,27 @@ func orderStoreConfig() storeTestConfig {
 	}
 }
 
+func saveCfgEvent(
+	t *testing.T,
+	store event.Store,
+	cfg storeTestConfig,
+	aggID id.AggregateID,
+	evt *event.Core,
+) {
+	t.Helper()
+
+	err := store.Save(
+		context.Background(),
+		cfg.aggType,
+		aggID,
+		[]event.Event{evt},
+		event.Version(0),
+	)
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+}
+
 func testEventStore_SaveAndLoad(t *testing.T, store event.Store, cfg storeTestConfig) {
 	t.Helper()
 
@@ -100,20 +121,11 @@ func testEventStore_ConcurrencyConflict(t *testing.T, store event.Store, cfg sto
 	aggID := id.NewAggregateID()
 	evt := cfg.newTestEvent(t, aggID, 1)
 
-	err := store.Save(
-		context.Background(),
-		cfg.aggType,
-		aggID,
-		[]event.Event{evt},
-		event.Version(0),
-	)
-	if err != nil {
-		t.Fatalf("Save first: %v", err)
-	}
+	saveCfgEvent(t, store, cfg, aggID, evt)
 
 	evt2 := cfg.newTestEvent(t, aggID, 2)
 
-	err = store.Save(
+	err := store.Save(
 		context.Background(),
 		cfg.aggType,
 		aggID,
@@ -193,18 +205,9 @@ func testEventStore_Delete(t *testing.T, store event.Store, cfg storeTestConfig)
 	aggID := id.NewAggregateID()
 	evt := cfg.newTestEvent(t, aggID, 1)
 
-	err := store.Save(
-		context.Background(),
-		cfg.aggType,
-		aggID,
-		[]event.Event{evt},
-		event.Version(0),
-	)
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	saveCfgEvent(t, store, cfg, aggID, evt)
 
-	err = store.Delete(context.Background(), cfg.aggType, aggID)
+	err := store.Delete(context.Background(), cfg.aggType, aggID)
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
@@ -238,16 +241,7 @@ func testEventStore_MetadataRoundtrip(
 		event.WithCustom("env", customEnv),
 	)
 
-	err := store.Save(
-		context.Background(),
-		cfg.aggType,
-		aggID,
-		[]event.Event{evt},
-		event.Version(0),
-	)
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	saveCfgEvent(t, store, cfg, aggID, evt)
 
 	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
 	if err != nil {
