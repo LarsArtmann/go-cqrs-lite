@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
@@ -211,8 +212,8 @@ func writeChangelog(md *frontmatterWriter, changelog []catalog.Change) {
 	for _, c := range changelog {
 		_, _ = fmt.Fprintf(md, "  - version: %q\n    summary: %q", c.Version, c.Summary)
 
-		if c.Date != "" {
-			_, _ = fmt.Fprintf(md, "\n    date: %q", c.Date)
+		if c.Date != nil {
+			_, _ = fmt.Fprintf(md, "\n    date: %q", c.Date.Format(time.DateOnly))
 		}
 
 		_, _ = md.WriteString("\n")

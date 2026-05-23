@@ -1,6 +1,9 @@
 package catalog
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 // ServiceID identifies a service in the catalog (e.g., "user-service").
 type ServiceID string
@@ -162,9 +165,9 @@ func GetID(msg Message) MessageID {
 
 // Change describes a single modification to a message over time.
 type Change struct {
-	Version string `json:"version"`
-	Date    string `json:"date,omitempty"`
-	Summary string `json:"summary"`
+	Version string     `json:"version"`
+	Date    *time.Time `json:"date,omitempty"`
+	Summary string     `json:"summary"`
 }
 
 // IsSend reports whether the message direction is Sends.
