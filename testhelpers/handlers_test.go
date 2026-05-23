@@ -160,6 +160,76 @@ func TestCallbackQueryHandler(t *testing.T) {
 	}
 }
 
+func TestFailingQueryHandler(t *testing.T) {
+	t.Parallel()
+
+	handler := FailingQueryHandler("query fail")
+
+	_, err := handler(context.Background(), query.Query(nil))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if err.Error() != "query fail" {
+		t.Errorf("error = %q, want query fail", err.Error())
+	}
+}
+
+func TestPanicCommandHandler(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+
+		if r != "boom" {
+			t.Errorf("panic = %v, want boom", r)
+		}
+	}()
+
+	handler := PanicCommandHandler("boom")
+	_ = handler(context.Background(), testCmd(t))
+}
+
+func TestPanicEventHandler(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+
+		if r != "evt-boom" {
+			t.Errorf("panic = %v, want evt-boom", r)
+		}
+	}()
+
+	handler := PanicEventHandler("evt-boom")
+	evt, _ := NewTestEvent()
+	_ = handler(context.Background(), evt)
+}
+
+func TestPanicQueryHandler(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+
+		if r != "q-boom" {
+			t.Errorf("panic = %v, want q-boom", r)
+		}
+	}()
+
+	handler := PanicQueryHandler("q-boom")
+	_, _ = handler(context.Background(), nil)
+}
+
 func TestCommandMiddleware(t *testing.T) {
 	t.Parallel()
 

@@ -107,3 +107,71 @@ func TestFakeStore_LoadToTimestamp_EmptyStream(t *testing.T) {
 		t.Fatalf("expected 0 events, got %d", len(events))
 	}
 }
+
+func TestFakeStore_LoadFn(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	called := false
+
+	store.LoadFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, _ = store.Load(context.Background(), "User", id.NewAggregateID())
+	if !called {
+		t.Fatal("expected LoadFn to be called")
+	}
+}
+
+func TestFakeStore_LoadFromVersionFn(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	called := false
+
+	store.LoadFromVersionFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, _ = store.LoadFromVersion(context.Background(), "User", id.NewAggregateID(), 1)
+	if !called {
+		t.Fatal("expected LoadFromVersionFn to be called")
+	}
+}
+
+func TestFakeStore_DeleteFn(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	called := false
+
+	store.DeleteFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID) error {
+		called = true
+		return nil
+	})
+
+	_ = store.Delete(context.Background(), "User", id.NewAggregateID())
+	if !called {
+		t.Fatal("expected DeleteFn to be called")
+	}
+}
+
+func TestFakeStore_CloseFn(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	called := false
+
+	store.CloseFn(func() error {
+		called = true
+		return nil
+	})
+
+	_ = store.Close()
+	if !called {
+		t.Fatal("expected CloseFn to be called")
+	}
+}
