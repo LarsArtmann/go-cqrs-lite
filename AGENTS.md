@@ -415,22 +415,23 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `core/pkg/dispatcher`  | 100.0%   |
 | `middleware`           | 100.0%   |
 | `catalog/adapters`     | 100.0%   |
+| `catalog/internal/caseutil` | 100.0% |
 | `memory`               | 99.6%    |
 | `core/pkg/id`          | 98.1%    |
+| `catalog`              | 96.8%    |
 | `core/aggregate`       | 95.9%    |
-| `catalog`              | 96.7%    |
 | `catalog/d2`           | 95.0%    |
 | `core/command`         | 94.7%    |
-| `projection`           | 94.3%    |
 | `catalog/openapi`      | 94.4%    |
+| `projection`           | 94.4%    |
 | `catalog/asyncapi`     | 93.7%    |
-| `core/decider`         | 93.3%    |
-| `sync`                 | 90.2%    |
+| `core/decider`         | 93.6%    |
 | `catalog/eventcatalog` | 91.3%    |
-| `catalog/docserver`    | 90.0%    |
-| `core/event`           | 90.9%    |
-| `storage`              | 86.9%    |
-| `testhelpers`          | 64.6%    |
+| `catalog/docserver`    | 90.1%    |
+| `storage`              | 89.2%    |
+| `core/event`           | 86.1%    |
+| `catalog/internal/schemautil` | 84.2% |
+| `testhelpers`          | 80.3%    |
 
 ## Module Dependency Graph
 
@@ -574,3 +575,4 @@ Key milestones:
 | 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation |
 | 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed               |
 | 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%       |
+| 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%            |
