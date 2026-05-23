@@ -155,12 +155,6 @@ linters:
     funlen:
       lines: 200
       statements: 100
-    gci:
-      custom-order: true
-      sections:
-        - standard
-        - default
-        - prefix(github.com/larsartmann/go-cqrs-lite)
     gocognit:
       min-complexity: 35
     gocritic:
@@ -291,6 +285,13 @@ formatters:
     - goimports
     - gofumpt
     - golines
+  settings:
+    gci:
+      custom-order: true
+      sections:
+        - standard
+        - default
+        - prefix(github.com/larsartmann/go-cqrs-lite)
   exclusions:
     generated: lax
     paths:

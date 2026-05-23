@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	_ "modernc.org/sqlite"
 )
 
 func newSQLiteTestDB(t *testing.T) *sql.DB {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-faster/yaml"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 

@@ -3,12 +3,13 @@ package middleware
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"

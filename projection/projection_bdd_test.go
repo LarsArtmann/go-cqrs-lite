@@ -5,12 +5,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 type countingHandler struct {

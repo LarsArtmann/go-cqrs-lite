@@ -12,6 +12,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
+
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"

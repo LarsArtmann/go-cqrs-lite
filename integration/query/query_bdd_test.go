@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 func TestQueryBDD(t *testing.T) {

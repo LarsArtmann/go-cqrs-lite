@@ -3,11 +3,12 @@ package event_test
 import (
 	"context"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Event Metadata Roundtrip", func() {

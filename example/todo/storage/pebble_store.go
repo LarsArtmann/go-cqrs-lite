@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/cockroachdb/pebble"
+
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 

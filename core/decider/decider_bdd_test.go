@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 // bddCounter models a simple counter aggregate for BDD scenarios.
