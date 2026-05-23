@@ -56,3 +56,17 @@ func QuickEvent(
 
 	return evt
 }
+
+// QuickEventOpts creates an event with the given parameters and options, discarding errors.
+func QuickEventOpts(
+	eventType event.Type,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	version event.Version,
+	payload []byte,
+	opts ...event.Option,
+) event.Event {
+	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
+
+	return evt
+}

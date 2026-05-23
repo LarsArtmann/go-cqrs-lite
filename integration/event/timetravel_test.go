@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
@@ -26,17 +27,17 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	now := time.Now()
 
-	evt1, _ := event.NewEvent(
+	evt1 := testhelpers.QuickEventOpts(
 		"CounterCreated", aggID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
-	evt2, _ := event.NewEvent(
+	evt2 := testhelpers.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-1*time.Hour)),
 	)
-	evt3, _ := event.NewEvent(
+	evt3 := testhelpers.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),
@@ -77,17 +78,17 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	now := time.Now()
 
-	evt1, _ := event.NewEvent(
+	evt1 := testhelpers.QuickEventOpts(
 		"CounterCreated", aggID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
-	evt2, _ := event.NewEvent(
+	evt2 := testhelpers.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-30*time.Minute)),
 	)
-	evt3, _ := event.NewEvent(
+	evt3 := testhelpers.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),

@@ -1042,30 +1042,12 @@ func TestRepository_LoadAtTime(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1, _ := event.NewEvent(
-		"CounterCreated",
-		aggID,
-		"Counter",
-		1,
-		[]byte("{}"),
-		event.WithOccurredAt(now.Add(-2*time.Hour)),
-	)
-	evt2, _ := event.NewEvent(
-		"CounterIncremented",
-		aggID,
-		"Counter",
-		2,
-		[]byte("{}"),
-		event.WithOccurredAt(now.Add(-1*time.Hour)),
-	)
-	evt3, _ := event.NewEvent(
-		"CounterIncremented",
-		aggID,
-		"Counter",
-		3,
-		[]byte("{}"),
-		event.WithOccurredAt(now),
-	)
+	evt1 := testhelpers.QuickEventOpts("CounterCreated", aggID, "Counter", 1, []byte("{}"),
+		event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2 := testhelpers.QuickEventOpts("CounterIncremented", aggID, "Counter", 2, []byte("{}"),
+		event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3 := testhelpers.QuickEventOpts("CounterIncremented", aggID, "Counter", 3, []byte("{}"),
+		event.WithOccurredAt(now))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2, evt3})
 
