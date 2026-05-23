@@ -84,3 +84,30 @@ func TestJSONToYAML_InvalidJSON(t *testing.T) {
 		t.Error("expected error for invalid JSON")
 	}
 }
+
+func TestJSONToYAML_Empty(t *testing.T) {
+	t.Parallel()
+
+	output, err := JSONToYAML([]byte("null"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(output) == 0 {
+		t.Error("expected non-empty output")
+	}
+}
+
+func TestSchemaToAny_EmptySchema(t *testing.T) {
+	t.Parallel()
+
+	result := SchemaToAny(&catalog.Schema{})
+	m, ok := result.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map[string]any, got %T", result)
+	}
+
+	if m["type"] != "" {
+		t.Errorf("type = %v, want empty", m["type"])
+	}
+}
