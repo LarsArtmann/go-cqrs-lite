@@ -114,8 +114,9 @@ func TestFakeStore_LoadFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.LoadFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error) {
+	store.LoadFn(func(_ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
 		called = true
+
 		return nil, nil
 	})
 
@@ -131,8 +132,11 @@ func TestFakeStore_LoadFromVersionFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.LoadFromVersionFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error) {
+	store.LoadFromVersionFn(func(
+		_ event.AggregateType, _ id.AggregateID, _ event.Version,
+	) ([]event.Event, error) {
 		called = true
+
 		return nil, nil
 	})
 
@@ -148,8 +152,9 @@ func TestFakeStore_DeleteFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.DeleteFn(func(aggregateType event.AggregateType, aggregateID id.AggregateID) error {
+	store.DeleteFn(func(_ event.AggregateType, _ id.AggregateID) error {
 		called = true
+
 		return nil
 	})
 
@@ -167,6 +172,7 @@ func TestFakeStore_CloseFn(t *testing.T) {
 
 	store.CloseFn(func() error {
 		called = true
+
 		return nil
 	})
 
