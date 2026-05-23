@@ -11,6 +11,14 @@ func TestToSeparated(t *testing.T) {
 		{"XMLParser", "xml.parser"},
 		{"simple", "simple"},
 		{"", ""},
+		{"GetUser2", "get.user.2"},
+		{"V2API", "v.2api"},
+		{"hello world", "hello.world"},
+		{"hello_world", "hello.world"},
+		{"ABCD", "abcd"},
+		{"Réservé", "rserv"},
+		{"A", "a"},
+		{"already-lower", "already-lower"},
 	}
 
 	for _, tt := range tests {
@@ -62,6 +70,9 @@ func TestToPascal(t *testing.T) {
 		{"create_user", "CreateUser"},
 		{"get-user-by-id", "GetUserById"},
 		{"simple", "Simple"},
+		{"", ""},
+		{"a b", "AB"},
+		{"x", "X"},
 	}
 
 	for _, tt := range tests {
