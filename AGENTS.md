@@ -426,10 +426,10 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `projection`           | 94.4%    |
 | `catalog/asyncapi`     | 93.7%    |
 | `core/decider`         | 93.6%    |
+| `core/event`           | 93.8%    |
 | `catalog/eventcatalog` | 91.3%    |
 | `catalog/docserver`    | 90.1%    |
 | `storage`              | 89.2%    |
-| `core/event`           | 86.1%    |
 | `catalog/internal/schemautil` | 84.2% |
 | `testhelpers`          | 80.3%    |
 
