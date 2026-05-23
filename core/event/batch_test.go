@@ -99,7 +99,8 @@ func TestMustNewEvents_Panics(t *testing.T) {
 	}()
 
 	aggID := id.NewAggregateID()
-	event.MustNewEvents(aggID, "User", 0,
+	event.MustNewEvents(
+		aggID, "User", 0,
 		[]event.Type{"a"},
 		[]any{"x", "y"},
 	)
