@@ -119,6 +119,12 @@ func (ds *DocsServer) CatalogJSON() http.HandlerFunc {
 // The FS is rooted at the "static" subdirectory, so files are accessible
 // as "asyncapi-react.js", "scalar.js", etc. (no "static/" prefix needed).
 func (ds *DocsServer) StaticFS() http.FileSystem {
+	return mustStaticFS()
+}
+
+// mustStaticFS wraps fs.Sub in a Must-style helper.
+// Panics only if the embedded filesystem is corrupt (programming error).
+func mustStaticFS() http.FileSystem {
 	sub, err := fs.Sub(staticAssets, "static")
 	if err != nil {
 		panic("docserver: static assets sub: " + err.Error())
