@@ -21,13 +21,9 @@ func (a *PebbleEventStore) checkVersion(
 		return fmt.Errorf("concurrency check: %w", err)
 	}
 
-	if len(existing) != expectedVersion.Int() {
-		return fmt.Errorf(
-			"%w: expected version %d, got %d",
-			event.ErrVersionConflict,
-			expectedVersion,
-			len(existing),
-		)
+	err = event.CheckVersionConflict(len(existing), expectedVersion)
+	if err != nil {
+		return fmt.Errorf("concurrency check: %w", err)
 	}
 
 	return nil

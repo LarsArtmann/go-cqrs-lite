@@ -55,13 +55,9 @@ func (s *MemoryStore) Save(
 	key := streamKey(aggregateType, aggregateID)
 	existing := s.events[key]
 
-	if len(existing) != expectedVersion.Int() {
-		return fmt.Errorf(
-			"%w: expected version %d, got %d",
-			event.ErrVersionConflict,
-			expectedVersion,
-			len(existing),
-		)
+	err = event.CheckVersionConflict(len(existing), expectedVersion)
+	if err != nil {
+		return fmt.Errorf("memory store save: %w", err)
 	}
 
 	s.events[key] = append(existing, events...)

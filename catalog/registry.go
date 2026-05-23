@@ -76,16 +76,9 @@ func (r *Registry) AddService(svc Service) {
 }
 
 func copyServicePtr(s Service) *Service {
-	return &Service{
-		ID:       s.ID,
-		Name:     s.Name,
-		Version:  s.Version,
-		Summary:  s.Summary,
-		Owners:   copySlice(s.Owners),
-		Commands: copyMessages(s.Commands),
-		Events:   copyMessages(s.Events),
-		Queries:  copyMessages(s.Queries),
-	}
+	cp := copyService(&s)
+
+	return &cp
 }
 
 // ensureServiceEntry returns a service entry for the given ID, creating it if needed.
@@ -165,14 +158,9 @@ func (r *Registry) AddDomain(domain Domain) {
 }
 
 func copyDomainPtr(d Domain) *Domain {
-	return &Domain{
-		ID:       d.ID,
-		Name:     d.Name,
-		Version:  d.Version,
-		Summary:  d.Summary,
-		Owners:   copySlice(d.Owners),
-		Services: copySlice(d.Services),
-	}
+	cp := copyDomain(&d)
+
+	return &cp
 }
 
 // AddServiceToDomain associates an existing service with an existing domain.
@@ -199,15 +187,9 @@ func (r *Registry) AddChannel(ch Channel) {
 }
 
 func copyChannelPtr(ch Channel) *Channel {
-	return &Channel{
-		ID:        ch.ID,
-		Name:      ch.Name,
-		Version:   ch.Version,
-		Summary:   ch.Summary,
-		Address:   ch.Address,
-		Protocols: copySlice(ch.Protocols),
-		Messages:  copySlice(ch.Messages),
-	}
+	cp := copyChannel(&ch)
+
+	return &cp
 }
 
 // Build returns an immutable Catalog with all registered entries.

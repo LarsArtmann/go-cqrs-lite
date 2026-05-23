@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"testing"
 	"time"
@@ -27,222 +26,34 @@ func newPebbleTestStore(t *testing.T) *PebbleEventStore {
 	return NewPebbleStore(db, slog.Default())
 }
 
-func pebbleTestEvent(t *testing.T, aggID id.AggregateID, version event.Version) *event.Core {
-	t.Helper()
-
-	evt, err := event.NewEvent(
-		"IssueCreated",
-		aggID,
-		"Issue",
-		version,
-		[]byte(fmt.Sprintf(`{"title":"test-%d"}`, version)),
-	)
-	if err != nil {
-		t.Fatalf("create test event: %v", err)
-	}
-
-	return evt
-}
-
 func TestPebbleEventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := pebbleTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	if loaded[0].Type() != "IssueCreated" {
-		t.Errorf("Type = %q, want IssueCreated", loaded[0].Type())
-	}
-
-	if loaded[0].ID() != evt.ID() {
-		t.Errorf("ID = %v, want %v", loaded[0].ID(), evt.ID())
-	}
+	testEventStore_SaveAndLoad(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
 func TestPebbleEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := pebbleTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save first: %v", err)
-	}
-
-	evt2 := pebbleTestEvent(t, aggID, 2)
-
-	err = store.Save(context.Background(), "Issue", aggID, []event.Event{evt2}, event.Version(0))
-	if err == nil {
-		t.Fatal("expected version mismatch error")
-	}
+	testEventStore_ConcurrencyConflict(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
 func TestPebbleEventStore_AppendBatch(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt1 := pebbleTestEvent(t, aggID, 1)
-	evt2 := pebbleTestEvent(t, aggID, 2)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID, []event.Event{evt1, evt2})
-	if err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 events, got %d", len(loaded))
-	}
-
-	if loaded[0].Version() != 1 {
-		t.Errorf("events[0].Version = %d, want 1", loaded[0].Version())
-	}
-
-	if loaded[1].Version() != 2 {
-		t.Errorf("events[1].Version = %d, want 2", loaded[1].Version())
-	}
+	testEventStore_AppendBatch(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
 func TestPebbleEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt1 := pebbleTestEvent(t, aggID, 1)
-	evt2 := pebbleTestEvent(t, aggID, 2)
-	evt3 := pebbleTestEvent(t, aggID, 3)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID, []event.Event{evt1, evt2, evt3})
-	if err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
-
-	loaded, err := store.LoadFromVersion(context.Background(), "Issue", aggID, event.Version(1))
-	if err != nil {
-		t.Fatalf("LoadFromVersion: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 events after version 1, got %d", len(loaded))
-	}
-
-	if loaded[0].Version() != 2 {
-		t.Errorf("events[0].Version = %d, want 2", loaded[0].Version())
-	}
+	testEventStore_LoadFromVersion(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
 func TestPebbleEventStore_Delete(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := pebbleTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	err = store.Delete(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load after delete: %v", err)
-	}
-
-	if len(loaded) != 0 {
-		t.Fatalf("expected 0 events after delete, got %d", len(loaded))
-	}
+	testEventStore_Delete(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
 func TestPebbleEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-	cid := id.NewCorrelationID()
-	uid := id.NewUserID()
-
-	evtWithMeta, err := event.NewEvent(
-		"IssueCreated",
-		aggID,
-		"Issue",
-		1,
-		[]byte(`{"title":"test-1"}`),
-		event.WithCorrelationID(cid),
-		event.WithUserID(uid),
-		event.WithCustom("env", "test"),
-	)
-	if err != nil {
-		t.Fatalf("create event with metadata: %v", err)
-	}
-
-	err = store.Save(
-		context.Background(),
-		"Issue",
-		aggID,
-		[]event.Event{evtWithMeta},
-		event.Version(0),
-	)
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	meta := loaded[0].Metadata()
-	if meta == nil {
-		t.Fatal("Metadata is nil")
-	}
-
-	if meta.CorrelationID != cid {
-		t.Errorf("CorrelationID = %v, want %v", meta.CorrelationID, cid)
-	}
-
-	if meta.UserID != uid {
-		t.Errorf("UserID = %v, want %v", meta.UserID, uid)
-	}
-
-	if meta.Custom["env"] != "test" {
-		t.Errorf("Custom[env] = %q, want %q", meta.Custom["env"], "test")
-	}
+	testEventStore_MetadataRoundtrip(t, newPebbleTestStore(t), issueStoreConfig(), "test")
 }
 
 func TestPebbleEventStore_Close(t *testing.T) {
@@ -313,7 +124,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 	store := NewPebbleStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 
-	evt := pebbleTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
 
 	err = store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -385,7 +196,7 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 			t.Parallel()
 
 			store := newPebbleTestStore(t)
-			evt := pebbleTestEvent(t, tt.eventAggID, tt.eventVersion)
+			evt := issueStoreConfig().newTestEvent(t, tt.eventAggID, tt.eventVersion)
 
 			err := store.Save(
 				context.Background(),
@@ -469,9 +280,9 @@ func TestPebbleEventStore_LoadToVersion(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt1 := pebbleTestEvent(t, aggID, 1)
-	evt2 := pebbleTestEvent(t, aggID, 2)
-	evt3 := pebbleTestEvent(t, aggID, 3)
+	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
+	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
 	if err != nil {

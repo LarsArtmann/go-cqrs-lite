@@ -53,7 +53,7 @@ var (
 		"event.version_not_positive",
 		"version must be positive",
 	)
-	ErrNilPayload          = NewRejection("event.nil_payload", "payload is required")
+	ErrNilPayload           = NewRejection("event.nil_payload", "payload is required")
 	ErrMismatchedEventCount = NewRejection(
 		"event.mismatched_event_count",
 		"event types and payloads count must match",

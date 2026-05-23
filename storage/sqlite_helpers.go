@@ -49,9 +49,8 @@ func OpenSQLiteInMemory() (*sql.DB, error) {
 	return OpenSQLite("file::memory:")
 }
 
-// SQLiteInitSchema creates all required tables in the SQLite database.
-func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
+func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
+	for _, ddl := range ddls {
 		_, err := db.ExecContext(ctx, ddl)
 		if err != nil {
 			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
@@ -59,6 +58,20 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	}
 
 	return nil
+}
+
+// SQLiteInitSchema creates all required tables in the SQLite database.
+func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
+	return execDDL(
+		ctx,
+		db,
+		[]string{
+			SQLiteSchema(),
+			SQLiteSnapshotSchema(),
+			SQLiteCheckpointSchema(),
+			SQLiteOutboxSchema(),
+		},
+	)
 }
 
 // SQLiteEnableWAL enables Write-Ahead Logging for better concurrent read
@@ -94,12 +107,9 @@ func ConfigureTursoPool(db *sql.DB) {
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	pg := PostgresDialect{}
 
-	for _, ddl := range []string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema(), pg.OutboxSchema()} {
-		_, err := db.ExecContext(ctx, ddl)
-		if err != nil {
-			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
-		}
-	}
-
-	return nil
+	return execDDL(
+		ctx,
+		db,
+		[]string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema(), pg.OutboxSchema()},
+	)
 }

@@ -133,6 +133,22 @@ func (v Version) Cmp(other Version) int {
 	return 0
 }
 
+// CheckVersionConflict verifies that existingLen matches the expected version.
+// Returns ErrVersionConflict if they differ, nil otherwise.
+// Useful for optimistic concurrency checks in event stores.
+func CheckVersionConflict(existingLen int, expected Version) error {
+	if existingLen != expected.Int() {
+		return fmt.Errorf(
+			"%w: expected version %d, got %d",
+			ErrVersionConflict,
+			expected,
+			existingLen,
+		)
+	}
+
+	return nil
+}
+
 // SchemaVersion represents the schema version of an event payload.
 // Distinct from Version (stream position) to prevent accidental mixing.
 type SchemaVersion int

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -53,148 +52,24 @@ func newSQLiteTestStore(t *testing.T) *SQLEventStore {
 	return store
 }
 
-func sqliteTestEvent(
-	t *testing.T,
-	aggID id.AggregateID,
-	version event.Version,
-	opts ...event.Option,
-) *event.Core {
-	t.Helper()
-
-	evt, err := event.NewEvent(
-		"IssueCreated",
-		aggID,
-		"Issue",
-		version,
-		[]byte(fmt.Sprintf(`{"title":"test-%d"}`, version)),
-		opts...,
-	)
-	if err != nil {
-		t.Fatalf("create test event: %v", err)
-	}
-
-	return evt
-}
-
 func TestSQLiteEventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := sqliteTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	if loaded[0].Type() != "IssueCreated" {
-		t.Errorf("Type = %q, want IssueCreated", loaded[0].Type())
-	}
-
-	if loaded[0].ID() != evt.ID() {
-		t.Errorf("ID = %v, want %v", loaded[0].ID(), evt.ID())
-	}
-
-	if !loaded[0].OccurredAt().Equal(evt.OccurredAt()) {
-		t.Errorf("OccurredAt = %v, want %v", loaded[0].OccurredAt(), evt.OccurredAt())
-	}
+	testEventStore_SaveAndLoad(t, newSQLiteTestStore(t), issueStoreConfig())
 }
 
 func TestSQLiteEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := sqliteTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save first: %v", err)
-	}
-
-	evt2 := sqliteTestEvent(t, aggID, 2)
-
-	err = store.Save(context.Background(), "Issue", aggID, []event.Event{evt2}, event.Version(0))
-	if err == nil {
-		t.Fatal("expected concurrency conflict error")
-	}
-
-	if !errors.Is(err, event.ErrVersionConflict) {
-		t.Errorf("error should wrap event.ErrVersionConflict, got: %v", err)
-	}
+	testEventStore_ConcurrencyConflict(t, newSQLiteTestStore(t), issueStoreConfig())
 }
 
 func TestSQLiteEventStore_AppendBatch(t *testing.T) {
 	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt1 := sqliteTestEvent(t, aggID, 1)
-	evt2 := sqliteTestEvent(t, aggID, 2)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID, []event.Event{evt1, evt2})
-	if err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 events, got %d", len(loaded))
-	}
-
-	if loaded[0].Version() != 1 {
-		t.Errorf("events[0].Version = %d, want 1", loaded[0].Version())
-	}
-
-	if loaded[1].Version() != 2 {
-		t.Errorf("events[1].Version = %d, want 2", loaded[1].Version())
-	}
+	testEventStore_AppendBatch(t, newSQLiteTestStore(t), issueStoreConfig())
 }
 
 func TestSQLiteEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt1 := sqliteTestEvent(t, aggID, 1)
-	evt2 := sqliteTestEvent(t, aggID, 2)
-	evt3 := sqliteTestEvent(t, aggID, 3)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID, []event.Event{evt1, evt2, evt3})
-	if err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
-
-	loaded, err := store.LoadFromVersion(context.Background(), "Issue", aggID, event.Version(1))
-	if err != nil {
-		t.Fatalf("LoadFromVersion: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 events after version 1, got %d", len(loaded))
-	}
-
-	if loaded[0].Version() != 2 {
-		t.Errorf("events[0].Version = %d, want 2", loaded[0].Version())
-	}
+	testEventStore_LoadFromVersion(t, newSQLiteTestStore(t), issueStoreConfig())
 }
 
 func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
@@ -215,7 +90,7 @@ func TestSQLiteEventStore_Delete(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	aggID := id.NewAggregateID()
 
-	evt := sqliteTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
 
 	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -240,13 +115,13 @@ func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	evt1 := sqliteTestEvent(
+	evt1 := issueStoreConfig().newTestEvent(
 		t,
 		aggID1,
 		1,
 		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
 	)
-	evt2 := sqliteTestEvent(
+	evt2 := issueStoreConfig().newTestEvent(
 		t,
 		aggID2,
 		1,
@@ -275,49 +150,7 @@ func TestSQLiteEventStore_LoadAll(t *testing.T) {
 
 func TestSQLiteEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-	cid := id.NewCorrelationID()
-	uid := id.NewUserID()
-
-	evt := sqliteTestEvent(
-		t, aggID, 1,
-		event.WithCorrelationID(cid),
-		event.WithUserID(uid),
-		event.WithCustom("env", "test"),
-	)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	meta := loaded[0].Metadata()
-	if meta == nil {
-		t.Fatal("Metadata is nil")
-	}
-
-	if meta.CorrelationID != cid {
-		t.Errorf("CorrelationID = %v, want %v", meta.CorrelationID, cid)
-	}
-
-	if meta.UserID != uid {
-		t.Errorf("UserID = %v, want %v", meta.UserID, uid)
-	}
-
-	if meta.Custom["env"] != "test" {
-		t.Errorf("Custom[env] = %q, want %q", meta.Custom["env"], "test")
-	}
+	testEventStore_MetadataRoundtrip(t, newSQLiteTestStore(t), issueStoreConfig(), "test")
 }
 
 func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
@@ -463,44 +296,9 @@ func TestSQLiteOutbox_Roundtrip(t *testing.T) {
 		t.Fatalf("NewSQLiteOutbox: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
-	evt := sqliteTestEvent(t, aggID, 1)
-
-	err = outbox.Append(context.Background(), []event.Event{evt})
-	if err != nil {
-		t.Fatalf("Append: %v", err)
-	}
-
-	entries, err := outbox.PollPending(context.Background(), 10)
-	if err != nil {
-		t.Fatalf("PollPending: %v", err)
-	}
-
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
-
-	if len(entries[0].Events) != 1 {
-		t.Fatalf("expected 1 event in entry, got %d", len(entries[0].Events))
-	}
-
-	if entries[0].Events[0].Type() != "IssueCreated" {
-		t.Errorf("Type = %q, want IssueCreated", entries[0].Events[0].Type())
-	}
-
-	err = outbox.Ack(context.Background(), []event.OutboxID{entries[0].ID})
-	if err != nil {
-		t.Fatalf("Ack: %v", err)
-	}
-
-	entries, err = outbox.PollPending(context.Background(), 10)
-	if err != nil {
-		t.Fatalf("PollPending after ack: %v", err)
-	}
-
-	if len(entries) != 0 {
-		t.Fatalf("expected 0 entries after ack, got %d", len(entries))
-	}
+	testOutbox_Roundtrip(t, outbox, func() event.Event {
+		return issueStoreConfig().newTestEvent(t, id.NewAggregateID(), 1)
+	})
 }
 
 func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
@@ -525,7 +323,7 @@ func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	evt := sqliteTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
 
 	err = txStore.SaveWithOutbox(
 		context.Background(),

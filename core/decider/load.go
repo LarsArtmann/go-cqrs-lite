@@ -27,25 +27,11 @@ func (r *Repository[State]) loadFromStore(
 	aggID id.AggregateID,
 	aggType event.AggregateType,
 ) (State, event.Version, error) {
-	events, err := r.store.Load(ctx, aggType, aggID)
-	if err != nil {
-		if errors.Is(err, event.ErrAggregateNotFound) {
-			return r.decider.Initial, 0, nil
-		}
-
-		var zero State
-
-		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
-	}
-
-	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
-	if err != nil {
-		var zero State
-
-		return zero, 0, err
-	}
-
-	return state, event.Version(len(events)), nil
+	return r.loadByEvents(
+		func() ([]event.Event, error) { return r.store.Load(ctx, aggType, aggID) },
+		aggType,
+		aggID,
+	)
 }
 
 func (r *Repository[State]) foldEvents(

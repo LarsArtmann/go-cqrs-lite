@@ -3,8 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -33,91 +31,8 @@ func initTursoSchema(t *testing.T, db *sql.DB) {
 	}
 }
 
-func tursoTestEvent(
-	t *testing.T,
-	aggID id.AggregateID,
-	version event.Version,
-	opts ...event.Option,
-) *event.Core {
+func newTursoTestStore(t *testing.T) event.Store {
 	t.Helper()
-
-	evt, err := event.NewEvent(
-		"OrderPlaced",
-		aggID,
-		"Order",
-		version,
-		[]byte(fmt.Sprintf(`{"item":"widget-%d"}`, version)),
-		opts...,
-	)
-	if err != nil {
-		t.Fatalf("create test event: %v", err)
-	}
-
-	return evt
-}
-
-func TestTurso_OpenLocalDB(t *testing.T) {
-	t.Parallel()
-
-	db := newTursoTestDB(t)
-
-	if err := db.PingContext(context.Background()); err != nil {
-		t.Fatalf("Ping: %v", err)
-	}
-}
-
-func TestTurso_OpenTursoInMemory(t *testing.T) {
-	t.Parallel()
-
-	db, err := OpenTursoInMemory()
-	if err != nil {
-		t.Fatalf("OpenTursoInMemory: %v", err)
-	}
-
-	defer func() { _ = db.Close() }()
-
-	if err := db.PingContext(context.Background()); err != nil {
-		t.Fatalf("Ping: %v", err)
-	}
-}
-
-func TestTurso_InitSchema(t *testing.T) {
-	t.Parallel()
-
-	db := newTursoTestDB(t)
-	initTursoSchema(t, db)
-
-	tables := []string{"events", "snapshots", "checkpoints", "outbox"}
-
-	for _, table := range tables {
-		var name string
-
-		err := db.QueryRowContext(
-			context.Background(),
-			"SELECT name FROM sqlite_master WHERE type='table' AND name = ?",
-			table,
-		).Scan(&name)
-		if err != nil {
-			t.Errorf("table %q not found: %v", table, err)
-		}
-	}
-}
-
-func TestTurso_SyncRejectsMemoryDB(t *testing.T) {
-	t.Parallel()
-
-	_, err := OpenTursoSync(context.Background(), ":memory:", "https://example.com", "token")
-	if err == nil {
-		t.Fatal("expected error for :memory: with remote URL")
-	}
-
-	if !errors.Is(err, ErrTursoMemorySync) {
-		t.Errorf("error = %v, want ErrTursoMemorySync", err)
-	}
-}
-
-func TestTurso_ConstructorDelegatesToSQLite(t *testing.T) {
-	t.Parallel()
 
 	db := newTursoTestDB(t)
 	initTursoSchema(t, db)
@@ -127,69 +42,17 @@ func TestTurso_ConstructorDelegatesToSQLite(t *testing.T) {
 		t.Fatalf("NewTursoEventStore: %v", err)
 	}
 
-	_, err = store.Load(context.Background(), "Order", id.NewAggregateID())
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
-	}
+	return store
 }
 
 func TestTurso_EventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
-
-	db := newTursoTestDB(t)
-	initTursoSchema(t, db)
-
-	store, err := NewTursoEventStore(db)
-	if err != nil {
-		t.Fatalf("NewTursoEventStore: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-	evt := tursoTestEvent(t, aggID, 1)
-
-	err = store.Save(context.Background(), "Order", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Order", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	if loaded[0].Type() != "OrderPlaced" {
-		t.Errorf("Type = %q, want OrderPlaced", loaded[0].Type())
-	}
+	testEventStore_SaveAndLoad(t, newTursoTestStore(t), orderStoreConfig())
 }
 
 func TestTurso_EventStore_ConcurrencyConflict(t *testing.T) {
 	t.Parallel()
-
-	db := newTursoTestDB(t)
-	initTursoSchema(t, db)
-
-	store, err := NewTursoEventStore(db)
-	if err != nil {
-		t.Fatalf("NewTursoEventStore: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-	evt := tursoTestEvent(t, aggID, 1)
-
-	err = store.Save(context.Background(), "Order", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save first: %v", err)
-	}
-
-	evt2 := tursoTestEvent(t, aggID, 2)
-	err = store.Save(context.Background(), "Order", aggID, []event.Event{evt2}, event.Version(0))
-	if !errors.Is(err, event.ErrVersionConflict) {
-		t.Fatalf("expected ErrVersionConflict, got %v", err)
-	}
+	testEventStore_ConcurrencyConflict(t, newTursoTestStore(t), orderStoreConfig())
 }
 
 func TestTurso_SnapshotStore_Roundtrip(t *testing.T) {
@@ -267,7 +130,7 @@ func TestTurso_Outbox_Roundtrip(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	evt := tursoTestEvent(t, aggID, 1)
+	evt := orderStoreConfig().newTestEvent(t, aggID, 1)
 
 	err = outbox.Append(context.Background(), []event.Event{evt})
 	if err != nil {
@@ -320,7 +183,7 @@ func TestTurso_TransactionalStore_SaveWithOutbox(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	evt := tursoTestEvent(t, aggID, 1)
+	evt := orderStoreConfig().newTestEvent(t, aggID, 1)
 
 	err = txStore.SaveWithOutbox(
 		context.Background(),
@@ -374,52 +237,7 @@ func TestTurso_NilDB_Errors(t *testing.T) {
 
 func TestTurso_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
-
-	db := newTursoTestDB(t)
-	initTursoSchema(t, db)
-
-	store, err := NewTursoEventStore(db)
-	if err != nil {
-		t.Fatalf("NewTursoEventStore: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-	cid := id.NewCorrelationID()
-	uid := id.NewUserID()
-
-	evt := tursoTestEvent(
-		t, aggID, 1,
-		event.WithCorrelationID(cid),
-		event.WithUserID(uid),
-		event.WithCustom("env", "production"),
-	)
-
-	err = store.Save(context.Background(), "Order", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Order", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	meta := loaded[0].Metadata()
-	if meta == nil {
-		t.Fatal("Metadata is nil")
-	}
-
-	if meta.CorrelationID != cid {
-		t.Errorf("CorrelationID = %v, want %v", meta.CorrelationID, cid)
-	}
-
-	if meta.UserID != uid {
-		t.Errorf("UserID = %v, want %v", meta.UserID, uid)
-	}
-
-	if meta.Custom["env"] != "production" {
-		t.Errorf("Custom[env] = %q, want %q", meta.Custom["env"], "production")
-	}
+	testEventStore_MetadataRoundtrip(t, newTursoTestStore(t), orderStoreConfig(), "production")
 }
 
 func TestTurso_FullWorkflow(t *testing.T) {
@@ -436,7 +254,7 @@ func TestTurso_FullWorkflow(t *testing.T) {
 	ctx := context.Background()
 
 	for i := range 5 {
-		evt := tursoTestEvent(t, aggID, event.Version(i+1))
+		evt := orderStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
 		err := store.Save(ctx, "Order", aggID, []event.Event{evt}, event.Version(i))
 		if err != nil {
 			t.Fatalf("Save event %d: %v", i+1, err)

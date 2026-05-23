@@ -17,9 +17,9 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt1 := sqliteTestEvent(t, aggID, 1)
-	evt2 := sqliteTestEvent(t, aggID, 2)
-	evt3 := sqliteTestEvent(t, aggID, 3)
+	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
+	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
 	if err != nil {
@@ -56,9 +56,9 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1 := sqliteTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2 := sqliteTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
-	evt3 := sqliteTestEvent(t, aggID, 3, event.WithOccurredAt(now))
+	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3, event.WithOccurredAt(now))
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
 	if err != nil {
@@ -97,13 +97,13 @@ func TestSQLiteEventStore_LoadAllFromPosition(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	evt1 := sqliteTestEvent(t, aggID, 1)
+	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
 
 	time.Sleep(2 * time.Millisecond)
-	evt2 := sqliteTestEvent(t, aggID, 2)
+	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
 
 	time.Sleep(2 * time.Millisecond)
-	evt3 := sqliteTestEvent(t, aggID, 3)
+	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
 	if err != nil {
@@ -140,7 +140,7 @@ func TestSQLiteEventStore_LoadAllFromPosition_ZeroID(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt := sqliteTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
 
 	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
 	if err != nil {
@@ -166,7 +166,7 @@ func TestSQLiteEventStore_LoadAllFromPosition_NoLimit(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	for i := range 5 {
-		evt := sqliteTestEvent(t, aggID, event.Version(i+1))
+		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
 		err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
 		if err != nil {
 			t.Fatalf("AppendBatch: %v", err)
