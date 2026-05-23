@@ -66,43 +66,36 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 	)
 }
 
+func parseBrandedID[T any](raw string, parse func(string) (T, error), label string) (T, bool) {
+	parsed, err := parse(raw)
+	if err != nil {
+		slog.Warn("pebble: corrupt "+label, "value", raw, "error", err)
+
+		var zero T
+
+		return zero, false
+	}
+
+	return parsed, true
+}
+
 func deserializeMetadata(s *serializableMetadata) *event.Metadata {
 	m := event.NewMetadata()
 
-	if s.CorrelationID != "" {
-		parsed, err := id.ParseCorrelationID(s.CorrelationID)
-		if err != nil {
-			slog.Warn("pebble: corrupt correlation ID", "value", s.CorrelationID, "error", err)
-		} else {
-			m.CorrelationID = parsed
-		}
+	if v, ok := parseBrandedID(s.CorrelationID, id.ParseCorrelationID, "correlation ID"); ok {
+		m.CorrelationID = v
 	}
 
-	if s.CausationID != "" {
-		parsed, err := id.ParseCausationID(s.CausationID)
-		if err != nil {
-			slog.Warn("pebble: corrupt causation ID", "value", s.CausationID, "error", err)
-		} else {
-			m.CausationID = parsed
-		}
+	if v, ok := parseBrandedID(s.CausationID, id.ParseCausationID, "causation ID"); ok {
+		m.CausationID = v
 	}
 
-	if s.UserID != "" {
-		parsed, err := id.ParseUserID(s.UserID)
-		if err != nil {
-			slog.Warn("pebble: corrupt user ID", "value", s.UserID, "error", err)
-		} else {
-			m.UserID = parsed
-		}
+	if v, ok := parseBrandedID(s.UserID, id.ParseUserID, "user ID"); ok {
+		m.UserID = v
 	}
 
-	if s.RequestID != "" {
-		parsed, err := id.ParseRequestID(s.RequestID)
-		if err != nil {
-			slog.Warn("pebble: corrupt request ID", "value", s.RequestID, "error", err)
-		} else {
-			m.RequestID = parsed
-		}
+	if v, ok := parseBrandedID(s.RequestID, id.ParseRequestID, "request ID"); ok {
+		m.RequestID = v
 	}
 
 	m.Source = event.Source(s.Source)
