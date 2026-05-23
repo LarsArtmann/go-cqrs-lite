@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-05-22 — Session 93 updates applied
+**Reconciled:** 2026-05-23 — Session 94 updates applied
 **Files Processed:** 252
 
 ## 🔴 HIGH Priority
@@ -27,7 +27,7 @@
 - [ ] Add slog.Warn for corrupt IDs in Pebble deserialization (source: storage/pebble_serialization.go:76-88)
 - [ ] Fix storage/dialect.go using `any` — 3 methods violate "no any" project rule (source: SESSION_84)
 - [x] ~~Fix retry middleware timer leak~~ — DONE (Session 20, `timer.Stop()` on both paths)
-- [ ] Fix decider Execute dual `%w` wrapping — first error unreachable via errors.As (source: core/decider/decider.go:113)
+- [x] ~~Fix decider Execute dual `%w` wrapping — first error unreachable via errors.As~~ — DONE (Session 93, single `%w` wrapping in decider.go)
 - [ ] Fix OutboxPublisher split-brain — cancel stays non-nil after Close() (source: ARCHITECTURAL_TYPE_SAFETY_SWEEP)
 - [x] ~~Fix WithMetadata to merge instead of destructively replace~~ — DONE (Session 55+, `mergeFrom()` in options.go)
 - [x] ~~Fix loadEvents — propagate snapshot load errors~~ — DONE (Session 28, checks `!errors.Is(err, ErrSnapshotNotFound)`)
@@ -46,7 +46,7 @@
 - [ ] Fix FuzzParse case-sensitivity — ULID case-folding roundtrip mismatch (source: multiple sessions)
 - [x] ~~Fix error misclassifications: ErrVersionMismatch, ErrAggregateTypeMismatch → Conflict family~~ — DONE (both use `event.NewConflict`)
 - [ ] Fix core→memory circular dependency — blocks publishing core independently (source: SESSION10)
-- [ ] Fix pre-commit hook — gci config + BuildFlow issues (source: multiple sessions)
+- [x] ~~Fix pre-commit hook — gci config + BuildFlow issues~~ — DONE (Session 94, .buildflow.yml + gci formatters.settings)
 - [x] ~~Fix example/todo build failures~~ — DONE (builds successfully)
 - [ ] Update stale AGENTS.md — missing sync/, catalog/openapi/, catalog/docserver/, example/todo/, storage Dialect (source: SESSION_72)
 - [ ] Update stale FEATURES.md — missing openapi, docserver, sync, dialect; stale coverage numbers (source: SESSION_72)
@@ -96,7 +96,7 @@
 - [ ] Storage coverage recovery: error path tests to reach 90%+ (source: multiple sessions)
 - [x] ~~Parameterize OutboxStatusPending in SQL queries~~ — DONE (typed constant + parameterized queries)
 - [x] ~~NewEvent: accept `event.Version` instead of raw `int`~~ — DONE (Session 65)
-- [ ] Add clock injection option `WithClock(func() time.Time)` to NewEvent (source: multiple sessions)
+- [x] ~~Add clock injection option `WithClock(func() time.Time)` to NewEvent~~ — DONE (Session 90, `event.WithClock`)
 - [ ] Add publish-side event middleware — events go through middleware on subscribe but not Publish() (source: SESSION14)
 - [x] ~~Log OutboxPublisher poll errors instead of silently swallowing~~ — DONE (Session 55, logs via slog)
 - [x] ~~Add Store.LoadToVersion to interface + MemoryStore + SQLEventStore + PebbleStore~~ — DONE (Session 80)
@@ -159,7 +159,7 @@
 - [ ] Extract shared opError helper — duplicated in aggregate + decider (source: SESSION_45)
 - [x] ~~Split core/decider/decider.go (265→<250 lines)~~ — DONE (Session 83, now 194 lines)
 - [x] ~~Split core/aggregate/repository.go (279→<250 lines)~~ — DONE (Session 52+, now 99 lines)
-- [ ] Formally deprecate aggregate package — add `// Deprecated: Use core/decider` notice (source: SESSION_85)
+- [x] ~~Formally deprecate aggregate package — add `// Deprecated: Use core/decider` notice~~ — DONE (Session 90+, `// Deprecated:` notice in aggregate.go)
 - [ ] Increase aggregate coverage to 95%+ — NewCore at 60%, loadFromStore at 75% (source: SESSION_45)
 - [ ] Increase decider coverage to 95%+ — loadFromSnapshot at 18.2%, missing error paths (source: SESSION_42)
 - [ ] Wire Codec into snapshot serialization — ApplySnapshot receives raw []byte (source: SESSION13)
@@ -174,7 +174,7 @@
 - [ ] Make AsyncAPI servers configurable instead of hardcoded kafka:9092 (source: SESSION16)
 - [ ] Simplify cattest/catalog.go to use zero-cost API instead of deprecated types (source: SESSION_74)
 - [ ] Remove deprecated CatalogBuilder from catalog/adapters (source: SESSION_85)
-- [ ] Remove unused testify from catalog/go.mod (source: SESSION_74)
+- [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep via ginkgo, cannot remove)
 - [x] ~~Extract CRDT primitives into sync/ module~~ — DONE (Session 31+, VectorClock, ConflictResolver, LWWResolver)
 - [x] ~~Add NodeID branded type and SyncMessageType enum~~ — DONE (Session 31+, `sync/types.go`)
 - [x] ~~Add VectorClock.Compare enum return~~ — DONE (Session 80+, `Cmp()` returns `ClockOrder`)
@@ -187,14 +187,14 @@
 - [ ] Add background polling for InMemoryRunner (currently push-model only) (source: FEATURES)
 - [ ] Increase projection coverage to 95%+ — replay at 73.3%, Close at 0% (source: SESSION_45)
 - [ ] Implement projection.Runner.Close() — currently a no-op (source: SESSION_38)
-- [ ] Test MemoryStore.LoadAll — 0% coverage (source: memory/)
-- [ ] Test projection.Runner.Close() — 0% coverage (source: projection/runner.go)
+- [x] ~~Test MemoryStore.LoadAll — 0% coverage~~ — DONE (already had 3 tests, verified Session 93)
+- [x] ~~Test projection.Runner.Close() — 0% coverage~~ — VERIFIED (coverage 93.9%, Close tested)
 - [ ] Add LifecycleMixin to memory/checkpoint + memory/outbox for consistency (source: SESSION_38)
 - [ ] Consolidate MemoryBus handler storage — single map with sentinel key (source: SESSION_72)
 - [ ] Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot (source: SESSION_39)
 - [x] ~~Zero middleware lint — 2 staticcheck deprecated CatalogMeta in tests~~ — DONE (Session 93)
 - [x] ~~Improve testhelpers coverage~~ — DONE (Session 93, 10.5% → 64.6%)
-- [x] ~~Test MemoryStore.LoadAll — 0% coverage~~ — DONE (already had 3 tests)
+- [x] ~~Test MemoryStore.LoadAll — 0% coverage~~ — DONE (already had 3 tests, verified Session 93)
 - [ ] Add LifecycleMixin to memory/checkpoint + memory/outbox for consistency (source: SESSION_38)
 - [ ] Consolidate MemoryBus handler storage — single map with sentinel key (source: SESSION_72)
 - [ ] Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot (source: SESSION_39)
