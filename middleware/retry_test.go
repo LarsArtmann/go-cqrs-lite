@@ -16,9 +16,7 @@ import (
 func TestCommandRetry_Success(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigBasic()
 
 	mw := CommandRetry(config)
 
@@ -47,10 +45,7 @@ func TestCommandRetry_Success(t *testing.T) {
 func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.InitialDelay = time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigFast()
 
 	cmdMw := CommandRetry(config)
 
@@ -95,10 +90,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 func TestCommandRetry_ContextCancellation(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 5
-	config.InitialDelay = 50 * time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigSlow()
 
 	mw := CommandRetry(config)
 
@@ -172,10 +164,7 @@ func TestRetryExhausted_SentinelError(t *testing.T) {
 func TestRetryCanceled_SentinelError(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 5
-	config.InitialDelay = 50 * time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigSlow()
 
 	mw := CommandRetry(config)
 	handler := mw(testhelpers.FailingCommandHandler("transient"))

@@ -38,6 +38,34 @@ func newTestTransactionalStore(t *testing.T) (*SQLTransactionalStore, sqlmock.Sq
 	return ts, mock
 }
 
+func saveWithOutboxEvt(t *testing.T, ts *SQLTransactionalStore, evt *event.Core) error {
+	t.Helper()
+
+	return ts.SaveWithOutbox(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+}
+
+func expectOutboxInsertSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
+		WithArgs(
+			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
+		).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+}
+
+func expectOutboxInsertError(mock sqlmock.Sqlmock, evt *event.Core, err error) {
+	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
+		WithArgs(
+			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
+		).
+		WillReturnError(err)
+}
+
 func TestNewSQLTransactionalStore_NilStore(t *testing.T) {
 	t.Parallel()
 
@@ -92,25 +120,11 @@ func TestSQLTransactionalStore_SaveWithOutbox_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(
-			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
-		).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	expectInsertSuccess(mock, evt)
+	expectOutboxInsertSuccess(mock, evt)
 	mock.ExpectCommit()
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
@@ -146,13 +160,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_BeginTxFailure(t *testing.T) {
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err == nil {
 		t.Fatal("expected error for BeginTx failure")
 	}
@@ -168,13 +176,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_VersionConflict(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 5)
 	mock.ExpectRollback()
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err == nil {
 		t.Fatal("expected version conflict error")
 	}
@@ -199,13 +201,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_InsertEventFailure(t *testing.T) {
 		WillReturnError(errors.New("insert event failed"))
 	mock.ExpectRollback()
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err == nil {
 		t.Fatal("expected error for event insert failure")
 	}
@@ -219,25 +215,11 @@ func TestSQLTransactionalStore_SaveWithOutbox_OutboxInsertFailure(t *testing.T) 
 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(
-			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
-		).
-		WillReturnError(errors.New("outbox insert failed"))
+	expectInsertSuccess(mock, evt)
+	expectOutboxInsertError(mock, evt, errors.New("outbox insert failed"))
 	mock.ExpectRollback()
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err == nil {
 		t.Fatal("expected error for outbox insert failure")
 	}
@@ -251,25 +233,11 @@ func TestSQLTransactionalStore_SaveWithOutbox_CommitFailure(t *testing.T) {
 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, 1, evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(
-			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
-		).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	expectInsertSuccess(mock, evt)
+	expectOutboxInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 
-	err := ts.SaveWithOutbox(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveWithOutboxEvt(t, ts, evt)
 	if err == nil {
 		t.Fatal("expected error for commit failure")
 	}

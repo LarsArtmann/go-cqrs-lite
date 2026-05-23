@@ -64,6 +64,106 @@ func newTestRepo(
 	return repo, store, bus
 }
 
+func newCounterSnapshotRepo(
+	t *testing.T,
+	store event.Store,
+	bus *testhelpers.FakeBus,
+	snapshotStore *testhelpers.FakeSnapshotStore,
+	codec event.Codec,
+	opts ...decider.RepositoryOption[counterState],
+) *decider.Repository[counterState] {
+	t.Helper()
+
+	repo, err := decider.NewRepository(
+		store, bus, counterDecider(),
+		append([]decider.RepositoryOption[counterState]{
+			decider.WithSnapshotStore[counterState](snapshotStore),
+			decider.WithCodec[counterState](codec),
+		}, opts...)...,
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	return repo
+}
+
+func newSnapshotSetup(
+	t *testing.T,
+) (*testhelpers.FakeStore, *testhelpers.FakeBus, *testhelpers.FakeSnapshotStore, event.JSONCodec) {
+	t.Helper()
+
+	return testhelpers.NewFakeStore(), testhelpers.NewFakeBus(),
+		testhelpers.NewFakeSnapshotStore(), event.JSONCodec{}
+}
+
+func requireLoadState(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+	expectValue int,
+	expectVersion event.Version,
+) {
+	t.Helper()
+
+	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if state.Value != expectValue {
+		t.Fatalf("expected Value=%d, got %d", expectValue, state.Value)
+	}
+
+	if version != expectVersion {
+		t.Fatalf("expected version %d, got %d", expectVersion, version)
+	}
+}
+
+func counterDecider() decider.Decider[counterState] {
+	return decider.Decider[counterState]{Initial: counterState{Value: 0}, Fold: foldCounter}
+}
+
+func saveSnapshot(
+	t *testing.T,
+	snapshotStore *testhelpers.FakeSnapshotStore,
+	codec event.JSONCodec,
+	aggID id.AggregateID,
+	value int,
+	version event.Version,
+) {
+	t.Helper()
+
+	snapState, _ := codec.Encode(counterState{Value: value})
+	_ = snapshotStore.Save(t.Context(), event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       version,
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+}
+
+func setSnapshot(
+	t *testing.T,
+	snapshotStore *testhelpers.FakeSnapshotStore,
+	codec event.JSONCodec,
+	aggID id.AggregateID,
+	value int,
+	version event.Version,
+) {
+	t.Helper()
+
+	snapState, _ := codec.Encode(counterState{Value: value})
+	snapshotStore.SetSnapshot(&event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       version,
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	})
+}
+
 func makeEvent(
 	t *testing.T,
 	eventType string,
@@ -324,18 +424,7 @@ func TestLoad_NoEvents(t *testing.T) {
 	repo, _, _ := newTestRepo(t)
 	aggID := id.NewAggregateID()
 
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if state.Value != 0 {
-		t.Fatalf("expected initial state Value=0, got %d", state.Value)
-	}
-
-	if version != 0 {
-		t.Fatalf("expected version 0, got %d", version)
-	}
+	requireLoadState(t, repo, aggID, 0, 0)
 }
 
 func TestLoad_WithEvents(t *testing.T) {
@@ -349,18 +438,7 @@ func TestLoad_WithEvents(t *testing.T) {
 		makeEvent(t, "CounterIncremented", aggID, 2),
 	})
 
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if state.Value != 2 {
-		t.Fatalf("expected Value=2, got %d", state.Value)
-	}
-
-	if version != 2 {
-		t.Fatalf("expected version 2, got %d", version)
-	}
+	requireLoadState(t, repo, aggID, 2, 2)
 }
 
 func TestLoad_FoldError(t *testing.T) {
@@ -479,29 +557,16 @@ func TestExecute_OutboxAppendError(t *testing.T) {
 func TestExecute_WithSnapshot(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
+	repo := newCounterSnapshotRepo(
+		t, store, bus, snapshotStore, codec,
 		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(2)),
 	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
 
 	aggID := id.NewAggregateID()
 
-	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
+	err := executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
 		t.Fatalf("first Execute: %v", err)
 	}
@@ -524,51 +589,18 @@ func TestExecute_WithSnapshot(t *testing.T) {
 func TestLoad_WithSnapshot(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
-	snapState, _ := codec.Encode(counterState{Value: 1})
-	_ = snapshotStore.Save(t.Context(), event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       event.Version(1),
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	saveSnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
+	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if state.Value != 1 {
-		t.Fatalf("expected Value=1 from snapshot, got %d", state.Value)
-	}
-
-	if version != 1 {
-		t.Fatalf("expected version 1, got %d", version)
-	}
+	requireLoadState(t, repo, aggID, 1, 1)
 }
 
 func TestExecute_Concurrent(t *testing.T) {
@@ -669,10 +701,7 @@ func (c *ctxCheckStore) Load(
 func TestLoad_SnapshotDecodeError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 	snapshotStore.SetSnapshot(&event.Snapshot{
@@ -683,17 +712,9 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 		CreatedAt:     time.Now(),
 	})
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
+	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
-	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	_, _, err := repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
 		t.Fatal("expected decode error from malformed snapshot")
 	}
@@ -702,24 +723,13 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 func TestLoad_SnapshotStoreLoadError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 	snapshotStore.SetLoadError(errors.New("db unavailable"))
-	codec := event.JSONCodec{}
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
+	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
 	aggID := id.NewAggregateID()
-	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	_, _, err := repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
 		t.Fatal("expected error from snapshot store load failure")
 	}
@@ -728,21 +738,11 @@ func TestLoad_SnapshotStoreLoadError(t *testing.T) {
 func TestLoad_SnapshotFoldError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 
-	snapState, _ := codec.Encode(counterState{Value: 1})
-	_ = snapshotStore.Save(t.Context(), event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       event.Version(1),
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	saveSnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 2),
@@ -781,30 +781,17 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 func TestExecute_SaveSnapshotError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 	snapshotStore.SetSaveError(errors.New("disk full"))
-	codec := event.JSONCodec{}
 
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
+	repo := newCounterSnapshotRepo(
+		t, store, bus, snapshotStore, codec,
 		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
 	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
 
 	aggID := id.NewAggregateID()
 
-	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
+	err := executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
 		t.Fatalf("Execute should succeed despite snapshot save error: %v", err)
 	}
@@ -863,73 +850,30 @@ func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 
-	snapState, _ := codec.Encode(counterState{Value: 5})
-	snapshotStore.SetSnapshot(&event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       event.Version(5),
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	setSnapshot(t, snapshotStore, codec, aggID, 5, event.Version(5))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 6),
 		makeEvent(t, "CounterIncremented", aggID, 7),
 	})
 
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
+	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if state.Value != 7 {
-		t.Fatalf("expected Value=7 (5 from snapshot + 2 events), got %d", state.Value)
-	}
-
-	if version != 7 {
-		t.Fatalf("expected version 7, got %d", version)
-	}
+	requireLoadState(t, repo, aggID, 7, 7)
 }
 
 func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 
-	snapState, _ := codec.Encode(counterState{Value: 1})
-	snapshotStore.SetSnapshot(&event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       event.Version(1),
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	setSnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 2),
@@ -965,42 +909,16 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 func TestLoad_SnapshotNil(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
 
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
+	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[counterState](snapshotStore),
-		decider.WithCodec[counterState](codec),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if state.Value != 1 {
-		t.Fatalf("expected Value=1 from store fallback, got %d", state.Value)
-	}
-
-	if version != 1 {
-		t.Fatalf("expected version 1, got %d", version)
-	}
+	requireLoadState(t, repo, aggID, 1, 1)
 }
 
 func TestLoad_StoreLoadError(t *testing.T) {
@@ -1033,10 +951,7 @@ func TestLoad_StoreLoadError(t *testing.T) {
 func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	foldErr := errors.New("corrupt payload")
 

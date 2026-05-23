@@ -8,9 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func BenchmarkCommandLogging(b *testing.B) {
-	logger := &testLogger{}
-	mw := CommandLogging(logger)
+func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
 	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
@@ -19,40 +17,20 @@ func BenchmarkCommandLogging(b *testing.B) {
 	for b.Loop() {
 		_ = handler(ctx, cmd)
 	}
+}
+
+func BenchmarkCommandLogging(b *testing.B) {
+	benchCommandMiddleware(b, CommandLogging(&testLogger{}))
 }
 
 func BenchmarkCommandRecovery(b *testing.B) {
-	mw := CommandRecovery()
-	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
-
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
-	ctx := context.Background()
-
-	for b.Loop() {
-		_ = handler(ctx, cmd)
-	}
+	benchCommandMiddleware(b, CommandRecovery())
 }
 
 func BenchmarkCommandValidation(b *testing.B) {
-	mw := CommandValidation(func(_ command.Command) error { return nil })
-	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
-
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
-	ctx := context.Background()
-
-	for b.Loop() {
-		_ = handler(ctx, cmd)
-	}
+	benchCommandMiddleware(b, CommandValidation(func(_ command.Command) error { return nil }))
 }
 
 func BenchmarkCommandRetry(b *testing.B) {
-	mw := CommandRetry(DefaultRetryConfig())
-	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
-
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
-	ctx := context.Background()
-
-	for b.Loop() {
-		_ = handler(ctx, cmd)
-	}
+	benchCommandMiddleware(b, CommandRetry(DefaultRetryConfig()))
 }

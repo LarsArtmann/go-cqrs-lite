@@ -31,6 +31,25 @@ func makeUserEvent(t *testing.T) *event.Core {
 	return evt
 }
 
+func newTestRootWithEvent(t *testing.T) *testRoot {
+	t.Helper()
+
+	root := newTestRoot()
+	root.RecordEvent(context.Background(), makeUserEvent(t))
+
+	return root
+}
+
+func saveUserEvent(t *testing.T, store *testhelpers.FakeStore) id.AggregateID {
+	t.Helper()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
+	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+
+	return aggID
+}
+
 func TestNewRepository(t *testing.T) {
 	t.Parallel()
 
@@ -104,9 +123,7 @@ func TestRepository_Save_PublishesToBus(t *testing.T) {
 
 	bus := testhelpers.NewFakeBus()
 	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
-	root := newTestRoot()
-
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	root := newTestRootWithEvent(t)
 
 	err := repo.Save(context.Background(), root)
 	if err != nil {
@@ -139,9 +156,7 @@ func TestRepository_Save_StoreError(t *testing.T) {
 	})
 
 	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
-	root := newTestRoot()
-
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	root := newTestRootWithEvent(t)
 
 	err := repo.Save(context.Background(), root)
 	if err == nil {
@@ -155,9 +170,7 @@ func TestRepository_Save_BusPublishError(t *testing.T) {
 	bus := testhelpers.NewFakeBus()
 	bus.PublishErr = errors.New("bus unavailable")
 	repo, _ := aggregate.NewRepository(testhelpers.NewFakeStore(), bus)
-	root := newTestRoot()
-
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	root := newTestRootWithEvent(t)
 
 	err := repo.Save(context.Background(), root)
 	if err == nil {
@@ -181,9 +194,7 @@ func TestRepository_Save_WithOutbox(t *testing.T) {
 		bus,
 		aggregate.WithOutbox(outbox),
 	)
-	root := newTestRoot()
-
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	root := newTestRootWithEvent(t)
 
 	err := repo.Save(context.Background(), root)
 	if err != nil {
@@ -212,9 +223,7 @@ func TestRepository_Save_OutboxAppendError(t *testing.T) {
 		testhelpers.NewFakeBus(),
 		aggregate.WithOutbox(outbox),
 	)
-	root := newTestRoot()
-
-	root.RecordEvent(context.Background(), makeUserEvent(t))
+	root := newTestRootWithEvent(t)
 
 	err := repo.Save(context.Background(), root)
 	if err == nil {
@@ -228,9 +237,7 @@ func TestRepository_Load(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+	aggID := saveUserEvent(t, store)
 
 	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
 
@@ -301,8 +308,7 @@ func TestRepository_Load_SnapshotLoadError(t *testing.T) {
 	snapStore := testhelpers.NewFakeSnapshotStore()
 	snapStore.SetLoadError(errors.New("db connection lost"))
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+	saveUserEvent(t, store)
 
 	repo, _ := aggregate.NewRepository(
 		store,
@@ -324,8 +330,7 @@ func TestRepository_Load_SnapshotNotFound(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	snapStore := testhelpers.NewFakeSnapshotStore()
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+	saveUserEvent(t, store)
 
 	repo, _ := aggregate.NewRepository(
 		store,
@@ -675,10 +680,7 @@ func TestRepository_Delete(t *testing.T) {
 	t.Parallel()
 
 	store := testhelpers.NewFakeStore()
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+	aggID := saveUserEvent(t, store)
 
 	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 	root := &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
@@ -835,8 +837,7 @@ func TestRepository_Load_ApplyError(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	store := testhelpers.NewFakeStore()
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{evt}, 0)
+	saveUserEvent(t, store)
 
 	repo, _ := aggregate.NewRepository(store, testhelpers.NewFakeBus())
 	root := &failingApplyRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}

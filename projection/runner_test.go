@@ -14,6 +14,24 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func registerNoopProjection(
+	t *testing.T,
+	runner *projection.Runner,
+	name string,
+	eventTypes []event.Type,
+) {
+	t.Helper()
+
+	err := runner.Register(event.NewProjection(
+		name,
+		func(_ context.Context, _ event.Event) error { return nil },
+		eventTypes,
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func registerReplayProjection(
 	t *testing.T,
 	runner *projection.Runner,
@@ -831,14 +849,7 @@ func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection(
-		"test-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerNoopProjection(t, runner, "test-proj", []event.Type{"UserCreated"})
 
 	runErr := runner.Run(context.Background())
 	if runErr == nil {
@@ -871,14 +882,7 @@ func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection(
-		"test-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerNoopProjection(t, runner, "test-proj", []event.Type{"UserCreated"})
 
 	runErr := runner.Run(context.Background())
 	if runErr == nil {
@@ -1038,14 +1042,7 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection(
-		"test-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerNoopProjection(t, runner, "test-proj", []event.Type{"UserCreated"})
 
 	runCtx, cancel := context.WithCancel(context.Background())
 
@@ -1066,14 +1063,7 @@ func TestRunner_CloseStopsRun(t *testing.T) {
 
 	runner, _, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection(
-		"close-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerNoopProjection(t, runner, "close-proj", []event.Type{"UserCreated"})
 
 	done := make(chan struct{})
 
@@ -1084,8 +1074,7 @@ func TestRunner_CloseStopsRun(t *testing.T) {
 
 	<-ready
 
-	err = runner.Close()
-	if err != nil {
+	if err := runner.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
 
@@ -1112,14 +1101,7 @@ func TestRunner_SubscribeError(t *testing.T) {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	err = runner.Register(event.NewProjection(
-		"test-proj",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerNoopProjection(t, runner, "test-proj", []event.Type{"UserCreated"})
 
 	runErr := runner.Run(context.Background())
 	if runErr == nil {

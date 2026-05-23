@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -13,9 +12,7 @@ import (
 func TestQueryRetry_Success(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigBasic()
 
 	mw := QueryRetry(config)
 
@@ -46,10 +43,7 @@ func TestQueryRetry_Success(t *testing.T) {
 func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.InitialDelay = time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigFast()
 
 	mw := QueryRetry(config)
 
@@ -92,10 +86,7 @@ func TestQueryRetry_NonRetryable(t *testing.T) {
 func TestQueryRetry_ContextCancellation(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 5
-	config.InitialDelay = 50 * time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigSlow()
 
 	mw := QueryRetry(config)
 

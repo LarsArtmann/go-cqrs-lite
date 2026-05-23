@@ -40,6 +40,19 @@ func expectViolation(t *testing.T, cat *Catalog, wantPath string) {
 	}
 }
 
+func expectViolationMessage(t *testing.T, cat *Catalog, wantSubstring string) {
+	t.Helper()
+
+	violations := cat.Validate()
+	if len(violations) != 1 {
+		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
+	}
+
+	if !strings.Contains(violations[0].Message, wantSubstring) {
+		t.Errorf("message = %q", violations[0].Message)
+	}
+}
+
 func TestValidate_EmptyTitle(t *testing.T) {
 	t.Parallel()
 
@@ -89,14 +102,7 @@ func TestValidate_MessageWithoutIDOrName(t *testing.T) {
 		},
 	}
 
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
-	}
-
-	if !strings.Contains(violations[0].Message, "must have an ID or Name") {
-		t.Errorf("message = %q", violations[0].Message)
-	}
+	expectViolationMessage(t, cat, "must have an ID or Name")
 }
 
 func TestValidate_DuplicateMessageID(t *testing.T) {
@@ -117,14 +123,7 @@ func TestValidate_DuplicateMessageID(t *testing.T) {
 		},
 	}
 
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
-	}
-
-	if !strings.Contains(violations[0].Message, "duplicate") {
-		t.Errorf("message = %q", violations[0].Message)
-	}
+	expectViolationMessage(t, cat, "duplicate")
 }
 
 func TestValidate_DomainDuplicateService(t *testing.T) {
@@ -142,14 +141,7 @@ func TestValidate_DomainDuplicateService(t *testing.T) {
 		},
 	}
 
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
-	}
-
-	if !strings.Contains(violations[0].Message, "duplicate service") {
-		t.Errorf("message = %q", violations[0].Message)
-	}
+	expectViolationMessage(t, cat, "duplicate service")
 }
 
 func TestViolation_String(t *testing.T) {
@@ -186,14 +178,7 @@ func TestValidate_Channel(t *testing.T) {
 		},
 	}
 
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
-	}
-
-	if !strings.Contains(violations[0].Message, "duplicate message") {
-		t.Errorf("message = %q", violations[0].Message)
-	}
+	expectViolationMessage(t, cat, "duplicate message")
 }
 
 func TestValidate_ChannelEmptyID(t *testing.T) {
@@ -205,12 +190,5 @@ func TestValidate_ChannelEmptyID(t *testing.T) {
 		Channels: []Channel{{Name: "No ID"}},
 	}
 
-	violations := cat.Validate()
-	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation, got %d: %v", len(violations), violations)
-	}
-
-	if !strings.Contains(violations[0].Message, "channel ID must not be empty") {
-		t.Errorf("message = %q", violations[0].Message)
-	}
+	expectViolationMessage(t, cat, "channel ID must not be empty")
 }

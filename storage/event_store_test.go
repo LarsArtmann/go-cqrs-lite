@@ -77,6 +77,24 @@ func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 	mock.ExpectCommit()
 }
 
+func saveEvt(t *testing.T, store *SQLEventStore, evt *event.Core) error {
+	t.Helper()
+
+	return store.Save(
+		context.Background(),
+		"User",
+		evt.AggregateID(),
+		[]event.Event{evt},
+		event.Version(0),
+	)
+}
+
+func appendBatchEvt(t *testing.T, store *SQLEventStore, evt *event.Core) error {
+	t.Helper()
+
+	return store.AppendBatch(context.Background(), "User", evt.AggregateID(), []event.Event{evt})
+}
+
 func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
@@ -122,13 +140,7 @@ func TestSQLEventStore_Save_Success(t *testing.T) {
 
 	expectSaveSuccess(mock, evt)
 
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -149,13 +161,7 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 5)
 	mock.ExpectRollback()
 
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected concurrency conflict error")
 	}
@@ -382,13 +388,7 @@ func TestSQLEventStore_Save_BeginTxFailure(t *testing.T) {
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for BeginTx failure")
 	}
@@ -406,13 +406,7 @@ func TestSQLEventStore_Save_VersionQueryError(t *testing.T) {
 		WillReturnError(errors.New("query failed"))
 	mock.ExpectRollback()
 
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for version query failure")
 	}
@@ -438,14 +432,7 @@ func TestSQLEventStore_Save_InsertError(t *testing.T) {
 		evt.OccurredAt(),
 	).WillReturnError(errors.New("insert failed"))
 	mock.ExpectRollback()
-
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for insert failure")
 	}
@@ -461,14 +448,7 @@ func TestSQLEventStore_Save_CommitError(t *testing.T) {
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
-
-	err := store.Save(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-		event.Version(0),
-	)
+	err := saveEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for commit failure")
 	}
@@ -482,12 +462,7 @@ func TestSQLEventStore_AppendBatch_BeginTxFailure(t *testing.T) {
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
-	err := store.AppendBatch(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-	)
+	err := appendBatchEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for BeginTx failure")
 	}
@@ -503,13 +478,7 @@ func TestSQLEventStore_AppendBatch_InsertError(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
 		WillReturnError(errors.New("insert failed"))
 	mock.ExpectRollback()
-
-	err := store.AppendBatch(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-	)
+	err := appendBatchEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for insert failure")
 	}
@@ -524,13 +493,7 @@ func TestSQLEventStore_AppendBatch_CommitError(t *testing.T) {
 	mock.ExpectBegin()
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
-
-	err := store.AppendBatch(
-		context.Background(),
-		"User",
-		evt.AggregateID(),
-		[]event.Event{evt},
-	)
+	err := appendBatchEvt(t, store, evt)
 	if err == nil {
 		t.Fatal("expected error for commit failure")
 	}

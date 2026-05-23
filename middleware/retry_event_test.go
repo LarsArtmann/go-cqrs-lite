@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
@@ -14,9 +13,7 @@ import (
 func TestEventRetry_Success(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigBasic()
 
 	mw := EventRetry(config)
 
@@ -48,10 +45,7 @@ func TestEventRetry_Success(t *testing.T) {
 func TestEventRetry_AllAttemptsFail(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 3
-	config.InitialDelay = time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigFast()
 
 	mw := EventRetry(config)
 
@@ -102,10 +96,7 @@ func TestEventRetry_NonRetryable(t *testing.T) {
 func TestEventRetry_ContextCancellation(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultRetryConfig()
-	config.MaxAttempts = 5
-	config.InitialDelay = 50 * time.Millisecond
-	config.IsRetryable = func(_ error) bool { return true }
+	config := retryConfigSlow()
 
 	mw := EventRetry(config)
 
