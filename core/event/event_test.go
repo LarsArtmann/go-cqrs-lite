@@ -603,3 +603,81 @@ func TestWithOccurredAt(t *testing.T) {
 		t.Errorf("OccurredAt = %v, want %v", evt.OccurredAt(), ts)
 	}
 }
+
+func TestParseType(t *testing.T) {
+	t.Parallel()
+
+	got, err := event.ParseType("user.created")
+	if err != nil {
+		t.Fatalf("ParseType: %v", err)
+	}
+
+	if got != "user.created" {
+		t.Errorf("ParseType = %q, want %q", got, "user.created")
+	}
+
+	if got.IsZero() {
+		t.Error("IsZero should be false for valid type")
+	}
+}
+
+func TestParseType_Empty(t *testing.T) {
+	t.Parallel()
+
+	_, err := event.ParseType("")
+	if err == nil {
+		t.Fatal("expected error for empty type")
+	}
+}
+
+func TestMustParseType_Panics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+	}()
+
+	event.MustParseType("")
+}
+
+func TestParseAggregateType(t *testing.T) {
+	t.Parallel()
+
+	got, err := event.ParseAggregateType("User")
+	if err != nil {
+		t.Fatalf("ParseAggregateType: %v", err)
+	}
+
+	if got != "User" {
+		t.Errorf("ParseAggregateType = %q, want %q", got, "User")
+	}
+
+	if got.IsZero() {
+		t.Error("IsZero should be false for valid type")
+	}
+}
+
+func TestParseAggregateType_Empty(t *testing.T) {
+	t.Parallel()
+
+	_, err := event.ParseAggregateType("")
+	if err == nil {
+		t.Fatal("expected error for empty aggregate type")
+	}
+}
+
+func TestMustParseAggregateType_Panics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+	}()
+
+	event.MustParseAggregateType("")
+}

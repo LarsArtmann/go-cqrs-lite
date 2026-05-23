@@ -35,11 +35,56 @@ type Type string
 // String returns the event type as a string.
 func (t Type) String() string { return string(t) }
 
+// IsZero reports whether the event type is empty.
+func (t Type) IsZero() bool { return t == "" }
+
+// ParseType validates and returns a Type. Returns an error if empty.
+func ParseType(s string) (Type, error) {
+	if s == "" {
+		return "", ErrEmptyEventType
+	}
+
+	return Type(s), nil
+}
+
+// MustParseType is like ParseType but panics on invalid input.
+func MustParseType(s string) Type {
+	t, err := ParseType(s)
+	if err != nil {
+		panic("event.MustParseType: " + err.Error())
+	}
+
+	return t
+}
+
 // AggregateType is a type identifier for aggregate roots.
 type AggregateType string
 
 // String returns the aggregate type as a string.
 func (a AggregateType) String() string { return string(a) }
+
+// IsZero reports whether the aggregate type is empty.
+func (a AggregateType) IsZero() bool { return a == "" }
+
+// ParseAggregateType validates and returns an AggregateType.
+// Returns an error if empty.
+func ParseAggregateType(s string) (AggregateType, error) {
+	if s == "" {
+		return "", ErrEmptyAggregateType
+	}
+
+	return AggregateType(s), nil
+}
+
+// MustParseAggregateType is like ParseAggregateType but panics on invalid input.
+func MustParseAggregateType(s string) AggregateType {
+	t, err := ParseAggregateType(s)
+	if err != nil {
+		panic("event.MustParseAggregateType: " + err.Error())
+	}
+
+	return t
+}
 
 // Event represents a domain event with rich metadata.
 type Event interface {
