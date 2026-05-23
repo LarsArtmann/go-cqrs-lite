@@ -16,5 +16,3 @@ require (
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/sys v0.43.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
