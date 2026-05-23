@@ -159,10 +159,7 @@ linters:
       min-complexity: 35
     gocritic:
       disabled-checks:
-        - dupImport
         - ifElseChain
-        - octalLiteral
-        - whyNoLint
     revive:
       rules:
         - disabled: true
