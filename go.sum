@@ -1,0 +1,4 @@
+github.com/larsartmann/go-error-family v0.1.1 h1:/i7s/2okA2ROEhxoiuBJqzX4zSz/SQaYwfoVpsYJICc=
+github.com/larsartmann/go-error-family v0.1.1/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
+github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e h1:d3okFyZ4+BKKslFnGkXngqWkMhUNv00j25biZk8PlTI=
+github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e/go.mod h1:XUV439LW+TlzVk2MP3EU9bKZ9l9zEkUGEAqL9pRMOv4=

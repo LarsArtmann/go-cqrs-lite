@@ -71,6 +71,10 @@ github.com/larsartmann/go-cqrs-lite/testhelpers v1.2.0 h1:6Om1Hr1Eh8kOQ1E3h4YaU4
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.2.0/go.mod h1:g0xy7rpADAb3i+9yuTXLIkzWvnwKSdsNjLUp20t1uZ8=
 github.com/larsartmann/go-error-family v0.1.0 h1:iWy1iZd1/CALHvmk9pB7vbx9/NB/zKilqGUupgFFupU=
 github.com/larsartmann/go-error-family v0.1.0/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
+github.com/larsartmann/go-error-family v0.1.1 h1:/i7s/2okA2ROEhxoiuBJqzX4zSz/SQaYwfoVpsYJICc=
+github.com/larsartmann/go-error-family v0.1.1/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
+github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e h1:d3okFyZ4+BKKslFnGkXngqWkMhUNv00j25biZk8PlTI=
+github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e/go.mod h1:XUV439LW+TlzVk2MP3EU9bKZ9l9zEkUGEAqL9pRMOv4=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.42 h1:MigqEP4ZmHw3aIdIT7T+9TLa90Z6smwcthx+Azv4Cgo=
