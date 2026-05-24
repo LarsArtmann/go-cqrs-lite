@@ -75,6 +75,5 @@ func newUserCmd(aggID id.AggregateID, email, name string) *CreateUserCmd {
 		aggregateID: aggID,
 		email:       email,
 		name:        name,
-		idempotency: aggID.String(),
 	}
 }

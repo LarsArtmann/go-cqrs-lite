@@ -16,10 +16,6 @@ func (t Type) String() string { return string(t) }
 type Command interface {
 	Type() Type
 	AggregateID() id.AggregateID
-
-	// Deprecated: Idempotency handling should be managed at the application layer,
-	// not embedded in the command interface. This method will be removed in a future version.
-	IdempotencyKey() string
 }
 
 // Core provides a default implementation.
@@ -35,10 +31,6 @@ func (c *Core) Type() Type { return c.commandType }
 
 // AggregateID returns the aggregate ID.
 func (c *Core) AggregateID() id.AggregateID { return c.aggregateID }
-
-// IdempotencyKey returns a deduplication key for the command.
-// Returns empty string by default — consumers should override for production use.
-func (c *Core) IdempotencyKey() string { return "" }
 
 // New creates a new command with validation.
 func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {

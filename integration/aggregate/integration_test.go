@@ -129,7 +129,6 @@ type createProductCmd struct {
 
 func (c *createProductCmd) Type() command.Type          { return "product.create" }
 func (c *createProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
-func (c *createProductCmd) IdempotencyKey() string      { return "" }
 
 type restockProductCmd struct {
 	aggregateID id.AggregateID
@@ -138,7 +137,6 @@ type restockProductCmd struct {
 
 func (c *restockProductCmd) Type() command.Type          { return "product.restock" }
 func (c *restockProductCmd) AggregateID() id.AggregateID { return c.aggregateID }
-func (c *restockProductCmd) IdempotencyKey() string      { return "" }
 
 func TestCQRSRoundtrip(t *testing.T) {
 	t.Parallel()

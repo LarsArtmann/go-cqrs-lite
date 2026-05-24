@@ -112,7 +112,6 @@ func runDemoSteps(
 	err = cmdDisp.Dispatch(ctx, &ChangeUserNameCmd{
 		aggregateID: userID,
 		name:        "Alice Johnson",
-		idempotency: "change-name-" + userID.String(),
 	})
 	if err != nil {
 		log.Fatalf("change name: %v", err)

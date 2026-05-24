@@ -9,19 +9,15 @@ type CreateUserCmd struct {
 	aggregateID id.AggregateID
 	email       string
 	name        string
-	idempotency string
 }
 
 func (c *CreateUserCmd) Type() command.Type          { return cmdCreateUser }
 func (c *CreateUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
-func (c *CreateUserCmd) IdempotencyKey() string      { return c.idempotency }
 
 type ChangeUserNameCmd struct {
 	aggregateID id.AggregateID
 	name        string
-	idempotency string
 }
 
 func (c *ChangeUserNameCmd) Type() command.Type          { return cmdChangeUserName }
 func (c *ChangeUserNameCmd) AggregateID() id.AggregateID { return c.aggregateID }
-func (c *ChangeUserNameCmd) IdempotencyKey() string      { return c.idempotency }

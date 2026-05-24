@@ -182,35 +182,6 @@ func TestDispatcher_Use(t *testing.T) {
 	}
 }
 
-func TestCore_IdempotencyKey_DefaultIsEmpty(t *testing.T) {
-	t.Parallel()
-
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	core := command.MustNew("CreateUser", aggID)
-
-	if got := core.IdempotencyKey(); got != "" {
-		t.Errorf("default IdempotencyKey() = %q, want empty string", got)
-	}
-}
-
-func TestCore_IdempotencyKey_CustomOverride(t *testing.T) {
-	t.Parallel()
-
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-
-	cmdCore := command.MustNew("CreateUser", aggID)
-
-	overridingCmd := struct{ *command.Core }{Core: cmdCore}
-
-	_ = overridingCmd // struct embeds *Core, which delegates to Core.IdempotencyKey()
-
-	// Verify the interface is satisfied and default is still empty
-	var _ command.Command = overridingCmd.Core
-	if got := overridingCmd.IdempotencyKey(); got != "" {
-		t.Errorf("embedded Core IdempotencyKey() = %q, want empty string", got)
-	}
-}
-
 func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
 	t.Parallel()
 
