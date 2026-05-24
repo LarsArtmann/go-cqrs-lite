@@ -147,7 +147,7 @@ func (o ClockOrder) String() string {
 	case OrderEqual:
 		return "equal"
 	default:
-		return "unknown"
+		return clockOrderUnknown
 	}
 }
 

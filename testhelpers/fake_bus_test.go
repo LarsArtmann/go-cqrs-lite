@@ -89,7 +89,10 @@ func TestFakeBus_Subscribe(t *testing.T) {
 
 	bus := NewFakeBus()
 
-	err := bus.Subscribe("test.created", func(_ context.Context, _ event.Event) error { return nil })
+	err := bus.Subscribe(
+		"test.created",
+		func(_ context.Context, _ event.Event) error { return nil },
+	)
 	if err != nil {
 		t.Fatalf("Subscribe: %v", err)
 	}

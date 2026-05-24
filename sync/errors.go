@@ -23,6 +23,7 @@ const (
 	clockOrderBefore     = "before"
 	clockOrderAfter      = "after"
 	clockOrderConcurrent = "concurrent"
+	clockOrderUnknown    = "unknown"
 )
 
 // NegativeCounterError is returned when a vector clock is created with a negative counter.

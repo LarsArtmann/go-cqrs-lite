@@ -119,10 +119,15 @@ func TestOperation_Serialize_Deserialize(t *testing.T) {
 		Value int    `json:"value"`
 	}
 
-	original := MustNewOperation(OperationID("op-1"), OpUpdate, MustParseNodeID("node-a"), TestPayload{
-		Name:  "test",
-		Value: 42,
-	})
+	original := MustNewOperation(
+		OperationID("op-1"),
+		OpUpdate,
+		MustParseNodeID("node-a"),
+		TestPayload{
+			Name:  "test",
+			Value: 42,
+		},
+	)
 	original.VectorClock.Increment(NodeID("node-a"))
 	original.VectorClock.Increment(NodeID("node-b"))
 
@@ -274,7 +279,12 @@ func TestNewOperation_EmptyNodeID(t *testing.T) {
 func TestNewOperation_InvalidType(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewOperation(OperationID("op-1"), OperationType("bogus"), MustParseNodeID("node-a"), "test")
+	_, err := NewOperation(
+		OperationID("op-1"),
+		OperationType("bogus"),
+		MustParseNodeID("node-a"),
+		"test",
+	)
 	if err == nil {
 		t.Fatal("expected error for invalid operation type")
 	}

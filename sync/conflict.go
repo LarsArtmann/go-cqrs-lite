@@ -105,7 +105,7 @@ func (r MergeResult) String() string {
 	case MergeResultConflict:
 		return "conflict"
 	default:
-		return "unknown"
+		return clockOrderUnknown
 	}
 }
 
