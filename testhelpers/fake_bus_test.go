@@ -84,6 +84,28 @@ func TestFakeBus_SubscribeAllFn(t *testing.T) {
 	}
 }
 
+func TestFakeBus_Subscribe(t *testing.T) {
+	t.Parallel()
+
+	bus := NewFakeBus()
+
+	err := bus.Subscribe("test.created", func(_ context.Context, _ event.Event) error { return nil })
+	if err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+}
+
+func TestFakeBus_Use(t *testing.T) {
+	t.Parallel()
+
+	bus := NewFakeBus()
+
+	err := bus.Use(func(_ event.Handler) event.Handler { return nil })
+	if err != nil {
+		t.Fatalf("Use: %v", err)
+	}
+}
+
 func TestFakeBus_Close(t *testing.T) {
 	t.Parallel()
 

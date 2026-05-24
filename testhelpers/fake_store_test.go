@@ -10,6 +10,164 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func TestFakeStore_Save_DefaultPath(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+
+	err := store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := store.Load(ctx, "User", aggID)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(loaded))
+	}
+}
+
+func TestFakeStore_Load_DefaultPath_DefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+
+	loaded, err := store.Load(ctx, "User", aggID)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	loaded[0] = nil
+
+	again, _ := store.Load(ctx, "User", aggID)
+	if again[0] == nil {
+		t.Fatal("Load returned a reference, not a defensive copy")
+	}
+}
+
+func TestFakeStore_LoadFromVersion_DefaultPath(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt1 := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 2, nil)
+	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 3, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+
+	events, err := store.LoadFromVersion(ctx, "User", aggID, 1)
+	if err != nil {
+		t.Fatalf("LoadFromVersion: %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(events))
+	}
+
+	if events[0].Version() != 2 {
+		t.Errorf("first event version = %d, want 2", events[0].Version())
+	}
+}
+
+func TestFakeStore_LoadFromVersion_EmptyStream(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	events, err := store.LoadFromVersion(ctx, "User", aggID, 0)
+	if err != nil {
+		t.Fatalf("LoadFromVersion: %v", err)
+	}
+
+	if events != nil {
+		t.Fatalf("expected nil events for empty stream, got %d", len(events))
+	}
+}
+
+func TestFakeStore_Delete_DefaultPath(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+
+	err := store.Delete(ctx, "User", aggID)
+	if err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	loaded, err := store.Load(ctx, "User", aggID)
+	if err != nil {
+		t.Fatalf("Load after delete: %v", err)
+	}
+
+	if len(loaded) != 0 {
+		t.Fatalf("expected 0 events after delete, got %d", len(loaded))
+	}
+}
+
+func TestFakeStore_SaveFn(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	called := false
+
+	store.SaveFn(func(
+		_ context.Context,
+		_ event.AggregateType,
+		_ id.AggregateID,
+		_ []event.Event,
+		_ event.Version,
+	) error {
+		called = true
+
+		return nil
+	})
+
+	err := store.Save(context.Background(), "User", id.NewAggregateID(), nil, 0)
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	if !called {
+		t.Fatal("expected SaveFn to be called")
+	}
+}
+
+func TestFakeStore_Close_DefaultPath(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+
+	err := store.Close()
+	if err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+}
+
 func TestFakeStore_LoadToVersion(t *testing.T) {
 	t.Parallel()
 

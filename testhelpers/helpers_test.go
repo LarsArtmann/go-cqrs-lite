@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -54,6 +55,30 @@ func TestEventHelpers_QuickEvent(t *testing.T) {
 
 	if evt.Type() != "user.created" {
 		t.Errorf("Type = %q, want user.created", evt.Type())
+	}
+}
+
+func TestEventHelpers_QuickEventOpts(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	corrID := id.NewCorrelationID()
+
+	evt := QuickEventOpts(
+		"user.created",
+		aggID,
+		"User",
+		1,
+		nil,
+		event.WithCorrelationID(corrID),
+	)
+
+	if evt.Type() != "user.created" {
+		t.Errorf("Type = %q, want user.created", evt.Type())
+	}
+
+	if evt.Metadata().CorrelationID != corrID {
+		t.Error("CorrelationID mismatch")
 	}
 }
 
