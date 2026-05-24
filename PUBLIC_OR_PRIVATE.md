@@ -16,40 +16,40 @@ The project is genuinely useful, technically impressive, and ready for eyes. **4
 
 ## Project Snapshot
 
-| Metric              | Value                                                              |
-| ------------------- | ------------------------------------------------------------------ |
-| Total Go LOC        | ~49,300                                                            |
-| Test LOC            | 33,121 (67% of codebase)                                           |
-| Production LOC      | ~16,100                                                            |
-| Test packages       | 34 (all passing)                                                   |
-| Test coverage       | 80–100% per module (most >90%)                                     |
-| Benchmarks          | 56 across 13 files                                                 |
-| Modules             | 12 (multi-module monorepo)                                         |
+| Metric              | Value                                                                        |
+| ------------------- | ---------------------------------------------------------------------------- |
+| Total Go LOC        | ~49,300                                                                      |
+| Test LOC            | 33,121 (67% of codebase)                                                     |
+| Production LOC      | ~16,100                                                                      |
+| Test packages       | 34 (all passing)                                                             |
+| Test coverage       | 80–100% per module (most >90%)                                               |
+| Benchmarks          | 56 across 13 files                                                           |
+| Modules             | 12 (multi-module monorepo)                                                   |
 | Dependencies (prod) | 9 unique across all modules (core: 3, catalog: 1, middleware: 2, storage: 3) |
-| Commits             | 998 (single author)                                                |
-| Lint issues         | 0                                                                  |
-| TODO/FIXME markers  | 0                                                                  |
-| Version tags        | 42 across 10 modules (core v1.5.0, memory v1.3.0, etc.)            |
-| CI                  | GitHub Actions (Nix-based: build, vet, test, race, lint, coverage) |
+| Commits             | 998 (single author)                                                          |
+| Lint issues         | 0                                                                            |
+| TODO/FIXME markers  | 0                                                                            |
+| Version tags        | 42 across 10 modules (core v1.5.0, memory v1.3.0, etc.)                      |
+| CI                  | GitHub Actions (Nix-based: build, vet, test, race, lint, coverage)           |
 
 ---
 
 ## Progress Since Initial Assessment (2026-05-04 → 2026-05-23)
 
-| What changed | Detail |
-| --- | --- |
-| +320 commits | 678 → 998 (47% growth) |
-| +15,500 LOC | 33,780 → ~49,300 total |
-| +3 modules | 9 → 12 (added `sync`, `example/todo`, `example/user` as separate go.mod) |
-| +13 benchmarks | 43 → 56 |
-| +27 version tags | 15 → 42 across 10 modules |
-| README stale deps fixed | `cockroachdb/errors` and `go-json-experiment/json` references removed |
-| example/user/go.mod cleaned | No more stale transitive deps |
-| AGENTS.md trimmed | 62KB → 39KB; session history extracted to `docs/sessions/` |
-| Storage module evolved | Now has 3 real database backends (Pebble, SQLite, Turso), not just mocks |
-| OpenTelemetry integration | Middleware now uses OpenTelemetry for metrics and tracing |
-| New module: `sync` | Distributed sync primitives (vector clocks, conflict resolution) |
-| LICENSE | Still PROPRIETARY — the only remaining blocker |
+| What changed                | Detail                                                                   |
+| --------------------------- | ------------------------------------------------------------------------ |
+| +320 commits                | 678 → 998 (47% growth)                                                   |
+| +15,500 LOC                 | 33,780 → ~49,300 total                                                   |
+| +3 modules                  | 9 → 12 (added `sync`, `example/todo`, `example/user` as separate go.mod) |
+| +13 benchmarks              | 43 → 56                                                                  |
+| +27 version tags            | 15 → 42 across 10 modules                                                |
+| README stale deps fixed     | `cockroachdb/errors` and `go-json-experiment/json` references removed    |
+| example/user/go.mod cleaned | No more stale transitive deps                                            |
+| AGENTS.md trimmed           | 62KB → 39KB; session history extracted to `docs/sessions/`               |
+| Storage module evolved      | Now has 3 real database backends (Pebble, SQLite, Turso), not just mocks |
+| OpenTelemetry integration   | Middleware now uses OpenTelemetry for metrics and tracing                |
+| New module: `sync`          | Distributed sync primitives (vector clocks, conflict resolution)         |
+| LICENSE                     | Still PROPRIETARY — the only remaining blocker                           |
 
 ---
 
@@ -183,7 +183,7 @@ Before making the repo public, address these in order:
 
 ### Must-Do (Blocking)
 
-1. **Change LICENSE to MIT or Apache-2.0.** Without this, going public is pointless — no one can legally use the code. *(Still PROPRIETARY — unchanged.)*
+1. **Change LICENSE to MIT or Apache-2.0.** Without this, going public is pointless — no one can legally use the code. _(Still PROPRIETARY — unchanged.)_
 2. ~~**Update README.md.** Remove stale dependency references (`cockroachdb/errors`, `go-json-experiment/json`). Add accurate current deps.~~ ✅ **RESOLVED** — README now accurately lists current deps.
 3. ~~**Fix example/user/go.mod.** Run `go mod tidy` to clean stale transitive deps.~~ ✅ **RESOLVED** — `example/user/go.mod` is clean. `example/todo/go.mod` has `cockroachdb/errors` as indirect via `pebble` (transitive, acceptable).
 4. ~~**Decide on AGENTS.md.** Either trim session-by-session history to architecture-relevant content, or embrace full transparency.~~ ✅ **MOSTLY RESOLVED** — Session history extracted to `docs/sessions/SESSION_HISTORY.md`. AGENTS.md is now ~39KB (down from ~62KB), focused on architecture and reference.
@@ -191,7 +191,7 @@ Before making the repo public, address these in order:
 
 ### Should-Do (Strongly Recommended)
 
-6. **Tag a `v1.0.0`** for each module with a compatibility promise. Write a `VERSIONING.md` explaining per-module versioning strategy. *(Partially done — 42 version tags exist across 10 modules. Core is at v1.5.0. No VERSIONING.md yet.)*
+6. **Tag a `v1.0.0`** for each module with a compatibility promise. Write a `VERSIONING.md` explaining per-module versioning strategy. _(Partially done — 42 version tags exist across 10 modules. Core is at v1.5.0. No VERSIONING.md yet.)_
 7. **Add a "Production Readiness" section to README.** Be honest about what's battle-tested (core, memory, middleware) vs. what needs real-world validation (storage).
 8. **Publish modules to proxy.golang.org.** Ensure `go get github.com/larsartmann/go-cqrs-lite/core` works.
 9. **Write a blog post or Twitter thread** announcing the library with the unique selling points (Decider pattern, auto-docs, branded IDs, minimal deps per module).
@@ -223,13 +223,13 @@ The library is good enough. The code quality speaks for itself. 4 of 5 must-do c
 
 ## Competitive Landscape Summary
 
-| Library          | Language | Transport-agnostic   | Auto-docs                                    | Branded IDs | Decider Pattern | Error Taxonomy  | Multi-backend Storage |
-| ---------------- | -------- | -------------------- | -------------------------------------------- | ----------- | --------------- | --------------- | -------------------- |
-| **go-cqrs-lite** | Go       | ✅                   | ✅ AsyncAPI + EventCatalog + D2 + OpenAPI    | ✅          | ✅              | ✅ (5 families) | ✅ (Pebble/SQLite/Turso) |
-| Watermill        | Go       | ❌ (transport-first) | ❌                                           | ❌          | ❌              | ❌              | ⚠️ (adapter-based)    |
-| Eventuous        | Go/.NET  | ⚠️                   | ❌                                           | ❌          | ⚠️ (.NET only)  | ❌              | ⚠️ (EventStoreDB)     |
-| go-eventstream   | Go       | ✅                   | ❌                                           | ❌          | ❌              | ❌              | ❌                    |
-| commanded        | Elixir   | ✅                   | ❌                                           | ❌          | ❌              | ❌              | ⚠️ (EventStoreDB)     |
+| Library          | Language | Transport-agnostic   | Auto-docs                                 | Branded IDs | Decider Pattern | Error Taxonomy  | Multi-backend Storage    |
+| ---------------- | -------- | -------------------- | ----------------------------------------- | ----------- | --------------- | --------------- | ------------------------ |
+| **go-cqrs-lite** | Go       | ✅                   | ✅ AsyncAPI + EventCatalog + D2 + OpenAPI | ✅          | ✅              | ✅ (5 families) | ✅ (Pebble/SQLite/Turso) |
+| Watermill        | Go       | ❌ (transport-first) | ❌                                        | ❌          | ❌              | ❌              | ⚠️ (adapter-based)       |
+| Eventuous        | Go/.NET  | ⚠️                   | ❌                                        | ❌          | ⚠️ (.NET only)  | ❌              | ⚠️ (EventStoreDB)        |
+| go-eventstream   | Go       | ✅                   | ❌                                        | ❌          | ❌              | ❌              | ❌                       |
+| commanded        | Elixir   | ✅                   | ❌                                        | ❌          | ❌              | ❌              | ⚠️ (EventStoreDB)        |
 
 **go-cqrs-lite is the only Go library offering all seven features simultaneously.** This is a defensible niche.
 

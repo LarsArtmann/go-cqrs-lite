@@ -409,29 +409,29 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 ## Test Coverage Summary
 
-| Package                | Coverage |
-| ---------------------- | -------- |
-| `core/query`           | 100.0%   |
-| `core/pkg/dispatcher`  | 100.0%   |
-| `middleware`           | 100.0%   |
-| `catalog/adapters`     | 100.0%   |
-| `catalog/internal/caseutil` | 100.0% |
-| `memory`               | 99.6%    |
-| `core/pkg/id`          | 98.1%    |
-| `catalog`              | 96.8%    |
-| `core/aggregate`       | 95.9%    |
-| `catalog/d2`           | 95.0%    |
-| `core/command`         | 94.7%    |
-| `catalog/openapi`      | 94.4%    |
-| `projection`           | 94.4%    |
-| `catalog/asyncapi`     | 93.7%    |
-| `core/decider`         | 93.6%    |
-| `core/event`           | 93.8%    |
-| `catalog/eventcatalog` | 91.3%    |
-| `catalog/docserver`    | 90.1%    |
-| `storage`              | 89.2%    |
-| `catalog/internal/schemautil` | 84.2% |
-| `testhelpers`          | 80.3%    |
+| Package                       | Coverage |
+| ----------------------------- | -------- |
+| `core/query`                  | 100.0%   |
+| `core/pkg/dispatcher`         | 100.0%   |
+| `middleware`                  | 100.0%   |
+| `catalog/adapters`            | 100.0%   |
+| `catalog/internal/caseutil`   | 100.0%   |
+| `memory`                      | 99.6%    |
+| `core/pkg/id`                 | 98.1%    |
+| `catalog`                     | 96.8%    |
+| `core/aggregate`              | 95.9%    |
+| `catalog/d2`                  | 95.0%    |
+| `core/command`                | 94.7%    |
+| `catalog/openapi`             | 94.4%    |
+| `projection`                  | 94.4%    |
+| `catalog/asyncapi`            | 93.7%    |
+| `core/decider`                | 93.6%    |
+| `core/event`                  | 93.8%    |
+| `catalog/eventcatalog`        | 91.3%    |
+| `catalog/docserver`           | 90.1%    |
+| `storage`                     | 89.2%    |
+| `catalog/internal/schemautil` | 84.2%    |
+| `testhelpers`                 | 80.3%    |
 
 ## Module Dependency Graph
 
