@@ -93,7 +93,7 @@ func (s *FakeStore) Load(
 
 	key := fakeStreamKey(aggregateType, aggregateID)
 
-	return s.events[key], nil
+	return append([]event.Event{}, s.events[key]...), nil
 }
 
 // LoadFromVersion returns events starting after the given version.
@@ -119,7 +119,7 @@ func (s *FakeStore) LoadFromVersion(
 
 	for i, evt := range all {
 		if evt.Version() > version {
-			return all[i:], nil
+			return append([]event.Event{}, all[i:]...), nil
 		}
 	}
 
