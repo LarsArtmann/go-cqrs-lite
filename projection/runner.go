@@ -164,7 +164,7 @@ func (r *Runner) handleAndCheckpoint(
 ) error {
 	err := p.Handle(ctx, evt)
 	if err != nil {
-		return err
+		return fmt.Errorf("projection %q handle event %s: %w", p.Name(), evt.Type(), err)
 	}
 
 	return r.checkpoint.Save(ctx, p.Name(), evt.ID())

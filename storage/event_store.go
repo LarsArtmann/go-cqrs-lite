@@ -74,12 +74,12 @@ func (s *SQLEventStore) Save(
 
 	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return err
+		return fmt.Errorf("check version for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
 	}
 
 	return commitTx(tx)
@@ -108,7 +108,7 @@ func (s *SQLEventStore) AppendBatch(
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
 	}
 
 	return commitTx(tx)
