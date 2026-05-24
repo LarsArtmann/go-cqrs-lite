@@ -69,5 +69,10 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 		}
 	}
 
-	return fmt.Errorf("projection %q retry exhausted after %d attempts: %w", p.Name(), r.opts.retryCount, err)
+	return fmt.Errorf(
+		"projection %q retry exhausted after %d attempts: %w",
+		p.Name(),
+		r.opts.retryCount,
+		err,
+	)
 }

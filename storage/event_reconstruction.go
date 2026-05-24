@@ -159,7 +159,13 @@ func saveWithOutboxTx(
 
 	err = insertEventsFn(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return fmt.Errorf("insert %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
+		return fmt.Errorf(
+			"insert %d events for %s %s: %w",
+			len(events),
+			aggregateType,
+			aggregateID,
+			err,
+		)
 	}
 
 	err = appendOutboxFn(ctx, tx, events)
