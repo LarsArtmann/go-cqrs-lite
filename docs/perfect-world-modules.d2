@@ -1,0 +1,560 @@
+vars: {
+  d2-config: {
+    theme-overrides: {
+      N1: "#1a1a2e"
+      N2: "#424242"
+      N7: "#FFFFFF"
+    }
+  }
+}
+
+title: {
+  label: go-cqrs-lite — The Truly Perfect Layout
+  near: top-center
+  shape: text
+  style: {
+    font-size: 28
+    bold: true
+    underline: true
+    font-color: "#1a1a2e"
+  }
+}
+
+subtitle: {
+  label: "Every module is a sharp tool. No coupling without reason. No import without purpose."
+  near: top-center
+  shape: text
+  style: {
+    font-size: 13
+    italic: true
+    font-color: "#555555"
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 0 — LEAVES (no internal deps, independently publishable)
+# ═══════════════════════════════════════════════════════════════
+
+layer0: {
+  label: "Layer 0 — Leaves\nzero internal deps · independently publishable · each <10 exports"
+
+  errs: {
+    label: "errs/\n\nRejection\nInfrastructure\nTransient\nCorruption\nConflict\nIsRetryable\nClassify\n\n(thin re-export of\ngo-error-family)"
+    shape: rectangle
+    style: {
+      fill: "#ffebee"
+      stroke: "#b71c1c"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "go-error-family"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+
+  id: {
+    label: "id/\n\nid.Of[T]\nAggregateID, EventID\nUserID, CorrelationID\nNew[T], Parse[T]\nCompareIDs, FromPtr\n\n(type aliases over\ngo-branded-id)"
+    shape: rectangle
+    style: {
+      fill: "#e8f5e9"
+      stroke: "#2e7d32"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "go-branded-id\noklog/ulid"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+
+  dispatcher: {
+    label: "dispatcher/\n\nDispatcher[H, M]\nLifecycleMixin\nCatalogDispatcher\n\n(generic handler\n routing kernel)\n\n~100 LOC, zero\ndomain knowledge"
+    shape: rectangle
+    style: {
+      fill: "#f3e5f5"
+      stroke: "#6a1b9a"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "(stdlib only)"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 1 — DOMAIN TYPES (depends on Layer 0 only)
+# ═══════════════════════════════════════════════════════════════
+
+layer1: {
+  label: "Layer 1 — Domain Contracts\ninterfaces + types · no implementations · no runtime behavior"
+
+  event: {
+    label: "event/\n\n── Value Types ──\nEvent, Type, Version\nAggregateType, Metadata\nSchemaVersion, Clock\n\n── Interfaces ──\nStore, GlobalLoader\nBus, Publisher, Subscriber\nOutbox, SnapshotStore\nCheckpointStore\nProjection, Codec\nSnapshotStrategy\n\n── Constructors ──\nNew, NewEvent, NewBatch\n\nNOT HERE: InMemoryRunner\nNOT HERE: OutboxPublisher\nNOT HERE: Any goroutine"
+    shape: rectangle
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1565c0"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "errs, id"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 2 — DISPATCH (depends on Layer 0 only, NOT Layer 1)
+# ═══════════════════════════════════════════════════════════════
+
+layer2: {
+  label: "Layer 2 — Dispatch\nroute messages to handlers · NO knowledge of events"
+
+  command: {
+    label: "command/\n\nCommand interface\n  Type()\n  AggregateID()\n\nDispatcher\n  Dispatch() error\n  Register, Use\n  Middleware chain\n\n~70 LOC facade\nover dispatcher/"
+    shape: rectangle
+    style: {
+      fill: "#fff3e0"
+      stroke: "#e65100"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "errs, id, dispatcher\n\nNOT event/"
+      shape: text
+      style: { font-size: 10; font-color: "#e65100"; bold: true }
+    }
+  }
+
+  query: {
+    label: "query/\n\nQuery interface\n  Type()\n\nDispatcher\n  Dispatch() (any, error)\n  RegisterTyped[T]\n  DispatchTyped[T]\n  Pagination\n\n~70 LOC facade\nover dispatcher/"
+    shape: rectangle
+    style: {
+      fill: "#fff3e0"
+      stroke: "#e65100"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "errs, dispatcher\n\nNOT event/\nNOT id/"
+      shape: text
+      style: { font-size: 10; font-color: "#e65100"; bold: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 3 — CQRS PATTERNS (compose Layer 1 + 2)
+# ═══════════════════════════════════════════════════════════════
+
+layer3: {
+  label: "Layer 3 — CQRS Patterns\ncompose events + commands into aggregates"
+
+  decider: {
+    label: "decider/\n\nDecider[State]\n  Initial\n  Fold(State, Event)\n\nRepository[State]\n  Execute(ctx, id, Decide)\n  Load(ctx, id)\n  Delete(ctx, id)\n\n(pure functions,\nno mutable state,\nno 9-method interface)"
+    shape: rectangle
+    style: {
+      fill: "#e8eaf6"
+      stroke: "#1a237e"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, id, errs"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 4 — IMPLEMENTATIONS (implement Layer 1 interfaces)
+# ═══════════════════════════════════════════════════════════════
+
+layer4: {
+  label: "Layer 4 — Implementations\nimport ONLY the backend you need"
+
+  memory: {
+    label: "memory/\n\n── In-memory impls ──\nMemoryStore\nMemoryBus\nMemorySnapshotStore\nMemoryOutboxStore\nMemoryCheckpointStore\n\n── Runtime behavior ──\nOutboxPublisher\n(moved from event/)\n\n(zero external deps\nperfect for tests)"
+    shape: rectangle
+    style: {
+      fill: "#e0f7fa"
+      stroke: "#00838f"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, errs\n\n0 external deps"
+      shape: text
+      style: { font-size: 10; font-color: "#00838f"; bold: true }
+    }
+  }
+
+  storage_sql: {
+    label: "storage/sql/\n\nSQLEventStore\nSQLSnapshotStore\nSQLOutbox\nSQLCheckpointStore\nSQLTransactionalStore\n\nPostgresDialect\nSQLiteDialect\n\n── Turso constructors ──\nNewTursoEventStore\nNewTursoSnapshotStore\netc."
+    shape: rectangle
+    style: {
+      fill: "#fce4ec"
+      stroke: "#880e4f"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, errs\n\n+ modernc.org/sqlite\n+ go-sqlmock\n+ turso SDK"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+
+  storage_pebble: {
+    label: "storage/pebble/\n\nPebbleEventStore\nPebbleConfig\n\n── One store, isolated ──\nNo SQL, no Turso\nNo outbox, no snapshot\n(just event persistence)\n\n23 transitive deps\nisolated here"
+    shape: rectangle
+    style: {
+      fill: "#fce4ec"
+      stroke: "#880e4f"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, errs\n\n+ cockroachdb/pebble"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LAYER 5 — CROSS-CUTTING (optional, import if you need it)
+# ═══════════════════════════════════════════════════════════════
+
+layer5: {
+  label: "Layer 5 — Cross-Cutting\noptional observability + projection lifecycle"
+
+  middleware: {
+    label: "middleware/\n\n{Command,Event,Query}Logging\n{Command,Event,Query}Retry\n{Command,Event,Query}Recovery\n{Command,Event,Query}Tracing\n{Command,Event,Query}Validation\n{Command,Event,Query}Metrics\n\n(41% structural triplication\n unavoidable in Go —\n shared logic extracted\n into private helpers)"
+    shape: rectangle
+    style: {
+      fill: "#f1f8e9"
+      stroke: "#33691e"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "command, query, event\n\n+ opentelemetry"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+
+  projection: {
+    label: "projection/\n\nRunner\n  replay → subscribe\n  checkpoint per projection\n  io.Closer lifecycle\n\nBuilder\n  On[T]() typed handlers\n\nHandlerRegistry\n\n── Also owns ──\nInMemoryRunner\n(moved from event/)"
+    shape: rectangle
+    style: {
+      fill: "#e8eaf6"
+      stroke: "#283593"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, id, errs"
+      shape: text
+      style: { font-size: 10; font-color: "#777"; italic: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# STANDALONE — Zero coupling to anything above
+# ═══════════════════════════════════════════════════════════════
+
+standalone: {
+  label: "Standalone"
+
+  catalog: {
+    label: "catalog/\n\nRegistry + Builder\nSchemaFromType[T]\n\n── Renderers ──\nasyncapi/ (YAML/JSON)\nopenapi/\nd2/ (diagrams)\neventcatalog/ (MDX)\ndocserver/ (HTTP)\n\n(no CQRS imports)"
+    shape: rectangle
+    style: {
+      fill: "#fffde7"
+      stroke: "#f9a825"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "go-faster/yaml\ngo-error-family\n\nNOTHING from above"
+      shape: text
+      style: { font-size: 10; font-color: "#f9a825"; bold: true }
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# REMOVED (the price of perfection)
+# ═══════════════════════════════════════════════════════════════
+
+removed: {
+  label: "Removed — dead code eliminated"
+  style: {
+    stroke-dash: 3
+    stroke: "#bbb"
+    font-color: "#999"
+  }
+
+  aggregate: {
+    label: "aggregate/\ndeleted — decider/ replaces it"
+    shape: text
+    style: { font-color: "#999"; font-size: 11; italic: true }
+  }
+
+  core_monolith: {
+    label: "core/ single go.mod\nsplit into 6 independent modules:\nevent/, id/, errs/, dispatcher/,\ncommand/, query/"
+    shape: text
+    style: { font-color: "#999"; font-size: 11; italic: true }
+  }
+
+  storage_flat: {
+    label: "storage/ flat package\nsplit by backend:\nstorage/sql/, storage/pebble/"
+    shape: text
+    style: { font-color: "#999"; font-size: 11; italic: true }
+  }
+
+  testhelpers_junk: {
+    label: "testhelpers/ junk drawer\nfakes → memory/\nhandler stubs → deleted\nassertions → stdlib"
+    shape: text
+    style: { font-color: "#999"; font-size: 11; italic: true }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# DEPENDENCY ARROWS
+# ═══════════════════════════════════════════════════════════════
+
+# Layer 1 → Layer 0
+layer1.event -> layer0.errs: {
+  style: { stroke: "#1565c0" }
+}
+layer1.event -> layer0.id: {
+  label: "AggregateID,\nEventID"
+  style: { stroke: "#1565c0"; stroke-dash: 3 }
+}
+
+# Layer 2 → Layer 0 (NOT Layer 1!)
+layer2.command -> layer0.errs: {
+  label: "error types only"
+  style: { stroke: "#e65100" }
+}
+layer2.command -> layer0.id: {
+  label: "AggregateID"
+  style: { stroke: "#e65100" }
+}
+layer2.command -> layer0.dispatcher: {
+  label: "Dispatcher[H, M]"
+  style: { stroke: "#e65100"; stroke-width: 2 }
+}
+layer2.query -> layer0.errs: {
+  label: "error types only"
+  style: { stroke: "#e65100" }
+}
+layer2.query -> layer0.dispatcher: {
+  label: "Dispatcher[H, M]"
+  style: { stroke: "#e65100"; stroke-width: 2 }
+}
+
+# Layer 3 → Layer 0 + 1
+layer3.decider -> layer1.event: {
+  label: "Store, Bus,\nOutbox, Snapshot,\nEvent, Version"
+  style: { stroke: "#1a237e"; stroke-width: 2 }
+}
+layer3.decider -> layer0.id: {
+  label: "AggregateID"
+  style: { stroke: "#1a237e" }
+}
+
+# Layer 4 → Layer 1 (implements interfaces)
+layer4.memory -> layer1.event: {
+  label: "implements\nStore, Bus,\nSnapshot, Outbox"
+  style: { stroke: "#00838f"; stroke-width: 3; bold: true }
+}
+layer4.storage_sql -> layer1.event: {
+  label: "implements\nStore, Outbox,\nSnapshot, Checkpoint"
+  style: { stroke: "#880e4f"; stroke-width: 3; bold: true }
+}
+layer4.storage_pebble -> layer1.event: {
+  label: "implements\nStore"
+  style: { stroke: "#880e4f"; stroke-width: 3; bold: true }
+}
+
+# Layer 5 → Layers 1-2
+layer5.middleware -> layer2.command: {
+  style: { stroke: "#33691e" }
+}
+layer5.middleware -> layer2.query: {
+  style: { stroke: "#33691e" }
+}
+layer5.middleware -> layer1.event: {
+  style: { stroke: "#33691e" }
+}
+layer5.projection -> layer1.event: {
+  label: "Projection,\nSubscriber,\nGlobalLoader,\nCheckpointStore"
+  style: { stroke: "#283593"; stroke-width: 2 }
+}
+layer5.projection -> layer0.id: {
+  label: "AggregateID"
+  style: { stroke: "#283593" }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# CONSUMER STORIES (what you import for common use cases)
+# ═══════════════════════════════════════════════════════════════
+
+stories: {
+  label: "Consumer Stories — What You Import"
+  shape: rectangle
+  style: {
+    fill: "#fafafa"
+    stroke: "#e0e0e0"
+    font-size: 11
+    font-color: "#333"
+  }
+
+  s1: {
+    label: |md
+      **"I just want command dispatch"**
+      → `command` + `memory`
+      (3 modules total: command, errs, id, dispatcher, memory, event)
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+
+  s2: {
+    label: |md
+      **"I want event sourcing with PostgreSQL"**
+      → `decider` + `storage/sql`
+      (never touch pebble, never touch turso)
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+
+  s3: {
+    label: |md
+      **"I want projections with replay"**
+      → `projection` + `storage/sql`
+      (no command, no query, no middleware)
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+
+  s4: {
+    label: |md
+      **"I want API docs from my types"**
+      → `catalog`
+      (that's it. nothing else.)
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+
+  s5: {
+    label: |md
+      **"I want the full CQRS stack"**
+      → `command` + `query` + `decider` + `memory` + `projection`
+      → optionally: `middleware`, `storage/sql`, `catalog`
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+
+  s6: {
+    label: |md
+      **"I want embedded KV storage only"**
+      → `storage/pebble`
+      (23 transitive deps, isolated from SQL's deps)
+    |
+    shape: text
+    style: { font-size: 10 }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# PRINCIPLES
+# ═══════════════════════════════════════════════════════════════
+
+principles: {
+  label: "What Changed vs Previous Perfect World\n\n1. command/ and query/ NO LONGER depend on event/\n   The old coupling was 5+3 lines of error constructors. Now they use errs/.\n\n2. Error taxonomy extracted to errs/ leaf module\n   NewRejection has nothing to do with events — it is go-error-family re-exported.\n\n3. InMemoryRunner moved from event/ to projection/\n   A runner is runtime behavior, not a contract.\n\n4. OutboxPublisher moved from event/ to memory/\n   Background goroutine is not an interface definition.\n\n5. core/ split from 1 go.mod into 6 independent modules\n   event/, id/, errs/, dispatcher/, command/, query/\n\n6. storage/ split by backend\n   storage/sql/ and storage/pebble/ — do not pay for Pebble when you want SQLite.\n\n7. testhelpers/ junk drawer deleted\n   Fakes moved to memory/. Handler stubs deleted. Assertions use stdlib.\n\n8. aggregate/ deleted\n   Dead code is a lie about the system. decider/ replaces it."
+  near: bottom-center
+  shape: text
+  style: {
+    font-size: 11
+    font-color: "#333"
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# LEGEND
+# ═══════════════════════════════════════════════════════════════
+
+legend: {
+  label: "Legend"
+  shape: rectangle
+  style: {
+    fill: "#fafafa"
+    stroke: "#ddd"
+    font-size: 11
+  }
+
+  leaf: {
+    label: "Leaf module\n(zero internal deps)"
+    shape: rectangle
+    style: { fill: "#e8f5e9"; stroke: "#2e7d32"; font-size: 10 }
+  }
+  contract: {
+    label: "Domain contract\n(interfaces + types only)"
+    shape: rectangle
+    style: { fill: "#e3f2fd"; stroke: "#1565c0"; font-size: 10 }
+  }
+  dispatch: {
+    label: "Dispatch\n(routing layer)"
+    shape: rectangle
+    style: { fill: "#fff3e0"; stroke: "#e65100"; font-size: 10 }
+  }
+  pattern: {
+    label: "Pattern module\n(CQRS composition)"
+    shape: rectangle
+    style: { fill: "#e8eaf6"; stroke: "#1a237e"; font-size: 10 }
+  }
+  impl: {
+    label: "Implementation\n(pluggable backend)"
+    shape: rectangle
+    style: { fill: "#fce4ec"; stroke: "#880e4f"; font-size: 10 }
+  }
+  crosscut: {
+    label: "Cross-cutting\n(optional)"
+    shape: rectangle
+    style: { fill: "#f1f8e9"; stroke: "#33691e"; font-size: 10 }
+  }
+  thick_arrow: {
+    label: "━━ thick = implements interface"
+    shape: text
+    style: { font-size: 10; font-color: "#555" }
+  }
+  thin_arrow: {
+    label: "── thin = depends on"
+    shape: text
+    style: { font-size: 10; font-color: "#555" }
+  }
+  no_dep: {
+    label: "\"NOT event/\" = coupling eliminated"
+    shape: text
+    style: { font-size: 10; font-color: "#e65100"; bold: true }
+  }
+}
