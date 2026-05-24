@@ -805,6 +805,9 @@ func TestMustParseConvenienceFuncs_Panic(t *testing.T) {
 		name string
 		fn   func()
 	}{
+		{"AggregateID", func() { _ = MustParseAggregateID("") }},
+		{"EventID", func() { _ = MustParseEventID("") }},
+		{"UserID", func() { _ = MustParseUserID("") }},
 		{"CausationID", func() { _ = MustParseCausationID("") }},
 		{"CorrelationID", func() { _ = MustParseCorrelationID("") }},
 		{"RequestID", func() { _ = MustParseRequestID("") }},
