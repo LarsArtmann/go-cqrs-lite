@@ -374,3 +374,31 @@ func TestClockOrder_String(t *testing.T) {
 		})
 	}
 }
+
+func TestVectorClock_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		vc       VectorClock
+		expected string
+	}{
+		{"empty", NewVectorClock(), "{}"},
+		{"single entry", VectorClock{NodeID("a"): 1}, "{a:1}"},
+		{
+			"multiple entries sorted",
+			VectorClock{NodeID("b"): 5, NodeID("a"): 3},
+			"{a:3, b:5}",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.vc.String(); got != tt.expected {
+				t.Errorf("String() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}

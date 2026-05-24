@@ -254,6 +254,31 @@ func TestMergeResult_Values(t *testing.T) {
 	}
 }
 
+func TestMergeResult_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		result   MergeResult
+		expected string
+	}{
+		{MergeResultLocalWins, "local_wins"},
+		{MergeResultRemoteWins, "remote_wins"},
+		{MergeResultMerged, "merged"},
+		{MergeResultConflict, "conflict"},
+		{MergeResult(99), "unknown"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.result.String(); got != tt.expected {
+				t.Errorf("String() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestSyncMessage_JSON(t *testing.T) {
 	t.Parallel()
 

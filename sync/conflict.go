@@ -94,6 +94,21 @@ const (
 	MergeResultConflict
 )
 
+func (r MergeResult) String() string {
+	switch r {
+	case MergeResultLocalWins:
+		return "local_wins"
+	case MergeResultRemoteWins:
+		return "remote_wins"
+	case MergeResultMerged:
+		return "merged"
+	case MergeResultConflict:
+		return "conflict"
+	default:
+		return "unknown"
+	}
+}
+
 // SyncMessage is the envelope for sync protocol messages.
 type SyncMessage struct {
 	Type    SyncMessageType `json:"type"`

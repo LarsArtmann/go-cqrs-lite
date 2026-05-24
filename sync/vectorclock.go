@@ -1,7 +1,10 @@
 package sync
 
 import (
+	"fmt"
 	"maps"
+	"sort"
+	"strings"
 )
 
 // VectorClock tracks logical time across nodes for causal ordering.
@@ -15,6 +18,35 @@ type VectorClock map[NodeID]int64
 // NewVectorClock creates a new empty vector clock.
 func NewVectorClock() VectorClock {
 	return make(VectorClock)
+}
+
+// String returns a human-readable representation of the vector clock.
+func (vc VectorClock) String() string {
+	if len(vc) == 0 {
+		return "{}"
+	}
+
+	nodes := make([]string, 0, len(vc))
+	for node := range vc {
+		nodes = append(nodes, string(node))
+	}
+
+	sort.Strings(nodes)
+
+	var buf strings.Builder
+	buf.WriteByte('{')
+
+	for i, node := range nodes {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+
+		fmt.Fprintf(&buf, "%s:%d", node, vc[NodeID(node)])
+	}
+
+	buf.WriteByte('}')
+
+	return buf.String()
 }
 
 // NewVectorClockFromMap creates a VectorClock from a map of node IDs to counters.
