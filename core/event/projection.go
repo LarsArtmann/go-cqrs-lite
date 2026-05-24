@@ -2,6 +2,7 @@ package event
 
 import "context"
 
+// Projection processes events of specific types within a projection runner.
 type Projection interface {
 	Name() string
 	Handle(ctx context.Context, evt Event) error
@@ -14,6 +15,7 @@ type projectionFunc struct {
 	eventTypes []Type
 }
 
+// NewProjection creates a Projection from a handler function and event type filter.
 func NewProjection(
 	name string,
 	handle func(ctx context.Context, evt Event) error,

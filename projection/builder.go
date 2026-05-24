@@ -8,12 +8,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
+// Builder constructs a Projection with type-safe event handlers.
+// Use On[T] to register handlers, then call Build to create the Projection.
 type Builder struct {
 	name       string
 	registry   *HandlerRegistry
 	eventTypes []event.Type
 }
 
+// NewBuilder creates a Builder for a projection with the given name.
 func NewBuilder(name string) *Builder {
 	return &Builder{
 		name:     name,
@@ -21,6 +24,9 @@ func NewBuilder(name string) *Builder {
 	}
 }
 
+// On registers a type-safe handler for the given event type.
+// The payload is JSON-decoded into T before calling handler.
+// Returns ErrNilHandler if handler is nil.
 func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T) error) error {
 	if handler == nil {
 		return ErrNilHandler
@@ -49,6 +55,7 @@ func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T
 	return nil
 }
 
+// Build creates an event.Projection from the registered handlers.
 func (b *Builder) Build() event.Projection {
 	types := b.eventTypes
 	if types == nil {

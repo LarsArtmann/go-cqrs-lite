@@ -22,6 +22,8 @@ const (
 	publisherClosed
 )
 
+// OutboxPublisher polls an outbox for pending events and publishes them via a Publisher.
+// Start begins background polling; Close stops it gracefully.
 type OutboxPublisher struct {
 	outbox    Outbox
 	publisher Publisher
@@ -36,16 +38,21 @@ type OutboxPublisher struct {
 
 var _ io.Closer = (*OutboxPublisher)(nil)
 
+// OutboxPublisherOption configures an OutboxPublisher.
 type OutboxPublisherOption func(*OutboxPublisher)
 
+// WithPollInterval sets the interval between outbox polls. Defaults to 1s.
 func WithPollInterval(d time.Duration) OutboxPublisherOption {
 	return func(p *OutboxPublisher) { p.interval = d }
 }
 
+// WithBatchSize sets the number of entries to poll per batch. Defaults to 100.
 func WithBatchSize(n int) OutboxPublisherOption {
 	return func(p *OutboxPublisher) { p.batchSize = n }
 }
 
+// NewOutboxPublisher creates a polling outbox publisher.
+// Returns an error if outbox or publisher is nil.
 func NewOutboxPublisher(
 	outbox Outbox,
 	publisher Publisher,
@@ -82,6 +89,8 @@ func NewOutboxPublisher(
 	return p, nil
 }
 
+// Start begins background polling of the outbox. Returns ErrPublisherClosed or
+// ErrAlreadyStarted if called in an invalid state.
 func (p *OutboxPublisher) Start() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -103,6 +112,8 @@ func (p *OutboxPublisher) Start() error {
 	return nil
 }
 
+// Close stops the background poller and waits for it to finish.
+// Safe to call multiple times.
 func (p *OutboxPublisher) Close() error {
 	p.mu.Lock()
 
