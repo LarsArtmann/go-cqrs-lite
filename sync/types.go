@@ -1,19 +1,5 @@
 package sync
 
-import errorfamily "github.com/larsartmann/go-error-family"
-
-// ErrEmptyNodeID is returned when parsing an empty node ID.
-var ErrEmptyNodeID = errorfamily.NewRejection(
-	"sync.empty_node_id",
-	"node ID cannot be empty",
-)
-
-// ErrEmptyOperationID is returned when parsing an empty operation ID.
-var ErrEmptyOperationID = errorfamily.NewRejection(
-	"sync.empty_operation_id",
-	"operation ID cannot be empty",
-)
-
 // NodeID identifies a node in the distributed sync system.
 // Using a named type prevents accidental mixing with arbitrary strings.
 type NodeID string

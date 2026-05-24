@@ -18,6 +18,18 @@ var ErrInvalidOperationType = errorfamily.NewRejection(
 	"operation type is not valid",
 )
 
+// ErrEmptyNodeID is returned when parsing an empty node ID.
+var ErrEmptyNodeID = errorfamily.NewRejection(
+	"sync.empty_node_id",
+	"node ID cannot be empty",
+)
+
+// ErrEmptyOperationID is returned when parsing an empty operation ID.
+var ErrEmptyOperationID = errorfamily.NewRejection(
+	"sync.empty_operation_id",
+	"operation ID cannot be empty",
+)
+
 // Clock order string constants for ClockOrder.String().
 const (
 	clockOrderBefore     = "before"
