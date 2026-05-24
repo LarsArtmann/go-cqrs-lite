@@ -51,6 +51,9 @@ node_modules/
 /coverage
 # Sensitive files
 *.db
+*.db-shm
+*.db-wal
+*.wal
 /report/jscpd-report.json
 
 # Generated catalog output
