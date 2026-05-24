@@ -45,12 +45,25 @@ type Operation[T any] struct {
 }
 
 // NewOperation creates a new operation with the given parameters.
+// Returns an error if id or nodeID is zero, or if opType is invalid.
 func NewOperation[T any](
 	id OperationID,
 	opType OperationType,
 	nodeID NodeID,
 	payload T,
-) *Operation[T] {
+) (*Operation[T], error) {
+	if id.IsZero() {
+		return nil, ErrEmptyOperationID
+	}
+
+	if nodeID.IsZero() {
+		return nil, ErrEmptyNodeID
+	}
+
+	if !opType.Valid() {
+		return nil, ErrInvalidOperationType
+	}
+
 	return &Operation[T]{
 		ID:          id,
 		Type:        opType,
@@ -58,7 +71,22 @@ func NewOperation[T any](
 		Timestamp:   time.Now().UTC(),
 		Payload:     payload,
 		VectorClock: NewVectorClock(),
+	}, nil
+}
+
+// MustNewOperation creates a new operation or panics on invalid inputs.
+func MustNewOperation[T any](
+	id OperationID,
+	opType OperationType,
+	nodeID NodeID,
+	payload T,
+) *Operation[T] {
+	op, err := NewOperation(id, opType, nodeID, payload)
+	if err != nil {
+		panic(err)
 	}
+
+	return op
 }
 
 // Serialize converts the operation to JSON bytes.

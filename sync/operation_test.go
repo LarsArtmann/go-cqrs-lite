@@ -46,11 +46,11 @@ func TestOperationType_Valid(t *testing.T) {
 	}
 }
 
-func TestNewOperation(t *testing.T) {
+func TestMustNewOperation(t *testing.T) {
 	payload := map[string]string{"name": "test"}
 	before := time.Now().UTC()
 
-	op := NewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), payload)
+	op := MustNewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), payload)
 
 	if op.ID != OperationID("op-1") {
 		t.Errorf("ID = %q, want %q", op.ID, "op-1")
@@ -83,14 +83,14 @@ func TestNewOperation(t *testing.T) {
 
 func TestNewOperation_WithDifferentTypes(t *testing.T) {
 	t.Run("string payload", func(t *testing.T) {
-		op := NewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), "hello")
+		op := MustNewOperation(OperationID("op-1"), OpCreate, MustParseNodeID("node-a"), "hello")
 		if op.Payload != "hello" {
 			t.Errorf("Payload = %q, want %q", op.Payload, "hello")
 		}
 	})
 
 	t.Run("int payload", func(t *testing.T) {
-		op := NewOperation(OperationID("op-2"), OpUpdate, MustParseNodeID("node-b"), 42)
+		op := MustNewOperation(OperationID("op-2"), OpUpdate, MustParseNodeID("node-b"), 42)
 		if op.Payload != 42 {
 			t.Errorf("Payload = %d, want 42", op.Payload)
 		}
@@ -101,7 +101,7 @@ func TestNewOperation_WithDifferentTypes(t *testing.T) {
 			Name string `json:"name"`
 		}
 
-		op := NewOperation(
+		op := MustNewOperation(
 			OperationID("op-3"),
 			OpDelete,
 			MustParseNodeID("node-c"),
@@ -119,7 +119,7 @@ func TestOperation_Serialize_Deserialize(t *testing.T) {
 		Value int    `json:"value"`
 	}
 
-	original := NewOperation(OperationID("op-1"), OpUpdate, MustParseNodeID("node-a"), TestPayload{
+	original := MustNewOperation(OperationID("op-1"), OpUpdate, MustParseNodeID("node-a"), TestPayload{
 		Name:  "test",
 		Value: 42,
 	})
@@ -251,4 +251,43 @@ func TestOperation_RoundTrip_PreservesAllFields(t *testing.T) {
 	if !result.VectorClock.Equal(original.VectorClock) {
 		t.Errorf("VectorClock mismatch: %v vs %v", result.VectorClock, original.VectorClock)
 	}
+}
+
+func TestNewOperation_EmptyID(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewOperation(OperationID(""), OpCreate, MustParseNodeID("node-a"), "test")
+	if err == nil {
+		t.Fatal("expected error for empty operation ID")
+	}
+}
+
+func TestNewOperation_EmptyNodeID(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewOperation(OperationID("op-1"), OpCreate, NodeID(""), "test")
+	if err == nil {
+		t.Fatal("expected error for empty node ID")
+	}
+}
+
+func TestNewOperation_InvalidType(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewOperation(OperationID("op-1"), OperationType("bogus"), MustParseNodeID("node-a"), "test")
+	if err == nil {
+		t.Fatal("expected error for invalid operation type")
+	}
+}
+
+func TestMustNewOperation_Panics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for empty ID")
+		}
+	}()
+
+	MustNewOperation(OperationID(""), OpCreate, MustParseNodeID("node-a"), "test")
 }

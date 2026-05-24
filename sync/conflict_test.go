@@ -319,7 +319,7 @@ func TestSyncResponse_JSON(t *testing.T) {
 			Clock:  VectorClock{NodeID("node-1"): 5, NodeID("node-2"): 3},
 		},
 		Operations: []*Operation[testItem]{
-			NewOperation(
+			MustNewOperation(
 				OperationID("op-1"),
 				OpCreate,
 				MustParseNodeID("node-2"),

@@ -12,6 +12,12 @@ var ErrNilTimestampFunc = errorfamily.NewRejection(
 	"NewLWWResolver requires a non-nil TimestampFunc",
 )
 
+// ErrInvalidOperationType is returned when an OperationType is not a valid known value.
+var ErrInvalidOperationType = errorfamily.NewRejection(
+	"sync.operation.invalid_type",
+	"operation type is not valid",
+)
+
 // Clock order string constants for ClockOrder.String().
 const (
 	clockOrderBefore     = "before"
