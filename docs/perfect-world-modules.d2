@@ -50,7 +50,7 @@ layer0: {
     deps: {
       label: "go-error-family"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 
@@ -66,7 +66,7 @@ layer0: {
     deps: {
       label: "go-branded-id\noklog/ulid"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 
@@ -82,7 +82,7 @@ layer0: {
     deps: {
       label: "(stdlib only)"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 }
@@ -106,7 +106,7 @@ layer1: {
     deps: {
       label: "errs, id"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 }
@@ -130,7 +130,7 @@ layer2: {
     deps: {
       label: "errs, id, dispatcher\n\nNOT event/"
       shape: text
-      style: { font-size: 10; font-color: "#e65100"; bold: true }
+      style: {font-size: 10; font-color: "#e65100"; bold: true}
     }
   }
 
@@ -146,7 +146,7 @@ layer2: {
     deps: {
       label: "errs, dispatcher\n\nNOT event/\nNOT id/"
       shape: text
-      style: { font-size: 10; font-color: "#e65100"; bold: true }
+      style: {font-size: 10; font-color: "#e65100"; bold: true}
     }
   }
 }
@@ -170,7 +170,7 @@ layer3: {
     deps: {
       label: "event, id, errs"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 }
@@ -194,7 +194,7 @@ layer4: {
     deps: {
       label: "event, errs\n\n0 external deps"
       shape: text
-      style: { font-size: 10; font-color: "#00838f"; bold: true }
+      style: {font-size: 10; font-color: "#00838f"; bold: true}
     }
   }
 
@@ -210,7 +210,7 @@ layer4: {
     deps: {
       label: "event, errs\n\n+ modernc.org/sqlite\n+ go-sqlmock\n+ turso SDK"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 
@@ -226,7 +226,7 @@ layer4: {
     deps: {
       label: "event, errs\n\n+ cockroachdb/pebble"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 }
@@ -250,7 +250,7 @@ layer5: {
     deps: {
       label: "command, query, event\n\n+ opentelemetry"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 
@@ -266,7 +266,7 @@ layer5: {
     deps: {
       label: "event, id, errs"
       shape: text
-      style: { font-size: 10; font-color: "#777"; italic: true }
+      style: {font-size: 10; font-color: "#777"; italic: true}
     }
   }
 }
@@ -290,7 +290,7 @@ standalone: {
     deps: {
       label: "go-faster/yaml\ngo-error-family\n\nNOTHING from above"
       shape: text
-      style: { font-size: 10; font-color: "#f9a825"; bold: true }
+      style: {font-size: 10; font-color: "#f9a825"; bold: true}
     }
   }
 }
@@ -310,25 +310,25 @@ removed: {
   aggregate: {
     label: "aggregate/\ndeleted — decider/ replaces it"
     shape: text
-    style: { font-color: "#999"; font-size: 11; italic: true }
+    style: {font-color: "#999"; font-size: 11; italic: true}
   }
 
   core_monolith: {
     label: "core/ single go.mod\nsplit into 6 independent modules:\nevent/, id/, errs/, dispatcher/,\ncommand/, query/"
     shape: text
-    style: { font-color: "#999"; font-size: 11; italic: true }
+    style: {font-color: "#999"; font-size: 11; italic: true}
   }
 
   storage_flat: {
     label: "storage/ flat package\nsplit by backend:\nstorage/sql/, storage/pebble/"
     shape: text
-    style: { font-color: "#999"; font-size: 11; italic: true }
+    style: {font-color: "#999"; font-size: 11; italic: true}
   }
 
   testhelpers_junk: {
     label: "testhelpers/ junk drawer\nfakes → memory/\nhandler stubs → deleted\nassertions → stdlib"
     shape: text
-    style: { font-color: "#999"; font-size: 11; italic: true }
+    style: {font-color: "#999"; font-size: 11; italic: true}
   }
 }
 
@@ -338,76 +338,76 @@ removed: {
 
 # Layer 1 → Layer 0
 layer1.event -> layer0.errs: {
-  style: { stroke: "#1565c0" }
+  style: {stroke: "#1565c0"}
 }
 layer1.event -> layer0.id: {
   label: "AggregateID,\nEventID"
-  style: { stroke: "#1565c0"; stroke-dash: 3 }
+  style: {stroke: "#1565c0"; stroke-dash: 3}
 }
 
 # Layer 2 → Layer 0 (NOT Layer 1!)
 layer2.command -> layer0.errs: {
   label: "error types only"
-  style: { stroke: "#e65100" }
+  style: {stroke: "#e65100"}
 }
 layer2.command -> layer0.id: {
   label: "AggregateID"
-  style: { stroke: "#e65100" }
+  style: {stroke: "#e65100"}
 }
 layer2.command -> layer0.dispatcher: {
   label: "Dispatcher[H, M]"
-  style: { stroke: "#e65100"; stroke-width: 2 }
+  style: {stroke: "#e65100"; stroke-width: 2}
 }
 layer2.query -> layer0.errs: {
   label: "error types only"
-  style: { stroke: "#e65100" }
+  style: {stroke: "#e65100"}
 }
 layer2.query -> layer0.dispatcher: {
   label: "Dispatcher[H, M]"
-  style: { stroke: "#e65100"; stroke-width: 2 }
+  style: {stroke: "#e65100"; stroke-width: 2}
 }
 
 # Layer 3 → Layer 0 + 1
 layer3.decider -> layer1.event: {
   label: "Store, Bus,\nOutbox, Snapshot,\nEvent, Version"
-  style: { stroke: "#1a237e"; stroke-width: 2 }
+  style: {stroke: "#1a237e"; stroke-width: 2}
 }
 layer3.decider -> layer0.id: {
   label: "AggregateID"
-  style: { stroke: "#1a237e" }
+  style: {stroke: "#1a237e"}
 }
 
 # Layer 4 → Layer 1 (implements interfaces)
 layer4.memory -> layer1.event: {
   label: "implements\nStore, Bus,\nSnapshot, Outbox"
-  style: { stroke: "#00838f"; stroke-width: 3; bold: true }
+  style: {stroke: "#00838f"; stroke-width: 3; bold: true}
 }
 layer4.storage_sql -> layer1.event: {
   label: "implements\nStore, Outbox,\nSnapshot, Checkpoint"
-  style: { stroke: "#880e4f"; stroke-width: 3; bold: true }
+  style: {stroke: "#880e4f"; stroke-width: 3; bold: true}
 }
 layer4.storage_pebble -> layer1.event: {
   label: "implements\nStore"
-  style: { stroke: "#880e4f"; stroke-width: 3; bold: true }
+  style: {stroke: "#880e4f"; stroke-width: 3; bold: true}
 }
 
 # Layer 5 → Layers 1-2
 layer5.middleware -> layer2.command: {
-  style: { stroke: "#33691e" }
+  style: {stroke: "#33691e"}
 }
 layer5.middleware -> layer2.query: {
-  style: { stroke: "#33691e" }
+  style: {stroke: "#33691e"}
 }
 layer5.middleware -> layer1.event: {
-  style: { stroke: "#33691e" }
+  style: {stroke: "#33691e"}
 }
 layer5.projection -> layer1.event: {
   label: "Projection,\nSubscriber,\nGlobalLoader,\nCheckpointStore"
-  style: { stroke: "#283593"; stroke-width: 2 }
+  style: {stroke: "#283593"; stroke-width: 2}
 }
 layer5.projection -> layer0.id: {
   label: "AggregateID"
-  style: { stroke: "#283593" }
+  style: {stroke: "#283593"}
 }
 
 # ═══════════════════════════════════════════════════════════════
@@ -431,7 +431,7 @@ stories: {
       (3 modules total: command, errs, id, dispatcher, memory, event)
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 
   s2: {
@@ -441,7 +441,7 @@ stories: {
       (never touch pebble, never touch turso)
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 
   s3: {
@@ -451,7 +451,7 @@ stories: {
       (no command, no query, no middleware)
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 
   s4: {
@@ -461,7 +461,7 @@ stories: {
       (that's it. nothing else.)
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 
   s5: {
@@ -471,7 +471,7 @@ stories: {
       → optionally: `middleware`, `storage/sql`, `catalog`
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 
   s6: {
@@ -481,7 +481,7 @@ stories: {
       (23 transitive deps, isolated from SQL's deps)
     |
     shape: text
-    style: { font-size: 10 }
+    style: {font-size: 10}
   }
 }
 
@@ -515,46 +515,46 @@ legend: {
   leaf: {
     label: "Leaf module\n(zero internal deps)"
     shape: rectangle
-    style: { fill: "#e8f5e9"; stroke: "#2e7d32"; font-size: 10 }
+    style: {fill: "#e8f5e9"; stroke: "#2e7d32"; font-size: 10}
   }
   contract: {
     label: "Domain contract\n(interfaces + types only)"
     shape: rectangle
-    style: { fill: "#e3f2fd"; stroke: "#1565c0"; font-size: 10 }
+    style: {fill: "#e3f2fd"; stroke: "#1565c0"; font-size: 10}
   }
   dispatch: {
     label: "Dispatch\n(routing layer)"
     shape: rectangle
-    style: { fill: "#fff3e0"; stroke: "#e65100"; font-size: 10 }
+    style: {fill: "#fff3e0"; stroke: "#e65100"; font-size: 10}
   }
   pattern: {
     label: "Pattern module\n(CQRS composition)"
     shape: rectangle
-    style: { fill: "#e8eaf6"; stroke: "#1a237e"; font-size: 10 }
+    style: {fill: "#e8eaf6"; stroke: "#1a237e"; font-size: 10}
   }
   impl: {
     label: "Implementation\n(pluggable backend)"
     shape: rectangle
-    style: { fill: "#fce4ec"; stroke: "#880e4f"; font-size: 10 }
+    style: {fill: "#fce4ec"; stroke: "#880e4f"; font-size: 10}
   }
   crosscut: {
     label: "Cross-cutting\n(optional)"
     shape: rectangle
-    style: { fill: "#f1f8e9"; stroke: "#33691e"; font-size: 10 }
+    style: {fill: "#f1f8e9"; stroke: "#33691e"; font-size: 10}
   }
   thick_arrow: {
     label: "━━ thick = implements interface"
     shape: text
-    style: { font-size: 10; font-color: "#555" }
+    style: {font-size: 10; font-color: "#555"}
   }
   thin_arrow: {
     label: "── thin = depends on"
     shape: text
-    style: { font-size: 10; font-color: "#555" }
+    style: {font-size: 10; font-color: "#555"}
   }
   no_dep: {
     label: "\"NOT event/\" = coupling eliminated"
     shape: text
-    style: { font-size: 10; font-color: "#e65100"; bold: true }
+    style: {font-size: 10; font-color: "#e65100"; bold: true}
   }
 }
