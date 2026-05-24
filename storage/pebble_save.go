@@ -40,7 +40,7 @@ func (a *PebbleEventStore) writeEventsToBatch(
 	for i, evt := range events {
 		err := validateEventOwnership(evt, aggregateType, aggregateID)
 		if err != nil {
-			return err
+			return fmt.Errorf("validate event %d: %w", i, err)
 		}
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
@@ -57,7 +57,7 @@ func (a *PebbleEventStore) writeEventsToBatch(
 
 		err = a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
-			return err
+			return fmt.Errorf("serialize event %d for %s %s: %w", i, aggregateType, aggregateID, err)
 		}
 	}
 

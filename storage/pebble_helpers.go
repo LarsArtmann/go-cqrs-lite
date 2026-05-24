@@ -81,7 +81,7 @@ func (a *PebbleEventStore) AppendBatch(
 
 		err := a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
-			return err
+			return fmt.Errorf("serialize event %s for %s %s: %w", evt.Type(), aggregateType, aggregateID, err)
 		}
 	}
 

@@ -60,7 +60,7 @@ func (a *PebbleEventStore) Save(
 
 	err := a.checkVersion(aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return err
+		return fmt.Errorf("pebble check version for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
 	batch := a.db.NewBatch()
@@ -71,7 +71,7 @@ func (a *PebbleEventStore) Save(
 		batch, aggregateType, aggregateID, events, expectedVersion,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("pebble write %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
 	}
 
 	return a.commitAndLog(batch, "events saved", aggregateType, aggregateID, len(events))
