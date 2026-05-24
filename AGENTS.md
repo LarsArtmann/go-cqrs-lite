@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 12 modules:
+Multi-module Go workspace with 11 modules:
 
 ```
 go-cqrs-lite/
@@ -242,16 +242,6 @@ nix develop             # enter dev shell
 - **HandlerRegistry**: Maps event types to handlers. Useful for building custom projection dispatch.
 - **Builder**: Fluent API for defining projections with `On[T]()` type-safe handlers. JSON-decodes payloads into typed structs.
 - **Replay context**: `event.WithReplay(ctx, true)` / `event.IsReplay(ctx)` — handlers can distinguish replay from live events.
-
-### Sync Module (`sync/`)
-
-| Package | Purpose                     | Key Types                                                                                  |
-| ------- | --------------------------- | ------------------------------------------------------------------------------------------ |
-| `sync/` | Distributed sync primitives | `NodeID`, `OperationID`, `SyncMessageType`, `VectorClock`, `Operation`, `ConflictResolver` |
-
-- **Named ID types**: `NodeID`, `OperationID` — typed strings with `Parse*`/`MustParse*`/`String()`/`IsZero()`.
-- **VectorClock**: `map[NodeID]int64` — typed keys prevent mixing with arbitrary strings.
-- **SyncMessageType**: `sync_request` / `sync_response` constants.
 
 ## Design Principles
 

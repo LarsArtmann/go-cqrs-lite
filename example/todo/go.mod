@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.4.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.2.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.2.0
+	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e
 )
 
 require (
@@ -22,7 +23,7 @@ require (
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
-	github.com/ebitengine/purego v0.9.1 // indirect
+	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/getsentry/sentry-go v0.46.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
@@ -32,7 +33,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.1.1 // indirect
-	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -43,9 +43,9 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.6.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/exp v0.0.0-20260508232706-74f9aab9d74a // indirect
+	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	turso.tech/database/tursogo v0.6.0 // indirect
 )

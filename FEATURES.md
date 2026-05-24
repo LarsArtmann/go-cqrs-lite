@@ -357,25 +357,6 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 ---
 
-## Sync Primitives ✅ FULLY_FUNCTIONAL
-
-> `import "github.com/larsartmann/go-cqrs-lite/sync"`
-
-|                     | Feature                                                                              | Detail | Status |
-| ------------------- | ------------------------------------------------------------------------------------ | ------ | ------ |
-| VectorClock         | `map[string]int64` with `Increment`, `Get`, `Merge`, `Compare`, `Clone`, `Equal`     | ✅     |
-| Operation[T]        | Generic typed sync operation with ID, type, nodeID, timestamp, vector clock, payload | ✅     |
-| OperationType       | `OpCreate`, `OpUpdate`, `OpDelete` constants                                         | ✅     |
-| ConflictResolver[T] | Interface for pluggable conflict resolution strategies                               | ✅     |
-| LWWResolver[T]      | Last-Write-Wins: vector clock comparison → timestamp fallback → tiebreaker           | ✅     |
-| SyncMessage         | Envelope for sync protocol messages (request/response)                               | ✅     |
-| NodeID              | Named type with `ParseNodeID`, `MustParseNodeID` validation                          | ✅     |
-| JSON serialization  | `Operation.Serialize()` and `DeserializeOperation[T]()` for transport                | ✅     |
-
-**Coverage:** 92.2%
-
----
-
 ## Test Helpers 🧪 TESTING_ONLY
 
 > `import "github.com/larsartmann/go-cqrs-lite/testhelpers"`

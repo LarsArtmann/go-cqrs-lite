@@ -1,8 +1,0 @@
-# Copy/paste detection report
-/report/jscpd-report.json
-# Build artifacts
-/sync
-# Test coverage
-/coverage
-# Dependencies
-node_modules/

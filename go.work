@@ -10,6 +10,5 @@ use (
 	./middleware
 	./projection
 	./storage
-	./sync
 	./testhelpers
 )
