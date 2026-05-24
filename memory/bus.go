@@ -95,12 +95,12 @@ func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {
 	handler := func(ctx context.Context, e event.Event) error {
 		err := b.notifyHandlers(ctx, e, b.allHandlers, "all-handler")
 		if err != nil {
-			return err
+			return fmt.Errorf("notify all-handlers for %s: %w", e.Type(), err)
 		}
 
 		err = b.notifyHandlers(ctx, e, b.handlers[e.Type()], "handler")
 		if err != nil {
-			return err
+			return fmt.Errorf("notify handler for %s: %w", e.Type(), err)
 		}
 
 		return nil

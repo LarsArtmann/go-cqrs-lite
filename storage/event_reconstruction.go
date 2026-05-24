@@ -154,17 +154,17 @@ func saveWithOutboxTx(
 
 	err = checkVersionFn(ctx, tx, aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return err
+		return fmt.Errorf("check version for %s %s: %w", aggregateType, aggregateID, err)
 	}
 
 	err = insertEventsFn(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert %d events for %s %s: %w", len(events), aggregateType, aggregateID, err)
 	}
 
 	err = appendOutboxFn(ctx, tx, events)
 	if err != nil {
-		return err
+		return fmt.Errorf("append %d events to outbox: %w", len(events), err)
 	}
 
 	return commitTx(tx)

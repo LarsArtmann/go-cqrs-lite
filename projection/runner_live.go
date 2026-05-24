@@ -51,7 +51,7 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 	}
 
 	if r.opts.retryCount <= 0 || !event.IsRetryable(err) {
-		return err
+		return fmt.Errorf("projection %q non-retryable error: %w", p.Name(), err)
 	}
 
 	for attempt := 1; attempt <= r.opts.retryCount; attempt++ {
@@ -69,5 +69,5 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 		}
 	}
 
-	return err
+	return fmt.Errorf("projection %q retry exhausted after %d attempts: %w", p.Name(), r.opts.retryCount, err)
 }
