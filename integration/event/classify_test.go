@@ -3,30 +3,26 @@ package event_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
 	"github.com/larsartmann/go-cqrs-lite/projection"
 	"github.com/larsartmann/go-cqrs-lite/storage"
 )
 
-func TestClassify_AggregateSentinels(t *testing.T) {
+func TestClassify_DeciderSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(aggregate.ErrNilAggregateID) != event.Rejection {
-		t.Error("aggregate.ErrNilAggregateID should be Rejection")
+	if event.Classify(decider.ErrNilFold) != event.Rejection {
+		t.Error("decider.ErrNilFold should be Rejection")
 	}
 
-	if event.Classify(aggregate.ErrEmptyAggregateType) != event.Rejection {
-		t.Error("aggregate.ErrEmptyAggregateType should be Rejection")
+	if event.Classify(decider.ErrNilStore) != event.Infrastructure {
+		t.Error("decider.ErrNilStore should be Infrastructure")
 	}
 
-	if event.Classify(aggregate.ErrNilStore) != event.Infrastructure {
-		t.Error("aggregate.ErrNilStore should be Infrastructure")
-	}
-
-	if event.Classify(aggregate.ErrNilBus) != event.Infrastructure {
-		t.Error("aggregate.ErrNilBus should be Infrastructure")
+	if event.Classify(decider.ErrNilBus) != event.Infrastructure {
+		t.Error("decider.ErrNilBus should be Infrastructure")
 	}
 }
 
