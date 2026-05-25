@@ -16,68 +16,68 @@ EventCatalog is an MDX-based documentation system for event-driven architectures
 
 ### 2.1 Resource Types
 
-| # | Resource | Directory | Required Frontmatter | Status |
-|---|----------|-----------|---------------------|--------|
-| 1 | **Domains** | `domains/{name}/index.mdx` | `id`, `name`, `version` | ✅ Partial |
-| 2 | **Services** | `services/{name}/index.mdx` | `id`, `name`, `version` | ✅ Partial |
-| 3 | **Events** | `services/{svc}/events/{name}/index.mdx` | `id`, `name`, `version` | ✅ Partial |
-| 4 | **Commands** | `services/{svc}/commands/{name}/index.mdx` | `id`, `name`, `version` | ✅ Partial |
-| 5 | **Queries** | `services/{svc}/queries/{name}/index.mdx` | `id`, `name`, `version` | ✅ Partial |
-| 6 | **Channels** | `channels/{name}/index.mdx` | `id`, `name`, `version` | ❌ Missing |
-| 7 | **Flows** | `flows/{name}/index.mdx` | `id`, `name`, `version`, `steps` | ❌ Missing |
-| 8 | **Data Stores** | `data/{name}/index.mdx` | `id`, `name`, `version`, `container_type` | ❌ Missing |
-| 9 | **Data Products** | `data-products/{name}/index.mdx` | `id`, `name`, `version` | ❌ Missing |
-| 10 | **Agents** | `agents/{name}/index.mdx` | `id`, `name`, `version` | ❌ Missing |
-| 11 | **Diagrams** | `diagrams/{name}/index.mdx` | `id`, `name`, `version` | ❌ Missing |
-| 12 | **Teams** | `teams/{name}.mdx` | `id`, `name` | ❌ Missing |
-| 13 | **Users** | `users/{name}.mdx` | `id`, `name` | ❌ Missing |
-| 14 | **Changelogs** | `{resource}/{name}/changelog.mdx` | `createdAt` | ❌ Missing |
+| #   | Resource          | Directory                                  | Required Frontmatter                      | Status     |
+| --- | ----------------- | ------------------------------------------ | ----------------------------------------- | ---------- |
+| 1   | **Domains**       | `domains/{name}/index.mdx`                 | `id`, `name`, `version`                   | ✅ Partial |
+| 2   | **Services**      | `services/{name}/index.mdx`                | `id`, `name`, `version`                   | ✅ Partial |
+| 3   | **Events**        | `services/{svc}/events/{name}/index.mdx`   | `id`, `name`, `version`                   | ✅ Partial |
+| 4   | **Commands**      | `services/{svc}/commands/{name}/index.mdx` | `id`, `name`, `version`                   | ✅ Partial |
+| 5   | **Queries**       | `services/{svc}/queries/{name}/index.mdx`  | `id`, `name`, `version`                   | ✅ Partial |
+| 6   | **Channels**      | `channels/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
+| 7   | **Flows**         | `flows/{name}/index.mdx`                   | `id`, `name`, `version`, `steps`          | ❌ Missing |
+| 8   | **Data Stores**   | `data/{name}/index.mdx`                    | `id`, `name`, `version`, `container_type` | ❌ Missing |
+| 9   | **Data Products** | `data-products/{name}/index.mdx`           | `id`, `name`, `version`                   | ❌ Missing |
+| 10  | **Agents**        | `agents/{name}/index.mdx`                  | `id`, `name`, `version`                   | ❌ Missing |
+| 11  | **Diagrams**      | `diagrams/{name}/index.mdx`                | `id`, `name`, `version`                   | ❌ Missing |
+| 12  | **Teams**         | `teams/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
+| 13  | **Users**         | `users/{name}.mdx`                         | `id`, `name`                              | ❌ Missing |
+| 14  | **Changelogs**    | `{resource}/{name}/changelog.mdx`          | `createdAt`                               | ❌ Missing |
 
 ### 2.2 Configuration Files
 
-| # | File | Purpose | Status |
-|---|------|---------|--------|
-| 1 | `eventcatalog.config.js` | Catalog configuration | ✅ Basic |
-| 2 | `package.json` | NPM dependencies | ✅ Done |
-| 3 | `llms.txt` | LLM-readable summary | ✅ Done |
+| #   | File                     | Purpose               | Status   |
+| --- | ------------------------ | --------------------- | -------- |
+| 1   | `eventcatalog.config.js` | Catalog configuration | ✅ Basic |
+| 2   | `package.json`           | NPM dependencies      | ✅ Done  |
+| 3   | `llms.txt`               | LLM-readable summary  | ✅ Done  |
 
 ### 2.3 Schema Files
 
-| # | Format | How Attached | Status |
-|---|--------|-------------|--------|
-| 1 | JSON Schema | `schemaPath: schemas/schema.json` + file | ✅ Done |
-| 2 | Avro | `schemaPath: schema.avsc` + file | ❌ Missing |
-| 3 | Protobuf | `schemaPath: schema.proto` + file | ❌ Missing |
+| #   | Format      | How Attached                             | Status     |
+| --- | ----------- | ---------------------------------------- | ---------- |
+| 1   | JSON Schema | `schemaPath: schemas/schema.json` + file | ✅ Done    |
+| 2   | Avro        | `schemaPath: schema.avsc` + file         | ❌ Missing |
+| 3   | Protobuf    | `schemaPath: schema.proto` + file        | ❌ Missing |
 
 ### 2.4 Cross-Cutting Features (per resource)
 
-| Feature | What It Does | Where Used | Status |
-|---------|-------------|-----------|--------|
-| `sends` / `receives` | Message routing on services | Services, Domains, Agents | ✅ Services, ❌ Domains/Agents |
-| `producers` / `consumers` | Service routing on messages | Events, Commands, Queries | ❌ Missing |
-| `owners` | Team/user ownership | All resources | ✅ Partial |
-| `badges` | Visual badges | All resources | ❌ Missing |
-| `specifications` | AsyncAPI/OpenAPI files | Services | ❌ Missing |
-| `attachments` | External links | All resources | ❌ Missing |
-| `changelog` (inline) | Change history | Messages | ✅ Partial |
-| `changelog.mdx` | Dedicated changelog page | Services, Domains, Messages | ❌ Missing |
-| `repository` | Code repo info | Services, Messages, Channels | ❌ Missing |
-| `deprecated` | Deprecation marker | Messages | ✅ Basic |
-| `labels` | Key-value tags | Messages | ✅ Done |
-| `operation` | HTTP method/path mapping | Messages | ❌ Missing |
-| `detailsPanel` | UI panel visibility | All resources | ❌ Missing |
-| `editUrl` | Edit link override | All resources | ❌ Missing |
-| `visualiser` | Toggle visualization | All resources | ❌ Missing |
-| `writesTo` / `readsFrom` | Data store connections | Services | ❌ Missing |
-| `entities` | Entity ownership | Services, Domains | ❌ Missing |
-| `routes` | Channel chaining | Channels | ❌ Missing |
-| `deliveryGuarantee` | Delivery semantics | Channels | ❌ Missing |
-| `parameters` | Dynamic channel naming | Channels | ❌ Missing |
-| `sends.to` / `receives.from` | Channel routing via services | Services | ❌ Missing |
-| `steps` | Flow definition | Flows | ❌ Missing |
-| `model` | AI agent model metadata | Agents | ❌ Missing |
-| `tools` | AI agent tooling | Agents | ❌ Missing |
-| `members` | Team membership | Teams | ❌ Missing |
+| Feature                      | What It Does                 | Where Used                   | Status                         |
+| ---------------------------- | ---------------------------- | ---------------------------- | ------------------------------ |
+| `sends` / `receives`         | Message routing on services  | Services, Domains, Agents    | ✅ Services, ❌ Domains/Agents |
+| `producers` / `consumers`    | Service routing on messages  | Events, Commands, Queries    | ❌ Missing                     |
+| `owners`                     | Team/user ownership          | All resources                | ✅ Partial                     |
+| `badges`                     | Visual badges                | All resources                | ❌ Missing                     |
+| `specifications`             | AsyncAPI/OpenAPI files       | Services                     | ❌ Missing                     |
+| `attachments`                | External links               | All resources                | ❌ Missing                     |
+| `changelog` (inline)         | Change history               | Messages                     | ✅ Partial                     |
+| `changelog.mdx`              | Dedicated changelog page     | Services, Domains, Messages  | ❌ Missing                     |
+| `repository`                 | Code repo info               | Services, Messages, Channels | ❌ Missing                     |
+| `deprecated`                 | Deprecation marker           | Messages                     | ✅ Basic                       |
+| `labels`                     | Key-value tags               | Messages                     | ✅ Done                        |
+| `operation`                  | HTTP method/path mapping     | Messages                     | ❌ Missing                     |
+| `detailsPanel`               | UI panel visibility          | All resources                | ❌ Missing                     |
+| `editUrl`                    | Edit link override           | All resources                | ❌ Missing                     |
+| `visualiser`                 | Toggle visualization         | All resources                | ❌ Missing                     |
+| `writesTo` / `readsFrom`     | Data store connections       | Services                     | ❌ Missing                     |
+| `entities`                   | Entity ownership             | Services, Domains            | ❌ Missing                     |
+| `routes`                     | Channel chaining             | Channels                     | ❌ Missing                     |
+| `deliveryGuarantee`          | Delivery semantics           | Channels                     | ❌ Missing                     |
+| `parameters`                 | Dynamic channel naming       | Channels                     | ❌ Missing                     |
+| `sends.to` / `receives.from` | Channel routing via services | Services                     | ❌ Missing                     |
+| `steps`                      | Flow definition              | Flows                        | ❌ Missing                     |
+| `model`                      | AI agent model metadata      | Agents                       | ❌ Missing                     |
+| `tools`                      | AI agent tooling             | Agents                       | ❌ Missing                     |
+| `members`                    | Team membership              | Teams                        | ❌ Missing                     |
 
 ---
 
@@ -169,36 +169,36 @@ Not everything is equally valuable for a CQRS library. Here's the prioritization
 
 #### Tier 1: Core CQRS (MUST HAVE — directly maps to our domain)
 
-| Resource | Why | Effort |
-|----------|-----|--------|
-| Services with full frontmatter | `writesTo`, `readsFrom`, `entities`, `specifications`, `repository`, `badges` | Small |
-| Messages with `producers`/`consumers` | Auto-link messages to owning services | Small |
-| Channels | Core CQRS transport concept | Medium |
-| Flows | Visualize command → handler → event flow | Medium |
-| `sends.to` / `receives.from` routing | Connect messages through channels | Small |
-| Data stores (`data/`) | Event stores, read stores | Medium |
-| Changelog files (`changelog.mdx`) | Version history pages | Small |
+| Resource                              | Why                                                                           | Effort |
+| ------------------------------------- | ----------------------------------------------------------------------------- | ------ |
+| Services with full frontmatter        | `writesTo`, `readsFrom`, `entities`, `specifications`, `repository`, `badges` | Small  |
+| Messages with `producers`/`consumers` | Auto-link messages to owning services                                         | Small  |
+| Channels                              | Core CQRS transport concept                                                   | Medium |
+| Flows                                 | Visualize command → handler → event flow                                      | Medium |
+| `sends.to` / `receives.from` routing  | Connect messages through channels                                             | Small  |
+| Data stores (`data/`)                 | Event stores, read stores                                                     | Medium |
+| Changelog files (`changelog.mdx`)     | Version history pages                                                         | Small  |
 
 #### Tier 2: Enrichment (NICE TO HAVE — adds polish)
 
-| Resource | Why | Effort |
-|----------|-----|--------|
-| Teams & Users | Ownership tracking | Small |
-| Badges | Visual categorization | Small |
-| `operation` on messages | HTTP mapping (GET/POST/PUT/DELETE) | Small |
-| Specifications on services | Embed AsyncAPI/OpenAPI generated docs | Medium |
-| Attachments | Link to ADRs, runbooks | Small |
-| `repository` metadata | Code links | Small |
-| Enhanced `eventcatalog.config.js` | Enable features (changelogs, RSS, visualizer) | Small |
+| Resource                          | Why                                           | Effort |
+| --------------------------------- | --------------------------------------------- | ------ |
+| Teams & Users                     | Ownership tracking                            | Small  |
+| Badges                            | Visual categorization                         | Small  |
+| `operation` on messages           | HTTP mapping (GET/POST/PUT/DELETE)            | Small  |
+| Specifications on services        | Embed AsyncAPI/OpenAPI generated docs         | Medium |
+| Attachments                       | Link to ADRs, runbooks                        | Small  |
+| `repository` metadata             | Code links                                    | Small  |
+| Enhanced `eventcatalog.config.js` | Enable features (changelogs, RSS, visualizer) | Small  |
 
 #### Tier 3: Stretch (LOW PRIORITY — future consideration)
 
-| Resource | Why | Effort |
-|----------|-----|--------|
-| Data products | More analytics/data-mesh oriented | Medium |
-| Agents | AI agent documentation (new EventCatalog feature) | Medium |
-| Diagrams | Custom architecture diagrams | Medium |
-| Avro/Protobuf schemas | Alternative schema formats | Medium |
+| Resource              | Why                                               | Effort |
+| --------------------- | ------------------------------------------------- | ------ |
+| Data products         | More analytics/data-mesh oriented                 | Medium |
+| Agents                | AI agent documentation (new EventCatalog feature) | Medium |
+| Diagrams              | Custom architecture diagrams                      | Medium |
+| Avro/Protobuf schemas | Alternative schema formats                        | Medium |
 
 ---
 
@@ -535,6 +535,7 @@ func (b *Builder) AddUser(user User) { ... }
 #### Step 3.1: Enhance service MDX output
 
 **Current output:**
+
 ```yaml
 id: order-svc
 name: Order Service
@@ -549,6 +550,7 @@ queries:
 ```
 
 **Enhanced output:**
+
 ```yaml
 ---
 id: order-svc
@@ -582,7 +584,6 @@ repository:
   language: Go
   url: https://github.com/example/order-service
 ---
-
 # Order Service
 
 Manages orders
@@ -593,6 +594,7 @@ Manages orders
 #### Step 3.2: Enhance message MDX output
 
 **Enhanced output for events:**
+
 ```yaml
 ---
 id: OrderCreated
@@ -613,7 +615,6 @@ badges:
     backgroundColor: orange
     textColor: orange
 ---
-
 # Order Created
 
 Fired when a new order is placed
@@ -643,7 +644,6 @@ parameters:
 owners:
   - platform-team
 ---
-
 # Order Events Channel
 ```
 
@@ -661,7 +661,6 @@ summary: "Primary data store for the orders domain"
 owners:
   - order-team
 ---
-
 # Orders Database
 ```
 
@@ -696,7 +695,6 @@ steps:
       id: OrderCreated
       version: 1.0.0
 ---
-
 # Create Order Flow
 
 Complete flow for creating a new order
@@ -717,7 +715,6 @@ members:
   - bob
 email: orders@example.com
 ---
-
 # Order Team
 ```
 
@@ -729,7 +726,6 @@ name: Alice Smith
 role: Senior Engineer
 email: alice@example.com
 ---
-
 # Alice Smith
 ```
 
@@ -744,7 +740,6 @@ badges:
     backgroundColor: green
     textColor: green
 ---
-
 ### Added GetOrder query
 
 Service now supports querying orders by ID.
@@ -753,6 +748,7 @@ Service now supports querying orders by ID.
 #### Step 3.8: Auto-generate `producers`/`consumers` from service topology
 
 **Key insight:** When a service has `sends: [OrderCreated]`, we can automatically infer that:
+
 - The service is a **producer** of `OrderCreated`
 - The event's `producers` array should include this service
 
@@ -765,8 +761,8 @@ This cross-referencing should happen in `Export()` based on the catalog data.
 export default {
   title: "E-Commerce",
   organizationName: "E-Commerce",
-  landingPage: '/docs',
-  cId: 'auto-generated-unique-id',
+  landingPage: "/docs",
+  cId: "auto-generated-unique-id",
   changelog: {
     enabled: true,
   },
@@ -775,7 +771,7 @@ export default {
   },
   docs: {
     sidebar: {
-      type: 'TREE_VIEW',
+      type: "TREE_VIEW",
     },
   },
 };
@@ -800,11 +796,13 @@ This eliminates manual cross-referencing.
 #### Step 4.2: Auto-generate Flows from Decider topology
 
 A `Decider[State]` naturally defines a flow:
+
 1. Command arrives (message step)
 2. Service processes it (service step)
 3. Events emitted (message steps)
 
 If we can access decider metadata, we can auto-generate a flow per command showing the full CQRS pipeline:
+
 ```
 [CreateOrder command] → [Order Service] → [OrderCreated event]
 ```
@@ -822,6 +820,7 @@ If all events from a service share a naming convention (e.g., `order.*`), auto-s
 #### Step 5.1: Update golden test files
 
 Add golden files for:
+
 - `eventcatalog-service-full.mdx` — service with all new fields
 - `eventcatalog-event-full.mdx` — message with producers/consumers/badges
 - `eventcatalog-channel.mdx` — new channel type
@@ -846,6 +845,7 @@ Test the full pipeline: `Builder → Registry → Build → Export → verify al
 ## 5. Backward Compatibility
 
 All changes are **additive**:
+
 - New struct fields are `omitempty` — existing code compiles without changes
 - New registry methods are additions — existing API unchanged
 - New exporter output adds files — existing files unchanged
@@ -858,48 +858,48 @@ All changes are **additive**:
 
 Per project convention (max 250 lines/file):
 
-| File | Current Lines | After Changes | Action |
-|------|--------------|---------------|--------|
-| `catalog/types.go` | 175 | ~300 | Split: extract `types_resources.go` for DataStore/Flow/Team/User (~120 lines) |
-| `catalog/eventcatalog/exporter.go` | 252 | ~350 | Split: extract `exporter_resources.go` for channel/flow/datastore/team/user writing (~120 lines) |
-| `catalog/eventcatalog/writer.go` | 198 | ~280 | Split: extract `writer_frontmatter.go` for new frontmatter helpers (~100 lines) |
-| `catalog/registry.go` | 229 | ~300 | Split: extract `registry_resources.go` for new Add methods (~80 lines) |
-| `catalog/registry_helpers.go` | 90 | ~150 | Manageable in one file |
+| File                               | Current Lines | After Changes | Action                                                                                           |
+| ---------------------------------- | ------------- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `catalog/types.go`                 | 175           | ~300          | Split: extract `types_resources.go` for DataStore/Flow/Team/User (~120 lines)                    |
+| `catalog/eventcatalog/exporter.go` | 252           | ~350          | Split: extract `exporter_resources.go` for channel/flow/datastore/team/user writing (~120 lines) |
+| `catalog/eventcatalog/writer.go`   | 198           | ~280          | Split: extract `writer_frontmatter.go` for new frontmatter helpers (~100 lines)                  |
+| `catalog/registry.go`              | 229           | ~300          | Split: extract `registry_resources.go` for new Add methods (~80 lines)                           |
+| `catalog/registry_helpers.go`      | 90            | ~150          | Manageable in one file                                                                           |
 
 ---
 
 ## 7. Success Metrics
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| EventCatalog features covered | ~20% | ~85% |
-| Resource types generated | 3 (service, message, domain) | 10+ (all Tier 1 + Tier 2) |
-| Frontmatter fields per service | 9 | 20+ |
-| Frontmatter fields per message | 10 | 15+ |
-| Cross-reference accuracy | Manual | Auto-derived |
-| Test coverage (eventcatalog/) | ~91% | >90% |
+| Metric                         | Current                      | Target                    |
+| ------------------------------ | ---------------------------- | ------------------------- |
+| EventCatalog features covered  | ~20%                         | ~85%                      |
+| Resource types generated       | 3 (service, message, domain) | 10+ (all Tier 1 + Tier 2) |
+| Frontmatter fields per service | 9                            | 20+                       |
+| Frontmatter fields per message | 10                           | 15+                       |
+| Cross-reference accuracy       | Manual                       | Auto-derived              |
+| Test coverage (eventcatalog/)  | ~91%                         | >90%                      |
 
 ---
 
 ## 8. Execution Order
 
-| Step | Phase | Description | Effort | Dependency |
-|------|-------|-------------|--------|-----------|
-| 1 | P1 | Add shared types (Badge, Repository, etc.) to `types.go` | 1h | None |
-| 2 | P1 | Add DataStore, Flow, Team, User types | 1h | Step 1 |
-| 3 | P1 | Extend Service, Message, Domain, Channel structs | 30min | Step 1 |
-| 4 | P1 | Add to Catalog struct | 15min | Step 2 |
-| 5 | P1 | Update Registry with new Add methods | 1h | Steps 2-4 |
-| 6 | P1 | Update copy helpers | 30min | Steps 2-4 |
-| 7 | P2 | Add ServiceOption + MessageOption extensions | 1h | Steps 1-3 |
-| 8 | P2 | Add Builder.AddFlow, AddDataStore, etc. | 30min | Step 5 |
-| 9 | P3 | Update eventcatalog exporter for new fields | 2h | Steps 5-8 |
-| 10 | P3 | Add channel/datastore/flow/team/user MDX generation | 2h | Step 9 |
-| 11 | P3 | Auto-derive producers/consumers | 1h | Step 9 |
-| 12 | P4 | Enhanced eventcatalog.config.js | 30min | Step 9 |
-| 13 | P5 | Update tests + golden files | 2h | Steps 9-12 |
-| 14 | P4 | Auto-generate flows from decider topology | 2h | Step 10 |
-| **Total** | | | **~15h** | |
+| Step      | Phase | Description                                              | Effort   | Dependency |
+| --------- | ----- | -------------------------------------------------------- | -------- | ---------- |
+| 1         | P1    | Add shared types (Badge, Repository, etc.) to `types.go` | 1h       | None       |
+| 2         | P1    | Add DataStore, Flow, Team, User types                    | 1h       | Step 1     |
+| 3         | P1    | Extend Service, Message, Domain, Channel structs         | 30min    | Step 1     |
+| 4         | P1    | Add to Catalog struct                                    | 15min    | Step 2     |
+| 5         | P1    | Update Registry with new Add methods                     | 1h       | Steps 2-4  |
+| 6         | P1    | Update copy helpers                                      | 30min    | Steps 2-4  |
+| 7         | P2    | Add ServiceOption + MessageOption extensions             | 1h       | Steps 1-3  |
+| 8         | P2    | Add Builder.AddFlow, AddDataStore, etc.                  | 30min    | Step 5     |
+| 9         | P3    | Update eventcatalog exporter for new fields              | 2h       | Steps 5-8  |
+| 10        | P3    | Add channel/datastore/flow/team/user MDX generation      | 2h       | Step 9     |
+| 11        | P3    | Auto-derive producers/consumers                          | 1h       | Step 9     |
+| 12        | P4    | Enhanced eventcatalog.config.js                          | 30min    | Step 9     |
+| 13        | P5    | Update tests + golden files                              | 2h       | Steps 9-12 |
+| 14        | P4    | Auto-generate flows from decider topology                | 2h       | Step 10    |
+| **Total** |       |                                                          | **~15h** |            |
 
 ---
 
@@ -939,18 +939,19 @@ Per project convention (max 250 lines/file):
 
 ## 10. Risks & Mitigations
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|-----------|
-| EventCatalog frontmatter format changes | Medium | Pin `@eventcatalog/core` version in `package.json`. Add version note. |
-| File size limits exceeded | Low | Plan splits in advance (see Section 6). |
-| Consumer confusion about which fields to use | Low | Provide clear `Builder` API with defaults. Only advanced consumers need new fields. |
-| Test coverage drops during refactor | Low | Update tests incrementally per step. Run full suite after each change. |
+| Risk                                         | Likelihood | Mitigation                                                                          |
+| -------------------------------------------- | ---------- | ----------------------------------------------------------------------------------- |
+| EventCatalog frontmatter format changes      | Medium     | Pin `@eventcatalog/core` version in `package.json`. Add version note.               |
+| File size limits exceeded                    | Low        | Plan splits in advance (see Section 6).                                             |
+| Consumer confusion about which fields to use | Low        | Provide clear `Builder` API with defaults. Only advanced consumers need new fields. |
+| Test coverage drops during refactor          | Low        | Update tests incrementally per step. Run full suite after each change.              |
 
 ---
 
 ## Appendix A: EventCatalog Frontmatter Quick Reference
 
 ### Domain
+
 ```yaml
 id, name, version (required)
 summary, owners, services, domains, sends, receives, entities, flows,
@@ -958,6 +959,7 @@ badges, specifications, visualiser, editUrl, detailsPanel, attachments
 ```
 
 ### Service
+
 ```yaml
 id, name, version (required)
 summary, owners, sends, receives, writesTo, readsFrom, entities, flows,
@@ -965,6 +967,7 @@ badges, specifications, visualiser, editUrl, detailsPanel, attachments, reposito
 ```
 
 ### Message (Event/Command/Query)
+
 ```yaml
 id, name, version (required)
 summary, producers, consumers, schemaPath, owners, badges, deprecated,
@@ -973,6 +976,7 @@ editUrl, detailsPanel, attachments, visualiser, sidebar, draft, hidden, styles
 ```
 
 ### Channel
+
 ```yaml
 id, name, version (required)
 summary, address, protocols, deliveryGuarantee, parameters, owners, badges,
@@ -980,6 +984,7 @@ routes, repository, editUrl, detailsPanel, attachments
 ```
 
 ### Data Store
+
 ```yaml
 id, name, version, container_type (required)
 summary, technology, classification, retention, residency, owners, badges,
@@ -987,6 +992,7 @@ detailsPanel, attachments, styles
 ```
 
 ### Flow
+
 ```yaml
 id, name, version (required)
 summary, badges
@@ -994,20 +1000,24 @@ steps: [{id, title, summary, service|message|actor|channel|custom, next_step|nex
 ```
 
 ### Team
+
 ```yaml
 id, name (required)
 summary, members, email, slackDirectMessageUrl
 ```
 
 ### User
+
 ```yaml
 id, name (required)
 avatarUrl, role, email, slackDirectMessageUrl
 ```
 
 ### Changelog (per resource)
+
 ```yaml
 createdAt (required)
 badges (optional)
 ```
+
 Body: markdown content describing the change.

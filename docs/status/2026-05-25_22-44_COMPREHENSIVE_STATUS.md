@@ -10,43 +10,48 @@
 
 ### 1. EventCatalog Auto-Generation (20% → 80% coverage)
 
-| Commits | What |
-|---------|------|
+| Commits   | What                                                 |
+| --------- | ---------------------------------------------------- |
 | `31f3ade` | Core types, registry, builder, exporter, auto-derive |
-| `9d4dbb0` | Deduplicate `MessagePointer`/`FlowStepRef` → `Ref` |
-| `3a960ff` | LLMs.txt for all resource types |
-| `7974dfd` | BuildTestCatalog with channels + data stores |
-| `b843740` | ~25 tests: registry, builder, auto-derive |
-| `b3ad286` | LLMs.txt content verification test |
+| `9d4dbb0` | Deduplicate `MessagePointer`/`FlowStepRef` → `Ref`   |
+| `3a960ff` | LLMs.txt for all resource types                      |
+| `7974dfd` | BuildTestCatalog with channels + data stores         |
+| `b843740` | ~25 tests: registry, builder, auto-derive            |
+| `b3ad286` | LLMs.txt content verification test                   |
 
 ### 2. Fluent Option APIs (3 new, 27 option functions total)
 
-| Commit | API | Options |
-|--------|-----|---------|
+| Commit    | API                   | Options                                                                                |
+| --------- | --------------------- | -------------------------------------------------------------------------------------- |
 | `9b2de7c` | **ServiceOption** (8) | Badges, Repository, WritesTo, ReadsFrom, Entities, Specifications, Attachments, Owners |
-| `aa3000d` | **DomainOption** (6) | Sends, Receives, Entities, Badges, Owners, Attachments |
-| `0b858c1` | **ChannelOption** (8) | Address, Protocols, Messages, DeliveryGuarantee, Parameters, Routes, Owners, Badges |
+| `aa3000d` | **DomainOption** (6)  | Sends, Receives, Entities, Badges, Owners, Attachments                                 |
+| `0b858c1` | **ChannelOption** (8) | Address, Protocols, Messages, DeliveryGuarantee, Parameters, Routes, Owners, Badges    |
 
 ### 3. Branded IDs — Complete Overhaul
 
 **Storage & Middleware** (`0845b03`):
+
 - `reconstructEvent()` accepts `id.EventID` + `id.AggregateID`
 - `serializableEvent` / `outboxEvent` use branded types directly
 - `logContext.aggregateID` is `id.AggregateID`
 - Eliminated `serializableMetadata`, `parseBrandedID`, `deserializeMetadata` (-72 lines)
 
 **Catalog ID Types** (`c3b489a`):
+
 - Added `DataStoreID`, `FlowID`, `TeamID`, `UserID` branded types
 - Struct fields and registry maps use branded types
 - `ConfigureService`/`ConfigureDomain`/`ConfigureChannel` accept branded types
 
 **Message Builder** (`ed64448`):
+
 - `Command[T](id MessageID)`, `Event[T](id MessageID)`, `Query[T](id MessageID)`
 
 **Builder Methods** (`5ab50b6`):
+
 - `AddService(id ServiceID, ...)`, `AddDomain(id DomainID, ...serviceIDs ...ServiceID)`
 
 **Branded Slice Types** (`8179c07`):
+
 - `Message.Producers []ServiceID`, `Message.Consumers []ServiceID`
 - `Service.WritesTo []DataStoreID`, `Service.ReadsFrom []DataStoreID`
 - `Service.Flows []FlowID`, `Domain.Flows []FlowID`
@@ -57,21 +62,21 @@
 
 **Final tally — catalog branded types:**
 
-| Type | Used In |
-|------|---------|
-| `ServiceID` | AddService, ConfigureService, Message.Producers/Consumers, asyncapi/openapi/eventcatalog exporters |
-| `DomainID` | AddDomain, ConfigureDomain |
-| `MessageID` | Command[T], Event[T], Query[T] |
-| `ChannelID` | AddChannel, ConfigureChannel |
-| `DataStoreID` | DataStore.ID, Service.WritesTo/ReadsFrom |
-| `FlowID` | Flow.ID, Service.Flows, Domain.Flows |
-| `TeamID` | Team.ID |
-| `UserID` | User.ID |
+| Type          | Used In                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| `ServiceID`   | AddService, ConfigureService, Message.Producers/Consumers, asyncapi/openapi/eventcatalog exporters |
+| `DomainID`    | AddDomain, ConfigureDomain                                                                         |
+| `MessageID`   | Command[T], Event[T], Query[T]                                                                     |
+| `ChannelID`   | AddChannel, ConfigureChannel                                                                       |
+| `DataStoreID` | DataStore.ID, Service.WritesTo/ReadsFrom                                                           |
+| `FlowID`      | Flow.ID, Service.Flows, Domain.Flows                                                               |
+| `TeamID`      | Team.ID                                                                                            |
+| `UserID`      | User.ID                                                                                            |
 
 ### 4. Design Documentation
 
-| Document | Content |
-|----------|---------|
+| Document                                                 | Content                                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `docs/planning/2026-05-25_AGGREGATE_ID_DESIGN_REVIEW.md` | PRO/CONTRA for AggregateID string backing, DeriveAggregateID, AggregateMarker |
 
 ---
@@ -81,6 +86,7 @@
 ### AggregateID Design Review
 
 Written and documented, **no decision taken** on:
+
 1. Remove `DeriveAggregateID` (recommended)
 2. Unexport `AggregateMarker` (recommended)
 3. `AggregateID` stays `string`-backed (recommended yes)
@@ -111,11 +117,11 @@ Written and documented, **no decision taken** on:
 
 ### Coverage
 
-| Package | Coverage | Issue |
-|---------|----------|-------|
-| `catalog/eventcatalog` | 85.8% | New resource generators need more tests |
-| `catalog/internal/schemautil` | 84.2% | Lowest in catalog |
-| `storage` | 89.3% | Error paths undertested |
+| Package                       | Coverage | Issue                                   |
+| ----------------------------- | -------- | --------------------------------------- |
+| `catalog/eventcatalog`        | 85.8%    | New resource generators need more tests |
+| `catalog/internal/schemautil` | 84.2%    | Lowest in catalog                       |
+| `storage`                     | 89.3%    | Error paths undertested                 |
 
 ### Remaining Type Safety
 
@@ -131,43 +137,43 @@ Written and documented, **no decision taken** on:
 
 ### High Impact
 
-| # | Task |
-|---|------|
-| 1 | **Remove `DeriveAggregateID`** — YAGNI, zero callers |
-| 2 | **Unexport `AggregateMarker`** + clean `example/todo` embedding |
-| 3 | **Scan branded IDs directly from SQL** — 4 intermediate string parses |
-| 4 | **Raise eventcatalog coverage to >90%** — test new generators |
-| 5 | **Update AGENTS.md** — all new types, APIs, branded IDs, coverage |
+| #   | Task                                                                  |
+| --- | --------------------------------------------------------------------- |
+| 1   | **Remove `DeriveAggregateID`** — YAGNI, zero callers                  |
+| 2   | **Unexport `AggregateMarker`** + clean `example/todo` embedding       |
+| 3   | **Scan branded IDs directly from SQL** — 4 intermediate string parses |
+| 4   | **Raise eventcatalog coverage to >90%** — test new generators         |
+| 5   | **Update AGENTS.md** — all new types, APIs, branded IDs, coverage     |
 
 ### Medium Impact
 
-| # | Task |
-|---|------|
-| 6 | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON |
-| 7 | **Add `DataStoreOption` fluent API** |
-| 8 | **Add `FlowOption` fluent API** |
-| 9 | **Update `example/user` to use all fluent APIs** |
-| 10 | **Add storage error path tests** — 89.3% → >92% |
-| 11 | **Add `catalog/schemautil` tests** — 84.2% → >90% |
-| 12 | **Push all commits to origin** |
-| 13 | **Run `nix run .#lint`** |
+| #   | Task                                                                            |
+| --- | ------------------------------------------------------------------------------- |
+| 6   | **Add Pebble serialization round-trip tests** — verify branded IDs survive JSON |
+| 7   | **Add `DataStoreOption` fluent API**                                            |
+| 8   | **Add `FlowOption` fluent API**                                                 |
+| 9   | **Update `example/user` to use all fluent APIs**                                |
+| 10  | **Add storage error path tests** — 89.3% → >92%                                 |
+| 11  | **Add `catalog/schemautil` tests** — 84.2% → >90%                               |
+| 12  | **Push all commits to origin**                                                  |
+| 13  | **Run `nix run .#lint`**                                                        |
 
 ### Lower Impact
 
-| # | Task |
-|---|------|
-| 14 | **Add EventCatalog changelog generation** |
-| 15 | **Add EventCatalog diagram generation** |
-| 16 | **Add `MsgExamples` MessageOption** |
-| 17 | **Add `ServiceFlows` / `DomainFlows` options** |
-| 18 | **Benchmark Pebble serialization with branded IDs** |
-| 19 | **Audit all `.String()` calls on branded IDs** |
-| 20 | **Add `go vet` + `staticcheck` to CI** |
-| 21 | **Fix `./sync/...` stale pattern in flake.nix** |
-| 22 | **Add godoc examples for all option functions** |
-| 23 | **Rename `cattest/builders.go` helpers to accept branded types** |
-| 24 | **Add `ChannelRoute.To []ChannelID`** |
-| 25 | **Review `Ref.ID` polymorphic usage** |
+| #   | Task                                                             |
+| --- | ---------------------------------------------------------------- |
+| 14  | **Add EventCatalog changelog generation**                        |
+| 15  | **Add EventCatalog diagram generation**                          |
+| 16  | **Add `MsgExamples` MessageOption**                              |
+| 17  | **Add `ServiceFlows` / `DomainFlows` options**                   |
+| 18  | **Benchmark Pebble serialization with branded IDs**              |
+| 19  | **Audit all `.String()` calls on branded IDs**                   |
+| 20  | **Add `go vet` + `staticcheck` to CI**                           |
+| 21  | **Fix `./sync/...` stale pattern in flake.nix**                  |
+| 22  | **Add godoc examples for all option functions**                  |
+| 23  | **Rename `cattest/builders.go` helpers to accept branded types** |
+| 24  | **Add `ChannelRoute.To []ChannelID`**                            |
+| 25  | **Review `Ref.ID` polymorphic usage**                            |
 
 ---
 
