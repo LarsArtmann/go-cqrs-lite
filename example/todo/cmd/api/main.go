@@ -11,8 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx"
-
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -84,10 +82,11 @@ func main() {
 
 	registerTodoRoutes(mux, cmdDisp, queryDisp)
 
-	handler := cqrshtmx.Chain(
+	handler := chainMiddleware(
+		mux,
 		loggingMiddleware(logger),
 		corsMiddleware,
-	)(mux)
+	)
 
 	port := getEnv("PORT", "8080")
 	srv := &http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 10 * time.Second}

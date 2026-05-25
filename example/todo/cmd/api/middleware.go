@@ -35,3 +35,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 		OptionsPassthrough: false,
 	})(next)
 }
+
+func chainMiddleware(final http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		final = middlewares[i](final)
+	}
+
+	return final
+}

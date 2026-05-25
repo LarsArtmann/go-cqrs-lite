@@ -4,7 +4,6 @@ go 1.26.3
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/cqrs-htmx v0.0.0-20260507034922-7ebeb8976863
 	github.com/larsartmann/go-cqrs-lite/core v1.4.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.2.0
 	github.com/larsartmann/go-cqrs-lite/storage v0.2.0
@@ -14,9 +13,6 @@ require (
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
-	github.com/casbin/casbin/v3 v3.10.0 // indirect
-	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.13.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
@@ -27,7 +23,6 @@ require (
 	github.com/getsentry/sentry-go v0.46.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
