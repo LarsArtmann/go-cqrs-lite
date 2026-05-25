@@ -172,9 +172,9 @@ func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExamples(
-		t, reg, "svc", "Cmd", "Cmd", "1.0.0",
+		t, reg, catalog.ServiceID("svc"), catalog.MessageID("Cmd"), "Cmd", "1.0.0",
 		json.RawMessage(`{invalid json !!!`),
 	)
 

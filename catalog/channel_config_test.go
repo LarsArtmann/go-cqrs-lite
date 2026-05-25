@@ -96,13 +96,13 @@ func TestBuilder_ConfigureChannel_Routes(t *testing.T) {
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddChannel(catalog.Channel{ID: "ch", Name: "Ch", Version: "1.0.0"})
 	b.ConfigureChannel("ch", catalog.ChannelRoutes(
-		catalog.ChannelRoute{ID: "route1", To: []string{"orders", "payments"}},
+		catalog.ChannelRoute{ID: catalog.ChannelID("route1"), To: []catalog.ChannelID{"orders", "payments"}},
 	))
 
 	cat := b.Build()
 	ch := cat.Channels[0]
 
-	if len(ch.Routes) != 1 || ch.Routes[0].ID != "route1" {
+	if len(ch.Routes) != 1 || ch.Routes[0].ID != catalog.ChannelID("route1") {
 		t.Errorf("expected 1 route with ID route1, got %v", ch.Routes)
 	}
 }

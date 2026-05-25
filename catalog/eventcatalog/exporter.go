@@ -183,15 +183,15 @@ func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []str
 }
 
 func (e *Exporter) writeMessage(svcID catalog.ServiceID, kind string, msg catalog.Message) error {
-	id := string(catalog.GetID(msg))
-	dir := filepath.Join(e.outputDir, "services", string(svcID), kind, id)
+	messageID := catalog.GetID(msg)
+	dir := filepath.Join(e.outputDir, "services", string(svcID), kind, string(messageID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
 		return fmt.Errorf("create message dir for %s/%s: %w", svcID, kind, err)
 	}
 
-	md := buildMessageFrontmatter(id, msg)
+	md := buildMessageFrontmatter(messageID, msg)
 
 	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 	if err != nil {
@@ -208,9 +208,9 @@ func (e *Exporter) writeMessage(svcID catalog.ServiceID, kind string, msg catalo
 	return e.writeExamples(dir, msg.Examples)
 }
 
-func buildMessageFrontmatter(id string, msg catalog.Message) *frontmatterWriter {
+func buildMessageFrontmatter(messageID catalog.MessageID, msg catalog.Message) *frontmatterWriter {
 	md := newFrontmatterWriter()
-	md.addField("id", id)
+	md.addField("id", string(messageID))
 	md.addField("name", msg.Name)
 	md.addField("version", msg.Version)
 

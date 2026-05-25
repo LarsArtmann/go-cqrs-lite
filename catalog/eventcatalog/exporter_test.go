@@ -194,12 +194,12 @@ func TestExporter_Export_Query(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("catalog-svc"), "Catalog Service", "1.0.0")
 	cattest.AddMessageSimple(
 		t,
 		reg,
-		"catalog-svc",
-		"GetProduct",
+		catalog.ServiceID("catalog-svc"),
+		catalog.MessageID("GetProduct"),
 		"GetProduct",
 		"1.0.0",
 		"",
@@ -236,11 +236,11 @@ func TestExporter_Export_Domain(t *testing.T) {
 	cattest.AddDomain(
 		t,
 		reg,
-		"ordering",
+		catalog.DomainID("ordering"),
 		"Ordering",
 		"1.0.0",
 		"Order management domain",
-		[]string{"order-svc"},
+		[]catalog.ServiceID{"order-svc"},
 	)
 
 	cat := cattest.Build(t, reg)
@@ -383,12 +383,12 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithSchema(
 		t,
 		reg,
-		"svc",
-		"CreateOrder",
+		catalog.ServiceID("svc"),
+		catalog.MessageID("CreateOrder"),
 		"CreateOrder",
 		"1.0.0",
 		&catalog.Schema{Type: catalog.TypeObject},
@@ -548,8 +548,8 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	cattest.AddMessageSimple(
 		t,
 		reg,
-		"order-svc",
-		"GetOrder",
+		catalog.ServiceID("order-svc"),
+		catalog.MessageID("GetOrder"),
 		"GetOrder",
 		"1.0.0",
 		"",
@@ -601,14 +601,14 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 	cattest.AddEventWithSummary(
 		t,
 		reg,
-		"order-svc",
-		"OrderCreated",
+		catalog.ServiceID("order-svc"),
+		catalog.MessageID("OrderCreated"),
 		"OrderCreated",
 		"1.0.0",
 		"Order was created",
 		catalog.Sends,
 	)
-	cattest.AddQuerySimple(t, reg, "order-svc", "GetOrder", "GetOrder", "1.0.0", "Get order by ID")
+	cattest.AddQuerySimple(t, reg, catalog.ServiceID("order-svc"), catalog.MessageID("GetOrder"), "GetOrder", "1.0.0", "Get order by ID")
 
 	cat := reg.Build()
 
@@ -643,9 +643,9 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExamples(
-		t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+		t, reg, catalog.ServiceID("svc"), catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
 		json.RawMessage(`{"orderId":"abc-123","amount":42.5}`),
 	)
 
@@ -725,8 +725,8 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
-	cattest.AddEventSimple(t, reg, "svc", "PlainEvent", "PlainEvent", "1.0.0", catalog.Sends)
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
+	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc"), catalog.MessageID("PlainEvent"), "PlainEvent", "1.0.0", catalog.Sends)
 
 	cat := reg.Build()
 

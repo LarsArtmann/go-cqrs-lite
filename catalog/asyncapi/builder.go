@@ -28,10 +28,10 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 func (e *Exporter) newDocument() *Document {
 	return &Document{ //nolint:exhaustruct
 		AsyncAPI: asyncAPIVersion,
-		ID: fmt.Sprintf(
+		ID: URI(fmt.Sprintf(
 			"urn:%s:api",
 			strings.ToLower(strings.ReplaceAll(e.serviceName, " ", "")),
-		),
+		)),
 		DefaultContentType: contentType,
 		Info: Info{
 			Title: e.serviceName, Version: e.version, Description: e.description,

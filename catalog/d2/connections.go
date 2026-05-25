@@ -8,8 +8,8 @@ import (
 )
 
 type eventOwner struct {
-	svcID string
-	evtID string
+	serviceDisplayID string
+	eventDisplayID   string
 }
 
 // Export generates a D2 diagram string from the given catalog.
@@ -33,28 +33,28 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 		return
 	}
 
-	svcID := sanitizeID(string(svc.ID))
+	serviceDisplayID := sanitizeID(string(svc.ID))
 
-	writeInternalEdges(buf, svcID, svc)
+	writeInternalEdges(buf, serviceDisplayID, svc)
 
 	buf.WriteString("\n")
 }
 
-func writeInternalEdges(buf *strings.Builder, svcID string, svc catalog.Service) {
+func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catalog.Service) {
 	for _, cmd := range svc.Commands {
-		cmdID := sanitizeID(string(catalog.GetID(cmd)))
-		fmt.Fprintf(buf, "  %s -> %s.%s: \"receives\"\n", svcID, svcID, cmdID)
+		commandDisplayID := sanitizeID(string(catalog.GetID(cmd)))
+		fmt.Fprintf(buf, "  %s -> %s.%s: \"receives\"\n", serviceDisplayID, serviceDisplayID, commandDisplayID)
 	}
 
 	for _, evt := range svc.Events {
-		evtID := sanitizeID(string(catalog.GetID(evt)))
+		eventDisplayID := sanitizeID(string(catalog.GetID(evt)))
 		action := eventAction(evt)
-		fmt.Fprintf(buf, "  %s.%s -> %s: %q\n", svcID, evtID, svcID, action)
+		fmt.Fprintf(buf, "  %s.%s -> %s: %q\n", serviceDisplayID, eventDisplayID, serviceDisplayID, action)
 	}
 
 	for _, q := range svc.Queries {
-		qID := sanitizeID(string(catalog.GetID(q)))
-		fmt.Fprintf(buf, "  %s -> %s.%s: \"handles\"\n", svcID, svcID, qID)
+		queryDisplayID := sanitizeID(string(catalog.GetID(q)))
+		fmt.Fprintf(buf, "  %s -> %s.%s: \"handles\"\n", serviceDisplayID, serviceDisplayID, queryDisplayID)
 	}
 }
 
@@ -68,22 +68,25 @@ func eventAction(evt catalog.Message) string {
 
 func buildPublisherReceiverMaps(
 	cat *catalog.Catalog,
-) (map[string][]eventOwner, map[string][]eventOwner) {
-	publishers := make(map[string][]eventOwner)
-	receivers := make(map[string][]eventOwner)
+) (map[catalog.MessageID][]eventOwner, map[catalog.MessageID][]eventOwner) {
+	publishers := make(map[catalog.MessageID][]eventOwner)
+	receivers := make(map[catalog.MessageID][]eventOwner)
 
 	for _, svc := range cat.Services {
-		svcID := sanitizeID(string(svc.ID))
+		serviceDisplayID := sanitizeID(string(svc.ID))
 
 		for _, evt := range svc.Events {
-			evtID := catalog.GetID(evt)
-			owner := eventOwner{svcID: svcID, evtID: sanitizeID(string(evtID))}
+			messageID := catalog.GetID(evt)
+			owner := eventOwner{
+				serviceDisplayID: serviceDisplayID,
+				eventDisplayID:   sanitizeID(string(messageID)),
+			}
 
 			switch evt.Direction {
 			case catalog.Sends:
-				publishers[string(evtID)] = append(publishers[string(evtID)], owner)
+				publishers[messageID] = append(publishers[messageID], owner)
 			case catalog.Receives:
-				receivers[string(evtID)] = append(receivers[string(evtID)], owner)
+				receivers[messageID] = append(receivers[messageID], owner)
 			}
 		}
 	}
@@ -91,10 +94,12 @@ func buildPublisherReceiverMaps(
 	return publishers, receivers
 }
 
-func writeCrossServiceEdge(b *strings.Builder, pub, recv eventOwner, evtID string) {
+func writeCrossServiceEdge(b *strings.Builder, pub, recv eventOwner, messageID catalog.MessageID) {
 	fmt.Fprintf(
 		b, "%s.%s -> %s.%s: %q {\n",
-		pub.svcID, pub.evtID, recv.svcID, recv.evtID, evtID,
+		pub.serviceDisplayID, pub.eventDisplayID,
+		recv.serviceDisplayID, recv.eventDisplayID,
+		string(messageID),
 	)
 	b.WriteString("  style: {\n")
 	b.WriteString("    stroke: \"#c62828\"\n")
@@ -108,19 +113,19 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 
 	var hasCrossService bool
 
-	for evtID, pubs := range publishers {
-		recvs, ok := receivers[evtID]
+	for messageID, pubs := range publishers {
+		recvs, ok := receivers[messageID]
 		if !ok {
 			continue
 		}
 
 		for _, pub := range pubs {
 			for _, recv := range recvs {
-				if pub.svcID == recv.svcID {
+				if pub.serviceDisplayID == recv.serviceDisplayID {
 					continue
 				}
 
-				writeCrossServiceEdge(b, pub, recv, evtID)
+				writeCrossServiceEdge(b, pub, recv, messageID)
 
 				hasCrossService = true
 			}
@@ -138,9 +143,9 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 			continue
 		}
 
-		domainID := sanitizeID(string(domain.ID))
+		domainDisplayID := sanitizeID(string(domain.ID))
 
-		fmt.Fprintf(buf, "domain_%s: {\n", domainID)
+		fmt.Fprintf(buf, "domain_%s: {\n", domainDisplayID)
 		fmt.Fprintf(buf, "  label: %q\n  shape: text\n", domain.Name)
 
 		buf.WriteString(
@@ -148,9 +153,9 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 		)
 
 		for _, svcRef := range domain.Services {
-			svcID := sanitizeID(string(svcRef))
+			serviceDisplayID := sanitizeID(string(svcRef))
 
-			fmt.Fprintf(buf, "domain_%s -> %s: \"contains\" {\n", domainID, svcID)
+			fmt.Fprintf(buf, "domain_%s -> %s: \"contains\" {\n", domainDisplayID, serviceDisplayID)
 
 			buf.WriteString(
 				"  style: {\n    stroke: \"#bdbdbd\"\n    stroke-dash: 3\n  }\n}\n\n",

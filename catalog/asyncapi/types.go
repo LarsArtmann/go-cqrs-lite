@@ -1,9 +1,12 @@
 package asyncapi
 
+// URI is a branded string type for AsyncAPI document identifiers (e.g. "urn:com.example:api").
+type URI string
+
 // Document represents an AsyncAPI 3.0 specification document.
 type Document struct {
 	AsyncAPI           string               `json:"asyncapi"                     yaml:"asyncapi"`
-	ID                 string               `json:"id,omitempty"                 yaml:"id,omitempty"`
+	ID                 URI                  `json:"id,omitempty"                 yaml:"id,omitempty"`
 	Info               Info                 `json:"info"                         yaml:"info"`
 	DefaultContentType string               `json:"defaultContentType,omitempty" yaml:"defaultContentType,omitempty"`
 	Servers            map[string]Server    `json:"servers,omitempty"            yaml:"servers,omitempty"`

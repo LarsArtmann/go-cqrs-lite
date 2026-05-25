@@ -111,12 +111,12 @@ func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "payment-svc", "Payment Service", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("payment-svc"), "Payment Service", "1.0.0")
 	cattest.AddEventWithSummary(
 		t,
 		reg,
-		"payment-svc",
-		"PaymentProcessed",
+		catalog.ServiceID("payment-svc"),
+		catalog.MessageID("PaymentProcessed"),
 		"PaymentProcessed",
 		"1.0.0",
 		"Payment was processed",
@@ -150,8 +150,8 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Service", "1.0.0")
-	cattest.AddEventSimple(t, reg, "svc", "OrderCreated", "OrderCreated", "1.0.0", catalog.Receives)
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
+	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc"), catalog.MessageID("OrderCreated"), "OrderCreated", "1.0.0", catalog.Receives)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Service", "1.0.0")
@@ -171,12 +171,12 @@ func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "catalog-svc", "Catalog Service", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("catalog-svc"), "Catalog Service", "1.0.0")
 	cattest.AddMessageSimple(
 		t,
 		reg,
-		"catalog-svc",
-		"GetProduct",
+		catalog.ServiceID("catalog-svc"),
+		catalog.MessageID("GetProduct"),
 		"GetProduct",
 		"1.0.0",
 		"Get product details",
@@ -274,20 +274,20 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc-a", "Service A", "1.0.0")
-	cattest.AddService(t, reg, "svc-b", "Service B", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
 	cattest.AddMessageSimple(
 		t,
 		reg,
-		"svc-a",
-		"DoA",
+		catalog.ServiceID("svc-a"),
+		catalog.MessageID("DoA"),
 		"DoA",
 		"1.0.0",
 		"",
 		catalog.CommandMessage,
 		reg.AddCommand,
 	)
-	cattest.AddEventSimple(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
+	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc-b"), catalog.MessageID("DoneB"), "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)
 	doc := NewExporter("Multi", "1.0.0").Export(cat)
@@ -455,9 +455,9 @@ func TestExporter_Export_Examples(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, "svc", "Svc", "1.0.0")
+	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExamples(
-		t, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0",
+		t, reg, catalog.ServiceID("svc"), catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
 		json.RawMessage(`{"orderId":"abc","amount":42.5}`),
 	)
 
