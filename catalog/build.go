@@ -41,6 +41,12 @@ func (b *Builder) AddService(
 	}
 }
 
+// ConfigureService applies service-level options (badges, repository, etc.)
+// to an already-registered service.
+func (b *Builder) ConfigureService(serviceID string, opts ...ServiceOption) {
+	b.registry.SetServiceOptions(ServiceID(serviceID), opts...)
+}
+
 // AddDomain registers a domain and associates it with services.
 func (b *Builder) AddDomain(
 	id, name, version, summary string,

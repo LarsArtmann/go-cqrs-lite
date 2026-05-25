@@ -59,6 +59,18 @@ func (r *Registry) SetServiceMeta(serviceID ServiceID, name, version, summary st
 	}
 }
 
+// SetServiceOptions applies ServiceOption functions to an existing service.
+func (r *Registry) SetServiceOptions(serviceID ServiceID, opts ...ServiceOption) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	svc := r.ensureServiceEntry(serviceID)
+
+	for _, opt := range opts {
+		opt(svc)
+	}
+}
+
 // AddService registers a service or merges messages into an existing service.
 func (r *Registry) AddService(svc Service) {
 	r.mu.Lock()
