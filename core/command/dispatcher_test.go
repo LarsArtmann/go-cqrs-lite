@@ -192,3 +192,46 @@ func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
 		t.Fatal("expected error registering on closed dispatcher")
 	}
 }
+
+func TestDispatcher_Dispatch_Success(t *testing.T) {
+	t.Parallel()
+
+	d := command.NewDispatcher()
+	called := false
+
+	_ = d.Register("TestCmd", func(_ context.Context, _ command.Command) error {
+		called = true
+
+		return nil
+	})
+
+	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
+	err := d.Dispatch(context.Background(), cmd)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !called {
+		t.Error("expected handler to be called")
+	}
+}
+
+func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
+	t.Parallel()
+
+	d := command.NewDispatcher()
+	_ = d.Register("TestCmd", func(_ context.Context, _ command.Command) error { return nil })
+	_ = d.Close()
+
+	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+
+	err := d.Dispatch(context.Background(), cmd)
+	if err == nil {
+		t.Fatal("expected error on closed dispatcher")
+	}
+
+	if !errors.Is(err, command.ErrDispatcherClosed) {
+		t.Errorf("error should wrap ErrDispatcherClosed, got: %v", err)
+	}
+}

@@ -125,6 +125,48 @@ func TestDispatcher_Closed_RegisterErrorChain(t *testing.T) {
 	}
 }
 
+func TestDispatcher_Dispatch_Success(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+
+	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
+		return "result", nil
+	})
+
+	q := query.MustNew("TestQuery")
+
+	result, err := d.Dispatch(context.Background(), q)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result != "result" {
+		t.Errorf("expected 'result', got %v", result)
+	}
+}
+
+func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
+	t.Parallel()
+
+	d := query.NewDispatcher()
+	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
+		return "", nil
+	})
+	_ = d.Close()
+
+	q := query.MustNew("TestQuery")
+
+	_, err := d.Dispatch(context.Background(), q)
+	if err == nil {
+		t.Fatal("expected error on closed dispatcher")
+	}
+
+	if !errors.Is(err, query.ErrDispatcherClosed) {
+		t.Errorf("error should wrap ErrDispatcherClosed, got: %v", err)
+	}
+}
+
 func TestDispatchTyped_DispatchError(t *testing.T) {
 	t.Parallel()
 
