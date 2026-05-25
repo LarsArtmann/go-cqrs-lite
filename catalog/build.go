@@ -31,13 +31,13 @@ func NewBuilder(title, version string) *Builder {
 // AddService registers a service with messages. Messages are created via
 // Command[T](), Event[T](), and Query[T]().
 func (b *Builder) AddService(
-	id, name, version, summary string,
+	id ServiceID, name, version, summary string,
 	msgs ...MessageConfig,
 ) {
-	b.registry.SetServiceMeta(ServiceID(id), name, version, summary)
+	b.registry.SetServiceMeta(id, name, version, summary)
 
 	for _, m := range msgs {
-		m.apply(ServiceID(id), b.registry)
+		m.apply(id, b.registry)
 	}
 }
 
@@ -49,20 +49,15 @@ func (b *Builder) ConfigureService(serviceID ServiceID, opts ...ServiceOption) {
 
 // AddDomain registers a domain and associates it with services.
 func (b *Builder) AddDomain(
-	id, name, version, summary string,
-	serviceIDs ...string,
+	id DomainID, name, version, summary string,
+	serviceIDs ...ServiceID,
 ) {
-	sids := make([]ServiceID, len(serviceIDs))
-	for i, s := range serviceIDs {
-		sids[i] = ServiceID(s)
-	}
-
 	b.registry.AddDomain(Domain{ //nolint:exhaustruct
-		ID:       DomainID(id),
+		ID:       id,
 		Name:     name,
 		Version:  version,
 		Summary:  summary,
-		Services: sids,
+		Services: serviceIDs,
 	})
 }
 
