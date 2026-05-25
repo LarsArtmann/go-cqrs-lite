@@ -78,13 +78,13 @@ func (e *Exporter) addMessage(
 		opt(cfg)
 	}
 
-	msgID := catalog.GetID(msg)
-	channelKey := string(kind) + "." + string(msgID)
-	componentKey := string(msg.Kind) + "." + string(msgID)
+	messageID := catalog.GetID(msg)
+	channelKey := string(kind) + "." + string(messageID)
+	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
 
 	addChannel(doc, svcID, msg, kind, channelKey, ref)
-	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, string(msgID))
+	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, messageID)
 
 	e.addMessageSchema(doc, msg)
 }
@@ -110,9 +110,10 @@ func addOperation(
 	msg catalog.Message,
 	kind messageKind,
 	cfg *messageConfig,
-	channelKey, ref, msgID string,
+	channelKey, ref string,
+	messageID catalog.MessageID,
 ) {
-	opTitle, opName := operationTitleAndName(msg.Name, kind, cfg, msgID)
+	opTitle, opName := operationTitleAndName(msg.Name, kind, cfg, messageID)
 
 	doc.Operations[opName] = Operation{
 		Title:    opTitle,
@@ -129,22 +130,22 @@ func operationTitleAndName(
 	msgName string,
 	kind messageKind,
 	cfg *messageConfig,
-	msgID string,
+	messageID catalog.MessageID,
 ) (string, string) {
 	switch kind {
 	case kindEvent:
-		opName := "publish" + msgID
+		opName := "publish" + string(messageID)
 		if cfg.action == actionReceive {
-			opName = actionReceive + msgID
+			opName = actionReceive + string(messageID)
 		}
 
 		return "Publish " + msgName, opName
 	case kindCommand:
-		return "Receive " + msgName, actionReceive + msgID
+		return "Receive " + msgName, actionReceive + string(messageID)
 	case kindQuery:
-		return "Handle " + msgName, "handle" + msgID
+		return "Handle " + msgName, "handle" + string(messageID)
 	default:
-		return "Handle " + msgName, "handle" + msgID
+		return "Handle " + msgName, "handle" + string(messageID)
 	}
 }
 
@@ -180,11 +181,11 @@ func buildTags(kind messageKind, svcID catalog.ServiceID, msg catalog.Message) [
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	id := catalog.GetID(msg)
-	componentKey := string(msg.Kind) + "." + string(id)
+	messageID := catalog.GetID(msg)
+	componentKey := string(msg.Kind) + "." + string(messageID)
 
 	doc.Components.Messages[componentKey] = Message{
-		Name:        string(id),
+		Name:        string(messageID),
 		Title:       msg.Name,
 		Summary:     msg.Summary,
 		ContentType: contentType,
