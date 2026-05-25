@@ -136,24 +136,24 @@ func MsgRepository(language, url string) MessageOption {
 // The schema is auto-derived from T using reflection on its struct fields and tags.
 // The name is auto-derived from T's type name (e.g. CreateUserCmd → "Create User").
 // Direction defaults to Receives.
-func Command[T any](id string, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](CommandMessage, MessageID(id), Receives, opts)
+func Command[T any](id MessageID, opts ...MessageOption) MessageConfig {
+	return newMessageBuilder[T](CommandMessage, id, Receives, opts)
 }
 
 // Event creates an event message configuration for catalog.Builder.AddService.
 // The schema is auto-derived from T using reflection on its struct fields and tags.
 // The name is auto-derived from T's type name (e.g. UserCreatedEvent → "User Created").
 // Direction must be explicit (Sends or Receives).
-func Event[T any](id string, direction Direction, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](EventMessage, MessageID(id), direction, opts)
+func Event[T any](id MessageID, direction Direction, opts ...MessageOption) MessageConfig {
+	return newMessageBuilder[T](EventMessage, id, direction, opts)
 }
 
 // Query creates a query message configuration for catalog.Builder.AddService.
 // The schema is auto-derived from T using reflection on its struct fields and tags.
 // The name is auto-derived from T's type name (e.g. GetUserQuery → "Get User").
 // Direction defaults to Receives.
-func Query[T any](id string, opts ...MessageOption) MessageConfig {
-	return newMessageBuilder[T](QueryMessage, MessageID(id), Receives, opts)
+func Query[T any](id MessageID, opts ...MessageOption) MessageConfig {
+	return newMessageBuilder[T](QueryMessage, id, Receives, opts)
 }
 
 func newMessageBuilder[T any](
