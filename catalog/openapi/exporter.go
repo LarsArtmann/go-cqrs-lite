@@ -114,8 +114,8 @@ func responseNoContent(desc string) *Response {
 	return &Response{Description: desc, Content: nil}
 }
 
-func (e *Exporter) addCommand(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/%s", e.basePath, svcID, toKebab(string(msg.ID)))
+func (e *Exporter) addCommand(doc *Document, serviceID catalog.ServiceID, tagName string, msg catalog.Message) {
+	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	obj := objectSchema()
@@ -141,8 +141,8 @@ func (e *Exporter) addCommand(doc *Document, svcID catalog.ServiceID, tagName st
 	}
 }
 
-func (e *Exporter) addQuery(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/%s", e.basePath, svcID, toKebab(string(msg.ID)))
+func (e *Exporter) addQuery(doc *Document, serviceID catalog.ServiceID, tagName string, msg catalog.Message) {
+	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	op := &Operation{ //nolint:exhaustruct
@@ -186,8 +186,8 @@ func extractIDParameter(path string, schema *catalog.Schema) (string, []Paramete
 	return path, nil
 }
 
-func (e *Exporter) addEvent(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
-	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, svcID, toKebab(string(msg.ID)))
+func (e *Exporter) addEvent(doc *Document, serviceID catalog.ServiceID, tagName string, msg catalog.Message) {
+	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	//nolint:exhaustruct

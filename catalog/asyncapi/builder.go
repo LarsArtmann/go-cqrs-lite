@@ -67,7 +67,7 @@ func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
 
 func (e *Exporter) addMessage(
 	doc *Document,
-	svcID catalog.ServiceID,
+	serviceID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	opts ...messageOption,
@@ -83,21 +83,21 @@ func (e *Exporter) addMessage(
 	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
 
-	addChannel(doc, svcID, msg, kind, channelKey, ref)
-	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, messageID)
+	addChannel(doc, serviceID, msg, kind, channelKey, ref)
+	addOperation(doc, serviceID, msg, kind, cfg, channelKey, ref, messageID)
 
 	e.addMessageSchema(doc, msg)
 }
 
 func addChannel(
 	doc *Document,
-	svcID catalog.ServiceID,
+	serviceID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	channelKey, ref string,
 ) {
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.%s.%s", svcID, kind, toDotAddress(string(catalog.GetID(msg)))),
+		Address:     fmt.Sprintf("%s.%s.%s", serviceID, kind, toDotAddress(string(catalog.GetID(msg)))),
 		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
@@ -106,7 +106,7 @@ func addChannel(
 
 func addOperation(
 	doc *Document,
-	svcID catalog.ServiceID,
+	serviceID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	cfg *messageConfig,
@@ -121,7 +121,7 @@ func addOperation(
 		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
-		Tags:     buildTags(kind, svcID, msg),
+		Tags:     buildTags(kind, serviceID, msg),
 		Reply:    nil,
 	}
 }
@@ -162,8 +162,8 @@ func kindToTagName(kind catalog.MessageKind) string {
 	}
 }
 
-func buildTags(kind messageKind, svcID catalog.ServiceID, msg catalog.Message) []Tag {
-	tags := []Tag{{Name: string(kind)}, {Name: string(svcID)}}
+func buildTags(kind messageKind, serviceID catalog.ServiceID, msg catalog.Message) []Tag {
+	tags := []Tag{{Name: string(kind)}, {Name: string(serviceID)}}
 
 	if msg.Deprecated {
 		tags = append(tags, Tag{Name: "deprecated"})
