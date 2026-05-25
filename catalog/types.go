@@ -49,6 +49,30 @@ type ChannelID string
 // String returns the underlying string value.
 func (id ChannelID) String() string { return string(id) }
 
+// DataStoreID identifies a data store in the catalog (e.g., "orders-db").
+type DataStoreID string
+
+// String returns the underlying string value.
+func (id DataStoreID) String() string { return string(id) }
+
+// FlowID identifies a message flow in the catalog (e.g., "create-order").
+type FlowID string
+
+// String returns the underlying string value.
+func (id FlowID) String() string { return string(id) }
+
+// TeamID identifies a team in the catalog (e.g., "order-team").
+type TeamID string
+
+// String returns the underlying string value.
+func (id TeamID) String() string { return string(id) }
+
+// UserID identifies a user in the catalog (e.g., "alice").
+type UserID string
+
+// String returns the underlying string value.
+func (id UserID) String() string { return string(id) }
+
 // Direction represents the flow direction of a message relative to a service.
 type Direction string
 

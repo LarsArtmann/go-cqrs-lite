@@ -22,10 +22,10 @@ type Registry struct {
 	services  map[ServiceID]*Service
 	domains   map[DomainID]*Domain
 	channels  map[ChannelID]*Channel
-	stores    map[string]*DataStore
-	flows     map[string]*Flow
-	teams     map[string]*Team
-	users     map[string]*User
+	stores    map[DataStoreID]*DataStore
+	flows     map[FlowID]*Flow
+	teams     map[TeamID]*Team
+	users     map[UserID]*User
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
@@ -37,10 +37,10 @@ func NewRegistry(title, version string) *Registry {
 		services: make(map[ServiceID]*Service),
 		domains:  make(map[DomainID]*Domain),
 		channels: make(map[ChannelID]*Channel),
-		stores:   make(map[string]*DataStore),
-		flows:    make(map[string]*Flow),
-		teams:    make(map[string]*Team),
-		users:    make(map[string]*User),
+		stores:   make(map[DataStoreID]*DataStore),
+		flows:    make(map[FlowID]*Flow),
+		teams:    make(map[TeamID]*Team),
+		users:    make(map[UserID]*User),
 	}
 }
 

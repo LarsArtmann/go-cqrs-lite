@@ -80,7 +80,7 @@ func writeChannelParams(md *frontmatterWriter, params map[string]catalog.Channel
 }
 
 func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
-	dir := filepath.Join(e.outputDir, "data", ds.ID)
+	dir := filepath.Join(e.outputDir, "data", string(ds.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -88,7 +88,7 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", ds.ID)
+	md.addField("id", string(ds.ID))
 	md.addField("name", ds.Name)
 	md.addField("version", ds.Version)
 	md.addField("container_type", ds.ContainerType)
@@ -121,7 +121,7 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 }
 
 func (e *Exporter) writeFlow(f catalog.Flow) error {
-	dir := filepath.Join(e.outputDir, "flows", f.ID)
+	dir := filepath.Join(e.outputDir, "flows", string(f.ID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
@@ -129,7 +129,7 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", f.ID)
+	md.addField("id", string(f.ID))
 	md.addField("name", f.Name)
 	md.addField("version", f.Version)
 
@@ -217,7 +217,7 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", team.ID)
+	md.addField("id", string(team.ID))
 	md.addField("name", team.Name)
 
 	if team.Summary != "" {
@@ -236,7 +236,7 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 
 	md.finish(team.Name, "")
 
-	return e.writeMDXFile(filepath.Join(dir, team.ID+".mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, string(team.ID)+".mdx"), md.String())
 }
 
 func (e *Exporter) writeUser(user catalog.User) error {
@@ -270,5 +270,5 @@ func (e *Exporter) writeUser(user catalog.User) error {
 
 	fmt.Fprintf(&sb, "---\n\n# %s\n", user.Name)
 
-	return e.writeMDXFile(filepath.Join(dir, user.ID+".mdx"), sb.String())
+	return e.writeMDXFile(filepath.Join(dir, string(user.ID)+".mdx"), sb.String())
 }

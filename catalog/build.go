@@ -43,8 +43,8 @@ func (b *Builder) AddService(
 
 // ConfigureService applies service-level options (badges, repository, etc.)
 // to an already-registered service.
-func (b *Builder) ConfigureService(serviceID string, opts ...ServiceOption) {
-	b.registry.SetServiceOptions(ServiceID(serviceID), opts...)
+func (b *Builder) ConfigureService(serviceID ServiceID, opts ...ServiceOption) {
+	b.registry.SetServiceOptions(serviceID, opts...)
 }
 
 // AddDomain registers a domain and associates it with services.
@@ -68,8 +68,8 @@ func (b *Builder) AddDomain(
 
 // ConfigureDomain applies domain-level options (badges, sends, receives, etc.)
 // to an already-registered domain.
-func (b *Builder) ConfigureDomain(domainID string, opts ...DomainOption) {
-	b.registry.SetDomainOptions(DomainID(domainID), opts...)
+func (b *Builder) ConfigureDomain(domainID DomainID, opts ...DomainOption) {
+	b.registry.SetDomainOptions(domainID, opts...)
 }
 
 // Registry returns the underlying registry for advanced use cases.
@@ -84,8 +84,8 @@ func (b *Builder) AddChannel(ch Channel) {
 }
 
 // ConfigureChannel applies channel-level options to an already-registered channel.
-func (b *Builder) ConfigureChannel(channelID string, opts ...ChannelOption) {
-	b.registry.SetChannelOptions(ChannelID(channelID), opts...)
+func (b *Builder) ConfigureChannel(channelID ChannelID, opts ...ChannelOption) {
+	b.registry.SetChannelOptions(channelID, opts...)
 }
 
 // AddDataStore registers a data store in the catalog.

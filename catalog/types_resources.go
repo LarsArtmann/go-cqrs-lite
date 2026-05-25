@@ -2,22 +2,22 @@ package catalog
 
 // DataStore represents a data store (database, cache, object store, etc.).
 type DataStore struct {
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Version        string   `json:"version"`
-	Summary        string   `json:"summary,omitempty"`
-	ContainerType  string   `json:"containerType"`
-	Technology     string   `json:"technology,omitempty"`
-	Classification string   `json:"classification,omitempty"`
-	Retention      string   `json:"retention,omitempty"`
-	Residency      string   `json:"residency,omitempty"`
-	Owners         []string `json:"owners,omitempty"`
-	Badges         []Badge  `json:"badges,omitempty"`
+	ID             DataStoreID `json:"id"`
+	Name           string      `json:"name"`
+	Version        string      `json:"version"`
+	Summary        string      `json:"summary,omitempty"`
+	ContainerType  string      `json:"containerType"`
+	Technology     string      `json:"technology,omitempty"`
+	Classification string      `json:"classification,omitempty"`
+	Retention      string      `json:"retention,omitempty"`
+	Residency      string      `json:"residency,omitempty"`
+	Owners         []string    `json:"owners,omitempty"`
+	Badges         []Badge     `json:"badges,omitempty"`
 }
 
 // Flow represents a message flow with ordered steps between services and messages.
 type Flow struct {
-	ID      string     `json:"id"`
+	ID      FlowID     `json:"id"`
 	Name    string     `json:"name"`
 	Version string     `json:"version"`
 	Summary string     `json:"summary,omitempty"`
@@ -69,20 +69,20 @@ type FlowEdge struct {
 
 // Team represents a team that owns catalog resources.
 type Team struct {
-	ID                   string   `json:"id"`
-	Name                 string   `json:"name"`
-	Summary              string   `json:"summary,omitempty"`
-	Members              []string `json:"members,omitempty"`
-	Email                string   `json:"email,omitempty"`
+	ID                    TeamID  `json:"id"`
+	Name                  string  `json:"name"`
+	Summary               string  `json:"summary,omitempty"`
+	Members               []string `json:"members,omitempty"`
+	Email                 string  `json:"email,omitempty"`
 	SlackDirectMessageURL string  `json:"slackDirectMessageUrl,omitempty"`
 }
 
 // User represents an individual who owns catalog resources.
 type User struct {
-	ID                   string `json:"id"`
-	Name                 string `json:"name"`
-	AvatarURL            string `json:"avatarUrl,omitempty"`
-	Role                 string `json:"role,omitempty"`
-	Email                string `json:"email,omitempty"`
+	ID                    UserID `json:"id"`
+	Name                  string `json:"name"`
+	AvatarURL             string `json:"avatarUrl,omitempty"`
+	Role                  string `json:"role,omitempty"`
+	Email                 string `json:"email,omitempty"`
 	SlackDirectMessageURL string `json:"slackDirectMessageUrl,omitempty"`
 }
