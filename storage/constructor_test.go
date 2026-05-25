@@ -32,3 +32,39 @@ func TestNewSQLCheckpointStore_NilDB(t *testing.T) {
 		t.Fatal("expected error for nil db")
 	}
 }
+
+func TestNewSQLEventStoreWithDialect_NilDB(t *testing.T) {
+	t.Parallel()
+
+	_, err := storage.NewSQLEventStoreWithDialect(nil, storage.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected error for nil db")
+	}
+}
+
+func TestNewSQLSnapshotStoreWithDialect_NilDB(t *testing.T) {
+	t.Parallel()
+
+	_, err := storage.NewSQLSnapshotStoreWithDialect(nil, storage.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected error for nil db")
+	}
+}
+
+func TestNewSQLOutboxWithDialect_NilDB(t *testing.T) {
+	t.Parallel()
+
+	_, err := storage.NewSQLOutboxWithDialect(nil, storage.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected error for nil db")
+	}
+}
+
+func TestNewSQLCheckpointStoreWithDialect_NilDB(t *testing.T) {
+	t.Parallel()
+
+	_, err := storage.NewSQLCheckpointStoreWithDialect(nil, storage.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected error for nil db")
+	}
+}
