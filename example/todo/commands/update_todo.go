@@ -24,9 +24,10 @@ func NewUpdateTodoCommand(
 	core, err := command.New(aggregate.CommandUpdate, todoID)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"new update todo command for todo %s (title=%q): %w",
+			"new update todo command for todo %s (title=%q, description=%q): %w",
 			todoID,
 			title,
+			description,
 			err,
 		)
 	}

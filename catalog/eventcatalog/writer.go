@@ -233,7 +233,7 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 
 	data, err := json.MarshalIndent(examples, "", "  ")
 	if err != nil {
-		return fmt.Errorf("marshal examples: %w", err)
+		return fmt.Errorf("marshal examples for dir %s: %w", dir, err)
 	}
 
 	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm) //nolint:wrapcheck
