@@ -60,13 +60,18 @@ go-cqrs-lite/
 │
 ├── catalog/                         # github.com/larsartmann/go-cqrs-lite/catalog
 │   └── go.mod                       # deps: core, go-faster/yaml
-│   ├── types.go                     # Message, Service, Domain, Channel, Schema, ServiceID, DomainID, MessageID, ChannelID, GetID()
+│   ├── types.go                     # Message, Service, Domain, Channel, Schema, 8 branded ID types (ServiceID, DomainID, MessageID, ChannelID, DataStoreID, FlowID, TeamID, UserID)
+│   ├── types_resources.go           # DataStore, Flow, FlowStep, FlowEdge, Team, User
 │   ├── schema.go                    # SchemaFromType[T]() via reflect
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
-│   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter (uses catalog.MessageID)
+│   ├── build.go                     # Builder with fluent ServiceOption/DomainOption/ChannelOption APIs (27 option functions)
+│   ├── service_config.go            # ServiceOption: Badges, Repository, WritesTo, ReadsTo, Entities, Specifications, Attachments, Owners
+│   ├── domain_config.go             # DomainOption: Sends, Receives, Entities, Badges, Owners, Attachments
+│   ├── channel_config.go            # ChannelOption: Address, Protocols, Messages, DeliveryGuarantee, Parameters, Routes, Owners, Badges
+│   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter (Document.ID uses URI branded type)
 │   ├── d2/                          # D2 diagram text exporter (uses catalog.MessageID)
-│   ├── eventcatalog/                # EventCatalog MDX file generator (uses catalog.MessageID)
-│   └── internal/cattest/            # test helpers
+│   ├── eventcatalog/                # EventCatalog MDX file generator (auto-derives producers/consumers)
+│   └── internal/cattest/            # test helpers (accept branded types)
 │
 ├── middleware/                       # github.com/larsartmann/go-cqrs-lite/middleware
 │   └── go.mod                       # deps: core
@@ -405,7 +410,7 @@ doc, err := exporter.Export(context.Background())
 | `catalog/internal/caseutil`   | 100.0%   |
 | `memory`                      | 99.6%    |
 | `core/query`                  | 98.4%    |
-| `catalog`                     | 96.8%    |
+| `catalog`                     | 96.3%    |
 | `catalog/d2`                  | 95.0%    |
 | `catalog/openapi`             | 94.4%    |
 | `projection`                  | 94.4%    |
@@ -414,10 +419,10 @@ doc, err := exporter.Export(context.Background())
 | `core/decider`                | 93.6%    |
 | `core/command`                | 92.3%    |
 | `testhelpers`                 | 91.3%    |
-| `catalog/eventcatalog`        | 91.3%    |
 | `catalog/docserver`           | 90.1%    |
 | `storage`                     | 89.3%    |
 | `catalog/internal/schemautil` | 84.2%    |
+| `catalog/eventcatalog`        | 85.8%    |
 
 ## Module Dependency Graph
 
@@ -572,3 +577,4 @@ Key milestones:
 | 95      | Naming overhaul: Core→ImmutableEvent/BasicCommand/BasicQuery, CatalogEntry→HandlerMeta, NewCheckpointStore→NewMemoryCheckpointStore, command/query decoupled from event, NewWithDialect constructors for all storage types, Go 1.26.3 aligned, InMemoryRunner deprecated |
 | 96      | Dispatch() closed-state fix, cqrs-htmx removal, decider file organization, FakeMetrics/FakeStore renames, event_new.go rename                                                                                                                                            |
 | 99      | Deleted `core/aggregate` + `integration/aggregate` (~3700 lines), deleted `catalog/adapters` (616 lines), migrated example/user to `catalog.Builder`, added Dispatch() + NewWithDialect tests, storage coverage 88.7→89.3%                                               |
+| 100     | EventCatalog auto-generation (20%→80%): channels, data stores, flows, teams, users, 3 fluent option APIs (27 option functions), ~60 new tests. Branded ID type safety sweep: 8 catalog branded types, `asyncapi.URI`, branded map keys in auto_derive, `svcID`/`msgID`→`serviceID`/`messageID` across all exporters, `ChannelRoute.ID`→`ChannelID`, `memory/outbox.nextID`→`entryCounter`. branching-flow violations 30→7 (all remaining are intentional skips). |
