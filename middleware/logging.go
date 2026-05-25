@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -14,16 +15,18 @@ import (
 type logContext struct {
 	prefix      string
 	msgType     string
-	aggregateID string
+	aggregateID id.AggregateID
 }
 
 func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 	start := time.Now()
 
+	aggregateIDStr := lc.aggregateID.String()
+
 	logger.Info(
 		lc.prefix+" dispatching",
 		"type", lc.msgType,
-		"aggregateID", lc.aggregateID,
+		"aggregateID", aggregateIDStr,
 	)
 
 	err := fn()
@@ -33,7 +36,7 @@ func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 		logger.Error(
 			lc.prefix+" failed",
 			"type", lc.msgType,
-			"aggregateID", lc.aggregateID,
+			"aggregateID", aggregateIDStr,
 			"duration", duration,
 			"error", err,
 		)
@@ -44,7 +47,7 @@ func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 	logger.Info(
 		lc.prefix+" succeeded",
 		"type", lc.msgType,
-		"aggregateID", lc.aggregateID,
+		"aggregateID", aggregateIDStr,
 		"duration", duration,
 	)
 
@@ -58,7 +61,7 @@ func CommandLogging(logger *slog.Logger) command.Middleware {
 			lc := logContext{
 				prefix:      "command",
 				msgType:     string(cmd.Type()),
-				aggregateID: cmd.AggregateID().String(),
+				aggregateID: cmd.AggregateID(),
 			}
 
 			return logWithContext(logger, lc, func() error {
@@ -75,7 +78,7 @@ func EventLogging(logger *slog.Logger) event.Middleware {
 			lc := logContext{
 				prefix:      "event",
 				msgType:     string(evt.Type()),
-				aggregateID: evt.AggregateID().String(),
+				aggregateID: evt.AggregateID(),
 			}
 
 			return logWithContext(logger, lc, func() error {

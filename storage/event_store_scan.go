@@ -17,7 +17,7 @@ func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
 
 func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 	var (
-		idStr         string
+		eventIDStr    string
 		eventType     string
 		aggType       string
 		aggIDStr      string
@@ -30,14 +30,14 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 	timeDest := s.dialect.ScanTimeDest()
 
 	err := rows.Scan(
-		&idStr, &eventType, &aggType, &aggIDStr,
+		&eventIDStr, &eventType, &aggType, &aggIDStr,
 		&version, &schemaVersion, &payload, &metadataJSON,
 		timeDest,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"scan event row for %s/%s v%d (schema v%d) event %s (id %s): %w",
-			aggIDStr, aggType, version, schemaVersion, eventType, idStr, err,
+			aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr, err,
 		)
 	}
 
@@ -45,12 +45,22 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 	if err != nil {
 		return nil, fmt.Errorf(
 			"parse occurred_at for %s/%s v%d (schema v%d) event %s (id %s): %w",
-			aggIDStr, aggType, version, schemaVersion, eventType, idStr, err,
+			aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr, err,
 		)
 	}
 
+	parsedEventID, err := id.ParseEventID(eventIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse event ID %q for %s v%d: %w", eventIDStr, aggType, version, err)
+	}
+
+	parsedAggID, err := id.ParseAggregateID(aggIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse aggregate ID %q for %s v%d: %w", aggIDStr, aggType, version, err)
+	}
+
 	return reconstructEvent(
-		idStr, eventType, aggType, aggIDStr,
+		parsedEventID, eventType, aggType, parsedAggID,
 		version, schemaVersion, payload, metadataJSON,
 		occurredAt,
 	)

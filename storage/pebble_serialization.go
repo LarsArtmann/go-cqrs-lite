@@ -3,7 +3,6 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -13,32 +12,15 @@ import (
 // serializeEvent converts a CQRS event to JSON.
 func (a *PebbleEventStore) serializeEvent(evt event.Event) ([]byte, error) {
 	s := serializableEvent{
-		ID:            evt.ID().String(),
+		ID:            evt.ID(),
 		Type:          string(evt.Type()),
-		AggregateID:   evt.AggregateID().String(),
+		AggregateID:   evt.AggregateID(),
 		AggregateType: string(evt.AggregateType()),
 		Version:       evt.Version().Int(),
 		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       evt.Payload(),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
-	}
-
-	if m := evt.Metadata(); m != nil {
-		s.Metadata = &serializableMetadata{
-			CorrelationID: m.CorrelationID.String(),
-			CausationID:   m.CausationID.String(),
-			UserID:        m.UserID.String(),
-			RequestID:     m.RequestID.String(),
-			Source:        string(m.Source),
-			IPAddress:     string(m.IPAddress),
-			UserAgent:     string(m.UserAgent),
-		}
-		if len(m.Custom) > 0 {
-			s.Metadata.Custom = make(map[string]string, len(m.Custom))
-			for k, v := range m.Custom {
-				s.Metadata.Custom[string(k)] = v
-			}
-		}
+		Metadata:      evt.Metadata(),
 	}
 
 	return json.Marshal(s)
@@ -55,7 +37,7 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 	var metadataJSON []byte
 	if s.Metadata != nil {
-		metadataJSON, _ = marshalMetadata(deserializeMetadata(s.Metadata))
+		metadataJSON, _ = marshalMetadata(s.Metadata)
 	}
 
 	return reconstructEvent(
@@ -66,72 +48,15 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 	)
 }
 
-func parseBrandedID[T any](raw string, parse func(string) (T, error), label string) (T, bool) {
-	parsed, err := parse(raw)
-	if err != nil {
-		slog.Warn("pebble: corrupt "+label, "value", raw, "error", err)
-
-		var zero T
-
-		return zero, false
-	}
-
-	return parsed, true
-}
-
-func deserializeMetadata(s *serializableMetadata) *event.Metadata {
-	m := event.NewMetadata()
-
-	if v, ok := parseBrandedID(s.CorrelationID, id.ParseCorrelationID, "correlation ID"); ok {
-		m.CorrelationID = v
-	}
-
-	if v, ok := parseBrandedID(s.CausationID, id.ParseCausationID, "causation ID"); ok {
-		m.CausationID = v
-	}
-
-	if v, ok := parseBrandedID(s.UserID, id.ParseUserID, "user ID"); ok {
-		m.UserID = v
-	}
-
-	if v, ok := parseBrandedID(s.RequestID, id.ParseRequestID, "request ID"); ok {
-		m.RequestID = v
-	}
-
-	m.Source = event.Source(s.Source)
-	m.IPAddress = event.IPAddress(s.IPAddress)
-	m.UserAgent = event.UserAgent(s.UserAgent)
-
-	if len(s.Custom) > 0 {
-		m.Custom = make(map[event.MetadataKey]string, len(s.Custom))
-		for k, v := range s.Custom {
-			m.Custom[event.MetadataKey(k)] = v
-		}
-	}
-
-	return m
-}
-
 // serializableEvent represents the JSON storage format for events.
 type serializableEvent struct {
-	ID            string                `json:"id"`
-	Type          string                `json:"type"`
-	AggregateID   string                `json:"aggregate_id"`
-	AggregateType string                `json:"aggregate_type"`
-	Version       int                   `json:"version"`
-	SchemaVersion int                   `json:"schema_version,omitempty"`
-	Payload       []byte                `json:"payload"`
-	OccurredAt    int64                 `json:"occurred_at"`
-	Metadata      *serializableMetadata `json:"metadata,omitempty"`
-}
-
-type serializableMetadata struct {
-	CorrelationID string            `json:"correlation_id,omitempty"`
-	CausationID   string            `json:"causation_id,omitempty"`
-	UserID        string            `json:"user_id,omitempty"`
-	RequestID     string            `json:"request_id,omitempty"`
-	Source        string            `json:"source,omitempty"`
-	IPAddress     string            `json:"ip_address,omitempty"`
-	UserAgent     string            `json:"user_agent,omitempty"`
-	Custom        map[string]string `json:"custom,omitempty"`
+	ID            id.EventID      `json:"id"`
+	Type          string          `json:"type"`
+	AggregateID   id.AggregateID  `json:"aggregate_id"`
+	AggregateType string          `json:"aggregate_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
+	Payload       []byte          `json:"payload"`
+	OccurredAt    int64           `json:"occurred_at"`
+	Metadata      *event.Metadata `json:"metadata,omitempty"`
 }

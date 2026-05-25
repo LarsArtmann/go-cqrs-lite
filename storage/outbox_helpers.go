@@ -7,19 +7,20 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // outboxEvent represents an outbox entry for JSON serialization.
 type outboxEvent struct {
-	ID            string              `json:"id"`
-	Type          string              `json:"type"`
-	AggregateType string              `json:"aggregate_type"`
-	AggregateID   string              `json:"aggregate_id"`
-	Version       event.Version       `json:"version"`
+	ID            id.EventID         `json:"id"`
+	Type          string             `json:"type"`
+	AggregateType string             `json:"aggregate_type"`
+	AggregateID   id.AggregateID     `json:"aggregate_id"`
+	Version       event.Version      `json:"version"`
 	SchemaVersion event.SchemaVersion `json:"schema_version,omitempty"`
-	Payload       []byte              `json:"payload"`
-	Metadata      *event.Metadata     `json:"metadata,omitempty"`
-	OccurredAt    time.Time           `json:"occurred_at"`
+	Payload       []byte             `json:"payload"`
+	Metadata      *event.Metadata    `json:"metadata,omitempty"`
+	OccurredAt    time.Time          `json:"occurred_at"`
 }
 
 func marshalOutboxEvents(events []event.Event) ([]byte, error) {
@@ -27,10 +28,10 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 
 	for i, evt := range events {
 		rows[i] = outboxEvent{
-			ID:            evt.ID().String(),
+			ID:            evt.ID(),
 			Type:          string(evt.Type()),
 			AggregateType: string(evt.AggregateType()),
-			AggregateID:   evt.AggregateID().String(),
+			AggregateID:   evt.AggregateID(),
 			Version:       evt.Version(),
 			SchemaVersion: evt.SchemaVersion(),
 			Payload:       evt.Payload(),

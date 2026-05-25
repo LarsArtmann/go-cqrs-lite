@@ -39,24 +39,13 @@ func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 }
 
 func reconstructEvent(
-	idStr, eventType, aggType, aggIDStr string,
+	eventID id.EventID,
+	eventType, aggType string,
+	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
 	occurredAt time.Time,
 ) (event.Event, error) {
-	parsedAggID, err := id.ParseAggregateID(aggIDStr)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"parse aggregate ID %q for %s v%d (schema v%d): %w",
-			aggIDStr, aggType, version, schemaVersion, err,
-		)
-	}
-
-	parsedEventID, err := id.ParseEventID(idStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse event ID %q for %s v%d: %w", idStr, aggType, version, err)
-	}
-
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -67,7 +56,7 @@ func reconstructEvent(
 
 	opts := make([]event.Option, 0, 3+len(metaOpts))
 
-	opts = append(opts, event.WithEventID(parsedEventID), event.WithOccurredAt(occurredAt))
+	opts = append(opts, event.WithEventID(eventID), event.WithOccurredAt(occurredAt))
 	if schemaVersion > 0 {
 		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(schemaVersion)))
 	}
@@ -76,7 +65,7 @@ func reconstructEvent(
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
-		parsedAggID,
+		aggID,
 		event.AggregateType(aggType),
 		event.Version(version),
 		payload,
