@@ -40,4 +40,3 @@ func WithSnapshotStrategy[State any](strategy event.SnapshotStrategy) Repository
 		r.snapshotStrategy = strategy
 	}
 }
-

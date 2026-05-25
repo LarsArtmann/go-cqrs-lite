@@ -35,11 +35,11 @@ func NewCreateTodoCommand(
 		)
 	}
 	return &CreateTodoCommand{
-		BasicCommand:        *core,
-		Title:       title,
-		Description: description,
-		Priority:    priority,
-		Tags:        tags,
+		BasicCommand: *core,
+		Title:        title,
+		Description:  description,
+		Priority:     priority,
+		Tags:         tags,
 	}, nil
 }
 

@@ -24,7 +24,7 @@ func NewListTodosQuery() (*ListTodosQuery, error) {
 		return nil, fmt.Errorf("new list todos query: %w", err)
 	}
 	return &ListTodosQuery{
-		BasicQuery:       core,
+		BasicQuery: core,
 		Pagination: query.NewPagination(1, 20),
 	}, nil
 }

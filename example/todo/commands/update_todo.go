@@ -31,9 +31,9 @@ func NewUpdateTodoCommand(
 		)
 	}
 	return &UpdateTodoCommand{
-		BasicCommand:        *core,
-		Title:       title,
-		Description: description,
+		BasicCommand: *core,
+		Title:        title,
+		Description:  description,
 	}, nil
 }
 

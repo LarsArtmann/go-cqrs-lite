@@ -26,8 +26,8 @@ func NewChangeStatusCommand(
 		return nil, fmt.Errorf("new change status command for todo %s: %w", todoID, err)
 	}
 	return &ChangeStatusCommand{
-		BasicCommand:   *core,
-		Status: status,
+		BasicCommand: *core,
+		Status:       status,
 	}, nil
 }
 
