@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 11 modules:
+Multi-module Go workspace with 10 modules:
 
 ```
 go-cqrs-lite/
@@ -46,7 +46,6 @@ go-cqrs-lite/
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
 │   │   ├── event.go                # ImmutableEvent struct, NewEvent constructor
 │   │   └── options.go              # Option func, With* metadata helpers
-│   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository (OO style)
 │   ├── decider/                     # Decider[State], Repository[State], Execute, Load (pure-function style)
 │   ├── pkg/
 │   │   ├── id/                      # branded IDs: id.Of[T] (type alias for go-branded-id ID[T, ulid.ULID])
@@ -64,7 +63,6 @@ go-cqrs-lite/
 │   ├── types.go                     # Message, Service, Domain, Channel, Schema, ServiceID, DomainID, MessageID, ChannelID, GetID()
 │   ├── schema.go                    # SchemaFromType[T]() via reflect
 │   ├── registry.go                  # thread-safe Registry, Build() → Catalog
-│   ├── adapters/                    # CatalogBuilder, FromDispatcher adapters
 │   ├── asyncapi/                    # AsyncAPI 3.0 YAML/JSON exporter (uses catalog.MessageID)
 │   ├── d2/                          # D2 diagram text exporter (uses catalog.MessageID)
 │   ├── eventcatalog/                # EventCatalog MDX file generator (uses catalog.MessageID)
@@ -142,7 +140,7 @@ nix develop             # enter dev shell
 │  │  Dispatcher  │  │  Dispatcher  │
 │  └──────────────┘  └──────────────┘
 │  ┌──────────────┐  ┌──────────────┐
-│  │    Event     │  │  Aggregate   │
+│  │    Event     │  │   Decider    │
 │  │  Store+Bus   │  │  Repository  │
 │  └──────────────┘  └──────────────┘
 └────────────────────────────────────────────────────────────────┘
@@ -191,10 +189,10 @@ nix develop             # enter dev shell
 | --------------- | ------------------------------------------ | ----------------------------------------------------------------------------- |
 | `core/decider/` | Functional aggregate pattern (recommended) | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load` |
 
-- **Recommended over `aggregate`** for new consumers: pure functions, no mutable state, no 9-method interface, zero-infrastructure testing.
+- Pure functions, no mutable state, no 9-method interface, zero-infrastructure testing.
 - `Decider[State]` holds `Initial` state and `Fold func(State, Event) (State, error)`.
 - `Repository[State].Execute` does load → fold → decide → save → publish.
-- `aggregate` package stays for existing consumers who prefer the OO style.
+- Replaced the deprecated `core/aggregate` package (deleted Session 99).
 
 ### Memory Module (`memory/`)
 
@@ -207,7 +205,6 @@ nix develop             # enter dev shell
 | Package                 | Purpose                                | Key Types                                                                                                                                     |
 | ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `catalog/`              | Registry, schema reflection, typed IDs | `Registry`, `Catalog`, `SchemaFromType[T]`, `GetID()`, `Validate()`, `ServiceID`, `DomainID`, `MessageID`, `ChannelID`, `Change`, `Violation` |
-| `catalog/adapters/`     | Builder and dispatcher adapters        | `CatalogBuilder`, `FromCommandDispatcher`                                                                                                     |
 | `catalog/asyncapi/`     | AsyncAPI 3.0 YAML/JSON export          | `Exporter`, `Document`, `MarshalYAML`                                                                                                         |
 | `catalog/d2/`           | D2 diagram text export                 | `Exporter`, `Export()`, `NewExporter()`                                                                                                       |
 | `catalog/eventcatalog/` | EventCatalog MDX generator             | `Exporter`                                                                                                                                    |
@@ -249,7 +246,7 @@ nix develop             # enter dev shell
 2. **Every module must be trustworthy on its own** — Quality gate: "Would a consumer trust this enough to import it?" Means: tests, stable API, clear docs. Does NOT mean "another module in this repo uses it."
 3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`, `go-error-family`
 4. **Composition over inheritance** — Per Go best practices
-5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, `Root`, etc.)
+5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, etc.)
 6. **Context-aware** — All handlers accept `context.Context`
 7. **Errors as values** — No panics, explicit error returns, sentinel errors + wrapping
 8. **File size limits** — Max 250 lines per file
@@ -365,16 +362,17 @@ parsed, err := id.Parse[UserID](uid.String())
 ### Catalog Builder
 
 ```go
-builder := catalogadapters.NewBuilder("My Service", "1.0.0")
+builder := catalog.NewBuilder("My Service", "1.0.0")
 builder.AddService("users", "User Service", "1.0.0", "Manages users")
-catalogadapters.AddCommandFromType[CreateUserCmd](builder, "users", "CreateUser", meta)
-doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
+builder.AddCommandFromType[CreateUserCmd]("users", "CreateUser", meta)
+exporter := asyncapi.NewExporter(builder.Build())
+doc, err := exporter.Export(context.Background())
 ```
 
 ## Test Patterns
 
 - Table-driven tests preferred
-- BDD tests via Ginkgo v2 + Gomega for event, aggregate, query
+- BDD tests via Ginkgo v2 + Gomega for event, decider, query
 - Use `t.Parallel()` for independent tests
 - Test error messages contain context
 - Core packages >80% coverage (most >90%)
@@ -401,27 +399,25 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                       | Coverage |
 | ----------------------------- | -------- |
-| `core/query`                  | 98.4%    |
 | `core/pkg/dispatcher`         | 100.0%   |
+| `core/pkg/id`                 | 100.0%   |
 | `middleware`                  | 100.0%   |
-| `catalog/adapters`            | 100.0%   |
 | `catalog/internal/caseutil`   | 100.0%   |
 | `memory`                      | 99.6%    |
-| `core/pkg/id`                 | 98.1%    |
+| `core/query`                  | 98.4%    |
 | `catalog`                     | 96.8%    |
-| `core/aggregate`              | 95.9%    |
 | `catalog/d2`                  | 95.0%    |
-| `core/command`                | 92.3%    |
 | `catalog/openapi`             | 94.4%    |
 | `projection`                  | 94.4%    |
+| `core/event`                  | 93.8%    |
 | `catalog/asyncapi`            | 93.7%    |
 | `core/decider`                | 93.6%    |
-| `core/event`                  | 93.8%    |
+| `core/command`                | 92.3%    |
+| `testhelpers`                 | 91.3%    |
 | `catalog/eventcatalog`        | 91.3%    |
 | `catalog/docserver`           | 90.1%    |
-| `storage`                     | 89.2%    |
+| `storage`                     | 89.3%    |
 | `catalog/internal/schemautil` | 84.2%    |
-| `testhelpers`                 | 91.3%    |
 
 ## Module Dependency Graph
 
@@ -440,12 +436,11 @@ core/decider is a package within core, not a separate module
 
 ### Integration Module (`integration/`)
 
-| Package                  | Purpose                                                    | Key Types               |
-| ------------------------ | ---------------------------------------------------------- | ----------------------- |
-| `integration/aggregate/` | Aggregate integration tests (moved from `core/aggregate/`) | BDD + integration tests |
-| `integration/command/`   | Command integration tests (moved from `core/command/`)     | Middleware chain tests  |
-| `integration/event/`     | Event integration tests (moved from `core/event/`)         | BDD + benchmark tests   |
-| `integration/query/`     | Query integration tests (moved from `core/query/`)         | Middleware chain tests  |
+| Package                | Purpose                                                | Key Types              |
+| ---------------------- | ------------------------------------------------------ | ---------------------- |
+| `integration/command/` | Command integration tests (moved from `core/command/`) | Middleware chain tests |
+| `integration/event/`   | Event integration tests (moved from `core/event/`)     | BDD + benchmark tests  |
+| `integration/query/`   | Query integration tests (moved from `core/query/`)     | Middleware chain tests |
 
 ## Catalog System Architecture
 
@@ -485,9 +480,8 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. Service frontmatter includes `sends`, `receives`, `commands`, and `queries` lists.
 
-7. **Catalog adapters** (`catalog/adapters`) — `CatalogBuilder` provides instance-based methods (`AddCommand`, `AddEvent`, `AddQuery`) and generic zero-instance methods (`AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`). Generic methods use `SchemaFromType[T]()` for compile-time safety. `FromCommandDispatcher` and `FromQueryDispatcher` extract catalog entries from dispatchers.
+7. **D2 diagram export** (`catalog/d2`) — Generates D2 text from `*catalog.Catalog`. Services become containers, commands/events/queries become color-coded nodes (command=blue, event=red queue, query=purple), domains become grouping labels. Wire via `catalog.Builder` directly. Follows same `Exporter` pattern as `asyncapi` and `eventcatalog`.
 
-8. **D2 diagram export** (`catalog/d2`) — Generates D2 text from `*catalog.Catalog`. Services become containers, commands/events/queries become color-coded nodes (command=blue, event=red queue, query=purple), domains become grouping labels. Wire via `CatalogBuilder.ExportD2(title, version)`. Follows same `Exporter` pattern as `asyncapi` and `eventcatalog`.
 
 ## Branded Return Types Migration (Session 3)
 
@@ -498,11 +492,11 @@ Interfaces now return branded types instead of primitives:
 | `Event`   | `ID()`          | `string`   | `id.EventID`     |
 | `Event`   | `AggregateID()` | `string`   | `id.AggregateID` |
 | `Event`   | `Version()`     | `int`      | `event.Version`  |
-| `Root`    | `ID()`          | `string`   | `id.AggregateID` |
-| `Root`    | `Version()`     | `int`      | `event.Version`  |
 | `Command` | `AggregateID()` | `string`   | `id.AggregateID` |
 
-**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). All `cmd.AggregateID()` and `root.ID()` comparisons use branded types. `repository.go` eliminated redundant `id.ParseAggregateID()` re-parses. `middleware/logging.go` adds `.String()` when formatting IDs for log output. `Version()` callers use `.Int()` when passing to `NewEvent` or `fmt.Printf`. Commit: `cee6c50` (IDs), `de095e5` (Version)
+**Note**: The `Root` rows were removed when `core/aggregate` was deleted (Session 99).
+
+**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). `middleware/logging.go` adds `.String()` when formatting IDs for log output. `Version()` callers use `.Int()` when passing to `NewEvent` or `fmt.Printf`. Commit: `cee6c50` (IDs), `de095e5` (Version)
 
 ## Bug Fixes (Sessions 1–2)
 
@@ -544,7 +538,7 @@ Interfaces now return branded types instead of primitives:
 | `MemoryBus.Publish` holds RLock during handler execution | LOW       | Subscribers block publishers (acceptable for test utility)                                                                  |
 | `query.Handler` returns `any`                            | LOW       | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
 | `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.HandlerMeta`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW       | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
+| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | **FIXED** | `core/aggregate` package deleted (Session 99); decider has no such split                                                    |
 
 ## Session History
 
@@ -577,3 +571,5 @@ Key milestones:
 | 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%       |
 | 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%            |
 | 95      | Naming overhaul: Core→ImmutableEvent/BasicCommand/BasicQuery, CatalogEntry→HandlerMeta, NewCheckpointStore→NewMemoryCheckpointStore, command/query decoupled from event, NewWithDialect constructors for all storage types, Go 1.26.3 aligned, InMemoryRunner deprecated |
+| 96      | Dispatch() closed-state fix, cqrs-htmx removal, decider file organization, FakeMetrics/FakeStore renames, event_new.go rename |
+| 99      | Deleted `core/aggregate` + `integration/aggregate` (~3700 lines), deleted `catalog/adapters` (616 lines), migrated example/user to `catalog.Builder`, added Dispatch() + NewWithDialect tests, storage coverage 88.7→89.3% |
