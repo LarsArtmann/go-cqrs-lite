@@ -22,7 +22,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 | Item      | Value                                                                                                              |
 | --------- | ------------------------------------------------------------------------------------------------------------------ |
-| Language  | Go 1.26                                                                                                            |
+| Language  | Go 1.26.3                                                                                                            |
 | Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
 | Build     | `nix run .#build`                                                                                                  |
 | Test      | `nix run .#test` or see "Testing" below                                                                            |
@@ -44,7 +44,7 @@ go-cqrs-lite/
 │   ├── command/                     # command dispatch, handler, catalog
 │   ├── query/                       # query dispatch, pagination, catalog
 │   ├── event/                       # event types, Store/Bus/SnapshotStore interfaces
-│   │   ├── event.go                # Core struct, NewEvent constructor
+│   │   ├── event.go                # ImmutableEvent struct, NewEvent constructor
 │   │   └── options.go              # Option func, With* metadata helpers
 │   ├── aggregate/                   # Root, Repository, Core, EventSourcedRepository (OO style)
 │   ├── decider/                     # Decider[State], Repository[State], Execute, Load (pure-function style)
@@ -177,10 +177,10 @@ nix develop             # enter dev shell
 
 | Package                | Purpose                                   | Key Types                                                                                                                                                                                                                              |
 | ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `Core`                                                                                                                                                                               |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                       |
 | `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                       |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `Core`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `Core`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                  |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                 |
 | `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                          |
@@ -522,6 +522,9 @@ Interfaces now return branded types instead of primitives:
 | Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                                           | `8e5150c`  |
 | EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                                | `4fdd447`  |
 | MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.GetID()` (was `MessageID()`, renamed in Session 76) | `c1bc261`  |
+| Type naming overhaul          | `Core`→`ImmutableEvent`/`BasicCommand`/`BasicQuery`, `CatalogEntry`→`HandlerMeta` across all modules | Session 95 |
+| Constructor consistency       | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
+| Command/Query decoupling      | command/ and query/ import go-error-family directly instead of event/ for error constructors | Session 95 |
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                    | `699d247`  |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                         | `b23a781`  |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                 | `e84e3a1`  |
@@ -533,7 +536,7 @@ Interfaces now return branded types instead of primitives:
 | -------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW       | Subscribers block publishers (acceptable for test utility)                                                                  |
 | `query.Handler` returns `any`                            | LOW       | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
-| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.CatalogEntry`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                |
+| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.HandlerMeta`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | LOW       | Every aggregate must implement `LoadEvents` and delegate to `LoadFromHistory`                                               |
 
 ## Session History
@@ -566,3 +569,4 @@ Key milestones:
 | 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed               |
 | 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%       |
 | 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%            |
+| 95      | Naming overhaul: Core→ImmutableEvent/BasicCommand/BasicQuery, CatalogEntry→HandlerMeta, NewCheckpointStore→NewMemoryCheckpointStore, command/query decoupled from event, NewWithDialect constructors for all storage types, Go 1.26.3 aligned, InMemoryRunner deprecated |
