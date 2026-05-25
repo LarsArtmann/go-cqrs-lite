@@ -18,7 +18,7 @@ func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new delete todo command for todo %s: %w", todoID, err)
 	}
-	return &DeleteTodoCommand{Core: *core}, nil
+	return &DeleteTodoCommand{BasicCommand: *core}, nil
 }
 
 type DeleteTodoHandler struct{ CommandHandler }

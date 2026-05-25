@@ -22,7 +22,7 @@ func NewCountTodosQuery() (*CountTodosQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new count todos query: %w", err)
 	}
-	return &CountTodosQuery{Core: core}, nil
+	return &CountTodosQuery{BasicQuery: core}, nil
 }
 
 type CountTodosResult struct {

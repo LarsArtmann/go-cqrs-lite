@@ -20,7 +20,7 @@ func NewGetTodoQuery(todoID domain.TodoID) (*GetTodoQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new get todo query for todo %s: %w", todoID, err)
 	}
-	return &GetTodoQuery{Core: core, TodoID: todoID}, nil
+	return &GetTodoQuery{BasicQuery: core, TodoID: todoID}, nil
 }
 
 type GetTodoResult struct {
