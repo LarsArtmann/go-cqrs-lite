@@ -26,7 +26,9 @@ func NewExporter(outputDir string) *Exporter {
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
 func (e *Exporter) Export(cat *catalog.Catalog) error {
-	for _, svc := range cat.Services {
+	enriched := autoDeriveProducersConsumers(cat)
+
+	for _, svc := range enriched.Services {
 		err := e.writeService(svc)
 		if err != nil {
 			return fmt.Errorf("write service %s: %w", svc.ID, err)
@@ -38,10 +40,45 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 	}
 
-	for _, domain := range cat.Domains {
+	for _, domain := range enriched.Domains {
 		err := e.writeDomain(domain)
 		if err != nil {
 			return fmt.Errorf("write domain %s: %w", domain.ID, err)
+		}
+	}
+
+	for _, ch := range enriched.Channels {
+		err := e.writeChannel(ch)
+		if err != nil {
+			return fmt.Errorf("write channel %s: %w", ch.ID, err)
+		}
+	}
+
+	for _, ds := range enriched.DataStores {
+		err := e.writeDataStore(ds)
+		if err != nil {
+			return fmt.Errorf("write data store %s: %w", ds.ID, err)
+		}
+	}
+
+	for _, f := range enriched.Flows {
+		err := e.writeFlow(f)
+		if err != nil {
+			return fmt.Errorf("write flow %s: %w", f.ID, err)
+		}
+	}
+
+	for _, team := range enriched.Teams {
+		err := e.writeTeam(team)
+		if err != nil {
+			return fmt.Errorf("write team %s: %w", team.ID, err)
+		}
+	}
+
+	for _, user := range enriched.Users {
+		err := e.writeUser(user)
+		if err != nil {
+			return fmt.Errorf("write user %s: %w", user.ID, err)
 		}
 	}
 
@@ -105,7 +142,15 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	md.addObjectIDsListField("receives", receives)
 	md.addObjectIDsListField("commands", commands)
 	md.addObjectIDsListField("queries", queries)
-	md.finish(svc.Name, svc.Summary)
+	writeIDListField(md, "writesTo", svc.WritesTo)
+	writeIDListField(md, "readsFrom", svc.ReadsFrom)
+	writeIDListField(md, "entities", svc.Entities)
+	writeIDListField(md, "flows", svc.Flows)
+	writeBadges(md, svc.Badges)
+	writeRepository(md, svc.Repository)
+	writeSpecifications(md, svc.Specifications)
+	writeAttachments(md, svc.Attachments)
+	md.finishWithGraph(svc.Name, svc.Summary)
 
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }
@@ -180,6 +225,11 @@ func buildMessageFrontmatter(id string, msg catalog.Message) *frontmatterWriter 
 	md.addListField("owners", msg.Owners)
 	writeLabels(md, msg.Labels)
 	writeChangelog(md, msg.Changelog)
+	writeIDListField(md, "producers", msg.Producers)
+	writeIDListField(md, "consumers", msg.Consumers)
+	writeOperation(md, msg.Operation)
+	writeBadges(md, msg.Badges)
+	writeRepository(md, msg.Repository)
 
 	if msg.Schema != nil {
 		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
@@ -245,7 +295,13 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	}
 
 	md.addObjectIDsListField("services", strs)
-	md.finish(domain.Name, domain.Summary)
+	writeMessagePointers(md, "sends", domain.Sends)
+	writeMessagePointers(md, "receives", domain.Receives)
+	writeIDListField(md, "entities", domain.Entities)
+	writeIDListField(md, "flows", domain.Flows)
+	writeBadges(md, domain.Badges)
+	writeAttachments(md, domain.Attachments)
+	md.finishWithGraph(domain.Name, domain.Summary)
 
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }

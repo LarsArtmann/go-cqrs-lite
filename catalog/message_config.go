@@ -24,19 +24,29 @@ type messageBuilder struct {
 	direction Direction
 	owners    []string
 	labels    map[string]string
+	producers []string
+	consumers []string
+	op        *Operation
+	badges    []Badge
+	repo      *Repository
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 	msg := Message{ //nolint:exhaustruct
-		Kind:      m.kind,
-		ID:        m.id,
-		Name:      m.name,
-		Version:   m.version,
-		Summary:   m.summary,
-		Schema:    m.schema,
-		Direction: m.direction,
-		Owners:    m.owners,
-		Labels:    m.labels,
+		Kind:       m.kind,
+		ID:         m.id,
+		Name:       m.name,
+		Version:    m.version,
+		Summary:    m.summary,
+		Schema:     m.schema,
+		Direction:  m.direction,
+		Owners:     m.owners,
+		Labels:     m.labels,
+		Producers:  m.producers,
+		Consumers:  m.consumers,
+		Operation:  m.op,
+		Badges:     m.badges,
+		Repository: m.repo,
 	}
 
 	switch m.kind {
@@ -84,6 +94,41 @@ func Owners(owners ...string) MessageOption {
 func Labels(labels map[string]string) MessageOption {
 	return func(m *messageBuilder) {
 		m.labels = labels
+	}
+}
+
+// Producers sets the list of service IDs that produce this message.
+func Producers(ids ...string) MessageOption {
+	return func(m *messageBuilder) {
+		m.producers = ids
+	}
+}
+
+// Consumers sets the list of service IDs that consume this message.
+func Consumers(ids ...string) MessageOption {
+	return func(m *messageBuilder) {
+		m.consumers = ids
+	}
+}
+
+// MsgOperation maps this message to an HTTP endpoint.
+func MsgOperation(method, path string, statusCodes ...string) MessageOption {
+	return func(m *messageBuilder) {
+		m.op = &Operation{Method: method, Path: path, StatusCodes: statusCodes}
+	}
+}
+
+// MsgBadges adds visual badges to this message.
+func MsgBadges(badges ...Badge) MessageOption {
+	return func(m *messageBuilder) {
+		m.badges = badges
+	}
+}
+
+// MsgRepository attaches code repository metadata to this message.
+func MsgRepository(language, url string) MessageOption {
+	return func(m *messageBuilder) {
+		m.repo = &Repository{Language: language, URL: url}
 	}
 }
 

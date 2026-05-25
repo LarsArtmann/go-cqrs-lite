@@ -26,10 +26,32 @@ func generateEventCatalog(outputDir string) error {
 	builder.AddDomain("identity", "Identity", "1.0.0",
 		"User identity and account management", "user-svc")
 
+	builder.AddDataStore(catalog.DataStore{
+		ID: "user-db", Name: "Users Database", Version: "1.0.0",
+		ContainerType: "database", Technology: "postgres@16",
+		Summary:       "Primary user data store",
+	})
+
+	builder.AddChannel(catalog.Channel{
+		ID: "user-events", Name: "User Events", Version: "1.0.0",
+		Summary: "All user-related domain events",
+		Protocols: []string{"kafka"},
+	})
+
+	builder.AddTeam(catalog.Team{
+		ID: "identity-team", Name: "Identity Team",
+		Summary: "Team responsible for user identity",
+		Members: []string{"alice"},
+	})
+
+	builder.AddUser(catalog.User{
+		ID: "alice", Name: "Alice Smith", Role: "Senior Engineer",
+	})
+
 	cat := builder.Build()
 
-	fmt.Printf("  [catalog] %d services, %d domains\n",
-		len(cat.Services), len(cat.Domains))
+	fmt.Printf("  [catalog] %d services, %d domains, %d channels, %d data stores\n",
+		len(cat.Services), len(cat.Domains), len(cat.Channels), len(cat.DataStores))
 
 	for _, svc := range cat.Services {
 		fmt.Printf("  [catalog] Service %q: %d events\n", svc.Name, len(svc.Events))

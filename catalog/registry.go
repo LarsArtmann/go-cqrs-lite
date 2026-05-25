@@ -13,14 +13,19 @@ import (
 var ErrDomainNotFound = errorfamily.NewRejection("catalog.domain_not_found", "domain not found")
 
 // Registry is a thread-safe catalog builder that accumulates services,
-// domains, and channels before producing an immutable Catalog.
+// domains, channels, data stores, flows, teams, and users before
+// producing an immutable Catalog.
 type Registry struct {
-	mu       sync.RWMutex
-	title    string
-	version  string
-	services map[ServiceID]*Service
-	domains  map[DomainID]*Domain
-	channels map[ChannelID]*Channel
+	mu        sync.RWMutex
+	title     string
+	version   string
+	services  map[ServiceID]*Service
+	domains   map[DomainID]*Domain
+	channels  map[ChannelID]*Channel
+	stores    map[string]*DataStore
+	flows     map[string]*Flow
+	teams     map[string]*Team
+	users     map[string]*User
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
@@ -32,6 +37,10 @@ func NewRegistry(title, version string) *Registry {
 		services: make(map[ServiceID]*Service),
 		domains:  make(map[DomainID]*Domain),
 		channels: make(map[ChannelID]*Channel),
+		stores:   make(map[string]*DataStore),
+		flows:    make(map[string]*Flow),
+		teams:    make(map[string]*Team),
+		users:    make(map[string]*User),
 	}
 }
 
@@ -192,6 +201,62 @@ func copyChannelPtr(ch Channel) *Channel {
 	return &cp
 }
 
+// AddDataStore registers a data store in the catalog.
+func (r *Registry) AddDataStore(ds DataStore) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.stores[ds.ID] = copyDataStorePtr(ds)
+}
+
+func copyDataStorePtr(ds DataStore) *DataStore {
+	cp := copyDataStore(&ds)
+
+	return &cp
+}
+
+// AddFlow registers a flow in the catalog.
+func (r *Registry) AddFlow(f Flow) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.flows[f.ID] = copyFlowPtr(f)
+}
+
+func copyFlowPtr(f Flow) *Flow {
+	cp := copyFlow(&f)
+
+	return &cp
+}
+
+// AddTeam registers a team in the catalog.
+func (r *Registry) AddTeam(team Team) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.teams[team.ID] = copyTeamPtr(team)
+}
+
+func copyTeamPtr(t Team) *Team {
+	cp := copyTeam(&t)
+
+	return &cp
+}
+
+// AddUser registers a user in the catalog.
+func (r *Registry) AddUser(user User) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.users[user.ID] = copyUserPtr(user)
+}
+
+func copyUserPtr(u User) *User {
+	cp := copyUser(&u)
+
+	return &cp
+}
+
 // Build returns an immutable Catalog with all registered entries.
 func (r *Registry) Build() *Catalog {
 	r.mu.RLock()
@@ -218,11 +283,43 @@ func (r *Registry) Build() *Catalog {
 		channels = append(channels, copyChannel(r.channels[key]))
 	}
 
+	storeKeys := slices.Sorted(maps.Keys(r.stores))
+
+	dataStores := make([]DataStore, 0, len(r.stores))
+	for _, key := range storeKeys {
+		dataStores = append(dataStores, copyDataStore(r.stores[key]))
+	}
+
+	flowKeys := slices.Sorted(maps.Keys(r.flows))
+
+	flows := make([]Flow, 0, len(r.flows))
+	for _, key := range flowKeys {
+		flows = append(flows, copyFlow(r.flows[key]))
+	}
+
+	teamKeys := slices.Sorted(maps.Keys(r.teams))
+
+	teams := make([]Team, 0, len(r.teams))
+	for _, key := range teamKeys {
+		teams = append(teams, copyTeam(r.teams[key]))
+	}
+
+	userKeys := slices.Sorted(maps.Keys(r.users))
+
+	users := make([]User, 0, len(r.users))
+	for _, key := range userKeys {
+		users = append(users, copyUser(r.users[key]))
+	}
+
 	return &Catalog{
-		Title:    r.title,
-		Version:  r.version,
-		Services: services,
-		Domains:  domains,
-		Channels: channels,
+		Title:      r.title,
+		Version:    r.version,
+		Services:   services,
+		Domains:    domains,
+		Channels:   channels,
+		DataStores: dataStores,
+		Flows:      flows,
+		Teams:      teams,
+		Users:      users,
 	}
 }

@@ -66,6 +66,31 @@ func (b *Builder) Registry() *Registry {
 	return b.registry
 }
 
+// AddChannel registers a messaging channel in the catalog.
+func (b *Builder) AddChannel(ch Channel) {
+	b.registry.AddChannel(ch)
+}
+
+// AddDataStore registers a data store in the catalog.
+func (b *Builder) AddDataStore(ds DataStore) {
+	b.registry.AddDataStore(ds)
+}
+
+// AddFlow registers a message flow in the catalog.
+func (b *Builder) AddFlow(f Flow) {
+	b.registry.AddFlow(f)
+}
+
+// AddTeam registers a team in the catalog.
+func (b *Builder) AddTeam(team Team) {
+	b.registry.AddTeam(team)
+}
+
+// AddUser registers a user in the catalog.
+func (b *Builder) AddUser(user User) {
+	b.registry.AddUser(user)
+}
+
 // Build returns the immutable Catalog with all registered entries.
 func (b *Builder) Build() *Catalog {
 	return b.registry.Build()
