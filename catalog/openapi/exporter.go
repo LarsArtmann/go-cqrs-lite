@@ -82,15 +82,15 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 		})
 
 		for _, cmd := range svc.Commands {
-			e.addCommand(doc, string(svc.ID), tagName, cmd)
+			e.addCommand(doc, svc.ID, tagName, cmd)
 		}
 
 		for _, qry := range svc.Queries {
-			e.addQuery(doc, string(svc.ID), tagName, qry)
+			e.addQuery(doc, svc.ID, tagName, qry)
 		}
 
 		for _, evt := range svc.Events {
-			e.addEvent(doc, string(svc.ID), tagName, evt)
+			e.addEvent(doc, svc.ID, tagName, evt)
 		}
 	}
 
@@ -114,7 +114,7 @@ func responseNoContent(desc string) *Response {
 	return &Response{Description: desc, Content: nil}
 }
 
-func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.Message) {
+func (e *Exporter) addCommand(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
 	path := fmt.Sprintf("%s/%s/%s", e.basePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
@@ -141,7 +141,7 @@ func (e *Exporter) addCommand(doc *Document, svcID, tagName string, msg catalog.
 	}
 }
 
-func (e *Exporter) addQuery(doc *Document, svcID, tagName string, msg catalog.Message) {
+func (e *Exporter) addQuery(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
 	path := fmt.Sprintf("%s/%s/%s", e.basePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
@@ -186,7 +186,7 @@ func extractIDParameter(path string, schema *catalog.Schema) (string, []Paramete
 	return path, nil
 }
 
-func (e *Exporter) addEvent(doc *Document, svcID, tagName string, msg catalog.Message) {
+func (e *Exporter) addEvent(doc *Document, svcID catalog.ServiceID, tagName string, msg catalog.Message) {
 	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, svcID, toKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 

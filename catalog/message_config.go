@@ -24,8 +24,8 @@ type messageBuilder struct {
 	direction Direction
 	owners    []string
 	labels    map[string]string
-	producers []string
-	consumers []string
+	producers []ServiceID
+	consumers []ServiceID
 	op        *Operation
 	badges    []Badge
 	repo      *Repository
@@ -98,14 +98,14 @@ func Labels(labels map[string]string) MessageOption {
 }
 
 // Producers sets the list of service IDs that produce this message.
-func Producers(ids ...string) MessageOption {
+func Producers(ids ...ServiceID) MessageOption {
 	return func(m *messageBuilder) {
 		m.producers = ids
 	}
 }
 
 // Consumers sets the list of service IDs that consume this message.
-func Consumers(ids ...string) MessageOption {
+func Consumers(ids ...ServiceID) MessageOption {
 	return func(m *messageBuilder) {
 		m.consumers = ids
 	}

@@ -5,29 +5,27 @@ import "github.com/larsartmann/go-cqrs-lite/catalog"
 // autoDeriveProducersConsumers returns a copy of the catalog with
 // producer/consumer relationships auto-derived from service sends/receives.
 func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
-	producerMap := map[string][]string{}
-	consumerMap := map[string][]string{}
+	producerMap := map[string][]catalog.ServiceID{}
+	consumerMap := map[string][]catalog.ServiceID{}
 
 	for _, svc := range cat.Services {
-		svcID := string(svc.ID)
-
 		for _, evt := range svc.Events {
 			msgID := string(catalog.GetID(evt))
 			if evt.IsSend() {
-				producerMap[msgID] = append(producerMap[msgID], svcID)
+				producerMap[msgID] = append(producerMap[msgID], svc.ID)
 			} else {
-				consumerMap[msgID] = append(consumerMap[msgID], svcID)
+				consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
 			}
 		}
 
 		for _, cmd := range svc.Commands {
 			msgID := string(catalog.GetID(cmd))
-			consumerMap[msgID] = append(consumerMap[msgID], svcID)
+			consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
 		}
 
 		for _, q := range svc.Queries {
 			msgID := string(catalog.GetID(q))
-			consumerMap[msgID] = append(consumerMap[msgID], svcID)
+			consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
 		}
 	}
 

@@ -83,15 +83,15 @@ func (e *Exporter) addMessage(
 	componentKey := string(msg.Kind) + "." + string(msgID)
 	ref := "#/components/messages/" + componentKey
 
-	addChannel(doc, string(svcID), msg, kind, channelKey, ref)
-	addOperation(doc, string(svcID), msg, kind, cfg, channelKey, ref, string(msgID))
+	addChannel(doc, svcID, msg, kind, channelKey, ref)
+	addOperation(doc, svcID, msg, kind, cfg, channelKey, ref, string(msgID))
 
 	e.addMessageSchema(doc, msg)
 }
 
 func addChannel(
 	doc *Document,
-	svcID string,
+	svcID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	channelKey, ref string,
@@ -106,7 +106,7 @@ func addChannel(
 
 func addOperation(
 	doc *Document,
-	svcID string,
+	svcID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
 	cfg *messageConfig,
@@ -161,8 +161,8 @@ func kindToTagName(kind catalog.MessageKind) string {
 	}
 }
 
-func buildTags(kind messageKind, svcID string, msg catalog.Message) []Tag {
-	tags := []Tag{{Name: string(kind)}, {Name: svcID}}
+func buildTags(kind messageKind, svcID catalog.ServiceID, msg catalog.Message) []Tag {
+	tags := []Tag{{Name: string(kind)}, {Name: string(svcID)}}
 
 	if msg.Deprecated {
 		tags = append(tags, Tag{Name: "deprecated"})

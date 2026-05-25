@@ -91,7 +91,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 }
 
 func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
-	svcID := string(svc.ID)
+	svcID := svc.ID
 
 	for _, cmd := range svc.Commands {
 		err := e.writeMessage(svcID, "commands", cmd)
@@ -182,9 +182,9 @@ func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []str
 	return sends, receives, commands, queries
 }
 
-func (e *Exporter) writeMessage(svcID, kind string, msg catalog.Message) error {
+func (e *Exporter) writeMessage(svcID catalog.ServiceID, kind string, msg catalog.Message) error {
 	id := string(catalog.GetID(msg))
-	dir := filepath.Join(e.outputDir, "services", svcID, kind, id)
+	dir := filepath.Join(e.outputDir, "services", string(svcID), kind, id)
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {

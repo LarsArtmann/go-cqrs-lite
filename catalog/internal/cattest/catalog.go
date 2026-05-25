@@ -33,7 +33,7 @@ func BuildTestCatalog() *catalog.Catalog {
 	reg := catalog.NewRegistry("E-Commerce", testVersion)
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: testVersion, Summary: "Manages orders",
-		WritesTo: []string{"orders-db"},
+		WritesTo: []catalog.DataStoreID{"orders-db"},
 	})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order", Version: testVersion,

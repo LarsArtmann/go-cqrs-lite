@@ -57,7 +57,7 @@ func TestAutoDerive_DoesNotOverrideExistingProducers(t *testing.T) {
 	reg.AddEvent("svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
 		Version: "1.0.0", Direction: catalog.Sends,
-		Producers: []string{"explicit-producer"},
+		Producers: []catalog.ServiceID{"explicit-producer"},
 	})
 
 	cat := reg.Build()

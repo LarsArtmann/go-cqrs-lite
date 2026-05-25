@@ -18,14 +18,14 @@ func ServiceRepository(language, url string) ServiceOption {
 }
 
 // ServiceWritesTo declares which data stores this service writes to.
-func ServiceWritesTo(storeIDs ...string) ServiceOption {
+func ServiceWritesTo(storeIDs ...DataStoreID) ServiceOption {
 	return func(s *Service) {
 		s.WritesTo = storeIDs
 	}
 }
 
 // ServiceReadsFrom declares which data stores this service reads from.
-func ServiceReadsFrom(storeIDs ...string) ServiceOption {
+func ServiceReadsFrom(storeIDs ...DataStoreID) ServiceOption {
 	return func(s *Service) {
 		s.ReadsFrom = storeIDs
 	}

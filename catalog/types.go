@@ -109,8 +109,8 @@ type Message struct {
 	Labels     map[string]string `json:"labels,omitempty"`
 	Deprecated bool              `json:"deprecated,omitempty"`
 	Changelog  []Change          `json:"changelog,omitempty"`
-	Producers  []string          `json:"producers,omitempty"`
-	Consumers  []string          `json:"consumers,omitempty"`
+	Producers  []ServiceID       `json:"producers,omitempty"`
+	Consumers  []ServiceID       `json:"consumers,omitempty"`
 	Operation  *Operation        `json:"operation,omitempty"`
 	Badges     []Badge           `json:"badges,omitempty"`
 	Repository *Repository       `json:"repository,omitempty"`
@@ -151,10 +151,10 @@ type Service struct {
 	Commands       []Message       `json:"commands,omitempty"`
 	Events         []Message       `json:"events,omitempty"`
 	Queries        []Message       `json:"queries,omitempty"`
-	WritesTo       []string        `json:"writesTo,omitempty"`
-	ReadsFrom      []string        `json:"readsFrom,omitempty"`
+	WritesTo       []DataStoreID    `json:"writesTo,omitempty"`
+	ReadsFrom      []DataStoreID    `json:"readsFrom,omitempty"`
 	Entities       []string        `json:"entities,omitempty"`
-	Flows          []string        `json:"flows,omitempty"`
+	Flows          []FlowID        `json:"flows,omitempty"`
 	Repository     *Repository     `json:"repository,omitempty"`
 	Badges         []Badge         `json:"badges,omitempty"`
 	Specifications []Specification `json:"specifications,omitempty"`
@@ -172,7 +172,7 @@ type Domain struct {
 	Sends       []Ref `json:"sends,omitempty"`
 	Receives    []Ref `json:"receives,omitempty"`
 	Entities    []string         `json:"entities,omitempty"`
-	Flows       []string         `json:"flows,omitempty"`
+	Flows       []FlowID         `json:"flows,omitempty"`
 	Badges      []Badge          `json:"badges,omitempty"`
 	Attachments []Attachment     `json:"attachments,omitempty"`
 }

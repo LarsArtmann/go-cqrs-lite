@@ -284,7 +284,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	)
 }
 
-func writeIDListField(md *frontmatterWriter, key string, ids []string) {
+func writeIDListField[S ~string](md *frontmatterWriter, key string, ids []S) {
 	if len(ids) == 0 {
 		return
 	}

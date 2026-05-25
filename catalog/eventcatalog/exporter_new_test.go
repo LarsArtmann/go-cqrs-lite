@@ -352,7 +352,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
 		Summary: "Manages orders",
-		WritesTo: []string{"orders-db"},
+		WritesTo: []catalog.DataStoreID{"orders-db"},
 		Badges: []catalog.Badge{{Content: "Production", BackgroundColor: "green"}},
 	})
 	reg.AddCommand("order-svc", catalog.Message{
