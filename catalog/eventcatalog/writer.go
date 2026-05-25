@@ -184,7 +184,7 @@ func (f *frontmatterWriter) addListField(key string, values []string) {
 	}
 }
 
-func (f *frontmatterWriter) addObjectIDsListField(key string, ids []string) {
+func addObjectIDsListField[S ~string](f *frontmatterWriter, key string, ids []S) {
 	if len(ids) == 0 {
 		return
 	}

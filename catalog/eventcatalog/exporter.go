@@ -91,24 +91,24 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 }
 
 func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
-	svcID := svc.ID
+	serviceID := svc.ID
 
 	for _, cmd := range svc.Commands {
-		err := e.writeMessage(svcID, "commands", cmd)
+		err := e.writeMessage(serviceID, "commands", cmd)
 		if err != nil {
 			return fmt.Errorf("write command %s: %w", cmd.ID, err)
 		}
 	}
 
 	for _, evt := range svc.Events {
-		err := e.writeMessage(svcID, "events", evt)
+		err := e.writeMessage(serviceID, "events", evt)
 		if err != nil {
 			return fmt.Errorf("write event %s: %w", evt.ID, err)
 		}
 	}
 
 	for _, q := range svc.Queries {
-		err := e.writeMessage(svcID, "queries", q)
+		err := e.writeMessage(serviceID, "queries", q)
 		if err != nil {
 			return fmt.Errorf("write query %s: %w", q.ID, err)
 		}
@@ -138,10 +138,10 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 
 	sends, receives, commands, queries := collectMessageIDs(svc)
 
-	md.addObjectIDsListField("sends", sends)
-	md.addObjectIDsListField("receives", receives)
-	md.addObjectIDsListField("commands", commands)
-	md.addObjectIDsListField("queries", queries)
+	addObjectIDsListField(md, "sends", sends)
+	addObjectIDsListField(md, "receives", receives)
+	addObjectIDsListField(md, "commands", commands)
+	addObjectIDsListField(md, "queries", queries)
 	writeIDListField(md, "writesTo", svc.WritesTo)
 	writeIDListField(md, "readsFrom", svc.ReadsFrom)
 	writeIDListField(md, "entities", svc.Entities)
@@ -155,53 +155,53 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }
 
-func collectMessageIDs(svc catalog.Service) ([]string, []string, []string, []string) {
-	sends := make([]string, 0, len(svc.Events))
-	receives := make([]string, 0, len(svc.Events))
-	commands := make([]string, 0, len(svc.Commands))
-	queries := make([]string, 0, len(svc.Queries))
+func collectMessageIDs(svc catalog.Service) (sends, receives, commands, queries []catalog.MessageID) {
+	sends = make([]catalog.MessageID, 0, len(svc.Events))
+	receives = make([]catalog.MessageID, 0, len(svc.Events))
+	commands = make([]catalog.MessageID, 0, len(svc.Commands))
+	queries = make([]catalog.MessageID, 0, len(svc.Queries))
 
 	for _, msg := range svc.Events {
-		id := string(catalog.GetID(msg))
+		messageID := catalog.GetID(msg)
 
 		if msg.IsSend() {
-			sends = append(sends, id)
+			sends = append(sends, messageID)
 		} else {
-			receives = append(receives, id)
+			receives = append(receives, messageID)
 		}
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, string(catalog.GetID(cmd)))
+		commands = append(commands, catalog.GetID(cmd))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, string(catalog.GetID(q)))
+		queries = append(queries, catalog.GetID(q))
 	}
 
 	return sends, receives, commands, queries
 }
 
-func (e *Exporter) writeMessage(svcID catalog.ServiceID, kind string, msg catalog.Message) error {
+func (e *Exporter) writeMessage(serviceID catalog.ServiceID, kind string, msg catalog.Message) error {
 	messageID := catalog.GetID(msg)
-	dir := filepath.Join(e.outputDir, "services", string(svcID), kind, string(messageID))
+	dir := filepath.Join(e.outputDir, "services", string(serviceID), kind, string(messageID))
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create message dir for %s/%s: %w", svcID, kind, err)
+		return fmt.Errorf("create message dir for %s/%s: %w", serviceID, kind, err)
 	}
 
 	md := buildMessageFrontmatter(messageID, msg)
 
 	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 	if err != nil {
-		return fmt.Errorf("write message file for %s/%s: %w", svcID, kind, err)
+		return fmt.Errorf("write message file for %s/%s: %w", serviceID, kind, err)
 	}
 
 	if msg.Schema != nil {
 		err = e.writeSchema(dir, msg.Schema)
 		if err != nil {
-			return fmt.Errorf("write schema for %s/%s: %w", svcID, kind, err)
+			return fmt.Errorf("write schema for %s/%s: %w", serviceID, kind, err)
 		}
 	}
 
@@ -289,12 +289,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 
 	md.addListField("owners", domain.Owners)
 
-	strs := make([]string, len(domain.Services))
-	for i, s := range domain.Services {
-		strs[i] = string(s)
-	}
-
-	md.addObjectIDsListField("services", strs)
+	addObjectIDsListField(md, "services", domain.Services)
 	writeMessagePointers(md, "sends", domain.Sends)
 	writeMessagePointers(md, "receives", domain.Receives)
 	writeIDListField(md, "entities", domain.Entities)

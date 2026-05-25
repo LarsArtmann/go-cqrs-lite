@@ -12,8 +12,8 @@ import (
 // MemoryOutboxStore is an in-memory implementation of event.Outbox for testing.
 type MemoryOutboxStore struct {
 	mu      sync.RWMutex
-	entries []outboxEntry
-	nextID  int
+	entries      []outboxEntry
+	entryCounter int
 }
 
 var _ event.Outbox = (*MemoryOutboxStore)(nil)
@@ -21,9 +21,9 @@ var _ event.Outbox = (*MemoryOutboxStore)(nil)
 // NewMemoryOutboxStore creates a new in-memory outbox store.
 func NewMemoryOutboxStore() *MemoryOutboxStore {
 	return &MemoryOutboxStore{
-		mu:      sync.RWMutex{},
-		entries: make([]outboxEntry, 0),
-		nextID:  0,
+		mu:           sync.RWMutex{},
+		entries:      make([]outboxEntry, 0),
+		entryCounter: 0,
 	}
 }
 
@@ -38,10 +38,10 @@ func (o *MemoryOutboxStore) Append(_ context.Context, events []event.Event) erro
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	o.nextID++
+	o.entryCounter++
 
 	entry := outboxEntry{
-		id:        event.OutboxID(fmt.Sprintf("outbox-%d", o.nextID)),
+		id:        event.OutboxID(fmt.Sprintf("outbox-%d", o.entryCounter)),
 		events:    append([]event.Event(nil), events...),
 		createdAt: time.Now(),
 	}

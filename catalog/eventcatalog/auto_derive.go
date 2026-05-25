@@ -5,27 +5,27 @@ import "github.com/larsartmann/go-cqrs-lite/catalog"
 // autoDeriveProducersConsumers returns a copy of the catalog with
 // producer/consumer relationships auto-derived from service sends/receives.
 func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
-	producerMap := map[string][]catalog.ServiceID{}
-	consumerMap := map[string][]catalog.ServiceID{}
+	producerMap := map[catalog.MessageID][]catalog.ServiceID{}
+	consumerMap := map[catalog.MessageID][]catalog.ServiceID{}
 
 	for _, svc := range cat.Services {
 		for _, evt := range svc.Events {
-			msgID := string(catalog.GetID(evt))
+			messageID := catalog.GetID(evt)
 			if evt.IsSend() {
-				producerMap[msgID] = append(producerMap[msgID], svc.ID)
+				producerMap[messageID] = append(producerMap[messageID], svc.ID)
 			} else {
-				consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
+				consumerMap[messageID] = append(consumerMap[messageID], svc.ID)
 			}
 		}
 
 		for _, cmd := range svc.Commands {
-			msgID := string(catalog.GetID(cmd))
-			consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
+			messageID := catalog.GetID(cmd)
+			consumerMap[messageID] = append(consumerMap[messageID], svc.ID)
 		}
 
 		for _, q := range svc.Queries {
-			msgID := string(catalog.GetID(q))
-			consumerMap[msgID] = append(consumerMap[msgID], svc.ID)
+			messageID := catalog.GetID(q)
+			consumerMap[messageID] = append(consumerMap[messageID], svc.ID)
 		}
 	}
 
@@ -40,12 +40,12 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, evt := range svc.Events {
 			evtCopy := evt
-			msgID := string(catalog.GetID(evt))
-			if p, ok := producerMap[msgID]; ok && len(evtCopy.Producers) == 0 {
+			messageID := catalog.GetID(evt)
+			if p, ok := producerMap[messageID]; ok && len(evtCopy.Producers) == 0 {
 				evtCopy.Producers = p
 			}
 
-			if c, ok := consumerMap[msgID]; ok && len(evtCopy.Consumers) == 0 {
+			if c, ok := consumerMap[messageID]; ok && len(evtCopy.Consumers) == 0 {
 				evtCopy.Consumers = c
 			}
 
@@ -54,8 +54,8 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, cmd := range svc.Commands {
 			cmdCopy := cmd
-			msgID := string(catalog.GetID(cmd))
-			if c, ok := consumerMap[msgID]; ok && len(cmdCopy.Consumers) == 0 {
+			messageID := catalog.GetID(cmd)
+			if c, ok := consumerMap[messageID]; ok && len(cmdCopy.Consumers) == 0 {
 				cmdCopy.Consumers = c
 			}
 
@@ -64,8 +64,8 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, q := range svc.Queries {
 			qCopy := q
-			msgID := string(catalog.GetID(q))
-			if c, ok := consumerMap[msgID]; ok && len(qCopy.Consumers) == 0 {
+			messageID := catalog.GetID(q)
+			if c, ok := consumerMap[messageID]; ok && len(qCopy.Consumers) == 0 {
 				qCopy.Consumers = c
 			}
 
