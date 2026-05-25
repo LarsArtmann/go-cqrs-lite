@@ -308,7 +308,7 @@ func writeAttachments(md *frontmatterWriter, attachments []catalog.Attachment) {
 	}
 }
 
-func writeMessagePointers(md *frontmatterWriter, key string, ptrs []catalog.MessagePointer) {
+func writeMessagePointers(md *frontmatterWriter, key string, ptrs []catalog.Ref) {
 	if len(ptrs) == 0 {
 		return
 	}

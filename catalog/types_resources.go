@@ -42,10 +42,7 @@ type FlowStep struct {
 }
 
 // FlowStepRef references a catalog resource by ID and optional version.
-type FlowStepRef struct {
-	ID      string `json:"id"`
-	Version string `json:"version,omitempty"`
-}
+type FlowStepRef = Ref
 
 // FlowActor describes a person or external system in a flow step.
 type FlowActor struct {

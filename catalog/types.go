@@ -145,8 +145,8 @@ type Domain struct {
 	Summary     string           `json:"summary,omitempty"`
 	Owners      []string         `json:"owners,omitempty"`
 	Services    []ServiceID      `json:"services,omitempty"`
-	Sends       []MessagePointer `json:"sends,omitempty"`
-	Receives    []MessagePointer `json:"receives,omitempty"`
+	Sends       []Ref `json:"sends,omitempty"`
+	Receives    []Ref `json:"receives,omitempty"`
 	Entities    []string         `json:"entities,omitempty"`
 	Flows       []string         `json:"flows,omitempty"`
 	Badges      []Badge          `json:"badges,omitempty"`
@@ -239,8 +239,8 @@ type Attachment struct {
 	Icon        string `json:"icon,omitempty"`
 }
 
-// MessagePointer references a message by ID and optional version.
-type MessagePointer struct {
+// Ref references a catalog resource by ID and optional version.
+type Ref struct {
 	ID      string `json:"id"`
 	Version string `json:"version,omitempty"`
 }
