@@ -11,7 +11,7 @@ import (
 func TestCommandLogging_Success(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	mw := CommandLogging(logger)
 
 	handler := mw(testhelpers.NoopCommandHandler())
@@ -23,13 +23,15 @@ func TestCommandLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
+	if got := h.InfoCount(); got != 2 {
+		t.Errorf("info logs: got %d, want 2", got)
+	}
 }
 
 func TestCommandLogging_Error(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	cmdMw := CommandLogging(logger)
 
 	handler := cmdMw(testhelpers.FailingCommandHandler("boom"))
@@ -41,13 +43,15 @@ func TestCommandLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
+	if got := h.ErrorCount(); got != 1 {
+		t.Errorf("error logs: got %d, want 1", got)
+	}
 }
 
 func TestQueryLogging_Success(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	mw := QueryLogging(logger)
 
 	handler := mw(testhelpers.NoopQueryHandler())
@@ -57,13 +61,15 @@ func TestQueryLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
+	if got := h.InfoCount(); got != 2 {
+		t.Errorf("info logs: got %d, want 2", got)
+	}
 }
 
 func TestQueryLogging_Error(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	mw := QueryLogging(logger)
 
 	handler := mw(testhelpers.FailingQueryHandler("boom"))
@@ -73,13 +79,15 @@ func TestQueryLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
+	if got := h.ErrorCount(); got != 1 {
+		t.Errorf("error logs: got %d, want 1", got)
+	}
 }
 
 func TestEventLogging_Success(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	mw := EventLogging(logger)
 
 	handler := mw(testhelpers.NoopEventHandler())
@@ -94,13 +102,15 @@ func TestEventLogging_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "info logs", logger.Logs, 2)
+	if got := h.InfoCount(); got != 2 {
+		t.Errorf("info logs: got %d, want 2", got)
+	}
 }
 
 func TestEventLogging_Error(t *testing.T) {
 	t.Parallel()
 
-	logger := &testLogger{}
+	logger, h := newTestLogger()
 	mw := EventLogging(logger)
 
 	handler := mw(testhelpers.FailingEventHandler("boom"))
@@ -115,5 +125,7 @@ func TestEventLogging_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLen(t, "error logs", logger.Errors, 1)
+	if got := h.ErrorCount(); got != 1 {
+		t.Errorf("error logs: got %d, want 1", got)
+	}
 }

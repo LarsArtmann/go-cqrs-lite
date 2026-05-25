@@ -10,12 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
-// Logger provides structured logging for middleware.
-type Logger interface {
-	Info(msg string, keyvals ...any)
-	Error(msg string, keyvals ...any)
-}
-
 // MetricsRecorder records handler execution metrics.
 type MetricsRecorder interface {
 	Observe(name string, duration time.Duration, labels ...string)

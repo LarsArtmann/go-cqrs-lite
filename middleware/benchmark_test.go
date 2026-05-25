@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -20,7 +22,8 @@ func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
 }
 
 func BenchmarkCommandLogging(b *testing.B) {
-	benchCommandMiddleware(b, CommandLogging(&testLogger{}))
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	benchCommandMiddleware(b, CommandLogging(logger))
 }
 
 func BenchmarkCommandRecovery(b *testing.B) {

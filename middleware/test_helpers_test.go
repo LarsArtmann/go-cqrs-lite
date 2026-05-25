@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+	"log/slog"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -19,22 +21,57 @@ type testQuery struct{}
 
 func (q *testQuery) Type() query.Type { return "test.query" }
 
-type testLogger struct {
+type countingHandler struct {
 	mu     sync.Mutex
-	Logs   []string
-	Errors []string
+	infos  int
+	errors int
 }
 
-func (l *testLogger) Info(msg string, _ ...any) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	l.Logs = append(l.Logs, msg)
+func newCountingHandler() *countingHandler {
+	return &countingHandler{}
 }
 
-func (l *testLogger) Error(msg string, _ ...any) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+func (h *countingHandler) Enabled(_ context.Context, level slog.Level) bool {
+	return true
+}
 
-	l.Errors = append(l.Errors, msg)
+func (h *countingHandler) Handle(_ context.Context, r slog.Record) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if r.Level >= slog.LevelError {
+		h.errors++
+	} else {
+		h.infos++
+	}
+
+	return nil
+}
+
+func (h *countingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return h
+}
+
+func (h *countingHandler) WithGroup(name string) slog.Handler {
+	return h
+}
+
+func (h *countingHandler) InfoCount() int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return h.infos
+}
+
+func (h *countingHandler) ErrorCount() int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return h.errors
+}
+
+func newTestLogger() (*slog.Logger, *countingHandler) {
+	h := newCountingHandler()
+
+	return slog.New(h), h
 }

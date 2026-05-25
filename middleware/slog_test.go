@@ -26,7 +26,7 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 		&slog.HandlerOptions{Level: slog.LevelInfo},
 	))
 
-	mw := middleware.CommandLogging(middleware.SlogAdapter(logger))
+	mw := middleware.CommandLogging(logger)
 	handler := mw(testhelpers.NoopCommandHandler())
 
 	core, err := command.New("test.cmd", id.NewAggregateID())
@@ -65,7 +65,7 @@ func TestSlogAdapter_CommandLogging_Error(t *testing.T) {
 		&slog.HandlerOptions{Level: slog.LevelInfo},
 	))
 
-	mw := middleware.CommandLogging(middleware.SlogAdapter(logger))
+	mw := middleware.CommandLogging(logger)
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		return context.Canceled
 	})

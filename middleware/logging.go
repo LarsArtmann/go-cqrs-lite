@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -16,7 +17,7 @@ type logContext struct {
 	aggregateID string
 }
 
-func logWithContext(logger Logger, lc logContext, fn func() error) error {
+func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 	start := time.Now()
 
 	logger.Info(
@@ -51,7 +52,7 @@ func logWithContext(logger Logger, lc logContext, fn func() error) error {
 }
 
 // CommandLogging returns a command middleware that logs dispatch details with timing.
-func CommandLogging(logger Logger) command.Middleware {
+func CommandLogging(logger *slog.Logger) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			lc := logContext{
@@ -68,7 +69,7 @@ func CommandLogging(logger Logger) command.Middleware {
 }
 
 // EventLogging returns an event middleware that logs handler details with timing.
-func EventLogging(logger Logger) event.Middleware {
+func EventLogging(logger *slog.Logger) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			lc := logContext{
@@ -85,7 +86,7 @@ func EventLogging(logger Logger) event.Middleware {
 }
 
 // QueryLogging returns a query middleware that logs dispatch details with timing.
-func QueryLogging(logger Logger) query.Middleware {
+func QueryLogging(logger *slog.Logger) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			lc := logContext{ //nolint:exhaustruct // queries have no aggregateID

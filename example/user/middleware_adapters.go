@@ -9,10 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/middleware"
 )
 
-func newLogger() middleware.Logger {
-	return middleware.SlogAdapter(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+func newLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
-	})))
+	}))
 }
 
 type printMetricsRecorder struct{}
