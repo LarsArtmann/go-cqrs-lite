@@ -66,6 +66,12 @@ func (b *Builder) AddDomain(
 	})
 }
 
+// ConfigureDomain applies domain-level options (badges, sends, receives, etc.)
+// to an already-registered domain.
+func (b *Builder) ConfigureDomain(domainID string, opts ...DomainOption) {
+	b.registry.SetDomainOptions(DomainID(domainID), opts...)
+}
+
 // Registry returns the underlying registry for advanced use cases.
 // Most consumers should use AddService and Build instead.
 func (b *Builder) Registry() *Registry {

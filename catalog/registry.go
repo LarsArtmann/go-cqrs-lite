@@ -170,6 +170,22 @@ func (r *Registry) AddQuery(serviceID ServiceID, msg Message) {
 	)
 }
 
+// SetDomainOptions applies DomainOption functions to an existing domain.
+// If the domain does not exist, the call is silently ignored.
+func (r *Registry) SetDomainOptions(domainID DomainID, opts ...DomainOption) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	d, ok := r.domains[domainID]
+	if !ok {
+		return
+	}
+
+	for _, opt := range opts {
+		opt(d)
+	}
+}
+
 // AddDomain registers a domain in the catalog.
 func (r *Registry) AddDomain(domain Domain) {
 	r.mu.Lock()
