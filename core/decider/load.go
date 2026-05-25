@@ -124,3 +124,56 @@ func (r *Repository[State]) loadByEvents(
 
 	return state, event.Version(len(events)), nil
 }
+
+func (r *Repository[State]) shouldSnapshot(
+	aggType event.AggregateType,
+	version event.Version,
+) bool {
+	return event.ShouldSnapshot(r.snapshotStrategy, r.snapshotStore, r.codec, aggType, version)
+}
+
+func (r *Repository[State]) loadFromSnapshot(
+	ctx context.Context,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+) (State, event.Version, error) {
+	snap, err := r.snapshotStore.Load(ctx, aggType, aggID)
+	if err != nil {
+		if !errors.Is(err, event.ErrSnapshotNotFound) {
+			var zero State
+
+			return zero, 0, opError(aggType, aggID, "load snapshot: %w", err)
+		}
+
+		return r.loadFromStore(ctx, aggID, aggType)
+	}
+
+	if snap == nil {
+		return r.loadFromStore(ctx, aggID, aggType)
+	}
+
+	var state State
+
+	err = r.codec.Decode(snap.State, &state)
+	if err != nil {
+		var zero State
+
+		return zero, 0, opError(aggType, aggID, "decode snapshot: %w", err)
+	}
+
+	events, err := r.store.LoadFromVersion(ctx, aggType, aggID, snap.Version)
+	if err != nil {
+		var zero State
+
+		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+	}
+
+	state, err = r.foldEvents(state, events, aggType, aggID)
+	if err != nil {
+		var zero State
+
+		return zero, 0, err
+	}
+
+	return state, snap.Version.Add(len(events)), nil
+}
