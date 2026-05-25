@@ -525,6 +525,7 @@ Interfaces now return branded types instead of primitives:
 | Type naming overhaul          | `Core`→`ImmutableEvent`/`BasicCommand`/`BasicQuery`, `CatalogEntry`→`HandlerMeta` across all modules | Session 95 |
 | Constructor consistency       | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
 | Command/Query decoupling      | command/ and query/ import go-error-family directly instead of event/ for error constructors | Session 95 |
+| Logger interface removal      | Custom `middleware.Logger` + `SlogAdapter` replaced with `*slog.Logger` (Go standard since 1.21) | Session 95 |
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                    | `699d247`  |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                         | `b23a781`  |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                 | `e84e3a1`  |
