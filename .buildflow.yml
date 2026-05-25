@@ -13,7 +13,7 @@ max_file_size: 350 # lines
 dupl_threshold: 30 # tokens
 
 # TODO comment severity: info, error
-# "info" fails on false positives (e.g. "// ToDotAddress" parsed as "TODO:")
+# "info" fails on false positives (e.g. "// ToDotted" parsed as "TODO:")
 # "error" only fails on actual error-level TODOs
 todo_severity: error
 

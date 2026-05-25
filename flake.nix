@@ -52,7 +52,6 @@
             "integration"
             "projection"
             "storage"
-            "sync"
             "testhelpers"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);

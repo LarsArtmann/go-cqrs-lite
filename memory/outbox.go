@@ -11,7 +11,7 @@ import (
 
 // MemoryOutboxStore is an in-memory implementation of event.Outbox for testing.
 type MemoryOutboxStore struct {
-	mu      sync.RWMutex
+	mu           sync.RWMutex
 	entries      []outboxEntry
 	entryCounter int
 }

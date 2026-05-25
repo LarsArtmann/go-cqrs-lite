@@ -151,7 +151,15 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc"), catalog.MessageID("OrderCreated"), "OrderCreated", "1.0.0", catalog.Receives)
+	cattest.AddEventSimple(
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("OrderCreated"),
+		"OrderCreated",
+		"1.0.0",
+		catalog.Receives,
+	)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Service", "1.0.0")
@@ -287,7 +295,15 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		catalog.CommandMessage,
 		reg.AddCommand,
 	)
-	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc-b"), catalog.MessageID("DoneB"), "DoneB", "1.0.0", catalog.Sends)
+	cattest.AddEventSimple(
+		t,
+		reg,
+		catalog.ServiceID("svc-b"),
+		catalog.MessageID("DoneB"),
+		"DoneB",
+		"1.0.0",
+		catalog.Sends,
+	)
 
 	cat := cattest.Build(t, reg)
 	doc := NewExporter("Multi", "1.0.0").Export(cat)
@@ -426,7 +442,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	}
 }
 
-func TestToDotAddress(t *testing.T) {
+func TestToDotted(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -444,9 +460,9 @@ func TestToDotAddress(t *testing.T) {
 		{"", ""},
 	}
 	for _, tt := range tests {
-		got := toDotAddress(tt.input)
+		got := toDotted(tt.input)
 		if got != tt.want {
-			t.Errorf("toDotAddress(%q) = %q, want %q", tt.input, got, tt.want)
+			t.Errorf("toDotted(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }

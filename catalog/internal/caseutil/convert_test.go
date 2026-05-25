@@ -28,7 +28,7 @@ func TestToSeparated(t *testing.T) {
 	}
 }
 
-func TestToDotAddress(t *testing.T) {
+func TestToDotted(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct{ input, want string }{
@@ -40,8 +40,8 @@ func TestToDotAddress(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := ToDotAddress(tt.input); got != tt.want {
-			t.Errorf("ToDotAddress(%q) = %q, want %q", tt.input, got, tt.want)
+		if got := ToDotted(tt.input); got != tt.want {
+			t.Errorf("ToDotted(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }

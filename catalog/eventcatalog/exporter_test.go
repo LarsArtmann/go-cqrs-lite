@@ -608,7 +608,15 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		"Order was created",
 		catalog.Sends,
 	)
-	cattest.AddQuerySimple(t, reg, catalog.ServiceID("order-svc"), catalog.MessageID("GetOrder"), "GetOrder", "1.0.0", "Get order by ID")
+	cattest.AddQuerySimple(
+		t,
+		reg,
+		catalog.ServiceID("order-svc"),
+		catalog.MessageID("GetOrder"),
+		"GetOrder",
+		"1.0.0",
+		"Get order by ID",
+	)
 
 	cat := reg.Build()
 
@@ -726,7 +734,15 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEventSimple(t, reg, catalog.ServiceID("svc"), catalog.MessageID("PlainEvent"), "PlainEvent", "1.0.0", catalog.Sends)
+	cattest.AddEventSimple(
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("PlainEvent"),
+		"PlainEvent",
+		"1.0.0",
+		catalog.Sends,
+	)
 
 	cat := reg.Build()
 

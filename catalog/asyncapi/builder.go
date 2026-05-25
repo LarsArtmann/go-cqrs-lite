@@ -97,7 +97,7 @@ func addChannel(
 	channelKey, ref string,
 ) {
 	doc.Channels[channelKey] = Channel{
-		Address:     fmt.Sprintf("%s.%s.%s", serviceID, kind, toDotAddress(string(catalog.GetID(msg)))),
+		Address:     fmt.Sprintf("%s.%s.%s", serviceID, kind, toDotted(string(catalog.GetID(msg)))),
 		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},

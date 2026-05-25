@@ -28,28 +28,31 @@ Complete resource model: channels, data stores, flows, teams, users.
 
 **8 catalog branded types** (`type X string` with `String()` methods):
 
-| Type | Used In |
-|------|---------|
-| `ServiceID` | AddService, ConfigureService, Message.Producers/Consumers, all exporters |
-| `DomainID` | AddDomain, ConfigureDomain |
-| `MessageID` | Command[T], Event[T], Query[T], auto_derive map keys |
-| `ChannelID` | AddChannel, ConfigureChannel, ChannelRoute.ID, ChannelRoute.To |
-| `DataStoreID` | DataStore.ID, Service.WritesTo/ReadsFrom |
-| `FlowID` | Flow.ID, Service.Flows, Domain.Flows |
-| `TeamID` | Team.ID |
-| `UserID` | User.ID |
+| Type          | Used In                                                                  |
+| ------------- | ------------------------------------------------------------------------ |
+| `ServiceID`   | AddService, ConfigureService, Message.Producers/Consumers, all exporters |
+| `DomainID`    | AddDomain, ConfigureDomain                                               |
+| `MessageID`   | Command[T], Event[T], Query[T], auto_derive map keys                     |
+| `ChannelID`   | AddChannel, ConfigureChannel, ChannelRoute.ID, ChannelRoute.To           |
+| `DataStoreID` | DataStore.ID, Service.WritesTo/ReadsFrom                                 |
+| `FlowID`      | Flow.ID, Service.Flows, Domain.Flows                                     |
+| `TeamID`      | Team.ID                                                                  |
+| `UserID`      | User.ID                                                                  |
 
 **Additional branded types:**
+
 - `asyncapi.URI` — AsyncAPI `Document.ID` (was bare `string`)
 - `event.OutboxID` — pre-existing, unchanged
 - Core IDs (`id.AggregateID`, `id.EventID`, etc.) — pre-existing, unchanged
 
 **Storage & Middleware** (`0845b03`):
+
 - `reconstructEvent()` uses `id.EventID` + `id.AggregateID`
 - `pebble_serialization.go`: net -72 lines (eliminated `serializableMetadata`, `parseBrandedID`, `deserializeMetadata`)
 - `middleware/logging.go`: `logContext.aggregateID` → `id.AggregateID`
 
 **Naming consistency** (all exporters + test helpers):
+
 - `msgID` → `messageID` across all files
 - `svcID` → `serviceID` across all files
 - `id` → `messageID` where appropriate
@@ -166,33 +169,33 @@ Nothing truly broken. Honest assessment:
 
 ## F) Top #25 Things We Should Get Done Next
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | 🔴 CRITICAL | Fix per-module isolated builds (`go mod tidy` each module) | Consumers can't `go get` individually | 30 min |
-| 2 | 🟡 MEDIUM | Recover eventcatalog coverage to >90% | Quality gate | 1-2 hrs |
-| 3 | 🟡 MEDIUM | Deprecate `DeriveAggregateID` with `// Deprecated:` comment | API hygiene (semver-safe) | 5 min |
-| 4 | 🟡 MEDIUM | Fix example/todo `TodoMarker` embedding (misleading backing type) | Type honesty | 15 min |
-| 5 | 🟡 MEDIUM | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 25 | Noise reduction | 1 hr |
-| 6 | 🟡 MEDIUM | Fix Pebble Store optimistic concurrency in Save | Data safety | 1-2 hrs |
-| 7 | 🟡 MEDIUM | Fix Outbox transaction co-participation | Data consistency | 2-3 hrs |
-| 8 | 🟡 MEDIUM | Fix `collectResults` goroutine leak in projection/runner.go | Resource leak | 1 hr |
-| 9 | 🟡 MEDIUM | Fix OutboxPublisher split-brain (cancel non-nil after Close) | Correctness | 30 min |
-| 10 | 🟡 MEDIUM | Fix storage/dialect.go `any` usage (3 methods) | Type safety | 30 min |
-| 11 | 🟡 MEDIUM | Fix asyncapi exporter missing CommandMessage case | Feature completeness | 30 min |
-| 12 | 🟢 LOW | Registry deterministic Build() (sort map iteration) | Test reliability | 30 min |
-| 13 | 🟢 LOW | Fix FuzzParse case-sensitivity roundtrip | Edge case correctness | 1 hr |
-| 14 | 🟢 LOW | Add slog.Warn for corrupt IDs in Pebble deserialization | Observability | 15 min |
-| 15 | 🟢 LOW | Update FEATURES.md — add openapi, docserver, dialect, recent sessions | Documentation | 1 hr |
-| 16 | 🟢 LOW | Design `OwnerRef` union type for Owners []string | Type safety | 1 hr |
-| 17 | 🟢 LOW | Design `RefKind` discriminator for Ref.ID polymorphism | Type safety | 1 hr |
-| 18 | 🟢 LOW | Fix 2 lint issues (noinlineerr in core/command, core/query) | Zero lint | 15 min |
-| 19 | 🟢 LOW | Fix BuildFlow pre-commit hook false positive (ToDotAddress matched as TODO) | Developer experience | 15 min |
-| 20 | 🟢 LOW | Brand FlowStep.ID as FlowStepLabel (clarify it's not an entity ID) | Naming clarity | 10 min |
-| 21 | 🟢 LOW | Add catalog diff/breaking-change detection tool | API evolution safety | 3-4 hrs |
-| 22 | 🟢 LOW | Query handler generics (TypedHandler[T] returning T, error) | Type safety (breaking) | 4-8 hrs |
-| 23 | 🟢 LOW | High-level test utilities (AggregateTester, ProjectionTester) | Consumer DX | 4-8 hrs |
-| 24 | 📐 PLANNED | Saga/orchestration pattern implementation | Feature expansion | 1-2 days |
-| 25 | 📐 PLANNED | Publish go-composable-business-types as Go module | External adoption | 1-2 days |
+| #   | Priority    | Task                                                                        | Impact                                | Effort   |
+| --- | ----------- | --------------------------------------------------------------------------- | ------------------------------------- | -------- |
+| 1   | 🔴 CRITICAL | Fix per-module isolated builds (`go mod tidy` each module)                  | Consumers can't `go get` individually | 30 min   |
+| 2   | 🟡 MEDIUM   | Recover eventcatalog coverage to >90%                                       | Quality gate                          | 1-2 hrs  |
+| 3   | 🟡 MEDIUM   | Deprecate `DeriveAggregateID` with `// Deprecated:` comment                 | API hygiene (semver-safe)             | 5 min    |
+| 4   | 🟡 MEDIUM   | Fix example/todo `TodoMarker` embedding (misleading backing type)           | Type honesty                          | 15 min   |
+| 5   | 🟡 MEDIUM   | Triage TODO_LIST.md — prune stale, deduplicate, prioritize top 25           | Noise reduction                       | 1 hr     |
+| 6   | 🟡 MEDIUM   | Fix Pebble Store optimistic concurrency in Save                             | Data safety                           | 1-2 hrs  |
+| 7   | 🟡 MEDIUM   | Fix Outbox transaction co-participation                                     | Data consistency                      | 2-3 hrs  |
+| 8   | 🟡 MEDIUM   | Fix `collectResults` goroutine leak in projection/runner.go                 | Resource leak                         | 1 hr     |
+| 9   | 🟡 MEDIUM   | Fix OutboxPublisher split-brain (cancel non-nil after Close)                | Correctness                           | 30 min   |
+| 10  | 🟡 MEDIUM   | Fix storage/dialect.go `any` usage (3 methods)                              | Type safety                           | 30 min   |
+| 11  | 🟡 MEDIUM   | Fix asyncapi exporter missing CommandMessage case                           | Feature completeness                  | 30 min   |
+| 12  | 🟢 LOW      | Registry deterministic Build() (sort map iteration)                         | Test reliability                      | 30 min   |
+| 13  | 🟢 LOW      | Fix FuzzParse case-sensitivity roundtrip                                    | Edge case correctness                 | 1 hr     |
+| 14  | 🟢 LOW      | Add slog.Warn for corrupt IDs in Pebble deserialization                     | Observability                         | 15 min   |
+| 15  | 🟢 LOW      | Update FEATURES.md — add openapi, docserver, dialect, recent sessions       | Documentation                         | 1 hr     |
+| 16  | 🟢 LOW      | Design `OwnerRef` union type for Owners []string                            | Type safety                           | 1 hr     |
+| 17  | 🟢 LOW      | Design `RefKind` discriminator for Ref.ID polymorphism                      | Type safety                           | 1 hr     |
+| 18  | 🟢 LOW      | Fix 2 lint issues (noinlineerr in core/command, core/query)                 | Zero lint                             | 15 min   |
+| 19  | 🟢 LOW      | Fix BuildFlow pre-commit hook false positive (ToDotAddress matched as TODO) | Developer experience                  | 15 min   |
+| 20  | 🟢 LOW      | Brand FlowStep.ID as FlowStepLabel (clarify it's not an entity ID)          | Naming clarity                        | 10 min   |
+| 21  | 🟢 LOW      | Add catalog diff/breaking-change detection tool                             | API evolution safety                  | 3-4 hrs  |
+| 22  | 🟢 LOW      | Query handler generics (TypedHandler[T] returning T, error)                 | Type safety (breaking)                | 4-8 hrs  |
+| 23  | 🟢 LOW      | High-level test utilities (AggregateTester, ProjectionTester)               | Consumer DX                           | 4-8 hrs  |
+| 24  | 📐 PLANNED  | Saga/orchestration pattern implementation                                   | Feature expansion                     | 1-2 days |
+| 25  | 📐 PLANNED  | Publish go-composable-business-types as Go module                           | External adoption                     | 1-2 days |
 
 ---
 
@@ -201,6 +204,7 @@ Nothing truly broken. Honest assessment:
 **Should `Ref.ID` stay as `string`, or should we introduce a discriminator?**
 
 `Ref` is used in 4 semantically different ways:
+
 - `FlowStep.Service` — references a `ServiceID`
 - `FlowStep.Message` — references a `MessageID`
 - `FlowStep.Channel` — references a `ChannelID`
@@ -219,27 +223,27 @@ My recommendation: **Option 1 (keep `string`)** — the field name `Ref.ID` is a
 
 ## Coverage Summary
 
-| Package | Coverage | Change |
-|---------|----------|--------|
-| `core/pkg/dispatcher` | 100.0% | — |
-| `core/pkg/id` | 100.0% | — |
-| `middleware` | 100.0% | — |
-| `catalog/internal/caseutil` | 100.0% | — |
-| `memory` | 99.6% | — |
-| `core/query` | 98.4% | — |
-| `catalog` | 96.3% | ↓ (was 96.8%) |
-| `catalog/d2` | 95.0% | — |
-| `catalog/openapi` | 94.4% | — |
-| `projection` | 94.4% | — |
-| `core/event` | 93.8% | — |
-| `catalog/asyncapi` | 93.7% | — |
-| `core/decider` | 93.6% | — |
-| `core/command` | 92.3% | — |
-| `testhelpers` | 91.3% | — |
-| `catalog/docserver` | 90.1% | — |
-| `storage` | 89.3% | — |
-| `catalog/internal/schemautil` | 84.2% | — |
-| `catalog/eventcatalog` | 85.7% | ↓ (was 91.3%) |
+| Package                       | Coverage | Change        |
+| ----------------------------- | -------- | ------------- |
+| `core/pkg/dispatcher`         | 100.0%   | —             |
+| `core/pkg/id`                 | 100.0%   | —             |
+| `middleware`                  | 100.0%   | —             |
+| `catalog/internal/caseutil`   | 100.0%   | —             |
+| `memory`                      | 99.6%    | —             |
+| `core/query`                  | 98.4%    | —             |
+| `catalog`                     | 96.3%    | ↓ (was 96.8%) |
+| `catalog/d2`                  | 95.0%    | —             |
+| `catalog/openapi`             | 94.4%    | —             |
+| `projection`                  | 94.4%    | —             |
+| `core/event`                  | 93.8%    | —             |
+| `catalog/asyncapi`            | 93.7%    | —             |
+| `core/decider`                | 93.6%    | —             |
+| `core/command`                | 92.3%    | —             |
+| `testhelpers`                 | 91.3%    | —             |
+| `catalog/docserver`           | 90.1%    | —             |
+| `storage`                     | 89.3%    | —             |
+| `catalog/internal/schemautil` | 84.2%    | —             |
+| `catalog/eventcatalog`        | 85.7%    | ↓ (was 91.3%) |
 
 **Overall: ~90% weighted average**
 
@@ -247,13 +251,13 @@ My recommendation: **Option 1 (keep `string`)** — the field name `Ref.ID` is a
 
 ## Branching-Flow: 7 Remaining Violations (All Intentional)
 
-| Violation | File | Reason |
-|-----------|------|--------|
-| `serviceDisplayID` (×3) | d2/connections.go | Sanitized D2 display strings, not catalog identifiers |
-| `OperationID` | openapi/types.go:49 | OpenAPI spec field, not our type to brand |
-| `Ref.ID` | types.go:268 | Polymorphic (ServiceID, MessageID, ChannelID — no Go union type) |
-| `FlowStep.ID` | types_resources.go:31 | User-defined step label in flow diagrams, not a catalog entity |
-| `FlowEdge.ID` | types_resources.go:66 | User-defined edge label in flow diagrams, not a catalog entity |
+| Violation               | File                  | Reason                                                           |
+| ----------------------- | --------------------- | ---------------------------------------------------------------- |
+| `serviceDisplayID` (×3) | d2/connections.go     | Sanitized D2 display strings, not catalog identifiers            |
+| `OperationID`           | openapi/types.go:49   | OpenAPI spec field, not our type to brand                        |
+| `Ref.ID`                | types.go:268          | Polymorphic (ServiceID, MessageID, ChannelID — no Go union type) |
+| `FlowStep.ID`           | types_resources.go:31 | User-defined step label in flow diagrams, not a catalog entity   |
+| `FlowEdge.ID`           | types_resources.go:66 | User-defined edge label in flow diagrams, not a catalog entity   |
 
 ---
 
@@ -292,4 +296,4 @@ d56608e docs: add EventCatalog auto-generation execution plan with 95 granular t
 
 ---
 
-*Report generated: 2026-05-25 23:40 · Session 100*
+_Report generated: 2026-05-25 23:40 · Session 100_

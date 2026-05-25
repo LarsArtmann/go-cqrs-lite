@@ -278,6 +278,6 @@ type ChannelParam struct {
 
 // ChannelRoute describes a routing rule from one channel to another.
 type ChannelRoute struct {
-	ID ChannelID `json:"id"`
+	ID ChannelID   `json:"id"`
 	To []ChannelID `json:"to,omitempty"`
 }

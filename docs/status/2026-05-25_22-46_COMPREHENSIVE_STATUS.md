@@ -258,7 +258,6 @@ My recommendation: **Remove both NOW.** Zero external consumers + the API is cle
 
 _Report generated: 2026-05-25 22:46_
 
-
 ## Appendix A: Design Decision Corrections
 
 ### AggregateMarker — KEEP EXPORTED

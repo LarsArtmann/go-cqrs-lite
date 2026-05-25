@@ -15,8 +15,8 @@ func SchemaToAny(s *catalog.Schema) any {
 	return schemautil.SchemaToAny(s)
 }
 
-func toDotAddress(s string) string {
-	return caseutil.ToDotAddress(s)
+func toDotted(s string) string {
+	return caseutil.ToDotted(s)
 }
 
 func toExamples(raw []json.RawMessage) []Example {
