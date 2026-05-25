@@ -11,9 +11,8 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	db      *sql.DB
-	dialect Dialect
-	ownDB   bool
+	sqlBase
+	ownDB bool
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -39,11 +38,12 @@ func NewSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) 
 }
 
 func newSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
-	if db == nil {
-		return nil, fmt.Errorf("%w", ErrNilDB)
+	base, err := newSQLBase(db, d)
+	if err != nil {
+		return nil, err
 	}
 
-	return &SQLEventStore{db: db, dialect: d}, nil
+	return &SQLEventStore{sqlBase: base}, nil
 }
 
 // ErrConcurrencyConflict indicates an optimistic concurrency violation.

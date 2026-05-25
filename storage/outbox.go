@@ -11,8 +11,7 @@ import (
 
 // SQLOutbox persists events for reliable eventual publishing in a SQL database.
 type SQLOutbox struct {
-	db      *sql.DB
-	dialect Dialect
+	sqlBase
 }
 
 // NewSQLOutbox creates a new SQL-backed outbox using PostgreSQL dialect.
@@ -38,15 +37,13 @@ func NewSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
 }
 
 func newSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
-	if db == nil {
-		return nil, fmt.Errorf("%w", ErrNilDB)
+	base, err := newSQLBase(db, d)
+	if err != nil {
+		return nil, err
 	}
 
-	return &SQLOutbox{db: db, dialect: d}, nil
+	return &SQLOutbox{sqlBase: base}, nil
 }
-
-// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
-func (o *SQLOutbox) Close() error { return nil }
 
 // OutboxSchema returns the SQL DDL for creating the outbox table.
 func OutboxSchema() string { return PostgresDialect{}.OutboxSchema() }

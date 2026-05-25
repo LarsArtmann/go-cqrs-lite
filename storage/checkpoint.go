@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -11,8 +10,7 @@ import (
 
 // SQLCheckpointStore persists projection checkpoints in a SQL database.
 type SQLCheckpointStore struct {
-	db      *sql.DB
-	dialect Dialect
+	sqlBase
 }
 
 // NewSQLCheckpointStore creates a new SQL-backed checkpoint store using PostgreSQL dialect.
@@ -38,15 +36,13 @@ func NewSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStor
 }
 
 func newSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStore, error) {
-	if db == nil {
-		return nil, fmt.Errorf("%w", ErrNilDB)
+	base, err := newSQLBase(db, d)
+	if err != nil {
+		return nil, err
 	}
 
-	return &SQLCheckpointStore{db: db, dialect: d}, nil
+	return &SQLCheckpointStore{sqlBase: base}, nil
 }
-
-// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
-func (s *SQLCheckpointStore) Close() error { return nil }
 
 // CheckpointSchema returns the SQL DDL for creating the checkpoints table.
 func CheckpointSchema() string { return PostgresDialect{}.CheckpointSchema() }

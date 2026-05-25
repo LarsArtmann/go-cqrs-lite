@@ -12,8 +12,7 @@ import (
 
 // SQLSnapshotStore persists aggregate snapshots in a SQL database.
 type SQLSnapshotStore struct {
-	db      *sql.DB
-	dialect Dialect
+	sqlBase
 }
 
 // NewSQLSnapshotStore creates a new SQL-backed snapshot store using PostgreSQL dialect.
@@ -39,15 +38,13 @@ func NewSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, e
 }
 
 func newSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
-	if db == nil {
-		return nil, fmt.Errorf("%w", ErrNilDB)
+	base, err := newSQLBase(db, d)
+	if err != nil {
+		return nil, err
 	}
 
-	return &SQLSnapshotStore{db: db, dialect: d}, nil
+	return &SQLSnapshotStore{sqlBase: base}, nil
 }
-
-// Close is a no-op. The *sql.DB is borrowed from the caller, who owns its lifecycle.
-func (s *SQLSnapshotStore) Close() error { return nil }
 
 // SnapshotSchema returns the SQL DDL for creating the snapshots table.
 func SnapshotSchema() string { return PostgresDialect{}.SnapshotSchema() }
