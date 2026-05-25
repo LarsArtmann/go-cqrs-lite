@@ -442,7 +442,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	}
 }
 
-func TestToDotted(t *testing.T) {
+func TestDotSeparated(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -460,9 +460,9 @@ func TestToDotted(t *testing.T) {
 		{"", ""},
 	}
 	for _, tt := range tests {
-		got := toDotted(tt.input)
+		got := dotSeparated(tt.input)
 		if got != tt.want {
-			t.Errorf("toDotted(%q) = %q, want %q", tt.input, got, tt.want)
+			t.Errorf("dotSeparated(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }
