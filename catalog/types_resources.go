@@ -28,17 +28,17 @@ type Flow struct {
 // FlowStep represents a single step in a flow diagram.
 // Exactly one of Service, Message, Channel, Actor, ExternalSystem, or Custom should be set.
 type FlowStep struct {
-	ID       string          `json:"id"`
-	Title    string          `json:"title"`
-	Summary  string          `json:"summary,omitempty"`
-	Service  *FlowStepRef    `json:"service,omitempty"`
-	Message  *FlowStepRef    `json:"message,omitempty"`
-	Channel  *FlowStepRef    `json:"channel,omitempty"`
-	Actor    *FlowActor      `json:"actor,omitempty"`
-	External *FlowActor      `json:"external,omitempty"`
-	Custom   *FlowCustomNode `json:"custom,omitempty"`
-	NextStep *FlowEdge       `json:"nextStep,omitempty"`
-	NextSteps []FlowEdge     `json:"nextSteps,omitempty"`
+	ID        string          `json:"id"`
+	Title     string          `json:"title"`
+	Summary   string          `json:"summary,omitempty"`
+	Service   *FlowStepRef    `json:"service,omitempty"`
+	Message   *FlowStepRef    `json:"message,omitempty"`
+	Channel   *FlowStepRef    `json:"channel,omitempty"`
+	Actor     *FlowActor      `json:"actor,omitempty"`
+	External  *FlowActor      `json:"external,omitempty"`
+	Custom    *FlowCustomNode `json:"custom,omitempty"`
+	NextStep  *FlowEdge       `json:"nextStep,omitempty"`
+	NextSteps []FlowEdge      `json:"nextSteps,omitempty"`
 }
 
 // FlowStepRef references a catalog resource by ID and optional version.
@@ -69,12 +69,12 @@ type FlowEdge struct {
 
 // Team represents a team that owns catalog resources.
 type Team struct {
-	ID                    TeamID  `json:"id"`
-	Name                  string  `json:"name"`
-	Summary               string  `json:"summary,omitempty"`
+	ID                    TeamID   `json:"id"`
+	Name                  string   `json:"name"`
+	Summary               string   `json:"summary,omitempty"`
 	Members               []string `json:"members,omitempty"`
-	Email                 string  `json:"email,omitempty"`
-	SlackDirectMessageURL string  `json:"slackDirectMessageUrl,omitempty"`
+	Email                 string   `json:"email,omitempty"`
+	SlackDirectMessageURL string   `json:"slackDirectMessageUrl,omitempty"`
 }
 
 // User represents an individual who owns catalog resources.

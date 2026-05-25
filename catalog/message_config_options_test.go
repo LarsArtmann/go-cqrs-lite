@@ -10,8 +10,10 @@ func TestBuilder_MessageOption_Producers(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "test",
-		catalog.Event[struct{}]("evt", catalog.Sends,
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Event[struct{}](
+			"evt", catalog.Sends,
 			catalog.Producers("svc-a", "svc-b"),
 		),
 	)
@@ -32,8 +34,10 @@ func TestBuilder_MessageOption_Consumers(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "test",
-		catalog.Command[struct{}]("cmd",
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Command[struct{}](
+			"cmd",
 			catalog.Consumers("handler-svc"),
 		),
 	)
@@ -54,8 +58,10 @@ func TestBuilder_MessageOption_Operation(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "test",
-		catalog.Command[struct{}]("cmd",
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Command[struct{}](
+			"cmd",
 			catalog.MsgOperation("POST", "/orders", "201", "400"),
 		),
 	)
@@ -84,8 +90,10 @@ func TestBuilder_MessageOption_Badges(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "test",
-		catalog.Event[struct{}]("evt", catalog.Sends,
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Event[struct{}](
+			"evt", catalog.Sends,
 			catalog.MsgBadges(
 				catalog.Badge{Content: "Domain Event", BackgroundColor: "orange"},
 			),
@@ -108,8 +116,10 @@ func TestBuilder_MessageOption_Repository(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "test",
-		catalog.Command[struct{}]("cmd",
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Command[struct{}](
+			"cmd",
 			catalog.MsgRepository("Go", "https://github.com/example/orders"),
 		),
 	)

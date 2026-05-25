@@ -151,8 +151,8 @@ type Service struct {
 	Commands       []Message       `json:"commands,omitempty"`
 	Events         []Message       `json:"events,omitempty"`
 	Queries        []Message       `json:"queries,omitempty"`
-	WritesTo       []DataStoreID    `json:"writesTo,omitempty"`
-	ReadsFrom      []DataStoreID    `json:"readsFrom,omitempty"`
+	WritesTo       []DataStoreID   `json:"writesTo,omitempty"`
+	ReadsFrom      []DataStoreID   `json:"readsFrom,omitempty"`
 	Entities       []string        `json:"entities,omitempty"`
 	Flows          []FlowID        `json:"flows,omitempty"`
 	Repository     *Repository     `json:"repository,omitempty"`
@@ -163,34 +163,34 @@ type Service struct {
 
 // Domain represents a business domain that groups multiple services.
 type Domain struct {
-	ID          DomainID         `json:"id"`
-	Name        string           `json:"name"`
-	Version     string           `json:"version"`
-	Summary     string           `json:"summary,omitempty"`
-	Owners      []string         `json:"owners,omitempty"`
-	Services    []ServiceID      `json:"services,omitempty"`
-	Sends       []Ref `json:"sends,omitempty"`
-	Receives    []Ref `json:"receives,omitempty"`
-	Entities    []string         `json:"entities,omitempty"`
-	Flows       []FlowID         `json:"flows,omitempty"`
-	Badges      []Badge          `json:"badges,omitempty"`
-	Attachments []Attachment     `json:"attachments,omitempty"`
+	ID          DomainID     `json:"id"`
+	Name        string       `json:"name"`
+	Version     string       `json:"version"`
+	Summary     string       `json:"summary,omitempty"`
+	Owners      []string     `json:"owners,omitempty"`
+	Services    []ServiceID  `json:"services,omitempty"`
+	Sends       []Ref        `json:"sends,omitempty"`
+	Receives    []Ref        `json:"receives,omitempty"`
+	Entities    []string     `json:"entities,omitempty"`
+	Flows       []FlowID     `json:"flows,omitempty"`
+	Badges      []Badge      `json:"badges,omitempty"`
+	Attachments []Attachment `json:"attachments,omitempty"`
 }
 
 // Channel represents a messaging channel used for message transport.
 type Channel struct {
-	ID               ChannelID                `json:"id"`
-	Name             string                   `json:"name"`
-	Version          string                   `json:"version"`
-	Summary          string                   `json:"summary,omitempty"`
-	Address          string                   `json:"address,omitempty"`
-	Protocols        []string                 `json:"protocols,omitempty"`
-	Messages         []MessageID              `json:"messages,omitempty"`
-	DeliveryGuarantee string                 `json:"deliveryGuarantee,omitempty"`
-	Parameters       map[string]ChannelParam  `json:"parameters,omitempty"`
-	Routes           []ChannelRoute           `json:"routes,omitempty"`
-	Owners           []string                 `json:"owners,omitempty"`
-	Badges           []Badge                  `json:"badges,omitempty"`
+	ID                ChannelID               `json:"id"`
+	Name              string                  `json:"name"`
+	Version           string                  `json:"version"`
+	Summary           string                  `json:"summary,omitempty"`
+	Address           string                  `json:"address,omitempty"`
+	Protocols         []string                `json:"protocols,omitempty"`
+	Messages          []MessageID             `json:"messages,omitempty"`
+	DeliveryGuarantee string                  `json:"deliveryGuarantee,omitempty"`
+	Parameters        map[string]ChannelParam `json:"parameters,omitempty"`
+	Routes            []ChannelRoute          `json:"routes,omitempty"`
+	Owners            []string                `json:"owners,omitempty"`
+	Badges            []Badge                 `json:"badges,omitempty"`
 }
 
 // Catalog is an immutable snapshot of all registered resources.

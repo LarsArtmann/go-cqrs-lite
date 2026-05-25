@@ -136,7 +136,7 @@ func TestExporter_Export_Flow(t *testing.T) {
 		Steps: []catalog.FlowStep{
 			{
 				ID: "1", Title: "Create Order",
-				Message: &catalog.FlowStepRef{ID: "CreateOrder", Version: "1.0.0"},
+				Message:  &catalog.FlowStepRef{ID: "CreateOrder", Version: "1.0.0"},
 				NextStep: &catalog.FlowEdge{ID: "2", Label: "submit"},
 			},
 			{
@@ -351,9 +351,9 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 	reg := catalog.NewRegistry("E-Commerce", "1.0.0")
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
-		Summary: "Manages orders",
+		Summary:  "Manages orders",
 		WritesTo: []catalog.DataStoreID{"orders-db"},
-		Badges: []catalog.Badge{{Content: "Production", BackgroundColor: "green"}},
+		Badges:   []catalog.Badge{{Content: "Production", BackgroundColor: "green"}},
 	})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",

@@ -94,7 +94,8 @@ func TestBuilder_AllResourceTypes(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Full Catalog", "1.0.0")
-	b.AddService("svc", "Service", "1.0.0", "Test service",
+	b.AddService(
+		"svc", "Service", "1.0.0", "Test service",
 		catalog.Event[struct{}]("evt", catalog.Sends),
 	)
 	b.AddDomain("dom", "Domain", "1.0.0", "Test domain", "svc")

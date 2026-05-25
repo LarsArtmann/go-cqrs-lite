@@ -11,7 +11,8 @@ func TestBuilder_ConfigureDomain_Sends(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management", "order-svc")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainSends(catalog.Ref{ID: "order.created"}),
 	)
 
@@ -28,7 +29,8 @@ func TestBuilder_ConfigureDomain_Receives(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainReceives(catalog.Ref{ID: "payment.completed"}),
 	)
 
@@ -45,7 +47,8 @@ func TestBuilder_ConfigureDomain_Entities(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainEntities("Order", "OrderItem"),
 	)
 
@@ -66,7 +69,8 @@ func TestBuilder_ConfigureDomain_Badges(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainBadges(catalog.Badge{Content: "Core Domain", BackgroundColor: "blue"}),
 	)
 
@@ -83,7 +87,8 @@ func TestBuilder_ConfigureDomain_Owners(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainOwners("team-commerce", "alice"),
 	)
 
@@ -100,7 +105,8 @@ func TestBuilder_ConfigureDomain_Attachments(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainAttachments(
 			catalog.Attachment{URL: "https://adr.example.com/001", Title: "ADR-001"},
 		),
@@ -123,7 +129,8 @@ func TestBuilder_ConfigureDomain_MultipleOptions(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
-	b.ConfigureDomain("orders",
+	b.ConfigureDomain(
+		"orders",
 		catalog.DomainSends(catalog.Ref{ID: "order.created"}),
 		catalog.DomainReceives(catalog.Ref{ID: "payment.completed"}),
 		catalog.DomainEntities("Order"),
@@ -164,7 +171,8 @@ func TestBuilder_ConfigureDomain_NonexistentIgnored(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.ConfigureDomain("nonexistent",
+	b.ConfigureDomain(
+		"nonexistent",
 		catalog.DomainBadges(catalog.Badge{Content: "Should not panic"}),
 	)
 

@@ -16,16 +16,16 @@ var ErrDomainNotFound = errorfamily.NewRejection("catalog.domain_not_found", "do
 // domains, channels, data stores, flows, teams, and users before
 // producing an immutable Catalog.
 type Registry struct {
-	mu        sync.RWMutex
-	title     string
-	version   string
-	services  map[ServiceID]*Service
-	domains   map[DomainID]*Domain
-	channels  map[ChannelID]*Channel
-	stores    map[DataStoreID]*DataStore
-	flows     map[FlowID]*Flow
-	teams     map[TeamID]*Team
-	users     map[UserID]*User
+	mu       sync.RWMutex
+	title    string
+	version  string
+	services map[ServiceID]*Service
+	domains  map[DomainID]*Domain
+	channels map[ChannelID]*Channel
+	stores   map[DataStoreID]*DataStore
+	flows    map[FlowID]*Flow
+	teams    map[TeamID]*Team
+	users    map[UserID]*User
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.

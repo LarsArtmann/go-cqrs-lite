@@ -11,7 +11,8 @@ func TestBuilder_ConfigureService_Badges(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceBadges(
 			catalog.Badge{Content: "Production", BackgroundColor: "green"},
 		),
@@ -34,7 +35,8 @@ func TestBuilder_ConfigureService_Repository(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceRepository("Go", "https://github.com/example/svc"),
 	)
 
@@ -55,7 +57,8 @@ func TestBuilder_ConfigureService_WritesToReadsFrom(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceWritesTo("orders-db"),
 		catalog.ServiceReadsFrom("products-cache"),
 	)
@@ -77,7 +80,8 @@ func TestBuilder_ConfigureService_Entities(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceEntities("Order", "OrderItem"),
 	)
 
@@ -94,7 +98,8 @@ func TestBuilder_ConfigureService_Specifications(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceSpecifications(
 			catalog.Specification{Type: "asyncapi", Path: "asyncapi.yaml"},
 		),
@@ -117,7 +122,8 @@ func TestBuilder_ConfigureService_MultipleOptions(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddService("svc", "Service", "1.0.0", "test")
-	b.ConfigureService("svc",
+	b.ConfigureService(
+		"svc",
 		catalog.ServiceOwners("team-a", "alice"),
 		catalog.ServiceBadges(catalog.Badge{Content: "Stable"}),
 		catalog.ServiceRepository("Go", "https://github.com/example/svc"),

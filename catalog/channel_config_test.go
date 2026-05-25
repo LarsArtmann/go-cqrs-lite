@@ -144,7 +144,8 @@ func TestBuilder_ConfigureChannel_MultipleOptions(t *testing.T) {
 
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddChannel(catalog.Channel{ID: "ch", Name: "Ch", Version: "1.0.0"})
-	b.ConfigureChannel("ch",
+	b.ConfigureChannel(
+		"ch",
 		catalog.ChannelAddress("order.events"),
 		catalog.ChannelProtocols("kafka"),
 		catalog.ChannelDeliveryGuarantee("exactly-once"),
@@ -180,7 +181,8 @@ func TestBuilder_ConfigureChannel_NonexistentIgnored(t *testing.T) {
 	t.Parallel()
 
 	b := catalog.NewBuilder("Test", "1.0.0")
-	b.ConfigureChannel("nonexistent",
+	b.ConfigureChannel(
+		"nonexistent",
 		catalog.ChannelBadges(catalog.Badge{Content: "Should not panic"}),
 	)
 

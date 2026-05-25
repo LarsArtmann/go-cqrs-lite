@@ -29,12 +29,12 @@ func generateEventCatalog(outputDir string) error {
 	builder.AddDataStore(catalog.DataStore{
 		ID: "user-db", Name: "Users Database", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
-		Summary:       "Primary user data store",
+		Summary: "Primary user data store",
 	})
 
 	builder.AddChannel(catalog.Channel{
 		ID: "user-events", Name: "User Events", Version: "1.0.0",
-		Summary: "All user-related domain events",
+		Summary:   "All user-related domain events",
 		Protocols: []string{"kafka"},
 	})
 
