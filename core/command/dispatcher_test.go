@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -133,7 +132,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 		t.Fatal("expected error on closed dispatcher")
 	}
 
-	if !errors.Is(err, dispatcher.ErrDispatcherClosed) {
+	if !errors.Is(err, command.ErrDispatcherClosed) {
 		t.Errorf("error should wrap ErrDispatcherClosed, got: %v", err)
 	}
 }

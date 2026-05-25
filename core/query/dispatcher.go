@@ -80,6 +80,10 @@ func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
+	if err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed); err != nil {
+		return nil, fmt.Errorf("dispatching query type %s: %w", query.Type(), err)
+	}
+
 	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
