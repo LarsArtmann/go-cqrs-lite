@@ -14,3 +14,11 @@ Manages orders
 ### Queries
 - Get Order (v1.0.0): Get order by ID
 
+## Channel: Order Events (order-events)
+All order-related events
+Protocols: kafka
+
+## Data Store: Orders Database (orders-db)
+Type: database
+Technology: postgres@16
+

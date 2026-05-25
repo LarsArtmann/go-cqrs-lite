@@ -33,6 +33,7 @@ func BuildTestCatalog() *catalog.Catalog {
 	reg := catalog.NewRegistry("E-Commerce", testVersion)
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: testVersion, Summary: "Manages orders",
+		WritesTo: []string{"orders-db"},
 	})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order", Version: testVersion,
@@ -48,6 +49,14 @@ func BuildTestCatalog() *catalog.Catalog {
 	reg.AddQuery("order-svc", catalog.Message{
 		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order", Version: testVersion,
 		Summary: "Get order by ID",
+	})
+	reg.AddChannel(catalog.Channel{
+		ID: "order-events", Name: "Order Events", Version: testVersion,
+		Summary: "All order-related events", Protocols: []string{"kafka"},
+	})
+	reg.AddDataStore(catalog.DataStore{
+		ID: "orders-db", Name: "Orders Database", Version: testVersion,
+		ContainerType: "database", Technology: "postgres@16",
 	})
 
 	return reg.Build()
