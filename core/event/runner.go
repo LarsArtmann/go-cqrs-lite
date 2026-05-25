@@ -10,6 +10,10 @@ import (
 // InMemoryRunner processes events through registered projections with
 // checkpoint tracking. Intended for testing and single-process deployments.
 //
+// Deprecated: Use projection.Runner instead, which supports replay + live
+// subscription with full lifecycle management. InMemoryRunner will remain
+// available for backward compatibility.
+//
 // Usage:
 //
 //	runner, err := event.NewInMemoryRunner(checkpointStore)
