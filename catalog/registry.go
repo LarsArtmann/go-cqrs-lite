@@ -215,6 +215,22 @@ func (r *Registry) AddServiceToDomain(serviceID ServiceID, domainID DomainID) er
 	return nil
 }
 
+// SetChannelOptions applies ChannelOption functions to an existing channel.
+// If the channel does not exist, the call is silently ignored.
+func (r *Registry) SetChannelOptions(channelID ChannelID, opts ...ChannelOption) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	ch, ok := r.channels[channelID]
+	if !ok {
+		return
+	}
+
+	for _, opt := range opts {
+		opt(ch)
+	}
+}
+
 // AddChannel registers a channel in the catalog.
 func (r *Registry) AddChannel(ch Channel) {
 	r.mu.Lock()

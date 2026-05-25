@@ -83,6 +83,11 @@ func (b *Builder) AddChannel(ch Channel) {
 	b.registry.AddChannel(ch)
 }
 
+// ConfigureChannel applies channel-level options to an already-registered channel.
+func (b *Builder) ConfigureChannel(channelID string, opts ...ChannelOption) {
+	b.registry.SetChannelOptions(ChannelID(channelID), opts...)
+}
+
 // AddDataStore registers a data store in the catalog.
 func (b *Builder) AddDataStore(ds DataStore) {
 	b.registry.AddDataStore(ds)
