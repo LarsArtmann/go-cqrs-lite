@@ -54,7 +54,7 @@ node_modules/
 *.db-shm
 *.db-wal
 *.wal
-/report/jscpd-report.json
+/report/
 
 # Generated catalog output
 **/eventcatalog-output/
