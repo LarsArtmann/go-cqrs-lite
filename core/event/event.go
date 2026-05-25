@@ -99,8 +99,8 @@ type Event interface {
 	OccurredAt() time.Time
 }
 
-// Core provides a default implementation of Event interface.
-type Core struct {
+// ImmutableEvent provides a default implementation of Event interface.
+type ImmutableEvent struct {
 	id            id.EventID
 	eventType     Type
 	aggregateID   id.AggregateID
@@ -113,31 +113,31 @@ type Core struct {
 	clock         Clock
 }
 
-var _ Event = (*Core)(nil)
+var _ Event = (*ImmutableEvent)(nil)
 
 // ID returns the event ID.
-func (e *Core) ID() id.EventID { return e.id }
+func (e *ImmutableEvent) ID() id.EventID { return e.id }
 
 // Type returns the event type.
-func (e *Core) Type() Type { return e.eventType }
+func (e *ImmutableEvent) Type() Type { return e.eventType }
 
 // AggregateID returns the aggregate ID.
-func (e *Core) AggregateID() id.AggregateID { return e.aggregateID }
+func (e *ImmutableEvent) AggregateID() id.AggregateID { return e.aggregateID }
 
 // AggregateType returns the aggregate type.
-func (e *Core) AggregateType() AggregateType { return e.aggregateType }
+func (e *ImmutableEvent) AggregateType() AggregateType { return e.aggregateType }
 
 // Version returns the stream position of this event within the aggregate.
-func (e *Core) Version() Version { return e.version }
+func (e *ImmutableEvent) Version() Version { return e.version }
 
 // SchemaVersion returns the schema version of the event payload.
 // Defaults to 1 for events created with NewEvent.
 // Used by upcasters to determine if an event needs transformation.
-func (e *Core) SchemaVersion() SchemaVersion { return e.schemaVersion }
+func (e *ImmutableEvent) SchemaVersion() SchemaVersion { return e.schemaVersion }
 
 // Payload returns the event payload. The returned slice is safe to mutate;
 // the event stores its own copy at construction time.
-func (e *Core) Payload() []byte {
+func (e *ImmutableEvent) Payload() []byte {
 	if e.payload == nil {
 		return nil
 	}
@@ -149,7 +149,7 @@ func (e *Core) Payload() []byte {
 }
 
 // Metadata returns a copy of the event metadata.
-func (e *Core) Metadata() *Metadata {
+func (e *ImmutableEvent) Metadata() *Metadata {
 	if e.metadata == nil {
 		return nil
 	}
@@ -166,7 +166,7 @@ func (e *Core) Metadata() *Metadata {
 }
 
 // OccurredAt returns when the event occurred.
-func (e *Core) OccurredAt() time.Time { return e.occurredAt }
+func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
 
 // NewEvent creates a new event with validation.
 func NewEvent(
@@ -176,7 +176,7 @@ func NewEvent(
 	version Version,
 	payload []byte,
 	opts ...Option,
-) (*Core, error) {
+) (*ImmutableEvent, error) {
 	err := validateEventParams(
 		eventType,
 		aggregateID,
@@ -198,7 +198,7 @@ func NewEvent(
 
 	clk := defaultClock
 
-	evt := &Core{
+	evt := &ImmutableEvent{
 		id:            id.NewEventID(),
 		eventType:     eventType,
 		aggregateID:   aggregateID,

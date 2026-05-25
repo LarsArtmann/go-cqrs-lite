@@ -16,7 +16,7 @@ func compositeEnricher(enrichers ...contextEnricher) contextEnricher {
 	}
 }
 
-func enrichEvent(ctx context.Context, evt *Core, enricher contextEnricher) {
+func enrichEvent(ctx context.Context, evt *ImmutableEvent, enricher contextEnricher) {
 	for _, opt := range enricher(ctx) {
 		opt(evt)
 	}

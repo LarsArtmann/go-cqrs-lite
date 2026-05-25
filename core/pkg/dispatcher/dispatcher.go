@@ -9,9 +9,9 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// CatalogEntry holds basic metadata for a catalog item.
+// HandlerMeta holds basic metadata for a catalog item.
 // Used by command and query dispatchers for per-type documentation.
-type CatalogEntry struct {
+type HandlerMeta struct {
 	Name    string
 	Version string
 	Summary string
@@ -193,7 +193,7 @@ func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 
 // CatalogDispatcher is a mixin that provides catalog entry management.
 // KT is the type key (e.g., command.Type or query.Type).
-// VT is the catalog metadata type (e.g., dispatcher.CatalogEntry).
+// VT is the catalog metadata type (e.g., dispatcher.HandlerMeta).
 type CatalogDispatcher[KT comparable, VT any] struct {
 	catalogEntries map[KT]VT
 }
@@ -211,9 +211,9 @@ func newCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
 	return c
 }
 
-// RegisterCatalogEntry stores catalog metadata for a type.
+// RegisterHandlerMeta stores catalog metadata for a type.
 // This is a side channel that doesn't affect dispatch behavior.
-func (c *CatalogDispatcher[KT, VT]) RegisterCatalogEntry(key KT, meta VT) {
+func (c *CatalogDispatcher[KT, VT]) RegisterHandlerMeta(key KT, meta VT) {
 	c.catalogEntries[key] = meta
 }
 

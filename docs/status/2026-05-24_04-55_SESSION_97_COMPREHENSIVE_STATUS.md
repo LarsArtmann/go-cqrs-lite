@@ -16,62 +16,62 @@ The go-cqrs-lite library is in **excellent shape**: 27/27 packages pass, zero li
 
 ### Core Library (Production-Ready)
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `core/command` | 94.7% | ✅ Complete | Dispatcher, handler, middleware, catalog |
-| `core/query` | 100.0% | ✅ Complete | Dispatcher, typed handlers, pagination |
-| `core/event` | 93.8% | ✅ Complete | Store/Bus/Snapshot interfaces, OutboxPublisher, Projection, Clock |
-| `core/aggregate` | 95.9% | ✅ Complete (deprecated) | Full functionality, `// Deprecated: use decider` |
-| `core/decider` | 93.6% | ✅ Complete | Pure-function aggregate pattern, recommended |
-| `core/pkg/dispatcher` | 100.0% | ✅ Complete | Generic Dispatcher[H, M], LifecycleMixin |
-| `core/pkg/id` | 98.1% | ✅ Complete | Branded IDs, ULID, Parse/MustParse |
+| Module                | Coverage | Status                   | Notes                                                             |
+| --------------------- | -------- | ------------------------ | ----------------------------------------------------------------- |
+| `core/command`        | 94.7%    | ✅ Complete              | Dispatcher, handler, middleware, catalog                          |
+| `core/query`          | 100.0%   | ✅ Complete              | Dispatcher, typed handlers, pagination                            |
+| `core/event`          | 93.8%    | ✅ Complete              | Store/Bus/Snapshot interfaces, OutboxPublisher, Projection, Clock |
+| `core/aggregate`      | 95.9%    | ✅ Complete (deprecated) | Full functionality, `// Deprecated: use decider`                  |
+| `core/decider`        | 93.6%    | ✅ Complete              | Pure-function aggregate pattern, recommended                      |
+| `core/pkg/dispatcher` | 100.0%   | ✅ Complete              | Generic Dispatcher[H, M], LifecycleMixin                          |
+| `core/pkg/id`         | 98.1%    | ✅ Complete              | Branded IDs, ULID, Parse/MustParse                                |
 
 ### Infrastructure Modules
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `memory` | 99.6% | ✅ Complete | MemoryStore, MemoryBus, MemorySnapshotStore |
-| `middleware` | 100.0% | ✅ Complete | Logging, Retry, Recovery, Validation, Metrics |
-| `testhelpers` | 94.4% | ✅ Complete | FakeStore, FakeBus, FakeOutbox, handlers, assertions |
-| `projection` | 94.4% | ✅ Complete | Runner, HandlerRegistry, Builder with On[T] |
+| Module        | Coverage | Status      | Notes                                                |
+| ------------- | -------- | ----------- | ---------------------------------------------------- |
+| `memory`      | 99.6%    | ✅ Complete | MemoryStore, MemoryBus, MemorySnapshotStore          |
+| `middleware`  | 100.0%   | ✅ Complete | Logging, Retry, Recovery, Validation, Metrics        |
+| `testhelpers` | 94.4%    | ✅ Complete | FakeStore, FakeBus, FakeOutbox, handlers, assertions |
+| `projection`  | 94.4%    | ✅ Complete | Runner, HandlerRegistry, Builder with On[T]          |
 
 ### Documentation & Catalog
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `catalog` | 96.8% | ✅ Complete | Registry, SchemaFromType, typed IDs |
-| `catalog/adapters` | 100.0% | ✅ Complete | CatalogBuilder, FromDispatcher adapters |
-| `catalog/asyncapi` | 93.7% | ✅ Complete | AsyncAPI 3.0 YAML/JSON export |
-| `catalog/d2` | 95.0% | ✅ Complete | D2 diagram text export |
-| `catalog/eventcatalog` | 91.3% | ✅ Complete | EventCatalog MDX generator |
-| `catalog/docserver` | 90.1% | ✅ Complete | HTTP doc server |
-| `catalog/openapi` | 94.4% | ✅ Complete | OpenAPI 3.0 export |
-| `catalog/internal/caseutil` | 100.0% | ✅ Complete | Case conversion utilities |
+| Module                      | Coverage | Status      | Notes                                   |
+| --------------------------- | -------- | ----------- | --------------------------------------- |
+| `catalog`                   | 96.8%    | ✅ Complete | Registry, SchemaFromType, typed IDs     |
+| `catalog/adapters`          | 100.0%   | ✅ Complete | CatalogBuilder, FromDispatcher adapters |
+| `catalog/asyncapi`          | 93.7%    | ✅ Complete | AsyncAPI 3.0 YAML/JSON export           |
+| `catalog/d2`                | 95.0%    | ✅ Complete | D2 diagram text export                  |
+| `catalog/eventcatalog`      | 91.3%    | ✅ Complete | EventCatalog MDX generator              |
+| `catalog/docserver`         | 90.1%    | ✅ Complete | HTTP doc server                         |
+| `catalog/openapi`           | 94.4%    | ✅ Complete | OpenAPI 3.0 export                      |
+| `catalog/internal/caseutil` | 100.0%   | ✅ Complete | Case conversion utilities               |
 
 ### Storage
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `storage` | 89.3% | ✅ Complete | SQL event store (Postgres + SQLite), Pebble store |
+| Module    | Coverage | Status      | Notes                                             |
+| --------- | -------- | ----------- | ------------------------------------------------- |
+| `storage` | 89.3%    | ✅ Complete | SQL event store (Postgres + SQLite), Pebble store |
 
 ### Sync (New Module)
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `sync` | 97.6% | ✅ Complete | VectorClock, ConflictResolver, LWW, Operation types |
+| Module | Coverage | Status      | Notes                                               |
+| ------ | -------- | ----------- | --------------------------------------------------- |
+| `sync` | 97.6%    | ✅ Complete | VectorClock, ConflictResolver, LWW, Operation types |
 
 ### Session 97 Deliverables (All Complete)
 
-| Commit | Summary | Status |
-|--------|---------|--------|
-| `7d38273` | FakeStore defensive copies — Load/LoadFromVersion return copies, not references | ✅ |
-| `c74129a` | NewOperation validation + MustNewOperation — breaking but safe (no external consumers) | ✅ |
-| `0b85fbc` | VectorClock.String() + MergeResult.String() — deterministic, sorted, tested | ✅ |
-| `13e0504` | Doc comments — OutboxPublisher, Projection, Builder, On[T], Build | ✅ |
-| `65a1116` | testhelpers coverage 79.7% → 94.4% | ✅ |
-| `617135a` | Error wrapping — storage Save/AppendBatch, projection handleAndCheckpoint | ✅ |
-| `fad7766` | .gitignore SQLite WAL/SHM patterns | ✅ |
-| `c4462a8` | Zero lint — extract `"unknown"` to `clockOrderUnknown` constant | ✅ |
+| Commit    | Summary                                                                                | Status |
+| --------- | -------------------------------------------------------------------------------------- | ------ |
+| `7d38273` | FakeStore defensive copies — Load/LoadFromVersion return copies, not references        | ✅     |
+| `c74129a` | NewOperation validation + MustNewOperation — breaking but safe (no external consumers) | ✅     |
+| `0b85fbc` | VectorClock.String() + MergeResult.String() — deterministic, sorted, tested            | ✅     |
+| `13e0504` | Doc comments — OutboxPublisher, Projection, Builder, On[T], Build                      | ✅     |
+| `65a1116` | testhelpers coverage 79.7% → 94.4%                                                     | ✅     |
+| `617135a` | Error wrapping — storage Save/AppendBatch, projection handleAndCheckpoint              | ✅     |
+| `fad7766` | .gitignore SQLite WAL/SHM patterns                                                     | ✅     |
+| `c4462a8` | Zero lint — extract `"unknown"` to `clockOrderUnknown` constant                        | ✅     |
 
 ---
 
@@ -86,10 +86,10 @@ The go-cqrs-lite library is in **excellent shape**: 27/27 packages pass, zero li
 
 ### File Size Limit — 2 Files Exceed 250 Lines
 
-| File | Lines | Over by |
-|------|-------|---------|
-| `core/event/event.go` | 273 | +23 |
-| `catalog/eventcatalog/exporter.go` | 251 | +1 |
+| File                               | Lines | Over by |
+| ---------------------------------- | ----- | ------- |
+| `core/event/event.go`              | 273   | +23     |
+| `catalog/eventcatalog/exporter.go` | 251   | +1      |
 
 - `event.go` has the core event struct, metadata, and constructors. Splitting is possible but tricky (circular deps risk).
 - `exporter.go` barely exceeds — minor refactor could fix it.
@@ -106,14 +106,14 @@ The go-cqrs-lite library is in **excellent shape**: 27/27 packages pass, zero li
 
 ### Coverage Improvements (Ordered by Impact)
 
-| Module | Current | Target | Gap | Effort |
-|--------|---------|--------|-----|--------|
-| `catalog/internal/schemautil` | 84.2% | 90%+ | 5.8pp | Low — untested edge cases in reflect |
-| `storage` | 89.3% | 93%+ | 3.7pp | Medium — Pebble error paths, edge cases |
-| `catalog/eventcatalog` | 91.3% | 94%+ | 2.7pp | Low — uncovered branches in writer |
-| `catalog/docserver` | 90.1% | 93%+ | 2.9pp | Low — uncovered HTTP handler branches |
-| `core/event` | 93.8% | 96%+ | 2.2pp | Medium — batch API edge cases |
-| `core/decider` | 93.6% | 96%+ | 2.4pp | Medium — error wrapping paths |
+| Module                        | Current | Target | Gap   | Effort                                  |
+| ----------------------------- | ------- | ------ | ----- | --------------------------------------- |
+| `catalog/internal/schemautil` | 84.2%   | 90%+   | 5.8pp | Low — untested edge cases in reflect    |
+| `storage`                     | 89.3%   | 93%+   | 3.7pp | Medium — Pebble error paths, edge cases |
+| `catalog/eventcatalog`        | 91.3%   | 94%+   | 2.7pp | Low — uncovered branches in writer      |
+| `catalog/docserver`           | 90.1%   | 93%+   | 2.9pp | Low — uncovered HTTP handler branches   |
+| `core/event`                  | 93.8%   | 96%+   | 2.2pp | Medium — batch API edge cases           |
+| `core/decider`                | 93.6%   | 96%+   | 2.4pp | Medium — error wrapping paths           |
 
 ### Architectural Improvements
 
@@ -149,6 +149,7 @@ github.com/larsartmann/cqrs-htmx/errors.go:34:9: undefined: event.RegisterClassi
 The `cqrs-htmx` dependency references `event.RegisterClassification` which was removed in Session 89's API surface reduction (~60 exports removed). The `example/todo` module pulls in `cqrs-htmx` as a dependency, and it hasn't been updated.
 
 **Options:**
+
 1. Update `cqrs-htmx` to use `go-error-family` directly (best long-term fix)
 2. Remove `cqrs-htmx` dependency from `example/todo` and inline the needed code
 3. Re-add `RegisterClassification` as a compatibility shim (worst option — reverses cleanup)
@@ -156,6 +157,7 @@ The `cqrs-htmx` dependency references `event.RegisterClassification` which was r
 ### example/todo Dependency Chaos
 
 The `example/todo/go.mod` has a massive dependency tree:
+
 - `cockroachdb/pebble` (storage engine)
 - `turso.tech/database/tursogo` (Turso DB)
 - `casbin/casbin/v3` (authorization)
@@ -198,33 +200,33 @@ This is a 39-line indirect dependency chain for what should be a simple example 
 
 **Sorted by impact × effort (highest first):**
 
-| # | Task | Impact | Effort | Type |
-|---|------|--------|--------|------|
-| 1 | Fix example/todo build (cqrs-htmx API break) | HIGH | S | Fix |
-| 2 | Trim example/todo dependency tree | HIGH | M | Cleanup |
-| 3 | Split core/event/event.go under 250 lines | MEDIUM | S | Convention |
-| 4 | Fix catalog/eventcatalog/exporter.go under 250 lines | LOW | XS | Convention |
-| 5 | Bump module versions after API surface changes | MEDIUM | S | Release |
-| 6 | Add schemautil coverage (84.2% → 90%+) | MEDIUM | M | Testing |
-| 7 | Add storage Pebble error path tests (89.3% → 93%+) | MEDIUM | M | Testing |
-| 8 | Add eventcatalog coverage (91.3% → 94%+) | LOW | S | Testing |
-| 9 | Add docserver coverage (90.1% → 93%+) | LOW | S | Testing |
-| 10 | Review and clean up nolint directives (32 files) | LOW | M | Cleanup |
-| 11 | Remove deprecated IdempotencyKey or set removal timeline | LOW | XS | API |
-| 12 | Update README to show decider pattern | MEDIUM | S | Docs |
-| 13 | Add decider coverage (93.6% → 96%+) | LOW | M | Testing |
-| 14 | Add event coverage (93.8% → 96%+) | LOW | M | Testing |
-| 15 | Create CHANGELOG.md | LOW | S | Docs |
-| 16 | Add benchmark suite for core modules | MEDIUM | M | Testing |
-| 17 | Discuss `sync` module rename with owner | LOW | XS | Decision |
-| 18 | Evaluate query.Handler generic redesign | MEDIUM | L | Architecture |
-| 19 | Add fuzz tests for ID parsing and event marshaling | MEDIUM | M | Testing |
-| 20 | Consider event.Store ISP split into finer interfaces | HIGH | L | Architecture |
-| 21 | Extract example/user and example/todo to separate repos | MEDIUM | M | Structure |
-| 22 | Add Go examples (testable ExampleXxx functions) | LOW | M | Docs |
-| 23 | Review catalog dead exports (MakeEvent, AssertEqual, etc.) | LOW | S | Cleanup |
-| 24 | Add integration test for OutboxPublisher with real timing | LOW | M | Testing |
-| 25 | Evaluate MemoryBus RLock-during-handler fix | LOW | M | Design |
+| #   | Task                                                       | Impact | Effort | Type         |
+| --- | ---------------------------------------------------------- | ------ | ------ | ------------ |
+| 1   | Fix example/todo build (cqrs-htmx API break)               | HIGH   | S      | Fix          |
+| 2   | Trim example/todo dependency tree                          | HIGH   | M      | Cleanup      |
+| 3   | Split core/event/event.go under 250 lines                  | MEDIUM | S      | Convention   |
+| 4   | Fix catalog/eventcatalog/exporter.go under 250 lines       | LOW    | XS     | Convention   |
+| 5   | Bump module versions after API surface changes             | MEDIUM | S      | Release      |
+| 6   | Add schemautil coverage (84.2% → 90%+)                     | MEDIUM | M      | Testing      |
+| 7   | Add storage Pebble error path tests (89.3% → 93%+)         | MEDIUM | M      | Testing      |
+| 8   | Add eventcatalog coverage (91.3% → 94%+)                   | LOW    | S      | Testing      |
+| 9   | Add docserver coverage (90.1% → 93%+)                      | LOW    | S      | Testing      |
+| 10  | Review and clean up nolint directives (32 files)           | LOW    | M      | Cleanup      |
+| 11  | Remove deprecated IdempotencyKey or set removal timeline   | LOW    | XS     | API          |
+| 12  | Update README to show decider pattern                      | MEDIUM | S      | Docs         |
+| 13  | Add decider coverage (93.6% → 96%+)                        | LOW    | M      | Testing      |
+| 14  | Add event coverage (93.8% → 96%+)                          | LOW    | M      | Testing      |
+| 15  | Create CHANGELOG.md                                        | LOW    | S      | Docs         |
+| 16  | Add benchmark suite for core modules                       | MEDIUM | M      | Testing      |
+| 17  | Discuss `sync` module rename with owner                    | LOW    | XS     | Decision     |
+| 18  | Evaluate query.Handler generic redesign                    | MEDIUM | L      | Architecture |
+| 19  | Add fuzz tests for ID parsing and event marshaling         | MEDIUM | M      | Testing      |
+| 20  | Consider event.Store ISP split into finer interfaces       | HIGH   | L      | Architecture |
+| 21  | Extract example/user and example/todo to separate repos    | MEDIUM | M      | Structure    |
+| 22  | Add Go examples (testable ExampleXxx functions)            | LOW    | M      | Docs         |
+| 23  | Review catalog dead exports (MakeEvent, AssertEqual, etc.) | LOW    | S      | Cleanup      |
+| 24  | Add integration test for OutboxPublisher with real timing  | LOW    | M      | Testing      |
+| 25  | Evaluate MemoryBus RLock-during-handler fix                | LOW    | M      | Design       |
 
 ---
 
@@ -239,6 +241,7 @@ The `example/todo` app is the **only consumer** of the broken `cqrs-htmx` depend
 3. **Bloat** — The example has more production dependencies than the library.
 
 Moving `example/todo` (and possibly `example/user`) to their own repos would:
+
 - Keep the library build clean and self-contained
 - Allow examples to version-lock independently
 - Remove the `cqrs-htmx` dependency from this repo entirely
@@ -272,42 +275,42 @@ The alternative is to fix `cqrs-htmx` and keep examples here, but that creates a
 
 ### Build & Quality Gates
 
-| Gate | Status |
-|------|--------|
-| Tests | ✅ 27/27 packages pass |
-| Lint | ✅ 0 issues across all 10 modules |
-| Vet | ✅ Clean |
-| Format | ✅ Clean (gofumpt) |
-| Build | ❌ example/todo broken (cqrs-htmx API break) |
-| File sizes | ⚠️ 2 files over 250 lines |
-| TODOs | ✅ 0 TODO/FIXME/HACK markers |
-| Deprecated | 2 items (aggregate package, IdempotencyKey) |
+| Gate       | Status                                       |
+| ---------- | -------------------------------------------- |
+| Tests      | ✅ 27/27 packages pass                       |
+| Lint       | ✅ 0 issues across all 10 modules            |
+| Vet        | ✅ Clean                                     |
+| Format     | ✅ Clean (gofumpt)                           |
+| Build      | ❌ example/todo broken (cqrs-htmx API break) |
+| File sizes | ⚠️ 2 files over 250 lines                    |
+| TODOs      | ✅ 0 TODO/FIXME/HACK markers                 |
+| Deprecated | 2 items (aggregate package, IdempotencyKey)  |
 
 ### Codebase Stats
 
-| Metric | Value |
-|--------|-------|
-| Production Go code | 13,993 lines (16,266 with examples) |
-| Test Go code | 31,263 lines |
-| Test:Production ratio | 2.23:1 |
-| Total functions | 926 |
-| Structs | 64 |
-| Interfaces | 23 |
-| Modules | 12 (core, memory, catalog, middleware, testhelpers, projection, storage, integration, sync, example/user, example/todo, root) |
-| nolint directives | 32 files |
+| Metric                | Value                                                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Production Go code    | 13,993 lines (16,266 with examples)                                                                                           |
+| Test Go code          | 31,263 lines                                                                                                                  |
+| Test:Production ratio | 2.23:1                                                                                                                        |
+| Total functions       | 926                                                                                                                           |
+| Structs               | 64                                                                                                                            |
+| Interfaces            | 23                                                                                                                            |
+| Modules               | 12 (core, memory, catalog, middleware, testhelpers, projection, storage, integration, sync, example/user, example/todo, root) |
+| nolint directives     | 32 files                                                                                                                      |
 
 ### Session History (Sessions 89–97)
 
-| Session | Key Achievement |
-|---------|-----------------|
-| 89 | API surface reduction: ~60 exports removed, 89.3→92.1% coverage |
-| 90 | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID |
-| 92 | Query typed bookend docs, example/todo typed handlers + Pagination |
-| 93 | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build |
-| 94 | gci v2 fix, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100% |
-| 95 | Code deduplication sweep — 19+ test helper extractions |
-| 96 | VectorClock nil map bug fix, gopls hints, golden test refresh |
-| 97 | FakeStore defensive copies, NewOperation validation, String() methods, doc comments, error wrapping, testhelpers 79.7→94.4%, zero lint |
+| Session | Key Achievement                                                                                                                        |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                                                        |
+| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID                                                  |
+| 92      | Query typed bookend docs, example/todo typed handlers + Pagination                                                                     |
+| 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build                                                       |
+| 94      | gci v2 fix, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%                                                        |
+| 95      | Code deduplication sweep — 19+ test helper extractions                                                                                 |
+| 96      | VectorClock nil map bug fix, gopls hints, golden test refresh                                                                          |
+| 97      | FakeStore defensive copies, NewOperation validation, String() methods, doc comments, error wrapping, testhelpers 79.7→94.4%, zero lint |
 
 ---
 

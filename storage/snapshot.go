@@ -30,6 +30,14 @@ func NewSQLiteSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, SQLiteDialect{})
 }
 
+// NewSQLSnapshotStoreWithDialect creates a new SQL-backed snapshot store with a custom dialect.
+// This enables consumers to use any SQL backend by implementing the Dialect interface.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
+	return newSQLSnapshotStoreWithDialect(db, d)
+}
+
 func newSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)

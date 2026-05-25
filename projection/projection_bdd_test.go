@@ -56,7 +56,7 @@ var _ = Describe("Projection Runner", func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		store = memory.NewMemoryStore()
 		bus = memory.NewMemoryBus()
-		checkpoint = memory.NewCheckpointStore()
+		checkpoint = memory.NewMemoryCheckpointStore()
 	})
 
 	AfterEach(func() {

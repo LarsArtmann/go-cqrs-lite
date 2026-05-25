@@ -35,7 +35,7 @@ func ExampleNewEvent() {
 }
 
 func ExampleInMemoryRunner() {
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	runner, err := event.NewInMemoryRunner(checkpoint)
 	if err != nil {

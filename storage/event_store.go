@@ -30,6 +30,14 @@ func NewSQLiteEventStore(db *sql.DB) (*SQLEventStore, error) {
 	return newSQLEventStoreWithDialect(db, SQLiteDialect{})
 }
 
+// NewSQLEventStoreWithDialect creates a new SQL-backed event store with a custom dialect.
+// This enables consumers to use any SQL backend (MySQL, CockroachDB, etc.) by implementing the Dialect interface.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
+	return newSQLEventStoreWithDialect(db, d)
+}
+
 func newSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)

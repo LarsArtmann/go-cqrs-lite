@@ -12,7 +12,7 @@ import (
 
 // Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	dispatcher.CatalogDispatcher[Type, dispatcher.CatalogEntry]
+	dispatcher.CatalogDispatcher[Type, dispatcher.HandlerMeta]
 
 	inner *dispatcher.Dispatcher[Handler, Middleware]
 }

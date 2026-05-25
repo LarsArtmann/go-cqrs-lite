@@ -14,8 +14,8 @@ type MemoryCheckpointStore struct {
 	checkpoints map[string]id.EventID
 }
 
-// NewCheckpointStore creates a new empty MemoryCheckpointStore.
-func NewCheckpointStore() *MemoryCheckpointStore {
+// NewMemoryCheckpointStore creates a new empty MemoryCheckpointStore.
+func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 	return &MemoryCheckpointStore{
 		checkpoints: make(map[string]id.EventID),
 		mu:          sync.RWMutex{},

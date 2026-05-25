@@ -12,7 +12,7 @@ import (
 )
 
 type UpdateTodoCommand struct {
-	command.Core
+	command.BasicCommand
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }

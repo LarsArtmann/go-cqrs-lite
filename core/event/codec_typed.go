@@ -17,7 +17,7 @@ func New(
 	version Version,
 	payload any,
 	opts ...Option,
-) (*Core, error) {
+) (*ImmutableEvent, error) {
 	data, err := marshalPayload(payload, eventType)
 	if err != nil {
 		return nil, err

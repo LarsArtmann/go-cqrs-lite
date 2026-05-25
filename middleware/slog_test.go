@@ -13,7 +13,7 @@ import (
 )
 
 type slogTestCommand struct {
-	*command.Core
+	*command.BasicCommand
 }
 
 func TestSlogAdapter_CommandLogging(t *testing.T) {
@@ -34,7 +34,7 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	cmd := &slogTestCommand{Core: core}
+	cmd := &slogTestCommand{BasicCommand: core}
 
 	err = handler(context.Background(), cmd)
 	if err != nil {
@@ -75,7 +75,7 @@ func TestSlogAdapter_CommandLogging_Error(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	cmd := &slogTestCommand{Core: core}
+	cmd := &slogTestCommand{BasicCommand: core}
 
 	err = handler(context.Background(), cmd)
 	if err == nil {

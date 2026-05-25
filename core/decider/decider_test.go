@@ -169,7 +169,7 @@ func makeEvent(
 	eventType string,
 	aggID id.AggregateID,
 	version event.Version,
-) *event.Core {
+) *event.ImmutableEvent {
 	t.Helper()
 
 	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))

@@ -70,14 +70,14 @@ func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int)
 		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(version))
 }
 
-func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
+func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit()
 }
 
-func saveEvt(t *testing.T, store *SQLEventStore, evt *event.Core) error {
+func saveEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) error {
 	t.Helper()
 
 	return store.Save(
@@ -89,13 +89,13 @@ func saveEvt(t *testing.T, store *SQLEventStore, evt *event.Core) error {
 	)
 }
 
-func appendBatchEvt(t *testing.T, store *SQLEventStore, evt *event.Core) error {
+func appendBatchEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) error {
 	t.Helper()
 
 	return store.AppendBatch(context.Background(), "User", evt.AggregateID(), []event.Event{evt})
 }
 
-func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
+func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
@@ -103,7 +103,7 @@ func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.Core) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 }
 
-func testEvent(t *testing.T) *event.Core {
+func testEvent(t *testing.T) *event.ImmutableEvent {
 	t.Helper()
 
 	return testEventWithAggID(t, id.NewAggregateID(), 1)
@@ -114,7 +114,7 @@ func testEventWithAggID(
 	aggID id.AggregateID,
 	version event.Version,
 	opts ...event.Option,
-) *event.Core {
+) *event.ImmutableEvent {
 	t.Helper()
 
 	evt, err := event.NewEvent(

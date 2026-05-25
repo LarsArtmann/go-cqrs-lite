@@ -7,14 +7,14 @@ import (
 )
 
 // Option configures event creation.
-type Option func(*Core)
+type Option func(*ImmutableEvent)
 
 // metadataOption sets a single field on Metadata.
 type metadataOption[T any] func(*Metadata, T)
 
 // apply applies a metadataOption to a Metadata pointer.
 func apply[T any](field metadataOption[T], value T) Option {
-	return func(e *Core) {
+	return func(e *ImmutableEvent) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
@@ -26,19 +26,19 @@ func apply[T any](field metadataOption[T], value T) Option {
 // WithEventID overrides the auto-generated event ID.
 // Use for reconstructing events from storage where the original ID must be preserved.
 func WithEventID(v id.EventID) Option {
-	return func(e *Core) { e.id = v }
+	return func(e *ImmutableEvent) { e.id = v }
 }
 
 // WithOccurredAt overrides the event timestamp.
 // Use for reconstructing events from storage where the original timestamp must be preserved.
 func WithOccurredAt(v time.Time) Option {
-	return func(e *Core) { e.occurredAt = v }
+	return func(e *ImmutableEvent) { e.occurredAt = v }
 }
 
 // WithMetadata merges the given metadata into the event's existing metadata.
 // Existing fields are overwritten by the provided metadata.
 func WithMetadata(m *Metadata) Option {
-	return func(e *Core) {
+	return func(e *ImmutableEvent) {
 		if e.metadata == nil {
 			e.metadata = m
 
@@ -94,7 +94,7 @@ const (
 
 // WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) Option {
-	return func(e *Core) {
+	return func(e *ImmutableEvent) {
 		if e.metadata == nil {
 			e.metadata = NewMetadata()
 		}
@@ -111,13 +111,13 @@ func WithCustom(key MetadataKey, value string) Option {
 // Defaults to 1. Use when reconstructing events from storage or
 // when creating events with a known schema version.
 func WithSchemaVersion(v SchemaVersion) Option {
-	return func(e *Core) { e.schemaVersion = v }
+	return func(e *ImmutableEvent) { e.schemaVersion = v }
 }
 
 // WithClock sets the clock function used to determine OccurredAt.
 // Override for deterministic testing. Without this option, events use time.Now.
 func WithClock(clock Clock) Option {
-	return func(e *Core) { e.clock = clock }
+	return func(e *ImmutableEvent) { e.clock = clock }
 }
 
 // WithClientID sets the client device ID in event metadata.

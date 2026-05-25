@@ -14,7 +14,7 @@ func BenchmarkRunner_Register(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 	b.Cleanup(func() { _ = checkpoint.Close() })
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
@@ -37,7 +37,7 @@ func BenchmarkRunner_Register(b *testing.B) {
 func BenchmarkRunner_NewRunner(b *testing.B) {
 	for b.Loop() {
 		bus := memory.NewMemoryBus()
-		checkpoint := memory.NewCheckpointStore()
+		checkpoint := memory.NewMemoryCheckpointStore()
 
 		_, err := projection.NewRunner(nil, bus, checkpoint)
 		if err != nil {
@@ -53,7 +53,7 @@ func BenchmarkRunner_CurrentCheckpoint(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 	b.Cleanup(func() { _ = checkpoint.Close() })
 
 	ctx := context.Background()

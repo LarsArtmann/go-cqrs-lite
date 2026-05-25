@@ -12,7 +12,7 @@ import (
 var errTestFailure = errors.New("test failure")
 
 type testTypedCmd struct {
-	*command.Core
+	*command.BasicCommand
 
 	Payload string
 }
@@ -34,8 +34,8 @@ func TestRegisterTyped_Success(t *testing.T) {
 	}
 
 	cmd := &testTypedCmd{
-		Core:    command.MustNew("test.cmd", id.NewAggregateID()),
-		Payload: "hello",
+		BasicCommand: command.MustNew("test.cmd", id.NewAggregateID()),
+		Payload:      "hello",
 	}
 
 	if err := d.Dispatch(context.Background(), cmd); err != nil {
@@ -55,7 +55,7 @@ func TestRegisterTyped_HandlerError(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	cmd := &testTypedCmd{Core: command.MustNew("fail.cmd", id.NewAggregateID())}
+	cmd := &testTypedCmd{BasicCommand: command.MustNew("fail.cmd", id.NewAggregateID())}
 
 	if err := d.Dispatch(context.Background(), cmd); !errors.Is(err, errTestFailure) {
 		t.Fatalf("expected errTestFailure, got %v", err)
@@ -100,7 +100,7 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	cmd := &testTypedCmd{Core: command.MustNew("mw.cmd", id.NewAggregateID())}
+	cmd := &testTypedCmd{BasicCommand: command.MustNew("mw.cmd", id.NewAggregateID())}
 
 	if err := d.Dispatch(context.Background(), cmd); err != nil {
 		t.Fatalf("Dispatch() error = %v", err)

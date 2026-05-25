@@ -18,22 +18,22 @@ type Command interface {
 	AggregateID() id.AggregateID
 }
 
-// Core provides a default implementation.
-type Core struct {
+// BasicCommand provides a default implementation.
+type BasicCommand struct {
 	commandType Type
 	aggregateID id.AggregateID
 }
 
-var _ Command = (*Core)(nil)
+var _ Command = (*BasicCommand)(nil)
 
 // Type returns the command type.
-func (c *Core) Type() Type { return c.commandType }
+func (c *BasicCommand) Type() Type { return c.commandType }
 
 // AggregateID returns the aggregate ID.
-func (c *Core) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *BasicCommand) AggregateID() id.AggregateID { return c.aggregateID }
 
 // New creates a new command with validation.
-func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
+func New(commandType Type, aggregateID id.AggregateID) (*BasicCommand, error) {
 	if commandType == "" {
 		return nil, fmt.Errorf(
 			"%w: got empty for aggregate %q",
@@ -50,7 +50,7 @@ func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
 		)
 	}
 
-	return &Core{
+	return &BasicCommand{
 		commandType: commandType,
 		aggregateID: aggregateID,
 	}, nil
@@ -58,7 +58,7 @@ func New(commandType Type, aggregateID id.AggregateID) (*Core, error) {
 
 // MustNew creates a new command or panics on validation failure.
 // Use only in tests where inputs are guaranteed valid.
-func MustNew(commandType Type, aggregateID id.AggregateID) *Core {
+func MustNew(commandType Type, aggregateID id.AggregateID) *BasicCommand {
 	c, err := New(commandType, aggregateID)
 	if err != nil {
 		panic(fmt.Sprintf("command.MustNew: %v", err))

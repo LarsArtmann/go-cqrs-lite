@@ -13,7 +13,7 @@ func TestUpcasterFunc(t *testing.T) {
 	uc := newUpcaster(
 		"UserCreated",
 		1,
-		func(_ Event) (*Core, error) {
+		func(_ Event) (*ImmutableEvent, error) {
 			aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 			return NewEvent("UserCreated", aggID, "User", 2, nil)
@@ -59,7 +59,7 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 	registry.register(newUpcaster(
 		"UserCreated",
 		1,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
@@ -90,7 +90,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":""}`))
 		},
@@ -98,7 +98,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry.register(newUpcaster(
 		"UserCreated", 2,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
 				[]byte(`{"name":"Alice","email":"","active":true}`))
 		},
@@ -130,7 +130,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
@@ -162,7 +162,7 @@ func registerTrackingUpcaster(
 ) {
 	registry.register(newUpcaster(
 		"UserCreated", version,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			*applied = append(*applied, int(version))
 
 			return NewEvent(
@@ -267,7 +267,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	registry.register(newUpcaster(
 		"UserCreated", 1,
-		func(evt Event) (*Core, error) {
+		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent(
 				"UserCreated",
 				evt.AggregateID(),

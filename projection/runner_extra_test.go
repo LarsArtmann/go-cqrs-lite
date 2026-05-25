@@ -13,7 +13,7 @@ func TestRunner_Close(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	runner, err := projection.NewRunner(store, bus, checkpoint)
 	if err != nil {
@@ -31,7 +31,7 @@ func TestWithLogger(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 	logger := slog.Default()
 
 	_, err := projection.NewRunner(

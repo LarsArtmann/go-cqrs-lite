@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 )
 
-type DeleteTodoCommand struct{ command.Core }
+type DeleteTodoCommand struct{ command.BasicCommand }
 
 func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 	core, err := command.New(aggregate.CommandDelete, todoID)

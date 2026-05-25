@@ -377,11 +377,11 @@ func TestNewCatalogDispatcher(t *testing.T) {
 	}
 }
 
-func TestCatalogDispatcher_RegisterCatalogEntry(t *testing.T) {
+func TestCatalogDispatcher_RegisterHandlerMeta(t *testing.T) {
 	t.Parallel()
 
 	catalogDisp := newCatalogDispatcher[string, int]()
-	catalogDisp.RegisterCatalogEntry("cmd1", 42)
+	catalogDisp.RegisterHandlerMeta("cmd1", 42)
 
 	entries := catalogDisp.CatalogEntries()
 	if entries["cmd1"] != 42 {
@@ -393,7 +393,7 @@ func TestCatalogDispatcher_CatalogEntries_Copy(t *testing.T) {
 	t.Parallel()
 
 	catalogDisp := newCatalogDispatcher[string, int]()
-	catalogDisp.RegisterCatalogEntry("cmd1", 1)
+	catalogDisp.RegisterHandlerMeta("cmd1", 1)
 
 	entries := catalogDisp.CatalogEntries()
 	entries["cmd1"] = 999

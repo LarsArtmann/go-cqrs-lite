@@ -15,57 +15,60 @@ Extracted the `sync/` module (VectorClock, Operation[T], ConflictResolver[T], LW
 
 ### 1. Sync Module Extraction (this session)
 
-| Step | Status | Detail |
-|------|--------|--------|
-| READ: analyzed sync/ module | ✅ | 5 production files (~350 LOC), 4 test files (~900 LOC), 1 dependency (go-error-family) |
-| RESEARCH: cross-references | ✅ | Zero imports from any other go-cqrs-lite module. Only referenced in docs/status files |
-| REFLECT: extraction decision | ✅ | Not CQRS, no consumers, shadows stdlib, natural home is go-localsync |
-| Create `go-localsync/pkg/localsync/` | ✅ | Independent Go module with own go.mod, package renamed sync → localsync |
-| Update doc.go | ✅ | New import path, updated quick start examples |
-| Add to go-localsync workspace | ✅ | go.work updated, `go work sync` clean |
-| Remove from go-cqrs-lite | ✅ | sync/ directory deleted, go.work entry removed |
-| Update AGENTS.md (both repos) | ✅ | go-cqrs-lite: removed Sync Module section, module count 12→11. go-localsync: added pkg/localsync/ to package table |
-| Update FEATURES.md | ✅ | Removed "Sync Primitives" section entirely |
-| Update go.work.sum | ✅ | `go work sync` run on both repos |
-| Tests pass | ✅ | All 26 packages in go-cqrs-lite pass. All 8 packages in go-localsync pass |
-| go vet | ✅ | Clean on both repos |
+| Step                                 | Status | Detail                                                                                                             |
+| ------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| READ: analyzed sync/ module          | ✅     | 5 production files (~350 LOC), 4 test files (~900 LOC), 1 dependency (go-error-family)                             |
+| RESEARCH: cross-references           | ✅     | Zero imports from any other go-cqrs-lite module. Only referenced in docs/status files                              |
+| REFLECT: extraction decision         | ✅     | Not CQRS, no consumers, shadows stdlib, natural home is go-localsync                                               |
+| Create `go-localsync/pkg/localsync/` | ✅     | Independent Go module with own go.mod, package renamed sync → localsync                                            |
+| Update doc.go                        | ✅     | New import path, updated quick start examples                                                                      |
+| Add to go-localsync workspace        | ✅     | go.work updated, `go work sync` clean                                                                              |
+| Remove from go-cqrs-lite             | ✅     | sync/ directory deleted, go.work entry removed                                                                     |
+| Update AGENTS.md (both repos)        | ✅     | go-cqrs-lite: removed Sync Module section, module count 12→11. go-localsync: added pkg/localsync/ to package table |
+| Update FEATURES.md                   | ✅     | Removed "Sync Primitives" section entirely                                                                         |
+| Update go.work.sum                   | ✅     | `go work sync` run on both repos                                                                                   |
+| Tests pass                           | ✅     | All 26 packages in go-cqrs-lite pass. All 8 packages in go-localsync pass                                          |
+| go vet                               | ✅     | Clean on both repos                                                                                                |
 
 ### 2. go-cqrs-lite Pre-existing State (verified this session)
 
-| Metric | Value |
-|--------|-------|
-| Module count | 11 (was 12, now sync removed) |
-| Packages with tests | 26 |
-| All tests pass | ✅ |
-| go vet clean | ✅ |
-| Coverage range | 84.2%–100% |
-| Packages at 100% coverage | 5 (dispatcher, id, query, catalog/adapters, catalog/caseutil, middleware) |
-| Packages >90% coverage | 18 |
-| Lowest coverage | `catalog/internal/schemautil` 84.2%, `storage` 89.3% |
-| Zero production deps (core) | `oklog/ulid`, `go-branded-id`, `go-error-family` |
-| Zero lint issues | ✅ (as of last lint run) |
+| Metric                      | Value                                                                     |
+| --------------------------- | ------------------------------------------------------------------------- |
+| Module count                | 11 (was 12, now sync removed)                                             |
+| Packages with tests         | 26                                                                        |
+| All tests pass              | ✅                                                                        |
+| go vet clean                | ✅                                                                        |
+| Coverage range              | 84.2%–100%                                                                |
+| Packages at 100% coverage   | 5 (dispatcher, id, query, catalog/adapters, catalog/caseutil, middleware) |
+| Packages >90% coverage      | 18                                                                        |
+| Lowest coverage             | `catalog/internal/schemautil` 84.2%, `storage` 89.3%                      |
+| Zero production deps (core) | `oklog/ulid`, `go-branded-id`, `go-error-family`                          |
+| Zero lint issues            | ✅ (as of last lint run)                                                  |
 
 ### 3. go-localsync State (verified this session)
 
-| Metric | Value |
-|--------|-------|
-| Packages with tests | 8 |
-| All tests pass | ✅ |
+| Metric                 | Value |
+| ---------------------- | ----- |
+| Packages with tests    | 8     |
+| All tests pass         | ✅    |
 | pkg/localsync coverage | 97.6% |
-| pkg/errors coverage | 100% |
-| pkg/provider coverage | 100% |
+| pkg/errors coverage    | 100%  |
+| pkg/provider coverage  | 100%  |
 
 ---
 
 ## B) PARTIALLY DONE ⚠️
 
 ### 1. FEATURES.md module count mismatch
+
 FEATURES.md header still says "Module count: 12" — should be 11. Needs update.
 
 ### 2. go-localsync pkg/localsync not yet integrated into pkg/sync/
+
 The `pkg/sync/` package (Syncer, ConflictAwareSyncer) does NOT yet use `pkg/localsync`'s VectorClock/LWWResolver. It could — the ConflictAwareSyncer does inline LWW comparison that could delegate to `localsync.LWWResolver`. This is an optional improvement, not a blocker.
 
 ### 3. go-localsync pkg/localsync has no README or CHANGELOG
+
 The module was extracted with code and tests but no README.md or CHANGELOG.md of its own.
 
 ---
@@ -93,30 +96,30 @@ The module was extracted with code and tests but no README.md or CHANGELOG.md of
 
 ### Critical
 
-| # | Issue | Why | Effort |
-|---|-------|-----|--------|
-| 1 | `eventcatalog-output/` directory exists in go-cqrs-lite root | Likely a generated artifact that should be gitignored or deleted | 2 min |
-| 2 | `report/` directory in go-cqrs-lite root | Contains jscpd-report.json — should be gitignored | 2 min |
-| 3 | FEATURES.md header says "Module count: 12" | Stale after sync extraction | 1 min |
+| #   | Issue                                                        | Why                                                              | Effort |
+| --- | ------------------------------------------------------------ | ---------------------------------------------------------------- | ------ |
+| 1   | `eventcatalog-output/` directory exists in go-cqrs-lite root | Likely a generated artifact that should be gitignored or deleted | 2 min  |
+| 2   | `report/` directory in go-cqrs-lite root                     | Contains jscpd-report.json — should be gitignored                | 2 min  |
+| 3   | FEATURES.md header says "Module count: 12"                   | Stale after sync extraction                                      | 1 min  |
 
 ### High Impact
 
-| # | Issue | Why | Effort |
-|---|-------|-----|--------|
-| 4 | `pkg/sync/` in go-localsync has inline LWW logic | Should use `pkg/localsync.LWWResolver[T]` instead of reinventing | 30 min |
-| 5 | `pkg/localsync` has no README | Consumers won't know it exists | 15 min |
-| 6 | `go-cqrs-lite/example/todo` go.mod has lint warning | `httputil` should be direct dependency, not indirect | 5 min |
-| 7 | `testhelpers` coverage at 94.4% | Could be 100% with minor test additions | 15 min |
-| 8 | `catalog/internal/schemautil` at 84.2% | Lowest coverage in the project | 20 min |
+| #   | Issue                                               | Why                                                              | Effort |
+| --- | --------------------------------------------------- | ---------------------------------------------------------------- | ------ |
+| 4   | `pkg/sync/` in go-localsync has inline LWW logic    | Should use `pkg/localsync.LWWResolver[T]` instead of reinventing | 30 min |
+| 5   | `pkg/localsync` has no README                       | Consumers won't know it exists                                   | 15 min |
+| 6   | `go-cqrs-lite/example/todo` go.mod has lint warning | `httputil` should be direct dependency, not indirect             | 5 min  |
+| 7   | `testhelpers` coverage at 94.4%                     | Could be 100% with minor test additions                          | 15 min |
+| 8   | `catalog/internal/schemautil` at 84.2%              | Lowest coverage in the project                                   | 20 min |
 
 ### Medium Impact
 
-| # | Issue | Why | Effort |
-|---|-------|-----|--------|
-| 9 | Storage at 89.3% coverage | Should target >90% | 30 min |
-| 10 | No flake.nix test/lint integration for go-localsync | go-localsync lacks nix-based CI parity | 1 hr |
-| 11 | `pkg/localsync` uses `go-error-family` for 4 sentinel errors | Could use stdlib `errors.New` since these are simple sentinels, not classified errors | 10 min |
-| 12 | No benchmark baseline for pkg/localsync | Benchmarks exist (from extraction) but no CI regression tracking | 30 min |
+| #   | Issue                                                        | Why                                                                                   | Effort |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ |
+| 9   | Storage at 89.3% coverage                                    | Should target >90%                                                                    | 30 min |
+| 10  | No flake.nix test/lint integration for go-localsync          | go-localsync lacks nix-based CI parity                                                | 1 hr   |
+| 11  | `pkg/localsync` uses `go-error-family` for 4 sentinel errors | Could use stdlib `errors.New` since these are simple sentinels, not classified errors | 10 min |
+| 12  | No benchmark baseline for pkg/localsync                      | Benchmarks exist (from extraction) but no CI regression tracking                      | 30 min |
 
 ---
 
@@ -169,11 +172,13 @@ The module was extracted with code and tests but no README.md or CHANGELOG.md of
 **Should `pkg/localsync` stay as a sub-module within go-localsync, or become its own top-level repo (e.g., `github.com/larsartmann/go-localsync-primitives`)?**
 
 Arguments for own repo:
+
 - Truly independent — zero coupling to go-localsync's CQRS/provider/cqrs stack
 - Importable by ANY project (not just go-localsync consumers)
 - Cleaner semantic versioning
 
 Arguments for staying in go-localsync:
+
 - Already a separate Go module within the workspace
 - Only known consumer is go-localsync itself
 - Fewer repos to maintain
@@ -186,39 +191,39 @@ I lean toward **keeping it in go-localsync** (it's already a separate module) bu
 
 ### go-cqrs-lite (26 packages)
 
-| Package | Coverage |
-|---------|----------|
-| `core/query` | 100.0% |
-| `core/pkg/dispatcher` | 100.0% |
-| `core/pkg/id` | 100.0% |
-| `catalog/adapters` | 100.0% |
-| `catalog/internal/caseutil` | 100.0% |
-| `middleware` | 100.0% |
-| `memory` | 99.6% |
-| `core/aggregate` | 95.9% |
-| `catalog` | 96.8% |
-| `catalog/d2` | 95.0% |
-| `core/command` | 94.6% |
-| `catalog/openapi` | 94.4% |
-| `projection` | 94.4% |
-| `testhelpers` | 94.4% |
-| `core/decider` | 93.6% |
-| `core/event` | 93.8% |
-| `catalog/asyncapi` | 93.7% |
-| `catalog/eventcatalog` | 91.3% |
-| `catalog/docserver` | 90.1% |
-| `storage` | 89.3% |
-| `catalog/internal/schemautil` | 84.2% |
+| Package                       | Coverage |
+| ----------------------------- | -------- |
+| `core/query`                  | 100.0%   |
+| `core/pkg/dispatcher`         | 100.0%   |
+| `core/pkg/id`                 | 100.0%   |
+| `catalog/adapters`            | 100.0%   |
+| `catalog/internal/caseutil`   | 100.0%   |
+| `middleware`                  | 100.0%   |
+| `memory`                      | 99.6%    |
+| `core/aggregate`              | 95.9%    |
+| `catalog`                     | 96.8%    |
+| `catalog/d2`                  | 95.0%    |
+| `core/command`                | 94.6%    |
+| `catalog/openapi`             | 94.4%    |
+| `projection`                  | 94.4%    |
+| `testhelpers`                 | 94.4%    |
+| `core/decider`                | 93.6%    |
+| `core/event`                  | 93.8%    |
+| `catalog/asyncapi`            | 93.7%    |
+| `catalog/eventcatalog`        | 91.3%    |
+| `catalog/docserver`           | 90.1%    |
+| `storage`                     | 89.3%    |
+| `catalog/internal/schemautil` | 84.2%    |
 
 ### go-localsync (8 packages)
 
-| Package | Coverage |
-|---------|----------|
-| `pkg/localsync` | **97.6%** |
-| `pkg/errors` | 100.0% |
-| `pkg/provider` | 100.0% |
-| `pkg/providers/github` | 84.6% |
-| `pkg/types` | 87.5% |
-| `pkg/sync` | 87.2% |
-| `pkg/cqrs` | 81.2% |
-| `cmd/examples/github-sync` | 10.5% |
+| Package                    | Coverage  |
+| -------------------------- | --------- |
+| `pkg/localsync`            | **97.6%** |
+| `pkg/errors`               | 100.0%    |
+| `pkg/provider`             | 100.0%    |
+| `pkg/providers/github`     | 84.6%     |
+| `pkg/types`                | 87.5%     |
+| `pkg/sync`                 | 87.2%     |
+| `pkg/cqrs`                 | 81.2%     |
+| `cmd/examples/github-sync` | 10.5%     |

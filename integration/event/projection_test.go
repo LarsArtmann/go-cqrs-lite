@@ -15,7 +15,7 @@ var errTestProjection = errors.New("projection failed")
 func TestInMemoryRunner_Handle(t *testing.T) {
 	t.Parallel()
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	var handled []string
 
@@ -72,7 +72,7 @@ func TestInMemoryRunner_Handle(t *testing.T) {
 func TestInMemoryRunner_FiltersByEventType(t *testing.T) {
 	t.Parallel()
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	var handled []string
 
@@ -119,7 +119,7 @@ func TestInMemoryRunner_FiltersByEventType(t *testing.T) {
 func TestInMemoryRunner_SubscribesToAll(t *testing.T) {
 	t.Parallel()
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	var count int
 
@@ -166,7 +166,7 @@ func TestInMemoryRunner_SubscribesToAll(t *testing.T) {
 func TestInMemoryRunner_ProjectionError(t *testing.T) {
 	t.Parallel()
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	proj := event.NewProjection(
 		"failing",
@@ -199,7 +199,7 @@ func TestInMemoryRunner_ProjectionError(t *testing.T) {
 func TestMemoryCheckpointStore(t *testing.T) {
 	t.Parallel()
 
-	store := memory.NewCheckpointStore()
+	store := memory.NewMemoryCheckpointStore()
 	ctx := context.Background()
 
 	initialCP, err := store.Load(ctx, "my-projection")

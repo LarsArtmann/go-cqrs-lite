@@ -18,7 +18,7 @@ func newTestRoot() *testRoot {
 	return &testRoot{Core: aggregate.MustNewCore(aggID, event.AggregateType("User"))}
 }
 
-func makeUserEvent(t *testing.T) *event.Core {
+func makeUserEvent(t *testing.T) *event.ImmutableEvent {
 	t.Helper()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")

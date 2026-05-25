@@ -11,7 +11,7 @@ import (
 )
 
 type GetTodoQuery struct {
-	*query.Core
+	*query.BasicQuery
 	TodoID domain.TodoID `json:"todo_id"`
 }
 

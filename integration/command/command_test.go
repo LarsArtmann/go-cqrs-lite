@@ -122,17 +122,17 @@ func TestDispatcher_Closed(t *testing.T) {
 	}
 }
 
-func TestDispatcher_RegisterCatalogEntry(t *testing.T) {
+func TestDispatcher_RegisterHandlerMeta(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
-	meta := catdispatcher.CatalogEntry{
+	meta := catdispatcher.HandlerMeta{
 		Name:    "CreateUser",
 		Version: "1.0.0",
 		Summary: "Creates a new user",
 	}
 
-	dispatcher.RegisterCatalogEntry("user.create", meta)
+	dispatcher.RegisterHandlerMeta("user.create", meta)
 
 	entries := dispatcher.CatalogEntries()
 	if len(entries) != 1 {
@@ -153,10 +153,10 @@ func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
 	t.Parallel()
 
 	dispatcher := command.NewDispatcher()
-	dispatcher.RegisterCatalogEntry("cmd.a", catdispatcher.CatalogEntry{Name: "A"})
+	dispatcher.RegisterHandlerMeta("cmd.a", catdispatcher.HandlerMeta{Name: "A"})
 
 	entries := dispatcher.CatalogEntries()
-	entries["cmd.b"] = catdispatcher.CatalogEntry{Name: "B"}
+	entries["cmd.b"] = catdispatcher.HandlerMeta{Name: "B"}
 
 	if len(dispatcher.CatalogEntries()) != 1 {
 		t.Error("CatalogEntries should return a copy, not a reference")

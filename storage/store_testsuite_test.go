@@ -21,7 +21,7 @@ func (c storeTestConfig) newTestEvent(
 	aggID id.AggregateID,
 	version event.Version,
 	extraOpts ...event.Option,
-) *event.Core {
+) *event.ImmutableEvent {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -64,7 +64,7 @@ func saveCfgEvent(
 	store event.Store,
 	cfg storeTestConfig,
 	aggID id.AggregateID,
-	evt *event.Core,
+	evt *event.ImmutableEvent,
 ) {
 	t.Helper()
 

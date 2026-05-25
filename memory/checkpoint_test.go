@@ -10,7 +10,7 @@ import (
 func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
-	store := NewCheckpointStore()
+	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
 	eventID := id.NewEventID()
@@ -33,7 +33,7 @@ func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 func TestMemoryCheckpointStore_Load_Empty(t *testing.T) {
 	t.Parallel()
 
-	store := NewCheckpointStore()
+	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
 	loaded, err := store.Load(ctx, "nonexistent")
@@ -49,7 +49,7 @@ func TestMemoryCheckpointStore_Load_Empty(t *testing.T) {
 func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 	t.Parallel()
 
-	store := NewCheckpointStore()
+	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
 	first := id.NewEventID()
@@ -78,7 +78,7 @@ func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 func TestMemoryCheckpointStore_Close(t *testing.T) {
 	t.Parallel()
 
-	store := NewCheckpointStore()
+	store := NewMemoryCheckpointStore()
 
 	err := store.Close()
 	if err != nil {

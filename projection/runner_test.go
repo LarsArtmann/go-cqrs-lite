@@ -85,7 +85,7 @@ func registerReplayProjection(
 func TestNewRunner_NilBus(t *testing.T) {
 	t.Parallel()
 
-	_, err := projection.NewRunner(nil, nil, memory.NewCheckpointStore())
+	_, err := projection.NewRunner(nil, nil, memory.NewMemoryCheckpointStore())
 	if err == nil {
 		t.Fatal("expected error for nil bus")
 	}
@@ -103,7 +103,7 @@ func TestNewRunner_NilCheckpoint(t *testing.T) {
 func TestNewRunner_NilLoaderIsOK(t *testing.T) {
 	t.Parallel()
 
-	_, err := projection.NewRunner(nil, memory.NewMemoryBus(), memory.NewCheckpointStore())
+	_, err := projection.NewRunner(nil, memory.NewMemoryBus(), memory.NewMemoryCheckpointStore())
 	if err != nil {
 		t.Fatalf("nil loader should be ok: %v", err)
 	}
@@ -190,7 +190,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 
 	done := make(chan struct{})
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -328,7 +328,7 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -485,7 +485,7 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -565,7 +565,7 @@ func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -736,7 +736,7 @@ func newTestRunnerWithReadyAndOpts(
 	t.Helper()
 
 	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {
 		_ = bus.Close()
@@ -804,7 +804,7 @@ func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {
 		_ = bus.Close()
@@ -877,7 +877,7 @@ func TestRunner_ReplayError_HandlerFails(t *testing.T) {
 		t.Fatalf("Save: %v", saveErr)
 	}
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -938,7 +938,7 @@ func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
@@ -997,7 +997,7 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {
 		_ = bus.Close()
@@ -1061,7 +1061,7 @@ func TestRunner_SubscribeError(t *testing.T) {
 		func(_ event.Handler) error { return errors.New("subscribe all failed") },
 	)
 
-	checkpoint := memory.NewCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 

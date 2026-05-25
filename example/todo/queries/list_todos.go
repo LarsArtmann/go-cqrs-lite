@@ -10,7 +10,7 @@ import (
 )
 
 type ListTodosQuery struct {
-	*query.Core
+	*query.BasicQuery
 	Status     *domain.TodoStatus `json:"status,omitempty"`
 	Tags       []string           `json:"tags,omitempty"`
 	Priority   *int               `json:"priority,omitempty"`

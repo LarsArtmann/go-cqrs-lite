@@ -13,7 +13,7 @@ import (
 )
 
 type ChangeStatusCommand struct {
-	command.Core
+	command.BasicCommand
 	Status domain.TodoStatus `json:"status"`
 }
 

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/catalog
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/go-faster/yaml v0.4.6

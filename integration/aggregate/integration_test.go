@@ -71,7 +71,7 @@ func (p *product) LoadEvents(events []event.Event) error {
 }
 
 // newEvent creates a new event for the product aggregate.
-func (p *product) newEvent(eventType string, payload []byte) (*event.Core, error) {
+func (p *product) newEvent(eventType string, payload []byte) (*event.ImmutableEvent, error) {
 	return event.NewEvent(
 		event.Type(eventType),
 		p.ID(),

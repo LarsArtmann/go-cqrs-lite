@@ -16,28 +16,28 @@ type Query interface {
 	Type() Type
 }
 
-// Core provides a default implementation.
-type Core struct {
+// BasicQuery provides a default implementation.
+type BasicQuery struct {
 	queryType Type
 }
 
-var _ Query = (*Core)(nil)
+var _ Query = (*BasicQuery)(nil)
 
 // Type returns the query type.
-func (q *Core) Type() Type { return q.queryType }
+func (q *BasicQuery) Type() Type { return q.queryType }
 
 // New creates a new query with validation.
-func New(queryType Type) (*Core, error) {
+func New(queryType Type) (*BasicQuery, error) {
 	if queryType == "" {
 		return nil, ErrEmptyQueryType
 	}
 
-	return &Core{queryType: queryType}, nil
+	return &BasicQuery{queryType: queryType}, nil
 }
 
 // MustNew creates a new query or panics on validation failure.
 // Use only in tests where inputs are guaranteed valid.
-func MustNew(queryType Type) *Core {
+func MustNew(queryType Type) *BasicQuery {
 	q, err := New(queryType)
 	if err != nil {
 		panic(fmt.Sprintf("query.MustNew: %v", err))

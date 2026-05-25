@@ -61,7 +61,7 @@ func (b *builder) WithUserID(userID id.UserID) *builder {
 	return b
 }
 
-func (b *builder) Build() (*Core, error) {
+func (b *builder) Build() (*ImmutableEvent, error) {
 	evt, err := NewEvent(
 		b.eventType,
 		b.aggregateID,
@@ -77,7 +77,7 @@ func (b *builder) Build() (*Core, error) {
 	return evt, nil
 }
 
-func (b *builder) MustBuild() *Core {
+func (b *builder) MustBuild() *ImmutableEvent {
 	evt, err := b.Build()
 	if err != nil {
 		panic(fmt.Sprintf("event.builder.MustBuild: %v", err))

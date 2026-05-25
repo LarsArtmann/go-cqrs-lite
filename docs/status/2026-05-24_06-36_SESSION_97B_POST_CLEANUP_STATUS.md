@@ -16,54 +16,54 @@ The library is in **the best shape it has ever been**. 27/27 packages pass, zero
 
 ### This Session's Commits (7 since last report)
 
-| Commit | Summary |
-|--------|---------|
-| `d758dc8` | Wrap bare errors in pebble store (Save, writeEventsToBatch, AppendBatch) |
+| Commit    | Summary                                                                      |
+| --------- | ---------------------------------------------------------------------------- |
+| `d758dc8` | Wrap bare errors in pebble store (Save, writeEventsToBatch, AppendBatch)     |
 | `cb4f927` | Wrap bare errors in event_reconstruction, memory/bus, projection/runner_live |
-| `8c24f60` | **Remove deprecated `IdempotencyKey`** from Command interface (breaking) |
-| `ab71fd5` | Consolidate sentinel errors to errors.go (dispatcher + sync) |
-| `aa4e943` | MustParse panic tests: 4/7 → 7/7 coverage |
-| `e023b98` | Extract TursoSyncDB to own file |
-| `fc9a0e5` | gofumpt formatting |
+| `8c24f60` | **Remove deprecated `IdempotencyKey`** from Command interface (breaking)     |
+| `ab71fd5` | Consolidate sentinel errors to errors.go (dispatcher + sync)                 |
+| `aa4e943` | MustParse panic tests: 4/7 → 7/7 coverage                                    |
+| `e023b98` | Extract TursoSyncDB to own file                                              |
+| `fc9a0e5` | gofumpt formatting                                                           |
 
 ### Quality Gates
 
-| Gate | Status |
-|------|--------|
-| Tests | ✅ 27/27 packages pass |
-| Lint | ✅ 0 issues across all 10 modules |
-| Vet | ✅ Clean |
-| Format | ✅ Clean (gofumpt) |
-| Build | ❌ example/todo broken (cqrs-htmx) |
-| TODOs | ✅ 0 TODO/FIXME/HACK markers |
+| Gate            | Status                                               |
+| --------------- | ---------------------------------------------------- |
+| Tests           | ✅ 27/27 packages pass                               |
+| Lint            | ✅ 0 issues across all 10 modules                    |
+| Vet             | ✅ Clean                                             |
+| Format          | ✅ Clean (gofumpt)                                   |
+| Build           | ❌ example/todo broken (cqrs-htmx)                   |
+| TODOs           | ✅ 0 TODO/FIXME/HACK markers                         |
 | Deprecated APIs | ✅ Only `core/aggregate` package remains (by design) |
 
 ### Coverage (27 packages)
 
-| Package | Coverage | Change |
-|---------|----------|--------|
-| core/query | 100.0% | — |
-| core/pkg/dispatcher | 100.0% | — |
-| core/pkg/id | 100.0% | ↑ was 98.1% |
-| middleware | 100.0% | — |
-| catalog/adapters | 100.0% | — |
-| catalog/internal/caseutil | 100.0% | — |
-| memory | 99.6% | — |
-| sync | 97.6% | — |
-| catalog | 96.8% | — |
-| core/aggregate | 95.9% | — |
-| catalog/d2 | 95.0% | — |
-| catalog/openapi | 94.4% | — |
-| testhelpers | 94.4% | ↑ was 79.7% (Session 97) |
-| projection | 94.4% | — |
-| core/command | 94.6% | ↓ was 94.7% (removed IdempotencyKey tests) |
-| catalog/asyncapi | 93.7% | — |
-| core/decider | 93.6% | — |
-| core/event | 93.8% | — |
-| catalog/eventcatalog | 91.3% | — |
-| catalog/docserver | 90.1% | — |
-| storage | 89.3% | — |
-| catalog/internal/schemautil | 84.2% | — |
+| Package                     | Coverage | Change                                     |
+| --------------------------- | -------- | ------------------------------------------ |
+| core/query                  | 100.0%   | —                                          |
+| core/pkg/dispatcher         | 100.0%   | —                                          |
+| core/pkg/id                 | 100.0%   | ↑ was 98.1%                                |
+| middleware                  | 100.0%   | —                                          |
+| catalog/adapters            | 100.0%   | —                                          |
+| catalog/internal/caseutil   | 100.0%   | —                                          |
+| memory                      | 99.6%    | —                                          |
+| sync                        | 97.6%    | —                                          |
+| catalog                     | 96.8%    | —                                          |
+| core/aggregate              | 95.9%    | —                                          |
+| catalog/d2                  | 95.0%    | —                                          |
+| catalog/openapi             | 94.4%    | —                                          |
+| testhelpers                 | 94.4%    | ↑ was 79.7% (Session 97)                   |
+| projection                  | 94.4%    | —                                          |
+| core/command                | 94.6%    | ↓ was 94.7% (removed IdempotencyKey tests) |
+| catalog/asyncapi            | 93.7%    | —                                          |
+| core/decider                | 93.6%    | —                                          |
+| core/event                  | 93.8%    | —                                          |
+| catalog/eventcatalog        | 91.3%    | —                                          |
+| catalog/docserver           | 90.1%    | —                                          |
+| storage                     | 89.3%    | —                                          |
+| catalog/internal/schemautil | 84.2%    | —                                          |
 
 ### Completed Cleanup
 
@@ -86,6 +86,7 @@ The library is in **the best shape it has ever been**. 27/27 packages pass, zero
 `core/event/event.go` is 23 lines over the 250-line convention. Contains the core `Core` event struct, `NewEvent` (51 lines), `validateEventParams` (48 lines), and constructors. Splitting is risky — tight coupling between struct definition, constructors, and validation.
 
 **Options:**
+
 1. Extract `NewEvent` + `validateEventParams` to `event_constructors.go`
 2. Extract `MustParseType` + `MustParseAggregateType` to `event_parse.go`
 3. Accept it — it's the most central file in the library
@@ -111,13 +112,13 @@ These are acceptable. Middleware is intentionally transparent — it should not 
 
 ### Coverage Improvements
 
-| Module | Current | Lowest Functions | Effort |
-|--------|---------|------------------|--------|
-| storage/turso_sync.go | 0% (7 funcs) | All TursoSyncDB methods | Needs Turso embedded lib |
-| storage | 89.3% | parseBrandedID 50%, scan funcs 75-78% | Medium |
-| catalog/internal/schemautil | 84.2% | Reflect edge cases | Low |
-| core/event | 93.8% | mergeFrom 61%, WithMetadata 60%, collectResults 73% | Medium |
-| testhelpers assertions | 60-67% | Failure branches (t.Errorf paths) | Low but low value |
+| Module                      | Current      | Lowest Functions                                    | Effort                   |
+| --------------------------- | ------------ | --------------------------------------------------- | ------------------------ |
+| storage/turso_sync.go       | 0% (7 funcs) | All TursoSyncDB methods                             | Needs Turso embedded lib |
+| storage                     | 89.3%        | parseBrandedID 50%, scan funcs 75-78%               | Medium                   |
+| catalog/internal/schemautil | 84.2%        | Reflect edge cases                                  | Low                      |
+| core/event                  | 93.8%        | mergeFrom 61%, WithMetadata 60%, collectResults 73% | Medium                   |
+| testhelpers assertions      | 60-67%       | Failure branches (t.Errorf paths)                   | Low but low value        |
 
 ### Structural
 
@@ -171,33 +172,33 @@ The 16 remaining bare `return err` fall into three categories:
 
 ## F) Top 25 Things to Do Next
 
-| # | Task | Impact | Effort | Type |
-|---|------|--------|--------|------|
-| 1 | Fix or remove example/todo (cqrs-htmx break) | HIGH | S | Fix/Remove |
-| 2 | Split core/event/event.go under 250 lines | MEDIUM | S | Convention |
-| 3 | Add TursoSyncDB tests (0% → 70%+) | MEDIUM | M | Testing |
-| 4 | Add event metadata mergeFrom tests (61% → 90%+) | LOW | S | Testing |
-| 5 | Add storage parseBrandedID tests (50% → 90%+) | LOW | S | Testing |
-| 6 | Add storage scanEvent/scanOutbox tests (75-78% → 90%+) | MEDIUM | M | Testing |
-| 7 | Add schemautil coverage (84.2% → 90%+) | MEDIUM | M | Testing |
-| 8 | Update README to show decider pattern | MEDIUM | S | Docs |
-| 9 | Create CHANGELOG.md | LOW | S | Docs |
-| 10 | Add benchmark suite for core modules | MEDIUM | M | Testing |
-| 11 | Discuss `sync` module rename with owner | LOW | XS | Decision |
-| 12 | Evaluate query.Handler generic redesign | MEDIUM | L | Architecture |
-| 13 | Add Go ExampleXxx functions for godoc | LOW | M | Docs |
-| 14 | Add collectResults coverage (73% → 90%+) | LOW | S | Testing |
-| 15 | Add WithMetadata/WithCustom coverage (60-67% → 90%+) | LOW | S | Testing |
-| 16 | Add publishPending coverage (67% → 90%+) | LOW | S | Testing |
-| 17 | Add filterEvents coverage (73% → 90%+) | LOW | S | Testing |
-| 18 | Extract example/user and example/todo to separate repos | MEDIUM | M | Structure |
-| 19 | Consider event.Store ISP split | HIGH | L | Architecture |
-| 20 | Add fuzz tests for ID parsing and event marshaling | MEDIUM | M | Testing |
-| 21 | Review nolint directives (35 in production code) | LOW | M | Cleanup |
-| 22 | Add NegativeCounterError.String() method | LOW | XS | API |
-| 23 | Add Operation.String() test (0% coverage) | LOW | XS | Testing |
-| 24 | Version bump audit across all modules | MEDIUM | S | Release |
-| 25 | Add catalog usage examples | LOW | S | Docs |
+| #   | Task                                                    | Impact | Effort | Type         |
+| --- | ------------------------------------------------------- | ------ | ------ | ------------ |
+| 1   | Fix or remove example/todo (cqrs-htmx break)            | HIGH   | S      | Fix/Remove   |
+| 2   | Split core/event/event.go under 250 lines               | MEDIUM | S      | Convention   |
+| 3   | Add TursoSyncDB tests (0% → 70%+)                       | MEDIUM | M      | Testing      |
+| 4   | Add event metadata mergeFrom tests (61% → 90%+)         | LOW    | S      | Testing      |
+| 5   | Add storage parseBrandedID tests (50% → 90%+)           | LOW    | S      | Testing      |
+| 6   | Add storage scanEvent/scanOutbox tests (75-78% → 90%+)  | MEDIUM | M      | Testing      |
+| 7   | Add schemautil coverage (84.2% → 90%+)                  | MEDIUM | M      | Testing      |
+| 8   | Update README to show decider pattern                   | MEDIUM | S      | Docs         |
+| 9   | Create CHANGELOG.md                                     | LOW    | S      | Docs         |
+| 10  | Add benchmark suite for core modules                    | MEDIUM | M      | Testing      |
+| 11  | Discuss `sync` module rename with owner                 | LOW    | XS     | Decision     |
+| 12  | Evaluate query.Handler generic redesign                 | MEDIUM | L      | Architecture |
+| 13  | Add Go ExampleXxx functions for godoc                   | LOW    | M      | Docs         |
+| 14  | Add collectResults coverage (73% → 90%+)                | LOW    | S      | Testing      |
+| 15  | Add WithMetadata/WithCustom coverage (60-67% → 90%+)    | LOW    | S      | Testing      |
+| 16  | Add publishPending coverage (67% → 90%+)                | LOW    | S      | Testing      |
+| 17  | Add filterEvents coverage (73% → 90%+)                  | LOW    | S      | Testing      |
+| 18  | Extract example/user and example/todo to separate repos | MEDIUM | M      | Structure    |
+| 19  | Consider event.Store ISP split                          | HIGH   | L      | Architecture |
+| 20  | Add fuzz tests for ID parsing and event marshaling      | MEDIUM | M      | Testing      |
+| 21  | Review nolint directives (35 in production code)        | LOW    | M      | Cleanup      |
+| 22  | Add NegativeCounterError.String() method                | LOW    | XS     | API          |
+| 23  | Add Operation.String() test (0% coverage)               | LOW    | XS     | Testing      |
+| 24  | Version bump audit across all modules                   | MEDIUM | S      | Release      |
+| 25  | Add catalog usage examples                              | LOW    | S      | Docs         |
 
 ---
 
@@ -206,6 +207,7 @@ The 16 remaining bare `return err` fall into three categories:
 **Same as last time, still unresolved: Should `example/todo` move to its own repo?**
 
 The build is broken. It has been broken since Session 89 (when we removed ~60 exports). The fix requires either:
+
 1. Updating `cqrs-htmx` (external project, not ours)
 2. Removing the `cqrs-htmx` dependency from `example/todo`
 3. Moving `example/todo` out of this repo entirely
@@ -216,30 +218,30 @@ Option 3 is cleanest — it removes the only external coupling that breaks our b
 
 ## Codebase Stats
 
-| Metric | Value |
-|--------|-------|
-| Production Go code | ~14,000 lines |
-| Test Go code | ~31,300 lines |
-| Test:Production ratio | 2.24:1 |
-| Packages | 27 (all passing) |
-| Modules | 12 |
-| Files over 250 lines | 1 (`core/event/event.go` at 273) |
-| Functions over 30 lines | 20 |
-| Bare error returns | 16 (all acceptable) |
-| nolint directives | 35 in production |
-| Deprecated items | 1 (`core/aggregate` package) |
-| `any` usage | 93 (mostly generics, codec, query — all justified) |
+| Metric                  | Value                                              |
+| ----------------------- | -------------------------------------------------- |
+| Production Go code      | ~14,000 lines                                      |
+| Test Go code            | ~31,300 lines                                      |
+| Test:Production ratio   | 2.24:1                                             |
+| Packages                | 27 (all passing)                                   |
+| Modules                 | 12                                                 |
+| Files over 250 lines    | 1 (`core/event/event.go` at 273)                   |
+| Functions over 30 lines | 20                                                 |
+| Bare error returns      | 16 (all acceptable)                                |
+| nolint directives       | 35 in production                                   |
+| Deprecated items        | 1 (`core/aggregate` package)                       |
+| `any` usage             | 93 (mostly generics, codec, query — all justified) |
 
 ---
 
 ## Session History (Sessions 95–97)
 
-| Session | Key Achievement |
-|---------|-----------------|
-| 95 | Code deduplication sweep, 19+ test helper extractions |
-| 96 | VectorClock nil map bug, gopls hints, golden test refresh |
-| 97A | Doc comments, testhelpers 80→94%, error wrapping, .gitignore, zero lint |
-| 97B | Pebble/memory/projection error wrapping, IdempotencyKey removal, sentinel consolidation, TursoSyncDB split, MustParse tests, id→100% |
+| Session | Key Achievement                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 95      | Code deduplication sweep, 19+ test helper extractions                                                                                |
+| 96      | VectorClock nil map bug, gopls hints, golden test refresh                                                                            |
+| 97A     | Doc comments, testhelpers 80→94%, error wrapping, .gitignore, zero lint                                                              |
+| 97B     | Pebble/memory/projection error wrapping, IdempotencyKey removal, sentinel consolidation, TursoSyncDB split, MustParse tests, id→100% |
 
 ---
 

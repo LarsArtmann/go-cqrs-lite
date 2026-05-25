@@ -78,7 +78,7 @@ func TestMemoryStore_LoadAll_Closed(t *testing.T) {
 func TestMemoryCheckpointStore_Close(t *testing.T) {
 	t.Parallel()
 
-	store := memory.NewCheckpointStore()
+	store := memory.NewMemoryCheckpointStore()
 
 	err := store.Close()
 	if err != nil {

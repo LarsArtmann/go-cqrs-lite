@@ -15,7 +15,7 @@ func benchEvent(
 	eventType string,
 	aggID id.AggregateID,
 	version event.Version,
-) *event.Core {
+) *event.ImmutableEvent {
 	tb.Helper()
 
 	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))

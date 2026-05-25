@@ -536,17 +536,17 @@ func TestWithClientOccurredAt(t *testing.T) {
 func TestCore_MetadataNil(t *testing.T) {
 	t.Parallel()
 
-	core := &event.Core{}
+	core := &event.ImmutableEvent{}
 
 	if core.Metadata() != nil {
-		t.Error("expected nil metadata for zero-value Core")
+		t.Error("expected nil metadata for zero-value ImmutableEvent")
 	}
 }
 
 func TestEnsureMetadata_WhenNil(t *testing.T) {
 	t.Parallel()
 
-	core := &event.Core{}
+	core := &event.ImmutableEvent{}
 
 	opt := event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH"))
 	opt(core)

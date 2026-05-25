@@ -29,6 +29,14 @@ func NewSQLiteOutbox(db *sql.DB) (*SQLOutbox, error) {
 	return newSQLOutboxWithDialect(db, SQLiteDialect{})
 }
 
+// NewSQLOutboxWithDialect creates a new SQL-backed outbox with a custom dialect.
+// This enables consumers to use any SQL backend by implementing the Dialect interface.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
+	return newSQLOutboxWithDialect(db, d)
+}
+
 func newSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)

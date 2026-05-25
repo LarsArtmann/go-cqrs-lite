@@ -29,6 +29,14 @@ func NewSQLiteCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
 	return newSQLCheckpointStoreWithDialect(db, SQLiteDialect{})
 }
 
+// NewSQLCheckpointStoreWithDialect creates a new SQL-backed checkpoint store with a custom dialect.
+// This enables consumers to use any SQL backend by implementing the Dialect interface.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+// Returns an error if db is nil.
+func NewSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStore, error) {
+	return newSQLCheckpointStoreWithDialect(db, d)
+}
+
 func newSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStore, error) {
 	if db == nil {
 		return nil, fmt.Errorf("%w", ErrNilDB)
