@@ -102,8 +102,7 @@
 7. **testhelpers inconsistency**: FakeBus uses direct field (`PublishErr`), FakeSnapshotStore uses `Set*` methods, FakeStore uses fluent `*Fn` setters. Should pick one pattern.
 
 ### Dependencies
-8. **`go-error-family` and `go-branded-id` are personal packages** with no community validation. Could be replaced with stdlib patterns (Go 1.13+ error wrapping, typed strings for IDs).
-9. **`storage/` pulls in 32+ transitive deps** from Pebble — consumers who only want SQLite still pay for Pebble.
+8. **`storage/` pulls in 32+ transitive deps** from Pebble — consumers who only want SQLite still pay for Pebble.
 
 ---
 
@@ -129,31 +128,16 @@
 | 16 | Split `outbox_test.go` (415 lines) into focused files | LOW | MED | ⭐⭐ |
 | 17 | Add `event.Result` type to decider Execute for publish failure | MED | MED | ⭐⭐⭐ |
 | 18 | Unify `event.New()` serialization with Codec interface | MED | HIGH | ⭐⭐ |
-| 19 | Replace `go-error-family` with stdlib patterns | HIGH | HIGH | ⭐⭐ |
-| 20 | Replace `go-branded-id` with stdlib patterns | HIGH | HIGH | ⭐⭐ |
 | 21 | Split `storage/` into sub-packages (SQL, Pebble, Turso) | MED | HIGH | ⭐ |
-| 22 | Add `LoadFn`/`LoadToVersionFn` override consistency to FakeStore (DONE in S7) | — | — | ✅ |
 | 23 | Eliminate double-fold in `saveSnapshotAfterEvents` | MED | MED | ⭐⭐ |
 | 24 | Add `IsAggregateNew()` boolean to decider `loadByEvents` return | MED | LOW | ⭐⭐⭐ |
 | 25 | CI: add `go vet` and race detector to GitHub Actions | HIGH | LOW | ⭐⭐⭐⭐ |
 
 ---
 
-## g) TOP #1 QUESTION
+## g) STRATEGIC DECISIONS (RESOLVED)
 
-**Should we keep `go-error-family` and `go-branded-id` as dependencies, or invest in replacing them with stdlib patterns?**
-
-Arguments for keeping:
-- They provide structured error classification (`Rejection`, `Conflict`, `Transient`, `Corruption`, `Infrastructure`) — not easy to replicate with stdlib
-- `go-branded-id` provides type-safe IDs with zero boilerplate — Go doesn't have this natively
-
-Arguments for replacing:
-- Both are personal packages with no community validation or adoption
-- `go-error-family` could be replaced with custom error types + `errors.As()` — ~50 lines of code
-- `go-branded-id` could be replaced with `type ID[T any] string` + constructors — ~30 lines of code
-- Removing them eliminates 2 external dependencies that consumers must trust
-
-This is a **strategic decision** that affects the library's positioning: minimal-dependency SDK vs. opinionated ecosystem.
+**`go-error-family` and `go-branded-id` are PERMANENT dependencies.** Not up for discussion. They provide structured error classification and type-safe branded IDs that the stdlib cannot replicate cleanly.
 
 ---
 
