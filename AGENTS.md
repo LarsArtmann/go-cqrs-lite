@@ -22,7 +22,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 | Item      | Value                                                                                                              |
 | --------- | ------------------------------------------------------------------------------------------------------------------ |
-| Language  | Go 1.26.3                                                                                                            |
+| Language  | Go 1.26.3                                                                                                          |
 | Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
 | Build     | `nix run .#build`                                                                                                  |
 | Test      | `nix run .#test` or see "Testing" below                                                                            |
@@ -173,15 +173,15 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                                   | Key Types                                                                                                                                                                                                                              |
-| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                       |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                       |
+| Package                | Purpose                                   | Key Types                                                                                                                                                                                                                                        |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                                 |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                                 |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
-| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                  |
-| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                 |
-| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                          |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                            |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                           |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                                    |
 
 ### Decider Module (`core/decider/`)
 
@@ -482,7 +482,6 @@ The `catalog` module provides automatic documentation generation from Go CQRS ty
 
 7. **D2 diagram export** (`catalog/d2`) — Generates D2 text from `*catalog.Catalog`. Services become containers, commands/events/queries become color-coded nodes (command=blue, event=red queue, query=purple), domains become grouping labels. Wire via `catalog.Builder` directly. Follows same `Exporter` pattern as `asyncapi` and `eventcatalog`.
 
-
 ## Branded Return Types Migration (Session 3)
 
 Interfaces now return branded types instead of primitives:
@@ -510,26 +509,26 @@ Interfaces now return branded types instead of primitives:
 
 ## Code Quality Improvements (Sessions 1–2)
 
-| Improvement                  | Detail                                                                                               | Commit     |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ---------- |
-| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`                                | `1862eae`  |
-| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                                           | `8e5150c`  |
-| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                                | `4fdd447`  |
-| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.GetID()` (was `MessageID()`, renamed in Session 76) | `c1bc261`  |
-| Type naming overhaul          | `Core`→`ImmutableEvent`/`BasicCommand`/`BasicQuery`, `CatalogEntry`→`HandlerMeta` across all modules | Session 95 |
-| Constructor consistency       | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
-| Command/Query decoupling      | command/ and query/ import go-error-family directly instead of event/ for error constructors | Session 95 |
-| Logger interface removal      | Custom `middleware.Logger` + `SlogAdapter` replaced with `*slog.Logger` (Go standard since 1.21) | Session 95 |
-| Dispatch closed-state fix     | command/query Dispatch() now pre-checks closed state, returning domain sentinels consistently | Session 96 |
-| cqrs-htmx removal             | example/todo: removed broken external dep, inlined `chainMiddleware` | Session 96 |
-| decider file organization     | Moved `loadFromSnapshot`/`shouldSnapshot` from options.go → load.go | Session 96 |
-| FakeMetrics rename            | `TestMetrics` → `FakeMetrics` (consistent with FakeBus/FakeStore/etc.) | Session 96 |
-| event_new.go rename           | `codec_typed.go` → `event_new.go` (file contains event constructor, not codec) | Session 96 |
-| FakeStore completeness        | Added `AppendBatchFn`, `LoadToVersionFn`, `LoadToTimestampFn` setters | Session 96 |
-| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                    | `699d247`  |
-| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                         | `b23a781`  |
-| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                 | `e84e3a1`  |
-| Example rewrite              | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog                 | session 37 |
+| Improvement                  | Detail                                                                                                 | Commit     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ | ---------- |
+| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`                                  | `1862eae`  |
+| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                                             | `8e5150c`  |
+| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                                  | `4fdd447`  |
+| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.GetID()` (was `MessageID()`, renamed in Session 76)   | `c1bc261`  |
+| Type naming overhaul         | `Core`→`ImmutableEvent`/`BasicCommand`/`BasicQuery`, `CatalogEntry`→`HandlerMeta` across all modules   | Session 95 |
+| Constructor consistency      | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
+| Command/Query decoupling     | command/ and query/ import go-error-family directly instead of event/ for error constructors           | Session 95 |
+| Logger interface removal     | Custom `middleware.Logger` + `SlogAdapter` replaced with `*slog.Logger` (Go standard since 1.21)       | Session 95 |
+| Dispatch closed-state fix    | command/query Dispatch() now pre-checks closed state, returning domain sentinels consistently          | Session 96 |
+| cqrs-htmx removal            | example/todo: removed broken external dep, inlined `chainMiddleware`                                   | Session 96 |
+| decider file organization    | Moved `loadFromSnapshot`/`shouldSnapshot` from options.go → load.go                                    | Session 96 |
+| FakeMetrics rename           | `TestMetrics` → `FakeMetrics` (consistent with FakeBus/FakeStore/etc.)                                 | Session 96 |
+| event_new.go rename          | `codec_typed.go` → `event_new.go` (file contains event constructor, not codec)                         | Session 96 |
+| FakeStore completeness       | Added `AppendBatchFn`, `LoadToVersionFn`, `LoadToTimestampFn` setters                                  | Session 96 |
+| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                      | `699d247`  |
+| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                           | `b23a781`  |
+| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                   | `e84e3a1`  |
+| Example rewrite              | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog                   | session 37 |
 
 ## Known Issues
 
@@ -537,7 +536,7 @@ Interfaces now return branded types instead of primitives:
 | -------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `MemoryBus.Publish` holds RLock during handler execution | LOW       | Subscribers block publishers (acceptable for test utility)                                                                  |
 | `query.Handler` returns `any`                            | LOW       | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
-| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.HandlerMeta`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                |
+| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.HandlerMeta`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                 |
 | `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | **FIXED** | `core/aggregate` package deleted (Session 99); decider has no such split                                                    |
 
 ## Session History
@@ -546,30 +545,30 @@ Interfaces now return branded types instead of primitives:
 
 Key milestones:
 
-| Session | Milestone                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------ |
-| 20      | Zero lint, storage error path tests 79.8→92.3%                                                               |
-| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type                                           |
-| 27      | No-panic convention: `New*` returns `(*T, error)`                                                            |
-| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command                                             |
-| 37      | `core/decider` package + example/user rewrite                                                                |
-| 44      | ISP (Publisher/Subscriber), extensible error classification                                                  |
-| 45      | `id.Of[T]` as type alias for `go-branded-id`                                                                 |
-| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot                                                        |
-| 54      | Removed cockroachdb/errors, added TypedHandler[T]                                                            |
-| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`                                                     |
-| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus                                              |
-| 68      | Module hygiene, file splits, 0 production files >250 lines                                                   |
-| 73      | File splits, golden test refresh, coverage improvements                                                      |
-| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API                                                     |
-| 81      | Position-based replay, SQL composite index                                                                   |
-| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal                                                     |
-| 86      | Catalog quality sweep, MemorySnapshotStore deep copy                                                         |
-| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                              |
-| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation |
-| 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed               |
-| 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%       |
-| 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%            |
+| Session | Milestone                                                                                                                                                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 20      | Zero lint, storage error path tests 79.8→92.3%                                                                                                                                                                                                                           |
+| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type                                                                                                                                                                                                       |
+| 27      | No-panic convention: `New*` returns `(*T, error)`                                                                                                                                                                                                                        |
+| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command                                                                                                                                                                                                         |
+| 37      | `core/decider` package + example/user rewrite                                                                                                                                                                                                                            |
+| 44      | ISP (Publisher/Subscriber), extensible error classification                                                                                                                                                                                                              |
+| 45      | `id.Of[T]` as type alias for `go-branded-id`                                                                                                                                                                                                                             |
+| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot                                                                                                                                                                                                                    |
+| 54      | Removed cockroachdb/errors, added TypedHandler[T]                                                                                                                                                                                                                        |
+| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`                                                                                                                                                                                                                 |
+| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus                                                                                                                                                                                                          |
+| 68      | Module hygiene, file splits, 0 production files >250 lines                                                                                                                                                                                                               |
+| 73      | File splits, golden test refresh, coverage improvements                                                                                                                                                                                                                  |
+| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API                                                                                                                                                                                                                 |
+| 81      | Position-based replay, SQL composite index                                                                                                                                                                                                                               |
+| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal                                                                                                                                                                                                                 |
+| 86      | Catalog quality sweep, MemorySnapshotStore deep copy                                                                                                                                                                                                                     |
+| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                                                                                                                                                                                          |
+| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation                                                                                                                                                             |
+| 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed                                                                                                                                                                           |
+| 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%                                                                                                                                                                   |
+| 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%                                                                                                                                                                        |
 | 95      | Naming overhaul: Core→ImmutableEvent/BasicCommand/BasicQuery, CatalogEntry→HandlerMeta, NewCheckpointStore→NewMemoryCheckpointStore, command/query decoupled from event, NewWithDialect constructors for all storage types, Go 1.26.3 aligned, InMemoryRunner deprecated |
-| 96      | Dispatch() closed-state fix, cqrs-htmx removal, decider file organization, FakeMetrics/FakeStore renames, event_new.go rename |
-| 99      | Deleted `core/aggregate` + `integration/aggregate` (~3700 lines), deleted `catalog/adapters` (616 lines), migrated example/user to `catalog.Builder`, added Dispatch() + NewWithDialect tests, storage coverage 88.7→89.3% |
+| 96      | Dispatch() closed-state fix, cqrs-htmx removal, decider file organization, FakeMetrics/FakeStore renames, event_new.go rename                                                                                                                                            |
+| 99      | Deleted `core/aggregate` + `integration/aggregate` (~3700 lines), deleted `catalog/adapters` (616 lines), migrated example/user to `catalog.Builder`, added Dispatch() + NewWithDialect tests, storage coverage 88.7→89.3%                                               |
