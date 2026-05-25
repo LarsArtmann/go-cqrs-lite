@@ -82,10 +82,10 @@ func TestEventHelpers_QuickEventOpts(t *testing.T) {
 	}
 }
 
-func TestTestMetrics_Observe(t *testing.T) {
+func TestFakeMetrics_Observe(t *testing.T) {
 	t.Parallel()
 
-	m := &TestMetrics{}
+	m := &FakeMetrics{}
 	m.Observe("command.create", 100*time.Millisecond)
 
 	AssertMetricRecord(t, m, "command.create")

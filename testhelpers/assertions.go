@@ -7,15 +7,15 @@ import (
 	"time"
 )
 
-// TestMetrics is a metrics collector for testing.
-type TestMetrics struct {
+// FakeMetrics is a metrics collector for testing.
+type FakeMetrics struct {
 	mu        sync.Mutex
 	Records   []string
 	Durations []time.Duration
 }
 
 // Observe records a metric observation.
-func (m *TestMetrics) Observe(name string, duration time.Duration, _ ...string) {
+func (m *FakeMetrics) Observe(name string, duration time.Duration, _ ...string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -37,7 +37,7 @@ func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 }
 
 // AssertMetricRecord asserts the metrics recorder has exactly one record with the given name.
-func AssertMetricRecord(t *testing.T, m *TestMetrics, wantName string) {
+func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
 	t.Helper()
 
 	if len(m.Records) != 1 {

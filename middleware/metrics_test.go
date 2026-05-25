@@ -11,7 +11,7 @@ import (
 func TestCommandMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := CommandMetrics(metrics)
 
 	handler := mw(testhelpers.NoopCommandHandler())
@@ -33,7 +33,7 @@ func TestCommandMetrics_Success(t *testing.T) {
 func TestCommandMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := CommandMetrics(metrics)
 
 	handler := mw(testhelpers.FailingCommandHandler("middleware failure"))
@@ -55,7 +55,7 @@ func TestCommandMetrics_Error(t *testing.T) {
 func TestEventMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := EventMetrics(metrics)
 
 	handler := mw(testhelpers.NoopEventHandler())
@@ -80,7 +80,7 @@ func TestEventMetrics_Success(t *testing.T) {
 func TestEventMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := EventMetrics(metrics)
 
 	handler := mw(testhelpers.FailingEventHandler("middleware failure"))
@@ -105,7 +105,7 @@ func TestEventMetrics_Error(t *testing.T) {
 func TestQueryMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := QueryMetrics(metrics)
 
 	handler := mw(testhelpers.NoopQueryHandler())
@@ -125,7 +125,7 @@ func TestQueryMetrics_Success(t *testing.T) {
 func TestQueryMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.TestMetrics{}
+	metrics := &testhelpers.FakeMetrics{}
 	mw := QueryMetrics(metrics)
 
 	handler := mw(testhelpers.FailingQueryHandler("fail"))
