@@ -2,6 +2,7 @@ package testhelpers
 
 import (
 	"context"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -50,6 +51,30 @@ func (s *FakeStore) DeleteFn(
 // CloseFn sets an optional override for Close calls.
 func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
 	s.closeFn = fn
+
+	return s
+}
+
+func (s *FakeStore) AppendBatchFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error,
+) *FakeStore {
+	s.appendBatchFn = fn
+
+	return s
+}
+
+func (s *FakeStore) LoadToVersionFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error),
+) *FakeStore {
+	s.loadToVersionFn = fn
+
+	return s
+}
+
+func (s *FakeStore) LoadToTimestampFn(
+	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxTime time.Time) ([]event.Event, error),
+) *FakeStore {
+	s.loadToTimestampFn = fn
 
 	return s
 }

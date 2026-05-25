@@ -22,7 +22,10 @@ type FakeStore struct {
 		expectedVersion event.Version,
 	) error
 	loadFn            func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
-	loadFromVersionFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
+	loadFromVersionFn  func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
+	loadToVersionFn   func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error)
+	loadToTimestampFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxTime time.Time) ([]event.Event, error)
+	appendBatchFn     func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error
 	deleteFn          func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
 	closeFn           func() error
 }
@@ -65,6 +68,14 @@ func (s *FakeStore) AppendBatch(
 	aggregateID id.AggregateID,
 	events []event.Event,
 ) error {
+	s.mu.RLock()
+	fn := s.appendBatchFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID, events)
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -134,6 +145,14 @@ func (s *FakeStore) LoadToVersion(
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	s.mu.RLock()
+	fn := s.loadToVersionFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID, maxVersion)
+	}
+
+	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	key := fakeStreamKey(aggregateType, aggregateID)
@@ -151,6 +170,14 @@ func (s *FakeStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
+	s.mu.RLock()
+	fn := s.loadToTimestampFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(aggregateType, aggregateID, maxTime)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
