@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	catalogadapters "github.com/larsartmann/go-cqrs-lite/catalog/adapters"
+	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 )
 
 func generateEventCatalog(outputDir string) error {
-	builder := catalogadapters.NewBuilder("User Service", "1.0.0")
+	builder := catalog.NewBuilder("User Service", "1.0.0")
 	builder.AddService(
 		"user-svc", "User Service", "1.0.0", "Manages user accounts",
 		catalog.Event[UserCreatedPayload](
@@ -23,8 +23,8 @@ func generateEventCatalog(outputDir string) error {
 		),
 	)
 
-	builder.AddDomain("identity", "Identity",
-		"User identity and account management", []string{"user-svc"})
+	builder.AddDomain("identity", "Identity", "1.0.0",
+		"User identity and account management", "user-svc")
 
 	cat := builder.Build()
 
@@ -35,5 +35,5 @@ func generateEventCatalog(outputDir string) error {
 		fmt.Printf("  [catalog] Service %q: %d events\n", svc.Name, len(svc.Events))
 	}
 
-	return builder.ExportEventCatalog(outputDir)
+	return eventcatalog.NewExporter(outputDir).Export(cat)
 }
