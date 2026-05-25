@@ -18,7 +18,7 @@ import (
 )
 
 // CatalogProvider returns a fresh catalog on each call.
-// Typically wraps adapters.CatalogBuilder.Build().
+// Typically wraps catalog.Builder.Build().
 type CatalogProvider func() *catalog.Catalog
 
 // Config holds all configuration for the docs server.
