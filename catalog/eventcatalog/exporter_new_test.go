@@ -415,6 +415,82 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 	}
 }
 
+func TestLLMsTxt_AllResourceTypes(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
+		Summary: "Manages orders",
+	})
+	reg.AddCommand("order-svc", catalog.Message{
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
+		Version: "1.0.0", Summary: "Create a new order",
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
+		Version: "1.0.0", Direction: catalog.Sends, Summary: "Order was created",
+	})
+	reg.AddChannel(catalog.Channel{
+		ID: "order-events", Name: "Order Events", Version: "1.0.0",
+		Summary: "All order events", Protocols: []string{"kafka"},
+	})
+	reg.AddDataStore(catalog.DataStore{
+		ID: "orders-db", Name: "Orders Database", Version: "1.0.0",
+		ContainerType: "database", Technology: "postgres@16",
+		Summary: "Primary order store",
+	})
+	reg.AddFlow(catalog.Flow{
+		ID: "create-order", Name: "Create Order Flow", Version: "1.0.0",
+		Summary: "Order creation", Steps: []catalog.FlowStep{
+			{ID: "1", Title: "Submit"},
+			{ID: "2", Title: "Process"},
+		},
+	})
+	reg.AddTeam(catalog.Team{
+		ID: "order-team", Name: "Order Team", Summary: "Owns order domain",
+		Members: []string{"alice", "bob"},
+	})
+	reg.AddUser(catalog.User{
+		ID: "alice", Name: "Alice Smith", Role: "Senior Engineer",
+	})
+
+	cat := reg.Build()
+
+	exp := NewExporter(tmpDir)
+	err := exp.Export(cat)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "llms.txt"))
+	if err != nil {
+		t.Fatalf("read llms.txt: %v", err)
+	}
+
+	content := string(data)
+
+	assertContains(t, content, "# TestCatalog")
+	assertContains(t, content, "## Order Service (order-svc)")
+	assertContains(t, content, "Manages orders")
+	assertContains(t, content, "### Commands")
+	assertContains(t, content, "Create Order")
+	assertContains(t, content, "### Events")
+	assertContains(t, content, "Order Created")
+	assertContains(t, content, "## Channel: Order Events (order-events)")
+	assertContains(t, content, "Protocols: kafka")
+	assertContains(t, content, "## Data Store: Orders Database (orders-db)")
+	assertContains(t, content, "Type: database")
+	assertContains(t, content, "Technology: postgres@16")
+	assertContains(t, content, "## Flow: Create Order Flow (create-order)")
+	assertContains(t, content, "Steps: 2")
+	assertContains(t, content, "## Team: Order Team (order-team)")
+	assertContains(t, content, "Members: alice, bob")
+	assertContains(t, content, "## User: Alice Smith (alice)")
+	assertContains(t, content, "Role: Senior Engineer")
+}
+
 func assertContains(t *testing.T, content, substr string) {
 	t.Helper()
 
