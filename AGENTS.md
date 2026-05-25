@@ -228,7 +228,7 @@ nix develop             # enter dev shell
 | `PanicCommandHandler` / `PanicEventHandler`     | Handlers that panic                           |
 | `CallbackCommandHandler`                        | Handler that sets a bool flag                 |
 | `CommandMiddleware` / `EventMiddleware`         | Call-order tracking middleware                |
-| `TestMetrics`                                   | Metrics collector for testing                 |
+| `FakeMetrics`                                   | Metrics collector for testing                 |
 
 ### Projection Module (`projection/`)
 
@@ -401,7 +401,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 
 | Package                       | Coverage |
 | ----------------------------- | -------- |
-| `core/query`                  | 100.0%   |
+| `core/query`                  | 98.4%    |
 | `core/pkg/dispatcher`         | 100.0%   |
 | `middleware`                  | 100.0%   |
 | `catalog/adapters`            | 100.0%   |
@@ -411,7 +411,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `catalog`                     | 96.8%    |
 | `core/aggregate`              | 95.9%    |
 | `catalog/d2`                  | 95.0%    |
-| `core/command`                | 94.7%    |
+| `core/command`                | 92.3%    |
 | `catalog/openapi`             | 94.4%    |
 | `projection`                  | 94.4%    |
 | `catalog/asyncapi`            | 93.7%    |
@@ -421,7 +421,7 @@ doc, err := builder.ExportAsyncAPI("User Service", "1.0.0")
 | `catalog/docserver`           | 90.1%    |
 | `storage`                     | 89.2%    |
 | `catalog/internal/schemautil` | 84.2%    |
-| `testhelpers`                 | 80.3%    |
+| `testhelpers`                 | 91.3%    |
 
 ## Module Dependency Graph
 
@@ -526,6 +526,12 @@ Interfaces now return branded types instead of primitives:
 | Constructor consistency       | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
 | Command/Query decoupling      | command/ and query/ import go-error-family directly instead of event/ for error constructors | Session 95 |
 | Logger interface removal      | Custom `middleware.Logger` + `SlogAdapter` replaced with `*slog.Logger` (Go standard since 1.21) | Session 95 |
+| Dispatch closed-state fix     | command/query Dispatch() now pre-checks closed state, returning domain sentinels consistently | Session 96 |
+| cqrs-htmx removal             | example/todo: removed broken external dep, inlined `chainMiddleware` | Session 96 |
+| decider file organization     | Moved `loadFromSnapshot`/`shouldSnapshot` from options.go → load.go | Session 96 |
+| FakeMetrics rename            | `TestMetrics` → `FakeMetrics` (consistent with FakeBus/FakeStore/etc.) | Session 96 |
+| event_new.go rename           | `codec_typed.go` → `event_new.go` (file contains event constructor, not codec) | Session 96 |
+| FakeStore completeness        | Added `AppendBatchFn`, `LoadToVersionFn`, `LoadToTimestampFn` setters | Session 96 |
 | event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                    | `699d247`  |
 | Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                         | `b23a781`  |
 | Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                 | `e84e3a1`  |
