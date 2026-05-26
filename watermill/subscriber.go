@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -12,10 +11,10 @@ import (
 
 // SubscriberAdapter wraps a go-cqrs-lite event.Bus as a Watermill subscriber.
 type SubscriberAdapter struct {
-	bus       event.Bus
-	handlers  map[string]event.Handler
-	outputCh  chan *message.Message
-	closeCh   chan struct{}
+	bus      event.Bus
+	handlers map[string]event.Handler
+	outputCh chan *message.Message
+	closeCh  chan struct{}
 }
 
 // NewSubscriberAdapter creates a Watermill subscriber backed by a go-cqrs-lite event.Bus.
@@ -31,10 +30,7 @@ func NewSubscriberAdapter(bus event.Bus) *SubscriberAdapter {
 // Subscribe creates a subscription for the given topic (mapped to event.Type).
 func (a *SubscriberAdapter) Subscribe(_ context.Context, topic string) (<-chan *message.Message, error) {
 	handler := func(ctx context.Context, evt event.Event) error {
-		msg, err := a.toMessage(evt)
-		if err != nil {
-			return fmt.Errorf("convert event to message: %w", err)
-		}
+		msg := eventToMessage(evt)
 
 		select {
 		case a.outputCh <- msg:
@@ -65,20 +61,6 @@ func (a *SubscriberAdapter) Close() error {
 	}
 
 	return nil
-}
-
-func (a *SubscriberAdapter) toMessage(evt event.Event) (*message.Message, error) {
-	payload, err := json.Marshal(evt)
-	if err != nil {
-		return nil, fmt.Errorf("marshal event: %w", err)
-	}
-
-	msg := message.NewMessage(evt.ID().String(), payload)
-	msg.Metadata.Set("event_type", string(evt.Type()))
-	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
-	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
-
-	return msg, nil
 }
 
 var _ message.Subscriber = (*SubscriberAdapter)(nil)
