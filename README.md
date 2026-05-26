@@ -16,12 +16,15 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 - **Query Dispatcher** - Type-safe query handling with pagination
 - **Event Store** - Interface for event persistence with in-memory implementation
 - **Event Bus** - Publish/subscribe pattern for domain events
-- **Aggregate Roots** - Base implementation for domain-driven design aggregates
 - **Decider Pattern** - Functional aggregate approach with pure functions (recommended)
 - **Projections** - Build read models from events with replay support
-- **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs (UserId, AggregateId, etc.)
-- **Error Classification** - Structured errors with retry semantics (Rejection, Conflict, Transient, etc.)
+- **Saga / Process Manager** - Coordinate long-running business processes with compensation
+- **Stream Loading** - Memory-efficient event iteration for large aggregates
+- **Event Versioning** - Upcast legacy events transparently via VersionedStore
+- **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs
+- **Error Classification** - Structured errors with retry semantics
 - **Auto-documentation** - Generate AsyncAPI 3.0 specs and EventCatalog from code
+- **Watermill Integration** - Adapter for the Watermill message router ecosystem
 
 ## Quick Start
 
@@ -70,7 +73,7 @@ import (
 )
 
 type CreateUserCmd struct {
-    *command.Core
+    *command.BasicCommand
     Name string
 }
 
@@ -98,7 +101,7 @@ func main() {
     )
 
     // Dispatch
-    cmd := &CreateUserCmd{Core: command.MustNew("user.create", aggID), Name: "Alice"}
+    cmd := &CreateUserCmd{BasicCommand: command.MustNew("user.create", aggID), Name: "Alice"}
     if err := cmds.Dispatch(context.Background(), cmd); err != nil { log.Fatal(err) }
 
     // Load and read
@@ -125,12 +128,12 @@ See `example/user/` for a complete example with the Decider pattern, middleware,
 
 ### Commands (Write Side)
 
-Commands embed `command.Core` for the required interface methods. Register typed handlers
+Commands embed `command.BasicCommand` for the required interface methods. Register typed handlers
 with `command.RegisterTyped` to receive the concrete command type directly — no type assertions needed:
 
 ```go
 type CreateUserCmd struct {
-    *command.Core
+    *command.BasicCommand
     Email string
     Name  string
 }
@@ -187,7 +190,9 @@ All IDs are branded types backed by ULID strings:
 | **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        |
 | **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |
 | **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |
+| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              |
 | **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              |
+| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   |
 | **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |
 | **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |
 | **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |
