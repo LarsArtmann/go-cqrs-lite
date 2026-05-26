@@ -67,3 +67,5 @@ example/*/user
 result
 result-*
 .direnv/
+# Copy/paste detection report
+/report/jscpd-report.json

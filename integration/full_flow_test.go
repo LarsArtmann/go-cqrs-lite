@@ -58,7 +58,8 @@ func TestFullFlow(t *testing.T) {
 			return command.ErrTypeAssertion
 		}
 
-		return userRepo.Execute(ctx, c.AggregateID(), "User",
+		return userRepo.Execute(
+			ctx, c.AggregateID(), "User",
 			func(_ UserState, currentVersion event.Version) ([]event.Event, error) {
 				evt, err := event.NewEvent(
 					"UserCreated",
@@ -81,7 +82,8 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Register query handler ---
-	if err := query.RegisterTyped[UserState](qryDispatcher, "GetUser",
+	if err := query.RegisterTyped[UserState](
+		qryDispatcher, "GetUser",
 		func(_ context.Context, q query.Query) (UserState, error) {
 			gu, ok := q.(*GetUser)
 			if !ok {
@@ -117,7 +119,8 @@ func TestFullFlow(t *testing.T) {
 
 	var projectedNames []string
 
-	if err := projRunner.Register(event.NewProjection("user-names",
+	if err := projRunner.Register(event.NewProjection(
+		"user-names",
 		func(_ context.Context, evt event.Event) error {
 			if evt.Type() == "UserCreated" {
 				projectedNames = append(projectedNames, string(evt.Payload()))

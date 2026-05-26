@@ -15,8 +15,8 @@ type testUpcaster struct {
 	sourceVersion event.SchemaVersion
 }
 
-func (u *testUpcaster) SourceType() event.Type                { return u.sourceType }
-func (u *testUpcaster) SourceVersion() event.SchemaVersion    { return u.sourceVersion }
+func (u *testUpcaster) SourceType() event.Type             { return u.sourceType }
+func (u *testUpcaster) SourceVersion() event.SchemaVersion { return u.sourceVersion }
 func (u *testUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
 	// In a real upcaster, transform payload here
 	return evt.(*event.ImmutableEvent), nil

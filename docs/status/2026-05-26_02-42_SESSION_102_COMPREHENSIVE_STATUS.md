@@ -4,18 +4,18 @@
 **Branch:** `master` (up to date with `origin/master`)
 **Last 10 commits:**
 
-| Commit | Message |
-|--------|---------|
-| `8b64822` | docs: trim AGENTS.md from 580→370 lines, extract historical sections |
-| `1a81ee7` | refactor(catalog/eventcatalog): split exporter.go into exporter.go + exporter_message.go |
-| `9edcd41` | docs: correct jitter RNG claim in FEATURES.md |
+| Commit    | Message                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------- |
+| `8b64822` | docs: trim AGENTS.md from 580→370 lines, extract historical sections                         |
+| `1a81ee7` | refactor(catalog/eventcatalog): split exporter.go into exporter.go + exporter_message.go     |
+| `9edcd41` | docs: correct jitter RNG claim in FEATURES.md                                                |
 | `33ab7ad` | refactor(catalog): split registry.go into registry.go + registry_build.go + registry_copy.go |
-| `a2570d8` | refactor(core,memory,testhelpers): extract shared StreamKey helper |
-| `4af18c0` | style(core): split inline error checks to fix noinlineerr lint |
-| `1336f4c` | chore: ignore report/ directory, clean stale example/user/user binary |
-| `d09a422` | refactor(catalog): rename ToDotted → DotSeparated to avoid pre-commit false positive |
-| `8c52558` | chore: bump all module dependencies to v1.6.0 for release |
-| `79f0fcc` | refactor(storage): extract shared sqlBase struct from 4 SQL store types |
+| `a2570d8` | refactor(core,memory,testhelpers): extract shared StreamKey helper                           |
+| `4af18c0` | style(core): split inline error checks to fix noinlineerr lint                               |
+| `1336f4c` | chore: ignore report/ directory, clean stale example/user/user binary                        |
+| `d09a422` | refactor(catalog): rename ToDotted → DotSeparated to avoid pre-commit false positive         |
+| `8c52558` | chore: bump all module dependencies to v1.6.0 for release                                    |
+| `79f0fcc` | refactor(storage): extract shared sqlBase struct from 4 SQL store types                      |
 
 ---
 
@@ -23,39 +23,39 @@
 
 ### Session 102 — Quality Sweep
 
-| # | Change | Commit |
-|---|--------|--------|
-| 1 | Added `report/` to `.gitignore`, removed stale 4.7MB binary | `1336f4c` |
-| 2 | Fixed 2 `noinlineerr` lint issues (command/query Dispatch) | `4af18c0` |
-| 3 | Extracted shared `event.StreamKey()` — eliminated duplicate `streamKey`/`fakeStreamKey` | `a2570d8` |
-| 4 | Split `catalog/registry.go` (370→259 lines) into 3 files | `33ab7ad` |
-| 5 | Corrected FEATURES.md jitter claim: `crypto/rand` → `math/rand/v2` | `9edcd41` |
-| 6 | Split `catalog/eventcatalog/exporter.go` (303→213 lines) into 2 files | `1a81ee7` |
-| 7 | Trimmed AGENTS.md from 580→370 lines, extracted historical sections | `8b64822` |
+| #   | Change                                                                                  | Commit    |
+| --- | --------------------------------------------------------------------------------------- | --------- |
+| 1   | Added `report/` to `.gitignore`, removed stale 4.7MB binary                             | `1336f4c` |
+| 2   | Fixed 2 `noinlineerr` lint issues (command/query Dispatch)                              | `4af18c0` |
+| 3   | Extracted shared `event.StreamKey()` — eliminated duplicate `streamKey`/`fakeStreamKey` | `a2570d8` |
+| 4   | Split `catalog/registry.go` (370→259 lines) into 3 files                                | `33ab7ad` |
+| 5   | Corrected FEATURES.md jitter claim: `crypto/rand` → `math/rand/v2`                      | `9edcd41` |
+| 6   | Split `catalog/eventcatalog/exporter.go` (303→213 lines) into 2 files                   | `1a81ee7` |
+| 7   | Trimmed AGENTS.md from 580→370 lines, extracted historical sections                     | `8b64822` |
 
 ### Test Results (22/22 packages pass)
 
-| Package | Coverage | Trend |
-|---------|----------|-------|
-| `core/pkg/dispatcher` | 100.0% | — |
-| `core/pkg/id` | 100.0% | — |
-| `middleware` | 100.0% | — |
-| `catalog/internal/caseutil` | 100.0% | — |
-| `memory` | 99.6% | — |
-| `core/query` | 98.4% | — |
-| `catalog` | 96.3% | — |
-| `catalog/d2` | 95.0% | — |
-| `catalog/openapi` | 94.4% | — |
-| `projection` | 94.4% | — |
-| `core/event` | 93.6% | ↓ (-0.2, stream.go added) |
-| `catalog/asyncapi` | 93.7% | — |
-| `core/decider` | 93.6% | — |
-| `core/command` | 92.5% | ↑ (+0.2, noinlineerr fix) |
-| `testhelpers` | 91.2% | ↓ (-0.1, fakeStreamKey removed) |
-| `catalog/docserver` | 90.1% | — |
-| `storage` | 89.4% | ↑ (+0.1) |
-| `catalog/internal/schemautil` | 84.2% | — |
-| `catalog/eventcatalog` | 85.7% | — |
+| Package                       | Coverage | Trend                           |
+| ----------------------------- | -------- | ------------------------------- |
+| `core/pkg/dispatcher`         | 100.0%   | —                               |
+| `core/pkg/id`                 | 100.0%   | —                               |
+| `middleware`                  | 100.0%   | —                               |
+| `catalog/internal/caseutil`   | 100.0%   | —                               |
+| `memory`                      | 99.6%    | —                               |
+| `core/query`                  | 98.4%    | —                               |
+| `catalog`                     | 96.3%    | —                               |
+| `catalog/d2`                  | 95.0%    | —                               |
+| `catalog/openapi`             | 94.4%    | —                               |
+| `projection`                  | 94.4%    | —                               |
+| `core/event`                  | 93.6%    | ↓ (-0.2, stream.go added)       |
+| `catalog/asyncapi`            | 93.7%    | —                               |
+| `core/decider`                | 93.6%    | —                               |
+| `core/command`                | 92.5%    | ↑ (+0.2, noinlineerr fix)       |
+| `testhelpers`                 | 91.2%    | ↓ (-0.1, fakeStreamKey removed) |
+| `catalog/docserver`           | 90.1%    | —                               |
+| `storage`                     | 89.4%    | ↑ (+0.1)                        |
+| `catalog/internal/schemautil` | 84.2%    | —                               |
+| `catalog/eventcatalog`        | 85.7%    | —                               |
 
 ### Infrastructure
 
@@ -75,13 +75,13 @@
 
 The 250-line project convention still has 5 production files over the limit:
 
-| File | Lines | Status |
-|------|-------|--------|
-| `catalog/eventcatalog/writer.go` | 408 | 🔴 Largest; MDX file writing logic |
-| `catalog/types.go` | 283 | 🟡 Type definitions; splitting would harm readability |
-| `catalog/eventcatalog/exporter_resources.go` | 274 | 🟡 Resource writers (data store, flow, team, user, channel) |
-| `catalog/registry_helpers.go` | 272 | 🟡 Copy helpers for Service/Domain/Channel/etc |
-| `catalog/registry.go` | 259 | 🟡 Just over limit after split |
+| File                                         | Lines | Status                                                      |
+| -------------------------------------------- | ----- | ----------------------------------------------------------- |
+| `catalog/eventcatalog/writer.go`             | 408   | 🔴 Largest; MDX file writing logic                          |
+| `catalog/types.go`                           | 283   | 🟡 Type definitions; splitting would harm readability       |
+| `catalog/eventcatalog/exporter_resources.go` | 274   | 🟡 Resource writers (data store, flow, team, user, channel) |
+| `catalog/registry_helpers.go`                | 272   | 🟡 Copy helpers for Service/Domain/Channel/etc              |
+| `catalog/registry.go`                        | 259   | 🟡 Just over limit after split                              |
 
 The `types.go` file defines ~20 struct types. Splitting it would make the package harder to navigate. The convention targets _behavioral_ files, not declaration files.
 
@@ -137,31 +137,31 @@ All tests pass. All modules build. No data loss risk. No security vulnerabilitie
 
 ### Immediate (this week)
 
-| Issue | Severity | Detail |
-|-------|----------|--------|
-| `catalog/eventcatalog/writer.go` 408 lines | **HIGH** | Largest production file. Extract `writeService()`, `writeMessage()`, `writeSchema()`, `writeExamples()`, `writeConfig()` into separate files |
-| `catalog/eventcatalog` coverage 85.7% | **HIGH** | Auto-derive feature needs test coverage. Add tests for `auto_derive.go` error paths |
-| `catalog/registry_helpers.go` 272 lines | **MEDIUM** | 7 `copy*()` functions for Service/Domain/Channel/DataStore/Flow/Team/User. Could extract to `copy.go` |
-| `catalog/eventcatalog/exporter_resources.go` 274 lines | **MEDIUM** | Resource writers for data store, flow, team, user, channel. Extract to `exporter_resource.go` per type or group |
+| Issue                                                  | Severity   | Detail                                                                                                                                       |
+| ------------------------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `catalog/eventcatalog/writer.go` 408 lines             | **HIGH**   | Largest production file. Extract `writeService()`, `writeMessage()`, `writeSchema()`, `writeExamples()`, `writeConfig()` into separate files |
+| `catalog/eventcatalog` coverage 85.7%                  | **HIGH**   | Auto-derive feature needs test coverage. Add tests for `auto_derive.go` error paths                                                          |
+| `catalog/registry_helpers.go` 272 lines                | **MEDIUM** | 7 `copy*()` functions for Service/Domain/Channel/DataStore/Flow/Team/User. Could extract to `copy.go`                                        |
+| `catalog/eventcatalog/exporter_resources.go` 274 lines | **MEDIUM** | Resource writers for data store, flow, team, user, channel. Extract to `exporter_resource.go` per type or group                              |
 
 ### Short-term (next 2-4 weeks)
 
-| Issue | Severity | Detail |
-|-------|----------|--------|
-| Saga/Process Manager | **HIGH** | Design doc exists. High value for real-world CQRS adoption |
-| Outbox Transaction API | **HIGH** | Design doc exists. Essential for production event sourcing |
-| Event versioning/migration | **MEDIUM** | No design doc. Essential for long-lived event-sourced systems |
-| Stream-based event loading | **MEDIUM** | Iterator pattern to prevent OOM on large aggregates |
-| Root-level .md files → docs/ | **LOW** | Move `BDD_TESTS_REVIEW.md`, `DOMAIN_GLOSSARY.md`, `PUBLIC_OR_PRIVATE.md` |
-| 122 archived status reports | **LOW** | Could prune older ones (pre-2026-04) |
+| Issue                        | Severity   | Detail                                                                   |
+| ---------------------------- | ---------- | ------------------------------------------------------------------------ |
+| Saga/Process Manager         | **HIGH**   | Design doc exists. High value for real-world CQRS adoption               |
+| Outbox Transaction API       | **HIGH**   | Design doc exists. Essential for production event sourcing               |
+| Event versioning/migration   | **MEDIUM** | No design doc. Essential for long-lived event-sourced systems            |
+| Stream-based event loading   | **MEDIUM** | Iterator pattern to prevent OOM on large aggregates                      |
+| Root-level .md files → docs/ | **LOW**    | Move `BDD_TESTS_REVIEW.md`, `DOMAIN_GLOSSARY.md`, `PUBLIC_OR_PRIVATE.md` |
+| 122 archived status reports  | **LOW**    | Could prune older ones (pre-2026-04)                                     |
 
 ### Architectural
 
-| Issue | Severity | Detail |
-|-------|----------|--------|
-| Watermill integration | **MEDIUM** | Listed as planned. Could be a separate module |
-| Snapshot strategy interface | **LOW** | Decider has snapshot support but no pluggable strategy |
-| GoDoc examples | **LOW** | Runnable example functions for key types |
+| Issue                       | Severity   | Detail                                                 |
+| --------------------------- | ---------- | ------------------------------------------------------ |
+| Watermill integration       | **MEDIUM** | Listed as planned. Could be a separate module          |
+| Snapshot strategy interface | **LOW**    | Decider has snapshot support but no pluggable strategy |
+| GoDoc examples              | **LOW**    | Runnable example functions for key types               |
 
 ---
 
@@ -211,6 +211,7 @@ All tests pass. All modules build. No data loss risk. No security vulnerabilitie
 **What is the v1.0 release timeline and which planned features are blockers?**
 
 The project has excellent quality metrics:
+
 - 22/22 test packages pass
 - 84–100% coverage across modules
 - Zero critical issues
@@ -232,13 +233,13 @@ This matters because it determines whether Tier 2 items (#5-8) are blockers or b
 
 Files over 250 lines (production code only, excluding tests):
 
-| File | Lines | Over Limit | Notes |
-|------|-------|------------|-------|
-| `catalog/eventcatalog/writer.go` | 408 | +158 (63%) | 🔴 MDX writers |
-| `catalog/types.go` | 283 | +33 (13%) | 🟡 Type declarations |
-| `catalog/eventcatalog/exporter_resources.go` | 274 | +24 (10%) | 🟡 Resource writers |
-| `catalog/registry_helpers.go` | 272 | +22 (9%) | 🟡 Copy helpers |
-| `catalog/registry.go` | 259 | +9 (4%) | 🟡 Post-split |
+| File                                         | Lines | Over Limit | Notes                |
+| -------------------------------------------- | ----- | ---------- | -------------------- |
+| `catalog/eventcatalog/writer.go`             | 408   | +158 (63%) | 🔴 MDX writers       |
+| `catalog/types.go`                           | 283   | +33 (13%)  | 🟡 Type declarations |
+| `catalog/eventcatalog/exporter_resources.go` | 274   | +24 (10%)  | 🟡 Resource writers  |
+| `catalog/registry_helpers.go`                | 272   | +22 (9%)   | 🟡 Copy helpers      |
+| `catalog/registry.go`                        | 259   | +9 (4%)    | 🟡 Post-split        |
 
 All other production files are under 250 lines. ✅
 

@@ -12,9 +12,9 @@ import (
 type RunnerOption func(*runnerConfig)
 
 type runnerConfig struct {
-	logger        Logger
-	maxRetries    int
-	retryDelay    time.Duration
+	logger          Logger
+	maxRetries      int
+	retryDelay      time.Duration
 	retryMultiplier float64
 }
 

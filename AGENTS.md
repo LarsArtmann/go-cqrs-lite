@@ -362,8 +362,6 @@ example/user→core+memory+catalog+middleware.
 
 **Integration Tests**: `integration/command/`, `integration/event/`, `integration/query/`.
 
-
-
 > **Historical details**: Session milestones, bug fixes, code quality improvements,
 > catalog architecture, and known issues extracted to
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)

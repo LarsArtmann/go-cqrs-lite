@@ -50,7 +50,7 @@ type testDefinition struct {
 	steps    []saga.Step
 }
 
-func (d testDefinition) SagaType() string  { return d.sagaType }
+func (d testDefinition) SagaType() string   { return d.sagaType }
 func (d testDefinition) Steps() []saga.Step { return d.steps }
 
 // testCommand is a minimal command implementation for testing.
@@ -660,8 +660,9 @@ type errorStore struct {
 	err error
 }
 
-func (s *errorStore) Save(_ context.Context, _ *saga.Instance) error   { return s.err }
+func (s *errorStore) Save(_ context.Context, _ *saga.Instance) error { return s.err }
 func (s *errorStore) Load(_ context.Context, _ id.AggregateID) (*saga.Instance, error) {
 	return nil, s.err
 }
+
 func (s *errorStore) LoadAllRunning(_ context.Context) ([]*saga.Instance, error) { return nil, s.err }

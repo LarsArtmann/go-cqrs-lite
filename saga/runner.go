@@ -13,11 +13,11 @@ import (
 
 // Runner manages the lifecycle of saga instances.
 type Runner struct {
-	store       Store
-	dispatcher  CommandDispatcher
-	registry    map[string]Definition
-	mu          sync.RWMutex
-	config      runnerConfig
+	store      Store
+	dispatcher CommandDispatcher
+	registry   map[string]Definition
+	mu         sync.RWMutex
+	config     runnerConfig
 }
 
 // NewRunner creates a new saga runner.

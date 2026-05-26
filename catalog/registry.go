@@ -256,4 +256,3 @@ func (r *Registry) AddUser(user User) {
 
 	r.users[user.ID] = copyUserPtr(user)
 }
-

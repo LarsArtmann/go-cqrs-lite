@@ -20,8 +20,8 @@ func TestBuildMessageFrontmatter_FullFields(t *testing.T) {
 		Version: "1.0.0",
 		Summary: "Creates a new order",
 		Labels: map[string]string{
-			"domain":  "ordering",
-			"team":    "order-team",
+			"domain": "ordering",
+			"team":   "order-team",
 		},
 		Deprecated: true,
 		Changelog: []catalog.Change{
