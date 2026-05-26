@@ -53,6 +53,9 @@
             "projection"
             "storage"
             "testhelpers"
+            "saga"
+            "watermill"
+            "cmd/cqrs-gen"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
