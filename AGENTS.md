@@ -23,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                              |
 | --------- | ------------------------------------------------------------------------------------------------------------------ |
 | Language  | Go 1.26.3                                                                                                          |
-| Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection` |
+| Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `saga`, `watermill`, `cqrs-gen` |
 | Build     | `nix run .#build`                                                                                                  |
 | Test      | `nix run .#test` or see "Testing" below                                                                            |
 | Lint      | `nix run .#lint`                                                                                                   |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace with 10 modules:
+Multi-module Go workspace with 13 modules:
 
 ```
 go-cqrs-lite/
@@ -182,7 +182,7 @@ nix develop             # enter dev shell
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                                 |
 | `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                                 |
-| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
+| `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `Clone()`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
 | `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                            |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                           |
@@ -354,11 +354,17 @@ parsed, err := id.Parse[UserID](uid.String())
 **Production**: oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog).
 **Test-only**: onsi/ginkgo/v2, onsi/gomega.
 
-**Coverage**: 84–100% across 18 packages. See `docs/status/` for latest.
+**Coverage**: 84–100% across 27 packages (cqrs-gen at 89.9%). See `docs/status/` for latest.
 
 **Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers;
-catalog→core; storage→core; projection→core; integration→core+memory+testhelpers;
-example/user→core+memory+catalog+middleware.
+catalog→core; storage→core; projection→core; saga→core; watermill→core;
+integration→core+memory+testhelpers; example/user→core+memory+catalog+middleware.
+
+**Known Blocker**: `replace` directives in `go.mod` files are required until v1.0.0 tags are pushed to remote.
+Without push, external `go get` fails. Chicken-and-egg: push first → remove `replace` → tag v1.1.0.
+
+**CI Jobs**: `check` (build/vet/test/lint/race/coverage), `per-module-test` (GOWORK=off per module),
+`coverage-gate` (fails if any package < 80% coverage).
 
 **Integration Tests**: `integration/command/`, `integration/event/`, `integration/query/`.
 
