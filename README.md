@@ -639,6 +639,55 @@ func main() {
 
 `LoadStream` is available on `SQLEventStore` (cursor-based, memory-bounded) and can be adapted to any `Store` via `event.NewStoreStreamAdapter`.
 
+## Watermill Integration
+
+Adapter for the [Watermill](https://watermill.io/) message router ecosystem. Publish and subscribe to CQRS events via Watermill's `message.Message`:
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/ThreeDotsLabs/watermill/message"
+    "github.com/larsartmann/go-cqrs-lite/core/event"
+    "github.com/larsartmann/go-cqrs-lite/watermill"
+)
+
+func main() {
+    ctx := context.Background()
+
+    // Create a Watermill publisher (e.g., NATS, Kafka, GoChannel)
+    pub := /* your watermill publisher */
+
+    // Wrap it with the CQRS adapter
+    adapter := watermill.NewPublisher(pub)
+
+    // Create a CQRS event
+    evt, _ := event.NewEvent("user.created", aggID, "User", 1, payload)
+
+    // Publish — all 15 event fields are preserved in message metadata
+    if err := adapter.Publish(ctx, evt); err != nil {
+        log.Fatal(err)
+    }
+
+    // Subscribe: reconstruct events from Watermill messages
+    sub := /* your watermill subscriber */
+    messages, _ := sub.Subscribe(ctx, "events")
+    for msg := range messages {
+        evt, err := watermill.ToEvent(msg)
+        if err != nil {
+            msg.Nack()
+            continue
+        }
+        // Process the reconstructed event
+        log.Printf("Received: %s (version %d)", evt.Type(), evt.Version())
+        msg.Ack()
+    }
+}
+```
+
 ## Comparison
 
 | Feature              | go-cqrs-lite | go-cqrs | cqrs-go |
