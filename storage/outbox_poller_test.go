@@ -20,7 +20,7 @@ type fakePollerOutbox struct {
 	entries   []event.OutboxEntry
 	pollErr   error
 	ackErr    error
-	ackedIDs []event.OutboxID
+	ackedIDs  []event.OutboxID
 	pollCalls int
 }
 

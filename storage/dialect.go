@@ -19,6 +19,7 @@ type Dialect interface {
 	SnapshotSchema() string
 	CheckpointSchema() string
 	OutboxSchema() string
+	SagaSchema() string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -83,6 +84,21 @@ func (PostgresDialect) CheckpointSchema() string {
     projection_name VARCHAR(255) PRIMARY KEY,
     event_id        TEXT NOT NULL
 );`
+}
+
+func (PostgresDialect) SagaSchema() string {
+	return `CREATE TABLE IF NOT EXISTS sagas (
+    id           TEXT PRIMARY KEY,
+    saga_type    VARCHAR(255) NOT NULL,
+    status       VARCHAR(50) NOT NULL,
+    current_step INTEGER NOT NULL DEFAULT 0,
+    err_msg      TEXT,
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sagas_status ON sagas(status);
+CREATE INDEX IF NOT EXISTS idx_sagas_type ON sagas(saga_type);`
 }
 
 func (PostgresDialect) OutboxSchema() string {
@@ -158,6 +174,21 @@ func (SQLiteDialect) CheckpointSchema() string {
     projection_name TEXT PRIMARY KEY,
     event_id        TEXT NOT NULL
 );`
+}
+
+func (SQLiteDialect) SagaSchema() string {
+	return `CREATE TABLE IF NOT EXISTS sagas (
+    id           TEXT PRIMARY KEY,
+    saga_type    TEXT NOT NULL,
+    status       TEXT NOT NULL,
+    current_step INTEGER NOT NULL DEFAULT 0,
+    err_msg      TEXT,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_sagas_status ON sagas(status);
+CREATE INDEX IF NOT EXISTS idx_sagas_type ON sagas(saga_type);`
 }
 
 func (SQLiteDialect) OutboxSchema() string {

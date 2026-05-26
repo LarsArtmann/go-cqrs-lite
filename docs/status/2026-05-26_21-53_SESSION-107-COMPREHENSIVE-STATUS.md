@@ -20,40 +20,40 @@ go-cqrs-lite is a **multi-module Go CQRS/Event Sourcing library** with 13 module
 
 ### Core Infrastructure (100% production-ready)
 
-| Module | Coverage | Packages | Lint Issues | Status |
-|--------|----------|----------|-------------|--------|
-| core/command | 92.5% | 1 | 0 | ✅ Stable |
-| core/decider | 100.0% | 1 | 0 | ✅ Perfect |
-| core/event | 93.7% | 1 | 1 (test formatting) | ✅ Stable |
-| core/pkg/dispatcher | 100.0% | 1 | 0 | ✅ Perfect |
-| core/pkg/id | 100.0% | 1 | 0 | ✅ Perfect |
-| core/query | 98.4% | 1 | 0 | ✅ Near-perfect |
-| memory | 99.6% | 1 | 0 | ✅ Near-perfect |
-| middleware | 100.0% | 1 | 1 (sloglint) | ✅ Perfect |
-| testhelpers | 91.2% | 1 | 0 | ✅ Good |
-| projection | 94.4% | 1 | 0 | ✅ Good |
-| saga | 93.8% | 1 | 0 | ✅ Good |
-| watermill | 89.6% | 1 | 0 | ✅ Good |
+| Module              | Coverage | Packages | Lint Issues         | Status          |
+| ------------------- | -------- | -------- | ------------------- | --------------- |
+| core/command        | 92.5%    | 1        | 0                   | ✅ Stable       |
+| core/decider        | 100.0%   | 1        | 0                   | ✅ Perfect      |
+| core/event          | 93.7%    | 1        | 1 (test formatting) | ✅ Stable       |
+| core/pkg/dispatcher | 100.0%   | 1        | 0                   | ✅ Perfect      |
+| core/pkg/id         | 100.0%   | 1        | 0                   | ✅ Perfect      |
+| core/query          | 98.4%    | 1        | 0                   | ✅ Near-perfect |
+| memory              | 99.6%    | 1        | 0                   | ✅ Near-perfect |
+| middleware          | 100.0%   | 1        | 1 (sloglint)        | ✅ Perfect      |
+| testhelpers         | 91.2%    | 1        | 0                   | ✅ Good         |
+| projection          | 94.4%    | 1        | 0                   | ✅ Good         |
+| saga                | 93.8%    | 1        | 0                   | ✅ Good         |
+| watermill           | 89.6%    | 1        | 0                   | ✅ Good         |
 
 ### Catalog System (production-ready)
 
-| Package | Coverage | Lint Issues | Status |
-|---------|----------|-------------|--------|
-| catalog (root) | 96.3% | exhaustruct (1) | ✅ |
-| catalog/asyncapi | 93.7% | nolintlint (1) | ✅ |
-| catalog/d2 | 95.0% | nlreturn (1), nolint (1) | ✅ |
-| catalog/docserver | 90.1% | 0 | ✅ |
-| catalog/eventcatalog | 92.8% | varnamelen (7), gocognit (1), wsl (3), nonamedreturns (1) | ✅ |
-| catalog/openapi | 94.4% | 0 | ✅ |
-| catalog/internal/caseutil | 100.0% | 0 | ✅ Perfect |
-| catalog/internal/schemautil | 84.2% | 0 | ✅ |
-| catalog/internal/cattest | 0.0% | N/A (test helpers) | ⚠️ Unused |
+| Package                     | Coverage | Lint Issues                                               | Status     |
+| --------------------------- | -------- | --------------------------------------------------------- | ---------- |
+| catalog (root)              | 96.3%    | exhaustruct (1)                                           | ✅         |
+| catalog/asyncapi            | 93.7%    | nolintlint (1)                                            | ✅         |
+| catalog/d2                  | 95.0%    | nlreturn (1), nolint (1)                                  | ✅         |
+| catalog/docserver           | 90.1%    | 0                                                         | ✅         |
+| catalog/eventcatalog        | 92.8%    | varnamelen (7), gocognit (1), wsl (3), nonamedreturns (1) | ✅         |
+| catalog/openapi             | 94.4%    | 0                                                         | ✅         |
+| catalog/internal/caseutil   | 100.0%   | 0                                                         | ✅ Perfect |
+| catalog/internal/schemautil | 84.2%    | 0                                                         | ✅         |
+| catalog/internal/cattest    | 0.0%     | N/A (test helpers)                                        | ⚠️ Unused  |
 
 ### Storage System (production-ready)
 
-| Package | Coverage | Lint Issues | Status |
-|---------|----------|-------------|--------|
-| storage (root) | 89.6% | 25 issues (errcheck, nlreturn, noinlineerr, wsl, gci, sloglint, forcetypeassert, rowserrcheck) | ⚠️ Needs lint cleanup |
+| Package        | Coverage | Lint Issues                                                                                    | Status                |
+| -------------- | -------- | ---------------------------------------------------------------------------------------------- | --------------------- |
+| storage (root) | 89.6%    | 25 issues (errcheck, nlreturn, noinlineerr, wsl, gci, sloglint, forcetypeassert, rowserrcheck) | ⚠️ Needs lint cleanup |
 
 ### Session 106-107 Specific Accomplishments
 
@@ -67,20 +67,20 @@ go-cqrs-lite is a **multi-module Go CQRS/Event Sourcing library** with 13 module
 
 ### Quality Metrics
 
-| Metric | Value |
-|--------|-------|
-| Total Go LOC | 51,775 |
-| Production LOC | ~18,087 |
-| Test LOC | ~33,688 |
-| Production files > 250 lines | **0** ✅ |
-| All tests pass with `-race` | **Yes** ✅ |
-| Packages with 100% coverage | **4** (decider, dispatcher, id, caseutil) |
-| Packages above 90% coverage | **22 of 27** |
-| Packages below 80% coverage | **0** ✅ |
-| Module count | 13 (in go.work) |
-| Total TODO items | 266 (96 done, 170 open) |
-| Tags (local) | 58 |
-| Tags (remote) | 107 |
+| Metric                       | Value                                     |
+| ---------------------------- | ----------------------------------------- |
+| Total Go LOC                 | 51,775                                    |
+| Production LOC               | ~18,087                                   |
+| Test LOC                     | ~33,688                                   |
+| Production files > 250 lines | **0** ✅                                  |
+| All tests pass with `-race`  | **Yes** ✅                                |
+| Packages with 100% coverage  | **4** (decider, dispatcher, id, caseutil) |
+| Packages above 90% coverage  | **22 of 27**                              |
+| Packages below 80% coverage  | **0** ✅                                  |
+| Module count                 | 13 (in go.work)                           |
+| Total TODO items             | 266 (96 done, 170 open)                   |
+| Tags (local)                 | 58                                        |
+| Tags (remote)                | 107                                       |
 
 ---
 
@@ -90,30 +90,30 @@ go-cqrs-lite is a **multi-module Go CQRS/Event Sourcing library** with 13 module
 
 The storage module has the most lint issues of any module. Breakdown:
 
-| Linter | Count | Severity | Effort |
-|--------|-------|----------|--------|
-| errcheck | 8 | Medium | Easy — add `defer func() { _ = ... }()` or check errors |
-| nlreturn | 6 | Low | Trivial — add blank lines before returns |
-| noinlineerr | 4 | Low | Easy — refactor `if err := ...` to `err := ...` |
-| forcetypeassert | 2 | Medium | Easy — add ok check for type assertions in sync.Map |
-| gci | 1 | Low | Trivial — fix import ordering |
-| sloglint | 1 | Low | Trivial — use `slog.DiscardHandler` |
-| rowserrcheck | 1 | Medium | Easy — add `defer { _ = rows.Close() }` + check rows.Err() |
-| embeddedstructfieldcheck | 1 | Low | Trivial — add blank line after embedded field |
-| wsl_v5 | 1 | Low | Trivial — add blank line |
+| Linter                   | Count | Severity | Effort                                                     |
+| ------------------------ | ----- | -------- | ---------------------------------------------------------- |
+| errcheck                 | 8     | Medium   | Easy — add `defer func() { _ = ... }()` or check errors    |
+| nlreturn                 | 6     | Low      | Trivial — add blank lines before returns                   |
+| noinlineerr              | 4     | Low      | Easy — refactor `if err := ...` to `err := ...`            |
+| forcetypeassert          | 2     | Medium   | Easy — add ok check for type assertions in sync.Map        |
+| gci                      | 1     | Low      | Trivial — fix import ordering                              |
+| sloglint                 | 1     | Low      | Trivial — use `slog.DiscardHandler`                        |
+| rowserrcheck             | 1     | Medium   | Easy — add `defer { _ = rows.Close() }` + check rows.Err() |
+| embeddedstructfieldcheck | 1     | Low      | Trivial — add blank line after embedded field              |
+| wsl_v5                   | 1     | Low      | Trivial — add blank line                                   |
 
 ### Catalog Module Lint (23 issues)
 
-| Linter | Count | Severity | Effort |
-|--------|-------|----------|--------|
-| varnamelen | 12 | Low | Easy — rename short vars (`ds`, `cp`, `j`, `sb`, `a`, `u`) |
-| wsl_v5 | 3 | Low | Trivial — add blank lines |
-| nolintlint | 3 | Low | Trivial — remove unused nolint directives |
-| gocognit | 1 | Medium | Medium — refactor `writeFlowSteps` (cognitive complexity 36) |
-| exhaustruct | 1 | Low | Easy — add missing fields or use `//nolint:exhaustruct` |
-| nonamedreturns | 1 | Low | Trivial — remove named returns |
-| nlreturn | 1 | Low | Trivial |
-| usestdlibvars | 1 | Low | Trivial — use `http.MethodPost` |
+| Linter         | Count | Severity | Effort                                                       |
+| -------------- | ----- | -------- | ------------------------------------------------------------ |
+| varnamelen     | 12    | Low      | Easy — rename short vars (`ds`, `cp`, `j`, `sb`, `a`, `u`)   |
+| wsl_v5         | 3     | Low      | Trivial — add blank lines                                    |
+| nolintlint     | 3     | Low      | Trivial — remove unused nolint directives                    |
+| gocognit       | 1     | Medium   | Medium — refactor `writeFlowSteps` (cognitive complexity 36) |
+| exhaustruct    | 1     | Low      | Easy — add missing fields or use `//nolint:exhaustruct`      |
+| nonamedreturns | 1     | Low      | Trivial — remove named returns                               |
+| nlreturn       | 1     | Low      | Trivial                                                      |
+| usestdlibvars  | 1     | Low      | Trivial — use `http.MethodPost`                              |
 
 ### Pre-commit Hook (BuildFlow)
 
@@ -129,15 +129,15 @@ BuildFlow pre-commit hook fails on 3 steps (all pre-existing, non-blocking with 
 
 ### High Priority (from TODO_LIST.md)
 
-| # | Item | Source | Effort | Impact |
-|---|------|--------|--------|--------|
-| 1 | Fix query.Handler returns `any` → generic `TypedHandler[T]` | Multiple sessions | Large | High — API ergonomics |
-| 2 | Publish go-composable-business-types as Go module | COMPREHENSIVE | Medium | High — external adoption blocker |
-| 3 | Add global TransactionID branded type | TIME_TRAVEL | Medium | High — cross-aggregate consistency |
-| 4 | io.Closer removal from core interfaces | SESSION_60 | Medium | Medium — API cleanup |
-| 5 | Add catalog diff/breaking-change detection | SESSION_04 | Large | High — contract testing |
-| 6 | Add high-level test utilities (AggregateTester, etc.) | MONOREPO_PLAN | Medium | High — DX |
-| 7 | Modularize ActaFlow | COMPARISON_REPORT | Large | Low — different project |
+| #   | Item                                                        | Source            | Effort | Impact                             |
+| --- | ----------------------------------------------------------- | ----------------- | ------ | ---------------------------------- |
+| 1   | Fix query.Handler returns `any` → generic `TypedHandler[T]` | Multiple sessions | Large  | High — API ergonomics              |
+| 2   | Publish go-composable-business-types as Go module           | COMPREHENSIVE     | Medium | High — external adoption blocker   |
+| 3   | Add global TransactionID branded type                       | TIME_TRAVEL       | Medium | High — cross-aggregate consistency |
+| 4   | io.Closer removal from core interfaces                      | SESSION_60        | Medium | Medium — API cleanup               |
+| 5   | Add catalog diff/breaking-change detection                  | SESSION_04        | Large  | High — contract testing            |
+| 6   | Add high-level test utilities (AggregateTester, etc.)       | MONOREPO_PLAN     | Medium | High — DX                          |
+| 7   | Modularize ActaFlow                                         | COMPARISON_REPORT | Large  | Low — different project            |
 
 ### Medium Priority (12 open items)
 
@@ -233,33 +233,33 @@ There are zero production bugs, zero failing tests, zero data races. The codebas
 
 Sorted by impact × effort ratio (highest first):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix all 50 lint issues (batch per module) | Medium | Low (~1h) | Quality |
-| 2 | Delete `catalog/internal/cattest/` (dead code, 0% coverage) | Low | Trivial (5min) | Cleanup |
-| 3 | Triage 144 unclassified TODO items → assign priority | High | Medium (~2h) | Organization |
-| 4 | Split `core/decider/decider_test.go` (1182→<350 lines ×4 files) | Medium | Medium (~1h) | Test quality |
-| 5 | Split `projection/runner_test.go` (1140→<350 lines ×4 files) | Medium | Medium (~1h) | Test quality |
-| 6 | Split `saga/saga_test.go` (1132→<350 lines ×4 files) | Medium | Medium (~1h) | Test quality |
-| 7 | Fix storage `forcetypeassert` in sync.Map lock/unlock | Medium | Low (~15min) | Correctness |
-| 8 | Fix BuildFlow golangci-lint root-level execution | Medium | Low (~30min) | DX |
-| 9 | Update FEATURES.md with current module state | Medium | Low (~30min) | Documentation |
-| 10 | Fix `middleware/retry.go` math/rand → crypto/rand or nolint | Low | Trivial (~5min) | Security lint |
-| 11 | Split `core/pkg/id/id_test.go` (996→<350 lines ×3 files) | Medium | Medium (~45min) | Test quality |
-| 12 | Split `storage/event_store_test.go` (833→<350 lines ×3 files) | Medium | Medium (~45min) | Test quality |
-| 13 | Split `core/event/event_test.go` (794→<350 lines ×3 files) | Medium | Medium (~45min) | Test quality |
-| 14 | Extract error classification to standalone package | High | Medium (~2h) | Architecture |
-| 15 | Fix outbox transaction co-participation | High | Large (~4h) | Correctness |
-| 16 | Add slog.Warn for corrupt IDs in Pebble deserialization | Low | Trivial (~10min) | Resilience |
-| 17 | Add catalog diff/breaking-change detection tool | High | Large (~1 day) | Contract testing |
-| 18 | Fix query.Handler returns `any` → TypedHandler[T] | High | Large (breaking change) | API design |
-| 19 | Optimize Pebble LoadToTimestamp (avoid full scan) | Medium | Medium (~2h) | Performance |
-| 20 | Add PostgreSQL integration tests with testcontainers | High | Large (~1 day) | Testing |
-| 21 | Push release tags to remote (unblock external adoption) | High | Low (~30min) | Publishing |
-| 22 | Create CONTRIBUTING.md with architecture guidelines | Medium | Medium (~2h) | Documentation |
-| 23 | Write getting-started README section | Medium | Low (~1h) | Documentation |
-| 24 | Add high-level test utilities (AggregateTester, etc.) | High | Medium (~4h) | DX |
-| 25 | Fix core→memory circular dependency | High | Medium (~2h) | Architecture |
+| #   | Task                                                            | Impact | Effort                  | Category         |
+| --- | --------------------------------------------------------------- | ------ | ----------------------- | ---------------- |
+| 1   | Fix all 50 lint issues (batch per module)                       | Medium | Low (~1h)               | Quality          |
+| 2   | Delete `catalog/internal/cattest/` (dead code, 0% coverage)     | Low    | Trivial (5min)          | Cleanup          |
+| 3   | Triage 144 unclassified TODO items → assign priority            | High   | Medium (~2h)            | Organization     |
+| 4   | Split `core/decider/decider_test.go` (1182→<350 lines ×4 files) | Medium | Medium (~1h)            | Test quality     |
+| 5   | Split `projection/runner_test.go` (1140→<350 lines ×4 files)    | Medium | Medium (~1h)            | Test quality     |
+| 6   | Split `saga/saga_test.go` (1132→<350 lines ×4 files)            | Medium | Medium (~1h)            | Test quality     |
+| 7   | Fix storage `forcetypeassert` in sync.Map lock/unlock           | Medium | Low (~15min)            | Correctness      |
+| 8   | Fix BuildFlow golangci-lint root-level execution                | Medium | Low (~30min)            | DX               |
+| 9   | Update FEATURES.md with current module state                    | Medium | Low (~30min)            | Documentation    |
+| 10  | Fix `middleware/retry.go` math/rand → crypto/rand or nolint     | Low    | Trivial (~5min)         | Security lint    |
+| 11  | Split `core/pkg/id/id_test.go` (996→<350 lines ×3 files)        | Medium | Medium (~45min)         | Test quality     |
+| 12  | Split `storage/event_store_test.go` (833→<350 lines ×3 files)   | Medium | Medium (~45min)         | Test quality     |
+| 13  | Split `core/event/event_test.go` (794→<350 lines ×3 files)      | Medium | Medium (~45min)         | Test quality     |
+| 14  | Extract error classification to standalone package              | High   | Medium (~2h)            | Architecture     |
+| 15  | Fix outbox transaction co-participation                         | High   | Large (~4h)             | Correctness      |
+| 16  | Add slog.Warn for corrupt IDs in Pebble deserialization         | Low    | Trivial (~10min)        | Resilience       |
+| 17  | Add catalog diff/breaking-change detection tool                 | High   | Large (~1 day)          | Contract testing |
+| 18  | Fix query.Handler returns `any` → TypedHandler[T]               | High   | Large (breaking change) | API design       |
+| 19  | Optimize Pebble LoadToTimestamp (avoid full scan)               | Medium | Medium (~2h)            | Performance      |
+| 20  | Add PostgreSQL integration tests with testcontainers            | High   | Large (~1 day)          | Testing          |
+| 21  | Push release tags to remote (unblock external adoption)         | High   | Low (~30min)            | Publishing       |
+| 22  | Create CONTRIBUTING.md with architecture guidelines             | Medium | Medium (~2h)            | Documentation    |
+| 23  | Write getting-started README section                            | Medium | Low (~1h)               | Documentation    |
+| 24  | Add high-level test utilities (AggregateTester, etc.)           | High   | Medium (~4h)            | DX               |
+| 25  | Fix core→memory circular dependency                             | High   | Medium (~2h)            | Architecture     |
 
 ---
 
@@ -268,6 +268,7 @@ Sorted by impact × effort ratio (highest first):
 **Should we keep the pre-commit hook (BuildFlow) or replace it with a simpler CI-only approach?**
 
 The BuildFlow hook currently:
+
 - Fails on 3 steps every commit (library-policy, golangci-lint root, go-structure-linter)
 - Requires `chmod -x .git/hooks/pre-commit` to actually commit
 - Takes 12-30 seconds per commit
@@ -324,6 +325,7 @@ storage         (root)                          89.6%
 **Violations: 25** — Ranging from 371 lines to 1,182 lines.
 
 Top 10 worst:
+
 1. `core/decider/decider_test.go` — 1,182 lines
 2. `projection/runner_test.go` — 1,140 lines
 3. `saga/saga_test.go` — 1,132 lines
@@ -354,4 +356,4 @@ cmd/cqrs-gen → core + catalog
 
 ---
 
-*Generated by Crush — Session 107*
+_Generated by Crush — Session 107_

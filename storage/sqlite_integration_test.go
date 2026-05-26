@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
 func newSQLiteTestDB(t *testing.T) *sql.DB {
@@ -31,7 +32,7 @@ func newSQLiteTestDB(t *testing.T) *sql.DB {
 func initSQLiteSchema(t *testing.T, db *sql.DB) {
 	t.Helper()
 
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
+	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema(), SQLiteSagaSchema()} {
 		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			t.Fatalf("exec DDL: %v\nDDL: %s", err, ddl)
@@ -408,5 +409,168 @@ func TestNewSQLTransactionalStore_NilOutbox_SQLite(t *testing.T) {
 	_, err = NewSQLTransactionalStore(store, nil)
 	if err == nil {
 		t.Fatal("expected error for nil outbox")
+	}
+}
+
+func newSQLiteTestSagaStore(t *testing.T) *SQLSagaStore {
+	t.Helper()
+
+	db := newSQLiteTestDB(t)
+	initSQLiteSchema(t, db)
+
+	store, err := NewSQLiteSagaStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteSagaStore: %v", err)
+	}
+
+	return store
+}
+
+func TestSQLiteSagaStore_SaveAndLoad(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestSagaStore(t)
+	ctx := context.Background()
+
+	state := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusRunning,
+		CurrentStep: 2,
+		ErrMsg:      "test error",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := store.Save(ctx, state); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := store.Load(ctx, state.ID)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if loaded.ID != state.ID {
+		t.Errorf("ID mismatch: got %v, want %v", loaded.ID, state.ID)
+	}
+	if loaded.SagaType != state.SagaType {
+		t.Errorf("SagaType mismatch: got %q, want %q", loaded.SagaType, state.SagaType)
+	}
+	if loaded.Status != state.Status {
+		t.Errorf("Status mismatch: got %q, want %q", loaded.Status, state.Status)
+	}
+	if loaded.CurrentStep != state.CurrentStep {
+		t.Errorf("CurrentStep mismatch: got %d, want %d", loaded.CurrentStep, state.CurrentStep)
+	}
+	if loaded.ErrMsg != state.ErrMsg {
+		t.Errorf("ErrMsg mismatch: got %q, want %q", loaded.ErrMsg, state.ErrMsg)
+	}
+}
+
+func TestSQLiteSagaStore_Load_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestSagaStore(t)
+	ctx := context.Background()
+
+	_, err := store.Load(ctx, id.NewAggregateID())
+	if !errors.Is(err, saga.ErrSagaNotFound) {
+		t.Fatalf("expected ErrSagaNotFound, got: %v", err)
+	}
+}
+
+func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestSagaStore(t)
+	ctx := context.Background()
+
+	// Create running saga
+	running := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusRunning,
+		CurrentStep: 1,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	if err := store.Save(ctx, running); err != nil {
+		t.Fatalf("save running: %v", err)
+	}
+
+	// Create completed saga
+	completed := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusCompleted,
+		CurrentStep: 2,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	if err := store.Save(ctx, completed); err != nil {
+		t.Fatalf("save completed: %v", err)
+	}
+
+	// Create compensating saga
+	compensating := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusCompensating,
+		CurrentStep: 1,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	if err := store.Save(ctx, compensating); err != nil {
+		t.Fatalf("save compensating: %v", err)
+	}
+
+	states, err := store.LoadAllRunning(ctx)
+	if err != nil {
+		t.Fatalf("LoadAllRunning: %v", err)
+	}
+
+	if len(states) != 2 {
+		t.Fatalf("expected 2 running sagas, got %d", len(states))
+	}
+}
+
+func TestSQLiteSagaStore_Save_Upsert(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestSagaStore(t)
+	ctx := context.Background()
+
+	state := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusPending,
+		CurrentStep: 0,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := store.Save(ctx, state); err != nil {
+		t.Fatalf("first save: %v", err)
+	}
+
+	state.Status = saga.StatusRunning
+	state.CurrentStep = 1
+	state.UpdatedAt = time.Now()
+
+	if err := store.Save(ctx, state); err != nil {
+		t.Fatalf("second save (upsert): %v", err)
+	}
+
+	loaded, err := store.Load(ctx, state.ID)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if loaded.Status != saga.StatusRunning {
+		t.Errorf("Status mismatch after upsert: got %q, want %q", loaded.Status, saga.StatusRunning)
+	}
+	if loaded.CurrentStep != 1 {
+		t.Errorf("CurrentStep mismatch after upsert: got %d, want %d", loaded.CurrentStep, 1)
 	}
 }

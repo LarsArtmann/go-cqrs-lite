@@ -6,6 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/core v1.0.0
+	github.com/larsartmann/go-cqrs-lite/saga v1.0.0
 	modernc.org/sqlite v1.50.0
 	turso.tech/database/tursogo v0.6.0
 )
@@ -52,4 +53,7 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
+replace (
+	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/saga => ../saga
+)
