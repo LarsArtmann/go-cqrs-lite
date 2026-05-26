@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-21 · **Module count:** 12 · **Go version:** 1.26.2
+**Last audited:** 2026-05-26 · **Module count:** 13 · **Go version:** 1.26.3
 
 ## Status Legend
 

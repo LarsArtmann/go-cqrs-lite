@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-26
+
+### Added
+
+- **saga** — Saga / Process Manager with compensation, retry, and timeout support
+- **watermill** — Watermill message bus adapter with metadata-based event serialization
+- **stream loading** — Memory-efficient `EventStream` + `StreamLoader` iterator pattern
+- **event versioning** — `VersionedStore` with registered `Upcaster`s for transparent legacy event upcasting
+- Full CQRS pipeline integration test (Command → Decider → Store → Bus → Projection → Query → Stream)
+- Watermill metadata protocol: 15 metadata keys preserving all event fields
+
+### Changed
+
+- Eventcatalog coverage: 85.7% → 92.8%
+- Saga coverage: 70.5% → ~92%
+- Watermill coverage: 28.6% → ~85%
+- `go.work` expanded to 13 modules
+
+### Fixed
+
+- Watermill `toEvent` used broken `json.Unmarshal` into `ImmutableEvent` — replaced with metadata reconstruction
+
+## [0.2.0] - 2026-04-05
+
 ### Added
 
 - **SnapshotStrategy** (`core/event`): Canonical `SnapshotStrategy` interface and `EveryNEvents(n)` extracted from aggregate/decider to `core/event/snapshot_strategy.go`. Backward-compatible type aliases in `core/aggregate` and `core/decider`.
