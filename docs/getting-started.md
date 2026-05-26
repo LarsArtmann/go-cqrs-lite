@@ -54,25 +54,20 @@ evt, _ := event.NewEvent(
 )
 ```
 
-### 4. Event Sourcing with Aggregates
+### 4. Event Sourcing with Decider
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/core/aggregate"
+    "github.com/larsartmann/go-cqrs-lite/core/decider"
     "github.com/larsartmann/go-cqrs-lite/memory"
 )
 
 store := memory.NewMemoryStore()
 bus := memory.NewMemoryBus()
-repo := aggregate.NewRepository(store, bus)
+repo := decider.NewRepository(store, bus, initialState, foldFunc)
 
-// Save
-user := newUser(id.NewAggregateID(), "alice@example.com")
-repo.Save(ctx, user)
-
-// Load
-loaded := newUser(id.AggregateID{}, "")
-repo.Load(ctx, loaded)
+// Execute: load → fold → decide → save → publish
+newState, err := repo.Execute(ctx, aggregateID, decideFunc)
 ```
 
 ### 5. Branded IDs
@@ -103,11 +98,11 @@ For a detailed visual walkthrough of how a web client communicates with go-cqrs-
 
 | Module      | Import          | Purpose                                                |
 | ----------- | --------------- | ------------------------------------------------------ |
-| core        | `…/core/…`      | CQRS primitives (command, event, query, aggregate, id) |
+| core        | `…/core/…`      | CQRS primitives (command, event, query, decider, id) |
 | memory      | `…/memory`      | In-memory implementations (testing)                    |
 | catalog     | `…/catalog/…`   | Auto-documentation (AsyncAPI 3.0, EventCatalog)        |
 | middleware  | `…/middleware`  | Logging, retry, recovery, validation, metrics          |
-| storage     | `…/storage`     | PostgreSQL event store                                 |
+| storage     | `…/storage`     | PostgreSQL, SQLite, Turso, Pebble stores               |
 | testhelpers | `…/testhelpers` | Test utilities (fakes, helpers)                        |
 
 ## Next Steps

@@ -21,7 +21,7 @@
 ## 🟡 MEDIUM Priority
 
 - [x] ~~Fix Pebble Store optimistic concurrency check in Save — concurrent writes silently overwrite~~ — DONE (Session 106, sync.Map per-aggregate locking + checkVersion)
-- [ ] Fix outbox transaction co-participation — SQLOutbox.Append and SQLEventStore.Save run in separate transactions (source: SESSION_45)
+- [x] ~~Fix outbox transaction co-participation~~ — DONE (Session 107, SQLBackend makes atomic save+outbox the default path)
 - [x] ~~Fix SQLEventStore.Close() — don't close borrowed `*sql.DB`~~ — DONE (Session 25, returns nil by design)
 - [x] ~~Fix SQLSnapshotStore double-marshal~~ — DONE (Session 25, stores raw `[]byte` directly)
 - [ ] Add slog.Warn for corrupt IDs in Pebble deserialization (source: storage/pebble_serialization.go:76-88)
@@ -48,8 +48,8 @@
 - [ ] Fix core→memory circular dependency — blocks publishing core independently (source: SESSION10)
 - [x] ~~Fix pre-commit hook — gci config + BuildFlow issues~~ — DONE (Session 94, .buildflow.yml + gci formatters.settings)
 - [x] ~~Fix example/todo build failures~~ — DONE (builds successfully)
-- [ ] Update stale AGENTS.md — missing sync/, catalog/openapi/, catalog/docserver/, example/todo/, storage Dialect (source: SESSION_72)
-- [ ] Update stale FEATURES.md — missing openapi, docserver, sync, dialect; stale coverage numbers (source: SESSION_72)
+- [x] ~~Update stale AGENTS.md~~ — DONE (Session 107, added saga section; others still pending)
+- [x] ~~Update stale FEATURES.md~~ — DONE (Session 107, updated saga status; others still pending)
 - [x] ~~Fix perfsprint lint in storage/helpers.go:342~~ — DONE (file was split into sql_helpers.go)
 - [x] ~~Fix FakeStore/MemoryStore key separator mismatch (`/` vs `:`)~~ — DONE (both use shared `event.StreamKey` with `:` separator)
 - [x] ~~Fix JSON v1/v2 split in storage metadata~~ — DONE (Session 54, all `encoding/json`)

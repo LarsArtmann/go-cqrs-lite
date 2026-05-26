@@ -402,20 +402,15 @@ Minimal CLI demo showing the event sourcing lifecycle:
 | ------------------ | --------------------------------------------------------------------------- | ------ |
 | Saga Definition    | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints | ✅     |
 | Step definition    | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                       | ✅     |
-| Instance tracking  | `Instance` struct: ID, saga type, status, current step, error, timestamps   | ✅     |
+| State / Instance   | `State` (serializable) + `Instance` (runtime view with hydrated `Steps`)    | ✅     |
 | Runner             | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`              | ✅     |
 | Compensation       | Reverse-order compensation of completed steps on failure                    | ✅     |
 | Retry with backoff | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`           | ✅     |
 | Step timeouts      | Per-step `context.WithTimeout` via `Step.Timeout`                           | ✅     |
 | Store interface    | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence           | ✅     |
-| MemoryStore        | Thread-safe in-memory `Store` for testing                                   | ✅     |
+| Persistent store   | `storage.SQLSagaStore` — PostgreSQL, SQLite, Turso via `Dialect`            | ✅     |
+| MemoryStore        | Thread-safe in-memory `Store` for testing                                   | 🧪     |
 | Runner options     | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                      | ✅     |
-
-**Gaps:**
-
-| Issue             | Severity | Detail                  |
-| ----------------- | -------- | ----------------------- |
-| Coverage at 93.8% | ⚠️ LOW   | `compensate()` at 86.4% |
 
 **Coverage:** 93.8%
 

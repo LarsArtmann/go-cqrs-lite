@@ -244,6 +244,17 @@ nix develop             # enter dev shell
 - **Builder**: Fluent API for defining projections with `On[T]()` type-safe handlers. JSON-decodes payloads into typed structs.
 - **Replay context**: `event.WithReplay(ctx, true)` / `event.IsReplay(ctx)` — handlers can distinguish replay from live events.
 
+### Saga Module (`saga/`)
+
+| Package   | Purpose                                    | Key Types                                                                     |
+| --------- | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| `saga/`   | Long-running process orchestration         | `Runner`, `Definition`, `Step`, `Instance`, `State`, `Store`, `Status`        |
+
+- **State/Instance split**: `State` is fully serializable (for persistence). `Instance` is the runtime view assembled by `Runner` via `hydrate()`.
+- **Persistent store**: `storage.SQLSagaStore` implements `saga.Store` for PostgreSQL, SQLite, Turso.
+- **Compensation**: Steps define `Compensate` functions. On step failure after step 0, Runner dispatches compensating commands in reverse order.
+- **Retry**: `dispatchWithRetry` with exponential backoff. Non-retryable errors (Rejection, Conflict) fail immediately.
+
 ## Design Principles
 
 1. **Library, not framework** — Consumers import what they need, compose their own stack. No opinionated transport (HTTP/gRPC), message broker (Kafka/NATS), or SQL driver. Integration modules (storage, watermill) are optional.
