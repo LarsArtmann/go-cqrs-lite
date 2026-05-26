@@ -20,7 +20,7 @@
 
 ## 🟡 MEDIUM Priority
 
-- [ ] Fix Pebble Store optimistic concurrency check in Save — concurrent writes silently overwrite (source: storage/pebble_event_store.go)
+- [x] ~~Fix Pebble Store optimistic concurrency check in Save — concurrent writes silently overwrite~~ — DONE (Session 106, sync.Map per-aggregate locking + checkVersion)
 - [ ] Fix outbox transaction co-participation — SQLOutbox.Append and SQLEventStore.Save run in separate transactions (source: SESSION_45)
 - [x] ~~Fix SQLEventStore.Close() — don't close borrowed `*sql.DB`~~ — DONE (Session 25, returns nil by design)
 - [x] ~~Fix SQLSnapshotStore double-marshal~~ — DONE (Session 25, stores raw `[]byte` directly)
@@ -28,12 +28,12 @@
 - [ ] Fix storage/dialect.go using `any` — 3 methods violate "no any" project rule (source: SESSION_84)
 - [x] ~~Fix retry middleware timer leak~~ — DONE (Session 20, `timer.Stop()` on both paths)
 - [x] ~~Fix decider Execute dual `%w` wrapping — first error unreachable via errors.As~~ — DONE (Session 93, single `%w` wrapping in decider.go)
-- [ ] Fix OutboxPublisher split-brain — cancel stays non-nil after Close() (source: ARCHITECTURAL_TYPE_SAFETY_SWEEP)
+- [x] ~~Fix OutboxPublisher split-brain — cancel stays non-nil after Close()~~ — DONE (cancel properly nilled in Close())
 - [x] ~~Fix WithMetadata to merge instead of destructively replace~~ — DONE (Session 55+, `mergeFrom()` in options.go)
 - [x] ~~Fix loadEvents — propagate snapshot load errors~~ — DONE (Session 28, checks `!errors.Is(err, ErrSnapshotNotFound)`)
 - [x] ~~Fix SQLEventStore.Load to return ErrAggregateNotFound for empty result sets~~ — DONE (Session 28)
-- [ ] Fix collectResults in runner.go — doesn't drain channel on cancellation, goroutine leak (source: SESSION_74)
-- [ ] Fix aggregate snapshot with nil state when codec is nil (source: core/aggregate/load_helpers.go:93-122)
+- [x] ~~Fix collectResults in runner.go — doesn't drain channel on cancellation, goroutine leak~~ — DONE (function removed, verified Session 93)
+- [x] ~~Fix aggregate snapshot with nil state when codec is nil~~ — MOOT (aggregate package deleted in Session 99, use decider)
 - [x] ~~Fix MemorySnapshotStore deep copy~~ — DONE (Session 86+, `copySnapshot()` on Save and Load)
 - [x] ~~Fix query handler signature to include `context.Context`~~ — DONE (`Handler = func(context.Context, Query) (any, error)`)
 - [x] ~~Fix 75+ catalog lint issues → zero~~ — DONE (Session 86, 0 catalog lint issues)
@@ -51,7 +51,7 @@
 - [ ] Update stale AGENTS.md — missing sync/, catalog/openapi/, catalog/docserver/, example/todo/, storage Dialect (source: SESSION_72)
 - [ ] Update stale FEATURES.md — missing openapi, docserver, sync, dialect; stale coverage numbers (source: SESSION_72)
 - [x] ~~Fix perfsprint lint in storage/helpers.go:342~~ — DONE (file was split into sql_helpers.go)
-- [ ] Fix FakeStore/MemoryStore key separator mismatch (`/` vs `:`) (source: HONEST_AUDIT)
+- [x] ~~Fix FakeStore/MemoryStore key separator mismatch (`/` vs `:`)~~ — DONE (both use shared `event.StreamKey` with `:` separator)
 - [x] ~~Fix JSON v1/v2 split in storage metadata~~ — DONE (Session 54, all `encoding/json`)
 - [ ] Optimize Pebble LoadToTimestamp — avoid full scan, use timestamp bounds (source: SESSION_79)
 - [ ] Fix filterEvents O(n) scan in projection/runner.go — performance cliff at scale (source: SESSION_74)
@@ -87,7 +87,7 @@
 
 ## ⚪ Unknown Priority
 
-- [ ] Return error from Pebble iterateEvents instead of silently skipping corrupt events (source: storage/pebble_event_store.go:120-123)
+- [x] ~~Return error from Pebble iterateEvents instead of silently skipping corrupt events~~ — DONE (returns error immediately, no silent skip)
 - [x] ~~Implement SQL dialect abstraction~~ — DONE (storage/dialect.go with PostgresDialect, SQLiteDialect)
 - [x] ~~Split pebble_event_store.go (445→<250 lines)~~ — DONE (Session 68, now 186 lines)
 - [x] ~~Split storage/helpers.go (423→<250 lines)~~ — DONE (Session 68, split into sql_helpers.go)
