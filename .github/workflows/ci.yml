@@ -55,8 +55,40 @@ jobs:
 
       - name: Test each module in isolation
         run: |
-          for mod in core memory catalog middleware testhelpers integration projection storage sync; do
+          for mod in core memory catalog middleware testhelpers integration projection storage saga watermill cmd/cqrs-gen; do
             echo "::group::$mod"
             (cd "$mod" && GOWORK=off go test ./... -count=1 -race)
             echo "::endgroup::"
           done
+
+  coverage-gate:
+    name: Minimum Coverage (80%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check per-package coverage >= 80%
+        run: |
+          pkgs=$(go list ./... | grep -v '/example/')
+          failed=false
+          for pkg in $pkgs; do
+            output=$(go test -coverprofile=/dev/null -covermode=set "$pkg" 2>&1)
+            pct=$(echo "$output" | grep -oP 'coverage: \K[0-9.]+')
+            if [ -n "$pct" ]; then
+              int_pct=$(echo "$pct" | cut -d. -f1)
+              if [ "$int_pct" -lt 80 ]; then
+                echo "::warning::$pkg coverage ${pct}% < 80%"
+                failed=true
+              else
+                echo "  $pkg: ${pct}%"
+              fi
+            fi
+          done
+          if [ "$failed" = true ]; then
+            echo "::error::One or more packages below 80% coverage"
+            exit 1
+          fi

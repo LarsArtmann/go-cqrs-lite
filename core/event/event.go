@@ -167,6 +167,29 @@ func (e *ImmutableEvent) Metadata() *Metadata {
 // OccurredAt returns when the event occurred.
 func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
 
+// Clone returns a deep copy of the event. The returned event is fully independent —
+// mutations to its payload or metadata will not affect the original.
+func (e *ImmutableEvent) Clone() *ImmutableEvent {
+	var payloadCopy []byte
+	if e.payload != nil {
+		payloadCopy = make([]byte, len(e.payload))
+		copy(payloadCopy, e.payload)
+	}
+
+	return &ImmutableEvent{
+		id:            e.id,
+		eventType:     e.eventType,
+		aggregateID:   e.aggregateID,
+		aggregateType: e.aggregateType,
+		version:       e.version,
+		schemaVersion: e.schemaVersion,
+		payload:       payloadCopy,
+		metadata:      e.Metadata(),
+		occurredAt:    e.occurredAt,
+		clock:         e.clock,
+	}
+}
+
 // NewEvent creates a new event with validation.
 func NewEvent(
 	eventType Type,

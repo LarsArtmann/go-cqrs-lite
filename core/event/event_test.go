@@ -681,3 +681,114 @@ func TestMustParseAggregateType_Panics(t *testing.T) {
 
 	event.MustParseAggregateType("")
 }
+
+func TestClone_DeepCopy(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		[]byte("original"),
+		event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	if cloned.ID() != evt.ID() {
+		t.Error("cloned ID should match original")
+	}
+
+	if cloned.Type() != evt.Type() {
+		t.Error("cloned Type should match original")
+	}
+
+	if cloned.AggregateID() != evt.AggregateID() {
+		t.Error("cloned AggregateID should match original")
+	}
+
+	if cloned.Version() != evt.Version() {
+		t.Error("cloned Version should match original")
+	}
+
+	if string(cloned.Payload()) != "original" {
+		t.Error("cloned payload should match original")
+	}
+
+	if cloned.Metadata().CorrelationID != evt.Metadata().CorrelationID {
+		t.Error("cloned metadata should match original")
+	}
+}
+
+func TestClone_IndependentPayload(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewAggregateID(),
+		"User",
+		1,
+		[]byte("original"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	clonedPayload := cloned.Payload()
+	clonedPayload[0] = 'X'
+
+	if string(evt.Payload()) != "original" {
+		t.Error("mutating cloned payload should not affect original")
+	}
+}
+
+func TestClone_IndependentMetadata(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewAggregateID(),
+		"User",
+		1,
+		[]byte("{}"),
+		event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	cloned.Metadata().CorrelationID = id.CorrelationID{}
+
+	if evt.Metadata().CorrelationID.String() == "" {
+		t.Error("mutating cloned metadata should not affect original")
+	}
+}
+
+func TestClone_NilPayload(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewAggregateID(),
+		"User",
+		1,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	if cloned.Payload() != nil {
+		t.Error("cloned nil payload should remain nil")
+	}
+}

@@ -35,41 +35,43 @@ var (
 
 func main() {
 	flag.Parse()
+	os.Exit(run(*genType, *outputFile, *pkgName, flag.Args()))
+}
 
-	if *genType != "command" && *genType != "query" {
-		fmt.Fprintf(os.Stderr, "invalid type %q: must be 'command' or 'query'\n", *genType)
-		os.Exit(1)
+func run(genType, outputFile, pkg string, paths []string) int {
+	if genType != "command" && genType != "query" {
+		fmt.Fprintf(os.Stderr, "invalid type %q: must be 'command' or 'query'\n", genType)
+		return 1
 	}
 
-	paths := flag.Args()
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
 
-	entries, err := scan(paths, *genType)
+	entries, err := scan(paths, genType)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "scan: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	if len(entries) == 0 {
 		fmt.Fprintln(os.Stderr, "no cqrs markers found")
-		os.Exit(0)
+		return 0
 	}
 
-	pkg := *pkgName
 	if pkg == "" {
 		pkg = filepath.Base(mustAbs(paths[0]))
 	}
 
-	code := generate(pkg, *genType, entries)
+	code := generate(pkg, genType, entries)
 
-	if err := os.WriteFile(*outputFile, []byte(code), 0o644); err != nil {
+	if err := os.WriteFile(outputFile, []byte(code), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
-	fmt.Printf("generated %d handlers → %s\n", len(entries), *outputFile)
+	fmt.Printf("generated %d handlers → %s\n", len(entries), outputFile)
+	return 0
 }
 
 func mustAbs(p string) string {

@@ -365,3 +365,131 @@ func TestMustAbs(t *testing.T) {
 		t.Errorf("expected absolute path, got %s", result)
 	}
 }
+
+func TestRun_InvalidType(t *testing.T) {
+	t.Parallel()
+
+	code := run("invalid", "out.go", "", []string{"."})
+	if code != 1 {
+		t.Errorf("expected exit 1 for invalid type, got %d", code)
+	}
+}
+
+func TestRun_NoMarkers(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := `package example
+
+type PlainStruct struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "plain.go"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	code := run("command", "out.go", "", []string{tmp})
+	if code != 0 {
+		t.Errorf("expected exit 0 for no markers, got %d", code)
+	}
+}
+
+func TestRun_SuccessfulCommand(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := `package example
+
+//cqrs:command CreateUser
+type CreateUserCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputFile := filepath.Join(tmp, "handlers_gen.go")
+	code := run("command", outputFile, "", []string{tmp})
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d", code)
+	}
+
+	generated, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("output file not created: %v", err)
+	}
+	if !strings.Contains(string(generated), "RegisterCreateUserCmdHandler") {
+		t.Errorf("generated file missing handler, got: %s", generated)
+	}
+}
+
+func TestRun_SuccessfulQueryWithCustomPkg(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := `package myapp
+
+//cqrs:query GetUser
+type GetUserQuery struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "queries.go"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputFile := filepath.Join(tmp, "queries_gen.go")
+	code := run("query", outputFile, "handlers", []string{tmp})
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d", code)
+	}
+
+	generated, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("output file not created: %v", err)
+	}
+	if !strings.Contains(string(generated), "package handlers") {
+		t.Errorf("expected custom package name, got: %s", generated)
+	}
+	if !strings.Contains(string(generated), "core/query") {
+		t.Errorf("expected query import, got: %s", generated)
+	}
+}
+
+func TestRun_WriteError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := `package example
+
+//cqrs:command CreateUser
+type CreateUserCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	code := run("command", "/nonexistent/dir/handlers_gen.go", "", []string{tmp})
+	if code != 1 {
+		t.Errorf("expected exit 1 for write error, got %d", code)
+	}
+}
+
+func TestRun_DefaultPath(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := `package example
+
+//cqrs:command CreateItem
+type CreateItemCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "item.go"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputFile := filepath.Join(tmp, "gen.go")
+	code := run("command", outputFile, "", []string{tmp})
+	if code != 0 {
+		t.Errorf("expected exit 0, got %d", code)
+	}
+
+	generated, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("output file not created: %v", err)
+	}
+	if !strings.Contains(string(generated), "RegisterCreateItemCmdHandler") {
+		t.Errorf("generated file missing handler, got: %s", generated)
+	}
+}
