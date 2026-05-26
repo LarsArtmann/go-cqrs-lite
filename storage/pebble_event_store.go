@@ -14,12 +14,17 @@ import (
 )
 
 // PebbleEventStore implements go-cqrs-lite/event.Store using Pebble.
+//
+// Save uses per-aggregate locking to prevent concurrent writes from silently
+// overwriting each other (Pebble batch commits are atomic, but two goroutines
+// can both pass checkVersion before either commits). The lock map grows with
+// the number of unique aggregates — bounded by actual data volume for an
+// embedded single-process store.
 type PebbleEventStore struct {
 	db      *pebble.DB
-	logger *slog.Logger
-	prefix string
-	mu     sync.Mutex
-	locks  map[string]*sync.Mutex
+	logger  *slog.Logger
+	prefix  string
+	locks   sync.Map // map[string]*sync.Mutex — one per aggregate
 }
 
 // NewPebbleStore creates a new store using an existing Pebble DB.
@@ -28,7 +33,6 @@ func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *PebbleEventStore {
 		db:     db,
 		logger: logger,
 		prefix: "cqrs_event:",
-		locks:  make(map[string]*sync.Mutex),
 	}
 }
 
@@ -216,13 +220,11 @@ func (a *PebbleEventStore) lockAggregate(
 ) {
 	key := a.aggregateLockKey(aggregateType, aggregateID)
 
-	a.mu.Lock()
-	m, ok := a.locks[key]
-	if !ok {
-		m = &sync.Mutex{}
-		a.locks[key] = m
+	m := &sync.Mutex{}
+	actual, loaded := a.locks.LoadOrStore(key, m)
+	if loaded {
+		m = actual.(*sync.Mutex)
 	}
-	a.mu.Unlock()
 
 	m.Lock()
 }
@@ -233,9 +235,6 @@ func (a *PebbleEventStore) unlockAggregate(
 ) {
 	key := a.aggregateLockKey(aggregateType, aggregateID)
 
-	a.mu.Lock()
-	m := a.locks[key]
-	a.mu.Unlock()
-
-	m.Unlock()
+	val, _ := a.locks.Load(key)
+	val.(*sync.Mutex).Unlock()
 }
