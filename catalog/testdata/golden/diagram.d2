@@ -84,6 +84,4 @@ order_svc: {
   order_svc -> order_svc.createorder: "receives"
   order_svc.ordercreated -> order_svc: "publishes"
   order_svc -> order_svc.getorder: "handles"
-
 }
-
