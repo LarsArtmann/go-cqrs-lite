@@ -4,9 +4,9 @@ go 1.26.3
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
-	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
+	github.com/larsartmann/go-cqrs-lite/core v1.0.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.0.0
+	github.com/larsartmann/go-cqrs-lite/storage v1.0.0
 	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e
 )
 

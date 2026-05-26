@@ -3,10 +3,10 @@ module github.com/larsartmann/go-cqrs-lite/example/user
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog v1.6.0
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
-	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
+	github.com/larsartmann/go-cqrs-lite/catalog v1.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.0.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.0.0
+	github.com/larsartmann/go-cqrs-lite/middleware v1.0.0
 )
 
 require (

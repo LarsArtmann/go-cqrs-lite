@@ -2,7 +2,7 @@ module github.com/larsartmann/go-cqrs-lite/saga
 
 go 1.26.3
 
-require github.com/larsartmann/go-cqrs-lite/core v1.6.0
+require github.com/larsartmann/go-cqrs-lite/core v1.0.0
 
 require (
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect

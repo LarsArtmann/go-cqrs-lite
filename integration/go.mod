@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/integration
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
-	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
-	github.com/larsartmann/go-cqrs-lite/projection v1.6.0
-	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
+	github.com/larsartmann/go-cqrs-lite/core v1.0.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.0.0
+	github.com/larsartmann/go-cqrs-lite/middleware v1.0.0
+	github.com/larsartmann/go-cqrs-lite/projection v1.0.0
+	github.com/larsartmann/go-cqrs-lite/storage v1.0.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.0.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 )

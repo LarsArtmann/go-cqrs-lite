@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/middleware
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
+	github.com/larsartmann/go-cqrs-lite/core v1.0.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.0.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
