@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/cockroachdb/pebble"
@@ -14,9 +15,11 @@ import (
 
 // PebbleEventStore implements go-cqrs-lite/event.Store using Pebble.
 type PebbleEventStore struct {
-	db     *pebble.DB
+	db      *pebble.DB
 	logger *slog.Logger
 	prefix string
+	mu     sync.Mutex
+	locks  map[string]*sync.Mutex
 }
 
 // NewPebbleStore creates a new store using an existing Pebble DB.
@@ -25,6 +28,7 @@ func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *PebbleEventStore {
 		db:     db,
 		logger: logger,
 		prefix: "cqrs_event:",
+		locks:  make(map[string]*sync.Mutex),
 	}
 }
 
@@ -46,7 +50,7 @@ func (a *PebbleEventStore) aggregatePrefix(
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, aggregateType, aggregateID)
 }
 
-// Save implements event.Store.Save with optimistic concurrency control.
+// Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *PebbleEventStore) Save(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -57,6 +61,9 @@ func (a *PebbleEventStore) Save(
 	if len(events) == 0 {
 		return nil
 	}
+
+	a.lockAggregate(aggregateType, aggregateID)
+	defer a.unlockAggregate(aggregateType, aggregateID)
 
 	err := a.checkVersion(aggregateType, aggregateID, expectedVersion)
 	if err != nil {
@@ -100,6 +107,11 @@ func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event
 	for iter.First(); iter.Valid(); iter.Next() {
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
+			if a.logger != nil {
+				a.logger.Warn("corrupt event in pebble store",
+					"key", string(iter.Key()), "error", err)
+			}
+
 			return nil, fmt.Errorf("corrupt event at key %s: %w", string(iter.Key()), err)
 		}
 
@@ -189,4 +201,41 @@ func (a *PebbleEventStore) LoadToTimestamp(
 	}
 
 	return filtered, nil
+}
+
+func (a *PebbleEventStore) aggregateLockKey(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) string {
+	return string(aggregateType) + ":" + aggregateID.String()
+}
+
+func (a *PebbleEventStore) lockAggregate(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) {
+	key := a.aggregateLockKey(aggregateType, aggregateID)
+
+	a.mu.Lock()
+	m, ok := a.locks[key]
+	if !ok {
+		m = &sync.Mutex{}
+		a.locks[key] = m
+	}
+	a.mu.Unlock()
+
+	m.Lock()
+}
+
+func (a *PebbleEventStore) unlockAggregate(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) {
+	key := a.aggregateLockKey(aggregateType, aggregateID)
+
+	a.mu.Lock()
+	m := a.locks[key]
+	a.mu.Unlock()
+
+	m.Unlock()
 }

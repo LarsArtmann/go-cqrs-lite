@@ -363,3 +363,60 @@ func TestPebbleEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
 }
+
+func TestPebbleEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	cfg := issueStoreConfig()
+	aggID := id.NewAggregateID()
+
+	evt1 := cfg.newTestEvent(t, aggID, 1)
+	saveCfgEvent(t, store, cfg, aggID, evt1)
+
+	const goroutines = 10
+	errCh := make(chan error, goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			evt := cfg.newTestEvent(t, aggID, 2)
+			errCh <- store.Save(
+				context.Background(),
+				cfg.aggType,
+				aggID,
+				[]event.Event{evt},
+				event.Version(1),
+			)
+		}()
+	}
+
+	var successes, conflicts int
+
+	for i := 0; i < goroutines; i++ {
+		err := <-errCh
+		if err == nil {
+			successes++
+		} else if errors.Is(err, event.ErrVersionConflict) {
+			conflicts++
+		} else {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	if successes != 1 {
+		t.Fatalf("expected exactly 1 successful save, got %d", successes)
+	}
+
+	if conflicts != goroutines-1 {
+		t.Fatalf("expected %d conflicts, got %d", goroutines-1, conflicts)
+	}
+
+	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if len(loaded) != 2 {
+		t.Fatalf("expected 2 events after concurrent save, got %d", len(loaded))
+	}
+}
