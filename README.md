@@ -48,6 +48,12 @@ go get github.com/larsartmann/go-cqrs-lite/middleware
 
 # Projection runner with replay and live subscription
 go get github.com/larsartmann/go-cqrs-lite/projection
+
+# Saga / Process Manager with compensation
+go get github.com/larsartmann/go-cqrs-lite/saga
+
+# Watermill message bus adapter
+go get github.com/larsartmann/go-cqrs-lite/watermill
 ```
 
 ### Requirements
@@ -506,18 +512,148 @@ evt, err := event.NewBuilder(
     Build()
 ```
 
+## Saga / Process Manager
+
+Coordinate long-running business processes across multiple aggregates with automatic compensation (rollback) on failure:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+
+    "github.com/larsartmann/go-cqrs-lite/core/command"
+    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/saga"
+)
+
+// OrderSaga defines a 3-step order fulfillment process.
+type OrderSaga struct{}
+
+func (OrderSaga) SagaType() string { return "order-fulfillment" }
+
+func (OrderSaga) Steps() []saga.Step {
+    return []saga.Step{
+        {
+            Name: "reserve-inventory",
+            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
+                return &ReserveInventoryCmd{/* ... */}
+            },
+            Compensate: func(ctx context.Context, instanceID id.AggregateID) command.Command {
+                return &ReleaseInventoryCmd{/* ... */}
+            },
+            Timeout: 5 * time.Second,
+        },
+        {
+            Name: "charge-payment",
+            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
+                return &ChargePaymentCmd{/* ... */}
+            },
+            Compensate: func(ctx context.Context, instanceID id.AggregateID) command.Command {
+                return &RefundPaymentCmd{/* ... */}
+            },
+            Timeout: 10 * time.Second,
+        },
+        {
+            Name: "ship-order",
+            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
+                return &ShipOrderCmd{/* ... */}
+            },
+        },
+    }
+}
+
+func main() {
+    store := saga.NewMemoryStore()
+    cmds := command.NewDispatcher()
+    runner := saga.NewRunner(store, cmds)
+
+    // Register the saga definition
+    _ = runner.Register(OrderSaga{})
+
+    // Start a new saga instance
+    ctx := context.Background()
+    instance, _ := runner.Start(ctx, "order-fulfillment", &CreateOrderCmd{})
+    fmt.Printf("Saga started: %s\n", instance.ID)
+
+    // Execute steps sequentially
+    _ = runner.ExecuteStep(ctx, instance.ID) // reserve inventory
+    _ = runner.ExecuteStep(ctx, instance.ID) // charge payment
+    _ = runner.ExecuteStep(ctx, instance.ID) // ship order
+
+    // If any step fails, completed steps are automatically compensated
+    // (inventory released, payment refunded) in reverse order.
+}
+```
+
+## Stream Loading
+
+Memory-efficient event iteration for large aggregates or projection replay:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/larsartmann/go-cqrs-lite/core/event"
+    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/storage"
+)
+
+func main() {
+    ctx := context.Background()
+    db, _ := storage.OpenSQLite("myapp.db")
+    store, _ := storage.NewSQLiteEventStore(db)
+
+    aggID := id.NewAggregateID()
+
+    // Load events as a stream instead of a slice — constant memory usage
+    stream, err := store.LoadStream(ctx, "Order", aggID)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stream.Close()
+
+    var version event.Version
+    for {
+        evt, ok := stream.Next()
+        if !ok {
+            break
+        }
+        version = evt.Version()
+        fmt.Printf("Event %s at version %d\n", evt.Type(), version)
+    }
+
+    if err := stream.Err(); err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Aggregate at version %d\n", version)
+}
+```
+
+`LoadStream` is available on `SQLEventStore` (cursor-based, memory-bounded) and can be adapted to any `Store` via `event.NewStoreStreamAdapter`.
+
 ## Comparison
 
-| Feature         | go-cqrs-lite | go-cqrs | cqrs-go |
-| --------------- | ------------ | ------- | ------- |
-| Minimal deps    | ✅           | ❌      | ❌      |
-| Event Sourcing  | ✅           | ✅      | ✅      |
-| Event Bus       | ✅           | ✅      | ❌      |
-| Strong IDs      | ✅           | ❌      | ❌      |
-| Context support | ✅           | ❌      | ✅      |
-| Auto-docs       | ✅           | ❌      | ❌      |
-| Middleware      | ✅           | ❌      | ❌      |
-| Benchmarks      | ✅           | ❌      | ❌      |
+| Feature              | go-cqrs-lite | go-cqrs | cqrs-go |
+| -------------------- | ------------ | ------- | ------- |
+| Minimal deps         | ✅           | ❌      | ❌      |
+| Event Sourcing       | ✅           | ✅      | ✅      |
+| Event Bus            | ✅           | ✅      | ❌      |
+| Strong IDs           | ✅           | ❌      | ❌      |
+| Context support      | ✅           | ❌      | ✅      |
+| Auto-docs            | ✅           | ❌      | ❌      |
+| Middleware           | ✅           | ❌      | ❌      |
+| Benchmarks           | ✅           | ❌      | ❌      |
+| Saga / Process Mgr   | ✅           | ❌      | ❌      |
+| Stream Loading       | ✅           | ❌      | ❌      |
+| Watermill Adapter    | ✅           | ❌      | ❌      |
 
 ## Project Status
 
@@ -535,6 +671,9 @@ evt, err := event.NewBuilder(
 | Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
 | Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
+| Saga          | ✅ Complete | Saga / Process Manager with compensation          |
+| Watermill     | ✅ Complete | Watermill message bus adapter                     |
+| Stream Loading| ✅ Complete | Memory-efficient event stream iteration           |
 | Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
 See [FEATURES.md](FEATURES.md) for detailed feature inventory and maturity ratings.
