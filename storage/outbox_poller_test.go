@@ -15,14 +15,14 @@ import (
 var errTestPoller = errors.New("test poller error")
 
 type fakePollerOutbox struct {
-	entries    []event.OutboxEntry
-	pollErr    error
-	ackErr     error
-	ackedIDs   []event.OutboxID
-	pollCalls  int
+	entries   []event.OutboxEntry
+	pollErr   error
+	ackErr    error
+	ackedIDs  []event.OutboxID
+	pollCalls int
 }
 
-func (o *fakePollerOutbox) Close() error                                { return nil }
+func (o *fakePollerOutbox) Close() error                                    { return nil }
 func (o *fakePollerOutbox) Append(_ context.Context, _ []event.Event) error { return nil }
 
 func (o *fakePollerOutbox) PollPending(_ context.Context, limit int) ([]event.OutboxEntry, error) {
@@ -59,7 +59,7 @@ func (o *fakePollerOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
 }
 
 type fakePollerPublisher struct {
-	published []event.Event
+	published  []event.Event
 	publishErr error
 }
 

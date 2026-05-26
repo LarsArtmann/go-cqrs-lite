@@ -103,7 +103,7 @@ func scan(paths []string, genType string) ([]Entry, error) {
 	return entries, nil
 }
 
-func scanPath(root string, genType string) ([]Entry, error) {
+func scanPath(root, genType string) ([]Entry, error) {
 	var entries []Entry
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -125,7 +125,7 @@ func scanPath(root string, genType string) ([]Entry, error) {
 	return entries, err
 }
 
-func scanFile(path string, genType string) ([]Entry, error) {
+func scanFile(path, genType string) ([]Entry, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
@@ -193,8 +193,18 @@ func generate(pkg, genType string, entries []Entry) string {
 
 `)
 		for _, e := range entries {
-			fmt.Fprintf(&b, "// Register%sHandler registers a typed handler for %s commands.\n", e.StructName, e.CommandType)
-			fmt.Fprintf(&b, "func Register%sHandler(d *command.Dispatcher, handler func(context.Context, *%s) error) error {\n", e.StructName, e.StructName)
+			fmt.Fprintf(
+				&b,
+				"// Register%sHandler registers a typed handler for %s commands.\n",
+				e.StructName,
+				e.CommandType,
+			)
+			fmt.Fprintf(
+				&b,
+				"func Register%sHandler(d *command.Dispatcher, handler func(context.Context, *%s) error) error {\n",
+				e.StructName,
+				e.StructName,
+			)
 			fmt.Fprintf(&b, "\treturn command.RegisterTyped(d, %q, handler)\n", e.CommandType)
 			b.WriteString("}\n\n")
 		}
@@ -207,8 +217,18 @@ func generate(pkg, genType string, entries []Entry) string {
 
 `)
 		for _, e := range entries {
-			fmt.Fprintf(&b, "// Register%sHandler registers a typed handler for %s queries.\n", e.StructName, e.CommandType)
-			fmt.Fprintf(&b, "func Register%sHandler(d *query.Dispatcher, handler func(context.Context, *%s) error) error {\n", e.StructName, e.StructName)
+			fmt.Fprintf(
+				&b,
+				"// Register%sHandler registers a typed handler for %s queries.\n",
+				e.StructName,
+				e.CommandType,
+			)
+			fmt.Fprintf(
+				&b,
+				"func Register%sHandler(d *query.Dispatcher, handler func(context.Context, *%s) error) error {\n",
+				e.StructName,
+				e.StructName,
+			)
 			fmt.Fprintf(&b, "\treturn query.RegisterTyped(d, %q, handler)\n", e.CommandType)
 			b.WriteString("}\n\n")
 		}

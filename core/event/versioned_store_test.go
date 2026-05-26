@@ -90,7 +90,8 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	// Save a v1 event
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	evt, _ := event.NewEvent("test.upcast", aggID, "Test", 1, []byte("v1"),
+	evt, _ := event.NewEvent(
+		"test.upcast", aggID, "Test", 1, []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
 	if err := store.Save(ctx, "Test", aggID, []event.Event{evt}, 0); err != nil {

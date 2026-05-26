@@ -788,7 +788,8 @@ func TestRunner_WithRetryPolicy(t *testing.T) {
 	})
 
 	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, dispatcher,
+	runner := saga.NewRunner(
+		store, dispatcher,
 		saga.WithRetryPolicy(1, 10*time.Millisecond),
 		saga.WithRetryMultiplier(3.0),
 	)
@@ -888,11 +889,15 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 	def := testDefinition{
 		sagaType: "order",
 		steps: []saga.Step{
-			{Name: "create", Action: newTestCommand},                         // no Compensate
-			{Name: "reserve", Action: newTestCommand, Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-				compensateCalled = true
-				return &testCommand{}
-			}},
+			{Name: "create", Action: newTestCommand}, // no Compensate
+			{
+				Name:   "reserve",
+				Action: newTestCommand,
+				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
+					compensateCalled = true
+					return &testCommand{}
+				},
+			},
 			{Name: "charge", Action: newTestCommand}, // fails
 		},
 	}
@@ -944,10 +949,14 @@ func TestRunner_CompensateReturnsNilSkipped(t *testing.T) {
 	def := testDefinition{
 		sagaType: "order",
 		steps: []saga.Step{
-			{Name: "create", Action: newTestCommand, Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-				compensateCalled = true
-				return nil // returns nil — dispatch should be skipped
-			}},
+			{
+				Name:   "create",
+				Action: newTestCommand,
+				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
+					compensateCalled = true
+					return nil // returns nil — dispatch should be skipped
+				},
+			},
 			{Name: "charge", Action: newTestCommand},
 		},
 	}
