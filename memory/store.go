@@ -52,7 +52,7 @@ func (s *MemoryStore) Save(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := streamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	existing := s.events[key]
 
 	err = event.CheckVersionConflict(len(existing), expectedVersion)
@@ -80,7 +80,7 @@ func (s *MemoryStore) AppendBatch(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := streamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -100,7 +100,7 @@ func (s *MemoryStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := streamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	delete(s.events, key)
 
 	return nil

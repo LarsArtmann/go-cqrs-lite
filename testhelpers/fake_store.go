@@ -55,7 +55,7 @@ func (s *FakeStore) Save(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -79,7 +79,7 @@ func (s *FakeStore) AppendBatch(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -102,7 +102,7 @@ func (s *FakeStore) Load(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 
 	return append([]event.Event{}, s.events[key]...), nil
 }
@@ -125,7 +125,7 @@ func (s *FakeStore) LoadFromVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
 	for i, evt := range all {
@@ -155,7 +155,7 @@ func (s *FakeStore) LoadToVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
 	end := min(maxVersion.Int(), len(all))
@@ -181,7 +181,7 @@ func (s *FakeStore) LoadToTimestamp(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
 	var filtered []event.Event
@@ -212,7 +212,7 @@ func (s *FakeStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := fakeStreamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 	delete(s.events, key)
 
 	return nil
@@ -241,7 +241,3 @@ func (s *FakeStore) Close() error {
 // Return an error to simulate delete failures.
 
 var _ event.Store = (*FakeStore)(nil)
-
-func fakeStreamKey(aggregateType event.AggregateType, aggregateID id.AggregateID) string {
-	return string(aggregateType) + ":" + aggregateID.String()
-}

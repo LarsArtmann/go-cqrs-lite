@@ -100,7 +100,7 @@ func (s *MemoryStore) getEvents(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := streamKey(aggregateType, aggregateID)
+	key := event.StreamKey(aggregateType, aggregateID)
 
 	events, exists := s.events[key]
 	if !exists {
