@@ -1,0 +1,122 @@
+package storage_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/storage"
+)
+
+func TestSQLEventStore_LoadStream(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db, err := storage.OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	storage.SQLiteInitSchema(ctx, db)
+
+	store, err := storage.NewSQLiteEventStore(db)
+	if err != nil {
+		t.Fatalf("new store: %v", err)
+	}
+	defer store.Close()
+
+	aggID := id.NewAggregateID()
+
+	wantEvents := []event.Event{
+		mustEvent(t, "order.placed", aggID, 1),
+		mustEvent(t, "order.paid", aggID, 2),
+		mustEvent(t, "order.shipped", aggID, 3),
+	}
+
+	if err := store.Save(ctx, "Order", aggID, wantEvents, 0); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	stream, err := store.LoadStream(ctx, "Order", aggID)
+	if err != nil {
+		t.Fatalf("load stream: %v", err)
+	}
+
+	defer stream.Close()
+
+	var got []string
+
+	for {
+		evt, ok := stream.Next()
+		if !ok {
+			break
+		}
+
+		got = append(got, string(evt.Type()))
+	}
+
+	if err := stream.Err(); err != nil {
+		t.Fatalf("stream error: %v", err)
+	}
+
+	if len(got) != 3 {
+		t.Fatalf("got %d events, want 3", len(got))
+	}
+
+	want := []string{"order.placed", "order.paid", "order.shipped"}
+	for i, w := range want {
+		if got[i] != w {
+			t.Errorf("event[%d] type = %q, want %q", i, got[i], w)
+		}
+	}
+}
+
+func TestSQLEventStore_LoadStream_NotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db, err := storage.OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	storage.SQLiteInitSchema(ctx, db)
+
+	store, err := storage.NewSQLiteEventStore(db)
+	if err != nil {
+		t.Fatalf("new store: %v", err)
+	}
+	defer store.Close()
+
+	stream, err := store.LoadStream(ctx, "Order", id.NewAggregateID())
+	if err != nil {
+		t.Fatalf("load stream: %v", err)
+	}
+
+	defer stream.Close()
+
+	_, ok := stream.Next()
+	if ok {
+		t.Error("expected no events for non-existent aggregate")
+	}
+}
+
+func mustEvent(tb testing.TB, typ string, aggID id.AggregateID, ver int) event.Event {
+	tb.Helper()
+
+	evt, err := event.NewEvent(
+		event.Type(typ),
+		aggID,
+		"Test",
+		event.Version(ver),
+		[]byte(`{}`),
+	)
+	if err != nil {
+		tb.Fatalf("new event: %v", err)
+	}
+
+	return evt
+}
