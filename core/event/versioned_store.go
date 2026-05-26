@@ -1,0 +1,77 @@
+package event
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+)
+
+// Upcaster transforms an event from one schema version to the next.
+type Upcaster interface {
+	// SourceType returns the event type this upcaster handles.
+	SourceType() Type
+	// SourceVersion returns the schema version this upcaster transforms from.
+	SourceVersion() SchemaVersion
+	// Upcast transforms the event. The returned event should have
+	// the next schema version (SourceVersion + 1).
+	Upcast(evt Event) (*ImmutableEvent, error)
+}
+
+// VersionedStore wraps an event.Store and automatically upcasts loaded events.
+type VersionedStore struct {
+	Store
+	registry *upcasterRegistry
+}
+
+// NewVersionedStore creates a store that applies registered upcasters
+// when loading events. Pass nil or no upcasters for a no-op wrapper.
+func NewVersionedStore(store Store, upcasters ...Upcaster) *VersionedStore {
+	reg := newUpcasterRegistry()
+	for _, u := range upcasters {
+		reg.register(u)
+	}
+
+	return &VersionedStore{Store: store, registry: reg}
+}
+
+// Load retrieves and upcasts events for an aggregate.
+func (s *VersionedStore) Load(
+	ctx context.Context,
+	aggregateType AggregateType,
+	aggregateID id.AggregateID,
+) ([]Event, error) {
+	events, err := s.Store.Load(ctx, aggregateType, aggregateID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.upcastAll(events)
+}
+
+// LoadFromVersion retrieves and upcasts events starting from a specific version.
+func (s *VersionedStore) LoadFromVersion(
+	ctx context.Context,
+	aggregateType AggregateType,
+	aggregateID id.AggregateID,
+	version Version,
+) ([]Event, error) {
+	events, err := s.Store.LoadFromVersion(ctx, aggregateType, aggregateID, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.upcastAll(events)
+}
+
+func (s *VersionedStore) upcastAll(events []Event) ([]Event, error) {
+	result := make([]Event, len(events))
+	for i, evt := range events {
+		upcasted, err := s.registry.upcast(evt)
+		if err != nil {
+			return nil, fmt.Errorf("upcast event %s: %w", evt.ID(), err)
+		}
+		result[i] = upcasted
+	}
+	return result, nil
+}
