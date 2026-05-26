@@ -31,7 +31,7 @@ type failingCodec struct {
 }
 
 func (f *failingCodec) Encode(_ any) ([]byte, error) { return nil, f.err }
-func (f *failingCodec) Decode(_ []byte, _ any) error  { return nil }
+func (f *failingCodec) Decode(_ []byte, _ any) error { return nil }
 
 func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
 	t.Parallel()
@@ -55,7 +55,8 @@ func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(context.Background(), aggID, "Counter",
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
 		func(_ counterState, ver event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
 		},
@@ -87,7 +88,8 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(context.Background(), aggID, "Counter",
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
 		func(_ counterState, ver event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
 		},

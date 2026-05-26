@@ -21,10 +21,10 @@ import (
 // the number of unique aggregates — bounded by actual data volume for an
 // embedded single-process store.
 type PebbleEventStore struct {
-	db      *pebble.DB
-	logger  *slog.Logger
-	prefix  string
-	locks   sync.Map // map[string]*sync.Mutex — one per aggregate
+	db     *pebble.DB
+	logger *slog.Logger
+	prefix string
+	locks  sync.Map // map[string]*sync.Mutex — one per aggregate
 }
 
 // NewPebbleStore creates a new store using an existing Pebble DB.
