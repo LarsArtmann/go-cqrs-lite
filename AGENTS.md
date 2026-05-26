@@ -102,7 +102,7 @@ go-cqrs-lite/
 From root with go.work:
 
 ```bash
-go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./storage/... -count=1
+go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./storage/... ./saga/... ./watermill/... -count=1
 ```
 
 Per-module (isolated, no go.work):
@@ -183,7 +183,6 @@ nix develop             # enter dev shell
 | `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                                            |
 | `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                                            |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `Clone()`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                                |
 | `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                                       |
 | `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                                      |
 | `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                                               |
