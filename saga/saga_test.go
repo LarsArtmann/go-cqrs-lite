@@ -345,14 +345,9 @@ func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
 		t.Fatalf("execute step: %v", err)
 	}
 
-	// Try to execute again — should be a no-op / already completed
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute after completion: %v", err)
-	}
-
-	loaded, _ := store.Load(ctx, instance.ID)
-	if loaded.Status != saga.StatusCompleted {
-		t.Errorf("expected status Completed, got %s", loaded.Status)
+	// Try to execute again — should return error since saga is completed
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
+		t.Fatal("expected error when executing completed saga")
 	}
 }
 
@@ -568,7 +563,7 @@ func TestRunner_ExecuteStep_NonRetryable(t *testing.T) {
 	callCount := 0
 	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
 		callCount++
-		return errors.New("permanent failure")
+		return event.NewRejection("test.rejection", "permanent failure")
 	})
 
 	store := saga.NewMemoryStore()
