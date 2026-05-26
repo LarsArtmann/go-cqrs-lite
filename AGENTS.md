@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------ |
-| Language  | Go 1.26.3                                                                                                          |
+| Item      | Value                                                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                           |
 | Modules   | `core` (incl. `decider`), `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `saga`, `watermill`, `cqrs-gen` |
-| Build     | `nix run .#build`                                                                                                  |
-| Test      | `nix run .#test` or see "Testing" below                                                                            |
-| Lint      | `nix run .#lint`                                                                                                   |
-| Format    | `nix fmt`                                                                                                          |
-| Dev shell | `nix develop`                                                                                                      |
-| CI        | GitHub Actions: ci.yml (Nix-based)                                                                                 |
+| Build     | `nix run .#build`                                                                                                                                   |
+| Test      | `nix run .#test` or see "Testing" below                                                                                                             |
+| Lint      | `nix run .#lint`                                                                                                                                    |
+| Format    | `nix fmt`                                                                                                                                           |
+| Dev shell | `nix develop`                                                                                                                                       |
+| CI        | GitHub Actions: ci.yml (Nix-based)                                                                                                                  |
 
 ## Monorepo Structure
 
@@ -178,15 +178,15 @@ nix develop             # enter dev shell
 
 ### Core Module (`core/`)
 
-| Package                | Purpose                                   | Key Types                                                                                                                                                                                                                                        |
-| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                                 |
-| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                                 |
+| Package                | Purpose                                   | Key Types                                                                                                                                                                                                                                                   |
+| ---------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/command/`        | Command dispatch and handling             | `Dispatcher`, `Handler`, `Middleware`, `Command`, `BasicCommand`                                                                                                                                                                                            |
+| `core/query/`          | Query dispatch with pagination            | `Dispatcher`, `Handler`, `Pagination`, `PaginatedResult[T]`, `Middleware`, `TypedHandler[T]`, `RegisterTyped[T]`                                                                                                                                            |
 | `core/event/`          | Event sourcing interfaces and types       | `Store`, `Bus`, `Publisher`, `Subscriber`, `SnapshotStore`, `TransactionalStore`, `GlobalLoader`, `Event`, `ImmutableEvent`, `Clone()`, `New`, `Metadata`, `Option`, `Version`, `SchemaVersion`, `Type`, `AggregateType`, `Clock`, `WithReplay`, `IsReplay` |
-| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                     |
-| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                            |
-| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                           |
-| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                                    |
+| `core/aggregate/`      | Aggregate roots and repository (OO)       | `Root`, `Repository`, `ImmutableEvent`, `EventSourcedRepository` _(Deprecated: use decider)_                                                                                                                                                                |
+| `core/decider/`        | Aggregate via pure functions              | `Decider[State]`, `Repository[State]`, `Execute`, `ExecuteWithResult`, `Load`, `DecideFunc`, `Result`                                                                                                                                                       |
+| `core/pkg/id/`         | Branded IDs (type alias to go-branded-id) | `id.Of[T]` = `cbid.ID[T, ulid.ULID]`, `AggregateID`, `EventID`, `UserID`, `CorrelationID`, `ClientID`, `CompareIDs`, `FromPtr`, `DeriveAggregateID`, `AggregateIDFrom`                                                                                      |
+| `core/pkg/dispatcher/` | Generic internal dispatcher               | `Dispatcher[H, M]`, `MiddlewareChain[H, M]`, `LifecycleMixin`                                                                                                                                                                                               |
 
 ### Decider Module (`core/decider/`)
 

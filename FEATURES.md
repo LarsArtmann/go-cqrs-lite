@@ -325,28 +325,28 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage"`
 
-| Feature                         | Detail                                                                 | Status |
-| ------------------------------- | ---------------------------------------------------------------------- | ------ |
-| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                               | ✅     |
-| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL               | ✅     |
-| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble        | ✅     |
-| Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database         | ✅     |
-| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull         | ✅     |
-| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                         | ✅     |
-| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso               | ✅     |
-| Optimistic concurrency          | `Save` checks version in transaction                                   | ✅     |
-| AppendBatch                     | Appends without concurrency check                                      | ✅     |
-| Load / LoadFromVersion / Delete | All implemented for both engines                                       | ✅     |
-| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `LoadAllFromPosition` with indexes | ✅     |
-| Composite timestamp index       | `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)`      | ✅     |
-| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata             | ✅     |
-| SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete       | ✅     |
-| SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling         | ✅     |
-| SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                          | ✅     |
-| TransactionalStore              | Atomic save + outbox append, both engines                              | ✅     |
+| Feature                         | Detail                                                                            | Status |
+| ------------------------------- | --------------------------------------------------------------------------------- | ------ |
+| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                                          | ✅     |
+| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL                          | ✅     |
+| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble                   | ✅     |
+| Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database                    | ✅     |
+| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull                    | ✅     |
+| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                                    | ✅     |
+| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                          | ✅     |
+| Optimistic concurrency          | `Save` checks version in transaction                                              | ✅     |
+| AppendBatch                     | Appends without concurrency check                                                 | ✅     |
+| Load / LoadFromVersion / Delete | All implemented for both engines                                                  | ✅     |
+| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `LoadAllFromPosition` with indexes            | ✅     |
+| Composite timestamp index       | `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)`                 | ✅     |
+| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata                        | ✅     |
+| SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete                  | ✅     |
+| SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                    | ✅     |
+| SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                                     | ✅     |
+| TransactionalStore              | Atomic save + outbox append, both engines                                         | ✅     |
 | Stream loading                  | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration | ✅     |
-| OutboxPoller                    | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches | ✅     |
-| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle   | ✅     |
+| OutboxPoller                    | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches  | ✅     |
+| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle              | ✅     |
 
 **Remaining gaps:**
 
@@ -398,24 +398,24 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `import "github.com/larsartmann/go-cqrs-lite/saga"`
 
-| Feature                 | Detail                                                                           | Status |
-| ----------------------- | -------------------------------------------------------------------------------- | ------ |
-| Saga Definition         | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints     | ✅     |
-| Step definition         | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                           | ✅     |
-| Instance tracking       | `Instance` struct: ID, saga type, status, current step, error, timestamps       | ✅     |
-| Runner                  | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`                  | ✅     |
-| Compensation            | Reverse-order compensation of completed steps on failure                         | ✅     |
-| Retry with backoff      | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`                | ✅     |
-| Step timeouts           | Per-step `context.WithTimeout` via `Step.Timeout`                               | ✅     |
-| Store interface         | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence               | ✅     |
-| MemoryStore             | Thread-safe in-memory `Store` for testing                                       | ✅     |
-| Runner options          | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                          | ✅     |
+| Feature            | Detail                                                                      | Status |
+| ------------------ | --------------------------------------------------------------------------- | ------ |
+| Saga Definition    | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints | ✅     |
+| Step definition    | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                       | ✅     |
+| Instance tracking  | `Instance` struct: ID, saga type, status, current step, error, timestamps   | ✅     |
+| Runner             | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`              | ✅     |
+| Compensation       | Reverse-order compensation of completed steps on failure                    | ✅     |
+| Retry with backoff | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`           | ✅     |
+| Step timeouts      | Per-step `context.WithTimeout` via `Step.Timeout`                           | ✅     |
+| Store interface    | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence           | ✅     |
+| MemoryStore        | Thread-safe in-memory `Store` for testing                                   | ✅     |
+| Runner options     | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                      | ✅     |
 
 **Gaps:**
 
-| Issue                  | Severity  | Detail                                                    |
-| ---------------------- | --------- | --------------------------------------------------------- |
-| Coverage at 93.8%      | ⚠️ LOW    | `compensate()` at 86.4%                                   |
+| Issue             | Severity | Detail                  |
+| ----------------- | -------- | ----------------------- |
+| Coverage at 93.8% | ⚠️ LOW   | `compensate()` at 86.4% |
 
 **Coverage:** 93.8%
 
@@ -425,12 +425,12 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `import "github.com/larsartmann/go-cqrs-lite/watermill"`
 
-| Feature                | Detail                                                                           | Status |
-| ---------------------- | -------------------------------------------------------------------------------- | ------ |
-| Metadata protocol      | Bidirectional `event.Event` ↔ Watermill `message.Message` via metadata keys     | ✅     |
-| PublisherAdapter       | Implements `message.Publisher` — wraps `event.Publisher`                         | ✅     |
-| SubscriberAdapter      | Implements `message.Subscriber` — wraps `event.Bus`, feeds `<-chan *message.Message` | ✅     |
-| Full event fidelity    | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields | ✅     |
+| Feature             | Detail                                                                                      | Status |
+| ------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| Metadata protocol   | Bidirectional `event.Event` ↔ Watermill `message.Message` via metadata keys                 | ✅     |
+| PublisherAdapter    | Implements `message.Publisher` — wraps `event.Publisher`                                    | ✅     |
+| SubscriberAdapter   | Implements `message.Subscriber` — wraps `event.Bus`, feeds `<-chan *message.Message`        | ✅     |
+| Full event fidelity | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields | ✅     |
 
 **Coverage:** 89.6%
 
@@ -440,12 +440,12 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen`
 
-| Feature                | Detail                                                                           | Status |
-| ---------------------- | -------------------------------------------------------------------------------- | ------ |
-| AST-based scanning     | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers    | ✅     |
-| Typed handler gen      | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`      | ✅     |
-| CLI flags              | `-type` (command/query), `-output` (file), `-pkg` (package name)                | ✅     |
-| Recursive directory    | Walks directories, skips `_test.go`, extracts markers from doc comments          | ✅     |
+| Feature             | Detail                                                                       | Status |
+| ------------------- | ---------------------------------------------------------------------------- | ------ |
+| AST-based scanning  | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers | ✅     |
+| Typed handler gen   | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`   | ✅     |
+| CLI flags           | `-type` (command/query), `-output` (file), `-pkg` (package name)             | ✅     |
+| Recursive directory | Walks directories, skips `_test.go`, extracts markers from doc comments      | ✅     |
 
 **Coverage:** 70.8% (CLI main entry point not tested; all library functions covered)
 
@@ -455,9 +455,9 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 Features mentioned in project docs/planning but with **no production code**:
 
-| Feature                | Description                                  | Notes                                                     |
-| ---------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| Schema registry        | JSON Schema middleware for event validation   | Design decisions on schema versioning needed              |
+| Feature         | Description                                 | Notes                                        |
+| --------------- | ------------------------------------------- | -------------------------------------------- |
+| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
 
 ---
 

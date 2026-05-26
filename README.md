@@ -684,40 +684,40 @@ func main() {
 
 ## Comparison
 
-| Feature              | go-cqrs-lite | go-cqrs | cqrs-go |
-| -------------------- | ------------ | ------- | ------- |
-| Minimal deps         | ✅           | ❌      | ❌      |
-| Event Sourcing       | ✅           | ✅      | ✅      |
-| Event Bus            | ✅           | ✅      | ❌      |
-| Strong IDs           | ✅           | ❌      | ❌      |
-| Context support      | ✅           | ❌      | ✅      |
-| Auto-docs            | ✅           | ❌      | ❌      |
-| Middleware           | ✅           | ❌      | ❌      |
-| Benchmarks           | ✅           | ❌      | ❌      |
-| Saga / Process Mgr   | ✅           | ❌      | ❌      |
-| Stream Loading       | ✅           | ❌      | ❌      |
-| Watermill Adapter    | ✅           | ❌      | ❌      |
+| Feature            | go-cqrs-lite | go-cqrs | cqrs-go |
+| ------------------ | ------------ | ------- | ------- |
+| Minimal deps       | ✅           | ❌      | ❌      |
+| Event Sourcing     | ✅           | ✅      | ✅      |
+| Event Bus          | ✅           | ✅      | ❌      |
+| Strong IDs         | ✅           | ❌      | ❌      |
+| Context support    | ✅           | ❌      | ✅      |
+| Auto-docs          | ✅           | ❌      | ❌      |
+| Middleware         | ✅           | ❌      | ❌      |
+| Benchmarks         | ✅           | ❌      | ❌      |
+| Saga / Process Mgr | ✅           | ❌      | ❌      |
+| Stream Loading     | ✅           | ❌      | ❌      |
+| Watermill Adapter  | ✅           | ❌      | ❌      |
 
 ## Project Status
 
 **Phase:** Active Development (core stable, storage module complete for SQLite/Turso)
 
-| Phase         | Status      | Description                                       |
-| ------------- | ----------- | ------------------------------------------------- |
-| Foundation    | ✅ Complete | Core types, events, commands, queries, aggregates |
-| Event Layer   | ✅ Complete | Event store, event bus, in-memory implementations |
-| Command Layer | ✅ Complete | Command dispatcher with middleware support        |
-| Query Layer   | ✅ Complete | Query dispatcher with typed results               |
-| Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery     |
-| Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
-| Projections   | ✅ Complete | Projection runner with replay and live subscribe  |
-| Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
-| Tests         | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
-| CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
-| Saga          | ✅ Complete | Saga / Process Manager with compensation          |
-| Watermill     | ✅ Complete | Watermill message bus adapter                     |
-| Stream Loading| ✅ Complete | Memory-efficient event stream iteration           |
-| Documentation | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
+| Phase          | Status      | Description                                       |
+| -------------- | ----------- | ------------------------------------------------- |
+| Foundation     | ✅ Complete | Core types, events, commands, queries, aggregates |
+| Event Layer    | ✅ Complete | Event store, event bus, in-memory implementations |
+| Command Layer  | ✅ Complete | Command dispatcher with middleware support        |
+| Query Layer    | ✅ Complete | Query dispatcher with typed results               |
+| Middleware     | ✅ Complete | Logging, metrics, retry, validation, recovery     |
+| Decider        | ✅ Complete | Functional aggregate pattern (recommended)        |
+| Projections    | ✅ Complete | Projection runner with replay and live subscribe  |
+| Storage        | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
+| Tests          | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
+| CI/CD          | ✅ Complete | GitHub Actions, Nix flake, linting                |
+| Saga           | ✅ Complete | Saga / Process Manager with compensation          |
+| Watermill      | ✅ Complete | Watermill message bus adapter                     |
+| Stream Loading | ✅ Complete | Memory-efficient event stream iteration           |
+| Documentation  | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
 See [FEATURES.md](FEATURES.md) for detailed feature inventory and maturity ratings.
 
