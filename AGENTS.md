@@ -331,47 +331,12 @@ evt, err := event.New(
 )
 ```
 
-**Raw constructor (for []byte payloads)**:
-
-```go
-evt, err := event.NewEvent(
-    "user.created",
-    userID,                     // id.AggregateID (branded, no string conversion)
-    "User",
-    event.Version(1),           // event.Version (typed, not bare int)
-    payload,                    // []byte
-    event.WithCorrelationID(correlationID),
-)
-```
-
-### Clock Interface (Deterministic Testing)
-
-```go
-fixedTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
-clock := func() time.Time { return fixedTime }
-
-evt, _ := event.NewEvent("user.created", aggID, "User", 1, payload,
-    event.WithClock(clock), // deterministic OccurredAt
-)
-// evt.OccurredAt() == fixedTime, every time
-```
-
 ### Branded IDs
 
 ```go
 type UserID = id.Of[userMarker]
 uid := id.New[UserID]()
 parsed, err := id.Parse[UserID](uid.String())
-```
-
-### Catalog Builder
-
-```go
-builder := catalog.NewBuilder("My Service", "1.0.0")
-builder.AddService("users", "User Service", "1.0.0", "Manages users")
-builder.AddCommandFromType[CreateUserCmd]("users", "CreateUser", meta)
-exporter := asyncapi.NewExporter(builder.Build())
-doc, err := exporter.Export(context.Background())
 ```
 
 ## Test Patterns
@@ -384,197 +349,22 @@ doc, err := exporter.Export(context.Background())
 
 ## Dependencies
 
-### Production
+### Dependencies
 
-| Dependency        | Version | Purpose                           | Module  |
-| ----------------- | ------- | --------------------------------- | ------- |
-| `oklog/ulid/v2`   | v2.1.0  | ULID generation (binary-sortable) | core    |
-| `go-branded-id`   | v0.1.0  | Branded ID type backing           | core    |
-| `go-error-family` | v0.1.0  | Error classification taxonomy     | core    |
-| `go-faster/yaml`  | v0.4.6  | YAML marshaling                   | catalog |
+**Production**: oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog).
+**Test-only**: onsi/ginkgo/v2, onsi/gomega.
 
-### Test-only
+**Coverage**: 84–100% across 18 packages. See `docs/status/` for latest.
 
-| Dependency       | Version | Purpose      | Module            |
-| ---------------- | ------- | ------------ | ----------------- |
-| `onsi/ginkgo/v2` | v2.28.3 | BDD testing  | core, memory, etc |
-| `onsi/gomega`    | v1.40.0 | BDD matchers | core, memory, etc |
+**Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers;
+catalog→core; storage→core; projection→core; integration→core+memory+testhelpers;
+example/user→core+memory+catalog+middleware.
 
-## Test Coverage Summary
+**Integration Tests**: `integration/command/`, `integration/event/`, `integration/query/`.
 
-| Package                       | Coverage |
-| ----------------------------- | -------- |
-| `core/pkg/dispatcher`         | 100.0%   |
-| `core/pkg/id`                 | 100.0%   |
-| `middleware`                  | 100.0%   |
-| `catalog/internal/caseutil`   | 100.0%   |
-| `memory`                      | 99.6%    |
-| `core/query`                  | 98.4%    |
-| `catalog`                     | 96.3%    |
-| `catalog/d2`                  | 95.0%    |
-| `catalog/openapi`             | 94.4%    |
-| `projection`                  | 94.4%    |
-| `core/event`                  | 93.8%    |
-| `catalog/asyncapi`            | 93.7%    |
-| `core/decider`                | 93.6%    |
-| `core/command`                | 92.3%    |
-| `testhelpers`                 | 91.3%    |
-| `catalog/docserver`           | 90.1%    |
-| `storage`                     | 89.3%    |
-| `catalog/internal/schemautil` | 84.2%    |
-| `catalog/eventcatalog`        | 85.8%    |
 
-## Module Dependency Graph
 
-```
-testhelpers → core
-memory      → core + testhelpers
-middleware  → core + testhelpers
-catalog    → core (via cattest internal helpers)
-storage    → core (go-sqlmock for tests)
-projection → core + memory (tests) + testhelpers (tests)
-integration → core + memory + testhelpers
-example/user → core + memory + catalog + middleware
-core        → (no internal deps — independently publishable)
-core/decider is a package within core, not a separate module
-```
-
-### Integration Module (`integration/`)
-
-| Package                | Purpose                                                | Key Types              |
-| ---------------------- | ------------------------------------------------------ | ---------------------- |
-| `integration/command/` | Command integration tests (moved from `core/command/`) | Middleware chain tests |
-| `integration/event/`   | Event integration tests (moved from `core/event/`)     | BDD + benchmark tests  |
-| `integration/query/`   | Query integration tests (moved from `core/query/`)     | Middleware chain tests |
-
-## Catalog System Architecture
-
-The `catalog` module provides automatic documentation generation from Go CQRS types to AsyncAPI 3.0 and EventCatalog formats.
-
-### Three-Layer Design
-
-```
-┌──────────────────────────────────────────────────────┐
-│                   catalog (core)                      │
-│  types.go — Message, Service, Domain, Channel, Schema │
-│  schema.go — SchemaFromType[T]() via reflect          │
-│  registry.go — Thread-safe Registry, Build() → Catalog│
-└──────────────────────┬───────────────────────────────┘
-                       │ Catalog (immutable IR)
-           ┌───────────┴───────────┐
-           ▼                       ▼
-┌─────────────────────┐  ┌─────────────────────────┐
-│ catalog/asyncapi/   │  │ catalog/d2/            │  │ catalog/eventcatalog/   │
-│ AsyncAPI 3.0 YAML   │  │ MDX files on disk       │
-│ Document.MarshalYAML│  │ services/{id}/index.mdx │
-│ Document.MarshalJSON│  │ schemas/schema.json     │
-└─────────────────────┘  └─────────────────────────┘
-```
-
-### Key Design Decisions
-
-1. **go-faster/yaml** — Replaced custom YAML marshaler (`catalog/yaml/`, deleted). Well-maintained, zero-transitive-dep YAML library.
-
-2. **Reflection-based schema generation** — `SchemaFromType[T any]() *Schema` uses `reflect.TypeOf` to inspect struct fields. Reads `json` (name + omitempty), `doc`/`description` (description), and `format` (format) struct tags. **Anonymous (embedded) fields are automatically skipped**.
-
-3. **Type alias for MarshalJSON** — AsyncAPI `Document.MarshalJSON()` uses `type alias Document` to break infinite recursion when calling `json.MarshalIndent`.
-
-4. **Registry pattern** — Thread-safe with `sync.RWMutex`. `AddService` merges messages into existing services. `Build()` produces an immutable `*Catalog`.
-
-5. **AsyncAPI mapping** — Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive`. Channel addresses via `toDotAddress` (CamelCase → dot.separated).
-
-6. **EventCatalog structure** — MDX files with YAML frontmatter (`---` delimited). `schema.json` only created when schema is non-nil. Service frontmatter includes `sends`, `receives`, `commands`, and `queries` lists.
-
-7. **D2 diagram export** (`catalog/d2`) — Generates D2 text from `*catalog.Catalog`. Services become containers, commands/events/queries become color-coded nodes (command=blue, event=red queue, query=purple), domains become grouping labels. Wire via `catalog.Builder` directly. Follows same `Exporter` pattern as `asyncapi` and `eventcatalog`.
-
-## Branded Return Types Migration (Session 3)
-
-Interfaces now return branded types instead of primitives:
-
-| Interface | Method          | Old Return | New Return       |
-| --------- | --------------- | ---------- | ---------------- |
-| `Event`   | `ID()`          | `string`   | `id.EventID`     |
-| `Event`   | `AggregateID()` | `string`   | `id.AggregateID` |
-| `Event`   | `Version()`     | `int`      | `event.Version`  |
-| `Command` | `AggregateID()` | `string`   | `id.AggregateID` |
-
-**Note**: The `Root` rows were removed when `core/aggregate` was deleted (Session 99).
-
-**Caller updates**: All `event.NewEvent()` calls pass `id.AggregateID` directly (no re-parse). `middleware/logging.go` adds `.String()` when formatting IDs for log output. `Version()` callers use `.Int()` when passing to `NewEvent` or `fmt.Printf`. Commit: `cee6c50` (IDs), `de095e5` (Version)
-
-## Bug Fixes (Sessions 1–2)
-
-| Bug                               | Fix                                                                   | Commit    |
-| --------------------------------- | --------------------------------------------------------------------- | --------- |
-| Retry dead cancellation           | `context.Background().Done()` → `ctx.Done()` in `middleware/retry.go` | `5ad0356` |
-| Aggregate version desync          | Removed fallback loop; `Load()` requires `HistoryLoader`              | `1862eae` |
-| Wrong error sentinel (dispatcher) | `CheckClosed` used `ErrHandlerNotFound` → `ErrDispatcherClosed`       | `5ad0356` |
-| Slice mutation (MemoryStore)      | `Load()`/`LoadFromVersion()` return defensive copies                  | `d5ea811` |
-| Wrong error sentinel (snapshot)   | `CheckClosed` used `ErrSnapshotNotFound` → `ErrSnapshotStoreClosed`   | `8e5150c` |
-
-## Code Quality Improvements (Sessions 1–2)
-
-| Improvement                  | Detail                                                                                                 | Commit     |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ | ---------- |
-| Dead code removal            | `evtest.GenerateUUID`, `testutil` package, `query.ErrQueryValidation`                                  | `1862eae`  |
-| Lifecycle unification        | `MemoryBus`/`MemorySnapshotStore` now use `LifecycleMixin`                                             | `8e5150c`  |
-| EventValidation middleware   | API symmetry: Command/Query/Event all have validation                                                  | `4fdd447`  |
-| MessageID extraction         | Moved from `asyncapi`/`eventcatalog` to `catalog.GetID()` (was `MessageID()`, renamed in Session 76)   | `c1bc261`  |
-| Type naming overhaul         | `Core`→`ImmutableEvent`/`BasicCommand`/`BasicQuery`, `CatalogEntry`→`HandlerMeta` across all modules   | Session 95 |
-| Constructor consistency      | `NewCheckpointStore`→`NewMemoryCheckpointStore`, `NewWithDialect` constructors for all 4 storage types | Session 95 |
-| Command/Query decoupling     | command/ and query/ import go-error-family directly instead of event/ for error constructors           | Session 95 |
-| Logger interface removal     | Custom `middleware.Logger` + `SlogAdapter` replaced with `*slog.Logger` (Go standard since 1.21)       | Session 95 |
-| Dispatch closed-state fix    | command/query Dispatch() now pre-checks closed state, returning domain sentinels consistently          | Session 96 |
-| cqrs-htmx removal            | example/todo: removed broken external dep, inlined `chainMiddleware`                                   | Session 96 |
-| decider file organization    | Moved `loadFromSnapshot`/`shouldSnapshot` from options.go → load.go                                    | Session 96 |
-| FakeMetrics rename           | `TestMetrics` → `FakeMetrics` (consistent with FakeBus/FakeStore/etc.)                                 | Session 96 |
-| event_new.go rename          | `codec_typed.go` → `event_new.go` (file contains event constructor, not codec)                         | Session 96 |
-| FakeStore completeness       | Added `AppendBatchFn`, `LoadToVersionFn`, `LoadToTimestampFn` setters                                  | Session 96 |
-| event.go split               | Extracted `Option`/`With*` to `event/options.go` (169 + 90 lines)                                      | `699d247`  |
-| Dead reflect.Ptr case        | Removed unreachable branch in `goTypeToJSON`                                                           | `b23a781`  |
-| Dispatcher.Dispatch refactor | Removed unused `handler H` parameter                                                                   | `e84e3a1`  |
-| Example rewrite              | `example/user/` demonstrates full CQRS + Decider pattern + middleware + EventCatalog                   | session 37 |
-
-## Known Issues
-
-| Issue                                                    | Severity  | Detail                                                                                                                      |
-| -------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `MemoryBus.Publish` holds RLock during handler execution | LOW       | Subscribers block publishers (acceptable for test utility)                                                                  |
-| `query.Handler` returns `any`                            | LOW       | Violates project "no any" rule; `DispatchTyped[T]` is the workaround. Design doc: `docs/planning/QUERY_HANDLER_GENERICS.md` |
-| `CatalogMeta` duplicated across 2 packages               | **FIXED** | Consolidated to `dispatcher.HandlerMeta`; `command.CatalogMeta`/`query.CatalogMeta` deleted                                 |
-| `Root.LoadEvents` vs `Core.LoadFromHistory` mismatch     | **FIXED** | `core/aggregate` package deleted (Session 99); decider has no such split                                                    |
-
-## Session History
-
-> Detailed per-session change logs have been extracted to [`docs/sessions/SESSION_HISTORY.md`](docs/sessions/SESSION_HISTORY.md) for brevity. This section previously covered Sessions 20–86.
-
-Key milestones:
-
-| Session | Milestone                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 20      | Zero lint, storage error path tests 79.8→92.3%                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| 25      | Bug fixes: double-marshal, Close() ownership, Version branded type                                                                                                                                                                                                                                                                                                                                                                                               |
-| 27      | No-panic convention: `New*` returns `(*T, error)`                                                                                                                                                                                                                                                                                                                                                                                                                |
-| 31      | Error taxonomy (5 families), ClientID, IdempotencyKey on Command                                                                                                                                                                                                                                                                                                                                                                                                 |
-| 37      | `core/decider` package + example/user rewrite                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| 44      | ISP (Publisher/Subscriber), extensible error classification                                                                                                                                                                                                                                                                                                                                                                                                      |
-| 45      | `id.Of[T]` as type alias for `go-branded-id`                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| 48      | Shared SnapshotStrategy, PublishChanges, SaveSnapshot                                                                                                                                                                                                                                                                                                                                                                                                            |
-| 54      | Removed cockroachdb/errors, added TypedHandler[T]                                                                                                                                                                                                                                                                                                                                                                                                                |
-| 55–56   | TransactionalStore, GlobalLoader on SQL, `errors.AsType`                                                                                                                                                                                                                                                                                                                                                                                                         |
-| 65      | Architectural type safety: Version, SchemaVersion, OutboxStatus                                                                                                                                                                                                                                                                                                                                                                                                  |
-| 68      | Module hygiene, file splits, 0 production files >250 lines                                                                                                                                                                                                                                                                                                                                                                                                       |
-| 73      | File splits, golden test refresh, coverage improvements                                                                                                                                                                                                                                                                                                                                                                                                          |
-| 80      | Time-travel: LoadToVersion, LoadToTimestamp, decider API                                                                                                                                                                                                                                                                                                                                                                                                         |
-| 81      | Position-based replay, SQL composite index                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| 83      | Version arithmetic (Add/Sub/Cmp), deprecated API removal                                                                                                                                                                                                                                                                                                                                                                                                         |
-| 86      | Catalog quality sweep, MemorySnapshotStore deep copy                                                                                                                                                                                                                                                                                                                                                                                                             |
-| 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                                                                                                                                                                                                                                                                                                                                                                                  |
-| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID, aggregate deprecation                                                                                                                                                                                                                                                                                                                                                     |
-| 92      | Query quality: typed bookend docs, example/todo typed handlers + Pagination, design doc closed                                                                                                                                                                                                                                                                                                                                                                   |
-| 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build, testhelpers 10→64.6%                                                                                                                                                                                                                                                                                                                                                           |
-| 94      | gci v2 fix, buildflow config, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%                                                                                                                                                                                                                                                                                                                                                                |
-| 95      | Naming overhaul: Core→ImmutableEvent/BasicCommand/BasicQuery, CatalogEntry→HandlerMeta, NewCheckpointStore→NewMemoryCheckpointStore, command/query decoupled from event, NewWithDialect constructors for all storage types, Go 1.26.3 aligned, InMemoryRunner deprecated                                                                                                                                                                                         |
-| 96      | Dispatch() closed-state fix, cqrs-htmx removal, decider file organization, FakeMetrics/FakeStore renames, event_new.go rename                                                                                                                                                                                                                                                                                                                                    |
-| 99      | Deleted `core/aggregate` + `integration/aggregate` (~3700 lines), deleted `catalog/adapters` (616 lines), migrated example/user to `catalog.Builder`, added Dispatch() + NewWithDialect tests, storage coverage 88.7→89.3%                                                                                                                                                                                                                                       |
-| 100     | EventCatalog auto-generation (20%→80%): channels, data stores, flows, teams, users, 3 fluent option APIs (27 option functions), ~60 new tests. Branded ID type safety sweep: 8 catalog branded types, `asyncapi.URI`, branded map keys in auto_derive, `svcID`/`msgID`→`serviceID`/`messageID` across all exporters, `ChannelRoute.ID`→`ChannelID`, `memory/outbox.nextID`→`entryCounter`. branching-flow violations 30→7 (all remaining are intentional skips). |
+> **Historical details**: Session milestones, bug fixes, code quality improvements,
+> catalog architecture, and known issues extracted to
+> [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)
+> and [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).
