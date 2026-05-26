@@ -215,7 +215,7 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 | `EventRetry(config)`   | Same                                                        |
 | `QueryRetry(config)`   | Same                                                        |
 
-**Config:** `MaxAttempts`, `InitialDelay`, `MaxDelay`, `Multiplier`, `IsRetryable` predicate. Jitter uses `crypto/rand`.
+**Config:** `MaxAttempts`, `InitialDelay`, `MaxDelay`, `Multiplier`, `IsRetryable` predicate. Jitter uses `math/rand/v2`.
 
 ### Tracing ✅
 
