@@ -3,10 +3,12 @@ package saga_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
 )
@@ -48,7 +50,7 @@ type testDefinition struct {
 	steps    []saga.Step
 }
 
-func (d testDefinition) SagaType() string { return d.sagaType }
+func (d testDefinition) SagaType() string  { return d.sagaType }
 func (d testDefinition) Steps() []saga.Step { return d.steps }
 
 // testCommand is a minimal command implementation for testing.
@@ -173,6 +175,29 @@ func TestRunner_RegisterDuplicate(t *testing.T) {
 	}
 }
 
+func TestRunner_RegisterNil(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, nopDispatcher{})
+
+	if err := runner.Register(nil); err == nil {
+		t.Fatal("expected error for nil definition")
+	}
+}
+
+func TestRunner_RegisterEmptyType(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, nopDispatcher{})
+
+	def := testDefinition{sagaType: ""}
+	if err := runner.Register(def); err == nil {
+		t.Fatal("expected error for empty saga type")
+	}
+}
+
 func TestRunner_Start(t *testing.T) {
 	t.Parallel()
 
@@ -217,6 +242,31 @@ func TestRunner_StartNotRegistered(t *testing.T) {
 	_, err := runner.Start(ctx, "unknown", nil)
 	if !errors.Is(err, saga.ErrSagaNotRegistered) {
 		t.Fatalf("expected ErrSagaNotRegistered, got: %v", err)
+	}
+}
+
+func TestRunner_StartInitialCommandFails(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	dispatcher := failingDispatcher{}
+	runner := saga.NewRunner(store, dispatcher)
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", &testCommand{})
+	if err == nil {
+		t.Fatal("expected error when initial command fails")
+	}
+	if instance.Status != saga.StatusFailed {
+		t.Errorf("expected status Failed, got %s", instance.Status)
 	}
 }
 
@@ -267,6 +317,69 @@ func TestRunner_ExecuteStep_HappyPath(t *testing.T) {
 
 	if dispatcher.count != 2 {
 		t.Errorf("expected 2 dispatches, got %d", dispatcher.count)
+	}
+}
+
+func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, nopDispatcher{})
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	// Complete the saga
+	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
+		t.Fatalf("execute step: %v", err)
+	}
+
+	// Try to execute again — should be a no-op / already completed
+	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
+		t.Fatalf("execute after completion: %v", err)
+	}
+
+	loaded, _ := store.Load(ctx, instance.ID)
+	if loaded.Status != saga.StatusCompleted {
+		t.Errorf("expected status Completed, got %s", loaded.Status)
+	}
+}
+
+func TestRunner_ExecuteStep_NilAction(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, nopDispatcher{})
+
+	def := testDefinition{
+		sagaType: "order",
+		steps: []saga.Step{
+			{Name: "nil", Action: func(_ context.Context, _ id.AggregateID) command.Command { return nil }},
+		},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
+		t.Fatal("expected error for nil action")
 	}
 }
 
@@ -339,6 +452,37 @@ func TestRunner_ExecuteStep_FailureWithCompensation(t *testing.T) {
 	}
 }
 
+func TestRunner_ExecuteStep_FirstStepFailsNoCompensation(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, failingDispatcher{})
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	// First step fails — no compensation possible (no completed steps)
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
+		t.Fatal("expected error on first step failure")
+	}
+
+	loaded, _ := store.Load(ctx, instance.ID)
+	if loaded.Status != saga.StatusFailed {
+		t.Errorf("expected status Failed, got %s", loaded.Status)
+	}
+}
+
 func TestRunner_ExecuteStep_Timeout(t *testing.T) {
 	t.Parallel()
 
@@ -379,3 +523,145 @@ func TestRunner_ExecuteStep_Timeout(t *testing.T) {
 		t.Fatal("expected timeout error, got nil")
 	}
 }
+
+func TestRunner_ExecuteStep_RetryExhaustion(t *testing.T) {
+	t.Parallel()
+
+	callCount := 0
+	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
+		callCount++
+		// Return a retryable error
+		return event.NewTransient("test.transient", "temporary failure")
+	})
+
+	store := saga.NewMemoryStore()
+	// Default config: maxRetries=3, retryDelay=10ms
+	runner := saga.NewRunner(store, dispatcher)
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
+		t.Fatal("expected retry exhaustion error")
+	}
+
+	// 1 initial + 3 retries = 4 calls
+	if callCount != 4 {
+		t.Errorf("expected 4 dispatch calls, got %d", callCount)
+	}
+}
+
+func TestRunner_ExecuteStep_NonRetryable(t *testing.T) {
+	t.Parallel()
+
+	callCount := 0
+	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
+		callCount++
+		return errors.New("permanent failure")
+	})
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, dispatcher)
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
+		t.Fatal("expected error")
+	}
+
+	if callCount != 1 {
+		t.Errorf("expected 1 dispatch call (non-retryable), got %d", callCount)
+	}
+}
+
+func TestRunner_ConcurrentInstances(t *testing.T) {
+	t.Parallel()
+
+	store := saga.NewMemoryStore()
+	dispatcher := &countingDispatcher{}
+	runner := saga.NewRunner(store, dispatcher)
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	var wg sync.WaitGroup
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			instance, err := runner.Start(ctx, "order", nil)
+			if err != nil {
+				t.Errorf("start: %v", err)
+				return
+			}
+			if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
+				t.Errorf("execute: %v", err)
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if dispatcher.count != 10 {
+		t.Errorf("expected 10 dispatches, got %d", dispatcher.count)
+	}
+}
+
+func TestRunner_StoreErrorOnSave(t *testing.T) {
+	t.Parallel()
+
+	store := &errorStore{err: errors.New("store unavailable")}
+	runner := saga.NewRunner(store, nopDispatcher{})
+
+	def := testDefinition{sagaType: "order", steps: []saga.Step{{Name: "create"}}}
+	if err := runner.Register(def); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	_, err := runner.Start(ctx, "order", nil)
+	if err == nil {
+		t.Fatal("expected store error")
+	}
+}
+
+// errorStore is a saga.Store that always returns an error.
+type errorStore struct {
+	err error
+}
+
+func (s *errorStore) Save(_ context.Context, _ *saga.Instance) error   { return s.err }
+func (s *errorStore) Load(_ context.Context, _ id.AggregateID) (*saga.Instance, error) {
+	return nil, s.err
+}
+func (s *errorStore) LoadAllRunning(_ context.Context) ([]*saga.Instance, error) { return nil, s.err }
