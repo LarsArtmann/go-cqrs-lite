@@ -29,12 +29,21 @@ func (failingDispatcher) Dispatch(_ context.Context, _ command.Command) error {
 
 // countingDispatcher tracks how many times Dispatch is called.
 type countingDispatcher struct {
+	mu    sync.Mutex
 	count int
 }
 
 func (d *countingDispatcher) Dispatch(_ context.Context, _ command.Command) error {
+	d.mu.Lock()
 	d.count++
+	d.mu.Unlock()
 	return nil
+}
+
+func (d *countingDispatcher) Count() int {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.count
 }
 
 // dispatchFunc is a function-based command dispatcher for testing.
@@ -315,8 +324,8 @@ func TestRunner_ExecuteStep_HappyPath(t *testing.T) {
 		t.Errorf("expected status Completed, got %s", loaded.Status)
 	}
 
-	if dispatcher.count != 2 {
-		t.Errorf("expected 2 dispatches, got %d", dispatcher.count)
+	if dispatcher.Count() != 2 {
+		t.Errorf("expected 2 dispatches, got %d", dispatcher.Count())
 	}
 }
 
@@ -627,8 +636,8 @@ func TestRunner_ConcurrentInstances(t *testing.T) {
 
 	wg.Wait()
 
-	if dispatcher.count != 10 {
-		t.Errorf("expected 10 dispatches, got %d", dispatcher.count)
+	if dispatcher.Count() != 10 {
+		t.Errorf("expected 10 dispatches, got %d", dispatcher.Count())
 	}
 }
 
@@ -1083,8 +1092,8 @@ func TestRunner_StartWithInitialCommand(t *testing.T) {
 		t.Fatalf("start with initial command: %v", err)
 	}
 
-	if dispatcher.count != 1 {
-		t.Errorf("expected 1 dispatch for initial command, got %d", dispatcher.count)
+	if dispatcher.Count() != 1 {
+		t.Errorf("expected 1 dispatch for initial command, got %d", dispatcher.Count())
 	}
 	if instance.Status != saga.StatusRunning {
 		t.Errorf("expected Running, got %s", instance.Status)

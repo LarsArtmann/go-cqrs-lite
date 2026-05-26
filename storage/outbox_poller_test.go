@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,10 +16,11 @@ import (
 var errTestPoller = errors.New("test poller error")
 
 type fakePollerOutbox struct {
+	mu        sync.Mutex
 	entries   []event.OutboxEntry
 	pollErr   error
 	ackErr    error
-	ackedIDs  []event.OutboxID
+	ackedIDs []event.OutboxID
 	pollCalls int
 }
 
@@ -26,6 +28,8 @@ func (o *fakePollerOutbox) Close() error                                    { re
 func (o *fakePollerOutbox) Append(_ context.Context, _ []event.Event) error { return nil }
 
 func (o *fakePollerOutbox) PollPending(_ context.Context, limit int) ([]event.OutboxEntry, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	o.pollCalls++
 	if o.pollErr != nil {
 		return nil, o.pollErr
@@ -51,6 +55,8 @@ func (o *fakePollerOutbox) PollPending(_ context.Context, limit int) ([]event.Ou
 }
 
 func (o *fakePollerOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if o.ackErr != nil {
 		return o.ackErr
 	}
@@ -58,7 +64,14 @@ func (o *fakePollerOutbox) Ack(_ context.Context, ids []event.OutboxID) error {
 	return nil
 }
 
+func (o *fakePollerOutbox) PollCount() int {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return o.pollCalls
+}
+
 type fakePollerPublisher struct {
+	mu         sync.Mutex
 	published  []event.Event
 	publishErr error
 }
@@ -67,8 +80,16 @@ func (p *fakePollerPublisher) Publish(_ context.Context, events ...event.Event) 
 	if p.publishErr != nil {
 		return p.publishErr
 	}
+	p.mu.Lock()
 	p.published = append(p.published, events...)
+	p.mu.Unlock()
 	return nil
+}
+
+func (p *fakePollerPublisher) Published() []event.Event {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.published
 }
 
 func newPollerTestEvent(t *testing.T, eventType string, aggID id.AggregateID, version event.Version) event.Event {
@@ -111,12 +132,12 @@ func TestOutboxPoller_PollAndPublish(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if outbox.pollCalls == 0 {
+	if outbox.PollCount() == 0 {
 		t.Fatal("expected at least one poll call")
 	}
 
-	if len(publisher.published) != 1 {
-		t.Fatalf("expected 1 published event, got %d", len(publisher.published))
+	if len(publisher.Published()) != 1 {
+		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
 	if len(outbox.ackedIDs) != 1 || outbox.ackedIDs[0] != "outbox-1" {
@@ -139,12 +160,12 @@ func TestOutboxPoller_PollError(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if outbox.pollCalls == 0 {
+	if outbox.PollCount() == 0 {
 		t.Fatal("expected at least one poll call")
 	}
 
-	if len(publisher.published) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.published))
+	if len(publisher.Published()) != 0 {
+		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
 	}
 }
 
@@ -170,8 +191,8 @@ func TestOutboxPoller_PublishError_SkipsAck(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.published) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.published))
+	if len(publisher.Published()) != 0 {
+		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
 	}
 
 	if len(outbox.ackedIDs) != 0 {
@@ -202,8 +223,8 @@ func TestOutboxPoller_AckError(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.published) < 1 {
-		t.Fatalf("expected at least 1 published event, got %d", len(publisher.published))
+	if len(publisher.Published()) < 1 {
+		t.Fatalf("expected at least 1 published event, got %d", len(publisher.Published()))
 	}
 }
 
@@ -222,8 +243,8 @@ func TestOutboxPoller_EmptyEntries(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.published) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.published))
+	if len(publisher.Published()) != 0 {
+		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
 	}
 
 	if len(outbox.ackedIDs) != 0 {
@@ -254,8 +275,8 @@ func TestOutboxPoller_MultipleEventsPerEntry(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.published) != 2 {
-		t.Fatalf("expected 2 published events, got %d", len(publisher.published))
+	if len(publisher.Published()) != 2 {
+		t.Fatalf("expected 2 published events, got %d", len(publisher.Published()))
 	}
 
 	if len(outbox.ackedIDs) != 1 {
@@ -291,7 +312,9 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 			if callCount > failAfter {
 				return errTestPoller
 			}
+			p.mu.Lock()
 			p.published = append(p.published, events...)
+			p.mu.Unlock()
 			return nil
 		},
 	}
@@ -305,8 +328,8 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.published) != 1 {
-		t.Fatalf("expected 1 published event, got %d", len(publisher.published))
+	if len(publisher.Published()) != 1 {
+		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
 	if len(outbox.ackedIDs) != 1 || outbox.ackedIDs[0] != "outbox-1" {
