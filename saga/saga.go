@@ -12,12 +12,11 @@ import (
 type Status string
 
 const (
-	StatusPending       Status = "pending"
-	StatusRunning       Status = "running"
-	StatusStepCompleted Status = "step_completed"
-	StatusCompensating  Status = "compensating"
-	StatusCompleted     Status = "completed"
-	StatusFailed        Status = "failed"
+	StatusPending      Status = "pending"
+	StatusRunning      Status = "running"
+	StatusCompensating Status = "compensating"
+	StatusCompleted    Status = "completed"
+	StatusFailed       Status = "failed"
 )
 
 // Step defines a single step in a saga process.
@@ -28,16 +27,11 @@ type Step struct {
 	Timeout    time.Duration
 }
 
-// Instance represents the persistent state of a running saga.
+// Instance represents the runtime view of a running saga, assembled by Runner.
 type Instance struct {
-	ID          id.AggregateID
-	SagaType    string
-	Status      Status
-	CurrentStep int
-	Steps       []Step
-	Err         error
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	State
+	Steps []Step
+	Err   error
 }
 
 // Definition describes a saga type that can be registered with a Runner.

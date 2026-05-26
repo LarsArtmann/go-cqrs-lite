@@ -2,6 +2,7 @@ package saga
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -67,23 +68,27 @@ func (r *Runner) Start(ctx context.Context, sagaType string, initialCommand comm
 		return nil, fmt.Errorf("saga %s: %w", sagaType, ErrSagaNotRegistered)
 	}
 
-	instance := &Instance{
+	state := State{
 		ID:          id.NewAggregateID(),
 		SagaType:    sagaType,
 		Status:      StatusPending,
 		CurrentStep: 0,
-		Steps:       def.Steps(),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := r.store.Save(ctx, instance); err != nil {
-		return nil, fmt.Errorf("save saga instance: %w", err)
+	if err := r.store.Save(ctx, &state); err != nil {
+		return nil, fmt.Errorf("save saga state: %w", err)
 	}
 
-	instance.Status = StatusRunning
-	if err := r.store.Save(ctx, instance); err != nil {
+	state.Status = StatusRunning
+	if err := r.store.Save(ctx, &state); err != nil {
 		return nil, fmt.Errorf("update saga status: %w", err)
+	}
+
+	instance := &Instance{
+		State: state,
+		Steps: def.Steps(),
 	}
 
 	r.logInfo("saga started", "type", sagaType, "id", instance.ID)
@@ -92,7 +97,9 @@ func (r *Runner) Start(ctx context.Context, sagaType string, initialCommand comm
 		if err := r.dispatcher.Dispatch(ctx, initialCommand); err != nil {
 			instance.Status = StatusFailed
 			instance.Err = err
-			_ = r.store.Save(ctx, instance)
+			instance.ErrMsg = err.Error()
+			instance.UpdatedAt = time.Now()
+			_ = r.store.Save(ctx, &instance.State)
 			r.logError("initial command failed", "type", sagaType, "id", instance.ID, "error", err)
 			return instance, fmt.Errorf("dispatch initial command: %w", err)
 		}
@@ -103,9 +110,14 @@ func (r *Runner) Start(ctx context.Context, sagaType string, initialCommand comm
 
 // ExecuteStep runs the current step of a saga instance.
 func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) error {
-	instance, err := r.store.Load(ctx, instanceID)
+	state, err := r.store.Load(ctx, instanceID)
 	if err != nil {
 		return fmt.Errorf("load saga %s: %w", instanceID, err)
+	}
+
+	instance, err := r.hydrate(state)
+	if err != nil {
+		return err
 	}
 
 	if instance.Status != StatusRunning && instance.Status != StatusPending {
@@ -115,7 +127,7 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	if instance.CurrentStep >= len(instance.Steps) {
 		instance.Status = StatusCompleted
 		instance.UpdatedAt = time.Now()
-		return r.store.Save(ctx, instance)
+		return r.store.Save(ctx, &instance.State)
 	}
 
 	step := instance.Steps[instance.CurrentStep]
@@ -137,19 +149,20 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	err = r.dispatchWithRetry(stepCtx, cmd)
 	if err != nil {
 		instance.Err = err
+		instance.ErrMsg = err.Error()
 		instance.UpdatedAt = time.Now()
 
 		if instance.CurrentStep > 0 {
 			r.logError("step failed, compensating", "id", instanceID, "step", step.Name, "error", err)
 			instance.Status = StatusCompensating
-			if saveErr := r.store.Save(ctx, instance); saveErr != nil {
+			if saveErr := r.store.Save(ctx, &instance.State); saveErr != nil {
 				return fmt.Errorf("save compensating status: %w", saveErr)
 			}
 			return r.compensate(ctx, instance)
 		}
 
 		instance.Status = StatusFailed
-		if saveErr := r.store.Save(ctx, instance); saveErr != nil {
+		if saveErr := r.store.Save(ctx, &instance.State); saveErr != nil {
 			return fmt.Errorf("save failed status: %w", saveErr)
 		}
 		r.logError("step failed", "id", instanceID, "step", step.Name, "error", err)
@@ -164,12 +177,34 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 		r.logInfo("saga completed", "id", instance.ID, "type", instance.SagaType)
 	}
 
-	if err := r.store.Save(ctx, instance); err != nil {
+	if err := r.store.Save(ctx, &instance.State); err != nil {
 		return fmt.Errorf("save step completion: %w", err)
 	}
 
 	r.logInfo("step completed", "id", instance.ID, "step", step.Name, "current", instance.CurrentStep)
 	return nil
+}
+
+// hydrate assembles a runtime Instance from a persisted State.
+func (r *Runner) hydrate(state *State) (*Instance, error) {
+	r.mu.RLock()
+	def, ok := r.registry[state.SagaType]
+	r.mu.RUnlock()
+
+	if !ok {
+		return nil, fmt.Errorf("saga %s: %w", state.SagaType, ErrSagaNotRegistered)
+	}
+
+	instance := &Instance{
+		State: *state,
+		Steps: def.Steps(),
+	}
+
+	if state.ErrMsg != "" {
+		instance.Err = errors.New(state.ErrMsg)
+	}
+
+	return instance, nil
 }
 
 // dispatchWithRetry attempts to dispatch a command with exponential backoff.

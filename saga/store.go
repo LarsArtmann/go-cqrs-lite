@@ -6,14 +6,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Store persists saga instances.
+// Store persists saga state.
 type Store interface {
-	// Save creates or updates a saga instance.
-	Save(ctx context.Context, instance *Instance) error
+	// Save creates or updates a saga state.
+	Save(ctx context.Context, state *State) error
 
-	// Load retrieves a saga instance by ID.
-	Load(ctx context.Context, id id.AggregateID) (*Instance, error)
+	// Load retrieves a saga state by ID.
+	Load(ctx context.Context, id id.AggregateID) (*State, error)
 
-	// LoadAllRunning returns all saga instances that are currently running or compensating.
-	LoadAllRunning(ctx context.Context) ([]*Instance, error)
+	// LoadAllRunning returns all saga states that are currently running or compensating.
+	LoadAllRunning(ctx context.Context) ([]*State, error)
 }

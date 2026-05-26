@@ -22,8 +22,9 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 			r.logError("compensate step failed", "id", instance.ID, "step", step.Name, "error", err)
 			instance.Status = StatusFailed
 			instance.Err = fmt.Errorf("compensate step %s: %w", step.Name, err)
+			instance.ErrMsg = instance.Err.Error()
 			instance.UpdatedAt = time.Now()
-			_ = r.store.Save(ctx, instance)
+			_ = r.store.Save(ctx, &instance.State)
 			return instance.Err
 		}
 
@@ -32,11 +33,12 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 
 	instance.Status = StatusFailed
 	instance.Err = ErrStepFailed
+	instance.ErrMsg = ErrStepFailed.Error()
 	instance.UpdatedAt = time.Now()
 
 	r.logInfo("compensation completed", "id", instance.ID, "type", instance.SagaType)
 
-	if err := r.store.Save(ctx, instance); err != nil {
+	if err := r.store.Save(ctx, &instance.State); err != nil {
 		return fmt.Errorf("save compensated status: %w", err)
 	}
 

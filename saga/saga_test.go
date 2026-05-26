@@ -76,7 +76,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 
 	store := saga.NewMemoryStore()
 	ctx := context.Background()
-	inst := &saga.Instance{
+	inst := &saga.State{
 		ID:       id.NewAggregateID(),
 		SagaType: "test",
 		Status:   saga.StatusPending,
@@ -115,7 +115,7 @@ func TestMemoryStore_LoadAllRunning(t *testing.T) {
 	ctx := context.Background()
 
 	// Create running instance
-	running := &saga.Instance{
+	running := &saga.State{
 		ID:       id.NewAggregateID(),
 		SagaType: "test",
 		Status:   saga.StatusRunning,
@@ -125,7 +125,7 @@ func TestMemoryStore_LoadAllRunning(t *testing.T) {
 	}
 
 	// Create completed instance
-	completed := &saga.Instance{
+	completed := &saga.State{
 		ID:       id.NewAggregateID(),
 		SagaType: "test",
 		Status:   saga.StatusCompleted,
@@ -664,12 +664,12 @@ type errorStore struct {
 	err error
 }
 
-func (s *errorStore) Save(_ context.Context, _ *saga.Instance) error { return s.err }
-func (s *errorStore) Load(_ context.Context, _ id.AggregateID) (*saga.Instance, error) {
+func (s *errorStore) Save(_ context.Context, _ *saga.State) error { return s.err }
+func (s *errorStore) Load(_ context.Context, _ id.AggregateID) (*saga.State, error) {
 	return nil, s.err
 }
 
-func (s *errorStore) LoadAllRunning(_ context.Context) ([]*saga.Instance, error) { return nil, s.err }
+func (s *errorStore) LoadAllRunning(_ context.Context) ([]*saga.State, error) { return nil, s.err }
 
 // mockLogger captures log calls for assertions.
 type mockLogger struct {
@@ -874,7 +874,7 @@ func TestRunner_CompensateFailure(t *testing.T) {
 	if loaded.Status != saga.StatusFailed {
 		t.Errorf("expected status Failed, got %s", loaded.Status)
 	}
-	if loaded.Err == nil {
+	if loaded.ErrMsg == "" {
 		t.Error("expected instance error to be set")
 	}
 }

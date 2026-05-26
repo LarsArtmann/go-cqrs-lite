@@ -10,56 +10,67 @@ import (
 
 // MemoryStore is an in-memory implementation of Store for testing.
 type MemoryStore struct {
-	mu        sync.RWMutex
-	instances map[string]*Instance
+	mu     sync.RWMutex
+	states map[string]*State
 }
 
 // NewMemoryStore creates a new in-memory saga store.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		instances: make(map[string]*Instance),
+		states: make(map[string]*State),
 	}
 }
 
-// Save creates or updates a saga instance.
-func (s *MemoryStore) Save(_ context.Context, instance *Instance) error {
+// Save creates or updates a saga state.
+func (s *MemoryStore) Save(_ context.Context, state *State) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if instance == nil {
-		return fmt.Errorf("instance is nil: %w", ErrSagaNotFound)
+	if state == nil {
+		return fmt.Errorf("state is nil: %w", ErrSagaNotFound)
 	}
 
-	s.instances[instance.ID.String()] = instance
+	s.states[state.ID.String()] = copyState(state)
 
 	return nil
 }
 
-// Load retrieves a saga instance by ID.
-func (s *MemoryStore) Load(_ context.Context, id id.AggregateID) (*Instance, error) {
+// Load retrieves a saga state by ID.
+func (s *MemoryStore) Load(_ context.Context, id id.AggregateID) (*State, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	instance, ok := s.instances[id.String()]
+	state, ok := s.states[id.String()]
 	if !ok {
 		return nil, fmt.Errorf("saga %s: %w", id, ErrSagaNotFound)
 	}
 
-	return instance, nil
+	return copyState(state), nil
 }
 
-// LoadAllRunning returns all saga instances that are currently running or compensating.
-func (s *MemoryStore) LoadAllRunning(_ context.Context) ([]*Instance, error) {
+// LoadAllRunning returns all saga states that are currently running or compensating.
+func (s *MemoryStore) LoadAllRunning(_ context.Context) ([]*State, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var running []*Instance
+	var running []*State
 
-	for _, instance := range s.instances {
-		if instance.Status == StatusRunning || instance.Status == StatusCompensating {
-			running = append(running, instance)
+	for _, state := range s.states {
+		if state.Status == StatusRunning || state.Status == StatusCompensating {
+			running = append(running, copyState(state))
 		}
 	}
 
 	return running, nil
+}
+
+// copyState creates a defensive copy of a saga state.
+func copyState(s *State) *State {
+	if s == nil {
+		return nil
+	}
+
+	cp := *s
+
+	return &cp
 }
