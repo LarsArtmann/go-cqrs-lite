@@ -171,8 +171,8 @@ func extractMarker(doc *ast.CommentGroup, prefix string) string {
 		return ""
 	}
 	for _, c := range doc.List {
-		if strings.HasPrefix(c.Text, prefix) {
-			return strings.TrimPrefix(c.Text, prefix)
+		if after, ok := strings.CutPrefix(c.Text, prefix); ok {
+			return after
 		}
 	}
 	return ""
