@@ -2,7 +2,6 @@ package catalog
 
 import (
 	"encoding/json"
-	"time"
 )
 
 // ServiceID identifies a service in the catalog (e.g., "user-service").
@@ -213,71 +212,4 @@ func GetID(msg Message) MessageID {
 	}
 
 	return MessageID(msg.Name)
-}
-
-// Change describes a single modification to a message over time.
-type Change struct {
-	Version string     `json:"version"`
-	Date    *time.Time `json:"date,omitempty"`
-	Summary string     `json:"summary"`
-}
-
-// IsSend reports whether the message direction is Sends.
-func (m Message) IsSend() bool { return m.Direction == Sends }
-
-// Badge represents a visual badge rendered on a catalog resource.
-type Badge struct {
-	Content         string `json:"content"`
-	BackgroundColor string `json:"backgroundColor,omitempty"`
-	TextColor       string `json:"textColor,omitempty"`
-	Icon            string `json:"icon,omitempty"`
-	URL             string `json:"url,omitempty"`
-}
-
-// Repository describes a code repository associated with a resource.
-type Repository struct {
-	Language string `json:"language,omitempty"`
-	URL      string `json:"url,omitempty"`
-}
-
-// Operation maps a message to an HTTP endpoint.
-type Operation struct {
-	Method      string   `json:"method"`
-	Path        string   `json:"path"`
-	StatusCodes []string `json:"statusCodes,omitempty"`
-}
-
-// Specification describes an API specification attached to a service.
-type Specification struct {
-	Type string `json:"type"`
-	Path string `json:"path"`
-	Name string `json:"name,omitempty"`
-}
-
-// Attachment links to an external resource (ADR, runbook, diagram, etc.).
-type Attachment struct {
-	URL         string `json:"url"`
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
-	Type        string `json:"type,omitempty"`
-	Icon        string `json:"icon,omitempty"`
-}
-
-// Ref references a catalog resource by ID and optional version.
-type Ref struct {
-	ID      string `json:"id"`
-	Version string `json:"version,omitempty"`
-}
-
-// ChannelParam describes a parameter for dynamic channel addressing.
-type ChannelParam struct {
-	Enum        []string `json:"enum,omitempty"`
-	Default     string   `json:"default,omitempty"`
-	Description string   `json:"description,omitempty"`
-}
-
-// ChannelRoute describes a routing rule from one channel to another.
-type ChannelRoute struct {
-	ID ChannelID   `json:"id"`
-	To []ChannelID `json:"to,omitempty"`
 }
