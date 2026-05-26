@@ -412,31 +412,25 @@ Supported struct tags:
 | `deprecated`  | `deprecated`               | Marks field as deprecated      |
 | `pattern`     | `pattern:"^[a-z]+$"`       | Regex pattern                  |
 
-### Catalog Adapters
+### Catalog Builder
 
-The `catalog/adapters` package provides a fluent builder API:
+The `catalog` package provides a fluent builder API:
 
 ```go
-builder := adapters.NewBuilder("My API", "1.0.0")
-builder.AddService("user-svc", "User Service", "1.0.0", "Manages users")
-
-// Instance-based: requires a constructed command with CatalogCore
-builder.AddCommand("user-svc", myCmd)
-
-// Generic zero-instance: no construction needed, uses reflection on type T
-adapters.AddCommandFromType[CreateUser](
-    builder, "user-svc", "user.create",
-    dispatcher.CatalogEntry{Name: "CreateUser", Version: "1.0.0", Summary: "Create a user"},
+builder := catalog.NewBuilder("User Service", "1.0.0")
+builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+    catalog.Command[CreateUserCmd]("user.create"),
+    catalog.Event[UserCreatedEvent]("user.created", catalog.Sends),
+    catalog.Query[GetUserQuery]("user.get"),
 )
-
-// Auto-discover from dispatcher entries
-cmdDispatcher.RegisterCatalogEntry("user.create", dispatcher.CatalogEntry{...})
-adapters.FromCommandDispatcher(builder, "user-svc", cmdDispatcher)
-
-// Export
+builder.AddDomain("identity", "Identity", "1.0.0",
+    "User identity management", "user-svc")
 cat := builder.Build()
-builder.ExportEventCatalog("./eventcatalog")
-doc, _ := builder.ExportAsyncAPI("My API", "1.0.0")
+
+// Export to AsyncAPI, EventCatalog, D2, or OpenAPI
+asyncapi.NewExporter().Export(cat)
+eventcatalog.NewExporter(cat).Export("./eventcatalog")
+d2.NewExporter().Export(cat)
 ```
 
 ### Registry API

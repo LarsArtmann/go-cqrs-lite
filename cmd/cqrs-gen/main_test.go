@@ -127,3 +127,241 @@ func TestExtractMarker(t *testing.T) {
 	// Cannot test extractMarker directly without parsing a real AST,
 	// but the scanFile tests cover it end-to-end.
 }
+
+func TestScanPath_NonExistentDir(t *testing.T) {
+	t.Parallel()
+
+	_, err := scanPath("/nonexistent/path/that/does/not/exist", "command")
+	if err == nil {
+		t.Fatal("expected error for non-existent path")
+	}
+}
+
+func TestScanPath_InvalidGoFile(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	badFile := filepath.Join(tmp, "bad.go")
+	if err := os.WriteFile(badFile, []byte("this is not valid go code {{{"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := scanPath(tmp, "command")
+	if err == nil {
+		t.Fatal("expected error for invalid Go file")
+	}
+}
+
+func TestScanFile_NoMarkers(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "plain.go")
+
+	content := `package example
+
+type PlainStruct struct {
+	Name string
+}`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "command")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 0 {
+		t.Errorf("expected 0 entries, got %d", len(entries))
+	}
+}
+
+func TestScanFile_WrongMarkerType(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "cmd.go")
+
+	content := `package example
+
+//cqrs:command CreateUser
+type CreateUserCmd struct{}`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "query")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 0 {
+		t.Errorf("expected 0 entries when scanning for queries in command file, got %d", len(entries))
+	}
+}
+
+func TestScanFile_MultipleFilesInDir(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+
+	cmdContent := `package example
+
+//cqrs:command CreateUser
+type CreateUserCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(cmdContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	queryContent := `package example
+
+//cqrs:query GetUser
+type GetUserQuery struct{}`
+	if err := os.WriteFile(filepath.Join(tmp, "queries.go"), []byte(queryContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanPath(tmp, "command")
+	if err != nil {
+		t.Fatalf("scanPath: %v", err)
+	}
+
+	if len(entries) != 1 || entries[0].StructName != "CreateUserCmd" {
+		t.Errorf("expected 1 command entry, got %+v", entries)
+	}
+}
+
+func TestGenerate_MultipleEntries(t *testing.T) {
+	t.Parallel()
+
+	entries := []Entry{
+		{CommandType: "CreateUser", StructName: "CreateUserCmd", PackagePath: "example"},
+		{CommandType: "DeleteUser", StructName: "DeleteUserCmd", PackagePath: "example"},
+	}
+
+	code := generate("handlers", "command", entries)
+
+	if !strings.Contains(code, "RegisterCreateUserCmdHandler") {
+		t.Error("missing CreateUserCmd handler")
+	}
+	if !strings.Contains(code, "RegisterDeleteUserCmdHandler") {
+		t.Error("missing DeleteUserCmd handler")
+	}
+}
+
+func TestGenerate_PackageName(t *testing.T) {
+	t.Parallel()
+
+	entries := []Entry{{CommandType: "Test", StructName: "TestCmd"}}
+	code := generate("mypkg", "command", entries)
+
+	if !strings.Contains(code, "package mypkg") {
+		t.Error("expected package name 'mypkg'")
+	}
+}
+
+func TestGenerate_QueryImports(t *testing.T) {
+	t.Parallel()
+
+	entries := []Entry{{CommandType: "GetUser", StructName: "GetUserQuery"}}
+	code := generate("handlers", "query", entries)
+
+	if !strings.Contains(code, "core/query") {
+		t.Error("missing query import")
+	}
+	if strings.Contains(code, "core/command") {
+		t.Error("should not import command for query generation")
+	}
+}
+
+func TestScanFile_TestFilesSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	testFile := filepath.Join(tmp, "commands_test.go")
+
+	content := `package example
+
+//cqrs:command TestCmd
+type TestCmd struct{}`
+	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanPath(tmp, "command")
+	if err != nil {
+		t.Fatalf("scanPath: %v", err)
+	}
+
+	if len(entries) != 0 {
+		t.Errorf("test files should be skipped, got %d entries", len(entries))
+	}
+}
+
+func TestScanFile_MarkerOnTypeSpec(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "types.go")
+
+	content := `package example
+
+type (
+	//cqrs:command InlineCmd
+	InlineCmd struct{}
+)`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "command")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 1 || entries[0].StructName != "InlineCmd" {
+		t.Errorf("expected InlineCmd, got %+v", entries)
+	}
+}
+
+func TestScan_MultiplePaths(t *testing.T) {
+	t.Parallel()
+
+	tmp1 := t.TempDir()
+	tmp2 := t.TempDir()
+
+	content1 := `package pkg1
+
+//cqrs:command CreateOrder
+type CreateOrderCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp1, "order.go"), []byte(content1), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	content2 := `package pkg2
+
+//cqrs:command CreateUser
+type CreateUserCmd struct{}`
+	if err := os.WriteFile(filepath.Join(tmp2, "user.go"), []byte(content2), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scan([]string{tmp1, tmp2}, "command")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 2 {
+		t.Errorf("expected 2 entries across 2 dirs, got %d", len(entries))
+	}
+}
+
+func TestMustAbs(t *testing.T) {
+	t.Parallel()
+
+	result := mustAbs(".")
+	if !filepath.IsAbs(result) {
+		t.Errorf("expected absolute path, got %s", result)
+	}
+}

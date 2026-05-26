@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-26 · **Module count:** 13 · **Go version:** 1.26.3
+**Last audited:** 2026-05-26 · **Module count:** 16 · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -344,6 +344,8 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling         | ✅     |
 | SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                          | ✅     |
 | TransactionalStore              | Atomic save + outbox append, both engines                              | ✅     |
+| Stream loading                  | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration | ✅     |
+| OutboxPoller                    | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches | ✅     |
 | Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle   | ✅     |
 
 **Remaining gaps:**
@@ -353,7 +355,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification    |
 | `SQLEventStoreOption` unused    | ⚠️ LOW    | Type does not exist — consider adding table name or logger options |
 
-**Coverage:** 88.1% (SQL + Pebble stores, checkpoint, snapshot, outbox with go-sqlmock)
+**Coverage:** 89.6% (SQL + Pebble stores, checkpoint, snapshot, outbox, stream, poller with go-sqlmock)
 
 ---
 
@@ -392,15 +394,70 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ---
 
+## Saga / Process Manager ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/saga"`
+
+| Feature                 | Detail                                                                           | Status |
+| ----------------------- | -------------------------------------------------------------------------------- | ------ |
+| Saga Definition         | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints     | ✅     |
+| Step definition         | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                           | ✅     |
+| Instance tracking       | `Instance` struct: ID, saga type, status, current step, error, timestamps       | ✅     |
+| Runner                  | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`                  | ✅     |
+| Compensation            | Reverse-order compensation of completed steps on failure                         | ✅     |
+| Retry with backoff      | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`                | ✅     |
+| Step timeouts           | Per-step `context.WithTimeout` via `Step.Timeout`                               | ✅     |
+| Store interface         | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence               | ✅     |
+| MemoryStore             | Thread-safe in-memory `Store` for testing                                       | ✅     |
+| Runner options          | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                          | ✅     |
+
+**Gaps:**
+
+| Issue                  | Severity  | Detail                                                    |
+| ---------------------- | --------- | --------------------------------------------------------- |
+| Coverage at 93.8%      | ⚠️ LOW    | `compensate()` at 86.4%                                   |
+
+**Coverage:** 93.8%
+
+---
+
+## Watermill Adapter ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/watermill"`
+
+| Feature                | Detail                                                                           | Status |
+| ---------------------- | -------------------------------------------------------------------------------- | ------ |
+| Metadata protocol      | Bidirectional `event.Event` ↔ Watermill `message.Message` via metadata keys     | ✅     |
+| PublisherAdapter       | Implements `message.Publisher` — wraps `event.Publisher`                         | ✅     |
+| SubscriberAdapter      | Implements `message.Subscriber` — wraps `event.Bus`, feeds `<-chan *message.Message` | ✅     |
+| Full event fidelity    | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields | ✅     |
+
+**Coverage:** 89.6%
+
+---
+
+## cqrs-gen Code Generator 💡 TOOL
+
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen`
+
+| Feature                | Detail                                                                           | Status |
+| ---------------------- | -------------------------------------------------------------------------------- | ------ |
+| AST-based scanning     | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers    | ✅     |
+| Typed handler gen      | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`      | ✅     |
+| CLI flags              | `-type` (command/query), `-output` (file), `-pkg` (package name)                | ✅     |
+| Recursive directory    | Walks directories, skips `_test.go`, extracts markers from doc comments          | ✅     |
+
+**Coverage:** 70.8% (CLI main entry point not tested; all library functions covered)
+
+---
+
 ## Not Yet Implemented 📐 PLANNED
 
 Features mentioned in project docs/planning but with **no production code**:
 
 | Feature                | Description                                  | Notes                                                     |
 | ---------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| Watermill module       | Pub/sub adapter (Kafka, NATS, etc.)          | `docs/planning/2026-04-23_WATERMILL_PRO_CONTRA.md` exists |
-| Saga / Process Manager | Long-running process orchestration           | `docs/planning/SAGA_DESIGN.md` exists                     |
-| Tagged releases        | Semantic versioning and Go module publishing | All modules at v0.0.0                                     |
+| Schema registry        | JSON Schema middleware for event validation   | Design decisions on schema versioning needed              |
 
 ---
 
@@ -423,7 +480,10 @@ Features mentioned in project docs/planning but with **no production code**:
 | `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
 | `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
 | `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~800       | 31          | 88.1%    | ⚠️ Partial      |
+| `storage`              | `…/storage`              | ~1000      | 39          | 89.6%    | ✅ Production   |
+| `saga`                 | `…/saga`                 | ~350       | 27          | 93.8%    | ✅ Production   |
+| `watermill`            | `…/watermill`            | ~300       | 12          | 89.6%    | ✅ Production   |
+| `cmd/cqrs-gen`         | `…/cmd/cqrs-gen`         | ~180       | 17          | 70.8%    | ⚠️ Partial      |
 | `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
 
 ---

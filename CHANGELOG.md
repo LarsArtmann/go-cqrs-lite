@@ -20,8 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - Eventcatalog coverage: 85.7% → 92.8%
-- Saga coverage: 70.5% → ~92%
-- Watermill coverage: 28.6% → ~85%
+- Saga coverage: 70.5% → 93.8%
+- Watermill coverage: 28.6% → 89.6%
 - `go.work` expanded to 13 modules
 
 ### Fixed
