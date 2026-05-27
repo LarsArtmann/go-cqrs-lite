@@ -7,7 +7,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 )
 
-require github.com/larsartmann/go-cqrs-lite/memory v1.6.0
+require (
+	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
+)
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
