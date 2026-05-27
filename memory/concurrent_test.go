@@ -33,11 +33,7 @@ func TestConcurrent_BusPublish(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := range 100 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			evt, _ := event.NewEvent(
 				event.Type("test.event"),
 				id.NewAggregateID(),
@@ -47,7 +43,7 @@ func TestConcurrent_BusPublish(t *testing.T) {
 			)
 
 			_ = bus.Publish(context.Background(), evt)
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -70,11 +66,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 50 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			aggID := id.NewAggregateID()
 			evt, _ := event.NewEvent(
 				event.Type("test.event"),
@@ -85,7 +77,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 			)
 
 			_ = store.Save(context.Background(), aggType, aggID, []event.Event{evt}, event.Version(0))
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -98,11 +90,7 @@ func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := range 20 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			evt, _ := event.NewEvent(
 				event.Type("test.event"),
 				id.NewAggregateID(),
@@ -112,7 +100,7 @@ func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
 			)
 
 			_ = outbox.Append(context.Background(), []event.Event{evt})
-		}()
+		})
 	}
 
 	wg.Wait()

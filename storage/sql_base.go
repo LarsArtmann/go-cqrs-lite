@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type sqlBase struct {
@@ -12,7 +11,7 @@ type sqlBase struct {
 
 func newSQLBase(db *sql.DB, d Dialect) (sqlBase, error) {
 	if db == nil {
-		return sqlBase{}, fmt.Errorf("%w", ErrNilDB)
+		return sqlBase{}, ErrNilDB
 	}
 
 	return sqlBase{db: db, dialect: d}, nil

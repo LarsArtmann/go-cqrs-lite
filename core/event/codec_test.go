@@ -225,7 +225,7 @@ func TestDecodePayloads(t *testing.T) {
 	for i := range 3 {
 		evt, err := event.NewEvent(
 			"UserCreated", aggID, "User", event.Version(i+1),
-			[]byte(fmt.Sprintf(`{"name":"User%d"}`, i)),
+			fmt.Appendf(nil, `{"name":"User%d"}`, i),
 		)
 		if err != nil {
 			t.Fatalf("NewEvent[%d]: %v", i, err)
