@@ -216,3 +216,38 @@ func TestSQLiteSagaSchema(t *testing.T) {
 		t.Fatal("expected non-empty schema")
 	}
 }
+
+func TestNewSQLSagaStoreWithDialect(t *testing.T) {
+	t.Parallel()
+
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("sqlmock.New: %v", err)
+	}
+
+	store, err := NewSQLSagaStoreWithDialect(db, SQLiteDialect{})
+	if err != nil {
+		t.Fatalf("NewSQLSagaStoreWithDialect: %v", err)
+	}
+	if store == nil {
+		t.Fatal("expected non-nil store")
+	}
+}
+
+func TestSQLSagaStore_LoadAllRunning_ParseTimeError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestSagaStore(t)
+	ctx := context.Background()
+
+	// Return an invalid time format that will fail ParseTime.
+	mock.ExpectQuery("SELECT id, saga_type, status, current_step, err_msg, created_at, updated_at FROM sagas").
+		WithArgs(string(saga.StatusRunning), string(saga.StatusCompensating)).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "saga_type", "status", "current_step", "err_msg", "created_at", "updated_at"}).
+			AddRow(id.NewAggregateID().String(), "order", string(saga.StatusRunning), 1, "", "invalid-time", "invalid-time"))
+
+	_, err := store.LoadAllRunning(ctx)
+	if err == nil {
+		t.Fatal("expected error for invalid time format")
+	}
+}

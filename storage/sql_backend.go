@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
 // SQLBackend provides a unified entry point for SQL-backed CQRS storage.
@@ -21,9 +22,10 @@ import (
 //	outbox := backend.Outbox()             // for OutboxPoller
 //	go storage.NewOutboxPoller(outbox, bus).Start(ctx)
 type SQLBackend struct {
-	store  *SQLEventStore
-	outbox *SQLOutbox
-	tx     *SQLTransactionalStore
+	store     *SQLEventStore
+	outbox    *SQLOutbox
+	tx        *SQLTransactionalStore
+	sagaStore *SQLSagaStore
 }
 
 // NewSQLBackend creates a SQLBackend using PostgreSQL dialect.
@@ -60,10 +62,16 @@ func newSQLBackendWithDialect(db *sql.DB, d Dialect) (*SQLBackend, error) {
 		return nil, fmt.Errorf("transactional store: %w", err)
 	}
 
+	sagaStore, err := newSQLSagaStoreWithDialect(db, d)
+	if err != nil {
+		return nil, fmt.Errorf("saga store: %w", err)
+	}
+
 	return &SQLBackend{
-		store:  store,
-		outbox: outbox,
-		tx:     tx,
+		store:     store,
+		outbox:    outbox,
+		tx:        tx,
+		sagaStore: sagaStore,
 	}, nil
 }
 
@@ -80,4 +88,9 @@ func (b *SQLBackend) Outbox() *SQLOutbox {
 // TransactionalStore returns the atomic save+outbox store.
 func (b *SQLBackend) TransactionalStore() event.TransactionalStore {
 	return b.tx
+}
+
+// SagaStore returns the SQL-backed saga state store.
+func (b *SQLBackend) SagaStore() saga.Store {
+	return b.sagaStore
 }

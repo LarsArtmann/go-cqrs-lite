@@ -3,11 +3,13 @@ package storage
 import (
 	"context"
 	"testing"
+	"time"
 
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
 func newTestSQLBackend(t *testing.T) *SQLBackend {
@@ -75,6 +77,46 @@ func TestSQLBackend_TransactionalStore(t *testing.T) {
 	}
 }
 
+func TestSQLBackend_SagaStore(t *testing.T) {
+	t.Parallel()
+
+	backend := newTestSQLBackend(t)
+
+	sagaStore := backend.SagaStore()
+	if sagaStore == nil {
+		t.Fatal("expected non-nil SagaStore")
+	}
+}
+
+func TestSQLBackend_SagaStore_SaveAndLoad(t *testing.T) {
+	t.Parallel()
+
+	backend := newTestSQLBackend(t)
+	ctx := context.Background()
+
+	state := &saga.State{
+		ID:          id.NewAggregateID(),
+		SagaType:    "order",
+		Status:      saga.StatusRunning,
+		CurrentStep: 1,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := backend.SagaStore().Save(ctx, state); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := backend.SagaStore().Load(ctx, state.ID)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if loaded.ID != state.ID {
+		t.Errorf("ID mismatch: got %v, want %v", loaded.ID, state.ID)
+	}
+}
+
 func TestSQLBackend_SaveWithOutbox(t *testing.T) {
 	t.Parallel()
 
@@ -114,5 +156,32 @@ func TestSQLBackend_SaveWithOutbox(t *testing.T) {
 
 	if len(entries) != 1 {
 		t.Fatalf("expected 1 outbox entry, got %d", len(entries))
+	}
+}
+
+func TestNewSQLBackendWithDialect(t *testing.T) {
+	t.Parallel()
+
+	db := newSQLiteTestDB(t)
+	initSQLiteSchema(t, db)
+
+	backend, err := NewSQLBackendWithDialect(db, SQLiteDialect{})
+	if err != nil {
+		t.Fatalf("NewSQLBackendWithDialect: %v", err)
+	}
+	if backend == nil {
+		t.Fatal("expected non-nil backend")
+	}
+	if backend.EventStore() == nil {
+		t.Fatal("expected non-nil EventStore")
+	}
+	if backend.Outbox() == nil {
+		t.Fatal("expected non-nil Outbox")
+	}
+	if backend.TransactionalStore() == nil {
+		t.Fatal("expected non-nil TransactionalStore")
+	}
+	if backend.SagaStore() == nil {
+		t.Fatal("expected non-nil SagaStore")
 	}
 }
