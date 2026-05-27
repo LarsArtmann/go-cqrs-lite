@@ -365,7 +365,6 @@ func TestOpenTursoSync_MemoryWithRemote(t *testing.T) {
 	}
 }
 
-
 func TestNewTursoSagaStore(t *testing.T) {
 	t.Parallel()
 

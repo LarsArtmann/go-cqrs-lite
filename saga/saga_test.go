@@ -902,10 +902,14 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 		sagaType: "order",
 		steps: []saga.Step{
 			{Name: "step1", Action: newTestCommand},
-			{Name: "step2", Action: newTestCommand, Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-				compensateCalled = true
-				return &testCommand{}
-			}},
+			{
+				Name:   "step2",
+				Action: newTestCommand,
+				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
+					compensateCalled = true
+					return &testCommand{}
+				},
+			},
 			{Name: "step3", Action: newTestCommand},
 		},
 	}
@@ -955,8 +959,8 @@ func TestRunner_CompensateReturnsNilSkipped(t *testing.T) {
 		sagaType: "order",
 		steps: []saga.Step{
 			{
-				Name:       "create",
-				Action:     newTestCommand,
+				Name:   "create",
+				Action: newTestCommand,
 				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
 					compensateCalled = true
 					return nil // returns nil — dispatch should be skipped

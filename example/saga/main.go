@@ -43,8 +43,10 @@ func orderSagaSteps() []saga.Step {
 			Timeout: 10 * time.Second,
 		},
 		{
-			Name:   "confirm-order",
-			Action: func(_ context.Context, sagaID id.AggregateID) command.Command { return command.MustNew("confirm-order", sagaID) },
+			Name: "confirm-order",
+			Action: func(_ context.Context, sagaID id.AggregateID) command.Command {
+				return command.MustNew("confirm-order", sagaID)
+			},
 			Timeout: 5 * time.Second,
 		},
 	}
@@ -52,8 +54,8 @@ func orderSagaSteps() []saga.Step {
 
 type orderSaga struct{}
 
-func (orderSaga) SagaType() string      { return "order" }
-func (orderSaga) Steps() []saga.Step    { return orderSagaSteps() }
+func (orderSaga) SagaType() string   { return "order" }
+func (orderSaga) Steps() []saga.Step { return orderSagaSteps() }
 
 type loggingDispatcher struct {
 	dispatched []string
@@ -70,7 +72,8 @@ func main() {
 	store := saga.NewMemoryStore()
 	dispatcher := &loggingDispatcher{}
 
-	runner := saga.NewRunner(store, dispatcher,
+	runner := saga.NewRunner(
+		store, dispatcher,
 		saga.WithRetryPolicy(3, 100*time.Millisecond),
 	)
 
