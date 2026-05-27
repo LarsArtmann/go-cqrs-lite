@@ -4,6 +4,7 @@ use (
 	./catalog
 	./cmd/cqrs-gen
 	./core
+	./example/saga
 	./example/todo
 	./example/user
 	./integration
