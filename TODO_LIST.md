@@ -219,7 +219,7 @@
 - [ ] Write API migration guide: query.Handler any → TypedHandler[T] (source: docs/MIGRATION.md)
 - [x] ~~Add storage backend guide~~ — DONE (docs/STORAGE_GUIDE.md with PG/SQLite/Pebble/Turso)
 - [ ] Add module READMEs for core, storage, catalog (source: COMPREHENSIVE_PLAN)
-- [ ] Archive stale planning docs (pre-2026-05-01) and status docs (older than 2 weeks) (source: multiple sessions)
+- [x] ~~Archive stale planning docs~~ — DONE (Session 111, 44 status reports + 4 planning docs moved to archive/)
 - [ ] Add multi-engine storage support (MySQL, SQLite) via sqlc (source: MONOREPO_PLAN)
 - [ ] Add schema migration tool / versioned migration framework (source: MONOREPO_PLAN)
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble) (source: SESSION_61)
