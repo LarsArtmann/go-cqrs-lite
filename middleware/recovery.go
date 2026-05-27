@@ -23,12 +23,23 @@ func panicError(msgKind, typeName string, r any) error {
 }
 
 // CommandRecovery returns a command middleware that recovers from panics.
-func CommandRecovery() command.Middleware {
+func CommandRecovery(opts ...Option) command.Middleware {
+	cfg := applyOptions(opts)
+
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
 					err = panicError("command", string(cmd.Type()), r)
+
+					if cfg.logger != nil {
+						cfg.logger.Error(
+							"panic recovered",
+							"kind", "command",
+							"type", cmd.Type(),
+							"panic", r,
+						)
+					}
 				}
 			}()
 
@@ -38,12 +49,23 @@ func CommandRecovery() command.Middleware {
 }
 
 // EventRecovery returns an event middleware that recovers from panics.
-func EventRecovery() event.Middleware {
+func EventRecovery(opts ...Option) event.Middleware {
+	cfg := applyOptions(opts)
+
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
 					err = panicError("event", string(evt.Type()), r)
+
+					if cfg.logger != nil {
+						cfg.logger.Error(
+							"panic recovered",
+							"kind", "event",
+							"type", evt.Type(),
+							"panic", r,
+						)
+					}
 				}
 			}()
 
@@ -53,12 +75,23 @@ func EventRecovery() event.Middleware {
 }
 
 // QueryRecovery returns a query middleware that recovers from panics.
-func QueryRecovery() query.Middleware {
+func QueryRecovery(opts ...Option) query.Middleware {
+	cfg := applyOptions(opts)
+
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (result any, err error) { //nolint:nonamedreturns
 			defer func() {
 				if r := recover(); r != nil {
 					err = panicError("query", string(q.Type()), r)
+
+					if cfg.logger != nil {
+						cfg.logger.Error(
+							"panic recovered",
+							"kind", "query",
+							"type", q.Type(),
+							"panic", r,
+						)
+					}
 				}
 			}()
 

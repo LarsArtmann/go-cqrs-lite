@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"math/rand/v2"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 // CommandRetry returns a command middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
-func CommandRetry(config RetryConfig) command.Middleware {
+func CommandRetry(config RetryConfig, opts ...Option) command.Middleware {
 	err := config.Validate()
 	if err != nil {
 		return func(_ command.Handler) command.Handler {
@@ -24,9 +25,11 @@ func CommandRetry(config RetryConfig) command.Middleware {
 		}
 	}
 
+	cfg := applyOptions(opts)
+
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			return retry(ctx, config, string(cmd.Type()), func() error {
+			return retry(ctx, config, cfg.logger, string(cmd.Type()), func() error {
 				return next(ctx, cmd)
 			})
 		}
@@ -35,7 +38,7 @@ func CommandRetry(config RetryConfig) command.Middleware {
 
 // EventRetry returns an event middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
-func EventRetry(config RetryConfig) event.Middleware {
+func EventRetry(config RetryConfig, opts ...Option) event.Middleware {
 	err := config.Validate()
 	if err != nil {
 		return func(_ event.Handler) event.Handler {
@@ -45,9 +48,11 @@ func EventRetry(config RetryConfig) event.Middleware {
 		}
 	}
 
+	cfg := applyOptions(opts)
+
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			return retry(ctx, config, string(evt.Type()), func() error {
+			return retry(ctx, config, cfg.logger, string(evt.Type()), func() error {
 				return next(ctx, evt)
 			})
 		}
@@ -56,7 +61,7 @@ func EventRetry(config RetryConfig) event.Middleware {
 
 // QueryRetry returns a query middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
-func QueryRetry(config RetryConfig) query.Middleware {
+func QueryRetry(config RetryConfig, opts ...Option) query.Middleware {
 	err := config.Validate()
 	if err != nil {
 		return func(_ query.Handler) query.Handler {
@@ -66,11 +71,13 @@ func QueryRetry(config RetryConfig) query.Middleware {
 		}
 	}
 
+	cfg := applyOptions(opts)
+
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			var result any
 
-			err := retry(ctx, config, string(q.Type()), func() error {
+			err := retry(ctx, config, cfg.logger, string(q.Type()), func() error {
 				var err error
 
 				result, err = next(ctx, q)
@@ -83,7 +90,13 @@ func QueryRetry(config RetryConfig) query.Middleware {
 	}
 }
 
-func retry(ctx context.Context, config RetryConfig, opName string, fn func() error) error {
+func retry(
+	ctx context.Context,
+	config RetryConfig,
+	logger *slog.Logger,
+	opName string,
+	fn func() error,
+) error {
 	var err error
 
 	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
@@ -101,6 +114,18 @@ func retry(ctx context.Context, config RetryConfig, opName string, fn func() err
 		}
 
 		delay := backoff(config, attempt)
+
+		if logger != nil {
+			logger.Warn(
+				"retry attempt",
+				"operation", opName,
+				"attempt", attempt,
+				"maxAttempts", config.MaxAttempts,
+				"delay", delay,
+				"error", err,
+			)
+		}
+
 		timer := time.NewTimer(delay)
 
 		select {
