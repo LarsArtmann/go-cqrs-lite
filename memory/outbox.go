@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
 // MemoryOutboxStore is an in-memory implementation of event.Outbox for testing.
 type MemoryOutboxStore struct {
+	dispatcher.Lifecycle
 	mu           sync.RWMutex
 	entries      []outboxEntry
 	entryCounter int
@@ -99,5 +101,7 @@ func (o *MemoryOutboxStore) Ack(_ context.Context, ids []event.OutboxID) error {
 	return nil
 }
 
-// Close is a no-op for the in-memory outbox store.
-func (o *MemoryOutboxStore) Close() error { return nil }
+// Close marks the store as closed.
+func (o *MemoryOutboxStore) Close() error {
+	return o.Lifecycle.Close() //nolint:wrapcheck
+}

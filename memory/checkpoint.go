@@ -5,11 +5,13 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // MemoryCheckpointStore is an in-memory CheckpointStore for testing.
 type MemoryCheckpointStore struct {
+	dispatcher.Lifecycle
 	mu          sync.RWMutex
 	checkpoints map[string]id.EventID
 }
@@ -44,7 +46,9 @@ func (s *MemoryCheckpointStore) Save(
 	return nil
 }
 
-// Close is a no-op for the in-memory checkpoint store.
-func (s *MemoryCheckpointStore) Close() error { return nil }
+// Close marks the store as closed.
+func (s *MemoryCheckpointStore) Close() error {
+	return s.Lifecycle.Close() //nolint:wrapcheck
+}
 
 var _ event.CheckpointStore = (*MemoryCheckpointStore)(nil)
