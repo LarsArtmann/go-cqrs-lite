@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/saga v1.0.0
+	github.com/larsartmann/go-cqrs-lite/saga v1.6.0
 )
 
 require (
