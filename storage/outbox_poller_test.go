@@ -100,7 +100,12 @@ func (p *fakePollerPublisher) Published() []event.Event {
 	return p.published
 }
 
-func newPollerTestEvent(t *testing.T, eventType string, aggID id.AggregateID, version event.Version) event.Event {
+func newPollerTestEvent(
+	t *testing.T,
+	eventType string,
+	aggID id.AggregateID,
+	version event.Version,
+) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(

@@ -103,14 +103,18 @@ func TestRegistry_Build_Immutability(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	reg.AddDataStore(catalog.DataStore{ID: "db1", Name: "DB1", Version: "1.0.0", ContainerType: "database"})
+	reg.AddDataStore(
+		catalog.DataStore{ID: "db1", Name: "DB1", Version: "1.0.0", ContainerType: "database"},
+	)
 	reg.AddFlow(catalog.Flow{ID: "f1", Name: "F1", Version: "1.0.0"})
 	reg.AddTeam(catalog.Team{ID: "t1", Name: "T1"})
 	reg.AddUser(catalog.User{ID: "u1", Name: "U1"})
 
 	cat1 := reg.Build()
 
-	reg.AddDataStore(catalog.DataStore{ID: "db2", Name: "DB2", Version: "1.0.0", ContainerType: "cache"})
+	reg.AddDataStore(
+		catalog.DataStore{ID: "db2", Name: "DB2", Version: "1.0.0", ContainerType: "cache"},
+	)
 	reg.AddFlow(catalog.Flow{ID: "f2", Name: "F2", Version: "1.0.0"})
 
 	cat2 := reg.Build()

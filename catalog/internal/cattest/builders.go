@@ -13,7 +13,12 @@ func NewRegistry(tb testing.TB, title, version string) *catalog.Registry {
 	return catalog.NewRegistry(title, version)
 }
 
-func AddService(tb testing.TB, r *catalog.Registry, id catalog.ServiceID, name, version string) *catalog.Registry {
+func AddService(
+	tb testing.TB,
+	r *catalog.Registry,
+	id catalog.ServiceID,
+	name, version string,
+) *catalog.Registry {
 	tb.Helper()
 
 	r.AddService(catalog.Service{

@@ -100,7 +100,12 @@ func main() {
 			log.Fatalf("load state: %v", loadErr)
 		}
 		instance.State = *loaded
-		fmt.Printf("Status: %s (step %d/%d)\n", instance.Status, instance.CurrentStep, len(instance.Steps))
+		fmt.Printf(
+			"Status: %s (step %d/%d)\n",
+			instance.Status,
+			instance.CurrentStep,
+			len(instance.Steps),
+		)
 	}
 
 	fmt.Printf("\nFinal status: %s\n", instance.Status)

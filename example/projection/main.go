@@ -49,28 +49,36 @@ func main() {
 	readModel := newInventoryReadModel()
 
 	builder := projection.NewBuilder("inventory-projection")
-	if err := projection.On[ItemAdded](builder, "item.added", func(_ context.Context, payload ItemAdded) error {
-		readModel.Items[payload.Name] += payload.Quantity
-		fmt.Printf(
-			"  [projection] added %d %s (total: %d)\n",
-			payload.Quantity,
-			payload.Name,
-			readModel.Items[payload.Name],
-		)
-		return nil
-	}); err != nil {
+	if err := projection.On[ItemAdded](
+		builder,
+		"item.added",
+		func(_ context.Context, payload ItemAdded) error {
+			readModel.Items[payload.Name] += payload.Quantity
+			fmt.Printf(
+				"  [projection] added %d %s (total: %d)\n",
+				payload.Quantity,
+				payload.Name,
+				readModel.Items[payload.Name],
+			)
+			return nil
+		},
+	); err != nil {
 		log.Fatalf("register item.added: %v", err)
 	}
-	if err := projection.On[ItemRemoved](builder, "item.removed", func(_ context.Context, payload ItemRemoved) error {
-		readModel.Items[payload.Name] -= payload.Quantity
-		fmt.Printf(
-			"  [projection] removed %d %s (total: %d)\n",
-			payload.Quantity,
-			payload.Name,
-			readModel.Items[payload.Name],
-		)
-		return nil
-	}); err != nil {
+	if err := projection.On[ItemRemoved](
+		builder,
+		"item.removed",
+		func(_ context.Context, payload ItemRemoved) error {
+			readModel.Items[payload.Name] -= payload.Quantity
+			fmt.Printf(
+				"  [projection] removed %d %s (total: %d)\n",
+				payload.Quantity,
+				payload.Name,
+				readModel.Items[payload.Name],
+			)
+			return nil
+		},
+	); err != nil {
 		log.Fatalf("register item.removed: %v", err)
 	}
 
@@ -103,11 +111,23 @@ func main() {
 		{"item.removed", ItemAdded{Name: "widget", Quantity: 3}},
 	} {
 		payload, _ := json.Marshal(evt.payload)
-		e, createErr := event.NewEvent(evt.eventType, aggregateID, "Inventory", event.Version(i+1), payload)
+		e, createErr := event.NewEvent(
+			evt.eventType,
+			aggregateID,
+			"Inventory",
+			event.Version(i+1),
+			payload,
+		)
 		if createErr != nil {
 			log.Fatalf("create event: %v", createErr)
 		}
-		if saveErr := store.Save(ctx, "Inventory", aggregateID, []event.Event{e}, event.Version(i)); saveErr != nil {
+		if saveErr := store.Save(
+			ctx,
+			"Inventory",
+			aggregateID,
+			[]event.Event{e},
+			event.Version(i),
+		); saveErr != nil {
 			log.Fatalf("save event: %v", saveErr)
 		}
 		if pubErr := bus.Publish(ctx, e); pubErr != nil {

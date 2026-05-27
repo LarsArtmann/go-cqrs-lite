@@ -59,7 +59,11 @@ func (r *Runner) Register(def Definition) error {
 }
 
 // Start begins a new saga instance with the given initial command.
-func (r *Runner) Start(ctx context.Context, sagaType string, initialCommand command.Command) (*Instance, error) {
+func (r *Runner) Start(
+	ctx context.Context,
+	sagaType string,
+	initialCommand command.Command,
+) (*Instance, error) {
 	r.mu.RLock()
 	def, ok := r.registry[sagaType]
 	r.mu.RUnlock()
@@ -153,7 +157,15 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 		instance.UpdatedAt = time.Now()
 
 		if instance.CurrentStep > 0 {
-			r.logError("step failed, compensating", "id", instanceID, "step", step.Name, "error", err)
+			r.logError(
+				"step failed, compensating",
+				"id",
+				instanceID,
+				"step",
+				step.Name,
+				"error",
+				err,
+			)
 			instance.Status = StatusCompensating
 			if saveErr := r.store.Save(ctx, &instance.State); saveErr != nil {
 				return fmt.Errorf("save compensating status: %w", saveErr)
@@ -181,7 +193,15 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 		return fmt.Errorf("save step completion: %w", err)
 	}
 
-	r.logInfo("step completed", "id", instance.ID, "step", step.Name, "current", instance.CurrentStep)
+	r.logInfo(
+		"step completed",
+		"id",
+		instance.ID,
+		"step",
+		step.Name,
+		"current",
+		instance.CurrentStep,
+	)
 	return nil
 }
 

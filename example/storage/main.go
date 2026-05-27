@@ -55,9 +55,20 @@ func main() {
 		log.Fatalf("create event: %v", err)
 	}
 
-	fmt.Printf("Saving event: type=%s aggregate=%s version=%d\n", evt.Type(), evt.AggregateID(), evt.Version())
+	fmt.Printf(
+		"Saving event: type=%s aggregate=%s version=%d\n",
+		evt.Type(),
+		evt.AggregateID(),
+		evt.Version(),
+	)
 
-	if err := eventStore.Save(ctx, "User", userID, []event.Event{evt}, event.Version(0)); err != nil {
+	if err := eventStore.Save(
+		ctx,
+		"User",
+		userID,
+		[]event.Event{evt},
+		event.Version(0),
+	); err != nil {
 		log.Fatalf("save events: %v", err)
 	}
 

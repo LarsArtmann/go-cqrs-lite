@@ -30,7 +30,11 @@ import (
 var (
 	genType    = flag.String("type", "command", "handler type to generate: command or query")
 	outputFile = flag.String("output", "handlers_gen.go", "output file path")
-	pkgName    = flag.String("pkg", "", "package name for generated file (defaults to current directory)")
+	pkgName    = flag.String(
+		"pkg",
+		"",
+		"package name for generated file (defaults to current directory)",
+	)
 )
 
 func main() {

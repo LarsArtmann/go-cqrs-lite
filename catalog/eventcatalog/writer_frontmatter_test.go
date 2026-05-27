@@ -38,8 +38,11 @@ func TestBuildMessageFrontmatter_FullFields(t *testing.T) {
 		Badges: []catalog.Badge{
 			{Content: "stable", BackgroundColor: "green", TextColor: "white", Icon: "check"},
 		},
-		Repository: &catalog.Repository{Language: "go", URL: "https://github.com/example/order-svc"},
-		Schema:     &catalog.Schema{Type: catalog.TypeObject},
+		Repository: &catalog.Repository{
+			Language: "go",
+			URL:      "https://github.com/example/order-svc",
+		},
+		Schema: &catalog.Schema{Type: catalog.TypeObject},
 	}
 
 	md := buildMessageFrontmatter("CreateOrder", msg)

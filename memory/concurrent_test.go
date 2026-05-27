@@ -76,7 +76,13 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 				[]byte(`{}`),
 			)
 
-			_ = store.Save(context.Background(), aggType, aggID, []event.Event{evt}, event.Version(0))
+			_ = store.Save(
+				context.Background(),
+				aggType,
+				aggID,
+				[]event.Event{evt},
+				event.Version(0),
+			)
 		})
 	}
 

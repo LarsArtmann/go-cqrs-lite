@@ -124,7 +124,12 @@ func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) stri
 }
 
 // AssertServiceFrontmatter asserts a service frontmatter contains expected fields.
-func AssertServiceFrontmatter(tb testing.TB, content string, serviceID catalog.ServiceID, svcName string) {
+func AssertServiceFrontmatter(
+	tb testing.TB,
+	content string,
+	serviceID catalog.ServiceID,
+	svcName string,
+) {
 	tb.Helper()
 
 	AssertContentContains(
@@ -136,7 +141,12 @@ func AssertServiceFrontmatter(tb testing.TB, content string, serviceID catalog.S
 }
 
 // AssertMessageFrontmatter asserts a message frontmatter contains expected fields.
-func AssertMessageFrontmatter(tb testing.TB, content string, messageID catalog.MessageID, checkHeading bool) {
+func AssertMessageFrontmatter(
+	tb testing.TB,
+	content string,
+	messageID catalog.MessageID,
+	checkHeading bool,
+) {
 	tb.Helper()
 
 	AssertContentContains(

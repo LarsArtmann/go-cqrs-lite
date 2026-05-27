@@ -121,7 +121,13 @@ func (p *OutboxPoller) poll(ctx context.Context) error {
 			return fmt.Errorf("ack %d entries: %w", len(ackIDs), err)
 		}
 
-		p.logger.Info("outbox relay processed", "entries", len(ackIDs), "events", p.countEvents(entries))
+		p.logger.Info(
+			"outbox relay processed",
+			"entries",
+			len(ackIDs),
+			"events",
+			p.countEvents(entries),
+		)
 	}
 
 	return nil

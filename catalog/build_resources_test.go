@@ -100,7 +100,9 @@ func TestBuilder_AllResourceTypes(t *testing.T) {
 	)
 	b.AddDomain("dom", "Domain", "1.0.0", "Test domain", "svc")
 	b.AddChannel(catalog.Channel{ID: "ch", Name: "Channel", Version: "1.0.0"})
-	b.AddDataStore(catalog.DataStore{ID: "ds", Name: "Store", Version: "1.0.0", ContainerType: "database"})
+	b.AddDataStore(
+		catalog.DataStore{ID: "ds", Name: "Store", Version: "1.0.0", ContainerType: "database"},
+	)
 	b.AddFlow(catalog.Flow{ID: "fl", Name: "Flow", Version: "1.0.0"})
 	b.AddTeam(catalog.Team{ID: "tm", Name: "Team"})
 	b.AddUser(catalog.User{ID: "us", Name: "User"})

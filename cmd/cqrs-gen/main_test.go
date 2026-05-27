@@ -197,7 +197,10 @@ type CreateUserCmd struct{}`
 	}
 
 	if len(entries) != 0 {
-		t.Errorf("expected 0 entries when scanning for queries in command file, got %d", len(entries))
+		t.Errorf(
+			"expected 0 entries when scanning for queries in command file, got %d",
+			len(entries),
+		)
 	}
 }
 
@@ -210,7 +213,11 @@ func TestScanFile_MultipleFilesInDir(t *testing.T) {
 
 //cqrs:command CreateUser
 type CreateUserCmd struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(cmdContent), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(tmp, "commands.go"),
+		[]byte(cmdContent),
+		0o644,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -218,7 +225,11 @@ type CreateUserCmd struct{}`
 
 //cqrs:query GetUser
 type GetUserQuery struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "queries.go"), []byte(queryContent), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(tmp, "queries.go"),
+		[]byte(queryContent),
+		0o644,
+	); err != nil {
 		t.Fatal(err)
 	}
 

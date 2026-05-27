@@ -123,7 +123,9 @@ func sharedCheckpointLoad(
 	projectionName string,
 	d Dialect,
 ) (id.EventID, error) {
-	query := "SELECT event_id FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(1)
+	query := "SELECT event_id FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(
+		1,
+	)
 
 	var eventIDStr string
 
@@ -195,7 +197,10 @@ func sharedAckBatch(
 		args[i] = string(oid)
 	}
 
-	query := fmt.Sprintf("DELETE FROM "+tableOutbox+" WHERE id IN (%s)", strings.Join(placeholders, ", "))
+	query := fmt.Sprintf(
+		"DELETE FROM "+tableOutbox+" WHERE id IN (%s)",
+		strings.Join(placeholders, ", "),
+	)
 
 	_, err := db.ExecContext(ctx, query, args...)
 	if err != nil {

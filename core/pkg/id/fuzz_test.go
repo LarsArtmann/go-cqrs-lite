@@ -28,7 +28,11 @@ func FuzzParse(f *testing.F) {
 
 		for _, c := range parsed.String() {
 			if c >= 'a' && c <= 'z' {
-				t.Errorf("canonical output contains lowercase: %q (input was %q)", parsed.String(), input)
+				t.Errorf(
+					"canonical output contains lowercase: %q (input was %q)",
+					parsed.String(),
+					input,
+				)
 			}
 		}
 

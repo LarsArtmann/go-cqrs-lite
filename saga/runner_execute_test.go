@@ -98,7 +98,10 @@ func TestRunner_ExecuteStep_NilAction(t *testing.T) {
 	def := testDefinition{
 		sagaType: "order",
 		steps: []saga.Step{
-			{Name: "nil", Action: func(_ context.Context, _ id.AggregateID) command.Command { return nil }},
+			{
+				Name:   "nil",
+				Action: func(_ context.Context, _ id.AggregateID) command.Command { return nil },
+			},
 		},
 	}
 	if err := runner.Register(def); err != nil {

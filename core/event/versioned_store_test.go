@@ -127,8 +127,22 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
 
-	evt1, _ := event.NewEvent("test.upcast", aggID, "Test", 1, []byte("v1"), event.WithSchemaVersion(1))
-	evt2, _ := event.NewEvent("test.upcast", aggID, "Test", 2, []byte("skip"), event.WithSchemaVersion(2))
+	evt1, _ := event.NewEvent(
+		"test.upcast",
+		aggID,
+		"Test",
+		1,
+		[]byte("v1"),
+		event.WithSchemaVersion(1),
+	)
+	evt2, _ := event.NewEvent(
+		"test.upcast",
+		aggID,
+		"Test",
+		2,
+		[]byte("skip"),
+		event.WithSchemaVersion(2),
+	)
 	if err := store.Save(ctx, "Test", aggID, []event.Event{evt1, evt2}, 0); err != nil {
 		t.Fatalf("save: %v", err)
 	}

@@ -9,7 +9,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 )
 
-func (e *Exporter) writeMessage(serviceID catalog.ServiceID, kind string, msg catalog.Message) error {
+func (e *Exporter) writeMessage(
+	serviceID catalog.ServiceID,
+	kind string,
+	msg catalog.Message,
+) error {
 	messageID := catalog.GetID(msg)
 	dir := filepath.Join(e.outputDir, "services", string(serviceID), kind, string(messageID))
 

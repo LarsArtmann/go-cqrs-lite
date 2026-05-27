@@ -213,7 +213,13 @@ func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("order-svc"), "Order Service", "1.0.0")
-	cattest.AddService(t, reg, catalog.ServiceID("notification-svc"), "Notification Service", "1.0.0")
+	cattest.AddService(
+		t,
+		reg,
+		catalog.ServiceID("notification-svc"),
+		"Notification Service",
+		"1.0.0",
+	)
 
 	cattest.AddEventSimple(
 		t,
@@ -382,8 +388,15 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
 	cattest.AddMessageSimple(
-		t, reg, catalog.ServiceID("svc"), catalog.MessageID("DoWork"), "DoWork", "1.0.0", "Work command",
-		catalog.CommandMessage, reg.AddCommand,
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("DoWork"),
+		"DoWork",
+		"1.0.0",
+		"Work command",
+		catalog.CommandMessage,
+		reg.AddCommand,
 	)
 	cattest.AddEventSimple(
 		t,

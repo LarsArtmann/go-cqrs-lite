@@ -28,7 +28,10 @@ func NewSubscriberAdapter(bus event.Bus) *SubscriberAdapter {
 }
 
 // Subscribe creates a subscription for the given topic (mapped to event.Type).
-func (a *SubscriberAdapter) Subscribe(_ context.Context, topic string) (<-chan *message.Message, error) {
+func (a *SubscriberAdapter) Subscribe(
+	_ context.Context,
+	topic string,
+) (<-chan *message.Message, error) {
 	handler := func(ctx context.Context, evt event.Event) error {
 		msg := eventToMessage(evt)
 

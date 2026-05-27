@@ -26,7 +26,8 @@ func (s *SQLEventStore) LoadStream(
 		FROM `+tableEvents+`
 		WHERE aggregate_type = %s AND aggregate_id = %s
 		ORDER BY version ASC`,
-		p1, p2,
+		p1,
+		p2,
 	)
 
 	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID)

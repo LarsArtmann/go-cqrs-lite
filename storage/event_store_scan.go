@@ -51,12 +51,24 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 
 	parsedEventID, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return nil, fmt.Errorf("parse event ID %q for %s v%d: %w", eventIDStr, aggType, version, err)
+		return nil, fmt.Errorf(
+			"parse event ID %q for %s v%d: %w",
+			eventIDStr,
+			aggType,
+			version,
+			err,
+		)
 	}
 
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
-		return nil, fmt.Errorf("parse aggregate ID %q for %s v%d: %w", aggIDStr, aggType, version, err)
+		return nil, fmt.Errorf(
+			"parse aggregate ID %q for %s v%d: %w",
+			aggIDStr,
+			aggType,
+			version,
+			err,
+		)
 	}
 
 	return reconstructEvent(

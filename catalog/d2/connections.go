@@ -43,18 +43,37 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catalog.Service) {
 	for _, cmd := range svc.Commands {
 		commandDisplayID := sanitizeID(string(catalog.GetID(cmd)))
-		fmt.Fprintf(buf, "  %s -> %s.%s: \"receives\"\n", serviceDisplayID, serviceDisplayID, commandDisplayID)
+		fmt.Fprintf(
+			buf,
+			"  %s -> %s.%s: \"receives\"\n",
+			serviceDisplayID,
+			serviceDisplayID,
+			commandDisplayID,
+		)
 	}
 
 	for _, evt := range svc.Events {
 		eventDisplayID := sanitizeID(string(catalog.GetID(evt)))
 		action := eventAction(evt)
-		fmt.Fprintf(buf, "  %s.%s -> %s: %q\n", serviceDisplayID, eventDisplayID, serviceDisplayID, action)
+		fmt.Fprintf(
+			buf,
+			"  %s.%s -> %s: %q\n",
+			serviceDisplayID,
+			eventDisplayID,
+			serviceDisplayID,
+			action,
+		)
 	}
 
 	for _, q := range svc.Queries {
 		queryDisplayID := sanitizeID(string(catalog.GetID(q)))
-		fmt.Fprintf(buf, "  %s -> %s.%s: \"handles\"\n", serviceDisplayID, serviceDisplayID, queryDisplayID)
+		fmt.Fprintf(
+			buf,
+			"  %s -> %s.%s: \"handles\"\n",
+			serviceDisplayID,
+			serviceDisplayID,
+			queryDisplayID,
+		)
 	}
 }
 

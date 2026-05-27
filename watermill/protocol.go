@@ -132,7 +132,14 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		opts = append(opts, event.WithMetadata(metadata))
 	}
 
-	evt, err := event.NewEvent(eventType, aggregateID, aggregateType, event.Version(version), msg.Payload, opts...)
+	evt, err := event.NewEvent(
+		eventType,
+		aggregateID,
+		aggregateType,
+		event.Version(version),
+		msg.Payload,
+		opts...,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create event: %w", err)
 	}
@@ -164,9 +171,18 @@ func buildMetadata(md message.Metadata) *event.Metadata {
 	setIfPresent(metaRequestID, func(m *event.Metadata) {
 		m.RequestID = id.MustParseRequestID(md.Get(metaRequestID))
 	})
-	setIfPresent(metaSource, func(m *event.Metadata) { m.Source = event.Source(md.Get(metaSource)) })
-	setIfPresent(metaIPAddress, func(m *event.Metadata) { m.IPAddress = event.IPAddress(md.Get(metaIPAddress)) })
-	setIfPresent(metaUserAgent, func(m *event.Metadata) { m.UserAgent = event.UserAgent(md.Get(metaUserAgent)) })
+	setIfPresent(
+		metaSource,
+		func(m *event.Metadata) { m.Source = event.Source(md.Get(metaSource)) },
+	)
+	setIfPresent(
+		metaIPAddress,
+		func(m *event.Metadata) { m.IPAddress = event.IPAddress(md.Get(metaIPAddress)) },
+	)
+	setIfPresent(
+		metaUserAgent,
+		func(m *event.Metadata) { m.UserAgent = event.UserAgent(md.Get(metaUserAgent)) },
+	)
 
 	for k, v := range md {
 		if strings.HasPrefix(k, metaCustomPrefix) {

@@ -70,7 +70,13 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 		DO UPDATE SET saga_type = EXCLUDED.saga_type, status = EXCLUDED.status,
 		              current_step = EXCLUDED.current_step, err_msg = EXCLUDED.err_msg,
 		              updated_at = EXCLUDED.updated_at`,
-		p1, p2, p3, p4, p5, p6, p7,
+		p1,
+		p2,
+		p3,
+		p4,
+		p5,
+		p6,
+		p7,
 	)
 
 	_, err := s.db.ExecContext(
@@ -111,7 +117,12 @@ func (s *SQLSagaStore) LoadAllRunning(ctx context.Context) ([]*saga.State, error
 	query := `SELECT id, saga_type, status, current_step, err_msg, created_at, updated_at
 		FROM ` + tableSagas + ` WHERE status = ` + s.dialect.Placeholder(1) + ` OR status = ` + s.dialect.Placeholder(2)
 
-	rows, err := s.db.QueryContext(ctx, query, string(saga.StatusRunning), string(saga.StatusCompensating))
+	rows, err := s.db.QueryContext(
+		ctx,
+		query,
+		string(saga.StatusRunning),
+		string(saga.StatusCompensating),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("query running sagas: %w", err)
 	}
@@ -179,7 +190,15 @@ func (s *SQLSagaStore) scanStates(rows *sql.Rows) ([]*saga.State, error) {
 		createdAtDest := s.dialect.ScanTimeDest()
 		updatedAtDest := s.dialect.ScanTimeDest()
 
-		err := rows.Scan(&sagaID, &sagaType, &status, &currentStep, &errMsg, createdAtDest, updatedAtDest)
+		err := rows.Scan(
+			&sagaID,
+			&sagaType,
+			&status,
+			&currentStep,
+			&errMsg,
+			createdAtDest,
+			updatedAtDest,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("scan running saga: %w", err)
 		}

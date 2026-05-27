@@ -154,7 +154,9 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
 }
 
-func collectMessageIDs(svc catalog.Service) (sends, receives, commands, queries []catalog.MessageID) {
+func collectMessageIDs(
+	svc catalog.Service,
+) (sends, receives, commands, queries []catalog.MessageID) {
 	sends = make([]catalog.MessageID, 0, len(svc.Events))
 	receives = make([]catalog.MessageID, 0, len(svc.Events))
 	commands = make([]catalog.MessageID, 0, len(svc.Commands))

@@ -596,7 +596,8 @@ func TestSQLiteOutbox_FullCycle(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	if err := backend.TransactionalStore().SaveWithOutbox(ctx, "Order", aggID, []event.Event{evt}, 0); err != nil {
+	if err := backend.TransactionalStore().
+		SaveWithOutbox(ctx, "Order", aggID, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
 
@@ -615,7 +616,11 @@ func TestSQLiteOutbox_FullCycle(t *testing.T) {
 	}
 
 	if entries[0].Events[0].Type() != "order.placed" {
-		t.Errorf("event type mismatch: got %q, want %q", entries[0].Events[0].Type(), "order.placed")
+		t.Errorf(
+			"event type mismatch: got %q, want %q",
+			entries[0].Events[0].Type(),
+			"order.placed",
+		)
 	}
 
 	// 3. Publish the event (simulated — just verify the entry is valid)

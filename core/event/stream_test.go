@@ -140,7 +140,13 @@ func TestStoreStreamAdapter_LoadStream_NotFound(t *testing.T) {
 	}
 }
 
-func mustEvent(tb testing.TB, typ string, aggID id.AggregateID, ver int, clock func() time.Time) event.Event {
+func mustEvent(
+	tb testing.TB,
+	typ string,
+	aggID id.AggregateID,
+	ver int,
+	clock func() time.Time,
+) event.Event {
 	tb.Helper()
 
 	evt, err := event.NewEvent(
