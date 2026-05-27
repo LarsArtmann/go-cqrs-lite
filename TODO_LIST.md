@@ -122,7 +122,7 @@
 - [ ] Extend lint to all 9 production modules — only core/ is linted currently (source: SESSION37)
 - [x] ~~Add EventRetry middleware tests~~ — DONE (4 tests in retry_event_test.go: Success, AllAttemptsFail, NonRetryable, ContextCancellation)
 - [x] ~~Delete stale example/user/user binary~~ — DONE (Session 86+)
-- [ ] Trim AGENTS.md from 827→<400 lines (source: SESSION_75)
+- [x] ~~Trim AGENTS.md~~ — DONE (Session 111, 384→121 lines, preserved all essential info)
 - [x] ~~Cross-package sentinel errors not classified~~ — DONE (Session 44, `RegisterClassification` + `init()` in aggregate/projection/storage)
 - [ ] Design ADR for outbox transaction co-participation before implementation (source: SESSION_45)
 - [ ] Implement Store.ReadBackwards — interface + MemoryStore + SQLEventStore (source: TIME_TRAVEL)
