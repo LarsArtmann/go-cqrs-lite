@@ -51,14 +51,24 @@ func main() {
 	builder := projection.NewBuilder("inventory-projection")
 	if err := projection.On[ItemAdded](builder, "item.added", func(_ context.Context, payload ItemAdded) error {
 		readModel.Items[payload.Name] += payload.Quantity
-		fmt.Printf("  [projection] added %d %s (total: %d)\n", payload.Quantity, payload.Name, readModel.Items[payload.Name])
+		fmt.Printf(
+			"  [projection] added %d %s (total: %d)\n",
+			payload.Quantity,
+			payload.Name,
+			readModel.Items[payload.Name],
+		)
 		return nil
 	}); err != nil {
 		log.Fatalf("register item.added: %v", err)
 	}
 	if err := projection.On[ItemRemoved](builder, "item.removed", func(_ context.Context, payload ItemRemoved) error {
 		readModel.Items[payload.Name] -= payload.Quantity
-		fmt.Printf("  [projection] removed %d %s (total: %d)\n", payload.Quantity, payload.Name, readModel.Items[payload.Name])
+		fmt.Printf(
+			"  [projection] removed %d %s (total: %d)\n",
+			payload.Quantity,
+			payload.Name,
+			readModel.Items[payload.Name],
+		)
 		return nil
 	}); err != nil {
 		log.Fatalf("register item.removed: %v", err)
