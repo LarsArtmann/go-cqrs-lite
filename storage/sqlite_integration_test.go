@@ -574,3 +574,69 @@ func TestSQLiteSagaStore_Save_Upsert(t *testing.T) {
 		t.Errorf("CurrentStep mismatch after upsert: got %d, want %d", loaded.CurrentStep, 1)
 	}
 }
+
+func TestSQLiteOutbox_FullCycle(t *testing.T) {
+	t.Parallel()
+
+	// Use SQLBackend to get wired store + outbox
+	db := newSQLiteTestDB(t)
+	initSQLiteSchema(t, db)
+
+	backend, err := NewSQLiteBackend(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// 1. Create and save an event via TransactionalStore (appends to outbox)
+	aggID := id.NewAggregateID()
+	evt, err := event.New("order.placed", aggID, "Order", 1, []byte(`{"id":"ORD-123"}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := backend.TransactionalStore().SaveWithOutbox(ctx, "Order", aggID, []event.Event{evt}, 0); err != nil {
+		t.Fatalf("SaveWithOutbox: %v", err)
+	}
+
+	// 2. PollPending — should return the outbox entry
+	entries, err := backend.Outbox().PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("PollPending: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 outbox entry, got %d", len(entries))
+	}
+
+	if len(entries[0].Events) != 1 {
+		t.Fatalf("expected 1 event in entry, got %d", len(entries[0].Events))
+	}
+
+	if entries[0].Events[0].Type() != "order.placed" {
+		t.Errorf("event type mismatch: got %q, want %q", entries[0].Events[0].Type(), "order.placed")
+	}
+
+	// 3. Publish the event (simulated — just verify the entry is valid)
+	publishedEvent := entries[0].Events[0]
+	if publishedEvent.AggregateID() != aggID {
+		t.Errorf("aggregate ID mismatch: got %v, want %v", publishedEvent.AggregateID(), aggID)
+	}
+
+	// 4. Ack the outbox entry
+	ackIDs := []event.OutboxID{entries[0].ID}
+	if err := backend.Outbox().Ack(ctx, ackIDs); err != nil {
+		t.Fatalf("Ack: %v", err)
+	}
+
+	// 5. PollPending again — should be empty
+	entries, err = backend.Outbox().PollPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("PollPending after ack: %v", err)
+	}
+
+	if len(entries) != 0 {
+		t.Fatalf("expected 0 outbox entries after ack, got %d", len(entries))
+	}
+}
