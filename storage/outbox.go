@@ -53,6 +53,10 @@ func SQLiteOutboxSchema() string { return SQLiteDialect{}.OutboxSchema() }
 
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("context cancelled: %w", err)
+	}
+
 	if len(events) == 0 {
 		return nil
 	}
@@ -83,6 +87,10 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 // PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("context cancelled: %w", err)
+	}
+
 	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
 
 	query := fmt.Sprintf(`SELECT id, events FROM outbox
@@ -106,6 +114,10 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 // Deletes in batches of maxAckBatchSize to avoid exceeding PostgreSQL's
 // parameter limit (65535).
 func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("context cancelled: %w", err)
+	}
+
 	if len(ids) == 0 {
 		return nil
 	}

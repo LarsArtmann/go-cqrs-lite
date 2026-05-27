@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql/driver"
 	"errors"
 	"fmt"
@@ -410,5 +411,48 @@ func TestSQLOutbox_Ack_MultiBatch_SecondBatchError(t *testing.T) {
 	err := outbox.Ack(t.Context(), ids)
 	if err == nil {
 		t.Fatal("expected error when second batch fails")
+	}
+}
+
+func TestSQLOutbox_Append_ContextCancelled(t *testing.T) {
+	t.Parallel()
+
+	outbox, _ := newTestOutbox(t)
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	evt, _ := event.New("test", id.NewAggregateID(), "Test", 1, []byte(`{}`))
+	err := outbox.Append(ctx, []event.Event{evt})
+	if err == nil {
+		t.Fatal("expected error for cancelled context")
+	}
+}
+
+func TestSQLOutbox_PollPending_ContextCancelled(t *testing.T) {
+	t.Parallel()
+
+	outbox, _ := newTestOutbox(t)
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	_, err := outbox.PollPending(ctx, 10)
+	if err == nil {
+		t.Fatal("expected error for cancelled context")
+	}
+}
+
+func TestSQLOutbox_Ack_ContextCancelled(t *testing.T) {
+	t.Parallel()
+
+	outbox, _ := newTestOutbox(t)
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	err := outbox.Ack(ctx, []event.OutboxID{"test-id"})
+	if err == nil {
+		t.Fatal("expected error for cancelled context")
 	}
 }
