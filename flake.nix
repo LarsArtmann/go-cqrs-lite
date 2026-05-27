@@ -3,7 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,14 +63,21 @@
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           examplePaths = builtins.concatStringsSep " " [
+            "./example/projection/..."
+            "./example/saga/..."
+            "./example/storage/..."
             "./example/todo/..."
             "./example/user/..."
           ];
 
-          mkApp = name: script: {
+          allPaths = "${modulePaths} ${examplePaths}";
+
+          mkApp = name: runtimeInputs: text: {
             type = "app";
-            program = "${pkgs.writeShellScriptBin name script}/bin/${name}";
+            program = "${pkgs.writeShellApplication { inherit name runtimeInputs text; }}/bin/${name}";
           };
+
+          goModules = [ goPkg ];
         in
         {
           treefmt = {
@@ -84,67 +94,50 @@
             packages = [
               goPkg
               pkgs.golangci-lint
-              pkgs.gofumpt
-              pkgs.golines
               pkgs.gotools
               pkgs.trash-cli
             ];
 
+            GOWORK = "off";
+            GOFLAGS = tagFlags;
+
             shellHook = ''
-              export GOWORK=off
-              export GOFLAGS="${tagFlags}"
               echo "go-cqrs-lite dev shell — $(go version)"
             '';
           };
 
-          checks = {
-            build = pkgs.runCommand "go-cqrs-lite-build" { nativeBuildInputs = [ goPkg ]; } ''
-              export GOFLAGS="${tagFlags}"
-              export GOWORK=off
-              cp -r ${./.} src && chmod -R u+w src && cd src
-              ${goPkg}/bin/go build ${modulePaths}
-              touch $out
-            '';
-          };
+          checks = { };
 
           apps = {
-            test = mkApp "test" ''
-              set -euo pipefail
+            test = mkApp "test" goModules ''
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 "$@"
             '';
 
-            test-race = mkApp "test-race" ''
-              set -euo pipefail
+            test-race = mkApp "test-race" goModules ''
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 "$@"
             '';
 
-            build = mkApp "build" ''
-              set -euo pipefail
-              ${goPkg}/bin/go build ${modulePaths} "$@"
-              ${goPkg}/bin/go build ${examplePaths}
+            build = mkApp "build" goModules ''
+              ${goPkg}/bin/go build ${allPaths} "$@"
             '';
 
-            vet = mkApp "vet" ''
-              set -euo pipefail
+            vet = mkApp "vet" goModules ''
               ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} "$@"
             '';
 
-            lint = mkApp "lint" ''
-              set -euo pipefail
+            lint = mkApp "lint" [ goPkg pkgs.golangci-lint ] ''
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> Linting $mod"
                 (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config ../.golangci.yml ./...)
               done
             '';
 
-            coverage = mkApp "coverage" ''
-              set -euo pipefail
+            coverage = mkApp "coverage" goModules ''
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -coverprofile=coverage.out -covermode=atomic "$@"
               ${goPkg}/bin/go tool cover -func=coverage.out
             '';
 
-            clean = mkApp "clean" ''
-              set -euo pipefail
+            clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
             '';
