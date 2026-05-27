@@ -50,3 +50,20 @@ func DecodePayload[T any](evt Event, codec Codec) (T, error) {
 
 	return target, nil
 }
+
+// DecodePayloads decodes multiple events' payloads into a slice of typed values.
+// Returns an error at the first decode failure, indicating the index.
+func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
+	result := make([]T, 0, len(events))
+
+	for i, evt := range events {
+		v, err := DecodePayload[T](evt, codec)
+		if err != nil {
+			return nil, fmt.Errorf("decode payload [%d] for event %s: %w", i, evt.Type(), err)
+		}
+
+		result = append(result, v)
+	}
+
+	return result, nil
+}

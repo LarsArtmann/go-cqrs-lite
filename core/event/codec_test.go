@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -207,5 +208,62 @@ func TestDecodePayload_CodecError(t *testing.T) {
 	_, err = event.DecodePayload[struct{}](evt, failingCodec{})
 	if err == nil {
 		t.Error("expected error from failing codec")
+	}
+}
+
+func TestDecodePayloads(t *testing.T) {
+	t.Parallel()
+
+	codec := event.JSONCodec{}
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	type userPayload struct {
+		Name string `json:"name"`
+	}
+
+	events := make([]event.Event, 3)
+	for i := range 3 {
+		evt, err := event.NewEvent(
+			"UserCreated", aggID, "User", event.Version(i+1),
+			[]byte(fmt.Sprintf(`{"name":"User%d"}`, i)),
+		)
+		if err != nil {
+			t.Fatalf("NewEvent[%d]: %v", i, err)
+		}
+
+		events[i] = evt
+	}
+
+	results, err := event.DecodePayloads[userPayload](events, codec)
+	if err != nil {
+		t.Fatalf("DecodePayloads: %v", err)
+	}
+
+	if len(results) != 3 {
+		t.Fatalf("len = %d, want 3", len(results))
+	}
+
+	names := []string{"User0", "User1", "User2"}
+	for i, want := range names {
+		if results[i].Name != want {
+			t.Errorf("results[%d].Name = %q, want %q", i, results[i].Name, want)
+		}
+	}
+}
+
+func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	goodEvt, _ := event.NewEvent("Good", aggID, "User", 1, []byte(`{}`))
+	badEvt, _ := event.NewEvent("Bad", aggID, "User", 2, []byte(`{broken`))
+
+	_, err := event.DecodePayloads[struct{ Name string }](
+		[]event.Event{goodEvt, badEvt},
+		event.JSONCodec{},
+	)
+	if err == nil {
+		t.Error("expected error for invalid JSON")
 	}
 }
