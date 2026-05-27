@@ -70,6 +70,14 @@ func (o *fakePollerOutbox) PollCount() int {
 	return o.pollCalls
 }
 
+func (o *fakePollerOutbox) AckedIDs() []event.OutboxID {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	result := make([]event.OutboxID, len(o.ackedIDs))
+	copy(result, o.ackedIDs)
+	return result
+}
+
 type fakePollerPublisher struct {
 	mu         sync.Mutex
 	published  []event.Event
@@ -279,8 +287,8 @@ func TestOutboxPoller_MultipleEventsPerEntry(t *testing.T) {
 		t.Fatalf("expected 2 published events, got %d", len(publisher.Published()))
 	}
 
-	if len(outbox.ackedIDs) != 1 {
-		t.Fatalf("expected 1 acked entry, got %d", len(outbox.ackedIDs))
+	if acked := outbox.AckedIDs(); len(acked) != 1 {
+		t.Fatalf("expected 1 acked entry, got %d", len(acked))
 	}
 }
 
@@ -332,8 +340,8 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
-	if len(outbox.ackedIDs) != 1 || outbox.ackedIDs[0] != "outbox-1" {
-		t.Fatalf("expected only outbox-1 acked, got %v", outbox.ackedIDs)
+	if acked := outbox.AckedIDs(); len(acked) != 1 || acked[0] != "outbox-1" {
+		t.Fatalf("expected only outbox-1 acked, got %v", acked)
 	}
 }
 
