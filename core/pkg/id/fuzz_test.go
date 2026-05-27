@@ -8,6 +8,8 @@ func FuzzParse(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
 	f.Add("")
 	f.Add("01HK1549P84T9XF8R94E960633")
+	f.Add("01hk1549p84t9xf8r94e960633")
+	f.Add("01Hk1549P84T9xf8R94e960633")
 
 	f.Fuzz(func(t *testing.T, input string) {
 		parsed, err := Parse[AggregateID](input)
@@ -22,6 +24,12 @@ func FuzzParse(f *testing.F) {
 
 		if err != nil {
 			return
+		}
+
+		for _, c := range parsed.String() {
+			if c >= 'a' && c <= 'z' {
+				t.Errorf("canonical output contains lowercase: %q (input was %q)", parsed.String(), input)
+			}
 		}
 
 		roundtrip, err := Parse[AggregateID](parsed.String())

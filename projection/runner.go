@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -146,10 +145,11 @@ func filterByTypes(events []event.Event, types []event.Type) []event.Event {
 		return events
 	}
 
+	typeSet := newTypeSet(types)
 	result := make([]event.Event, 0, len(events))
 
 	for _, evt := range events {
-		if slices.Contains(types, evt.Type()) {
+		if typeSet.has(evt.Type()) {
 			result = append(result, evt)
 		}
 	}
@@ -194,6 +194,7 @@ func filterEvents(
 	result := make([]event.Event, 0, len(all))
 
 	pastCheckpoint := checkpoint.IsZero()
+	typeSet := newTypeSet(types)
 
 	for _, evt := range all {
 		if !pastCheckpoint {
@@ -204,7 +205,7 @@ func filterEvents(
 			continue
 		}
 
-		if len(types) > 0 && !slices.Contains(types, evt.Type()) {
+		if len(types) > 0 && !typeSet.has(evt.Type()) {
 			continue
 		}
 
@@ -212,4 +213,25 @@ func filterEvents(
 	}
 
 	return result
+}
+
+type typeSet map[event.Type]struct{}
+
+func newTypeSet(types []event.Type) typeSet {
+	if len(types) == 0 {
+		return nil
+	}
+
+	s := make(typeSet, len(types))
+
+	for _, t := range types {
+		s[t] = struct{}{}
+	}
+
+	return s
+}
+
+func (s typeSet) has(t event.Type) bool {
+	_, ok := s[t]
+	return ok
 }

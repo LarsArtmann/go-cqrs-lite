@@ -49,6 +49,31 @@ func TestParse(t *testing.T) {
 			t.Error("Parse() should error on empty string")
 		}
 	})
+
+	t.Run("lowercase input normalizes to uppercase", func(t *testing.T) {
+		t.Parallel()
+
+		id, err := Parse[AggregateID](lower(testULID))
+		if err != nil {
+			t.Fatalf("Parse(lowercase) error = %v", err)
+		}
+
+		if id.String() != testULID {
+			t.Errorf("Parse(lowercase) = %q, want canonical uppercase %q", id.String(), testULID)
+		}
+	})
+}
+
+func lower(s string) string {
+	result := make([]byte, len(s))
+	for i := range s {
+		c := s[i]
+		if c >= 'A' && c <= 'Z' {
+			c += 32
+		}
+		result[i] = c
+	}
+	return string(result)
 }
 
 func TestMustParse(t *testing.T) {
