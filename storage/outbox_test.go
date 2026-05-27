@@ -312,6 +312,19 @@ func TestOutboxSchema(t *testing.T) {
 	}
 }
 
+func TestSQLiteOutboxSchema(t *testing.T) {
+	t.Parallel()
+
+	schema := SQLiteOutboxSchema()
+	if schema == "" {
+		t.Fatal("SQLiteOutboxSchema returned empty string")
+	}
+
+	if !regexp.MustCompile(`(?i)CREATE TABLE`).MatchString(schema) {
+		t.Fatal("SQLiteOutboxSchema should contain CREATE TABLE")
+	}
+}
+
 func TestUnmarshalOutboxEvents_InvalidAggregateID(t *testing.T) {
 	t.Parallel()
 

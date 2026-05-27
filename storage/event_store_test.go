@@ -628,6 +628,10 @@ func TestSchema_ContainsExpectedDDL(t *testing.T) {
 		t.Error("Schema() missing CREATE TABLE events")
 	}
 
+	if !regexp.MustCompile(`(?s)CREATE TABLE.*outbox`).MatchString(ddl) {
+		t.Error("Schema() missing CREATE TABLE outbox")
+	}
+
 	if !regexp.MustCompile(`UNIQUE\(aggregate_type,\s*aggregate_id,\s*version\)`).MatchString(ddl) {
 		t.Error("Schema() missing UNIQUE constraint")
 	}

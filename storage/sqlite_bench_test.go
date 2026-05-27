@@ -245,7 +245,7 @@ func openSQLiteBenchDB(b *testing.B) (*sql.DB, error) {
 
 	db.SetMaxOpenConns(1)
 
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteOutboxSchema()} {
+	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
 		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			return nil, fmt.Errorf("exec DDL: %w", err)

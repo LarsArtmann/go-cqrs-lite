@@ -244,7 +244,8 @@ func TestSQLSagaStore_LoadAllRunning_ParseTimeError(t *testing.T) {
 	mock.ExpectQuery("SELECT id, saga_type, status, current_step, err_msg, created_at, updated_at FROM sagas").
 		WithArgs(string(saga.StatusRunning), string(saga.StatusCompensating)).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "saga_type", "status", "current_step", "err_msg", "created_at", "updated_at"}).
-			AddRow(id.NewAggregateID().String(), "order", string(saga.StatusRunning), 1, "", "invalid-time", "invalid-time"))
+			AddRow(id.NewAggregateID().String(), "order", string(saga.StatusRunning), 1, "", "invalid-time", "invalid-time"),
+		)
 
 	_, err := store.LoadAllRunning(ctx)
 	if err == nil {

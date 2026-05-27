@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -329,3 +330,30 @@ func TestTurso_FullWorkflow(t *testing.T) {
 		t.Fatalf("expected 2 events after position, got %d", len(fromPosition))
 	}
 }
+
+func TestOpenTursoInMemory(t *testing.T) {
+	t.Parallel()
+
+	db, err := OpenTursoInMemory()
+	if err != nil {
+		t.Fatalf("OpenTursoInMemory: %v", err)
+	}
+	if db == nil {
+		t.Fatal("expected non-nil db")
+	}
+	_ = db.Close()
+}
+
+func TestOpenTursoSync_MemoryWithRemote(t *testing.T) {
+	t.Parallel()
+
+	_, err := OpenTursoSync(context.Background(), ":memory:", "https://example.com", "token")
+	if err == nil {
+		t.Fatal("expected error for in-memory database with remote sync")
+	}
+
+	if !errors.Is(err, ErrTursoMemorySync) {
+		t.Fatalf("expected ErrTursoMemorySync, got: %v", err)
+	}
+}
+

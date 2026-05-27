@@ -69,7 +69,6 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 			SQLiteSchema(),
 			SQLiteSnapshotSchema(),
 			SQLiteCheckpointSchema(),
-			SQLiteOutboxSchema(),
 		},
 	)
 }

@@ -120,3 +120,48 @@ func mustEvent(tb testing.TB, typ string, aggID id.AggregateID, ver int) event.E
 
 	return evt
 }
+
+func TestSQLEventStore_LoadStream_ScanError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db, err := storage.OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	storage.SQLiteInitSchema(ctx, db)
+
+	store, err := storage.NewSQLiteEventStore(db)
+	if err != nil {
+		t.Fatalf("new store: %v", err)
+	}
+	defer store.Close()
+
+	aggID := id.NewAggregateID()
+
+	_, err = db.ExecContext(ctx,
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+		 VALUES ('invalid-id', 'test', 'Order', ?, 1, 1, '{}', '{}', '2024-01-01T00:00:00Z')`,
+		aggID.String(),
+	)
+	if err != nil {
+		t.Fatalf("insert bad row: %v", err)
+	}
+
+	stream, err := store.LoadStream(ctx, "Order", aggID)
+	if err != nil {
+		t.Fatalf("load stream: %v", err)
+	}
+	defer stream.Close()
+
+	_, ok := stream.Next()
+	if ok {
+		t.Fatal("expected Next to fail due to scan error")
+	}
+
+	if err := stream.Err(); err == nil {
+		t.Fatal("expected stream.Err to return scan error")
+	}
+}

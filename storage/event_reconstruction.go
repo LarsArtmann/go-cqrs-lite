@@ -11,11 +11,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Schema returns the SQL DDL for creating the events table.
-func Schema() string { return PostgresDialect{}.EventSchema() }
+// Schema returns the SQL DDL for creating the events and outbox tables.
+func Schema() string {
+	pg := PostgresDialect{}
+	return pg.EventSchema() + "\n" + pg.OutboxSchema()
+}
 
-// SQLiteSchema returns the SQL DDL for creating the events table in SQLite.
-func SQLiteSchema() string { return SQLiteDialect{}.EventSchema() }
+// SQLiteSchema returns the SQL DDL for creating the events and outbox tables in SQLite.
+func SQLiteSchema() string {
+	sqlite := SQLiteDialect{}
+	return sqlite.EventSchema() + "\n" + sqlite.OutboxSchema()
+}
 
 // scanSlice is a generic helper that deduplicates event scanning.
 func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
