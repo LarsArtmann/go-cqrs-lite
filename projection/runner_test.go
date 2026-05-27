@@ -135,6 +135,25 @@ func TestRunner_Register_ValidProjection(t *testing.T) {
 	}
 }
 
+func TestRunner_Register_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	runner := newTestRunner(t)
+
+	proj := event.NewProjection("test", func(_ context.Context, _ event.Event) error {
+		return nil
+	}, []event.Type{"UserCreated"})
+
+	if err := runner.Register(proj); err != nil {
+		t.Fatalf("first Register: %v", err)
+	}
+
+	err := runner.Register(proj)
+	if err == nil {
+		t.Fatal("expected error for duplicate projection registration")
+	}
+}
+
 func TestRunner_NoProjections(t *testing.T) {
 	t.Parallel()
 
