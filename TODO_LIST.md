@@ -269,7 +269,7 @@
 - [ ] Integrate TypeSpec types → catalog.Registry via SchemaFromType[T]() (source: COMPARISON_REPORT)
 - [ ] Create documentation site (Docusaurus/MkDocs/Hugo) (source: multiple sessions)
 - [ ] Set up pkg.go.dev documentation hosting (source: SESSION_57)
-- [ ] Write CHANGELOG.md — 61+ sessions of changes with no tracking (source: SESSION_45)
+- [x] ~~Write CHANGELOG.md~~ — DONE (Session 111, comprehensive changelog with Unreleased/v1.0.0/v0.2.0/v0.1.0)
 - [ ] Prune docs/status/ — 100+ archived status reports (source: SESSION_85)
 - [ ] Add BDD tests for Version, SchemaVersion, OutboxStatus, NodeID, SyncMessageType, Pagination types (source: SESSION_67)
 - [ ] Add fuzz tests for event creation, ID parsing, schema reflection, DecodePayload, upcaster chain (source: multiple sessions)
