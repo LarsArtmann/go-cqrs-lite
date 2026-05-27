@@ -121,6 +121,42 @@ func TestParseSQLiteTimestamp_Empty(t *testing.T) {
 	}
 }
 
+func TestSQLiteEnableWAL_ClosedDB(t *testing.T) {
+	t.Parallel()
+
+	db, err := OpenSQLite(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+
+	if closeErr := db.Close(); closeErr != nil {
+		t.Fatalf("close: %v", closeErr)
+	}
+
+	err = SQLiteEnableWAL(context.Background(), db)
+	if err == nil {
+		t.Fatal("expected error when enabling WAL on closed DB")
+	}
+}
+
+func TestOpenSQLite_ClosedDB(t *testing.T) {
+	t.Parallel()
+
+	db, err := OpenSQLite(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+
+	if closeErr := db.Close(); closeErr != nil {
+		t.Fatalf("close: %v", closeErr)
+	}
+
+	err = db.PingContext(context.Background())
+	if err == nil {
+		t.Fatal("expected error when pinging closed DB")
+	}
+}
+
 func TestPostgresInitSchema_ExecError(t *testing.T) {
 	t.Parallel()
 
