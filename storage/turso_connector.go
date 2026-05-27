@@ -59,6 +59,20 @@ func NewTursoCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
 	return NewSQLiteCheckpointStore(db)
 }
 
+// NewTursoSagaStore creates a saga state store backed by a Turso database.
+// Delegates to NewSQLiteSagaStore — Turso uses the same SQL dialect as SQLite.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewTursoSagaStore(db *sql.DB) (*SQLSagaStore, error) {
+	return NewSQLiteSagaStore(db)
+}
+
+// NewTursoBackend creates a unified Turso backend that provides event store,
+// outbox, transactional store, checkpoint store, snapshot store, and saga store
+// from a single database connection.
+func NewTursoBackend(db *sql.DB) (*SQLBackend, error) {
+	return NewSQLiteBackend(db)
+}
+
 // NewTursoTransactionalStore creates a transactional store backed by a Turso database.
 // Delegates to NewSQLTransactionalStore — Turso uses the same SQL dialect as SQLite.
 // Combines event persistence and outbox append in a single transaction.

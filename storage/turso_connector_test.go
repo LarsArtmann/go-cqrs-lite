@@ -234,6 +234,14 @@ func TestTurso_NilDB_Errors(t *testing.T) {
 	if _, err := NewTursoOutbox(nil); err == nil {
 		t.Fatal("expected error for nil db (outbox)")
 	}
+
+	if _, err := NewTursoSagaStore(nil); err == nil {
+		t.Fatal("expected error for nil db (saga store)")
+	}
+
+	if _, err := NewTursoBackend(nil); err == nil {
+		t.Fatal("expected error for nil db (backend)")
+	}
 }
 
 func TestTurso_MetadataRoundtrip(t *testing.T) {
@@ -357,3 +365,45 @@ func TestOpenTursoSync_MemoryWithRemote(t *testing.T) {
 	}
 }
 
+
+func TestNewTursoSagaStore(t *testing.T) {
+	t.Parallel()
+
+	db := newTursoTestDB(t)
+	initTursoSchema(t, db)
+
+	store, err := NewTursoSagaStore(db)
+	if err != nil {
+		t.Fatalf("NewTursoSagaStore: %v", err)
+	}
+	if store == nil {
+		t.Fatal("expected non-nil saga store")
+	}
+}
+
+func TestNewTursoBackend(t *testing.T) {
+	t.Parallel()
+
+	db := newTursoTestDB(t)
+	initTursoSchema(t, db)
+
+	backend, err := NewTursoBackend(db)
+	if err != nil {
+		t.Fatalf("NewTursoBackend: %v", err)
+	}
+	if backend == nil {
+		t.Fatal("expected non-nil backend")
+	}
+	if backend.EventStore() == nil {
+		t.Fatal("expected non-nil EventStore")
+	}
+	if backend.Outbox() == nil {
+		t.Fatal("expected non-nil Outbox")
+	}
+	if backend.TransactionalStore() == nil {
+		t.Fatal("expected non-nil TransactionalStore")
+	}
+	if backend.SagaStore() == nil {
+		t.Fatal("expected non-nil SagaStore")
+	}
+}
