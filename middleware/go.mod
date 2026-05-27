@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/middleware
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.0.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
@@ -12,7 +12,6 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cockroachdb/errors v1.13.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
