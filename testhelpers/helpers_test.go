@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -138,4 +139,60 @@ func TestAssertNotContains(t *testing.T) {
 	t.Parallel()
 
 	AssertNotContains(t, "hello world", "xyz", "should not contain")
+}
+
+func TestFakeStore_AppendBatchFn(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	store := NewFakeStore().AppendBatchFn(func(_ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+		called = true
+		return nil
+	})
+
+	err := store.AppendBatch(context.Background(), "User", id.NewAggregateID(), nil)
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+	if !called {
+		t.Fatal("AppendBatchFn not called")
+	}
+}
+
+func TestFakeStore_LoadToVersionFn(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	called := false
+	store := NewFakeStore().LoadToVersionFn(func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, err := store.LoadToVersion(context.Background(), "User", aggID, 3)
+	if err != nil {
+		t.Fatalf("LoadToVersion: %v", err)
+	}
+	if !called {
+		t.Fatal("LoadToVersionFn not called")
+	}
+}
+
+func TestFakeStore_LoadToTimestampFn(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	called := false
+	store := NewFakeStore().LoadToTimestampFn(func(_ event.AggregateType, _ id.AggregateID, _ time.Time) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, time.Now())
+	if err != nil {
+		t.Fatalf("LoadToTimestamp: %v", err)
+	}
+	if !called {
+		t.Fatal("LoadToTimestampFn not called")
+	}
 }
