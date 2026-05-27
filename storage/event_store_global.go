@@ -12,7 +12,7 @@ import (
 // Returns an empty slice (not an error) if no events exist.
 func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM events
+		FROM ` + tableEvents + `
 		ORDER BY occurred_at ASC`
 
 	rows, err := s.db.QueryContext(ctx, query)
@@ -43,7 +43,7 @@ func (s *SQLEventStore) LoadAllFromPosition(
 
 	query := fmt.Sprintf(
 		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM events
+		FROM `+tableEvents+`
 		WHERE id > %s
 		ORDER BY occurred_at ASC`,
 		p1,
@@ -81,7 +81,7 @@ func (s *SQLEventStore) loadAllFromStart(
 	p1 := s.dialect.Placeholder(1)
 
 	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM events
+		FROM ` + tableEvents + `
 		ORDER BY occurred_at ASC
 		LIMIT ` + p1
 

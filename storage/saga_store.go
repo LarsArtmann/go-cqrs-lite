@@ -64,7 +64,7 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 		s.dialect.Placeholder(7)
 
 	query := fmt.Sprintf(
-		`INSERT INTO sagas (id, saga_type, status, current_step, err_msg, created_at, updated_at)
+		`INSERT INTO `+tableSagas+` (id, saga_type, status, current_step, err_msg, created_at, updated_at)
 		VALUES (%s, %s, %s, %s, %s, %s, %s)
 		ON CONFLICT (id)
 		DO UPDATE SET saga_type = EXCLUDED.saga_type, status = EXCLUDED.status,
@@ -97,7 +97,7 @@ func (s *SQLSagaStore) Load(ctx context.Context, id id.AggregateID) (*saga.State
 
 	query := fmt.Sprintf(
 		`SELECT saga_type, status, current_step, err_msg, created_at, updated_at
-		FROM sagas WHERE id = %s`,
+		FROM `+tableSagas+` WHERE id = %s`,
 		p1,
 	)
 
@@ -109,7 +109,7 @@ func (s *SQLSagaStore) Load(ctx context.Context, id id.AggregateID) (*saga.State
 // LoadAllRunning returns all saga states that are currently running or compensating.
 func (s *SQLSagaStore) LoadAllRunning(ctx context.Context) ([]*saga.State, error) {
 	query := `SELECT id, saga_type, status, current_step, err_msg, created_at, updated_at
-		FROM sagas WHERE status = ` + s.dialect.Placeholder(1) + ` OR status = ` + s.dialect.Placeholder(2)
+		FROM ` + tableSagas + ` WHERE status = ` + s.dialect.Placeholder(1) + ` OR status = ` + s.dialect.Placeholder(2)
 
 	rows, err := s.db.QueryContext(ctx, query, string(saga.StatusRunning), string(saga.StatusCompensating))
 	if err != nil {

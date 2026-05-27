@@ -83,7 +83,7 @@ func (s *SQLEventStore) queryEvents(
 
 	query := fmt.Sprintf(
 		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM events
+		FROM `+tableEvents+`
 		WHERE aggregate_type = %s AND aggregate_id = %s %s`,
 		p1,
 		p2,
@@ -123,5 +123,5 @@ func (s *SQLEventStore) Delete(
 ) error {
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, "events", p1, p2, "events")
+	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, tableEvents, p1, p2, "events")
 }

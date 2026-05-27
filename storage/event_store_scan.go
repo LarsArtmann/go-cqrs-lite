@@ -80,7 +80,7 @@ func (s *SQLEventStore) insertEvents(
 	}
 
 	insertSQL := fmt.Sprintf(
-		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+		`INSERT INTO `+tableEvents+` (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
 		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)`,
 		ph[0],
 		ph[1],

@@ -81,7 +81,7 @@ func sharedInsertEvents(
 
 // checkVersionQuery is the SQL query template for checking aggregate version.
 // Placeholders must be in the database driver's native format ($1, $2 for PostgreSQL, ?, ? for SQLite).
-const checkVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = %s AND aggregate_id = %s`
+const checkVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM ` + tableEvents + ` WHERE aggregate_type = %s AND aggregate_id = %s`
 
 // sharedCheckVersion is the common implementation for checkVersion (PostgreSQL) and
 // sqliteCheckVersion (SQLite), separated only by the SQL placeholder format.
@@ -123,7 +123,7 @@ func sharedCheckpointLoad(
 	projectionName string,
 	d Dialect,
 ) (id.EventID, error) {
-	query := "SELECT event_id FROM checkpoints WHERE projection_name = " + d.Placeholder(1)
+	query := "SELECT event_id FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(1)
 
 	var eventIDStr string
 
@@ -163,7 +163,7 @@ func sharedCheckpointSave(
 	d Dialect,
 ) error {
 	query := fmt.Sprintf(
-		"INSERT INTO checkpoints (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
+		"INSERT INTO "+tableCheckpoints+" (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
 		d.Placeholder(1),
 		d.Placeholder(2),
 	)
@@ -195,7 +195,7 @@ func sharedAckBatch(
 		args[i] = string(oid)
 	}
 
-	query := fmt.Sprintf("DELETE FROM outbox WHERE id IN (%s)", strings.Join(placeholders, ", "))
+	query := fmt.Sprintf("DELETE FROM "+tableOutbox+" WHERE id IN (%s)", strings.Join(placeholders, ", "))
 
 	_, err := db.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -217,7 +217,7 @@ func outboxInsertSQL(dialect Dialect) string {
 	)
 
 	return fmt.Sprintf(
-		`INSERT INTO outbox (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
+		`INSERT INTO `+tableOutbox+` (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
 		p1, p2, p3, p4,
 	)
 }

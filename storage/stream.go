@@ -23,7 +23,7 @@ func (s *SQLEventStore) LoadStream(
 
 	query := fmt.Sprintf(
 		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM events
+		FROM `+tableEvents+`
 		WHERE aggregate_type = %s AND aggregate_id = %s
 		ORDER BY version ASC`,
 		p1, p2,

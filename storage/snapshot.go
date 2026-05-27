@@ -59,7 +59,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 		s.dialect.Placeholder(3), s.dialect.Placeholder(4), s.dialect.Placeholder(5)
 
 	query := fmt.Sprintf(
-		`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
+		`INSERT INTO `+tableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s)
 		ON CONFLICT (aggregate_type, aggregate_id)
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
@@ -130,7 +130,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 ) (*event.Snapshot, error) {
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM snapshots
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+tableSnapshots+`
 		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
 
 	return s.scanSnapshot(
@@ -191,7 +191,7 @@ func (s *SQLSnapshotStore) Delete(
 
 	return deleteByAggregate(
 		s.db, ctx, aggregateType, aggregateID,
-		"snapshots", p1, p2, "snapshot",
+		tableSnapshots, p1, p2, "snapshot",
 	)
 }
 
