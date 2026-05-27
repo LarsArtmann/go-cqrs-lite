@@ -8,11 +8,11 @@
 
 ## TL;DR
 
-| Option | Single-Machine SQLite Pub/Sub | Pure Go / CGO-Free | Distributed | Queue / Task Primitives | Verdict |
-|--------|------------------------------|-------------------|-------------|------------------------|---------|
-| **Watermill SQLite** (`wmsqlitemodernc` / `wmsqlitezombiezen`) | Yes | Yes | No | Yes (consumer groups, batching, ack deadlines) | **Recommended** |
-| **Honker** | Yes (via Rust extension + `PRAGMA data_version`) | **No** (Rust/C extension required) | No | Yes (durable queue, stream, notify, scheduler) | **Not for Go libraries** |
-| **Turso** | **No** (no native primitives) | N/A | Yes | No | **Incompatible with Honker** |
+| Option                                                         | Single-Machine SQLite Pub/Sub                    | Pure Go / CGO-Free                 | Distributed | Queue / Task Primitives                        | Verdict                      |
+| -------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------- | ----------- | ---------------------------------------------- | ---------------------------- |
+| **Watermill SQLite** (`wmsqlitemodernc` / `wmsqlitezombiezen`) | Yes                                              | Yes                                | No          | Yes (consumer groups, batching, ack deadlines) | **Recommended**              |
+| **Honker**                                                     | Yes (via Rust extension + `PRAGMA data_version`) | **No** (Rust/C extension required) | No          | Yes (durable queue, stream, notify, scheduler) | **Not for Go libraries**     |
+| **Turso**                                                      | **No** (no native primitives)                    | N/A                                | Yes         | No                                             | **Incompatible with Honker** |
 
 ---
 
@@ -31,23 +31,23 @@ Honker is a SQLite extension (written in Rust) plus language bindings that add P
 
 ### Strengths
 
-| Feature | Why it matters for CQRS |
-|---------|------------------------|
-| Atomic enqueue with business writes | Event sourcing's holy grail — no lost events between commit and dispatch. |
-| `PRAGMA data_version` wake | Beats `stat(2)` and `inotify` — handles WAL truncation, cross-process, ~1–2ms median latency. |
-| Partial-index schema | Claim cost scales with working set, not history size. |
-| Cross-language via SQLite extension | Any process using the same `.db` participates regardless of language. |
-| Streams with per-consumer offsets | Maps directly to projection runner requirements (`event.GlobalLoader` + `event.Bus`). |
+| Feature                             | Why it matters for CQRS                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| Atomic enqueue with business writes | Event sourcing's holy grail — no lost events between commit and dispatch.                     |
+| `PRAGMA data_version` wake          | Beats `stat(2)` and `inotify` — handles WAL truncation, cross-process, ~1–2ms median latency. |
+| Partial-index schema                | Claim cost scales with working set, not history size.                                         |
+| Cross-language via SQLite extension | Any process using the same `.db` participates regardless of language.                         |
+| Streams with per-consumer offsets   | Maps directly to projection runner requirements (`event.GlobalLoader` + `event.Bus`).         |
 
 ### Weaknesses
 
-| Concern | Impact |
-|---------|--------|
-| **Alpha quality** | README: "better than experimental but not beta-quality yet." |
-| **Single writer** | SQLite serializes writes. Event sourcing is append-heavy. Structural ceiling for throughput. |
-| **No in-memory DB support** | `:memory:` doesn't work. Tests need temp files. |
+| Concern                         | Impact                                                                                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Alpha quality**               | README: "better than experimental but not beta-quality yet."                                                                            |
+| **Single writer**               | SQLite serializes writes. Event sourcing is append-heavy. Structural ceiling for throughput.                                            |
+| **No in-memory DB support**     | `:memory:` doesn't work. Tests need temp files.                                                                                         |
 | **Rust/C extension dependency** | Requires Rust toolchain + platform-specific binary artifacts. Not suitable for a Go library that promises "zero external dependencies." |
-| **Polling semantics** | `data_version` every 1ms is cheap polling, but still polling. Fine for projections, not real-time trading. |
+| **Polling semantics**           | `data_version` every 1ms is cheap polling, but still polling. Fine for projections, not real-time trading.                              |
 
 ### Bottom Line for go-cqrs-lite
 
@@ -59,19 +59,19 @@ Honker would make an excellent lightweight storage backend for SQLite consumers,
 
 ### What it is
 
-Turso is a **hosted, distributed SQLite platform** built on libSQL. It replicates SQLite databases to the edge. It's SQLite-*compatible* for queries and transactions, but not SQLite itself.
+Turso is a **hosted, distributed SQLite platform** built on libSQL. It replicates SQLite databases to the edge. It's SQLite-_compatible_ for queries and transactions, but not SQLite itself.
 
 ### The Honker Incompatibility
 
 From [Turso COMPAT.md](https://raw.githubusercontent.com/tursodatabase/turso/refs/heads/main/COMPAT.md), two critical omissions kill any Honker + Turso integration:
 
-| PRAGMA / API | Turso Status | Honker Depends On |
-|---|---|---|
-| `PRAGMA data_version` | ❌ No | Core wake mechanism (1ms poll thread) |
-| `load_extension()` | ❌ No / Stub | Extension loading itself |
-| `sqlite3_commit_hook` | ❌ No | Alternate wake path |
-| `sqlite3_rollback_hook` | ❌ No | Alternate wake path |
-| `sqlite3_update_hook` | ❌ No | Alternate wake path |
+| PRAGMA / API            | Turso Status | Honker Depends On                     |
+| ----------------------- | ------------ | ------------------------------------- |
+| `PRAGMA data_version`   | ❌ No        | Core wake mechanism (1ms poll thread) |
+| `load_extension()`      | ❌ No / Stub | Extension loading itself              |
+| `sqlite3_commit_hook`   | ❌ No        | Alternate wake path                   |
+| `sqlite3_rollback_hook` | ❌ No        | Alternate wake path                   |
+| `sqlite3_update_hook`   | ❌ No        | Alternate wake path                   |
 
 **What this means:**
 
@@ -112,27 +112,27 @@ Both use the same underlying SQLite engine as Honker (file-local), but implement
 
 ### Strengths vs Honker
 
-| Dimension | Watermill SQLite | Honker |
-|-----------|-----------------|--------|
-| Language | Pure Go | Rust extension + thin Go wrapper |
-| CGO | **None** | Required (or `modernc.org/sqlite` with extension loading) |
-| Cross-compilation | **Yes** | No (platform-specific `.so`/`.dylib`) |
-| Build complexity | `go get` | Rust toolchain + extension artifacts |
-| Consumer groups | **Yes** | No equivalent |
-| Maturity | Beta (stable, tested) | Alpha |
-| ORM integration | Via standard `database/sql` | Via custom `db.transaction()` API |
+| Dimension         | Watermill SQLite            | Honker                                                    |
+| ----------------- | --------------------------- | --------------------------------------------------------- |
+| Language          | Pure Go                     | Rust extension + thin Go wrapper                          |
+| CGO               | **None**                    | Required (or `modernc.org/sqlite` with extension loading) |
+| Cross-compilation | **Yes**                     | No (platform-specific `.so`/`.dylib`)                     |
+| Build complexity  | `go get`                    | Rust toolchain + extension artifacts                      |
+| Consumer groups   | **Yes**                     | No equivalent                                             |
+| Maturity          | Beta (stable, tested)       | Alpha                                                     |
+| ORM integration   | Via standard `database/sql` | Via custom `db.transaction()` API                         |
 
 ### Weaknesses vs Honker
 
-| Dimension | Watermill SQLite | Honker |
-|-----------|-----------------|--------|
-| Wake latency | Poll-based (configurable interval, default 1s) | ~1–2 ms via `data_version` |
-| Stream offsets | Per-consumer-group, not per-consumer-name | Per-consumer-name (finer-grained) |
-| Scheduler / cron | **No** | Built-in (`honker_cron_*`, `@every`) |
-| Dead-letter table | **No** | Native (`_honker_dead`) |
-| Named locks / rate limiting | **No** | Native |
-| Task result storage | **No** | Native (`honker_result_*`) |
-| Cross-language interop | **Go only** | Python, Node, Rust, Go, Ruby, Elixir, etc. |
+| Dimension                   | Watermill SQLite                               | Honker                                     |
+| --------------------------- | ---------------------------------------------- | ------------------------------------------ |
+| Wake latency                | Poll-based (configurable interval, default 1s) | ~1–2 ms via `data_version`                 |
+| Stream offsets              | Per-consumer-group, not per-consumer-name      | Per-consumer-name (finer-grained)          |
+| Scheduler / cron            | **No**                                         | Built-in (`honker_cron_*`, `@every`)       |
+| Dead-letter table           | **No**                                         | Native (`_honker_dead`)                    |
+| Named locks / rate limiting | **No**                                         | Native                                     |
+| Task result storage         | **No**                                         | Native (`honker_result_*`)                 |
+| Cross-language interop      | **Go only**                                    | Python, Node, Rust, Go, Ruby, Elixir, etc. |
 
 ### Bottom Line for go-cqrs-lite
 
@@ -199,13 +199,13 @@ The gap between **"SQLite-compatible"** (Turso) and **"actually SQLite"** (Honke
 
 ## 7. When Each Option Is Correct
 
-| Scenario | Right Tool |
-|----------|-----------|
-| Go application, single machine, zero CGO, SQLite as only database | **Watermill SQLite** |
-| Python/Node/Ruby/Elixir application, single machine, shared `.db` file | **Honker** |
+| Scenario                                                                            | Right Tool             |
+| ----------------------------------------------------------------------------------- | ---------------------- |
+| Go application, single machine, zero CGO, SQLite as only database                   | **Watermill SQLite**   |
+| Python/Node/Ruby/Elixir application, single machine, shared `.db` file              | **Honker**             |
 | Multi-region edge deployment, SQLite-compatible storage, separate broker for queues | **Turso + NATS/Kafka** |
-| Production event sourcing, >1 machine writing, complex projections | **PostgreSQL + NATS** |
+| Production event sourcing, >1 machine writing, complex projections                  | **PostgreSQL + NATS**  |
 
 ---
 
-*Research conducted 2026-05-27. Sources: GitHub READMEs, Watermill docs, Turso COMPAT.md.*
+_Research conducted 2026-05-27. Sources: GitHub READMEs, Watermill docs, Turso COMPAT.md._

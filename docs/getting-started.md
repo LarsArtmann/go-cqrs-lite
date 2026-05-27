@@ -96,14 +96,14 @@ For a detailed visual walkthrough of how a web client communicates with go-cqrs-
 
 ## Modules
 
-| Module      | Import          | Purpose                                                |
-| ----------- | --------------- | ------------------------------------------------------ |
+| Module      | Import          | Purpose                                              |
+| ----------- | --------------- | ---------------------------------------------------- |
 | core        | `…/core/…`      | CQRS primitives (command, event, query, decider, id) |
-| memory      | `…/memory`      | In-memory implementations (testing)                    |
-| catalog     | `…/catalog/…`   | Auto-documentation (AsyncAPI 3.0, EventCatalog)        |
-| middleware  | `…/middleware`  | Logging, retry, recovery, validation, metrics          |
-| storage     | `…/storage`     | PostgreSQL, SQLite, Turso, Pebble stores               |
-| testhelpers | `…/testhelpers` | Test utilities (fakes, helpers)                        |
+| memory      | `…/memory`      | In-memory implementations (testing)                  |
+| catalog     | `…/catalog/…`   | Auto-documentation (AsyncAPI 3.0, EventCatalog)      |
+| middleware  | `…/middleware`  | Logging, retry, recovery, validation, metrics        |
+| storage     | `…/storage`     | PostgreSQL, SQLite, Turso, Pebble stores             |
+| testhelpers | `…/testhelpers` | Test utilities (fakes, helpers)                      |
 
 ## Next Steps
 

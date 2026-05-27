@@ -246,9 +246,9 @@ nix develop             # enter dev shell
 
 ### Saga Module (`saga/`)
 
-| Package   | Purpose                                    | Key Types                                                                     |
-| --------- | ------------------------------------------ | ----------------------------------------------------------------------------- |
-| `saga/`   | Long-running process orchestration         | `Runner`, `Definition`, `Step`, `Instance`, `State`, `Store`, `Status`        |
+| Package | Purpose                            | Key Types                                                              |
+| ------- | ---------------------------------- | ---------------------------------------------------------------------- |
+| `saga/` | Long-running process orchestration | `Runner`, `Definition`, `Step`, `Instance`, `State`, `Store`, `Status` |
 
 - **State/Instance split**: `State` is fully serializable (for persistence). `Instance` is the runtime view assembled by `Runner` via `hydrate()`.
 - **Persistent store**: `storage.SQLSagaStore` implements `saga.Store` for PostgreSQL, SQLite, Turso.
