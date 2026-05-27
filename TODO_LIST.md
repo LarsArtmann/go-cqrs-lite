@@ -199,7 +199,7 @@
 - [x] ~~Add coverage tracking to CI workflow~~ — DONE (ci.yml generates coverage + codecov upload)
 - [ ] Parallelize CI matrix — one job per module (source: COMPREHENSIVE_PLAN)
 - [ ] Migrate gomodguard → gomodguard_v2 in .golangci.yml (source: multiple sessions)
-- [ ] Normalize go.mod version references across workspace (v0.0.0 vs v1.1.0 vs pseudo-versions) (source: SESSION_66)
+- [x] ~~Normalize go.mod version references~~ — DONE (Session 111, saga v1.0.0→v1.6.0, go work sync)
 - [ ] Add go.work sync CI check (source: SESSION_85)
 - [ ] Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions (source: SESSION_69)
 - [ ] Remove cockroachdb/errors from go-localsync — migrate to stdlib fmt.Errorf with %w (source: CONSOLIDATION)
