@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
-	github.com/larsartmann/go-cqrs-lite/signing v1.6.0
+	github.com/larsartmann/go-cqrs-lite/signing v1.0.0
 )
 
 require (

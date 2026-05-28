@@ -1,11 +1,15 @@
 package stream
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
+
+// validTablePrefix enforces safe SQL identifier names for table prefix parameters.
+var validTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
 // AggregateRef is a lightweight identity reference to an aggregate stream.
 // No derived state. Status is computed separately by the reader.

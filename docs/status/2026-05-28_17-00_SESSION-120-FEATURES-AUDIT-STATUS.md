@@ -21,24 +21,24 @@ Session 120 performed a **deep code audit** of all 16 modules, rewrote FEATURES.
 
 Complete rewrite of FEATURES.md from 497 lines to 580 lines, verified against source code for every claim:
 
-|| #   | What                                                                                                       | Detail                                                                                                |
+|| # | What | Detail |
 || --- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-|| 1   | Corrected middleware count                                                                                 | Was "6 concerns / 21 factories" → now **8 concerns / 24 factories** (Circuit Breaker was missing)    |
-|| 2   | Corrected event option count                                                                               | Was "12 functional options" → now **15** (WithSchemaVersion, WithClock, WithClientID, WithClientOccurredAt) |
-|| 3   | Removed stale claims                                                                                       | Builder (unexported), NewTypedProjection (deleted), Catalogable/CatalogCore (deleted), HandleParallel (unexported) |
-|| 4   | Added missing signing module                                                                               | Full single-sig + multi-sig: 6 middleware variants, VerifierMap, Ed25519, HMAC-SHA256, canonical format |
-|| 5   | Added missing projection module                                                                            | Runner, Builder, On[T](), HandlerRegistry, DLQ, retry, replay→live, Reset, wildcard OnAll            |
-|| 6   | Added missing storage features                                                                             | SQLBackend facade, SQLSagaStore, TursoSyncDB (Push/Pull/Checkpoint/Stats), PebbleConfig, all Turso convenience constructors |
-|| 7   | Added missing core features                                                                                | BackwardsLoader, StreamLoader, Bus.UsePublish, auto-marshal New(), clock injection, context replay marker |
-|| 8   | Updated module matrix                                                                                      | 24 modules listed with correct coverage and maturity                                                 |
+|| 1 | Corrected middleware count | Was "6 concerns / 21 factories" → now **8 concerns / 24 factories** (Circuit Breaker was missing) |
+|| 2 | Corrected event option count | Was "12 functional options" → now **15** (WithSchemaVersion, WithClock, WithClientID, WithClientOccurredAt) |
+|| 3 | Removed stale claims | Builder (unexported), NewTypedProjection (deleted), Catalogable/CatalogCore (deleted), HandleParallel (unexported) |
+|| 4 | Added missing signing module | Full single-sig + multi-sig: 6 middleware variants, VerifierMap, Ed25519, HMAC-SHA256, canonical format |
+|| 5 | Added missing projection module | Runner, Builder, On[T](), HandlerRegistry, DLQ, retry, replay→live, Reset, wildcard OnAll |
+|| 6 | Added missing storage features | SQLBackend facade, SQLSagaStore, TursoSyncDB (Push/Pull/Checkpoint/Stats), PebbleConfig, all Turso convenience constructors |
+|| 7 | Added missing core features | BackwardsLoader, StreamLoader, Bus.UsePublish, auto-marshal New(), clock injection, context replay marker |
+|| 8 | Updated module matrix | 24 modules listed with correct coverage and maturity |
 
 ### TODO List Reconciliation
 
-|| #   | What                                                                                                       | Detail                                                                                                |
+|| # | What | Detail |
 || --- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-|| 9   | Verified 13 key open TODO items                                                                            | Marked 5 as DONE (Pebble optimization, catch-up runner, projection coverage, signing doc, README fix) |
-|| 10  | Updated completion stats                                                                                   | 157 done / 18 open / 14 blocked / 25 future = 214 total (73.4% completion)                            |
-|| 11  | Reconciled with Sessions 121-123                                                                           | Added stream module, tombstone support, signing integration tests, Sink/Source refactor              |
+|| 9 | Verified 13 key open TODO items | Marked 5 as DONE (Pebble optimization, catch-up runner, projection coverage, signing doc, README fix) |
+|| 10 | Updated completion stats | 157 done / 18 open / 14 blocked / 25 future = 214 total (73.4% completion) |
+|| 11 | Reconciled with Sessions 121-123 | Added stream module, tombstone support, signing integration tests, Sink/Source refactor |
 
 ### Module-by-Module Audit
 
@@ -65,11 +65,11 @@ Every module was read and verified via sub-agents or direct inspection:
 
 ## B. PARTIALLY DONE 🔶
 
-| # | Item                                    | Status      | What Remains                                                           |
-|---|-----------------------------------------|-------------|------------------------------------------------------------------------|
-| 1 | TODO_LIST.md accuracy                   | ~95%        | Concurrent sessions (121-123) added items after my write; committed version is from Session 123 |
-| 2 | event.Context propagation               | Partial     | `PublishChanges` accepts ctx; `NewEvent` does not                     |
-| 3 | Test file splitting                     | Partial     | signing_test.go and multisig_test.go split (Session 119); decider_test.go (~1195L) and runner_test.go (~1160L) still large |
+| #   | Item                      | Status  | What Remains                                                                                                               |
+| --- | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1   | TODO_LIST.md accuracy     | ~95%    | Concurrent sessions (121-123) added items after my write; committed version is from Session 123                            |
+| 2   | event.Context propagation | Partial | `PublishChanges` accepts ctx; `NewEvent` does not                                                                          |
+| 3   | Test file splitting       | Partial | signing_test.go and multisig_test.go split (Session 119); decider_test.go (~1195L) and runner_test.go (~1160L) still large |
 
 ---
 
@@ -78,7 +78,7 @@ Every module was read and verified via sub-agents or direct inspection:
 ### From TODO_LIST.md (Open Items)
 
 | Priority | Item                                                        |
-|----------|-------------------------------------------------------------|
+| -------- | ----------------------------------------------------------- |
 | 🟡 MED   | Add ProcessedAt to CheckpointStore                          |
 | 🟡 MED   | Add event.Context propagation — thread ctx through NewEvent |
 | 🟡 MED   | Add WithAsyncWrites() for PebbleEventStore                  |
@@ -99,14 +99,14 @@ Every module was read and verified via sub-agents or direct inspection:
 
 ### Build-Breaking Changes from Concurrent Sessions
 
-| # | Issue                                                                                           | Severity      | Source               | Detail                                                                                       |
-|---|-------------------------------------------------------------------------------------------------|---------------|----------------------|----------------------------------------------------------------------------------------------|
-| 1 | `FakeStore` missing `Delete` method                                                             | 🔴 CRITICAL   | Session 121/123      | `Sink/Source` refactoring removed Delete from `FakeStore` but didn't add it back. 58+ compilation errors cascade through `core/decider`, `core/event`, `integration`. |
-| 2 | `fake_store_setters.go` references `s.deleteFn` — field doesn't exist                           | 🔴 CRITICAL   | Session 121/123      | Setter added for `deleteFn` but FakeStore has no `deleteFn` field                             |
-| 3 | `MemoryStore` missing `Delete` method                                                           | 🔴 CRITICAL   | Session 123          | `Delete` method physically removed from `memory/store.go` but `event.Store` interface requires it |
-| 4 | `BackwardsLoader` → `BackwardsSource` rename incomplete                                         | ⚠️ MEDIUM     | Session 123          | Only `memory/store.go` assertion updated; core/event interface still uses `BackwardsLoader`  |
-| 5 | `core/event/event_test.go` — 794 lines deleted                                                 | ⚠️ HIGH       | Session 121/123      | Massive deletion in test file; uncommitted, unknown if intentional or accidental            |
-| 6 | gopls false positives in `errors_taxonomy_test.go`                                              | ⚠️ LOW        | Ongoing              | References `event.Newf`, `event.Wrapf`, `event.WithContext`, `event.ExitCode`, `event.HandleErrorDetailed` — these don't exist in the event package. Likely test scaffolding for planned features. |
+| #   | Issue                                                                 | Severity    | Source          | Detail                                                                                                                                                                                             |
+| --- | --------------------------------------------------------------------- | ----------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `FakeStore` missing `Delete` method                                   | 🔴 CRITICAL | Session 121/123 | `Sink/Source` refactoring removed Delete from `FakeStore` but didn't add it back. 58+ compilation errors cascade through `core/decider`, `core/event`, `integration`.                              |
+| 2   | `fake_store_setters.go` references `s.deleteFn` — field doesn't exist | 🔴 CRITICAL | Session 121/123 | Setter added for `deleteFn` but FakeStore has no `deleteFn` field                                                                                                                                  |
+| 3   | `MemoryStore` missing `Delete` method                                 | 🔴 CRITICAL | Session 123     | `Delete` method physically removed from `memory/store.go` but `event.Store` interface requires it                                                                                                  |
+| 4   | `BackwardsLoader` → `BackwardsSource` rename incomplete               | ⚠️ MEDIUM   | Session 123     | Only `memory/store.go` assertion updated; core/event interface still uses `BackwardsLoader`                                                                                                        |
+| 5   | `core/event/event_test.go` — 794 lines deleted                        | ⚠️ HIGH     | Session 121/123 | Massive deletion in test file; uncommitted, unknown if intentional or accidental                                                                                                                   |
+| 6   | gopls false positives in `errors_taxonomy_test.go`                    | ⚠️ LOW      | Ongoing         | References `event.Newf`, `event.Wrapf`, `event.WithContext`, `event.ExitCode`, `event.HandleErrorDetailed` — these don't exist in the event package. Likely test scaffolding for planned features. |
 
 **Current build status: BROKEN** — `go build ./...` fails in `testhelpers` package.
 
@@ -141,33 +141,33 @@ The `Sink/Source` refactoring is a valid architectural improvement but was **mer
 
 ## F. Top 25 Next Actions (Pareto-Sorted)
 
-| #  | Impact   | Effort | Action                                                                                              |
-|----|----------|--------|-----------------------------------------------------------------------------------------------------|
-| 1  | 🔴 CRIT  | S      | Fix `FakeStore` — add `Delete` method back (or add `deleteFn` field + wire it)                      |
-| 2  | 🔴 CRIT  | S      | Fix `MemoryStore` — add `Delete` method back                                                        |
-| 3  | 🔴 CRIT  | S      | Fix `fake_store_setters.go` — `deleteFn` field reference must match FakeStore struct                |
-| 4  | 🔴 HIGH  | S      | Review `event_test.go` 794-line deletion — intentional or accidental?                              |
-| 5  | 🔴 HIGH  | S      | Verify `BackwardsSource` vs `BackwardsLoader` naming — pick one, update everywhere                  |
-| 6  | 🟡 MED   | S      | Run `go build ./...` and `go test ./...` — fix ALL compilation errors                              |
-| 7  | 🟡 MED   | S      | Push signing v1.0.0 tag — code is ready, enables consumers to import without replace               |
-| 8  | 🟡 MED   | S      | Add `ProcessedAt` to `CheckpointStore` — store `(EventID, time.Time)`                              |
-| 9  | 🟡 MED   | S      | Add `event.Context` propagation through `NewEvent`                                                  |
-| 10 | 🟡 MED   | S      | Wire `example/user/` to catalog-aware constructors                                                  |
-| 11 | 🟡 MED   | M      | Add projection parallel processing — goroutine pool in `projection.Runner`                          |
-| 12 | 🟡 MED   | M      | Add `WithAsyncWrites()` option for `PebbleEventStore`                                               |
-| 13 | 🟡 MED   | S      | Split `decider_test.go` (~1195L) into focused files                                                 |
-| 14 | 🟡 MED   | S      | Split `runner_test.go` (~1160L) into focused files                                                  |
-| 15 | 🟡 MED   | M      | Rewrite `example/user/` to demonstrate full CQRS capability stack                                  |
-| 16 | 🟡 MED   | M      | Add stream module integration tests                                                                 |
-| 17 | 🟡 MED   | S      | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination                                 |
-| 18 | 🟡 MED   | M      | Benchmark storage backends (PG vs SQLite vs Pebble)                                                 |
-| 19 | 🟢 LOW   | M      | Performance regression CI — benchmark comparison on each PR                                         |
-| 20 | 🟢 LOW   | S      | Add fuzz tests for event creation, ID parsing, schema reflection                                   |
-| 21 | 🟢 LOW   | M      | Add E2E throughput benchmarks                                                                       |
-| 22 | 🟢 LOW   | S      | Add example/user/ smoke test (TestExampleRuns)                                                      |
-| 23 | 🟢 LOW   | S      | Enforce 350-line limit on test files via pre-commit hook                                            |
-| 24 | 🟢 LOW   | M      | Add PostgreSQL testcontainers integration test for storage                                          |
-| 25 | 🟢 LOW   | S      | License decision (MIT/Apache) — requires owner input                                                |
+| #   | Impact  | Effort | Action                                                                               |
+| --- | ------- | ------ | ------------------------------------------------------------------------------------ |
+| 1   | 🔴 CRIT | S      | Fix `FakeStore` — add `Delete` method back (or add `deleteFn` field + wire it)       |
+| 2   | 🔴 CRIT | S      | Fix `MemoryStore` — add `Delete` method back                                         |
+| 3   | 🔴 CRIT | S      | Fix `fake_store_setters.go` — `deleteFn` field reference must match FakeStore struct |
+| 4   | 🔴 HIGH | S      | Review `event_test.go` 794-line deletion — intentional or accidental?                |
+| 5   | 🔴 HIGH | S      | Verify `BackwardsSource` vs `BackwardsLoader` naming — pick one, update everywhere   |
+| 6   | 🟡 MED  | S      | Run `go build ./...` and `go test ./...` — fix ALL compilation errors                |
+| 7   | 🟡 MED  | S      | Push signing v1.0.0 tag — code is ready, enables consumers to import without replace |
+| 8   | 🟡 MED  | S      | Add `ProcessedAt` to `CheckpointStore` — store `(EventID, time.Time)`                |
+| 9   | 🟡 MED  | S      | Add `event.Context` propagation through `NewEvent`                                   |
+| 10  | 🟡 MED  | S      | Wire `example/user/` to catalog-aware constructors                                   |
+| 11  | 🟡 MED  | M      | Add projection parallel processing — goroutine pool in `projection.Runner`           |
+| 12  | 🟡 MED  | M      | Add `WithAsyncWrites()` option for `PebbleEventStore`                                |
+| 13  | 🟡 MED  | S      | Split `decider_test.go` (~1195L) into focused files                                  |
+| 14  | 🟡 MED  | S      | Split `runner_test.go` (~1160L) into focused files                                   |
+| 15  | 🟡 MED  | M      | Rewrite `example/user/` to demonstrate full CQRS capability stack                    |
+| 16  | 🟡 MED  | M      | Add stream module integration tests                                                  |
+| 17  | 🟡 MED  | S      | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination                   |
+| 18  | 🟡 MED  | M      | Benchmark storage backends (PG vs SQLite vs Pebble)                                  |
+| 19  | 🟢 LOW  | M      | Performance regression CI — benchmark comparison on each PR                          |
+| 20  | 🟢 LOW  | S      | Add fuzz tests for event creation, ID parsing, schema reflection                     |
+| 21  | 🟢 LOW  | M      | Add E2E throughput benchmarks                                                        |
+| 22  | 🟢 LOW  | S      | Add example/user/ smoke test (TestExampleRuns)                                       |
+| 23  | 🟢 LOW  | S      | Enforce 350-line limit on test files via pre-commit hook                             |
+| 24  | 🟢 LOW  | M      | Add PostgreSQL testcontainers integration test for storage                           |
+| 25  | 🟢 LOW  | S      | License decision (MIT/Apache) — requires owner input                                 |
 
 ---
 
@@ -176,12 +176,14 @@ The `Sink/Source` refactoring is a valid architectural improvement but was **mer
 **Is the Sink/Source refactoring (commit `619da6d`) intended to be merged NOW or is it work-in-progress?**
 
 The commit message says "refactor(event): split Store interface into Sink/Source" — implying it's done. But:
+
 - `event.Store` still includes `Delete` (Sink + Source + Delete)
 - `MemoryStore` and `FakeStore` lost their `Delete` methods
 - `BackwardsLoader` → `BackwardsSource` rename only partially applied
 - 794 lines deleted from `event_test.go` — is this cleanup or an accident?
 
 **This blocks the build.** I cannot proceed with any other work until this is resolved — either:
+
 1. **Complete the refactoring** (add `Delete` to a `Sink` sub-interface, remove from `Store`, update all implementations)
 2. **Revert the incomplete parts** (add `Delete` back to `MemoryStore` and `FakeStore`, undo the `BackwardsSource` rename)
 
@@ -189,36 +191,36 @@ The commit message says "refactor(event): split Store interface into Sink/Source
 
 ## Metrics Dashboard
 
-| Metric                        | Value                                            |
-|-------------------------------|--------------------------------------------------|
-| Total packages                | 27+                                              |
-| Build status                  | **BROKEN** (testhelpers, cascading)              |
-| Test status                   | **CANNOT RUN** (depends on broken build)         |
-| Commits this session          | **0** (FEATURES.md committed by concurrent session as `07d2fb3`) |
-| Modules audited               | **16/16** (100%)                                  |
-| TODO items verified           | **13/13** (100%)                                  |
-| FEATURES.md corrections       | **6 factual errors fixed**                        |
-| Open TODOs                    | **18** (14 blocked, 25 future)                   |
-| Completion rate               | **73.4%** (157/214)                               |
+| Metric                  | Value                                                            |
+| ----------------------- | ---------------------------------------------------------------- |
+| Total packages          | 27+                                                              |
+| Build status            | **BROKEN** (testhelpers, cascading)                              |
+| Test status             | **CANNOT RUN** (depends on broken build)                         |
+| Commits this session    | **0** (FEATURES.md committed by concurrent session as `07d2fb3`) |
+| Modules audited         | **16/16** (100%)                                                 |
+| TODO items verified     | **13/13** (100%)                                                 |
+| FEATURES.md corrections | **6 factual errors fixed**                                       |
+| Open TODOs              | **18** (14 blocked, 25 future)                                   |
+| Completion rate         | **73.4%** (157/214)                                              |
 
 ---
 
 ## Module Health Overview
 
-| Module        | Build     | Tests      | Coverage   | Notes                                          |
-|---------------|-----------|------------|------------|------------------------------------------------|
-| core          | ⚠️ BROKEN | ❌ BLOCKED | 85-95%     | decider tests fail (FakeStore missing Delete)  |
-| memory        | ⚠️ BROKEN | ❌ BLOCKED | 99%+       | Delete method removed, uncommitted             |
-| catalog       | ✅ OK     | ✅ PASS    | 91-97%     | Golden tests, all pass                         |
-| middleware    | ✅ OK     | ✅ PASS    | 100%       | 24 factories, clean                            |
-| signing       | ✅ OK     | ✅ PASS    | 94.1%      | Ship-ready                                     |
-| testhelpers   | 🔴 BROKEN | ❌ FAIL    | 94.8%      | FakeStore missing Delete + bad setter          |
-| integration   | ⚠️ BROKEN | ❌ BLOCKED | 80%+       | Depends on testhelpers                         |
-| projection    | ✅ OK     | ✅ PASS    | 95%+       | Runner + Builder + DLQ                         |
-| saga          | ✅ OK     | ✅ PASS    | 93.8%      | BDD scaffolding added (uncommitted)            |
-| storage       | ✅ OK     | ✅ PASS    | 89.6%      | SQL + Pebble + Turso                           |
-| watermill     | ✅ OK     | ✅ PASS    | 89.6%      | Protocol adapter                               |
-| cmd/cqrs-gen  | ✅ OK     | ✅ PASS    | 70.8%      | Code generation CLI                            |
+| Module       | Build     | Tests      | Coverage | Notes                                         |
+| ------------ | --------- | ---------- | -------- | --------------------------------------------- |
+| core         | ⚠️ BROKEN | ❌ BLOCKED | 85-95%   | decider tests fail (FakeStore missing Delete) |
+| memory       | ⚠️ BROKEN | ❌ BLOCKED | 99%+     | Delete method removed, uncommitted            |
+| catalog      | ✅ OK     | ✅ PASS    | 91-97%   | Golden tests, all pass                        |
+| middleware   | ✅ OK     | ✅ PASS    | 100%     | 24 factories, clean                           |
+| signing      | ✅ OK     | ✅ PASS    | 94.1%    | Ship-ready                                    |
+| testhelpers  | 🔴 BROKEN | ❌ FAIL    | 94.8%    | FakeStore missing Delete + bad setter         |
+| integration  | ⚠️ BROKEN | ❌ BLOCKED | 80%+     | Depends on testhelpers                        |
+| projection   | ✅ OK     | ✅ PASS    | 95%+     | Runner + Builder + DLQ                        |
+| saga         | ✅ OK     | ✅ PASS    | 93.8%    | BDD scaffolding added (uncommitted)           |
+| storage      | ✅ OK     | ✅ PASS    | 89.6%    | SQL + Pebble + Turso                          |
+| watermill    | ✅ OK     | ✅ PASS    | 89.6%    | Protocol adapter                              |
+| cmd/cqrs-gen | ✅ OK     | ✅ PASS    | 70.8%    | Code generation CLI                           |
 
 ---
 

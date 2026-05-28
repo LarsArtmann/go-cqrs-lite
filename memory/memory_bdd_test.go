@@ -104,7 +104,6 @@ var _ = Describe("MemoryStore", func() {
 			})
 		})
 
-
 		Context("when I close the store", func() {
 			It("should reject further operations", func() {
 				Expect(store.Close()).To(Succeed())

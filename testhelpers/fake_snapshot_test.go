@@ -93,7 +93,6 @@ func TestFakeSnapshotStore_SaveError(t *testing.T) {
 	}
 }
 
-
 func TestFakeSnapshotStore_Close(t *testing.T) {
 	t.Parallel()
 

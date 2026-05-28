@@ -139,18 +139,6 @@ var _ = Describe("Event Store", func() {
 			})
 		})
 
-		Context("when I delete an aggregate's events", func() {
-			It("should remove all events for that aggregate", func() {
-				events := []event.Event{createTestEvent("E1", aggID, 1, nil)}
-				Expect(store.Save(ctx, aggType, aggID, events, event.Version(0))).To(Succeed())
-
-				Expect(store.Delete(ctx, aggType, aggID)).To(Succeed())
-
-				_, err := store.Load(ctx, aggType, aggID)
-				Expect(err).To(MatchError(event.ErrAggregateNotFound))
-			})
-		})
-
 		Context("when I use AppendBatch for bulk imports", func() {
 			It(
 				"should append all events without version checks and preserve versions on load",

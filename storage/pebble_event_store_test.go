@@ -40,7 +40,6 @@ func TestPebbleEventStore_AppendBatch(t *testing.T) {
 	testEventStore_AppendBatch(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
-
 func TestPebbleEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
 	testEventStore_MetadataRoundtrip(t, newPebbleTestStore(t), issueStoreConfig(), "test")
@@ -248,17 +247,5 @@ func TestPebbleEventStore_Load_Empty(t *testing.T) {
 
 	if len(loaded) != 0 {
 		t.Fatalf("expected 0 events for empty aggregate, got %d", len(loaded))
-	}
-}
-
-func TestPebbleEventStore_Delete_Empty(t *testing.T) {
-	t.Parallel()
-
-	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
-
-	err := store.Delete(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Delete empty aggregate should succeed, got %v", err)
 	}
 }

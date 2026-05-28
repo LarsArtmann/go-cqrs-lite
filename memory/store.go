@@ -25,7 +25,7 @@ var (
 	_ event.SeekableJournal  = (*MemoryStore)(nil)
 	_ event.GlobalLoader     = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
 	_ event.PositionalLoader = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
-	_ event.BackwardsSource = (*MemoryStore)(nil)
+	_ event.BackwardsSource  = (*MemoryStore)(nil)
 	_ io.Closer              = (*MemoryStore)(nil)
 )
 

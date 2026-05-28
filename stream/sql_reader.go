@@ -18,11 +18,15 @@ type SQLAggregateReader struct {
 }
 
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
-func NewSQLAggregateReader(db *sql.DB, tablePrefix string) *SQLAggregateReader {
+func NewSQLAggregateReader(db *sql.DB, tablePrefix string) (*SQLAggregateReader, error) {
+	if !validTablePrefix.MatchString(tablePrefix) {
+		return nil, fmt.Errorf("stream sql reader: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", tablePrefix)
+	}
+
 	return &SQLAggregateReader{
 		db:        db,
 		tableName: tablePrefix + "stream_aggregates",
-	}
+	}, nil
 }
 
 func (r *SQLAggregateReader) List(
@@ -73,7 +77,6 @@ func (r *SQLAggregateReader) ListWithStatus(
 		limit = defaultPageSize
 	}
 
-	// Fetch limit+1 to detect HasMore
 	query := fmt.Sprintf(
 		"SELECT aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status FROM %s WHERE %s ORDER BY aggregate_id LIMIT ?",
 		r.tableName,

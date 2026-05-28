@@ -493,7 +493,7 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 			AddRow(evtID2.String(), "UserUpdated", "User", aggID.String(), 2, 1, nil, nil, ts).
 			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, nil, ts))
 
-	backwardsLoader := event.BackwardsLoader(store)
+	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
@@ -522,7 +522,7 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	backwardsLoader := event.BackwardsLoader(store)
+	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)

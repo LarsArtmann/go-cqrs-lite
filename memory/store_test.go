@@ -493,7 +493,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	backwardsLoader := event.BackwardsLoader(store)
+	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -524,7 +524,7 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	backwardsLoader := event.BackwardsLoader(store)
+	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
@@ -537,7 +537,7 @@ func TestMemoryStore_LoadBackwards_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	backwardsLoader := event.BackwardsLoader(store)
+	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", id.AggregateID{})
 	if err == nil {
 		t.Fatal("expected error for closed store")

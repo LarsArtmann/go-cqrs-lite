@@ -103,7 +103,6 @@ func TestFakeStore_LoadFromVersion_EmptyStream(t *testing.T) {
 	}
 }
 
-
 func TestFakeStore_SaveFn(t *testing.T) {
 	t.Parallel()
 
@@ -278,7 +277,6 @@ func TestFakeStore_LoadFromVersionFn(t *testing.T) {
 		t.Fatal("expected LoadFromVersionFn to be called")
 	}
 }
-
 
 func TestFakeStore_CloseFn(t *testing.T) {
 	t.Parallel()

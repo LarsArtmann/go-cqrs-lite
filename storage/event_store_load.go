@@ -130,4 +130,3 @@ func (s *SQLEventStore) LoadBackwards(
 		true, "query events backwards",
 	)
 }
-

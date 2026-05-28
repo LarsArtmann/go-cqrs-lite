@@ -86,7 +86,6 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	}
 }
 
-
 func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	t.Parallel()
 

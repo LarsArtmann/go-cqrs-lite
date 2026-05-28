@@ -18,6 +18,10 @@ type AggregateProjection struct {
 // NewAggregateProjection creates a projection that maintains the aggregates table.
 // The table is created if it does not exist.
 func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
+	if !validTablePrefix.MatchString(tablePrefix) {
+		return nil, fmt.Errorf("stream projection: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", tablePrefix)
+	}
+
 	p := &AggregateProjection{
 		db:        db,
 		tableName: tablePrefix + "stream_aggregates",
@@ -38,7 +42,26 @@ func (p *AggregateProjection) EventTypes() []event.Type { return nil }
 
 // Handle upserts the aggregate row for each event.
 func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error {
-	status := event.DetectTombstone([]event.Event{evt})
+	status := detectStatusFromMetadata(evt)
+
+	if status == event.TombstoneUndetermined {
+		_, err := p.db.ExecContext(
+			ctx,
+			fmt.Sprintf(`INSERT INTO %s
+				(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
+				VALUES (?, ?, ?, 1, ?, 0)
+				ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
+					version = excluded.version,
+					event_count = %s.event_count + 1,
+					last_event_at = excluded.last_event_at`, p.tableName, p.tableName),
+			evt.AggregateType(),
+			evt.AggregateID().String(),
+			evt.Version().Int(),
+			evt.OccurredAt(),
+		)
+
+		return err
+	}
 
 	_, err := p.db.ExecContext(
 		ctx,
@@ -72,4 +95,23 @@ func (p *AggregateProjection) createTable() error {
 	)`, p.tableName))
 
 	return err
+}
+
+// detectStatusFromMetadata checks a single event's metadata for tombstone/rebirth markers.
+// Returns Undetermined if no markers found (normal event).
+func detectStatusFromMetadata(evt event.Event) event.TombstoneStatus {
+	md := evt.Metadata()
+	if md == nil || md.Custom == nil {
+		return event.TombstoneUndetermined
+	}
+
+	if md.Custom[event.MetadataKeyRebirth] == "true" {
+		return event.TombstoneActive
+	}
+
+	if md.Custom[event.MetadataKeyTombstone] == "true" {
+		return event.TombstoneTombstoned
+	}
+
+	return event.TombstoneUndetermined
 }

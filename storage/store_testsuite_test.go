@@ -199,7 +199,6 @@ func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTe
 	}
 }
 
-
 func testEventStore_MetadataRoundtrip(
 	t *testing.T,
 	store event.Store,

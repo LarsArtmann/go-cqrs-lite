@@ -250,22 +250,6 @@ var _ = Describe("Decider Repository", func() {
 				Expect(version).To(Equal(event.Version(3)))
 			})
 		})
-
-		Context("when I delete an aggregate", func() {
-			BeforeEach(func() {
-				createCounter(ctx, repo, aggID)
-			})
-
-			It("should remove all events and return initial state on load", func() {
-				err := repo.Delete(ctx, aggID, "Counter")
-				Expect(err).ToNot(HaveOccurred())
-
-				state, version, err := repo.Load(ctx, aggID, "Counter")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(state.Value).To(Equal(0))
-				Expect(version).To(Equal(event.Version(0)))
-			})
-		})
 	})
 
 	Describe("As a developer validating my setup", func() {

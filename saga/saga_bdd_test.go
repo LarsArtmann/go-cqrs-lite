@@ -76,7 +76,7 @@ var _ = Describe("Saga Runner", func() {
 		ctx = context.Background()
 		store = saga.NewMemoryStore()
 		dispatcher = &bddDispatcher{}
-		runner = saga.NewRunner(store, dispatcher)
+		runner = saga.NewRunner(store, dispatcher, saga.WithRetryPolicy(0, 0))
 	})
 
 	Describe("As a developer orchestrating multi-step processes", func() {

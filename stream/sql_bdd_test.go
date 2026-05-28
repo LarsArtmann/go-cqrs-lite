@@ -24,7 +24,13 @@ func newSQLiteTestDB() *sql.DB {
 	return db
 }
 
-func makeStreamEvent(eventType event.Type, aggID id.AggregateID, aggType event.AggregateType, version event.Version, opts ...event.Option) event.Event {
+func makeStreamEvent(
+	eventType event.Type,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	version event.Version,
+	opts ...event.Option,
+) event.Event {
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, []byte(`{}`), opts...)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -38,11 +44,14 @@ func seedStreamDB(db *sql.DB, tableName string, rows []struct {
 	count     uint
 	lastAt    string
 	statusInt int
-}) {
+},
+) {
 	for _, r := range rows {
-		_, err := db.Exec(fmt.Sprintf(
-			`INSERT INTO %s (aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-			 VALUES (?, ?, ?, ?, ?, ?)`, tableName),
+		_, err := db.Exec(
+			fmt.Sprintf(
+				`INSERT INTO %s (aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
+			 VALUES (?, ?, ?, ?, ?, ?)`, tableName,
+			),
 			r.aggType, r.aggID, r.version, r.count, r.lastAt, r.statusInt,
 		)
 		Expect(err).ToNot(HaveOccurred())
@@ -60,9 +69,11 @@ var _ = Describe("SQL Aggregate Reader", func() {
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		db = newSQLiteTestDB()
-		reader = stream.NewSQLAggregateReader(db, "test_")
+		var err error
+		reader, err = stream.NewSQLAggregateReader(db, "test_")
+		Expect(err).ToNot(HaveOccurred())
 
-		_, err := db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+		_, err = db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 			aggregate_type  TEXT NOT NULL,
 			aggregate_id    TEXT NOT NULL,
 			version         INT  NOT NULL,
@@ -119,7 +130,7 @@ var _ = Describe("SQL Aggregate Reader", func() {
 				var ids []string
 				now := time.Now().UTC().Format(time.RFC3339)
 
-				for i := 0; i < 5; i++ {
+				for range 5 {
 					uid := id.NewAggregateID()
 					ids = append(ids, uid.String())
 					seedStreamDB(db, "test_stream_aggregates", []struct {
@@ -144,7 +155,7 @@ var _ = Describe("SQL Aggregate Reader", func() {
 				var ids []id.AggregateID
 				now := time.Now().UTC().Format(time.RFC3339)
 
-				for i := 0; i < 4; i++ {
+				for range 4 {
 					uid := id.NewAggregateID()
 					ids = append(ids, uid)
 					seedStreamDB(db, "test_stream_aggregates", []struct {
@@ -341,7 +352,8 @@ var _ = Describe("Aggregate Projection", func() {
 
 			It("should detect and store tombstone status from events", func() {
 				aggID := id.NewAggregateID()
-				evt := makeStreamEvent("user.deleted", aggID, "User", 1,
+				evt := makeStreamEvent(
+					"user.deleted", aggID, "User", 1,
 					event.WithCustom(event.MetadataKeyTombstone, "true"),
 				)
 
@@ -397,7 +409,8 @@ var _ = Describe("Stream integration: Projection → SQL Reader pipeline", func(
 		proj, err = stream.NewAggregateProjection(db, "int_")
 		Expect(err).ToNot(HaveOccurred())
 
-		reader = stream.NewSQLAggregateReader(db, "int_")
+		reader, err = stream.NewSQLAggregateReader(db, "int_")
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -412,13 +425,16 @@ var _ = Describe("Stream integration: Projection → SQL Reader pipeline", func(
 				deletedID := id.NewAggregateID()
 				orderID := id.NewAggregateID()
 
-				Expect(proj.Handle(ctx, makeStreamEvent("user.created", activeID, "User", 1,
+				Expect(proj.Handle(ctx, makeStreamEvent(
+					"user.created", activeID, "User", 1,
 					event.WithCustom(event.MetadataKeyRebirth, "true"),
 				))).To(Succeed())
-				Expect(proj.Handle(ctx, makeStreamEvent("user.deleted", deletedID, "User", 1,
+				Expect(proj.Handle(ctx, makeStreamEvent(
+					"user.deleted", deletedID, "User", 1,
 					event.WithCustom(event.MetadataKeyTombstone, "true"),
 				))).To(Succeed())
-				Expect(proj.Handle(ctx, makeStreamEvent("order.placed", orderID, "Order", 1,
+				Expect(proj.Handle(ctx, makeStreamEvent(
+					"order.placed", orderID, "Order", 1,
 					event.WithCustom(event.MetadataKeyRebirth, "true"),
 				))).To(Succeed())
 
@@ -431,7 +447,8 @@ var _ = Describe("Stream integration: Projection → SQL Reader pipeline", func(
 			It("should support full pagination through all aggregates", func() {
 				for range 5 {
 					uid := id.NewAggregateID()
-					Expect(proj.Handle(ctx, makeStreamEvent("user.created", uid, "User", 1,
+					Expect(proj.Handle(ctx, makeStreamEvent(
+						"user.created", uid, "User", 1,
 						event.WithCustom(event.MetadataKeyRebirth, "true"),
 					))).To(Succeed())
 				}
