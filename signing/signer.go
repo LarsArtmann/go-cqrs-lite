@@ -1,6 +1,7 @@
 package signing
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
@@ -53,6 +54,11 @@ func (s Signature) Bytes() []byte {
 
 // IsZero reports whether the signature is empty.
 func (s Signature) IsZero() bool { return len(s) == 0 }
+
+// Equal reports whether two signatures are identical (constant-time).
+func (s Signature) Equal(other Signature) bool {
+	return hmac.Equal(s, other)
+}
 
 // String returns the URL-safe base64 encoding of the signature.
 func (s Signature) String() string {

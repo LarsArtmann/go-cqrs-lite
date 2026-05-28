@@ -65,7 +65,7 @@ func (s *HMACSigner) Verify(evt event.Event, sig Signature) error {
 		return err
 	}
 
-	if !hmac.Equal(expected.Bytes(), sig.Bytes()) {
+	if !expected.Equal(sig) {
 		return ErrInvalidSignature
 	}
 
