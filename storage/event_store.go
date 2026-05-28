@@ -12,6 +12,7 @@ import (
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
 	sqlBase
+
 	ownDB bool
 }
 

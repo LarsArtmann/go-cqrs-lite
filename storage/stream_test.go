@@ -17,15 +17,15 @@ func TestSQLEventStore_LoadStream(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	storage.SQLiteInitSchema(ctx, db)
+	func() { _ = storage.SQLiteInitSchema(ctx, db) }()
 
 	store, err := storage.NewSQLiteEventStore(db)
 	if err != nil {
 		t.Fatalf("new store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	aggID := id.NewAggregateID()
 
@@ -44,7 +44,7 @@ func TestSQLEventStore_LoadStream(t *testing.T) {
 		t.Fatalf("load stream: %v", err)
 	}
 
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	var got []string
 
@@ -81,22 +81,22 @@ func TestSQLEventStore_LoadStream_NotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	storage.SQLiteInitSchema(ctx, db)
+	func() { _ = storage.SQLiteInitSchema(ctx, db) }()
 
 	store, err := storage.NewSQLiteEventStore(db)
 	if err != nil {
 		t.Fatalf("new store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	stream, err := store.LoadStream(ctx, "Order", id.NewAggregateID())
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
 
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	_, ok := stream.Next()
 	if ok {
@@ -129,15 +129,15 @@ func TestSQLEventStore_LoadStream_ScanError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	storage.SQLiteInitSchema(ctx, db)
+	func() { _ = storage.SQLiteInitSchema(ctx, db) }()
 
 	store, err := storage.NewSQLiteEventStore(db)
 	if err != nil {
 		t.Fatalf("new store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	aggID := id.NewAggregateID()
 
@@ -155,7 +155,7 @@ func TestSQLEventStore_LoadStream_ScanError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	_, ok := stream.Next()
 	if ok {
