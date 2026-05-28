@@ -152,55 +152,56 @@ func TestScanPath_InvalidGoFile(t *testing.T) {
 	}
 }
 
-func TestScanFile_NoMarkers(t *testing.T) {
-	t.Parallel()
+func writeTempGoFile(tb testing.TB, dir, filename, content string) string {
+	tb.Helper()
 
-	tmp := t.TempDir()
-	src := filepath.Join(tmp, "plain.go")
-
-	content := `package example
-
-type PlainStruct struct {
-	Name string
-}`
-	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
-		t.Fatal(err)
+	path := filepath.Join(dir, filename)
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		tb.Fatal(err)
 	}
 
-	entries, err := scanFile(src, "command")
-	if err != nil {
-		t.Fatalf("scan: %v", err)
-	}
-
-	if len(entries) != 0 {
-		t.Errorf("expected 0 entries, got %d", len(entries))
-	}
+	return path
 }
 
-func TestScanFile_WrongMarkerType(t *testing.T) {
+func TestScanFile_EmptyResults(t *testing.T) {
 	t.Parallel()
 
-	tmp := t.TempDir()
-	src := filepath.Join(tmp, "cmd.go")
-
-	content := `package example
-
-//cqrs:command CreateUser
-type CreateUserCmd struct{}`
-	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name       string
+		content    string
+		filename   string
+		markerType string
+	}{
+		{
+			name:       "no_markers",
+			content:    "package example\n\ntype PlainStruct struct {\n\tName string\n}",
+			filename:   "plain.go",
+			markerType: "command",
+		},
+		{
+			name:       "wrong_marker_type",
+			content:    "package example\n\n//cqrs:command CreateUser\ntype CreateUserCmd struct{}",
+			filename:   "cmd.go",
+			markerType: "query",
+		},
 	}
 
-	entries, err := scanFile(src, "query")
-	if err != nil {
-		t.Fatalf("scan: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if len(entries) != 0 {
-		t.Errorf(
-			"expected 0 entries when scanning for queries in command file, got %d",
-			len(entries),
-		)
+			tmp := t.TempDir()
+			writeTempGoFile(t, tmp, tt.filename, tt.content)
+
+			entries, err := scanFile(filepath.Join(tmp, tt.filename), tt.markerType)
+			if err != nil {
+				t.Fatalf("scan: %v", err)
+			}
+
+			if len(entries) != 0 {
+				t.Errorf("expected 0 entries, got %d", len(entries))
+			}
+		})
 	}
 }
 
@@ -411,9 +412,7 @@ func TestRun_SuccessfulCommand(t *testing.T) {
 
 //cqrs:command CreateUser
 type CreateUserCmd struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	writeTempGoFile(t, tmp, "commands.go", content)
 
 	outputFile := filepath.Join(tmp, "handlers_gen.go")
 	code := run("command", outputFile, "", []string{tmp})
@@ -438,9 +437,7 @@ func TestRun_SuccessfulQueryWithCustomPkg(t *testing.T) {
 
 //cqrs:query GetUser
 type GetUserQuery struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "queries.go"), []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	writeTempGoFile(t, tmp, "queries.go", content)
 
 	outputFile := filepath.Join(tmp, "queries_gen.go")
 	code := run("query", outputFile, "handlers", []string{tmp})
@@ -468,9 +465,7 @@ func TestRun_WriteError(t *testing.T) {
 
 //cqrs:command CreateUser
 type CreateUserCmd struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "commands.go"), []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	writeTempGoFile(t, tmp, "commands.go", content)
 
 	code := run("command", "/nonexistent/dir/handlers_gen.go", "", []string{tmp})
 	if code != 1 {
@@ -486,9 +481,7 @@ func TestRun_DefaultPath(t *testing.T) {
 
 //cqrs:command CreateItem
 type CreateItemCmd struct{}`
-	if err := os.WriteFile(filepath.Join(tmp, "item.go"), []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	writeTempGoFile(t, tmp, "item.go", content)
 
 	outputFile := filepath.Join(tmp, "gen.go")
 	code := run("command", outputFile, "", []string{tmp})

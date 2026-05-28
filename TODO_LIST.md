@@ -166,7 +166,7 @@
 - [x] ~~Wire Codec into snapshot serialization~~ — DONE
 - [x] ~~Add Delete, snapshot, and outbox support to decider.Repository~~ — DONE
 - [x] ~~Add command.TypedHandler[T] + command.RegisterTyped[T]~~ — DONE
-- [x] ~~Convert DispatchTyped to method on *query.Dispatcher~~ — NOT FEASIBLE (Go does not support generic methods on concrete types; standalone generic function is the idiomatic pattern)
+- [x] ~~Convert DispatchTyped to method on \*query.Dispatcher~~ — NOT FEASIBLE (Go does not support generic methods on concrete types; standalone generic function is the idiomatic pattern)
 - [x] ~~Add query/pagination.go helpers~~ — VERIFIED (NewPagination, Offset, NewPaginatedResult, HasNext, HasPrev, Validate)
 - [x] ~~Add catalog.Exporter interface + WalkMessages helper~~ — DONE (catalog.Exporter[T], catalog.ErrorExporter, catalog.WalkMessages)
 - [x] ~~Delete catalog/internal/cattest/ package~~ — VERIFIED (7 test files depend on it, cannot delete without breaking tests)
@@ -223,7 +223,7 @@
 - [FUTURE] Add multi-engine storage support via sqlc (source: MONOREPO_PLAN)
 - [FUTURE] Add schema migration tool (source: MONOREPO_PLAN)
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble) (source: SESSION_61)
-- [FUTURE] Event signing/verification for stored events (source: SESSION_61)
+- [x] ~~Event signing/verification for stored events~~ — DONE (signing module: HMAC-SHA256 + Ed25519)
 - [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
 - [FUTURE] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
 - [x] ~~Add Upcaster interface + UpcasterRegistry~~ — DONE

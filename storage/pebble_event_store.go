@@ -83,8 +83,16 @@ func (a *PebbleEventStore) Save(
 		batch, aggregateType, aggregateID, events, expectedVersion,
 	)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.write_events",
-			fmt.Sprintf("pebble write %d events for %s %s", len(events), aggregateType, aggregateID))
+		return event.WrapInfrastructure(
+			err,
+			"pebble.write_events",
+			fmt.Sprintf(
+				"pebble write %d events for %s %s",
+				len(events),
+				aggregateType,
+				aggregateID,
+			),
+		)
 	}
 
 	return a.commitAndLog(batch, "events saved", aggregateType, aggregateID, len(events))

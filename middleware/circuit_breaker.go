@@ -16,9 +16,15 @@ import (
 type circuitState int
 
 const (
-	circuitClosed   circuitState = iota
+	circuitClosed circuitState = iota
 	circuitOpen
 	circuitHalfOpen
+)
+
+const (
+	defaultFailureThreshold = 5
+	defaultSuccessThreshold = 3
+	defaultTimeout          = 30 * time.Second
 )
 
 // CircuitBreakerConfig configures circuit breaker behavior.
@@ -32,9 +38,9 @@ type CircuitBreakerConfig struct {
 // DefaultCircuitBreakerConfig returns sensible defaults.
 func DefaultCircuitBreakerConfig() CircuitBreakerConfig {
 	return CircuitBreakerConfig{
-		FailureThreshold: 5,
-		SuccessThreshold: 3,
-		Timeout:          30 * time.Second,
+		FailureThreshold: defaultFailureThreshold,
+		SuccessThreshold: defaultSuccessThreshold,
+		Timeout:          defaultTimeout,
 		IsFailure:        event.IsRetryable,
 	}
 }
@@ -60,12 +66,12 @@ func (c CircuitBreakerConfig) Validate() error {
 }
 
 type circuitBreaker struct {
-	mu               sync.Mutex
-	state            circuitState
-	failures         int
-	successes        int
-	lastFailure      time.Time
-	config           CircuitBreakerConfig
+	mu          sync.Mutex
+	state       circuitState
+	failures    int
+	successes   int
+	lastFailure time.Time
+	config      CircuitBreakerConfig
 }
 
 func (cb *circuitBreaker) allow() error {
@@ -121,10 +127,22 @@ func (cb *circuitBreaker) recordFailure() {
 	}
 }
 
+func newCircuitBreaker(config CircuitBreakerConfig) *circuitBreaker {
+	return &circuitBreaker{
+		mu:          sync.Mutex{},
+		state:       circuitClosed,
+		failures:    0,
+		successes:   0,
+		lastFailure: time.Time{},
+		config:      config,
+	}
+}
+
 // CommandCircuitBreaker returns a command middleware that implements the circuit breaker pattern.
 // Returns a middleware that always fails if config is invalid.
 func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.Middleware {
-	if err := config.Validate(); err != nil {
+	err := config.Validate()
+	if err != nil {
 		return func(_ command.Handler) command.Handler {
 			return func(_ context.Context, _ command.Command) error {
 				return err
@@ -133,11 +151,11 @@ func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.
 	}
 
 	cfg := applyOptions(opts)
-	cb := &circuitBreaker{config: config}
+	breaker := newCircuitBreaker(config)
 
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
-			return cb.execute(cfg.logger, string(cmd.Type()), func() error {
+			return breaker.execute(ctx, cfg.logger, string(cmd.Type()), func() error {
 				return next(ctx, cmd)
 			})
 		}
@@ -147,7 +165,8 @@ func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.
 // EventCircuitBreaker returns an event subscribe-side middleware that implements the circuit breaker pattern.
 // Returns a middleware that always fails if config is invalid.
 func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Middleware {
-	if err := config.Validate(); err != nil {
+	err := config.Validate()
+	if err != nil {
 		return func(_ event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
 				return err
@@ -156,11 +175,11 @@ func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Midd
 	}
 
 	cfg := applyOptions(opts)
-	cb := &circuitBreaker{config: config}
+	breaker := newCircuitBreaker(config)
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			return cb.execute(cfg.logger, string(evt.Type()), func() error {
+			return breaker.execute(ctx, cfg.logger, string(evt.Type()), func() error {
 				return next(ctx, evt)
 			})
 		}
@@ -170,7 +189,8 @@ func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Midd
 // QueryCircuitBreaker returns a query middleware that implements the circuit breaker pattern.
 // Returns a middleware that always fails if config is invalid.
 func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Middleware {
-	if err := config.Validate(); err != nil {
+	err := config.Validate()
+	if err != nil {
 		return func(_ query.Handler) query.Handler {
 			return func(_ context.Context, _ query.Query) (any, error) {
 				return nil, err
@@ -179,15 +199,17 @@ func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Midd
 	}
 
 	cfg := applyOptions(opts)
-	cb := &circuitBreaker{config: config}
+	breaker := newCircuitBreaker(config)
 
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			var result any
 
-			err := cb.execute(cfg.logger, string(q.Type()), func() error {
+			err := breaker.execute(ctx, cfg.logger, string(q.Type()), func() error {
 				var execErr error
+
 				result, execErr = next(ctx, q)
+
 				return execErr
 			})
 
@@ -196,19 +218,26 @@ func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Midd
 	}
 }
 
-func (cb *circuitBreaker) execute(logger *slog.Logger, opName string, fn func() error) error {
-	if err := cb.allow(); err != nil {
+func (cb *circuitBreaker) execute(
+	ctx context.Context,
+	logger *slog.Logger,
+	opName string,
+	fn func() error,
+) error {
+	err := cb.allow()
+	if err != nil {
 		if logger != nil {
-			logger.WarnContext(context.Background(), "circuit breaker rejected",
+			logger.WarnContext(ctx, "circuit breaker rejected",
 				"operation", opName, "error", err)
 		}
 
 		return err
 	}
 
-	err := fn()
+	err = fn()
 	if err == nil {
 		cb.recordSuccess()
+
 		return nil
 	}
 

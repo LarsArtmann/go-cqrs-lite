@@ -17,7 +17,7 @@ func TestRunner_DeadLetterHandler(t *testing.T) {
 
 	bus := memory.NewMemoryBus()
 	store := memory.NewMemoryStore()
-	cp := memory.NewMemoryCheckpointStore()
+	checkpointStore := memory.NewMemoryCheckpointStore()
 
 	var (
 		dlqMu      sync.Mutex
@@ -46,7 +46,8 @@ func TestRunner_DeadLetterHandler(t *testing.T) {
 		[]event.Type{"user.created"},
 	)
 
-	runner, err := NewRunner(store, bus, cp,
+	runner, err := NewRunner(
+		store, bus, checkpointStore,
 		WithDeadLetterHandler(dlqHandler),
 	)
 	if err != nil {
@@ -97,19 +98,19 @@ func TestRunner_Reset(t *testing.T) {
 
 	bus := memory.NewMemoryBus()
 	store := memory.NewMemoryStore()
-	cp := memory.NewMemoryCheckpointStore()
+	checkpointStore := memory.NewMemoryCheckpointStore()
 
 	evtID := id.NewEventID()
-	if saveErr := cp.Save(t.Context(), "test-projection", evtID); saveErr != nil {
+	if saveErr := checkpointStore.Save(t.Context(), "test-projection", evtID); saveErr != nil {
 		t.Fatalf("Save checkpoint: %v", saveErr)
 	}
 
-	runner, err := NewRunner(store, bus, cp)
+	runner, err := NewRunner(store, bus, checkpointStore)
 	if err != nil {
 		t.Fatalf("NewRunner: %v", err)
 	}
 
-	loaded, loadErr := cp.Load(t.Context(), "test-projection")
+	loaded, loadErr := checkpointStore.Load(t.Context(), "test-projection")
 	if loadErr != nil {
 		t.Fatalf("Load before reset: %v", loadErr)
 	}
@@ -122,7 +123,7 @@ func TestRunner_Reset(t *testing.T) {
 		t.Fatalf("Reset: %v", resetErr)
 	}
 
-	afterReset, loadErr := cp.Load(t.Context(), "test-projection")
+	afterReset, loadErr := checkpointStore.Load(t.Context(), "test-projection")
 	if loadErr != nil {
 		t.Fatalf("Load after reset: %v", loadErr)
 	}
@@ -137,7 +138,7 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 
 	bus := memory.NewMemoryBus()
 	store := memory.NewMemoryStore()
-	cp := memory.NewMemoryCheckpointStore()
+	checkpointStore := memory.NewMemoryCheckpointStore()
 
 	var (
 		dlqMu    sync.Mutex
@@ -161,7 +162,8 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 		[]event.Type{"user.created"},
 	)
 
-	runner, err := NewRunner(store, bus, cp,
+	runner, err := NewRunner(
+		store, bus, checkpointStore,
 		WithDeadLetterHandler(dlqHandler),
 		WithRetry(2, 10*time.Millisecond),
 	)
@@ -201,11 +203,20 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 
 	expectedCalls := 1 + 2
 	if callCount != expectedCalls {
-		t.Fatalf("expected %d handler calls (1 initial + 2 retries), got %d", expectedCalls, callCount)
+		t.Fatalf(
+			"expected %d handler calls (1 initial + 2 retries), got %d",
+			expectedCalls,
+			callCount,
+		)
 	}
 }
 
-func mustCreateTestEvent(tb testing.TB, eventType string, aggID id.AggregateID, version int) event.Event {
+func mustCreateTestEvent(
+	tb testing.TB,
+	eventType string,
+	aggID id.AggregateID,
+	version int,
+) event.Event {
 	tb.Helper()
 
 	evt, err := event.New(

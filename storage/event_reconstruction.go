@@ -55,8 +55,17 @@ func reconstructEvent(
 ) (event.Event, error) {
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.metadata_unmarshal",
-			fmt.Sprintf("metadata for %s/%s v%d (schema v%d)", aggType, eventType, version, schemaVersion))
+		return nil, event.WrapCorruption(
+			err,
+			"storage.metadata_unmarshal",
+			fmt.Sprintf(
+				"metadata for %s/%s v%d (schema v%d)",
+				aggType,
+				eventType,
+				version,
+				schemaVersion,
+			),
+		)
 	}
 
 	opts := make([]event.Option, 0, 3+len(metaOpts))

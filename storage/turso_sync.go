@@ -26,8 +26,14 @@ type TursoSyncDB struct {
 // The caller is responsible for closing the returned TursoSyncDB.
 func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*TursoSyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
-		return nil, event.WrapRejection(ErrTursoMemorySync, "storage.turso_memory_sync",
-			fmt.Sprintf("in-memory databases lose data on restart when using remote sync: got %q", dbPath))
+		return nil, event.WrapRejection(
+			ErrTursoMemorySync,
+			"storage.turso_memory_sync",
+			fmt.Sprintf(
+				"in-memory databases lose data on restart when using remote sync: got %q",
+				dbPath,
+			),
+		)
 	}
 
 	syncDb, err := turso.NewTursoSyncDb(ctx, turso.TursoSyncDbConfig{

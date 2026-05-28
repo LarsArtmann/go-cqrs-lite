@@ -54,6 +54,7 @@
             "middleware"
             "integration"
             "projection"
+            "signing"
             "storage"
             "testhelpers"
             "saga"

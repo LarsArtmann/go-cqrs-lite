@@ -16,7 +16,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
-	github.com/larsartmann/go-error-family v0.1.1 // indirect
+	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
@@ -26,4 +26,9 @@ require (
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
+)
+
+replace (
+	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

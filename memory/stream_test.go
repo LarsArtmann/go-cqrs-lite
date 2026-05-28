@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMemoryStore_LoadStream(t *testing.T) {
@@ -22,10 +23,11 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 
 	ctx := context.Background()
 
-	wantEvents := []event.Event{
-		mustEvent(t, "order.placed", aggID, 1, clock),
-		mustEvent(t, "order.paid", aggID, 2, clock),
-		mustEvent(t, "order.shipped", aggID, 3, clock),
+	wantEvents := make([]event.Event, 0, 3)
+	for i, typ := range []string{"order.placed", "order.paid", "order.shipped"} {
+		wantEvents = append(wantEvents,
+			testhelpers.NewEventOpts(t, event.Type(typ), aggID, "Test",
+				event.Version(i+1), nil, event.WithClock(clock)))
 	}
 
 	err := store.AppendBatch(ctx, "Order", aggID, wantEvents)
@@ -81,28 +83,4 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Errorf("expected ErrAggregateNotFound, got %v", err)
 	}
-}
-
-func mustEvent(
-	tb testing.TB,
-	typ string,
-	aggID id.AggregateID,
-	ver int,
-	clock func() time.Time,
-) event.Event {
-	tb.Helper()
-
-	evt, err := event.NewEvent(
-		event.Type(typ),
-		aggID,
-		"Test",
-		event.Version(ver),
-		[]byte(`{}`),
-		event.WithClock(clock),
-	)
-	if err != nil {
-		tb.Fatalf("new event: %v", err)
-	}
-
-	return evt
 }

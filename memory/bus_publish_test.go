@@ -48,33 +48,27 @@ func TestBus_UsePublish_Multiple(t *testing.T) {
 
 	var order []int32
 
-	err := bus.UsePublish(func(p event.Publisher) event.Publisher {
-		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-			order = append(order, 1)
+	appendOrderMW := func(n int32) event.PublishMiddleware {
+		return func(p event.Publisher) event.Publisher {
+			return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+				order = append(order, n)
 
-			return p.Publish(ctx, events...)
-		})
-	})
-	if err != nil {
-		t.Fatalf("UsePublish 1: %v", err)
+				return p.Publish(ctx, events...)
+			})
+		}
 	}
 
-	err = bus.UsePublish(func(p event.Publisher) event.Publisher {
-		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-			order = append(order, 2)
-
-			return p.Publish(ctx, events...)
-		})
-	})
-	if err != nil {
+	if err := bus.UsePublish(appendOrderMW(1)); err != nil {
+		t.Fatalf("UsePublish 1: %v", err)
+	}
+	if err := bus.UsePublish(appendOrderMW(2)); err != nil {
 		t.Fatalf("UsePublish 2: %v", err)
 	}
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 
-	err = bus.Publish(context.Background(), evt)
-	if err != nil {
+	if err := bus.Publish(context.Background(), evt); err != nil {
 		t.Fatalf("publish: %v", err)
 	}
 

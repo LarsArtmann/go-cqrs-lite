@@ -32,8 +32,17 @@ func deleteByAggregate(
 
 	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.delete_by_aggregate",
-			fmt.Sprintf("delete %s from table %s for %s %s", what, table, aggregateType, aggregateID))
+		return event.WrapInfrastructure(
+			err,
+			"storage.delete_by_aggregate",
+			fmt.Sprintf(
+				"delete %s from table %s for %s %s",
+				what,
+				table,
+				aggregateType,
+				aggregateID,
+			),
+		)
 	}
 
 	return nil

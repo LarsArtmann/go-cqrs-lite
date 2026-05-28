@@ -27,8 +27,11 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, event.WrapCorruption(ErrUnsupportedTimestamp, "storage.unsupported_timestamp",
-		"unsupported timestamp format: "+s)
+	return time.Time{}, event.WrapCorruption(
+		ErrUnsupportedTimestamp,
+		"storage.unsupported_timestamp",
+		"unsupported timestamp format: "+s,
+	)
 }
 
 // OpenSQLite opens a SQLite database file and returns a *sql.DB.

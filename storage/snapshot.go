@@ -113,13 +113,29 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 ) (*event.Snapshot, error) {
 	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.load_snapshot_version",
-			fmt.Sprintf("load snapshot at version %d for %s %s", version, aggregateType, aggregateID))
+		return nil, event.WrapInfrastructure(
+			err,
+			"storage.load_snapshot_version",
+			fmt.Sprintf(
+				"load snapshot at version %d for %s %s",
+				version,
+				aggregateType,
+				aggregateID,
+			),
+		)
 	}
 
 	if snap.Version.Cmp(version) > 0 {
-		return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
-			fmt.Sprintf("load snapshot at version %d for %s %s", version, aggregateType, aggregateID))
+		return nil, event.WrapRejection(
+			event.ErrSnapshotNotFound,
+			"storage.snapshot_version_exceeded",
+			fmt.Sprintf(
+				"load snapshot at version %d for %s %s",
+				version,
+				aggregateType,
+				aggregateID,
+			),
+		)
 	}
 
 	return snap, nil

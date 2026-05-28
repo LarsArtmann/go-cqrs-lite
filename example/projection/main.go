@@ -21,6 +21,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection"
 )
 
+const (
+	contextTimeout = 5 * time.Second
+	widgetQty      = 10
+	gadgetQty      = 5
+	removeQty      = 3
+	settleDelay    = 100 * time.Millisecond
+)
+
 type ItemAdded struct {
 	Name     string `json:"name"`
 	Quantity int    `json:"quantity"`
@@ -40,7 +48,13 @@ func newInventoryReadModel() *InventoryReadModel {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
 
 	store := memory.NewMemoryStore()
@@ -60,11 +74,13 @@ func main() {
 				payload.Name,
 				readModel.Items[payload.Name],
 			)
+
 			return nil
 		},
 	); err != nil {
-		log.Fatalf("register item.added: %v", err)
+		return fmt.Errorf("register item.added: %w", err)
 	}
+
 	if err := projection.On[ItemRemoved](
 		builder,
 		"item.removed",
@@ -76,10 +92,11 @@ func main() {
 				payload.Name,
 				readModel.Items[payload.Name],
 			)
+
 			return nil
 		},
 	); err != nil {
-		log.Fatalf("register item.removed: %v", err)
+		return fmt.Errorf("register item.removed: %w", err)
 	}
 
 	inventoryProjection := builder.Build()
@@ -88,10 +105,11 @@ func main() {
 
 	runner, err := projection.NewRunner(store, bus, checkpointStore)
 	if err != nil {
-		log.Fatalf("create runner: %v", err)
+		return fmt.Errorf("create runner: %w", err)
 	}
+
 	if err := runner.Register(inventoryProjection); err != nil {
-		log.Fatalf("register projection: %v", err)
+		return fmt.Errorf("register projection: %w", err)
 	}
 
 	go func() {
@@ -101,26 +119,38 @@ func main() {
 	}()
 
 	fmt.Println("Saving historical events...")
+
 	aggregateID := id.NewAggregateID()
-	for i, evt := range []struct {
+
+	events := []struct {
 		eventType event.Type
-		payload   any
+		name      string
+		quantity  int
 	}{
-		{"item.added", ItemAdded{Name: "widget", Quantity: 10}},
-		{"item.added", ItemAdded{Name: "gadget", Quantity: 5}},
-		{"item.removed", ItemAdded{Name: "widget", Quantity: 3}},
-	} {
-		payload, _ := json.Marshal(evt.payload)
+		{"item.added", "widget", widgetQty},
+		{"item.added", "gadget", gadgetQty},
+		{"item.removed", "widget", removeQty},
+	}
+
+	for i, evt := range events {
+		payload := ItemAdded{Name: evt.name, Quantity: evt.quantity}
+
+		payloadBytes, marshalErr := json.Marshal(payload)
+		if marshalErr != nil {
+			return fmt.Errorf("marshal event %d: %w", i, marshalErr)
+		}
+
 		e, createErr := event.NewEvent(
 			evt.eventType,
 			aggregateID,
 			"Inventory",
 			event.Version(i+1),
-			payload,
+			payloadBytes,
 		)
 		if createErr != nil {
-			log.Fatalf("create event: %v", createErr)
+			return fmt.Errorf("create event %d: %w", i, createErr)
 		}
+
 		if saveErr := store.Save(
 			ctx,
 			"Inventory",
@@ -128,20 +158,25 @@ func main() {
 			[]event.Event{e},
 			event.Version(i),
 		); saveErr != nil {
-			log.Fatalf("save event: %v", saveErr)
+			return fmt.Errorf("save event %d: %w", i, saveErr)
 		}
+
 		if pubErr := bus.Publish(ctx, e); pubErr != nil {
-			log.Fatalf("publish event: %v", pubErr)
+			return fmt.Errorf("publish event %d: %w", i, pubErr)
 		}
 	}
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(settleDelay)
 
 	fmt.Println("\nRead model state:")
+
 	for name, qty := range readModel.Items {
 		fmt.Printf("  %s: %d\n", name, qty)
 	}
 
 	_ = runner.Close()
+
 	fmt.Println("\nDone.")
+
+	return nil
 }

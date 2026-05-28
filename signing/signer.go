@@ -83,8 +83,8 @@ func appendLenPrefixed(buf []byte, s string) []byte {
 	lenBuf := make([]byte, lengthPrefixSize)
 	binary.BigEndian.PutUint32(
 		lenBuf,
-		uint32(len(b)),
-	) //nolint:gosec // length fits in uint32 for any reasonable string
+		uint32(len(b)), //nolint:gosec // length fits in uint32 for any reasonable string
+	)
 
 	buf = append(buf, lenBuf...)
 	buf = append(buf, b...)

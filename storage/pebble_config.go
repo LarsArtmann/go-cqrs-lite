@@ -61,11 +61,17 @@ func NewPebbleEventStore(cfg PebbleConfig, logger *slog.Logger) (cqrsEvent.Store
 
 	switch cfg.Backend {
 	case PebbleBackendPebble:
-		return nil, cqrsEvent.WrapInfrastructure(ErrPebbleProviderRequired, "storage.pebble_provider_required",
-			"use WithPebbleProvider")
+		return nil, cqrsEvent.WrapInfrastructure(
+			ErrPebbleProviderRequired,
+			"storage.pebble_provider_required",
+			"use WithPebbleProvider",
+		)
 	case PebbleBackendMemory:
-		return nil, cqrsEvent.WrapInfrastructure(ErrPebbleProviderRequired, "storage.pebble_provider_required",
-			"use WithPebbleProvider")
+		return nil, cqrsEvent.WrapInfrastructure(
+			ErrPebbleProviderRequired,
+			"storage.pebble_provider_required",
+			"use WithPebbleProvider",
+		)
 	default:
 		return nil, cqrsEvent.WrapInfrastructure(ErrUnknownBackend, "storage.unknown_backend",
 			fmt.Sprintf("%q: use WithPebbleBackend or WithPebbleProvider", cfg.Backend))

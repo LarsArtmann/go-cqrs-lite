@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.1.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
-	github.com/larsartmann/go-error-family v0.1.1
+	github.com/larsartmann/go-error-family v0.2.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0

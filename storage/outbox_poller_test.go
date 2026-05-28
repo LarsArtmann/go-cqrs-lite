@@ -344,7 +344,8 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
-	if acked := outbox.AckedIDs(); len(acked) != 1 || !acked[0].Equal(event.NewOutboxID("outbox-1")) {
+	if acked := outbox.AckedIDs(); len(acked) != 1 ||
+		!acked[0].Equal(event.NewOutboxID("outbox-1")) {
 		t.Fatalf("expected only outbox-1 acked, got %v", acked)
 	}
 }

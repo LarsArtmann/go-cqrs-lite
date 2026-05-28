@@ -20,35 +20,28 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
+func newStep(name, action, compensation string, timeout time.Duration) saga.Step {
+	step := saga.Step{
+		Name: name,
+		Action: func(_ context.Context, sagaID id.AggregateID) command.Command {
+			return command.MustNew(command.Type(action), sagaID)
+		},
+		Timeout: timeout,
+	}
+	if compensation != "" {
+		step.Compensate = func(_ context.Context, sagaID id.AggregateID) command.Command {
+			return command.MustNew(command.Type(compensation), sagaID)
+		}
+	}
+
+	return step
+}
+
 func orderSagaSteps() []saga.Step {
 	return []saga.Step{
-		{
-			Name: "reserve-inventory",
-			Action: func(_ context.Context, sagaID id.AggregateID) command.Command {
-				return command.MustNew("reserve-inventory", sagaID)
-			},
-			Compensate: func(_ context.Context, sagaID id.AggregateID) command.Command {
-				return command.MustNew("release-inventory", sagaID)
-			},
-			Timeout: 5 * time.Second,
-		},
-		{
-			Name: "charge-payment",
-			Action: func(_ context.Context, sagaID id.AggregateID) command.Command {
-				return command.MustNew("charge-payment", sagaID)
-			},
-			Compensate: func(_ context.Context, sagaID id.AggregateID) command.Command {
-				return command.MustNew("refund-payment", sagaID)
-			},
-			Timeout: 10 * time.Second,
-		},
-		{
-			Name: "confirm-order",
-			Action: func(_ context.Context, sagaID id.AggregateID) command.Command {
-				return command.MustNew("confirm-order", sagaID)
-			},
-			Timeout: 5 * time.Second,
-		},
+		newStep("reserve-inventory", "reserve-inventory", "release-inventory", 5*time.Second),
+		newStep("charge-payment", "charge-payment", "refund-payment", 10*time.Second),
+		newStep("confirm-order", "confirm-order", "", 5*time.Second),
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestSliceStream_Next(t *testing.T) {
@@ -16,10 +17,10 @@ func TestSliceStream_Next(t *testing.T) {
 	aggID := id.NewAggregateID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
 
-	events := []event.Event{
-		mustEvent(t, "user.created", aggID, 1, clock),
-		mustEvent(t, "user.updated", aggID, 2, clock),
-		mustEvent(t, "user.deleted", aggID, 3, clock),
+	events := make([]event.Event, 3)
+	for i, typ := range []string{"user.created", "user.updated", "user.deleted"} {
+		events[i] = testhelpers.NewEventOpts(t, event.Type(typ), aggID, "Test",
+			event.Version(i+1), nil, event.WithClock(clock))
 	}
 
 	stream := event.NewSliceStream(events)
@@ -80,8 +81,24 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 	ctx := context.Background()
 
 	wantEvents := []event.Event{
-		mustEvent(t, "order.placed", aggID, 1, clock),
-		mustEvent(t, "order.paid", aggID, 2, clock),
+		testhelpers.NewEventOpts(
+			t,
+			"order.placed",
+			aggID,
+			"Test",
+			1,
+			[]byte(`{}`),
+			event.WithClock(clock),
+		),
+		testhelpers.NewEventOpts(
+			t,
+			"order.paid",
+			aggID,
+			"Test",
+			2,
+			[]byte(`{}`),
+			event.WithClock(clock),
+		),
 	}
 
 	err := store.AppendBatch(ctx, "Order", aggID, wantEvents)
@@ -138,30 +155,6 @@ func TestStoreStreamAdapter_LoadStream_NotFound(t *testing.T) {
 	if !isAggregateNotFound(err) {
 		t.Errorf("expected ErrAggregateNotFound, got %v", err)
 	}
-}
-
-func mustEvent(
-	tb testing.TB,
-	typ string,
-	aggID id.AggregateID,
-	ver int,
-	clock func() time.Time,
-) event.Event {
-	tb.Helper()
-
-	evt, err := event.NewEvent(
-		event.Type(typ),
-		aggID,
-		"Test",
-		event.Version(ver),
-		[]byte(`{}`),
-		event.WithClock(clock),
-	)
-	if err != nil {
-		tb.Fatalf("new event: %v", err)
-	}
-
-	return evt
 }
 
 func isAggregateNotFound(err error) bool {

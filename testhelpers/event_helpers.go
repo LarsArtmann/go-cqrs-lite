@@ -12,6 +12,26 @@ func NewTestEvent() (event.Event, error) {
 	return MakeEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 }
 
+// NewEventOpts creates an event with the given parameters and options, fataling on error.
+func NewEventOpts(
+	tb testing.TB,
+	typ event.Type,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	version event.Version,
+	payload []byte,
+	opts ...event.Option,
+) event.Event {
+	tb.Helper()
+
+	evt, err := event.NewEvent(typ, aggID, aggType, version, payload, opts...)
+	if err != nil {
+		tb.Fatalf("create event %q: %v", typ, err)
+	}
+
+	return evt
+}
+
 // NewEvent creates an event with the given parameters, fataling on error.
 func NewEvent(
 	t *testing.T,

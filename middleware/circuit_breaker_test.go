@@ -57,10 +57,15 @@ func TestCommandCircuitBreaker_HalfOpenAfterTimeout(t *testing.T) {
 	time.Sleep(60 * time.Millisecond)
 
 	var called bool
-	successHandler := CommandCircuitBreaker(config)(func(_ context.Context, _ command.Command) error {
-		called = true
-		return nil
-	})
+	successHandler := CommandCircuitBreaker(
+		config,
+	)(
+		func(_ context.Context, _ command.Command) error {
+			called = true
+
+			return nil
+		},
+	)
 
 	if err := successHandler(t.Context(), &testCommand{}); err != nil {
 		t.Fatalf("expected success after half-open, got %v", err)
@@ -138,9 +143,21 @@ func TestCircuitBreakerConfig_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{"valid default", DefaultCircuitBreakerConfig(), false},
-		{"zero failure threshold", CircuitBreakerConfig{FailureThreshold: 0, SuccessThreshold: 1, Timeout: time.Second}, true},
-		{"zero success threshold", CircuitBreakerConfig{FailureThreshold: 1, SuccessThreshold: 0, Timeout: time.Second}, true},
-		{"zero timeout", CircuitBreakerConfig{FailureThreshold: 1, SuccessThreshold: 1, Timeout: 0}, true},
+		{
+			"zero failure threshold",
+			CircuitBreakerConfig{FailureThreshold: 0, SuccessThreshold: 1, Timeout: time.Second},
+			true,
+		},
+		{
+			"zero success threshold",
+			CircuitBreakerConfig{FailureThreshold: 1, SuccessThreshold: 0, Timeout: time.Second},
+			true,
+		},
+		{
+			"zero timeout",
+			CircuitBreakerConfig{FailureThreshold: 1, SuccessThreshold: 1, Timeout: 0},
+			true,
+		},
 	}
 
 	for _, tc := range tests {

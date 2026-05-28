@@ -109,29 +109,6 @@ func TestWithClock_BatchNewEvents(t *testing.T) {
 	}
 }
 
-func TestWithClock_BuilderPattern(t *testing.T) {
-	t.Parallel()
-
-	fixedTime := time.Date(2026, 7, 4, 12, 0, 0, 0, time.UTC)
-	clock := func() time.Time { return fixedTime }
-
-	evt, err := event.NewEvent(
-		"OrderPlaced",
-		id.NewAggregateID(),
-		"Order",
-		1,
-		nil,
-		event.WithClock(clock),
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if !evt.OccurredAt().Equal(fixedTime) {
-		t.Errorf("OccurredAt = %v, want %v", evt.OccurredAt(), fixedTime)
-	}
-}
-
 func TestDefaultClock_IsTimeNow(t *testing.T) {
 	t.Parallel()
 

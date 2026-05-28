@@ -28,31 +28,41 @@ type UserCreated struct {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	ctx := context.Background()
 
 	db, err := storage.OpenSQLiteInMemory()
 	if err != nil {
-		log.Fatalf("open sqlite: %v", err)
+		return fmt.Errorf("open sqlite: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	if err := storage.SQLiteInitSchema(ctx, db); err != nil {
-		log.Fatalf("init schema: %v", err)
+	err = storage.SQLiteInitSchema(ctx, db)
+	if err != nil {
+		return fmt.Errorf("init schema: %w", err)
 	}
 
 	backend, err := storage.NewSQLiteBackend(db)
 	if err != nil {
-		log.Fatalf("create backend: %v", err)
+		return fmt.Errorf("create backend: %w", err)
 	}
 
 	eventStore := backend.EventStore()
 
 	userID := id.NewAggregateID()
-	payload, _ := json.Marshal(UserCreated{Name: "Alice", Email: "alice@example.com"})
+	payload, err := json.Marshal(UserCreated{Name: "Alice", Email: "alice@example.com"})
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	evt, err := event.NewEvent("user.created", userID, "User", event.Version(1), payload)
 	if err != nil {
-		log.Fatalf("create event: %v", err)
+		return fmt.Errorf("create event: %w", err)
 	}
 
 	fmt.Printf(
@@ -69,12 +79,12 @@ func main() {
 		[]event.Event{evt},
 		event.Version(0),
 	); err != nil {
-		log.Fatalf("save events: %v", err)
+		return fmt.Errorf("save events: %w", err)
 	}
 
 	loaded, err := eventStore.Load(ctx, "User", userID)
 	if err != nil {
-		log.Fatalf("load events: %v", err)
+		return fmt.Errorf("load events: %w", err)
 	}
 
 	fmt.Printf("\nLoaded %d event(s):\n", len(loaded))
@@ -85,4 +95,6 @@ func main() {
 	}
 
 	fmt.Println("\nDone.")
+
+	return nil
 }

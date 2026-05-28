@@ -15,94 +15,74 @@ import (
 	wm "github.com/larsartmann/go-cqrs-lite/watermill"
 )
 
-func TestMessageToEvent_MissingAggregateType(t *testing.T) {
+func TestMessageToEvent_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	defer bus.Close()
-
-	publisher := wm.NewPublisherAdapter(bus)
-
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("version", "1")
-
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for missing aggregate_type")
+	tests := []struct {
+		name     string
+		metadata map[string]string
+	}{
+		{
+			name: "missing_aggregate_type",
+			metadata: map[string]string{
+				"aggregate_id": id.NewAggregateID().String(),
+				"version":      "1",
+			},
+		},
+		{
+			name: "missing_version",
+			metadata: map[string]string{
+				"aggregate_id":   id.NewAggregateID().String(),
+				"aggregate_type": "User",
+			},
+		},
+		{
+			name: "invalid_schema_version",
+			metadata: map[string]string{
+				"aggregate_id":   id.NewAggregateID().String(),
+				"aggregate_type": "User",
+				"version":        "1",
+				"schema_version": "not-a-number",
+			},
+		},
+		{
+			name: "invalid_event_id",
+			metadata: map[string]string{
+				"aggregate_id":   id.NewAggregateID().String(),
+				"aggregate_type": "User",
+				"version":        "1",
+				"event_id":       "not-a-valid-event-id",
+			},
+		},
+		{
+			name: "invalid_occurred_at",
+			metadata: map[string]string{
+				"aggregate_id":   id.NewAggregateID().String(),
+				"aggregate_type": "User",
+				"version":        "1",
+				"occurred_at":    "not-a-timestamp",
+			},
+		},
 	}
-}
 
-func TestMessageToEvent_EmptyVersion(t *testing.T) {
-	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	defer bus.Close()
+			bus := memory.NewMemoryBus()
+			defer bus.Close()
 
-	publisher := wm.NewPublisherAdapter(bus)
+			publisher := wm.NewPublisherAdapter(bus)
 
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("aggregate_type", "User")
+			msg := message.NewMessage("test-id", []byte(`{}`))
+			for k, v := range tt.metadata {
+				msg.Metadata.Set(k, v)
+			}
 
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for missing version")
-	}
-}
-
-func TestMessageToEvent_InvalidSchemaVersion(t *testing.T) {
-	t.Parallel()
-
-	bus := memory.NewMemoryBus()
-	defer bus.Close()
-
-	publisher := wm.NewPublisherAdapter(bus)
-
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("aggregate_type", "User")
-	msg.Metadata.Set("version", "1")
-	msg.Metadata.Set("schema_version", "not-a-number")
-
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for invalid schema_version")
-	}
-}
-
-func TestMessageToEvent_InvalidEventID(t *testing.T) {
-	t.Parallel()
-
-	bus := memory.NewMemoryBus()
-	defer bus.Close()
-
-	publisher := wm.NewPublisherAdapter(bus)
-
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("aggregate_type", "User")
-	msg.Metadata.Set("version", "1")
-	msg.Metadata.Set("event_id", "not-a-valid-event-id")
-
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for invalid event_id")
-	}
-}
-
-func TestMessageToEvent_InvalidOccurredAt(t *testing.T) {
-	t.Parallel()
-
-	bus := memory.NewMemoryBus()
-	defer bus.Close()
-
-	publisher := wm.NewPublisherAdapter(bus)
-
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("aggregate_type", "User")
-	msg.Metadata.Set("version", "1")
-	msg.Metadata.Set("occurred_at", "not-a-timestamp")
-
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for invalid occurred_at")
+			if err := publisher.Publish("user.created", msg); err == nil {
+				t.Errorf("expected error for %s", tt.name)
+			}
+		})
 	}
 }
 

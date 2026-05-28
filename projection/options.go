@@ -9,10 +9,10 @@ import (
 )
 
 type runnerOptions struct {
-	retryCount      int
-	retryDelay      time.Duration
-	logger          *slog.Logger
-	deadLetter      DeadLetterHandler
+	retryCount int
+	retryDelay time.Duration
+	logger     *slog.Logger
+	deadLetter DeadLetterHandler
 }
 
 // DeadLetterHandler is called when a projection handler fails after all retries are exhausted.
