@@ -85,12 +85,12 @@ When events travel through multiple actors (e.g., end-user device → server), e
 // Device signs with Ed25519 (private key stays on device)
 deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
-deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
+deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
     signing.WithVerifier(deviceVerifier))
 
 // Server signs with HMAC (shared secret within org)
 serverSigner, _ := signing.NewHMAC(serverKey)
-serverMulti := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
+serverMulti, _ := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
 
 // Step 1: Device signs
 signed, _ := deviceMulti.Sign(event)

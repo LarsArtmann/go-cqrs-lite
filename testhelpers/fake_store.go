@@ -244,7 +244,7 @@ func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
 
 // ReadFrom returns events starting after the given event ID.
 func (s *FakeStore) ReadFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {

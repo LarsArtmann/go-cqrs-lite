@@ -99,8 +99,13 @@ func newDeviceMultiSigner(t *testing.T) (*signing.MultiSigner, ed25519.PublicKey
 		t.Fatalf("create verifier: %v", verifierErr)
 	}
 
-	return signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, signer,
-		signing.WithVerifier(verifier)), pubKey
+	deviceMulti, err := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, signer,
+		signing.WithVerifier(verifier))
+	if err != nil {
+		t.Fatalf("create device multi-signer: %v", err)
+	}
+
+	return deviceMulti, pubKey
 }
 
 // newServerMultiSigner creates a test MultiSigner for the "server" actor using HMAC.
@@ -113,7 +118,12 @@ func newServerMultiSigner(t *testing.T) *signing.MultiSigner {
 		t.Fatalf("create HMAC signer: %v", err)
 	}
 
-	return signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, signer)
+	serverMulti, err := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, signer)
+	if err != nil {
+		t.Fatalf("create server multi-signer: %v", err)
+	}
+
+	return serverMulti
 }
 
 func TestMultiSigner_SignAddsActor(t *testing.T) {
@@ -462,9 +472,16 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("create server signer: %v", hmacErr)
 	}
 
-	deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
+	deviceMulti, err := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
 		signing.WithVerifier(deviceVerifier))
-	serverMulti := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
+	if err != nil {
+		t.Fatalf("create device multi-signer: %v", err)
+	}
+
+	serverMulti, err := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
+	if err != nil {
+		t.Fatalf("create server multi-signer: %v", err)
+	}
 
 	// Step 1: Device creates and signs the event.
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
@@ -623,8 +640,11 @@ func TestMultiSigner_VerifyActor(t *testing.T) {
 	edSigner, _ := signing.NewEd25519(privKey)
 	edVerifier, _ := signing.NewEd25519Verifier(pubKey)
 
-	deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, edSigner,
+	deviceMulti, err := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, edSigner,
 		signing.WithVerifier(edVerifier))
+	if err != nil {
+		t.Fatalf("create device multi-signer: %v", err)
+	}
 	serverMulti := newServerMultiSigner(t)
 	evt := makeTestEvent(t)
 
@@ -649,12 +669,15 @@ func TestMultiSigner_WithClock(t *testing.T) {
 	edSigner, _ := signing.NewEd25519(privKey)
 	edVerifier, _ := signing.NewEd25519Verifier(pubKey)
 
-	deterministic := signing.NewMultiSigner(
-		"device", signing.AlgorithmEd25519,
+	deterministic, err := signing.NewMultiSigner(
+		signing.Actor("device"), signing.AlgorithmEd25519,
 		edSigner,
 		signing.WithVerifier(edVerifier),
 		signing.WithClock(func() time.Time { return fixedTime }),
 	)
+	if err != nil {
+		t.Fatalf("create deterministic multi-signer: %v", err)
+	}
 
 	evt := makeTestEvent(t)
 	clone, _ := deterministic.Sign(evt)

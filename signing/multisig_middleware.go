@@ -62,6 +62,47 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	}
 }
 
+// MultiVerifyMiddlewareFor returns event.Middleware that verifies a specific
+// actor's signature without requiring the caller to construct a *MultiSigner.
+// This is a convenience wrapper for the common case where you already have
+// a Verifier and just want to check one actor's signature.
+func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
+	return func(next event.Handler) event.Handler {
+		return func(ctx context.Context, evt event.Event) error {
+			if !HasMultiSignature(evt) {
+				return next(ctx, evt)
+			}
+
+			multiSig, err := ExtractMultiSignature(evt)
+			if err != nil {
+				return next(ctx, evt)
+			}
+
+			entry := multiSig.Get(actor)
+			if entry == nil {
+				return fmt.Errorf(
+					"%w: no signature from actor %s on event %s",
+					ErrNilSignature,
+					actor,
+					evt.Type(),
+				)
+			}
+
+			verifyErr := verifier.Verify(evt, entry.Sig)
+			if verifyErr != nil {
+				return fmt.Errorf(
+					"verify multi-sig for actor %s on event %s: %w",
+					actor,
+					evt.Type(),
+					verifyErr,
+				)
+			}
+
+			return next(ctx, evt)
+		}
+	}
+}
+
 // RequireMultiSigMiddleware returns event.Middleware that rejects events
 // missing verified signatures from all actors in the provided verifier map.
 // Cryptographically verifies every signature entry and ensures every actor

@@ -135,7 +135,15 @@ func NewMultiSigner(
 	algorithm SignatureAlgorithm,
 	signer Signer,
 	opts ...MultiSignerOption,
-) *MultiSigner {
+) (*MultiSigner, error) {
+	if actor == "" {
+		return nil, event.NewRejection("signing.empty_actor", "actor name cannot be empty")
+	}
+
+	if signer == nil {
+		return nil, event.NewRejection("signing.nil_signer", "signer cannot be nil")
+	}
+
 	var verifier Verifier
 	if sv, ok := signer.(Verifier); ok {
 		verifier = sv
@@ -153,7 +161,11 @@ func NewMultiSigner(
 		opt(multi)
 	}
 
-	return multi
+	if multi.clock == nil {
+		return nil, event.NewRejection("signing.nil_clock", "clock option cannot be nil")
+	}
+
+	return multi, nil
 }
 
 // Actor returns the actor identifier.
