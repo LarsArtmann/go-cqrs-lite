@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-05-28 — Session 112b final cleanup
+**Reconciled:** 2026-05-28 — Session 123
 **Files Processed:** 252
 
 ## Legend
@@ -228,7 +228,7 @@
 - [x] ~~Add HMAC + Ed25519 + VerifyAll benchmarks~~ — DONE (Session 119)
 - [x] ~~Split `signing_test.go` (1028L → focused files)~~ — DONE (Session 119)
 - [x] ~~Split `multisig_test.go` (1338L → focused files)~~ — DONE (Session 119)
-- [ ] Add cross-module signing integration test — full pipeline: NewEvent → MultiSigner.Sign → Bus.Publish → RequireMultiSigMiddleware → handler
+- [x] ~~Add cross-module signing integration test~~ — DONE (Session 122, `integration/signing/signing_integration_test.go`)
 - [BLOCKED] Push signing v1.0.0 tag — code ready, needs tag + push
 - [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
 - [FUTURE] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
@@ -273,5 +273,12 @@
 - [ ] Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination types (source: SESSION_67)
 - [ ] Add fuzz tests for event creation, ID parsing, schema reflection, DecodePayload, upcaster chain (source: multiple sessions)
 - [ ] Add E2E throughput benchmarks (source: SESSION13)
+- [x] ~~Add tombstone status tests~~ — DONE (Session 122, `core/event/tombstone_test.go`)
+- [x] ~~Add stream read-model module~~ — DONE (Session 121+, `stream/` with AggregateReader, InMemoryReader, StatusMiddleware, SQL/Projection readers)
+- [x] ~~Add tombstone soft-delete support to core/event~~ — DONE (TombstoneStatus enum, tombstone.go)
+- [x] ~~Split signing_test.go into focused files~~ — DONE (Session 122, renamed to test_helpers_test.go, max 346L)
+- [x] ~~Fix golden test fixture failures~~ — DONE (Session 122, YAML indentation from 569c726)
+- [ ] Add stream module integration tests (source: stream module)
+- [ ] Add stream SQL reader tests (source: stream module)
 - [ ] Enforce 350-line limit on test files via pre-commit hook (source: SESSION_73)
 - [ ] Split large test files: decider_test.go (~1200L), runner_test.go (~1057L) (source: multiple sessions)
