@@ -360,8 +360,17 @@ func TestMultiSignMiddleware(t *testing.T) {
 func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Parallel()
 
-	deviceMulti, _ := newDeviceMultiSigner(t)
+	deviceMulti, devicePubKey := newDeviceMultiSigner(t)
 	serverMulti := newServerMultiSigner(t)
+
+	deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
+	serverKey := []byte("server-secret-key-thirty-two-by!")
+	serverHMAC, _ := signing.NewHMAC(serverKey)
+
+	verifiers := map[string]signing.Verifier{
+		"device": deviceVerifier,
+		"server": serverHMAC,
+	}
 
 	t.Run("rejects unsigned events", func(t *testing.T) {
 		t.Parallel()
@@ -373,7 +382,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 			return nil
 		}
 
-		mw := signing.RequireMultiSigMiddleware("device", "server")
+		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
 		evt := makeTestEvent(t)
@@ -392,7 +401,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 			return nil
 		}
 
-		mw := signing.RequireMultiSigMiddleware("device", "server")
+		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
 		evt := makeTestEvent(t)
@@ -413,7 +422,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 			return nil
 		}
 
-		mw := signing.RequireMultiSigMiddleware("device", "server")
+		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
 		evt := makeTestEvent(t)

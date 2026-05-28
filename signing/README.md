@@ -118,8 +118,12 @@ err := signing.VerifyAll(signed, verifiers)
 ### Require All Actors via Middleware
 
 ```go
-// Reject events missing any required actor's signature
-bus.Use(signing.RequireMultiSigMiddleware("device", "server"))
+// Reject events missing verified signatures from all actors
+verifiers := map[string]signing.Verifier{
+    "device": deviceVerifier,
+    "server": serverSigner,
+}
+bus.Use(signing.RequireMultiSigMiddleware(verifiers))
 ```
 
 ### Middleware for Each Actor in the Pipeline

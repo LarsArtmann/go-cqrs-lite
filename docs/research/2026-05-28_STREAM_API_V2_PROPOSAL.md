@@ -8,7 +8,7 @@ The v1 proposal had five structural problems:
 
 1. **Fat option structs** — `StreamOptions` and `EventOptions` are "God parameters" with 8–10 fields. They're not composable: you can't say "active users' created events" without understanding all the fields and their interactions.
 
-2. **Tombstone detection is expensive** — `TombstoneDetector func(aggType, events) bool` loads the *entire event stream* for every aggregate to determine if it's deleted. At 10K aggregates with 100 events each, listing page 1 loads 1M events just for tombstone checks.
+2. **Tombstone detection is expensive** — `TombstoneDetector func(aggType, events) bool` loads the _entire event stream_ for every aggregate to determine if it's deleted. At 10K aggregates with 100 events each, listing page 1 loads 1M events just for tombstone checks.
 
 3. **Store decorator loses type assertions** — `TombstoneStore` wraps `event.Store`. If the inner store implemented `TransactionalStore`, `BackwardsLoader`, or `PositionalLoader`, the wrapper silently drops them. This breaks `decider.Repository` which type-asserts to `TransactionalStore`.
 
@@ -18,14 +18,14 @@ The v1 proposal had five structural problems:
 
 ## v2 Design Principles
 
-| # | Principle | How |
-|---|---|---|
-| 1 | **Extend existing Store via type assertion** | New small interfaces in `core/event/`, like `BackwardsLoader` |
-| 2 | **Tombstone is metadata, not callbacks** | Metadata key like signing uses, O(1) detection |
-| 3 | **Builder pattern for queries** | Fluent, composable, impossible to construct invalid queries |
-| 4 | **One pagination model** | Cursor-based everywhere (ULIDs are natural cursors) |
-| 5 | **SQL stores implement natively** | Efficient queries, not fallback in-memory filtering |
-| 6 | **No wrapper that loses types** | Tombstone as store-level capability, not decorator |
+| #   | Principle                                    | How                                                           |
+| --- | -------------------------------------------- | ------------------------------------------------------------- |
+| 1   | **Extend existing Store via type assertion** | New small interfaces in `core/event/`, like `BackwardsLoader` |
+| 2   | **Tombstone is metadata, not callbacks**     | Metadata key like signing uses, O(1) detection                |
+| 3   | **Builder pattern for queries**              | Fluent, composable, impossible to construct invalid queries   |
+| 4   | **One pagination model**                     | Cursor-based everywhere (ULIDs are natural cursors)           |
+| 5   | **SQL stores implement natively**            | Efficient queries, not fallback in-memory filtering           |
+| 6   | **No wrapper that loses types**              | Tombstone as store-level capability, not decorator            |
 
 ---
 
@@ -143,6 +143,7 @@ func HasTombstone(evt Event) bool {
 ```
 
 **Why this is better than v1:**
+
 - `AggregateRef.IsTombstoned()` is O(1) — checks one metadata field on the last event, not a callback over all events
 - `TombstonePolicy` lives in `core/event/` because it's a store-level concept, not a separate module concern
 - `StreamLister` follows the exact same pattern as `BackwardsLoader` — small interface, stores opt in via type assertion
@@ -227,6 +228,7 @@ func (q *Query) fallbackStreams(ctx context.Context) (*event.StreamPage, error) 
 ```
 
 **Why this is better than v1:**
+
 - **Impossible to construct invalid queries** — the builder only exposes valid operations
 - **Discoverable** — IDE autocomplete shows `.Type()`, `.PageSize()`, `.IncludeDeleted()`, `.Streams()`
 - **Composable** — chain any combination of filters
@@ -335,6 +337,7 @@ func (s *SQLEventStore) ListStreams(ctx context.Context, f event.StreamFilter) (
 ```
 
 **Why this is better than v1:**
+
 - **No N+1 problem** — tombstone status is a column, not a callback per aggregate
 - **No full scan** — aggregates table is indexed, paginated queries are O(limit)
 - **Transactional consistency** — aggregates table updated in same tx as events
@@ -485,18 +488,18 @@ storage/
 
 ## v1 → v2 comparison
 
-| Aspect | v1 | v2 |
-|---|---|---|
-| **Interface style** | New `Reader` abstraction | Extend existing Store via type assertion |
-| **Tombstone detection** | Callback: loads all events | Metadata key: O(1) check |
-| **Query construction** | Fat option struct | Builder pattern |
-| **SQL efficiency** | `SELECT DISTINCT` on events table | Indexed `aggregates` table |
-| **Store wrapping** | Decorator (loses type assertions) | No wrapper, stores implement directly |
-| **Pagination** | Mixed (offset + cursor) | Cursor-based everywhere |
-| **Tombstone marking** | Manual or store wrapper | Bus middleware (auto) |
-| **Module count** | 1 new module | 1 new module + extensions to 2 existing |
+| Aspect                  | v1                                        | v2                                          |
+| ----------------------- | ----------------------------------------- | ------------------------------------------- |
+| **Interface style**     | New `Reader` abstraction                  | Extend existing Store via type assertion    |
+| **Tombstone detection** | Callback: loads all events                | Metadata key: O(1) check                    |
+| **Query construction**  | Fat option struct                         | Builder pattern                             |
+| **SQL efficiency**      | `SELECT DISTINCT` on events table         | Indexed `aggregates` table                  |
+| **Store wrapping**      | Decorator (loses type assertions)         | No wrapper, stores implement directly       |
+| **Pagination**          | Mixed (offset + cursor)                   | Cursor-based everywhere                     |
+| **Tombstone marking**   | Manual or store wrapper                   | Bus middleware (auto)                       |
+| **Module count**        | 1 new module                              | 1 new module + extensions to 2 existing     |
 | **Consumer ergonomics** | `reader.Streams(ctx, StreamOptions{...})` | `stream.Q(store).Type("User").Streams(ctx)` |
-| **Discoverability** | Must know struct fields | IDE autocomplete on builder |
+| **Discoverability**     | Must know struct fields                   | IDE autocomplete on builder                 |
 
 ---
 
