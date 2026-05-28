@@ -108,7 +108,7 @@ multiSig.HasActor("server") // true
 ### Verify All Actors
 
 ```go
-verifiers := map[string]signing.Signer{
+verifiers := map[string]signing.Verifier{
     "device": deviceVerifier,
     "server": serverSigner,
 }
