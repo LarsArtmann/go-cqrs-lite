@@ -23,7 +23,10 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	}
 
 	if instance.Status != StatusRunning && instance.Status != StatusPending {
-		return event.NewRejection("saga.not_running", "saga "+instanceID.String()+" is not running (status="+string(instance.Status)+")")
+		return event.NewRejection(
+			"saga.not_running",
+			"saga "+instanceID.String()+" is not running (status="+string(instance.Status)+")",
+		)
 	}
 
 	if instance.CurrentStep >= len(instance.Steps) {
@@ -110,7 +113,11 @@ func (r *Runner) hydrate(state *State) (*Instance, error) {
 	r.mu.RUnlock()
 
 	if !ok {
-		return nil, event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+state.SagaType+" not registered")
+		return nil, event.WrapRejection(
+			ErrSagaNotRegistered,
+			"saga.not_registered",
+			"saga "+state.SagaType+" not registered",
+		)
 	}
 
 	instance := &Instance{

@@ -74,8 +74,8 @@ func WithContext(err *Error, key, value string) *Error {
 	return err.WithContext(key, value)
 }
 
-func ExitCode(err error) int                { return errorfamily.ExitCode(err) }
-func HandleError(err error) int             { return errorfamily.HandleError(err) }
+func ExitCode(err error) int    { return errorfamily.ExitCode(err) }
+func HandleError(err error) int { return errorfamily.HandleError(err) }
 func HandleErrorDetailed(err error) *HandleResult {
 	return errorfamily.HandleErrorDetailed(err)
 }
