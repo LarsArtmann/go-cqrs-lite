@@ -15,25 +15,29 @@ func TestBus_UsePublish(t *testing.T) {
 
 	bus := memory.NewMemoryBus()
 
-	var callCount int32
+	var callCount atomic.Int32
 
-	bus.UsePublish(func(p event.Publisher) event.Publisher {
+	err := bus.UsePublish(func(p event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-			atomic.AddInt32(&callCount, 1)
+			callCount.Add(1)
+
 			return p.Publish(ctx, events...)
 		})
 	})
+	if err != nil {
+		t.Fatalf("UsePublish: %v", err)
+	}
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 
-	err := bus.Publish(context.Background(), evt)
+	err = bus.Publish(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("publish: %v", err)
 	}
 
-	if atomic.LoadInt32(&callCount) != 1 {
-		t.Errorf("expected 1 publish middleware call, got %d", atomic.LoadInt32(&callCount))
+	if callCount.Load() != 1 {
+		t.Errorf("expected 1 publish middleware call, got %d", callCount.Load())
 	}
 }
 
@@ -44,24 +48,32 @@ func TestBus_UsePublish_Multiple(t *testing.T) {
 
 	var order []int32
 
-	bus.UsePublish(func(p event.Publisher) event.Publisher {
+	err := bus.UsePublish(func(p event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			order = append(order, 1)
+
 			return p.Publish(ctx, events...)
 		})
 	})
+	if err != nil {
+		t.Fatalf("UsePublish 1: %v", err)
+	}
 
-	bus.UsePublish(func(p event.Publisher) event.Publisher {
+	err = bus.UsePublish(func(p event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			order = append(order, 2)
+
 			return p.Publish(ctx, events...)
 		})
 	})
+	if err != nil {
+		t.Fatalf("UsePublish 2: %v", err)
+	}
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 
-	err := bus.Publish(context.Background(), evt)
+	err = bus.Publish(context.Background(), evt)
 	if err != nil {
 		t.Fatalf("publish: %v", err)
 	}

@@ -13,6 +13,7 @@ import (
 // MemoryOutboxStore is an in-memory implementation of event.Outbox for testing.
 type MemoryOutboxStore struct {
 	dispatcher.Lifecycle
+
 	mu           sync.RWMutex
 	entries      []outboxEntry
 	entryCounter int
@@ -23,6 +24,7 @@ var _ event.Outbox = (*MemoryOutboxStore)(nil)
 // NewMemoryOutboxStore creates a new in-memory outbox store.
 func NewMemoryOutboxStore() *MemoryOutboxStore {
 	return &MemoryOutboxStore{
+		Lifecycle:    dispatcher.Lifecycle{},
 		mu:           sync.RWMutex{},
 		entries:      make([]outboxEntry, 0),
 		entryCounter: 0,

@@ -13,6 +13,16 @@ type Metadata struct {
 	RequestID     id.RequestID     `json:"requestId"`
 }
 
+// NewMetadata creates a Metadata with all fields initialized to zero values.
+func NewMetadata() Metadata {
+	return Metadata{
+		CorrelationID: id.CorrelationID{},
+		CausationID:   id.CausationID{},
+		UserID:        id.UserID{},
+		RequestID:     id.RequestID{},
+	}
+}
+
 // Option configures command creation.
 type Option func(*BasicCommand)
 

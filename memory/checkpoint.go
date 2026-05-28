@@ -12,6 +12,7 @@ import (
 // MemoryCheckpointStore is an in-memory CheckpointStore for testing.
 type MemoryCheckpointStore struct {
 	dispatcher.Lifecycle
+
 	mu          sync.RWMutex
 	checkpoints map[string]id.EventID
 }
@@ -19,6 +20,7 @@ type MemoryCheckpointStore struct {
 // NewMemoryCheckpointStore creates a new empty MemoryCheckpointStore.
 func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 	return &MemoryCheckpointStore{
+		Lifecycle:   dispatcher.Lifecycle{},
 		checkpoints: make(map[string]id.EventID),
 		mu:          sync.RWMutex{},
 	}
