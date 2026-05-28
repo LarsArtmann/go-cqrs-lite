@@ -68,7 +68,6 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
 // Falls back to standard base64 for backward compatibility.
-//
 func (s *Signature) UnmarshalJSON(data []byte) error {
 	var encoded string
 
