@@ -73,6 +73,7 @@ func lower(s string) string {
 		}
 		result[i] = c
 	}
+
 	return string(result)
 }
 

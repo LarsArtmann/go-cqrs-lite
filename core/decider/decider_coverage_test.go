@@ -13,6 +13,7 @@ import (
 
 type fakeTransactionalStore struct {
 	*testhelpers.FakeStore
+
 	saveWithOutboxErr error
 }
 
