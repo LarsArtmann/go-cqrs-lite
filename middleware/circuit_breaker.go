@@ -143,11 +143,7 @@ func newCircuitBreaker(config CircuitBreakerConfig) *circuitBreaker {
 func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.Middleware {
 	err := config.Validate()
 	if err != nil {
-		return func(_ command.Handler) command.Handler {
-			return func(_ context.Context, _ command.Command) error {
-				return err
-			}
-		}
+		return commandErrMiddleware(err)
 	}
 
 	cfg := applyOptions(opts)
@@ -167,11 +163,7 @@ func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.
 func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Middleware {
 	err := config.Validate()
 	if err != nil {
-		return func(_ event.Handler) event.Handler {
-			return func(_ context.Context, _ event.Event) error {
-				return err
-			}
-		}
+		return eventErrMiddleware(err)
 	}
 
 	cfg := applyOptions(opts)
@@ -191,11 +183,7 @@ func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Midd
 func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Middleware {
 	err := config.Validate()
 	if err != nil {
-		return func(_ query.Handler) query.Handler {
-			return func(_ context.Context, _ query.Query) (any, error) {
-				return nil, err
-			}
-		}
+		return queryErrMiddleware(err)
 	}
 
 	cfg := applyOptions(opts)

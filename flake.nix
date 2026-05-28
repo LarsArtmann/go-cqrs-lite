@@ -83,6 +83,9 @@
         {
           treefmt = {
             projectRootFile = "go.work";
+            settings.excludes = [
+              "catalog/testdata/golden/**"
+            ];
             programs = {
               gofumpt.enable = true;
               goimports.enable = true;
