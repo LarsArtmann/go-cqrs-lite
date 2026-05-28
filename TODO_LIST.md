@@ -173,7 +173,7 @@
 - [ ] Wire example/user/aggregate.go to use catalog-aware event constructors (source: SESSION16)
 - [x] ~~Add enum + default struct tag support~~ — VERIFIED (enum, default, nullable, deprecated, pattern all work)
 - [x] ~~Make AsyncAPI servers configurable~~ — DONE (WithServer option exists in asyncapi/exporter.go:33)
-- [ ] Simplify cattest/catalog.go to use zero-cost API (source: SESSION_74)
+- [x] ~~Simplify cattest/catalog.go to use zero-cost API~~ — VERIFIED (63 lines, already uses direct struct literals)
 - [x] ~~Remove deprecated CatalogBuilder from catalog/adapters~~ — VERIFIED (catalog/adapters directory does not exist)
 - [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep)
 - [x] ~~Extract CRDT primitives into sync/ module~~ — DONE
@@ -216,7 +216,7 @@
 - [x] ~~Create CONTEXT.md~~ — DONE
 - [x] ~~Create docs/adr/~~ — DONE
 - [x] ~~Write getting-started README section~~ — DONE
-- [ ] Write API migration guide: query.Handler any → TypedHandler[T] (source: docs/MIGRATION.md)
+- [x] ~~Write API migration guide~~ — DONE (docs/MIGRATION.md)
 - [x] ~~Add storage backend guide~~ — DONE
 - [x] ~~Add module READMEs~~ — DONE
 - [x] ~~Archive stale planning docs~~ — DONE
@@ -236,7 +236,7 @@
 - [x] ~~Add HandleBatch(ctx, []Event) error to projections~~ — DONE (event.BatchProjection optional interface)
 - [FUTURE] Absorb projection/ module into core/event (source: SESSION_77)
 - [x] ~~Add OpenAPI/Swagger exporter parallel to AsyncAPI~~ — DONE (catalog/openapi/ with 4 files)
-- [ ] Generate llms.txt alongside EventCatalog output (source: SESSION_16)
+- [x] ~~Generate llms.txt alongside EventCatalog output~~ — DONE (catalog/eventcatalog/writer_llms.go)
 - [x] ~~Schema: support nullable/deprecated/pattern struct tags~~ — VERIFIED (all tags already implemented in schema_reflect.go)
 - [FUTURE] Add HLC (Hybrid Logical Clock) implementation (source: OFFLINE_FIRST)
 - [FUTURE] Implement pull-before-push sync protocol (source: OFFLINE_FIRST)
