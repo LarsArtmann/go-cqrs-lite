@@ -97,7 +97,8 @@ func TestCommand_AllMetadata(t *testing.T) {
 	uid := id.NewUserID()
 	rid := id.NewRequestID()
 
-	cmd, err := command.New("CreateUser", id.NewAggregateID(),
+	cmd, err := command.New(
+		"CreateUser", id.NewAggregateID(),
 		command.WithCorrelationID(cid),
 		command.WithCausationID(caid),
 		command.WithUserID(uid),

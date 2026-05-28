@@ -16,11 +16,11 @@ import (
 type MemoryBus struct {
 	dispatcher.Lifecycle
 
-	mu                 sync.RWMutex
-	handlers           map[event.Type][]event.Handler
-	allHandlers        []event.Handler
-	middleware         []event.Middleware
-	publishMiddleware  []event.PublishMiddleware
+	mu                sync.RWMutex
+	handlers          map[event.Type][]event.Handler
+	allHandlers       []event.Handler
+	middleware        []event.Middleware
+	publishMiddleware []event.PublishMiddleware
 }
 
 var (
@@ -117,7 +117,12 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 		publisher = m(publisher)
 	}
 
-	return publisher.Publish(ctx, events...)
+	err = publisher.Publish(ctx, events...)
+	if err != nil {
+		return fmt.Errorf("memory bus publish: %w", err)
+	}
+
+	return nil
 }
 
 func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {

@@ -14,13 +14,13 @@ func TestConcurrent_BusPublish(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	var mu sync.Mutex
+	var mutex sync.Mutex
 	received := 0
 
 	handler := func(_ context.Context, _ event.Event) error {
-		mu.Lock()
+		mutex.Lock()
 		received++
-		mu.Unlock()
+		mutex.Unlock()
 
 		return nil
 	}
@@ -48,9 +48,9 @@ func TestConcurrent_BusPublish(t *testing.T) {
 
 	wg.Wait()
 
-	mu.Lock()
+	mutex.Lock()
 	count := received
-	mu.Unlock()
+	mutex.Unlock()
 
 	if count != 100 {
 		t.Errorf("expected 100 events, got %d", count)
@@ -120,7 +120,7 @@ func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
 		t.Errorf("expected 20 entries, got %d", len(entries))
 	}
 
-	var ids []event.OutboxID
+	ids := make([]event.OutboxID, 0, len(entries))
 	for _, e := range entries {
 		ids = append(ids, e.ID)
 	}
@@ -139,7 +139,7 @@ func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
 func TestConcurrent_CheckpointSaveLoad(t *testing.T) {
 	t.Parallel()
 
-	cp := memory.NewMemoryCheckpointStore()
+	checkpoint := memory.NewMemoryCheckpointStore()
 	var wg sync.WaitGroup
 
 	names := []string{"proj-1", "proj-2", "proj-3", "proj-4", "proj-5"}
@@ -152,7 +152,7 @@ func TestConcurrent_CheckpointSaveLoad(t *testing.T) {
 
 			for range 10 {
 				eid := id.NewEventID()
-				_ = cp.Save(context.Background(), n, eid)
+				_ = checkpoint.Save(context.Background(), n, eid)
 			}
 		}(name)
 	}
@@ -160,7 +160,7 @@ func TestConcurrent_CheckpointSaveLoad(t *testing.T) {
 	wg.Wait()
 
 	for _, name := range names {
-		result, err := cp.Load(context.Background(), name)
+		result, err := checkpoint.Load(context.Background(), name)
 		if err != nil {
 			t.Errorf("load %s: %v", name, err)
 		}

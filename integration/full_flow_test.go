@@ -239,11 +239,13 @@ type UserState struct {
 
 type CreateUser struct {
 	*command.BasicCommand
+
 	Name string
 }
 
 type GetUser struct {
 	*query.BasicQuery
+
 	AggregateID id.AggregateID
 }
 

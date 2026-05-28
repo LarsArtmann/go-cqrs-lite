@@ -18,7 +18,7 @@ func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 
 	retryErr := event.NewTransient("test.transient", "retry me")
 
-	mw := CommandRetry(RetryConfig{
+	middleware := CommandRetry(RetryConfig{
 		MaxAttempts:  2,
 		InitialDelay: 10 * time.Millisecond,
 		MaxDelay:     10 * time.Millisecond,
@@ -28,7 +28,7 @@ func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 
 	callCount := 0
 
-	cmdHandler := mw(func(_ context.Context, _ command.Command) error {
+	cmdHandler := middleware(func(_ context.Context, _ command.Command) error {
 		callCount++
 
 		if callCount == 1 {
@@ -59,9 +59,9 @@ func TestWithLogger_RecoveryLogsPanic(t *testing.T) {
 
 	logger, logHandler := newTestLogger()
 
-	mw := CommandRecovery(WithLogger(logger))
+	middleware := CommandRecovery(WithLogger(logger))
 
-	cmdHandler := mw(func(_ context.Context, _ command.Command) error {
+	cmdHandler := middleware(func(_ context.Context, _ command.Command) error {
 		panic("test panic")
 	})
 
@@ -84,11 +84,11 @@ func TestWithLogger_ValidationLogsFailure(t *testing.T) {
 
 	validationErr := errors.New("invalid command")
 
-	mw := CommandValidation(func(_ command.Command) error {
+	middleware := CommandValidation(func(_ command.Command) error {
 		return validationErr
 	}, WithLogger(logger))
 
-	cmdHandler := mw(func(_ context.Context, _ command.Command) error {
+	cmdHandler := middleware(func(_ context.Context, _ command.Command) error {
 		return nil
 	})
 
@@ -107,7 +107,7 @@ func TestWithLogger_ValidationLogsFailure(t *testing.T) {
 func TestWithLogger_NoLogger_NoPanic(t *testing.T) {
 	t.Parallel()
 
-	mw := CommandRetry(RetryConfig{
+	middleware := CommandRetry(RetryConfig{
 		MaxAttempts:  2,
 		InitialDelay: 10 * time.Millisecond,
 		MaxDelay:     10 * time.Millisecond,
@@ -117,7 +117,7 @@ func TestWithLogger_NoLogger_NoPanic(t *testing.T) {
 
 	callCount := 0
 
-	cmdHandler := mw(func(_ context.Context, _ command.Command) error {
+	cmdHandler := middleware(func(_ context.Context, _ command.Command) error {
 		callCount++
 
 		return event.NewTransient("test.transient", "always fail")

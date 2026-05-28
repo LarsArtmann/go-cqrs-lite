@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"io"
 	"log/slog"
 	"testing"
 
@@ -22,7 +21,7 @@ func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
 }
 
 func BenchmarkCommandLogging(b *testing.B) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	logger := slog.New(slog.DiscardHandler)
 	benchCommandMiddleware(b, CommandLogging(logger))
 }
 

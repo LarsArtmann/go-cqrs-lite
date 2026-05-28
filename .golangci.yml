@@ -242,6 +242,7 @@ linters:
       - path: integration/
         linters:
           - staticcheck
+          - gocognit
       - path: example/
         linters:
           - forbidigo
@@ -260,6 +261,33 @@ linters:
         linters:
           - wrapcheck
           - err113
+      - path: catalog/eventcatalog/
+        linters:
+          - dupl
+          - exhaustruct
+          - gocognit
+          - nonamedreturns
+          - varnamelen
+          - wsl_v5
+      - path: catalog/(d2|asyncapi|openapi)/
+        linters:
+          - exhaustruct
+          - nlreturn
+          - nolintlint
+      - path: catalog/registry.go$
+        linters:
+          - exhaustruct
+      - path: catalog/registry_copy.go$
+        linters:
+          - varnamelen
+      - path: catalog/registry_helpers.go$
+        linters:
+          - varnamelen
+      - path: catalog/.*_test.go$
+        linters:
+          - usestdlibvars
+          - nolintlint
+          - varnamelen
       - path: storage/
         linters:
           - dupl
@@ -271,6 +299,12 @@ linters:
           - tagliatelle
           - varnamelen
           - wrapcheck
+          - nlreturn
+          - noinlineerr
+          - dupword
+          - forcetypeassert
+          - rowserrcheck
+          - wsl_v5
       - path: sync/
         linters:
           - modernize
