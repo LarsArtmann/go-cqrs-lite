@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -38,8 +39,9 @@ func (o *FakeOutbox) Append(_ context.Context, events []event.Event) error {
 	}
 
 	o.Entries = append(o.Entries, event.OutboxEntry{
-		ID:     event.NewOutboxID(fmt.Sprintf("outbox-%d", o.nextID)),
-		Events: events,
+		ID:        event.NewOutboxID(fmt.Sprintf("outbox-%d", o.nextID)),
+		Events:    events,
+		CreatedAt: time.Now(),
 	})
 	o.nextID++
 

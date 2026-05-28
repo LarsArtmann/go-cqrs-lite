@@ -97,7 +97,7 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 
 	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
 
-	query := fmt.Sprintf(`SELECT id, events FROM `+tableOutbox+`
+	query := fmt.Sprintf(`SELECT id, events, created_at FROM `+tableOutbox+`
 		WHERE status = %s
 		ORDER BY created_at ASC
 		LIMIT %s`, p1, p2)
@@ -112,7 +112,7 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 		_ = rows.Close()
 	}()
 
-	return scanOutboxEntries(rows)
+	return scanOutboxEntries(rows, o.dialect)
 }
 
 // Ack removes outbox entries by their IDs.

@@ -123,13 +123,13 @@ func TestSQLOutbox_PollPending(t *testing.T) {
 		t.Fatalf("marshal events: %v", err)
 	}
 
-	pollQuery := `SELECT id, events FROM outbox
+	pollQuery := `SELECT id, events, created_at FROM outbox
 		WHERE status = $1
 		ORDER BY created_at ASC
 		LIMIT $2`
 
-	rows := sqlmock.NewRows([]string{"id", "events"}).
-		AddRow(evt.ID().String(), eventsJSON)
+	rows := sqlmock.NewRows([]string{"id", "events", "created_at"}).
+		AddRow(evt.ID().String(), eventsJSON, time.Now())
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
 		WithArgs(string(OutboxStatusPending), 10).
@@ -152,6 +152,10 @@ func TestSQLOutbox_PollPending(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(entries[0].Events))
 	}
 
+	if entries[0].CreatedAt.IsZero() {
+		t.Fatal("expected CreatedAt to be set")
+	}
+
 	if entries[0].Events[0].Type() != evt.Type() {
 		t.Fatalf("expected event type %s, got %s", evt.Type(), entries[0].Events[0].Type())
 	}
@@ -162,14 +166,14 @@ func TestSQLOutbox_PollPending_Empty(t *testing.T) {
 
 	outbox, mock := newTestOutbox(t)
 
-	pollQuery := `SELECT id, events FROM outbox
+	pollQuery := `SELECT id, events, created_at FROM outbox
 		WHERE status = $1
 		ORDER BY created_at ASC
 		LIMIT $2`
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
 		WithArgs(string(OutboxStatusPending), 10).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "events"}))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "events", "created_at"}))
 
 	entries, err := outbox.PollPending(t.Context(), 10)
 	if err != nil {

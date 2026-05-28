@@ -64,8 +64,9 @@ func (o *MemoryOutboxStore) PollPending(_ context.Context, limit int) ([]event.O
 
 	for _, entry := range o.entries {
 		result = append(result, event.OutboxEntry{
-			ID:     entry.id,
-			Events: append([]event.Event(nil), entry.events...),
+			ID:        entry.id,
+			Events:    append([]event.Event(nil), entry.events...),
+			CreatedAt: entry.createdAt,
 		})
 
 		if len(result) >= limit {

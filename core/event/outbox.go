@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"io"
+	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
 )
@@ -17,8 +18,9 @@ func NewOutboxID(s string) OutboxID { return cbid.NewID[outboxMarker, string](s)
 
 // OutboxEntry represents a batch of events staged for reliable publishing.
 type OutboxEntry struct {
-	ID     OutboxID
-	Events []Event
+	ID        OutboxID
+	Events    []Event
+	CreatedAt time.Time
 }
 
 // Outbox persists events for reliable eventual publishing.

@@ -82,19 +82,26 @@ func reconstructOutboxEvent(row outboxEvent) (event.Event, error) {
 	)
 }
 
-func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
+func scanOutboxEntries(rows *sql.Rows, d Dialect) ([]event.OutboxEntry, error) {
 	var entries []event.OutboxEntry
 
 	for rows.Next() {
 		var (
 			idStr       string
 			eventsBytes []byte
+			timeDest    = d.ScanTimeDest()
 		)
 
-		err := rows.Scan(&idStr, &eventsBytes)
+		err := rows.Scan(&idStr, &eventsBytes, timeDest)
 		if err != nil {
 			return nil, event.WrapInfrastructure(err, "storage.scan_outbox",
 				"scan outbox row")
+		}
+
+		createdAt, err := d.ParseTime(timeDest)
+		if err != nil {
+			return nil, event.WrapCorruption(err, "storage.parse_outbox_created_at",
+				"parse created_at for outbox entry "+idStr)
 		}
 
 		events, err := unmarshalOutboxEvents(eventsBytes)
@@ -104,8 +111,9 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 		}
 
 		entries = append(entries, event.OutboxEntry{
-			ID:     event.NewOutboxID(idStr),
-			Events: events,
+			ID:        event.NewOutboxID(idStr),
+			Events:    events,
+			CreatedAt: createdAt,
 		})
 	}
 
