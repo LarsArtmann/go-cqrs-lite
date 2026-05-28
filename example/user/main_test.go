@@ -209,7 +209,7 @@ func TestReadModel_Projection(t *testing.T) {
 		t.Fatal("expected user in read model")
 	}
 
-	if rm.Email != "x@y.com" {
+	if readModelResult.Email != "x@y.com" {
 		t.Errorf("expected email x@y.com, got %s", readModelResult.Email)
 	}
 
@@ -226,9 +226,9 @@ func TestReadModel_Projection(t *testing.T) {
 		t.Fatalf("handle UserNameChanged: %v", err)
 	}
 
-	rm, _ = store.Get(aggID)
-	if rm.Name != "Y" {
-		t.Errorf("expected name Y, got %s", rm.Name)
+	readModelResult, _ = store.Get(aggID)
+	if readModelResult.Name != "Y" {
+		t.Errorf("expected name Y, got %s", readModelResult.Name)
 	}
 }
 
@@ -269,7 +269,7 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatal("expected user in read model after create")
 	}
 
-	if rm.Email != "test@example.com" {
+	if readModelResult.Email != "test@example.com" {
 		t.Errorf("expected email test@example.com, got %s", readModelResult.Email)
 	}
 
@@ -281,9 +281,9 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatalf("change name: %v", err)
 	}
 
-	rm, _ = readModel.Get(userID)
-	if rm.Name != "Updated User" {
-		t.Errorf("expected name Updated User, got %s", rm.Name)
+	readModelResult, _ = readModel.Get(userID)
+	if readModelResult.Name != "Updated User" {
+		t.Errorf("expected name Updated User, got %s", readModelResult.Name)
 	}
 
 	users := readModel.List()
@@ -322,7 +322,7 @@ func TestQueryDispatcher(t *testing.T) {
 		t.Fatalf("expected ReadModel, got %T", result)
 	}
 
-	if rm.Email != "q@test.com" {
+	if readModelResult.Email != "q@test.com" {
 		t.Errorf("expected email q@test.com, got %s", readModelResult.Email)
 	}
 

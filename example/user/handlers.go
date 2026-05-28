@@ -43,14 +43,25 @@ func registerQueryHandlers(
 	_ = query.RegisterTyped(
 		dispatcher, queryGetUser,
 		func(_ context.Context, q query.Query) (ReadModel, error) {
-			gq := q.(*GetUserQuery)
-
-			rm, ok := readModel.Get(gq.aggregateID)
+			getUserQuery, ok := q.(*GetUserQuery)
 			if !ok {
-				return rm, fmt.Errorf("user %s: %w", gq.aggregateID, event.ErrAggregateNotFound)
+				return ReadModel{}, fmt.Errorf(
+					"unexpected query type %T: %w",
+					q,
+					errUnexpectedQueryType,
+				)
 			}
 
-			return rm, nil
+			readModelResult, ok := readModel.Get(getUserQuery.aggregateID)
+			if !ok {
+				return readModelResult, fmt.Errorf(
+					"user %s: %w",
+					getUserQuery.aggregateID,
+					event.ErrAggregateNotFound,
+				)
+			}
+
+			return readModelResult, nil
 		},
 	)
 
@@ -65,7 +76,7 @@ func registerQueryHandlers(
 func registerBusHandlers(bus event.Bus, readModel *ReadModelStore, published *[]event.Event) {
 	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		*published = append(*published, evt)
-		readModel.Handle(context.Background(), evt)
+		_ = readModel.Handle(context.Background(), evt)
 
 		return nil
 	})
