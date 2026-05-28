@@ -40,14 +40,6 @@ func (s *FakeStore) LoadFromVersionFn(
 	return s
 }
 
-func (s *FakeStore) DeleteFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) error,
-) *FakeStore {
-	s.deleteFn = fn
-
-	return s
-}
-
 // CloseFn sets an optional override for Close calls.
 func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
 	s.closeFn = fn

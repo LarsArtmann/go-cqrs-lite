@@ -342,22 +342,6 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 	}
 }
 
-func TestSQLEventStore_Delete(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
-
-	mock.ExpectExec(regexp.QuoteMeta(
-		`DELETE FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
-	)).WithArgs("User", aggID).
-		WillReturnResult(sqlmock.NewResult(0, 3))
-
-	err := store.Delete(context.Background(), "User", aggID)
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-}
 
 func TestSQLEventStore_Close(t *testing.T) {
 	t.Parallel()
@@ -605,22 +589,6 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 	}
 }
 
-func TestSQLEventStore_Delete_Error(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
-
-	mock.ExpectExec(regexp.QuoteMeta(
-		`DELETE FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`,
-	)).WithArgs("User", aggID).
-		WillReturnError(errors.New("delete failed"))
-
-	err := store.Delete(context.Background(), "User", aggID)
-	if err == nil {
-		t.Fatal("expected error for delete failure")
-	}
-}
 
 func TestSchema_ContainsExpectedDDL(t *testing.T) {
 	ddl := Schema()

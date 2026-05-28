@@ -104,17 +104,6 @@ var _ = Describe("MemoryStore", func() {
 			})
 		})
 
-		Context("when I delete an aggregate", func() {
-			It("should remove all its events", func() {
-				events := []event.Event{makeMemEvent("Created", aggID, 1)}
-				Expect(store.Save(ctx, "TestAggregate", aggID, events, 0)).To(Succeed())
-
-				Expect(store.Delete(ctx, "TestAggregate", aggID)).To(Succeed())
-
-				_, err := store.Load(ctx, "TestAggregate", aggID)
-				Expect(err).To(MatchError(event.ErrAggregateNotFound))
-			})
-		})
 
 		Context("when I close the store", func() {
 			It("should reject further operations", func() {

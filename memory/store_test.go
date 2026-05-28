@@ -89,27 +89,6 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	testhelpers.AssertLen(t, "events from version", events, 2)
 }
 
-func TestMemoryStore_Delete(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	ctx := context.Background()
-
-	aggID := id.MustParseAggregateID("01HK154ND8R5WR0KARTF6H4S1B")
-	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
-
-	err := store.Delete(ctx, "User", aggID)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	_, err = store.Load(ctx, "User", aggID)
-	if err == nil {
-		t.Error("expected aggregate not found after delete")
-	}
-}
-
 func TestMemoryStore_Closed(t *testing.T) {
 	t.Parallel()
 
@@ -152,19 +131,6 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 	_, err := store.LoadFromVersion(ctx, "User", aggID, 0)
 	if err == nil {
 		t.Error("expected store closed error on LoadFromVersion")
-	}
-}
-
-func TestMemoryStore_ClosedDelete(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	ctx := context.Background()
-	_ = store.Close()
-
-	err := store.Delete(ctx, "User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
-	if err == nil {
-		t.Error("expected store closed error on Delete")
 	}
 }
 

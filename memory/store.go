@@ -25,7 +25,7 @@ var (
 	_ event.SeekableJournal  = (*MemoryStore)(nil)
 	_ event.GlobalLoader     = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
 	_ event.PositionalLoader = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
-	_ event.BackwardsLoader  = (*MemoryStore)(nil)
+	_ event.BackwardsSource = (*MemoryStore)(nil)
 	_ io.Closer              = (*MemoryStore)(nil)
 )
 
@@ -84,26 +84,6 @@ func (s *MemoryStore) AppendBatch(
 
 	key := event.StreamKey(aggregateType, aggregateID)
 	s.events[key] = append(s.events[key], events...)
-
-	return nil
-}
-
-// Delete removes all events for an aggregate.
-func (s *MemoryStore) Delete(
-	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) error {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return event.WrapInfrastructure(err, "memory.delete_failed", "memory store delete")
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	key := event.StreamKey(aggregateType, aggregateID)
-	delete(s.events, key)
 
 	return nil
 }

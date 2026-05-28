@@ -152,5 +152,5 @@ var (
 	_ event.PositionalLoader = (*SQLEventStore)(
 		nil,
 	) //nolint:staticcheck // backward-compat assertion
-	_ event.BackwardsLoader = (*SQLEventStore)(nil)
+	_ event.BackwardsSource = (*SQLEventStore)(nil)
 )

@@ -2,7 +2,11 @@ module github.com/larsartmann/go-cqrs-lite/saga
 
 go 1.26.3
 
-require github.com/larsartmann/go-cqrs-lite/core v1.6.0
+require (
+	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/onsi/ginkgo/v2 v2.29.0
+	github.com/onsi/gomega v1.41.0
+)
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -13,8 +17,6 @@ require (
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/onsi/ginkgo/v2 v2.29.0 // indirect
-	github.com/onsi/gomega v1.41.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.54.0 // indirect

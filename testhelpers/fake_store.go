@@ -26,7 +26,6 @@ type FakeStore struct {
 	loadToVersionFn   func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error)
 	loadToTimestampFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxTime time.Time) ([]event.Event, error)
 	appendBatchFn     func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error
-	deleteFn          func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
 	closeFn           func() error
 	readAllFn         func() ([]event.Event, error)
 	readFromFn        func(afterEventID id.EventID, limit int) ([]event.Event, error)
@@ -197,29 +196,6 @@ func (s *FakeStore) LoadToTimestamp(
 	return filtered, nil
 }
 
-// Delete removes all events for an aggregate.
-func (s *FakeStore) Delete(
-	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) error {
-	s.mu.RLock()
-	fn := s.deleteFn
-	s.mu.RUnlock()
-
-	if fn != nil {
-		return fn(aggregateType, aggregateID)
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	key := event.StreamKey(aggregateType, aggregateID)
-	delete(s.events, key)
-
-	return nil
-}
-
 // ReadAll returns all events across all aggregates.
 func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	s.mu.RLock()
@@ -299,9 +275,6 @@ func (s *FakeStore) Close() error {
 
 // LoadFromVersionFn sets an optional override for LoadFromVersion calls.
 // Return an error to simulate load-from-version failures.
-
-// DeleteFn sets an optional override for Delete calls.
-// Return an error to simulate delete failures.
 
 var (
 	_ event.Store           = (*FakeStore)(nil)

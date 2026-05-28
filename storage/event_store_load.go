@@ -131,13 +131,3 @@ func (s *SQLEventStore) LoadBackwards(
 	)
 }
 
-// Delete removes all events for an aggregate.
-func (s *SQLEventStore) Delete(
-	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) error {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
-
-	return deleteByAggregate(s.db, ctx, aggregateType, aggregateID, tableEvents, p1, p2, "events")
-}
