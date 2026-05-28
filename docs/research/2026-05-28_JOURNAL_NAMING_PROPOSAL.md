@@ -1,6 +1,7 @@
 # Journal Naming Proposal
 
 **Date:** 2026-05-28
+**Status:** ✅ Implemented (backward-compatible deprecation)
 **Context:** Rename `GlobalLoader` / `PositionalLoader` to better reflect their role in event sourcing
 
 ---

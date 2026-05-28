@@ -68,7 +68,7 @@
 - [x] ~~Improve testhelpers coverage~~ — DONE (94.8%)
 - [x] ~~Zero middleware lint~~ — DONE
 - [x] ~~Formally deprecate aggregate package~~ — DONE
-- [x] ~~Test MemoryStore.LoadAll~~ — DONE
+- [x] ~~Test MemoryStore.ReadAll~~ — DONE
 - [x] ~~Add clock injection option WithClock~~ — DONE
 - [x] ~~Refactor scanEvents~~ — DONE
 - [x] ~~Improve catalog/openapi coverage~~ — DONE (94.4%)
@@ -101,10 +101,10 @@
 - [x] ~~Add publish-side event middleware~~ — DONE (Session 112b, event.PublishMiddleware + Bus.UsePublish)
 - [x] ~~Log OutboxPublisher poll errors~~ — DONE
 - [x] ~~Add Store.LoadToVersion to interface~~ — DONE
-- [x] ~~Add PositionalLoader interface~~ — DONE
+- [x] ~~Add SeekableJournal interface~~ — DONE
 - [x] ~~Add Store.LoadToTimestamp to interface~~ — DONE
 - [x] ~~Add timestamp index to SQL DDL~~ — DONE
-- [x] ~~Auto-detect PositionalLoader in projection Runner~~ — DONE
+- [x] ~~Auto-detect SeekableJournal in projection Runner~~ — DONE
 - [x] ~~Consolidate Root.LoadEvents vs Core.LoadFromHistory~~ — MOOT (aggregate deleted)
 - [x] ~~Unify aggregate/decider repository persistence logic~~ — DONE
 - [x] ~~Implement Repository.LoadAtVersion / LoadAtTime~~ — DONE
@@ -188,7 +188,7 @@
 - [ ] Add background polling for InMemoryRunner (currently push-model only) (source: FEATURES)
 - [ ] Increase projection coverage to 95%+ (source: SESSION_45)
 - [x] ~~Implement projection.Runner.Close()~~ — DONE
-- [x] ~~Test MemoryStore.LoadAll~~ — DONE
+- [x] ~~Test MemoryStore.ReadAll~~ — DONE
 - [x] ~~Test projection.Runner.Close()~~ — VERIFIED (95.3%)
 - [x] ~~Add LifecycleMixin to memory/checkpoint + memory/outbox~~ — DONE
 - [x] ~~Consolidate MemoryBus handler storage~~ — VERIFIED (correct as-is)

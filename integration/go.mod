@@ -69,4 +69,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/projection => ../projection
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
+	github.com/larsartmann/go-cqrs-lite/saga => ../saga
 )

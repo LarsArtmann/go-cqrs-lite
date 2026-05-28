@@ -68,9 +68,9 @@
 | Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
 | Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
 | ISP sub-interfaces    | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                                                                                | ✅     |
-| GlobalLoader          | `LoadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
+| Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
 | TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
-| PositionalLoader      | `LoadAllFromPosition(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                      | ✅     |
+| SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                 | ✅     |
 | Time-travel queries   | `LoadToVersion(ctx, aggType, aggID, maxVersion)` and `LoadToTimestamp(ctx, aggType, aggID, maxTime)` — read aggregate state at a point in time                                       | ✅     |
 | JSON Codec            | `JSONcodec` using `encoding/json`                                                                                                                                                    | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
@@ -127,7 +127,7 @@
 | InMemoryRunner            | Single-process runner with per-projection checkpointing, thread-safe   | ✅     |
 | HandleParallel            | Concurrent dispatch to all matching projections via goroutines         | ✅     |
 | Event type filtering      | Runner filters events by `Projection.EventTypes()`                     | ✅     |
-| Position-based replay     | Auto-detects `PositionalLoader`, skips loaded events via position      | ✅     |
+| Position-based replay     | Auto-detects `SeekableJournal`, skips loaded events via position       | ✅     |
 | OutboxPublisher           | Background goroutine polls outbox and publishes to bus                 | ✅     |
 | PublishNow                | Synchronous poll-publish-ack for testing or manual triggering          | ✅     |
 
@@ -337,7 +337,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Optimistic concurrency          | `Save` checks version in transaction                                              | ✅     |
 | AppendBatch                     | Appends without concurrency check                                                 | ✅     |
 | Load / LoadFromVersion / Delete | All implemented for both engines                                                  | ✅     |
-| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `LoadAllFromPosition` with indexes            | ✅     |
+| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `ReadFrom` with indexes                       | ✅     |
 | Composite timestamp index       | `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)`                 | ✅     |
 | Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata                        | ✅     |
 | SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete                  | ✅     |
