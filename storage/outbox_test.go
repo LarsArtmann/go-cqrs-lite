@@ -286,7 +286,8 @@ func newTestEvent(
 ) *event.ImmutableEvent {
 	t.Helper()
 
-	return testEventWithAggID(t, event.Type(eventType), aggID, version,
+	return testEventWithAggID(
+		t, event.Type(eventType), aggID, version,
 		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
 	)
 }

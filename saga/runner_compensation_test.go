@@ -21,7 +21,8 @@ func TestRunner_WithRetryPolicy(t *testing.T) {
 		return event.NewTransient("test.transient", "temporary failure")
 	})
 
-	runner, instance, _ := setupTestSaga(t, dispatcher,
+	runner, instance, _ := setupTestSaga(
+		t, dispatcher,
 		[]saga.Step{{Name: "create", Action: newTestCommand}},
 		saga.WithRetryPolicy(1, 10*time.Millisecond),
 		saga.WithRetryMultiplier(3.0),

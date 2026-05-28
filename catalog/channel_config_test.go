@@ -116,7 +116,8 @@ func TestBuilder_ConfigureChannel_Badges(t *testing.T) {
 func TestBuilder_ConfigureChannel_MultipleOptions(t *testing.T) {
 	t.Parallel()
 
-	ch := newConfiguredChannel(t,
+	ch := newConfiguredChannel(
+		t,
 		catalog.ChannelAddress("order.events"),
 		catalog.ChannelProtocols("kafka"),
 		catalog.ChannelDeliveryGuarantee("exactly-once"),

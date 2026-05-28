@@ -165,7 +165,10 @@ func TestExporter_Export_Query(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	if !strings.Contains(readExported(t, tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx"), "id: GetProduct") {
+	if !strings.Contains(
+		readExported(t, tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx"),
+		"id: GetProduct",
+	) {
 		t.Errorf("query file missing id")
 	}
 }
@@ -229,11 +232,19 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		t.Error("svc-b directory not created")
 	}
 
-	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx")); os.IsNotExist(err) {
+	if _, err := os.Stat(
+		filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx"),
+	); os.IsNotExist(
+		err,
+	) {
 		t.Error("CmdA command file not created")
 	}
 
-	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx")); os.IsNotExist(err) {
+	if _, err := os.Stat(
+		filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx"),
+	); os.IsNotExist(
+		err,
+	) {
 		t.Error("EvtB event file not created")
 	}
 }
