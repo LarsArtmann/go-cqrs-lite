@@ -11,13 +11,13 @@ import (
 )
 
 func ExampleNewMultiSigner() {
-	_, privKey, _ := ed25519.GenerateKey(nil)
-	edSigner, _ := signing.NewEd25519(privKey)
+	key := []byte("example-key-with-at-least-32-bytes!")
+	signerverifier, _ := signing.NewHMAC(key)
 
 	deviceMulti, err := signing.NewMultiSigner(
 		signing.Actor("device"),
-		signing.AlgorithmEd25519,
-		edSigner,
+		signing.AlgorithmHMACSHA256,
+		signerverifier,
 	)
 	if err != nil {
 		panic(err)
@@ -49,8 +49,13 @@ func ExampleVerifyAll() {
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
 	serverSigner, _ := signing.NewEd25519(serverPriv)
 
-	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner)
-	serverMulti, _ := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmEd25519, serverSigner)
+	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
+	serverVerifier, _ := signing.NewEd25519Verifier(serverPub)
+
+	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
+		signing.WithVerifier(deviceVerifier))
+	serverMulti, _ := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmEd25519, serverSigner,
+		signing.WithVerifier(serverVerifier))
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("order.shipped", aggID, "Order", 1, []byte(`{}`))
@@ -60,9 +65,6 @@ func ExampleVerifyAll() {
 	step2, _ := serverMulti.Sign(step1)
 
 	// Verify all signatures using their respective public key verifiers
-	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
-	serverVerifier, _ := signing.NewEd25519Verifier(serverPub)
-
 	verifiers := map[signing.Actor]signing.Verifier{
 		signing.Actor("device"): deviceVerifier,
 		signing.Actor("server"): serverVerifier,
@@ -83,8 +85,9 @@ func ExampleMultiVerifyMiddlewareFor() {
 	devicePub := devicePriv.Public().(ed25519.PublicKey) //nolint:forcetypeassert // ed25519.GenerateKey always returns ed25519.PublicKey
 
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
-	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner)
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
+	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
+		signing.WithVerifier(deviceVerifier))
 
 	// Create middleware that verifies the "device" actor's signature
 	verifyMiddleware := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)

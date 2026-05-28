@@ -165,6 +165,10 @@ func NewMultiSigner(
 		return nil, event.NewRejection("signing.nil_signer", "signer cannot be nil")
 	}
 
+	if algorithm == "" {
+		return nil, event.NewRejection("signing.empty_algorithm", "algorithm cannot be empty")
+	}
+
 	var verifier Verifier
 	if sv, ok := signer.(Verifier); ok {
 		verifier = sv
@@ -180,6 +184,10 @@ func NewMultiSigner(
 
 	for _, opt := range opts {
 		opt(multi)
+	}
+
+	if multi.verifier == nil {
+		return nil, event.NewRejection("signing.nil_verifier", "verifier cannot be nil; pass WithVerifier for Ed25519 signers")
 	}
 
 	if multi.clock == nil {
@@ -219,13 +227,19 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 		multiSig = MultiSignature{Entries: []SignatureEntry{}}
 	}
 
-	multiSig.Entries = removeActor(multiSig.Entries, m.actor)
-	multiSig.Entries = append(multiSig.Entries, SignatureEntry{
+	entry := SignatureEntry{
 		Actor:     m.actor,
 		Algorithm: m.algorithm,
 		Sig:       sig,
 		SignedAt:  m.clock(),
-	})
+	}
+
+	if validateErr := entry.Validate(); validateErr != nil {
+		return nil, fmt.Errorf("validate signature entry: %w", validateErr)
+	}
+
+	multiSig.Entries = removeActor(multiSig.Entries, m.actor)
+	multiSig.Entries = append(multiSig.Entries, entry)
 
 	return attachMultiSignature(evt, multiSig)
 }

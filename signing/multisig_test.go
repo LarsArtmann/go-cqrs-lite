@@ -889,6 +889,25 @@ func TestNewMultiSigner_Validation(t *testing.T) {
 		}
 	})
 
+	t.Run("rejects empty algorithm", func(t *testing.T) {
+		t.Parallel()
+		_, err := signing.NewMultiSigner(signing.Actor("server"), "", signer)
+		if err == nil {
+			t.Fatal("expected error for empty algorithm")
+		}
+	})
+
+	t.Run("rejects nil verifier for Ed25519", func(t *testing.T) {
+		t.Parallel()
+		_, privKey, _ := ed25519.GenerateKey(nil)
+		edSigner, _ := signing.NewEd25519(privKey)
+
+		_, err := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, edSigner)
+		if err == nil {
+			t.Fatal("expected error for nil verifier with Ed25519 signer")
+		}
+	})
+
 	t.Run("rejects nil clock", func(t *testing.T) {
 		t.Parallel()
 		_, err := signing.NewMultiSigner(
