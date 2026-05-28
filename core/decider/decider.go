@@ -33,6 +33,7 @@ type Repository[State any] struct {
 	snapshotStore    event.SnapshotStore
 	codec            event.Codec
 	snapshotStrategy event.SnapshotStrategy
+	enricher         event.ContextEnricher
 	decider          Decider[State]
 }
 
@@ -106,6 +107,8 @@ func (r *Repository[State]) Execute(
 	if len(newEvents) == 0 {
 		return nil
 	}
+
+	r.applyEnricher(ctx, newEvents)
 
 	if ts, ok := r.store.(event.TransactionalStore); ok && r.outbox != nil {
 		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion)
@@ -191,4 +194,26 @@ func (r *Repository[State]) Delete(
 	}
 
 	return nil
+}
+
+func (r *Repository[State]) applyEnricher(ctx context.Context, events []event.Event) {
+	if r.enricher == nil {
+		return
+	}
+
+	opts := r.enricher(ctx)
+	if len(opts) == 0 {
+		return
+	}
+
+	for _, evt := range events {
+		immutable, ok := evt.(*event.ImmutableEvent)
+		if !ok {
+			continue
+		}
+
+		for _, opt := range opts {
+			opt(immutable)
+		}
+	}
 }

@@ -148,7 +148,7 @@
 - [ ] Add PublishedAt to OutboxEntry — no way to measure outbox lag (source: METADATA_ANALYSIS)
 - [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
 - [ ] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
-- [ ] Make time.Now() injectable — causes non-deterministic tests (source: SESSION_74)
+- [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
 - [ ] Add ContextEnricher wiring to repositories (source: SESSION_59)
 - [x] ~~Add event.Event.Clone()~~ — DONE
 - [ ] Add event.Context propagation — thread ctx through NewEvent, PublishChanges (source: SESSION_82)

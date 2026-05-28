@@ -40,3 +40,11 @@ func WithSnapshotStrategy[State any](strategy event.SnapshotStrategy) Repository
 		r.snapshotStrategy = strategy
 	}
 }
+
+// WithEnricher sets a context enricher that automatically enriches events
+// with metadata derived from context (correlation IDs, user IDs, etc.).
+func WithEnricher[State any](enricher event.ContextEnricher) RepositoryOption[State] {
+	return func(r *Repository[State]) {
+		r.enricher = enricher
+	}
+}

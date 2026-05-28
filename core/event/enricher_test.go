@@ -12,7 +12,7 @@ func TestEnrichEvent(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	enricher := contextEnricher(func(_ context.Context) []Option {
+	enricher := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
 			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
 			WithUserID(id.MustParseUserID("01JBUSER0ID000000000000001")),
@@ -41,19 +41,19 @@ func TestCompositeEnricher(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	first := contextEnricher(func(_ context.Context) []Option {
+	first := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
 			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
 		}
 	})
 
-	second := contextEnricher(func(_ context.Context) []Option {
+	second := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
 			WithSource("test-service"),
 		}
 	})
 
-	composite := compositeEnricher(first, second)
+	composite := CompositeEnricher(first, second)
 
 	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {
@@ -75,7 +75,7 @@ func TestCompositeEnricher(t *testing.T) {
 func TestCompositeEnricher_Empty(t *testing.T) {
 	t.Parallel()
 
-	composite := compositeEnricher()
+	composite := CompositeEnricher()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 

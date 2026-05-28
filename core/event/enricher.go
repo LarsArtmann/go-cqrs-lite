@@ -2,9 +2,13 @@ package event
 
 import "context"
 
-type contextEnricher func(ctx context.Context) []Option
+// ContextEnricher extracts event options from a context.
+// Use WithEnricher on repositories to automatically enrich events
+// with context-derived metadata (correlation IDs, user IDs, etc.).
+type ContextEnricher func(ctx context.Context) []Option
 
-func compositeEnricher(enrichers ...contextEnricher) contextEnricher {
+// CompositeEnricher combines multiple enrichers into one.
+func CompositeEnricher(enrichers ...ContextEnricher) ContextEnricher {
 	return func(ctx context.Context) []Option {
 		opts := make([]Option, 0, len(enrichers))
 
@@ -16,7 +20,7 @@ func compositeEnricher(enrichers ...contextEnricher) contextEnricher {
 	}
 }
 
-func enrichEvent(ctx context.Context, evt *ImmutableEvent, enricher contextEnricher) {
+func enrichEvent(ctx context.Context, evt *ImmutableEvent, enricher ContextEnricher) {
 	for _, opt := range enricher(ctx) {
 		opt(evt)
 	}
