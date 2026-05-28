@@ -180,6 +180,9 @@ func (a *PebbleEventStore) LoadToVersion(
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
+// Uses early termination: since events are stored in version order and
+// OccurredAt is monotonically increasing, the iterator stops as soon as it
+// encounters an event past maxTime — avoiding a full aggregate scan.
 func (a *PebbleEventStore) LoadToTimestamp(
 	_ context.Context,
 	aggregateType event.AggregateType,
@@ -189,28 +192,47 @@ func (a *PebbleEventStore) LoadToTimestamp(
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
-	all, err := a.iterateEvents(prefix, upperBound)
+	iter, err := a.db.NewIter(&pebble.IterOptions{
+		LowerBound: prefix,
+		UpperBound: upperBound,
+	})
 	if err != nil {
+		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
+			"failed to create iterator for LoadToTimestamp")
+	}
+
+	defer func() { _ = iter.Close() }()
+
+	var events []event.Event
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		evt, err := a.deserializeEvent(iter.Value())
+		if err != nil {
+			if a.logger != nil {
+				a.logger.Warn("corrupt event in pebble store",
+					"key", string(iter.Key()), "error", err)
+			}
+
+			return nil, event.WrapCorruption(err, "pebble.corrupt_event",
+				"corrupt event at key "+string(iter.Key()))
+		}
+
+		if evt.OccurredAt().After(maxTime) {
+			break
+		}
+
+		events = append(events, evt)
+	}
+
+	if err := checkIteratorError(iter); err != nil {
 		return nil, err
 	}
 
-	if len(all) == 0 {
+	if len(events) == 0 {
 		return nil, event.ErrAggregateNotFound
 	}
 
-	var filtered []event.Event
-
-	for _, e := range all {
-		if !e.OccurredAt().After(maxTime) {
-			filtered = append(filtered, e)
-		}
-	}
-
-	if len(filtered) == 0 {
-		return nil, event.ErrAggregateNotFound
-	}
-
-	return filtered, nil
+	return events, nil
 }
 
 func (a *PebbleEventStore) aggregateLockKey(
