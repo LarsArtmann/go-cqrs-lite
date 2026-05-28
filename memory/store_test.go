@@ -424,6 +424,7 @@ func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
 	}
 }
 
+//nolint:dupl // backward-compat test mirrors ReadFrom
 func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	t.Parallel()
 

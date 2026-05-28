@@ -44,7 +44,6 @@ func TestMemoryStore_LoadAll(t *testing.T) {
 	}
 }
 
-//nolint:dupl // backward-compat test mirrors ReadAll_Empty
 func TestMemoryStore_LoadAll_Empty(t *testing.T) {
 	t.Parallel()
 
@@ -61,7 +60,6 @@ func TestMemoryStore_LoadAll_Empty(t *testing.T) {
 	}
 }
 
-//nolint:dupl // backward-compat test mirrors ReadAll_Closed
 func TestMemoryStore_LoadAll_Closed(t *testing.T) {
 	t.Parallel()
 

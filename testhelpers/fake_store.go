@@ -256,7 +256,7 @@ func (s *FakeStore) ReadFrom(
 		return fn(afterEventID, limit)
 	}
 
-	all, err := s.ReadAll(context.Background())
+	all, err := s.ReadAll(ctx)
 	if err != nil {
 		return nil, err
 	}
