@@ -2,18 +2,18 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-26 · **Module count:** 16 · **Go version:** 1.26.3
+**Last audited:** 2026-05-28 · **Module count:** 16 · **Go version:** 1.26.3
 
 ## Status Legend
 
-| Status                  | Meaning                                                    |
-| ----------------------- | ---------------------------------------------------------- |
-| ✅ FULLY_FUNCTIONAL     | Tested, production-quality, no known issues                |
-| ⚠️ PARTIALLY_FUNCTIONAL | Works for happy paths but has gaps or known bugs           |
-| 🔴 BROKEN               | Compiles but has correctness issues                        |
-| 🧪 TESTING_ONLY         | Works but is explicitly designed for tests, not production |
-| 📐 PLANNED              | Mentioned in docs/planning but no code exists              |
-| 💡 DEMO                 | Example code, not a reusable module                        |
+|| Status                  | Meaning                                                    |
+|| ----------------------- | ---------------------------------------------------------- |
+|| ✅ FULLY_FUNCTIONAL     | Tested, production-quality, no known issues                |
+|| ⚠️ PARTIALLY_FUNCTIONAL | Works for happy paths but has gaps or known bugs           |
+|| 🔴 BROKEN               | Compiles but has correctness issues                        |
+|| 🧪 TESTING_ONLY         | Works but is explicitly designed for tests, not production |
+|| 📐 PLANNED              | Mentioned in docs/planning but no code exists              |
+|| 💡 DEMO                 | Example code, not a reusable module                        |
 
 ---
 
@@ -23,32 +23,38 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/command"`
 
-| Feature              | Detail                                                                               | Status |
-| -------------------- | ------------------------------------------------------------------------------------ | ------ |
-| Command dispatch     | `Dispatcher.Dispatch(ctx, cmd)` routes to registered handler                         | ✅     |
-| Handler registration | `Dispatcher.Register(cmdType, handler)` with duplicate guard                         | ✅     |
-| Middleware chain     | `Dispatcher.Use(middleware...)` — applied at registration time, reverse order        | ✅     |
-| Lifecycle            | `Dispatcher.Close()` — rejects all ops after close                                   | ✅     |
-| Validation           | `New()` rejects empty type and zero aggregateID                                      | ✅     |
-| MustNew panic helper | `MustNew()` for test convenience                                                     | ✅     |
-| Catalog metadata     | `Catalogable` interface + `CatalogCore` embed for auto-documentation                 | ✅     |
-| TypedHandler[T]      | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command` | ✅     |
+|| Feature              | Detail                                                                               | Status |
+|| -------------------- | ------------------------------------------------------------------------------------ | ------ |
+|| Command dispatch     | `Dispatcher.Dispatch(ctx, cmd)` routes to registered handler                         | ✅     |
+|| Handler registration | `Dispatcher.Register(cmdType, handler)` with duplicate guard                         | ✅     |
+|| Middleware chain     | `Dispatcher.Use(middleware...)` — applied at registration time, reverse order        | ✅     |
+|| Lifecycle            | `Dispatcher.Close()` — rejects all ops after close                                   | ✅     |
+|| Validation           | `New()` rejects empty type and zero aggregateID                                      | ✅     |
+|| MustNew panic helper | `MustNew()` for test convenience                                                     | ✅     |
+|| TypedHandler[T]      | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command` | ✅     |
+|| Command metadata     | `Metadata` struct with CorrelationID, CausationID, UserID, RequestID                 | ✅     |
+|| Metadata options     | `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`                | ✅     |
+|| Catalog introspection| `CatalogDispatcher` embedded — auto-import entries from live dispatchers              | ✅     |
 
-**Coverage:** 94.7%
+**Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyCommandType`, `ErrNilAggregateID`, `ErrTypeAssertion`
+
+### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/query"`
 
-| Feature              | Detail                                                                           | Status |
-| -------------------- | -------------------------------------------------------------------------------- | ------ |
-| Query dispatch       | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                         | ✅     |
-| Typed dispatch       | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction | ✅     |
-| Handler registration | Same pattern as command — duplicate guard, lifecycle                             | ✅     |
-| Middleware chain     | Same pattern as command                                                          | ✅     |
-| Pagination           | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`            | ✅     |
-| Paginated results    | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`        | ✅     |
-| Catalog metadata     | `Catalogable` interface + `CatalogCore`                                          | ✅     |
+|| Feature              | Detail                                                                           | Status |
+|| -------------------- | -------------------------------------------------------------------------------- | ------ |
+|| Query dispatch       | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                         | ✅     |
+|| Typed dispatch       | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction | ✅     |
+|| Handler registration | Same pattern as command — duplicate guard, lifecycle                             | ✅     |
+|| Middleware chain     | Same pattern as command                                                          | ✅     |
+|| Pagination           | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`            | ✅     |
+|| Paginated results    | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`        | ✅     |
+|| TypedHandler[T]      | `RegisterTyped[T]` — type-safe handler returning `(T, error)`                    | ✅     |
+|| Catalog introspection| `CatalogDispatcher` embedded — same pattern as command                            | ✅     |
 
-**Defaults:** Page 1, PageSize 20, max 100. **Coverage:** 100.0%
+**Defaults:** Page 1, PageSize 20, max 100.
+**Sentinel errors:** `ErrQueryNotSupported`, `ErrDispatcherClosed`, `ErrEmptyQueryType`
 
 ---
 
@@ -56,118 +62,132 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/core/event"`
 
-| Feature               | Detail                                                                                                                                                                               | Status |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| Event creation        | `NewEvent()` with auto-generated `EventID` (ULID) and `time.Now()` timestamp                                                                                                         | ✅     |
-| Event builder         | `Builder` fluent API: `WithPayload`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `Build`, `MustBuild`                                                                      | ✅     |
-| Metadata              | `Metadata` struct: `CorrelationID`, `CausationID`, `UserID`, `RequestID`, `Source`, `IPAddress`, `UserAgent`, `Custom`                                                               | ✅     |
-| 12 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom` | ✅     |
-| Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                       | ✅     |
-| Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                          | ✅     |
-| Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version` — all parsed and validated                                                                                                             | ✅     |
-| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`                                                                                                                     | ✅     |
-| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `Delete`                                                                      | ✅     |
-| ISP sub-interfaces    | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                                                                                | ✅     |
-| Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
-| TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
-| SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                 | ✅     |
-| Time-travel queries   | `LoadToVersion(ctx, aggType, aggID, maxVersion)` and `LoadToTimestamp(ctx, aggType, aggID, maxTime)` — read aggregate state at a point in time                                       | ✅     |
-| JSON Codec            | `JSONcodec` using `encoding/json`                                                                                                                                                    | ✅     |
-| DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
-| DecodePayloads[T]     | `DecodePayloads[T](events, codec)` — batch payload deserialization                                                                                                                   | ✅     |
-| NewEvents             | `NewEvents(aggID, aggType, version, types, payloads)` — batch event creation with auto-marshal                                                                                       | ✅     |
-| NewTypedProjection[T] | `NewTypedProjection[T](name, types, handler)` — auto-decoding projection handler                                                                                                     | ✅     |
-| Catalog metadata      | `Catalogable` interface + `CatalogCore`                                                                                                                                              | ✅     |
+|| Feature               | Detail                                                                                                                                                                               | Status |
+|| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+|| Event creation        | `NewEvent()` with auto-generated `EventID` (ULID) and `time.Now()` timestamp                                                                                                         | ✅     |
+|| Auto-marshal creation | `New()` — creates event from `any` payload (auto-json for structs/maps)                                                                                                              | ✅     |
+|| Batch creation        | `NewEvents()` / `MustNewEvents()` — batch event creation with auto-incrementing versions                                                                                             | ✅     |
+|| 15 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithClock`, `WithClientID`, `WithClientOccurredAt` | ✅ |
+|| Metadata              | `Metadata` struct: `CorrelationID`, `CausationID`, `UserID`, `RequestID`, `Source`, `IPAddress`, `UserAgent`, `Custom`                                                               | ✅     |
+|| Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                       | ✅     |
+|| Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                          | ✅     |
+|| Event.Clone()         | Deep copy of `ImmutableEvent`                                                                                                                                                        | ✅     |
+|| Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version`, `SchemaVersion` — all parsed and validated                                                                                            | ✅     |
+|| Version arithmetic    | `Version.Add`, `Sub`, `Mod`, `Cmp`, `IsPositive` — phantom type math                                                                                                                 | ✅     |
+|| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use`, `UsePublish`                                                                                                | ✅     |
+|| PublishMiddleware     | `Bus.UsePublish(mw)` — middleware for publish path                                                                                                                                    | ✅     |
+|| PublisherFunc adapter | `PublisherFunc` — function adapter for `Publisher`                                                                                                                                   | ✅     |
+|| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete`                                  | ✅     |
+|| ISP sub-interfaces    | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection                                                                                                | ✅     |
+|| Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                  | ✅     |
+|| SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                 | ✅     |
+|| BackwardsLoader       | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order                                                                                                         | ✅     |
+|| TransactionalStore    | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox                                                                                                | ✅     |
+|| StreamLoader          | `LoadStream(ctx, aggType, aggID)` returns `EventStream` — cursor-based memory-efficient iteration                                                                                    | ✅     |
+|| Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read aggregate state at a point in time                                                                                                      | ✅     |
+|| Snapshot support      | `SnapshotStore`, `Snapshot` struct, `SnapshotStrategy`, `EveryNEvents`, `MustEveryNEvents`, `ShouldSnapshot`, `SaveSnapshot`                                                         | ✅     |
+|| Outbox pattern        | `Outbox` interface + `OutboxEntry` + `OutboxID` branded type                                                                                                                          | ✅     |
+|| OutboxPublisher       | Background goroutine polls outbox and publishes to bus; `WithPollInterval`, `WithBatchSize`, `PublishNow` for sync                                                                    | ✅     |
+|| Projection interface  | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all)                                                                                                               | ✅     |
+|| BatchProjection       | Optional interface extending `Projection` with `HandleBatch` for throughput                                                                                                           | ✅     |
+|| InMemoryRunner        | Single-process runner with per-projection checkpointing, thread-safe (DEPRECATED)                                                                                                    | ✅     |
+|| Context replay marker | `WithReplay(ctx, true)` — marks context as replay; handlers can distinguish                                                                                                           | ✅     |
+|| JSON Codec            | `JSONcodec` using `encoding/json`                                                                                                                                                    | ✅     |
+|| DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                   | ✅     |
+|| DecodePayloads[T]     | `DecodePayloads[T](events, codec)` — batch payload deserialization                                                                                                                   | ✅     |
+|| Upcaster system       | `Upcaster` interface + `UpcasterRegistry` + `NewUpcaster` + `NewVersionedStore` — schema migration on load                                                                          | ✅     |
+|| Cycle detection       | UpcasterRegistry detects schema version revisits during upcast chain                                                                                                                  | ✅     |
+|| Clock injection       | `Clock` type + `WithClock` option for deterministic testing                                                                                                                           | ✅     |
+|| Error taxonomy        | 5-family: Rejection / Conflict / Transient / Infrastructure / Corruption; 13 helper funcs (`New*`, `Wrap*`, `Classify`, `IsRetryable`); 16 sentinel errors                           | ✅     |
+|| Publish helper        | `PublishChanges(ctx, Publisher, Outbox, []Event)` — publishes via outbox if configured, else directly                                                                                | ✅     |
 
 **Coverage:** 89.1%
 
+### Decider (Pure-Function Aggregate) ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/core/decider"`
+
+|| Feature                | Detail                                                                                          | Status |
+|| ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+|| Decider[State]         | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function aggregate pattern    | ✅     |
+|| Repository[State]      | `NewRepository[State](store, publisher, decider, opts...)` — manages aggregate lifecycle        | ✅     |
+|| Execute                | `Repository.Execute(ctx, aggID, aggType, decide)` — load → decide → save → publish              | ✅     |
+|| Load                   | `Repository.Load(ctx, aggID, aggType)` — returns `(State, Version, error)`                      | ✅     |
+|| Delete                 | `Repository.Delete(ctx, aggID, aggType)` — delegates to `store.Delete`                           | ✅     |
+|| LoadAtVersion          | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version             | ✅     |
+|| LoadAtTime             | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp                 | ✅     |
+|| Snapshot support       | `WithSnapshotStore` + `WithCodec` + `WithSnapshotStrategy` — loads snapshot then replays         | ✅     |
+|| Outbox support         | `WithOutbox` — atomic save + outbox via `TransactionalStore`                                     | ✅     |
+|| Context enrichment     | `WithEnricher` — injects metadata from context into events                                       | ✅     |
+
+**Sentinel errors:** `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
+
+### Aggregate Root (Traditional) ✅ FULLY_FUNCTIONAL
+
 > `import "github.com/larsartmann/go-cqrs-lite/core/aggregate"`
 
-| Feature                | Detail                                                                                          | Status |
-| ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| Aggregate root base    | `Core` provides `ID`, `Type`, `Version`, `RecordEvent`, `UncommittedChanges`, `LoadFromHistory` | ✅     |
-| Event sourcing         | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store)                | ✅     |
-| Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save`                                                 | ✅     |
-| Snapshot support       | `WithSnapshotStore` option — loads from snapshot then replays remaining events                  | ✅     |
-| Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                    | ✅     |
-| Snapshot codec         | `WithCodec` option for custom snapshot serialization                                            | ✅     |
-| Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
-| ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                     | ✅     |
-| Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
+|| Feature                | Detail                                                                                          | Status |
+|| ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+|| Aggregate root base    | `Core` provides `ID`, `Type`, `Version`, `RecordEvent`, `UncommittedChanges`, `LoadFromHistory` | ✅     |
+|| Event sourcing         | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store)                | ✅     |
+|| Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save`                                                 | ✅     |
+|| Snapshot support       | `WithSnapshotStore` option — loads from snapshot then replays remaining events                  | ✅     |
+|| Snapshot strategy      | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider                    | ✅     |
+|| Snapshot codec         | `WithCodec` option for custom snapshot serialization                                            | ✅     |
+|| Transactional outbox   | `WithOutbox` option — events go to outbox instead of direct bus publish                         | ✅     |
+|| ISP Publisher          | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible                     | ✅     |
+|| Defensive copies       | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array          | ✅     |
+
+> **Note:** The `aggregate` package is formally deprecated in favor of `decider`. It remains fully functional.
 
 **Coverage:** 95.9%
 
+### Branded IDs ✅ FULLY_FUNCTIONAL
+
 > `import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"`
 
-| Feature              | Detail                                                                                      | Status |
-| -------------------- | ------------------------------------------------------------------------------------------- | ------ |
-| Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                                 | ✅     |
-| ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                                          | ✅     |
-| 7 built-in types     | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID` | ✅     |
-| Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                            | ✅     |
-| All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                       | ✅     |
-| Convenience funcs    | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()`                            | ✅     |
-| Comparison           | `Equal`, `Compare` (lexicographic), `IsZero`, `Or` (default value)                          | ✅     |
-| fmt.Formatter        | `%s`, `%v`, `%#v`, `%q`                                                                     | ✅     |
-| Timestamp extraction | `ULID(id)` extracts embedded timestamp                                                      | ✅     |
+|| Feature              | Detail                                                                                      | Status |
+|| -------------------- | ------------------------------------------------------------------------------------------- | ------ |
+|| Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                                 | ✅     |
+|| ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                                          | ✅     |
+|| 7 built-in types     | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID` | ✅     |
+|| Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                            | ✅     |
+|| All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                       | ✅     |
+|| Convenience funcs    | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()`                            | ✅     |
+|| Comparison           | `Equal`, `Compare` (lexicographic), `IsZero`, `Or` (default value)                          | ✅     |
+|| fmt.Formatter        | `%s`, `%v`, `%#v`, `%q`                                                                     | ✅     |
+|| Timestamp extraction | `ULID(id)` extracts embedded timestamp                                                      | ✅     |
 
 **Coverage:** 97.8%
 
----
+### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
-### Projections ⚠️ PARTIALLY_FUNCTIONAL
+> `import "github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"`
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/event"`
+|| Feature              | Detail                                                                                        | Status |
+|| -------------------- | --------------------------------------------------------------------------------------------- | ------ |
+|| Generic Dispatcher   | `Dispatcher[H, M]` — type-safe handler + middleware dispatcher                                | ✅     |
+|| LifecycleMixin       | `Lifecycle` — `Close()` prevents all ops; thread-safe                                        | ✅     |
+|| CatalogDispatcher    | `CatalogDispatcher[KT, VT]` — embeddable catalog introspection for dispatchers                | ✅     |
+|| Middleware ordering   | Reverse-order middleware application at registration time                                     | ✅     |
 
-| Feature                   | Detail                                                                 | Status |
-| ------------------------- | ---------------------------------------------------------------------- | ------ |
-| Projection interface      | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅     |
-| ProjectionFunc            | Convenience adapter from a function                                    | ✅     |
-| CheckpointStore interface | `Load`/`Save` last processed event ID per projection                   | ✅     |
-| InMemoryRunner            | Single-process runner with per-projection checkpointing, thread-safe   | ✅     |
-| HandleParallel            | Concurrent dispatch to all matching projections via goroutines         | ✅     |
-| Event type filtering      | Runner filters events by `Projection.EventTypes()`                     | ✅     |
-| Position-based replay     | Auto-detects `SeekableJournal`, skips loaded events via position       | ✅     |
-| OutboxPublisher           | Background goroutine polls outbox and publishes to bus                 | ✅     |
-| PublishNow                | Synchronous poll-publish-ack for testing or manual triggering          | ✅     |
-
-**Gaps in InMemoryRunner:**
-
-- No retry or dead-letter mechanism
-- No background polling (push-model only via `Handle`)
-
-**Coverage:** 93.9%
-
-> `import "github.com/larsartmann/go-cqrs-lite/core/event"`
-
-| Feature                 | Detail                                                                                    | Status |
-| ----------------------- | ----------------------------------------------------------------------------------------- | ------ |
-| Upcaster interface      | `SourceType()`, `SourceVersion()`, `Upcast(Event) (*Core, error)`                         | ✅     |
-| UpcasterFunc            | Convenience adapter from a function                                                       | ✅     |
-| UpcasterRegistry        | Thread-safe, sorted by source version, chains upcasters sequentially with cycle detection | ✅️     |
-| Version-sorted chaining | Upcasters sorted by `SourceVersion()` ascending                                           | ✅     |
-
-| Cycle detection | Defense-in-depth: detects schema version revisits during upcast chain | ✅ |
-
-**Coverage:** Tested
+**Coverage:** 100.0%
 
 ---
 
-## In-Memory Implementations
-
-### Memory Store, Bus, Snapshot, Outbox, Checkpoint 🧪 TESTING_ONLY
+## In-Memory Implementations 🧪 TESTING_ONLY
 
 > `import "github.com/larsartmann/go-cqrs-lite/memory"`
 
-| Component             | Detail                                                                        | Status |
-| --------------------- | ----------------------------------------------------------------------------- | ------ |
-| MemoryStore           | `event.Store` implementation with optimistic concurrency, defensive copies    | 🧪     |
-| MemoryBus             | `event.Bus` with typed `Subscribe` + `SubscribeAll` + middleware              | 🧪     |
-| MemorySnapshotStore   | `event.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion` | 🧪     |
-| MemoryOutboxStore     | `event.Outbox` with append/poll/ack, auto-incrementing IDs                    | 🧪     |
-| MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing                          | 🧪     |
+|| Component             | Detail                                                                                                     | Status |
+|| --------------------- | ---------------------------------------------------------------------------------------------------------- | ------ |
+|| MemoryStore           | `event.Store` + `Journal` + `SeekableJournal` + `BackwardsLoader` + `StreamLoader` with defensive copies  | 🧪     |
+|| MemoryBus             | `event.Bus` with typed `Subscribe` + `SubscribeAll` + handler/publish middleware                           | 🧪     |
+|| MemorySnapshotStore   | `event.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion`                              | 🧪     |
+|| MemoryOutboxStore     | `event.Outbox` with append/poll/ack, auto-incrementing IDs                                                 | 🧪     |
+|| MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing                                                       | 🧪     |
 
-**Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies. Not designed for production workloads.
+**Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies.
 
 **Coverage:** 99.6%
 
@@ -177,65 +197,111 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/middleware"`
 
-All 6 concerns are provided for all 3 message types (command, event, query) — **21 middleware factories** total.
+All **8 concerns** are provided for all 3 message types (command, event, query) — **24 middleware factories** total.
 
 ### Logging ✅
 
-| Factory                  | Logs                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, aggregateID, duration |
-| `EventLogging(logger)`   | Same pattern for events                                                               |
-| `QueryLogging(logger)`   | Same pattern for queries                                                              |
+|| Factory                  | Logs                                                                                  |
+|| ------------------------ | ------------------------------------------------------------------------------------- |
+|| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, aggregateID, duration |
+|| `EventLogging(logger)`   | Same pattern for events                                                               |
+|| `QueryLogging(logger)`   | Same pattern for queries                                                              |
 
-Accepts any `Logger` interface (`Info`, `Error`). `SlogAdapter` adapts `*slog.Logger`.
+Accepts `*slog.Logger`.
 
 ### Metrics ✅
 
-| Factory                    | Records                                                              |
-| -------------------------- | -------------------------------------------------------------------- |
-| `CommandMetrics(recorder)` | `"command_success"` / `"command_error"` with duration and type label |
-| `EventMetrics(recorder)`   | Same for events                                                      |
-| `QueryMetrics(recorder)`   | Same for queries                                                     |
+|| Factory                    | Records                                                              |
+|| -------------------------- | -------------------------------------------------------------------- |
+|| `CommandMetrics(recorder)` | `"command_success"` / `"command_error"` with duration and type label |
+|| `EventMetrics(recorder)`   | Same for events                                                      |
+|| `QueryMetrics(recorder)`   | Same for queries                                                     |
 
 Accepts any `MetricsRecorder` interface (`Observe`).
 
 ### Recovery ✅
 
-| Factory             | Behavior                                         |
-| ------------------- | ------------------------------------------------ |
-| `CommandRecovery()` | Recovers panics → returns error with stack trace |
-| `EventRecovery()`   | Same                                             |
-| `QueryRecovery()`   | Same (uses named returns for result + err)       |
+|| Factory             | Behavior                                         |
+|| ------------------- | ------------------------------------------------ |
+|| `CommandRecovery()` | Recovers panics → returns error with stack trace |
+|| `EventRecovery()`   | Same                                             |
+|| `QueryRecovery()`   | Same (uses named returns for result + err)       |
 
 ### Retry ✅
 
-| Factory                | Behavior                                                    |
-| ---------------------- | ----------------------------------------------------------- |
-| `CommandRetry(config)` | Exponential backoff with jitter, context-aware cancellation |
-| `EventRetry(config)`   | Same                                                        |
-| `QueryRetry(config)`   | Same                                                        |
+|| Factory                | Behavior                                                    |
+|| ---------------------- | ----------------------------------------------------------- |
+|| `CommandRetry(config)` | Exponential backoff with jitter, context-aware cancellation |
+|| `EventRetry(config)`   | Same                                                        |
+|| `QueryRetry(config)`   | Same                                                        |
 
-**Config:** `MaxAttempts`, `InitialDelay`, `MaxDelay`, `Multiplier`, `IsRetryable` predicate. Jitter uses `math/rand/v2`.
+**RetryConfig:** `MaxAttempts`, `InitialDelay`, `MaxDelay`, `Multiplier`, `IsRetryable` predicate. Jitter uses `math/rand/v2`.
 
 ### Tracing ✅
 
-| Factory                  | Span                                                                |
-| ------------------------ | ------------------------------------------------------------------- |
-| `CommandTracing(tracer)` | `"command.handle"`, SpanKindServer, attributes: `cqrs.command.type` |
-| `EventTracing(tracer)`   | `"event.handle"`, SpanKindConsumer, attributes: `cqrs.event.type`   |
-| `QueryTracing(tracer)`   | `"query.handle"`, SpanKindServer, attributes: `cqrs.query.type`     |
+|| Factory                  | Span                                                                |
+|| ------------------------ | ------------------------------------------------------------------- |
+|| `CommandTracing(tracer)` | `"command.handle"`, SpanKindServer, attributes: `cqrs.command.type` |
+|| `EventTracing(tracer)`   | `"event.handle"`, SpanKindConsumer, attributes: `cqrs.event.type`   |
+|| `QueryTracing(tracer)`   | `"query.handle"`, SpanKindServer, attributes: `cqrs.query.type`     |
 
 OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`.
 
 ### Validation ✅
 
-| Factory                        | Behavior                                                  |
-| ------------------------------ | --------------------------------------------------------- |
-| `CommandValidation(validator)` | Calls validator before handler; returns descriptive error |
-| `EventValidation(validator)`   | Same                                                      |
-| `QueryValidation(validator)`   | Same                                                      |
+|| Factory                        | Behavior                                                  |
+|| ------------------------------ | --------------------------------------------------------- |
+|| `CommandValidation(validator)` | Calls validator before handler; returns descriptive error |
+|| `EventValidation(validator)`   | Same                                                      |
+|| `QueryValidation(validator)`   | Same                                                      |
+
+### Circuit Breaker ✅
+
+|| Factory                            | Behavior                                                                                      |
+|| ---------------------------------- | --------------------------------------------------------------------------------------------- |
+|| `CommandCircuitBreaker(config)`    | Three-state machine: Closed → Open (threshold) → Half-Open (timeout) → Closed (successes)    |
+|| `EventCircuitBreaker(config)`      | Same                                                                                          |
+|| `QueryCircuitBreaker(config)`      | Same                                                                                          |
+
+**CircuitBreakerConfig:** `FailureThreshold` (default 5), `SuccessThreshold` (default 3), `Timeout` (default 30s), `IsFailure` predicate. Rejected requests return `ErrCircuitBreakerOpen` wrapped as transient.
 
 **Coverage:** 100.0%
+
+---
+
+## Event Signing ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/signing"`
+
+### Single-Signature Mode
+
+|| Feature             | Detail                                                                               | Status |
+|| ------------------- | ------------------------------------------------------------------------------------ | ------ |
+|| HMAC-SHA256 signer  | `NewHMAC(key)` — `SignerVerifier` (sign + verify with same key)                      | ✅     |
+|| Ed25519 signer      | `NewEd25519(privateKey)` — `Signer` (sign-only, separate verifier)                   | ✅     |
+|| Ed25519 verifier    | `NewEd25519Verifier(publicKey)` — `Verifier` (verify-only)                           | ✅     |
+|| Key pair generation | `GenerateEd25519KeyPair()` — convenience function                                    | ✅     |
+|| Canonical encoding  | Deterministic length-prefixed format v1 (id, type, aggID, version, SHA-256 of payload) | ✅     |
+|| Event helpers       | `AttachSignature`, `ExtractSignature`, `HasSignature` — stored in event metadata     | ✅     |
+|| SignMiddleware      | `event.PublishMiddleware` — auto-signs every published event                          | ✅     |
+|| VerifyMiddleware    | `event.Middleware` — verifies signatures if present; allows unsigned through          | ✅     |
+|| RequireSignature    | `event.Middleware` — rejects unsigned events; verifies present signatures             | ✅     |
+
+### Multi-Signature Mode
+
+|| Feature             | Detail                                                                                          | Status |
+|| ------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+|| MultiSigner         | Actor-based multi-party signing with heterogeneous algorithms (e.g., device Ed25519 + server HMAC) | ✅     |
+|| SignatureEntry      | Per-actor entry with `Actor`, `Algorithm`, `Sig`, `SignedAt`; re-signing replaces prior entry   | ✅     |
+|| MultiSignature      | Collection of entries with `Count()`, `HasActor()`, `Get()`, `Actors()`                         | ✅     |
+|| MultiSignMiddleware | Appends actor's signature to multi-sig collection                                                | ✅     |
+|| MultiVerifyMiddleware | Verifies specific actor's multi-sig; allows missing through                                   | ✅     |
+|| RequireMultiSig     | Rejects events missing signatures from ALL required actors; verifies all                        | ✅     |
+|| VerifyAll           | Bulk verification using actor→verifier map                                                      | ✅     |
+|| VerifierMap         | Convenience builder from `MultiSigner` slice to `map[Actor]Verifier`                            | ✅     |
+
+**Key material always defensively copied. No external crypto dependencies beyond Go stdlib.**
+**Coverage:** ~95%
 
 ---
 
@@ -245,77 +311,80 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog"`
 
-| Feature                  | Detail                                                                                                          | Status |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- | ------ |
-| Registry                 | Thread-safe builder: `AddService`, `AddCommand`, `AddEvent`, `AddQuery`, `AddDomain`, `AddChannel`, `Build()`   | ✅     |
-| Schema reflection        | `SchemaFromType[T]()` — auto-generates JSON Schema from Go structs via `reflect`                                | ✅     |
-| Struct tag support       | `json` (name, omitempty), `doc`/`description`, `format`, `default`, `enum`, `nullable`, `deprecated`, `pattern` | ✅     |
-| Catalog adapters         | `CatalogBuilder` fluent API with `AddCommandFromType[T]`, `AddEventFromType[T]`, `AddQueryFromType[T]`          | ✅     |
-| Dispatcher introspection | `FromCommandDispatcher`, `FromQueryDispatcher` — auto-import entries from live dispatchers                      | ✅     |
-| Immutable catalog        | `Build()` returns deep-copied, immutable `*Catalog`                                                             | ✅     |
+|| Feature                  | Detail                                                                                                          | Status |
+|| ------------------------ | --------------------------------------------------------------------------------------------------------------- | ------ |
+|| Registry                 | Thread-safe builder: `AddService`, `AddCommand`, `AddEvent`, `AddQuery`, `AddDomain`, `AddChannel`, `AddFlow`, `AddDataStore`, `AddTeam`, `AddUser`, `Build()` | ✅ |
+|| Schema reflection        | `SchemaFromType[T]()` — auto-generates JSON Schema from Go structs via `reflect`                                | ✅     |
+|| Struct tag support       | `json` (name, omitempty), `doc`/`description`, `format`, `default`, `enum`, `nullable`, `deprecated`, `pattern` | ✅     |
+|| Immutable catalog        | `Build()` returns deep-copied, immutable `*Catalog`                                                             | ✅     |
+|| Validation               | `Catalog.Validate()` returns `[]Violation` — checks titles, duplicates, references                             | ✅     |
+|| Exporter interface       | `Exporter[T]` + `ErrorExporter` — pluggable output format                                                       | ✅     |
+|| WalkMessages             | `WalkMessages(cat, fn)` — iterate all messages across all services                                              | ✅     |
+|| Rich resource model      | Services, Domains, Channels, DataStores, Flows, Teams, Users — with badges, owners, repositories, specifications | ✅  |
+|| Dispatcher introspection | `FromCommandDispatcher`, `FromQueryDispatcher` — auto-import entries from live dispatchers                      | ✅     |
 
-**Coverage:** 90.5%
+**Coverage:** ~94%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"`
 
-| Feature             | Detail                                                                                                      | Status |
-| ------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
-| Document generation | `Exporter.Export(catalog)` produces full AsyncAPI 3.0 `Document`                                            | ✅     |
-| YAML output         | `Document.MarshalYAML()` — uses `go-faster/yaml`                                                            | ✅     |
-| JSON output         | `Document.MarshalJSON()` — type-alias trick to avoid recursion                                              | ✅     |
-| Server config       | `WithServer(name, host, protocol)` option (defaults: kafka, localhost:9092)                                 | ✅     |
-| Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
-| Examples            | `toExamples()` converts `json.RawMessage` to AsyncAPI examples                                              | ✅     |
+|| Feature             | Detail                                                                                                      | Status |
+|| ------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
+|| Document generation | `Exporter.Export(catalog)` produces full AsyncAPI 3.0 `Document`                                            | ✅     |
+|| YAML output         | `Document.MarshalYAML()` — uses `go-faster/yaml`                                                            | ✅     |
+|| JSON output         | `Document.MarshalJSON()` — type-alias trick to avoid recursion                                              | ✅     |
+|| Server config       | `WithServer(name, host, protocol)` option (defaults: kafka, localhost:9092)                                 | ✅     |
+|| Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
+|| Examples            | `toExamples()` converts `json.RawMessage` to AsyncAPI examples                                              | ✅     |
 
 **Coverage:** 93.7%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"`
 
-| Feature        | Detail                                                                        | Status |
-| -------------- | ----------------------------------------------------------------------------- | ------ |
-| MDX generation | Services, commands, events, queries — all with YAML frontmatter               | ✅     |
-| Schema files   | `schema.json` per message (only when schema is non-nil)                       | ✅     |
-| Domain pages   | Domain frontmatter with service associations                                  | ✅     |
-| Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
-| LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
+|| Feature        | Detail                                                                        | Status |
+|| -------------- | ----------------------------------------------------------------------------- | ------ |
+|| MDX generation | Services, commands, events, queries — all with YAML frontmatter               | ✅     |
+|| Schema files   | `schema.json` per message (only when schema is non-nil)                       | ✅     |
+|| Domain pages   | Domain frontmatter with service associations                                  | ✅     |
+|| Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
+|| LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
 **Coverage:** 91.3%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/d2"`
 
-| Feature             | Detail                                                      | Status |
-| ------------------- | ----------------------------------------------------------- | ------ |
-| D2 text export      | `Exporter.Export(cat)` produces D2 diagram syntax           | ✅     |
-| Service nodes       | Color-coded rectangles per service with command/event/query | ✅     |
-| Cross-service flows | Animated arrows between publishers and receivers            | ✅     |
-| Domain grouping     | Domain labels with dashed "contains" links to services      | ✅     |
-| Schema tooltips     | Field names and types shown on hover                        | ✅     |
-| Options             | `WithDescription`, `WithDirection` for layout customization | ✅     |
+|| Feature             | Detail                                                      | Status |
+|| ------------------- | ----------------------------------------------------------- | ------ |
+|| D2 text export      | `Exporter.Export(cat)` produces D2 diagram syntax           | ✅     |
+|| Service nodes       | Color-coded rectangles per service with command/event/query | ✅     |
+|| Cross-service flows | Animated arrows between publishers and receivers            | ✅     |
+|| Domain grouping     | Domain labels with dashed "contains" links to services      | ✅     |
+|| Schema tooltips     | Field names and types shown on hover                        | ✅     |
+|| Options             | `WithDescription`, `WithDirection` for layout customization | ✅     |
 
 **Coverage:** 95.0%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/openapi"`
 
-|                     | Feature                                                           | Detail | Status |
-| ------------------- | ----------------------------------------------------------------- | ------ | ------ |
-| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document` | ✅     |
-| JSON output         | `Document` serializes to JSON                                     | ✅     |
-| Schema generation   | Auto-generates JSON Schema from catalog types                     | ✅     |
-| Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
-| Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
+|| Feature             | Detail                                                           | Status |
+|| ------------------- | ---------------------------------------------------------------- | ------ |
+|| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document` | ✅     |
+|| JSON output         | `Document` serializes to JSON                                     | ✅     |
+|| Schema generation   | Auto-generates JSON Schema from catalog types                     | ✅     |
+|| Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
+|| Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
 
 **Coverage:** 94.4%
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/docserver"`
 
-|                    | Feature                                                               | Detail | Status |
-| ------------------ | --------------------------------------------------------------------- | ------ | ------ |
-| HTTP handlers      | Framework-agnostic `net/http` handlers for serving docs               | ✅     |
-| OpenAPI rendering  | Scalar UI for interactive API documentation                           | ✅     |
-| AsyncAPI rendering | AsyncAPI React for event documentation                                | ✅     |
-| Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                     | ✅     |
-| Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request      | ✅     |
-| Embedded assets    | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies | ✅     |
+|| Feature             | Detail                                                               | Status |
+|| ------------------- | -------------------------------------------------------------------- | ------ |
+|| HTTP handlers       | Framework-agnostic `net/http` handlers for serving docs              | ✅     |
+|| OpenAPI rendering   | Scalar UI for interactive API documentation                          | ✅     |
+|| AsyncAPI rendering  | AsyncAPI React for event documentation                               | ✅     |
+|| Raw spec serving    | JSON/YAML endpoints for both OpenAPI and AsyncAPI                    | ✅     |
+|| Catalog provider    | `CatalogProvider` func — generates fresh catalog on each request     | ✅     |
+|| Embedded assets     | HTML/JS/CSS embedded via `embed.FS` — zero external file dependencies | ✅   |
 
 **Coverage:** 91.0%
 
@@ -325,37 +394,78 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage"`
 
-| Feature                         | Detail                                                                            | Status |
-| ------------------------------- | --------------------------------------------------------------------------------- | ------ |
-| PostgreSQL event store          | `SQLEventStore` implements `event.Store`                                          | ✅     |
-| SQLite event store              | `SQLiteEventStore` — `?` placeholders, `BLOB`/`TEXT` DDL                          | ✅     |
-| Pebble key-value store          | `CQRSAdapter` implements `event.Store` using CockroachDB Pebble                   | ✅     |
-| Turso connector (local)         | `OpenTurso(path)` — returns `*sql.DB` for local Turso database                    | ✅     |
-| Turso connector (sync)          | `OpenTursoSync(ctx, path, url, token)` — `*sql.DB` + Push/Pull                    | ✅     |
-| Turso in-memory                 | `OpenTursoInMemory()` — `:memory:` for testing                                    | ✅     |
-| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                          | ✅     |
-| Optimistic concurrency          | `Save` checks version in transaction                                              | ✅     |
-| AppendBatch                     | Appends without concurrency check                                                 | ✅     |
-| Load / LoadFromVersion / Delete | All implemented for both engines                                                  | ✅     |
-| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp`, `ReadFrom` with indexes                       | ✅     |
-| Composite timestamp index       | `idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)`                 | ✅     |
-| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata                        | ✅     |
-| SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete                  | ✅     |
-| SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                    | ✅     |
-| SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                                     | ✅     |
-| TransactionalStore              | Atomic save + outbox append, both engines                                         | ✅     |
-| Stream loading                  | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration | ✅     |
-| OutboxPoller                    | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches  | ✅     |
-| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle              | ✅     |
+### SQL Stores (PostgreSQL / SQLite / Turso)
+
+|| Feature                         | Detail                                                                            | Status |
+|| ------------------------------- | --------------------------------------------------------------------------------- | ------ |
+|| PostgreSQL event store          | `NewSQLEventStore(db)` implements `event.Store`                                   | ✅     |
+|| SQLite event store              | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                   | ✅     |
+|| Turso convenience constructors  | `NewTursoEventStore`, `NewTursoSnapshotStore`, `NewTursoOutbox`, `NewTursoCheckpointStore`, `NewTursoSagaStore`, `NewTursoBackend`, `NewTursoTransactionalStore` | ✅ |
+|| Schema DDL                      | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                          | ✅     |
+|| Per-table DDL                   | `OutboxSchema`, `SnapshotSchema`, `CheckpointSchema`, `SagaSchema` + SQLite variants | ✅     |
+|| Optimistic concurrency          | `Save` checks version in transaction                                              | ✅     |
+|| AppendBatch                     | Appends without concurrency check                                                 | ✅     |
+|| Full load API                   | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete`           | ✅     |
+|| LoadBackwards                   | Implements `event.BackwardsLoader` — newest-first                                 | ✅     |
+|| Time-travel SQL queries         | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index                 | ✅     |
+|| Journal / SeekableJournal       | `ReadAll()`, `ReadFrom(afterEventID, limit)`                                      | ✅     |
+|| Stream loading                  | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration | ✅     |
+|| Metadata persistence            | Full roundtrip: correlation IDs, user IDs, custom metadata                        | ✅     |
+|| SQL SnapshotStore               | PostgreSQL + SQLite variants, upsert, version-aware load, delete                  | ✅     |
+|| SQL CheckpointStore             | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                    | ✅     |
+|| SQL Outbox                      | PostgreSQL + SQLite variants, append/poll/ack                                     | ✅     |
+|| TransactionalStore              | `SQLTransactionalStore` — atomic save + outbox append, both engines               | ✅     |
+|| SQLSagaStore                    | PostgreSQL + SQLite variants — `Save`, `Load`, `LoadAllRunning`                   | ✅     |
+|| SQLBackend                      | Unified facade: `EventStore()`, `Outbox()`, `TransactionalStore()`, `SagaStore()` | ✅     |
+|| OutboxPoller                    | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches  | ✅     |
+|| TursoSyncDB                     | `OpenTursoSync` returns `*TursoSyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅ |
+|| DB helpers                      | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅ |
+|| Dialect abstraction             | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods | ✅ |
+|| SQLEventStore options           | `SQLEventStoreOption` with `WithOwnership()`                                      | ✅     |
+|| Close lifecycle                 | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle              | ✅     |
+
+### Pebble Key-Value Store
+
+|| Feature                    | Detail                                                                           | Status |
+|| -------------------------- | -------------------------------------------------------------------------------- | ------ |
+|| PebbleEventStore           | `NewPebbleStore(db, logger)` implements `event.Store` using CockroachDB Pebble   | ✅     |
+|| Config-based construction  | `NewPebbleConfig` + `NewPebbleEventStore(cfg, logger)` with `WithPebbleBackend`, `WithPebbleProvider` | ✅ |
+|| Full load API              | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete`          | ✅     |
+|| In-memory backend          | `PebbleBackendMemory` — for testing without disk                                  | ✅     |
 
 **Remaining gaps:**
 
-| Issue                           | Severity  | Detail                                                             |
-| ------------------------------- | --------- | ------------------------------------------------------------------ |
-| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification    |
-| `SQLEventStoreOption` unused    | ⚠️ LOW    | Type does not exist — consider adding table name or logger options |
+|| Issue                           | Severity  | Detail                                                             |
+|| ------------------------------- | --------- | ------------------------------------------------------------------ |
+|| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification    |
 
-**Coverage:** 89.6% (SQL + Pebble stores, checkpoint, snapshot, outbox, stream, poller with go-sqlmock)
+**Coverage:** 89.6%
+
+---
+
+## Projection Runner ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/projection"`
+
+|| Feature                   | Detail                                                                 | Status |
+|| ------------------------- | ---------------------------------------------------------------------- | ------ |
+|| Runner                    | `NewRunner(journal, subscriber, checkpoint, opts...)` — replay → live  | ✅     |
+|| Builder + On[T]()         | `NewBuilder(name)` + `On[T](builder, eventType, handler)` — type-safe  | ✅     |
+|| HandlerRegistry           | Thread-safe `On(eventType, handler)`, `OnAll(handler)`, `Lookup`       | ✅     |
+|| Checkpoint per projection | `CurrentCheckpoint(ctx, name)` — read last-processed event ID          | ✅     |
+|| Reset/rebuild             | `Runner.Reset(ctx, name)` — zero-out checkpoint → full replay on next Run | ✅  |
+|| Event type filtering      | Runner filters events by `Projection.EventTypes()`                      | ✅     |
+|| SeekableJournal detection | Auto-detects `SeekableJournal` for position-based replay                | ✅     |
+|| Live-only mode            | Pass `nil` journal to skip replay entirely                              | ✅     |
+|| Retry with backoff        | `WithRetry(count, delay)` — exponential backoff, only if `IsRetryable`  | ✅     |
+|| Dead letter queue         | `WithDeadLetterHandler(func)` — callback after retries exhausted         | ✅     |
+|| Replay context marking    | `event.WithReplay(ctx, true)` during replay; handlers can distinguish    | ✅     |
+|| Close lifecycle           | `Runner.Close()` — cancel internal context, graceful shutdown            | ✅     |
+|| Duplicate name guard      | `Register()` rejects projections with same `Name()`                      | ✅     |
+
+**Sentinel errors:** `ErrNilHandler`, `ErrNilBus`, `ErrNilCheckpoint`, `ErrNoProjections`, `ErrDuplicateProjection`
+
+**Coverage:** ~95%
 
 ---
 
@@ -363,20 +473,20 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/testhelpers"`
 
-| Helper                                                         | Purpose                                              |
-| -------------------------------------------------------------- | ---------------------------------------------------- |
-| `FakeStore`                                                    | Configurable `event.Store` with overridable `SaveFn` |
-| `FakeBus`                                                      | Records published events, injectable `PublishErr`    |
-| `FakeSnapshotStore`                                            | Configurable snapshot load/save with error injection |
-| `FakeOutbox`                                                   | Simple outbox with auto-generated IDs                |
-| `AppendEventsHandler`                                          | Handler that collects events into a slice            |
-| `NoopCommandHandler` / `NoopEventHandler` / `NoopQueryHandler` | No-op handlers                                       |
-| `FailingCommandHandler` / `FailingEventHandler`                | Handlers that always error                           |
-| `PanicCommandHandler` / `PanicEventHandler`                    | Handlers that panic                                  |
-| `CallbackCommandHandler` / `CallbackEventHandler`              | Sets a bool flag                                     |
-| `CommandMiddleware` / `EventMiddleware`                        | Call-order tracking middleware                       |
-| `TestMetrics`                                                  | `MetricsRecorder` that records names and durations   |
-| `NewTestEvent`                                                 | Creates a minimal test event                         |
+|| Helper                                                         | Purpose                                              |
+|| -------------------------------------------------------------- | ---------------------------------------------------- |
+|| `FakeStore`                                                    | Configurable `event.Store` with overridable `SaveFn` |
+|| `FakeBus`                                                      | Records published events, injectable `PublishErr`    |
+|| `FakeSnapshotStore`                                            | Configurable snapshot load/save with error injection |
+|| `FakeOutbox`                                                   | Simple outbox with auto-generated IDs                |
+|| `AppendEventsHandler`                                          | Handler that collects events into a slice            |
+|| `NoopCommandHandler` / `NoopEventHandler` / `NoopQueryHandler` | No-op handlers                                       |
+|| `FailingCommandHandler` / `FailingEventHandler`                | Handlers that always error                           |
+|| `PanicCommandHandler` / `PanicEventHandler`                    | Handlers that panic                                  |
+|| `CallbackCommandHandler` / `CallbackEventHandler`              | Sets a bool flag                                     |
+|| `CommandMiddleware` / `EventMiddleware`                        | Call-order tracking middleware                       |
+|| `TestMetrics`                                                  | `MetricsRecorder` that records names and durations   |
+|| `NewTestEvent`                                                 | Creates a minimal test event                         |
 
 ---
 
@@ -398,19 +508,20 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `import "github.com/larsartmann/go-cqrs-lite/saga"`
 
-| Feature            | Detail                                                                      | Status |
-| ------------------ | --------------------------------------------------------------------------- | ------ |
-| Saga Definition    | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints | ✅     |
-| Step definition    | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                       | ✅     |
-| State / Instance   | `State` (serializable) + `Instance` (runtime view with hydrated `Steps`)    | ✅     |
-| Runner             | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`              | ✅     |
-| Compensation       | Reverse-order compensation of completed steps on failure                    | ✅     |
-| Retry with backoff | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`           | ✅     |
-| Step timeouts      | Per-step `context.WithTimeout` via `Step.Timeout`                           | ✅     |
-| Store interface    | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence           | ✅     |
-| Persistent store   | `storage.SQLSagaStore` — PostgreSQL, SQLite, Turso via `Dialect`            | ✅     |
-| MemoryStore        | Thread-safe in-memory `Store` for testing                                   | 🧪     |
-| Runner options     | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                      | ✅     |
+|| Feature            | Detail                                                                      | Status |
+|| ------------------ | --------------------------------------------------------------------------- | ------ |
+|| Saga Definition    | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints | ✅     |
+|| Step definition    | `Step` with `Name`, `Action`, `Compensate`, `Timeout`                       | ✅     |
+|| State / Instance   | `State` (serializable) + `Instance` (runtime view with hydrated `Steps`)    | ✅     |
+|| Runner             | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep`              | ✅     |
+|| Compensation       | Reverse-order compensation of completed steps on failure                    | ✅     |
+|| Retry with backoff | `dispatchWithRetry` — exponential backoff, respects `IsRetryable`           | ✅     |
+|| Step timeouts      | Per-step `context.WithTimeout` via `Step.Timeout`                           | ✅     |
+|| Store interface    | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence           | ✅     |
+|| Persistent store   | `storage.SQLSagaStore` — PostgreSQL, SQLite, Turso via `Dialect`            | ✅     |
+|| MemoryStore        | Thread-safe in-memory `Store` for testing                                   | 🧪     |
+|| Runner options     | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier`                      | ✅     |
+|| Status lifecycle   | `Pending` → `Running` → `Completed` / `Failed` / `Compensating`            | ✅     |
 
 **Coverage:** 93.8%
 
@@ -420,12 +531,13 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `import "github.com/larsartmann/go-cqrs-lite/watermill"`
 
-| Feature             | Detail                                                                                      | Status |
-| ------------------- | ------------------------------------------------------------------------------------------- | ------ |
-| Metadata protocol   | Bidirectional `event.Event` ↔ Watermill `message.Message` via metadata keys                 | ✅     |
-| PublisherAdapter    | Implements `message.Publisher` — wraps `event.Publisher`                                    | ✅     |
-| SubscriberAdapter   | Implements `message.Subscriber` — wraps `event.Bus`, feeds `<-chan *message.Message`        | ✅     |
-| Full event fidelity | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields | ✅     |
+|| Feature             | Detail                                                                                      | Status |
+|| ------------------- | ------------------------------------------------------------------------------------------- | ------ |
+|| Metadata protocol   | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys             | ✅     |
+|| PublisherAdapter    | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`           | ✅     |
+|| SubscriberAdapter   | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message` | ✅ |
+|| Full event fidelity | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields | ✅     |
+|| Custom metadata     | `custom.*` prefix preserves all custom metadata entries                                     | ✅     |
 
 **Coverage:** 89.6%
 
@@ -435,12 +547,12 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen`
 
-| Feature             | Detail                                                                       | Status |
-| ------------------- | ---------------------------------------------------------------------------- | ------ |
-| AST-based scanning  | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers | ✅     |
-| Typed handler gen   | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`   | ✅     |
-| CLI flags           | `-type` (command/query), `-output` (file), `-pkg` (package name)             | ✅     |
-| Recursive directory | Walks directories, skips `_test.go`, extracts markers from doc comments      | ✅     |
+|| Feature             | Detail                                                                       | Status |
+|| ------------------- | ---------------------------------------------------------------------------- | ------ |
+|| AST-based scanning  | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers | ✅     |
+|| Typed handler gen   | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`   | ✅     |
+|| CLI flags           | `-type` (command/query), `-output` (file), `-pkg` (package name)             | ✅     |
+|| Recursive directory | Walks directories, skips `_test.go`, extracts markers from doc comments      | ✅     |
 
 **Coverage:** 70.8% (CLI main entry point not tested; all library functions covered)
 
@@ -450,47 +562,51 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 Features mentioned in project docs/planning but with **no production code**:
 
-| Feature         | Description                                 | Notes                                        |
-| --------------- | ------------------------------------------- | -------------------------------------------- |
-| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
+|| Feature         | Description                                 | Notes                                        |
+|| --------------- | ------------------------------------------- | -------------------------------------------- |
+|| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
 
 ---
 
 ## Module Maturity Matrix
 
-| Module                 | Import Path              | Code Lines | Tests       | Coverage | Maturity        |
-| ---------------------- | ------------------------ | ---------- | ----------- | -------- | --------------- |
-| `core/command`         | `…/core/command`         | ~250       | 10          | 100.0%   | ✅ Production   |
-| `core/query`           | `…/core/query`           | ~300       | 18          | 100.0%   | ✅ Production   |
-| `core/event`           | `…/core/event`           | ~1100      | 70+         | 94.4%    | ✅ Production   |
-| `core/aggregate`       | `…/core/aggregate`       | ~250       | 27          | 95.5%    | ✅ Production   |
-| `core/decider`         | `…/core/decider`         | ~240       | 22          | 95.0%    | ✅ Production   |
-| `core/pkg/id`          | `…/core/pkg/id`          | ~400       | 30+         | 100.0%   | ✅ Production   |
-| `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | ~200       | 24          | 100.0%   | ✅ Production   |
-| `memory`               | `…/memory`               | ~500       | Extensive   | 99.1%    | 🧪 Test utility |
-| `catalog`              | `…/catalog`              | ~400       | Extensive   | 94.4%    | ✅ Production   |
-| `catalog/asyncapi`     | `…/catalog/asyncapi`     | ~280       | Golden-file | 95.9%    | ✅ Production   |
-| `catalog/d2`           | `…/catalog/d2`           | ~340       | 14          | 97.6%    | ✅ Production   |
-| `catalog/eventcatalog` | `…/catalog/eventcatalog` | ~350       | Golden-file | 95.6%    | ✅ Production   |
-| `middleware`           | `…/middleware`           | ~600       | Extensive   | 100.0%   | ✅ Production   |
-| `testhelpers`          | `…/testhelpers`          | ~325       | N/A         | N/A      | 🧪 Test utility |
-| `integration`          | `…/integration`          | 0 prod     | ~50 cases   | N/A      | ✅ Test suite   |
-| `storage`              | `…/storage`              | ~1000      | 39          | 89.6%    | ✅ Production   |
-| `saga`                 | `…/saga`                 | ~350       | 27          | 93.8%    | ✅ Production   |
-| `watermill`            | `…/watermill`            | ~300       | 12          | 89.6%    | ✅ Production   |
-| `cmd/cqrs-gen`         | `…/cmd/cqrs-gen`         | ~180       | 17          | 70.8%    | ⚠️ Partial      |
-| `example/user`         | `…/example/user`         | ~125       | 0           | N/A      | 💡 Demo         |
+|| Module                 | Import Path              | Coverage | Maturity        |
+|| ---------------------- | ------------------------ | -------- | --------------- |
+|| `core/command`         | `…/core/command`         | 100.0%   | ✅ Production   |
+|| `core/query`           | `…/core/query`           | 100.0%   | ✅ Production   |
+|| `core/event`           | `…/core/event`           | 94.4%    | ✅ Production   |
+|| `core/aggregate`       | `…/core/aggregate`       | 95.5%    | ✅ Production (deprecated) |
+|| `core/decider`         | `…/core/decider`         | 95.0%    | ✅ Production   |
+|| `core/pkg/id`          | `…/core/pkg/id`          | 100.0%   | ✅ Production   |
+|| `core/pkg/dispatcher`  | `…/core/pkg/dispatcher`  | 100.0%   | ✅ Production   |
+|| `memory`               | `…/memory`               | 99.1%    | 🧪 Test utility |
+|| `catalog`              | `…/catalog`              | ~94%     | ✅ Production   |
+|| `catalog/asyncapi`     | `…/catalog/asyncapi`     | 95.9%    | ✅ Production   |
+|| `catalog/d2`           | `…/catalog/d2`           | 97.6%    | ✅ Production   |
+|| `catalog/eventcatalog` | `…/catalog/eventcatalog` | 95.6%    | ✅ Production   |
+|| `catalog/openapi`      | `…/catalog/openapi`      | 94.4%    | ✅ Production   |
+|| `catalog/docserver`    | `…/catalog/docserver`    | 91.0%    | ✅ Production   |
+|| `middleware`           | `…/middleware`           | 100.0%   | ✅ Production   |
+|| `signing`              | `…/signing`              | ~95%     | ✅ Production   |
+|| `testhelpers`          | `…/testhelpers`          | 94.8%    | 🧪 Test utility |
+|| `integration`          | `…/integration`          | N/A      | ✅ Test suite   |
+|| `storage`              | `…/storage`              | 89.6%    | ✅ Production   |
+|| `projection`           | `…/projection`           | ~95%     | ✅ Production   |
+|| `saga`                 | `…/saga`                 | 93.8%    | ✅ Production   |
+|| `watermill`            | `…/watermill`            | 89.6%    | ✅ Production   |
+|| `cmd/cqrs-gen`         | `…/cmd/cqrs-gen`         | 70.8%    | ⚠️ Partial      |
+|| `example/user`         | `…/example/user`         | N/A      | 💡 Demo         |
 
 ---
 
 ## Architecture Guarantees
 
-| Guarantee              | Detail                                                                           |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| Zero lint issues       | 1 lint issue (golines in test file)                                              |
-| Race-free              | `go test -race` passes across all modules                                        |
-| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
-| Interface-first        | All core types are interfaces — provide your own implementations                 |
-| Library, not framework | Import what you need, compose your own stack                                     |
-| Context-aware          | All handlers accept `context.Context`                                            |
-| Errors as values       | No panics in production code, explicit error returns, sentinel errors + wrapping |
+|| Guarantee              | Detail                                                                           |
+|| ---------------------- | -------------------------------------------------------------------------------- |
+|| Zero lint issues       | Clean golangci-lint across all modules                                           |
+|| Race-free              | `go test -race` passes across all modules                                        |
+|| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
+|| Interface-first        | All core types are interfaces — provide your own implementations                 |
+|| Library, not framework | Import what you need, compose your own stack                                     |
+|| Context-aware          | All handlers accept `context.Context`                                            |
+|| Errors as values       | No panics in production code, explicit error returns, sentinel errors + wrapping |
