@@ -864,3 +864,70 @@ func TestSignature_UnmarshalJSON_BadBase64(t *testing.T) {
 		t.Fatal("expected error for invalid base64 string")
 	}
 }
+
+func TestCanonicalPayload_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	t.Run("nil payload", func(t *testing.T) {
+		t.Parallel()
+		evt, _ := event.NewEvent("test.nil", aggID, "Test", 1, nil)
+		key := []byte("secret-key-thirty-two-bytes!!!!!")
+		signer, _ := signing.NewHMAC(key)
+		_, err := signer.Sign(evt)
+		if err != nil {
+			t.Fatalf("sign nil payload: %v", err)
+		}
+	})
+
+	t.Run("empty payload", func(t *testing.T) {
+		t.Parallel()
+		evt, _ := event.NewEvent("test.empty", aggID, "Test", 1, []byte{})
+		key := []byte("secret-key-thirty-two-bytes!!!!!")
+		signer, _ := signing.NewHMAC(key)
+		_, err := signer.Sign(evt)
+		if err != nil {
+			t.Fatalf("sign empty payload: %v", err)
+		}
+	})
+
+	t.Run("large payload", func(t *testing.T) {
+		t.Parallel()
+		large := make([]byte, 1<<20) // 1 MB
+		for i := range large {
+			large[i] = byte(i % 256)
+		}
+		evt, _ := event.NewEvent("test.large", aggID, "Test", 1, large)
+		key := []byte("secret-key-thirty-two-bytes!!!!!")
+		signer, _ := signing.NewHMAC(key)
+		_, err := signer.Sign(evt)
+		if err != nil {
+			t.Fatalf("sign large payload: %v", err)
+		}
+	})
+}
+
+func FuzzSignature_Roundtrip(f *testing.F) {
+	f.Add([]byte("hello"))
+	f.Add([]byte(""))
+	f.Add([]byte{0, 1, 2, 255})
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		original := signing.Signature(data)
+
+		encoded, err := original.MarshalJSON()
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+
+		var decoded signing.Signature
+		if err := json.Unmarshal(encoded, &decoded); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+
+		if !original.Equal(decoded) {
+			t.Fatalf("roundtrip failed: got %v, want %v", decoded, original)
+		}
+	})
+}

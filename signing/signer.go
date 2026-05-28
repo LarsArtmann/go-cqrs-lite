@@ -100,6 +100,12 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 // canonicalPayload builds a deterministic byte representation of an event
 // for signing. It excludes the signature itself and non-deterministic fields
 // like metadata to prevent circular signing issues.
+//
+// Schema version is included because it semantically identifies the payload
+// structure. Changing the schema version without changing payload content is
+// a meaningful event transformation that must be reflected in the signature.
+// The payload itself is SHA-256 hashed to keep the canonical representation
+// bounded regardless of payload size.
 func canonicalPayload(evt event.Event) []byte {
 	if evt == nil {
 		return nil
