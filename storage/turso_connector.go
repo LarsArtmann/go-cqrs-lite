@@ -3,7 +3,8 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // OpenTurso opens a local Turso database file and returns a *sql.DB
@@ -13,7 +14,8 @@ import (
 func OpenTurso(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("turso", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("open turso database at %s: %w", dbPath, err)
+		return nil, event.WrapInfrastructure(err, "storage.open_turso",
+			"open turso database at "+dbPath)
 	}
 
 	return db, nil

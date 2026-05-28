@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 func parseSQLiteTimestamp(s string) (time.Time, error) {
@@ -26,7 +27,8 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, fmt.Errorf("%w: %q", ErrUnsupportedTimestamp, s)
+	return time.Time{}, event.WrapCorruption(ErrUnsupportedTimestamp, "storage.unsupported_timestamp",
+		"unsupported timestamp format: "+s)
 }
 
 // OpenSQLite opens a SQLite database file and returns a *sql.DB.
@@ -37,7 +39,8 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 func OpenSQLite(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")
 	if err != nil {
-		return nil, fmt.Errorf("open sqlite database at %s: %w", dbPath, err)
+		return nil, event.WrapInfrastructure(err, "storage.open_sqlite",
+			"open sqlite database at "+dbPath)
 	}
 
 	return db, nil
@@ -53,7 +56,8 @@ func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 	for _, ddl := range ddls {
 		_, err := db.ExecContext(ctx, ddl)
 		if err != nil {
-			return fmt.Errorf("exec DDL: %w\nDDL: %s", err, ddl)
+			return event.WrapInfrastructure(err, "storage.exec_ddl",
+				"exec DDL: "+ddl)
 		}
 	}
 
@@ -82,7 +86,8 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
 	_, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL")
 	if err != nil {
-		return fmt.Errorf("enable WAL mode: %w", err)
+		return event.WrapInfrastructure(err, "storage.enable_wal",
+			"enable WAL mode")
 	}
 
 	return nil

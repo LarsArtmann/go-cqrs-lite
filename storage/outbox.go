@@ -54,7 +54,8 @@ func SQLiteOutboxSchema() string { return SQLiteDialect{}.OutboxSchema() }
 // Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("context cancelled: %w", err)
+		return event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
+			"context cancelled")
 	}
 
 	if len(events) == 0 {
@@ -63,7 +64,8 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 	serialized, err := marshalOutboxEvents(events)
 	if err != nil {
-		return fmt.Errorf("serialize outbox events: %w", err)
+		return event.WrapCorruption(err, "storage.serialize_outbox",
+			"serialize outbox events")
 	}
 
 	outboxID := events[0].ID()
@@ -79,7 +81,8 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 		o.dialect.FormatTime(time.Now()),
 	)
 	if err != nil {
-		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
+		return event.WrapInfrastructure(err, "storage.insert_outbox",
+			"insert outbox entry "+outboxID.String())
 	}
 
 	return nil
@@ -88,7 +91,8 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 // PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("context cancelled: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
+			"context cancelled")
 	}
 
 	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
@@ -100,7 +104,8 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 
 	rows, err := o.db.QueryContext(ctx, query, string(OutboxStatusPending), limit)
 	if err != nil {
-		return nil, fmt.Errorf("poll pending outbox (limit %d): %w", limit, err)
+		return nil, event.WrapInfrastructure(err, "storage.poll_pending_outbox",
+			fmt.Sprintf("poll pending outbox (limit %d)", limit))
 	}
 
 	defer func() {
@@ -115,7 +120,8 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 // parameter limit (65535).
 func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("context cancelled: %w", err)
+		return event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
+			"context cancelled")
 	}
 
 	if len(ids) == 0 {
@@ -129,7 +135,8 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 
 		err := o.ackBatch(ctx, batch)
 		if err != nil {
-			return fmt.Errorf("ack outbox entries [%d:%d]: %w", start, end, err)
+			return event.WrapInfrastructure(err, "storage.ack_outbox_batch",
+				fmt.Sprintf("ack outbox entries [%d:%d]", start, end))
 		}
 	}
 

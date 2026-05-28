@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -32,7 +31,8 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal event: %w", err)
+		return nil, event.WrapCorruption(err, "pebble.unmarshal_event",
+			"failed to unmarshal event")
 	}
 
 	var metadataJSON []byte

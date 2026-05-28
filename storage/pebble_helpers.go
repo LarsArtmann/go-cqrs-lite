@@ -25,7 +25,8 @@ func (a *PebbleEventStore) Delete(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create iterator: %w", err)
+		return event.WrapInfrastructure(err, "pebble.create_iterator",
+			"failed to create iterator")
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -39,7 +40,8 @@ func (a *PebbleEventStore) Delete(
 	for iter.First(); iter.Valid(); iter.Next() {
 		err := batch.Delete(iter.Key(), nil)
 		if err != nil {
-			return fmt.Errorf("failed to delete event: %w", err)
+			return event.WrapInfrastructure(err, "pebble.delete_event",
+				"failed to delete event")
 		}
 
 		count++
@@ -47,7 +49,8 @@ func (a *PebbleEventStore) Delete(
 
 	commitErr := batch.Commit(pebble.Sync)
 	if commitErr != nil {
-		return fmt.Errorf("failed to commit deletions: %w", commitErr)
+		return event.WrapInfrastructure(commitErr, "pebble.commit_deletions",
+			"failed to commit deletions")
 	}
 
 	a.logger.Debug(
@@ -81,13 +84,8 @@ func (a *PebbleEventStore) AppendBatch(
 
 		err := a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
-			return fmt.Errorf(
-				"serialize event %s for %s %s: %w",
-				evt.Type(),
-				aggregateType,
-				aggregateID,
-				err,
-			)
+			return event.WrapCorruption(err, "pebble.serialize_event",
+				fmt.Sprintf("serialize event %s for %s %s", evt.Type(), aggregateType, aggregateID))
 		}
 	}
 
@@ -105,7 +103,8 @@ func (a *PebbleEventStore) Close() error {
 	if a.db != nil {
 		err := a.db.Close()
 		if err != nil {
-			return fmt.Errorf("close pebble db: %w", err)
+			return event.WrapInfrastructure(err, "pebble.close_db",
+				"close pebble db")
 		}
 	}
 
@@ -135,7 +134,8 @@ func (a *PebbleEventStore) serializeAndAddToBatch(
 ) error {
 	data, err := a.serializeEvent(evt)
 	if err != nil {
-		return fmt.Errorf("failed to serialize event: %w", err)
+		return event.WrapCorruption(err, "pebble.serialize_event",
+			"failed to serialize event")
 	}
 
 	return a.addToBatch(batch, key, data)
@@ -145,7 +145,8 @@ func (a *PebbleEventStore) serializeAndAddToBatch(
 func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 	err := batch.Set(key, data, nil)
 	if err != nil {
-		return fmt.Errorf("failed to add event to batch: %w", err)
+		return event.WrapInfrastructure(err, "pebble.add_to_batch",
+			"failed to add event to batch")
 	}
 
 	return nil
@@ -161,7 +162,8 @@ func (a *PebbleEventStore) commitAndLog(
 ) error {
 	err := batch.Commit(pebble.Sync)
 	if err != nil {
-		return fmt.Errorf("failed to commit %d events (%s): %w", count, logMsg, err)
+		return event.WrapInfrastructure(err, "pebble.commit_batch",
+			fmt.Sprintf("failed to commit %d events (%s)", count, logMsg))
 	}
 
 	a.logEventOperation(logMsg, aggregateType, aggregateID, count)
@@ -173,7 +175,8 @@ func (a *PebbleEventStore) commitAndLog(
 func checkIteratorError(iter *pebble.Iterator) error {
 	err := iter.Error()
 	if err != nil {
-		return fmt.Errorf("iterator error: %w", err)
+		return event.WrapInfrastructure(err, "pebble.iterator_error",
+			"iterator error")
 	}
 
 	return nil

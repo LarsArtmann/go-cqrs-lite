@@ -71,7 +71,8 @@ func (a *PebbleEventStore) Save(
 
 	err := a.checkVersion(aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return fmt.Errorf("pebble check version for %s %s: %w", aggregateType, aggregateID, err)
+		return event.WrapInfrastructure(err, "pebble.check_version",
+			fmt.Sprintf("pebble check version for %s %s", aggregateType, aggregateID))
 	}
 
 	batch := a.db.NewBatch()
@@ -82,13 +83,8 @@ func (a *PebbleEventStore) Save(
 		batch, aggregateType, aggregateID, events, expectedVersion,
 	)
 	if err != nil {
-		return fmt.Errorf(
-			"pebble write %d events for %s %s: %w",
-			len(events),
-			aggregateType,
-			aggregateID,
-			err,
-		)
+		return event.WrapInfrastructure(err, "pebble.write_events",
+			fmt.Sprintf("pebble write %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
 	return a.commitAndLog(batch, "events saved", aggregateType, aggregateID, len(events))
@@ -101,7 +97,8 @@ func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create iterator: %w", err)
+		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
+			"failed to create iterator")
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -116,7 +113,8 @@ func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event
 					"key", string(iter.Key()), "error", err)
 			}
 
-			return nil, fmt.Errorf("corrupt event at key %s: %w", string(iter.Key()), err)
+			return nil, event.WrapCorruption(err, "pebble.corrupt_event",
+				"corrupt event at key "+string(iter.Key()))
 		}
 
 		events = append(events, evt)

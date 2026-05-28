@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/saga"
@@ -49,22 +48,26 @@ func NewSQLBackendWithDialect(db *sql.DB, d Dialect) (*SQLBackend, error) {
 func newSQLBackendWithDialect(db *sql.DB, d Dialect) (*SQLBackend, error) {
 	store, err := newSQLEventStoreWithDialect(db, d)
 	if err != nil {
-		return nil, fmt.Errorf("event store: %w", err)
+		return nil, event.WrapInfrastructure(err, "backend.event_store",
+			"event store")
 	}
 
 	outbox, err := newSQLOutboxWithDialect(db, d)
 	if err != nil {
-		return nil, fmt.Errorf("outbox: %w", err)
+		return nil, event.WrapInfrastructure(err, "backend.outbox",
+			"outbox")
 	}
 
 	tx, err := NewSQLTransactionalStore(store, outbox)
 	if err != nil {
-		return nil, fmt.Errorf("transactional store: %w", err)
+		return nil, event.WrapInfrastructure(err, "backend.transactional_store",
+			"transactional store")
 	}
 
 	sagaStore, err := newSQLSagaStoreWithDialect(db, d)
 	if err != nil {
-		return nil, fmt.Errorf("saga store: %w", err)
+		return nil, event.WrapInfrastructure(err, "backend.saga_store",
+			"saga store")
 	}
 
 	return &SQLBackend{

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+
 	turso "turso.tech/database/tursogo"
 )
 
@@ -24,11 +26,8 @@ type TursoSyncDB struct {
 // The caller is responsible for closing the returned TursoSyncDB.
 func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*TursoSyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
-		return nil, fmt.Errorf(
-			"%w: got %q: in-memory databases lose data on restart when using remote sync",
-			ErrTursoMemorySync,
-			dbPath,
-		)
+		return nil, event.WrapRejection(ErrTursoMemorySync, "storage.turso_memory_sync",
+			fmt.Sprintf("in-memory databases lose data on restart when using remote sync: got %q", dbPath))
 	}
 
 	syncDb, err := turso.NewTursoSyncDb(ctx, turso.TursoSyncDbConfig{
@@ -37,12 +36,14 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 		AuthToken: authToken,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("create turso sync db for %s: %w", remoteURL, err)
+		return nil, event.WrapInfrastructure(err, "storage.create_turso_sync",
+			"create turso sync db for "+remoteURL)
 	}
 
 	db, err := syncDb.Connect(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("connect turso sync db for %s: %w", remoteURL, err)
+		return nil, event.WrapInfrastructure(err, "storage.connect_turso_sync",
+			"connect turso sync db for "+remoteURL)
 	}
 
 	return &TursoSyncDB{DB: db, syncDb: syncDb}, nil
@@ -52,7 +53,8 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 func (t *TursoSyncDB) Push(ctx context.Context) error {
 	err := t.syncDb.Push(ctx)
 	if err != nil {
-		return fmt.Errorf("turso push: %w", err)
+		return event.WrapInfrastructure(err, "storage.turso_push",
+			"turso push")
 	}
 
 	return nil
@@ -63,7 +65,8 @@ func (t *TursoSyncDB) Push(ctx context.Context) error {
 func (t *TursoSyncDB) Pull(ctx context.Context) (bool, error) {
 	changed, err := t.syncDb.Pull(ctx)
 	if err != nil {
-		return changed, fmt.Errorf("turso pull: %w", err)
+		return changed, event.WrapInfrastructure(err, "storage.turso_pull",
+			"turso pull")
 	}
 
 	return changed, nil
@@ -73,7 +76,8 @@ func (t *TursoSyncDB) Pull(ctx context.Context) (bool, error) {
 func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
 	err := t.syncDb.Checkpoint(ctx)
 	if err != nil {
-		return fmt.Errorf("turso checkpoint: %w", err)
+		return event.WrapInfrastructure(err, "storage.turso_checkpoint",
+			"turso checkpoint")
 	}
 
 	return nil
@@ -89,7 +93,8 @@ func (t *TursoSyncDB) Close() error {
 func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error) {
 	stats, err := t.syncDb.Stats(ctx)
 	if err != nil {
-		return stats, fmt.Errorf("turso stats: %w", err)
+		return stats, event.WrapInfrastructure(err, "storage.turso_stats",
+			"turso stats")
 	}
 
 	return stats, nil

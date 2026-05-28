@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -28,11 +27,13 @@ func NewSQLTransactionalStore(
 	outbox *SQLOutbox,
 ) (*SQLTransactionalStore, error) {
 	if store == nil {
-		return nil, fmt.Errorf("%w: event store is required", ErrNilDB)
+		return nil, event.WrapInfrastructure(ErrNilDB, "storage.nil_event_store",
+			"event store is required")
 	}
 
 	if outbox == nil {
-		return nil, fmt.Errorf("%w: outbox is required", ErrNilDB)
+		return nil, event.WrapInfrastructure(ErrNilDB, "storage.nil_outbox",
+			"outbox is required")
 	}
 
 	return &SQLTransactionalStore{
@@ -71,7 +72,8 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 ) error {
 	serialized, err := marshalOutboxEvents(events)
 	if err != nil {
-		return fmt.Errorf("serialize outbox events: %w", err)
+		return event.WrapCorruption(err, "storage.serialize_outbox",
+			"serialize outbox events")
 	}
 
 	outboxID := events[0].ID()
@@ -87,7 +89,8 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 		s.dialect.FormatTime(time.Now()),
 	)
 	if err != nil {
-		return fmt.Errorf("insert outbox entry %s: %w", outboxID, err)
+		return event.WrapInfrastructure(err, "storage.insert_outbox",
+			"insert outbox entry "+outboxID.String())
 	}
 
 	return nil

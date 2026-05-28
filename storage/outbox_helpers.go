@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -42,7 +41,8 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 
 	data, err := json.Marshal(rows)
 	if err != nil {
-		return nil, fmt.Errorf("marshal outbox events: %w", err)
+		return nil, event.WrapCorruption(err, "storage.marshal_outbox",
+			"marshal outbox events")
 	}
 
 	return data, nil
@@ -53,7 +53,8 @@ func unmarshalOutboxEvents(data []byte) ([]event.Event, error) {
 
 	err := json.Unmarshal(data, &rows)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal outbox events: %w", err)
+		return nil, event.WrapCorruption(err, "storage.unmarshal_outbox",
+			"unmarshal outbox events")
 	}
 
 	events := make([]event.Event, 0, len(rows))
@@ -92,12 +93,14 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 
 		err := rows.Scan(&idStr, &eventsBytes)
 		if err != nil {
-			return nil, fmt.Errorf("scan outbox row: %w", err)
+			return nil, event.WrapInfrastructure(err, "storage.scan_outbox",
+				"scan outbox row")
 		}
 
 		events, err := unmarshalOutboxEvents(eventsBytes)
 		if err != nil {
-			return nil, fmt.Errorf("unmarshal outbox entry %s: %w", idStr, err)
+			return nil, event.WrapCorruption(err, "storage.unmarshal_outbox_entry",
+				"unmarshal outbox entry "+idStr)
 		}
 
 		entries = append(entries, event.OutboxEntry{
@@ -108,7 +111,8 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 
 	err := rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("iterate outbox rows: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.iterate_outbox",
+			"iterate outbox rows")
 	}
 
 	return entries, nil

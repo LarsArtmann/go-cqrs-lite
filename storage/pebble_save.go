@@ -19,12 +19,14 @@ func (a *PebbleEventStore) checkVersion(
 
 	existing, err := a.iterateEvents(prefix, upperBound)
 	if err != nil {
-		return fmt.Errorf("concurrency check: %w", err)
+		return event.WrapInfrastructure(err, "pebble.concurrency_check",
+		"concurrency check")
 	}
 
 	err = event.CheckVersionConflict(len(existing), expectedVersion)
 	if err != nil {
-		return fmt.Errorf("concurrency check: %w", err)
+		return event.WrapConflict(err, "pebble.version_conflict",
+			"concurrency check")
 	}
 
 	return nil
@@ -40,7 +42,8 @@ func (a *PebbleEventStore) writeEventsToBatch(
 	for i, evt := range events {
 		err := validateEventOwnership(evt, aggregateType, aggregateID)
 		if err != nil {
-			return fmt.Errorf("validate event %d: %w", i, err)
+			return event.WrapCorruption(err, "pebble.validate_event",
+			fmt.Sprintf("validate event %d", i))
 		}
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
@@ -76,21 +79,13 @@ func validateEventOwnership(
 	aggregateID id.AggregateID,
 ) error {
 	if evt.AggregateType() != aggregateType {
-		return fmt.Errorf(
-			"%w: expected %s, got %s",
-			ErrAggregateTypeMismatch,
-			aggregateType,
-			evt.AggregateType(),
-		)
+		return event.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
+			fmt.Sprintf("expected %s, got %s", aggregateType, evt.AggregateType()))
 	}
 
 	if evt.AggregateID() != aggregateID {
-		return fmt.Errorf(
-			"%w: expected %s, got %s",
-			ErrAggregateIDMismatch,
-			aggregateID,
-			evt.AggregateID(),
-		)
+		return event.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
+			fmt.Sprintf("expected %s, got %s", aggregateID, evt.AggregateID()))
 	}
 
 	return nil

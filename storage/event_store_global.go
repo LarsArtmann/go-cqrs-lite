@@ -17,7 +17,8 @@ func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("query all events: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.query_all_events",
+			"query all events")
 	}
 
 	defer func() {
@@ -59,7 +60,8 @@ func (s *SQLEventStore) LoadAllFromPosition(
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query events from position (limit=%d): %w", limit, err)
+		return nil, event.WrapInfrastructure(err, "storage.query_from_position",
+			fmt.Sprintf("query events from position (limit=%d)", limit))
 	}
 
 	defer func() {
@@ -87,7 +89,8 @@ func (s *SQLEventStore) loadAllFromStart(
 
 	rows, err := s.db.QueryContext(ctx, query, limit)
 	if err != nil {
-		return nil, fmt.Errorf("query events from start (limit=%d): %w", limit, err)
+		return nil, event.WrapInfrastructure(err, "storage.query_from_start",
+			fmt.Sprintf("query events from start (limit=%d)", limit))
 	}
 
 	defer func() {

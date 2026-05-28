@@ -38,7 +38,8 @@ func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 
 	err := rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("iterate rows: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.iterate_rows",
+			"iterate rows")
 	}
 
 	return result, nil
@@ -54,10 +55,8 @@ func reconstructEvent(
 ) (event.Event, error) {
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"metadata for %s/%s v%d (schema v%d): %w",
-			aggType, eventType, version, schemaVersion, err,
-		)
+		return nil, event.WrapCorruption(err, "storage.metadata_unmarshal",
+			fmt.Sprintf("metadata for %s/%s v%d (schema v%d)", aggType, eventType, version, schemaVersion))
 	}
 
 	opts := make([]event.Option, 0, 3+len(metaOpts))
@@ -78,7 +77,8 @@ func reconstructEvent(
 		opts...,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct event %s: %w", eventType, err)
+		return nil, event.WrapCorruption(err, "storage.reconstruct_event",
+			"reconstruct event "+eventType)
 	}
 
 	return evt, nil
@@ -93,7 +93,8 @@ func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 
 	err := json.Unmarshal(data, &meta)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal metadata for event %s: %w", eventType, err)
+		return nil, event.WrapCorruption(err, "storage.unmarshal_metadata",
+			"unmarshal metadata for event "+eventType)
 	}
 
 	return []event.Option{event.WithMetadata(&meta)}, nil
@@ -106,7 +107,8 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 
 	data, err := json.Marshal(m)
 	if err != nil {
-		return nil, fmt.Errorf("marshal metadata: %w", err)
+		return nil, event.WrapCorruption(err, "storage.marshal_metadata",
+			"marshal metadata")
 	}
 
 	return data, nil
@@ -115,7 +117,8 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 func commitTx(tx *sql.Tx) error {
 	err := tx.Commit()
 	if err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+		return event.WrapInfrastructure(err, "storage.commit_tx",
+			"commit transaction")
 	}
 
 	return nil
@@ -140,7 +143,8 @@ func saveWithOutboxTx(
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+		return event.WrapInfrastructure(err, "storage.begin_tx",
+			"begin transaction")
 	}
 
 	defer func() {
@@ -149,23 +153,20 @@ func saveWithOutboxTx(
 
 	err = checkVersionFn(ctx, tx, aggregateType, aggregateID, expectedVersion)
 	if err != nil {
-		return fmt.Errorf("check version for %s %s: %w", aggregateType, aggregateID, err)
+		return event.WrapInfrastructure(err, "storage.check_version",
+			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
 	err = insertEventsFn(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return fmt.Errorf(
-			"insert %d events for %s %s: %w",
-			len(events),
-			aggregateType,
-			aggregateID,
-			err,
-		)
+		return event.WrapInfrastructure(err, "storage.insert_events",
+			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
 	err = appendOutboxFn(ctx, tx, events)
 	if err != nil {
-		return fmt.Errorf("append %d events to outbox: %w", len(events), err)
+		return event.WrapInfrastructure(err, "storage.append_outbox",
+			fmt.Sprintf("append %d events to outbox", len(events)))
 	}
 
 	return commitTx(tx)
