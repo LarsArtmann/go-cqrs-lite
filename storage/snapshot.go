@@ -80,7 +80,8 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 		s.dialect.FormatTime(snap.CreatedAt),
 	)
 	if err != nil {
-		return fmt.Errorf("save snapshot for %s %s: %w", snap.AggregateType, snap.AggregateID, err)
+		return event.WrapInfrastructure(err, "storage.save_snapshot",
+			fmt.Sprintf("save snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 
 	return nil
@@ -95,7 +96,8 @@ func (s *SQLSnapshotStore) Load(
 ) (*event.Snapshot, error) {
 	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
-		return nil, fmt.Errorf("load snapshot for %s %s: %w", aggregateType, aggregateID, err)
+		return nil, event.WrapInfrastructure(err, "storage.load_snapshot",
+			fmt.Sprintf("load snapshot for %s %s", aggregateType, aggregateID))
 	}
 
 	return snap, nil
@@ -111,13 +113,13 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 ) (*event.Snapshot, error) {
 	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
-		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
-			version, aggregateType, aggregateID, err)
+		return nil, event.WrapInfrastructure(err, "storage.load_snapshot_version",
+			fmt.Sprintf("load snapshot at version %d for %s %s", version, aggregateType, aggregateID))
 	}
 
 	if snap.Version.Cmp(version) > 0 {
-		return nil, fmt.Errorf("load snapshot at version %d for %s %s: %w",
-			version, aggregateType, aggregateID, event.ErrSnapshotNotFound)
+		return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
+			fmt.Sprintf("load snapshot at version %d for %s %s", version, aggregateType, aggregateID))
 	}
 
 	return snap, nil
@@ -155,21 +157,18 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf(
-				"%s/%s at v%d: %w",
-				aggregateType, aggregateID, event.Version(version), event.ErrSnapshotNotFound,
-			)
+			return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_not_found",
+				fmt.Sprintf("%s/%s at v%d", aggregateType, aggregateID, event.Version(version)))
 		}
 
-		return nil, fmt.Errorf(
-			"scan snapshot for %s/%s at v%d: %w",
-			aggregateType, aggregateID, event.Version(version), err,
-		)
+		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",
+			fmt.Sprintf("scan snapshot for %s/%s", aggregateType, aggregateID))
 	}
 
 	createdAt, err := s.dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, fmt.Errorf("parse created_at: %w", err)
+		return nil, event.WrapCorruption(err, "storage.parse_snapshot_created_at",
+			"parse snapshot created_at")
 	}
 
 	return &event.Snapshot{
