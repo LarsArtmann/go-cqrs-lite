@@ -3,8 +3,11 @@ package storage
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
+
+	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -196,5 +199,93 @@ func TestPebbleEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 
 	if len(loaded) != 2 {
 		t.Fatalf("expected 2 events after concurrent save, got %d", len(loaded))
+	}
+}
+
+func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
+	const totalEvents = 1000
+
+	dir := b.TempDir()
+	db, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		b.Fatalf("open pebble: %v", err)
+	}
+
+	b.Cleanup(func() { _ = db.Close() })
+
+	store := NewPebbleStore(db, slog.Default())
+	cfg := issueStoreConfig()
+	aggID := id.NewAggregateID()
+	ctx := context.Background()
+
+	baseTime := time.Now()
+
+	events := make([]event.Event, totalEvents)
+	for i := range totalEvents {
+		events[i] = cfg.newTestEvent(b, aggID, event.Version(i+1),
+			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)))
+	}
+
+	err = store.AppendBatch(ctx, cfg.aggType, aggID, events)
+	if err != nil {
+		b.Fatalf("AppendBatch: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		result, err := store.LoadToTimestamp(ctx, cfg.aggType, aggID,
+			baseTime.Add(100*time.Second))
+		if err != nil {
+			b.Fatalf("LoadToTimestamp: %v", err)
+		}
+
+		if len(result) != 101 {
+			b.Fatalf("expected 101 events, got %d", len(result))
+		}
+	}
+}
+
+func BenchmarkPebbleEventStore_LoadToTimestamp_FullScan(b *testing.B) {
+	const totalEvents = 1000
+
+	dir := b.TempDir()
+	db, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		b.Fatalf("open pebble: %v", err)
+	}
+
+	b.Cleanup(func() { _ = db.Close() })
+
+	store := NewPebbleStore(db, slog.Default())
+	cfg := issueStoreConfig()
+	aggID := id.NewAggregateID()
+	ctx := context.Background()
+
+	baseTime := time.Now()
+
+	events := make([]event.Event, totalEvents)
+	for i := range totalEvents {
+		events[i] = cfg.newTestEvent(b, aggID, event.Version(i+1),
+			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)))
+	}
+
+	err = store.AppendBatch(ctx, cfg.aggType, aggID, events)
+	if err != nil {
+		b.Fatalf("AppendBatch: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		result, err := store.LoadToTimestamp(ctx, cfg.aggType, aggID,
+			baseTime.Add(2000*time.Second))
+		if err != nil {
+			b.Fatalf("LoadToTimestamp: %v", err)
+		}
+
+		if len(result) != totalEvents {
+			b.Fatalf("expected %d events, got %d", totalEvents, len(result))
+		}
 	}
 }
