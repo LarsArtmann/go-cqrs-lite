@@ -41,6 +41,7 @@ type Journal interface {
 ```
 
 At the call site:
+
 ```go
 // Before
 events, err := globalLoader.LoadAll(ctx)
@@ -68,6 +69,7 @@ type SeekableJournal interface {
 ```
 
 At the call site:
+
 ```go
 // Before
 events, err := positionalLoader.LoadAllFromPosition(ctx, checkpoint, 100)
@@ -80,21 +82,21 @@ events, err := journal.ReadFrom(ctx, checkpoint, 100)
 
 ## Method Name Changes
 
-| Current | Proposed | Rationale |
-|---|---|---|
-| `LoadAll()` | `ReadAll()` | Direct, matches `io.Reader` convention |
+| Current                 | Proposed     | Rationale                                          |
+| ----------------------- | ------------ | -------------------------------------------------- |
+| `LoadAll()`             | `ReadAll()`  | Direct, matches `io.Reader` convention             |
 | `LoadAllFromPosition()` | `ReadFrom()` | "Read from position X" — natural language, concise |
 
 ---
 
 ## Why These Names Work
 
-| Current | Proposed | Why Better |
-|---|---|---|
-| `GlobalLoader` | `Journal` | Standard ES term; implies ordered, append-only, complete |
-| `PositionalLoader` | `SeekableJournal` | "Seekable" = can jump to position; extends `Journal` naturally |
-| `LoadAll()` | `ReadAll()` | Matches Go's `io.Reader` naming convention |
-| `LoadAllFromPosition()` | `ReadFrom()` | Concise; "from" implies the starting position |
+| Current                 | Proposed          | Why Better                                                     |
+| ----------------------- | ----------------- | -------------------------------------------------------------- |
+| `GlobalLoader`          | `Journal`         | Standard ES term; implies ordered, append-only, complete       |
+| `PositionalLoader`      | `SeekableJournal` | "Seekable" = can jump to position; extends `Journal` naturally |
+| `LoadAll()`             | `ReadAll()`       | Matches Go's `io.Reader` naming convention                     |
+| `LoadAllFromPosition()` | `ReadFrom()`      | Concise; "from" implies the starting position                  |
 
 ---
 
@@ -116,12 +118,12 @@ Journal                  ← cross-aggregate, time-ordered
 
 This naming also opens the door for future extensions naturally:
 
-| Future Interface | Role |
-|---|---|
+| Future Interface    | Role                                                           |
+| ------------------- | -------------------------------------------------------------- |
 | `StreamableJournal` | Cursor-based / streaming reads without loading all into memory |
-| `FilterableJournal` | `ReadByType(eventType)`, `ReadByAggregate(aggType, aggID)` |
-| `ArchivableJournal` | `ArchiveBefore(eventID)` for cold storage |
-| `CountableJournal` | `Count()`, `CountFrom(eventID)` for metrics |
+| `FilterableJournal` | `ReadByType(eventType)`, `ReadByAggregate(aggType, aggID)`     |
+| `ArchivableJournal` | `ArchiveBefore(eventID)` for cold storage                      |
+| `CountableJournal`  | `Count()`, `CountFrom(eventID)` for metrics                    |
 
 ---
 
@@ -152,15 +154,15 @@ After one release cycle, remove the deprecated type aliases.
 
 ## Files to Change
 
-| File | Change |
-|---|---|
-| `core/event/store.go` | Rename interfaces, add deprecated aliases |
-| `memory/store_load.go` | Rename methods, update comments |
-| `storage/event_store.go` | Rename methods, update comments |
-| `projection/runner.go` | Update `Runner` field and constructor |
-| `projection/runner_test.go` | Update test helpers |
-| `testhelpers/fake_store.go` | Add `ReadAll`/`ReadFrom` methods |
-| `docs/research/*.md` | Update references |
+| File                        | Change                                    |
+| --------------------------- | ----------------------------------------- |
+| `core/event/store.go`       | Rename interfaces, add deprecated aliases |
+| `memory/store_load.go`      | Rename methods, update comments           |
+| `storage/event_store.go`    | Rename methods, update comments           |
+| `projection/runner.go`      | Update `Runner` field and constructor     |
+| `projection/runner_test.go` | Update test helpers                       |
+| `testhelpers/fake_store.go` | Add `ReadAll`/`ReadFrom` methods          |
+| `docs/research/*.md`        | Update references                         |
 
 ---
 
@@ -171,6 +173,7 @@ Should `Journal` include `io.Closer`?
 Currently `GlobalLoader` does not have lifecycle management. `Store` does (via `io.Closer`). Since `Journal` is a read-only view of the same underlying storage, it may or may not need its own `Close()`. If the journal is backed by the same database connection as the store, closing the store closes the journal. If it's a separate read replica connection, it needs its own lifecycle.
 
 Options:
+
 1. `Journal` without `Closer` — simple, assumes shared lifecycle
 2. `Journal` with `io.Closer` — explicit, supports separate connections
 3. `Journal` without `Closer`, but implementations may optionally satisfy it

@@ -133,16 +133,16 @@ type StreamSource interface {
 
 ### Migration path
 
-| Before (v3) | After (v4) |
-|---|---|
-| `event.Store` | `event.Store` (still exists, now `Sink + Source`) |
-| `event.GlobalLoader` | `event.GlobalSource` (extends Source) |
-| `event.PositionalLoader` | `event.PositionalSource` (extends GlobalSource) |
-| `event.BackwardsLoader` | `event.BackwardsSource` (extends Source) |
-| `event.TransactionalStore` | `event.TransactionalSink` (extends Sink) |
-| `Store.Delete()` | **REMOVED** |
-| `MemoryStore` implements `Store` | Still implements `Store` (no consumer changes) |
-| `SQLEventStore` implements `Store` | Still implements `Store` (no consumer changes) |
+| Before (v3)                        | After (v4)                                        |
+| ---------------------------------- | ------------------------------------------------- |
+| `event.Store`                      | `event.Store` (still exists, now `Sink + Source`) |
+| `event.GlobalLoader`               | `event.GlobalSource` (extends Source)             |
+| `event.PositionalLoader`           | `event.PositionalSource` (extends GlobalSource)   |
+| `event.BackwardsLoader`            | `event.BackwardsSource` (extends Source)          |
+| `event.TransactionalStore`         | `event.TransactionalSink` (extends Sink)          |
+| `Store.Delete()`                   | **REMOVED**                                       |
+| `MemoryStore` implements `Store`   | Still implements `Store` (no consumer changes)    |
+| `SQLEventStore` implements `Store` | Still implements `Store` (no consumer changes)    |
 
 **Backward compatibility:** `Store` is still `Store`. The renamed interfaces (`GlobalLoader` → `GlobalSource`) are breaking for consumers who type-assert. Since backward compatibility isn't a priority, we rename cleanly.
 
@@ -694,18 +694,18 @@ bus.Publish(ctx, userReactivatedEvent)
 
 ## v3 → v4 comparison
 
-| Aspect | v3 | v4 |
-|---|---|---|
-| **Store decomposition** | `Store` is monolithic | `Store = Sink + Source` |
-| **Delete** | Still on `Store` | **Removed entirely** |
-| **Read interfaces** | `GlobalLoader`, `PositionalLoader` | `GlobalSource`, `PositionalSource` (extend Source) |
-| **Tombstone** | `bool` on `AggregateRef` | `TombstoneStatus` enum, separate from `AggregateRef` |
-| **Rebirth** | Not addressed | `MarkRebirth`, `MetadataKeyRebirth`, `AutoTombstone` with rebirth types |
-| **AggregateRef** | Embedded `Tombstoned bool` | Pure identity, no derived state |
-| **AggregateStatus** | Didn't exist | New type: `Ref + Status` |
-| **EventReader** | Not in scope | `EventReader` + `ReadOptions` for cross-stream event queries |
-| **SQL read model** | Projection concept mentioned | Full `AggregateProjection` + `SQLAggregateReader` implementation |
-| **Builder** | `NewList()`, `NewSQLList()` | `NewAggregateQuery(reader)` — accepts any `AggregateReader` |
+| Aspect                  | v3                                 | v4                                                                      |
+| ----------------------- | ---------------------------------- | ----------------------------------------------------------------------- |
+| **Store decomposition** | `Store` is monolithic              | `Store = Sink + Source`                                                 |
+| **Delete**              | Still on `Store`                   | **Removed entirely**                                                    |
+| **Read interfaces**     | `GlobalLoader`, `PositionalLoader` | `GlobalSource`, `PositionalSource` (extend Source)                      |
+| **Tombstone**           | `bool` on `AggregateRef`           | `TombstoneStatus` enum, separate from `AggregateRef`                    |
+| **Rebirth**             | Not addressed                      | `MarkRebirth`, `MetadataKeyRebirth`, `AutoTombstone` with rebirth types |
+| **AggregateRef**        | Embedded `Tombstoned bool`         | Pure identity, no derived state                                         |
+| **AggregateStatus**     | Didn't exist                       | New type: `Ref + Status`                                                |
+| **EventReader**         | Not in scope                       | `EventReader` + `ReadOptions` for cross-stream event queries            |
+| **SQL read model**      | Projection concept mentioned       | Full `AggregateProjection` + `SQLAggregateReader` implementation        |
+| **Builder**             | `NewList()`, `NewSQLList()`        | `NewAggregateQuery(reader)` — accepts any `AggregateReader`             |
 
 ---
 

@@ -15,18 +15,19 @@
 
 The signing module was the primary focus of Sessions 115–116. Every issue identified in the critical audit has been addressed and pushed to `master`.
 
-| Commit | Description |
-|--------|-------------|
-| `4a7fc2d` | Split `Signer` into `Signer` + `Verifier` + `SignerVerifier` interfaces |
-| `989a151` | Add `Signature.String()`, `MarshalJSON()`, `UnmarshalJSON()` with URL-safe base64 |
-| `c2a4e0f` | Extract `VerifyAll` to standalone function + add `WithClock` for deterministic `SignedAt` |
-| `360eeb2` | Extract `cloneEvent` helper to eliminate duplicate `event.NewEvent` reconstruction |
-| `ea5e989` | Add `Signature.Equal()` for constant-time comparison (uses `hmac.Equal`) |
-| `93f2827` | Remove dead `ErrAlgorithmMismatch` sentinel error |
-| `043be95` | Fix README stale `Signer` reference → `Verifier` in `VerifyAll` example |
+| Commit    | Description                                                                                |
+| --------- | ------------------------------------------------------------------------------------------ |
+| `4a7fc2d` | Split `Signer` into `Signer` + `Verifier` + `SignerVerifier` interfaces                    |
+| `989a151` | Add `Signature.String()`, `MarshalJSON()`, `UnmarshalJSON()` with URL-safe base64          |
+| `c2a4e0f` | Extract `VerifyAll` to standalone function + add `WithClock` for deterministic `SignedAt`  |
+| `360eeb2` | Extract `cloneEvent` helper to eliminate duplicate `event.NewEvent` reconstruction         |
+| `ea5e989` | Add `Signature.Equal()` for constant-time comparison (uses `hmac.Equal`)                   |
+| `93f2827` | Remove dead `ErrAlgorithmMismatch` sentinel error                                          |
+| `043be95` | Fix README stale `Signer` reference → `Verifier` in `VerifyAll` example                    |
 | `d4a55e2` | **🔒 Security fix:** `RequireMultiSigMiddleware` now cryptographically verifies signatures |
 
 **Current signing metrics:**
+
 - **Tests:** All pass (race-clean)
 - **Coverage:** 88.9% (up from initial 83.4%)
 - **Lint:** 0 issues
@@ -34,26 +35,26 @@ The signing module was the primary focus of Sessions 115–116. Every issue iden
 
 ### All Other Modules (Passing)
 
-| Module | Tests | Lint | Coverage |
-|--------|-------|------|----------|
-| `core/command` | ✅ | ✅ | 94.3% |
-| `core/decider` | ✅ | ✅ | 91.1% |
-| `core/event` | ✅ | ✅ | 92.4% |
-| `core/pkg/dispatcher` | ✅ | ✅ | 100.0% |
-| `core/pkg/id` | ✅ | ✅ | 100.0% |
-| `core/query` | ✅ | ✅ | — |
-| `memory` | ✅ | ✅ | 99.6% |
-| `catalog` (main) | ✅ | ✅ | 96.3% |
-| `catalog/d2` | ✅ | ✅ | 95.0% |
-| `catalog/docserver` | ✅ | ✅ | 90.1% |
-| `catalog/openapi` | ✅ | ✅ | 94.4% |
-| `middleware` | ✅ | ✅ | 93.7% |
-| `testhelpers` | ✅ | ✅ | 91.2% |
-| `storage` | ✅ | ✅ | 90.1% |
-| `projection` | ✅ | ✅ | 96.0% |
-| `saga` | ✅ | ✅ | 93.4% |
-| `watermill` | ✅ | ✅ | 94.4% |
-| `signing` | ✅ | ✅ | 88.9% |
+| Module                | Tests | Lint | Coverage |
+| --------------------- | ----- | ---- | -------- |
+| `core/command`        | ✅    | ✅   | 94.3%    |
+| `core/decider`        | ✅    | ✅   | 91.1%    |
+| `core/event`          | ✅    | ✅   | 92.4%    |
+| `core/pkg/dispatcher` | ✅    | ✅   | 100.0%   |
+| `core/pkg/id`         | ✅    | ✅   | 100.0%   |
+| `core/query`          | ✅    | ✅   | —        |
+| `memory`              | ✅    | ✅   | 99.6%    |
+| `catalog` (main)      | ✅    | ✅   | 96.3%    |
+| `catalog/d2`          | ✅    | ✅   | 95.0%    |
+| `catalog/docserver`   | ✅    | ✅   | 90.1%    |
+| `catalog/openapi`     | ✅    | ✅   | 94.4%    |
+| `middleware`          | ✅    | ✅   | 93.7%    |
+| `testhelpers`         | ✅    | ✅   | 91.2%    |
+| `storage`             | ✅    | ✅   | 90.1%    |
+| `projection`          | ✅    | ✅   | 96.0%    |
+| `saga`                | ✅    | ✅   | 93.4%    |
+| `watermill`           | ✅    | ✅   | 94.4%    |
+| `signing`             | ✅    | ✅   | 88.9%    |
 
 ### Docs (Fresh)
 
@@ -117,6 +118,7 @@ From the TODO list, the following remain genuinely open (not blocked/future):
 These tests fail on **every** full test run (`nix run .#test`). They are not "bugs" — the golden files drift because the catalog output format changes during feature work. The current process requires manual `-update` flag runs to refresh them.
 
 **Why this is fucked up:**
+
 - It creates noise on every CI run / `nix run .#test`
 - The failures are indistinguishable from real bugs at a glance
 - The team has been ignoring these failures for multiple sessions
@@ -129,6 +131,7 @@ These tests fail on **every** full test run (`nix run .#test`). They are not "bu
 The module is broken for standalone use (`GOWORK=off`) because it depends on remote tags that don't exist. This makes it impossible to verify that the module graph is valid for external consumers.
 
 **Why this is fucked up:**
+
 - The module graph is technically un-testable for publishing
 - `go.work` masks the problem locally
 - CI passes because it uses `go.work`, but external consumers won't have `go.work`
@@ -141,6 +144,7 @@ The module is broken for standalone use (`GOWORK=off`) because it depends on rem
 ### 1. Signing Module: Coverage to 90%+
 
 Current: 88.9%. Missing paths:
+
 - `VerifyActor` (cross-actor verification method)
 - Backward-compatible standard base64 in `UnmarshalJSON`
 - `Signature.Equal` with mismatched lengths
@@ -149,6 +153,7 @@ Current: 88.9%. Missing paths:
 ### 2. Signing Module: `MultiVerifyMiddleware` API
 
 Currently takes `*MultiSigner` but only needs actor name + `Verifier`. Consider:
+
 ```go
 // Current:
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware
@@ -161,15 +166,18 @@ This would decouple the middleware from the `MultiSigner` type and allow verific
 ### 3. Golden File Tests: Automated Refresh
 
 Add a `justfile`/`flake.nix` target that runs:
+
 ```bash
 cd catalog/asyncapi && go test ./... -update
 cd catalog/eventcatalog && go test ./... -update
 ```
+
 And run it as a pre-commit step or weekly cron job.
 
 ### 4. `integration` Module: Fix Standalone Testability
 
 Either:
+
 - Add `go mod download` with workspace context to the test script
 - Or add a CI job that runs integration tests WITH `go.work`
 - Or document that integration is workspace-only and move it to a separate test job
@@ -249,18 +257,18 @@ This is a real blocker. The current state works for local development but the pa
 
 ## Appendix: Signing Module File Inventory
 
-| File | Lines | Type | Purpose |
-|------|-------|------|---------|
-| `doc.go` | 27 | Doc | Package documentation |
-| `errors.go` | 31 | Code | 4 sentinel errors (was 5) |
-| `hmac.go` | 73 | Code | `HMACSigner` (Sign+Verify) |
-| `ed25519.go` | 105 | Code | `Ed25519Signer` (Sign), `Ed25519Verifier` (Verify) |
-| `event.go` | 85 | Code | `AttachSignature`, `ExtractSignature`, `cloneEvent` |
-| `middleware.go` | 87 | Code | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware` |
-| `multisig_middleware.go` | 96 | Code | `MultiSignMiddleware`, `MultiVerifyMiddleware`, `RequireMultiSigMiddleware` |
-| `multisig_extract.go` | 103 | Code | `VerifyAll`, `ExtractMultiSignature`, `attachMultiSignature`, `removeActor` |
-| `multisig.go` | 241 | Code | Types, `MultiSigner`, options, methods |
-| `signer.go` | 152 | Code | `Signer`, `Verifier`, `SignerVerifier`, `Signature`, `canonicalPayload` |
-| `signing_test.go` | 813 | Test | Single-sig tests |
-| `multisig_test.go` | 707 | Test | Multi-sig tests |
-| **Total** | **2,510** | | **13 files** |
+| File                     | Lines     | Type | Purpose                                                                     |
+| ------------------------ | --------- | ---- | --------------------------------------------------------------------------- |
+| `doc.go`                 | 27        | Doc  | Package documentation                                                       |
+| `errors.go`              | 31        | Code | 4 sentinel errors (was 5)                                                   |
+| `hmac.go`                | 73        | Code | `HMACSigner` (Sign+Verify)                                                  |
+| `ed25519.go`             | 105       | Code | `Ed25519Signer` (Sign), `Ed25519Verifier` (Verify)                          |
+| `event.go`               | 85        | Code | `AttachSignature`, `ExtractSignature`, `cloneEvent`                         |
+| `middleware.go`          | 87        | Code | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware`          |
+| `multisig_middleware.go` | 96        | Code | `MultiSignMiddleware`, `MultiVerifyMiddleware`, `RequireMultiSigMiddleware` |
+| `multisig_extract.go`    | 103       | Code | `VerifyAll`, `ExtractMultiSignature`, `attachMultiSignature`, `removeActor` |
+| `multisig.go`            | 241       | Code | Types, `MultiSigner`, options, methods                                      |
+| `signer.go`              | 152       | Code | `Signer`, `Verifier`, `SignerVerifier`, `Signature`, `canonicalPayload`     |
+| `signing_test.go`        | 813       | Test | Single-sig tests                                                            |
+| `multisig_test.go`       | 707       | Test | Multi-sig tests                                                             |
+| **Total**                | **2,510** |      | **13 files**                                                                |

@@ -3,6 +3,7 @@
 **Date:** 2026-05-28
 **Status:** Implementation plan
 **Prerequisite reading:**
+
 - `2026-05-28_SINK_SOURCE_SPLIT_AND_GENERIC_BOUNDARIES.md`
 - `2026-05-28_JOURNAL_NAMING_PROPOSAL.md`
 - `2026-05-28_STREAM_API_V4_PROPOSAL.md`
@@ -24,16 +25,16 @@ These are sequential but mostly additive. Each step improves the foundation with
 
 ## Guiding Principles
 
-| # | Principle | Source |
-|---|---|---|
-| 1 | **History is immutable** — No `Delete`. Append-only. | v4 |
-| 2 | **Sink is write, Source is read** — Separate concerns, separate deployment. | Zig + v4 |
-| 3 | **Transport stays untyped** — Generics at boundaries, not in persistence. | Watermill |
-| 4 | **Read models are projections** — They subscribe to the bus, not query the store. | v3/v4 |
-| 5 | **Composable, not forced** — Small interfaces, type assertions, no wrappers that lose types. | v2 critique |
-| 6 | **`uint` for counts** — Negative values are impossible states. | v3 |
-| 7 | **Cursor pagination only** — `Page[T]` with `HasMore`, no `TotalCount`. | v4 |
-| 8 | **Additive first, breaking last** — Implement new interfaces before removing old ones. | v4 critique |
+| #   | Principle                                                                                    | Source      |
+| --- | -------------------------------------------------------------------------------------------- | ----------- |
+| 1   | **History is immutable** — No `Delete`. Append-only.                                         | v4          |
+| 2   | **Sink is write, Source is read** — Separate concerns, separate deployment.                  | Zig + v4    |
+| 3   | **Transport stays untyped** — Generics at boundaries, not in persistence.                    | Watermill   |
+| 4   | **Read models are projections** — They subscribe to the bus, not query the store.            | v3/v4       |
+| 5   | **Composable, not forced** — Small interfaces, type assertions, no wrappers that lose types. | v2 critique |
+| 6   | **`uint` for counts** — Negative values are impossible states.                               | v3          |
+| 7   | **Cursor pagination only** — `Page[T]` with `HasMore`, no `TotalCount`.                      | v4          |
+| 8   | **Additive first, breaking last** — Implement new interfaces before removing old ones.       | v4 critique |
 
 ---
 
@@ -86,12 +87,12 @@ type Store interface {
 
 ### 1.2 Rename read extensions to Source extensions
 
-| Before | After |
-|---|---|
-| `GlobalLoader` | `GlobalSource` |
-| `PositionalLoader` | `PositionalSource` |
-| `BackwardsLoader` | `BackwardsSource` |
-| `StreamLoader` | `StreamSource` |
+| Before               | After                                                                             |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `GlobalLoader`       | `GlobalSource`                                                                    |
+| `PositionalLoader`   | `PositionalSource`                                                                |
+| `BackwardsLoader`    | `BackwardsSource`                                                                 |
+| `StreamLoader`       | `StreamSource`                                                                    |
 | `TransactionalStore` | `TransactionalSink` (extends Sink) + keep `TransactionalStore` as composite alias |
 
 ```go
@@ -110,11 +111,11 @@ type PositionalSource interface {
 
 ### 1.3 Update wrapper types to depend on minimal interfaces
 
-| Wrapper | Current accepts | Should accept |
-|---|---|---|
-| `VersionedStore` | `Store` | `Source` → rename to `VersionedSource` |
-| `StoreStreamAdapter` | `Store` | `Source` → rename to `SourceStreamAdapter` |
-| `projection.Runner` | `Store` | `Source` + `PositionalSource` |
+| Wrapper              | Current accepts | Should accept                              |
+| -------------------- | --------------- | ------------------------------------------ |
+| `VersionedStore`     | `Store`         | `Source` → rename to `VersionedSource`     |
+| `StoreStreamAdapter` | `Store`         | `Source` → rename to `SourceStreamAdapter` |
+| `projection.Runner`  | `Store`         | `Source` + `PositionalSource`              |
 
 ### 1.4 Update `decider.Repository`
 
@@ -450,11 +451,11 @@ store := memory.NewMemoryStore()
 
 After the foundation is solid, add type safety at application boundaries:
 
-| Feature | File | Description |
-|---|---|---|
-| `AggregateStore[State]` | `core/event/aggregate_store.go` | Binds `aggType` at construction, eliminates it from every call |
-| `TypedSource[State]` | `core/event/typed_source.go` | Auto-folds events into state, removing `load → fold` boilerplate |
-| `SubscribeTyped[T]` | `core/event/bus_typed.go` | Type-safe bus handlers with automatic codec integration |
+| Feature                 | File                            | Description                                                      |
+| ----------------------- | ------------------------------- | ---------------------------------------------------------------- |
+| `AggregateStore[State]` | `core/event/aggregate_store.go` | Binds `aggType` at construction, eliminates it from every call   |
+| `TypedSource[State]`    | `core/event/typed_source.go`    | Auto-folds events into state, removing `load → fold` boilerplate |
+| `SubscribeTyped[T]`     | `core/event/bus_typed.go`       | Type-safe bus handlers with automatic codec integration          |
 
 These are **additive** — they don't change existing interfaces.
 
@@ -462,22 +463,22 @@ These are **additive** — they don't change existing interfaces.
 
 ## Implementation Order
 
-| Step | Phase | Description | Breaking? |
-|---|---|---|---|
-| 1 | 1.1 | Add `Sink` + `Source` interfaces | No |
-| 2 | 1.1 | Verify all stores satisfy `Sink` + `Source` | No |
-| 3 | 1.2 | Rename `GlobalLoader` → `GlobalSource`, etc. | Yes (mechanical) |
-| 4 | 1.3 | Update wrappers (`VersionedSource`, `SourceStreamAdapter`) | Yes |
-| 5 | 1.4 | Update `decider.Repository` to take `Sink` + `Source` | Yes |
-| 6 | 1.5 | Extract `FakeSink` + `FakeSource` | No |
-| 7 | 2.1 | Rename `GlobalSource` → `Journal`, `PositionalSource` → `SeekableJournal` | Yes |
-| 8 | 2.2 | Update all method names (`ReadAll`, `ReadFrom`) | Yes |
-| 9 | 3.1 | Add tombstone types to `core/event/` | No |
-| 10 | 3.2 | Add `StatusMiddleware` | No |
-| 11 | 4.1–4.7 | Build `stream/` module | No (new module) |
-| 12 | 5.1 | Remove `Delete` from `Store` | Yes |
-| 13 | 5.2 | Remove `Delete` from all implementations | Yes |
-| 14 | 5.3 | Update tests to use fresh stores | No |
+| Step | Phase   | Description                                                               | Breaking?        |
+| ---- | ------- | ------------------------------------------------------------------------- | ---------------- |
+| 1    | 1.1     | Add `Sink` + `Source` interfaces                                          | No               |
+| 2    | 1.1     | Verify all stores satisfy `Sink` + `Source`                               | No               |
+| 3    | 1.2     | Rename `GlobalLoader` → `GlobalSource`, etc.                              | Yes (mechanical) |
+| 4    | 1.3     | Update wrappers (`VersionedSource`, `SourceStreamAdapter`)                | Yes              |
+| 5    | 1.4     | Update `decider.Repository` to take `Sink` + `Source`                     | Yes              |
+| 6    | 1.5     | Extract `FakeSink` + `FakeSource`                                         | No               |
+| 7    | 2.1     | Rename `GlobalSource` → `Journal`, `PositionalSource` → `SeekableJournal` | Yes              |
+| 8    | 2.2     | Update all method names (`ReadAll`, `ReadFrom`)                           | Yes              |
+| 9    | 3.1     | Add tombstone types to `core/event/`                                      | No               |
+| 10   | 3.2     | Add `StatusMiddleware`                                                    | No               |
+| 11   | 4.1–4.7 | Build `stream/` module                                                    | No (new module)  |
+| 12   | 5.1     | Remove `Delete` from `Store`                                              | Yes              |
+| 13   | 5.2     | Remove `Delete` from all implementations                                  | Yes              |
+| 14   | 5.3     | Update tests to use fresh stores                                          | No               |
 
 ---
 
@@ -485,62 +486,62 @@ These are **additive** — they don't change existing interfaces.
 
 ### `core/event/`
 
-| File | Change |
-|---|---|
-| `store.go` | Add `Sink`, `Source`, rename `GlobalLoader` → `Journal`, `PositionalLoader` → `SeekableJournal`, `BackwardsLoader` → `BackwardsSource`, `StreamLoader` → `StreamSource` |
-| `tombstone.go` | New: `TombstoneStatus`, `MarkTombstone`, `MarkRebirth`, `DetectTombstone`, `HasTombstone` |
-| `versioned_store.go` | Rename to `versioned_source.go`, wrap `Source` not `Store` |
-| `stream.go` | Rename `StoreStreamAdapter` → `SourceStreamAdapter`, `StreamLoader` → `StreamSource` |
+| File                 | Change                                                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `store.go`           | Add `Sink`, `Source`, rename `GlobalLoader` → `Journal`, `PositionalLoader` → `SeekableJournal`, `BackwardsLoader` → `BackwardsSource`, `StreamLoader` → `StreamSource` |
+| `tombstone.go`       | New: `TombstoneStatus`, `MarkTombstone`, `MarkRebirth`, `DetectTombstone`, `HasTombstone`                                                                               |
+| `versioned_store.go` | Rename to `versioned_source.go`, wrap `Source` not `Store`                                                                                                              |
+| `stream.go`          | Rename `StoreStreamAdapter` → `SourceStreamAdapter`, `StreamLoader` → `StreamSource`                                                                                    |
 
 ### `core/decider/`
 
-| File | Change |
-|---|---|
+| File         | Change                                                                                                   |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
 | `decider.go` | `Repository` fields: `sink`, `source`; constructor takes `Sink` + `Source`; add `NewRepositoryWithStore` |
-| `options.go` | No changes needed |
+| `options.go` | No changes needed                                                                                        |
 
 ### `projection/`
 
-| File | Change |
-|---|---|
-| `runner.go` | Accept `Source` + `SeekableJournal` (was `Store`) |
-| `runner_test.go` | Update test helpers |
+| File             | Change                                            |
+| ---------------- | ------------------------------------------------- |
+| `runner.go`      | Accept `Source` + `SeekableJournal` (was `Store`) |
+| `runner_test.go` | Update test helpers                               |
 
 ### `memory/`
 
-| File | Change |
-|---|---|
-| `store.go` | Remove `Delete`; add compile-time assertions for `Sink`, `Source` |
-| `store_load.go` | Rename `LoadAll` → `ReadAll`, `LoadAllFromPosition` → `ReadFrom` |
+| File            | Change                                                            |
+| --------------- | ----------------------------------------------------------------- |
+| `store.go`      | Remove `Delete`; add compile-time assertions for `Sink`, `Source` |
+| `store_load.go` | Rename `LoadAll` → `ReadAll`, `LoadAllFromPosition` → `ReadFrom`  |
 
 ### `storage/`
 
-| File | Change |
-|---|---|
-| `event_store.go` | Remove `Delete`; rename `LoadAll` → `ReadAll`, `LoadAllFromPosition` → `ReadFrom`; add `Sink`/`Source` assertions |
-| `pebble_event_store.go` | Remove `Delete` |
-| `pebble_helpers.go` | Remove `Delete` |
-| `transactional_store.go` | Rename `TransactionalStore` → `TransactionalSink` (keep alias); `SaveWithOutbox` extends `Sink` |
+| File                     | Change                                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `event_store.go`         | Remove `Delete`; rename `LoadAll` → `ReadAll`, `LoadAllFromPosition` → `ReadFrom`; add `Sink`/`Source` assertions |
+| `pebble_event_store.go`  | Remove `Delete`                                                                                                   |
+| `pebble_helpers.go`      | Remove `Delete`                                                                                                   |
+| `transactional_store.go` | Rename `TransactionalStore` → `TransactionalSink` (keep alias); `SaveWithOutbox` extends `Sink`                   |
 
 ### `testhelpers/`
 
-| File | Change |
-|---|---|
+| File            | Change                                             |
+| --------------- | -------------------------------------------------- |
 | `fake_store.go` | Extract `FakeSink` + `FakeSource`; remove `Delete` |
 
 ### New: `stream/`
 
-| File | Purpose |
-|---|---|
-| `go.mod` | Module definition |
-| `types.go` | `AggregateRef`, `AggregateStatus`, `Page[T]`, `ListOptions` |
-| `reader.go` | `AggregateReader`, `AggregateLister` interfaces |
-| `in_memory.go` | `InMemoryAggregateReader` |
-| `sql_reader.go` | `SQLAggregateReader` |
-| `builder.go` | `ListBuilder` fluent API |
-| `middleware.go` | `StatusMiddleware` |
-| `projection.go` | `AggregateProjection` |
-| `*_test.go` | Tests |
+| File            | Purpose                                                     |
+| --------------- | ----------------------------------------------------------- |
+| `go.mod`        | Module definition                                           |
+| `types.go`      | `AggregateRef`, `AggregateStatus`, `Page[T]`, `ListOptions` |
+| `reader.go`     | `AggregateReader`, `AggregateLister` interfaces             |
+| `in_memory.go`  | `InMemoryAggregateReader`                                   |
+| `sql_reader.go` | `SQLAggregateReader`                                        |
+| `builder.go`    | `ListBuilder` fluent API                                    |
+| `middleware.go` | `StatusMiddleware`                                          |
+| `projection.go` | `AggregateProjection`                                       |
+| `*_test.go`     | Tests                                                       |
 
 ---
 

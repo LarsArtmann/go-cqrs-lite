@@ -51,6 +51,7 @@ This means the in-memory reader only works with stores that implement `GlobalSou
 ### 4. `EventReader` SQL implementation is underspecified
 
 For `EventReader.Read()` with SQL, we'd need to query events across aggregates with filters (event types, time range, etc.). This requires either:
+
 - Querying the write model's `events` table directly (violates CQRS)
 - Maintaining a separate `events` projection table (doubles storage)
 - Using the existing `events` table but with read-optimized indexes (pragmatic but not pure)
@@ -60,6 +61,7 @@ For `EventReader.Read()` with SQL, we'd need to query events across aggregates w
 ### 5. Blast radius of removing `Delete`
 
 A quick grep shows `Delete` is used in:
+
 - `memory/store.go`
 - `storage/event_store.go`
 - `testhelpers/fake_store.go`
@@ -96,6 +98,7 @@ const (
 ```
 
 SQL schema:
+
 ```sql
 tombstone_status INT NOT NULL DEFAULT 0
 ```
@@ -173,6 +176,7 @@ Actually, simpler: `TransactionalStore` extends `Store` (the composite). `Transa
 The current order has step 4 as "Remove Delete from all stores, update tests." This is disruptive and could be done incrementally.
 
 **Better order:**
+
 1. Define `Sink` + `Source` interfaces (additive, no breaking changes)
 2. Verify all existing `Store` implementations satisfy `Sink` and `Source`
 3. Rename `GlobalLoader` → `GlobalSource`, etc. (breaking but mechanical)
@@ -186,19 +190,19 @@ This way, steps 1-5 can be implemented and tested before the big breaking change
 
 ## Summary of recommended changes to v4 proposal
 
-| # | Change | Priority |
-|---|---|---|
-| 1 | Rename `AutoTombstone` → `StatusMiddleware` | High |
-| 2 | `InMemoryAggregateReader` takes `GlobalSource`, not `Source` | High |
-| 3 | Move `EventReader` to "Future work" | High |
-| 4 | Remove `EventCount` from `AggregateRef`, add `AggregateInfo` | Medium |
-| 5 | Make `Type` required in `ListOptions` | Medium |
-| 6 | Document `Close()` behavior for composite `Store` | Medium |
-| 7 | Use `INT` for tombstone_status in SQL schema | Medium |
-| 8 | Refine implementation order (additive first, Delete last) | Medium |
-| 9 | Rename builder: `NewAggregateQuery` → `NewListBuilder` | Low |
-| 10 | Rename `StreamLoader` → `StreamSource` | Low |
-| 11 | Keep `TransactionalStore` as composite, add `TransactionalSink` | Low |
+| #   | Change                                                          | Priority |
+| --- | --------------------------------------------------------------- | -------- |
+| 1   | Rename `AutoTombstone` → `StatusMiddleware`                     | High     |
+| 2   | `InMemoryAggregateReader` takes `GlobalSource`, not `Source`    | High     |
+| 3   | Move `EventReader` to "Future work"                             | High     |
+| 4   | Remove `EventCount` from `AggregateRef`, add `AggregateInfo`    | Medium   |
+| 5   | Make `Type` required in `ListOptions`                           | Medium   |
+| 6   | Document `Close()` behavior for composite `Store`               | Medium   |
+| 7   | Use `INT` for tombstone_status in SQL schema                    | Medium   |
+| 8   | Refine implementation order (additive first, Delete last)       | Medium   |
+| 9   | Rename builder: `NewAggregateQuery` → `NewListBuilder`          | Low      |
+| 10  | Rename `StreamLoader` → `StreamSource`                          | Low      |
+| 11  | Keep `TransactionalStore` as composite, add `TransactionalSink` | Low      |
 
 ---
 

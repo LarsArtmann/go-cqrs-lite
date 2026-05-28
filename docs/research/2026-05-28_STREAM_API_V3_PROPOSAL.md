@@ -27,13 +27,13 @@ Q(store) // What does Q mean? Query? Queue? Quokka?
 
 The right separation:
 
-| Concern | Write Model | Read Model |
-|---|---|---|
-| Append events | `Store.Save()` | — |
-| Load events | `Store.Load()` | — |
-| List aggregates | — | `stream.AggregateReader` |
-| Tombstone detection | — | `stream.AggregateReader` (metadata) |
-| Paginated queries | — | `stream.ListBuilder` |
+| Concern             | Write Model    | Read Model                          |
+| ------------------- | -------------- | ----------------------------------- |
+| Append events       | `Store.Save()` | —                                   |
+| Load events         | `Store.Load()` | —                                   |
+| List aggregates     | —              | `stream.AggregateReader`            |
+| Tombstone detection | —              | `stream.AggregateReader` (metadata) |
+| Paginated queries   | —              | `stream.ListBuilder`                |
 
 ### 4. `TombstoneStore` decorator breaks type assertions
 
@@ -42,6 +42,7 @@ Wrapping `event.Store` with a tombstone decorator means `TransactionalStore`, `P
 ### 5. `SQLEventStore` bloat
 
 Adding an `aggregates` table and `ListStreams` to `SQLEventStore` makes it responsible for:
+
 - Event persistence (write)
 - Optimistic concurrency (write)
 - Aggregate enumeration (read)
@@ -53,15 +54,15 @@ That's four responsibilities for one struct. The `aggregates` table is a **read-
 
 ## v3 Design Principles
 
-| # | Principle | Rationale |
-|---|---|---|
-| 1 | **Store is write model only** | No read-model methods on `Store` |
-| 2 | **Read model is separate** | `stream/` provides readers, not store extensions |
-| 3 | **`uint` for all counts/limits** | Negative values are impossible states |
-| 4 | **Descriptive constructors, no magic** | `NewInMemoryReader(loader)`, `NewSQLReader(db)` — no `Q()` |
-| 5 | **Tombstone is metadata, not wrapper** | Same pattern as `signing` — metadata key on events |
-| 6 | **SQL read model is a projection** | Separate table, maintained by event subscription |
-| 7 | **Cursor pagination only** | `Page[T]` has `HasMore`, no `TotalCount` (expensive for append-only logs) |
+| #   | Principle                              | Rationale                                                                 |
+| --- | -------------------------------------- | ------------------------------------------------------------------------- |
+| 1   | **Store is write model only**          | No read-model methods on `Store`                                          |
+| 2   | **Read model is separate**             | `stream/` provides readers, not store extensions                          |
+| 3   | **`uint` for all counts/limits**       | Negative values are impossible states                                     |
+| 4   | **Descriptive constructors, no magic** | `NewInMemoryReader(loader)`, `NewSQLReader(db)` — no `Q()`                |
+| 5   | **Tombstone is metadata, not wrapper** | Same pattern as `signing` — metadata key on events                        |
+| 6   | **SQL read model is a projection**     | Separate table, maintained by event subscription                          |
+| 7   | **Cursor pagination only**             | `Page[T]` has `HasMore`, no `TotalCount` (expensive for append-only logs) |
 
 ---
 
@@ -386,6 +387,7 @@ func (b *ListBuilder) List(ctx context.Context) (*Page[AggregateRef], error) {
 ```
 
 **Why this is better than v2:**
+
 - No `Q()` — `NewList()` and `NewSQLList()` are descriptive and typed
 - No hardcoded defaults — `PageSize()` overrides, with clamping
 - No `StreamLister` on Store — read model is entirely separate
@@ -470,6 +472,7 @@ CREATE TABLE IF NOT EXISTS cqrs_stream_aggregates (
 ```
 
 **Why this is better than v2:**
+
 - `SQLEventStore` is unchanged — no bloat, no new responsibilities
 - Aggregates table is a **read model** — maintained by projection, not the store
 - Tombstone status is pre-computed in the table — O(1) listing, no N+1
@@ -635,23 +638,23 @@ stream/
 
 ## v2 → v3 comparison
 
-| Aspect | v2 | v3 |
-|---|---|---|
-| **Tombstone detection** | `TombstoneDetector` callback (loads all events per aggregate) | Metadata key on last event (O(1)) |
-| **Listing location** | `StreamLister` on `Store` | Separate `AggregateReader` in `stream/` |
-| **SQL efficiency** | `ListStreams` on `SQLEventStore` with aggregates table | Projection maintains aggregates table; `SQLReader` queries it |
-| **Store bloat** | `SQLEventStore` gains aggregates table + `ListStreams` | `SQLEventStore` unchanged |
-| **Pagination** | Mixed offset + cursor | Cursor-only (`After` + `HasMore`) |
-| **Type safety** | `int` for counts/limits | `uint` for counts/limits |
-| **Builder entry** | `Q(store)` with hardcoded defaults | `NewList(loader)`, `NewSQLList(db)` with overridable `PageSize()` |
-| **Decorator safety** | `TombstoneStore` wrapper loses type assertions | Bus middleware (`AutoTombstone`) — no wrapping needed |
-| **CQRS separation** | Partial (read methods on write model) | Clean (read model is entirely separate) |
+| Aspect                  | v2                                                            | v3                                                                |
+| ----------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Tombstone detection** | `TombstoneDetector` callback (loads all events per aggregate) | Metadata key on last event (O(1))                                 |
+| **Listing location**    | `StreamLister` on `Store`                                     | Separate `AggregateReader` in `stream/`                           |
+| **SQL efficiency**      | `ListStreams` on `SQLEventStore` with aggregates table        | Projection maintains aggregates table; `SQLReader` queries it     |
+| **Store bloat**         | `SQLEventStore` gains aggregates table + `ListStreams`        | `SQLEventStore` unchanged                                         |
+| **Pagination**          | Mixed offset + cursor                                         | Cursor-only (`After` + `HasMore`)                                 |
+| **Type safety**         | `int` for counts/limits                                       | `uint` for counts/limits                                          |
+| **Builder entry**       | `Q(store)` with hardcoded defaults                            | `NewList(loader)`, `NewSQLList(db)` with overridable `PageSize()` |
+| **Decorator safety**    | `TombstoneStore` wrapper loses type assertions                | Bus middleware (`AutoTombstone`) — no wrapping needed             |
+| **CQRS separation**     | Partial (read methods on write model)                         | Clean (read model is entirely separate)                           |
 
 ---
 
 ## Why no Sink+Source split (for now)
 
-The user raised: *"a Store should be composed of Sink and Source."* This is architecturally correct:
+The user raised: _"a Store should be composed of Sink and Source."_ This is architecturally correct:
 
 ```
 Sink   = Save + AppendBatch + Delete + Close
@@ -662,6 +665,7 @@ Store  = Sink + Source
 This would let `stream.NewList(source)` accept only the read side. And it would let consumers compose stores from separate sinks and sources (e.g., write to Kafka, read from Postgres).
 
 **Why v3 doesn't require this:**
+
 - Splitting `Store` is a major refactor touching every module, every test, every consumer
 - v3 works within the existing `Store` interface — it just doesn't extend it
 - The read model (`stream.AggregateReader`) is already separate from `Store`

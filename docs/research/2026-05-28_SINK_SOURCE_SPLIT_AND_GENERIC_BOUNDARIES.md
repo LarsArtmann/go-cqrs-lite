@@ -2,6 +2,7 @@
 
 **Date:** 2026-05-28
 **Sources:**
+
 - [Zig's New Async I/O](https://andrewkelley.me/post/zig-new-async-io-text-version.html) — Andrew Kelley, Zigtoberfest 2025
 - [Watermill CQRS Component](https://watermill.io/docs/cqrs/)
 - [Watermill Pub/Sub Interface](https://watermill.io/development/pub-sub-implementing/)
@@ -23,10 +24,10 @@ Zig passes `Io` explicitly through the application (`io: Io`), not hidden in a g
 
 Zig makes this explicit with two different APIs:
 
-| Primitive | Semantics | Use Case |
-|---|---|---|
-| `io.async(fn, args)` | Decouple call from return | Non-blocking I/O expression |
-| `io.concurrent(fn, args)` | Actually run in parallel | Producer-consumer with blocking |
+| Primitive                 | Semantics                 | Use Case                        |
+| ------------------------- | ------------------------- | ------------------------------- |
+| `io.async(fn, args)`      | Decouple call from return | Non-blocking I/O expression     |
+| `io.concurrent(fn, args)` | Actually run in parallel  | Producer-consumer with blocking |
 
 Using `async` with an unbuffered queue on a single-threaded pool deadlocks — you asked for asynchrony, but what you needed was concurrency. The runtime can optimize async (e.g., two sleeps in one second), but it cannot create parallelism without explicit `concurrent`.
 
@@ -111,20 +112,20 @@ type Store interface {
 
 ### 2.3 Deployment Boundary
 
-| Capability | Characteristic | Deployment |
-|---|---|---|
-| `Sink` | Sequential, consistency-bound, single-writer | Write master |
-| `Source` | Parallel, cacheable, replay-friendly | Read replicas |
+| Capability | Characteristic                               | Deployment    |
+| ---------- | -------------------------------------------- | ------------- |
+| `Sink`     | Sequential, consistency-bound, single-writer | Write master  |
+| `Source`   | Parallel, cacheable, replay-friendly         | Read replicas |
 
 By splitting the interface, you make this scaling boundary **visible in the type system**. A function accepting `Source` can safely be routed to a read replica. A function accepting `Sink` must go to the write master.
 
 ### 2.4 Wrapper Types Should Depend on Minimal Interface
 
-| Wrapper | Current Dependency | Should Be |
-|---|---|---|
-| `VersionedStore` | `Store` | `Source` (only overrides Load methods) |
-| `StoreStreamAdapter` | `Store` | `Source` (only calls Load) |
-| `projection.Runner` | `Store` | `Source` + `PositionalLoader` (never writes) |
+| Wrapper              | Current Dependency | Should Be                                    |
+| -------------------- | ------------------ | -------------------------------------------- |
+| `VersionedStore`     | `Store`            | `Source` (only overrides Load methods)       |
+| `StoreStreamAdapter` | `Store`            | `Source` (only calls Load)                   |
+| `projection.Runner`  | `Store`            | `Source` + `PositionalLoader` (never writes) |
 
 ### 2.5 Repository Can Separate Concerns
 
@@ -194,15 +195,15 @@ Existing code using `event.Store` continues to work. The win is that **new code 
 
 ## 3. Save vs Flush: Different Contracts
 
-| | `Save(aggType, aggID, events, expectedVersion)` | `Flush()` |
-|---|---|---|
-| **Scope** | Single aggregate | Entire buffered batch |
-| **Concurrency** | Optimistic (per-aggregate version check) | Atomic (all-or-nothing) |
-| **Timing** | Immediate | Deferred |
-| **Error domain** | `ErrVersionConflict` on *this* aggregate | `ErrFlushFailed` on the whole batch |
-| **State held** | None (stateless) | Buffered events (stateful) |
+|                  | `Save(aggType, aggID, events, expectedVersion)` | `Flush()`                           |
+| ---------------- | ----------------------------------------------- | ----------------------------------- |
+| **Scope**        | Single aggregate                                | Entire buffered batch               |
+| **Concurrency**  | Optimistic (per-aggregate version check)        | Atomic (all-or-nothing)             |
+| **Timing**       | Immediate                                       | Deferred                            |
+| **Error domain** | `ErrVersionConflict` on _this_ aggregate        | `ErrFlushFailed` on the whole batch |
+| **State held**   | None (stateless)                                | Buffered events (stateful)          |
 
-Event sourcing's core invariant is **per-aggregate optimistic concurrency**. `Save` encodes that directly: "append these events to *this* stream if and only if its version is still `expectedVersion`." A generic `Flush()` loses that granularity — it becomes a bulk operation that can't reason about individual aggregate versions.
+Event sourcing's core invariant is **per-aggregate optimistic concurrency**. `Save` encodes that directly: "append these events to _this_ stream if and only if its version is still `expectedVersion`." A generic `Flush()` loses that granularity — it becomes a bulk operation that can't reason about individual aggregate versions.
 
 ### 3.1 Where Flush Makes Sense
 
@@ -219,13 +220,14 @@ sink.Flush(ctx)                            // one tx, all aggregates
 ```
 
 This is useful for process managers or sagas that mutate multiple aggregates atomically. But it requires the Sink to hold state, which introduces:
+
 - Lifecycle management (when does the buffer reset?)
 - Error handling (what happens to buffered events on panic?)
 - Scope ambiguity (is `Flush()` per-call-site or global?)
 
 ### 3.2 Sink/Source is Orthogonal to Flush
 
-The Zig lesson is **"depend on the smallest capability you need."** `Flush` doesn't replace this — it adds a *different* capability layer:
+The Zig lesson is **"depend on the smallest capability you need."** `Flush` doesn't replace this — it adds a _different_ capability layer:
 
 ```
 Source (read)          Sink (write)              BatchSink (write+buffer)
@@ -269,7 +271,7 @@ type TxSink interface {
 
 This mirrors how databases work: you have a connection (`Sink`) and you can start transactions (`Begin()`) that get flushed. But the base `Sink` stays stateless and simple.
 
-The current `TransactionalStore` is actually a manually-coupled version of `AtomicSink` (Save + Outbox flush in one transaction). Making that explicit with a `Begin()...Flush()` API would be cleaner — but that's a layer *on top of* Sink, not a replacement for it.
+The current `TransactionalStore` is actually a manually-coupled version of `AtomicSink` (Save + Outbox flush in one transaction). Making that explicit with a `Begin()...Flush()` API would be cleaner — but that's a layer _on top of_ Sink, not a replacement for it.
 
 ---
 
@@ -294,11 +296,13 @@ This maps directly to our design: **Sink/Source are the transport layer** (untyp
 ### 4.2 Interface Split Enables Different Topologies
 
 Watermill's `Publisher` + `Subscriber` split allows:
+
 - One publisher, many subscribers
 - Different backends per direction (Kafka pub, Redis sub)
 - Fan-out without fan-in coupling
 
 Our `Sink` + `Source` split enables the same:
+
 - Write master + read replicas
 - Different storage backends (Pebble sink, SQL source)
 - Archival: old events in S3 source, new events in hot sink
@@ -306,6 +310,7 @@ Our `Sink` + `Source` split enables the same:
 ### 4.3 Message Ack/Nack Pattern
 
 Watermill subscribers return `<-chan *Message` and require explicit `Ack()` / `Nack()` on each message. This enables:
+
 - At-least-once delivery semantics
 - Dead letter queues on persistent Nack
 - Backpressure (consumer controls pace)
@@ -415,13 +420,14 @@ state, ver, _ := typedSource.LoadState(ctx, aggID)
 
 ## 6. The Full Architecture Picture
 
-| Layer | Role | Types | Example |
-|---|---|---|---|
-| **Transport** | Persistence + messaging | Untyped `Event`, `Sink`, `Source`, `Bus` | `event.Store`, `memory.MemoryStore`, `storage.SQLEventStore` |
-| **Aggregate** | Per-type state machine | Generic `State` | `decider.Decider[State]`, `AggregateStore[State]` |
-| **Application** | Handlers + projections | Generic `T` (payload) | `projection.On[T]`, `SubscribeTyped[T]` |
+| Layer           | Role                    | Types                                    | Example                                                      |
+| --------------- | ----------------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| **Transport**   | Persistence + messaging | Untyped `Event`, `Sink`, `Source`, `Bus` | `event.Store`, `memory.MemoryStore`, `storage.SQLEventStore` |
+| **Aggregate**   | Per-type state machine  | Generic `State`                          | `decider.Decider[State]`, `AggregateStore[State]`            |
+| **Application** | Handlers + projections  | Generic `T` (payload)                    | `projection.On[T]`, `SubscribeTyped[T]`                      |
 
 This mirrors Watermill exactly:
+
 - Watermill's `Publisher/Subscriber` = our `Sink/Source` (transport, untyped)
 - Watermill's `EventBus` = our `AggregateStore` + `projection.Builder` (application, typed)
 - Watermill's `NewEventHandler[T]` = our `projection.On[T]` (handler boundary, generic)
