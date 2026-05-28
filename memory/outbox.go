@@ -45,7 +45,7 @@ func (o *MemoryOutboxStore) Append(_ context.Context, events []event.Event) erro
 	o.entryCounter++
 
 	entry := outboxEntry{
-		id:        event.OutboxID(fmt.Sprintf("outbox-%d", o.entryCounter)),
+		id:        event.NewOutboxID(fmt.Sprintf("outbox-%d", o.entryCounter)),
 		events:    append([]event.Event(nil), events...),
 		createdAt: time.Now(),
 	}

@@ -173,7 +173,7 @@ func TestSchemaVersion_IntStringIsZero(t *testing.T) {
 func TestOutboxID_StringIsZero(t *testing.T) {
 	t.Parallel()
 
-	oid := event.OutboxID("test-id")
+	oid := event.NewOutboxID("test-id")
 
 	if oid.String() != "test-id" {
 		t.Errorf("String = %q, want test-id", oid.String())

@@ -104,7 +104,7 @@ func scanOutboxEntries(rows *sql.Rows) ([]event.OutboxEntry, error) {
 		}
 
 		entries = append(entries, event.OutboxEntry{
-			ID:     event.OutboxID(idStr),
+			ID:     event.NewOutboxID(idStr),
 			Events: events,
 		})
 	}

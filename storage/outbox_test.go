@@ -144,7 +144,7 @@ func TestSQLOutbox_PollPending(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].ID != event.OutboxID(evt.ID().String()) {
+	if entries[0].ID != event.NewOutboxID(evt.ID().String()) {
 		t.Fatalf("expected outbox ID %s, got %s", evt.ID(), entries[0].ID)
 	}
 
@@ -197,11 +197,11 @@ func TestSQLOutbox_Ack(t *testing.T) {
 
 	outbox, mock := newTestOutbox(t)
 
-	ids := []event.OutboxID{"outbox-1", "outbox-2"}
+	ids := []event.OutboxID{event.NewOutboxID("outbox-1"), event.NewOutboxID("outbox-2")}
 
 	mock.ExpectExec(regexp.QuoteMeta(
 		"DELETE FROM outbox WHERE id IN ($1, $2)",
-	)).WithArgs("outbox-1", "outbox-2").
+	)).WithArgs(event.NewOutboxID("outbox-1"), event.NewOutboxID("outbox-2")).
 		WillReturnResult(sqlmock.NewResult(0, 2))
 
 	err := outbox.Ack(t.Context(), ids)
@@ -228,10 +228,10 @@ func TestSQLOutbox_Ack_DeleteError(t *testing.T) {
 
 	mock.ExpectExec(regexp.QuoteMeta(
 		"DELETE FROM outbox WHERE id IN ($1)",
-	)).WithArgs("outbox-1").
+	)).WithArgs(event.NewOutboxID("outbox-1")).
 		WillReturnError(errTestDB)
 
-	err := outbox.Ack(t.Context(), []event.OutboxID{"outbox-1"})
+	err := outbox.Ack(t.Context(), []event.OutboxID{event.NewOutboxID("outbox-1")})
 	if err == nil {
 		t.Fatal("expected delete error")
 	}
@@ -345,14 +345,14 @@ func TestSQLOutbox_Ack_MultiBatch(t *testing.T) {
 
 	ids := make([]event.OutboxID, maxAckBatchSize+3)
 	for i := range ids {
-		ids[i] = event.OutboxID(fmt.Sprintf("outbox-%d", i))
+		ids[i] = event.NewOutboxID(fmt.Sprintf("outbox-%d", i))
 	}
 
 	batch1Placeholders := make([]string, maxAckBatchSize)
 	batch1Args := make([]driver.Value, maxAckBatchSize)
 	for i := range maxAckBatchSize {
 		batch1Placeholders[i] = fmt.Sprintf("$%d", i+1)
-		batch1Args[i] = string(ids[i])
+		batch1Args[i] = ids[i].Get()
 	}
 
 	batch1SQL := fmt.Sprintf(
@@ -367,9 +367,9 @@ func TestSQLOutbox_Ack_MultiBatch(t *testing.T) {
 	remainder := 3
 	batch2Placeholders := []string{"$1", "$2", "$3"}
 	batch2Args := []driver.Value{
-		string(ids[maxAckBatchSize]),
-		string(ids[maxAckBatchSize+1]),
-		string(ids[maxAckBatchSize+2]),
+		ids[maxAckBatchSize].Get(),
+		ids[maxAckBatchSize+1].Get(),
+		ids[maxAckBatchSize+2].Get(),
 	}
 
 	batch2SQL := fmt.Sprintf(
@@ -398,14 +398,14 @@ func TestSQLOutbox_Ack_MultiBatch_SecondBatchError(t *testing.T) {
 
 	ids := make([]event.OutboxID, maxAckBatchSize+1)
 	for i := range ids {
-		ids[i] = event.OutboxID(fmt.Sprintf("outbox-%d", i))
+		ids[i] = event.NewOutboxID(fmt.Sprintf("outbox-%d", i))
 	}
 
 	batch1Placeholders := make([]string, maxAckBatchSize)
 	batch1Args := make([]driver.Value, maxAckBatchSize)
 	for i := range maxAckBatchSize {
 		batch1Placeholders[i] = fmt.Sprintf("$%d", i+1)
-		batch1Args[i] = string(ids[i])
+		batch1Args[i] = ids[i].Get()
 	}
 
 	batch1SQL := fmt.Sprintf(
@@ -418,7 +418,7 @@ func TestSQLOutbox_Ack_MultiBatch_SecondBatchError(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, maxAckBatchSize))
 
 	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM outbox WHERE id IN ($1)")).
-		WithArgs(string(ids[maxAckBatchSize])).
+		WithArgs(ids[maxAckBatchSize].Get()).
 		WillReturnError(errTestDB)
 
 	err := outbox.Ack(t.Context(), ids)
@@ -464,7 +464,7 @@ func TestSQLOutbox_Ack_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	err := outbox.Ack(ctx, []event.OutboxID{"test-id"})
+	err := outbox.Ack(ctx, []event.OutboxID{event.NewOutboxID("test-id")})
 	if err == nil {
 		t.Fatal("expected error for cancelled context")
 	}

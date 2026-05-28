@@ -3,16 +3,17 @@ package event
 import (
 	"context"
 	"io"
+
+	cbid "github.com/larsartmann/go-branded-id"
 )
 
+type outboxMarker struct{}
+
 // OutboxID identifies an entry in the outbox.
-type OutboxID string
+type OutboxID = cbid.ID[outboxMarker, string]
 
-// String returns the underlying string value.
-func (id OutboxID) String() string { return string(id) }
-
-// IsZero returns true if the outbox ID is zero-valued.
-func (id OutboxID) IsZero() bool { return id == "" }
+// NewOutboxID creates a new OutboxID from a string.
+func NewOutboxID(s string) OutboxID { return cbid.NewID[outboxMarker, string](s) }
 
 // OutboxEntry represents a batch of events staged for reliable publishing.
 type OutboxEntry struct {

@@ -25,7 +25,7 @@ func TestFakeOutbox_Append(t *testing.T) {
 		t.Fatalf("len(Entries) = %d, want 1", len(outbox.Entries))
 	}
 
-	if outbox.Entries[0].ID == "" {
+	if outbox.Entries[0].ID.IsZero() {
 		t.Error("entry ID should not be empty")
 	}
 }

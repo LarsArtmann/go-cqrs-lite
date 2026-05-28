@@ -231,7 +231,7 @@ func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 
 	evt := mustNewTestEvent("user.created")
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{evt}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
 	}}
 	bus := &stubPublisher{}
 
@@ -298,7 +298,7 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 
 	evt := mustNewTestEvent("order.placed")
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{evt}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
 	}}
 	bus := &stubPublisher{}
 
@@ -328,7 +328,7 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 	outbox.mu.Lock()
 	defer outbox.mu.Unlock()
 
-	if len(outbox.acked) != 1 || outbox.acked[0] != "entry-1" {
+	if len(outbox.acked) != 1 || !outbox.acked[0].Equal(NewOutboxID("entry-1")) {
 		t.Fatalf("acked = %v, want [entry-1]", outbox.acked)
 	}
 }
@@ -339,8 +339,8 @@ func TestOutboxPublisher_PublishNow_MultipleEntries(t *testing.T) {
 	evt1 := mustNewTestEvent("user.created")
 	evt2 := mustNewTestEvent("user.updated")
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{evt1}},
-		{ID: "entry-2", Events: []Event{evt2}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt1}},
+		{ID: NewOutboxID("entry-2"), Events: []Event{evt2}},
 	}}
 	bus := &stubPublisher{}
 
@@ -400,7 +400,7 @@ func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
 
 	evt := mustNewTestEvent("user.created")
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{evt}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
 	}}
 	wantErr := errors.New("publish failed")
 	bus := &stubPublisher{publishErr: wantErr}
@@ -428,8 +428,8 @@ func TestOutboxPublisher_PublishNow_PublishError_StopsAtFailure(t *testing.T) {
 	evt1 := mustNewTestEvent("user.created")
 	evt2 := mustNewTestEvent("user.updated")
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{evt1}},
-		{ID: "entry-2", Events: []Event{evt2}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt1}},
+		{ID: NewOutboxID("entry-2"), Events: []Event{evt2}},
 	}}
 
 	callCount := 0
@@ -468,7 +468,7 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 
 	evt := mustNewTestEvent("user.created")
 	outbox := &stubOutbox{
-		entries: []OutboxEntry{{ID: "entry-1", Events: []Event{evt}}},
+		entries: []OutboxEntry{{ID: NewOutboxID("entry-1"), Events: []Event{evt}}},
 		ackErr:  errors.New("ack failed"),
 	}
 	bus := &stubPublisher{}
@@ -510,7 +510,7 @@ func TestOutboxPublisher_PublishNow_ContextCanceled(t *testing.T) {
 	cancel()
 
 	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: "entry-1", Events: []Event{mustNewTestEvent("test")}},
+		{ID: NewOutboxID("entry-1"), Events: []Event{mustNewTestEvent("test")}},
 	}}
 	bus := &stubPublisher{}
 

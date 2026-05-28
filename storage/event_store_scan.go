@@ -35,40 +35,28 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 		timeDest,
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"scan event row for %s/%s v%d (schema v%d) event %s (id %s): %w",
-			aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr, err,
-		)
+		return nil, event.WrapInfrastructure(err, "storage.scan_event",
+			fmt.Sprintf("scan event row for %s/%s v%d (schema v%d) event %s (id %s)",
+				aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr))
 	}
 
 	occurredAt, err := s.dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"parse occurred_at for %s/%s v%d (schema v%d) event %s (id %s): %w",
-			aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr, err,
-		)
+		return nil, event.WrapCorruption(err, "storage.parse_occurred_at",
+			fmt.Sprintf("parse occurred_at for %s/%s v%d (schema v%d) event %s (id %s)",
+				aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr))
 	}
 
 	parsedEventID, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"parse event ID %q for %s v%d: %w",
-			eventIDStr,
-			aggType,
-			version,
-			err,
-		)
+		return nil, event.WrapCorruption(err, "storage.parse_event_id",
+			fmt.Sprintf("parse event ID %q for %s v%d", eventIDStr, aggType, version))
 	}
 
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"parse aggregate ID %q for %s v%d: %w",
-			aggIDStr,
-			aggType,
-			version,
-			err,
-		)
+		return nil, event.WrapCorruption(err, "storage.parse_aggregate_id",
+			fmt.Sprintf("parse aggregate ID %q for %s v%d", aggIDStr, aggType, version))
 	}
 
 	return reconstructEvent(

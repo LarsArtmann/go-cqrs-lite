@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite).
@@ -38,10 +40,8 @@ func (PostgresDialect) ScanTimeDest() any {
 func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 	tp, ok := src.(*time.Time)
 	if !ok {
-		return time.Time{}, fmt.Errorf(
-			"postgres dialect: expected *time.Time, got %T: %w",
-			src, ErrUnexpectedTimeType,
-		)
+		return time.Time{}, event.WrapCorruption(ErrUnexpectedTimeType, "storage.unexpected_time_type",
+			fmt.Sprintf("postgres dialect: expected *time.Time, got %T", src))
 	}
 
 	return *tp, nil
@@ -128,10 +128,8 @@ func (SQLiteDialect) ScanTimeDest() any {
 func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 	sp, ok := src.(*string)
 	if !ok {
-		return time.Time{}, fmt.Errorf(
-			"sqlite dialect: expected *string, got %T: %w",
-			src, ErrUnexpectedTimeType,
-		)
+		return time.Time{}, event.WrapCorruption(ErrUnexpectedTimeType, "storage.unexpected_time_type",
+			fmt.Sprintf("sqlite dialect: expected *string, got %T", src))
 	}
 
 	return parseSQLiteTimestamp(*sp)

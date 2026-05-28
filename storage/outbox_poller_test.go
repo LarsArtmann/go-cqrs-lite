@@ -130,7 +130,7 @@ func TestOutboxPoller_PollAndPublish(t *testing.T) {
 
 	outbox := &fakePollerOutbox{
 		entries: []event.OutboxEntry{
-			{ID: "outbox-1", Events: []event.Event{evt}},
+			{ID: event.NewOutboxID("outbox-1"), Events: []event.Event{evt}},
 		},
 	}
 	publisher := &fakePollerPublisher{}
@@ -152,7 +152,7 @@ func TestOutboxPoller_PollAndPublish(t *testing.T) {
 		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
-	if len(outbox.ackedIDs) != 1 || outbox.ackedIDs[0] != "outbox-1" {
+	if len(outbox.ackedIDs) != 1 || !outbox.ackedIDs[0].Equal(event.NewOutboxID("outbox-1")) {
 		t.Fatalf("expected ack outbox-1, got %v", outbox.ackedIDs)
 	}
 }
@@ -189,7 +189,7 @@ func TestOutboxPoller_PublishError_SkipsAck(t *testing.T) {
 
 	outbox := &fakePollerOutbox{
 		entries: []event.OutboxEntry{
-			{ID: "outbox-1", Events: []event.Event{evt}},
+			{ID: event.NewOutboxID("outbox-1"), Events: []event.Event{evt}},
 		},
 	}
 	publisher := &fakePollerPublisher{publishErr: errTestPoller}
@@ -220,7 +220,7 @@ func TestOutboxPoller_AckError(t *testing.T) {
 
 	outbox := &fakePollerOutbox{
 		entries: []event.OutboxEntry{
-			{ID: "outbox-1", Events: []event.Event{evt}},
+			{ID: event.NewOutboxID("outbox-1"), Events: []event.Event{evt}},
 		},
 		ackErr: errTestPoller,
 	}
@@ -273,7 +273,7 @@ func TestOutboxPoller_MultipleEventsPerEntry(t *testing.T) {
 
 	outbox := &fakePollerOutbox{
 		entries: []event.OutboxEntry{
-			{ID: "outbox-1", Events: []event.Event{evt1, evt2}},
+			{ID: event.NewOutboxID("outbox-1"), Events: []event.Event{evt1, evt2}},
 		},
 	}
 	publisher := &fakePollerPublisher{}
@@ -305,8 +305,8 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 
 	outbox := &fakePollerOutbox{
 		entries: []event.OutboxEntry{
-			{ID: "outbox-1", Events: []event.Event{evt1}},
-			{ID: "outbox-2", Events: []event.Event{evt2}},
+			{ID: event.NewOutboxID("outbox-1"), Events: []event.Event{evt1}},
+			{ID: event.NewOutboxID("outbox-2"), Events: []event.Event{evt2}},
 		},
 	}
 
@@ -344,7 +344,7 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
 	}
 
-	if acked := outbox.AckedIDs(); len(acked) != 1 || acked[0] != "outbox-1" {
+	if acked := outbox.AckedIDs(); len(acked) != 1 || !acked[0].Equal(event.NewOutboxID("outbox-1")) {
 		t.Fatalf("expected only outbox-1 acked, got %v", acked)
 	}
 }

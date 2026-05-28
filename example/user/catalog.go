@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
 )
 
@@ -11,6 +15,16 @@ func generateEventCatalog(outputDir string) error {
 	builder := catalog.NewBuilder("User Service", "1.0.0")
 	builder.AddService(
 		"user-svc", "User Service", "1.0.0", "Manages user accounts",
+		catalog.Command[UserCreatedPayload](
+			catalog.MessageID(cmdCreateUser),
+			catalog.Name("Create User"),
+			catalog.Summary("Creates a new user account"),
+		),
+		catalog.Command[UserNameChangedPayload](
+			catalog.MessageID(cmdChangeUserName),
+			catalog.Name("Change User Name"),
+			catalog.Summary("Changes a user's display name"),
+		),
 		catalog.Event[UserCreatedPayload](
 			catalog.MessageID(eventUserCreated), catalog.Sends,
 			catalog.Name("User Created"),
@@ -54,8 +68,27 @@ func generateEventCatalog(outputDir string) error {
 		len(cat.Services), len(cat.Domains), len(cat.Channels), len(cat.DataStores))
 
 	for _, svc := range cat.Services {
-		fmt.Printf("  [catalog] Service %q: %d events\n", svc.Name, len(svc.Events))
+		fmt.Printf("  [catalog] Service %q: %d commands, %d events\n",
+			svc.Name, len(svc.Commands), len(svc.Events))
 	}
 
-	return eventcatalog.NewExporter(outputDir).Export(cat)
+	if err := eventcatalog.NewExporter(outputDir).Export(cat); err != nil {
+		return fmt.Errorf("export eventcatalog: %w", err)
+	}
+
+	d2Output := d2.NewExporter("User Service", "1.0.0").Export(cat)
+	d2Path := filepath.Join(outputDir, "architecture.d2")
+	if err := os.WriteFile(d2Path, []byte(d2Output), 0644); err != nil {
+		return fmt.Errorf("write d2: %w", err)
+	}
+
+	asyncDoc := asyncapi.NewExporter("User Service", "1.0.0").Export(cat)
+	asyncPath := filepath.Join(outputDir, "asyncapi.json")
+	if err := os.WriteFile(asyncPath, mustMarshal(asyncDoc), 0644); err != nil {
+		return fmt.Errorf("write asyncapi: %w", err)
+	}
+
+	fmt.Printf("  [catalog] Exported EventCatalog, D2, AsyncAPI to %s\n", outputDir)
+
+	return nil
 }

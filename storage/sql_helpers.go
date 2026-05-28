@@ -184,7 +184,7 @@ func sharedAckBatch(
 
 	for i, oid := range ids {
 		placeholders[i] = d.Placeholder(i + 1)
-		args[i] = string(oid)
+		args[i] = oid.Get()
 	}
 
 	query := fmt.Sprintf(

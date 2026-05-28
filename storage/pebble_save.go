@@ -48,25 +48,16 @@ func (a *PebbleEventStore) writeEventsToBatch(
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
 		if evt.Version() != event.Version(expectedEventVersion) {
-			return fmt.Errorf(
-				"%w: expected %d, got %d",
-				ErrVersionMismatch,
-				expectedEventVersion,
-				evt.Version(),
-			)
+			return event.WrapConflict(ErrVersionMismatch, "pebble.version_mismatch",
+				fmt.Sprintf("expected %d, got %d", expectedEventVersion, evt.Version()))
 		}
 
 		key := a.eventKey(aggregateType, aggregateID, event.Version(expectedEventVersion))
 
 		err = a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
-			return fmt.Errorf(
-				"serialize event %d for %s %s: %w",
-				i,
-				aggregateType,
-				aggregateID,
-				err,
-			)
+			return event.WrapCorruption(err, "pebble.serialize_event",
+				fmt.Sprintf("serialize event %d for %s %s", i, aggregateType, aggregateID))
 		}
 	}
 
