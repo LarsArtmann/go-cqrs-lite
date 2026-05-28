@@ -61,7 +61,7 @@
 - [x] ~~Fix perfsprint lint in storage/helpers.go~~ — DONE
 - [x] ~~Fix FakeStore/MemoryStore key separator mismatch~~ — DONE
 - [x] ~~Fix JSON v1/v2 split in storage metadata~~ — DONE
-- [ ] Optimize Pebble LoadToTimestamp — avoid full scan, use timestamp bounds (source: SESSION_79)
+- [x] ~~Optimize Pebble LoadToTimestamp — avoid full scan, use timestamp bounds~~ — DONE (early termination, ~9.5x faster for partial reads)
 - [x] ~~Fix filterEvents O(n) scan in projection/runner.go~~ — DONE
 - [x] ~~Fix 43 lint issues in core/~~ — DONE
 - [x] ~~Improve catalog/adapters coverage~~ — DONE (100.0%)
