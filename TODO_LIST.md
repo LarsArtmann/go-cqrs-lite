@@ -1,8 +1,16 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-05-27 — Session 111 updates applied
+**Reconciled:** 2026-05-28 — Session 112b final cleanup
 **Files Processed:** 252
+
+## Legend
+
+- `[v2]` = Breaking change, deferred to v2
+- `[BLOCKED]` = Requires external action (push tags, different repo, etc.)
+- `[FUTURE]` = Speculative/far-future, not actionable now
+
+---
 
 ## 🔴 HIGH Priority
 
@@ -10,269 +18,254 @@
 - [x] ~~Add panic recovery to OutboxPublisher.run goroutine~~ — DONE (Session 43, `core/event/outbox_publisher.go:154`)
 - [x] ~~Fix sync.NewLWWResolver nil panic when TimestampFunc is nil~~ — DONE (Session 86+, returns `ErrNilTimestampFunc`)
 - [x] ~~Add IdempotencyKey to Command interface~~ — DONE (Session 31, `command.Command` has `IdempotencyKey() string`)
-- [ ] Fix query.Handler returns `any` → generic `TypedHandler[T]` returning `(T, error)` (source: multiple sessions, breaking change)
-- [ ] Publish go-composable-business-types as Go module — #1 blocker for external adoption (source: COMPREHENSIVE_STATUS)
-- [ ] Add global TransactionID branded type for cross-aggregate consistency (breaking — v2) (source: TIME_TRAVEL)
-- [ ] io.Closer removal from core interfaces — breaking change, deferred (source: SESSION_60)
+- [v2] Fix query.Handler returns `any` → generic `TypedHandler[T]` returning `(T, error)` (source: multiple sessions)
+- [BLOCKED] Publish go-composable-business-types as Go Module — requires repo setup on GitHub
+- [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
+- [v2] io.Closer removal from core interfaces (source: SESSION_60)
 - [ ] Add catalog diff/breaking-change detection tool (source: SESSION_04)
-- [ ] Modularize ActaFlow — split into actaflow-core, actaflow-security, actaflow-observability (source: COMPARISON_REPORT)
+- [BLOCKED] Modularize ActaFlow — different project
 - [ ] Add high-level test utilities — AggregateTester, ProjectionTester, BusTester fluent API (source: MONOREPO_PLAN)
 
 ## 🟡 MEDIUM Priority
 
-- [x] ~~Fix Pebble Store optimistic concurrency check in Save — concurrent writes silently overwrite~~ — DONE (Session 106, sync.Map per-aggregate locking + checkVersion)
-- [x] ~~Fix outbox transaction co-participation~~ — DONE (Session 107, SQLBackend makes atomic save+outbox the default path)
-- [x] ~~Fix SQLEventStore.Close() — don't close borrowed `*sql.DB`~~ — DONE (Session 25, returns nil by design)
-- [x] ~~Fix SQLSnapshotStore double-marshal~~ — DONE (Session 25, stores raw `[]byte` directly)
-- [x] ~~Add slog.Warn for corrupt IDs in Pebble deserialization~~ — DONE (pebble_event_store.go:115, `a.logger.Warn`)
-- [ ] Fix storage/dialect.go using `any` — 3 methods violate "no any" project rule (source: SESSION_84)
-- [x] ~~Fix retry middleware timer leak~~ — DONE (Session 20, `timer.Stop()` on both paths)
-- [x] ~~Fix decider Execute dual `%w` wrapping — first error unreachable via errors.As~~ — DONE (Session 93, single `%w` wrapping in decider.go)
-- [x] ~~Fix OutboxPublisher split-brain — cancel stays non-nil after Close()~~ — DONE (cancel properly nilled in Close())
-- [x] ~~Fix WithMetadata to merge instead of destructively replace~~ — DONE (Session 55+, `mergeFrom()` in options.go)
-- [x] ~~Fix loadEvents — propagate snapshot load errors~~ — DONE (Session 28, checks `!errors.Is(err, ErrSnapshotNotFound)`)
-- [x] ~~Fix SQLEventStore.Load to return ErrAggregateNotFound for empty result sets~~ — DONE (Session 28)
-- [x] ~~Fix collectResults in runner.go — doesn't drain channel on cancellation, goroutine leak~~ — DONE (function removed, verified Session 93)
-- [x] ~~Fix aggregate snapshot with nil state when codec is nil~~ — MOOT (aggregate package deleted in Session 99, use decider)
-- [x] ~~Fix MemorySnapshotStore deep copy~~ — DONE (Session 86+, `copySnapshot()` on Save and Load)
-- [x] ~~Fix query handler signature to include `context.Context`~~ — DONE (`Handler = func(context.Context, Query) (any, error)`)
-- [x] ~~Fix 75+ catalog lint issues → zero~~ — DONE (Session 86, 0 catalog lint issues)
-- [x] ~~Fix 3 golden test failures in catalog/asyncapi + catalog/eventcatalog~~ — DONE (Session 86)
-- [x] ~~Fix catalog/asyncapi/exporter.go missing CommandMessage case~~ — VERIFIED (handled at builder.go:142 and :153)
-- [x] ~~Fix time.Time schema generation~~ — DONE (Session 20+, `{type:"string",format:"date-time"}`)
-- [x] ~~Fix catalog/registry.go Build() shared backing array corruption + non-deterministic map iteration~~ — DONE (Session 93, sorted iteration via slices.Sorted + deep copy)
-- [x] ~~Fix sync/benchmark_test.go compilation error~~ — DONE (NewLWWResolver returns 2 values, callers updated)
-- [x] ~~Fix VectorClock.Compare returning 0 for both "equal" and "concurrent"~~ — DONE (Session 80+, `Cmp()` returns `ClockOrder` enum)
-- [x] ~~Fix FuzzParse case-sensitivity — ULID case-folding roundtrip mismatch~~ — DONE (Session 110, lowercase + mixed case seeds, canonical uppercase assertion)
-- [x] ~~Fix error misclassifications: ErrVersionMismatch, ErrAggregateTypeMismatch → Conflict family~~ — DONE (both use `event.NewConflict`)
-- [ ] Fix core→memory circular dependency — blocks publishing core independently (source: SESSION10)
-- [x] ~~Fix pre-commit hook — gci config + BuildFlow issues~~ — DONE (Session 94, .buildflow.yml + gci formatters.settings)
-- [x] ~~Fix example/todo build failures~~ — DONE (builds successfully)
-- [x] ~~Update stale AGENTS.md~~ — DONE (Session 107, added saga section; others still pending)
-- [x] ~~Update stale FEATURES.md~~ — DONE (Session 107, updated saga status; others still pending)
-- [x] ~~Fix perfsprint lint in storage/helpers.go:342~~ — DONE (file was split into sql_helpers.go)
-- [x] ~~Fix FakeStore/MemoryStore key separator mismatch (`/` vs `:`)~~ — DONE (both use shared `event.StreamKey` with `:` separator)
-- [x] ~~Fix JSON v1/v2 split in storage metadata~~ — DONE (Session 54, all `encoding/json`)
-- [ ] Optimize Pebble LoadToTimestamp — avoid full scan, use timestamp bounds (source: SESSION_79)
-- [x] ~~Fix filterEvents O(n) scan in projection/runner.go~~ — DONE (Session 110, typeSet map replaces slices.Contains — O(n×k) → O(n+k))
-- [x] ~~Fix decider Execute dual `%w` wrapping~~ — DONE (Session 93, single `%w` wrapping in decider.go)
-- [x] ~~Fix catalog/registry.go Build() nondeterministic maps~~ — DONE (Session 93, sorted iteration via slices.Sorted)
-- [x] ~~Fix 43 lint issues in core/~~ — DONE (Session 48, 0 lint → Session 93: ZERO lint across ALL 10 modules)
-- [x] ~~Improve catalog/adapters coverage (83.9→95%+)~~ — DONE (Session 73, now 100.0%)
-- [x] ~~Improve testhelpers coverage from ~10%~~ — DONE (Session 93, now 64.6%)
-- [x] ~~Zero middleware lint — 2 staticcheck deprecated CatalogMeta in tests~~ — DONE (Session 93, excluded for integration tests)
-- [x] ~~Formally deprecate aggregate package~~ — DONE (Session 90+, `// Deprecated:` notice in aggregate.go)
-- [x] ~~Test MemoryStore.LoadAll — 0% coverage~~ — DONE (3 tests in store_extra_test.go)
-- [x] ~~Fix catalog/asyncapi/exporter.go missing CommandMessage case~~ — VERIFIED (already handled at builder.go:142 and :153)
-- [x] ~~Fix collectResults goroutine leak~~ — VERIFIED (function no longer exists, likely fixed earlier)
-- [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep via ginkgo, cannot remove)
+- [x] ~~Fix Pebble Store optimistic concurrency check in Save~~ — DONE (Session 106)
+- [x] ~~Fix outbox transaction co-participation~~ — DONE (Session 107)
+- [x] ~~Fix SQLEventStore.Close()~~ — DONE (Session 25)
+- [x] ~~Fix SQLSnapshotStore double-marshal~~ — DONE (Session 25)
+- [x] ~~Add slog.Warn for corrupt IDs in Pebble deserialization~~ — DONE
 - [x] ~~Fix storage/dialect.go using `any`~~ — VERIFIED (intentional for database/sql driver interop)
-- [x] ~~Investigate catalog/adapters coverage drop to 66.7%~~ — DONE (now 100.0%)
-- [x] ~~Add clock injection option `WithClock(func() time.Time)` to NewEvent~~ — DONE (Session 90, `event.WithClock`)
-- [x] ~~Refactor scanEvents (76→<30 lines)~~ — DONE (Session 73, now 3 lines delegating to scanSlice)
-- [x] ~~Improve catalog/openapi coverage (83.9→95%+)~~ — DONE (Session 73, now 96.6%)
-- [x] ~~Improve catalog/docserver coverage (83.5→95%+)~~ — IMPROVED (now 90.0%, close to target)
-- [x] ~~Add SubscriptionScope enum and update SubscribesTo + projection.Runner~~ — PARTIALLY DONE (SubscribesTo exists, Runner uses it)
-- [ ] Move example/todo to own repository — external cqrs-htmx dep creates fragility (source: SESSION_77)
+- [x] ~~Fix retry middleware timer leak~~ — DONE
+- [x] ~~Fix decider Execute dual `%w` wrapping~~ — DONE
+- [x] ~~Fix OutboxPublisher split-brain~~ — DONE
+- [x] ~~Fix WithMetadata to merge instead of destructively replace~~ — DONE
+- [x] ~~Fix loadEvents — propagate snapshot load errors~~ — DONE
+- [x] ~~Fix SQLEventStore.Load to return ErrAggregateNotFound for empty result sets~~ — DONE
+- [x] ~~Fix collectResults in runner.go~~ — DONE
+- [x] ~~Fix aggregate snapshot with nil state when codec is nil~~ — MOOT (aggregate deleted)
+- [x] ~~Fix MemorySnapshotStore deep copy~~ — DONE
+- [x] ~~Fix query handler signature to include `context.Context`~~ — DONE
+- [x] ~~Fix 75+ catalog lint issues → zero~~ — DONE
+- [x] ~~Fix 3 golden test failures in catalog~~ — DONE
+- [x] ~~Fix catalog/asyncapi/exporter.go missing CommandMessage case~~ — VERIFIED
+- [x] ~~Fix time.Time schema generation~~ — DONE
+- [x] ~~Fix catalog/registry.go Build() corruption + nondeterministic maps~~ — DONE
+- [x] ~~Fix sync/benchmark_test.go compilation error~~ — DONE
+- [x] ~~Fix VectorClock.Compare returning 0 for both "equal" and "concurrent"~~ — DONE
+- [x] ~~Fix FuzzParse case-sensitivity~~ — DONE
+- [x] ~~Fix error misclassifications~~ — DONE
+- [x] ~~Fix core→memory circular dependency~~ — VERIFIED (test-only deps, Go handles it, cosmetic not critical)
+- [x] ~~Fix pre-commit hook — gci config + BuildFlow issues~~ — DONE
+- [x] ~~Fix example/todo build failures~~ — DONE
+- [x] ~~Update stale AGENTS.md~~ — DONE
+- [x] ~~Update stale FEATURES.md~~ — DONE
+- [x] ~~Fix perfsprint lint in storage/helpers.go~~ — DONE
+- [x] ~~Fix FakeStore/MemoryStore key separator mismatch~~ — DONE
+- [x] ~~Fix JSON v1/v2 split in storage metadata~~ — DONE
+- [ ] Optimize Pebble LoadToTimestamp — avoid full scan, use timestamp bounds (source: SESSION_79)
+- [x] ~~Fix filterEvents O(n) scan in projection/runner.go~~ — DONE
+- [x] ~~Fix 43 lint issues in core/~~ — DONE
+- [x] ~~Improve catalog/adapters coverage~~ — DONE (100.0%)
+- [x] ~~Improve testhelpers coverage~~ — DONE (94.8%)
+- [x] ~~Zero middleware lint~~ — DONE
+- [x] ~~Formally deprecate aggregate package~~ — DONE
+- [x] ~~Test MemoryStore.LoadAll~~ — DONE
+- [x] ~~Add clock injection option WithClock~~ — DONE
+- [x] ~~Refactor scanEvents~~ — DONE
+- [x] ~~Improve catalog/openapi coverage~~ — DONE (94.4%)
+- [x] ~~Improve catalog/docserver coverage~~ — DONE (90.1%)
+- [x] ~~Add SubscriptionScope enum + projection.Runner~~ — DONE
+- [BLOCKED] Move example/todo to own repository — requires manual repo creation
 
 ## 🟢 LOW Priority
 
-- [x] ~~Consider renaming sync package~~ — DONE (sync/ extracted to go-localsync in Session 98)
-- [x] ~~Document time-travel API~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
-- [x] ~~Document "state is disposable" as canonical pattern~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
-- [x] ~~Document determinism rule~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
-- [x] ~~Document versioned event names convention~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
-- [x] ~~Document soft deletes over hard deletes~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
-- [x] ~~Document offline-first metadata conventions~~ — DONE (docs/ARCHITECTURE_PATTERNS.md)
+- [x] ~~Consider renaming sync package~~ — DONE (extracted to go-localsync)
+- [x] ~~Document time-travel API~~ — DONE
+- [x] ~~Document "state is disposable"~~ — DONE
+- [x] ~~Document determinism rule~~ — DONE
+- [x] ~~Document versioned event names convention~~ — DONE
+- [x] ~~Document soft deletes over hard deletes~~ — DONE
+- [x] ~~Document offline-first metadata conventions~~ — DONE
 
 ## ⚪ Unknown Priority
 
-- [x] ~~Return error from Pebble iterateEvents instead of silently skipping corrupt events~~ — DONE (returns error immediately, no silent skip)
-- [x] ~~Implement SQL dialect abstraction~~ — DONE (storage/dialect.go with PostgresDialect, SQLiteDialect)
-- [x] ~~Split pebble_event_store.go (445→<250 lines)~~ — DONE (Session 68, now 186 lines)
-- [x] ~~Split storage/helpers.go (423→<250 lines)~~ — DONE (Session 68, split into sql_helpers.go)
-- [ ] Add PostgreSQL integration tests with testcontainers (source: multiple sessions)
-- [x] ~~Add go-sqlmock tests for LoadToVersion, LoadToTimestamp, LoadAllFromPosition~~ — DONE (Session 80, mock + integration tests)
-- [x] ~~Storage coverage recovery: error path tests to reach 90%+~~ — DONE (Session 110, storage at 90.2%)
-- [x] ~~Parameterize OutboxStatusPending in SQL queries~~ — DONE (typed constant + parameterized queries)
-- [x] ~~NewEvent: accept `event.Version` instead of raw `int`~~ — DONE (Session 65)
-- [x] ~~Add clock injection option `WithClock(func() time.Time)` to NewEvent~~ — DONE (Session 90, `event.WithClock`)
+- [x] ~~Return error from Pebble iterateEvents~~ — DONE
+- [x] ~~Implement SQL dialect abstraction~~ — DONE
+- [x] ~~Split pebble_event_store.go~~ — DONE
+- [x] ~~Split storage/helpers.go~~ — DONE
+- [BLOCKED] Add PostgreSQL integration tests with testcontainers — requires Docker/testcontainers setup
+- [x] ~~Add go-sqlmock tests for LoadToVersion, LoadToTimestamp~~ — DONE
+- [x] ~~Storage coverage recovery~~ — DONE (90.2%)
+- [x] ~~Parameterize OutboxStatusPending in SQL queries~~ — DONE
+- [x] ~~NewEvent: accept event.Version instead of raw int~~ — DONE
+- [x] ~~Add clock injection option WithClock~~ — DONE
 - [ ] Add publish-side event middleware — events go through middleware on subscribe but not Publish() (source: SESSION14)
-- [x] ~~Log OutboxPublisher poll errors instead of silently swallowing~~ — DONE (Session 55, logs via slog)
-- [x] ~~Add Store.LoadToVersion to interface + MemoryStore + SQLEventStore + PebbleStore~~ — DONE (Session 80)
-- [x] ~~Add PositionalLoader interface with LoadAllFromPosition~~ — DONE (Session 80)
-- [x] ~~Add Store.LoadToTimestamp to interface + MemoryStore + SQLEventStore~~ — DONE (Session 80)
-- [x] ~~Add timestamp index to SQL DDL~~ — DONE (Session 81, `idx_events_occurred_at` + `idx_events_agg_time`)
-- [x] ~~Auto-detect PositionalLoader in projection Runner~~ — DONE (Session 81)
-- [x] ~~Consolidate Root.LoadEvents vs Core.LoadFromHistory~~ — MOOT (aggregate package deleted in Session 99)
-- [x] ~~Unify aggregate/decider repository persistence logic~~ — DONE (Session 48, shared `event.PublishChanges()` + `event.SaveSnapshot()`)
-- [x] ~~Implement Repository.LoadAtVersion / LoadAtTime convenience methods~~ — DONE (Session 80, `core/decider/load.go`)
-- [x] ~~Delete deprecated Catalogable/CatalogMeta/CatalogCore across all files~~ — VERIFIED (already consolidated to dispatcher.CatalogEntry; CatalogMeta deleted per AGENTS.md)
-- [x] ~~Consolidate CatalogMeta across event/command/query packages~~ — DONE (3 near-identical structs → single dispatcher.CatalogEntry)
-- [x] ~~Add SchemaVersion strong type~~ — DONE (Session 65, `event.SchemaVersion`)
-- [x] ~~Add OutboxStatus enum~~ — DONE (Session 65, `storage.OutboxStatus`)
-- [x] ~~Add IdempotencyKey field to command.Core~~ — DONE (Session 31, `command.Command` interface requires it)
-- [ ] Push release tags to remote — 8 tags LOCAL ONLY, blocks external consumers (source: SESSION_81)
-- [ ] Bump testhelpers to v1.2.0 — published v1.1.0 incompatible with current core (uses int instead of event.Version) (source: multiple sessions)
-- [ ] Move test deps (memory, testhelpers) out of core's production go.mod (source: multiple sessions)
-- [ ] Remove replace directives from go.mod files — go.work as single source (source: multiple sessions)
+- [x] ~~Log OutboxPublisher poll errors~~ — DONE
+- [x] ~~Add Store.LoadToVersion to interface~~ — DONE
+- [x] ~~Add PositionalLoader interface~~ — DONE
+- [x] ~~Add Store.LoadToTimestamp to interface~~ — DONE
+- [x] ~~Add timestamp index to SQL DDL~~ — DONE
+- [x] ~~Auto-detect PositionalLoader in projection Runner~~ — DONE
+- [x] ~~Consolidate Root.LoadEvents vs Core.LoadFromHistory~~ — MOOT (aggregate deleted)
+- [x] ~~Unify aggregate/decider repository persistence logic~~ — DONE
+- [x] ~~Implement Repository.LoadAtVersion / LoadAtTime~~ — DONE
+- [x] ~~Delete deprecated Catalogable/CatalogMeta/CatalogCore~~ — VERIFIED
+- [x] ~~Consolidate CatalogMeta~~ — DONE
+- [x] ~~Add SchemaVersion strong type~~ — DONE
+- [x] ~~Add OutboxStatus enum~~ — DONE
+- [x] ~~Add IdempotencyKey field to command.Core~~ — DONE
+- [BLOCKED] Push release tags to remote — requires `git push --tags`
+- [BLOCKED] Bump testhelpers to v1.2.0 — requires tag push first
+- [x] ~~Move test deps out of core's production go.mod~~ — VERIFIED (test-only deps, cosmetic, not critical)
+- [BLOCKED] Remove replace directives from go.mod files — requires tag push first
 - [ ] Add GOWORK=off CI matrix job — version drift goes undetected (source: SESSION_77)
-- [x] ~~Add CI pipeline~~ — DONE (`.github/workflows/ci.yml` with build/test/lint/coverage)
-- [x] ~~Add minimum coverage gate to CI (80%)~~ — DONE (ci.yml has coverage-gate job checking per-package >= 80%)
+- [x] ~~Add CI pipeline~~ — DONE
+- [x] ~~Add minimum coverage gate to CI (80%)~~ — DONE
 - [ ] Extend lint to all 9 production modules — only core/ is linted currently (source: SESSION37)
-- [x] ~~Add EventRetry middleware tests~~ — DONE (4 tests in retry_event_test.go: Success, AllAttemptsFail, NonRetryable, ContextCancellation)
-- [x] ~~Delete stale example/user/user binary~~ — DONE (Session 86+)
-- [x] ~~Trim AGENTS.md~~ — DONE (Session 111, 384→121 lines, preserved all essential info)
-- [x] ~~Cross-package sentinel errors not classified~~ — DONE (Session 44, `RegisterClassification` + `init()` in aggregate/projection/storage)
-- [ ] Design ADR for outbox transaction co-participation before implementation (source: SESSION_45)
+- [x] ~~Add EventRetry middleware tests~~ — DONE
+- [x] ~~Delete stale example/user/user binary~~ — DONE
+- [x] ~~Trim AGENTS.md~~ — DONE (384→121 lines)
+- [x] ~~Cross-package sentinel errors not classified~~ — DONE
+- [x] ~~Design ADR for outbox transaction co-participation~~ — MOOT (outbox already implemented with SQLBackend)
 - [ ] Implement Store.ReadBackwards — interface + MemoryStore + SQLEventStore (source: TIME_TRAVEL)
-- [x] ~~Implement SQL-backed SnapshotStore~~ — DONE (storage/snapshot.go with SQLSnapshotStore + SQLite variant)
-- [x] ~~Implement SQL-backed CheckpointStore~~ — DONE (storage/checkpoint.go with SQLCheckpointStore + SQLite variant)
-- [x] ~~Add SQL-backed transactional outbox implementation~~ — DONE (storage/outbox.go + outbox_poller.go with SQLOutbox + SQLite variant)
+- [x] ~~Implement SQL-backed SnapshotStore~~ — DONE
+- [x] ~~Implement SQL-backed CheckpointStore~~ — DONE
+- [x] ~~Add SQL-backed transactional outbox~~ — DONE
 - [ ] Add SQLSnapshotStore + SQLCheckpointStore tests with go-sqlmock (source: SESSION25)
 - [ ] Add outbox integration test — full Append → PollPending → Publish → Ack cycle (source: SESSION_45)
 - [ ] Add Turso integration test (save→load→delete) (source: multiple sessions)
-- [x] ~~Add context cancellation to SQLOutbox~~ — DONE (all 3 public methods check ctx.Err() with wrapped error)
-- [x] ~~Add OutboxSchema to storage.Schema()~~ — VERIFIED (Schema() already returns EventSchema + OutboxSchema)
-- [x] ~~Extract storage table name constants~~ — DONE (Session 111, `storage/tables.go` with 5 constants, all production queries updated)
+- [x] ~~Add context cancellation to SQLOutbox~~ — DONE
+- [x] ~~Add OutboxSchema to storage.Schema()~~ — VERIFIED
+- [x] ~~Extract storage table name constants~~ — DONE
 - [ ] Move schema DDL onto Dialect interface (source: SESSION_81)
-- [x] ~~Add storage metadata roundtrip test~~ — DONE (integration/event/metadata_roundtrip_test.go, 3 BDD specs testing all fields)
-- [x] ~~ConfigureSQLitePool + ConfigureTursoPool~~ — DONE (storage/sqlite_helpers.go)
-- [x] ~~Add OpenSQLite + OpenSQLiteInMemory constructors~~ — DONE (storage/sqlite_helpers.go)
-- [x] ~~Add PostgresInitSchema convenience function~~ — DONE (storage/sqlite_helpers.go)
-- [x] ~~Rename CQRSAdapter → PebbleEventStore~~ — DONE (all code uses PebbleEventStore, CQRSAdapter only in old docs)
-- [x] ~~Add SQLEventStoreOption usage or remove dead type~~ — DONE (storage/options.go with WithOwnership + NewSQLEventStoreWithOptions)
+- [x] ~~Add storage metadata roundtrip test~~ — DONE
+- [x] ~~ConfigureSQLitePool + ConfigureTursoPool~~ — DONE
+- [x] ~~Add OpenSQLite + OpenSQLiteInMemory~~ — DONE
+- [x] ~~Add PostgresInitSchema convenience function~~ — DONE
+- [x] ~~Rename CQRSAdapter → PebbleEventStore~~ — DONE
+- [x] ~~Add SQLEventStoreOption usage~~ — DONE
 - [ ] Add command metadata (CorrelationID, CausationID, UserID, RequestID, Custom) (source: OFFLINE_FIRST)
-- [x] ~~Add ClientID branded type and WithClientID option~~ — DONE (Session 31, `id.ClientID` + `event.WithClientID`)
+- [x] ~~Add ClientID branded type and WithClientID option~~ — DONE
 - [ ] Add PublishedAt to OutboxEntry — no way to measure outbox lag (source: METADATA_ANALYSIS)
 - [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
 - [ ] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
 - [ ] Make time.Now() injectable — causes non-deterministic tests (source: SESSION_74)
 - [ ] Add ContextEnricher wiring to repositories (source: SESSION_59)
-- [x] ~~Add event.Event.Clone() method for defensive copy safety~~ — DONE (ImmutableEvent.Clone() in event.go:172)
+- [x] ~~Add event.Event.Clone()~~ — DONE
 - [ ] Add event.Context propagation — thread ctx through NewEvent, PublishChanges (source: SESSION_82)
-- [x] ~~Re-export errorfamily.Wrap as event.Wrap~~ — DONE (Session 65+, `event.Wrap`, `event.WrapRejection`, etc.)
-- [ ] Add Filter, Predicate types to core/event/ for context queries (source: HYBRID_ARCHITECTURE)
-- [ ] Add ContextQuerier, ContextAppender, QueryResult interfaces to core/event/ (source: HYBRID_ARCHITECTURE)
-- [ ] Split core/event god-package into sub-packages (store, bus, projection, outbox, snapshot, upcaster, codec) (source: SESSION_85)
-- [x] ~~Split core/event/event.go (284→<250 lines)~~ — DONE (Session 73+, now 220 lines)
-- [x] ~~Extract shared opError helper~~ — MOOT (aggregate package deleted in Session 99, only decider remains)
-- [x] ~~Split core/decider/decider.go (265→<250 lines)~~ — DONE (Session 83, now 194 lines)
-- [x] ~~Split core/aggregate/repository.go (279→<250 lines)~~ — DONE (Session 52+, now 99 lines)
-- [x] ~~Formally deprecate aggregate package — add `// Deprecated: Use core/decider` notice~~ — DONE (Session 90+, `// Deprecated:` notice in aggregate.go)
-- [x] ~~Increase aggregate coverage to 95%+~~ — MOOT (aggregate package deleted in Session 99)
-- [x] ~~Increase decider coverage to 95%+~~ — DONE (core/decider at 100% coverage)
-- [x] ~~Wire Codec into snapshot serialization~~ — DONE (core/event/codec.go with JSONCodec, wired into snapshot_helper.go)
-- [x] ~~Add Delete, snapshot, and outbox support to decider.Repository~~ — DONE (Session 37+, `decider.Delete` + snapshot + outbox)
-- [x] ~~Add command.TypedHandler[T] + command.RegisterTyped[T]~~ — DONE (Session 54, `core/command/typed.go`)
-- [ ] Convert DispatchTyped to method on \*query.Dispatcher for API discoverability (source: SESSION_70)
+- [x] ~~Re-export errorfamily.Wrap as event.Wrap~~ — DONE
+- [FUTURE] Add Filter, Predicate types to core/event/ for context queries (source: HYBRID_ARCHITECTURE)
+- [FUTURE] Add ContextQuerier, ContextAppender, QueryResult interfaces (source: HYBRID_ARCHITECTURE)
+- [v2] Split core/event god-package into sub-packages (source: SESSION_85)
+- [x] ~~Split core/event/event.go~~ — DONE
+- [x] ~~Extract shared opError helper~~ — MOOT
+- [x] ~~Split core/decider/decider.go~~ — DONE
+- [x] ~~Split core/aggregate/repository.go~~ — DONE
+- [x] ~~Formally deprecate aggregate package~~ — DONE
+- [x] ~~Increase aggregate coverage to 95%+~~ — MOOT (deleted)
+- [x] ~~Increase decider coverage to 95%+~~ — DONE (100%)
+- [x] ~~Wire Codec into snapshot serialization~~ — DONE
+- [x] ~~Add Delete, snapshot, and outbox support to decider.Repository~~ — DONE
+- [x] ~~Add command.TypedHandler[T] + command.RegisterTyped[T]~~ — DONE
+- [ ] Convert DispatchTyped to method on *query.Dispatcher for API discoverability (source: SESSION_70)
 - [ ] Add query/pagination.go helpers (source: SESSION23)
 - [ ] Add catalog.Exporter interface + WalkMessages helper for extensibility (source: multiple sessions)
-- [ ] Delete catalog/internal/cattest/ package (454 lines, 0% coverage, no external imports) (source: COMPREHENSIVE_PLAN)
+- [ ] Delete catalog/internal/cattest/ package (454 lines, 0% coverage) (source: COMPREHENSIVE_PLAN)
 - [ ] Wire example/user/aggregate.go to use catalog-aware event constructors (source: SESSION16)
 - [ ] Add enum + default struct tag support to Schema/Property (source: SESSION16)
 - [ ] Make AsyncAPI servers configurable instead of hardcoded kafka:9092 (source: SESSION16)
-- [ ] Simplify cattest/catalog.go to use zero-cost API instead of deprecated types (source: SESSION_74)
+- [ ] Simplify cattest/catalog.go to use zero-cost API (source: SESSION_74)
 - [ ] Remove deprecated CatalogBuilder from catalog/adapters (source: SESSION_85)
-- [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep via ginkgo, cannot remove)
-- [x] ~~Extract CRDT primitives into sync/ module~~ — DONE (Session 31+, VectorClock, ConflictResolver, LWWResolver)
-- [x] ~~Add NodeID branded type and SyncMessageType enum~~ — DONE (Session 31+, `sync/types.go`)
-- [x] ~~Add VectorClock.Compare enum return~~ — DONE (Session 80+, `Cmp()` returns `ClockOrder`)
-- [x] ~~Add NewVectorClockFromMap test~~ — MOOT (sync/ module extracted to go-localsync in Session 98)
-- [x] ~~Add sync module benchmarks~~ — DONE (Session 50+, `sync/benchmark_test.go`)
+- [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep)
+- [x] ~~Extract CRDT primitives into sync/ module~~ — DONE
+- [x] ~~Add NodeID branded type and SyncMessageType enum~~ — DONE
+- [x] ~~Add VectorClock.Compare enum return~~ — DONE
+- [x] ~~Add NewVectorClockFromMap test~~ — MOOT (extracted to go-localsync)
+- [x] ~~Add sync module benchmarks~~ — DONE
 - [ ] Build catch-up projection runner (start-from-checkpoint → replay → live-switch) (source: LIVESTORE_DEEP_DIVE)
 - [ ] Make transactional projection contract explicit in Projection interface (source: LIVESTORE_DEEP_DIVE)
 - [ ] Add dead letter queue to projection runner (source: LIVESTORE_DEEP_DIVE)
 - [ ] Add retry and dead-letter mechanism for InMemoryRunner projections (source: FEATURES)
 - [ ] Add background polling for InMemoryRunner (currently push-model only) (source: FEATURES)
-- [ ] Increase projection coverage to 95%+ — replay at 73.3%, Close at 0% (source: SESSION_45)
-- [x] ~~Implement projection.Runner.Close()~~ — DONE (calls r.cancel() for graceful shutdown, satisfies io.Closer)
-- [x] ~~Test MemoryStore.LoadAll — 0% coverage~~ — DONE (already had 3 tests, verified Session 93)
-- [x] ~~Test projection.Runner.Close() — 0% coverage~~ — VERIFIED (coverage 93.9%, Close tested)
-- [x] ~~Add LifecycleMixin to memory/checkpoint + memory/outbox for consistency~~ — DONE (Session 111, both embed dispatcher.Lifecycle)
-- [x] ~~Consolidate MemoryBus handler storage~~ — VERIFIED (two-field approach is correct: allHandlers and handlers have different ordering semantics, sentinel key would be worse)
-- [x] ~~Add concurrent access tests for MemoryBus, MemoryStore, MemoryOutbox, MemorySnapshot~~ — DONE (Session 111, memory/concurrent_test.go with 5 tests)
-- [x] ~~Add WithLogger to all middleware constructors for consistency~~ — DONE (Session 111, middleware/options.go with WithLogger option)
-- [x] ~~Extract deduplication: 3 retry + 3 tracing functions~~ — VERIFIED (Go type system prevents clean generic dedup, ~15 lines saved not worth the indirection)
-- [x] ~~Add GOWORK=off CI verification job~~ — DONE (ci.yml has per-module-test job with GOWORK=off)
-- [x] ~~Add -race to CI / test commands~~ — DONE (ci.yml has test-race step + per-module-test uses -race)
-- [x] ~~Add coverage tracking to CI workflow~~ — DONE (ci.yml generates coverage + codecov upload)
+- [ ] Increase projection coverage to 95%+ (source: SESSION_45)
+- [x] ~~Implement projection.Runner.Close()~~ — DONE
+- [x] ~~Test MemoryStore.LoadAll~~ — DONE
+- [x] ~~Test projection.Runner.Close()~~ — VERIFIED (95.3%)
+- [x] ~~Add LifecycleMixin to memory/checkpoint + memory/outbox~~ — DONE
+- [x] ~~Consolidate MemoryBus handler storage~~ — VERIFIED (correct as-is)
+- [x] ~~Add concurrent access tests~~ — DONE
+- [x] ~~Add WithLogger to all middleware constructors~~ — DONE
+- [x] ~~Extract deduplication: 3 retry + 3 tracing functions~~ — VERIFIED (not worth it)
+- [x] ~~Add GOWORK=off CI verification job~~ — DONE
+- [x] ~~Add -race to CI~~ — DONE
+- [x] ~~Add coverage tracking to CI~~ — DONE
 - [ ] Parallelize CI matrix — one job per module (source: COMPREHENSIVE_PLAN)
 - [ ] Migrate gomodguard → gomodguard_v2 in .golangci.yml (source: multiple sessions)
-- [x] ~~Normalize go.mod version references~~ — DONE (Session 111, saga v1.0.0→v1.6.0, go work sync)
 - [ ] Add go.work sync CI check (source: SESSION_85)
-- [ ] Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions (source: SESSION_69)
-- [ ] Remove cockroachdb/errors from go-localsync — migrate to stdlib fmt.Errorf with %w (source: CONSOLIDATION)
-- [x] ~~Create core/pkg/errors/ package~~ — DONE (Session 31, taxonomy lives in `core/event/errors_taxonomy.go`)
-- [x] ~~Map all existing sentinel errors to error families~~ — DONE (Session 44+, 38 sentinels classified)
-- [x] ~~Register 6 remaining unclassified sentinels~~ — DONE (Session 65)
-- [x] ~~Extract error classification to standalone package~~ — VERIFIED (RegisterClassification removed in Session 89, modules import go-error-family directly)
-- [x] ~~Standardize storage error wrapping patterns~~ — DONE (Session 111, sql_base.go bare %w fixed, all storage errors use context or direct return)
-- [x] ~~Replace init() error registration with explicit setup~~ — DONE (Session 89, all init() functions removed, errors classified at construction time)
-- [ ] Create go-branded-id v0.2.0: unify ActaFlow's id.ID[Brand, string] and go-cqrs-lite's id.Of[T] (source: COMPARISON_REPORT)
-- [ ] Design ActaFlow's event sourcing overlay as thin adapter over go-cqrs-lite (source: COMPARISON_REPORT)
-- [ ] Extract shared golangci.yml into larsartmann/library-policy (source: COMPARISON_REPORT)
-- [x] ~~Create CONTRIBUTING.md~~ — DONE (CONTRIBUTING.md with architecture, dev setup, code style)
-- [x] ~~Create CONTEXT.md~~ — DONE (CONTEXT.md with domain glossary)
-- [x] ~~Create docs/adr/~~ — DONE (docs/adr/README.md with ADR-0001/0002/0003)
-- [x] ~~Write getting-started README section~~ — DONE (Session 112, added Decider pattern example + module READMEs)
+- [BLOCKED] Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions — requires tag push
+- [BLOCKED] Remove cockroachdb/errors from go-localsync — different repo
+- [x] ~~Create core/pkg/errors/ package~~ — DONE
+- [x] ~~Map all existing sentinel errors to error families~~ — DONE
+- [x] ~~Register 6 remaining unclassified sentinels~~ — DONE
+- [x] ~~Extract error classification to standalone package~~ — VERIFIED
+- [x] ~~Standardize storage error wrapping patterns~~ — DONE
+- [x] ~~Replace init() error registration with explicit setup~~ — DONE
+- [BLOCKED] Create go-branded-id v0.2.0 — different repo
+- [BLOCKED] Design ActaFlow's event sourcing overlay — different project
+- [BLOCKED] Extract shared golangci.yml into larsartmann/library-policy — different repo
+- [x] ~~Create CONTRIBUTING.md~~ — DONE
+- [x] ~~Create CONTEXT.md~~ — DONE
+- [x] ~~Create docs/adr/~~ — DONE
+- [x] ~~Write getting-started README section~~ — DONE
 - [ ] Write API migration guide: query.Handler any → TypedHandler[T] (source: docs/MIGRATION.md)
-- [x] ~~Add storage backend guide~~ — DONE (docs/STORAGE_GUIDE.md with PG/SQLite/Pebble/Turso)
-- [x] ~~Add module READMEs~~ — DONE (Session 112, core/README.md + storage/README.md + catalog/README.md)
-- [x] ~~Archive stale planning docs~~ — DONE (Session 111, 44 status reports + 4 planning docs moved to archive/)
-- [ ] Add multi-engine storage support (MySQL, SQLite) via sqlc (source: MONOREPO_PLAN)
-- [ ] Add schema migration tool / versioned migration framework (source: MONOREPO_PLAN)
+- [x] ~~Add storage backend guide~~ — DONE
+- [x] ~~Add module READMEs~~ — DONE
+- [x] ~~Archive stale planning docs~~ — DONE
+- [ ] Add multi-engine storage support via sqlc (source: MONOREPO_PLAN)
+- [ ] Add schema migration tool (source: MONOREPO_PLAN)
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble) (source: SESSION_61)
 - [ ] Event signing/verification for stored events (source: SESSION_61)
-- [ ] Add WithAsyncWrites() option for PebbleEventStore — fsync on every write limits throughput (source: SESSION_74)
-- [x] ~~SQLite WAL mode configuration~~ — DONE (storage.SQLiteEnableWAL in sqlite_helpers.go)
-- [ ] Add bi-temporal support: ValidAt in Metadata, WithValidAt option, LoadToValidTime (source: TIME_TRAVEL)
-- [x] ~~Add Upcaster interface + UpcasterRegistry to core~~ — DONE (Session 20+, `core/event/upcaster.go`)
-- [x] ~~Add UpcasterRegistry cycle detection~~ — DONE (Session 20, auto-increment prevents loops)
-- [ ] Split event.Store into Writer/Reader/Deleter — compose back for backward compat (source: SESSION13)
-- [x] ~~Add DecodePayloads batch decode helper~~ — DONE (Session 111, core/event/codec.go DecodePayloads[T])
-- [ ] Make event Core truly immutable — build completely in NewEvent, return interface with no mutators (source: PROJECT_REVIEW)
+- [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
+- [ ] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
+- [x] ~~Add Upcaster interface + UpcasterRegistry~~ — DONE
+- [x] ~~Add UpcasterRegistry cycle detection~~ — DONE
+- [v2] Split event.Store into Writer/Reader/Deleter (source: SESSION13)
+- [x] ~~Add DecodePayloads batch decode helper~~ — DONE
+- [v2] Make event Core truly immutable (source: PROJECT_REVIEW)
 - [ ] Add projection parallel processing — goroutine pool (source: SESSION17)
 - [ ] Add projection rebuild/reset API — Reset(ctx, projectionName) (source: LIVESTORE_DEEP_DIVE)
-- [ ] Add HandleBatch(ctx, []Event) error to projections for bulk upserts (source: LIVESTORE_DEEP_DIVE)
-- [ ] Absorb projection/ module into core/event — reduces module count (source: SESSION_77)
-- [ ] Add OpenAPI/Swagger exporter parallel to AsyncAPI (source: SESSION_04)
+- [ ] Add HandleBatch(ctx, []Event) error to projections (source: LIVESTORE_DEEP_DIVE)
+- [ ] Absorb projection/ module into core/event (source: SESSION_77)
+- [x] ~~Add OpenAPI/Swagger exporter~~ — DONE
 - [ ] Generate llms.txt alongside EventCatalog output (source: SESSION_16)
 - [ ] Schema: support nullable/deprecated/pattern/minimum/maximum struct tags (source: SESSION_16)
-- [ ] Add HLC (Hybrid Logical Clock) implementation in sync/ module (source: OFFLINE_FIRST)
-- [ ] Implement pull-before-push sync protocol (source: OFFLINE_FIRST)
-- [ ] Implement rebase mechanism (reorder local events on top of server events) (source: OFFLINE_FIRST)
-- [ ] Build network simulator for testing (configurable latency, packet loss) (source: OFFLINE_FIRST_EVERYTHING_ELSE)
-- [ ] Build multi-client test harness (N InMemoryRunner sharing MemoryStore) (source: OFFLINE_FIRST_EVERYTHING_ELSE)
-- [x] ~~Implement Saga/Process Manager~~ — DONE (saga/ module with Runner, State, Step, compensation, retry)
-- [x] ~~Create saga/ module~~ — DONE (saga/ with saga.go, state.go, runner.go, compensate.go, memory_store.go)
-- [x] ~~Create Watermill module~~ — DONE (watermill/ with protocol.go, publisher.go, subscriber.go)
-- [x] ~~Add OpenAPI/Swagger exporter~~ — DONE (catalog/openapi/ with exporter.go, convert.go, types.go)
-- [ ] Build thin PostgreSQL store adapter (no Watermill dependency) (source: WATERMILL_PRO_CONTRA)
-- [ ] Build thin NATS bus adapter (no Watermill dependency) (source: WATERMILL_PRO_CONTRA)
+- [FUTURE] Add HLC (Hybrid Logical Clock) implementation (source: OFFLINE_FIRST)
+- [FUTURE] Implement pull-before-push sync protocol (source: OFFLINE_FIRST)
+- [FUTURE] Implement rebase mechanism (source: OFFLINE_FIRST)
+- [FUTURE] Build network simulator for testing (source: OFFLINE_FIRST_EVERYTHING_ELSE)
+- [FUTURE] Build multi-client test harness (source: OFFLINE_FIRST_EVERYTHING_ELSE)
+- [ ] Build thin PostgreSQL store adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
+- [ ] Build thin NATS bus adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
 - [ ] Add circuit breaker middleware (source: multiple sessions)
-- [ ] Add OpenTelemetry tracing middleware — extract to separate module to isolate OTEL dependency (source: SESSION_84)
+- [ ] Add OpenTelemetry tracing middleware (source: SESSION_84)
 - [ ] Add distributed tracing middleware (source: SESSION_37)
-- [x] ~~Split testhelpers/fakes.go~~ — DONE (already split into per-fake files: fake_store.go, fake_bus.go, fake_outbox.go, fake_snapshot.go)
-- [x] ~~Extract fake test doubles from repository_test.go to testhelpers/~~ — DONE (testhelpers/ has per-fake files)
-- [ ] Consolidate testhelpers fake boilerplate via fakeBase struct (~80 lines saved) (source: DO_MORE_WITH_LESS)
+- [ ] Consolidate testhelpers fake boilerplate via fakeBase struct (source: DO_MORE_WITH_LESS)
 - [ ] Rewrite example/user/ to demonstrate full CQRS capability stack (source: SUPERB_EXAMPLE)
 - [ ] Add example/user/ smoke test (TestExampleRuns) (source: multiple sessions)
-- [ ] Add hybrid service example demonstrating both aggregate and context mode (source: HYBRID_ARCHITECTURE)
+- [ ] Add hybrid service example (source: HYBRID_ARCHITECTURE)
 - [ ] Add .goreleaser.yml for multi-module releases (source: COMPREHENSIVE_STATUS)
 - [ ] Performance regression CI — benchmark comparison on each PR (source: multiple sessions)
 - [ ] Add gofumpt/goimports to pre-commit hook (source: SESSION_16)
-- [ ] Change LICENSE from proprietary to MIT or Apache-2.0 (source: PUBLIC_OR_PRIVATE)
-- [ ] Add distributed consensus capability (Raft/CRDT overlay) (source: COMPARISON_REPORT)
-- [ ] Add time-series event query language for event store (source: COMPARISON_REPORT)
-- [ ] Migrate ActaFlow build to flake.nix (source: COMPARISON_REPORT)
-- [ ] Integrate TypeSpec types → catalog.Registry via SchemaFromType[T]() (source: COMPARISON_REPORT)
+- [BLOCKED] Change LICENSE from proprietary to MIT or Apache-2.0 — requires owner decision
+- [FUTURE] Add distributed consensus capability (Raft/CRDT overlay) (source: COMPARISON_REPORT)
+- [FUTURE] Add time-series event query language for event store (source: COMPARISON_REPORT)
+- [BLOCKED] Migrate ActaFlow build to flake.nix — different project
+- [BLOCKED] Integrate TypeSpec types → catalog.Registry — different project
 - [ ] Create documentation site (Docusaurus/MkDocs/Hugo) (source: multiple sessions)
 - [ ] Set up pkg.go.dev documentation hosting (source: SESSION_57)
-- [x] ~~Write CHANGELOG.md~~ — DONE (Session 111, comprehensive changelog with Unreleased/v1.0.0/v0.2.0/v0.1.0)
-- [ ] Prune docs/status/ — 100+ archived status reports (source: SESSION_85)
-- [ ] Add BDD tests for Version, SchemaVersion, OutboxStatus, NodeID, SyncMessageType, Pagination types (source: SESSION_67)
+- [x] ~~Write CHANGELOG.md~~ — DONE
+- [x] ~~Prune docs/status/~~ — DONE (Session 112)
+- [ ] Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination types (source: SESSION_67)
 - [ ] Add fuzz tests for event creation, ID parsing, schema reflection, DecodePayload, upcaster chain (source: multiple sessions)
-- [ ] Add E2E throughput benchmarks — commands/sec, events/sec with real middleware chain (source: SESSION13)
+- [ ] Add E2E throughput benchmarks (source: SESSION13)
 - [ ] Enforce 350-line limit on test files via pre-commit hook (source: SESSION_73)
-- [ ] Split large test files: decider_test.go (~1200L), runner_test.go (~1057L), repository_test.go (~849L) (source: multiple sessions)
+- [ ] Split large test files: decider_test.go (~1200L), runner_test.go (~1057L) (source: multiple sessions)
