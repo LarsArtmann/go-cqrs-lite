@@ -9,17 +9,28 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-// Signer provides cryptographic signing and verification of events.
+// Signer computes cryptographic signatures for events.
 // Implementations are stateless and safe for concurrent use.
 type Signer interface {
 	// Sign computes a cryptographic signature for the given event.
 	// The signature covers event ID, type, aggregate, version, payload, and occurredAt.
 	Sign(event event.Event) (Signature, error)
+}
 
+// Verifier checks cryptographic signatures on events.
+// Implementations are stateless and safe for concurrent use.
+type Verifier interface {
 	// Verify checks that the signature matches the event's content.
 	// Returns ErrInvalidSignature if the signature does not match.
 	// Returns ErrNilSignature if sig is nil.
 	Verify(event event.Event, sig Signature) error
+}
+
+// SignerVerifier combines signing and verification capabilities.
+// HMACSigner implements this interface because the same key handles both.
+type SignerVerifier interface {
+	Signer
+	Verifier
 }
 
 // Signature is an opaque, serializable event signature.

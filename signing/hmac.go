@@ -19,7 +19,7 @@ type HMACSigner struct {
 	key []byte
 }
 
-var _ Signer = (*HMACSigner)(nil)
+var _ SignerVerifier = (*HMACSigner)(nil)
 
 // NewHMAC creates an HMAC-SHA256 signer from a shared secret key.
 // Returns ErrInvalidKey if the key is nil or shorter than MinimumKeyLength.

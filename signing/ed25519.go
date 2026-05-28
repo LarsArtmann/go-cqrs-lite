@@ -48,22 +48,12 @@ func (s *Ed25519Signer) Sign(evt event.Event) (Signature, error) {
 	return Signature(sig), nil
 }
 
-// Verify is not supported directly on Ed25519Signer because verification
-// requires the public key, not the private key. Use Ed25519Verifier instead.
-// This method returns ErrAlgorithmMismatch to prevent accidental misuse.
-func (s *Ed25519Signer) Verify(_ event.Event, _ Signature) error {
-	return fmt.Errorf(
-		"%w: Ed25519Signer cannot verify — use Ed25519Verifier with the public key",
-		ErrAlgorithmMismatch,
-	)
-}
-
 // Ed25519Verifier verifies Ed25519 signatures using a public key.
 type Ed25519Verifier struct {
 	publicKey ed25519.PublicKey
 }
 
-var _ Signer = (*Ed25519Verifier)(nil)
+var _ Verifier = (*Ed25519Verifier)(nil)
 
 // NewEd25519Verifier creates a verifier from an Ed25519 public key.
 // Returns ErrInvalidKey if the key is nil or the wrong length.
@@ -82,14 +72,6 @@ func NewEd25519Verifier(publicKey ed25519.PublicKey) (*Ed25519Verifier, error) {
 	copy(keyCopy, publicKey)
 
 	return &Ed25519Verifier{publicKey: keyCopy}, nil
-}
-
-// Sign is not supported on Ed25519Verifier. Returns ErrAlgorithmMismatch.
-func (v *Ed25519Verifier) Sign(_ event.Event) (Signature, error) {
-	return nil, fmt.Errorf(
-		"%w: Ed25519Verifier cannot sign — use Ed25519Signer with the private key",
-		ErrAlgorithmMismatch,
-	)
 }
 
 // Verify checks an Ed25519 signature against an event using the public key.

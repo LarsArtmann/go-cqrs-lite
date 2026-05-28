@@ -4,7 +4,7 @@
 // Consumers can:
 //
 //  1. Sign events before storage/transit using a Signer
-//  2. Verify event signatures on read to detect tampering
+//  2. Verify event signatures on read to detect tampering using a Verifier
 //  3. Use PublishMiddleware to auto-sign events on the bus
 //  4. Use VerifyMiddleware to auto-verify events before handling
 //

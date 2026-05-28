@@ -266,19 +266,6 @@ func TestEd25519Signer(t *testing.T) {
 			t.Fatal("expected error for nil event")
 		}
 	})
-
-	t.Run("verify not supported on signer", func(t *testing.T) {
-		t.Parallel()
-
-		signer, _ := signing.NewEd25519(privKey)
-		evt := makeTestEvent(t)
-		sig, _ := signer.Sign(evt)
-
-		err := signer.Verify(evt, sig)
-		if err == nil {
-			t.Fatal("expected error: signer cannot verify")
-		}
-	})
 }
 
 func TestEd25519Verifier(t *testing.T) {
@@ -347,15 +334,6 @@ func TestEd25519Verifier(t *testing.T) {
 		err := verifier.Verify(nil, sig)
 		if err == nil {
 			t.Fatal("expected error for nil event")
-		}
-	})
-
-	t.Run("sign not supported on verifier", func(t *testing.T) {
-		t.Parallel()
-
-		_, err := verifier.Sign(evt)
-		if err == nil {
-			t.Fatal("expected error: verifier cannot sign")
 		}
 	})
 

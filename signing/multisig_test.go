@@ -494,7 +494,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 	}
 
 	// Step 5: VerifyAll with a verifier map.
-	verifiers := map[string]signing.Signer{
+	verifiers := map[string]signing.Verifier{
 		"device": deviceVerifier,
 		"server": serverSigner,
 	}

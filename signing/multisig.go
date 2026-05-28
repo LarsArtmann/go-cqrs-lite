@@ -99,7 +99,7 @@ type MultiSigner struct {
 	actor     string
 	algorithm SignatureAlgorithm
 	signer    Signer
-	verifier  Signer
+	verifier  Verifier
 }
 
 // MultiSignerOption configures a MultiSigner.
@@ -108,7 +108,7 @@ type MultiSignerOption func(*MultiSigner)
 // WithVerifier sets a separate verifier for the Verify path.
 // Use this for Ed25519 where the signer (private key) cannot verify.
 // For HMAC, the signer already implements both Sign and Verify.
-func WithVerifier(verifier Signer) MultiSignerOption {
+func WithVerifier(verifier Verifier) MultiSignerOption {
 	return func(multi *MultiSigner) { multi.verifier = verifier }
 }
 
@@ -121,11 +121,16 @@ func NewMultiSigner(
 	signer Signer,
 	opts ...MultiSignerOption,
 ) *MultiSigner {
+	var verifier Verifier
+	if sv, ok := signer.(Verifier); ok {
+		verifier = sv
+	}
+
 	multi := &MultiSigner{
 		actor:     actor,
 		algorithm: algorithm,
 		signer:    signer,
-		verifier:  signer,
+		verifier:  verifier,
 	}
 
 	for _, opt := range opts {
@@ -202,7 +207,7 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 
 // VerifyActor verifies a specific actor's signature using the provided verifier.
 // Useful when one actor wants to check another actor's signature.
-func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Signer) error {
+func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Verifier) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
@@ -229,7 +234,7 @@ func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Signer
 // using each entry's algorithm-appropriate verifier from the provided map.
 // The map keys are actor names; the values are their respective verifiers.
 // Returns the first verification failure, or nil if all pass.
-func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Signer) error {
+func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Verifier) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
