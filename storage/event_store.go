@@ -75,17 +75,17 @@ func (s *SQLEventStore) Save(
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.begin_tx",
-		"begin transaction")
-}
+			"begin transaction")
+	}
 
-defer func() {
-	_ = tx.Rollback()
-}()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
-err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
-if err != nil {
-	return event.WrapInfrastructure(err, "storage.check_version",
-		fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
+	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	if err != nil {
+		return event.WrapInfrastructure(err, "storage.check_version",
+			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
@@ -112,7 +112,7 @@ func (s *SQLEventStore) AppendBatch(
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.begin_tx",
-		"begin transaction")
+			"begin transaction")
 	}
 
 	defer func() {

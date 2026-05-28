@@ -57,7 +57,7 @@ func SQLiteSagaSchema() string { return SQLiteDialect{}.SagaSchema() }
 func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 	if state == nil {
 		return event.WrapInfrastructure(ErrNilDB, "storage.nil_saga_state",
-		"saga state is nil")
+			"saga state is nil")
 	}
 
 	p1, p2, p3, p4, p5, p6, p7 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),

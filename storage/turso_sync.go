@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-
 	turso "turso.tech/database/tursogo"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // TursoSyncDB wraps a Turso database with remote sync capabilities.

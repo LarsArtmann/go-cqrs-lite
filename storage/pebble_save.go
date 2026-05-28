@@ -20,7 +20,7 @@ func (a *PebbleEventStore) checkVersion(
 	existing, err := a.iterateEvents(prefix, upperBound)
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.concurrency_check",
-		"concurrency check")
+			"concurrency check")
 	}
 
 	err = event.CheckVersionConflict(len(existing), expectedVersion)
@@ -43,7 +43,7 @@ func (a *PebbleEventStore) writeEventsToBatch(
 		err := validateEventOwnership(evt, aggregateType, aggregateID)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.validate_event",
-			fmt.Sprintf("validate event %d", i))
+				fmt.Sprintf("validate event %d", i))
 		}
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
