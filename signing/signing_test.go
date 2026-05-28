@@ -786,15 +786,6 @@ func TestEd25519_Deterministic(t *testing.T) {
 	}
 }
 
-// makeBenchmarkEvent creates a deterministic event for benchmarks.
-func makeBenchmarkEvent() event.Event {
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-
-	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
-
-	return evt
-}
-
 func TestEmptyPayloadEvent(t *testing.T) {
 	t.Parallel()
 

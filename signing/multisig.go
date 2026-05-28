@@ -44,6 +44,27 @@ type SignatureEntry struct {
 	SignedAt time.Time `json:"signedAt"`
 }
 
+// Validate checks that the signature entry has all required fields.
+func (e SignatureEntry) Validate() error {
+	if e.Actor == "" {
+		return event.NewRejection("signing.empty_actor", "signature entry actor cannot be empty")
+	}
+
+	if e.Algorithm == "" {
+		return event.NewRejection("signing.empty_algorithm", "signature entry algorithm cannot be empty")
+	}
+
+	if e.Sig.IsZero() {
+		return event.NewRejection("signing.empty_sig", "signature entry sig cannot be empty")
+	}
+
+	if e.SignedAt.IsZero() {
+		return event.NewRejection("signing.empty_signed_at", "signature entry signedAt cannot be zero")
+	}
+
+	return nil
+}
+
 // MultiSignature holds all signatures collected along the event's journey.
 // Each actor adds their SignatureEntry without removing existing ones.
 type MultiSignature struct {
