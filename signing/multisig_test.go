@@ -64,7 +64,7 @@ func TestMultiSigner(t *testing.T) {
 	t.Parallel()
 
 	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
-	serverKey := []byte("server-key-thirty-two-bytes!!")
+	serverKey := []byte("server-secret-key-thirty-two-by!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
@@ -338,7 +338,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Parallel()
 
 	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
-	serverKey := []byte("server-key-thirty-two-bytes!!")
+	serverKey := []byte("server-secret-key-thirty-two-by!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
@@ -416,7 +416,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 	t.Parallel()
 
 	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
-	serverKey := []byte("server-key-thirty-two-bytes!!")
+	serverKey := []byte("server-secret-key-thirty-two-by!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
