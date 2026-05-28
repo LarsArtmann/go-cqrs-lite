@@ -17,7 +17,8 @@ func (r *Runner) subscribeLive(ctx context.Context) error {
 
 	err := r.subscriber.SubscribeAll(handler)
 	if err != nil {
-		return fmt.Errorf("subscribe: %w", err)
+		return event.WrapInfrastructure(err, "projection.subscribe",
+			"subscribe to event bus")
 	}
 
 	<-ctx.Done()
@@ -51,7 +52,8 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 	}
 
 	if r.opts.retryCount <= 0 || !event.IsRetryable(err) {
-		return fmt.Errorf("projection %q non-retryable error: %w", p.Name(), err)
+		return event.WrapCorruption(err, "projection.non_retryable",
+			"projection "+p.Name()+" non-retryable error")
 	}
 
 	for attempt := 1; attempt <= r.opts.retryCount; attempt++ {
@@ -59,7 +61,8 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("retry cancelled: %w", ctx.Err())
+			return event.WrapInfrastructure(ctx.Err(), "projection.retry_cancelled",
+				"retry cancelled")
 		case <-time.After(delay):
 		}
 
@@ -69,10 +72,7 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 		}
 	}
 
-	return fmt.Errorf(
-		"projection %q retry exhausted after %d attempts: %w",
-		p.Name(),
-		r.opts.retryCount,
-		err,
-	)
+	return event.WrapTransient(err, "projection.retry_exhausted",
+		fmt.Sprintf("projection %q retry exhausted after %d attempts",
+			p.Name(), r.opts.retryCount))
 }

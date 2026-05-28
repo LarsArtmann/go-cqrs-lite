@@ -74,27 +74,24 @@ func (s *SQLEventStore) Save(
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
-	}
+		return event.WrapInfrastructure(err, "storage.begin_tx",
+		"begin transaction")
+}
 
-	defer func() {
-		_ = tx.Rollback()
-	}()
+defer func() {
+	_ = tx.Rollback()
+}()
 
-	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
-	if err != nil {
-		return fmt.Errorf("check version for %s %s: %w", aggregateType, aggregateID, err)
+err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
+if err != nil {
+	return event.WrapInfrastructure(err, "storage.check_version",
+		fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return fmt.Errorf(
-			"insert %d events for %s %s: %w",
-			len(events),
-			aggregateType,
-			aggregateID,
-			err,
-		)
+		return event.WrapInfrastructure(err, "storage.insert_events",
+			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
 	return commitTx(tx)
@@ -114,7 +111,8 @@ func (s *SQLEventStore) AppendBatch(
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+		return event.WrapInfrastructure(err, "storage.begin_tx",
+		"begin transaction")
 	}
 
 	defer func() {
@@ -123,13 +121,8 @@ func (s *SQLEventStore) AppendBatch(
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		return fmt.Errorf(
-			"insert %d events for %s %s: %w",
-			len(events),
-			aggregateType,
-			aggregateID,
-			err,
-		)
+		return event.WrapInfrastructure(err, "storage.insert_events",
+			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
 	return commitTx(tx)

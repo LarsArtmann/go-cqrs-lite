@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
 )
@@ -55,7 +56,8 @@ func SQLiteSagaSchema() string { return SQLiteDialect{}.SagaSchema() }
 // Save persists a saga state with UPSERT semantics.
 func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 	if state == nil {
-		return fmt.Errorf("%w: state is nil", ErrNilDB)
+		return event.WrapInfrastructure(ErrNilDB, "storage.nil_saga_state",
+		"saga state is nil")
 	}
 
 	p1, p2, p3, p4, p5, p6, p7 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
@@ -91,7 +93,8 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 		s.dialect.FormatTime(state.UpdatedAt),
 	)
 	if err != nil {
-		return fmt.Errorf("save saga %s: %w", state.ID, err)
+		return event.WrapInfrastructure(err, "storage.save_saga",
+			"save saga "+state.ID.String())
 	}
 
 	return nil
@@ -124,7 +127,8 @@ func (s *SQLSagaStore) LoadAllRunning(ctx context.Context) ([]*saga.State, error
 		string(saga.StatusCompensating),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("query running sagas: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.query_running_sagas",
+			"query running sagas")
 	}
 
 	defer func() {
@@ -148,10 +152,12 @@ func (s *SQLSagaStore) scanState(row *sql.Row, sagaID id.AggregateID) (*saga.Sta
 	err := row.Scan(&sagaType, &status, &currentStep, &errMsg, createdAtDest, updatedAtDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("saga %s: %w", sagaID, saga.ErrSagaNotFound)
+			return nil, event.WrapRejection(saga.ErrSagaNotFound, "storage.saga_not_found",
+				"saga "+sagaID.String()+" not found")
 		}
 
-		return nil, fmt.Errorf("scan saga %s: %w", sagaID, err)
+		return nil, event.WrapInfrastructure(err, "storage.scan_saga",
+			"scan saga "+sagaID.String())
 	}
 
 	createdAt, err := s.dialect.ParseTime(createdAtDest)
@@ -200,22 +206,26 @@ func (s *SQLSagaStore) scanStates(rows *sql.Rows) ([]*saga.State, error) {
 			updatedAtDest,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scan running saga: %w", err)
+			return nil, event.WrapInfrastructure(err, "storage.scan_running_saga",
+				"scan running saga")
 		}
 
 		idParsed, err := id.ParseAggregateID(sagaID)
 		if err != nil {
-			return nil, fmt.Errorf("parse saga ID %q: %w", sagaID, err)
+			return nil, event.WrapCorruption(err, "storage.parse_saga_id",
+				"parse saga ID "+sagaID)
 		}
 
 		createdAt, err := s.dialect.ParseTime(createdAtDest)
 		if err != nil {
-			return nil, fmt.Errorf("parse created_at for saga %s: %w", sagaID, err)
+			return nil, event.WrapCorruption(err, "storage.parse_running_created_at",
+				"parse created_at for saga "+sagaID)
 		}
 
 		updatedAt, err := s.dialect.ParseTime(updatedAtDest)
 		if err != nil {
-			return nil, fmt.Errorf("parse updated_at for saga %s: %w", sagaID, err)
+			return nil, event.WrapCorruption(err, "storage.parse_running_updated_at",
+				"parse updated_at for saga "+sagaID)
 		}
 
 		states = append(states, &saga.State{
@@ -230,7 +240,8 @@ func (s *SQLSagaStore) scanStates(rows *sql.Rows) ([]*saga.State, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate running sagas: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.iterate_sagas",
+			"iterate running sagas")
 	}
 
 	return states, nil

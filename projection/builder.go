@@ -3,7 +3,6 @@ package projection
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -38,7 +37,8 @@ func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T
 		if len(evt.Payload()) > 0 {
 			err := json.Unmarshal(evt.Payload(), &payload)
 			if err != nil {
-				return fmt.Errorf("decode payload for %s: %w", eventType, err)
+				return event.WrapCorruption(err, "projection.decode_payload",
+					"decode payload for "+string(eventType))
 			}
 		}
 

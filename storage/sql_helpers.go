@@ -32,10 +32,8 @@ func deleteByAggregate(
 
 	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
-		return fmt.Errorf(
-			"delete %s from table %s (placeholder1=%s, placeholder2=%s) for %s %s: %w",
-			what, table, placeholder1, placeholder2, aggregateType, aggregateID, err,
-		)
+	return event.WrapInfrastructure(err, "storage.delete_by_aggregate",
+		fmt.Sprintf("delete %s from table %s for %s %s", what, table, aggregateType, aggregateID))
 	}
 
 	return nil
@@ -55,7 +53,8 @@ func sharedInsertEvents(
 	for _, evt := range events {
 		metadata, err := marshalMetadata(evt.Metadata())
 		if err != nil {
-			return fmt.Errorf("marshal metadata for event %s (sql=%s): %w", evt.Type(), sql, err)
+			return event.WrapCorruption(err, "storage.marshal_metadata",
+				"marshal metadata for event "+string(evt.Type()))
 		}
 
 		_, err = tx.ExecContext(
@@ -72,7 +71,8 @@ func sharedInsertEvents(
 			formatTime(evt.OccurredAt()),
 		)
 		if err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.Type(), err)
+			return event.WrapInfrastructure(err, "storage.insert_event",
+				"insert event "+string(evt.Type()))
 		}
 	}
 
@@ -98,18 +98,14 @@ func sharedCheckVersion(
 	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
 		Scan(&currentVersion)
 	if err != nil {
-		return fmt.Errorf("check current version (query=%s): %w", query, err)
+		return event.WrapInfrastructure(err, "storage.check_version",
+			"check current version")
 	}
 
 	if currentVersion != expectedVersion.Int() {
-		return fmt.Errorf(
-			"%w: expected version %d, got %d for %s %s",
-			ErrConcurrencyConflict,
-			expectedVersion.Int(),
-			currentVersion,
-			aggregateType,
-			aggregateID,
-		)
+		return event.WrapConflict(ErrConcurrencyConflict, "storage.version_mismatch",
+			fmt.Sprintf("expected version %d, got %d for %s %s",
+				expectedVersion.Int(), currentVersion, aggregateType, aggregateID))
 	}
 
 	return nil
@@ -135,21 +131,14 @@ func sharedCheckpointLoad(
 			return id.EventID{}, nil
 		}
 
-		return id.EventID{}, fmt.Errorf(
-			"load checkpoint for projection %q: %w",
-			projectionName,
-			err,
-		)
+		return id.EventID{}, event.WrapInfrastructure(err, "storage.load_checkpoint",
+			"load checkpoint for projection "+projectionName)
 	}
 
 	parsed, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return id.EventID{}, fmt.Errorf(
-			"parse event ID %q for projection %q: %w",
-			eventIDStr,
-			projectionName,
-			err,
-		)
+		return id.EventID{}, event.WrapCorruption(err, "storage.parse_event_id",
+			fmt.Sprintf("parse event ID %q for projection %q", eventIDStr, projectionName))
 	}
 
 	return parsed, nil
@@ -172,7 +161,8 @@ func sharedCheckpointSave(
 
 	_, err := db.ExecContext(ctx, query, projectionName, eventID)
 	if err != nil {
-		return fmt.Errorf("save checkpoint for projection %q: %w", projectionName, err)
+		return event.WrapInfrastructure(err, "storage.save_checkpoint",
+			"save checkpoint for projection "+projectionName)
 	}
 
 	return nil
@@ -204,7 +194,8 @@ func sharedAckBatch(
 
 	_, err := db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("ack outbox entries: %w", err)
+		return event.WrapInfrastructure(err, "storage.ack_outbox",
+			"ack outbox entries")
 	}
 
 	return nil

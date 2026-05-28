@@ -38,6 +38,30 @@ func NewInfrastructure(code, msg string) *Error {
 	return errorfamily.NewInfrastructure(code, msg)
 }
 
+func Wrap(err error, family Family, code, msg string) *Error {
+	return errorfamily.Wrap(err, family, code, msg)
+}
+
+func WrapRejection(err error, code, msg string) *Error {
+	return errorfamily.WrapRejection(err, code, msg)
+}
+
+func WrapConflict(err error, code, msg string) *Error {
+	return errorfamily.WrapConflict(err, code, msg)
+}
+
+func WrapTransient(err error, code, msg string) *Error {
+	return errorfamily.WrapTransient(err, code, msg)
+}
+
+func WrapCorruption(err error, code, msg string) *Error {
+	return errorfamily.WrapCorruption(err, code, msg)
+}
+
+func WrapInfrastructure(err error, code, msg string) *Error {
+	return errorfamily.WrapInfrastructure(err, code, msg)
+}
+
 var (
 	errInvalidSnapshotInterval = NewRejection(
 		"event.invalid_snapshot_interval",

@@ -133,19 +133,15 @@ func retry(
 		case <-ctx.Done():
 			timer.Stop()
 
-			return fmt.Errorf("%w: %s: %w", ErrRetryCanceled, opName, err)
+			return event.WrapInfrastructure(err, "middleware.retry_canceled",
+				opName+": retry canceled")
 		}
 
 		timer.Stop()
 	}
 
-	return fmt.Errorf(
-		"%w: all %d attempts failed for %s: %w",
-		ErrRetryExhausted,
-		config.MaxAttempts,
-		opName,
-		err,
-	)
+	return event.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
+		fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, opName)).WithCause(err)
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {

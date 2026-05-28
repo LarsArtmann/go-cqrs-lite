@@ -149,6 +149,11 @@ linters:
             - github.com/larsartmann/go-error-family
             - modernc.org/sqlite
             - turso.tech/database/tursogo
+            - github.com/ThreeDotsLabs/watermill
+            - go/ast
+            - go/parser
+            - go/token
+            - golang.org/x/tools
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -283,6 +288,9 @@ linters:
       - path: catalog/registry_helpers.go$
         linters:
           - varnamelen
+      - path: testhelpers/
+        linters:
+          - nlreturn
       - path: catalog/.*_test.go$
         linters:
           - usestdlibvars
@@ -305,6 +313,49 @@ linters:
           - forcetypeassert
           - rowserrcheck
           - wsl_v5
+      - path: saga/
+        linters:
+          - nlreturn
+          - noinlineerr
+          - exhaustruct
+          - err113
+          - mnd
+          - dupl
+          - wrapcheck
+          - wsl_v5
+          - embeddedstructfieldcheck
+      - path: cmd/cqrs-gen/
+        linters:
+          - dupl
+          - exhaustruct
+          - err113
+          - funlen
+          - gocognit
+          - mnd
+          - nlreturn
+          - noinlineerr
+          - varnamelen
+          - wrapcheck
+          - wsl_v5
+          - dupword
+          - forbidigo
+          - gosec
+      - path: watermill/
+        linters:
+          - wsl_v5
+          - noinlineerr
+          - wrapcheck
+          - err113
+          - nestif
+          - mnd
+          - exhaustruct
+          - dupl
+          - errcheck
+          - perfsprint
+          - nolintlint
+      - path: testhelpers/
+        linters:
+          - nlreturn
       - path: sync/
         linters:
           - modernize

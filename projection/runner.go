@@ -2,7 +2,6 @@ package projection
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 
@@ -33,11 +32,13 @@ func NewRunner(
 	opts ...RunnerOption,
 ) (*Runner, error) {
 	if subscriber == nil {
-		return nil, fmt.Errorf("create runner: %w", ErrNilBus)
+		return nil, event.WrapInfrastructure(ErrNilBus, "projection.create_runner",
+			"create runner: nil bus")
 	}
 
 	if checkpoint == nil {
-		return nil, fmt.Errorf("create runner: %w", ErrNilCheckpoint)
+		return nil, event.WrapInfrastructure(ErrNilCheckpoint, "projection.create_runner",
+			"create runner: nil checkpoint")
 	}
 
 	o := runnerOptions{}
@@ -72,7 +73,8 @@ func (r *Runner) Register(p event.Projection) error {
 
 	for _, existing := range r.projections {
 		if existing.Name() == p.Name() {
-			return fmt.Errorf("%w: %q", ErrDuplicateProjection, p.Name())
+			return event.WrapConflict(ErrDuplicateProjection, "projection.duplicate_name",
+				"duplicate projection: "+p.Name())
 		}
 	}
 
@@ -93,7 +95,8 @@ func (r *Runner) Run(ctx context.Context) error {
 	if r.loader != nil {
 		err := r.replay(ctx)
 		if err != nil {
-			return fmt.Errorf("replay: %w", err)
+			return event.WrapInfrastructure(err, "projection.replay",
+				"replay failed")
 		}
 	}
 
@@ -106,7 +109,8 @@ func (r *Runner) replay(ctx context.Context) error {
 	for _, p := range r.projections {
 		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
 		if cpErr != nil {
-			return fmt.Errorf("load checkpoint for %q: %w", p.Name(), cpErr)
+			return event.WrapInfrastructure(cpErr, "projection.load_checkpoint",
+				"load checkpoint for "+p.Name())
 		}
 
 		var events []event.Event
@@ -114,14 +118,16 @@ func (r *Runner) replay(ctx context.Context) error {
 		if hasPositional && !checkpoint.IsZero() {
 			loaded, lErr := positional.LoadAllFromPosition(ctx, checkpoint, 0)
 			if lErr != nil {
-				return fmt.Errorf("load events from position for %q: %w", p.Name(), lErr)
+				return event.WrapInfrastructure(lErr, "projection.load_events",
+					"load events from position for "+p.Name())
 			}
 
 			events = filterByTypes(loaded, p.EventTypes())
 		} else {
 			allEvents, lErr := r.loader.LoadAll(ctx)
 			if lErr != nil {
-				return fmt.Errorf("load all events: %w", lErr)
+				return event.WrapInfrastructure(lErr, "projection.load_events",
+					"load all events")
 			}
 
 			events = filterEvents(allEvents, p.EventTypes(), checkpoint)
@@ -132,7 +138,8 @@ func (r *Runner) replay(ctx context.Context) error {
 
 			hErr := r.handleAndCheckpoint(replayCtx, p, evt)
 			if hErr != nil {
-				return fmt.Errorf("replay projection %q event %s: %w", p.Name(), evt.ID(), hErr)
+				return event.WrapCorruption(hErr, "projection.replay_event",
+					"replay "+p.Name()+" event "+evt.ID().String())
 			}
 		}
 	}
@@ -164,7 +171,8 @@ func (r *Runner) handleAndCheckpoint(
 ) error {
 	err := p.Handle(ctx, evt)
 	if err != nil {
-		return fmt.Errorf("projection %q handle event %s: %w", p.Name(), evt.Type(), err)
+		return event.Wrap(err, event.Classify(err), "projection.handle_event",
+			"projection "+p.Name()+" handle event "+string(evt.Type()))
 	}
 
 	return r.checkpoint.Save(ctx, p.Name(), evt.ID())

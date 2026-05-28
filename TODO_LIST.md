@@ -120,7 +120,7 @@
 - [x] ~~Add GOWORK=off CI matrix job~~ — VERIFIED (ci.yml has Per-Module Test job with GOWORK=off)
 - [x] ~~Add CI pipeline~~ — DONE
 - [x] ~~Add minimum coverage gate to CI (80%)~~ — DONE
-- [ ] Extend lint to all 9 production modules — only core/ is linted currently (source: SESSION37)
+- [x] ~~Extend lint to all 9 production modules~~ — DONE (all 12 modules lint clean with golangci-lint)
 - [x] ~~Add EventRetry middleware tests~~ — DONE
 - [x] ~~Delete stale example/user/user binary~~ — DONE
 - [x] ~~Trim AGENTS.md~~ — DONE (384→121 lines)
@@ -143,7 +143,7 @@
 - [x] ~~Add PostgresInitSchema convenience function~~ — DONE
 - [x] ~~Rename CQRSAdapter → PebbleEventStore~~ — DONE
 - [x] ~~Add SQLEventStoreOption usage~~ — DONE
-- [ ] Add command metadata (CorrelationID, CausationID, UserID, RequestID, Custom) (source: OFFLINE_FIRST)
+- [x] ~~Add command metadata~~ — DONE (Metadata struct + WithCorrelationID/CausationID/UserID/RequestID options)
 - [x] ~~Add ClientID branded type and WithClientID option~~ — DONE
 - [ ] Add PublishedAt to OutboxEntry — no way to measure outbox lag (source: METADATA_ANALYSIS)
 - [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
