@@ -137,7 +137,7 @@ func TestCommandValidation_SentinelError(t *testing.T) {
 	mw := CommandValidation(func(_ command.Command) error {
 		return errors.New("invalid")
 	})
-	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
+	handler := mw(testhelpers.NoopCommandHandler())
 
 	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
 	if !errors.Is(err, ErrValidationFailed) {
@@ -151,7 +151,7 @@ func TestEventValidation_SentinelError(t *testing.T) {
 	mw := EventValidation(func(_ event.Event) error {
 		return errors.New("invalid")
 	})
-	handler := mw(func(_ context.Context, _ event.Event) error { return nil })
+	handler := mw(testhelpers.NoopEventHandler())
 
 	evt, evtErr := testhelpers.NewTestEvent()
 	if evtErr != nil {

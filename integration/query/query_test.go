@@ -128,19 +128,6 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 	}
 }
 
-func makeTestMiddleware(
-	callOrder *[]string,
-	name string,
-) func(func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
-	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			*callOrder = append(*callOrder, name)
-
-			return h(ctx, q)
-		}
-	}
-}
-
 func TestDispatcher_Middleware(t *testing.T) {
 	t.Parallel()
 
@@ -149,8 +136,8 @@ func TestDispatcher_Middleware(t *testing.T) {
 	var callOrder []string
 
 	dispatcher.Use(
-		makeTestMiddleware(&callOrder, "middleware1"),
-		makeTestMiddleware(&callOrder, "middleware2"),
+		testhelpers.QueryMiddleware(&callOrder, "middleware1"),
+		testhelpers.QueryMiddleware(&callOrder, "middleware2"),
 	)
 
 	registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result")

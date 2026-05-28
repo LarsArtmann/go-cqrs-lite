@@ -129,3 +129,17 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 		}
 	}
 }
+
+// QueryMiddleware creates middleware that tracks call order for query handlers.
+func QueryMiddleware(
+	callOrder *[]string,
+	name string,
+) func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			*callOrder = append(*callOrder, name)
+
+			return h(ctx, q)
+		}
+	}
+}
