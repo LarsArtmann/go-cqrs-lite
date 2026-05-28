@@ -2,11 +2,11 @@ package saga
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -40,16 +40,16 @@ func (r *Runner) Register(def Definition) error {
 	defer r.mu.Unlock()
 
 	if def == nil {
-		return fmt.Errorf("definition is nil: %w", ErrSagaNotFound)
+		return event.WrapRejection(ErrSagaNotFound, "saga.invalid_definition", "definition is nil")
 	}
 
 	sagaType := def.SagaType()
 	if sagaType == "" {
-		return fmt.Errorf("saga type is empty: %w", ErrSagaNotFound)
+		return event.WrapRejection(ErrSagaNotFound, "saga.invalid_type", "saga type is empty")
 	}
 
 	if _, exists := r.registry[sagaType]; exists {
-		return fmt.Errorf("saga %s: %w", sagaType, ErrSagaAlreadyExists)
+		return event.WrapConflict(ErrSagaAlreadyExists, "saga.already_exists", "saga "+sagaType+" already exists")
 	}
 
 	r.registry[sagaType] = def
@@ -67,7 +67,7 @@ func (r *Runner) Start(
 	r.mu.RUnlock()
 
 	if !ok {
-		return nil, fmt.Errorf("saga %s: %w", sagaType, ErrSagaNotRegistered)
+		return nil, event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+sagaType+" not registered")
 	}
 
 	state := State{
@@ -80,12 +80,12 @@ func (r *Runner) Start(
 	}
 
 	if err := r.store.Save(ctx, &state); err != nil {
-		return nil, fmt.Errorf("save saga state: %w", err)
+		return nil, event.WrapInfrastructure(err, "saga.save_failed", "save saga state")
 	}
 
 	state.Status = StatusRunning
 	if err := r.store.Save(ctx, &state); err != nil {
-		return nil, fmt.Errorf("update saga status: %w", err)
+		return nil, event.WrapInfrastructure(err, "saga.update_failed", "update saga status")
 	}
 
 	instance := &Instance{
@@ -103,7 +103,7 @@ func (r *Runner) Start(
 			instance.UpdatedAt = time.Now()
 			_ = r.store.Save(ctx, &instance.State)
 			r.logError("initial command failed", "type", sagaType, "id", instance.ID, "error", err)
-			return instance, fmt.Errorf("dispatch initial command: %w", err)
+			return instance, event.WrapInfrastructure(err, "saga.dispatch_failed", "dispatch initial command")
 		}
 	}
 

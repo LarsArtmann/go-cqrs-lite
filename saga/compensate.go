@@ -2,8 +2,9 @@ package saga
 
 import (
 	"context"
-	"fmt"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
@@ -21,7 +22,7 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 		if err := r.dispatcher.Dispatch(ctx, cmd); err != nil {
 			r.logError("compensate step failed", "id", instance.ID, "step", step.Name, "error", err)
 			instance.Status = StatusFailed
-			instance.Err = fmt.Errorf("compensate step %s: %w", step.Name, err)
+			instance.Err = event.WrapInfrastructure(err, "saga.compensate_step_failed", "compensate step "+step.Name)
 			instance.ErrMsg = instance.Err.Error()
 			instance.UpdatedAt = time.Now()
 			_ = r.store.Save(ctx, &instance.State)
@@ -39,7 +40,7 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 	r.logInfo("compensation completed", "id", instance.ID, "type", instance.SagaType)
 
 	if err := r.store.Save(ctx, &instance.State); err != nil {
-		return fmt.Errorf("save compensated status: %w", err)
+		return event.WrapInfrastructure(err, "saga.save_compensated_failed", "save compensated status")
 	}
 
 	return ErrStepFailed

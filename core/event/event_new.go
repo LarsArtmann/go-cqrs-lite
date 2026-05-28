@@ -2,7 +2,6 @@ package event
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -28,7 +27,11 @@ func New(
 
 func marshalPayload(payload any, eventType Type) ([]byte, error) {
 	if payload == nil {
-		return nil, fmt.Errorf("%w: event type %q", ErrNilPayload, eventType)
+		return nil, WrapRejection(
+			ErrNilPayload,
+			"event.nil_payload",
+			"payload is required for event type "+string(eventType),
+		)
 	}
 
 	switch v := payload.(type) {
@@ -39,7 +42,11 @@ func marshalPayload(payload any, eventType Type) ([]byte, error) {
 	default:
 		data, err := json.Marshal(payload)
 		if err != nil {
-			return nil, fmt.Errorf("marshal payload for event type %q: %w", eventType, err)
+			return nil, WrapCorruption(
+				err,
+				"event.marshal_payload_failed",
+				"marshal payload for event type "+string(eventType),
+			)
 		}
 
 		return data, nil

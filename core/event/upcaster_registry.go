@@ -1,8 +1,8 @@
 package event
 
 import (
-	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 )
 
@@ -48,11 +48,10 @@ func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
 
 		next, err := uc.Upcast(current)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"upcast %s from schema version %d: %w",
-				uc.SourceType(),
-				uc.SourceVersion(),
+			return nil, WrapCorruption(
 				err,
+				"event.upcast_failed",
+				"upcast "+string(uc.SourceType())+" from schema version "+strconv.Itoa(int(uc.SourceVersion())),
 			)
 		}
 

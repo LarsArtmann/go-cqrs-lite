@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -18,12 +17,20 @@ func PublishChanges(
 	if outbox != nil {
 		err := outbox.Append(ctx, events)
 		if err != nil {
-			return fmt.Errorf("stage events in outbox: %w", err)
+			return WrapInfrastructure(
+				err,
+				"event.outbox_stage_failed",
+				"stage events in outbox",
+			)
 		}
 	} else {
 		err := publisher.Publish(ctx, events...)
 		if err != nil {
-			return fmt.Errorf("publish events: %w", err)
+			return WrapInfrastructure(
+				err,
+				"event.publish_failed",
+				"publish events",
+			)
 		}
 	}
 
@@ -48,7 +55,11 @@ func SaveSnapshot(
 		CreatedAt:     defaultClock().UTC(),
 	})
 	if err != nil {
-		return fmt.Errorf("save snapshot for %s %s: %w", aggType, aggID, err)
+		return WrapInfrastructure(
+			err,
+			"event.snapshot_save_failed",
+			"save snapshot for "+string(aggType)+" "+aggID.String(),
+		)
 	}
 
 	return nil

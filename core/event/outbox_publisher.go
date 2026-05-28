@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"runtime/debug"
@@ -171,7 +170,11 @@ func (p *OutboxPublisher) run(ctx context.Context) {
 func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {
-		return fmt.Errorf("poll pending: %w", err)
+		return WrapInfrastructure(
+			err,
+			"event.outbox_poll_failed",
+			"poll pending outbox entries",
+		)
 	}
 
 	if len(entries) == 0 {
@@ -194,12 +197,20 @@ func (p *OutboxPublisher) pollPublishAck(ctx context.Context) error {
 	if len(ackIDs) > 0 {
 		ackErr := p.outbox.Ack(ctx, ackIDs)
 		if ackErr != nil && publishErr == nil {
-			return fmt.Errorf("ack entries: %w", ackErr)
+			return WrapInfrastructure(
+				ackErr,
+				"event.outbox_ack_failed",
+				"ack outbox entries",
+			)
 		}
 	}
 
 	if publishErr != nil {
-		return fmt.Errorf("publish events: %w", publishErr)
+		return WrapInfrastructure(
+			publishErr,
+			"event.publish_failed",
+			"publish events from outbox",
+		)
 	}
 
 	return nil

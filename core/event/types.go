@@ -53,7 +53,11 @@ func ParseIPAddress(s string) (IPAddress, error) {
 
 	addr, err := netip.ParseAddr(s)
 	if err != nil {
-		return "", fmt.Errorf("invalid IP address %q: %w", s, err)
+		return "", WrapRejection(
+			err,
+			"event.invalid_ip_address",
+			"invalid IP address "+s,
+		)
 	}
 
 	return IPAddress(addr.String()), nil
@@ -138,11 +142,10 @@ func (v Version) Cmp(other Version) int {
 // Useful for optimistic concurrency checks in event stores.
 func CheckVersionConflict(existingLen int, expected Version) error {
 	if existingLen != expected.Int() {
-		return fmt.Errorf(
-			"%w: expected version %d, got %d",
+		return WrapConflict(
 			ErrVersionConflict,
-			expected,
-			existingLen,
+			"event.version_conflict",
+			"expected version "+expected.String()+", got "+strconv.Itoa(existingLen),
 		)
 	}
 

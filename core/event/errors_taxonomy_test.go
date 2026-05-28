@@ -242,6 +242,72 @@ func TestError_Format(t *testing.T) {
 	}
 }
 
+func TestNewf(t *testing.T) {
+	t.Parallel()
+
+	err := event.Newf(event.Rejection, "test.newf", "formatted %s %d", "hello", 42)
+	if err.Code() != "test.newf" {
+		t.Errorf("Code() = %q, want %q", err.Code(), "test.newf")
+	}
+	if !strings.Contains(err.Message(), "formatted hello 42") {
+		t.Errorf("Message() = %q, want containing %q", err.Message(), "formatted hello 42")
+	}
+}
+
+func TestWrapf(t *testing.T) {
+	t.Parallel()
+
+	inner := errors.New("root cause")
+	err := event.Wrapf(inner, event.Transient, "test.wrapf", "wrapped %s", "value")
+	if !errors.Is(err, inner) {
+		t.Error("Wrapf should preserve cause for errors.Is")
+	}
+	if err.Code() != "test.wrapf" {
+		t.Errorf("Code() = %q, want %q", err.Code(), "test.wrapf")
+	}
+}
+
+func TestWithContext(t *testing.T) {
+	t.Parallel()
+
+	err := event.NewRejection("test.ctx", "msg")
+	result := event.WithContext(err, "key", "value")
+	if result.ContextValue("key") != "value" {
+		t.Errorf("ContextValue(key) = %q, want %q", result.ContextValue("key"), "value")
+	}
+}
+
+func TestExitCode(t *testing.T) {
+	t.Parallel()
+
+	if got := event.ExitCode(nil); got != 0 {
+		t.Errorf("ExitCode(nil) = %d, want 0", got)
+	}
+	if got := event.ExitCode(event.NewRejection("r", "msg")); got != 1 {
+		t.Errorf("ExitCode(Rejection) = %d, want 1", got)
+	}
+	if got := event.ExitCode(event.NewTransient("t", "msg")); got != 75 {
+		t.Errorf("ExitCode(Transient) = %d, want 75", got)
+	}
+}
+
+func TestHandleErrorDetailed(t *testing.T) {
+	t.Parallel()
+
+	result := event.HandleErrorDetailed(nil)
+	if result.ExitCode != 0 {
+		t.Errorf("HandleErrorDetailed(nil).ExitCode = %d, want 0", result.ExitCode)
+	}
+
+	result = event.HandleErrorDetailed(event.NewRejection("test.input", "bad input"))
+	if result.ExitCode != 1 {
+		t.Errorf("HandleErrorDetailed(Rejection).ExitCode = %d, want 1", result.ExitCode)
+	}
+	if result.Message == "" {
+		t.Error("HandleErrorDetailed should produce a non-empty message")
+	}
+}
+
 func TestError_Format_withCause(t *testing.T) {
 	t.Parallel()
 

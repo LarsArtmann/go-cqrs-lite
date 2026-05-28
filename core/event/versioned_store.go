@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -58,7 +57,11 @@ func (s *VersionedStore) upcastAll(events []Event) ([]Event, error) {
 	for i, evt := range events {
 		upcasted, err := s.registry.upcast(evt)
 		if err != nil {
-			return nil, fmt.Errorf("upcast event %s: %w", evt.ID(), err)
+			return nil, WrapCorruption(
+				err,
+				"event.upcast_failed",
+				"upcast event "+evt.ID().String(),
+			)
 		}
 		result[i] = upcasted
 	}

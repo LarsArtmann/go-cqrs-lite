@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -151,11 +152,11 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 		dlqMu.Unlock()
 	}
 
-	callCount := 0
+	var callCount atomic.Int32
 	failingProj := event.NewProjection(
 		"retry-projection",
 		func(ctx context.Context, evt event.Event) error {
-			callCount++
+			callCount.Add(1)
 
 			return errors.New("always fails")
 		},
@@ -201,12 +202,12 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 		t.Fatalf("expected 1 dead letter entry, got %d", dlqCount)
 	}
 
-	expectedCalls := 1 + 2
-	if callCount != expectedCalls {
+	expectedCalls := int32(1 + 2)
+	if callCount.Load() != expectedCalls {
 		t.Fatalf(
 			"expected %d handler calls (1 initial + 2 retries), got %d",
 			expectedCalls,
-			callCount,
+			callCount.Load(),
 		)
 	}
 }

@@ -62,6 +62,44 @@ func WrapInfrastructure(err error, code, msg string) *Error {
 	return errorfamily.WrapInfrastructure(err, code, msg)
 }
 
+func Wrapf(err error, family Family, code, format string, args ...any) *Error {
+	return errorfamily.Wrapf(err, family, code, format, args...)
+}
+
+func Newf(family Family, code, format string, args ...any) *Error {
+	return errorfamily.Newf(family, code, format, args...)
+}
+
+func WithContext(err *Error, key, value string) *Error {
+	return err.WithContext(key, value)
+}
+
+func ExitCode(err error) int                { return errorfamily.ExitCode(err) }
+func HandleError(err error) int             { return errorfamily.HandleError(err) }
+func HandleErrorDetailed(err error) *HandleResult {
+	return errorfamily.HandleErrorDetailed(err)
+}
+
+func RegisterTemplate(code string, tmpl MessageTemplate) {
+	errorfamily.RegisterTemplate(code, tmpl)
+}
+
+func RegisterClassification(sentinel error, family Family) {
+	errorfamily.RegisterClassification(sentinel, family)
+}
+
+func RegisterClassifications(classifications map[error]Family) {
+	errorfamily.RegisterClassifications(classifications)
+}
+
+type (
+	HandleResult      = errorfamily.HandleResult
+	HandleConfig      = errorfamily.HandleConfig
+	MessageTemplate   = errorfamily.MessageTemplate
+	DiagnosticFinding = errorfamily.DiagnosticFinding
+	DiagnosticFunc    = errorfamily.DiagnosticFunc
+)
+
 var (
 	errInvalidSnapshotInterval = NewRejection(
 		"event.invalid_snapshot_interval",

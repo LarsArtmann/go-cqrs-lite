@@ -87,12 +87,21 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 
 		err := proj.Handle(ctx, evt)
 		if err != nil {
-			return fmt.Errorf("projection %q handle event %s: %w", proj.Name(), evtType, err)
+			return Wrap(
+				err,
+				Classify(err),
+				"event.projection_failed",
+				"projection "+proj.Name()+" handle event "+string(evtType),
+			)
 		}
 
 		err = r.checkpoint.Save(ctx, proj.Name(), evt.ID())
 		if err != nil {
-			return fmt.Errorf("checkpoint save for projection %q: %w", proj.Name(), err)
+			return WrapInfrastructure(
+				err,
+				"event.checkpoint_save_failed",
+				"checkpoint save for projection "+proj.Name(),
+			)
 		}
 	}
 
@@ -178,7 +187,11 @@ func (r *InMemoryRunner) collectResults(
 		select {
 		case <-ctx.Done():
 			if firstErr == nil {
-				firstErr = fmt.Errorf("handle parallel canceled: %w", ctx.Err())
+				firstErr = WrapTransient(
+					ctx.Err(),
+					"event.parallel_canceled",
+					"handle parallel canceled",
+				)
 			}
 
 			return firstErr
@@ -187,11 +200,11 @@ func (r *InMemoryRunner) collectResults(
 
 		if res.err != nil {
 			if firstErr == nil {
-				firstErr = fmt.Errorf(
-					"projection %q handle event %s: %w",
-					res.proj.Name(),
-					evt.Type(),
+				firstErr = Wrap(
 					res.err,
+					Classify(res.err),
+					"event.projection_failed",
+					"projection "+res.proj.Name()+" handle event "+string(evt.Type()),
 				)
 			}
 
@@ -200,7 +213,11 @@ func (r *InMemoryRunner) collectResults(
 
 		err := r.checkpoint.Save(ctx, res.proj.Name(), evt.ID())
 		if err != nil && firstErr == nil {
-			firstErr = fmt.Errorf("checkpoint save for projection %q: %w", res.proj.Name(), err)
+			firstErr = WrapInfrastructure(
+				err,
+				"event.checkpoint_save_failed",
+				"checkpoint save for projection "+res.proj.Name(),
+			)
 		}
 	}
 

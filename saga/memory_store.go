@@ -2,9 +2,9 @@ package saga
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -27,7 +27,7 @@ func (s *MemoryStore) Save(_ context.Context, state *State) error {
 	defer s.mu.Unlock()
 
 	if state == nil {
-		return fmt.Errorf("state is nil: %w", ErrSagaNotFound)
+		return event.WrapRejection(ErrSagaNotFound, "saga.nil_state", "state is nil")
 	}
 
 	s.states[state.ID.String()] = copyState(state)
@@ -42,7 +42,7 @@ func (s *MemoryStore) Load(_ context.Context, id id.AggregateID) (*State, error)
 
 	state, ok := s.states[id.String()]
 	if !ok {
-		return nil, fmt.Errorf("saga %s: %w", id, ErrSagaNotFound)
+		return nil, event.WrapRejection(ErrSagaNotFound, "saga.not_found", "saga "+id.String()+" not found")
 	}
 
 	return copyState(state), nil

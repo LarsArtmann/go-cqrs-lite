@@ -3,7 +3,6 @@ package saga
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -15,7 +14,7 @@ import (
 func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) error {
 	state, err := r.store.Load(ctx, instanceID)
 	if err != nil {
-		return fmt.Errorf("load saga %s: %w", instanceID, err)
+		return event.WrapInfrastructure(err, "saga.load_failed", "load saga "+instanceID.String())
 	}
 
 	instance, err := r.hydrate(state)
@@ -24,7 +23,7 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	}
 
 	if instance.Status != StatusRunning && instance.Status != StatusPending {
-		return fmt.Errorf("saga %s is not running (status=%s)", instanceID, instance.Status)
+		return event.NewRejection("saga.not_running", "saga "+instanceID.String()+" is not running (status="+string(instance.Status)+")")
 	}
 
 	if instance.CurrentStep >= len(instance.Steps) {
@@ -46,7 +45,7 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 
 	cmd := step.Action(stepCtx, instance.ID)
 	if cmd == nil {
-		return fmt.Errorf("step %s returned nil command", step.Name)
+		return event.NewRejection("saga.nil_command", "step "+step.Name+" returned nil command")
 	}
 
 	err = r.dispatchWithRetry(stepCtx, cmd)
@@ -67,17 +66,17 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 			)
 			instance.Status = StatusCompensating
 			if saveErr := r.store.Save(ctx, &instance.State); saveErr != nil {
-				return fmt.Errorf("save compensating status: %w", saveErr)
+				return event.WrapInfrastructure(saveErr, "saga.save_compensating_failed", "save compensating status")
 			}
 			return r.compensate(ctx, instance)
 		}
 
 		instance.Status = StatusFailed
 		if saveErr := r.store.Save(ctx, &instance.State); saveErr != nil {
-			return fmt.Errorf("save failed status: %w", saveErr)
+			return event.WrapInfrastructure(saveErr, "saga.save_failed_status_failed", "save failed status")
 		}
 		r.logError("step failed", "id", instanceID, "step", step.Name, "error", err)
-		return fmt.Errorf("step %s: %w", step.Name, err)
+		return event.WrapInfrastructure(err, "saga.step_failed", "step "+step.Name+" failed")
 	}
 
 	instance.CurrentStep++
@@ -89,7 +88,7 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	}
 
 	if err := r.store.Save(ctx, &instance.State); err != nil {
-		return fmt.Errorf("save step completion: %w", err)
+		return event.WrapInfrastructure(err, "saga.save_completion_failed", "save step completion")
 	}
 
 	r.logInfo(
@@ -111,7 +110,7 @@ func (r *Runner) hydrate(state *State) (*Instance, error) {
 	r.mu.RUnlock()
 
 	if !ok {
-		return nil, fmt.Errorf("saga %s: %w", state.SagaType, ErrSagaNotRegistered)
+		return nil, event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+state.SagaType+" not registered")
 	}
 
 	instance := &Instance{

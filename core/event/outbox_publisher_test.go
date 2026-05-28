@@ -485,7 +485,7 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 		t.Fatal("expected error on ack failure")
 	}
 
-	if !strings.Contains(err.Error(), "ack entries") {
+	if !strings.Contains(err.Error(), "ack outbox entries") {
 		t.Fatalf("error = %q, want containing 'ack entries'", err.Error())
 	}
 }

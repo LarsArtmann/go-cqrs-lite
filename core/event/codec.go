@@ -2,7 +2,7 @@ package event
 
 import (
 	"encoding/json"
-	"fmt"
+	"strconv"
 )
 
 // Codec serializes and deserializes event payloads.
@@ -45,7 +45,11 @@ func DecodePayload[T any](evt Event, codec Codec) (T, error) {
 
 	err := codec.Decode(payload, &target)
 	if err != nil {
-		return zero, fmt.Errorf("decode payload for event %s: %w", evt.Type(), err)
+		return zero, WrapCorruption(
+			err,
+			"event.decode_payload_failed",
+			"decode payload for event "+string(evt.Type()),
+		)
 	}
 
 	return target, nil
@@ -59,7 +63,11 @@ func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
 	for i, evt := range events {
 		v, err := DecodePayload[T](evt, codec)
 		if err != nil {
-			return nil, fmt.Errorf("decode payload [%d] for event %s: %w", i, evt.Type(), err)
+			return nil, WrapCorruption(
+				err,
+				"event.decode_payload_failed",
+				"decode payload ["+strconv.Itoa(i)+"] for event "+string(evt.Type()),
+			)
 		}
 
 		result = append(result, v)

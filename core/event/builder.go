@@ -71,7 +71,11 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 		b.opts...,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("build event %s: %w", b.eventType, err)
+		return nil, WrapCorruption(
+			err,
+			"event.build_failed",
+			"build event "+string(b.eventType),
+		)
 	}
 
 	return evt, nil

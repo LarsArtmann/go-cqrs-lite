@@ -1,7 +1,7 @@
 package event
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -18,11 +18,13 @@ func NewEvents(
 	opts ...Option,
 ) ([]Event, error) {
 	if len(eventTypes) != len(payloads) {
-		return nil, fmt.Errorf(
-			"%w: got %d event types and %d payloads",
+		return nil, Wrap(
 			ErrMismatchedEventCount,
-			len(eventTypes),
-			len(payloads),
+			Rejection,
+			"event.mismatched_event_count",
+			"event types and payloads count must match: got "+
+				strconv.Itoa(len(eventTypes))+" event types and "+
+				strconv.Itoa(len(payloads))+" payloads",
 		)
 	}
 
@@ -36,7 +38,11 @@ func NewEvents(
 		evtVersion := version.Add(i + 1)
 		payload, err := marshalPayload(payloads[i], eventTypes[i])
 		if err != nil {
-			return nil, fmt.Errorf("marshal payload for event %d: %w", i, err)
+			return nil, WrapCorruption(
+				err,
+				"event.marshal_payload_failed",
+				"marshal payload for event "+strconv.Itoa(i),
+			)
 		}
 
 		evt, err := NewEvent(
@@ -48,7 +54,11 @@ func NewEvents(
 			opts...,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create event %d: %w", i, err)
+			return nil, WrapCorruption(
+				err,
+				"event.create_failed",
+				"create event "+strconv.Itoa(i),
+			)
 		}
 
 		events[i] = evt
