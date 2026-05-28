@@ -15,15 +15,15 @@ const MinimumKeyLength = 32
 // HMACSigner signs and verifies events using HMAC-SHA256.
 // Use for shared-secret scenarios where all participants trust each other
 // (e.g., same-organization microservices).
-type HMACSigner struct {
+type hmacSigner struct {
 	key []byte
 }
 
-var _ SignerVerifier = (*HMACSigner)(nil)
+var _ SignerVerifier = (*hmacSigner)(nil)
 
 // NewHMAC creates an HMAC-SHA256 signer from a shared secret key.
 // Returns ErrInvalidKey if the key is nil or shorter than MinimumKeyLength.
-func NewHMAC(key []byte) (*HMACSigner, error) {
+func NewHMAC(key []byte) (*hmacSigner, error) {
 	if len(key) < MinimumKeyLength {
 		return nil, fmt.Errorf(
 			"%w: key length %d < minimum %d",
@@ -37,11 +37,11 @@ func NewHMAC(key []byte) (*HMACSigner, error) {
 	keyCopy := make([]byte, len(key))
 	copy(keyCopy, key)
 
-	return &HMACSigner{key: keyCopy}, nil
+	return &hmacSigner{key: keyCopy}, nil
 }
 
 // Sign computes an HMAC-SHA256 signature for the event.
-func (s *HMACSigner) Sign(evt event.Event) (Signature, error) {
+func (s *hmacSigner) Sign(evt event.Event) (Signature, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}
@@ -55,7 +55,7 @@ func (s *HMACSigner) Sign(evt event.Event) (Signature, error) {
 }
 
 // Verify checks that the HMAC-SHA256 signature matches the event.
-func (s *HMACSigner) Verify(evt event.Event, sig Signature) error {
+func (s *hmacSigner) Verify(evt event.Event, sig Signature) error {
 	if sig.IsZero() {
 		return ErrNilSignature
 	}

@@ -96,7 +96,8 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 		SignedAt:  m.clock(),
 	}
 
-	if validateErr := entry.Validate(); validateErr != nil {
+	validateErr := entry.Validate()
+	if validateErr != nil {
 		return nil, fmt.Errorf("validate signature entry: %w", validateErr)
 	}
 
@@ -108,7 +109,8 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 
 // Verify verifies only this actor's signature from the event's multi-sig collection.
 func (m *MultiSigner) Verify(evt event.Event) error {
-	if err := verifyActorEntry(evt, m.actor, m.verifier); err != nil {
+	err := verifyActorEntry(evt, m.actor, m.verifier)
+	if err != nil {
 		return fmt.Errorf("verify actor %s: %w", m.actor, err)
 	}
 
@@ -118,7 +120,8 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 // VerifyActor verifies a specific actor's signature using the provided verifier.
 // Useful when one actor wants to check another actor's signature.
 func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifier) error {
-	if err := verifyActorEntry(evt, actor, verifier); err != nil {
+	err := verifyActorEntry(evt, actor, verifier)
+	if err != nil {
 		return fmt.Errorf("verify actor %s: %w", actor, err)
 	}
 
@@ -141,5 +144,10 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier Verifier) error {
 		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, actor)
 	}
 
-	return verifier.Verify(evt, entry.Sig)
+	verifyErr := verifier.Verify(evt, entry.Sig)
+	if verifyErr != nil {
+		return fmt.Errorf("verify entry for actor %s: %w", actor, verifyErr)
+	}
+
+	return nil
 }

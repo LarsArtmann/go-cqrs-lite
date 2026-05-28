@@ -31,7 +31,7 @@ type Verifier interface {
 }
 
 // SignerVerifier combines signing and verification capabilities.
-// HMACSigner implements this interface because the same key handles both.
+// NewHMAC returns a type that implements this interface because the same key handles both.
 type SignerVerifier interface {
 	Signer
 	Verifier
@@ -88,7 +88,11 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 
 		decoded, fallbackErr = base64.StdEncoding.DecodeString(encoded)
 		if fallbackErr != nil {
-			return fmt.Errorf("decode signature: URL-safe: %w, standard: %w", decodeErr, fallbackErr)
+			return fmt.Errorf(
+				"decode signature: URL-safe: %w, standard: %w",
+				decodeErr,
+				fallbackErr,
+			)
 		}
 	}
 

@@ -52,10 +52,18 @@ func ExampleVerifyAll() {
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
 	serverVerifier, _ := signing.NewEd25519Verifier(serverPub)
 
-	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
-		signing.WithVerifier(deviceVerifier))
-	serverMulti, _ := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmEd25519, serverSigner,
-		signing.WithVerifier(serverVerifier))
+	deviceMulti, _ := signing.NewMultiSigner(
+		signing.Actor("device"),
+		signing.AlgorithmEd25519,
+		deviceSigner,
+		signing.WithVerifier(deviceVerifier),
+	)
+	serverMulti, _ := signing.NewMultiSigner(
+		signing.Actor("server"),
+		signing.AlgorithmEd25519,
+		serverSigner,
+		signing.WithVerifier(serverVerifier),
+	)
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("order.shipped", aggID, "Order", 1, []byte(`{}`))
@@ -86,8 +94,12 @@ func ExampleMultiVerifyMiddlewareFor() {
 
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
-	deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
-		signing.WithVerifier(deviceVerifier))
+	deviceMulti, _ := signing.NewMultiSigner(
+		signing.Actor("device"),
+		signing.AlgorithmEd25519,
+		deviceSigner,
+		signing.WithVerifier(deviceVerifier),
+	)
 
 	// Create middleware that verifies the "device" actor's signature
 	verifyMiddleware := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)

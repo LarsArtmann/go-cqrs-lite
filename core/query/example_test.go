@@ -14,9 +14,13 @@ func ExampleDispatcher() {
 		Name string
 	}
 
-	err := query.RegisterTyped(d, "GetUser", func(_ context.Context, _ query.Query) (UserResult, error) {
-		return UserResult{Name: "Alice"}, nil
-	})
+	err := query.RegisterTyped(
+		d,
+		"GetUser",
+		func(_ context.Context, _ query.Query) (UserResult, error) {
+			return UserResult{Name: "Alice"}, nil
+		},
+	)
 	if err != nil {
 		fmt.Println("error:", err)
 

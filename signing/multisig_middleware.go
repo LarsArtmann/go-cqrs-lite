@@ -30,7 +30,12 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 			for _, evt := range events {
 				clone, err := signer.Sign(evt)
 				if err != nil {
-					return fmt.Errorf("multi-sign event %s as %s: %w", evt.Type(), signer.Actor(), err)
+					return fmt.Errorf(
+						"multi-sign event %s as %s: %w",
+						evt.Type(),
+						signer.Actor(),
+						err,
+					)
 				}
 
 				signed = append(signed, clone)
@@ -126,6 +131,10 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 // Cryptographically verifies every signature entry and ensures every actor
 // in the verifier map has a corresponding valid signature.
 func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
+	if len(verifiers) == 0 {
+		panic("signing: RequireMultiSigMiddleware called with empty verifiers map")
+	}
+
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if evt == nil {
@@ -134,7 +143,11 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
-				return fmt.Errorf("%w: event %s has no multi-signature", ErrNilSignature, evt.Type())
+				return fmt.Errorf(
+					"%w: event %s has no multi-signature",
+					ErrNilSignature,
+					evt.Type(),
+				)
 			}
 
 			for actor := range verifiers {

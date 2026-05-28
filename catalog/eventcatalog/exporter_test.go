@@ -102,12 +102,28 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		"# Order Service",
 	)
 
-	cmdContent := readExported(t, tmpDir, "services", "order-svc", "commands", "CreateOrder", "index.mdx")
+	cmdContent := readExported(
+		t,
+		tmpDir,
+		"services",
+		"order-svc",
+		"commands",
+		"CreateOrder",
+		"index.mdx",
+	)
 	cattest.AssertContentContains(t, cmdContent, "command file", "id: CreateOrder")
 
 	var schema map[string]any
 	schemaData, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "order-svc", "commands", "CreateOrder", "schemas", "schema.json"),
+		filepath.Join(
+			tmpDir,
+			"services",
+			"order-svc",
+			"commands",
+			"CreateOrder",
+			"schemas",
+			"schema.json",
+		),
 	)
 	if err != nil {
 		t.Fatalf("read schema file: %v", err)
@@ -141,7 +157,15 @@ func TestExporter_Export_Event(t *testing.T) {
 
 	cattest.AssertContentContains(
 		t,
-		readExported(t, tmpDir, "services", "payment-svc", "events", "PaymentCompleted", "index.mdx"),
+		readExported(
+			t,
+			tmpDir,
+			"services",
+			"payment-svc",
+			"events",
+			"PaymentCompleted",
+			"index.mdx",
+		),
 		"event file",
 		"id: PaymentCompleted",
 		"# PaymentCompleted",
@@ -226,11 +250,19 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-a", "index.mdx")); os.IsNotExist(err) {
+	if _, err := os.Stat(
+		filepath.Join(tmpDir, "services", "svc-a", "index.mdx"),
+	); os.IsNotExist(
+		err,
+	) {
 		t.Error("svc-a directory not created")
 	}
 
-	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-b", "index.mdx")); os.IsNotExist(err) {
+	if _, err := os.Stat(
+		filepath.Join(tmpDir, "services", "svc-b", "index.mdx"),
+	); os.IsNotExist(
+		err,
+	) {
 		t.Error("svc-b directory not created")
 	}
 
@@ -260,7 +292,9 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	_, err := os.Stat(filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "schemas", "schema.json"))
+	_, err := os.Stat(
+		filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "schemas", "schema.json"),
+	)
 	if !os.IsNotExist(err) {
 		t.Error("schema.json should not exist when no schema is provided")
 	}
@@ -303,7 +337,10 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	if strings.Contains(readExported(t, tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"), "schemaPath") {
+	if strings.Contains(
+		readExported(t, tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"),
+		"schemaPath",
+	) {
 		t.Error("schemaPath should not appear when no schema provided")
 	}
 }

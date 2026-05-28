@@ -10,15 +10,15 @@ import (
 // Ed25519Signer signs events with Ed25519 private keys.
 // Use for asymmetric scenarios where verifiers don't have signing access
 // (e.g., client devices sign, server verifies).
-type Ed25519Signer struct {
+type ed25519Signer struct {
 	privateKey ed25519.PrivateKey
 }
 
-var _ Signer = (*Ed25519Signer)(nil)
+var _ Signer = (*ed25519Signer)(nil)
 
 // NewEd25519 creates an Ed25519 signer from a private key.
 // Returns ErrInvalidKey if the key is nil or the wrong length.
-func NewEd25519(privateKey ed25519.PrivateKey) (*Ed25519Signer, error) {
+func NewEd25519(privateKey ed25519.PrivateKey) (*ed25519Signer, error) {
 	if len(privateKey) != ed25519.PrivateKeySize {
 		return nil, fmt.Errorf(
 			"%w: expected Ed25519 private key of %d bytes, got %d",
@@ -32,11 +32,11 @@ func NewEd25519(privateKey ed25519.PrivateKey) (*Ed25519Signer, error) {
 	keyCopy := make([]byte, ed25519.PrivateKeySize)
 	copy(keyCopy, privateKey)
 
-	return &Ed25519Signer{privateKey: keyCopy}, nil
+	return &ed25519Signer{privateKey: keyCopy}, nil
 }
 
 // Sign computes an Ed25519 signature for the event.
-func (s *Ed25519Signer) Sign(evt event.Event) (Signature, error) {
+func (s *ed25519Signer) Sign(evt event.Event) (Signature, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}
@@ -48,16 +48,16 @@ func (s *Ed25519Signer) Sign(evt event.Event) (Signature, error) {
 	return Signature(sig), nil
 }
 
-// Ed25519Verifier verifies Ed25519 signatures using a public key.
-type Ed25519Verifier struct {
+// ed25519Verifier verifies Ed25519 signatures using a public key.
+type ed25519Verifier struct {
 	publicKey ed25519.PublicKey
 }
 
-var _ Verifier = (*Ed25519Verifier)(nil)
+var _ Verifier = (*ed25519Verifier)(nil)
 
 // NewEd25519Verifier creates a verifier from an Ed25519 public key.
 // Returns ErrInvalidKey if the key is nil or the wrong length.
-func NewEd25519Verifier(publicKey ed25519.PublicKey) (*Ed25519Verifier, error) {
+func NewEd25519Verifier(publicKey ed25519.PublicKey) (*ed25519Verifier, error) {
 	if len(publicKey) != ed25519.PublicKeySize {
 		return nil, fmt.Errorf(
 			"%w: expected Ed25519 public key of %d bytes, got %d",
@@ -71,11 +71,11 @@ func NewEd25519Verifier(publicKey ed25519.PublicKey) (*Ed25519Verifier, error) {
 	keyCopy := make([]byte, ed25519.PublicKeySize)
 	copy(keyCopy, publicKey)
 
-	return &Ed25519Verifier{publicKey: keyCopy}, nil
+	return &ed25519Verifier{publicKey: keyCopy}, nil
 }
 
 // Verify checks an Ed25519 signature against an event using the public key.
-func (v *Ed25519Verifier) Verify(evt event.Event, sig Signature) error {
+func (v *ed25519Verifier) Verify(evt event.Event, sig Signature) error {
 	if sig.IsZero() {
 		return ErrNilSignature
 	}

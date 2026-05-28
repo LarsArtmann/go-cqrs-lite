@@ -50,7 +50,10 @@ func (e SignatureEntry) Validate() error {
 	}
 
 	if e.Algorithm == "" {
-		return event.NewRejection("signing.empty_algorithm", "signature entry algorithm cannot be empty")
+		return event.NewRejection(
+			"signing.empty_algorithm",
+			"signature entry algorithm cannot be empty",
+		)
 	}
 
 	if e.Sig.IsZero() {
@@ -58,7 +61,10 @@ func (e SignatureEntry) Validate() error {
 	}
 
 	if e.SignedAt.IsZero() {
-		return event.NewRejection("signing.empty_signed_at", "signature entry signedAt cannot be zero")
+		return event.NewRejection(
+			"signing.empty_signed_at",
+			"signature entry signedAt cannot be zero",
+		)
 	}
 
 	return nil

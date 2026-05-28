@@ -47,7 +47,13 @@ func ExampleRepository_Execute() {
 		aggID,
 		"User",
 		func(state UserState, version event.Version) ([]event.Event, error) {
-			evt, evtErr := event.NewEvent("UserCreated", aggID, "User", version+1, []byte("alice@example.com"))
+			evt, evtErr := event.NewEvent(
+				"UserCreated",
+				aggID,
+				"User",
+				version+1,
+				[]byte("alice@example.com"),
+			)
 
 			return []event.Event{evt}, evtErr
 		},
