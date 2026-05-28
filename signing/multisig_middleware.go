@@ -63,33 +63,13 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 }
 
 // RequireMultiSigMiddleware returns event.Middleware that rejects events
-// missing a multi-signature collection. Each actor in the chain must have signed.
-func RequireMultiSigMiddleware(actors ...string) event.Middleware {
+// missing verified signatures from all actors in the provided verifier map.
+// Uses VerifyAll to cryptographically verify every signature entry.
+func RequireMultiSigMiddleware(verifiers map[string]Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			if !HasMultiSignature(evt) {
-				return fmt.Errorf(
-					"%w: event %s is missing multi-signature collection",
-					ErrNilSignature,
-					evt.Type(),
-				)
-			}
-
-			multiSig, extractErr := ExtractMultiSignature(evt)
-			if extractErr != nil {
-				return fmt.Errorf("extract multi-sig: %w", extractErr)
-			}
-
-			for _, actor := range actors {
-				if !multiSig.HasActor(actor) {
-					return fmt.Errorf(
-						"%w: event %s missing signature from actor %s (got: %v)",
-						ErrNilSignature,
-						evt.Type(),
-						actor,
-						multiSig.Actors(),
-					)
-				}
+			if verifyErr := VerifyAll(evt, verifiers); verifyErr != nil {
+				return fmt.Errorf("require multi-sig: %w", verifyErr)
 			}
 
 			return next(ctx, evt)
