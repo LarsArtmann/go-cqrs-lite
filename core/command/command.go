@@ -22,6 +22,7 @@ type Command interface {
 type BasicCommand struct {
 	commandType Type
 	aggregateID id.AggregateID
+	metadata    Metadata
 }
 
 var _ Command = (*BasicCommand)(nil)
@@ -32,8 +33,11 @@ func (c *BasicCommand) Type() Type { return c.commandType }
 // AggregateID returns the aggregate ID.
 func (c *BasicCommand) AggregateID() id.AggregateID { return c.aggregateID }
 
+// Metadata returns the command metadata.
+func (c *BasicCommand) Metadata() Metadata { return c.metadata }
+
 // New creates a new command with validation.
-func New(commandType Type, aggregateID id.AggregateID) (*BasicCommand, error) {
+func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCommand, error) {
 	if commandType == "" {
 		return nil, fmt.Errorf(
 			"%w: got empty for aggregate %q",
@@ -50,16 +54,22 @@ func New(commandType Type, aggregateID id.AggregateID) (*BasicCommand, error) {
 		)
 	}
 
-	return &BasicCommand{
+	cmd := &BasicCommand{
 		commandType: commandType,
 		aggregateID: aggregateID,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(cmd)
+	}
+
+	return cmd, nil
 }
 
 // MustNew creates a new command or panics on validation failure.
 // Use only in tests where inputs are guaranteed valid.
-func MustNew(commandType Type, aggregateID id.AggregateID) *BasicCommand {
-	c, err := New(commandType, aggregateID)
+func MustNew(commandType Type, aggregateID id.AggregateID, opts ...Option) *BasicCommand {
+	c, err := New(commandType, aggregateID, opts...)
 	if err != nil {
 		panic(fmt.Sprintf("command.MustNew: %v", err))
 	}
