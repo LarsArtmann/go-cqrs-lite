@@ -293,6 +293,22 @@ standalone: {
       style: {font-size: 10; font-color: "#f9a825"; bold: true}
     }
   }
+
+  signing: {
+    label: "signing/\n\nSigner, Verifier\nSignerVerifier\nSignature (type)\n\n── Algorithms ──\nHMAC-SHA256\nEd25519\n\n── Multi-party ──\nMultiSigner\nVerifyAll\nMultiSignMiddleware\nRequireMultiSigMiddleware\n\n(crypto-agnostic\npluggable algorithms)"
+    shape: rectangle
+    style: {
+      fill: "#fffde7"
+      stroke: "#f9a825"
+      font-color: "#1a1a2e"
+      font-size: 11
+    }
+    deps: {
+      label: "event, errs\n\n+ crypto/hmac\n+ crypto/ed25519"
+      shape: text
+      style: {font-size: 10; font-color: "#f9a825"; bold: true}
+    }
+  }
 }
 
 # ═══════════════════════════════════════════════════════════════
