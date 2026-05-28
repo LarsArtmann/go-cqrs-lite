@@ -474,26 +474,7 @@ func TestLoad_FoldError(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
-	t.Parallel()
 
-	repo, store, _ := newTestRepo(t)
-	aggID := id.NewAggregateID()
-
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
-		makeEvent(t, "CounterCreated", aggID, 1),
-	})
-
-	err := repo.Delete(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-
-	_, _, err = repo.Load(t.Context(), aggID, "Counter")
-	if err != nil {
-		t.Fatalf("Load after delete: %v", err)
-	}
-}
 
 func TestExecute_WithOutbox(t *testing.T) {
 	t.Parallel()
@@ -791,29 +772,6 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 	}
 }
 
-func TestDelete_StoreError(t *testing.T) {
-	t.Parallel()
-
-	store := testhelpers.NewFakeStore().DeleteFn(
-		func(_ event.AggregateType, _ id.AggregateID) error {
-			return errors.New("disk error")
-		},
-	)
-	bus := testhelpers.NewFakeBus()
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
-
-	repo, err := decider.NewRepository(store, bus, d)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-
-	err = repo.Delete(t.Context(), aggID, "Counter")
-	if err == nil {
-		t.Fatal("expected error from store delete failure")
-	}
-}
 
 func TestEveryNEvents_PanicsOnZero(t *testing.T) {
 	t.Parallel()

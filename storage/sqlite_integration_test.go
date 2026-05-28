@@ -86,29 +86,6 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	}
 }
 
-func TestSQLiteEventStore_Delete(t *testing.T) {
-	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
-
-	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
-
-	err := store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	err = store.Delete(context.Background(), "Issue", aggID)
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-
-	_, err = store.Load(context.Background(), "Issue", aggID)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound after delete, got %v", err)
-	}
-}
 
 func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	t.Parallel()

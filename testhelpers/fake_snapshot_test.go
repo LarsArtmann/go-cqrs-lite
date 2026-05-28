@@ -93,16 +93,6 @@ func TestFakeSnapshotStore_SaveError(t *testing.T) {
 	}
 }
 
-func TestFakeSnapshotStore_Delete(t *testing.T) {
-	t.Parallel()
-
-	store := NewFakeSnapshotStore()
-
-	err := store.Delete(context.Background(), "User", id.NewAggregateID())
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-}
 
 func TestFakeSnapshotStore_Close(t *testing.T) {
 	t.Parallel()

@@ -36,4 +36,7 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
+replace (
+	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+)

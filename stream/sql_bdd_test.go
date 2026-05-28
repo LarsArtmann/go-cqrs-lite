@@ -412,11 +412,15 @@ var _ = Describe("Stream integration: Projection → SQL Reader pipeline", func(
 				deletedID := id.NewAggregateID()
 				orderID := id.NewAggregateID()
 
-				Expect(proj.Handle(ctx, makeStreamEvent("user.created", activeID, "User", 1))).To(Succeed())
+				Expect(proj.Handle(ctx, makeStreamEvent("user.created", activeID, "User", 1,
+					event.WithCustom(event.MetadataKeyRebirth, "true"),
+				))).To(Succeed())
 				Expect(proj.Handle(ctx, makeStreamEvent("user.deleted", deletedID, "User", 1,
-					event.WithCustom(event.MetadataKeyTombstone, "true")),
-				)).To(Succeed())
-				Expect(proj.Handle(ctx, makeStreamEvent("order.placed", orderID, "Order", 1))).To(Succeed())
+					event.WithCustom(event.MetadataKeyTombstone, "true"),
+				))).To(Succeed())
+				Expect(proj.Handle(ctx, makeStreamEvent("order.placed", orderID, "Order", 1,
+					event.WithCustom(event.MetadataKeyRebirth, "true"),
+				))).To(Succeed())
 
 				page, err := reader.List(ctx, stream.ListOptions{Type: "User"})
 				Expect(err).ToNot(HaveOccurred())
@@ -425,12 +429,11 @@ var _ = Describe("Stream integration: Projection → SQL Reader pipeline", func(
 			})
 
 			It("should support full pagination through all aggregates", func() {
-				var userIDs []id.AggregateID
-
-				for i := 0; i < 5; i++ {
+				for range 5 {
 					uid := id.NewAggregateID()
-					userIDs = append(userIDs, uid)
-					Expect(proj.Handle(ctx, makeStreamEvent("user.created", uid, "User", 1))).To(Succeed())
+					Expect(proj.Handle(ctx, makeStreamEvent("user.created", uid, "User", 1,
+						event.WithCustom(event.MetadataKeyRebirth, "true"),
+					))).To(Succeed())
 				}
 
 				var allCollected []id.AggregateID

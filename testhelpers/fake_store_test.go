@@ -103,31 +103,6 @@ func TestFakeStore_LoadFromVersion_EmptyStream(t *testing.T) {
 	}
 }
 
-func TestFakeStore_Delete_DefaultPath(t *testing.T) {
-	t.Parallel()
-
-	store := testhelpers.NewFakeStore()
-	ctx := context.Background()
-
-	aggID := id.NewAggregateID()
-	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
-
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
-
-	err := store.Delete(ctx, "User", aggID)
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-
-	loaded, err := store.Load(ctx, "User", aggID)
-	if err != nil {
-		t.Fatalf("Load after delete: %v", err)
-	}
-
-	if len(loaded) != 0 {
-		t.Fatalf("expected 0 events after delete, got %d", len(loaded))
-	}
-}
 
 func TestFakeStore_SaveFn(t *testing.T) {
 	t.Parallel()
@@ -304,23 +279,6 @@ func TestFakeStore_LoadFromVersionFn(t *testing.T) {
 	}
 }
 
-func TestFakeStore_DeleteFn(t *testing.T) {
-	t.Parallel()
-
-	store := testhelpers.NewFakeStore()
-	called := false
-
-	store.DeleteFn(func(_ event.AggregateType, _ id.AggregateID) error {
-		called = true
-
-		return nil
-	})
-
-	_ = store.Delete(context.Background(), "User", id.NewAggregateID())
-	if !called {
-		t.Fatal("expected DeleteFn to be called")
-	}
-}
 
 func TestFakeStore_CloseFn(t *testing.T) {
 	t.Parallel()

@@ -199,28 +199,6 @@ func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTe
 	}
 }
 
-func testEventStore_Delete(t *testing.T, store event.Store, cfg storeTestConfig) {
-	t.Helper()
-
-	aggID := id.NewAggregateID()
-	evt := cfg.newTestEvent(t, aggID, 1)
-
-	saveCfgEvent(t, store, cfg, aggID, evt)
-
-	err := store.Delete(context.Background(), cfg.aggType, aggID)
-	if err != nil {
-		t.Fatalf("Delete: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
-	if err != nil {
-		t.Fatalf("Load after delete: %v", err)
-	}
-
-	if len(loaded) != 0 {
-		t.Fatalf("expected 0 events after delete, got %d", len(loaded))
-	}
-}
 
 func testEventStore_MetadataRoundtrip(
 	t *testing.T,

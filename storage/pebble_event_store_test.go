@@ -40,10 +40,6 @@ func TestPebbleEventStore_AppendBatch(t *testing.T) {
 	testEventStore_AppendBatch(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
-func TestPebbleEventStore_Delete(t *testing.T) {
-	t.Parallel()
-	testEventStore_Delete(t, newPebbleTestStore(t), issueStoreConfig())
-}
 
 func TestPebbleEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
