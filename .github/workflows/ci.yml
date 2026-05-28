@@ -113,3 +113,24 @@ jobs:
             exit 1
           fi
           echo "go.work is synced"
+
+  file-size-gate:
+    name: File Size Check (max 350 lines)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check production files <= 350 lines
+        run: |
+          failed=false
+          find . -name "*.go" -not -name "*_test.go" -not -path "*/example/*" -not -path "*/testdata/*" | while read -r f; do
+            lines=$(wc -l < "$f")
+            if [ "$lines" -gt 350 ]; then
+              echo "::warning::$f has $lines lines (max 350)"
+              failed=true
+            fi
+          done
+          if [ "$failed" = true ]; then
+            echo "::error::One or more production files exceed 350 lines"
+            exit 1
+          fi
