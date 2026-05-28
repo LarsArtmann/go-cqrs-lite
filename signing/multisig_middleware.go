@@ -19,6 +19,10 @@ import (
 //	bus.UsePublish(signing.MultiSignMiddleware(deviceSigner))
 //	bus.UsePublish(signing.MultiSignMiddleware(serverSigner))
 func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
+	if signer == nil {
+		panic("signing: MultiSignMiddleware called with nil signer")
+	}
+
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			signed := make([]event.Event, 0, len(events))
@@ -42,6 +46,10 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 // Events without a multi-sig or without that actor's signature pass through
 // (to support mixed streams). Use RequireMultiSigMiddleware to enforce presence.
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
+	if signer == nil {
+		panic("signing: MultiVerifyMiddleware called with nil signer")
+	}
+
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			_, err := ExtractMultiSignature(evt)
@@ -73,6 +81,10 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // This is a convenience wrapper for the common case where you already have
 // a Verifier and just want to check one actor's signature.
 func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
+	if verifier == nil {
+		panic("signing: MultiVerifyMiddlewareFor called with nil verifier")
+	}
+
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			multiSig, err := ExtractMultiSignature(evt)
