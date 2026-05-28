@@ -52,16 +52,16 @@ db, _ := storage.OpenTurso("libsql://...", authToken)
 
 ## Event Store Operations
 
-| Method | Description |
-|--------|-------------|
+| Method                                               | Description                               |
+| ---------------------------------------------------- | ----------------------------------------- |
 | `Save(ctx, aggType, aggID, events, expectedVersion)` | Append events with optimistic concurrency |
-| `Load(ctx, aggType, aggID)` | Load all events for an aggregate |
-| `LoadFromVersion(ctx, aggType, aggID, version)` | Load events starting from version |
-| `LoadToVersion(ctx, aggType, aggID, maxVersion)` | Load events up to version (time-travel) |
-| `LoadToTimestamp(ctx, aggType, aggID, maxTime)` | Load events up to timestamp (time-travel) |
-| `LoadAll(ctx)` | Load all events (for projections) |
-| `LoadAllFromPosition(ctx, afterID, limit)` | Cursor-based global load |
-| `Delete(ctx, aggType, aggID)` | Remove all events for an aggregate |
+| `Load(ctx, aggType, aggID)`                          | Load all events for an aggregate          |
+| `LoadFromVersion(ctx, aggType, aggID, version)`      | Load events starting from version         |
+| `LoadToVersion(ctx, aggType, aggID, maxVersion)`     | Load events up to version (time-travel)   |
+| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | Load events up to timestamp (time-travel) |
+| `LoadAll(ctx)`                                       | Load all events (for projections)         |
+| `LoadAllFromPosition(ctx, afterID, limit)`           | Cursor-based global load                  |
+| `Delete(ctx, aggType, aggID)`                        | Remove all events for an aggregate        |
 
 ## Outbox Pattern
 

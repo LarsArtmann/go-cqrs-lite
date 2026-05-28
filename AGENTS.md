@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                       |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Language  | Go 1.26.3                                                                                                                   |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `saga`, `watermill`, `cqrs-gen` |
-| Build     | `nix run .#build`                                                                                                           |
+| Item      | Value                                                                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                                                                   |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `saga`, `watermill`, `cqrs-gen`                                                           |
+| Build     | `nix run .#build`                                                                                                                                                                           |
 | Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./storage/... ./saga/... ./watermill/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                            |
-| Format    | `nix fmt`                                                                                                                   |
-| Dev shell | `nix develop`                                                                                                               |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                               |
+| Lint      | `nix run .#lint`                                                                                                                                                                            |
+| Format    | `nix fmt`                                                                                                                                                                                   |
+| Dev shell | `nix develop`                                                                                                                                                                               |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                               |
 
 ## Monorepo Structure
 
@@ -103,10 +103,10 @@ result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
 
 ## Dependencies
 
-| Category   | Packages                                                    |
-| ---------- | ----------------------------------------------------------- |
+| Category   | Packages                                                                       |
+| ---------- | ------------------------------------------------------------------------------ |
 | Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega                                 |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                    |
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 

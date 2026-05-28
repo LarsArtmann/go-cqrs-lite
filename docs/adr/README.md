@@ -13,6 +13,7 @@ The traditional DDD Aggregate Root pattern requires a 9-method interface, mutabl
 ### Decision
 
 Adopt the **Decider pattern** — a pure-function approach where:
+
 - `Decider[State]` holds `Initial` state and `Fold func(State, Event) (State, error)`
 - `DecideFunc` takes a command and state, returns events (pure function)
 - `Repository[State].Execute` does load → fold → decide → save → publish
@@ -41,13 +42,13 @@ Without classified errors, consumers cannot distinguish transient failures from 
 
 Adopt a **5-family error taxonomy** via `go-error-family`:
 
-| Family | Constructor | Meaning | Retry? |
-|--------|------------|---------|--------|
-| **Rejection** | `NewRejection` | Business rule violation | No |
-| **Conflict** | `NewConflict` | Concurrency/version conflict | No |
-| **Transient** | `NewTransient` | Temporary failure | Yes |
-| **Infrastructure** | `NewInfrastructure` | System-level failure | Maybe |
-| **Corruption** | `NewCorruption` | Data integrity violation | No |
+| Family             | Constructor         | Meaning                      | Retry? |
+| ------------------ | ------------------- | ---------------------------- | ------ |
+| **Rejection**      | `NewRejection`      | Business rule violation      | No     |
+| **Conflict**       | `NewConflict`       | Concurrency/version conflict | No     |
+| **Transient**      | `NewTransient`      | Temporary failure            | Yes    |
+| **Infrastructure** | `NewInfrastructure` | System-level failure         | Maybe  |
+| **Corruption**     | `NewCorruption`     | Data integrity violation     | No     |
 
 Each family has `Is*()` predicates and `Wrap*()` wrapping functions. Middleware uses `event.IsRetryable(err)` to decide retry behavior.
 

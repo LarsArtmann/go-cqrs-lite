@@ -220,20 +220,20 @@ All IDs are branded types backed by ULID strings:
 
 ## Module Structure
 
-| Module           | Import Path                           | Purpose                                          | Dependencies                      | Docs |
-| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- | ---- |
-| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family | [README](core/README.md) |
-| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              | |
-| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              | |
+| Module           | Import Path                           | Purpose                                          | Dependencies                      | Docs                        |
+| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- | --------------------------- |
+| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family | [README](core/README.md)    |
+| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              |                             |
+| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              |                             |
 | **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        | [README](catalog/README.md) |
-| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              | |
-| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      | |
-| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              | |
+| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |                             |
+| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |                             |
+| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              |                             |
 | **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              | [README](storage/README.md) |
-| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   | |
-| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              | |
-| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             | |
-| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware | |
+| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   |                             |
+| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |                             |
+| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |                             |
+| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |                             |
 
 ## Design Principles
 

@@ -48,11 +48,11 @@ backend.SagaStore()         // saga.Store — persistent saga state
 
 ### Constructors
 
-| Function | Dialect |
-|----------|---------|
-| `NewSQLBackend(db)` | PostgreSQL |
-| `NewSQLiteBackend(db)` | SQLite |
-| `NewSQLBackendWithDialect(db, d)` | Custom |
+| Function                          | Dialect    |
+| --------------------------------- | ---------- |
+| `NewSQLBackend(db)`               | PostgreSQL |
+| `NewSQLiteBackend(db)`            | SQLite     |
+| `NewSQLBackendWithDialect(db, d)` | Custom     |
 
 ## Components
 
@@ -209,8 +209,8 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
 ## Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `core` | Event/ID/saga interfaces |
-| `saga` | Saga state types for SQLSagaStore |
-| `cockroachdb/pebble` | PebbleEventStore (optional) |
+| Dependency           | Purpose                           |
+| -------------------- | --------------------------------- |
+| `core`               | Event/ID/saga interfaces          |
+| `saga`               | Saga state types for SQLSagaStore |
+| `cockroachdb/pebble` | PebbleEventStore (optional)       |

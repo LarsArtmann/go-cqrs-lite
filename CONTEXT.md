@@ -13,6 +13,7 @@ An intent to change state. Commands are dispatched to a single handler, which va
 ## Decider
 
 A pure-function pattern for implementing aggregates. `Decider[State]` holds:
+
 - `Initial State` — the zero value
 - `Fold func(State, Event) (State, error)` — applies events to produce new state
 
@@ -53,6 +54,7 @@ A type-safe identifier: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. Each domain concep
 ## Error Taxonomy
 
 Five error families for classified error handling:
+
 - **Rejection** — business rule violation (no retry)
 - **Conflict** — concurrency/version conflict (no retry)
 - **Transient** — temporary failure (retry)

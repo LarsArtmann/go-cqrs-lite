@@ -10,13 +10,13 @@ go get github.com/larsartmann/go-cqrs-lite/catalog
 
 ## Packages
 
-| Package | Purpose |
-|---------|---------|
-| `catalog` | Registry, schema reflection, builder, typed IDs |
-| `catalog/asyncapi` | AsyncAPI 3.0 YAML/JSON exporter |
-| `catalog/eventcatalog` | EventCatalog MDX file generator |
-| `catalog/openapi` | OpenAPI 3.0 YAML/JSON exporter |
-| `catalog/d2` | D2 diagram text exporter |
+| Package                | Purpose                                         |
+| ---------------------- | ----------------------------------------------- |
+| `catalog`              | Registry, schema reflection, builder, typed IDs |
+| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                 |
+| `catalog/eventcatalog` | EventCatalog MDX file generator                 |
+| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                  |
+| `catalog/d2`           | D2 diagram text exporter                        |
 
 ## Quick Start
 
@@ -112,26 +112,26 @@ schema := catalog.SchemaFromType[User]()
 
 ### Supported Struct Tags
 
-| Tag | Example | Effect |
-|-----|---------|--------|
-| `json` | `json:"name,omitempty"` | Field name + required/optional |
-| `doc` | `doc:"User email"` | Description |
-| `description` | `description:"User email"` | Alias for `doc` |
-| `format` | `format:"email"` | JSON Schema format |
-| `enum` | `enum:"active,inactive"` | Enum values |
-| `default` | `default:"active"` | Default value |
+| Tag           | Example                    | Effect                         |
+| ------------- | -------------------------- | ------------------------------ |
+| `json`        | `json:"name,omitempty"`    | Field name + required/optional |
+| `doc`         | `doc:"User email"`         | Description                    |
+| `description` | `description:"User email"` | Alias for `doc`                |
+| `format`      | `format:"email"`           | JSON Schema format             |
+| `enum`        | `enum:"active,inactive"`   | Enum values                    |
+| `default`     | `default:"active"`         | Default value                  |
 
 ## Registry API
 
-| Method | Description |
-|--------|-------------|
-| `NewRegistry(title, version)` | Create a new registry |
-| `AddService(svc)` | Register a service (merges if exists) |
-| `AddCommand(serviceID, msg)` | Add a command to a service |
-| `AddEvent(serviceID, msg)` | Add an event to a service |
-| `AddQuery(serviceID, msg)` | Add a query to a service |
-| `AddDomain(domain)` | Register a domain |
-| `Build()` | Produce immutable `*Catalog` |
+| Method                        | Description                           |
+| ----------------------------- | ------------------------------------- |
+| `NewRegistry(title, version)` | Create a new registry                 |
+| `AddService(svc)`             | Register a service (merges if exists) |
+| `AddCommand(serviceID, msg)`  | Add a command to a service            |
+| `AddEvent(serviceID, msg)`    | Add an event to a service             |
+| `AddQuery(serviceID, msg)`    | Add a query to a service              |
+| `AddDomain(domain)`           | Register a domain                     |
+| `Build()`                     | Produce immutable `*Catalog`          |
 
 ## Exporters
 
@@ -144,6 +144,7 @@ jsonBytes, _ := doc.MarshalJSON()
 ```
 
 Maps CQRS types to AsyncAPI operations:
+
 - Commands → `action: receive`
 - Events with `Sends` → `action: send`
 - Events with `Receives` → `action: receive`
@@ -187,7 +188,7 @@ type UserID string      // catalog.UserID
 
 ## Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `core` | Event types, IDs |
-| `go-faster/yaml` | YAML marshaling |
+| Dependency       | Purpose          |
+| ---------------- | ---------------- |
+| `core`           | Event types, IDs |
+| `go-faster/yaml` | YAML marshaling  |

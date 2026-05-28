@@ -10,14 +10,14 @@ go get github.com/larsartmann/go-cqrs-lite/core
 
 ## Packages
 
-| Package | Purpose |
-|---------|---------|
-| `core/command` | Command dispatch, typed handlers, middleware |
-| `core/query` | Query dispatch, typed results, pagination |
-| `core/event` | Event sourcing, store/bus interfaces, codec, upcasters, snapshots |
-| `core/decider` | Functional aggregate pattern (recommended) |
-| `core/pkg/id` | Branded IDs: `id.Of[T]` backed by ULID |
-| `core/pkg/dispatcher` | Generic dispatcher with lifecycle management |
+| Package               | Purpose                                                           |
+| --------------------- | ----------------------------------------------------------------- |
+| `core/command`        | Command dispatch, typed handlers, middleware                      |
+| `core/query`          | Query dispatch, typed results, pagination                         |
+| `core/event`          | Event sourcing, store/bus interfaces, codec, upcasters, snapshots |
+| `core/decider`        | Functional aggregate pattern (recommended)                        |
+| `core/pkg/id`         | Branded IDs: `id.Of[T]` backed by ULID                            |
+| `core/pkg/dispatcher` | Generic dispatcher with lifecycle management                      |
 
 ## The Decider Pattern (Recommended)
 
@@ -162,22 +162,22 @@ userID := id.New[UserID]()
 
 ## Key Types
 
-| Type | Package | Purpose |
-|------|---------|---------|
-| `event.Version` | `core/event` | Strong-typed event version (int) |
-| `event.Type` | `core/event` | Event type string |
-| `event.AggregateType` | `core/event` | Aggregate type string |
-| `event.SchemaVersion` | `core/event` | Event schema version for upcasting |
+| Type                   | Package        | Purpose                                             |
+| ---------------------- | -------------- | --------------------------------------------------- |
+| `event.Version`        | `core/event`   | Strong-typed event version (int)                    |
+| `event.Type`           | `core/event`   | Event type string                                   |
+| `event.AggregateType`  | `core/event`   | Aggregate type string                               |
+| `event.SchemaVersion`  | `core/event`   | Event schema version for upcasting                  |
 | `command.BasicCommand` | `core/command` | Embed in command structs for interface satisfaction |
-| `query.Pagination` | `core/query` | Page size + cursor for paginated queries |
-| `id.AggregateID` | `core/pkg/id` | `id.Of[aggregateMarker]` — the primary ID type |
+| `query.Pagination`     | `core/query`   | Page size + cursor for paginated queries            |
+| `id.AggregateID`       | `core/pkg/id`  | `id.Of[aggregateMarker]` — the primary ID type      |
 
 ## Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `oklog/ulid/v2` | Binary-sortable, time-ordered identifiers |
-| `go-branded-id` | Generic branded ID type backing `id.Of[T]` |
+| Dependency        | Purpose                                                                                |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `oklog/ulid/v2`   | Binary-sortable, time-ordered identifiers                                              |
+| `go-branded-id`   | Generic branded ID type backing `id.Of[T]`                                             |
 | `go-error-family` | Error classification taxonomy (Rejection/Conflict/Transient/Infrastructure/Corruption) |
 
 ## Error Classification
