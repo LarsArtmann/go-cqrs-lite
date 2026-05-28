@@ -17,6 +17,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
+	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
 func main() {
@@ -26,6 +27,8 @@ func main() {
 	fmt.Println()
 
 	bus, readModel, deciderRepo := setupInfrastructure()
+
+	signer := setupSigning(bus)
 
 	var publishedEvents []event.Event
 
@@ -41,6 +44,7 @@ func main() {
 	fmt.Printf("  Events published: %d\n", len(publishedEvents))
 	fmt.Printf("  Read model users: %d\n", len(readModel.List()))
 	fmt.Printf("  User ID: %s\n", userID)
+	fmt.Printf("  Signing: HMAC-SHA256 (signer=%T)\n", signer)
 }
 
 func setupInfrastructure() (
@@ -91,6 +95,29 @@ func setupDispatchers(
 	fmt.Println()
 
 	return cmdDisp, qryDisp
+}
+
+func setupSigning(bus event.Bus) signing.Signer {
+	hmacSecret := []byte("demo-hmac-secret-key-exactly-32-b!")
+	signer, err := signing.NewHMAC(hmacSecret)
+	if err != nil {
+		log.Fatalf("create HMAC signer: %v", err)
+	}
+
+	err = bus.UsePublish(signing.SignMiddleware(signer))
+	if err != nil {
+		log.Fatalf("install sign middleware: %v", err)
+	}
+
+	err = bus.Use(signing.VerifyMiddleware(signer))
+	if err != nil {
+		log.Fatalf("install verify middleware: %v", err)
+	}
+
+	fmt.Println("[infra] Signing: HMAC-SHA256 (sign on publish, verify on handle)")
+	fmt.Println()
+
+	return signer
 }
 
 func runDemoSteps(

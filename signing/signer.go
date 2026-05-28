@@ -2,7 +2,10 @@ package signing
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -36,6 +39,8 @@ type SignerVerifier interface {
 // Signature is an opaque, serializable event signature.
 // Use Bytes() to get the raw signature data.
 // Use String() for a human-readable encoding (URL-safe base64).
+//
+//nolint:recvcheck // UnmarshalJSON must use pointer receiver to mutate; Signature is []byte (reference type)
 type Signature []byte
 
 // Bytes returns a copy of the raw signature bytes.
@@ -48,6 +53,44 @@ func (s Signature) Bytes() []byte {
 
 // IsZero reports whether the signature is empty.
 func (s Signature) IsZero() bool { return len(s) == 0 }
+
+// String returns the URL-safe base64 encoding of the signature.
+func (s Signature) String() string {
+	return base64.URLEncoding.EncodeToString(s)
+}
+
+// MarshalJSON encodes the signature as a URL-safe base64 JSON string.
+func (s Signature) MarshalJSON() ([]byte, error) {
+	encoded := base64.URLEncoding.EncodeToString(s)
+
+	return json.Marshal(encoded) //nolint:wrapcheck // signature encoding, no wrapping needed
+}
+
+// UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
+// Falls back to standard base64 for backward compatibility.
+//
+func (s *Signature) UnmarshalJSON(data []byte) error {
+	var encoded string
+
+	err := json.Unmarshal(data, &encoded)
+	if err != nil {
+		return fmt.Errorf("unmarshal signature string: %w", err)
+	}
+
+	decoded, decodeErr := base64.URLEncoding.DecodeString(encoded)
+	if decodeErr != nil {
+		var fallbackErr error
+
+		decoded, fallbackErr = base64.StdEncoding.DecodeString(encoded)
+		if fallbackErr != nil {
+			return fmt.Errorf("decode signature: URL-safe: %w, standard: %w", decodeErr, fallbackErr)
+		}
+	}
+
+	*s = decoded
+
+	return nil
+}
 
 // canonicalPayload builds a deterministic byte representation of an event
 // for signing. It excludes the signature itself and non-deterministic fields

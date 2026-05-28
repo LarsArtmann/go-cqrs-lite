@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
+	github.com/larsartmann/go-cqrs-lite/signing v0.0.0-20260528054122-16b7160d6e29
 )
 
 require (
@@ -29,4 +30,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/middleware => ../../middleware
+	github.com/larsartmann/go-cqrs-lite/signing => ../../signing
 )
