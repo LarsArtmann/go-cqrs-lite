@@ -198,19 +198,7 @@ func TestMultiSigner(t *testing.T) {
 
 		clone, _ := deviceMulti.Sign(evt)
 
-		// Reconstruct with tampered payload but same metadata (including multi-sig)
-		md := clone.Metadata()
-		tampered, _ := event.NewEvent(
-			clone.Type(),
-			clone.AggregateID(),
-			clone.AggregateType(),
-			clone.Version(),
-			[]byte(`{"tampered":true}`),
-			event.WithEventID(clone.ID()),
-			event.WithOccurredAt(clone.OccurredAt()),
-			event.WithSchemaVersion(clone.SchemaVersion()),
-			event.WithMetadata(md),
-		)
+		tampered := tamperEvent(t, clone)
 
 		err := deviceMulti.Verify(tampered)
 		if err == nil {

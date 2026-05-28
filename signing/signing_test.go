@@ -21,6 +21,24 @@ func makeTestEvent(t *testing.T) event.Event {
 	return testhelpers.NewEvent(t, "test.created", aggID, "Test", 1, []byte(`{"key":"value"}`))
 }
 
+func tamperEvent(tb testing.TB, evt event.Event) event.Event {
+	tb.Helper()
+
+	tampered, err := event.NewEvent(
+		evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+		[]byte(`{"tampered":true}`),
+		event.WithEventID(evt.ID()),
+		event.WithOccurredAt(evt.OccurredAt()),
+		event.WithSchemaVersion(evt.SchemaVersion()),
+		event.WithMetadata(evt.Metadata()),
+	)
+	if err != nil {
+		tb.Fatalf("tamper event: %v", err)
+	}
+
+	return tampered
+}
+
 func TestHMACSigner_New(t *testing.T) {
 	t.Parallel()
 
@@ -621,19 +639,7 @@ func TestVerifyMiddleware(t *testing.T) {
 		evt := makeTestEvent(t)
 		sig, _ := signer.Sign(evt)
 		clone, _ := signing.AttachSignature(evt, sig)
-
-		// Create tampered event by reconstructing with different payload but same signature
-		tampered, _ := event.NewEvent(
-			clone.Type(),
-			clone.AggregateID(),
-			clone.AggregateType(),
-			clone.Version(),
-			[]byte(`{"tampered":true}`),
-			event.WithEventID(clone.ID()),
-			event.WithOccurredAt(clone.OccurredAt()),
-			event.WithSchemaVersion(clone.SchemaVersion()),
-			event.WithMetadata(clone.Metadata()),
-		)
+		tampered := tamperEvent(t, clone)
 
 		err := wrapped(context.Background(), tampered)
 		if err == nil {
