@@ -78,7 +78,7 @@ func DetectTombstone(events []Event) TombstoneStatus {
 // Returns a new event; the original is unmodified.
 func MarkTombstone(evt Event) (*ImmutableEvent, error) {
 	if evt == nil {
-		return nil, fmt.Errorf("mark tombstone: %w", ErrNilEvent)
+		return nil, NewRejection("event.nil_event", "mark tombstone: event is required")
 	}
 
 	return NewEvent(
@@ -99,7 +99,7 @@ func MarkTombstone(evt Event) (*ImmutableEvent, error) {
 // Returns a new event; the original is unmodified.
 func MarkRebirth(evt Event) (*ImmutableEvent, error) {
 	if evt == nil {
-		return nil, fmt.Errorf("mark rebirth: %w", ErrNilEvent)
+		return nil, NewRejection("event.nil_event", "mark rebirth: event is required")
 	}
 
 	return NewEvent(
