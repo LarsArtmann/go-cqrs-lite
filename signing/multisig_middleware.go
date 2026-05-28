@@ -47,12 +47,13 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 				return next(ctx, evt)
 			}
 
-			if err := signer.Verify(evt); err != nil {
+			verifyErr := signer.Verify(evt)
+			if verifyErr != nil {
 				return fmt.Errorf(
 					"verify multi-sig for actor %s on event %s: %w",
 					signer.Actor(),
 					evt.Type(),
-					err,
+					verifyErr,
 				)
 			}
 
@@ -74,19 +75,19 @@ func RequireMultiSigMiddleware(actors ...string) event.Middleware {
 				)
 			}
 
-			ms, err := ExtractMultiSignature(evt)
-			if err != nil {
-				return fmt.Errorf("extract multi-sig: %w", err)
+			multiSig, extractErr := ExtractMultiSignature(evt)
+			if extractErr != nil {
+				return fmt.Errorf("extract multi-sig: %w", extractErr)
 			}
 
 			for _, actor := range actors {
-				if !ms.HasActor(actor) {
+				if !multiSig.HasActor(actor) {
 					return fmt.Errorf(
 						"%w: event %s missing signature from actor %s (got: %v)",
 						ErrNilSignature,
 						evt.Type(),
 						actor,
-						ms.Actors(),
+						multiSig.Actors(),
 					)
 				}
 			}

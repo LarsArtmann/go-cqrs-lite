@@ -21,6 +21,9 @@ const (
 	AlgorithmEd25519 SignatureAlgorithm = "Ed25519"
 )
 
+// ErrNoVerifier is returned when VerifyAll cannot find a verifier for an actor.
+var ErrNoVerifier = event.NewRejection("signing.no_verifier", "no verifier provided for actor")
+
 // SignatureEntry is a single signature from one actor in the chain.
 type SignatureEntry struct {
 	// Actor is the identifier of the signing entity (e.g., "device", "server", "gateway").
@@ -47,8 +50,8 @@ func (m MultiSignature) Count() int { return len(m.Entries) }
 
 // HasActor reports whether the given actor has signed.
 func (m MultiSignature) HasActor(actor string) bool {
-	for _, e := range m.Entries {
-		if e.Actor == actor {
+	for _, entry := range m.Entries {
+		if entry.Actor == actor {
 			return true
 		}
 	}
@@ -58,9 +61,9 @@ func (m MultiSignature) HasActor(actor string) bool {
 
 // Get returns the signature entry for a given actor, or nil.
 func (m MultiSignature) Get(actor string) *SignatureEntry {
-	for i := range m.Entries {
-		if m.Entries[i].Actor == actor {
-			return &m.Entries[i]
+	for idx := range m.Entries {
+		if m.Entries[idx].Actor == actor {
+			return &m.Entries[idx]
 		}
 	}
 
@@ -72,10 +75,10 @@ func (m MultiSignature) Actors() []string {
 	seen := make(map[string]struct{}, len(m.Entries))
 	result := make([]string, 0, len(m.Entries))
 
-	for _, e := range m.Entries {
-		if _, ok := seen[e.Actor]; !ok {
-			seen[e.Actor] = struct{}{}
-			result = append(result, e.Actor)
+	for _, entry := range m.Entries {
+		if _, ok := seen[entry.Actor]; !ok {
+			seen[entry.Actor] = struct{}{}
+			result = append(result, entry.Actor)
 		}
 	}
 
@@ -106,25 +109,30 @@ type MultiSignerOption func(*MultiSigner)
 // Use this for Ed25519 where the signer (private key) cannot verify.
 // For HMAC, the signer already implements both Sign and Verify.
 func WithVerifier(verifier Signer) MultiSignerOption {
-	return func(ms *MultiSigner) { ms.verifier = verifier }
+	return func(multi *MultiSigner) { multi.verifier = verifier }
 }
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.
 // By default, the same Signer is used for both signing and verification.
 // Pass WithVerifier to override the verifier (needed for Ed25519).
-func NewMultiSigner(actor string, algorithm SignatureAlgorithm, signer Signer, opts ...MultiSignerOption) *MultiSigner {
-	ms := &MultiSigner{
+func NewMultiSigner(
+	actor string,
+	algorithm SignatureAlgorithm,
+	signer Signer,
+	opts ...MultiSignerOption,
+) *MultiSigner {
+	multi := &MultiSigner{
 		actor:     actor,
 		algorithm: algorithm,
 		signer:    signer,
-		verifier:  signer, // default: same as signer (works for HMAC)
+		verifier:  signer,
 	}
 
 	for _, opt := range opts {
-		opt(ms)
+		opt(multi)
 	}
 
-	return ms
+	return multi
 }
 
 // Actor returns the actor identifier.
@@ -147,21 +155,25 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 		return nil, fmt.Errorf("sign event for actor %s: %w", m.actor, err)
 	}
 
-	ms, _ := ExtractMultiSignature(evt)
-	if ms.Count() == 0 {
-		ms = MultiSignature{}
+	existing, extractErr := ExtractMultiSignature(evt)
+
+	var multiSig MultiSignature
+
+	if extractErr == nil {
+		multiSig = existing
+	} else {
+		multiSig = MultiSignature{Entries: []SignatureEntry{}}
 	}
 
-	// Remove any prior entry from this actor (prevents duplicates).
-	ms.Entries = removeActor(ms.Entries, m.actor)
-	ms.Entries = append(ms.Entries, SignatureEntry{
+	multiSig.Entries = removeActor(multiSig.Entries, m.actor)
+	multiSig.Entries = append(multiSig.Entries, SignatureEntry{
 		Actor:     m.actor,
 		Algorithm: m.algorithm,
 		Sig:       sig,
 		SignedAt:  time.Now(),
 	})
 
-	return attachMultiSignature(evt, ms)
+	return attachMultiSignature(evt, multiSig)
 }
 
 // Verify verifies only this actor's signature from the event's multi-sig collection.
@@ -170,37 +182,47 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 		return ErrNilEvent
 	}
 
-	ms, err := ExtractMultiSignature(evt)
+	multiSig, err := ExtractMultiSignature(evt)
 	if err != nil {
 		return err
 	}
 
-	entry := ms.Get(m.actor)
+	entry := multiSig.Get(m.actor)
 	if entry == nil {
 		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, m.actor)
 	}
 
-	return m.verifier.Verify(evt, entry.Sig)
+	verifyErr := m.verifier.Verify(evt, entry.Sig)
+	if verifyErr != nil {
+		return fmt.Errorf("verify actor %s: %w", m.actor, verifyErr)
+	}
+
+	return nil
 }
 
-// VerifyActor verifies a specific actor's signature.
+// VerifyActor verifies a specific actor's signature using the provided verifier.
 // Useful when one actor wants to check another actor's signature.
 func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Signer) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
 
-	ms, err := ExtractMultiSignature(evt)
+	multiSig, err := ExtractMultiSignature(evt)
 	if err != nil {
 		return err
 	}
 
-	entry := ms.Get(actor)
+	entry := multiSig.Get(actor)
 	if entry == nil {
 		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, actor)
 	}
 
-	return verifier.Verify(evt, entry.Sig)
+	verifyErr := verifier.Verify(evt, entry.Sig)
+	if verifyErr != nil {
+		return fmt.Errorf("verify actor %s: %w", actor, verifyErr)
+	}
+
+	return nil
 }
 
 // VerifyAll verifies every signature entry in the multi-sig collection
@@ -212,19 +234,20 @@ func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Signer) er
 		return ErrNilEvent
 	}
 
-	ms, err := ExtractMultiSignature(evt)
+	multiSig, err := ExtractMultiSignature(evt)
 	if err != nil {
 		return err
 	}
 
-	for _, entry := range ms.Entries {
+	for _, entry := range multiSig.Entries {
 		verifier, ok := verifiers[entry.Actor]
 		if !ok {
-			return fmt.Errorf("no verifier provided for actor %s", entry.Actor)
+			return fmt.Errorf("%w: %s", ErrNoVerifier, entry.Actor)
 		}
 
-		if err := verifier.Verify(evt, entry.Sig); err != nil {
-			return fmt.Errorf("verify actor %s (%s): %w", entry.Actor, entry.Algorithm, err)
+		verifyErr := verifier.Verify(evt, entry.Sig)
+		if verifyErr != nil {
+			return fmt.Errorf("verify actor %s (%s): %w", entry.Actor, entry.Algorithm, verifyErr)
 		}
 	}
 
@@ -234,25 +257,31 @@ func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Signer) er
 // ExtractMultiSignature retrieves the multi-signature collection from an event.
 func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 	if evt == nil {
-		return MultiSignature{}, ErrNilEvent
+		return MultiSignature{Entries: nil}, ErrNilEvent
 	}
 
 	md := evt.Metadata()
 	if md == nil || md.Custom == nil {
-		return MultiSignature{}, ErrNilSignature
+		return MultiSignature{Entries: nil}, ErrNilSignature
 	}
 
 	encoded, ok := md.Custom[MultiSigMetadataKey]
 	if !ok || encoded == "" {
-		return MultiSignature{}, ErrNilSignature
+		return MultiSignature{Entries: nil}, ErrNilSignature
 	}
 
-	var ms MultiSignature
-	if err := json.Unmarshal([]byte(encoded), &ms); err != nil {
-		return MultiSignature{}, fmt.Errorf("%w: decode multi-sig: %w", ErrInvalidSignature, err)
+	var multiSig MultiSignature
+
+	unmarshalErr := json.Unmarshal([]byte(encoded), &multiSig)
+	if unmarshalErr != nil {
+		return MultiSignature{Entries: nil}, fmt.Errorf(
+			"%w: decode multi-sig: %w",
+			ErrInvalidSignature,
+			unmarshalErr,
+		)
 	}
 
-	return ms, nil
+	return multiSig, nil
 }
 
 // HasMultiSignature reports whether the event carries a multi-signature collection.
@@ -262,8 +291,11 @@ func HasMultiSignature(evt event.Event) bool {
 	return err == nil
 }
 
-func attachMultiSignature(evt event.Event, ms MultiSignature) (*event.ImmutableEvent, error) {
-	encoded, err := json.Marshal(ms)
+func attachMultiSignature(
+	evt event.Event,
+	multiSig MultiSignature,
+) (*event.ImmutableEvent, error) {
+	encoded, err := json.Marshal(multiSig)
 	if err != nil {
 		return nil, fmt.Errorf("encode multi-sig: %w", err)
 	}
@@ -290,9 +322,9 @@ func attachMultiSignature(evt event.Event, ms MultiSignature) (*event.ImmutableE
 func removeActor(entries []SignatureEntry, actor string) []SignatureEntry {
 	result := make([]SignatureEntry, 0, len(entries))
 
-	for _, e := range entries {
-		if e.Actor != actor {
-			result = append(result, e)
+	for _, entry := range entries {
+		if entry.Actor != actor {
+			result = append(result, entry)
 		}
 	}
 

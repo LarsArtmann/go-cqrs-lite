@@ -74,3 +74,60 @@ bus.Use(signing.VerifyMiddleware(verifier))
 - **Deterministic canonicalization**: Events are serialized to a deterministic byte format before signing, covering ID, type, aggregate, version, payload hash, and occurredAt
 - **Signature in metadata**: Signatures attach as URL-safe base64 in event custom metadata (`event.signature`)
 - **Composable middleware**: SignMiddleware and VerifyMiddleware integrate with the event bus
+
+## Multi-Party Signing
+
+When events travel through multiple actors (e.g., end-user device → server), each actor adds its own signature. The event accumulates a `MultiSignature` collection that anyone can verify.
+
+### Device → Server Chain
+
+```go
+// Device signs with Ed25519 (private key stays on device)
+deviceSigner, _ := signing.NewEd25519(devicePrivKey)
+deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
+deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+    signing.WithVerifier(deviceVerifier))
+
+// Server signs with HMAC (shared secret within org)
+serverSigner, _ := signing.NewHMAC(serverKey)
+serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
+
+// Step 1: Device signs
+signed, _ := deviceMulti.Sign(event)
+
+// Step 2: Server verifies device, then adds its own signature
+deviceMulti.Verify(signed) // verifies device's sig
+signed, _ = serverMulti.Sign(signed) // appends server's sig
+
+// Final event carries both signatures
+multiSig, _ := signing.ExtractMultiSignature(signed)
+multiSig.HasActor("device") // true
+multiSig.HasActor("server") // true
+```
+
+### Verify All Actors
+
+```go
+verifiers := map[string]signing.Signer{
+    "device": deviceVerifier,
+    "server": serverSigner,
+}
+err := deviceMulti.VerifyAll(signed, verifiers)
+```
+
+### Require All Actors via Middleware
+
+```go
+// Reject events missing any required actor's signature
+bus.Use(signing.RequireMultiSigMiddleware("device", "server"))
+```
+
+### Middleware for Each Actor in the Pipeline
+
+```go
+// On the device's publish path
+bus.UsePublish(signing.MultiSignMiddleware(deviceMulti))
+
+// On the server's publish path
+bus.UsePublish(signing.MultiSignMiddleware(serverMulti))
+```
