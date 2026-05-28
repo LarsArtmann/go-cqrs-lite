@@ -498,7 +498,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		"device": deviceVerifier,
 		"server": serverSigner,
 	}
-	if verifyErr := deviceMulti.VerifyAll(serverSigned, verifiers); verifyErr != nil {
+	if verifyErr := signing.VerifyAll(serverSigned, verifiers); verifyErr != nil {
 		t.Fatalf("verify all: %v", verifyErr)
 	}
 

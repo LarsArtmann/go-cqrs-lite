@@ -85,6 +85,9 @@ func (m MultiSignature) Actors() []string {
 	return result
 }
 
+// Clock returns the current time. Override for deterministic testing.
+type Clock func() time.Time
+
 // MultiSigner signs events on behalf of a specific actor, appending to existing
 // multi-signature entries without removing prior signatures.
 //
@@ -100,6 +103,7 @@ type MultiSigner struct {
 	algorithm SignatureAlgorithm
 	signer    Signer
 	verifier  Verifier
+	clock     Clock
 }
 
 // MultiSignerOption configures a MultiSigner.
@@ -110,6 +114,12 @@ type MultiSignerOption func(*MultiSigner)
 // For HMAC, the signer already implements both Sign and Verify.
 func WithVerifier(verifier Verifier) MultiSignerOption {
 	return func(multi *MultiSigner) { multi.verifier = verifier }
+}
+
+// WithClock sets a custom clock for deterministic SignedAt timestamps.
+// Defaults to time.Now.
+func WithClock(clock Clock) MultiSignerOption {
+	return func(multi *MultiSigner) { multi.clock = clock }
 }
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.
@@ -131,6 +141,7 @@ func NewMultiSigner(
 		algorithm: algorithm,
 		signer:    signer,
 		verifier:  verifier,
+		clock:     time.Now,
 	}
 
 	for _, opt := range opts {
@@ -175,7 +186,7 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 		Actor:     m.actor,
 		Algorithm: m.algorithm,
 		Sig:       sig,
-		SignedAt:  time.Now(),
+		SignedAt:  m.clock(),
 	})
 
 	return attachMultiSignature(evt, multiSig)
@@ -234,7 +245,7 @@ func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Verifi
 // using each entry's algorithm-appropriate verifier from the provided map.
 // The map keys are actor names; the values are their respective verifiers.
 // Returns the first verification failure, or nil if all pass.
-func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Verifier) error {
+func VerifyAll(evt event.Event, verifiers map[string]Verifier) error {
 	if evt == nil {
 		return ErrNilEvent
 	}

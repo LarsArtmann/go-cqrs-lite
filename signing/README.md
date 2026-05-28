@@ -112,7 +112,7 @@ verifiers := map[string]signing.Signer{
     "device": deviceVerifier,
     "server": serverSigner,
 }
-err := deviceMulti.VerifyAll(signed, verifiers)
+err := signing.VerifyAll(signed, verifiers)
 ```
 
 ### Require All Actors via Middleware
