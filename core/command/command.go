@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 

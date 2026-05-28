@@ -32,16 +32,17 @@ canonicalPayload = sha256(
 ```
 
 **Key properties:**
+
 - Field order is fixed (type → aggregate ID → aggregate type → version → payload)
 - Payload is base64-encoded to handle binary data deterministically
 - No metadata, timestamps, or event IDs are included — these change between clones
 
 ### Signature Types
 
-| Type | Use Case | Performance | Key Management |
-|------|----------|-------------|----------------|
-| `HMAC-SHA256` | Same-organization microservices | ~750 ns/op | Shared secret |
-| `Ed25519` | Cross-organization / device auth | ~14 µs/op sign, ~30 µs/op verify | Public/private key pair |
+| Type          | Use Case                         | Performance                      | Key Management          |
+| ------------- | -------------------------------- | -------------------------------- | ----------------------- |
+| `HMAC-SHA256` | Same-organization microservices  | ~750 ns/op                       | Shared secret           |
+| `Ed25519`     | Cross-organization / device auth | ~14 µs/op sign, ~30 µs/op verify | Public/private key pair |
 
 **HMAC-SHA256** is preferred when all participants trust each other (same-organization). It's 20× faster than Ed25519.
 
@@ -127,15 +128,15 @@ bus.Use(signing.RequireMultiSigMiddleware(verifierMap))
 
 ## Security Properties
 
-| Threat | Defense |
-|--------|---------|
-| Tampered payload | Signature verification fails (`ErrInvalidSignature`) |
-| Stolen signature replayed on different event | Canonical payload includes aggregate ID + version, so replay fails |
-| Missing signature | `RequireSignatureMiddleware` rejects the event |
-| Partial multi-sig (only some actors signed) | `VerifyAll` returns error listing missing actors |
-| Clock skew in multi-sig timestamps | `SignedAt` is informational; verification uses cryptographic payload, not timestamp |
-| Weak HMAC key | `NewHMAC` rejects keys shorter than 32 bytes |
-| Invalid Ed25519 key | `NewEd25519` / `NewEd25519Verifier` validate key lengths |
+| Threat                                       | Defense                                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Tampered payload                             | Signature verification fails (`ErrInvalidSignature`)                                |
+| Stolen signature replayed on different event | Canonical payload includes aggregate ID + version, so replay fails                  |
+| Missing signature                            | `RequireSignatureMiddleware` rejects the event                                      |
+| Partial multi-sig (only some actors signed)  | `VerifyAll` returns error listing missing actors                                    |
+| Clock skew in multi-sig timestamps           | `SignedAt` is informational; verification uses cryptographic payload, not timestamp |
+| Weak HMAC key                                | `NewHMAC` rejects keys shorter than 32 bytes                                        |
+| Invalid Ed25519 key                          | `NewEd25519` / `NewEd25519Verifier` validate key lengths                            |
 
 ---
 
@@ -153,19 +154,19 @@ This means the signing module could be extracted to its own repository with mini
 
 ## File Map
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `signer.go` | 171 | `Signature` type, `canonicalPayload`, `Signer`/`Verifier` interfaces |
-| `hmac.go` | 78 | `hmacSigner` (unexported) — HMAC-SHA256 implementation |
-| `ed25519.go` | 105 | `ed25519Signer`/`ed25519Verifier` (unexported) — Ed25519 implementation |
-| `multisig.go` | 153 | `MultiSigner`, `Sign`, `Verify`, `verifyActorEntry` |
-| `multisig_types.go` | 154 | `Actor`, `SignatureEntry`, `MultiSignature`, options |
-| `multisig_extract.go` | 123 | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `attachMultiSignature` |
-| `multisig_middleware.go` | 172 | 4 middleware functions with nil guards |
-| `middleware.go` | 108 | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware` |
-| `event.go` | 85 | `cloneEvent`, `ExtractSignature`, `HasSignature` |
-| `errors.go` | 31 | Sentinel errors (`ErrNilEvent`, `ErrInvalidSignature`, etc.) |
-| `benchmark_test.go` | ~120 | HMAC + Ed25519 + VerifyAll benchmarks |
+| File                     | Lines | Purpose                                                                     |
+| ------------------------ | ----- | --------------------------------------------------------------------------- |
+| `signer.go`              | 171   | `Signature` type, `canonicalPayload`, `Signer`/`Verifier` interfaces        |
+| `hmac.go`                | 78    | `hmacSigner` (unexported) — HMAC-SHA256 implementation                      |
+| `ed25519.go`             | 105   | `ed25519Signer`/`ed25519Verifier` (unexported) — Ed25519 implementation     |
+| `multisig.go`            | 153   | `MultiSigner`, `Sign`, `Verify`, `verifyActorEntry`                         |
+| `multisig_types.go`      | 154   | `Actor`, `SignatureEntry`, `MultiSignature`, options                        |
+| `multisig_extract.go`    | 123   | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `attachMultiSignature` |
+| `multisig_middleware.go` | 172   | 4 middleware functions with nil guards                                      |
+| `middleware.go`          | 108   | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware`          |
+| `event.go`               | 85    | `cloneEvent`, `ExtractSignature`, `HasSignature`                            |
+| `errors.go`              | 31    | Sentinel errors (`ErrNilEvent`, `ErrInvalidSignature`, etc.)                |
+| `benchmark_test.go`      | ~120  | HMAC + Ed25519 + VerifyAll benchmarks                                       |
 
 ---
 

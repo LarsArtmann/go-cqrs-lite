@@ -19,20 +19,20 @@ Session 120 completed all 12 items from the Session 119 deferred list. Key achie
 
 ### Session 120 Work (this session)
 
-| #   | Item | Files | Status |
-|-----|------|-------|--------|
-| 1   | Split `signing_test.go` (1028L) | `signing/hmac_test.go`, `ed25519_test.go`, `signature_test.go`, `middleware_test.go` | Done — 4 new files, max 346L |
-| 2   | Split `multisig_test.go` (1338L) | `multisig_types_test.go`, `sign_test.go`, `verify_test.go`, `extract_test.go`, `middleware_test.go`, `middleware_extra_test.go`, `e2e_test.go` | Done — 7 new files, max 293L |
-| 3   | Retain helpers in original files | `signing_test.go` (36L), `multisig_test.go` (61L) | Done — `makeTestEvent`, `tamperEvent`, `newDeviceMultiSigner`, `newServerMultiSigner` |
-| 4   | Add HMAC benchmarks | `signing/benchmark_test.go` | Done — `BenchmarkHMAC_Sign`, `BenchmarkHMAC_Verify` |
-| 5   | Add Ed25519 benchmarks | `signing/benchmark_test.go` | Done — `BenchmarkEd25519_Sign`, `BenchmarkEd25519_Verify` |
-| 6   | Add VerifyAll benchmark | `signing/benchmark_test.go` | Done — `BenchmarkVerifyAll` (2 actors) |
-| 7   | Write `docs/signing-architecture.md` | `docs/signing-architecture.md` | Done — canonical payload, algorithms, API, middleware, security, file map |
-| 8   | Update `TODO_LIST.md` | `TODO_LIST.md` | Done — 5 signing items added, completed ones marked |
-| 9   | Cross-module signing integration test | `integration/signing/signing_integration_test.go` | Done — `TestSigningFullFlow`, `TestSigningTamperDetection` |
-| 10  | Fix LSP errors (projection/storage) | N/A | Done — errors were stale, build/vet/test all pass |
-| 11  | Restore corrupted production files | `signing/*.go`, `catalog/*.go` | Done — automated tool broke branded type concatenation |
-| 12  | Full test suite verification | All modules | Done — 25/27 pass, 2 pre-existing catalog golden failures |
+| #   | Item                                  | Files                                                                                                                                          | Status                                                                                |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 1   | Split `signing_test.go` (1028L)       | `signing/hmac_test.go`, `ed25519_test.go`, `signature_test.go`, `middleware_test.go`                                                           | Done — 4 new files, max 346L                                                          |
+| 2   | Split `multisig_test.go` (1338L)      | `multisig_types_test.go`, `sign_test.go`, `verify_test.go`, `extract_test.go`, `middleware_test.go`, `middleware_extra_test.go`, `e2e_test.go` | Done — 7 new files, max 293L                                                          |
+| 3   | Retain helpers in original files      | `signing_test.go` (36L), `multisig_test.go` (61L)                                                                                              | Done — `makeTestEvent`, `tamperEvent`, `newDeviceMultiSigner`, `newServerMultiSigner` |
+| 4   | Add HMAC benchmarks                   | `signing/benchmark_test.go`                                                                                                                    | Done — `BenchmarkHMAC_Sign`, `BenchmarkHMAC_Verify`                                   |
+| 5   | Add Ed25519 benchmarks                | `signing/benchmark_test.go`                                                                                                                    | Done — `BenchmarkEd25519_Sign`, `BenchmarkEd25519_Verify`                             |
+| 6   | Add VerifyAll benchmark               | `signing/benchmark_test.go`                                                                                                                    | Done — `BenchmarkVerifyAll` (2 actors)                                                |
+| 7   | Write `docs/signing-architecture.md`  | `docs/signing-architecture.md`                                                                                                                 | Done — canonical payload, algorithms, API, middleware, security, file map             |
+| 8   | Update `TODO_LIST.md`                 | `TODO_LIST.md`                                                                                                                                 | Done — 5 signing items added, completed ones marked                                   |
+| 9   | Cross-module signing integration test | `integration/signing/signing_integration_test.go`                                                                                              | Done — `TestSigningFullFlow`, `TestSigningTamperDetection`                            |
+| 10  | Fix LSP errors (projection/storage)   | N/A                                                                                                                                            | Done — errors were stale, build/vet/test all pass                                     |
+| 11  | Restore corrupted production files    | `signing/*.go`, `catalog/*.go`                                                                                                                 | Done — automated tool broke branded type concatenation                                |
+| 12  | Full test suite verification          | All modules                                                                                                                                    | Done — 25/27 pass, 2 pre-existing catalog golden failures                             |
 
 ---
 
@@ -46,33 +46,33 @@ Nothing partially done — all 12 items completed.
 
 ### Signing Module (remaining from Session 119)
 
-| #   | Item | Priority | Notes |
-|-----|------|----------|-------|
-| 1   | Push signing v1.0.0 tag | HIGH | Code is ready, needs manual `git tag` + `git push --tags` |
-| 2   | `attachMultiSignature` JSON marshal error test | LOW | 71.4% coverage — path is genuinely unreachable (MultiSignature is always JSON-marshallable) |
-| 3   | `hmacSigner.Verify` error path test | LOW | 80% coverage — `s.Sign()` error inside Verify is unreachable (Verify checks nil before calling Sign) |
+| #   | Item                                           | Priority | Notes                                                                                                |
+| --- | ---------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| 1   | Push signing v1.0.0 tag                        | HIGH     | Code is ready, needs manual `git tag` + `git push --tags`                                            |
+| 2   | `attachMultiSignature` JSON marshal error test | LOW      | 71.4% coverage — path is genuinely unreachable (MultiSignature is always JSON-marshallable)          |
+| 3   | `hmacSigner.Verify` error path test            | LOW      | 80% coverage — `s.Sign()` error inside Verify is unreachable (Verify checks nil before calling Sign) |
 
 ### Cross-Module
 
-| #   | Item | Priority | Notes |
-|-----|------|----------|-------|
-| 4   | `example/user/go.mod` signing version to v1.0.0 | MED | Currently v1.6.0, should track tagged release |
-| 5   | Move `example/todo` to own repository | BLOCKED | Requires manual repo creation |
+| #   | Item                                            | Priority | Notes                                         |
+| --- | ----------------------------------------------- | -------- | --------------------------------------------- |
+| 4   | `example/user/go.mod` signing version to v1.0.0 | MED      | Currently v1.6.0, should track tagged release |
+| 5   | Move `example/todo` to own repository           | BLOCKED  | Requires manual repo creation                 |
 
 ### Catalog
 
-| #   | Item | Priority | Notes |
-|-----|------|----------|-------|
-| 6   | Fix pre-existing golden test failures | HIGH | `TestGolden_AsyncAPIYAML`, `TestGolden_EventCatalog_Config`, `TestGolden_EventCatalog_PackageJSON` — present on master before this session |
-| 7   | `catalog/internal/schemautil` coverage at 84.2% | LOW | Lowest in catalog |
+| #   | Item                                            | Priority | Notes                                                                                                                                      |
+| --- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 6   | Fix pre-existing golden test failures           | HIGH     | `TestGolden_AsyncAPIYAML`, `TestGolden_EventCatalog_Config`, `TestGolden_EventCatalog_PackageJSON` — present on master before this session |
+| 7   | `catalog/internal/schemautil` coverage at 84.2% | LOW      | Lowest in catalog                                                                                                                          |
 
 ### Core
 
-| #   | Item | Priority | Notes |
-|-----|------|----------|-------|
-| 8   | Query handler `any` → generic `TypedHandler[T]` | v2 | Breaking change, deferred |
-| 9   | `io.Closer` removal from core interfaces | v2 | Breaking change, deferred |
-| 10  | Global `TransactionID` branded type | v2 | Breaking change, deferred |
+| #   | Item                                            | Priority | Notes                     |
+| --- | ----------------------------------------------- | -------- | ------------------------- |
+| 8   | Query handler `any` → generic `TypedHandler[T]` | v2       | Breaking change, deferred |
+| 9   | `io.Closer` removal from core interfaces        | v2       | Breaking change, deferred |
+| 10  | Global `TransactionID` branded type             | v2       | Breaking change, deferred |
 
 ---
 
@@ -136,48 +136,48 @@ An automated tool ran during this session that converted `fmt.Errorf` → `event
 
 ### Immediate (do now)
 
-| #   | Action | Impact | Effort |
-|-----|--------|--------|--------|
-| 1   | Fix catalog golden test failures (3 tests) | HIGH | 30 min |
-| 2   | Rename `signing_test.go` → `test_helpers_test.go` | LOW | 2 min |
-| 3   | Run `GOWORK=off` test for signing + integration | LOW | 5 min |
-| 4   | Push signing v1.0.0 tag | HIGH | 5 min |
+| #   | Action                                            | Impact | Effort |
+| --- | ------------------------------------------------- | ------ | ------ |
+| 1   | Fix catalog golden test failures (3 tests)        | HIGH   | 30 min |
+| 2   | Rename `signing_test.go` → `test_helpers_test.go` | LOW    | 2 min  |
+| 3   | Run `GOWORK=off` test for signing + integration   | LOW    | 5 min  |
+| 4   | Push signing v1.0.0 tag                           | HIGH   | 5 min  |
 
 ### Short-term (this week)
 
-| #   | Action | Impact | Effort |
-|-----|--------|--------|--------|
-| 5   | Add `Actor` branded type (like `id.Of[actorMarker]`) | MED | 30 min |
-| 6   | Evaluate `testify/require` for test assertion boilerplate | LOW | 1 hr |
-| 7   | Evaluate `xxhash/v2` for canonical payload hashing | LOW | 30 min |
-| 8   | Add JWT signer option (`JWTSigner` wrapping `jwt/v5`) | MED | 2 hr |
-| 9   | Improve `catalog/internal/schemautil` coverage (84.2% → 90%+) | LOW | 1 hr |
-| 10  | Update `example/user/go.mod` to signing v1.0.0 | LOW | 5 min |
+| #   | Action                                                        | Impact | Effort |
+| --- | ------------------------------------------------------------- | ------ | ------ |
+| 5   | Add `Actor` branded type (like `id.Of[actorMarker]`)          | MED    | 30 min |
+| 6   | Evaluate `testify/require` for test assertion boilerplate     | LOW    | 1 hr   |
+| 7   | Evaluate `xxhash/v2` for canonical payload hashing            | LOW    | 30 min |
+| 8   | Add JWT signer option (`JWTSigner` wrapping `jwt/v5`)         | MED    | 2 hr   |
+| 9   | Improve `catalog/internal/schemautil` coverage (84.2% → 90%+) | LOW    | 1 hr   |
+| 10  | Update `example/user/go.mod` to signing v1.0.0                | LOW    | 5 min  |
 
 ### Medium-term (next sessions)
 
-| #   | Action | Impact | Effort |
-|-----|--------|--------|--------|
-| 11  | `Signature` type: `[]byte` → struct with algorithm metadata | MED | 2 hr |
-| 12  | Middleware chain composition type | LOW | 1 hr |
-| 13  | Typed metadata key registry | LOW | 1 hr |
-| 14  | Add `sha256-simd` benchmark comparison | LOW | 30 min |
-| 15  | Optimize Pebble LoadToTimestamp (full scan → timestamp bounds) | MED | 2 hr |
-| 16  | Add catalog diff/breaking-change detection tool | FUTURE | Large |
-| 17  | Add high-level test utilities (AggregateTester, ProjectionTester) | FUTURE | Large |
-| 18  | v2: Query handler generic `TypedHandler[T]` | HIGH | Large |
-| 19  | v2: `io.Closer` removal from core interfaces | MED | Medium |
-| 20  | v2: Global `TransactionID` branded type | MED | Medium |
+| #   | Action                                                            | Impact | Effort |
+| --- | ----------------------------------------------------------------- | ------ | ------ |
+| 11  | `Signature` type: `[]byte` → struct with algorithm metadata       | MED    | 2 hr   |
+| 12  | Middleware chain composition type                                 | LOW    | 1 hr   |
+| 13  | Typed metadata key registry                                       | LOW    | 1 hr   |
+| 14  | Add `sha256-simd` benchmark comparison                            | LOW    | 30 min |
+| 15  | Optimize Pebble LoadToTimestamp (full scan → timestamp bounds)    | MED    | 2 hr   |
+| 16  | Add catalog diff/breaking-change detection tool                   | FUTURE | Large  |
+| 17  | Add high-level test utilities (AggregateTester, ProjectionTester) | FUTURE | Large  |
+| 18  | v2: Query handler generic `TypedHandler[T]`                       | HIGH   | Large  |
+| 19  | v2: `io.Closer` removal from core interfaces                      | MED    | Medium |
+| 20  | v2: Global `TransactionID` branded type                           | MED    | Medium |
 
 ### Infrastructure
 
-| #   | Action | Impact | Effort |
-|-----|--------|--------|--------|
-| 21  | Move `example/todo` to own repository | LOW | Manual |
-| 22  | Publish go-composable-business-types as Go module | LOW | Manual |
-| 23  | Modularize ActaFlow | LOW | Different project |
-| 24  | Evaluate nix flake migration from justfile | LOW | 4 hr |
-| 25  | Add `testify/require` to all test modules | LOW | 4 hr |
+| #   | Action                                            | Impact | Effort            |
+| --- | ------------------------------------------------- | ------ | ----------------- |
+| 21  | Move `example/todo` to own repository             | LOW    | Manual            |
+| 22  | Publish go-composable-business-types as Go module | LOW    | Manual            |
+| 23  | Modularize ActaFlow                               | LOW    | Different project |
+| 24  | Evaluate nix flake migration from justfile        | LOW    | 4 hr              |
+| 25  | Add `testify/require` to all test modules         | LOW    | 4 hr              |
 
 ---
 
@@ -197,34 +197,34 @@ I cannot determine which without running `go test -update` and examining the dif
 
 ## Module Health Dashboard
 
-| Module | Coverage | Lint Issues | Notes |
-|--------|----------|-------------|-------|
-| core/command | 94.3% | 0 | |
-| core/decider | 91.1% | 0 | |
-| core/event | 92.4% | 0 | |
-| core/pkg/dispatcher | 100.0% | 0 | |
-| core/pkg/id | 100.0% | 0 | |
-| core/query | 98.4% | 0 | |
-| memory | 99.6% | 0 | |
-| catalog | 96.3% | 0 | |
-| catalog/asyncapi | 93.7% | 0 | 1 golden test FAIL (pre-existing) |
-| catalog/d2 | 95.0% | 0 | |
-| catalog/docserver | 90.1% | 0 | |
-| catalog/eventcatalog | 92.8% | 0 | 2 golden tests FAIL (pre-existing) |
-| catalog/internal/caseutil | 100.0% | 0 | |
-| catalog/internal/schemautil | 84.2% | 0 | Lowest in catalog |
-| catalog/openapi | 94.4% | 0 | |
-| middleware | 93.7% | 0 | |
-| testhelpers | 82.1% | 0 | |
-| integration/command | — | 0 | No statements |
-| integration/event | — | 0 | No statements |
-| integration/query | — | 0 | No statements |
-| integration/signing | — | 0 | New this session |
-| projection | 96.0% | 0 | |
-| storage | 90.1% | 0 | |
-| saga | 93.4% | 0 | |
-| watermill | 94.4% | 0 | |
-| signing | 94.2% | 0 | |
+| Module                      | Coverage | Lint Issues | Notes                              |
+| --------------------------- | -------- | ----------- | ---------------------------------- |
+| core/command                | 94.3%    | 0           |                                    |
+| core/decider                | 91.1%    | 0           |                                    |
+| core/event                  | 92.4%    | 0           |                                    |
+| core/pkg/dispatcher         | 100.0%   | 0           |                                    |
+| core/pkg/id                 | 100.0%   | 0           |                                    |
+| core/query                  | 98.4%    | 0           |                                    |
+| memory                      | 99.6%    | 0           |                                    |
+| catalog                     | 96.3%    | 0           |                                    |
+| catalog/asyncapi            | 93.7%    | 0           | 1 golden test FAIL (pre-existing)  |
+| catalog/d2                  | 95.0%    | 0           |                                    |
+| catalog/docserver           | 90.1%    | 0           |                                    |
+| catalog/eventcatalog        | 92.8%    | 0           | 2 golden tests FAIL (pre-existing) |
+| catalog/internal/caseutil   | 100.0%   | 0           |                                    |
+| catalog/internal/schemautil | 84.2%    | 0           | Lowest in catalog                  |
+| catalog/openapi             | 94.4%    | 0           |                                    |
+| middleware                  | 93.7%    | 0           |                                    |
+| testhelpers                 | 82.1%    | 0           |                                    |
+| integration/command         | —        | 0           | No statements                      |
+| integration/event           | —        | 0           | No statements                      |
+| integration/query           | —        | 0           | No statements                      |
+| integration/signing         | —        | 0           | New this session                   |
+| projection                  | 96.0%    | 0           |                                    |
+| storage                     | 90.1%    | 0           |                                    |
+| saga                        | 93.4%    | 0           |                                    |
+| watermill                   | 94.4%    | 0           |                                    |
+| signing                     | 94.2%    | 0           |                                    |
 
 **Totals:** 27 packages, 0 lint issues, 3 golden test failures (pre-existing, catalog), 41,539+ total lines of Go code.
 
@@ -257,27 +257,27 @@ signing/                          2,727 test lines
 
 ## Change Log This Session
 
-| File | Change |
-|------|--------|
-| `signing/benchmark_test.go` | Expanded from 18L to 102L — added 5 benchmarks (HMAC sign/verify, Ed25519 sign/verify, VerifyAll) |
-| `signing/hmac_test.go` | New — extracted HMAC tests + TestEmptyPayloadEvent |
-| `signing/ed25519_test.go` | New — extracted Ed25519 tests |
-| `signing/signature_test.go` | New — extracted Signature type, JSON, canonical payload tests |
-| `signing/middleware_test.go` | New — extracted single-sig middleware tests |
-| `signing/multisig_types_test.go` | New — extracted MultiSignature, SignatureEntry, Validation tests |
-| `signing/multisig_sign_test.go` | New — extracted Sign-related tests |
-| `signing/multisig_verify_test.go` | New — extracted Verify-related tests |
-| `signing/multisig_extract_test.go` | New — extracted Extract/VerifyAll tests |
-| `signing/multisig_middleware_test.go` | New — extracted core multi-sig middleware tests |
-| `signing/multisig_middleware_extra_test.go` | New — extracted MultiVerifyMiddlewareFor, CorruptedMultiSig tests |
-| `signing/multisig_e2e_test.go` | New — extracted end-to-end dual-actor test |
-| `signing/signing_test.go` | Reduced from 1028L to 36L — helpers only |
-| `signing/multisig_test.go` | Reduced from 1338L to 61L — helpers only |
-| `docs/signing-architecture.md` | New — comprehensive architecture decision record |
-| `TODO_LIST.md` | Updated — 5 signing items added, completed ones marked |
-| `integration/go.mod` | Added signing module dependency + replace directive |
-| `integration/signing/signing_integration_test.go` | New — 2 cross-module integration tests |
+| File                                              | Change                                                                                            |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `signing/benchmark_test.go`                       | Expanded from 18L to 102L — added 5 benchmarks (HMAC sign/verify, Ed25519 sign/verify, VerifyAll) |
+| `signing/hmac_test.go`                            | New — extracted HMAC tests + TestEmptyPayloadEvent                                                |
+| `signing/ed25519_test.go`                         | New — extracted Ed25519 tests                                                                     |
+| `signing/signature_test.go`                       | New — extracted Signature type, JSON, canonical payload tests                                     |
+| `signing/middleware_test.go`                      | New — extracted single-sig middleware tests                                                       |
+| `signing/multisig_types_test.go`                  | New — extracted MultiSignature, SignatureEntry, Validation tests                                  |
+| `signing/multisig_sign_test.go`                   | New — extracted Sign-related tests                                                                |
+| `signing/multisig_verify_test.go`                 | New — extracted Verify-related tests                                                              |
+| `signing/multisig_extract_test.go`                | New — extracted Extract/VerifyAll tests                                                           |
+| `signing/multisig_middleware_test.go`             | New — extracted core multi-sig middleware tests                                                   |
+| `signing/multisig_middleware_extra_test.go`       | New — extracted MultiVerifyMiddlewareFor, CorruptedMultiSig tests                                 |
+| `signing/multisig_e2e_test.go`                    | New — extracted end-to-end dual-actor test                                                        |
+| `signing/signing_test.go`                         | Reduced from 1028L to 36L — helpers only                                                          |
+| `signing/multisig_test.go`                        | Reduced from 1338L to 61L — helpers only                                                          |
+| `docs/signing-architecture.md`                    | New — comprehensive architecture decision record                                                  |
+| `TODO_LIST.md`                                    | Updated — 5 signing items added, completed ones marked                                            |
+| `integration/go.mod`                              | Added signing module dependency + replace directive                                               |
+| `integration/signing/signing_integration_test.go` | New — 2 cross-module integration tests                                                            |
 
 ---
 
-*End of Session 120 Status Report*
+_End of Session 120 Status Report_

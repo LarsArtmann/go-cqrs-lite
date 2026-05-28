@@ -7,6 +7,7 @@ import (
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
@@ -63,7 +64,11 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "query.register_handler_failed", "registering handler for query type "+string(queryType))
+		return errorfamily.WrapInfrastructure(
+			err,
+			"query.register_handler_failed",
+			"registering handler for query type "+string(queryType),
+		)
 	}
 
 	return nil
@@ -82,16 +87,29 @@ func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "query.dispatch_failed", "dispatching query type "+string(query.Type()))
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"query.dispatch_failed",
+			"dispatching query type "+string(query.Type()),
+		)
 	}
 
 	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return nil, errorfamily.WrapRejection(ErrQueryNotSupported, "query.not_supported", "query not supported: "+string(query.Type()))
+			return nil, errorfamily.WrapRejection(
+				ErrQueryNotSupported,
+				"query.not_supported",
+				"query not supported: "+string(query.Type()),
+			)
 		}
 
-		return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "query.handler_failed", "query type "+string(query.Type()))
+		return nil, errorfamily.Wrap(
+			err,
+			errorfamily.Classify(err),
+			"query.handler_failed",
+			"query type "+string(query.Type()),
+		)
 	}
 
 	return wrapped(ctx, query)
@@ -103,13 +121,21 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	result, err := d.Dispatch(ctx, query)
 	if err != nil {
-		return zero, errorfamily.Wrap(err, errorfamily.Classify(err), "query.dispatch_typed_failed", "dispatch failed for query type "+string(query.Type()))
+		return zero, errorfamily.Wrap(
+			err,
+			errorfamily.Classify(err),
+			"query.dispatch_typed_failed",
+			"dispatch failed for query type "+string(query.Type()),
+		)
 	}
 
 	typed, ok := result.(T)
 	if !ok {
 		//nolint:err113 // dynamic error with runtime type info; no useful sentinel
-		return zero, errorfamily.NewCorruption("query.type_mismatch", "unexpected result type for query "+string(query.Type()))
+		return zero, errorfamily.NewCorruption(
+			"query.type_mismatch",
+			"unexpected result type for query "+string(query.Type()),
+		)
 	}
 
 	return typed, nil

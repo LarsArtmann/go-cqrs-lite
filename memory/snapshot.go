@@ -2,7 +2,7 @@ package memory
 
 import (
 	"context"
-		"sync"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
@@ -87,7 +87,11 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "memory.snapshot_load_at_version_failed", "snapshot store load at version")
+		return nil, event.WrapInfrastructure(
+			err,
+			"memory.snapshot_load_at_version_failed",
+			"snapshot store load at version",
+		)
 	}
 
 	s.mu.RLock()

@@ -2,7 +2,7 @@ package memory
 
 import (
 	"context"
-		"slices"
+	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -182,7 +182,13 @@ func (s *MemoryStore) ReadFrom(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "memory.read_from_failed", "memory store read from (limit=%d) failed", limit)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"memory.read_from_failed",
+			"memory store read from (limit=%d) failed",
+			limit,
+		)
 	}
 
 	s.mu.RLock()
