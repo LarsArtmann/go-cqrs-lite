@@ -110,7 +110,7 @@ func (r *Repository[State]) Execute(
 
 	r.applyEnricher(ctx, newEvents)
 
-	if ts, ok := r.store.(event.TransactionalStore); ok && r.outbox != nil {
+	if ts, ok := r.store.(event.TransactionalSink); ok && r.outbox != nil {
 		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion)
 		if err != nil {
 			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
@@ -180,20 +180,6 @@ func (r *Repository[State]) Load(
 	aggType event.AggregateType,
 ) (State, event.Version, error) {
 	return r.loadState(ctx, aggID, aggType)
-}
-
-// Delete removes all events for the aggregate from the store.
-func (r *Repository[State]) Delete(
-	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
-) error {
-	err := r.store.Delete(ctx, aggType, aggID)
-	if err != nil {
-		return opError(aggType, aggID, "delete: %w", err)
-	}
-
-	return nil
 }
 
 func (r *Repository[State]) applyEnricher(ctx context.Context, events []event.Event) {
