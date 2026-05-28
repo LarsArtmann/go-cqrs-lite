@@ -2,6 +2,7 @@ package signing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -43,7 +44,7 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			multiSig, err := ExtractMultiSignature(evt)
+			_, err := ExtractMultiSignature(evt)
 			if err != nil {
 				if errors.Is(err, ErrNilSignature) {
 					return next(ctx, evt)

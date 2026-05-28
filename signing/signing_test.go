@@ -626,6 +626,40 @@ func TestVerifyMiddleware(t *testing.T) {
 			t.Fatal("expected verification to fail")
 		}
 	})
+
+	t.Run("rejects corrupt signature metadata", func(t *testing.T) {
+		t.Parallel()
+
+		called := false
+		handler := func(_ context.Context, _ event.Event) error {
+			called = true
+
+			return nil
+		}
+
+		mw := signing.VerifyMiddleware(signer)
+		wrapped := mw(handler)
+
+		evt := makeTestEvent(t)
+		corrupt, _ := event.NewEvent(
+			evt.Type(),
+			evt.AggregateID(),
+			evt.AggregateType(),
+			evt.Version(),
+			evt.Payload(),
+			event.WithEventID(evt.ID()),
+			event.WithOccurredAt(evt.OccurredAt()),
+			event.WithCustom(signing.MetadataKey, "not-valid-base64!!!"),
+		)
+
+		err := wrapped(context.Background(), corrupt)
+		if err == nil {
+			t.Fatal("expected error for corrupt signature metadata")
+		}
+		if called {
+			t.Fatal("handler should not have been called for corrupt signature")
+		}
+	})
 }
 
 func TestRequireSignatureMiddleware(t *testing.T) {
