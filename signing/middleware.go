@@ -2,6 +2,7 @@ package signing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -47,13 +48,13 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 func VerifyMiddleware(verifier Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			if !HasSignature(evt) {
-				return next(ctx, evt)
-			}
-
 			sig, err := ExtractSignature(evt)
 			if err != nil {
-				return fmt.Errorf("extract signature for event %s: %w", evt.Type(), err)
+				if errors.Is(err, ErrNilSignature) {
+					return next(ctx, evt)
+				}
+
+				return fmt.Errorf("corrupt signature on event %s: %w", evt.Type(), err)
 			}
 
 			err = verifier.Verify(evt, sig)
@@ -69,8 +70,6 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 // RequireSignatureMiddleware returns event.Middleware that rejects events
 // without signatures. Use when all events in a stream must be signed.
 func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
-	verify := VerifyMiddleware(verifier)
-
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if !HasSignature(evt) {
@@ -81,7 +80,17 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 				)
 			}
 
-			return verify(next)(ctx, evt)
+			sig, extractErr := ExtractSignature(evt)
+			if extractErr != nil {
+				return fmt.Errorf("corrupt signature on event %s: %w", evt.Type(), extractErr)
+			}
+
+			verifyErr := verifier.Verify(evt, sig)
+			if verifyErr != nil {
+				return fmt.Errorf("verify event %s: %w", evt.Type(), verifyErr)
+			}
+
+			return next(ctx, evt)
 		}
 	}
 }

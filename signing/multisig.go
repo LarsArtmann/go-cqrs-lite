@@ -187,7 +187,10 @@ func NewMultiSigner(
 	}
 
 	if multi.verifier == nil {
-		return nil, event.NewRejection("signing.nil_verifier", "verifier cannot be nil; pass WithVerifier for Ed25519 signers")
+		return nil, event.NewRejection(
+			"signing.nil_verifier",
+			"verifier cannot be nil; pass WithVerifier for Ed25519 signers",
+		)
 	}
 
 	if multi.clock == nil {

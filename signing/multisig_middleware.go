@@ -43,8 +43,13 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			if !HasMultiSignature(evt) {
-				return next(ctx, evt)
+			multiSig, err := ExtractMultiSignature(evt)
+			if err != nil {
+				if errors.Is(err, ErrNilSignature) {
+					return next(ctx, evt)
+				}
+
+				return fmt.Errorf("corrupt multi-sig on event %s: %w", evt.Type(), err)
 			}
 
 			verifyErr := signer.Verify(evt)
@@ -69,13 +74,13 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			if !HasMultiSignature(evt) {
-				return next(ctx, evt)
-			}
-
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
-				return next(ctx, evt)
+				if errors.Is(err, ErrNilSignature) {
+					return next(ctx, evt)
+				}
+
+				return fmt.Errorf("corrupt multi-sig on event %s: %w", evt.Type(), err)
 			}
 
 			entry := multiSig.Get(actor)
