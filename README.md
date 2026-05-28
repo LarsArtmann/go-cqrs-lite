@@ -121,6 +121,38 @@ func main() {
 
 See `example/user/` for a complete example with the Decider pattern, middleware, and catalog generation.
 
+### Recommended: Decider Pattern
+
+For real applications, use the Decider — pure functions with load→fold→decide→save→publish semantics:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/core/decider"
+
+type UserState struct{ Name string }
+
+d := decider.Decider[UserState]{
+    Initial: UserState{},
+    Fold: func(s UserState, evt event.Event) (UserState, error) {
+        p, _ := event.DecodePayload[UserCreated](evt, event.JSONCodec{})
+        s.Name = p.Name
+        return s, nil
+    },
+}
+
+repo, _ := decider.NewRepository[UserState](store, bus, d)
+
+// Execute a command (load state → fold → decide → save → publish)
+repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
+    return event.NewEvents(aggID, "User", v,
+        []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
+})
+
+// Load current state
+state, version, _ := repo.Load(ctx, aggID, "User")
+```
+
+See [`core/README.md`](core/README.md) for the full Decider guide.
+
 ### Core Dependencies
 
 | Dependency        | Purpose                                         | Module       |
@@ -188,20 +220,20 @@ All IDs are branded types backed by ULID strings:
 
 ## Module Structure
 
-| Module           | Import Path                           | Purpose                                          | Dependencies                      |
-| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- |
-| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family |
-| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              |
-| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              |
-| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        |
-| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |
-| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |
-| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              |
-| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              |
-| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   |
-| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |
-| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |
-| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |
+| Module           | Import Path                           | Purpose                                          | Dependencies                      | Docs |
+| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- | ---- |
+| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family | [README](core/README.md) |
+| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              | |
+| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              | |
+| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        | [README](catalog/README.md) |
+| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              | |
+| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      | |
+| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              | |
+| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              | [README](storage/README.md) |
+| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   | |
+| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              | |
+| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             | |
+| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware | |
 
 ## Design Principles
 
