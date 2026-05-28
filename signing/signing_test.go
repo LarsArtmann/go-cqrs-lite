@@ -965,3 +965,64 @@ func FuzzSignature_Roundtrip(f *testing.F) {
 		}
 	})
 }
+
+func TestMiddlewareNilGuards(t *testing.T) {
+	t.Parallel()
+
+	t.Run("SignMiddleware panics on nil signer", func(t *testing.T) {
+		t.Parallel()
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Fatal("expected panic")
+			}
+
+			if msg, ok := r.(string); !ok ||
+				msg != "signing: SignMiddleware called with nil signer" {
+				t.Fatalf("unexpected panic: %v", r)
+			}
+		}()
+		signing.SignMiddleware(nil)
+	})
+
+	t.Run("VerifyMiddleware panics on nil verifier", func(t *testing.T) {
+		t.Parallel()
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Fatal("expected panic")
+			}
+
+			if msg, ok := r.(string); !ok ||
+				msg != "signing: VerifyMiddleware called with nil verifier" {
+				t.Fatalf("unexpected panic: %v", r)
+			}
+		}()
+		signing.VerifyMiddleware(nil)
+	})
+
+	t.Run("RequireSignatureMiddleware panics on nil verifier", func(t *testing.T) {
+		t.Parallel()
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Fatal("expected panic")
+			}
+
+			if msg, ok := r.(string); !ok ||
+				msg != "signing: RequireSignatureMiddleware called with nil verifier" {
+				t.Fatalf("unexpected panic: %v", r)
+			}
+		}()
+		signing.RequireSignatureMiddleware(nil)
+	})
+}
+
+func TestActor_String(t *testing.T) {
+	t.Parallel()
+
+	actor := signing.Actor("device")
+	if got := actor.String(); got != "device" {
+		t.Fatalf("got %q, want %q", got, "device")
+	}
+}
