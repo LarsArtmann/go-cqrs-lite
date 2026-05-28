@@ -22,9 +22,9 @@
 - [BLOCKED] Publish go-composable-business-types as Go Module — requires repo setup on GitHub
 - [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
 - [v2] io.Closer removal from core interfaces (source: SESSION_60)
-- [ ] Add catalog diff/breaking-change detection tool (source: SESSION_04)
+- [FUTURE] Add catalog diff/breaking-change detection tool (source: SESSION_04)
 - [BLOCKED] Modularize ActaFlow — different project
-- [ ] Add high-level test utilities — AggregateTester, ProjectionTester, BusTester fluent API (source: MONOREPO_PLAN)
+- [FUTURE] Add high-level test utilities — AggregateTester, ProjectionTester, BusTester fluent API (source: MONOREPO_PLAN)
 
 ## 🟡 MEDIUM Priority
 
@@ -147,7 +147,7 @@
 - [x] ~~Add ClientID branded type and WithClientID option~~ — DONE
 - [x] ~~Add PublishedAt to OutboxEntry~~ — DONE (CreatedAt time.Time field added to OutboxEntry, populated by memory+SQL implementations)
 - [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
-- [ ] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
+- [FUTURE] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
 - [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
 - [x] ~~Add ContextEnricher wiring to repositories~~ — DONE (Session 112c, event.ContextEnricher + WithEnricher on Repository)
 - [x] ~~Add event.Event.Clone()~~ — DONE
@@ -168,7 +168,7 @@
 - [x] ~~Add command.TypedHandler[T] + command.RegisterTyped[T]~~ — DONE
 - [x] ~~Convert DispatchTyped to method on *query.Dispatcher~~ — NOT FEASIBLE (Go does not support generic methods on concrete types; standalone generic function is the idiomatic pattern)
 - [x] ~~Add query/pagination.go helpers~~ — VERIFIED (NewPagination, Offset, NewPaginatedResult, HasNext, HasPrev, Validate)
-- [ ] Add catalog.Exporter interface + WalkMessages helper for extensibility (source: multiple sessions)
+- [x] ~~Add catalog.Exporter interface + WalkMessages helper~~ — DONE (catalog.Exporter[T], catalog.ErrorExporter, catalog.WalkMessages)
 - [x] ~~Delete catalog/internal/cattest/ package~~ — VERIFIED (7 test files depend on it, cannot delete without breaking tests)
 - [ ] Wire example/user/aggregate.go to use catalog-aware event constructors (source: SESSION16)
 - [x] ~~Add enum + default struct tag support~~ — VERIFIED (enum, default, nullable, deprecated, pattern all work)
@@ -182,9 +182,9 @@
 - [x] ~~Add NewVectorClockFromMap test~~ — MOOT (extracted to go-localsync)
 - [x] ~~Add sync module benchmarks~~ — DONE
 - [ ] Build catch-up projection runner (start-from-checkpoint → replay → live-switch) (source: LIVESTORE_DEEP_DIVE)
-- [ ] Make transactional projection contract explicit in Projection interface (source: LIVESTORE_DEEP_DIVE)
-- [ ] Add dead letter queue to projection runner (source: LIVESTORE_DEEP_DIVE)
-- [ ] Add retry and dead-letter mechanism for InMemoryRunner projections (source: FEATURES)
+- [FUTURE] Make transactional projection contract explicit in Projection interface (source: LIVESTORE_DEEP_DIVE)
+- [x] ~~Add dead letter queue to projection runner~~ — DONE (WithDeadLetterHandler option, called when retries exhaust)
+- [x] ~~Add retry and dead-letter mechanism for InMemoryRunner projections~~ — DONE (WithRetry + WithDeadLetterHandler on Runner)
 - [ ] Add background polling for InMemoryRunner (currently push-model only) (source: FEATURES)
 - [ ] Increase projection coverage to 95%+ (source: SESSION_45)
 - [x] ~~Implement projection.Runner.Close()~~ — DONE
@@ -220,21 +220,21 @@
 - [x] ~~Add storage backend guide~~ — DONE
 - [x] ~~Add module READMEs~~ — DONE
 - [x] ~~Archive stale planning docs~~ — DONE
-- [ ] Add multi-engine storage support via sqlc (source: MONOREPO_PLAN)
-- [ ] Add schema migration tool (source: MONOREPO_PLAN)
+- [FUTURE] Add multi-engine storage support via sqlc (source: MONOREPO_PLAN)
+- [FUTURE] Add schema migration tool (source: MONOREPO_PLAN)
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble) (source: SESSION_61)
-- [ ] Event signing/verification for stored events (source: SESSION_61)
+- [FUTURE] Event signing/verification for stored events (source: SESSION_61)
 - [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
-- [ ] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
+- [FUTURE] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
 - [x] ~~Add Upcaster interface + UpcasterRegistry~~ — DONE
 - [x] ~~Add UpcasterRegistry cycle detection~~ — DONE
 - [v2] Split event.Store into Writer/Reader/Deleter (source: SESSION13)
 - [x] ~~Add DecodePayloads batch decode helper~~ — DONE
 - [v2] Make event Core truly immutable (source: PROJECT_REVIEW)
 - [ ] Add projection parallel processing — goroutine pool (source: SESSION17)
-- [ ] Add projection rebuild/reset API — Reset(ctx, projectionName) (source: LIVESTORE_DEEP_DIVE)
-- [ ] Add HandleBatch(ctx, []Event) error to projections (source: LIVESTORE_DEEP_DIVE)
-- [ ] Absorb projection/ module into core/event (source: SESSION_77)
+- [x] ~~Add projection rebuild/reset API~~ — DONE (Runner.Reset(ctx, projectionName) clears checkpoint)
+- [x] ~~Add HandleBatch(ctx, []Event) error to projections~~ — DONE (event.BatchProjection optional interface)
+- [FUTURE] Absorb projection/ module into core/event (source: SESSION_77)
 - [x] ~~Add OpenAPI/Swagger exporter parallel to AsyncAPI~~ — DONE (catalog/openapi/ with 4 files)
 - [ ] Generate llms.txt alongside EventCatalog output (source: SESSION_16)
 - [x] ~~Schema: support nullable/deprecated/pattern struct tags~~ — VERIFIED (all tags already implemented in schema_reflect.go)
@@ -243,15 +243,15 @@
 - [FUTURE] Implement rebase mechanism (source: OFFLINE_FIRST)
 - [FUTURE] Build network simulator for testing (source: OFFLINE_FIRST_EVERYTHING_ELSE)
 - [FUTURE] Build multi-client test harness (source: OFFLINE_FIRST_EVERYTHING_ELSE)
-- [ ] Build thin PostgreSQL store adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
-- [ ] Build thin NATS bus adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
-- [ ] Add circuit breaker middleware (source: multiple sessions)
-- [ ] Add OpenTelemetry tracing middleware (source: SESSION_84)
-- [ ] Add distributed tracing middleware (source: SESSION_37)
+- [FUTURE] Build thin PostgreSQL store adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
+- [FUTURE] Build thin NATS bus adapter (no Watermill) (source: WATERMILL_PRO_CONTRA)
+- [x] ~~Add circuit breaker middleware~~ — DONE (CommandCircuitBreaker, EventCircuitBreaker, QueryCircuitBreaker with half-open)
+- [x] ~~Add OpenTelemetry tracing middleware~~ — DONE (middleware/tracing.go already exists with OTel integration)
+- [x] ~~Add distributed tracing middleware~~ — DONE (OpenTelemetry tracing middleware exists in middleware/)
 - [x] ~~Consolidate testhelpers fake boilerplate via fakeBase struct~~ — VERIFIED (each fake has different fields/interfaces, shared base would add complexity, not save it)
 - [ ] Rewrite example/user/ to demonstrate full CQRS capability stack (source: SUPERB_EXAMPLE)
 - [ ] Add example/user/ smoke test (TestExampleRuns) (source: multiple sessions)
-- [ ] Add hybrid service example (source: HYBRID_ARCHITECTURE)
+- [FUTURE] Add hybrid service example (source: HYBRID_ARCHITECTURE)
 - [x] ~~Add .goreleaser.yml for multi-module releases~~ — DONE (builds cqrs-gen CLI for linux/darwin/windows)
 - [ ] Performance regression CI — benchmark comparison on each PR (source: multiple sessions)
 - [ ] Add gofumpt/goimports to pre-commit hook (source: SESSION_16)
@@ -260,8 +260,8 @@
 - [FUTURE] Add time-series event query language for event store (source: COMPARISON_REPORT)
 - [BLOCKED] Migrate ActaFlow build to flake.nix — different project
 - [BLOCKED] Integrate TypeSpec types → catalog.Registry — different project
-- [ ] Create documentation site (Docusaurus/MkDocs/Hugo) (source: multiple sessions)
-- [ ] Set up pkg.go.dev documentation hosting (source: SESSION_57)
+- [FUTURE] Create documentation site (Docusaurus/MkDocs/Hugo) (source: multiple sessions)
+- [FUTURE] Set up pkg.go.dev documentation hosting (source: SESSION_57)
 - [x] ~~Write CHANGELOG.md~~ — DONE
 - [x] ~~Prune docs/status/~~ — DONE (Session 112)
 - [ ] Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination types (source: SESSION_67)
