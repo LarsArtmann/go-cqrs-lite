@@ -58,30 +58,20 @@ func TestMultiSignature(t *testing.T) {
 			t.Fatalf("expected 2 actors, got %d", len(actors))
 		}
 	})
-
-	t.Run("is zero", func(t *testing.T) {
-		t.Parallel()
-		empty := signing.MultiSignature{}
-		if !empty.IsZero() {
-			t.Fatal("expected empty multi-sig to be zero")
-		}
-		if ms.IsZero() {
-			t.Fatal("expected non-empty multi-sig to not be zero")
-		}
-	})
 }
 
 func TestMultiSigner(t *testing.T) {
 	t.Parallel()
 
-	// Create two separate signer/verifier pairs for device and server
-	_, devicePrivKey, _ := ed25519.GenerateKey(nil)
+	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
 	serverKey := []byte("server-key-thirty-two-bytes!!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
+	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
 	serverSigner, _ := signing.NewHMAC(serverKey)
 
-	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner)
+	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+		signing.WithVerifier(deviceVerifier))
 	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
 
 	evt := makeTestEvent(t)
@@ -109,13 +99,11 @@ func TestMultiSigner(t *testing.T) {
 	t.Run("multiple actors sign same event", func(t *testing.T) {
 		t.Parallel()
 
-		// Device signs first
 		clone1, err := deviceMulti.Sign(evt)
 		if err != nil {
 			t.Fatalf("device sign: %v", err)
 		}
 
-		// Server signs the already-signed event
 		clone2, err := serverMulti.Sign(clone1)
 		if err != nil {
 			t.Fatalf("server sign: %v", err)
@@ -132,7 +120,6 @@ func TestMultiSigner(t *testing.T) {
 			t.Fatal("expected both device and server actors")
 		}
 
-		// Verify each actor's signature independently
 		actors := ms.Actors()
 		if len(actors) != 2 {
 			t.Fatalf("expected 2 actors, got %d", len(actors))
@@ -142,7 +129,6 @@ func TestMultiSigner(t *testing.T) {
 	t.Run("same actor re-signing replaces old signature", func(t *testing.T) {
 		t.Parallel()
 
-		// First sign
 		clone1, err := deviceMulti.Sign(evt)
 		if err != nil {
 			t.Fatalf("first sign: %v", err)
@@ -154,7 +140,6 @@ func TestMultiSigner(t *testing.T) {
 			t.Fatal("expected device entry after first sign")
 		}
 
-		// Re-sign (should replace, not duplicate)
 		clone2, err := deviceMulti.Sign(clone1)
 		if err != nil {
 			t.Fatalf("second sign: %v", err)
@@ -165,7 +150,6 @@ func TestMultiSigner(t *testing.T) {
 			t.Fatalf("expected 1 entry after re-sign, got %d", ms2.Count())
 		}
 
-		// The signature should have changed (different timestamp)
 		entry2 := ms2.Get("device")
 		if entry2.SignedAt.Equal(entry1.SignedAt) {
 			t.Fatal("re-signed entry should have different timestamp")
@@ -178,17 +162,31 @@ func TestMultiSigner(t *testing.T) {
 		clone, _ := deviceMulti.Sign(evt)
 		err := deviceMulti.Verify(clone)
 		if err != nil {
-			t.Fatalf("verify: %v", err)
+			t.Fatalf("verify device: %v", err)
+		}
+	})
+
+	t.Run("verify server signature on dual-signed event", func(t *testing.T) {
+		t.Parallel()
+
+		clone1, _ := deviceMulti.Sign(evt)
+		clone2, _ := serverMulti.Sign(clone1)
+
+		err := serverMulti.Verify(clone2)
+		if err != nil {
+			t.Fatalf("verify server: %v", err)
+		}
+
+		err = deviceMulti.Verify(clone2)
+		if err != nil {
+			t.Fatalf("verify device on dual-signed: %v", err)
 		}
 	})
 
 	t.Run("verify missing actor", func(t *testing.T) {
 		t.Parallel()
 
-		// Only device signed
 		clone, _ := deviceMulti.Sign(evt)
-
-		// Server tries to verify its signature (not present)
 		err := serverMulti.Verify(clone)
 		if err == nil {
 			t.Fatal("expected error verifying missing actor")
@@ -200,10 +198,8 @@ func TestMultiSigner(t *testing.T) {
 
 		clone, _ := deviceMulti.Sign(evt)
 
-		// Tamper by creating a new event with different payload but same metadata
-		ms, _ := signing.ExtractMultiSignature(clone)
-		encoded, _ := signing.ExtractSignature(clone) // also get single sig
-
+		// Reconstruct with tampered payload but same metadata (including multi-sig)
+		md := clone.Metadata()
 		tampered, _ := event.NewEvent(
 			clone.Type(),
 			clone.AggregateID(),
@@ -213,17 +209,9 @@ func TestMultiSigner(t *testing.T) {
 			event.WithEventID(clone.ID()),
 			event.WithOccurredAt(clone.OccurredAt()),
 			event.WithSchemaVersion(clone.SchemaVersion()),
-			event.WithMetadata(clone.Metadata()),
+			event.WithMetadata(md),
 		)
 
-		// Put the multi-sig back on the tampered event
-		tamperedMS, _ := signing.ExtractMultiSignature(tampered)
-		_ = tamperedMS
-		_ = ms
-		_ = encoded
-
-		// This won't work because we need the multi-sig metadata — the tampered
-		// event won't have it. The verification should fail naturally.
 		err := deviceMulti.Verify(tampered)
 		if err == nil {
 			t.Fatal("expected verification to fail for tampered event")
@@ -232,7 +220,6 @@ func TestMultiSigner(t *testing.T) {
 
 	t.Run("sign nil event", func(t *testing.T) {
 		t.Parallel()
-
 		_, err := deviceMulti.Sign(nil)
 		if err == nil {
 			t.Fatal("expected error for nil event")
@@ -241,7 +228,6 @@ func TestMultiSigner(t *testing.T) {
 
 	t.Run("verify nil event", func(t *testing.T) {
 		t.Parallel()
-
 		err := deviceMulti.Verify(nil)
 		if err == nil {
 			t.Fatal("expected error for nil event")
@@ -254,13 +240,14 @@ func TestExtractMultiSignature(t *testing.T) {
 
 	_, privKey, _ := ed25519.GenerateKey(nil)
 	signer, _ := signing.NewEd25519(privKey)
-	multi := signing.NewMultiSigner("device", signing.AlgorithmEd25519, signer)
+	verifier, _ := signing.NewEd25519Verifier(privKey.Public().(ed25519.PublicKey))
+	multi := signing.NewMultiSigner("device", signing.AlgorithmEd25519, signer,
+		signing.WithVerifier(verifier))
 
 	evt := makeTestEvent(t)
 
 	t.Run("extract from unsigned event", func(t *testing.T) {
 		t.Parallel()
-
 		_, err := signing.ExtractMultiSignature(evt)
 		if err == nil {
 			t.Fatal("expected error for unsigned event")
@@ -269,7 +256,6 @@ func TestExtractMultiSignature(t *testing.T) {
 
 	t.Run("extract from nil event", func(t *testing.T) {
 		t.Parallel()
-
 		_, err := signing.ExtractMultiSignature(nil)
 		if err == nil {
 			t.Fatal("expected error for nil event")
@@ -278,7 +264,6 @@ func TestExtractMultiSignature(t *testing.T) {
 
 	t.Run("has multi-sig", func(t *testing.T) {
 		t.Parallel()
-
 		if signing.HasMultiSignature(evt) {
 			t.Fatal("original event should not have multi-sig")
 		}
@@ -296,7 +281,7 @@ func TestMultiSignatureActors(t *testing.T) {
 	ms := signing.MultiSignature{
 		Entries: []signing.SignatureEntry{
 			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("a")},
-			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("b")}, // duplicate
+			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("b")},
 			{Actor: "server", Algorithm: signing.AlgorithmHMACSHA256, Sig: []byte("c")},
 		},
 	}
@@ -312,7 +297,9 @@ func TestMultiSignMiddleware(t *testing.T) {
 
 	_, privKey, _ := ed25519.GenerateKey(nil)
 	signer, _ := signing.NewEd25519(privKey)
-	multi := signing.NewMultiSigner("device", signing.AlgorithmEd25519, signer)
+	verifier, _ := signing.NewEd25519Verifier(privKey.Public().(ed25519.PublicKey))
+	multi := signing.NewMultiSigner("device", signing.AlgorithmEd25519, signer,
+		signing.WithVerifier(verifier))
 
 	t.Run("signs events before publishing", func(t *testing.T) {
 		t.Parallel()
@@ -327,7 +314,7 @@ func TestMultiSignMiddleware(t *testing.T) {
 		signedPub := mw(pub)
 
 		evt := makeTestEvent(t)
-		err := signedPub.Publish(t.Context(), evt)
+		err := signedPub.Publish(context.Background(), evt)
 		if err != nil {
 			t.Fatalf("publish: %v", err)
 		}
@@ -350,13 +337,15 @@ func TestMultiSignMiddleware(t *testing.T) {
 func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Parallel()
 
-	_, devicePrivKey, _ := ed25519.GenerateKey(nil)
+	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
 	serverKey := []byte("server-key-thirty-two-bytes!!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
+	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
 	serverSigner, _ := signing.NewHMAC(serverKey)
 
-	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner)
+	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+		signing.WithVerifier(deviceVerifier))
 	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
 
 	t.Run("rejects unsigned events", func(t *testing.T) {
@@ -372,7 +361,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 		wrapped := mw(handler)
 
 		evt := makeTestEvent(t)
-		err := wrapped(t.Context(), evt)
+		err := wrapped(context.Background(), evt)
 		if err == nil {
 			t.Fatal("expected error for unsigned event")
 		}
@@ -388,11 +377,10 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 		mw := signing.RequireMultiSigMiddleware("device", "server")
 		wrapped := mw(handler)
 
-		// Only device signed
 		evt := makeTestEvent(t)
 		clone, _ := deviceMulti.Sign(evt)
 
-		err := wrapped(t.Context(), clone)
+		err := wrapped(context.Background(), clone)
 		if err == nil {
 			t.Fatal("expected error for partially signed event")
 		}
@@ -414,7 +402,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 		clone1, _ := deviceMulti.Sign(evt)
 		clone2, _ := serverMulti.Sign(clone1)
 
-		err := wrapped(t.Context(), clone2)
+		err := wrapped(context.Background(), clone2)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -427,14 +415,15 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 func TestMultiSignerEndToEnd(t *testing.T) {
 	t.Parallel()
 
-	// Simulating the real-world chain: device → server
-	_, devicePrivKey, _ := ed25519.GenerateKey(nil)
+	pubKey, devicePrivKey, _ := ed25519.GenerateKey(nil)
 	serverKey := []byte("server-key-thirty-two-bytes!!")
 
 	deviceSigner, _ := signing.NewEd25519(devicePrivKey)
+	deviceVerifier, _ := signing.NewEd25519Verifier(pubKey)
 	serverSigner, _ := signing.NewHMAC(serverKey)
 
-	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner)
+	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+		signing.WithVerifier(deviceVerifier))
 	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
 
 	// Step 1: Device creates and signs the event
@@ -446,22 +435,18 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("device sign: %v", err)
 	}
 
-	// Verify device signature
-	if err := deviceMulti.Verify(deviceSigned); err != nil {
-		t.Fatalf("verify device sig: %v", err)
-	}
-
-	// Step 2: Server receives, verifies device, then adds its own signature
+	// Step 2: Server verifies device's signature
 	if err := deviceMulti.Verify(deviceSigned); err != nil {
 		t.Fatalf("server verifies device: %v", err)
 	}
 
+	// Step 3: Server adds its own signature
 	serverSigned, err := serverMulti.Sign(deviceSigned)
 	if err != nil {
 		t.Fatalf("server sign: %v", err)
 	}
 
-	// Step 3: Final event has both signatures
+	// Step 4: Final event has both signatures
 	ms, err := signing.ExtractMultiSignature(serverSigned)
 	if err != nil {
 		t.Fatalf("extract: %v", err)
@@ -470,7 +455,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("expected 2 signatures, got %d", ms.Count())
 	}
 
-	// Verify both signatures still valid
+	// Step 5: Both signatures verify independently
 	if err := deviceMulti.Verify(serverSigned); err != nil {
 		t.Fatalf("verify device on final: %v", err)
 	}
@@ -478,21 +463,28 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("verify server on final: %v", err)
 	}
 
-	// Step 4: Tamper detection
+	// Step 6: VerifyAll with a verifier map
+	verifiers := map[string]signing.Signer{
+		"device": deviceVerifier,
+		"server": serverSigner,
+	}
+	if err := deviceMulti.VerifyAll(serverSigned, verifiers); err != nil {
+		t.Fatalf("verify all: %v", err)
+	}
+
+	// Step 7: Tamper detection
 	tampered, _ := event.NewEvent(
 		serverSigned.Type(),
 		serverSigned.AggregateID(),
 		serverSigned.AggregateType(),
 		serverSigned.Version(),
-		[]byte(`{"name":"Bob"}`), // tampered
+		[]byte(`{"name":"Bob"}`),
 		event.WithEventID(serverSigned.ID()),
 		event.WithOccurredAt(serverSigned.OccurredAt()),
 		event.WithSchemaVersion(serverSigned.SchemaVersion()),
 		event.WithMetadata(serverSigned.Metadata()),
 	)
 
-	// The tampered event carries the multi-sig metadata, but the signatures
-	// won't match because the payload hash changed.
 	if err := deviceMulti.Verify(tampered); err == nil {
 		t.Fatal("expected verification to fail for tampered event")
 	}

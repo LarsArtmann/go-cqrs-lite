@@ -29,7 +29,7 @@ type SignatureEntry struct {
 	// Algorithm identifies the crypto algorithm used.
 	Algorithm SignatureAlgorithm `json:"algorithm"`
 
-	// Sig is the raw signature bytes (base64-encoded in JSON).
+	// Sig is the raw signature bytes (base64-encoded in JSON via Signature type).
 	Sig Signature `json:"sig"`
 
 	// SignedAt is when this actor produced the signature.
@@ -41,9 +41,6 @@ type SignatureEntry struct {
 type MultiSignature struct {
 	Entries []SignatureEntry `json:"entries"`
 }
-
-// IsZero reports whether the multi-signature contains no entries.
-func (m MultiSignature) IsZero() bool { return len(m.Entries) == 0 }
 
 // Count returns the number of signature entries.
 func (m MultiSignature) Count() int { return len(m.Entries) }
@@ -87,24 +84,47 @@ func (m MultiSignature) Actors() []string {
 
 // MultiSigner signs events on behalf of a specific actor, appending to existing
 // multi-signature entries without removing prior signatures.
+//
+// For HMAC, the same Signer handles both signing and verification.
+// For Ed25519, provide an Ed25519Signer for signing and an Ed25519Verifier
+// via the WithVerifier option:
+//
+//	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, ed25519Signer,
+//	    signing.WithVerifier(ed25519Verifier))
+//	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, hmacSigner)
 type MultiSigner struct {
 	actor     string
 	algorithm SignatureAlgorithm
 	signer    Signer
+	verifier  Signer
+}
+
+// MultiSignerOption configures a MultiSigner.
+type MultiSignerOption func(*MultiSigner)
+
+// WithVerifier sets a separate verifier for the Verify path.
+// Use this for Ed25519 where the signer (private key) cannot verify.
+// For HMAC, the signer already implements both Sign and Verify.
+func WithVerifier(verifier Signer) MultiSignerOption {
+	return func(ms *MultiSigner) { ms.verifier = verifier }
 }
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.
-//
-// Usage:
-//
-//	deviceSigner := signing.NewMultiSigner("device", signing.AlgorithmEd25519, ed25519Signer)
-//	serverSigner := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, hmacSigner)
-func NewMultiSigner(actor string, algorithm SignatureAlgorithm, signer Signer) *MultiSigner {
-	return &MultiSigner{
+// By default, the same Signer is used for both signing and verification.
+// Pass WithVerifier to override the verifier (needed for Ed25519).
+func NewMultiSigner(actor string, algorithm SignatureAlgorithm, signer Signer, opts ...MultiSignerOption) *MultiSigner {
+	ms := &MultiSigner{
 		actor:     actor,
 		algorithm: algorithm,
 		signer:    signer,
+		verifier:  signer, // default: same as signer (works for HMAC)
 	}
+
+	for _, opt := range opts {
+		opt(ms)
+	}
+
+	return ms
 }
 
 // Actor returns the actor identifier.
@@ -115,7 +135,8 @@ func (m *MultiSigner) Algorithm() SignatureAlgorithm { return m.algorithm }
 
 // Sign computes a signature and appends it to the event's multi-sig collection.
 // If the event already has signatures, they are preserved. The new signature
-// is added to the end of the entries slice.
+// is added to the end of the entries slice. If this actor has already signed,
+// the previous entry is replaced.
 func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
@@ -126,15 +147,13 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 		return nil, fmt.Errorf("sign event for actor %s: %w", m.actor, err)
 	}
 
-	ms, err := ExtractMultiSignature(evt)
-	if err != nil {
-		// No existing multi-sig — start fresh.
+	ms, _ := ExtractMultiSignature(evt)
+	if ms.Count() == 0 {
 		ms = MultiSignature{}
 	}
 
-	// Remove any prior entry from this actor (prevents duplicate actor signatures).
+	// Remove any prior entry from this actor (prevents duplicates).
 	ms.Entries = removeActor(ms.Entries, m.actor)
-
 	ms.Entries = append(ms.Entries, SignatureEntry{
 		Actor:     m.actor,
 		Algorithm: m.algorithm,
@@ -158,19 +177,37 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 
 	entry := ms.Get(m.actor)
 	if entry == nil {
-		return fmt.Errorf(
-			"%w: no signature found for actor %s",
-			ErrNilSignature,
-			m.actor,
-		)
+		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, m.actor)
 	}
 
-	return m.signer.Verify(evt, entry.Sig)
+	return m.verifier.Verify(evt, entry.Sig)
 }
 
-// VerifyAll verifies every signature entry in the multi-sig collection.
-// Returns the first verification failure encountered, or nil if all pass.
-func (m *MultiSigner) VerifyAll(evt event.Event) error {
+// VerifyActor verifies a specific actor's signature.
+// Useful when one actor wants to check another actor's signature.
+func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Signer) error {
+	if evt == nil {
+		return ErrNilEvent
+	}
+
+	ms, err := ExtractMultiSignature(evt)
+	if err != nil {
+		return err
+	}
+
+	entry := ms.Get(actor)
+	if entry == nil {
+		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, actor)
+	}
+
+	return verifier.Verify(evt, entry.Sig)
+}
+
+// VerifyAll verifies every signature entry in the multi-sig collection
+// using each entry's algorithm-appropriate verifier from the provided map.
+// The map keys are actor names; the values are their respective verifiers.
+// Returns the first verification failure, or nil if all pass.
+func (m *MultiSigner) VerifyAll(evt event.Event, verifiers map[string]Signer) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
@@ -181,13 +218,13 @@ func (m *MultiSigner) VerifyAll(evt event.Event) error {
 	}
 
 	for _, entry := range ms.Entries {
-		if err := m.signer.Verify(evt, entry.Sig); err != nil {
-			return fmt.Errorf(
-				"verify actor %s (%s): %w",
-				entry.Actor,
-				entry.Algorithm,
-				err,
-			)
+		verifier, ok := verifiers[entry.Actor]
+		if !ok {
+			return fmt.Errorf("no verifier provided for actor %s", entry.Actor)
+		}
+
+		if err := verifier.Verify(evt, entry.Sig); err != nil {
+			return fmt.Errorf("verify actor %s (%s): %w", entry.Actor, entry.Algorithm, err)
 		}
 	}
 
