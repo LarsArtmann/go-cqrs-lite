@@ -92,3 +92,24 @@ jobs:
             echo "::error::One or more packages below 80% coverage"
             exit 1
           fi
+
+  go-work-sync:
+    name: go.work sync check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Verify go.work is synced
+        run: |
+          cp go.work go.work.before
+          go work sync
+          if ! diff -q go.work.before go.work > /dev/null 2>&1; then
+            echo "::error::go.work is out of sync. Run 'go work sync' and commit the changes."
+            diff go.work.before go.work
+            exit 1
+          fi
+          echo "go.work is synced"

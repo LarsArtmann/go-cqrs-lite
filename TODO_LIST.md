@@ -199,8 +199,8 @@
 - [x] ~~Add -race to CI~~ — DONE
 - [x] ~~Add coverage tracking to CI~~ — DONE
 - [ ] Parallelize CI matrix — one job per module (source: COMPREHENSIVE_PLAN)
-- [ ] Migrate gomodguard → gomodguard_v2 in .golangci.yml (source: multiple sessions)
-- [ ] Add go.work sync CI check (source: SESSION_85)
+- [x] ~~Migrate gomodguard → gomodguard_v2 in .golangci.yml~~ — DONE (already using gomodguard_v2 in linters config)
+- [x] ~~Add go.work sync CI check~~ — DONE (go-work-sync job in ci.yml verifies go.work is synced)
 - [BLOCKED] Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions — requires tag push
 - [BLOCKED] Remove cockroachdb/errors from go-localsync — different repo
 - [x] ~~Create core/pkg/errors/ package~~ — DONE
@@ -252,7 +252,7 @@
 - [ ] Rewrite example/user/ to demonstrate full CQRS capability stack (source: SUPERB_EXAMPLE)
 - [ ] Add example/user/ smoke test (TestExampleRuns) (source: multiple sessions)
 - [ ] Add hybrid service example (source: HYBRID_ARCHITECTURE)
-- [ ] Add .goreleaser.yml for multi-module releases (source: COMPREHENSIVE_STATUS)
+- [x] ~~Add .goreleaser.yml for multi-module releases~~ — DONE (builds cqrs-gen CLI for linux/darwin/windows)
 - [ ] Performance regression CI — benchmark comparison on each PR (source: multiple sessions)
 - [ ] Add gofumpt/goimports to pre-commit hook (source: SESSION_16)
 - [BLOCKED] Change LICENSE from proprietary to MIT or Apache-2.0 — requires owner decision
