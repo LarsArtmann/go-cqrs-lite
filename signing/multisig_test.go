@@ -872,6 +872,69 @@ func TestVerifyAll_NilEvent(t *testing.T) {
 	}
 }
 
+func TestVerifierMap(t *testing.T) {
+	t.Parallel()
+
+	key := []byte("test-key-with-at-least-32-bytes!!")
+	signerverifier, err := signing.NewHMAC(key)
+	if err != nil {
+		t.Fatalf("new hmac: %v", err)
+	}
+
+	deviceMulti, err := signing.NewMultiSigner(
+		signing.Actor("device"),
+		signing.AlgorithmHMACSHA256,
+		signerverifier,
+	)
+	if err != nil {
+		t.Fatalf("new device multi: %v", err)
+	}
+
+	serverMulti, err := signing.NewMultiSigner(
+		signing.Actor("server"),
+		signing.AlgorithmHMACSHA256,
+		signerverifier,
+	)
+	if err != nil {
+		t.Fatalf("new server multi: %v", err)
+	}
+
+	verifiers := signing.VerifierMap(deviceMulti, serverMulti)
+
+	if len(verifiers) != 2 {
+		t.Fatalf("expected 2 verifiers, got %d", len(verifiers))
+	}
+
+	if _, ok := verifiers[signing.Actor("device")]; !ok {
+		t.Fatal("missing device verifier")
+	}
+
+	if _, ok := verifiers[signing.Actor("server")]; !ok {
+		t.Fatal("missing server verifier")
+	}
+}
+
+func TestVerifierMap_NilPanics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic for nil *MultiSigner")
+		}
+	}()
+
+	signing.VerifierMap(nil)
+}
+
+func TestVerifierMap_Empty(t *testing.T) {
+	t.Parallel()
+
+	verifiers := signing.VerifierMap()
+	if len(verifiers) != 0 {
+		t.Fatalf("expected 0 verifiers, got %d", len(verifiers))
+	}
+}
+
 func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 	t.Parallel()
 

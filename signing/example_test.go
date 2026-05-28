@@ -72,13 +72,8 @@ func ExampleVerifyAll() {
 	step1, _ := deviceMulti.Sign(evt)
 	step2, _ := serverMulti.Sign(step1)
 
-	// Verify all signatures using their respective public key verifiers
-	verifiers := map[signing.Actor]signing.Verifier{
-		signing.Actor("device"): deviceVerifier,
-		signing.Actor("server"): serverVerifier,
-	}
-
-	if err := signing.VerifyAll(step2, verifiers); err != nil {
+	// Verify all signatures using the MultiSigners directly
+	if err := signing.VerifyAll(step2, signing.VerifierMap(deviceMulti, serverMulti)); err != nil {
 		fmt.Println("verification failed:", err)
 	} else {
 		fmt.Println("all signatures valid")
@@ -86,6 +81,32 @@ func ExampleVerifyAll() {
 
 	// Output:
 	// all signatures valid
+}
+
+func ExampleVerifierMap() {
+	key := []byte("example-key-with-at-least-32-bytes!")
+	signer, _ := signing.NewHMAC(key)
+
+	deviceMulti, _ := signing.NewMultiSigner(
+		signing.Actor("device"),
+		signing.AlgorithmHMACSHA256,
+		signer,
+	)
+	serverMulti, _ := signing.NewMultiSigner(
+		signing.Actor("server"),
+		signing.AlgorithmHMACSHA256,
+		signer,
+	)
+
+	verifiers := signing.VerifierMap(deviceMulti, serverMulti)
+	fmt.Println("device actor:", verifiers[signing.Actor("device")] != nil)
+	fmt.Println("server actor:", verifiers[signing.Actor("server")] != nil)
+	fmt.Println("total:", len(verifiers))
+
+	// Output:
+	// device actor: true
+	// server actor: true
+	// total: 2
 }
 
 func ExampleMultiVerifyMiddlewareFor() {

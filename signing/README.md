@@ -108,22 +108,13 @@ multiSig.HasActor(signing.Actor("server")) // true
 ### Verify All Actors
 
 ```go
-verifiers := map[string]signing.Verifier{
-    signing.Actor("device"): deviceVerifier,
-    signing.Actor("server"): serverSigner,
-}
-err := signing.VerifyAll(signed, verifiers)
+err := signing.VerifyAll(signed, signing.VerifierMap(deviceMulti, serverMulti))
 ```
 
 ### Require All Actors via Middleware
 
 ```go
-// Reject events missing verified signatures from all actors
-verifiers := map[string]signing.Verifier{
-    signing.Actor("device"): deviceVerifier,
-    signing.Actor("server"): serverSigner,
-}
-bus.Use(signing.RequireMultiSigMiddleware(verifiers))
+bus.Use(signing.RequireMultiSigMiddleware(signing.VerifierMap(deviceMulti, serverMulti)))
 ```
 
 ### Middleware for Each Actor in the Pipeline

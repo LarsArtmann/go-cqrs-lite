@@ -66,6 +66,26 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 	return multiSig, nil
 }
 
+// VerifierMap builds an Actor→Verifier map from one or more MultiSigners.
+// This is a convenience for the common case where you already have MultiSigners
+// for signing and need the same actor-to-verifier mapping for VerifyAll
+// or RequireMultiSigMiddleware.
+//
+// Panics if any signer is nil.
+func VerifierMap(signers ...*MultiSigner) map[Actor]Verifier {
+	verifiers := make(map[Actor]Verifier, len(signers))
+
+	for _, s := range signers {
+		if s == nil {
+			panic("signing: VerifierMap called with nil *MultiSigner")
+		}
+
+		verifiers[s.Actor()] = s.verifier
+	}
+
+	return verifiers
+}
+
 // HasMultiSignature reports whether the event carries a multi-signature collection.
 func HasMultiSignature(evt event.Event) bool {
 	_, err := ExtractMultiSignature(evt)
