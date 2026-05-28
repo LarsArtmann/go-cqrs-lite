@@ -106,11 +106,12 @@ func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 func testEvent(t *testing.T) *event.ImmutableEvent {
 	t.Helper()
 
-	return testEventWithAggID(t, id.NewAggregateID(), 1)
+	return testEventWithAggID(t, "UserCreated", id.NewAggregateID(), 1)
 }
 
 func testEventWithAggID(
 	t *testing.T,
+	eventType event.Type,
 	aggID id.AggregateID,
 	version event.Version,
 	opts ...event.Option,
@@ -118,7 +119,7 @@ func testEventWithAggID(
 	t.Helper()
 
 	evt, err := event.NewEvent(
-		"UserCreated",
+		eventType,
 		aggID,
 		"User",
 		version,
@@ -197,8 +198,8 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
-	evt1 := testEventWithAggID(t, aggID, 1)
-	evt2 := testEventWithAggID(t, aggID, 2)
+	evt1 := testEventWithAggID(t, "UserCreated", aggID, 1)
+	evt2 := testEventWithAggID(t, "UserCreated", aggID, 2)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(

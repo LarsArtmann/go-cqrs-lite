@@ -31,7 +31,7 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
 
-	evt := testEventWithAggID(t, aggID, 1)
+	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
 		WithArgs("User", aggID, 1).
@@ -88,7 +88,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
 
-	evt := testEventWithAggID(t, aggID, 1)
+	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
 		WithArgs("User", aggID, evt.OccurredAt()).
@@ -129,7 +129,7 @@ func TestSQLEventStore_LoadAllFromPosition_Mock_Success(t *testing.T) {
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
 
-	evt := testEventWithAggID(t, aggID, 1)
+	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
 		WithArgs(evt.ID().String(), 10).

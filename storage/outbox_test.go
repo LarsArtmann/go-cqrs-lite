@@ -286,21 +286,9 @@ func newTestEvent(
 ) *event.ImmutableEvent {
 	t.Helper()
 
-	evt, err := event.NewEvent(
-		event.Type(eventType),
-		aggID,
-		"User",
-		version,
-		[]byte(`{"name":"test"}`),
+	return testEventWithAggID(t, event.Type(eventType), aggID, version,
 		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
 	)
-	if err != nil {
-		t.Fatalf("create test event: %v", err)
-	}
-
-	core := evt
-
-	return core
 }
 
 func TestOutboxSchema(t *testing.T) {
