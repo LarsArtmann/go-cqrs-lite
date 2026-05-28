@@ -14,6 +14,7 @@ func newConfiguredChannel(t *testing.T, opts ...catalog.ChannelOption) catalog.C
 	b.ConfigureChannel("ch", opts...)
 
 	cat := b.Build()
+
 	return cat.Channels[0]
 }
 

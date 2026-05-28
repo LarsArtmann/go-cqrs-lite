@@ -30,6 +30,7 @@ func exportCatalog(t *testing.T, reg *catalog.Registry) string {
 	if err := exp.Export(cat); err != nil {
 		t.Fatal(err)
 	}
+
 	return tmpDir
 }
 
@@ -39,6 +40,7 @@ func readExported(t *testing.T, tmpDir string, parts ...string) string {
 	if err != nil {
 		t.Fatalf("read %s: %v", filepath.Join(parts...), err)
 	}
+
 	return string(data)
 }
 
