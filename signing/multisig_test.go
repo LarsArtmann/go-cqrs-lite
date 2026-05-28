@@ -866,3 +866,207 @@ func TestRequireMultiSigMiddleware_NilEvent(t *testing.T) {
 		t.Fatal("expected error for nil event")
 	}
 }
+
+func TestNewMultiSigner_Validation(t *testing.T) {
+	t.Parallel()
+
+	key := []byte("server-secret-key-thirty-two-by!")
+	signer, _ := signing.NewHMAC(key)
+
+	t.Run("rejects empty actor", func(t *testing.T) {
+		t.Parallel()
+		_, err := signing.NewMultiSigner("", signing.AlgorithmHMACSHA256, signer)
+		if err == nil {
+			t.Fatal("expected error for empty actor")
+		}
+	})
+
+	t.Run("rejects nil signer", func(t *testing.T) {
+		t.Parallel()
+		_, err := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, nil)
+		if err == nil {
+			t.Fatal("expected error for nil signer")
+		}
+	})
+
+	t.Run("rejects nil clock", func(t *testing.T) {
+		t.Parallel()
+		_, err := signing.NewMultiSigner(
+			signing.Actor("server"), signing.AlgorithmHMACSHA256, signer,
+			signing.WithClock(nil),
+		)
+		if err == nil {
+			t.Fatal("expected error for nil clock")
+		}
+	})
+}
+
+func TestMultiSigner_Algorithm(t *testing.T) {
+	t.Parallel()
+
+	key := []byte("server-secret-key-thirty-two-by!")
+	signer, _ := signing.NewHMAC(key)
+
+	multi, err := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, signer)
+	if err != nil {
+		t.Fatalf("create multi-signer: %v", err)
+	}
+
+	if multi.Algorithm() != signing.AlgorithmHMACSHA256 {
+		t.Fatalf("algorithm mismatch: got %s, want %s", multi.Algorithm(), signing.AlgorithmHMACSHA256)
+	}
+}
+
+func TestMultiVerifyMiddlewareFor(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, devicePubKey := newDeviceMultiSigner(t)
+	serverMulti := newServerMultiSigner(t)
+
+	deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
+
+	t.Run("allows valid signature", func(t *testing.T) {
+		t.Parallel()
+
+		called := false
+		handler := func(_ context.Context, _ event.Event) error {
+			called = true
+
+			return nil
+		}
+
+		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
+		wrapped := mw(handler)
+
+		evt := makeTestEvent(t)
+		clone, _ := deviceMulti.Sign(evt)
+		clone2, _ := serverMulti.Sign(clone)
+
+		if err := wrapped(context.Background(), clone2); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !called {
+			t.Fatal("handler should have been called")
+		}
+	})
+
+	t.Run("rejects tampered event", func(t *testing.T) {
+		t.Parallel()
+
+		handler := func(_ context.Context, _ event.Event) error {
+			return nil
+		}
+
+		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
+		wrapped := mw(handler)
+
+		evt := makeTestEvent(t)
+		clone, _ := deviceMulti.Sign(evt)
+
+		tampered, _ := event.NewEvent(
+			clone.Type(), clone.AggregateID(), clone.AggregateType(), clone.Version(),
+			[]byte(`{"tampered":true}`),
+			event.WithEventID(clone.ID()),
+			event.WithOccurredAt(clone.OccurredAt()),
+			event.WithSchemaVersion(clone.SchemaVersion()),
+			event.WithMetadata(clone.Metadata()),
+		)
+
+		if err := wrapped(context.Background(), tampered); err == nil {
+			t.Fatal("expected error for tampered event")
+		}
+	})
+
+	t.Run("passes through unsigned event", func(t *testing.T) {
+		t.Parallel()
+
+		called := false
+		handler := func(_ context.Context, _ event.Event) error {
+			called = true
+
+			return nil
+		}
+
+		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
+		wrapped := mw(handler)
+
+		evt := makeTestEvent(t)
+		if err := wrapped(context.Background(), evt); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !called {
+			t.Fatal("handler should have been called for unsigned event")
+		}
+	})
+
+	t.Run("rejects missing actor signature", func(t *testing.T) {
+		t.Parallel()
+
+		handler := func(_ context.Context, _ event.Event) error {
+			return nil
+		}
+
+		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
+		wrapped := mw(handler)
+
+		evt := makeTestEvent(t)
+		clone, _ := serverMulti.Sign(evt)
+
+		if err := wrapped(context.Background(), clone); err == nil {
+			t.Fatal("expected error when actor signature is missing")
+		}
+	})
+}
+
+func TestSignatureEntry_Validate(t *testing.T) {
+	t.Parallel()
+
+	valid := signing.SignatureEntry{
+		Actor:     signing.Actor("device"),
+		Algorithm: signing.AlgorithmEd25519,
+		Sig:       signing.Signature([]byte("sig")),
+		SignedAt:  time.Now(),
+	}
+
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("valid entry should pass: %v", err)
+	}
+
+	t.Run("rejects empty actor", func(t *testing.T) {
+		t.Parallel()
+		entry := valid
+		entry.Actor = ""
+		if err := entry.Validate(); err == nil {
+			t.Fatal("expected error for empty actor")
+		}
+	})
+
+	t.Run("rejects empty algorithm", func(t *testing.T) {
+		t.Parallel()
+		entry := valid
+		entry.Algorithm = ""
+		if err := entry.Validate(); err == nil {
+			t.Fatal("expected error for empty algorithm")
+		}
+	})
+
+	t.Run("rejects empty sig", func(t *testing.T) {
+		t.Parallel()
+		entry := valid
+		entry.Sig = nil
+		if err := entry.Validate(); err == nil {
+			t.Fatal("expected error for empty sig")
+		}
+	})
+
+	t.Run("rejects zero signedAt", func(t *testing.T) {
+		t.Parallel()
+		entry := valid
+		entry.SignedAt = time.Time{}
+		if err := entry.Validate(); err == nil {
+			t.Fatal("expected error for zero signedAt")
+		}
+	})
+}
