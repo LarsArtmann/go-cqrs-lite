@@ -1,10 +1,10 @@
 {
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E-Commerce event catalog",
+  "type": "module",
   "dependencies": {
     "@eventcatalog/core": "latest"
-  },
-  "description": "E-Commerce event catalog",
-  "name": "e-commerce",
-  "private": true,
-  "type": "module",
-  "version": "1.0.0"
+  }
 }

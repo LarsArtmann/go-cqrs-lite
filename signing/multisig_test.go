@@ -1,13 +1,13 @@
 package signing_test
 
 import (
+	"context"
 	"crypto/ed25519"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMultiSignature(t *testing.T) {
@@ -61,10 +61,11 @@ func TestMultiSignature(t *testing.T) {
 
 	t.Run("is zero", func(t *testing.T) {
 		t.Parallel()
-		if signing.MultiSignature{}.IsZero() {
+		empty := signing.MultiSignature{}
+		if !empty.IsZero() {
 			t.Fatal("expected empty multi-sig to be zero")
 		}
-		if !ms.IsZero() {
+		if ms.IsZero() {
 			t.Fatal("expected non-empty multi-sig to not be zero")
 		}
 	})
