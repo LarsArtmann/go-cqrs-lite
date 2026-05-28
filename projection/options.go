@@ -1,15 +1,22 @@
 package projection
 
 import (
+	"context"
 	"log/slog"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 type runnerOptions struct {
-	retryCount int
-	retryDelay time.Duration
-	logger     *slog.Logger
+	retryCount      int
+	retryDelay      time.Duration
+	logger          *slog.Logger
+	deadLetter      DeadLetterHandler
 }
+
+// DeadLetterHandler is called when a projection handler fails after all retries are exhausted.
+type DeadLetterHandler func(ctx context.Context, projectionName string, evt event.Event, err error)
 
 // RunnerOption configures a projection Runner.
 type RunnerOption func(*runnerOptions)
@@ -29,5 +36,13 @@ func WithRetry(count int, delay time.Duration) RunnerOption {
 func WithLogger(logger *slog.Logger) RunnerOption {
 	return func(o *runnerOptions) {
 		o.logger = logger
+	}
+}
+
+// WithDeadLetterHandler sets a handler that is called when a projection event
+// fails after all retry attempts are exhausted.
+func WithDeadLetterHandler(h DeadLetterHandler) RunnerOption {
+	return func(o *runnerOptions) {
+		o.deadLetter = h
 	}
 }

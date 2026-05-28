@@ -41,6 +41,10 @@ func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
 				"event_type", evt.Type(),
 				"error", err,
 			)
+
+			if r.opts.deadLetter != nil {
+				r.opts.deadLetter(ctx, p.Name(), evt, err)
+			}
 		}
 	}
 }

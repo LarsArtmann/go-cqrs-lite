@@ -183,6 +183,11 @@ func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (
 	return r.checkpoint.Load(ctx, projectionName)
 }
 
+// Reset clears the checkpoint for a projection, allowing full replay on the next Run.
+func (r *Runner) Reset(ctx context.Context, projectionName string) error {
+	return r.checkpoint.Save(ctx, projectionName, id.EventID{})
+}
+
 // Close cancels the internal context, causing Run to return gracefully.
 func (r *Runner) Close() error {
 	r.cancel()

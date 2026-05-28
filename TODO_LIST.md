@@ -145,11 +145,11 @@
 - [x] ~~Add SQLEventStoreOption usage~~ — DONE
 - [x] ~~Add command metadata~~ — DONE (Metadata struct + WithCorrelationID/CausationID/UserID/RequestID options)
 - [x] ~~Add ClientID branded type and WithClientID option~~ — DONE
-- [ ] Add PublishedAt to OutboxEntry — no way to measure outbox lag (source: METADATA_ANALYSIS)
+- [x] ~~Add PublishedAt to OutboxEntry~~ — DONE (CreatedAt time.Time field added to OutboxEntry, populated by memory+SQL implementations)
 - [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
 - [ ] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
 - [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
-- [ ] Add ContextEnricher wiring to repositories (source: SESSION_59)
+- [x] ~~Add ContextEnricher wiring to repositories~~ — DONE (Session 112c, event.ContextEnricher + WithEnricher on Repository)
 - [x] ~~Add event.Event.Clone()~~ — DONE
 - [ ] Add event.Context propagation — thread ctx through NewEvent, PublishChanges (source: SESSION_82)
 - [x] ~~Re-export errorfamily.Wrap as event.Wrap~~ — DONE

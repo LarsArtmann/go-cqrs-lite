@@ -1,0 +1,223 @@
+package projection
+
+import (
+	"context"
+	"errors"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/memory"
+)
+
+func TestRunner_DeadLetterHandler(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	store := memory.NewMemoryStore()
+	cp := memory.NewMemoryCheckpointStore()
+
+	var (
+		dlqMu      sync.Mutex
+		dlqEntries []struct {
+			projection string
+			evt        event.Event
+			err        error
+		}
+	)
+
+	dlqHandler := func(ctx context.Context, projectionName string, evt event.Event, err error) {
+		dlqMu.Lock()
+		dlqEntries = append(dlqEntries, struct {
+			projection string
+			evt        event.Event
+			err        error
+		}{projectionName, evt, err})
+		dlqMu.Unlock()
+	}
+
+	failingProj := event.NewProjection(
+		"failing-projection",
+		func(ctx context.Context, evt event.Event) error {
+			return errors.New("always fails")
+		},
+		[]event.Type{"user.created"},
+	)
+
+	runner, err := NewRunner(store, bus, cp,
+		WithDeadLetterHandler(dlqHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	if regErr := runner.Register(failingProj); regErr != nil {
+		t.Fatalf("Register: %v", regErr)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+
+	done := make(chan struct{})
+	go func() {
+		_ = runner.Run(ctx)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	evt := mustCreateTestEvent(t, "user.created", id.NewAggregateID(), 1)
+	if pubErr := bus.Publish(t.Context(), evt); pubErr != nil {
+		t.Fatalf("Publish: %v", pubErr)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	dlqMu.Lock()
+	defer dlqMu.Unlock()
+
+	if len(dlqEntries) == 0 {
+		t.Fatal("expected dead letter entries, got none")
+	}
+
+	if dlqEntries[0].projection != "failing-projection" {
+		t.Fatalf("expected projection 'failing-projection', got %q", dlqEntries[0].projection)
+	}
+
+	if dlqEntries[0].evt.ID() != evt.ID() {
+		t.Fatalf("expected event ID %s, got %s", evt.ID(), dlqEntries[0].evt.ID())
+	}
+}
+
+func TestRunner_Reset(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	store := memory.NewMemoryStore()
+	cp := memory.NewMemoryCheckpointStore()
+
+	evtID := id.NewEventID()
+	if saveErr := cp.Save(t.Context(), "test-projection", evtID); saveErr != nil {
+		t.Fatalf("Save checkpoint: %v", saveErr)
+	}
+
+	runner, err := NewRunner(store, bus, cp)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	loaded, loadErr := cp.Load(t.Context(), "test-projection")
+	if loadErr != nil {
+		t.Fatalf("Load before reset: %v", loadErr)
+	}
+
+	if !loaded.Equal(evtID) {
+		t.Fatalf("expected checkpoint %s before reset, got %s", evtID, loaded)
+	}
+
+	if resetErr := runner.Reset(t.Context(), "test-projection"); resetErr != nil {
+		t.Fatalf("Reset: %v", resetErr)
+	}
+
+	afterReset, loadErr := cp.Load(t.Context(), "test-projection")
+	if loadErr != nil {
+		t.Fatalf("Load after reset: %v", loadErr)
+	}
+
+	if !afterReset.IsZero() {
+		t.Fatalf("expected zero checkpoint after reset, got %s", afterReset)
+	}
+}
+
+func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
+	t.Parallel()
+
+	bus := memory.NewMemoryBus()
+	store := memory.NewMemoryStore()
+	cp := memory.NewMemoryCheckpointStore()
+
+	var (
+		dlqMu    sync.Mutex
+		dlqCount int
+	)
+
+	dlqHandler := func(ctx context.Context, projectionName string, evt event.Event, err error) {
+		dlqMu.Lock()
+		dlqCount++
+		dlqMu.Unlock()
+	}
+
+	callCount := 0
+	failingProj := event.NewProjection(
+		"retry-projection",
+		func(ctx context.Context, evt event.Event) error {
+			callCount++
+
+			return errors.New("always fails")
+		},
+		[]event.Type{"user.created"},
+	)
+
+	runner, err := NewRunner(store, bus, cp,
+		WithDeadLetterHandler(dlqHandler),
+		WithRetry(2, 10*time.Millisecond),
+	)
+	if err != nil {
+		t.Fatalf("NewRunner: %v", err)
+	}
+
+	if regErr := runner.Register(failingProj); regErr != nil {
+		t.Fatalf("Register: %v", regErr)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+
+	done := make(chan struct{})
+	go func() {
+		_ = runner.Run(ctx)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	evt := mustCreateTestEvent(t, "user.created", id.NewAggregateID(), 1)
+	if pubErr := bus.Publish(t.Context(), evt); pubErr != nil {
+		t.Fatalf("Publish: %v", pubErr)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	dlqMu.Lock()
+	defer dlqMu.Unlock()
+
+	if dlqCount != 1 {
+		t.Fatalf("expected 1 dead letter entry, got %d", dlqCount)
+	}
+
+	expectedCalls := 1 + 2
+	if callCount != expectedCalls {
+		t.Fatalf("expected %d handler calls (1 initial + 2 retries), got %d", expectedCalls, callCount)
+	}
+}
+
+func mustCreateTestEvent(tb testing.TB, eventType string, aggID id.AggregateID, version int) event.Event {
+	tb.Helper()
+
+	evt, err := event.New(
+		event.Type(eventType),
+		aggID,
+		event.AggregateType("TestAggregate"),
+		event.Version(version),
+		map[string]any{"data": "test"},
+	)
+	if err != nil {
+		tb.Fatalf("create test event: %v", err)
+	}
+
+	return evt
+}
