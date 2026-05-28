@@ -835,3 +835,59 @@ func TestSQLEventStore_LoadAll_QueryError(t *testing.T) {
 		t.Fatal("expected error for query failure")
 	}
 }
+
+const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM events
+		WHERE aggregate_type = $1 AND aggregate_id = $2
+		ORDER BY version DESC`
+
+func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+	evtID1 := id.NewEventID()
+	evtID2 := id.NewEventID()
+	ts := time.Now().Truncate(time.Microsecond)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
+		WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).
+			AddRow(evtID2.String(), "UserUpdated", "User", aggID.String(), 2, 1, nil, nil, ts).
+			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, nil, ts))
+
+	backwardsLoader := event.BackwardsLoader(store)
+	events, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
+	if err != nil {
+		t.Fatalf("LoadBackwards: %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(events))
+	}
+
+	if events[0].Type() != "UserUpdated" {
+		t.Errorf("first event = %q, want UserUpdated", events[0].Type())
+	}
+
+	if events[1].Type() != "UserCreated" {
+		t.Errorf("second event = %q, want UserCreated", events[1].Type())
+	}
+}
+
+func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
+		WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows(eventColumns()))
+
+	backwardsLoader := event.BackwardsLoader(store)
+	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
+	}
+}

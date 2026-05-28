@@ -152,4 +152,5 @@ var (
 	_ event.Store            = (*SQLEventStore)(nil)
 	_ event.GlobalLoader     = (*SQLEventStore)(nil)
 	_ event.PositionalLoader = (*SQLEventStore)(nil)
+	_ event.BackwardsLoader  = (*SQLEventStore)(nil)
 )

@@ -110,6 +110,26 @@ func (s *MemoryStore) getEvents(
 	return events, nil
 }
 
+// LoadBackwards returns events in reverse version order (newest first).
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *MemoryStore) LoadBackwards(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	events, err := s.getEvents(aggregateType, aggregateID, "load backwards")
+	if err != nil {
+		return nil, err
+	}
+
+	reversed := make([]event.Event, len(events))
+	for i, e := range events {
+		reversed[len(events)-1-i] = e
+	}
+
+	return reversed, nil
+}
+
 func copyEvents(events []event.Event) []event.Event {
 	result := make([]event.Event, len(events))
 	copy(result, events)

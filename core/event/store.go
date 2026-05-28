@@ -90,6 +90,12 @@ type Store interface {
 	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
 }
 
+// BackwardsLoader loads events in reverse version order (newest first).
+// Useful for tail-loading scenarios where only the most recent events are needed.
+type BackwardsLoader interface {
+	LoadBackwards(ctx context.Context, aggType AggregateType, aggID id.AggregateID) ([]Event, error)
+}
+
 // TransactionalStore extends Store with atomic save+outbox append.
 // Implementations MUST guarantee that SaveWithOutbox persists events
 // AND appends to the outbox within a single database transaction.

@@ -24,6 +24,7 @@ var (
 	_ event.Store            = (*MemoryStore)(nil)
 	_ event.GlobalLoader     = (*MemoryStore)(nil)
 	_ event.PositionalLoader = (*MemoryStore)(nil)
+	_ event.BackwardsLoader  = (*MemoryStore)(nil)
 	_ io.Closer              = (*MemoryStore)(nil)
 )
 

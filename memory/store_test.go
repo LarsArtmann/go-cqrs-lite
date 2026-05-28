@@ -509,3 +509,70 @@ func TestMemoryStore_LoadAllFromPosition_Closed(t *testing.T) {
 		t.Fatal("expected error for closed store")
 	}
 }
+
+func TestMemoryStore_LoadBackwards(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 2, nil)
+	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 3, nil)
+
+	err := store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	backwardsLoader := event.BackwardsLoader(store)
+	events, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(events) != 3 {
+		t.Fatalf("expected 3 events, got %d", len(events))
+	}
+
+	if events[0].Type() != "UserDeleted" {
+		t.Errorf("expected first event UserDeleted, got %s", events[0].Type())
+	}
+
+	if events[1].Type() != "UserUpdated" {
+		t.Errorf("expected second event UserUpdated, got %s", events[1].Type())
+	}
+
+	if events[2].Type() != "UserCreated" {
+		t.Errorf("expected third event UserCreated, got %s", events[2].Type())
+	}
+}
+
+func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	ctx := context.Background()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	backwardsLoader := event.BackwardsLoader(store)
+	_, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
+	}
+}
+
+func TestMemoryStore_LoadBackwards_Closed(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	_ = store.Close()
+
+	backwardsLoader := event.BackwardsLoader(store)
+	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", id.AggregateID{})
+	if err == nil {
+		t.Fatal("expected error for closed store")
+	}
+}

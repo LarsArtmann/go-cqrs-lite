@@ -115,6 +115,20 @@ func (s *SQLEventStore) queryEvents(
 	return events, nil
 }
 
+// LoadBackwards returns events in reverse version order (newest first).
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *SQLEventStore) LoadBackwards(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	return s.queryEvents(
+		ctx, aggregateType, aggregateID,
+		"ORDER BY version DESC", nil,
+		true, "query events backwards",
+	)
+}
+
 // Delete removes all events for an aggregate.
 func (s *SQLEventStore) Delete(
 	ctx context.Context,
