@@ -249,32 +249,6 @@ func TestEd25519_Deterministic(t *testing.T) {
 	}
 }
 
-func TestEmptyPayloadEvent(t *testing.T) {
-	t.Parallel()
-
-	key := []byte("my-secret-key-thirty-two-bytes!!")
-	signer, _ := signing.NewHMAC(key)
-
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
-
-	sig, signErr := signer.Sign(evt)
-	if signErr != nil {
-		t.Fatalf("sign: %v", signErr)
-	}
-
-	if sig.IsZero() {
-		t.Fatal("empty payload event should still produce non-zero signature")
-	}
-
-	if verifyErr := signer.Verify(evt, sig); verifyErr != nil {
-		t.Fatalf("verify: %v", verifyErr)
-	}
-}
-
 func TestSignature_Equal(t *testing.T) {
 	t.Parallel()
 

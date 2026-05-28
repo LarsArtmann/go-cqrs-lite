@@ -15,8 +15,8 @@ use (
 	./projection
 	./saga
 	./signing
-	./stream
 	./storage
+	./stream
 	./testhelpers
 	./watermill
 )

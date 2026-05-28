@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -181,5 +183,31 @@ func TestHMACSigner_DifferentKeys(t *testing.T) {
 
 	if bytes.Equal(sig1.Bytes(), sig2.Bytes()) {
 		t.Fatal("different keys should produce different signatures")
+	}
+}
+
+func TestEmptyPayloadEvent(t *testing.T) {
+	t.Parallel()
+
+	key := []byte("my-secret-key-thirty-two-bytes!!")
+	signer, _ := signing.NewHMAC(key)
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	sig, signErr := signer.Sign(evt)
+	if signErr != nil {
+		t.Fatalf("sign: %v", signErr)
+	}
+
+	if sig.IsZero() {
+		t.Fatal("empty payload event should still produce non-zero signature")
+	}
+
+	if verifyErr := signer.Verify(evt, sig); verifyErr != nil {
+		t.Fatalf("verify: %v", verifyErr)
 	}
 }

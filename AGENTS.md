@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                                                                                                     |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language  | Go 1.26.3                                                                                                                                                                                                 |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `watermill`, `cqrs-gen`                                                              |
-| Build     | `nix run .#build`                                                                                                                                                                                         |
-| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./watermill/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                                                                                                          |
-| Format    | `nix fmt`                                                                                                                                                                                                 |
-| Dev shell | `nix develop`                                                                                                                                                                                             |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                             |
+| Item      | Value                                                                                                                                                                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                                                                                              |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `watermill`, `cqrs-gen`                                                                 |
+| Build     | `nix run .#build`                                                                                                                                                                                                      |
+| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./stream/... ./watermill/... -count=1` |
+| Lint      | `nix run .#lint`                                                                                                                                                                                                       |
+| Format    | `nix fmt`                                                                                                                                                                                                              |
+| Dev shell | `nix develop`                                                                                                                                                                                                          |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                          |
 
 ## Monorepo Structure
 
@@ -53,6 +53,7 @@ go-cqrs-lite/
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── saga/                # Runner, Definition, Step, Instance, State, Store, compensation
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLOutbox, SQLCheckpointStore (PG/SQLite/Turso)
+├── stream/              # Aggregate listing, tombstone detection, StatusMiddleware, SQL/projection readers
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
 ├── integration/         # Cross-module tests (command, event, query)
 └── docs/                # Status reports, ADRs, architecture patterns, storage guide
@@ -125,7 +126,7 @@ result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
 **Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers;
-catalog→core; storage→core; projection→core; signing→core; saga→core; watermill→core;
+catalog→core; storage→core; projection→core; signing→core; saga→core; stream→core+memory; watermill→core;
 integration→core+memory+testhelpers.
 
 **Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote.
