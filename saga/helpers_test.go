@@ -112,9 +112,9 @@ func (l *mockLogger) getErrors() []string {
 // and returns the runner, instance, and store for test assertions.
 func setupTestSaga(
 	tb testing.TB,
-	dispatcher command.Dispatcher,
+	dispatcher saga.CommandDispatcher,
 	steps []saga.Step,
-	opts ...saga.Option,
+	opts ...saga.RunnerOption,
 ) (*saga.Runner, *saga.Instance, saga.Store) {
 	tb.Helper()
 
