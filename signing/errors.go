@@ -28,11 +28,4 @@ var (
 		"signing.nil_event",
 		"event is nil",
 	)
-
-	// ErrAlgorithmMismatch is returned when the signing algorithm doesn't match
-	// the key type (e.g., Ed25519 key with HMAC signer).
-	ErrAlgorithmMismatch = event.NewRejection(
-		"signing.algorithm_mismatch",
-		"signing algorithm does not match key type",
-	)
 )
