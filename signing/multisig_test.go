@@ -705,3 +705,141 @@ func TestMultiVerifyMiddleware_RejectsTampered(t *testing.T) {
 		t.Fatal("expected error for tampered multi-sig event")
 	}
 }
+
+func TestExtractMultiSignature_InvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	// Create an event with malformed multi-sig JSON in metadata
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt, err := event.NewEvent(
+		"test.invalid", aggID, "Test", 1, []byte(`{}`),
+		event.WithMetadata(&event.Metadata{
+			Custom: map[event.MetadataKey]string{
+				signing.MultiSigMetadataKey: `{invalid json`,
+			},
+		}),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	_, extractErr := signing.ExtractMultiSignature(evt)
+	if extractErr == nil {
+		t.Fatal("expected error for invalid JSON in multi-sig metadata")
+	}
+}
+
+func TestMultiSigner_Verify_NilEvent(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+
+	if err := deviceMulti.Verify(nil); err == nil {
+		t.Fatal("expected error for nil event")
+	}
+}
+
+func TestMultiSigner_VerifyActor_NilEvent(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+	pubKey, _, _ := ed25519.GenerateKey(nil)
+	verifier, _ := signing.NewEd25519Verifier(pubKey)
+
+	if err := deviceMulti.VerifyActor(nil, signing.Actor("device"), verifier); err == nil {
+		t.Fatal("expected error for nil event")
+	}
+}
+
+func TestMultiSigner_VerifyActor_NoSignature(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+	serverMulti := newServerMultiSigner(t)
+
+	evt := makeTestEvent(t)
+	// Only server signs, then we try to verify device
+	clone, _ := serverMulti.Sign(evt)
+
+	pubKey, _, _ := ed25519.GenerateKey(nil)
+	verifier, _ := signing.NewEd25519Verifier(pubKey)
+
+	if err := deviceMulti.VerifyActor(clone, signing.Actor("device"), verifier); err == nil {
+		t.Fatal("expected error when actor has no signature")
+	}
+}
+
+func TestMultiSigner_VerifyActor_BadSignature(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, devicePubKey := newDeviceMultiSigner(t)
+	evt := makeTestEvent(t)
+	clone, _ := deviceMulti.Sign(evt)
+
+	// Tamper with the event after signing
+	tampered, _ := event.NewEvent(
+		clone.Type(), clone.AggregateID(), clone.AggregateType(), clone.Version(),
+		[]byte(`{"tampered":true}`),
+		event.WithEventID(clone.ID()),
+		event.WithOccurredAt(clone.OccurredAt()),
+		event.WithSchemaVersion(clone.SchemaVersion()),
+		event.WithMetadata(clone.Metadata()),
+	)
+
+	deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
+
+	if err := deviceMulti.VerifyActor(tampered, signing.Actor("device"), deviceVerifier); err == nil {
+		t.Fatal("expected error for tampered event")
+	}
+}
+
+func TestVerifyAll_NilEvent(t *testing.T) {
+	t.Parallel()
+
+	verifiers := map[signing.Actor]signing.Verifier{}
+	if err := signing.VerifyAll(nil, verifiers); err == nil {
+		t.Fatal("expected error for nil event")
+	}
+}
+
+func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+
+	called := false
+	handler := func(_ context.Context, _ event.Event) error {
+		called = true
+
+		return nil
+	}
+
+	mw := signing.MultiVerifyMiddleware(deviceMulti)
+	wrapped := mw(handler)
+
+	// Unsigned event should pass through
+	evt := makeTestEvent(t)
+	if err := wrapped(context.Background(), evt); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("handler should have been called for unsigned event")
+	}
+}
+
+func TestRequireMultiSigMiddleware_NilEvent(t *testing.T) {
+	t.Parallel()
+
+	handler := func(_ context.Context, _ event.Event) error {
+		return nil
+	}
+
+	verifiers := map[signing.Actor]signing.Verifier{}
+	mw := signing.RequireMultiSigMiddleware(verifiers)
+	wrapped := mw(handler)
+
+	if err := wrapped(context.Background(), nil); err == nil {
+		t.Fatal("expected error for nil event")
+	}
+}

@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-//nolint:dupl // Backward-compat test for deprecated wrapper
+//nolint:dupl // backward-compat test mirrors ReadAll
 func TestMemoryStore_LoadAll(t *testing.T) {
 	t.Parallel()
 
@@ -44,7 +44,7 @@ func TestMemoryStore_LoadAll(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Backward-compat test for deprecated wrapper
+//nolint:dupl // backward-compat test mirrors ReadAll_Empty
 func TestMemoryStore_LoadAll_Empty(t *testing.T) {
 	t.Parallel()
 
@@ -61,7 +61,7 @@ func TestMemoryStore_LoadAll_Empty(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Backward-compat test for deprecated wrapper
+//nolint:dupl // backward-compat test mirrors ReadAll_Closed
 func TestMemoryStore_LoadAll_Closed(t *testing.T) {
 	t.Parallel()
 
@@ -101,7 +101,7 @@ func TestMemoryOutboxStore_Close(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
+//nolint:dupl // mirrors LoadAll backward-compat test
 func TestMemoryStore_ReadAll(t *testing.T) {
 	t.Parallel()
 
@@ -134,7 +134,6 @@ func TestMemoryStore_ReadAll(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
 func TestMemoryStore_ReadAll_Empty(t *testing.T) {
 	t.Parallel()
 
@@ -151,7 +150,6 @@ func TestMemoryStore_ReadAll_Empty(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
 func TestMemoryStore_ReadAll_Closed(t *testing.T) {
 	t.Parallel()
 
@@ -169,7 +167,7 @@ func TestMemoryStore_ReadAll_Closed(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
+//nolint:dupl // mirrors LoadAllFromPosition backward-compat test
 func TestMemoryStore_ReadFrom(t *testing.T) {
 	t.Parallel()
 
@@ -210,7 +208,6 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 	testhelpers.AssertLen(t, "from position", fromPos, 1)
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
 func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	t.Parallel()
 
@@ -227,7 +224,6 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	testhelpers.AssertLen(t, "events", events, 1)
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
 func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	t.Parallel()
 
@@ -246,7 +242,6 @@ func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	testhelpers.AssertLen(t, "events", events, 3)
 }
 
-//nolint:dupl // Intentional duplication to test backward-compatible deprecated wrapper
 func TestMemoryStore_ReadFrom_Closed(t *testing.T) {
 	t.Parallel()
 

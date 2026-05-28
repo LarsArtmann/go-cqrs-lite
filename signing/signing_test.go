@@ -811,3 +811,56 @@ func TestEmptyPayloadEvent(t *testing.T) {
 		t.Fatalf("verify: %v", verifyErr)
 	}
 }
+
+func TestSignature_Equal(t *testing.T) {
+	t.Parallel()
+
+	sig1 := signing.Signature([]byte("abc"))
+	sig2 := signing.Signature([]byte("abc"))
+	sig3 := signing.Signature([]byte("xyz"))
+
+	if !sig1.Equal(sig2) {
+		t.Fatal("equal signatures should report equal")
+	}
+
+	if sig1.Equal(sig3) {
+		t.Fatal("different signatures should not report equal")
+	}
+
+	empty := signing.Signature(nil)
+	if !empty.Equal(signing.Signature(nil)) {
+		t.Fatal("two nil signatures should report equal")
+	}
+
+	if empty.Equal(sig1) {
+		t.Fatal("nil vs non-nil should not report equal")
+	}
+}
+
+func TestSignature_UnmarshalJSON_InvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	var s signing.Signature
+
+	err := json.Unmarshal([]byte(`123`), &s)
+	if err == nil {
+		t.Fatal("expected error for non-string JSON")
+	}
+
+	err = json.Unmarshal([]byte(`{}`), &s)
+	if err == nil {
+		t.Fatal("expected error for object JSON")
+	}
+}
+
+func TestSignature_UnmarshalJSON_BadBase64(t *testing.T) {
+	t.Parallel()
+
+	var s signing.Signature
+
+	// Valid JSON string but invalid base64 (contains chars not in any base64 alphabet)
+	err := json.Unmarshal([]byte(`"!!!not-valid-base64!!!"`), &s)
+	if err == nil {
+		t.Fatal("expected error for invalid base64 string")
+	}
+}

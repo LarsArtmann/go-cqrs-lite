@@ -69,6 +69,10 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
+			if evt == nil {
+				return fmt.Errorf("%w: nil event", ErrNilSignature)
+			}
+
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
 				return fmt.Errorf("%w: event %s has no multi-signature", ErrNilSignature, evt.Type())
