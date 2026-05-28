@@ -123,8 +123,8 @@ type Clock func() time.Time
 // multi-signature entries without removing prior signatures.
 //
 // For HMAC, the same Signer handles both signing and verification.
-// For Ed25519, provide an Ed25519Signer for signing and an Ed25519Verifier
-// via the WithVerifier option:
+// For Ed25519, create a signer with NewEd25519 and a verifier with NewEd25519Verifier,
+// then pass the verifier via the WithVerifier option:
 //
 //	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, ed25519Signer,
 //	    signing.WithVerifier(ed25519Verifier))

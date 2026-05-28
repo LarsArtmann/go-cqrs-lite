@@ -12,7 +12,7 @@ import (
 // Keys shorter than this are rejected to prevent weak security.
 const MinimumKeyLength = 32
 
-// HMACSigner signs and verifies events using HMAC-SHA256.
+// hmacSigner signs and verifies events using HMAC-SHA256.
 // Use for shared-secret scenarios where all participants trust each other
 // (e.g., same-organization microservices).
 type hmacSigner struct {
@@ -22,6 +22,7 @@ type hmacSigner struct {
 var _ SignerVerifier = (*hmacSigner)(nil)
 
 // NewHMAC creates an HMAC-SHA256 signer from a shared secret key.
+// Returns a SignerVerifier that handles both signing and verification.
 // Returns ErrInvalidKey if the key is nil or shorter than MinimumKeyLength.
 func NewHMAC(key []byte) (*hmacSigner, error) {
 	if len(key) < MinimumKeyLength {

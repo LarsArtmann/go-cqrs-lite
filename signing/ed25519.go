@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-// Ed25519Signer signs events with Ed25519 private keys.
+// ed25519Signer signs events with Ed25519 private keys.
 // Use for asymmetric scenarios where verifiers don't have signing access
 // (e.g., client devices sign, server verifies).
 type ed25519Signer struct {
