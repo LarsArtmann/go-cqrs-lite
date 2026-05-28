@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func BenchmarkRunner_Register(b *testing.B) {
@@ -25,7 +26,7 @@ func BenchmarkRunner_Register(b *testing.B) {
 	for b.Loop() {
 		err = runner.Register(event.NewProjection(
 			"noop",
-			func(_ context.Context, _ event.Event) error { return nil },
+			testhelpers.NoopEventHandler(),
 			[]event.Type{"UserCreated"},
 		))
 		if err != nil {

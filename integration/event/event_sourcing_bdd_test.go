@@ -291,7 +291,7 @@ var _ = Describe("Event Bus", func() {
 
 				err := bus.Subscribe(
 					event.Type("Test"),
-					func(_ context.Context, _ event.Event) error { return nil },
+					testhelpers.NoopEventHandler(),
 				)
 				Expect(err).To(MatchError(event.ErrBusClosed))
 			})

@@ -42,7 +42,7 @@ func registerNoopProjection(
 
 	err := runner.Register(event.NewProjection(
 		name,
-		func(_ context.Context, _ event.Event) error { return nil },
+		testhelpers.NoopEventHandler(),
 		eventTypes,
 	))
 	if err != nil {
