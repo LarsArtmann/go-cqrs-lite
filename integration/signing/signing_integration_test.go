@@ -12,8 +12,9 @@ import (
 )
 
 // TestSigningFullFlow tests the complete signing pipeline across modules:
-//   event.NewEvent -> MultiSigner.Sign -> Bus.Publish (with MultiSignMiddleware)
-//   -> Bus.Subscribe (with RequireMultiSigMiddleware) -> verified handler
+//
+//	event.NewEvent -> MultiSigner.Sign -> Bus.Publish (with MultiSignMiddleware)
+//	-> Bus.Subscribe (with RequireMultiSigMiddleware) -> verified handler
 func TestSigningFullFlow(t *testing.T) {
 	t.Parallel()
 
