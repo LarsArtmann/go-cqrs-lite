@@ -56,6 +56,9 @@ func (b *FakeBus) SubscribeAll(handler event.Handler) error {
 // Use is a no-op for testing.
 func (b *FakeBus) Use(_ ...event.Middleware) error { return nil }
 
+// UsePublish is a no-op for testing.
+func (b *FakeBus) UsePublish(_ ...event.PublishMiddleware) error { return nil }
+
 // Close is a no-op for testing.
 func (b *FakeBus) Close() error { return nil }
 

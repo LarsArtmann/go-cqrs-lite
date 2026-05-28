@@ -14,6 +14,14 @@ type Publisher interface {
 	Publish(ctx context.Context, events ...Event) error
 }
 
+// PublisherFunc is a function adapter for Publisher.
+type PublisherFunc func(ctx context.Context, events ...Event) error
+
+// Publish calls the underlying function.
+func (f PublisherFunc) Publish(ctx context.Context, events ...Event) error {
+	return f(ctx, events...)
+}
+
 // Subscriber registers handlers for events. Projections and event processors
 // only need this interface — they never publish.
 type Subscriber interface {
@@ -36,7 +44,14 @@ type Bus interface {
 
 	// Use adds middleware that wraps all event handlers
 	Use(middleware ...Middleware) error
+
+	// UsePublish adds middleware that wraps the Publish path.
+	UsePublish(middleware ...PublishMiddleware) error
 }
 
 // Middleware wraps event handlers for cross-cutting concerns.
 type Middleware func(Handler) Handler
+
+// PublishMiddleware wraps the Publish method for cross-cutting concerns
+// (logging, metrics, retry). Applied via Bus.UsePublish().
+type PublishMiddleware func(Publisher) Publisher

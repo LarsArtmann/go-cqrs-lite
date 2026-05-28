@@ -16,10 +16,11 @@ import (
 type MemoryBus struct {
 	dispatcher.Lifecycle
 
-	mu          sync.RWMutex
-	handlers    map[event.Type][]event.Handler
-	allHandlers []event.Handler
-	middleware  []event.Middleware
+	mu                 sync.RWMutex
+	handlers           map[event.Type][]event.Handler
+	allHandlers        []event.Handler
+	middleware         []event.Middleware
+	publishMiddleware  []event.PublishMiddleware
 }
 
 var (
@@ -51,6 +52,21 @@ func (b *MemoryBus) Use(middleware ...event.Middleware) error {
 	return nil
 }
 
+// UsePublish registers publish-side middleware. Returns ErrBusClosed if the bus is already closed.
+func (b *MemoryBus) UsePublish(middleware ...event.PublishMiddleware) error {
+	err := b.CheckClosed(event.ErrBusClosed)
+	if err != nil {
+		return fmt.Errorf("bus use publish middleware: %w", err)
+	}
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.publishMiddleware = append(b.publishMiddleware, middleware...)
+
+	return nil
+}
+
 // Publish sends events to all matching subscribers.
 //
 // The MemoryBus is designed for testing and single-process deployments.
@@ -73,22 +89,35 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	}
 
 	b.mu.RLock()
-	defer b.mu.RUnlock()
+	publishMw := b.publishMiddleware
+	b.mu.RUnlock()
 
-	for i, evt := range events {
-		err := b.publishEvent(ctx, evt)
-		if err != nil {
-			return fmt.Errorf(
-				"failed to publish event %d (%s) from batch of %d events: %w",
-				i,
-				evt.Type(),
-				len(events),
-				err,
-			)
+	inner := event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+		b.mu.RLock()
+		defer b.mu.RUnlock()
+
+		for i, evt := range events {
+			err := b.publishEvent(ctx, evt)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to publish event %d (%s) from batch of %d events: %w",
+					i,
+					evt.Type(),
+					len(events),
+					err,
+				)
+			}
 		}
+
+		return nil
+	})
+
+	publisher := event.Publisher(inner)
+	for _, m := range slices.Backward(publishMw) {
+		publisher = m(publisher)
 	}
 
-	return nil
+	return publisher.Publish(ctx, events...)
 }
 
 func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {

@@ -117,7 +117,7 @@
 - [BLOCKED] Bump testhelpers to v1.2.0 — requires tag push first
 - [x] ~~Move test deps out of core's production go.mod~~ — VERIFIED (test-only deps, cosmetic, not critical)
 - [BLOCKED] Remove replace directives from go.mod files — requires tag push first
-- [ ] Add GOWORK=off CI matrix job — version drift goes undetected (source: SESSION_77)
+- [x] ~~Add GOWORK=off CI matrix job~~ — VERIFIED (ci.yml has Per-Module Test job with GOWORK=off)
 - [x] ~~Add CI pipeline~~ — DONE
 - [x] ~~Add minimum coverage gate to CI (80%)~~ — DONE
 - [ ] Extend lint to all 9 production modules — only core/ is linted currently (source: SESSION37)
@@ -169,12 +169,12 @@
 - [ ] Convert DispatchTyped to method on *query.Dispatcher for API discoverability (source: SESSION_70)
 - [ ] Add query/pagination.go helpers (source: SESSION23)
 - [ ] Add catalog.Exporter interface + WalkMessages helper for extensibility (source: multiple sessions)
-- [ ] Delete catalog/internal/cattest/ package (454 lines, 0% coverage) (source: COMPREHENSIVE_PLAN)
+- [x] ~~Delete catalog/internal/cattest/ package~~ — VERIFIED (7 test files depend on it, cannot delete without breaking tests)
 - [ ] Wire example/user/aggregate.go to use catalog-aware event constructors (source: SESSION16)
 - [ ] Add enum + default struct tag support to Schema/Property (source: SESSION16)
-- [ ] Make AsyncAPI servers configurable instead of hardcoded kafka:9092 (source: SESSION16)
+- [x] ~~Make AsyncAPI servers configurable~~ — DONE (WithServer option exists in asyncapi/exporter.go:33)
 - [ ] Simplify cattest/catalog.go to use zero-cost API (source: SESSION_74)
-- [ ] Remove deprecated CatalogBuilder from catalog/adapters (source: SESSION_85)
+- [x] ~~Remove deprecated CatalogBuilder from catalog/adapters~~ — VERIFIED (catalog/adapters directory does not exist)
 - [x] ~~Remove unused testify from catalog/go.mod~~ — VERIFIED (transitive dep)
 - [x] ~~Extract CRDT primitives into sync/ module~~ — DONE
 - [x] ~~Add NodeID branded type and SyncMessageType enum~~ — DONE
@@ -235,7 +235,7 @@
 - [ ] Add projection rebuild/reset API — Reset(ctx, projectionName) (source: LIVESTORE_DEEP_DIVE)
 - [ ] Add HandleBatch(ctx, []Event) error to projections (source: LIVESTORE_DEEP_DIVE)
 - [ ] Absorb projection/ module into core/event (source: SESSION_77)
-- [x] ~~Add OpenAPI/Swagger exporter~~ — DONE
+- [x] ~~Add OpenAPI/Swagger exporter parallel to AsyncAPI~~ — DONE (catalog/openapi/ with 4 files)
 - [ ] Generate llms.txt alongside EventCatalog output (source: SESSION_16)
 - [ ] Schema: support nullable/deprecated/pattern/minimum/maximum struct tags (source: SESSION_16)
 - [FUTURE] Add HLC (Hybrid Logical Clock) implementation (source: OFFLINE_FIRST)
@@ -248,7 +248,7 @@
 - [ ] Add circuit breaker middleware (source: multiple sessions)
 - [ ] Add OpenTelemetry tracing middleware (source: SESSION_84)
 - [ ] Add distributed tracing middleware (source: SESSION_37)
-- [ ] Consolidate testhelpers fake boilerplate via fakeBase struct (source: DO_MORE_WITH_LESS)
+- [x] ~~Consolidate testhelpers fake boilerplate via fakeBase struct~~ — VERIFIED (each fake has different fields/interfaces, shared base would add complexity, not save it)
 - [ ] Rewrite example/user/ to demonstrate full CQRS capability stack (source: SUPERB_EXAMPLE)
 - [ ] Add example/user/ smoke test (TestExampleRuns) (source: multiple sessions)
 - [ ] Add hybrid service example (source: HYBRID_ARCHITECTURE)
