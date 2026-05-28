@@ -162,12 +162,14 @@ func (s *SQLSagaStore) scanState(row *sql.Row, sagaID id.AggregateID) (*saga.Sta
 
 	createdAt, err := s.dialect.ParseTime(createdAtDest)
 	if err != nil {
-		return nil, fmt.Errorf("parse created_at for saga %s: %w", sagaID, err)
+		return nil, event.WrapCorruption(err, "storage.parse_saga_created_at",
+			"parse created_at for saga "+sagaID.String())
 	}
 
 	updatedAt, err := s.dialect.ParseTime(updatedAtDest)
 	if err != nil {
-		return nil, fmt.Errorf("parse updated_at for saga %s: %w", sagaID, err)
+		return nil, event.WrapCorruption(err, "storage.parse_saga_updated_at",
+			"parse updated_at for saga "+sagaID.String())
 	}
 
 	return &saga.State{

@@ -32,7 +32,8 @@ func (s *SQLEventStore) LoadStream(
 
 	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
-		return nil, fmt.Errorf("sql stream query: %w", err)
+		return nil, event.WrapInfrastructure(err, "storage.stream_query",
+			"sql stream query")
 	}
 
 	return &sqlEventStream{rows: rows, store: s}, nil

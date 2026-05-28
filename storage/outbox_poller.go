@@ -102,7 +102,8 @@ func (p *OutboxPoller) loop(ctx context.Context) {
 func (p *OutboxPoller) poll(ctx context.Context) error {
 	entries, err := p.outbox.PollPending(ctx, p.batchSize)
 	if err != nil {
-		return fmt.Errorf("poll pending: %w", err)
+		return event.WrapInfrastructure(err, "storage.poll_pending",
+			"poll pending outbox entries")
 	}
 
 	var ackIDs []event.OutboxID
@@ -118,7 +119,8 @@ func (p *OutboxPoller) poll(ctx context.Context) error {
 
 	if len(ackIDs) > 0 {
 		if err := p.outbox.Ack(ctx, ackIDs); err != nil {
-			return fmt.Errorf("ack %d entries: %w", len(ackIDs), err)
+			return event.WrapInfrastructure(err, "storage.ack_entries",
+				fmt.Sprintf("ack %d outbox entries", len(ackIDs)))
 		}
 
 		p.logger.Info(
@@ -136,7 +138,8 @@ func (p *OutboxPoller) poll(ctx context.Context) error {
 func (p *OutboxPoller) publishEntry(ctx context.Context, entry event.OutboxEntry) error {
 	for _, evt := range entry.Events {
 		if err := p.publisher.Publish(ctx, evt); err != nil {
-			return fmt.Errorf("publish event %s: %w", evt.ID(), err)
+			return event.WrapInfrastructure(err, "storage.publish_event",
+				"publish event "+evt.ID().String())
 		}
 	}
 
