@@ -151,12 +151,12 @@ func (s *MemoryStore) collectAllSorted() []event.Event {
 	return all
 }
 
-// LoadAll returns all events across all aggregates, sorted by OccurredAt.
-// Implements event.GlobalLoader for projection replay.
-func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
+// ReadAll returns all events across all aggregates, sorted by OccurredAt.
+// Implements event.Journal for projection replay.
+func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store load all: %w", err)
+		return nil, fmt.Errorf("memory store read all: %w", err)
 	}
 
 	s.mu.RLock()
@@ -167,16 +167,23 @@ func (s *MemoryStore) LoadAll(_ context.Context) ([]event.Event, error) {
 	return copyEvents(all), nil
 }
 
-// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
-// Implements event.PositionalLoader for efficient projection catch-up.
-func (s *MemoryStore) LoadAllFromPosition(
+// LoadAll returns all events across all aggregates, sorted by OccurredAt.
+//
+// Deprecated: use ReadAll instead.
+func (s *MemoryStore) LoadAll(ctx context.Context) ([]event.Event, error) {
+	return s.ReadAll(ctx)
+}
+
+// ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
+// Implements event.SeekableJournal for efficient projection catch-up.
+func (s *MemoryStore) ReadFrom(
 	_ context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store load all from position (limit=%d): %w", limit, err)
+		return nil, fmt.Errorf("memory store read from (limit=%d): %w", limit, err)
 	}
 
 	s.mu.RLock()
@@ -202,4 +209,15 @@ func (s *MemoryStore) LoadAllFromPosition(
 	}
 
 	return copyEvents(filtered), nil
+}
+
+// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
+//
+// Deprecated: use ReadFrom instead.
+func (s *MemoryStore) LoadAllFromPosition(
+	ctx context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	return s.ReadFrom(ctx, afterEventID, limit)
 }

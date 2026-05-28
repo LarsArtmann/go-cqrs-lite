@@ -109,7 +109,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 	}
 }
 
-func TestTimeTravel_PositionalLoader(t *testing.T) {
+func TestTimeTravel_SeekableJournal(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
@@ -135,27 +135,27 @@ func TestTimeTravel_PositionalLoader(t *testing.T) {
 		t.Fatalf("AppendBatch agg2: %v", err)
 	}
 
-	all, err := store.LoadAll(ctx)
+	all, err := store.ReadAll(ctx)
 	if err != nil {
-		t.Fatalf("LoadAll: %v", err)
+		t.Fatalf("ReadAll: %v", err)
 	}
 
 	if len(all) != 3 {
 		t.Fatalf("expected 3 total events, got %d", len(all))
 	}
 
-	remaining, err := store.LoadAllFromPosition(ctx, all[0].ID(), 0)
+	remaining, err := store.ReadFrom(ctx, all[0].ID(), 0)
 	if err != nil {
-		t.Fatalf("LoadAllFromPosition: %v", err)
+		t.Fatalf("ReadFrom: %v", err)
 	}
 
 	if len(remaining) != 2 {
 		t.Fatalf("expected 2 events after position, got %d", len(remaining))
 	}
 
-	limited, err := store.LoadAllFromPosition(ctx, all[0].ID(), 1)
+	limited, err := store.ReadFrom(ctx, all[0].ID(), 1)
 	if err != nil {
-		t.Fatalf("LoadAllFromPosition limited: %v", err)
+		t.Fatalf("ReadFrom limited: %v", err)
 	}
 
 	if len(limited) != 1 {

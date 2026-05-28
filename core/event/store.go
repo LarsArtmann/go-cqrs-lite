@@ -8,9 +8,34 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// Journal reads all events across all aggregates, ordered by occurrence.
+// "Journal" is the standard event sourcing term for the complete, ordered,
+// append-only log of all domain events. This is the core interface for
+// projection replay.
+type Journal interface {
+	// ReadAll retrieves all events across all aggregates, ordered by OccurredAt.
+	ReadAll(ctx context.Context) ([]Event, error)
+}
+
+// SeekableJournal extends Journal with position-based reading.
+// Enables efficient projection catch-up without loading all events into memory.
+//
+// Position is based on event ID ordering. ULID-based IDs are time-sortable, making
+// them suitable for position-based loading. Using non-monotonic IDs may produce
+// incorrect results.
+type SeekableJournal interface {
+	Journal
+
+	// ReadFrom retrieves events ordered by OccurredAt, starting after
+	// the given event ID. Returns up to limit events. Pass limit <= 0 for no limit.
+	ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]Event, error)
+}
+
 // GlobalLoader loads all events across all aggregates, ordered by occurrence.
 // Implementations return events sorted by OccurredAt for deterministic replay.
 // This is the core interface for projection replay.
+//
+// Deprecated: use Journal instead.
 type GlobalLoader interface {
 	LoadAll(ctx context.Context) ([]Event, error)
 }
@@ -22,6 +47,8 @@ type GlobalLoader interface {
 // Position is based on event ID ordering. ULID-based IDs are time-sortable, making
 // them suitable for position-based loading. Using non-monotonic IDs may produce
 // incorrect results.
+//
+// Deprecated: use SeekableJournal instead.
 type PositionalLoader interface {
 	GlobalLoader
 

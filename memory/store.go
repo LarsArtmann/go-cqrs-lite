@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// MemoryStore is an in-memory implementation of event.Store and event.GlobalLoader.
+// MemoryStore is an in-memory implementation of event.Store and event.Journal.
 // It is safe for concurrent use. Designed for testing and single-process deployments.
 type MemoryStore struct {
 	dispatcher.Lifecycle
@@ -22,8 +22,10 @@ type MemoryStore struct {
 
 var (
 	_ event.Store            = (*MemoryStore)(nil)
-	_ event.GlobalLoader     = (*MemoryStore)(nil)
-	_ event.PositionalLoader = (*MemoryStore)(nil)
+	_ event.Journal          = (*MemoryStore)(nil)
+	_ event.SeekableJournal  = (*MemoryStore)(nil)
+	_ event.GlobalLoader     = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
+	_ event.PositionalLoader = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
 	_ event.BackwardsLoader  = (*MemoryStore)(nil)
 	_ io.Closer              = (*MemoryStore)(nil)
 )

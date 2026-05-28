@@ -198,3 +198,61 @@ func TestSQLEventStore_LoadAll_Mock_ScanError(t *testing.T) {
 		t.Fatal("expected error from scan with invalid event ID in LoadAll")
 	}
 }
+
+func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
+		WithArgs(evt.ID().String(), 10).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			evt.ID(), "UserCreated", "User", aggID,
+			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		))
+
+	events, err := store.ReadFrom(context.Background(), evt.ID(), 10)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLEventStore_ReadFrom_Mock_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	evtID := id.NewEventID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
+		WithArgs(evtID.String(), 10).
+		WillReturnError(errors.New("connection lost"))
+
+	_, err := store.ReadFrom(context.Background(), evtID, 10)
+	if err == nil {
+		t.Fatal("expected error from query failure")
+	}
+}
+
+func TestSQLEventStore_ReadAll_Mock_ScanError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID := id.NewAggregateID()
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
+		))
+
+	_, err := store.ReadAll(context.Background())
+	if err == nil {
+		t.Fatal("expected error from scan with invalid event ID in ReadAll")
+	}
+}

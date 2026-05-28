@@ -28,6 +28,8 @@ type FakeStore struct {
 	appendBatchFn     func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error
 	deleteFn          func(aggregateType event.AggregateType, aggregateID id.AggregateID) error
 	closeFn           func() error
+	readAllFn         func() ([]event.Event, error)
+	readFromFn        func(afterEventID id.EventID, limit int) ([]event.Event, error)
 }
 
 // NewFakeStore creates a FakeStore with empty state.
@@ -218,6 +220,67 @@ func (s *FakeStore) Delete(
 	return nil
 }
 
+// ReadAll returns all events across all aggregates.
+func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
+	s.mu.RLock()
+	fn := s.readAllFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn()
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var all []event.Event
+
+	for _, evts := range s.events {
+		all = append(all, evts...)
+	}
+
+	return all, nil
+}
+
+// ReadFrom returns events starting after the given event ID.
+func (s *FakeStore) ReadFrom(
+	_ context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	s.mu.RLock()
+	fn := s.readFromFn
+	s.mu.RUnlock()
+
+	if fn != nil {
+		return fn(afterEventID, limit)
+	}
+
+	all, err := s.ReadAll(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	startIdx := 0
+
+	if !afterEventID.IsZero() {
+		for i, e := range all {
+			if e.ID() == afterEventID {
+				startIdx = i + 1
+
+				break
+			}
+		}
+	}
+
+	filtered := all[startIdx:]
+	if limit > 0 && len(filtered) > limit {
+		filtered = filtered[:limit]
+	}
+
+	return filtered, nil
+}
+
 // Close is a no-op for testing.
 func (s *FakeStore) Close() error {
 	s.mu.RLock()
@@ -240,4 +303,8 @@ func (s *FakeStore) Close() error {
 // DeleteFn sets an optional override for Delete calls.
 // Return an error to simulate delete failures.
 
-var _ event.Store = (*FakeStore)(nil)
+var (
+	_ event.Store           = (*FakeStore)(nil)
+	_ event.Journal         = (*FakeStore)(nil)
+	_ event.SeekableJournal = (*FakeStore)(nil)
+)

@@ -819,7 +819,7 @@ func TestHandlerRegistry_OnAll_NilHandler(t *testing.T) {
 	}
 }
 
-func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
+func TestRunner_ReplayError_ReadAllFails(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
@@ -830,7 +830,7 @@ func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
 		_ = checkpoint.Close()
 	})
 
-	loader := &failingGlobalLoader{err: errors.New("load all failed")}
+	loader := &failingJournal{err: errors.New("read all failed")}
 
 	runner, err := projection.NewRunner(loader, bus, checkpoint)
 	if err != nil {
@@ -841,7 +841,7 @@ func TestRunner_ReplayError_LoadAllFails(t *testing.T) {
 
 	runErr := runner.Run(context.Background())
 	if runErr == nil {
-		t.Fatal("expected error when LoadAll fails")
+		t.Fatal("expected error when ReadAll fails")
 	}
 }
 
@@ -922,11 +922,11 @@ func TestRunner_ReplayError_HandlerFails(t *testing.T) {
 	}
 }
 
-type failingGlobalLoader struct {
+type failingJournal struct {
 	err error
 }
 
-func (f *failingGlobalLoader) LoadAll(_ context.Context) ([]event.Event, error) {
+func (f *failingJournal) ReadAll(_ context.Context) ([]event.Event, error) {
 	return nil, f.err
 }
 
@@ -944,14 +944,14 @@ func (f *failingCheckpointStore) Save(_ context.Context, _ string, _ id.EventID)
 
 func (f *failingCheckpointStore) Close() error { return nil }
 
-func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
+func TestRunner_ReplayWithSeekableJournal(t *testing.T) {
 	t.Parallel()
 
 	evt1 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 	evt2 := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 	evt3 := mustNewEvent(t, "OrderPlaced", id.NewAggregateID())
 
-	store := &positionalLoaderStore{events: []event.Event{evt1, evt2, evt3}}
+	store := &seekableJournalStore{events: []event.Event{evt1, evt2, evt3}}
 
 	bus := memory.NewMemoryBus()
 
@@ -993,7 +993,7 @@ func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
 	select {
 	case <-replayDone:
 	case <-time.After(time.Second):
-		t.Fatal("timed out waiting for positional replay")
+		t.Fatal("timed out waiting for seekable replay")
 	}
 
 	cancel()
@@ -1004,7 +1004,7 @@ func TestRunner_ReplayWithPositionalLoader(t *testing.T) {
 	defer replayMu.Unlock()
 
 	if len(replayed) != 1 {
-		t.Errorf("replayed %d events, want 1 (evt2 via PositionalLoader)", len(replayed))
+		t.Errorf("replayed %d events, want 1 (evt2 via SeekableJournal)", len(replayed))
 	}
 
 	if len(replayed) > 0 && replayed[0] != evt2.ID() {
@@ -1023,7 +1023,7 @@ func TestRunner_ReplayEmptyStore(t *testing.T) {
 		_ = checkpoint.Close()
 	})
 
-	loader := &emptyGlobalLoader{}
+	loader := &emptyJournal{}
 
 	runner, err := projection.NewRunner(loader, bus, checkpoint)
 	if err != nil {
@@ -1097,21 +1097,21 @@ func TestRunner_SubscribeError(t *testing.T) {
 	}
 }
 
-type emptyGlobalLoader struct{}
+type emptyJournal struct{}
 
-func (e *emptyGlobalLoader) LoadAll(_ context.Context) ([]event.Event, error) {
+func (e *emptyJournal) ReadAll(_ context.Context) ([]event.Event, error) {
 	return nil, nil
 }
 
-type positionalLoaderStore struct {
+type seekableJournalStore struct {
 	events []event.Event
 }
 
-func (p *positionalLoaderStore) LoadAll(_ context.Context) ([]event.Event, error) {
+func (p *seekableJournalStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	return p.events, nil
 }
 
-func (p *positionalLoaderStore) LoadAllFromPosition(
+func (p *seekableJournalStore) ReadFrom(
 	_ context.Context,
 	afterEventID id.EventID,
 	limit int,

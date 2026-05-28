@@ -8,9 +8,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// LoadAll retrieves all events across all aggregates, ordered by occurrence time.
+// ReadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.
-func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
+func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM ` + tableEvents + `
 		ORDER BY occurred_at ASC`
@@ -28,9 +28,9 @@ func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
 	return s.scanEvents(rows)
 }
 
-// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
-// Returns up to limit events. Implements event.PositionalLoader.
-func (s *SQLEventStore) LoadAllFromPosition(
+// ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
+// Returns up to limit events. Implements event.SeekableJournal.
+func (s *SQLEventStore) ReadFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
@@ -71,13 +71,31 @@ func (s *SQLEventStore) LoadAllFromPosition(
 	return s.scanEvents(rows)
 }
 
+// LoadAll retrieves all events across all aggregates, ordered by occurrence time.
+//
+// Deprecated: use ReadAll instead.
+func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
+	return s.ReadAll(ctx)
+}
+
+// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
+//
+// Deprecated: use ReadFrom instead.
+func (s *SQLEventStore) LoadAllFromPosition(
+	ctx context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	return s.ReadFrom(ctx, afterEventID, limit)
+}
+
 // loadAllFromStart loads from the beginning, with optional limit.
 func (s *SQLEventStore) loadAllFromStart(
 	ctx context.Context,
 	limit int,
 ) ([]event.Event, error) {
 	if limit <= 0 {
-		return s.LoadAll(ctx)
+		return s.ReadAll(ctx)
 	}
 
 	p1 := s.dialect.Placeholder(1)

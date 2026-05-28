@@ -837,6 +837,79 @@ func TestSQLEventStore_LoadAll_QueryError(t *testing.T) {
 	}
 }
 
+func TestSQLEventStore_ReadAll_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	aggID1 := id.NewAggregateID()
+	aggID2 := id.NewAggregateID()
+	eventID1 := id.NewEventID()
+	eventID2 := id.NewEventID()
+	ts1 := time.Now().Truncate(time.Microsecond)
+	ts2 := ts1.Add(time.Second)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).
+				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), nil, ts1).
+				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), nil, ts2),
+		)
+
+	events, err := store.ReadAll(context.Background())
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(events))
+	}
+
+	if events[0].ID() != eventID1 {
+		t.Errorf("events[0].ID = %v, want %v", events[0].ID(), eventID1)
+	}
+
+	if events[1].ID() != eventID2 {
+		t.Errorf("events[1].ID = %v, want %v", events[1].ID(), eventID2)
+	}
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("unfulfilled expectations: %v", err)
+	}
+}
+
+func TestSQLEventStore_ReadAll_Empty(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
+		WillReturnRows(sqlmock.NewRows(eventColumns()))
+
+	events, err := store.ReadAll(context.Background())
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if len(events) != 0 {
+		t.Fatalf("expected 0 events, got %d", len(events))
+	}
+}
+
+func TestSQLEventStore_ReadAll_QueryError(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
+		WillReturnError(errors.New("query failed"))
+
+	_, err := store.ReadAll(context.Background())
+	if err == nil {
+		t.Fatal("expected error for query failure")
+	}
+}
+
 const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2

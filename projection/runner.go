@@ -9,10 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Runner orchestrates projection replay from an event store and live subscription via an event bus.
+// Runner orchestrates projection replay from an event journal and live subscription via an event bus.
 // Each registered projection tracks its own checkpoint independently.
 type Runner struct {
-	loader      event.GlobalLoader
+	journal     event.Journal
 	subscriber  event.Subscriber
 	checkpoint  event.CheckpointStore
 	opts        runnerOptions
@@ -23,10 +23,10 @@ type Runner struct {
 
 var _ io.Closer = (*Runner)(nil)
 
-// NewRunner creates a projection Runner. Pass a nil loader to skip replay (live-only mode).
+// NewRunner creates a projection Runner. Pass a nil journal to skip replay (live-only mode).
 // Returns an error if subscriber or checkpoint is nil.
 func NewRunner(
-	loader event.GlobalLoader,
+	journal event.Journal,
 	subscriber event.Subscriber,
 	checkpoint event.CheckpointStore,
 	opts ...RunnerOption,
@@ -55,7 +55,7 @@ func NewRunner(
 	cancel := context.CancelFunc(func() {})
 
 	return &Runner{
-		loader:     loader,
+		journal:    journal,
 		subscriber: subscriber,
 		checkpoint: checkpoint,
 		opts:       o,
@@ -92,7 +92,7 @@ func (r *Runner) Run(ctx context.Context) error {
 
 	ctx, r.cancel = context.WithCancel(ctx)
 
-	if r.loader != nil {
+	if r.journal != nil {
 		err := r.replay(ctx)
 		if err != nil {
 			return event.WrapInfrastructure(err, "projection.replay",
@@ -104,7 +104,7 @@ func (r *Runner) Run(ctx context.Context) error {
 }
 
 func (r *Runner) replay(ctx context.Context) error {
-	positional, hasPositional := r.loader.(event.PositionalLoader)
+	seekable, hasSeekable := r.journal.(event.SeekableJournal)
 
 	for _, p := range r.projections {
 		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
@@ -115,8 +115,8 @@ func (r *Runner) replay(ctx context.Context) error {
 
 		var events []event.Event
 
-		if hasPositional && !checkpoint.IsZero() {
-			loaded, lErr := positional.LoadAllFromPosition(ctx, checkpoint, 0)
+		if hasSeekable && !checkpoint.IsZero() {
+			loaded, lErr := seekable.ReadFrom(ctx, checkpoint, 0)
 			if lErr != nil {
 				return event.WrapInfrastructure(lErr, "projection.load_events",
 					"load events from position for "+p.Name())
@@ -124,7 +124,7 @@ func (r *Runner) replay(ctx context.Context) error {
 
 			events = filterByTypes(loaded, p.EventTypes())
 		} else {
-			allEvents, lErr := r.loader.LoadAll(ctx)
+			allEvents, lErr := r.journal.ReadAll(ctx)
 			if lErr != nil {
 				return event.WrapInfrastructure(lErr, "projection.load_events",
 					"load all events")
