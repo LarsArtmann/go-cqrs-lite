@@ -2,6 +2,7 @@ package projection_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -23,15 +24,19 @@ func BenchmarkRunner_Register(b *testing.B) {
 		b.Fatalf("NewRunner: %v", err)
 	}
 
+	var i int
+
 	for b.Loop() {
 		err = runner.Register(event.NewProjection(
-			"noop",
+			fmt.Sprintf("noop-%d", i),
 			testhelpers.NoopEventHandler(),
 			[]event.Type{"UserCreated"},
 		))
 		if err != nil {
 			b.Fatalf("Register: %v", err)
 		}
+
+		i++
 	}
 }
 
