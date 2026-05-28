@@ -26,6 +26,7 @@ func NewReadModelStore() *ReadModelStore {
 func (s *ReadModelStore) Get(aggID id.AggregateID) (ReadModel, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
 	m, ok := s.users[aggID]
 
 	return m, ok
@@ -34,6 +35,7 @@ func (s *ReadModelStore) Get(aggID id.AggregateID) (ReadModel, bool) {
 func (s *ReadModelStore) List() []ReadModel {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
 	result := make([]ReadModel, 0, len(s.users))
 	for _, m := range s.users {
 		result = append(result, m)
@@ -56,7 +58,7 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 			return fmt.Errorf("decode UserCreated in projection: %w", err)
 		}
 
-		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
+		s.users[aggID] = ReadModel(p)
 	case eventUserNameChanged:
 		p, err := event.DecodePayload[UserNameChangedPayload](evt, codec)
 		if err != nil {

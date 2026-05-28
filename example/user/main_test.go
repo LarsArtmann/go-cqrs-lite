@@ -204,13 +204,13 @@ func TestReadModel_Projection(t *testing.T) {
 		t.Fatalf("handle UserCreated: %v", err)
 	}
 
-	rm, ok := store.Get(aggID)
+	readModelResult, ok := store.Get(aggID)
 	if !ok {
 		t.Fatal("expected user in read model")
 	}
 
 	if rm.Email != "x@y.com" {
-		t.Errorf("expected email x@y.com, got %s", rm.Email)
+		t.Errorf("expected email x@y.com, got %s", readModelResult.Email)
 	}
 
 	changedEvt, err := event.NewEvent(
@@ -264,13 +264,13 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	rm, ok := readModel.Get(userID)
+	readModelResult, ok := readModel.Get(userID)
 	if !ok {
 		t.Fatal("expected user in read model after create")
 	}
 
 	if rm.Email != "test@example.com" {
-		t.Errorf("expected email test@example.com, got %s", rm.Email)
+		t.Errorf("expected email test@example.com, got %s", readModelResult.Email)
 	}
 
 	err = deciderRepo.Execute(
@@ -307,7 +307,7 @@ func TestQueryDispatcher(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	readModel.Handle(context.Background(), createdEvt)
+	_ = readModel.Handle(t.Context(), createdEvt)
 
 	qryDisp := query.NewDispatcher()
 	registerQueryHandlers(qryDisp, readModel)
@@ -317,13 +317,13 @@ func TestQueryDispatcher(t *testing.T) {
 		t.Fatalf("get user: %v", err)
 	}
 
-	rm, ok := result.(ReadModel)
+	readModelResult, ok := result.(ReadModel)
 	if !ok {
 		t.Fatalf("expected ReadModel, got %T", result)
 	}
 
 	if rm.Email != "q@test.com" {
-		t.Errorf("expected email q@test.com, got %s", rm.Email)
+		t.Errorf("expected email q@test.com, got %s", readModelResult.Email)
 	}
 
 	listResult, err := qryDisp.Dispatch(ctx, &ListUsersQuery{})

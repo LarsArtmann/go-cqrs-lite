@@ -77,12 +77,14 @@ func generateEventCatalog(outputDir string) error {
 	}
 
 	d2Output := d2.NewExporter("User Service", "1.0.0").Export(cat)
+
 	d2Path := filepath.Join(outputDir, "architecture.d2")
 	if err := os.WriteFile(d2Path, []byte(d2Output), 0o644); err != nil {
 		return fmt.Errorf("write d2: %w", err)
 	}
 
 	asyncDoc := asyncapi.NewExporter("User Service", "1.0.0").Export(cat)
+
 	asyncPath := filepath.Join(outputDir, "asyncapi.json")
 	if err := os.WriteFile(asyncPath, mustMarshal(asyncDoc), 0o644); err != nil {
 		return fmt.Errorf("write asyncapi: %w", err)

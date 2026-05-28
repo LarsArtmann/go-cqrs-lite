@@ -26,6 +26,7 @@ func main() {
 	fmt.Println()
 
 	bus, readModel, deciderRepo := setupInfrastructure()
+
 	var publishedEvents []event.Event
 
 	registerBusHandlers(bus, readModel, &publishedEvents)
@@ -99,6 +100,7 @@ func runDemoSteps(
 	publishedEvents *[]event.Event,
 ) id.AggregateID {
 	fmt.Println("--- Step 1: Create User ---")
+
 	userID := id.NewAggregateID()
 
 	err := cmdDisp.Dispatch(ctx, newUserCmd(userID, "alice@example.com", "Alice Smith"))
@@ -109,6 +111,7 @@ func runDemoSteps(
 	fmt.Printf("→ Created user %s (alice@example.com)\n\n", userID)
 
 	fmt.Println("--- Step 2: Change Name ---")
+
 	err = cmdDisp.Dispatch(ctx, &ChangeUserNameCmd{
 		aggregateID: userID,
 		name:        "Alice Johnson",
@@ -120,6 +123,7 @@ func runDemoSteps(
 	fmt.Printf("→ Changed name to %q, version %d\n\n", "Alice Johnson", len(*publishedEvents))
 
 	fmt.Println("--- Step 3: Query User ---")
+
 	rm, err := query.DispatchTyped[ReadModel](ctx, qryDisp, &GetUserQuery{aggregateID: userID})
 	if err != nil {
 		log.Fatalf("get user: %v", err)
@@ -144,6 +148,7 @@ func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {
 	}
 
 	fmt.Println("--- Step 6: Error Classification ---")
+
 	family := event.Classify(err)
 	fmt.Printf("→ classify(create-no-email) = %s\n", family)
 	fmt.Printf("→ isRetryable(create-no-email) = %v\n\n", event.IsRetryable(err))
@@ -151,6 +156,7 @@ func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {
 
 func runEventCatalog() {
 	fmt.Println("--- Step 7: EventCatalog ---")
+
 	outputDir := filepath.Join(".", "eventcatalog-output")
 
 	if err := generateEventCatalog(outputDir); err != nil {

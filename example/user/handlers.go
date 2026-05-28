@@ -44,6 +44,7 @@ func registerQueryHandlers(
 		dispatcher, queryGetUser,
 		func(_ context.Context, q query.Query) (ReadModel, error) {
 			gq := q.(*GetUserQuery)
+
 			rm, ok := readModel.Get(gq.aggregateID)
 			if !ok {
 				return rm, fmt.Errorf("user %s: %w", gq.aggregateID, event.ErrAggregateNotFound)

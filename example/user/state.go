@@ -29,7 +29,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 
-		return UserState{Email: p.Email, Name: p.Name}, nil
+		return UserState(p), nil
 	case eventUserNameChanged:
 		p, err := unmarshalAs[UserNameChangedPayload](evt)
 		if err != nil {
