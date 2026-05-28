@@ -9,7 +9,7 @@
 1. **Listing** — enumerating which aggregate streams exist (paginated, filtered)
 2. **Tombstones** — soft-delete semantics so deleted aggregates can be listed/hidden on demand
 
-These aren't separate concerns — tombstone detection *needs* stream enumeration, and listing *needs* tombstone awareness to show/hide deleted aggregates. A unified API avoids circular dependencies and duplicated types.
+These aren't separate concerns — tombstone detection _needs_ stream enumeration, and listing _needs_ tombstone awareness to show/hide deleted aggregates. A unified API avoids circular dependencies and duplicated types.
 
 ## Proposal: `stream/` module
 
@@ -96,7 +96,7 @@ type TombstoneDetector func(aggType event.AggregateType, events []event.Event) b
 func IsTombstoned(events []event.Event, deleteTypes map[event.Type]bool) bool
 ```
 
-Key decision: **tombstone is a filter strategy, not a store wrapper**. The `TombstonePolicy` in options lets consumers query *any* store by providing a `TombstoneDetector`. The `TombstoneStore` decorator below is optional convenience.
+Key decision: **tombstone is a filter strategy, not a store wrapper**. The `TombstonePolicy` in options lets consumers query _any_ store by providing a `TombstoneDetector`. The `TombstoneStore` decorator below is optional convenience.
 
 ## Cursor types
 
@@ -144,11 +144,11 @@ func WithDeleteTypes(types ...event.Type) ReaderOption
 
 Implementation strategy by store type:
 
-| Store | Streams() strategy | Events() strategy |
-|---|---|---|
-| `memory.MemoryStore` | Iterate `events` map keys, apply filters in-memory | `collectAllSorted()` + filter |
+| Store                   | Streams() strategy                                          | Events() strategy                                     |
+| ----------------------- | ----------------------------------------------------------- | ----------------------------------------------------- |
+| `memory.MemoryStore`    | Iterate `events` map keys, apply filters in-memory          | `collectAllSorted()` + filter                         |
 | `storage.SQLEventStore` | `SELECT DISTINCT aggregate_type, aggregate_id ... GROUP BY` | `SELECT * FROM events WHERE ... ORDER BY occurred_at` |
-| Any `event.Store` | Fallback: load all via `GlobalLoader`, enumerate in-memory | Fallback: `GlobalLoader.LoadAll()` + filter |
+| Any `event.Store`       | Fallback: load all via `GlobalLoader`, enumerate in-memory  | Fallback: `GlobalLoader.LoadAll()` + filter           |
 
 ## Store decorator (optional)
 
@@ -208,12 +208,12 @@ ts.HardDelete(ctx, "User", userID)   // actual deletion, explicit opt-in
 
 ## Why one module, not two
 
-| Aspect | Combined `stream/` | Separate `listing/` + `tombstone/` |
-|---|---|---|
-| Dependency | Tombstone needs stream enumeration. Listing needs tombstone awareness. Unified avoids circular dep. | Circular dependency or shared `core/` types for both to depend on. |
-| Consumer ergonomics | One import, one `Reader`, compose options. | Two imports, two objects, consumer wires them together. |
-| Size | ~8 files, ~500 lines. Not oversized. | Two ~250-line modules with duplicated cursor types. |
-| Precedent | `projection/` bundles replay + checkpoint + builder. `signing/` bundles sign + verify + middleware. | No existing pattern of two modules that depend on each other. |
+| Aspect              | Combined `stream/`                                                                                  | Separate `listing/` + `tombstone/`                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Dependency          | Tombstone needs stream enumeration. Listing needs tombstone awareness. Unified avoids circular dep. | Circular dependency or shared `core/` types for both to depend on. |
+| Consumer ergonomics | One import, one `Reader`, compose options.                                                          | Two imports, two objects, consumer wires them together.            |
+| Size                | ~8 files, ~500 lines. Not oversized.                                                                | Two ~250-line modules with duplicated cursor types.                |
+| Precedent           | `projection/` bundles replay + checkpoint + builder. `signing/` bundles sign + verify + middleware. | No existing pattern of two modules that depend on each other.      |
 
 ## Implementation order
 
