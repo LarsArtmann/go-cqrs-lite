@@ -66,7 +66,7 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // missing verified signatures from all actors in the provided verifier map.
 // Cryptographically verifies every signature entry and ensures every actor
 // in the verifier map has a corresponding valid signature.
-func RequireMultiSigMiddleware(verifiers map[string]Verifier) event.Middleware {
+func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			multiSig, err := ExtractMultiSignature(evt)

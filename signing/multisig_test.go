@@ -18,8 +18,8 @@ func TestMultiSignature(t *testing.T) {
 
 	multiSig := signing.MultiSignature{
 		Entries: []signing.SignatureEntry{
-			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("sig1")},
-			{Actor: "server", Algorithm: signing.AlgorithmHMACSHA256, Sig: []byte("sig2")},
+			{Actor: signing.Actor("device"), Algorithm: signing.AlgorithmEd25519, Sig: []byte("sig1")},
+			{Actor: signing.Actor("server"), Algorithm: signing.AlgorithmHMACSHA256, Sig: []byte("sig2")},
 		},
 	}
 
@@ -32,24 +32,24 @@ func TestMultiSignature(t *testing.T) {
 
 	t.Run("has actor", func(t *testing.T) {
 		t.Parallel()
-		if !multiSig.HasActor("device") {
+		if !multiSig.HasActor(signing.Actor("device")) {
 			t.Fatal("expected HasActor(device) = true")
 		}
-		if multiSig.HasActor("gateway") {
+		if multiSig.HasActor(signing.Actor("gateway")) {
 			t.Fatal("expected HasActor(gateway) = false")
 		}
 	})
 
 	t.Run("get", func(t *testing.T) {
 		t.Parallel()
-		entry := multiSig.Get("server")
+		entry := multiSig.Get(signing.Actor("server"))
 		if entry == nil {
 			t.Fatal("expected entry for server")
 		}
 		if entry.Algorithm != signing.AlgorithmHMACSHA256 {
 			t.Fatalf("algorithm: got %s, want HMAC-SHA256", entry.Algorithm)
 		}
-		if multiSig.Get("gateway") != nil {
+		if multiSig.Get(signing.Actor("gateway")) != nil {
 			t.Fatal("expected nil for unknown actor")
 		}
 	})
@@ -68,9 +68,9 @@ func TestMultiSignatureActors(t *testing.T) {
 
 	multiSig := signing.MultiSignature{
 		Entries: []signing.SignatureEntry{
-			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("a")},
-			{Actor: "device", Algorithm: signing.AlgorithmEd25519, Sig: []byte("b")},
-			{Actor: "server", Algorithm: signing.AlgorithmHMACSHA256, Sig: []byte("c")},
+			{Actor: signing.Actor("device"), Algorithm: signing.AlgorithmEd25519, Sig: []byte("a")},
+			{Actor: signing.Actor("device"), Algorithm: signing.AlgorithmEd25519, Sig: []byte("b")},
+			{Actor: signing.Actor("server"), Algorithm: signing.AlgorithmHMACSHA256, Sig: []byte("c")},
 		},
 	}
 
@@ -99,7 +99,7 @@ func newDeviceMultiSigner(t *testing.T) (*signing.MultiSigner, ed25519.PublicKey
 		t.Fatalf("create verifier: %v", verifierErr)
 	}
 
-	return signing.NewMultiSigner("device", signing.AlgorithmEd25519, signer,
+	return signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, signer,
 		signing.WithVerifier(verifier)), pubKey
 }
 
@@ -113,7 +113,7 @@ func newServerMultiSigner(t *testing.T) *signing.MultiSigner {
 		t.Fatalf("create HMAC signer: %v", err)
 	}
 
-	return signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, signer)
+	return signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, signer)
 }
 
 func TestMultiSigner_SignAddsActor(t *testing.T) {
@@ -134,7 +134,7 @@ func TestMultiSigner_SignAddsActor(t *testing.T) {
 	if extracted.Count() != 1 {
 		t.Fatalf("expected 1 entry, got %d", extracted.Count())
 	}
-	if !extracted.HasActor("device") {
+	if !extracted.HasActor(signing.Actor("device")) {
 		t.Fatal("expected device actor")
 	}
 }
@@ -163,7 +163,7 @@ func TestMultiSigner_MultipleActors(t *testing.T) {
 	if extracted.Count() != 2 {
 		t.Fatalf("expected 2 entries, got %d", extracted.Count())
 	}
-	if !extracted.HasActor("device") || !extracted.HasActor("server") {
+	if !extracted.HasActor(signing.Actor("device")) || !extracted.HasActor(signing.Actor("server")) {
 		t.Fatal("expected both device and server actors")
 	}
 }
@@ -180,7 +180,7 @@ func TestMultiSigner_ReSignReplaces(t *testing.T) {
 	}
 
 	extracted1, _ := signing.ExtractMultiSignature(clone1)
-	entry1 := extracted1.Get("device")
+	entry1 := extracted1.Get(signing.Actor("device"))
 	if entry1 == nil {
 		t.Fatal("expected device entry after first sign")
 	}
@@ -195,7 +195,7 @@ func TestMultiSigner_ReSignReplaces(t *testing.T) {
 		t.Fatalf("expected 1 entry after re-sign, got %d", extracted2.Count())
 	}
 
-	entry2 := extracted2.Get("device")
+	entry2 := extracted2.Get(signing.Actor("device"))
 	if entry2.SignedAt.Equal(entry1.SignedAt) {
 		t.Fatal("re-signed entry should have different timestamp")
 	}
@@ -351,7 +351,7 @@ func TestMultiSignMiddleware(t *testing.T) {
 		}
 
 		extracted, _ := signing.ExtractMultiSignature(published[0])
-		if !extracted.HasActor("device") {
+		if !extracted.HasActor(signing.Actor("device")) {
 			t.Fatal("expected device signature")
 		}
 	})
@@ -367,9 +367,9 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	serverKey := []byte("server-secret-key-thirty-two-by!")
 	serverHMAC, _ := signing.NewHMAC(serverKey)
 
-	verifiers := map[string]signing.Verifier{
-		"device": deviceVerifier,
-		"server": serverHMAC,
+	verifiers := map[signing.Actor]signing.Verifier{
+		signing.Actor("device"): deviceVerifier,
+		signing.Actor("server"): serverHMAC,
 	}
 
 	t.Run("rejects unsigned events", func(t *testing.T) {
@@ -462,9 +462,9 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("create server signer: %v", hmacErr)
 	}
 
-	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+	deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
 		signing.WithVerifier(deviceVerifier))
-	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
+	serverMulti := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
 
 	// Step 1: Device creates and signs the event.
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
@@ -506,9 +506,9 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 	}
 
 	// Step 5: VerifyAll with a verifier map.
-	verifiers := map[string]signing.Verifier{
-		"device": deviceVerifier,
-		"server": serverSigner,
+	verifiers := map[signing.Actor]signing.Verifier{
+		signing.Actor("device"): deviceVerifier,
+		signing.Actor("server"): serverSigner,
 	}
 	if verifyErr := signing.VerifyAll(serverSigned, verifiers); verifyErr != nil {
 		t.Fatalf("verify all: %v", verifyErr)
@@ -573,7 +573,7 @@ func TestVerifyAll_MissingVerifier(t *testing.T) {
 
 	clone, _ := deviceMulti.Sign(evt)
 
-	verifiers := map[string]signing.Verifier{}
+	verifiers := map[signing.Actor]signing.Verifier{}
 	err := signing.VerifyAll(clone, verifiers)
 	if err == nil {
 		t.Fatal("expected error for missing verifier")
@@ -605,7 +605,7 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 	pubKey, _, _ := ed25519.GenerateKey(nil)
 	verifier, _ := signing.NewEd25519Verifier(pubKey)
 
-	verifiers := map[string]signing.Verifier{"device": verifier}
+	verifiers := map[signing.Actor]signing.Verifier{signing.Actor("device"): verifier}
 	err := signing.VerifyAll(tampered, verifiers)
 	if err == nil {
 		t.Fatal("expected error for tampered event with wrong verifier")
@@ -623,7 +623,7 @@ func TestMultiSigner_VerifyActor(t *testing.T) {
 	edSigner, _ := signing.NewEd25519(privKey)
 	edVerifier, _ := signing.NewEd25519Verifier(pubKey)
 
-	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, edSigner,
+	deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, edSigner,
 		signing.WithVerifier(edVerifier))
 	serverMulti := newServerMultiSigner(t)
 	evt := makeTestEvent(t)
@@ -631,7 +631,7 @@ func TestMultiSigner_VerifyActor(t *testing.T) {
 	clone1, _ := deviceMulti.Sign(evt)
 	clone2, _ := serverMulti.Sign(clone1)
 
-	if verifyErr := serverMulti.VerifyActor(clone2, "device", edVerifier); verifyErr != nil {
+	if verifyErr := serverMulti.VerifyActor(clone2, signing.Actor("device"), edVerifier); verifyErr != nil {
 		t.Fatalf("server verifying device: %v", verifyErr)
 	}
 }
@@ -660,7 +660,7 @@ func TestMultiSigner_WithClock(t *testing.T) {
 	clone, _ := deterministic.Sign(evt)
 
 	extracted, _ := signing.ExtractMultiSignature(clone)
-	entry := extracted.Get("device")
+	entry := extracted.Get(signing.Actor("device"))
 	if entry == nil {
 		t.Fatal("expected device entry")
 	}

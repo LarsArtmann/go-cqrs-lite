@@ -23,10 +23,16 @@ const (
 // ErrNoVerifier is returned when VerifyAll cannot find a verifier for an actor.
 var ErrNoVerifier = event.NewRejection("signing.no_verifier", "no verifier provided for actor")
 
+// Actor identifies a signing entity in a multi-party chain (e.g., "device", "server").
+type Actor string
+
+// String returns the actor identifier.
+func (a Actor) String() string { return string(a) }
+
 // SignatureEntry is a single signature from one actor in the chain.
 type SignatureEntry struct {
 	// Actor is the identifier of the signing entity (e.g., "device", "server", "gateway").
-	Actor string `json:"actor"`
+	Actor Actor `json:"actor"`
 
 	// Algorithm identifies the crypto algorithm used.
 	Algorithm SignatureAlgorithm `json:"algorithm"`
@@ -48,7 +54,7 @@ type MultiSignature struct {
 func (m MultiSignature) Count() int { return len(m.Entries) }
 
 // HasActor reports whether the given actor has signed.
-func (m MultiSignature) HasActor(actor string) bool {
+func (m MultiSignature) HasActor(actor Actor) bool {
 	for _, entry := range m.Entries {
 		if entry.Actor == actor {
 			return true
@@ -59,7 +65,7 @@ func (m MultiSignature) HasActor(actor string) bool {
 }
 
 // Get returns the signature entry for a given actor, or nil.
-func (m MultiSignature) Get(actor string) *SignatureEntry {
+func (m MultiSignature) Get(actor Actor) *SignatureEntry {
 	for idx := range m.Entries {
 		if m.Entries[idx].Actor == actor {
 			return &m.Entries[idx]
@@ -70,9 +76,9 @@ func (m MultiSignature) Get(actor string) *SignatureEntry {
 }
 
 // Actors returns a deduplicated list of all actor identifiers.
-func (m MultiSignature) Actors() []string {
-	seen := make(map[string]struct{}, len(m.Entries))
-	result := make([]string, 0, len(m.Entries))
+func (m MultiSignature) Actors() []Actor {
+	seen := make(map[Actor]struct{}, len(m.Entries))
+	result := make([]Actor, 0, len(m.Entries))
 
 	for _, entry := range m.Entries {
 		if _, ok := seen[entry.Actor]; !ok {
@@ -98,7 +104,7 @@ type Clock func() time.Time
 //	    signing.WithVerifier(ed25519Verifier))
 //	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, hmacSigner)
 type MultiSigner struct {
-	actor     string
+	actor     Actor
 	algorithm SignatureAlgorithm
 	signer    Signer
 	verifier  Verifier
@@ -125,7 +131,7 @@ func WithClock(clock Clock) MultiSignerOption {
 // By default, the same Signer is used for both signing and verification.
 // Pass WithVerifier to override the verifier (needed for Ed25519).
 func NewMultiSigner(
-	actor string,
+	actor Actor,
 	algorithm SignatureAlgorithm,
 	signer Signer,
 	opts ...MultiSignerOption,
@@ -151,7 +157,7 @@ func NewMultiSigner(
 }
 
 // Actor returns the actor identifier.
-func (m *MultiSigner) Actor() string { return m.actor }
+func (m *MultiSigner) Actor() Actor { return m.actor }
 
 // Algorithm returns the signature algorithm.
 func (m *MultiSigner) Algorithm() SignatureAlgorithm { return m.algorithm }
@@ -217,7 +223,7 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 
 // VerifyActor verifies a specific actor's signature using the provided verifier.
 // Useful when one actor wants to check another actor's signature.
-func (m *MultiSigner) VerifyActor(evt event.Event, actor string, verifier Verifier) error {
+func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifier) error {
 	if evt == nil {
 		return ErrNilEvent
 	}

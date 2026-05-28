@@ -11,7 +11,7 @@ import (
 // using each entry's algorithm-appropriate verifier from the provided map.
 // The map keys are actor names; the values are their respective verifiers.
 // Returns the first verification failure, or nil if all pass.
-func VerifyAll(evt event.Event, verifiers map[string]Verifier) error {
+func VerifyAll(evt event.Event, verifiers map[Actor]Verifier) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
@@ -90,7 +90,7 @@ func attachMultiSignature(
 	return clone, nil
 }
 
-func removeActor(entries []SignatureEntry, actor string) []SignatureEntry {
+func removeActor(entries []SignatureEntry, actor Actor) []SignatureEntry {
 	result := make([]SignatureEntry, 0, len(entries))
 
 	for _, entry := range entries {

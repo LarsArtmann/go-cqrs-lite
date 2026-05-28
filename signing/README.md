@@ -85,12 +85,12 @@ When events travel through multiple actors (e.g., end-user device → server), e
 // Device signs with Ed25519 (private key stays on device)
 deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
-deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, deviceSigner,
+deviceMulti := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
     signing.WithVerifier(deviceVerifier))
 
 // Server signs with HMAC (shared secret within org)
 serverSigner, _ := signing.NewHMAC(serverKey)
-serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, serverSigner)
+serverMulti := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
 
 // Step 1: Device signs
 signed, _ := deviceMulti.Sign(event)
@@ -101,16 +101,16 @@ signed, _ = serverMulti.Sign(signed) // appends server's sig
 
 // Final event carries both signatures
 multiSig, _ := signing.ExtractMultiSignature(signed)
-multiSig.HasActor("device") // true
-multiSig.HasActor("server") // true
+multiSig.HasActor(signing.Actor("device")) // true
+multiSig.HasActor(signing.Actor("server")) // true
 ```
 
 ### Verify All Actors
 
 ```go
 verifiers := map[string]signing.Verifier{
-    "device": deviceVerifier,
-    "server": serverSigner,
+    signing.Actor("device"): deviceVerifier,
+    signing.Actor("server"): serverSigner,
 }
 err := signing.VerifyAll(signed, verifiers)
 ```
@@ -120,8 +120,8 @@ err := signing.VerifyAll(signed, verifiers)
 ```go
 // Reject events missing verified signatures from all actors
 verifiers := map[string]signing.Verifier{
-    "device": deviceVerifier,
-    "server": serverSigner,
+    signing.Actor("device"): deviceVerifier,
+    signing.Actor("server"): serverSigner,
 }
 bus.Use(signing.RequireMultiSigMiddleware(verifiers))
 ```
