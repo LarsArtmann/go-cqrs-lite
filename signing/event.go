@@ -10,6 +10,28 @@ import (
 // MetadataKey is the custom metadata key used to store event signatures.
 const MetadataKey event.MetadataKey = "event.signature"
 
+// cloneEvent reconstructs an event preserving all fields and adding a custom
+// metadata key. Used by AttachSignature and attachMultiSignature.
+func cloneEvent(
+	evt event.Event,
+	key event.MetadataKey,
+	value string,
+) (*event.ImmutableEvent, error) {
+	//nolint:wrapcheck // callers wrap with context
+	return event.NewEvent(
+		evt.Type(),
+		evt.AggregateID(),
+		evt.AggregateType(),
+		evt.Version(),
+		evt.Payload(),
+		event.WithEventID(evt.ID()),
+		event.WithOccurredAt(evt.OccurredAt()),
+		event.WithSchemaVersion(evt.SchemaVersion()),
+		event.WithMetadata(evt.Metadata()),
+		event.WithCustom(key, value),
+	)
+}
+
 // AttachSignature stores a base64-encoded signature in the event's custom metadata.
 // Returns a new event with the signature attached. The original event is unmodified.
 //
@@ -22,19 +44,7 @@ func AttachSignature(evt event.Event, sig Signature) (*event.ImmutableEvent, err
 
 	encoded := base64.URLEncoding.EncodeToString(sig.Bytes())
 
-	// Reconstruct the event preserving all fields, adding the signature to metadata.
-	clone, err := event.NewEvent(
-		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
-		evt.Version(),
-		evt.Payload(),
-		event.WithEventID(evt.ID()),
-		event.WithOccurredAt(evt.OccurredAt()),
-		event.WithSchemaVersion(evt.SchemaVersion()),
-		event.WithMetadata(evt.Metadata()),
-		event.WithCustom(MetadataKey, encoded),
-	)
+	clone, err := cloneEvent(evt, MetadataKey, encoded)
 	if err != nil {
 		return nil, fmt.Errorf("reconstruct event with signature: %w", err)
 	}

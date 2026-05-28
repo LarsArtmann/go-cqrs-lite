@@ -82,18 +82,7 @@ func attachMultiSignature(
 		return nil, fmt.Errorf("encode multi-sig: %w", err)
 	}
 
-	clone, err := event.NewEvent(
-		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
-		evt.Version(),
-		evt.Payload(),
-		event.WithEventID(evt.ID()),
-		event.WithOccurredAt(evt.OccurredAt()),
-		event.WithSchemaVersion(evt.SchemaVersion()),
-		event.WithMetadata(evt.Metadata()),
-		event.WithCustom(MultiSigMetadataKey, string(encoded)),
-	)
+	clone, err := cloneEvent(evt, MultiSigMetadataKey, string(encoded))
 	if err != nil {
 		return nil, fmt.Errorf("reconstruct event with multi-sig: %w", err)
 	}
