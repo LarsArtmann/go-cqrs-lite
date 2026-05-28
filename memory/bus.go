@@ -36,35 +36,33 @@ func NewMemoryBus() *MemoryBus {
 	}
 }
 
-// Use registers event middleware. Middleware is applied in reverse registration order
-// (last registered runs first). Returns ErrBusClosed if the bus is already closed.
-func (b *MemoryBus) Use(middleware ...event.Middleware) error {
+func (b *MemoryBus) useLocked(name string, fn func()) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return fmt.Errorf("bus use middleware: %w", err)
+		return fmt.Errorf("bus %s: %w", name, err)
 	}
 
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	b.middleware = append(b.middleware, middleware...)
+	fn()
 
 	return nil
 }
 
+// Use registers event middleware. Middleware is applied in reverse registration order
+// (last registered runs first). Returns ErrBusClosed if the bus is already closed.
+func (b *MemoryBus) Use(mw ...event.Middleware) error {
+	return b.useLocked("use middleware", func() {
+		b.middleware = append(b.middleware, mw...)
+	})
+}
+
 // UsePublish registers publish-side middleware. Returns ErrBusClosed if the bus is already closed.
-func (b *MemoryBus) UsePublish(middleware ...event.PublishMiddleware) error {
-	err := b.CheckClosed(event.ErrBusClosed)
-	if err != nil {
-		return fmt.Errorf("bus use publish middleware: %w", err)
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.publishMiddleware = append(b.publishMiddleware, middleware...)
-
-	return nil
+func (b *MemoryBus) UsePublish(mw ...event.PublishMiddleware) error {
+	return b.useLocked("use publish middleware", func() {
+		b.publishMiddleware = append(b.publishMiddleware, mw...)
+	})
 }
 
 // Publish sends events to all matching subscribers.
@@ -163,12 +161,10 @@ func (b *MemoryBus) notifyHandlers(
 	return nil
 }
 
-// Subscribe registers a handler for a specific event type. Returns ErrHandlerNil if
-// the handler is nil, or ErrBusClosed if the bus is closed.
-func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
+func (b *MemoryBus) register(name string, handler event.Handler, fn func()) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return fmt.Errorf("bus subscribe: %w", err)
+		return fmt.Errorf("bus %s: %w", name, err)
 	}
 
 	if handler == nil {
@@ -178,29 +174,25 @@ func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
+	fn()
 
 	return nil
+}
+
+// Subscribe registers a handler for a specific event type. Returns ErrHandlerNil if
+// the handler is nil, or ErrBusClosed if the bus is closed.
+func (b *MemoryBus) Subscribe(eventType event.Type, handler event.Handler) error {
+	return b.register("subscribe", handler, func() {
+		b.handlers[eventType] = append(b.handlers[eventType], handler)
+	})
 }
 
 // SubscribeAll registers a handler that receives every published event regardless of type.
 // All-handlers run before type-specific handlers (see Publish docs).
 func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
-	err := b.CheckClosed(event.ErrBusClosed)
-	if err != nil {
-		return fmt.Errorf("bus subscribe all: %w", err)
-	}
-
-	if handler == nil {
-		return ErrHandlerNil
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.allHandlers = append(b.allHandlers, handler)
-
-	return nil
+	return b.register("subscribe all", handler, func() {
+		b.allHandlers = append(b.allHandlers, handler)
+	})
 }
 
 // Close marks the bus as closed. Subsequent Publish, Subscribe, or Use calls return ErrBusClosed.

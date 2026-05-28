@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -10,6 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
+
+var errUnexpectedQueryType = errors.New("unexpected query type")
 
 func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
@@ -76,7 +79,7 @@ func registerQueryHandlers(
 func registerBusHandlers(bus event.Bus, readModel *ReadModelStore, published *[]event.Event) {
 	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		*published = append(*published, evt)
-		_ = readModel.Handle(context.Background(), evt)
+		_ = readModel.Handle(context.Background(), evt) //nolint:contextcheck // no parent context in bus handler
 
 		return nil
 	})
