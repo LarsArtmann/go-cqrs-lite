@@ -1,13 +1,17 @@
 package signing_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMultiSignature(t *testing.T) {
@@ -517,5 +521,165 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 
 	if verifyErr := deviceMulti.Verify(tampered); verifyErr == nil {
 		t.Fatal("expected verification to fail for tampered event")
+	}
+}
+
+func TestSignatureEntry_JSONRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	original := signing.SignatureEntry{
+		Actor:     "device",
+		Algorithm: signing.AlgorithmEd25519,
+		Sig:       signing.Signature([]byte("test-sig-bytes")),
+		SignedAt:  time.Now().Truncate(time.Millisecond),
+	}
+
+	data, err := json.Marshal(original)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var decoded signing.SignatureEntry
+
+	unmarshalErr := json.Unmarshal(data, &decoded)
+	if unmarshalErr != nil {
+		t.Fatalf("unmarshal: %v", unmarshalErr)
+	}
+
+	if decoded.Actor != original.Actor ||
+		decoded.Algorithm != original.Algorithm ||
+		!decoded.SignedAt.Equal(original.SignedAt) {
+		t.Fatalf("JSON roundtrip failed: got %+v, want %+v", decoded, original)
+	}
+
+	if !bytes.Equal(decoded.Sig, original.Sig) {
+		t.Fatal("signature bytes mismatch after JSON roundtrip")
+	}
+}
+
+func TestVerifyAll_MissingVerifier(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+	evt := makeTestEvent(t)
+
+	clone, _ := deviceMulti.Sign(evt)
+
+	verifiers := map[string]signing.Verifier{}
+	err := signing.VerifyAll(clone, verifiers)
+	if err == nil {
+		t.Fatal("expected error for missing verifier")
+	}
+}
+
+func TestVerifyAll_FailingVerifier(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+	evt := makeTestEvent(t)
+
+	clone, _ := deviceMulti.Sign(evt)
+	tampered := testhelpers.QuickEvent(
+		clone.Type(),
+		clone.AggregateID(),
+		clone.AggregateType(),
+		clone.Version(),
+		[]byte(`{"tampered":true}`),
+	)
+
+	pubKey, _, _ := ed25519.GenerateKey(nil)
+	verifier, _ := signing.NewEd25519Verifier(pubKey)
+
+	verifiers := map[string]signing.Verifier{"device": verifier}
+	err := signing.VerifyAll(tampered, verifiers)
+	if err == nil {
+		t.Fatal("expected error for tampered event with wrong verifier")
+	}
+}
+
+func TestMultiSigner_VerifyActor(t *testing.T) {
+	t.Parallel()
+
+	pubKey, privKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+
+	edSigner, _ := signing.NewEd25519(privKey)
+	edVerifier, _ := signing.NewEd25519Verifier(pubKey)
+
+	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, edSigner,
+		signing.WithVerifier(edVerifier))
+	serverMulti := newServerMultiSigner(t)
+	evt := makeTestEvent(t)
+
+	clone1, _ := deviceMulti.Sign(evt)
+	clone2, _ := serverMulti.Sign(clone1)
+
+	if verifyErr := serverMulti.VerifyActor(clone2, "device", edVerifier); verifyErr != nil {
+		t.Fatalf("server verifying device: %v", verifyErr)
+	}
+}
+
+func TestMultiSigner_WithClock(t *testing.T) {
+	t.Parallel()
+
+	fixedTime := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	pubKey, privKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+
+	edSigner, _ := signing.NewEd25519(privKey)
+	edVerifier, _ := signing.NewEd25519Verifier(pubKey)
+
+	deterministic := signing.NewMultiSigner(
+		"device", signing.AlgorithmEd25519,
+		edSigner,
+		signing.WithVerifier(edVerifier),
+		signing.WithClock(func() time.Time { return fixedTime }),
+	)
+
+	evt := makeTestEvent(t)
+	clone, _ := deterministic.Sign(evt)
+
+	extracted, _ := signing.ExtractMultiSignature(clone)
+	entry := extracted.Get("device")
+	if entry == nil {
+		t.Fatal("expected device entry")
+	}
+
+	if !entry.SignedAt.Equal(fixedTime) {
+		t.Fatalf("SignedAt: got %v, want %v", entry.SignedAt, fixedTime)
+	}
+}
+
+func TestMultiVerifyMiddleware_RejectsTampered(t *testing.T) {
+	t.Parallel()
+
+	deviceMulti, _ := newDeviceMultiSigner(t)
+
+	handler := func(_ context.Context, _ event.Event) error {
+		return nil
+	}
+
+	mw := signing.MultiVerifyMiddleware(deviceMulti)
+	wrapped := mw(handler)
+
+	evt := makeTestEvent(t)
+	clone, _ := deviceMulti.Sign(evt)
+
+	tampered := testhelpers.QuickEvent(
+		clone.Type(),
+		clone.AggregateID(),
+		clone.AggregateType(),
+		clone.Version(),
+		[]byte(`{"tampered":true}`),
+	)
+
+	err := wrapped(context.Background(), tampered)
+	if err == nil {
+		t.Fatal("expected error for tampered multi-sig event")
 	}
 }

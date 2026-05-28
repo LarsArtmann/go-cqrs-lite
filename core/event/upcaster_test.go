@@ -10,7 +10,7 @@ import (
 func TestUpcasterFunc(t *testing.T) {
 	t.Parallel()
 
-	uc := newUpcaster(
+	uc := NewUpcaster(
 		"UserCreated",
 		1,
 		func(_ Event) (*ImmutableEvent, error) {
@@ -56,7 +56,7 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated",
 		1,
 		func(evt Event) (*ImmutableEvent, error) {
@@ -88,7 +88,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated", 1,
 		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
@@ -96,7 +96,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 		},
 	))
 
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated", 2,
 		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent("UserCreated", evt.AggregateID(), "User", evt.Version(),
@@ -128,7 +128,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated", 1,
 		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent(
@@ -160,7 +160,7 @@ func registerTrackingUpcaster(
 	version SchemaVersion,
 	applied *[]int,
 ) {
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated", version,
 		func(evt Event) (*ImmutableEvent, error) {
 			*applied = append(*applied, int(version))
@@ -265,7 +265,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	registry.register(newUpcaster(
+	registry.register(NewUpcaster(
 		"UserCreated", 1,
 		func(evt Event) (*ImmutableEvent, error) {
 			return NewEvent(

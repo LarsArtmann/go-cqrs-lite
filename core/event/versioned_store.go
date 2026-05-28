@@ -7,17 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Upcaster transforms an event from one schema version to the next.
-type Upcaster interface {
-	// SourceType returns the event type this upcaster handles.
-	SourceType() Type
-	// SourceVersion returns the schema version this upcaster transforms from.
-	SourceVersion() SchemaVersion
-	// Upcast transforms the event. The returned event should have
-	// the next schema version (SourceVersion + 1).
-	Upcast(evt Event) (*ImmutableEvent, error)
-}
-
 // VersionedStore wraps an event.Store and automatically upcasts loaded events.
 type VersionedStore struct {
 	Store

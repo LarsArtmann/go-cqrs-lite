@@ -8,17 +8,17 @@ import (
 
 type upcasterRegistry struct {
 	mu        sync.RWMutex
-	upcasters map[Type][]upcaster
+	upcasters map[Type][]Upcaster
 }
 
 func newUpcasterRegistry() *upcasterRegistry {
 	return &upcasterRegistry{
-		upcasters: make(map[Type][]upcaster),
+		upcasters: make(map[Type][]Upcaster),
 		mu:        sync.RWMutex{},
 	}
 }
 
-func (r *upcasterRegistry) register(u upcaster) {
+func (r *upcasterRegistry) register(u Upcaster) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

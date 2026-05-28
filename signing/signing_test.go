@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"crypto/ed25519"
+	"encoding/base64"
+	"encoding/json"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -705,5 +707,107 @@ func TestCanonicalPayload_Deterministic(t *testing.T) {
 	// Different events (different IDs) should produce different signatures
 	if bytes.Equal(sig1.Bytes(), sig2.Bytes()) {
 		t.Fatal("different events should produce different signatures")
+	}
+}
+
+func TestSignature_String(t *testing.T) {
+	t.Parallel()
+
+	raw := signing.Signature([]byte("test-signature-bytes"))
+	s := raw.String()
+
+	decoded, err := base64.URLEncoding.DecodeString(s)
+	if err != nil {
+		t.Fatalf("String() should produce valid URL-safe base64: %v", err)
+	}
+
+	if !bytes.Equal(raw, decoded) {
+		t.Fatal("String() roundtrip failed")
+	}
+}
+
+func TestSignature_JSONRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	original := signing.Signature([]byte("test-signature-for-json-roundtrip"))
+
+	data, err := json.Marshal(original)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var decoded signing.Signature
+
+	unmarshalErr := json.Unmarshal(data, &decoded)
+	if unmarshalErr != nil {
+		t.Fatalf("unmarshal: %v", unmarshalErr)
+	}
+
+	if !bytes.Equal(original, decoded) {
+		t.Fatalf("JSON roundtrip failed: got %v, want %v", decoded, original)
+	}
+}
+
+func TestSignature_UnmarshalJSON_BackwardCompat(t *testing.T) {
+	t.Parallel()
+
+	// Standard base64 encoded (old format) should still decode
+	original := signing.Signature([]byte("backward-compat-sig"))
+	stdEncoded := `"` + base64.StdEncoding.EncodeToString(original) + `"`
+
+	var decoded signing.Signature
+
+	err := json.Unmarshal([]byte(stdEncoded), &decoded)
+	if err != nil {
+		t.Fatalf("unmarshal standard base64: %v", err)
+	}
+
+	if !bytes.Equal(original, decoded) {
+		t.Fatal("backward-compatible decode failed")
+	}
+}
+
+func TestEd25519_Deterministic(t *testing.T) {
+	t.Parallel()
+
+	_, privKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+
+	signer, _ := signing.NewEd25519(privKey)
+	evt := makeTestEvent(t)
+
+	sig1, _ := signer.Sign(evt)
+	sig2, _ := signer.Sign(evt)
+
+	if !bytes.Equal(sig1.Bytes(), sig2.Bytes()) {
+		t.Fatal("Ed25519 signatures should be deterministic for same event + key")
+	}
+}
+
+func TestEmptyPayloadEvent(t *testing.T) {
+	t.Parallel()
+
+	key := []byte("my-secret-key-thirty-two-bytes!!")
+	signer, _ := signing.NewHMAC(key)
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	sig, signErr := signer.Sign(evt)
+	if signErr != nil {
+		t.Fatalf("sign: %v", signErr)
+	}
+
+	if sig.IsZero() {
+		t.Fatal("empty payload event should still produce non-zero signature")
+	}
+
+	if verifyErr := signer.Verify(evt, sig); verifyErr != nil {
+		t.Fatalf("verify: %v", verifyErr)
 	}
 }

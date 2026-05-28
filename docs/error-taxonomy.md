@@ -6,13 +6,13 @@
 
 Every error produced by the library belongs to exactly one family. This enables consumers to make **programmable decisions** — retry, reject, escalate — without string matching or type assertions.
 
-| Family | Semantic | Retryable? | Example |
-|---|---|---|---|
-| **Rejection** | Business rule violation or invalid input | No | `email is required`, `handler not found` |
-| **Conflict** | Optimistic concurrency or state collision | No (consumer decides) | `version conflict`, `user already exists` |
-| **Transient** | Temporary failure likely to resolve | Yes | `connection reset`, `timeout` |
-| **Infrastructure** | System-level failure requiring intervention | Maybe | `dispatcher closed`, `database unavailable` |
-| **Corruption** | Data integrity violation | No | `type assertion failed`, `checksum mismatch` |
+| Family             | Semantic                                    | Retryable?            | Example                                      |
+| ------------------ | ------------------------------------------- | --------------------- | -------------------------------------------- |
+| **Rejection**      | Business rule violation or invalid input    | No                    | `email is required`, `handler not found`     |
+| **Conflict**       | Optimistic concurrency or state collision   | No (consumer decides) | `version conflict`, `user already exists`    |
+| **Transient**      | Temporary failure likely to resolve         | Yes                   | `connection reset`, `timeout`                |
+| **Infrastructure** | System-level failure requiring intervention | Maybe                 | `dispatcher closed`, `database unavailable`  |
+| **Corruption**     | Data integrity violation                    | No                    | `type assertion failed`, `checksum mismatch` |
 
 ## Usage from Consumer Code
 
@@ -68,43 +68,43 @@ event.Classify(err) // => Conflict
 
 ### core/event
 
-| Error | Family | Code |
-|---|---|---|
-| `ErrEmptyEventType` | Rejection | `event.empty_event_type` |
-| `ErrNilAggregateID` | Rejection | `event.nil_aggregate_id` |
-| `ErrEmptyAggregateType` | Rejection | `event.empty_aggregate_type` |
-| `ErrVersionNotPositive` | Rejection | `event.version_not_positive` |
-| `ErrNilPayload` | Rejection | `event.nil_payload` |
+| Error                     | Family    | Code                           |
+| ------------------------- | --------- | ------------------------------ |
+| `ErrEmptyEventType`       | Rejection | `event.empty_event_type`       |
+| `ErrNilAggregateID`       | Rejection | `event.nil_aggregate_id`       |
+| `ErrEmptyAggregateType`   | Rejection | `event.empty_aggregate_type`   |
+| `ErrVersionNotPositive`   | Rejection | `event.version_not_positive`   |
+| `ErrNilPayload`           | Rejection | `event.nil_payload`            |
 | `ErrMismatchedEventCount` | Rejection | `event.mismatched_event_count` |
-| `ErrVersionConflict` | Conflict | `event.version_conflict` |
-| `ErrAggregateNotFound` | Rejection | `event.aggregate_not_found` |
+| `ErrVersionConflict`      | Conflict  | `event.version_conflict`       |
+| `ErrAggregateNotFound`    | Rejection | `event.aggregate_not_found`    |
 
 ### core/command
 
-| Error | Family | Code |
-|---|---|---|
-| `ErrHandlerNotFound` | Rejection | `command.handler_not_found` |
-| `ErrDispatcherClosed` | Infrastructure | `command.dispatcher_closed` |
-| `ErrEmptyCommandType` | Rejection | `command.empty_command_type` |
-| `ErrNilAggregateID` | Rejection | `command.nil_aggregate_id` |
-| `ErrTypeAssertion` | Corruption | `command.type_assertion` |
+| Error                 | Family         | Code                         |
+| --------------------- | -------------- | ---------------------------- |
+| `ErrHandlerNotFound`  | Rejection      | `command.handler_not_found`  |
+| `ErrDispatcherClosed` | Infrastructure | `command.dispatcher_closed`  |
+| `ErrEmptyCommandType` | Rejection      | `command.empty_command_type` |
+| `ErrNilAggregateID`   | Rejection      | `command.nil_aggregate_id`   |
+| `ErrTypeAssertion`    | Corruption     | `command.type_assertion`     |
 
 ### core/query
 
-| Error | Family | Code |
-|---|---|---|
-| `ErrQueryNotSupported` | Rejection | `query.not_supported` |
-| `ErrDispatcherClosed` | Infrastructure | `query.dispatcher_closed` |
-| `ErrEmptyQueryType` | Rejection | `query.empty_query_type` |
+| Error                  | Family         | Code                      |
+| ---------------------- | -------------- | ------------------------- |
+| `ErrQueryNotSupported` | Rejection      | `query.not_supported`     |
+| `ErrDispatcherClosed`  | Infrastructure | `query.dispatcher_closed` |
+| `ErrEmptyQueryType`    | Rejection      | `query.empty_query_type`  |
 
 ### middleware
 
-| Context | Family | Behavior |
-|---|---|---|
-| Validation failure | Rejection | Propagated as-is |
-| Retry exhausted | Transient | Wraps original error |
-| Panic recovery | Corruption | Captures panic value |
-| Circuit breaker open | Transient | Returns immediately |
+| Context              | Family     | Behavior             |
+| -------------------- | ---------- | -------------------- |
+| Validation failure   | Rejection  | Propagated as-is     |
+| Retry exhausted      | Transient  | Wraps original error |
+| Panic recovery       | Corruption | Captures panic value |
+| Circuit breaker open | Transient  | Returns immediately  |
 
 ## Design Principles
 
