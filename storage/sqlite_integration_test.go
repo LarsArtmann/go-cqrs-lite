@@ -150,6 +150,46 @@ func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	}
 }
 
+func TestSQLiteEventStore_ReadAll(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestStore(t)
+	aggID1 := id.NewAggregateID()
+	aggID2 := id.NewAggregateID()
+
+	evt1 := issueStoreConfig().newTestEvent(
+		t,
+		aggID1,
+		1,
+		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
+	)
+	evt2 := issueStoreConfig().newTestEvent(
+		t,
+		aggID2,
+		1,
+		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
+	)
+
+	err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1})
+	if err != nil {
+		t.Fatalf("AppendBatch 1: %v", err)
+	}
+
+	err = store.AppendBatch(context.Background(), "Issue", aggID2, []event.Event{evt2})
+	if err != nil {
+		t.Fatalf("AppendBatch 2: %v", err)
+	}
+
+	all, err := store.ReadAll(context.Background())
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(all))
+	}
+}
+
 func TestSQLiteEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
 	testEventStore_MetadataRoundtrip(t, newSQLiteTestStore(t), issueStoreConfig(), "test")

@@ -99,6 +99,46 @@ func BenchmarkSQLiteEventStore_LoadAll(b *testing.B) {
 	}
 }
 
+func BenchmarkSQLiteEventStore_ReadAll(b *testing.B) {
+	db, err := openSQLiteBenchDB(b)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	defer func() { _ = db.Close() }()
+
+	store, err := NewSQLiteEventStore(db)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	ctx := context.Background()
+	payload := []byte(`{}`)
+
+	for i := range 100 {
+		aggID := id.NewAggregateID()
+
+		evt, _ := event.NewEvent(
+			event.Type(fmt.Sprintf("event.%d", i)), aggID, "Bench",
+			event.Version(1), payload,
+		)
+
+		err := store.AppendBatch(ctx, "Bench", aggID, []event.Event{evt})
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := store.ReadAll(ctx)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	db, err := openSQLiteBenchDB(b)
 	if err != nil {

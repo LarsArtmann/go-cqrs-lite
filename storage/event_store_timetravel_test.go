@@ -133,6 +133,50 @@ func TestSQLiteEventStore_LoadAllFromPosition(t *testing.T) {
 	}
 }
 
+func TestSQLiteEventStore_ReadFrom(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestStore(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
+
+	time.Sleep(2 * time.Millisecond)
+	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
+
+	time.Sleep(2 * time.Millisecond)
+	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
+
+	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt1, evt2, evt3})
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	events, err := store.ReadFrom(ctx, evt1.ID(), 1)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event after position, got %d", len(events))
+	}
+
+	if events[0].ID() != evt2.ID() {
+		t.Fatalf("expected evt2 (version 2), got event with version %d", events[0].Version())
+	}
+
+	all, err := store.ReadFrom(ctx, evt1.ID(), 0)
+	if err != nil {
+		t.Fatalf("ReadFrom no limit: %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 events after position with no limit, got %d", len(all))
+	}
+}
+
 func TestSQLiteEventStore_LoadAllFromPosition_ZeroID(t *testing.T) {
 	t.Parallel()
 
@@ -154,6 +198,56 @@ func TestSQLiteEventStore_LoadAllFromPosition_ZeroID(t *testing.T) {
 
 	if len(events) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLiteEventStore_ReadFrom_ZeroID(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestStore(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
+
+	err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	events, err := store.ReadFrom(ctx, id.EventID{}, 10)
+	if err != nil {
+		t.Fatalf("ReadFrom zero ID: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+}
+
+func TestSQLiteEventStore_ReadFrom_NoLimit(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteTestStore(t)
+	ctx := context.Background()
+
+	aggID := id.NewAggregateID()
+
+	for i := range 5 {
+		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
+		err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
+		if err != nil {
+			t.Fatalf("AppendBatch: %v", err)
+		}
+	}
+
+	events, err := store.ReadFrom(ctx, id.EventID{}, 0)
+	if err != nil {
+		t.Fatalf("ReadFrom no limit: %v", err)
+	}
+
+	if len(events) != 5 {
+		t.Fatalf("expected 5 events, got %d", len(events))
 	}
 }
 

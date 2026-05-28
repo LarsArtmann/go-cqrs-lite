@@ -337,6 +337,15 @@ func TestTurso_FullWorkflow(t *testing.T) {
 	if len(fromPosition) != 2 {
 		t.Fatalf("expected 2 events after position, got %d", len(fromPosition))
 	}
+
+	readFrom, err := store.ReadFrom(ctx, events[2].ID(), 10)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(readFrom) != 2 {
+		t.Fatalf("expected 2 events after position via ReadFrom, got %d", len(readFrom))
+	}
 }
 
 func TestOpenTursoInMemory(t *testing.T) {
