@@ -33,14 +33,14 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 14 modules:
+Multi-module Go workspace (`go.work`) with 13 modules:
 
 ```
 go-cqrs-lite/
 ├── core/                # github.com/larsartmann/go-cqrs-lite/core
 │   ├── command/         # Dispatcher, Handler, Middleware, Command, BasicCommand
 │   ├── query/           # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
-│   ├── event/           # Store, Bus, SnapshotStore, ImmutableEvent, NewEvent, Clone, Codec, Upcaster
+│   ├── event/           # Store, Bus, SnapshotStore, ImmutableEvent, NewEvent, Clone, Codec, Upcaster, VersionedStore, NewUpcaster
 │   ├── decider/         # Decider[State], Repository[State], Execute, Load (pure-function style)
 │   └── pkg/
 │       ├── id/          # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
@@ -94,6 +94,19 @@ uid := id.New[UserID]()
 
 // Query dispatch (type-safe)
 result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
+
+// Event upcasting (schema migration on load)
+//   upcaster := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
+//       return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+//           newPayload, event.WithSchemaVersion(2))
+//   })
+//   versioned := event.NewVersionedStore(store, upcaster)
+//   events, _ := versioned.Load(ctx, "User", aggregateID)
+
+// Event signing (tamper-proof streams)
+//   signer, _ := signing.NewHMAC(secret)
+//   bus.UsePublish(signing.SignMiddleware(signer))
+//   bus.Use(signing.VerifyMiddleware(signer))
 ```
 
 ## Testing
