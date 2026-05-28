@@ -166,7 +166,7 @@
 - [x] ~~Wire Codec into snapshot serialization~~ — DONE
 - [x] ~~Add Delete, snapshot, and outbox support to decider.Repository~~ — DONE
 - [x] ~~Add command.TypedHandler[T] + command.RegisterTyped[T]~~ — DONE
-- [ ] Convert DispatchTyped to method on *query.Dispatcher for API discoverability (source: SESSION_70)
+- [ ] Convert DispatchTyped to method on \*query.Dispatcher for API discoverability (source: SESSION_70)
 - [x] ~~Add query/pagination.go helpers~~ — VERIFIED (NewPagination, Offset, NewPaginatedResult, HasNext, HasPrev, Validate)
 - [ ] Add catalog.Exporter interface + WalkMessages helper for extensibility (source: multiple sessions)
 - [x] ~~Delete catalog/internal/cattest/ package~~ — VERIFIED (7 test files depend on it, cannot delete without breaking tests)

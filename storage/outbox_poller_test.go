@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"io"
 	"log/slog"
 	"sync"
 	"testing"
@@ -364,7 +363,7 @@ func TestOutboxPoller_Options(t *testing.T) {
 
 	outbox := &fakePollerOutbox{}
 	publisher := &fakePollerPublisher{}
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	logger := slog.New(slog.DiscardHandler)
 
 	poller := NewOutboxPoller(
 		outbox,
