@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMultiSignature(t *testing.T) {
@@ -579,13 +578,20 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 	evt := makeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
-	tampered := testhelpers.QuickEvent(
+	tampered, tamperErr := event.NewEvent(
 		clone.Type(),
 		clone.AggregateID(),
 		clone.AggregateType(),
 		clone.Version(),
 		[]byte(`{"tampered":true}`),
+		event.WithEventID(clone.ID()),
+		event.WithOccurredAt(clone.OccurredAt()),
+		event.WithSchemaVersion(clone.SchemaVersion()),
+		event.WithMetadata(clone.Metadata()),
 	)
+	if tamperErr != nil {
+		t.Fatalf("tamper: %v", tamperErr)
+	}
 
 	pubKey, _, _ := ed25519.GenerateKey(nil)
 	verifier, _ := signing.NewEd25519Verifier(pubKey)
@@ -670,13 +676,20 @@ func TestMultiVerifyMiddleware_RejectsTampered(t *testing.T) {
 	evt := makeTestEvent(t)
 	clone, _ := deviceMulti.Sign(evt)
 
-	tampered := testhelpers.QuickEvent(
+	tampered, tamperErr := event.NewEvent(
 		clone.Type(),
 		clone.AggregateID(),
 		clone.AggregateType(),
 		clone.Version(),
 		[]byte(`{"tampered":true}`),
+		event.WithEventID(clone.ID()),
+		event.WithOccurredAt(clone.OccurredAt()),
+		event.WithSchemaVersion(clone.SchemaVersion()),
+		event.WithMetadata(clone.Metadata()),
 	)
+	if tamperErr != nil {
+		t.Fatalf("tamper: %v", tamperErr)
+	}
 
 	err := wrapped(context.Background(), tampered)
 	if err == nil {
