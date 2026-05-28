@@ -21,26 +21,13 @@ func TestRunner_WithRetryPolicy(t *testing.T) {
 		return event.NewTransient("test.transient", "temporary failure")
 	})
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(
-		store, dispatcher,
+	runner, instance, _ := setupTestSaga(t, dispatcher,
+		[]saga.Step{{Name: "create", Action: newTestCommand}},
 		saga.WithRetryPolicy(1, 10*time.Millisecond),
 		saga.WithRetryMultiplier(3.0),
 	)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
-
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
 		t.Fatal("expected retry exhaustion error")
@@ -63,36 +50,22 @@ func TestRunner_CompensateFailure(t *testing.T) {
 		return errors.New("always fails")
 	})
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, dispatcher)
-
 	compensateFails := func(_ context.Context, _ id.AggregateID) command.Command {
 		return &testCommand{}
 	}
 
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{Name: "create", Action: newTestCommand, Compensate: compensateFails},
-			{Name: "charge", Action: newTestCommand},
-		},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	runner, instance, store := setupTestSaga(t, dispatcher, []saga.Step{
+		{Name: "create", Action: newTestCommand, Compensate: compensateFails},
+		{Name: "charge", Action: newTestCommand},
+	})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
 		t.Fatalf("execute step 1: %v", err)
 	}
 
-	err = runner.ExecuteStep(ctx, instance.ID)
-	if err == nil {
+	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
 		t.Fatal("expected error")
 	}
 
@@ -115,33 +88,20 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 		return errors.New("step 3 fails")
 	})
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, dispatcher)
-
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{Name: "step1", Action: newTestCommand},
-			{
-				Name:   "step2",
-				Action: newTestCommand,
-				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-					compensateCalled = true
-					return &testCommand{}
-				},
+	runner, instance, _ := setupTestSaga(t, dispatcher, []saga.Step{
+		{Name: "step1", Action: newTestCommand},
+		{
+			Name:   "step2",
+			Action: newTestCommand,
+			Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
+				compensateCalled = true
+				return &testCommand{}
 			},
-			{Name: "step3", Action: newTestCommand},
 		},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+		{Name: "step3", Action: newTestCommand},
+	})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
 		t.Fatalf("execute step 1: %v", err)
@@ -170,32 +130,19 @@ func TestRunner_CompensateReturnsNilSkipped(t *testing.T) {
 		return event.NewRejection("test.reject", "non-retryable failure")
 	})
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, dispatcher)
-
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{
-				Name:   "create",
-				Action: newTestCommand,
-				Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-					compensateCalled = true
-					return nil
-				},
+	runner, instance, _ := setupTestSaga(t, dispatcher, []saga.Step{
+		{
+			Name:   "create",
+			Action: newTestCommand,
+			Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
+				compensateCalled = true
+				return nil
 			},
-			{Name: "charge", Action: newTestCommand},
 		},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+		{Name: "charge", Action: newTestCommand},
+	})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
 		t.Fatalf("execute step 1: %v", err)

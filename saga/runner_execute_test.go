@@ -63,22 +63,10 @@ func TestRunner_ExecuteStep_HappyPath(t *testing.T) {
 func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
 	t.Parallel()
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, nopDispatcher{})
-
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	runner, instance, _ := setupTestSaga(t, nopDispatcher{},
+		[]saga.Step{{Name: "create", Action: newTestCommand}})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
 		t.Fatalf("execute step: %v", err)
@@ -92,28 +80,14 @@ func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
 func TestRunner_ExecuteStep_NilAction(t *testing.T) {
 	t.Parallel()
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, nopDispatcher{})
-
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{
-				Name:   "nil",
-				Action: func(_ context.Context, _ id.AggregateID) command.Command { return nil },
-			},
+	runner, instance, _ := setupTestSaga(t, nopDispatcher{}, []saga.Step{
+		{
+			Name:   "nil",
+			Action: func(_ context.Context, _ id.AggregateID) command.Command { return nil },
 		},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
-
 	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
 		t.Fatal("expected error for nil action")
 	}
@@ -187,22 +161,10 @@ func TestRunner_ExecuteStep_FailureWithCompensation(t *testing.T) {
 func TestRunner_ExecuteStep_FirstStepFailsNoCompensation(t *testing.T) {
 	t.Parallel()
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, failingDispatcher{})
-
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	runner, instance, store := setupTestSaga(t, failingDispatcher{},
+		[]saga.Step{{Name: "create", Action: newTestCommand}})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
 
 	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
 		t.Fatal("expected error on first step failure")

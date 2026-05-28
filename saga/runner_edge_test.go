@@ -73,28 +73,14 @@ func TestRunner_StoreErrorOnSave(t *testing.T) {
 func TestRunner_TimeoutCancellation(t *testing.T) {
 	t.Parallel()
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, nopDispatcher{})
-
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{Name: "slow", Action: func(ctx context.Context, _ id.AggregateID) command.Command {
-				<-ctx.Done()
-				return nil
-			}, Timeout: 1 * time.Millisecond},
-		},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	runner, instance, _ := setupTestSaga(t, nopDispatcher{}, []saga.Step{
+		{Name: "slow", Action: func(ctx context.Context, _ id.AggregateID) command.Command {
+			<-ctx.Done()
+			return nil
+		}, Timeout: 1 * time.Millisecond},
+	})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "order", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
-
 	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
 		t.Fatal("expected timeout error")
 	}
@@ -121,20 +107,9 @@ func TestRunner_ExecuteStep_LoadError(t *testing.T) {
 func TestRunner_ExecuteStep_AlreadyAtEnd(t *testing.T) {
 	t.Parallel()
 
-	store := saga.NewMemoryStore()
-	runner := saga.NewRunner(store, nopDispatcher{})
-
-	def := testDefinition{sagaType: "empty", steps: []saga.Step{}}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	runner, instance, store := setupTestSaga(t, nopDispatcher{}, []saga.Step{})
 
 	ctx := context.Background()
-	instance, err := runner.Start(ctx, "empty", nil)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
-
 	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
 		t.Fatalf("execute step: %v", err)
 	}
