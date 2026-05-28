@@ -22,6 +22,26 @@ func newCommand(id string) catalog.Message {
 	return msg
 }
 
+func exportCatalog(t *testing.T, reg *catalog.Registry) string {
+	t.Helper()
+	tmpDir := t.TempDir()
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+	return tmpDir
+}
+
+func readExported(t *testing.T, tmpDir string, parts ...string) string {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(append([]string{tmpDir}, parts...)...))
+	if err != nil {
+		t.Fatalf("read %s: %v", filepath.Join(parts...), err)
+	}
+	return string(data)
+}
+
 func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, readOnlyDir string) {
 	t.Helper()
 
@@ -47,7 +67,6 @@ func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, re
 
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
@@ -68,72 +87,31 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		},
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	svcPath := filepath.Join(tmpDir, "services", "order-svc", "index.mdx")
-
-	data, err := os.ReadFile(svcPath)
-	if err != nil {
-		t.Fatalf("read service file: %v", err)
-	}
-
-	content := string(data)
+	content := readExported(t, tmpDir, "services", "order-svc", "index.mdx")
 	if !strings.Contains(content, "id: order-svc") {
 		t.Errorf("service file missing id: %s", content)
 	}
 
 	cattest.ReadFileAndAssert(
-		t, svcPath, "service file",
+		t, filepath.Join(tmpDir, "services", "order-svc", "index.mdx"), "service file",
 		"name: Order Service",
 		"# Order Service",
 	)
 
-	cmdPath := filepath.Join(
-		tmpDir,
-		"services",
-		"order-svc",
-		"commands",
-		"CreateOrder",
-		"index.mdx",
+	cmdContent := readExported(t, tmpDir, "services", "order-svc", "commands", "CreateOrder", "index.mdx")
+	cattest.AssertContentContains(t, cmdContent, "command file", "id: CreateOrder")
+
+	var schema map[string]any
+	schemaData, err := os.ReadFile(
+		filepath.Join(tmpDir, "services", "order-svc", "commands", "CreateOrder", "schemas", "schema.json"),
 	)
-
-	data, err = os.ReadFile(cmdPath)
-	if err != nil {
-		t.Fatalf("read command file: %v", err)
-	}
-
-	content = string(data)
-	cattest.AssertContentContains(
-		t, content, "command file",
-		"id: CreateOrder",
-	)
-
-	schemaPath := filepath.Join(
-		tmpDir,
-		"services",
-		"order-svc",
-		"commands",
-		"CreateOrder",
-		"schemas",
-		"schema.json",
-	)
-
-	data, err = os.ReadFile(schemaPath)
 	if err != nil {
 		t.Fatalf("read schema file: %v", err)
 	}
 
-	var schema map[string]any
-
-	err = json.Unmarshal(data, &schema)
-	if err != nil {
+	if err := json.Unmarshal(schemaData, &schema); err != nil {
 		t.Fatalf("parse schema JSON: %v", err)
 	}
 
@@ -144,7 +122,6 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
@@ -158,32 +135,12 @@ func TestExporter_Export_Event(t *testing.T) {
 		Summary: "Payment completed successfully",
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	evtPath := filepath.Join(
-		tmpDir,
-		"services",
-		"payment-svc",
-		"events",
-		"PaymentCompleted",
-		"index.mdx",
-	)
-
-	data, err := os.ReadFile(evtPath)
-	if err != nil {
-		t.Fatalf("read event file: %v", err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "event file",
+		t,
+		readExported(t, tmpDir, "services", "payment-svc", "events", "PaymentCompleted", "index.mdx"),
+		"event file",
 		"id: PaymentCompleted",
 		"# PaymentCompleted",
 	)
@@ -191,7 +148,6 @@ func TestExporter_Export_Event(t *testing.T) {
 
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("catalog-svc"), "Catalog Service", "1.0.0")
@@ -207,30 +163,15 @@ func TestExporter_Export_Query(t *testing.T) {
 		reg.AddQuery,
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	qPath := filepath.Join(tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx")
-
-	data, err := os.ReadFile(qPath)
-	if err != nil {
-		t.Fatalf("read query file: %v", err)
-	}
-
-	if !strings.Contains(string(data), "id: GetProduct") {
+	if !strings.Contains(readExported(t, tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx"), "id: GetProduct") {
 		t.Errorf("query file missing id")
 	}
 }
 
 func TestExporter_Export_Domain(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddDomain(
@@ -243,25 +184,12 @@ func TestExporter_Export_Domain(t *testing.T) {
 		[]catalog.ServiceID{"order-svc"},
 	)
 
-	cat := cattest.Build(t, reg)
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	domainPath := filepath.Join(tmpDir, "domains", "ordering", "index.mdx")
-
-	data, err := os.ReadFile(domainPath)
-	if err != nil {
-		t.Fatalf("read domain file: %v", err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "domain file",
+		t,
+		readExported(t, tmpDir, "domains", "ordering", "index.mdx"),
+		"domain file",
 		"id: ordering",
 		"services:",
 		"- id: order-svc",
@@ -270,26 +198,11 @@ func TestExporter_Export_Domain(t *testing.T) {
 
 func TestExporter_Export_Config(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("MyCatalog", "2.0.0")
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfgPath := filepath.Join(tmpDir, "eventcatalog.config.js")
-
-	data, err := os.ReadFile(cfgPath)
-	if err != nil {
-		t.Fatalf("read config file: %v", err)
-	}
-
-	content := string(data)
+	content := readExported(t, tmpDir, "eventcatalog.config.js")
 	if !strings.Contains(content, "title: \"MyCatalog\"") {
 		t.Errorf("config missing title: %s", content)
 	}
@@ -297,7 +210,6 @@ func TestExporter_Export_Config(t *testing.T) {
 
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
@@ -307,72 +219,35 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		Kind: catalog.EventMessage, ID: "EvtB", Name: "EvtB", Version: "1.0.0",
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	svcA := filepath.Join(tmpDir, "services", "svc-a", "index.mdx")
-
-	_, err = os.Stat(svcA)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-a", "index.mdx")); os.IsNotExist(err) {
 		t.Error("svc-a directory not created")
 	}
 
-	svcB := filepath.Join(tmpDir, "services", "svc-b", "index.mdx")
-
-	_, err = os.Stat(svcB)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-b", "index.mdx")); os.IsNotExist(err) {
 		t.Error("svc-b directory not created")
 	}
 
-	cmdA := filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx")
-
-	_, err = os.Stat(cmdA)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx")); os.IsNotExist(err) {
 		t.Error("CmdA command file not created")
 	}
 
-	evtB := filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx")
-
-	_, err = os.Stat(evtB)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx")); os.IsNotExist(err) {
 		t.Error("EvtB event file not created")
 	}
 }
 
 func TestExporter_Export_NoSchema(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", newCommand("NoSchema"))
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	schemaPath := filepath.Join(
-		tmpDir,
-		"services",
-		"svc",
-		"commands",
-		"NoSchema",
-		"schemas",
-		"schema.json",
-	)
-
-	_, err = os.Stat(schemaPath)
+	_, err := os.Stat(filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "schemas", "schema.json"))
 	if !os.IsNotExist(err) {
 		t.Error("schema.json should not exist when no schema is provided")
 	}
@@ -380,7 +255,6 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 
 func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
@@ -394,23 +268,9 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 		&catalog.Schema{Type: catalog.TypeObject},
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx"),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
+	content := readExported(t, tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx")
 	if !strings.Contains(content, "schemaPath: schemas/schema.json") {
 		t.Errorf("message frontmatter missing schemaPath: %s", content)
 	}
@@ -418,7 +278,6 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 
 func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
@@ -429,30 +288,15 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 		Version: "1.0.0",
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if strings.Contains(string(data), "schemaPath") {
+	if strings.Contains(readExported(t, tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"), "schemaPath") {
 		t.Error("schemaPath should not appear when no schema provided")
 	}
 }
 
 func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
@@ -471,25 +315,12 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 		Direction: catalog.Receives,
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "order-svc", "index.mdx"),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "service file",
+		t,
+		readExported(t, tmpDir, "services", "order-svc", "index.mdx"),
+		"service file",
 		"id: order-svc",
 		"sends:",
 		"- id: OrderCreated",
@@ -500,28 +331,15 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 
 func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
 		ID: "svc", Name: "Service", Version: "2.0.0", Summary: "A test service",
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "svc", "index.mdx"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
+	content := readExported(t, tmpDir, "services", "svc", "index.mdx")
 	if !strings.HasPrefix(content, "---\n") {
 		t.Error("MDX file should start with YAML frontmatter")
 	}
@@ -533,7 +351,6 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 
 func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
@@ -557,25 +374,12 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		reg.AddQuery,
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "order-svc", "index.mdx"),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "service file",
+		t,
+		readExported(t, tmpDir, "services", "order-svc", "index.mdx"),
+		"service file",
 		"commands:",
 		"- id: CreateOrder",
 		"queries:",
@@ -585,7 +389,6 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 
 func TestExporter_Export_LLMsTxt(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := catalog.NewRegistry("MyCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
@@ -618,23 +421,12 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		"Get order by ID",
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(tmpDir, "llms.txt"))
-	if err != nil {
-		t.Fatalf("read llms.txt: %v", err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "llms.txt",
+		t,
+		readExported(t, tmpDir, "llms.txt"),
+		"llms.txt",
 		"# MyCatalog",
 		"## Order Service (order-svc)",
 		"### Commands",
@@ -648,7 +440,6 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 
 func TestExporter_Export_ExamplesFile(t *testing.T) {
 	t.Parallel()
-	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
@@ -657,32 +448,12 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 		json.RawMessage(`{"orderId":"abc-123","amount":42.5}`),
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	examplesPath := filepath.Join(
-		tmpDir,
-		"services",
-		"svc",
-		"commands",
-		"CreateOrder",
-		"examples.json",
-	)
-
-	data, err := os.ReadFile(examplesPath)
-	if err != nil {
-		t.Fatalf("read examples.json: %v", err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "examples.json",
+		t,
+		readExported(t, tmpDir, "services", "svc", "commands", "CreateOrder", "examples.json"),
+		"examples.json",
 		"orderId",
 		"42.5",
 	)
@@ -690,8 +461,6 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 
 func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 	t.Parallel()
-
-	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
 	reg.AddService(catalog.Service{
@@ -704,23 +473,12 @@ func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 		},
 	})
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(tmpDir, "services", "owned-svc", "index.mdx"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
 	cattest.AssertContentContains(
-		t, content, "service index.mdx",
+		t,
+		readExported(t, tmpDir, "services", "owned-svc", "index.mdx"),
+		"service index.mdx",
 		"owners:",
 		"- team-platform",
 		"- john-doe",
@@ -729,8 +487,6 @@ func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 
 func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 	t.Parallel()
-
-	tmpDir := t.TempDir()
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
@@ -744,23 +500,9 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 		catalog.Sends,
 	)
 
-	cat := reg.Build()
+	tmpDir := exportCatalog(t, reg)
 
-	exp := NewExporter(tmpDir)
-
-	err := exp.Export(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(
-		tmpDir, "services", "svc", "events", "PlainEvent", "index.mdx",
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	content := string(data)
+	content := readExported(t, tmpDir, "services", "svc", "events", "PlainEvent", "index.mdx")
 
 	if strings.Contains(content, "summary:") {
 		t.Errorf("message without summary should not have summary field, got:\n%s", content)
