@@ -4,9 +4,9 @@ package command
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 )
 
@@ -37,7 +37,7 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return fmt.Errorf("registering command type %s: %w", cmdType, err)
+		return errorfamily.WrapInfrastructure(err, "command.register_failed", "registering command type "+string(cmdType))
 	}
 
 	err = d.inner.Register(
@@ -48,7 +48,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("registering handler for command type %s: %w", cmdType, err)
+		return errorfamily.WrapInfrastructure(err, "command.register_handler_failed", "registering handler for command type "+string(cmdType))
 	}
 
 	return nil
@@ -58,16 +58,16 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return fmt.Errorf("dispatching command type %s: %w", cmd.Type(), err)
+		return errorfamily.WrapInfrastructure(err, "command.dispatch_failed", "dispatching command type "+string(cmd.Type()))
 	}
 
 	wrapped, err := d.inner.Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return fmt.Errorf("%w: command type: %s", ErrHandlerNotFound, cmd.Type())
+			return errorfamily.WrapRejection(ErrHandlerNotFound, "command.handler_not_found", "handler not found for command type "+string(cmd.Type()))
 		}
 
-		return fmt.Errorf("command type %s: %w", cmd.Type(), err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "command.handler_failed", "command type "+string(cmd.Type()))
 	}
 
 	return wrapped(ctx, cmd)

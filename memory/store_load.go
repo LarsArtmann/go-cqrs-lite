@@ -2,8 +2,7 @@ package memory
 
 import (
 	"context"
-	"fmt"
-	"slices"
+		"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -94,7 +93,7 @@ func (s *MemoryStore) getEvents(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store %s: %w", op, err)
+		return nil, event.Wrapf(err, event.Infrastructure, "memory.load_failed", "memory store %s failed", op)
 	}
 
 	s.mu.RLock()
@@ -156,7 +155,7 @@ func (s *MemoryStore) collectAllSorted() []event.Event {
 func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store read all: %w", err)
+		return nil, event.WrapInfrastructure(err, "memory.read_all_failed", "memory store read all")
 	}
 
 	s.mu.RLock()
@@ -183,7 +182,7 @@ func (s *MemoryStore) ReadFrom(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("memory store read from (limit=%d): %w", limit, err)
+		return nil, event.Wrapf(err, event.Infrastructure, "memory.read_from_failed", "memory store read from (limit=%d) failed", limit)
 	}
 
 	s.mu.RLock()

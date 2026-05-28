@@ -1,6 +1,10 @@
 package query
 
-import "fmt"
+import (
+	"strconv"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 const (
 	defaultPage     = 1
@@ -76,17 +80,17 @@ func (r PaginatedResult[T]) HasPrev() bool {
 func (p Pagination) Validate() error {
 	if p.Page < 1 {
 		//nolint:err113 // dynamic error required to include actual page value
-		return fmt.Errorf("page must be >= 1, got %d", p.Page)
+		return errorfamily.NewRejection("query.invalid_page", "page must be >= 1, got "+strconv.FormatUint(uint64(p.Page), 10))
 	}
 
 	if p.PageSize < 1 {
 		//nolint:err113 // dynamic error required to include actual page size value
-		return fmt.Errorf("page size must be >= 1, got %d", p.PageSize)
+		return errorfamily.NewRejection("query.invalid_page_size", "page size must be >= 1, got "+strconv.FormatUint(uint64(p.PageSize), 10))
 	}
 
 	if p.PageSize > maxPageSize {
 		//nolint:err113 // dynamic error required to include actual page size value
-		return fmt.Errorf("page size must be <= %d, got %d", maxPageSize, p.PageSize)
+		return errorfamily.NewRejection("query.invalid_page_size", "page size must be <= "+strconv.Itoa(maxPageSize)+", got "+strconv.FormatUint(uint64(p.PageSize), 10))
 	}
 
 	return nil

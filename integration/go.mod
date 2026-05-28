@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
 	github.com/larsartmann/go-cqrs-lite/projection v1.6.0
+	github.com/larsartmann/go-cqrs-lite/signing v1.6.0
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
@@ -68,6 +69,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/middleware => ../middleware
 	github.com/larsartmann/go-cqrs-lite/projection => ../projection
 	github.com/larsartmann/go-cqrs-lite/saga => ../saga
+	github.com/larsartmann/go-cqrs-lite/signing => ../signing
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

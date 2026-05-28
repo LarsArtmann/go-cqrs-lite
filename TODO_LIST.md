@@ -224,6 +224,12 @@
 - [FUTURE] Add schema migration tool (source: MONOREPO_PLAN)
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble) (source: SESSION_61)
 - [x] ~~Event signing/verification for stored events~~ — DONE (signing module: HMAC-SHA256 + Ed25519)
+- [x] ~~Write `docs/signing-architecture.md` ADR~~ — DONE (Session 119)
+- [x] ~~Add HMAC + Ed25519 + VerifyAll benchmarks~~ — DONE (Session 119)
+- [x] ~~Split `signing_test.go` (1028L → focused files)~~ — DONE (Session 119)
+- [x] ~~Split `multisig_test.go` (1338L → focused files)~~ — DONE (Session 119)
+- [ ] Add cross-module signing integration test — full pipeline: NewEvent → MultiSigner.Sign → Bus.Publish → RequireMultiSigMiddleware → handler
+- [BLOCKED] Push signing v1.0.0 tag — code ready, needs tag + push
 - [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
 - [FUTURE] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
 - [x] ~~Add Upcaster interface + UpcasterRegistry~~ — DONE

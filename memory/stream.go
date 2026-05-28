@@ -2,8 +2,7 @@ package memory
 
 import (
 	"context"
-	"fmt"
-
+	
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -19,7 +18,7 @@ func (s *MemoryStore) LoadStream(
 ) (event.EventStream, error) {
 	events, err := s.getEvents(aggregateType, aggregateID, "load stream")
 	if err != nil {
-		return nil, fmt.Errorf("memory store load stream: %w", err)
+		return nil, event.WrapInfrastructure(err, "memory.load_stream_failed", "memory store load stream")
 	}
 
 	return event.NewSliceStream(copyEvents(events)), nil

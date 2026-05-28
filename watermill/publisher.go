@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -27,11 +26,11 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 	for _, msg := range messages {
 		evt, err := messageToEvent(topic, msg)
 		if err != nil {
-			return fmt.Errorf("convert message %s: %w", msg.UUID, err)
+			return event.WrapCorruption(err, "watermill.convert_message_failed", "convert message "+msg.UUID)
 		}
 
 		if err := a.publisher.Publish(ctx, evt); err != nil {
-			return fmt.Errorf("publish event %s: %w", evt.Type(), err)
+			return event.WrapInfrastructure(err, "watermill.publish_event_failed", "publish event "+string(evt.Type()))
 		}
 	}
 

@@ -2,8 +2,7 @@ package memory
 
 import (
 	"context"
-	"fmt"
-	"sync"
+		"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
@@ -33,7 +32,7 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return fmt.Errorf("snapshot store save: %w", err)
+		return event.WrapInfrastructure(err, "memory.snapshot_save_failed", "snapshot store save")
 	}
 
 	s.mu.Lock()
@@ -60,7 +59,7 @@ func (s *MemorySnapshotStore) Load(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("snapshot store load: %w", err)
+		return nil, event.WrapInfrastructure(err, "memory.snapshot_load_failed", "snapshot store load")
 	}
 
 	s.mu.RLock()
@@ -88,7 +87,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, fmt.Errorf("snapshot store load at version: %w", err)
+		return nil, event.WrapInfrastructure(err, "memory.snapshot_load_at_version_failed", "snapshot store load at version")
 	}
 
 	s.mu.RLock()
@@ -129,7 +128,7 @@ func (s *MemorySnapshotStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return fmt.Errorf("snapshot store delete: %w", err)
+		return event.WrapInfrastructure(err, "memory.snapshot_delete_failed", "snapshot store delete")
 	}
 
 	s.mu.Lock()

@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"slices"
 	"sync"
@@ -39,7 +38,7 @@ func NewMemoryBus() *MemoryBus {
 func (b *MemoryBus) useLocked(name string, fn func()) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return fmt.Errorf("bus %s: %w", name, err)
+		return event.WrapInfrastructure(err, "memory.bus_operation_failed", "bus "+name+" failed")
 	}
 
 	b.mu.Lock()
@@ -83,7 +82,7 @@ func (b *MemoryBus) UsePublish(mw ...event.PublishMiddleware) error {
 func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return fmt.Errorf("bus publish: %w", err)
+		return event.WrapInfrastructure(err, "memory.publish_failed", "bus publish")
 	}
 
 	b.mu.RLock()
@@ -97,12 +96,14 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 		for i, evt := range events {
 			err := b.publishEvent(ctx, evt)
 			if err != nil {
-				return fmt.Errorf(
-					"failed to publish event %d (%s) from batch of %d events: %w",
+				return event.Wrapf(
+					err,
+					event.Infrastructure,
+					"memory.publish_event_failed",
+					"failed to publish event %d (%s) from batch of %d events",
 					i,
 					evt.Type(),
 					len(events),
-					err,
 				)
 			}
 		}
@@ -117,7 +118,7 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 
 	err = publisher.Publish(ctx, events...)
 	if err != nil {
-		return fmt.Errorf("memory bus publish: %w", err)
+		return event.WrapInfrastructure(err, "memory.publish_failed", "memory bus publish")
 	}
 
 	return nil
@@ -127,12 +128,12 @@ func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {
 	handler := func(ctx context.Context, e event.Event) error {
 		err := b.notifyHandlers(ctx, e, b.allHandlers, "all-handler")
 		if err != nil {
-			return fmt.Errorf("notify all-handlers for %s: %w", e.Type(), err)
+			return event.WrapInfrastructure(err, "memory.notify_all_handlers_failed", "notify all-handlers for "+string(e.Type()))
 		}
 
 		err = b.notifyHandlers(ctx, e, b.handlers[e.Type()], "handler")
 		if err != nil {
-			return fmt.Errorf("notify handler for %s: %w", e.Type(), err)
+			return event.WrapInfrastructure(err, "memory.notify_handler_failed", "notify handler for "+string(e.Type()))
 		}
 
 		return nil
@@ -154,7 +155,15 @@ func (b *MemoryBus) notifyHandlers(
 	for idx, h := range handlers {
 		err := h(ctx, evt)
 		if err != nil {
-			return fmt.Errorf("%s %d failed for event %s: %w", prefix, idx, evt.Type(), err)
+			return event.Wrapf(
+				err,
+				event.Infrastructure,
+				"memory.handler_failed",
+				"%s %d failed for event %s",
+				prefix,
+				idx,
+				evt.Type(),
+			)
 		}
 	}
 
@@ -164,7 +173,7 @@ func (b *MemoryBus) notifyHandlers(
 func (b *MemoryBus) register(name string, handler event.Handler, fn func()) error {
 	err := b.CheckClosed(event.ErrBusClosed)
 	if err != nil {
-		return fmt.Errorf("bus %s: %w", name, err)
+		return event.WrapInfrastructure(err, "memory.bus_register_failed", "bus "+name+" failed")
 	}
 
 	if handler == nil {

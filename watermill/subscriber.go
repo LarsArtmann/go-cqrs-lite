@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -39,14 +38,14 @@ func (a *SubscriberAdapter) Subscribe(
 		case a.outputCh <- msg:
 			return nil
 		case <-a.closeCh:
-			return fmt.Errorf("subscriber closed")
+			return event.ErrBusClosed
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	}
 
 	if err := a.bus.Subscribe(event.Type(topic), handler); err != nil {
-		return nil, fmt.Errorf("subscribe to %s: %w", topic, err)
+		return nil, event.WrapInfrastructure(err, "watermill.subscribe_failed", "subscribe to "+topic)
 	}
 
 	a.handlers[topic] = handler

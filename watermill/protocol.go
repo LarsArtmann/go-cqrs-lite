@@ -1,7 +1,6 @@
 package watermill
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -87,12 +86,12 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
-		return nil, fmt.Errorf("parse aggregate_id: %w", err)
+		return nil, event.WrapRejection(err, "watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
 	aggregateType := event.AggregateType(md.Get(metaAggregateType))
 	if aggregateType == "" {
-		return nil, fmt.Errorf("missing %s metadata", metaAggregateType)
+		return nil, event.NewRejection("watermill.missing_metadata", "missing "+metaAggregateType+" metadata")
 	}
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
@@ -114,7 +113,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
 		eventID, err := id.ParseEventID(eventIDStr)
 		if err != nil {
-			return nil, fmt.Errorf("parse event_id: %w", err)
+			return nil, event.WrapRejection(err, "watermill.parse_event_id_failed", "parse event_id")
 		}
 		opts = append(opts, event.WithEventID(eventID))
 	}
@@ -122,7 +121,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
 		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
 		if err != nil {
-			return nil, fmt.Errorf("parse occurred_at: %w", err)
+			return nil, event.WrapRejection(err, "watermill.parse_occurred_at_failed", "parse occurred_at")
 		}
 		opts = append(opts, event.WithOccurredAt(occurredAt))
 	}
@@ -141,7 +140,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		opts...,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("create event: %w", err)
+		return nil, event.WrapCorruption(err, "watermill.create_event_failed", "create event")
 	}
 
 	return evt, nil
@@ -199,12 +198,12 @@ func buildMetadata(md message.Metadata) *event.Metadata {
 
 func parseInt(s, field string) (int, error) {
 	if s == "" {
-		return 0, fmt.Errorf("missing %s metadata", field)
+		return 0, event.NewRejection("watermill.missing_metadata", "missing "+field+" metadata")
 	}
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, fmt.Errorf("parse %s: %w", field, err)
+		return 0, event.WrapRejection(err, "watermill.parse_failed", "parse "+field)
 	}
 
 	return v, nil

@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -39,18 +40,18 @@ func (c *BasicCommand) Metadata() Metadata { return c.metadata }
 // New creates a new command with validation.
 func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCommand, error) {
 	if commandType == "" {
-		return nil, fmt.Errorf(
-			"%w: got empty for aggregate %q",
+		return nil, errorfamily.WrapRejection(
 			ErrEmptyCommandType,
-			aggregateID,
+			"command.empty_command_type",
+			"command type is required: got empty for aggregate "+aggregateID.String(),
 		)
 	}
 
 	if aggregateID.IsZero() {
-		return nil, fmt.Errorf(
-			"%w: got zero for command type %q",
+		return nil, errorfamily.WrapRejection(
 			ErrNilAggregateID,
-			commandType,
+			"command.nil_aggregate_id",
+			"aggregate ID is required: got zero for command type "+string(commandType),
 		)
 	}
 

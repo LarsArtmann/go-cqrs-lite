@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"sync"
 
@@ -49,7 +48,7 @@ func (s *MemoryStore) Save(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return fmt.Errorf("memory store save: %w", err)
+		return event.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
 
 	s.mu.Lock()
@@ -60,7 +59,7 @@ func (s *MemoryStore) Save(
 
 	err = event.CheckVersionConflict(len(existing), expectedVersion)
 	if err != nil {
-		return fmt.Errorf("memory store save: %w", err)
+		return event.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
 
 	s.events[key] = append(existing, events...)
@@ -77,7 +76,7 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return fmt.Errorf("memory store append batch: %w", err)
+		return event.WrapInfrastructure(err, "memory.append_batch_failed", "memory store append batch")
 	}
 
 	s.mu.Lock()
@@ -97,7 +96,7 @@ func (s *MemoryStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return fmt.Errorf("memory store delete: %w", err)
+		return event.WrapInfrastructure(err, "memory.delete_failed", "memory store delete")
 	}
 
 	s.mu.Lock()
