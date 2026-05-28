@@ -17,7 +17,7 @@ func newLogger() *slog.Logger {
 
 type printMetricsRecorder struct{}
 
-func (p *printMetricsRecorder) Observe(name string, duration time.Duration, labels ...string) {
+func (p *printMetricsRecorder) Observe(name string, duration time.Duration, _ ...string) {
 	fmt.Printf("  [metrics] %s → %s\n", name, duration.Round(time.Microsecond))
 }
 

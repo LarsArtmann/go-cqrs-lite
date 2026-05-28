@@ -250,8 +250,11 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		return readModel.Handle(context.Background(), evt)
+	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+		return readModel.Handle( //nolint:contextcheck // no parent context in test bus handler
+			context.Background(),
+			evt,
+		)
 	})
 
 	userID := id.NewAggregateID()

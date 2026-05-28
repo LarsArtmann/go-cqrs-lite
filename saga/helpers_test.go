@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -105,4 +106,30 @@ func (l *mockLogger) getErrors() []string {
 	result := make([]string, len(l.errs))
 	copy(result, l.errs)
 	return result
+}
+
+// setupTestSaga creates a runner, registers a test definition, starts a saga instance,
+// and returns the runner, instance, and store for test assertions.
+func setupTestSaga(
+	tb testing.TB,
+	dispatcher command.Dispatcher,
+	steps []saga.Step,
+	opts ...saga.Option,
+) (*saga.Runner, *saga.Instance, saga.Store) {
+	tb.Helper()
+
+	store := saga.NewMemoryStore()
+	runner := saga.NewRunner(store, dispatcher, opts...)
+	def := testDefinition{sagaType: "order", steps: steps}
+	if err := runner.Register(def); err != nil {
+		tb.Fatalf("register: %v", err)
+	}
+
+	ctx := context.Background()
+	instance, err := runner.Start(ctx, "order", nil)
+	if err != nil {
+		tb.Fatalf("start: %v", err)
+	}
+
+	return runner, instance, store
 }

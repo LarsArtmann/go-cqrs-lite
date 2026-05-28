@@ -79,7 +79,10 @@ func registerQueryHandlers(
 func registerBusHandlers(bus event.Bus, readModel *ReadModelStore, published *[]event.Event) {
 	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		*published = append(*published, evt)
-		_ = readModel.Handle(context.Background(), evt) //nolint:contextcheck // no parent context in bus handler
+		_ = readModel.Handle(
+			context.Background(),
+			evt,
+		) //nolint:contextcheck // no parent context in bus handler
 
 		return nil
 	})
