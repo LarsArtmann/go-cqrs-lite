@@ -80,12 +80,15 @@ nav a:hover,nav a.active{color:var(--accent);background:var(--accent-dim)}
 .card pre{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.6;color:var(--fg-dim);margin-bottom:1rem}
 
 /* --- TABLES --- */
-.card table{width:100%;border-collapse:collapse;font-size:.82rem}
-.card table th,.card table td{padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
-.card table th{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-muted);white-space:nowrap}
-.card table td:first-child{font-family:var(--mono);font-size:.75rem;font-weight:500;color:var(--accent);white-space:nowrap}
-.card table td{color:var(--fg-dim)}
-.card table tr:last-child td{border-bottom:none}
+.card table{width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem}
+.card table th,.card table td{padding:.55rem .85rem;text-align:left}
+.card table thead th{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);white-space:nowrap;background:var(--bg-raised);border-bottom:2px solid var(--border-light);position:sticky;top:0}
+.card table thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+.card table thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+.card table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);transition:background .15s}
+.card table tbody tr:hover td{background:rgba(6,214,160,.04)}
+.card table tbody tr:last-child td{border-bottom:none}
+.card table tbody td:first-child{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent);white-space:nowrap;min-width:90px}
 
 .card .key-prop{margin-top:1rem;padding:.75rem 1rem;background:var(--accent-dim);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.85rem;color:var(--fg-dim);line-height:1.6}
 .card .key-prop strong{color:var(--fg)}
@@ -95,12 +98,17 @@ nav a:hover,nav a.active{color:var(--accent);background:var(--accent-dim)}
 .card .variants li::before{content:'';position:absolute;left:0;top:.55rem;width:6px;height:6px;border-radius:50%;background:var(--accent)}
 
 /* --- MEGA TABLE --- */
-.mega-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
-.mega-table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:900px}
-.mega-table th,.mega-table td{padding:.6rem .75rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.mega-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card)}
+.mega-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.78rem;min-width:900px}
+.mega-table th,.mega-table td{padding:.65rem .85rem;text-align:left;white-space:nowrap}
 .mega-table thead th{background:var(--bg-raised);font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);position:sticky;top:0;border-bottom:2px solid var(--border-light)}
-.mega-table tbody td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:.78rem}
-.mega-table td{color:var(--fg-dim)}
+.mega-table thead th:first-child{padding-left:1.1rem}
+.mega-table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);transition:background .15s}
+.mega-table tbody tr:hover td{background:rgba(6,214,160,.04)}
+.mega-table tbody tr:last-child td{border-bottom:none}
+.mega-table tbody td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:.78rem;padding-left:1.1rem}
+.mega-table tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.mega-table tbody tr:nth-child(even):hover td{background:rgba(6,214,160,.05)}
 .mega-table .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:.4rem;vertical-align:middle}
 .dot-green{background:var(--accent)}
 .dot-blue{background:var(--blue)}
@@ -109,9 +117,35 @@ nav a:hover,nav a.active{color:var(--accent);background:var(--accent-dim)}
 
 /* --- RELEVANCE --- */
 .relevance-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;margin-bottom:2rem}
-.rel-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem}
+.rel-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;transition:border-color .2s}
+.rel-item:hover{border-color:var(--accent)}
 .rel-item h4{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);margin-bottom:.35rem}
 .rel-item p{font-size:.85rem;color:var(--fg-dim);line-height:1.6}
+
+/* --- RANK TABLE --- */
+.rank-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card);max-height:70vh;position:relative}
+.rank-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.78rem}
+.rank-table th,.rank-table td{padding:.6rem .85rem;text-align:left;white-space:nowrap}
+.rank-table thead th{background:var(--bg-raised);font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);position:sticky;top:0;border-bottom:2px solid var(--border-light);z-index:2}
+.rank-table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);transition:background .15s}
+.rank-table tbody tr:hover td{background:rgba(6,214,160,.04)}
+.rank-table tbody tr:last-child td{border-bottom:none}
+.rank-table tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.rank-table tbody tr:nth-child(even):hover td{background:rgba(6,214,160,.05)}
+.rank-table .rank-num{font-family:var(--mono);font-weight:600;color:var(--fg-muted);width:3rem;text-align:right;font-size:.75rem}
+.rank-table .db-name{font-weight:600;color:var(--fg);font-size:.82rem}
+.rank-table .db-model{color:var(--fg-muted);font-size:.72rem;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.rank-table .db-score{font-family:var(--mono);color:var(--fg-dim);font-size:.75rem;text-align:right}
+.rank-table .db-usage{font-size:.78rem;max-width:260px;white-space:normal;line-height:1.4}
+.rank-table tr.hl td{background:var(--accent-dim)}
+.rank-table tr.hl:hover td{background:rgba(6,214,160,.1)}
+.rank-table tr.hl .db-name{color:var(--accent)}
+.rank-table tr.hl-amber td{background:var(--amber-dim)}
+.rank-table tr.hl-amber:hover td{background:rgba(245,158,11,.08)}
+.rank-table tr.hl-amber .db-name{color:var(--amber)}
+.rank-table tr.hl-blue td{background:var(--blue-dim)}
+.rank-table tr.hl-blue:hover td{background:rgba(59,130,246,.08)}
+.rank-table tr.hl-blue .db-name{color:var(--blue)}
 
 /* --- ADVANCED --- */
 .adv-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.25rem}
@@ -120,6 +154,12 @@ nav a:hover,nav a.active{color:var(--accent);background:var(--accent-dim)}
 .adv-card .desc{font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:.75rem}
 .adv-card .lesson{padding:.6rem .9rem;background:var(--accent-dim);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:.82rem;color:var(--fg-dim)}
 .adv-card .lesson strong{color:var(--fg)}
+.adv-card table{width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem;margin-top:.5rem}
+.adv-card table thead th{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);background:var(--bg-raised);border-bottom:2px solid var(--border-light);padding:.55rem .85rem;text-align:left}
+.adv-card table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);padding:.5rem .85rem;transition:background .15s}
+.adv-card table tbody tr:hover td{background:rgba(6,214,160,.04)}
+.adv-card table tbody tr:last-child td{border-bottom:none}
+.adv-card table tbody td:first-child{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent);white-space:nowrap;min-width:90px}
 
 /* --- DIAGRAM --- */
 .diagram-box{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;margin:2rem 0;position:relative;overflow:hidden}
@@ -507,6 +547,124 @@ Vector.Search(embedding, k)    // Similarity</pre>
   </div>
 </div>
 
+<!-- 14. Spatial / GIS -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">14</div>
+    <h3>Spatial / GIS</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>INSERT INTO locations (name, geo)
+  VALUES ('Berlin', ST_Point(13.4, 52.5))
+
+SELECT * FROM locations
+  WHERE ST_DWithin(geo, ST_Point(13.4,52.5), 5000)</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Spatial queries: nearest-neighbor, within-radius, within-polygon, intersection</td></tr>
+      <tr><td>Query model</td><td>SQL extensions (PostGIS) or native spatial APIs with R-Tree indexing</td></tr>
+      <tr><td>Index</td><td>R-Tree, Geohash, Z-order curve, H3 (hexagonal grid)</td></tr>
+      <tr><td>Notable</td><td>PostGIS (#29), SpatiaLite (#141), GeoMesa (#204), Apache Sedona (#221)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Optimized for 2D/3D geometric queries. Usually a layer on top of relational or columnar, not a standalone engine. PostGIS is just a PostgreSQL extension.</div>
+  </div>
+</div>
+
+<!-- 15. Object-Oriented DBMS -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">15</div>
+    <h3>Object-Oriented DBMS</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>db.Store(&amp;User{Name: "Alice", Address: &amp;Address{City: "Berlin"}})
+user := db.Load&lt;User&gt;(oid)
+user.Address.City  // navigated transparently</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>CRUD on object graphs with transparent navigation and lazy loading</td></tr>
+      <tr><td>Query model</td><td>OQL, native language queries, or method-based APIs. No impedance mismatch</td></tr>
+      <tr><td>Schema</td><td>Object types mirror application classes. Inheritance, polymorphism native</td></tr>
+      <tr><td>Notable</td><td>ObjectBox (#171, Go-friendly), Db4o (#173), Objectivity/DB (#226), InterSystems IRIS (#118)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Eliminates object-relational impedance mismatch. Popular in embedded/mobile (ObjectBox). Lost the ORM war in enterprise but survives in niche domains (CAD, telecommunications, scientific).</div>
+  </div>
+</div>
+
+<!-- 16. Content Store -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">16</div>
+    <h3>Content Store</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>session.getNode("/content/articles/2024/intro")
+  .setProperty("title", "Hello World")
+  .addMixin("mix:versionable")
+session.save()</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Tree-structured content nodes with properties, versioning, access control</td></tr>
+      <tr><td>Query model</td><td>XPath, SQL-2 (JCR standard). Full-text search built-in</td></tr>
+      <tr><td>Schema</td><td>Node types and mixins (JCR) or flexible schema</td></tr>
+      <tr><td>Notable</td><td>Apache Jackrabbit (#72, JCR reference impl), ModeShape (#279)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Tree-structured document management with built-in versioning, locking, and access control. The JCR (Java Content Repository) standard defines the interface. Niche — mostly CMS/ECM systems.</div>
+  </div>
+</div>
+
+<!-- 17. Native XML DBMS -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">17</div>
+    <h3>Native XML DBMS</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>// XQuery across XML documents
+for $book in doc("catalog.xml")/books/book
+where $book/price &lt; 30
+return $book/title</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>XQuery, XPath. XML as the native data model, not bolted on</td></tr>
+      <tr><td>Query model</td><td>XQuery 3.1 (Turing-complete functional language), XPath 3.1</td></tr>
+      <tr><td>Schema</td><td>XML Schema (XSD), DTD, or schema-less</td></tr>
+      <tr><td>Notable</td><td>BaseX (#156), eXist-db (#222), Sedna (#201)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Stores and queries XML natively without relational mapping. Declining category — XML lost to JSON for APIs but survives in publishing, government, and legacy enterprise systems.</div>
+  </div>
+</div>
+
+<!-- 18. Navigational / Multivalue (Legacy) -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">18</div>
+    <h3>Navigational / Multivalue (Legacy)</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>// Multivalue: multi-valued fields (arrays as first-class)
+OPEN "CUSTOMERS" TO custs THEN
+  READ cust FROM custs, "C12345"
+  name = cust&lt;1&gt;      ; * attribute 1
+  phones = cust&lt;2&gt;     ; * multi-valued
+  phone1 = cust&lt;2,1&gt;   ; * first value
+END</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Record-level access via IDs or hierarchical navigation (IMS). Multi-valued fields (Pick/MultiValue)</td></tr>
+      <tr><td>Query model</td><td>Procedural navigation (IMS DL/I) or English-like query (Pick/UniQuery). No SQL</td></tr>
+      <tr><td>Schema</td><td>Hierarchical (IMS) or dynamic multi-valued dictionaries (Pick/MultiValue)</td></tr>
+      <tr><td>Notable</td><td>IMS (#148, 1966, still runs mainframes), Adabas (#97), UniData/UniVerse (#116), IDMS (#205)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Pre-relational models. IMS (1966) is the oldest DBMS still in production — handles 50B+ transactions/day at major banks. Multivalue/Pick systems run payroll and ERP for thousands of enterprises. Technically obsolete, practically irreplaceable.</div>
+  </div>
+</div>
+
 </div>
 </section>
 
@@ -840,6 +998,12 @@ Old root still valid → readers see consistent snapshot</pre>
     <tr><td>Vector</td><td>—</td><td>Qdrant (rocksdb)</td><td>—</td><td>Milvus</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>Event Store</td><td>—</td><td>—</td><td>—</td><td>—</td><td>EventStoreDB</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>Object</td><td>—</td><td>—</td><td>—</td><td>—</td><td>S3 internals</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Spatial / GIS</td><td>PostGIS (PG ext)</td><td>—</td><td>—</td><td>GeoMesa</td><td>—</td><td>SpatiaLite</td><td>—</td><td>—</td></tr>
+    <tr><td>Object-Oriented</td><td>ObjectBox, Db4o</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Content Store</td><td>Jackrabbit</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Native XML</td><td>BaseX, eXist-db</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Navigational</td><td>IMS (HSAM)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Multivalue</td><td>Adabas</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
   </tbody>
 </table>
 </div>
@@ -1137,10 +1301,43 @@ Old root still valid → readers see consistent snapshot</pre>
   </table>
 </div>
 
-</section>
+<h3 style="font-size:1rem;color:var(--fg-dim);margin:2.5rem 0 1rem;font-weight:400">Event Sourcing, Bitemporal &amp; Versioned — Directly Related to go-cqrs-lite</h3>
+<p style="font-size:.85rem;color:var(--fg-muted);margin-bottom:1.5rem;max-width:700px;line-height:1.7">These databases share architectural DNA with go-cqrs-lite: immutable logs, time-travel queries, bitemporal tracking, or event-first design. Direct competitors or inspirations.</p>
 
-<!-- ============================================================ -->
-<section class="part" id="rankings">
+<div class="adv-card" style="border-color:var(--violet);box-shadow:0 0 40px rgba(139,92,246,.1)">
+  <h3>XTDB <span class="tag badge-arch">Bitemporal Datalog — Event Sourcing Competitor</span></h3>
+  <p class="desc"><strong>Storage:</strong> Append-only transaction log + Lucene indexes + object store (S3/GCS). Documents are never updated — new versions are appended.<br><strong>Interface:</strong> Datalog (Clojure), SQL:2023 (Java/XNode), XTQL. First-class bitemporal: valid-time + transaction-time on every document.</p>
+  <div class="lesson"><strong>Why it matters:</strong> XTDB (formerly Crux) is the closest direct competitor to go-cqrs-lite in the event sourcing space. It's bitemporal (tracks both "when did this happen" and "when did we record it"), supports time-travel queries natively, and treats documents as immutable event streams. The Clojure ecosystem means it targets different users, but the architectural overlap is significant. #289 in DB-Engines ranking.</div>
+</div>
+
+<div class="adv-card" style="border-color:var(--violet);box-shadow:0 0 40px rgba(139,92,246,.1)">
+  <h3>Dolt <span class="tag badge-arch">Git-for-Data — Versioned SQL</span></h3>
+  <p class="desc"><strong>Storage:</strong> Prolly Trees (probabilistic B+Tree) — content-addressed, enabling structural sharing between versions like Git.<br><strong>Interface:</strong> Full MySQL-compatible SQL. Git semantics: <code>dolt commit</code>, <code>dolt diff</code>, <code>dolt merge</code>, <code>dolt revert</code> on relational data.</p>
+  <div class="lesson"><strong>Why it matters:</strong> Dolt applies Git's branching/merging model to relational data. Every table state is versioned, diffable, and mergeable. For event sourcing, this is fascinating — the event log IS the Git history. Prolly Trees achieve O(log n) reads with content-addressed deduplication. #190 in DB-Engines ranking.</div>
+</div>
+
+<h3 style="font-size:1rem;color:var(--fg-dim);margin:2.5rem 0 1rem;font-weight:400">Distributed SQL &amp; Wide-Column — Scale-Out Architectures</h3>
+<p style="font-size:.85rem;color:var(--fg-muted);margin-bottom:1.5rem;max-width:700px;line-height:1.7">For deployments where a single PostgreSQL instance isn't enough. These databases distribute data across nodes while maintaining SQL or wide-column interfaces.</p>
+
+<div class="adv-card">
+  <h3>TiDB <span class="tag badge-arch">Distributed HTAP — MySQL-Compatible</span></h3>
+  <p class="desc"><strong>Storage:</strong> RAFT-replicated MVCC storage (TiKV, based on RocksDB) for OLTP + columnar (TiFlash) for OLAP. Separate engines, one SQL surface.<br><strong>Interface:</strong> MySQL-compatible SQL. Transparent sharding. Go client via MySQL protocol.</p>
+  <div class="lesson"><strong>Why it matters:</strong> TiDB proves the "HTAP" (hybrid transactional/analytical) model works at scale. For go-cqrs-lite, TiDB could use the MySQL dialect variant of our storage module. The TiKV layer (RocksDB-based) aligns with our Pebble adapter strategy. #84 in DB-Engines ranking.</div>
+</div>
+
+<div class="adv-card">
+  <h3>ScyllaDB <span class="tag badge-arch">C++ Cassandra — 10× Latency</span></h3>
+  <p class="desc"><strong>Storage:</strong> LSM-Tree (C++ rewrite of Cassandra's Java storage). Shard-per-core architecture. No JVM, no GC pauses.<br><strong>Interface:</strong> Cassandra-compatible CQL. Same data model, 10× lower latency, same operational knowledge.</p>
+  <div class="lesson"><strong>Why it matters:</strong> ScyllaDB demonstrates that the storage engine language matters. C++ with shard-per-core threading eliminates GC pauses and cross-core coordination. For event sourcing at scale, ScyllaDB's append-optimized LSM with tunable consistency is a viable event store backend. #69 in DB-Engines ranking.</div>
+</div>
+
+<div class="adv-card">
+  <h3>CockroachDB / YugabyteDB <span class="tag badge-arch">Distributed PostgreSQL</span></h3>
+  <p class="desc"><strong>Storage:</strong> Pebble (CockroachDB) or RocksDB (YugabyteDB) under the hood. RAFT-based replication. MVCC with hybrid logical clocks.<br><strong>Interface:</strong> PostgreSQL-compatible SQL (YugabyteDB) or PostgreSQL-wire-protocol SQL (CockroachDB).</p>
+  <div class="lesson"><strong>Why it matters:</strong> Both are drop-in PostgreSQL replacements for distributed deployments. CockroachDB uses Pebble — the same engine our <code>pebble/</code> module wraps. Our PostgreSQL dialect should work with minimal modification. CockroachDB #73, YugabyteDB #122.</div>
+</div>
+
+</section>
 <div class="part-header">
   <div class="part-number">Part 6</div>
   <h2>DB-Engines Popularity Ranking</h2>
@@ -1148,48 +1345,48 @@ Old root still valid → readers see consistent snapshot</pre>
 
 <p style="font-size:.85rem;color:var(--fg-dim);margin-bottom:2rem;max-width:700px;line-height:1.7">Top 30 databases by popularity score (May 2026). Databases used by go-cqrs-lite are highlighted. Data from <a href="https://db-engines.com/en/ranking" style="color:var(--accent)">db-engines.com</a>.</p>
 
-<div class="mega-table-wrap">
-<table class="mega-table">
+<div class="rank-table-wrap">
+<table class="rank-table">
   <thead>
     <tr>
-      <th>Rank</th>
+      <th class="rank-num">Rank</th>
       <th>DBMS</th>
       <th>Model</th>
-      <th>Score</th>
-      <th>go-cqrs-lite</th>
+      <th class="db-score">Score</th>
+      <th>go-cqrs-lite Relevance</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>1</td><td>Oracle</td><td>Relational, Multi-model</td><td>1143.28</td><td>—</td></tr>
-    <tr><td>2</td><td>MySQL</td><td>Relational, Multi-model</td><td>856.49</td><td>—</td></tr>
-    <tr><td>3</td><td>Microsoft SQL Server</td><td>Relational, Multi-model</td><td>700.99</td><td>—</td></tr>
-    <tr style="background:var(--accent-dim)"><td>4</td><td style="color:var(--accent)">PostgreSQL</td><td>Relational, Multi-model</td><td>682.68</td><td style="color:var(--accent)">Event Store, Outbox, Snapshots, Checkpoints</td></tr>
-    <tr><td>5</td><td>MongoDB</td><td>Document, Multi-model</td><td>384.65</td><td>—</td></tr>
-    <tr><td>6</td><td>Snowflake</td><td>Relational</td><td>215.64</td><td>—</td></tr>
-    <tr><td>7</td><td>Databricks</td><td>Multi-model</td><td>151.79</td><td>—</td></tr>
-    <tr><td>8</td><td>Redis</td><td>Key-value, Multi-model</td><td>147.63</td><td>—</td></tr>
-    <tr><td>9</td><td>IBM Db2</td><td>Relational, Multi-model</td><td>113.04</td><td>—</td></tr>
-    <tr><td>10</td><td>Apache Cassandra</td><td>Wide column, Multi-model</td><td>101.67</td><td>—</td></tr>
-    <tr><td>11</td><td>Elasticsearch</td><td>Multi-model</td><td>96.02</td><td>—</td></tr>
-    <tr style="background:var(--accent-dim)"><td>12</td><td style="color:var(--accent)">SQLite</td><td>Relational</td><td>95.88</td><td style="color:var(--accent)">Event Store, Outbox, Snapshots, Checkpoints</td></tr>
-    <tr><td>13</td><td>MariaDB</td><td>Relational, Multi-model</td><td>82.74</td><td>—</td></tr>
-    <tr><td>14</td><td>Apache Hive</td><td>Relational</td><td>74.70</td><td>—</td></tr>
-    <tr><td>15</td><td>Microsoft Azure SQL Database</td><td>Relational, Multi-model</td><td>73.34</td><td>—</td></tr>
-    <tr><td>16</td><td>Splunk</td><td>Search engine</td><td>72.42</td><td>—</td></tr>
-    <tr><td>17</td><td>Microsoft Access</td><td>Relational</td><td>62.30</td><td>—</td></tr>
-    <tr><td>18</td><td>Amazon DynamoDB</td><td>Multi-model</td><td>60.40</td><td>—</td></tr>
-    <tr><td>19</td><td>Google BigQuery</td><td>Relational</td><td>50.56</td><td>—</td></tr>
-    <tr><td>20</td><td>Neo4j</td><td>Graph</td><td>47.59</td><td>—</td></tr>
-    <tr><td>21</td><td>Apache Solr</td><td>Search engine, Multi-model</td><td>32.52</td><td>—</td></tr>
-    <tr><td>22</td><td>SAP HANA</td><td>Relational, Multi-model</td><td>32.43</td><td>—</td></tr>
-    <tr><td>23</td><td>Teradata</td><td>Relational, Multi-model</td><td>30.94</td><td>—</td></tr>
-    <tr><td>24</td><td>FileMaker</td><td>Relational</td><td>27.88</td><td>—</td></tr>
-    <tr><td>25</td><td>SAP Adaptive Server</td><td>Relational, Multi-model</td><td>25.02</td><td>—</td></tr>
-    <tr style="background:var(--amber-dim)"><td>26</td><td style="color:var(--amber)">ClickHouse</td><td>Relational, Multi-model</td><td>23.49</td><td style="color:var(--amber)">Potential projection backend</td></tr>
-    <tr><td>27</td><td>Microsoft Azure Cosmos DB</td><td>Multi-model</td><td>22.09</td><td>—</td></tr>
-    <tr><td>28</td><td>Apache Spark (SQL)</td><td>Relational</td><td>21.93</td><td>—</td></tr>
-    <tr><td>29</td><td>PostGIS</td><td>Spatial, Multi-model</td><td>21.15</td><td>—</td></tr>
-    <tr><td>30</td><td>InfluxDB</td><td>Time Series, Multi-model</td><td>20.86</td><td>—</td></tr>
+    <tr><td class="rank-num">1</td><td class="db-name">Oracle</td><td class="db-model">Relational, Multi-model</td><td class="db-score">1143.28</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">2</td><td class="db-name">MySQL</td><td class="db-model">Relational, Multi-model</td><td class="db-score">856.49</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">3</td><td class="db-name">Microsoft SQL Server</td><td class="db-model">Relational, Multi-model</td><td class="db-score">700.99</td><td class="db-usage">—</td></tr>
+    <tr class="hl"><td class="rank-num">4</td><td class="db-name">PostgreSQL</td><td class="db-model">Relational, Multi-model</td><td class="db-score">682.68</td><td class="db-usage">Event Store, Outbox, Snapshots, Checkpoints</td></tr>
+    <tr><td class="rank-num">5</td><td class="db-name">MongoDB</td><td class="db-model">Document, Multi-model</td><td class="db-score">384.65</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">6</td><td class="db-name">Snowflake</td><td class="db-model">Relational</td><td class="db-score">215.64</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">7</td><td class="db-name">Databricks</td><td class="db-model">Multi-model</td><td class="db-score">151.79</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">8</td><td class="db-name">Redis</td><td class="db-model">Key-value, Multi-model</td><td class="db-score">147.63</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">9</td><td class="db-name">IBM Db2</td><td class="db-model">Relational, Multi-model</td><td class="db-score">113.04</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">10</td><td class="db-name">Apache Cassandra</td><td class="db-model">Wide column, Multi-model</td><td class="db-score">101.67</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">11</td><td class="db-name">Elasticsearch</td><td class="db-model">Multi-model</td><td class="db-score">96.02</td><td class="db-usage">—</td></tr>
+    <tr class="hl"><td class="rank-num">12</td><td class="db-name">SQLite</td><td class="db-model">Relational</td><td class="db-score">95.88</td><td class="db-usage">Event Store, Outbox, Snapshots, Checkpoints</td></tr>
+    <tr><td class="rank-num">13</td><td class="db-name">MariaDB</td><td class="db-model">Relational, Multi-model</td><td class="db-score">82.74</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">14</td><td class="db-name">Apache Hive</td><td class="db-model">Relational</td><td class="db-score">74.70</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">15</td><td class="db-name">Microsoft Azure SQL Database</td><td class="db-model">Relational, Multi-model</td><td class="db-score">73.34</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">16</td><td class="db-name">Splunk</td><td class="db-model">Search engine</td><td class="db-score">72.42</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">17</td><td class="db-name">Microsoft Access</td><td class="db-model">Relational</td><td class="db-score">62.30</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">18</td><td class="db-name">Amazon DynamoDB</td><td class="db-model">Multi-model</td><td class="db-score">60.40</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">19</td><td class="db-name">Google BigQuery</td><td class="db-model">Relational</td><td class="db-score">50.56</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">20</td><td class="db-name">Neo4j</td><td class="db-model">Graph</td><td class="db-score">47.59</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">21</td><td class="db-name">Apache Solr</td><td class="db-model">Search engine, Multi-model</td><td class="db-score">32.52</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">22</td><td class="db-name">SAP HANA</td><td class="db-model">Relational, Multi-model</td><td class="db-score">32.43</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">23</td><td class="db-name">Teradata</td><td class="db-model">Relational, Multi-model</td><td class="db-score">30.94</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">24</td><td class="db-name">FileMaker</td><td class="db-model">Relational</td><td class="db-score">27.88</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">25</td><td class="db-name">SAP Adaptive Server</td><td class="db-model">Relational, Multi-model</td><td class="db-score">25.02</td><td class="db-usage">—</td></tr>
+    <tr class="hl-amber"><td class="rank-num">26</td><td class="db-name">ClickHouse</td><td class="db-model">Relational, Multi-model</td><td class="db-score">23.49</td><td class="db-usage">Potential enterprise-scale projection backend</td></tr>
+    <tr><td class="rank-num">27</td><td class="db-name">Microsoft Azure Cosmos DB</td><td class="db-model">Multi-model</td><td class="db-score">22.09</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">28</td><td class="db-name">Apache Spark (SQL)</td><td class="db-model">Relational</td><td class="db-score">21.93</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">29</td><td class="db-name">PostGIS</td><td class="db-model">Spatial, Multi-model</td><td class="db-score">21.15</td><td class="db-usage">—</td></tr>
+    <tr><td class="rank-num">30</td><td class="db-name">InfluxDB</td><td class="db-model">Time Series, Multi-model</td><td class="db-score">20.86</td><td class="db-usage">—</td></tr>
   </tbody>
 </table>
 </div>

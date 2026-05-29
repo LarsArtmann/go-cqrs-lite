@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrSnapshotNotFound    = event.NewRejection("event.snapshot_not_found", "snapshot not found")
+	ErrSnapshotNotFound    = event.NewRejection("snapshot.not_found", "snapshot not found")
 	ErrSnapshotStoreClosed = event.NewInfrastructure(
-		"event.snapshot_store_closed",
+		"snapshot.store_closed",
 		"snapshot store is closed",
 	)
 )
