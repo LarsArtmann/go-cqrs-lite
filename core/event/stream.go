@@ -9,7 +9,7 @@ import (
 // StreamKey returns the canonical key for an event stream,
 // combining aggregate type and aggregate ID.
 func StreamKey(aggregateType AggregateType, aggregateID id.AggregateID) string {
-	return string(aggregateType) + ":" + aggregateID.String()
+	return AggregateRef{Type: aggregateType, ID: aggregateID}.String()
 }
 
 // StreamLoader loads events as a stream rather than loading all into memory at once.

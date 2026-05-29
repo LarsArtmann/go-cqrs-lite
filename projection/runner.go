@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"slices"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -238,7 +239,9 @@ func (r *Runner) Close() error {
 }
 
 func subscribesTo(p event.Projection, eventType event.Type) bool {
-	return event.SubscribesTo(p, eventType)
+	types := p.EventTypes()
+
+	return len(types) == 0 || slices.Contains(types, eventType)
 }
 
 func filterEvents(

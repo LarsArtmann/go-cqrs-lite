@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
+
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -85,7 +87,7 @@ func newCounterSnapshotRepo(
 	store event.Store,
 	bus *testhelpers.FakeBus,
 	snapshotStore *testhelpers.FakeSnapshotStore,
-	codec event.Codec,
+	c codec.Codec,
 	opts ...decider.RepositoryOption[counterState],
 ) *decider.Repository[counterState] {
 	t.Helper()
@@ -94,7 +96,7 @@ func newCounterSnapshotRepo(
 		store, bus, counterDecider(),
 		append([]decider.RepositoryOption[counterState]{
 			decider.WithSnapshotStore[counterState](snapshotStore),
-			decider.WithCodec[counterState](codec),
+			decider.WithCodec[counterState](c),
 		}, opts...)...,
 	)
 	if err != nil {
@@ -106,11 +108,11 @@ func newCounterSnapshotRepo(
 
 func newSnapshotSetup(
 	t *testing.T,
-) (*testhelpers.FakeStore, *testhelpers.FakeBus, *testhelpers.FakeSnapshotStore, event.JSONCodec) {
+) (*testhelpers.FakeStore, *testhelpers.FakeBus, *testhelpers.FakeSnapshotStore, codec.Codec) {
 	t.Helper()
 
 	return testhelpers.NewFakeStore(), testhelpers.NewFakeBus(),
-		testhelpers.NewFakeSnapshotStore(), event.JSONCodec{}
+		testhelpers.NewFakeSnapshotStore(), codec.JSONCodec{}
 }
 
 func requireLoadState(
@@ -171,14 +173,15 @@ func newFailingRepo(
 
 func makeSnapshot(
 	t *testing.T,
-	codec event.JSONCodec,
+	c codec.Codec,
 	aggID id.AggregateID,
 	value int,
 	version event.Version,
 ) event.Snapshot {
 	t.Helper()
 
-	snapState, _ := codec.Encode(counterState{Value: value})
+	snapState, _ := c.Encode(counterState{Value: value})
+
 	return event.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Counter",
@@ -191,27 +194,27 @@ func makeSnapshot(
 func saveSnapshot(
 	t *testing.T,
 	snapshotStore *testhelpers.FakeSnapshotStore,
-	codec event.JSONCodec,
+	c codec.Codec,
 	aggID id.AggregateID,
 	value int,
 	version event.Version,
 ) {
 	t.Helper()
 
-	_ = snapshotStore.Save(t.Context(), makeSnapshot(t, codec, aggID, value, version))
+	_ = snapshotStore.Save(t.Context(), makeSnapshot(t, c, aggID, value, version))
 }
 
 func setSnapshot(
 	t *testing.T,
 	snapshotStore *testhelpers.FakeSnapshotStore,
-	codec event.JSONCodec,
+	c codec.Codec,
 	aggID id.AggregateID,
 	value int,
 	version event.Version,
 ) {
 	t.Helper()
 
-	snap := makeSnapshot(t, codec, aggID, value, version)
+	snap := makeSnapshot(t, c, aggID, value, version)
 	snapshotStore.SetSnapshot(&snap)
 }
 

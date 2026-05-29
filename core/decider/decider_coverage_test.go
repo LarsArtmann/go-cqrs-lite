@@ -222,7 +222,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	bus := testhelpers.NewFakeBus()
 	store := testhelpers.NewFakeStore()
 	snapshotStore := testhelpers.NewFakeSnapshotStore()
-	codec := event.JSONCodec{}
+	codec := codec.JSONCodec{}
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
@@ -239,6 +239,10 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
+
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
 
 	state, snapErr := codec.Encode(counterState{Value: 42})
 	if snapErr != nil {

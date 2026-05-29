@@ -214,6 +214,12 @@ func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
+	events := make([]event.Event, 5)
+	for i := range events {
+		events[i] = makeEvent(t, "CounterIncremented", aggID, event.Version(i+1))
+	}
+	mustAppendBatch(t, store, "Counter", aggID, events)
+
 	setSnapshot(t, snapshotStore, codec, aggID, 5, event.Version(5))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
