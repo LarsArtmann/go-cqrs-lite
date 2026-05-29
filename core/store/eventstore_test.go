@@ -30,6 +30,7 @@ func (c eventTestConfig) newEvent(
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
+
 	return evt
 }
 
@@ -46,6 +47,7 @@ func defaultTestConfig() eventTestConfig {
 func newTestEventStore(t *testing.T) (store.Backend, event.Store) {
 	t.Helper()
 	backend := memory.NewBackend()
+
 	return backend, store.NewEventStore(backend)
 }
 
@@ -131,7 +133,11 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 	evt2 := cfg.newEvent(t, aggID, 2)
 	evt3 := cfg.newEvent(t, aggID, 3)
 
-	err := es.AppendBatch(context.Background(), event.NewAggregateRef(cfg.aggType, aggID), []event.Event{evt1, evt2, evt3})
+	err := es.AppendBatch(
+		context.Background(),
+		event.NewAggregateRef(cfg.aggType, aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}

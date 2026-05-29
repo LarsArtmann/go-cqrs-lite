@@ -14,7 +14,7 @@ import (
 const eventKeyPrefix = "evt:"
 
 // EventStore implements event.Store using a Backend.
-// Key scheme: "evt:{aggregateType}:{aggregateID}:{version:010d}"
+// Key scheme: "evt:{aggregateType}:{aggregateID}:{version:010d}".
 type EventStore struct {
 	backend Backend
 }
@@ -55,10 +55,12 @@ func (s *EventStore) Save(
 		for it.Next() {
 			count++
 		}
+
 		_ = it.Close()
 
 		if count != expectedVersion.Int() {
 			upper_bound := upper
+
 			return event.WrapConflict(
 				event.CheckVersionConflict(count, expectedVersion),
 				"store.event_save",
@@ -144,6 +146,7 @@ func (s *EventStore) LoadToVersion(
 	}
 
 	var filtered []event.Event
+
 	for _, evt := range events {
 		if evt.Version() <= maxVersion {
 			filtered = append(filtered, evt)
@@ -168,6 +171,7 @@ func (s *EventStore) LoadToTimestamp(
 	}
 
 	var filtered []event.Event
+
 	for _, evt := range events {
 		if !evt.OccurredAt().After(maxTime) {
 			filtered = append(filtered, evt)
@@ -207,6 +211,7 @@ func (s *EventStore) iterateRange(lower, upper []byte) ([]event.Event, error) {
 	defer it.Close()
 
 	var events []event.Event
+
 	for it.Next() {
 		evt, err := unmarshalEvent(it.Value())
 		if err != nil {
@@ -226,15 +231,15 @@ func (s *EventStore) iterateRange(lower, upper []byte) ([]event.Event, error) {
 var _ event.Store = (*EventStore)(nil)
 
 type serializableEvent struct {
-	ID            id.EventID       `json:"id"`
-	Type          string           `json:"type"`
-	AggregateID   id.AggregateID   `json:"aggregate_id"`
-	AggregateType string           `json:"aggregate_type"`
-	Version       int              `json:"version"`
-	SchemaVersion int              `json:"schema_version,omitempty"`
-	Payload       []byte           `json:"payload"`
-	OccurredAt    int64            `json:"occurred_at"`
-	Metadata      *event.Metadata  `json:"metadata,omitempty"`
+	ID            id.EventID      `json:"id"`
+	Type          string          `json:"type"`
+	AggregateID   id.AggregateID  `json:"aggregate_id"`
+	AggregateType string          `json:"aggregate_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
+	Payload       []byte          `json:"payload"`
+	OccurredAt    int64           `json:"occurred_at"`
+	Metadata      *event.Metadata `json:"metadata,omitempty"`
 }
 
 func marshalEvent(evt event.Event) ([]byte, error) {
@@ -266,6 +271,7 @@ func unmarshalEvent(data []byte) (event.Event, error) {
 	if s.SchemaVersion > 0 {
 		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(s.SchemaVersion)))
 	}
+
 	if s.Metadata != nil {
 		opts = append(opts, event.WithMetadata(s.Metadata))
 	}
@@ -285,5 +291,5 @@ func unmarshalEvent(data []byte) (event.Event, error) {
 	return evt, nil
 }
 
-// Compile-time check that EventStore implements io.Closer
+// Compile-time check that EventStore implements io.Closer.
 var _ io.Closer = (*EventStore)(nil)
