@@ -233,7 +233,7 @@ var _ = Describe("Projection Runner", func() {
 
 				cp, err := runner.CurrentCheckpoint(ctx, "checkpoint-test")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(cp).To(Equal(evt.ID()))
+				Expect(cp.EventID).To(Equal(evt.ID()))
 			})
 		})
 	})

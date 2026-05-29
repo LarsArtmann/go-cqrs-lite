@@ -96,6 +96,14 @@ func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) err
 	return nil
 }
 
+func (a *PebbleEventStore) writeOptions() *pebble.WriteOptions {
+	if a.syncWrites {
+		return pebble.Sync
+	}
+
+	return nil
+}
+
 // commitAndLog commits the batch and logs the operation.
 func (a *PebbleEventStore) commitAndLog(
 	batch *pebble.Batch,
@@ -103,7 +111,7 @@ func (a *PebbleEventStore) commitAndLog(
 	ref event.AggregateRef,
 	count int,
 ) error {
-	err := batch.Commit(pebble.Sync)
+	err := batch.Commit(a.writeOptions())
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.commit_batch",
 			fmt.Sprintf("failed to commit %d events (%s)", count, logMsg))

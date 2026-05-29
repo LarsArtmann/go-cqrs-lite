@@ -130,9 +130,9 @@ func sharedCheckpointLoad(
 	)
 
 	var eventIDStr string
-	var processedAt time.Time
+	processedAtDest := d.ScanTimeDest()
 
-	err := db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr, &processedAt)
+	err := db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr, processedAtDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return event.Checkpoint{}, nil
@@ -146,6 +146,12 @@ func sharedCheckpointLoad(
 	if err != nil {
 		return event.Checkpoint{}, event.WrapCorruption(err, "storage.parse_event_id",
 			fmt.Sprintf("parse event ID %q for projection %q", eventIDStr, projectionName))
+	}
+
+	processedAt, err := d.ParseTime(processedAtDest)
+	if err != nil {
+		return event.Checkpoint{}, event.WrapCorruption(err, "storage.parse_processed_at",
+			fmt.Sprintf("parse processed_at for projection %q", projectionName))
 	}
 
 	return event.Checkpoint{EventID: parsed, ProcessedAt: processedAt}, nil

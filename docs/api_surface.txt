@@ -238,7 +238,6 @@ core/event/func NewConflict
 core/event/func NewCorruption
 core/event/func NewEvent
 core/event/func NewEvents
-core/event/func NewInMemoryRunner
 core/event/func NewInfrastructure
 core/event/func NewMetadata
 core/event/func NewOutboxID
@@ -265,7 +264,6 @@ core/event/func RegisterTemplate
 core/event/func SaveSnapshot
 core/event/func ShouldSnapshot
 core/event/func StreamKey
-core/event/func SubscribesTo
 core/event/func WithBatchSize
 core/event/func WithCausationID
 core/event/func WithClientID
@@ -314,7 +312,6 @@ core/event/interface Store
 core/event/interface StreamLoader
 core/event/interface Subscriber
 core/event/interface TransactionalSink
-core/event/interface TransactionalStore
 core/event/interface Upcaster
 core/event/method Add
 core/event/method AggregateID
@@ -382,7 +379,6 @@ core/event/method WithOptions
 core/event/method WithPayload
 core/event/method WithUserID
 core/event/struct ImmutableEvent
-core/event/struct InMemoryRunner
 core/event/struct JSONCodec
 core/event/struct Metadata
 core/event/struct OutboxEntry
@@ -537,8 +533,6 @@ memory/method Delete
 memory/method Load
 memory/method Load
 memory/method Load
-memory/method LoadAll
-memory/method LoadAllFromPosition
 memory/method LoadAtVersion
 memory/method LoadBackwards
 memory/method LoadFromVersion
@@ -797,7 +791,6 @@ storage/func NewSQLSagaStore
 storage/func NewSQLSagaStoreWithDialect
 storage/func NewSQLSnapshotStore
 storage/func NewSQLSnapshotStoreWithDialect
-storage/func NewSQLTransactionalStore
 storage/func NewSQLiteBackend
 storage/func NewSQLiteCheckpointStore
 storage/func NewSQLiteEventStore
@@ -810,7 +803,6 @@ storage/func NewTursoEventStore
 storage/func NewTursoOutbox
 storage/func NewTursoSagaStore
 storage/func NewTursoSnapshotStore
-storage/func NewTursoTransactionalStore
 storage/func OpenSQLite
 storage/func OpenSQLiteInMemory
 storage/func OpenTurso
@@ -860,8 +852,6 @@ storage/method Load
 storage/method Load
 storage/method Load
 storage/method Load
-storage/method LoadAll
-storage/method LoadAllFromPosition
 storage/method LoadAllRunning
 storage/method LoadAtVersion
 storage/method LoadBackwards
@@ -904,7 +894,6 @@ storage/method Stop
 storage/method String
 storage/method String
 storage/method TransactionalSink
-storage/method TransactionalStore
 storage/struct OutboxPoller
 storage/struct PebbleConfig
 storage/struct PebbleEventStore
@@ -915,7 +904,6 @@ storage/struct SQLEventStore
 storage/struct SQLOutbox
 storage/struct SQLSagaStore
 storage/struct SQLSnapshotStore
-storage/struct SQLTransactionalStore
 storage/struct SQLiteDialect
 storage/struct TursoSyncDB
 storage/type OutboxPollerOption

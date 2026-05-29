@@ -20,19 +20,37 @@ import (
 // the number of unique aggregates — bounded by actual data volume for an
 // embedded single-process store.
 type PebbleEventStore struct {
-	db     *pebble.DB
-	logger *slog.Logger
-	prefix string
-	locks  sync.Map // map[string]*sync.Mutex — one per aggregate
+	db         *pebble.DB
+	logger     *slog.Logger
+	prefix     string
+	locks      sync.Map // map[string]*sync.Mutex — one per aggregate
+	syncWrites bool
+}
+
+// StoreOption configures a PebbleEventStore.
+type StoreOption func(*PebbleEventStore)
+
+// WithAsyncWrites disables sync writes for higher throughput at the cost of
+// durability guarantees. Use only when data loss on crash is acceptable
+// (e.g., caches, replay-able projections).
+func WithAsyncWrites() StoreOption {
+	return func(s *PebbleEventStore) { s.syncWrites = false }
 }
 
 // NewPebbleStore creates a new store using an existing Pebble DB.
-func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *PebbleEventStore {
-	return &PebbleEventStore{
-		db:     db,
-		logger: logger,
-		prefix: "cqrs_event:",
+func NewPebbleStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *PebbleEventStore {
+	s := &PebbleEventStore{
+		db:         db,
+		logger:     logger,
+		prefix:     "cqrs_event:",
+		syncWrites: true,
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 // eventKey generates a storage key for an event.

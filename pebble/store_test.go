@@ -258,3 +258,55 @@ func TestPebbleEventStore_Load_Empty(t *testing.T) {
 		t.Fatalf("expected 0 events for empty aggregate, got %d", len(loaded))
 	}
 }
+
+func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	db, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		t.Fatalf("open pebble: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	store := NewPebbleStore(db, slog.Default(), WithAsyncWrites())
+
+	if store.syncWrites {
+		t.Fatal("syncWrites should be false with WithAsyncWrites")
+	}
+
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Issue", aggID)
+	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
+
+	err = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := store.Load(context.Background(), ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(loaded))
+	}
+}
+
+func TestPebbleEventStore_DefaultSyncWrites(t *testing.T) {
+	dir := t.TempDir()
+	db, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		t.Fatalf("open pebble: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	store := NewPebbleStore(db, slog.Default())
+
+	if !store.syncWrites {
+		t.Fatal("syncWrites should be true by default")
+	}
+}
