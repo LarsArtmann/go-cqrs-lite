@@ -9,9 +9,12 @@ require (
 )
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-branded-id v0.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	go.opentelemetry.io/otel v1.43.0 // indirect
+	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 )
 
 replace (
