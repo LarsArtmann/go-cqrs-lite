@@ -3,7 +3,6 @@ package signing
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -30,11 +29,10 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 			for _, evt := range events {
 				clone, err := signer.Sign(evt)
 				if err != nil {
-					return fmt.Errorf(
-						"multi-sign event %s as %s: %w",
-						evt.Type(),
-						signer.Actor(),
+					return event.WrapInfrastructure(
 						err,
+						"signing.multi_sign_event",
+						"multi-sign event "+string(evt.Type())+" as "+string(signer.Actor()),
 					)
 				}
 
@@ -63,12 +61,17 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 					return next(ctx, evt)
 				}
 
-				return fmt.Errorf("corrupt multi-sig on event %s: %w", evt.Type(), err)
+				return event.WrapInfrastructure(
+					err,
+					"signing.corrupt_multi_sig",
+					"corrupt multi-sig on event "+string(evt.Type()),
+				)
 			}
 
 			verifyErr := signer.Verify(evt)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(verifyErr,
+				return event.WrapInfrastructure(
+					verifyErr,
 					"signing.verify_multi_sig",
 					"verify multi-sig for actor "+string(signer.Actor())+" on event "+string(evt.Type()),
 				)
@@ -96,12 +99,17 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 					return next(ctx, evt)
 				}
 
-				return fmt.Errorf("corrupt multi-sig on event %s: %w", evt.Type(), err)
+				return event.WrapInfrastructure(
+					err,
+					"signing.corrupt_multi_sig",
+					"corrupt multi-sig on event "+string(evt.Type()),
+				)
 			}
 
 			entry := multiSig.Get(actor)
 			if entry == nil {
-				return event.Newf(event.Rejection,
+				return event.Newf(
+					event.Rejection,
 					"signing.missing_actor_signature",
 					"no signature from actor %s on event %s",
 					actor,
@@ -111,7 +119,8 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 
 			verifyErr := verifier.Verify(evt, entry.Sig)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(verifyErr,
+				return event.WrapInfrastructure(
+					verifyErr,
 					"signing.verify_multi_sig",
 					"verify multi-sig for actor "+string(actor)+" on event "+string(evt.Type()),
 				)
@@ -134,7 +143,8 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if evt == nil {
-				return event.WrapRejection(ErrNilSignature,
+				return event.WrapRejection(
+					ErrNilSignature,
 					"signing.nil_event_multi_sig",
 					"nil event",
 				)
@@ -142,7 +152,8 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
-				return event.WrapRejection(ErrNilSignature,
+				return event.WrapRejection(
+					ErrNilSignature,
 					"signing.no_multi_sig",
 					"event "+string(evt.Type())+" has no multi-signature",
 				)
@@ -150,9 +161,10 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 
 			for actor := range verifiers {
 				if !multiSig.HasActor(actor) {
-					return fmt.Errorf(
-						"%w: event %s missing signature from actor %s",
-						ErrNilSignature,
+					return event.Newf(
+						event.Rejection,
+						"signing.missing_actor_signature",
+						"event %s missing signature from actor %s",
 						evt.Type(),
 						actor,
 					)
@@ -161,7 +173,8 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 
 			verifyErr := VerifyAll(evt, verifiers)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(verifyErr,
+				return event.WrapInfrastructure(
+					verifyErr,
 					"signing.require_multi_sig",
 					"require multi-sig",
 				)

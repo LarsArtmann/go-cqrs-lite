@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -46,7 +47,7 @@ func (o *MemoryOutboxStore) Append(_ context.Context, events []event.Event) erro
 
 	entry := outboxEntry{
 		id:        event.NewOutboxID(fmt.Sprintf("outbox-%d", o.entryCounter)),
-		events:    append([]event.Event(nil), events...),
+		events:    slices.Clone(events),
 		createdAt: time.Now(),
 	}
 
@@ -65,7 +66,7 @@ func (o *MemoryOutboxStore) PollPending(_ context.Context, limit int) ([]event.O
 	for _, entry := range o.entries {
 		result = append(result, event.OutboxEntry{
 			ID:        entry.id,
-			Events:    append([]event.Event(nil), entry.events...),
+			Events:    slices.Clone(entry.events),
 			CreatedAt: entry.createdAt,
 		})
 
@@ -91,15 +92,11 @@ func (o *MemoryOutboxStore) Ack(_ context.Context, ids []event.OutboxID) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	filtered := make([]outboxEntry, 0, len(o.entries))
+	o.entries = slices.DeleteFunc(o.entries, func(e outboxEntry) bool {
+		_, ok := idSet[e.id]
 
-	for _, entry := range o.entries {
-		if _, ok := idSet[entry.id]; !ok {
-			filtered = append(filtered, entry)
-		}
-	}
-
-	o.entries = filtered
+		return ok
+	})
 
 	return nil
 }
