@@ -142,10 +142,10 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 ## Dependencies
 
-| Category   | Packages                                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Category   | Packages                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, core, storage, middleware, projection, saga) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                          |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                                  |
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 

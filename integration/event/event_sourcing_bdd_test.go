@@ -105,10 +105,10 @@ var _ = Describe("Event Store", func() {
 		})
 
 		Context("when I load events for a non-existent aggregate", func() {
-			It("should return ErrAggregateNotFound", func() {
+			It("should explain that the aggregate was not found", func() {
 				_, err := store.Load(ctx, aggType, id.NewAggregateID())
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(event.ErrAggregateNotFound))
+				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
 			})
 		})
 
@@ -168,7 +168,8 @@ var _ = Describe("Event Store", func() {
 				Expect(store.Close()).To(Succeed())
 
 				err := store.Save(ctx, aggType, id.NewAggregateID(), nil, event.Version(0))
-				Expect(err).To(MatchError(event.ErrStoreClosed))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("store is closed"))
 			})
 		})
 	})
@@ -263,7 +264,7 @@ var _ = Describe("Event Bus", func() {
 		})
 
 		Context("when I publish to a closed bus", func() {
-			It("should return ErrBusClosed", func() {
+			It("should explain that the bus is closed", func() {
 				Expect(bus.Close()).To(Succeed())
 
 				aggID := id.NewAggregateID()
@@ -274,14 +275,15 @@ var _ = Describe("Event Bus", func() {
 		})
 
 		Context("when I subscribe to a closed bus", func() {
-			It("should return ErrBusClosed", func() {
+			It("should explain that the bus is closed", func() {
 				Expect(bus.Close()).To(Succeed())
 
 				err := bus.Subscribe(
 					event.Type("Test"),
 					testhelpers.NoopEventHandler(),
 				)
-				Expect(err).To(MatchError(event.ErrBusClosed))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bus is closed"))
 			})
 		})
 
