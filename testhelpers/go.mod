@@ -11,5 +11,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/core => ../core
-
-replace github.com/larsartmann/go-cqrs-lite/testhelpers => ./

@@ -15,5 +15,3 @@ require (
 	golang.org/x/exp v0.0.0-20260508232706-74f9aab9d74a // indirect
 	golang.org/x/sys v0.45.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/catalog => ./
