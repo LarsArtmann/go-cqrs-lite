@@ -190,11 +190,5 @@ var (
 	_ event.Store           = (*SQLEventStore)(nil)
 	_ event.Journal         = (*SQLEventStore)(nil)
 	_ event.SeekableJournal = (*SQLEventStore)(nil)
-	_ event.GlobalLoader    = (*SQLEventStore)(
-		nil,
-	) //nolint:staticcheck // backward-compat assertion
-	_ event.PositionalLoader = (*SQLEventStore)(
-		nil,
-	) //nolint:staticcheck // backward-compat assertion
 	_ event.BackwardsSource = (*SQLEventStore)(nil)
 )

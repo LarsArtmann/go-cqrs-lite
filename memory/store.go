@@ -20,13 +20,11 @@ type MemoryStore struct {
 }
 
 var (
-	_ event.Store            = (*MemoryStore)(nil)
-	_ event.Journal          = (*MemoryStore)(nil)
-	_ event.SeekableJournal  = (*MemoryStore)(nil)
-	_ event.GlobalLoader     = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
-	_ event.PositionalLoader = (*MemoryStore)(nil) //nolint:staticcheck // backward-compat assertion
-	_ event.BackwardsSource  = (*MemoryStore)(nil)
-	_ io.Closer              = (*MemoryStore)(nil)
+	_ event.Store           = (*MemoryStore)(nil)
+	_ event.Journal         = (*MemoryStore)(nil)
+	_ event.SeekableJournal = (*MemoryStore)(nil)
+	_ event.BackwardsSource = (*MemoryStore)(nil)
+	_ io.Closer             = (*MemoryStore)(nil)
 )
 
 // NewMemoryStore creates a new in-memory event store.
