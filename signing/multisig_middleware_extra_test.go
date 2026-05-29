@@ -109,66 +109,26 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 
 	t.Run("MultiSignMiddleware panics on nil signer", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: MultiSignMiddleware called with nil signer" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.MultiSignMiddleware(nil)
+		assertPanicMessage(t, func() { signing.MultiSignMiddleware(nil) },
+			"signing: MultiSignMiddleware called with nil signer")
 	})
 
 	t.Run("MultiVerifyMiddleware panics on nil signer", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: MultiVerifyMiddleware called with nil signer" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.MultiVerifyMiddleware(nil)
+		assertPanicMessage(t, func() { signing.MultiVerifyMiddleware(nil) },
+			"signing: MultiVerifyMiddleware called with nil signer")
 	})
 
 	t.Run("MultiVerifyMiddlewareFor panics on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: MultiVerifyMiddlewareFor called with nil verifier" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.MultiVerifyMiddlewareFor(signing.Actor("device"), nil)
+		assertPanicMessage(t, func() { signing.MultiVerifyMiddlewareFor(signing.Actor("device"), nil) },
+			"signing: MultiVerifyMiddlewareFor called with nil verifier")
 	})
 
 	t.Run("RequireMultiSigMiddleware panics on empty map", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: RequireMultiSigMiddleware called with empty verifiers map" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.RequireMultiSigMiddleware(map[signing.Actor]signing.Verifier{})
+		assertPanicMessage(t, func() { signing.RequireMultiSigMiddleware(map[signing.Actor]signing.Verifier{}) },
+			"signing: RequireMultiSigMiddleware called with empty verifiers map")
 	})
 }
 

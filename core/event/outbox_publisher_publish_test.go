@@ -275,10 +275,7 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 func TestOutboxPublisher_PublishNow_RespectsBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(5))
-	if err != nil {
-		t.Fatalf("NewOutboxPublisher: %v", err)
-	}
+	p := newOutboxPublisherWithBatchSize(t, 5)
 
 	if p.batchSize != 5 {
 		t.Fatalf("batchSize = %d, want 5", p.batchSize)

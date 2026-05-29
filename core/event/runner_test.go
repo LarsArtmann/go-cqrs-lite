@@ -21,6 +21,19 @@ func (nopCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error 
 
 func (nopCheckpointStore) Close() error { return nil }
 
+func registerOKProjection(t *testing.T, runner *InMemoryRunner, name string, mtx *sync.Mutex, handled map[string]bool) {
+	t.Helper()
+	err := runner.Register(NewProjection(name, func(_ context.Context, _ Event) error {
+		mtx.Lock()
+		handled[name] = true
+		mtx.Unlock()
+		return nil
+	}, nil))
+	if err != nil {
+		t.Fatalf("Register(%s): %v", name, err)
+	}
+}
+
 func TestInMemoryRunner_NilCheckpoint(t *testing.T) {
 	t.Parallel()
 
@@ -387,17 +400,6 @@ func TestInMemoryRunner_HandleParallel_PartialFailure_StillRunsOthers(t *testing
 		t.Fatalf("NewInMemoryRunner: %v", err)
 	}
 
-	err = runner.Register(NewProjection("ok-1", func(_ context.Context, _ Event) error {
-		mtx.Lock()
-		handled["ok-1"] = true
-		mtx.Unlock()
-
-		return nil
-	}, nil))
-	if err != nil {
-		t.Fatalf("Register: %v", err)
-	}
-
 	err = runner.Register(NewProjection("failing", func(_ context.Context, _ Event) error {
 		mtx.Lock()
 		handled["failing"] = true
@@ -409,16 +411,8 @@ func TestInMemoryRunner_HandleParallel_PartialFailure_StillRunsOthers(t *testing
 		t.Fatalf("Register: %v", err)
 	}
 
-	err = runner.Register(NewProjection("ok-2", func(_ context.Context, _ Event) error {
-		mtx.Lock()
-		handled["ok-2"] = true
-		mtx.Unlock()
-
-		return nil
-	}, nil))
-	if err != nil {
-		t.Fatalf("Register: %v", err)
-	}
+	registerOKProjection(t, runner, "ok-1", &mtx, handled)
+	registerOKProjection(t, runner, "ok-2", &mtx, handled)
 
 	evt, err := NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)
 	if err != nil {

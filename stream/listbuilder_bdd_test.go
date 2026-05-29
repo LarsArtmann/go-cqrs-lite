@@ -31,7 +31,8 @@ var _ = Describe("ListBuilder", func() {
 	})
 
 	Describe("As a developer building aggregate listing queries", func() {
-		DescribeTable("PageSize is clamped to sensible bounds",
+		DescribeTable(
+			"PageSize is clamped to sensible bounds",
 			func(pageSize uint) {
 				seedStreamEvents(ctx, store)
 

@@ -43,8 +43,9 @@ var _ = Describe("Pagination", func() {
 
 var _ = Describe("PaginatedResult", func() {
 	Describe("As a developer returning paged data to my frontend", func() {
-		DescribeTable("NewPaginatedResult computes pages correctly",
-			func(page, pageSize, total uint, wantPages uint, wantNext, wantPrev bool) {
+		DescribeTable(
+			"NewPaginatedResult computes pages correctly",
+			func(page, pageSize, total, wantPages uint, wantNext, wantPrev bool) {
 				p := query.NewPagination(page, pageSize)
 				result := query.NewPaginatedResult(
 					[]string{"a"}, total, p,

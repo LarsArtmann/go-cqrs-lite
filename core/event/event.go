@@ -27,6 +27,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -95,6 +96,7 @@ type Event interface {
 	AggregateType() AggregateType
 	Version() Version
 	SchemaVersion() SchemaVersion
+	Encoding() codec.Encoding
 	Payload() []byte
 	Metadata() *Metadata
 	OccurredAt() time.Time
@@ -108,6 +110,7 @@ type ImmutableEvent struct {
 	aggregateType AggregateType
 	version       Version
 	schemaVersion SchemaVersion
+	encoding      codec.Encoding
 	payload       []byte
 	metadata      *Metadata
 	occurredAt    time.Time
@@ -135,6 +138,15 @@ func (e *ImmutableEvent) Version() Version { return e.version }
 // Defaults to 1 for events created with NewEvent.
 // Used by upcasters to determine if an event needs transformation.
 func (e *ImmutableEvent) SchemaVersion() SchemaVersion { return e.schemaVersion }
+
+// Encoding returns the serialization format used for the event payload.
+// Defaults to [codec.EncodingJSON] for events created with [NewEvent].
+func (e *ImmutableEvent) Encoding() codec.Encoding {
+	if e.encoding == "" {
+		return codec.EncodingJSON
+	}
+	return e.encoding
+}
 
 // Payload returns the event payload. The returned slice is safe to mutate;
 // the event stores its own copy at construction time.
@@ -190,6 +202,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 		aggregateType: e.aggregateType,
 		version:       e.version,
 		schemaVersion: e.schemaVersion,
+		encoding:      e.encoding,
 		payload:       payloadCopy,
 		metadata:      e.Metadata(),
 		occurredAt:    e.occurredAt,

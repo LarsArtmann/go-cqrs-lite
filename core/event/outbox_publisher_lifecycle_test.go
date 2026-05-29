@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+func newOutboxPublisherWithBatchSize(t *testing.T, n int) *OutboxPublisher {
+	t.Helper()
+
+	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(n))
+	if err != nil {
+		t.Fatalf("NewOutboxPublisher: %v", err)
+	}
+
+	return p
+}
+
 func TestNewOutboxPublisher_NilOutbox(t *testing.T) {
 	t.Parallel()
 
@@ -65,10 +76,7 @@ func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 func TestNewOutboxPublisher_WithBatchSize(t *testing.T) {
 	t.Parallel()
 
-	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(10))
-	if err != nil {
-		t.Fatalf("NewOutboxPublisher: %v", err)
-	}
+	p := newOutboxPublisherWithBatchSize(t, 10)
 
 	if p.batchSize != 10 {
 		t.Fatalf("batchSize = %d, want 10", p.batchSize)
@@ -91,10 +99,7 @@ func TestNewOutboxPublisher_ZeroIntervalResetsToDefault(t *testing.T) {
 func TestNewOutboxPublisher_ZeroBatchSizeResetsToDefault(t *testing.T) {
 	t.Parallel()
 
-	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithBatchSize(0))
-	if err != nil {
-		t.Fatalf("NewOutboxPublisher: %v", err)
-	}
+	p := newOutboxPublisherWithBatchSize(t, 0)
 
 	if p.batchSize != 100 {
 		t.Fatalf("batchSize = %d, want 100 (default)", p.batchSize)

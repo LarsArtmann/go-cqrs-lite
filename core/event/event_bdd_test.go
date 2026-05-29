@@ -52,7 +52,8 @@ var _ = Describe("Event Creation", func() {
 			})
 		})
 
-		DescribeTable("validation rejects invalid inputs",
+		DescribeTable(
+			"validation rejects invalid inputs",
 			func(typ string, aggID id.AggregateID, aggType string, version event.Version, wantErr string) {
 				_, err := event.NewEvent(event.Type(typ), aggID, event.AggregateType(aggType), version, nil)
 				Expect(err).To(HaveOccurred())

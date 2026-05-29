@@ -35,16 +35,28 @@ func seedCounterBench(
 
 	ctx := context.Background()
 
-	for i := range n {
-		err := repo.Execute(
-			ctx, aggID, "Counter",
-			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("setup Execute %d: %v", i, err)
-		}
+	for range n {
+		benchExecute(b, repo, ctx, aggID, "CounterIncremented")
+	}
+}
+
+func benchExecute(
+	b *testing.B,
+	repo *decider.Repository[counterState],
+	ctx context.Context,
+	aggID id.AggregateID,
+	eventType string,
+) {
+	b.Helper()
+
+	err := repo.Execute(
+		ctx, aggID, "Counter",
+		func(_ counterState, v event.Version) ([]event.Event, error) {
+			return []event.Event{benchEvent(b, eventType, aggID, v.Increment())}, nil
+		},
+	)
+	if err != nil {
+		b.Fatalf("Execute(%s): %v", eventType, err)
 	}
 }
 
@@ -53,16 +65,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 
 	for b.Loop() {
 		aggID := id.NewAggregateID()
-
-		err := repo.Execute(
-			ctx, aggID, "Counter",
-			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterCreated", aggID, v.Increment())}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("Execute: %v", err)
-		}
+		benchExecute(b, repo, ctx, aggID, "CounterCreated")
 	}
 }
 
@@ -75,15 +78,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		err := repo.Execute(
-			ctx, aggID, "Counter",
-			func(_ counterState, v event.Version) ([]event.Event, error) {
-				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("Execute update: %v", err)
-		}
+		benchExecute(b, repo, ctx, aggID, "CounterIncremented")
 	}
 }
 

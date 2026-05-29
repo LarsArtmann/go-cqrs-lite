@@ -64,6 +64,13 @@ func newBDDCommand(_ context.Context, _ id.AggregateID) command.Command {
 	return &testCommand{BasicCommand: *command.MustNew("TestCommand", id.NewAggregateID())}
 }
 
+func compensateFn(steps *[]string, name string) func(context.Context, id.AggregateID) command.Command {
+	return func(_ context.Context, _ id.AggregateID) command.Command {
+		*steps = append(*steps, name)
+		return newBDDCommand(context.Background(), id.NewAggregateID())
+	}
+}
+
 var _ = Describe("Saga Runner", func() {
 	var (
 		ctx        context.Context
@@ -156,20 +163,14 @@ var _ = Describe("Saga Runner", func() {
 				dispatcher.failOnCall = 3
 				def := &orderSaga{steps: []saga.Step{
 					{
-						Name:   "reserve-stock",
-						Action: newBDDCommand,
-						Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-							compensatedSteps = append(compensatedSteps, "reserve-stock")
-							return newBDDCommand(context.Background(), id.NewAggregateID())
-						},
+						Name:       "reserve-stock",
+						Action:     newBDDCommand,
+						Compensate: compensateFn(&compensatedSteps, "reserve-stock"),
 					},
 					{
-						Name:   "charge-payment",
-						Action: newBDDCommand,
-						Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-							compensatedSteps = append(compensatedSteps, "charge-payment")
-							return newBDDCommand(context.Background(), id.NewAggregateID())
-						},
+						Name:       "charge-payment",
+						Action:     newBDDCommand,
+						Compensate: compensateFn(&compensatedSteps, "charge-payment"),
 					},
 					{Name: "ship-order", Action: newBDDCommand},
 				}}
@@ -202,12 +203,9 @@ var _ = Describe("Saga Runner", func() {
 						Action: newBDDCommand,
 					},
 					{
-						Name:   "charge-payment",
-						Action: newBDDCommand,
-						Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-							compensatedSteps = append(compensatedSteps, "charge-payment")
-							return newBDDCommand(context.Background(), id.NewAggregateID())
-						},
+						Name:       "charge-payment",
+						Action:     newBDDCommand,
+						Compensate: compensateFn(&compensatedSteps, "charge-payment"),
 					},
 					{Name: "ship-order", Action: newBDDCommand},
 				}}

@@ -11,63 +11,69 @@
 ## a) FULLY DONE (This Session)
 
 ### 1. Signing Error Classification — COMPLETE ✅
+
 **Scope:** 36 bare `fmt.Errorf` calls → 0 across 8 production files
 
 All signing/ production errors now use the `event.*` error-family classification system.
 
-| File | Calls | Pattern Used | Classification |
-|------|-------|-------------|----------------|
-| `signing/event.go` | 2 | `event.WrapInfrastructure` | Event reconstruction, base64 decode |
-| `signing/signer.go` | 2 | `event.WrapInfrastructure`, `event.Newf(Infrastructure)` | JSON unmarshal, base64 fallback |
-| `signing/hmac.go` | 1 | `event.Wrapf(Rejection)` | Key length validation (preserves `ErrInvalidKey`) |
-| `signing/ed25519.go` | 3 | `event.Wrapf(Rejection)`, `event.WrapInfrastructure` | Key validation + key generation |
-| `signing/middleware.go` | 8 | `event.WrapInfrastructure`, `event.Newf(Rejection)` | Sign/verify/corrupt, missing signature |
-| `signing/multisig.go` | 6 | `event.WrapInfrastructure`, `event.WrapRejection`, `event.Wrapf(Rejection)` | Multi-actor sign/verify/validate |
-| `signing/multisig_extract.go` | 5 | `event.WrapInfrastructure`, `event.Newf(Rejection)` | JSON encode/decode, verifier lookup |
-| `signing/multisig_middleware.go` | 12 | `event.WrapInfrastructure`, `event.Newf(Rejection)`, `event.WrapRejection` | All middleware operations |
+| File                             | Calls | Pattern Used                                                                | Classification                                    |
+| -------------------------------- | ----- | --------------------------------------------------------------------------- | ------------------------------------------------- |
+| `signing/event.go`               | 2     | `event.WrapInfrastructure`                                                  | Event reconstruction, base64 decode               |
+| `signing/signer.go`              | 2     | `event.WrapInfrastructure`, `event.Newf(Infrastructure)`                    | JSON unmarshal, base64 fallback                   |
+| `signing/hmac.go`                | 1     | `event.Wrapf(Rejection)`                                                    | Key length validation (preserves `ErrInvalidKey`) |
+| `signing/ed25519.go`             | 3     | `event.Wrapf(Rejection)`, `event.WrapInfrastructure`                        | Key validation + key generation                   |
+| `signing/middleware.go`          | 8     | `event.WrapInfrastructure`, `event.Newf(Rejection)`                         | Sign/verify/corrupt, missing signature            |
+| `signing/multisig.go`            | 6     | `event.WrapInfrastructure`, `event.WrapRejection`, `event.Wrapf(Rejection)` | Multi-actor sign/verify/validate                  |
+| `signing/multisig_extract.go`    | 5     | `event.WrapInfrastructure`, `event.Newf(Rejection)`                         | JSON encode/decode, verifier lookup               |
+| `signing/multisig_middleware.go` | 12    | `event.WrapInfrastructure`, `event.Newf(Rejection)`, `event.WrapRejection`  | All middleware operations                         |
 
 **Impact:** `event.IsRetryable()` now works correctly for all signing errors. Crypto/infrastructure errors are Transient (retryable). Validation errors are Rejection (not retryable).
 
 ### 2. Stream Error Classification — COMPLETE ✅
+
 **Scope:** 10 `fmt.Errorf` calls → 0 across 5 production files
 
-| File | Pattern | Details |
-|------|---------|---------|
-| `stream/types.go` | `event.NewRejection` | Table prefix validation |
-| `stream/in_memory.go` | `event.WrapInfrastructure` | Journal read errors |
-| `stream/middleware.go` | `event.WrapInfrastructure` | Tombstone/rebirth marking |
+| File                   | Pattern                                          | Details                        |
+| ---------------------- | ------------------------------------------------ | ------------------------------ |
+| `stream/types.go`      | `event.NewRejection`                             | Table prefix validation        |
+| `stream/in_memory.go`  | `event.WrapInfrastructure`                       | Journal read errors            |
+| `stream/middleware.go` | `event.WrapInfrastructure`                       | Tombstone/rebirth marking      |
 | `stream/sql_reader.go` | `event.WrapInfrastructure`, `event.NewRejection` | SQL query/scan + Type required |
-| `stream/projection.go` | `event.WrapInfrastructure` | Table creation |
+| `stream/projection.go` | `event.WrapInfrastructure`                       | Table creation                 |
 
 ### 3. Middleware Error Classification — COMPLETE ✅
+
 **Scope:** 4 `fmt.Errorf` calls → 0 across 2 production files
 
-| File | Pattern | Details |
-|------|---------|---------|
-| `middleware/recovery.go` | `event.Wrapf(Corruption)` | Panic recovery wrapping `ErrPanicRecovered` |
-| `middleware/validation.go` | `event.Wrapf(Rejection)` | Command/Event/Query validation wrapping `ErrValidationFailed` |
+| File                       | Pattern                   | Details                                                       |
+| -------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `middleware/recovery.go`   | `event.Wrapf(Corruption)` | Panic recovery wrapping `ErrPanicRecovered`                   |
+| `middleware/validation.go` | `event.Wrapf(Rejection)`  | Command/Event/Query validation wrapping `ErrValidationFailed` |
 
 ### 4. Interface Compliance Checks Added — COMPLETE ✅
 
-| Type | Interface | File |
-|------|-----------|------|
-| `saga.MemoryStore` | `saga.Store` | `saga/memory_store.go:17` |
-| `stream.InMemoryAggregateReader` | `stream.AggregateReader` | `stream/in_memory.go:19` |
-| `stream.SQLAggregateReader` | `stream.AggregateReader` | `stream/sql_reader.go:20` |
+| Type                             | Interface                | File                      |
+| -------------------------------- | ------------------------ | ------------------------- |
+| `saga.MemoryStore`               | `saga.Store`             | `saga/memory_store.go:17` |
+| `stream.InMemoryAggregateReader` | `stream.AggregateReader` | `stream/in_memory.go:19`  |
+| `stream.SQLAggregateReader`      | `stream.AggregateReader` | `stream/sql_reader.go:20` |
 
 Previously verified as already correct:
+
 - `memory.MemoryBus` → `event.Bus` ✅
 - `memory.MemoryStore` → `event.Store`, `Journal`, `SeekableJournal`, `BackwardsSource`, `io.Closer` ✅
 
 ### 5. Deprecated Interface Assertions Removed — COMPLETE ✅
 
 Removed `event.GlobalLoader` and `event.PositionalLoader` assertions from:
+
 - `memory/store.go` (2 lines removed)
 - `storage/event_store.go` (4 lines removed, multiline format)
 
 Zero deprecated interface references remain in the entire codebase.
 
 ### 6. Storage SQLite Test Duplication — Already Resolved ✅
+
 The `sqlite_integration_test.go` monolith was already deleted in a prior session. The LSP diagnostics were stale. Verified: build and tests pass cleanly.
 
 ---
@@ -75,6 +81,7 @@ The `sqlite_integration_test.go` monolith was already deleted in a prior session
 ## b) PARTIALLY DONE
 
 ### fmt.Errorf Classification Across Project — ~65% Complete
+
 - **Done:** `signing/` (36 → 0), `stream/` (10 → 0), `middleware/` (4 → 0), `storage/` (already classified)
 - **Remaining:** `core/` (4 calls), `catalog/` (29 calls), `projection/` (2 calls), `saga/` (1 call)
 
@@ -92,11 +99,13 @@ Remaining `fmt.Errorf` calls by module:
 ## c) NOT STARTED (from TODO_LIST.md)
 
 ### High Priority
+
 - [ ] **Wire example/user/aggregate.go to use catalog-aware event constructors**
 - [ ] **Add ProcessedAt to CheckpointStore** — store (EventID, time.Time) not just EventID
 - [ ] **Add event.Context propagation** — thread ctx through NewEvent, PublishChanges
 
 ### Medium Priority
+
 - [ ] **Build catch-up projection runner** (start-from-checkpoint → replay → live-switch)
 - [ ] **Add background polling for InMemoryRunner** (currently push-model only)
 - [ ] **Increase projection coverage to 95%+**
@@ -105,6 +114,7 @@ Remaining `fmt.Errorf` calls by module:
 - [ ] **Parallelize CI matrix** — one job per module
 
 ### Low Priority
+
 - [ ] **Rewrite example/user/** to demonstrate full CQRS capability stack
 - [ ] **Add example/user/ smoke test** (TestExampleRuns)
 - [ ] **Performance regression CI** — benchmark comparison on each PR
@@ -123,7 +133,9 @@ Remaining `fmt.Errorf` calls by module:
 ## d) TOTALLY FUCKED UP
 
 ### 1. codec/ Module Is Untracked
+
 The `codec/` directory with 4 files (`codec.go`, `json.go`, `raw.go`, `go.mod`, `codec_test.go`) exists on disk but:
+
 - Not tracked by git
 - Not listed in `go.work`
 - Referenced from `core/event/codec.go` which has a `Codec` interface and `JSONCodec` implementation
@@ -131,7 +143,9 @@ The `codec/` directory with 4 files (`codec.go`, `json.go`, `raw.go`, `go.mod`, 
 - **Risk:** Lost work if disk wiped; confusion about which Codec to use
 
 ### 2. Pre-existing Uncommitted Changes from Prior Sessions
+
 17 modified files in the working tree that are NOT from this session:
+
 - `core/decider/benchmark_test.go` — benchmark refactoring
 - `core/decider/decider_coverage_test.go` — test cleanup
 - `core/event/event.go`, `core/event/options.go` — new functionality (Encoding field?)
@@ -149,6 +163,7 @@ The `codec/` directory with 4 files (`codec.go`, `json.go`, `raw.go`, `go.mod`, 
 These changes are all from prior sessions and were never committed. They need to be committed separately.
 
 ### 3. LSP Diagnostic Noise
+
 The gopls diagnostics show 390+ "go mod tidy" errors for BDD test files that need `ginkgo`/`gomega` in `go.mod`. These are **false positives** — the test files compile and run fine because `GOWORK=off go test` resolves deps correctly. The LSP is confused by the workspace mode.
 
 ---
@@ -156,17 +171,20 @@ The gopls diagnostics show 390+ "go mod tidy" errors for BDD test files that nee
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 1. **Error classification in catalog/** — 29 unclassified `fmt.Errorf` calls in file I/O exporters. These should use `event.WrapInfrastructure` for filesystem operations.
 2. **Error classification in core/pkg/id/** — 3 ULID parsing errors should be `event.WrapRejection` (validation failures, not retryable).
 3. **Health check errors** — `projection/health.go` and `saga/health.go` should use `event.WrapInfrastructure` for consistency.
 4. **codec/ module** — Needs to be committed and wired into `go.work`, or the work should be abandoned and deleted.
 
 ### Code Quality
+
 5. **Test file size** — Multiple test files still exceed 350-line convention: `decider_test.go` (~1200L), `runner_test.go` (~1057L), `saga_bdd_test.go` (~650L).
 6. **CI parallelization** — One job per module would cut CI time from ~10min to ~2min.
 7. **Pre-commit hook** — Add gofumpt + goimports enforcement.
 
 ### Process
+
 8. **Commit hygiene** — Prior sessions left 17 uncommitted files. The BuildFlow pre-commit hook creates a commit cycle (3-5 amend rounds) which discourages frequent commits.
 9. **Stale LSP diagnostics** — The "go mod tidy" noise from gopls should be suppressed via gopls settings or the test files should use build tags.
 
@@ -174,33 +192,33 @@ The gopls diagnostics show 390+ "go mod tidy" errors for BDD test files that nee
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | **Commit the 17 pre-existing uncommitted files** (prior session work) | HIGH | LOW | all |
-| 2 | **Commit or delete the codec/ module** | HIGH | LOW | codec |
-| 3 | **Classify catalog/ errors** (29 `fmt.Errorf` → classified) | MED | MED | catalog |
-| 4 | **Classify core/pkg/id/ errors** (3 calls → `event.WrapRejection`) | MED | LOW | core |
-| 5 | **Classify projection/health.go errors** (2 calls) | LOW | LOW | projection |
-| 6 | **Classify saga/health.go error** (1 call) | LOW | LOW | saga |
-| 7 | **Push signing/v1.0.0 tag** if not already done | HIGH | LOW | signing |
-| 8 | **Remove replace directives** from go.mod files (after v1.0.0 tags) | HIGH | MED | all |
-| 9 | **Add ProcessedAt to CheckpointStore** | MED | MED | core |
-| 10 | **Build catch-up projection runner** | HIGH | HIGH | projection |
-| 11 | **Add stream module integration tests** | MED | MED | stream |
-| 12 | **Add stream SQL reader tests** | MED | MED | stream |
-| 13 | **Add example/user/ smoke test** | MED | LOW | example |
-| 14 | **Rewrite example/user/ for full CQRS demo** | HIGH | HIGH | example |
-| 15 | **Add fuzz tests** for event creation, ID parsing, upcaster chain | MED | MED | core |
-| 16 | **Parallelize CI** — one job per module | MED | MED | CI |
-| 17 | **Split large test files** (decider_test.go, runner_test.go) | LOW | MED | tests |
-| 18 | **Enforce 350-line limit via pre-commit hook** | LOW | MED | CI |
-| 19 | **Add gofumpt/goimports to pre-commit** | LOW | LOW | CI |
-| 20 | **Benchmark storage backends** (PG vs SQLite vs Pebble) | MED | HIGH | storage |
-| 21 | **Add E2E throughput benchmarks** | MED | MED | tests |
-| 22 | **Add background polling for InMemoryRunner** | MED | MED | core |
-| 23 | **Add projection parallel processing** (goroutine pool) | MED | HIGH | projection |
-| 24 | **Performance regression CI** (bench comparison on PRs) | MED | MED | CI |
-| 25 | **Suppress gopls "go mod tidy" noise** for BDD test files | LOW | LOW | tooling |
+| #   | Task                                                                  | Impact | Effort | Module     |
+| --- | --------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1   | **Commit the 17 pre-existing uncommitted files** (prior session work) | HIGH   | LOW    | all        |
+| 2   | **Commit or delete the codec/ module**                                | HIGH   | LOW    | codec      |
+| 3   | **Classify catalog/ errors** (29 `fmt.Errorf` → classified)           | MED    | MED    | catalog    |
+| 4   | **Classify core/pkg/id/ errors** (3 calls → `event.WrapRejection`)    | MED    | LOW    | core       |
+| 5   | **Classify projection/health.go errors** (2 calls)                    | LOW    | LOW    | projection |
+| 6   | **Classify saga/health.go error** (1 call)                            | LOW    | LOW    | saga       |
+| 7   | **Push signing/v1.0.0 tag** if not already done                       | HIGH   | LOW    | signing    |
+| 8   | **Remove replace directives** from go.mod files (after v1.0.0 tags)   | HIGH   | MED    | all        |
+| 9   | **Add ProcessedAt to CheckpointStore**                                | MED    | MED    | core       |
+| 10  | **Build catch-up projection runner**                                  | HIGH   | HIGH   | projection |
+| 11  | **Add stream module integration tests**                               | MED    | MED    | stream     |
+| 12  | **Add stream SQL reader tests**                                       | MED    | MED    | stream     |
+| 13  | **Add example/user/ smoke test**                                      | MED    | LOW    | example    |
+| 14  | **Rewrite example/user/ for full CQRS demo**                          | HIGH   | HIGH   | example    |
+| 15  | **Add fuzz tests** for event creation, ID parsing, upcaster chain     | MED    | MED    | core       |
+| 16  | **Parallelize CI** — one job per module                               | MED    | MED    | CI         |
+| 17  | **Split large test files** (decider_test.go, runner_test.go)          | LOW    | MED    | tests      |
+| 18  | **Enforce 350-line limit via pre-commit hook**                        | LOW    | MED    | CI         |
+| 19  | **Add gofumpt/goimports to pre-commit**                               | LOW    | LOW    | CI         |
+| 20  | **Benchmark storage backends** (PG vs SQLite vs Pebble)               | MED    | HIGH   | storage    |
+| 21  | **Add E2E throughput benchmarks**                                     | MED    | MED    | tests      |
+| 22  | **Add background polling for InMemoryRunner**                         | MED    | MED    | core       |
+| 23  | **Add projection parallel processing** (goroutine pool)               | MED    | HIGH   | projection |
+| 24  | **Performance regression CI** (bench comparison on PRs)               | MED    | MED    | CI         |
+| 25  | **Suppress gopls "go mod tidy" noise** for BDD test files             | LOW    | LOW    | tooling    |
 
 ---
 
@@ -220,13 +238,13 @@ I need the owner to clarify before committing, wiring, or deleting.
 
 ## Session Stats
 
-| Metric | Value |
-|--------|-------|
-| Production files modified | 13 |
-| Test files modified | 0 (from this session) |
-| `fmt.Errorf` eliminated (prod) | 50 |
-| Interface compliance checks added | 3 |
-| Deprecated assertions removed | 4 |
-| Packages passing | 29/29 |
-| Packages failing | 0 |
-| Remaining `fmt.Errorf` in prod | 36 (core: 4, catalog: 29, projection: 2, saga: 1) |
+| Metric                            | Value                                             |
+| --------------------------------- | ------------------------------------------------- |
+| Production files modified         | 13                                                |
+| Test files modified               | 0 (from this session)                             |
+| `fmt.Errorf` eliminated (prod)    | 50                                                |
+| Interface compliance checks added | 3                                                 |
+| Deprecated assertions removed     | 4                                                 |
+| Packages passing                  | 29/29                                             |
+| Packages failing                  | 0                                                 |
+| Remaining `fmt.Errorf` in prod    | 36 (core: 4, catalog: 29, projection: 2, saga: 1) |

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -191,8 +192,8 @@ func TestDecodePayload_InvalidJSON(t *testing.T) {
 
 type failingCodec struct{}
 
+func (failingCodec) Encoding() codecpkg.Encoding  { return codecpkg.EncodingJSON }
 func (failingCodec) Encode(_ any) ([]byte, error) { return nil, errors.New("encode fail") }
-
 func (failingCodec) Decode(_ []byte, _ any) error { return errors.New("decode fail") }
 
 func TestDecodePayload_CodecError(t *testing.T) {

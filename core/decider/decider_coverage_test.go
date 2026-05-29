@@ -6,11 +6,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
+
+func executeCreateEvent(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+) error {
+	t.Helper()
+
+	return repo.Execute(
+		context.Background(), aggID, "Counter",
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		},
+	)
+}
 
 type fakeTransactionalStore struct {
 	*testhelpers.FakeStore
@@ -32,6 +48,7 @@ type failingCodec struct {
 	err error
 }
 
+func (f *failingCodec) Encoding() codec.Encoding     { return codec.EncodingJSON }
 func (f *failingCodec) Encode(_ any) ([]byte, error) { return nil, f.err }
 func (f *failingCodec) Decode(_ []byte, _ any) error { return nil }
 
@@ -50,6 +67,7 @@ func (nonImmutableEvent) SchemaVersion() event.SchemaVersion {
 func (nonImmutableEvent) Payload() []byte           { return nil }
 func (nonImmutableEvent) Metadata() *event.Metadata { return nil }
 func (nonImmutableEvent) OccurredAt() time.Time     { return time.Now() }
+func (nonImmutableEvent) Encoding() codec.Encoding  { return codec.EncodingJSON }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()
@@ -106,9 +124,14 @@ func TestExecute_EnricherSkipsNonImmutableEvents(t *testing.T) {
 	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	if err := executeWithAggID(t, repo, aggID, func(_ counterState, _ event.Version) ([]event.Event, error) {
-		return []event.Event{nonImmutableEvent{}}, nil
-	}); err != nil {
+	if err := executeWithAggID(
+		t,
+		repo,
+		aggID,
+		func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return []event.Event{nonImmutableEvent{}}, nil
+		},
+	); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }
@@ -126,9 +149,14 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 	bus, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	if err := executeWithAggID(t, repo, aggID, func(_ counterState, ver event.Version) ([]event.Event, error) {
-		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-	}); err != nil {
+	if err := executeWithAggID(
+		t,
+		repo,
+		aggID,
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		},
+	); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
@@ -166,12 +194,7 @@ func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
-	)
+	err = executeCreateEvent(t, repo, aggID)
 	if err == nil {
 		t.Fatal("expected error from SaveWithOutbox")
 	}
@@ -197,12 +220,7 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
-	)
+	err = executeCreateEvent(t, repo, aggID)
 	if err != nil {
 		t.Fatalf("Execute should succeed even if snapshot encode fails: %v", err)
 	}

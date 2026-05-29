@@ -9,6 +9,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
+func assertPanicMessage(t *testing.T, fn func(), expectedMsg string) {
+	t.Helper()
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic")
+		}
+		if msg, ok := r.(string); !ok ||
+			msg != expectedMsg {
+			t.Fatalf("unexpected panic: %v", r)
+		}
+	}()
+	fn()
+}
+
 func TestSignMiddleware(t *testing.T) {
 	t.Parallel()
 
@@ -257,50 +272,20 @@ func TestMiddlewareNilGuards(t *testing.T) {
 
 	t.Run("SignMiddleware panics on nil signer", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: SignMiddleware called with nil signer" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.SignMiddleware(nil)
+		assertPanicMessage(t, func() { signing.SignMiddleware(nil) },
+			"signing: SignMiddleware called with nil signer")
 	})
 
 	t.Run("VerifyMiddleware panics on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: VerifyMiddleware called with nil verifier" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.VerifyMiddleware(nil)
+		assertPanicMessage(t, func() { signing.VerifyMiddleware(nil) },
+			"signing: VerifyMiddleware called with nil verifier")
 	})
 
 	t.Run("RequireSignatureMiddleware panics on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Fatal("expected panic")
-			}
-
-			if msg, ok := r.(string); !ok ||
-				msg != "signing: RequireSignatureMiddleware called with nil verifier" {
-				t.Fatalf("unexpected panic: %v", r)
-			}
-		}()
-		signing.RequireSignatureMiddleware(nil)
+		assertPanicMessage(t, func() { signing.RequireSignatureMiddleware(nil) },
+			"signing: RequireSignatureMiddleware called with nil verifier")
 	})
 }
 

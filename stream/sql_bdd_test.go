@@ -58,7 +58,7 @@ func seedStreamDB(db *sql.DB, tableName string, rows []struct {
 	}
 }
 
-func seedUserAggregates(db *sql.DB, activeVers, activeCount uint, tombVers, tombCount uint) {
+func seedUserAggregates(db *sql.DB, activeVers, activeCount, tombVers, tombCount uint) {
 	now := time.Now().UTC().Format(time.RFC3339)
 	activeID := id.NewAggregateID()
 	tombstonedID := id.NewAggregateID()

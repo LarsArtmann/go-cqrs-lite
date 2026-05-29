@@ -13,7 +13,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func testLoadAllSuccess(t *testing.T, store *SQLEventStore, mock sqlmock.Sqlmock, fn func() ([]event.Event, error), eventID1, eventID2 id.EventID) {
+func testLoadAllSuccess(
+	t *testing.T,
+	store *SQLEventStore,
+	mock sqlmock.Sqlmock,
+	fn func() ([]event.Event, error),
+	eventID1, eventID2 id.EventID,
+) {
 	events, err := fn()
 	if err != nil {
 		t.Fatalf("LoadAll/ReadAll: %v", err)

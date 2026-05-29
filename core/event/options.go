@@ -3,6 +3,7 @@ package event
 import (
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -112,6 +113,13 @@ func WithCustom(key MetadataKey, value string) Option {
 // when creating events with a known schema version.
 func WithSchemaVersion(v SchemaVersion) Option {
 	return func(e *ImmutableEvent) { e.schemaVersion = v }
+}
+
+// WithEncoding sets the encoding of the event payload.
+// Defaults to [codec.EncodingJSON]. Use when reconstructing events from storage
+// or when creating events with a non-JSON codec.
+func WithEncoding(v codec.Encoding) Option {
+	return func(e *ImmutableEvent) { e.encoding = v }
 }
 
 // WithClock sets the clock function used to determine OccurredAt.

@@ -78,7 +78,7 @@ func newRetryDispatcher(maxAttempts int, attempts *int, failUntil int, permanent
 		InitialDelay: time.Millisecond,
 		MaxDelay:     10 * time.Millisecond,
 		Multiplier:   1.5,
-		IsRetryable: func(err error) bool { return true },
+		IsRetryable:  func(err error) bool { return true },
 	}))
 
 	*attempts = 0

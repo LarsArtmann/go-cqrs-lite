@@ -8,31 +8,33 @@
 
 The project is in **excellent shape**. 30/30 test packages pass (one pre-existing flaky chaos test). OTel instrumentation is now production-grade across all critical paths. 16 deprecated symbols need cleanup before v1.0. The library is importable, well-tested (1.85:1 test-to-code ratio), and follows strong architectural patterns.
 
-| Metric | Value |
-|--------|-------|
-| Total Go code | 69,137 lines |
-| Production code | 24,203 lines |
-| Test code | 44,934 lines |
-| Test:Code ratio | 1.85:1 |
-| Modules (go.work) | 21 |
-| Test packages | 30 |
-| Passing | 30/30 |
-| Deprecated symbols | 16 |
-| Files >250 lines | 2 (borderline) |
-| Open TODOs/FIXMEs | 0 |
-| ADRs | 7 |
+| Metric             | Value          |
+| ------------------ | -------------- |
+| Total Go code      | 69,137 lines   |
+| Production code    | 24,203 lines   |
+| Test code          | 44,934 lines   |
+| Test:Code ratio    | 1.85:1         |
+| Modules (go.work)  | 21             |
+| Test packages      | 30             |
+| Passing            | 30/30          |
+| Deprecated symbols | 16             |
+| Files >250 lines   | 2 (borderline) |
+| Open TODOs/FIXMEs  | 0              |
+| ADRs               | 7              |
 
 ---
 
 ## a) FULLY DONE ✅
 
 ### Core Architecture
+
 - **Decider pattern** (`core/decider`) — Pure-function aggregate with `Decider[State]`, `Repository[State]`, `Execute`, `Load`, `LoadAtVersion`, `LoadAtTime`. Fully OTel-instrumented.
 - **Event sourcing** (`core/event`) — 24 public types, immutable events, typed payloads, metadata, correlation/causation IDs, upcasting, versioned store, snapshot strategies.
 - **CQRS** (`core/command`, `core/query`) — Type-safe dispatch with `DispatchTyped[T]`, generic `Dispatcher[H, M]`, pagination, `PaginatedResult[T]`.
 - **Branded IDs** (`core/pkg/id`) — `id.Of[T]` via go-branded-id + ULID, type-safe `AggregateID`, `EventID`, etc.
 
 ### Storage Layer
+
 - **SQLEventStore** (`storage`) — PostgreSQL, SQLite, Turso support. Full CRUD with optimistic concurrency, global loading, seekable journal, cursor-based streaming.
 - **SQLTransactionalStore** — Atomic save+outbox in single DB transaction. OTel span added this session.
 - **PebbleEventStore** — Embedded KV store for local/test use. 7 methods, no OTel spans yet (by design — embedded use).
@@ -43,12 +45,14 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
 - **TursoSyncDB** — Edge sync for Turso/libSQL.
 
 ### Advanced Patterns
+
 - **Saga orchestration** (`saga`) — Runner, Definition, Step, compensation, persistent state, 8 error paths all OTel-traced.
 - **Projection runner** (`projection`) — Replay+live, handler registry, builder pattern, health checks. OTel spans on Run/replay/handle.
 - **Event signing** (`signing`) — HMAC-SHA256, Ed25519, multi-signer, middleware, tamper detection.
 - **Stream API** (`stream`) — Aggregate listing, tombstone detection, status middleware, SQL/in-memory readers, ListBuilder.
 
 ### Cross-Cutting
+
 - **OTel module** (`otel`) — `StartSpan`, `RecordError`, attribute constants, `Instrumentation` helper. Used by decider, storage, projection, saga.
 - **Middleware** (`middleware`) — Logging, Retry, Recovery, Validation, CircuitBreaker, EventTracing, EventPublishTracing, CommandTracing, CommandMetrics (OTel-backed).
 - **Catalog** (`catalog`) — Registry, SchemaFromType[T], AsyncAPI/D2/EventCatalog/OpenAPI exporters, docserver.
@@ -58,12 +62,14 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
 - **Code generator** (`cmd/cqrs-gen`) — CLI tool for code generation.
 
 ### Quality Infrastructure
+
 - **Nix flake** — Build, test, lint, format, dev shell.
 - **GitHub Actions CI** — Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module.
 - **Pre-commit hooks** — gofumpt, goimports, oxfmt, go-mod-tidy auto-staging.
 - **7 ADRs** — Documented architectural decisions.
 
 ### Session 131–132 Work (This Sprint)
+
 - ✅ **OTel RecordError gaps closed** — decider.Load, saga.ExecuteStep (8 paths), saga.compensate, projection.replay checkpoint
 - ✅ **New OTel spans added** — decider.LoadAtVersion/LoadAtTime, snapshot.LoadAtVersion, storage.LoadStream, storage.SaveWithOutbox, saga.store.save/load/load_all_running, projection.Run
 - ✅ **Test cleanup** — Removed stale nolint comments, reformatted BDD tests
@@ -74,6 +80,7 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
 ## b) PARTIALLY DONE 🔧
 
 ### OTel Instrumentation Coverage
+
 - **4 of 13 modules have otel.go**: `core/decider`, `storage`, `projection`, `saga`
 - **Middleware module** has OTel metrics (`metrics_otel.go`) but no `otel.go` tracer
 - **Missing spans on 15 storage methods**: PebbleEventStore (7 methods), TursoSyncDB (4 methods), deprecated LoadAll/LoadAllFromPosition (2), SQLSnapshotStore.Delete (1), SQLEventStore.Close (1)
@@ -81,11 +88,13 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
   - Most of these are correct (in-memory test impls, no I/O) but `signing` and `stream` could benefit
 
 ### Deprecated Symbol Cleanup
+
 - **16 deprecated symbols** identified across 4 modules
 - All have clear migration paths documented
 - None removed yet — waiting for v1.0 planning
 
 ### Test Coverage
+
 - Most modules >80%, many >90%
 - `projection` targeted for 95%+ but not yet verified
 - Integration chaos test `TestChaos_CommandRetry_ExhaustsAllAttempts` is flaky (pre-existing)
@@ -175,33 +184,33 @@ The project is in **excellent shape**. 30/30 test packages pass (one pre-existin
 
 **Sorted by: Impact × Effort⁻¹ (highest ROI first)**
 
-| # | Task | Impact | Effort | Module | Type |
-|---|------|--------|--------|--------|------|
-| 1 | **Tag v1.0.0 and remove `replace` directives** | 🔴 Critical | M | all | Release |
-| 2 | **Fix chaos test flakiness** | 🔴 High | S | integration | Bug |
-| 3 | **Remove `core/aggregate` deprecated package** | 🟠 High | S | core | Cleanup |
-| 4 | **Remove deprecated storage/memory methods** | 🟠 High | S | storage, memory | Cleanup |
-| 5 | **Remove deprecated `core/event` symbols** | 🟠 High | S | core/event | Cleanup |
-| 6 | **Split `projection/runner.go` (<250 lines)** | 🟡 Medium | S | projection | Quality |
-| 7 | **Add OTel spans to PebbleEventStore (7 methods)** | 🟡 Medium | M | storage | Observability |
-| 8 | **Add OTel spans to TursoSyncDB (4 methods)** | 🟡 Medium | S | storage | Observability |
-| 9 | **Add span to `SQLSnapshotStore.Delete`** | 🟡 Medium | S | storage | Observability |
-| 10 | **Add OTel integration tests for new storage spans** | 🟡 Medium | M | integration, storage | Testing |
-| 11 | **Add ADR-0008 for OTel instrumentation pattern** | 🟡 Medium | S | docs | Documentation |
-| 12 | **Trim `core/event/event.go` to ≤250 lines** | 🟢 Low | S | core/event | Quality |
-| 13 | **Add signing module OTel spans** | 🟢 Low | M | signing | Observability |
-| 14 | **Fix gopls workspace false positives** | 🟢 Low | L | tooling | DX |
-| 15 | **Add `ProcessedAt` to CheckpointStore** | 🟢 Low | S | storage | Feature |
-| 16 | **Event context propagation** | 🟢 Low | M | core/event | Feature |
-| 17 | **Wire example/user to catalog constructors** | 🟢 Low | S | example | DX |
-| 18 | **Build catch-up projection runner** | 🟢 Low | L | projection | Feature |
-| 19 | **Background polling for InMemoryRunner** | 🟢 Low | M | core/event | Feature |
-| 20 | **Archive old status reports (keep last 10)** | 🟢 Low | S | docs | Hygiene |
-| 21 | **Consolidate stale planning docs** | 🟢 Low | S | docs | Hygiene |
-| 22 | **Generate API surface docs automatically** | 🟢 Low | M | docs | Documentation |
-| 23 | **Add projection coverage to 95%+** | 🟢 Low | M | projection | Testing |
-| 24 | **Add consumer quickstart guide (README)** | 🟢 Low | M | docs | DX |
-| 25 | **Benchmark suite for critical paths** | 🟢 Low | M | core, storage | Performance |
+| #   | Task                                                 | Impact      | Effort | Module               | Type          |
+| --- | ---------------------------------------------------- | ----------- | ------ | -------------------- | ------------- |
+| 1   | **Tag v1.0.0 and remove `replace` directives**       | 🔴 Critical | M      | all                  | Release       |
+| 2   | **Fix chaos test flakiness**                         | 🔴 High     | S      | integration          | Bug           |
+| 3   | **Remove `core/aggregate` deprecated package**       | 🟠 High     | S      | core                 | Cleanup       |
+| 4   | **Remove deprecated storage/memory methods**         | 🟠 High     | S      | storage, memory      | Cleanup       |
+| 5   | **Remove deprecated `core/event` symbols**           | 🟠 High     | S      | core/event           | Cleanup       |
+| 6   | **Split `projection/runner.go` (<250 lines)**        | 🟡 Medium   | S      | projection           | Quality       |
+| 7   | **Add OTel spans to PebbleEventStore (7 methods)**   | 🟡 Medium   | M      | storage              | Observability |
+| 8   | **Add OTel spans to TursoSyncDB (4 methods)**        | 🟡 Medium   | S      | storage              | Observability |
+| 9   | **Add span to `SQLSnapshotStore.Delete`**            | 🟡 Medium   | S      | storage              | Observability |
+| 10  | **Add OTel integration tests for new storage spans** | 🟡 Medium   | M      | integration, storage | Testing       |
+| 11  | **Add ADR-0008 for OTel instrumentation pattern**    | 🟡 Medium   | S      | docs                 | Documentation |
+| 12  | **Trim `core/event/event.go` to ≤250 lines**         | 🟢 Low      | S      | core/event           | Quality       |
+| 13  | **Add signing module OTel spans**                    | 🟢 Low      | M      | signing              | Observability |
+| 14  | **Fix gopls workspace false positives**              | 🟢 Low      | L      | tooling              | DX            |
+| 15  | **Add `ProcessedAt` to CheckpointStore**             | 🟢 Low      | S      | storage              | Feature       |
+| 16  | **Event context propagation**                        | 🟢 Low      | M      | core/event           | Feature       |
+| 17  | **Wire example/user to catalog constructors**        | 🟢 Low      | S      | example              | DX            |
+| 18  | **Build catch-up projection runner**                 | 🟢 Low      | L      | projection           | Feature       |
+| 19  | **Background polling for InMemoryRunner**            | 🟢 Low      | M      | core/event           | Feature       |
+| 20  | **Archive old status reports (keep last 10)**        | 🟢 Low      | S      | docs                 | Hygiene       |
+| 21  | **Consolidate stale planning docs**                  | 🟢 Low      | S      | docs                 | Hygiene       |
+| 22  | **Generate API surface docs automatically**          | 🟢 Low      | M      | docs                 | Documentation |
+| 23  | **Add projection coverage to 95%+**                  | 🟢 Low      | M      | projection           | Testing       |
+| 24  | **Add consumer quickstart guide (README)**           | 🟢 Low      | M      | docs                 | DX            |
+| 25  | **Benchmark suite for critical paths**               | 🟢 Low      | M      | core, storage        | Performance   |
 
 ---
 
@@ -221,10 +230,10 @@ The `replace` directives in every `go.mod` are the single biggest adoption block
 
 ## Session Activity Log
 
-| Session | Key Work |
-|---------|----------|
-| 131 | Code deduplication sprint — 22 clone groups, all production clones eliminated |
-| 132 | OTel hardening — RecordError gaps closed, 8 new spans added across 5 modules |
+| Session | Key Work                                                                      |
+| ------- | ----------------------------------------------------------------------------- |
+| 131     | Code deduplication sprint — 22 clone groups, all production clones eliminated |
+| 132     | OTel hardening — RecordError gaps closed, 8 new spans added across 5 modules  |
 
 ---
 
