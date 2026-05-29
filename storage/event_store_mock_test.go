@@ -28,7 +28,7 @@ const loadAllFromPositionQuery = `SELECT id, event_type, aggregate_type, aggrega
 func mockEventRowsForTest(evt *event.ImmutableEvent, aggID id.AggregateID) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).AddRow(
 		evt.ID(), "UserCreated", "User", aggID,
-		1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
 	)
 }
 
@@ -141,7 +141,7 @@ func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 		WithArgs(evt.ID().String(), 10).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			evt.ID(), "UserCreated", "User", evt.AggregateID(),
-			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+			1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
 		))
 }
 

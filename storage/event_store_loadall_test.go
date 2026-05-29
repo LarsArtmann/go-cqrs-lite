@@ -62,8 +62,8 @@ func setupLoadAllSuccess(
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(
 			sqlmock.NewRows(eventColumns()).
-				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), nil, ts1).
-				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), nil, ts2),
+				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), "", nil, ts1).
+				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), "", nil, ts2),
 		)
 
 	return eventID1, eventID2
