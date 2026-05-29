@@ -17,7 +17,6 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec v1.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/saga v1.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.6.1 // indirect
@@ -32,7 +31,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../codec
 	github.com/larsartmann/go-cqrs-lite/core => ../core
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/saga => ../saga
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

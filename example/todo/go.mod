@@ -57,7 +57,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
 	github.com/larsartmann/go-cqrs-lite/pebble => ../../pebble
-	github.com/larsartmann/go-cqrs-lite/saga => ../../saga
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../../testhelpers
 )

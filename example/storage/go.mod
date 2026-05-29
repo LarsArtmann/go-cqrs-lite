@@ -17,7 +17,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/saga v1.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -36,6 +35,5 @@ require (
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
-	github.com/larsartmann/go-cqrs-lite/saga => ../../saga
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
 )
