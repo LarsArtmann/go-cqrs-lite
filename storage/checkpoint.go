@@ -65,7 +65,12 @@ func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (i
 	)
 	defer span.End()
 
-	return sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
+	eventID, err := sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return eventID, err
 }
 
 // Save persists the last processed event ID for a projection.
@@ -83,7 +88,12 @@ func (s *SQLCheckpointStore) Save(
 	)
 	defer span.End()
 
-	return sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
+	err := sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 var _ event.CheckpointStore = (*SQLCheckpointStore)(nil)

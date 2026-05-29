@@ -92,6 +92,8 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 		s.dialect.FormatTime(snap.CreatedAt),
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.save_snapshot",
 			fmt.Sprintf("save snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}

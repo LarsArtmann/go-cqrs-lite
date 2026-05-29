@@ -96,6 +96,8 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 		o.dialect.FormatTime(time.Now()),
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.insert_outbox",
 			"insert outbox entry "+outboxID.String())
 	}
@@ -128,6 +130,8 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 
 	rows, err := o.db.QueryContext(ctx, query, string(OutboxStatusPending), limit)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.poll_pending_outbox",
 			fmt.Sprintf("poll pending outbox (limit %d)", limit))
 	}
@@ -136,7 +140,12 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 		_ = rows.Close()
 	}()
 
-	return scanOutboxEntries(rows, o.dialect)
+	entries, err := scanOutboxEntries(rows, o.dialect)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return entries, err
 }
 
 // Ack removes outbox entries by their IDs.
