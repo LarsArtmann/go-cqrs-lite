@@ -336,9 +336,8 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	now := time.Now()
 
-	now, aggID = testhelpers.MakeLoadToTimestampFixtures(
+	now, aggID := testhelpers.MakeLoadToTimestampFixtures(
 		t,
 		store,
 		ctx,
@@ -379,7 +378,6 @@ func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
 	}
 }
 
-//nolint:dupl // backward-compat test mirrors ReadFrom
 func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	t.Parallel()
 
