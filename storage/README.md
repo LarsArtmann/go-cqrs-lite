@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/storage)
 
-Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, and `event.CheckpointStore` interfaces.
+Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `snapshot.SnapshotStore`, and `event.CheckpointStore` interfaces.
 
 > **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
@@ -33,8 +33,6 @@ storage.PostgresInitSchema(ctx, db)
 
 store, _ := storage.NewSQLEventStore(db)
 ```
-
-## Components
 
 ## Components
 
@@ -69,11 +67,11 @@ for {
 
 ### SQLSnapshotStore
 
-Implements `event.SnapshotStore`:
+Implements `snapshot.SnapshotStore`:
 
 ```go
 snapStore, _ := storage.NewSQLiteSnapshotStore(db)
-snapStore.Save(ctx, event.Snapshot{
+snapStore.Save(ctx, snapshot.Snapshot{
     AggregateID:   aggID,
     AggregateType: "User",
     Version:       10,
@@ -152,5 +150,6 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
 | Dependency           | Purpose                     |
 | -------------------- | --------------------------- |
-| `core`               | Event/ID interfaces         |
+| `event`              | Event/ID interfaces         |
+| `snapshot`           | Snapshot persistence         |
 | `cockroachdb/pebble` | PebbleEventStore (optional) |
