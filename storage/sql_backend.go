@@ -8,9 +8,7 @@ import (
 )
 
 type SQLBackend struct {
-	store  *SQLEventStore
-	outbox *SQLOutbox
-	tx     *SQLTransactionalStore
+	store *SQLEventStore
 }
 
 func NewSQLBackend(db *sql.DB) (*SQLBackend, error) {
@@ -30,17 +28,7 @@ func newSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "backend.event_store", "event store")
 	}
-	outbox, err := newSQLOutboxWithDialect(db, d)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.outbox", "outbox")
-	}
-	tx, err := NewSQLTransactionalStore(store, outbox)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.transactional_store", "transactional store")
-	}
-	return &SQLBackend{store: store, outbox: outbox, tx: tx}, nil
+	return &SQLBackend{store: store}, nil
 }
 
-func (b *SQLBackend) EventStore() *SQLEventStore                 { return b.store }
-func (b *SQLBackend) Outbox() *SQLOutbox                         { return b.outbox }
-func (b *SQLBackend) TransactionalSink() event.TransactionalSink { return b.tx }
+func (b *SQLBackend) EventStore() *SQLEventStore { return b.store }

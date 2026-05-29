@@ -109,26 +109,3 @@ type BackwardsSource interface {
 	EventSource
 	LoadBackwards(ctx context.Context, ref AggregateRef) ([]Event, error)
 }
-
-// TransactionalSink extends EventSink with atomic save+outbox append.
-// Implementations MUST guarantee that SaveWithOutbox persists events
-// AND appends to the outbox within a single database transaction.
-// If either operation fails, the entire transaction rolls back.
-//
-// Repositories detect this via type assertion and prefer it over the
-// two-step Save+Append approach when available:
-//
-//	if ts, ok := sink.(TransactionalSink); ok {
-//	    return ts.SaveWithOutbox(ctx, ref, events, ver)
-//	}
-type TransactionalSink interface {
-	EventSink
-
-	// SaveWithOutbox atomically persists events and appends them to the outbox.
-	SaveWithOutbox(
-		ctx context.Context,
-		ref AggregateRef,
-		events []Event,
-		expectedVersion Version,
-	) error
-}

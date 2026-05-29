@@ -191,7 +191,7 @@ func TestSQLiteInitSchema_CreatesTables(t *testing.T) {
 		t.Fatalf("SQLiteInitSchema: %v", err)
 	}
 
-	tables := []string{"events", "snapshots", "checkpoints", "outbox"}
+	tables := []string{"events", "snapshots", "checkpoints"}
 
 	for _, table := range tables {
 		var name string

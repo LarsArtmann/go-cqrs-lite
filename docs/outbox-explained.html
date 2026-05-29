@@ -642,6 +642,9 @@
   <p class="subtitle animate delay-2">
     How to reliably publish events in a distributed system without losing them — even when the process crashes halfway through.
   </p>
+  <div style="margin-top:24px;padding:16px 20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;font-size:0.85rem;color:var(--danger);">
+    <strong>Removed.</strong> The outbox has been removed from go-cqrs-lite. Crash recovery now uses <code style="color:var(--accent)">SeekableJournal.ReadFrom()</code> + <code style="color:var(--accent)">CheckpointStore</code> — the same pattern as <code style="color:var(--text-dim)">projection.Runner</code>. This document is kept for historical reference.
+  </div>
 </header>
 
 <main>

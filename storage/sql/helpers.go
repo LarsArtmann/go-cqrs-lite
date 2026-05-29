@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -175,55 +174,4 @@ func SharedCheckpointSave(
 	}
 
 	return nil
-}
-
-// SharedAckBatch deletes outbox entries by ID.
-func SharedAckBatch(
-	ctx context.Context,
-	db *sql.DB,
-	ids []event.OutboxID,
-	d Dialect,
-) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	phs := make([]string, len(ids))
-	args := make([]any, len(ids))
-
-	for i, oid := range ids {
-		phs[i] = d.Placeholder(i + 1)
-		args[i] = oid.Get()
-	}
-
-	query := fmt.Sprintf(
-		"DELETE FROM "+TableOutbox+" WHERE id IN (%s)",
-		strings.Join(phs, ", "),
-	)
-
-	_, err := db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.ack_outbox",
-			"ack outbox entries")
-	}
-
-	return nil
-}
-
-// OutboxInsertSQL returns the INSERT statement for the outbox table using the given dialect.
-func OutboxInsertSQL(dialect Dialect) string {
-	p1, p2, p3, p4 := dialect.Placeholder(
-		1,
-	), dialect.Placeholder(
-		2,
-	), dialect.Placeholder(
-		3,
-	), dialect.Placeholder(
-		4,
-	)
-
-	return fmt.Sprintf(
-		`INSERT INTO `+TableOutbox+` (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
-		p1, p2, p3, p4,
-	)
 }

@@ -51,15 +51,6 @@ func TestNewSQLSnapshotStoreWithDialect_NilDB(t *testing.T) {
 	}
 }
 
-func TestNewSQLOutboxWithDialect_NilDB(t *testing.T) {
-	t.Parallel()
-
-	_, err := storage.NewSQLOutboxWithDialect(nil, storage.SQLiteDialect{})
-	if err == nil {
-		t.Fatal("expected error for nil db")
-	}
-}
-
 func TestNewSQLCheckpointStoreWithDialect_NilDB(t *testing.T) {
 	t.Parallel()
 

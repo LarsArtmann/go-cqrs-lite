@@ -26,21 +26,6 @@ func executeCreateEvent(
 	)
 }
 
-type fakeTransactionalStore struct {
-	*testhelpers.FakeStore
-
-	saveWithOutboxErr error
-}
-
-func (f *fakeTransactionalStore) SaveWithOutbox(
-	_ context.Context,
-	_ event.AggregateRef,
-	_ []event.Event,
-	_ event.Version,
-) error {
-	return f.saveWithOutboxErr
-}
-
 type failingCodec struct {
 	err error
 }
@@ -162,31 +147,6 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 
 	if md.CorrelationID != correlationID {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, md.CorrelationID)
-	}
-}
-
-func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
-	t.Parallel()
-
-	bus := testhelpers.NewFakeBus()
-	txStore := &fakeTransactionalStore{
-		FakeStore:         testhelpers.NewFakeStore(),
-		saveWithOutboxErr: errors.New("tx failed"),
-	}
-
-	repo, err := decider.NewRepository(
-		txStore, bus, counterDecider(),
-		decider.WithOutbox[counterState](testhelpers.NewFakeOutbox()),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-
-	err = executeCreateEvent(t, repo, aggID)
-	if err == nil {
-		t.Fatal("expected error from SaveWithOutbox")
 	}
 }
 

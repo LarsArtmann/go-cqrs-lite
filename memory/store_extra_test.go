@@ -21,17 +21,6 @@ func TestMemoryCheckpointStore_Close(t *testing.T) {
 	}
 }
 
-func TestMemoryOutboxStore_Close(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryOutboxStore()
-
-	err := store.Close()
-	if err != nil {
-		t.Fatalf("close: %v", err)
-	}
-}
-
 func TestMemoryStore_ReadFrom(t *testing.T) {
 	t.Parallel()
 

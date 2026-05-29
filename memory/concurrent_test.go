@@ -92,47 +92,6 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 	wg.Wait()
 }
 
-func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
-	t.Parallel()
-
-	outbox := memory.NewMemoryOutboxStore()
-	var wg sync.WaitGroup
-
-	for i := range 20 {
-		wg.Go(func() {
-			evt, _ := newTestEvent(i+1, []byte(`{}`))
-
-			_ = outbox.Append(context.Background(), []event.Event{evt})
-		})
-	}
-
-	wg.Wait()
-
-	entries, err := outbox.PollPending(context.Background(), 100)
-	if err != nil {
-		t.Fatalf("poll: %v", err)
-	}
-
-	if len(entries) != 20 {
-		t.Errorf("expected 20 entries, got %d", len(entries))
-	}
-
-	ids := make([]event.OutboxID, 0, len(entries))
-	for _, e := range entries {
-		ids = append(ids, e.ID)
-	}
-
-	err = outbox.Ack(context.Background(), ids)
-	if err != nil {
-		t.Fatalf("ack: %v", err)
-	}
-
-	remaining, _ := outbox.PollPending(context.Background(), 100)
-	if len(remaining) != 0 {
-		t.Errorf("expected 0 remaining, got %d", len(remaining))
-	}
-}
-
 func TestConcurrent_CheckpointSaveLoad(t *testing.T) {
 	t.Parallel()
 

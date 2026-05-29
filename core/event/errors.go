@@ -129,14 +129,5 @@ var (
 		"event.snapshot_store_closed",
 		"snapshot store is closed",
 	)
-	ErrNilOutbox      = NewInfrastructure("event.nil_outbox", "nil outbox")
-	ErrNilBus         = NewInfrastructure("event.nil_bus", "nil bus")
-	ErrAlreadyStarted = NewInfrastructure(
-		"event.already_started",
-		"outbox publisher already started",
-	)
-	ErrPublisherClosed = NewInfrastructure(
-		"event.publisher_closed",
-		"outbox publisher is closed",
-	)
+	ErrNilBus = NewInfrastructure("event.nil_bus", "nil bus")
 )

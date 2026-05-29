@@ -10,12 +10,9 @@ type (
 	Dialect         = sqlpkg.Dialect
 	PostgresDialect = sqlpkg.PostgresDialect
 	SQLiteDialect   = sqlpkg.SQLiteDialect
-	OutboxStatus    = sqlpkg.OutboxStatus
 )
 
 var (
-	OutboxStatusPending     = sqlpkg.OutboxStatusPending
-	OutboxStatusAcked       = sqlpkg.OutboxStatusAcked
 	ErrNilDB                = sqlpkg.ErrNilDB
 	ErrUnexpectedTimeType   = sqlpkg.ErrUnexpectedTimeType
 	ErrUnsupportedTimestamp = sqlpkg.ErrUnsupportedTimestamp

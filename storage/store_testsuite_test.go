@@ -247,36 +247,3 @@ func testEventStore_MetadataRoundtrip(
 	}
 }
 
-func testOutbox_Roundtrip(t *testing.T, outbox event.Outbox, newEvt func() event.Event) {
-	t.Helper()
-
-	evt := newEvt()
-
-	err := outbox.Append(context.Background(), []event.Event{evt})
-	if err != nil {
-		t.Fatalf("Append: %v", err)
-	}
-
-	entries, err := outbox.PollPending(context.Background(), 10)
-	if err != nil {
-		t.Fatalf("PollPending: %v", err)
-	}
-
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
-
-	err = outbox.Ack(context.Background(), []event.OutboxID{entries[0].ID})
-	if err != nil {
-		t.Fatalf("Ack: %v", err)
-	}
-
-	entries, err = outbox.PollPending(context.Background(), 10)
-	if err != nil {
-		t.Fatalf("PollPending after ack: %v", err)
-	}
-
-	if len(entries) != 0 {
-		t.Fatalf("expected 0 entries after ack, got %d", len(entries))
-	}
-}

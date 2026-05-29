@@ -34,7 +34,6 @@ type Decider[State any] struct {
 type Repository[State any] struct {
 	store            event.Store
 	publisher        event.Publisher
-	outbox           event.Outbox
 	snapshotStore    event.SnapshotStore
 	codec            codec.Codec
 	snapshotStrategy event.SnapshotStrategy
@@ -130,27 +129,18 @@ func (r *Repository[State]) Execute(
 
 	r.applyEnricher(ctx, newEvents)
 
-	if ts, ok := r.store.(event.TransactionalSink); ok && r.outbox != nil {
-		err = ts.SaveWithOutbox(ctx, ref, newEvents, currentVersion)
-		if err != nil {
-			cqrsotel.RecordError(span, err)
+	err = r.store.Save(ctx, ref, newEvents, currentVersion)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
 
-			return opError(ref, "%w: %w", ErrSaveFailed, err)
-		}
-	} else {
-		err = r.store.Save(ctx, ref, newEvents, currentVersion)
-		if err != nil {
-			cqrsotel.RecordError(span, err)
+		return opError(ref, "%w: %w", ErrSaveFailed, err)
+	}
 
-			return opError(ref, "%w: %w", ErrSaveFailed, err)
-		}
+	err = event.PublishChanges(ctx, r.publisher, newEvents)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
 
-		err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
-		if err != nil {
-			cqrsotel.RecordError(span, err)
-
-			return opError(ref, "publish events: %w", err)
-		}
+		return opError(ref, "publish events: %w", err)
 	}
 
 	newVersion := currentVersion.Add(len(newEvents))

@@ -52,7 +52,7 @@ go-cqrs-lite/
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
-├── storage/             # SQLEventStore, SQLSnapshotStore, SQLOutbox, SQLCheckpointStore (PG/SQLite/Turso)
+├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # Aggregate listing, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
@@ -71,7 +71,7 @@ go-cqrs-lite/
 3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
 4. **Composition over inheritance** — Per Go best practices.
 5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
-6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource, TransactionalSink.
+6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
 7. **Context-aware** — All handlers accept `context.Context`.
 8. **Errors as values** — No panics, explicit error returns, sentinel errors + `%w` wrapping.
 9. **Strong types** — No `any` types (except `dialect.go` for database/sql interop). Max 250 lines/file, 30 lines/function.

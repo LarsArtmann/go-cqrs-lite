@@ -86,7 +86,7 @@ func BenchmarkPublishChanges(b *testing.B) {
 	ctx := context.Background()
 
 	for b.Loop() {
-		err := event.PublishChanges(ctx, bus, nil, events)
+		err := event.PublishChanges(ctx, bus, events)
 		if err != nil {
 			b.Fatalf("PublishChanges: %v", err)
 		}

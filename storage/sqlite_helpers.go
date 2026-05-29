@@ -54,5 +54,5 @@ func ConfigureTursoPool(db *sql.DB)  { db.SetMaxOpenConns(1) }
 
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	pg := sqlpkg.PostgresDialect{}
-	return execDDL(ctx, db, []string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema(), pg.OutboxSchema()})
+	return execDDL(ctx, db, []string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema()})
 }

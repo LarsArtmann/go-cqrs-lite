@@ -163,26 +163,6 @@ func TestSchemaVersion_IntStringIsZero(t *testing.T) {
 	}
 }
 
-func TestOutboxID_StringIsZero(t *testing.T) {
-	t.Parallel()
-
-	oid := event.NewOutboxID("test-id")
-
-	if oid.String() != "test-id" {
-		t.Errorf("String = %q, want test-id", oid.String())
-	}
-
-	if oid.IsZero() {
-		t.Error("IsZero should be false")
-	}
-
-	var zero event.OutboxID
-
-	if !zero.IsZero() {
-		t.Error("IsZero should be true for zero value")
-	}
-}
-
 func TestWithReplay(t *testing.T) {
 	t.Parallel()
 

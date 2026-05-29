@@ -6,32 +6,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// PublishChanges publishes events via the outbox if configured,
-// or directly via the publisher otherwise.
+// PublishChanges publishes events via the publisher.
 func PublishChanges(
 	ctx context.Context,
 	publisher Publisher,
-	outbox Outbox,
 	events []Event,
 ) error {
-	if outbox != nil {
-		err := outbox.Append(ctx, events)
-		if err != nil {
-			return WrapInfrastructure(
-				err,
-				"event.outbox_stage_failed",
-				"stage events in outbox",
-			)
-		}
-	} else {
-		err := publisher.Publish(ctx, events...)
-		if err != nil {
-			return WrapInfrastructure(
-				err,
-				"event.publish_failed",
-				"publish events",
-			)
-		}
+	err := publisher.Publish(ctx, events...)
+	if err != nil {
+		return WrapInfrastructure(
+			err,
+			"event.publish_failed",
+			"publish events",
+		)
 	}
 
 	return nil

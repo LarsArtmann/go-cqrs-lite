@@ -20,7 +20,6 @@ type Dialect interface {
 	EventSchema() string
 	SnapshotSchema() string
 	CheckpointSchema() string
-	OutboxSchema() string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -90,17 +89,6 @@ func (PostgresDialect) CheckpointSchema() string {
 );`
 }
 
-func (PostgresDialect) OutboxSchema() string {
-	return `CREATE TABLE IF NOT EXISTS outbox (
-    id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
-    events      JSONB NOT NULL,
-    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
-}
-
 // SQLiteDialect is the Dialect for SQLite databases.
 type SQLiteDialect struct{}
 
@@ -166,17 +154,6 @@ func (SQLiteDialect) CheckpointSchema() string {
     event_id        TEXT NOT NULL,
     processed_at    TEXT NOT NULL DEFAULT(datetime('now'))
 );`
-}
-
-func (SQLiteDialect) OutboxSchema() string {
-	return `CREATE TABLE IF NOT EXISTS outbox (
-    id          TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '` + string(OutboxStatusPending) + `'` + `,
-    events      TEXT NOT NULL,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
 // Placeholders returns a comma-separated list of placeholders for the given count.

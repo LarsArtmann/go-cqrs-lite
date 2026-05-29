@@ -2,19 +2,6 @@ package sql
 
 import "github.com/larsartmann/go-cqrs-lite/core/event"
 
-// OutboxStatus represents the status of an outbox entry.
-type OutboxStatus string
-
-const (
-	// OutboxStatusPending indicates the entry has not yet been published.
-	OutboxStatusPending OutboxStatus = "pending"
-	// OutboxStatusAcked indicates the entry has been successfully published.
-	OutboxStatusAcked OutboxStatus = "acked"
-)
-
-// String returns the underlying string value.
-func (s OutboxStatus) String() string { return string(s) }
-
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
 var ErrNilDB = event.NewInfrastructure(
 	"storage.nil_db",

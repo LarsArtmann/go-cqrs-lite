@@ -1,13 +1,8 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
-	_ "modernc.org/sqlite"
-
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
@@ -54,76 +49,6 @@ func TestSQLBackend_EventStore(t *testing.T) {
 	}
 }
 
-func TestSQLBackend_Outbox(t *testing.T) {
-	t.Parallel()
-
-	backend := newTestSQLBackend(t)
-
-	outbox := backend.Outbox()
-	if outbox == nil {
-		t.Fatal("expected non-nil Outbox")
-	}
-}
-
-func TestSQLBackend_TransactionalStore(t *testing.T) {
-	t.Parallel()
-
-	backend := newTestSQLBackend(t)
-
-	tx := backend.TransactionalSink()
-	if tx == nil {
-		t.Fatal("expected non-nil TransactionalStore")
-	}
-}
-
-func TestSQLBackend_SaveWithOutbox(t *testing.T) {
-	t.Parallel()
-
-	backend := newTestSQLBackend(t)
-	ctx := context.Background()
-
-	aggID := id.NewAggregateID()
-	evt, err := event.New("test.event", aggID, "Test", 1, []byte(`{"data":1}`))
-	if err != nil {
-		t.Fatalf("NewEvent: %v", err)
-	}
-
-	tx := backend.TransactionalSink()
-	if err := tx.SaveWithOutbox(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt},
-		0,
-	); err != nil {
-		t.Fatalf("SaveWithOutbox: %v", err)
-	}
-
-	// Verify event was saved
-	loaded, err := backend.EventStore().
-		Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if len(loaded) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(loaded))
-	}
-
-	if loaded[0].Type() != "test.event" {
-		t.Errorf("event type mismatch: got %q, want %q", loaded[0].Type(), "test.event")
-	}
-
-	// Verify outbox entry was created
-	entries, err := backend.Outbox().PollPending(ctx, 10)
-	if err != nil {
-		t.Fatalf("PollPending: %v", err)
-	}
-
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 outbox entry, got %d", len(entries))
-	}
-}
-
 func TestNewSQLBackendWithDialect(t *testing.T) {
 	t.Parallel()
 
@@ -139,11 +64,5 @@ func TestNewSQLBackendWithDialect(t *testing.T) {
 	}
 	if backend.EventStore() == nil {
 		t.Fatal("expected non-nil EventStore")
-	}
-	if backend.Outbox() == nil {
-		t.Fatal("expected non-nil Outbox")
-	}
-	if backend.TransactionalSink() == nil {
-		t.Fatal("expected non-nil TransactionalStore")
 	}
 }

@@ -1,7 +1,6 @@
 package sql
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -12,16 +11,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Schema returns the SQL DDL for creating the events and outbox tables (PostgreSQL).
+// Schema returns the SQL DDL for creating the events table (PostgreSQL).
 func Schema() string {
 	pg := PostgresDialect{}
-	return pg.EventSchema() + "\n" + pg.OutboxSchema()
+	return pg.EventSchema()
 }
 
-// SQLiteSchema returns the SQL DDL for creating the events and outbox tables (SQLite).
+// SQLiteSchema returns the SQL DDL for creating the events table (SQLite).
 func SQLiteSchema() string {
 	sqlite := SQLiteDialect{}
-	return sqlite.EventSchema() + "\n" + sqlite.OutboxSchema()
+	return sqlite.EventSchema()
 }
 
 // ScanSlice is a generic helper that deduplicates event scanning.
@@ -141,50 +140,4 @@ func CommitTx(tx *sql.Tx) error {
 	}
 
 	return nil
-}
-
-// SaveWithOutboxTx performs version checking, event insertion, and outbox append in a single transaction.
-func SaveWithOutboxTx(
-	ctx context.Context,
-	db *sql.DB,
-	ref event.AggregateRef,
-	events []event.Event,
-	expectedVersion event.Version,
-	checkVersionFn func(context.Context, *sql.Tx, event.AggregateRef, event.Version) error,
-	insertEventsFn func(context.Context, *sql.Tx, event.AggregateRef, []event.Event) error,
-	appendOutboxFn func(context.Context, *sql.Tx, []event.Event) error,
-) error {
-	if len(events) == 0 {
-		return nil
-	}
-
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.begin_tx",
-			"begin transaction")
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = checkVersionFn(ctx, tx, ref, expectedVersion)
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.check_version",
-			fmt.Sprintf("check version for %s %s", ref.Type, ref.ID))
-	}
-
-	err = insertEventsFn(ctx, tx, ref, events)
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.insert_events",
-			fmt.Sprintf("insert %d events for %s %s", len(events), ref.Type, ref.ID))
-	}
-
-	err = appendOutboxFn(ctx, tx, events)
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.append_outbox",
-			fmt.Sprintf("append %d events to outbox", len(events)))
-	}
-
-	return CommitTx(tx)
 }

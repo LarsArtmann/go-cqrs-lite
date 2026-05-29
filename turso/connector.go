@@ -48,26 +48,9 @@ func NewTursoSnapshotStore(db *sql.DB) (*storage.SQLSnapshotStore, error) {
 	return storage.NewSQLiteSnapshotStore(db)
 }
 
-// NewTursoOutbox creates an outbox backed by a Turso database.
-// Delegates to NewSQLiteOutbox — Turso uses the same SQL dialect as SQLite.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-func NewTursoOutbox(db *sql.DB) (*storage.SQLOutbox, error) {
-	return storage.NewSQLiteOutbox(db)
-}
-
 // NewTursoCheckpointStore creates a checkpoint store backed by a Turso database.
 // Delegates to NewSQLiteCheckpointStore — Turso uses the same SQL dialect as SQLite.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewTursoCheckpointStore(db *sql.DB) (*storage.SQLCheckpointStore, error) {
 	return storage.NewSQLiteCheckpointStore(db)
-}
-
-// NewTursoTransactionalStore creates a transactional store backed by a Turso database.
-// Delegates to NewSQLTransactionalStore — Turso uses the same SQL dialect as SQLite.
-// Combines event persistence and outbox append in a single transaction.
-func NewTursoTransactionalStore(
-	store *storage.SQLEventStore,
-	outbox *storage.SQLOutbox,
-) (*storage.SQLTransactionalStore, error) {
-	return storage.NewSQLTransactionalStore(store, outbox)
 }

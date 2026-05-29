@@ -8,15 +8,6 @@ import (
 // RepositoryOption configures a Repository.
 type RepositoryOption[State any] func(*Repository[State])
 
-// WithOutbox enables outbox support for reliable event publishing.
-// When configured, Execute appends events to the outbox instead of
-// publishing directly to the bus.
-func WithOutbox[State any](outbox event.Outbox) RepositoryOption[State] {
-	return func(r *Repository[State]) {
-		r.outbox = outbox
-	}
-}
-
 // WithSnapshotStore enables snapshot support for the repository.
 func WithSnapshotStore[State any](store event.SnapshotStore) RepositoryOption[State] {
 	return func(r *Repository[State]) {

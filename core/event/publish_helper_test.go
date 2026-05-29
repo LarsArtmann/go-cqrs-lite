@@ -20,27 +20,6 @@ func (m *mockPublisher) Publish(_ context.Context, events ...event.Event) error 
 	return m.err
 }
 
-type mockOutbox struct {
-	events []event.Event
-	err    error
-}
-
-func (m *mockOutbox) Append(_ context.Context, events []event.Event) error {
-	m.events = append(m.events, events...)
-
-	return m.err
-}
-
-func (m *mockOutbox) PollPending(_ context.Context, _ int) ([]event.OutboxEntry, error) {
-	return nil, nil
-}
-
-func (m *mockOutbox) Ack(_ context.Context, _ []event.OutboxID) error {
-	return nil
-}
-
-func (m *mockOutbox) Close() error { return nil }
-
 func testEvents(t *testing.T, n int) []event.Event {
 	t.Helper()
 
@@ -66,7 +45,7 @@ func TestPublishChanges_DirectPublish(t *testing.T) {
 	pub := &mockPublisher{}
 	events := testEvents(t, 2)
 
-	err := event.PublishChanges(context.Background(), pub, nil, events)
+	err := event.PublishChanges(context.Background(), pub, events)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -76,52 +55,16 @@ func TestPublishChanges_DirectPublish(t *testing.T) {
 	}
 }
 
-func TestPublishChanges_OutboxAppend(t *testing.T) {
-	t.Parallel()
-
-	pub := &mockPublisher{}
-	outbox := &mockOutbox{}
-	events := testEvents(t, 2)
-
-	err := event.PublishChanges(context.Background(), pub, outbox, events)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(pub.published) != 0 {
-		t.Errorf("expected 0 published events (should use outbox), got %d", len(pub.published))
-	}
-
-	if len(outbox.events) != 2 {
-		t.Errorf("expected 2 outbox events, got %d", len(outbox.events))
-	}
-}
-
 func TestPublishChanges_PublishError(t *testing.T) {
 	t.Parallel()
 
 	pub := &mockPublisher{err: errTestPublish}
 	events := testEvents(t, 1)
 
-	err := event.PublishChanges(context.Background(), pub, nil, events)
+	err := event.PublishChanges(context.Background(), pub, events)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
-func TestPublishChanges_OutboxError(t *testing.T) {
-	t.Parallel()
-
-	outbox := &mockOutbox{err: errTestOutbox}
-	events := testEvents(t, 1)
-
-	err := event.PublishChanges(context.Background(), nil, outbox, events)
-	if err == nil {
-		t.Fatal("expected error")
-	}
-}
-
-var (
-	errTestPublish = errors.New("publish failed")
-	errTestOutbox  = errors.New("outbox failed")
-)
+var errTestPublish = errors.New("publish failed")

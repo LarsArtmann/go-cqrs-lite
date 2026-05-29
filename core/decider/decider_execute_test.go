@@ -176,64 +176,6 @@ func TestExecute_NoEvents(t *testing.T) {
 	}
 }
 
-func TestExecute_WithOutbox(t *testing.T) {
-	t.Parallel()
-
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	outbox := testhelpers.NewFakeOutbox()
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(store, bus, d, decider.WithOutbox[counterState](outbox))
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-
-	err = executeAndIncrement(t, repo, aggID, "CounterIncremented")
-	if err != nil {
-		t.Fatalf("Execute: %v", err)
-	}
-
-	if len(bus.Published) != 0 {
-		t.Fatal("expected no bus publishes with outbox")
-	}
-
-	if len(outbox.Entries) == 0 {
-		t.Fatal("expected outbox entries")
-	}
-}
-
-func TestExecute_OutboxAppendError(t *testing.T) {
-	t.Parallel()
-
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-	outbox := testhelpers.NewFakeOutbox()
-	outbox.AppendFn(func(_ []event.Event) error { return errors.New("outbox full") })
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(store, bus, d, decider.WithOutbox[counterState](outbox))
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
-	aggID := id.NewAggregateID()
-
-	err = executeAndIncrement(t, repo, aggID, "CounterIncremented")
-	if err == nil {
-		t.Fatal("expected outbox append error")
-	}
-}
 
 func TestExecute_Concurrent(t *testing.T) {
 	t.Parallel()
