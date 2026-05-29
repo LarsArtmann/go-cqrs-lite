@@ -75,10 +75,11 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 
 	sig, err := m.signer.Sign(evt)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err,
-		"signing.multi_sign",
-		"sign event for actor "+string(m.actor),
-	)
+		return nil, event.WrapInfrastructure(
+			err,
+			"signing.multi_sign",
+			"sign event for actor "+string(m.actor),
+		)
 	}
 
 	existing, extractErr := ExtractMultiSignature(evt)
@@ -100,10 +101,11 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 
 	validateErr := entry.Validate()
 	if validateErr != nil {
-		return nil, event.WrapRejection(validateErr,
-		"signing.invalid_entry",
-		"validate signature entry",
-	)
+		return nil, event.WrapRejection(
+			validateErr,
+			"signing.invalid_entry",
+			"validate signature entry",
+		)
 	}
 
 	multiSig.Entries = removeActor(multiSig.Entries, m.actor)
@@ -116,7 +118,8 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 func (m *MultiSigner) Verify(evt event.Event) error {
 	err := verifyActorEntry(evt, m.actor, m.verifier)
 	if err != nil {
-		return event.WrapInfrastructure(err,
+		return event.WrapInfrastructure(
+			err,
 			"signing.verify_actor",
 			"verify actor "+string(m.actor),
 		)
@@ -130,7 +133,8 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifier) error {
 	err := verifyActorEntry(evt, actor, verifier)
 	if err != nil {
-		return event.WrapInfrastructure(err,
+		return event.WrapInfrastructure(
+			err,
 			"signing.verify_actor",
 			"verify actor "+string(actor),
 		)
@@ -152,19 +156,21 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier Verifier) error {
 
 	entry := multiSig.Get(actor)
 	if entry == nil {
-		return event.Wrapf(ErrNilSignature, event.Rejection,
-		"signing.no_actor_signature",
-		"no signature found for actor %s",
-		actor,
-	)
+		return event.Wrapf(
+			ErrNilSignature, event.Rejection,
+			"signing.no_actor_signature",
+			"no signature found for actor %s",
+			actor,
+		)
 	}
 
 	verifyErr := verifier.Verify(evt, entry.Sig)
 	if verifyErr != nil {
-		return event.WrapInfrastructure(verifyErr,
-		"signing.verify_actor_entry",
-		"verify entry for actor "+string(actor),
-	)
+		return event.WrapInfrastructure(
+			verifyErr,
+			"signing.verify_actor_entry",
+			"verify entry for actor "+string(actor),
+		)
 	}
 
 	return nil

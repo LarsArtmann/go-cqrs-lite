@@ -2,6 +2,7 @@ package signing
 
 import (
 	"crypto/ed25519"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -29,8 +30,7 @@ func NewEd25519(privateKey ed25519.PrivateKey) (*ed25519Signer, error) {
 	}
 
 	// Copy to prevent external mutation
-	keyCopy := make([]byte, ed25519.PrivateKeySize)
-	copy(keyCopy, privateKey)
+	keyCopy := slices.Clone(privateKey)
 
 	return &ed25519Signer{privateKey: keyCopy}, nil
 }
@@ -69,8 +69,7 @@ func NewEd25519Verifier(publicKey ed25519.PublicKey) (*ed25519Verifier, error) {
 	}
 
 	// Copy to prevent external mutation
-	keyCopy := make([]byte, ed25519.PublicKeySize)
-	copy(keyCopy, publicKey)
+	keyCopy := slices.Clone(publicKey)
 
 	return &ed25519Verifier{publicKey: keyCopy}, nil
 }

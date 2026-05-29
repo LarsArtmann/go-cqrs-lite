@@ -68,11 +68,9 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 
 			verifyErr := signer.Verify(evt)
 			if verifyErr != nil {
-				return fmt.Errorf(
-					"verify multi-sig for actor %s on event %s: %w",
-					signer.Actor(),
-					evt.Type(),
-					verifyErr,
+				return event.WrapInfrastructure(verifyErr,
+					"signing.verify_multi_sig",
+					"verify multi-sig for actor "+string(signer.Actor())+" on event "+string(evt.Type()),
 				)
 			}
 
@@ -103,9 +101,9 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 
 			entry := multiSig.Get(actor)
 			if entry == nil {
-				return fmt.Errorf(
-					"%w: no signature from actor %s on event %s",
-					ErrNilSignature,
+				return event.Newf(event.Rejection,
+					"signing.missing_actor_signature",
+					"no signature from actor %s on event %s",
 					actor,
 					evt.Type(),
 				)
@@ -113,11 +111,9 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 
 			verifyErr := verifier.Verify(evt, entry.Sig)
 			if verifyErr != nil {
-				return fmt.Errorf(
-					"verify multi-sig for actor %s on event %s: %w",
-					actor,
-					evt.Type(),
-					verifyErr,
+				return event.WrapInfrastructure(verifyErr,
+					"signing.verify_multi_sig",
+					"verify multi-sig for actor "+string(actor)+" on event "+string(evt.Type()),
 				)
 			}
 
@@ -138,15 +134,17 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if evt == nil {
-				return fmt.Errorf("%w: nil event", ErrNilSignature)
+				return event.WrapRejection(ErrNilSignature,
+					"signing.nil_event_multi_sig",
+					"nil event",
+				)
 			}
 
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
-				return fmt.Errorf(
-					"%w: event %s has no multi-signature",
-					ErrNilSignature,
-					evt.Type(),
+				return event.WrapRejection(ErrNilSignature,
+					"signing.no_multi_sig",
+					"event "+string(evt.Type())+" has no multi-signature",
 				)
 			}
 
@@ -163,7 +161,10 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 
 			verifyErr := VerifyAll(evt, verifiers)
 			if verifyErr != nil {
-				return fmt.Errorf("require multi-sig: %w", verifyErr)
+				return event.WrapInfrastructure(verifyErr,
+					"signing.require_multi_sig",
+					"require multi-sig",
+				)
 			}
 
 			return next(ctx, evt)

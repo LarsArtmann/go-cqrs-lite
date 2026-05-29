@@ -2,7 +2,6 @@ package signing
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -24,12 +23,21 @@ func VerifyAll(evt event.Event, verifiers map[Actor]Verifier) error {
 	for _, entry := range multiSig.Entries {
 		verifier, ok := verifiers[entry.Actor]
 		if !ok {
-			return fmt.Errorf("%w: %s", ErrNoVerifier, entry.Actor)
+			return event.Newf(
+				event.Rejection,
+				"signing.no_verifier",
+				"%s",
+				entry.Actor,
+			)
 		}
 
 		verifyErr := verifier.Verify(evt, entry.Sig)
 		if verifyErr != nil {
-			return fmt.Errorf("verify actor %s (%s): %w", entry.Actor, entry.Algorithm, verifyErr)
+			return event.WrapInfrastructure(
+				verifyErr,
+				"signing.verify_all",
+				"verify actor "+string(entry.Actor)+" ("+string(entry.Algorithm)+")",
+			)
 		}
 	}
 
@@ -56,10 +64,10 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 
 	unmarshalErr := json.Unmarshal([]byte(encoded), &multiSig)
 	if unmarshalErr != nil {
-		return MultiSignature{Entries: nil}, fmt.Errorf(
-			"%w: decode multi-sig: %w",
-			ErrInvalidSignature,
+		return MultiSignature{Entries: nil}, event.WrapInfrastructure(
 			unmarshalErr,
+			"signing.decode_multi_sig",
+			"decode multi-signature",
 		)
 	}
 
@@ -99,12 +107,20 @@ func attachMultiSignature(
 ) (*event.ImmutableEvent, error) {
 	encoded, err := json.Marshal(multiSig)
 	if err != nil {
-		return nil, fmt.Errorf("encode multi-sig: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"signing.encode_multi_sig",
+			"encode multi-signature",
+		)
 	}
 
 	clone, err := cloneEvent(evt, MultiSigMetadataKey, string(encoded))
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct event with multi-sig: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"signing.reconstruct_multi_sig",
+			"reconstruct event with multi-sig",
+		)
 	}
 
 	return clone, nil

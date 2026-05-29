@@ -3,6 +3,7 @@ package signing
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -35,8 +36,7 @@ func NewHMAC(key []byte) (*hmacSigner, error) {
 	}
 
 	// Copy key to prevent external mutation
-	keyCopy := make([]byte, len(key))
-	copy(keyCopy, key)
+	keyCopy := slices.Clone(key)
 
 	return &hmacSigner{key: keyCopy}, nil
 }

@@ -100,7 +100,8 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if !HasSignature(evt) {
-				return event.Newf(event.Rejection,
+				return event.Newf(
+					event.Rejection,
 					"signing.missing_signature",
 					"event %s is missing a signature",
 					evt.Type(),
