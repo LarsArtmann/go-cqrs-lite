@@ -18,8 +18,8 @@ type AggregateProjection struct {
 // NewAggregateProjection creates a projection that maintains the aggregates table.
 // The table is created if it does not exist.
 func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
-	if !validTablePrefix.MatchString(tablePrefix) {
-		return nil, fmt.Errorf("stream projection: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", tablePrefix)
+	if err := validateTablePrefix(tablePrefix); err != nil {
+		return nil, err
 	}
 
 	p := &AggregateProjection{

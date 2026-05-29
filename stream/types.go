@@ -13,6 +13,15 @@ import (
 // validTablePrefix enforces safe SQL identifier names for table prefix parameters.
 var validTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
+// validateTablePrefix checks that the prefix is a safe SQL identifier.
+func validateTablePrefix(prefix string) error {
+	if !validTablePrefix.MatchString(prefix) {
+		return fmt.Errorf("stream: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", prefix)
+	}
+
+	return nil
+}
+
 // AggregateRef is a lightweight identity reference to an aggregate stream.
 // No derived state. Status is computed separately by the reader.
 type AggregateRef struct {

@@ -19,8 +19,8 @@ type SQLAggregateReader struct {
 
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
 func NewSQLAggregateReader(db *sql.DB, tablePrefix string) (*SQLAggregateReader, error) {
-	if !validTablePrefix.MatchString(tablePrefix) {
-		return nil, fmt.Errorf("stream sql reader: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", tablePrefix)
+	if err := validateTablePrefix(tablePrefix); err != nil {
+		return nil, err
 	}
 
 	return &SQLAggregateReader{
