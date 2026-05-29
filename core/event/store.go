@@ -110,37 +110,12 @@ type SeekableJournal interface {
 	ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]Event, error)
 }
 
-// GlobalLoader loads all events across all aggregates, ordered by occurrence.
-// Implementations return events sorted by OccurredAt for deterministic replay.
-// This is the core interface for projection replay.
-//
-// Deprecated: use Journal instead.
-type GlobalLoader interface {
-	LoadAll(ctx context.Context) ([]Event, error)
-}
-
-// PositionalLoader extends GlobalLoader with position-based loading.
-//
-// Deprecated: use SeekableJournal instead.
-type PositionalLoader interface {
-	GlobalLoader
-
-	// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after
-	// the given event ID. Returns up to limit events. Pass limit <= 0 for no limit.
-	LoadAllFromPosition(ctx context.Context, afterEventID id.EventID, limit int) ([]Event, error)
-}
-
 // BackwardsSource loads events in reverse version order (newest first).
 // Useful for tail-loading scenarios where only the most recent events are needed.
 type BackwardsSource interface {
 	EventSource
 	LoadBackwards(ctx context.Context, aggType AggregateType, aggID id.AggregateID) ([]Event, error)
 }
-
-// BackwardsLoader loads events in reverse version order (newest first).
-//
-// Deprecated: use BackwardsSource instead.
-type BackwardsLoader = BackwardsSource
 
 // TransactionalSink extends EventSink with atomic save+outbox append.
 // Implementations MUST guarantee that SaveWithOutbox persists events
