@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command & Event Sourcing in Graph Databases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e17;--bg-raised:#111827;--bg-card:#151d2e;--bg-code:#0d1321;
+  --fg:#e2e8f0;--fg-dim:#94a3b8;--fg-muted:#64748b;
+  --accent:#06d6a0;--accent-dim:rgba(6,214,160,.12);--accent-glow:rgba(6,214,160,.25);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);
+  --rose:#f43f5e;--rose-dim:rgba(244,63,94,.12);
+  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.12);
+  --cyan:#22d3ee;--cyan-dim:rgba(34,211,238,.12);
+  --border:#1e293b;--border-light:#334155;
+  --radius:12px;--radius-sm:8px;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border-light) var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 10%,rgba(34,211,238,.04),transparent),
+  radial-gradient(ellipse 60% 50% at 80% 80%,rgba(167,139,250,.04),transparent);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:80px 80px;opacity:.15;pointer-events:none;z-index:0}
+
+.wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 2rem}
+
+/* --- NAV --- */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.75rem 0}
+nav .wrapper{display:flex;align-items:center;gap:2rem}
+nav .brand{font-family:var(--mono);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);white-space:nowrap}
+nav .links{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+nav .links::-webkit-scrollbar{display:none}
+nav a{color:var(--fg-dim);text-decoration:none;font-size:.75rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:.4rem .75rem;border-radius:6px;transition:all .2s;white-space:nowrap;font-family:var(--mono)}
+nav a:hover,nav a.active{color:var(--cyan);background:var(--cyan-dim)}
+
+/* --- HERO --- */
+.hero{padding:6rem 0 4rem;text-align:center;position:relative}
+.hero h1{font-family:var(--sans);font-size:clamp(2.2rem,5.5vw,4.2rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;background:linear-gradient(135deg,var(--fg) 0%,var(--cyan) 50%,var(--violet) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem}
+.hero .meta{font-family:var(--mono);font-size:.8rem;color:var(--fg-muted);letter-spacing:.05em}
+.hero .meta span{color:var(--cyan)}
+.hero p.subtitle{max-width:720px;margin:1.5rem auto 0;color:var(--fg-dim);font-size:1.05rem;line-height:1.8}
+
+/* --- SECTIONS --- */
+.part{padding:4rem 0 2rem}
+.part-header{margin-bottom:3rem;position:relative}
+.part-number{font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);display:inline-block;padding:.35rem .75rem;background:var(--cyan-dim);border:1px solid rgba(34,211,238,.2);border-radius:4px;margin-bottom:.75rem}
+.part-header h2{font-family:var(--sans);font-size:clamp(1.8rem,3vw,2.5rem);font-weight:700;letter-spacing:-.02em;color:var(--fg)}
+.part-header p{margin-top:.75rem;color:var(--fg-dim);font-size:.95rem;max-width:800px;line-height:1.7}
+
+/* --- CARDS --- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:1.5rem}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .3s,box-shadow .3s;opacity:0;transform:translateY(20px);animation:cardIn .5s ease forwards}
+.card:hover{border-color:var(--cyan);box-shadow:0 0 30px rgba(34,211,238,.15),inset 0 1px 0 rgba(34,211,238,.1)}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+
+.card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+.card-num{font-family:var(--mono);font-size:.7rem;font-weight:700;color:var(--cyan);width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;background:var(--cyan-dim);border:1px solid rgba(34,211,238,.2);border-radius:6px;flex-shrink:0}
+.card-header h3{font-family:var(--sans);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;color:var(--fg)}
+.card-header .badge{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px;margin-left:auto;flex-shrink:0}
+.badge-neo4j{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(34,211,238,.2)}
+.badge-janus{background:var(--violet-dim);color:var(--violet);border:1px solid rgba(167,139,250,.2)}
+.badge-mapping{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(6,214,160,.2)}
+.badge-pattern{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.badge-pro{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(6,214,160,.2)}
+.badge-con{background:var(--rose-dim);color:var(--rose);border:1px solid rgba(244,63,94,.2)}
+.badge-code{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.badge-verdict{background:var(--violet-dim);color:var(--violet);border:1px solid rgba(167,139,250,.2)}
+.badge-opt-a{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(6,214,160,.2)}
+.badge-opt-b{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-opt-c{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+
+.card-body{padding:1.25rem 1.5rem}
+.card pre{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.6;color:var(--fg-dim);margin-bottom:1rem}
+
+/* --- TABLES --- */
+.card table{width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem}
+.card table thead th{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);background:var(--bg-raised);border-bottom:2px solid var(--border-light);padding:.55rem .85rem;text-align:left;white-space:nowrap}
+.card table thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+.card table thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+.card table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);padding:.5rem .85rem;transition:background .15s}
+.card table tbody tr:hover td{background:rgba(34,211,238,.04)}
+.card table tbody tr:last-child td{border-bottom:none}
+.card table tbody td:first-child{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--cyan);white-space:nowrap;min-width:120px}
+
+.card .key-prop{margin-top:1rem;padding:.75rem 1rem;background:var(--cyan-dim);border-left:3px solid var(--cyan);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.85rem;color:var(--fg-dim);line-height:1.6}
+.card .key-prop strong{color:var(--fg)}
+.card .key-prop.green{background:var(--accent-dim);border-left-color:var(--accent)}
+.card .key-prop.red{background:var(--rose-dim);border-left-color:var(--rose)}
+.card .key-prop.violet{background:var(--violet-dim);border-left-color:var(--violet)}
+.card .key-prop.amber{background:var(--amber-dim);border-left-color:var(--amber)}
+
+.card .variants{margin-top:1rem;padding:0;list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.card .variants li{font-size:.83rem;color:var(--fg-dim);padding-left:1rem;position:relative}
+.card .variants li::before{content:'';position:absolute;left:0;top:.55rem;width:6px;height:6px;border-radius:50%;background:var(--cyan)}
+
+/* --- DIAGRAM --- */
+.diagram-box{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;margin:2rem 0;position:relative;overflow:hidden}
+.diagram-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--accent))}
+.diagram-box pre{font-family:var(--mono);font-size:.82rem;line-height:1.8;color:var(--fg-dim);white-space:pre;overflow-x:auto}
+.diagram-label{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.diagram-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* --- SPLIT --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:2rem 0}
+@media(max-width:800px){.split{grid-template-columns:1fr}}
+.split-col{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+.split-col h4{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--cyan);margin-bottom:.75rem;letter-spacing:.05em;text-transform:uppercase}
+.split-col ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:.4rem}
+.split-col li{font-size:.85rem;color:var(--fg-dim);padding-left:1rem;position:relative;line-height:1.6}
+.split-col li::before{content:'';position:absolute;left:0;top:.55rem;width:6px;height:6px;border-radius:50%}
+.split-col.pro li::before{background:var(--accent)}
+.split-col.con li::before{background:var(--rose)}
+
+/* --- VERDICT CARDS --- */
+.verdict-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem;margin:2rem 0}
+.verdict-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:relative;overflow:hidden}
+.verdict-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.verdict-card.va::before{background:var(--accent)}
+.verdict-card.vb::before{background:var(--amber)}
+.verdict-card.vc::before{background:var(--blue)}
+.verdict-card .label{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem;display:inline-block;padding:.2rem .5rem;border-radius:4px}
+.verdict-card.va .label{background:var(--accent-dim);color:var(--accent)}
+.verdict-card.vb .label{background:var(--amber-dim);color:var(--amber)}
+.verdict-card.vc .label{background:var(--blue-dim);color:var(--blue)}
+.verdict-card h4{font-family:var(--sans);font-size:1.1rem;font-weight:700;margin-bottom:.5rem;color:var(--fg)}
+.verdict-card p{font-size:.85rem;color:var(--fg-dim);line-height:1.7}
+.verdict-card .verdict-tag{margin-top:1rem;padding:.5rem .75rem;border-radius:var(--radius-sm);font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;text-align:center}
+.verdict-card.va .verdict-tag{background:var(--accent-dim);color:var(--accent)}
+.verdict-card.vb .verdict-tag{background:var(--amber-dim);color:var(--amber)}
+.verdict-card.vc .verdict-tag{background:var(--blue-dim);color:var(--blue)}
+
+/* --- MEGA TABLE --- */
+.mega-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card)}
+.mega-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.78rem;min-width:900px}
+.mega-table th,.mega-table td{padding:.65rem .85rem;text-align:left;white-space:nowrap}
+.mega-table thead th{background:var(--bg-raised);font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);position:sticky;top:0;border-bottom:2px solid var(--border-light)}
+.mega-table tbody td{color:var(--fg-dim);border-bottom:1px solid var(--border);transition:background .15s}
+.mega-table tbody tr:hover td{background:rgba(34,211,238,.04)}
+.mega-table tbody tr:last-child td{border-bottom:none}
+.mega-table tbody td:first-child{font-family:var(--mono);font-weight:600;color:var(--cyan);font-size:.78rem;padding-left:1.1rem}
+.mega-table tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.mega-table tbody tr:nth-child(even):hover td{background:rgba(34,211,238,.05)}
+
+/* --- FOOTER --- */
+footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:4rem;text-align:center}
+footer p{font-family:var(--mono);font-size:.7rem;color:var(--fg-muted);letter-spacing:.05em}
+
+/* --- ANIMATIONS --- */
+@media(prefers-reduced-motion:no-preference){
+  .card:nth-child(1){animation-delay:.0s}
+  .card:nth-child(2){animation-delay:.05s}
+  .card:nth-child(3){animation-delay:.1s}
+  .card:nth-child(4){animation-delay:.15s}
+  .card:nth-child(5){animation-delay:.2s}
+  .card:nth-child(6){animation-delay:.25s}
+  .card:nth-child(7){animation-delay:.3s}
+  .card:nth-child(8){animation-delay:.35s}
+  .card:nth-child(9){animation-delay:.4s}
+  .card:nth-child(10){animation-delay:.45s}
+}
+
+.card-full{grid-column:1/-1}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrapper">
+    <div class="brand">Graph × CQRS</div>
+    <div class="links">
+      <a href="#why">Why</a>
+      <a href="#models">Models</a>
+      <a href="#mapping">Mapping</a>
+      <a href="#cypher">Cypher</a>
+      <a href="#command">Command</a>
+      <a href="#secret">Secret</a>
+      <a href="#perf">Performance</a>
+      <a href="#engines">Engines</a>
+      <a href="#approaches">Approaches</a>
+      <a href="#verdict">Verdict</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+<section class="hero">
+  <h1>Command & Event Sourcing<br>in Graph Databases</h1>
+  <p class="meta">Date: <span>2026-05-29</span> &middot; Scope: Thought experiment — implementing go-cqrs-lite event stores on Neo4j and JanusGraph</p>
+  <p class="subtitle">
+    Graph databases model relationships as first-class citizens. Event sourcing models facts as immutable, ordered records. At first glance, they have nothing in common. But peer deeper: every event has a causal relationship to previous events, every command targets an aggregate, and every saga is a connected chain of cause and effect. What if the <em>relationships between events</em> are more interesting than the events themselves?
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="why">
+<div class="part-header">
+  <div class="part-number">Part 1</div>
+  <h2>Why Graph Databases Make This Interesting</h2>
+  <p>Traditional event stores treat events as flat rows in an append-only table. The only relationship is "this event comes after that event, in the same stream." Graph databases ask: what if events are <strong>nodes</strong> in a richly connected web of causation, correlation, and temporal ordering?</p>
+</div>
+
+<div class="diagram-box">
+  <div class="diagram-label">The Isomorphism</div>
+<pre>
+  Event Sourcing (Flat)                   Event Sourcing (Graph)
+  ─────────────────────                   ─────────────────────
+
+  events table                            (:Aggregate {id, type})
+  ┌────────────────────────────┐               │
+  │ id | agg_id | type | seq   │          [:HAS_EVENT]
+  │ 1  | user-1 | Created | 1  │               │
+  │ 2  | user-1 | Changed | 2  │          (:Event {type:"Created", seq:1})
+  │ 3  | user-1 | Moved   | 3  │               │
+  │ 4  | order-5| Placed  | 1  │          [:NEXT → :FOLLOWS]
+  │ 5  | order-5| Paid    | 2  │               │
+  └────────────────────────────┘          (:Event {type:"Changed", seq:2})
+                                                │
+  Relationships are IMPLICIT:              [:NEXT → :FOLLOWS]
+  - "event 2 follows event 1"                  │
+  - "event 5 correlates with event 2"     (:Event {type:"Moved", seq:3})
+  - "command X produced event Y"                │
+                                          [:CORRELATES_WITH]          [:CAUSED_BY]
+                                                │                          │
+  You discover them by                    (:Event:"Placed") ←──── (:Command:"PayOrder")
+  scanning and matching.                       │
+                                          [:NEXT]                    [:TARGETS]
+                                                │                          │
+                                          (:Event:"Paid") ←──── (:Aggregate:Order)
+                                                ↑
+                                          [:CORRELATES_WITH]
+                                                │
+                                          And now the FULL CAUSAL CHAIN
+                                          is a graph traversal, not a table scan.
+</pre>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>The Flat Store Blind Spot</h3>
+    <span class="badge badge-pattern">Problem</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:1rem">
+      In a traditional event store (Postgres, EventStoreDB, Pebble), events are stored as rows in an append-only sequence. The only structural relationship is <code>(aggregate_id, version)</code>. Cross-aggregate questions require full table scans or additional projection tables:
+    </p>
+    <table>
+      <thead>
+        <tr><th>Question</th><th>Flat Store</th><th>Graph Store</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Load events for aggregate</td><td>Index scan — O(n)</td><td>Chain traversal — O(n)</td></tr>
+        <tr><td>What caused this event?</td><td>Scan by correlation_id</td><td>Follow [:CAUSED_BY] — O(1)</td></tr>
+        <tr><td>Full causal chain across aggregates</td><td>Recursive CTE (expensive)</td><td>Variable-length traversal — O(k)</td></tr>
+        <tr><td>Events produced by this command</td><td>Scan by command_id column</td><td>Follow [:PRODUCED] — O(1)</td></tr>
+        <tr><td>Saga step completion</td><td>Query saga_state table</td><td>Traverse saga subgraph — O(steps)</td></tr>
+        <tr><td>Impact of replaying event X</td><td>Unknown without scan</td><td>Follow all outgoing relationships — O(k)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>Key insight:</strong> The moment you ask "what caused what?" or "what is related to this event?", a graph database's traversal model is fundamentally more efficient than scanning flat rows. This is the entire value proposition.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="models">
+<div class="part-header">
+  <div class="part-number">Part 2</div>
+  <h2>Three Schema Models for Event Sourcing in Graphs</h2>
+  <p>There is no single "right" way to map events into a graph. Each model optimizes for a different access pattern. The choice depends on what questions you ask most often.</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">A</div>
+    <h3>Event-as-Node (Chain Pattern)</h3>
+    <span class="badge badge-pattern">Model A</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+(:Aggregate:User {id:"user-1", type:"User"})
+      │
+  [:HAS_EVENT]
+      │
+      ▼
+(:Event {type:"UserCreated", seq:1, payload:{...}, at:T1})
+      │
+  [:NEXT]
+      │
+      ▼
+(:Event {type:"EmailChanged", seq:2, payload:{...}, at:T2})
+      │
+  [:NEXT]
+      │
+      ▼
+(:Event {type:"AddressMoved", seq:3, payload:{...}, at:T3})
+</pre>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Structure</td><td>Linked list: Aggregate → HAS_EVENT → Event → NEXT → Event → ...</td></tr>
+        <tr><td>Write</td><td>Create event node + NEXT relationship + update HAS_EVENT tail pointer</td></tr>
+        <tr><td>Read (load)</td><td>Follow NEXT chain from aggregate — O(n) for n events</td></tr>
+        <tr><td>Read (from version)</td><td>Index seek on (aggregate_id, seq ≥ v) then follow chain</td></tr>
+        <tr><td>Best for</td><td>Simple aggregate streams — closest to traditional event store semantics</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>The baseline model.</strong> Maps 1:1 to how a traditional event store works. Each event is a node; ordering is via linked list. Easy to understand, easy to implement. No cross-aggregate magic yet.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">B</div>
+    <h3>Event-as-Edge (Bitemporal State Machine)</h3>
+    <span class="badge badge-pattern">Model B</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+(:State:User {version:0, data:{}})
+      │
+  [:TRANSITION {type:"UserCreated", payload:{name:"Alice"},
+                at:T1, seq:1, command_id:"cmd-1"}]
+      │
+      ▼
+(:State:User {version:1, data:{name:"Alice", email:null}})
+      │
+  [:TRANSITION {type:"EmailChanged", payload:{email:"a@b.com"},
+                at:T2, seq:2}]
+      │
+      ▼
+(:State:User {version:2, data:{name:"Alice", email:"a@b.com"}})
+</pre>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Structure</td><td>State machine: State → TRANSITION → State → TRANSITION → ...</td></tr>
+        <tr><td>Write</td><td>Create new State node + TRANSITION edge from previous State</td></tr>
+        <tr><td>Read (current)</td><td>Follow TRANSITION chain to leaf — O(n), or keep pointer to latest</td></tr>
+        <tr><td>Read (point-in-time)</td><td>Follow TRANSITION chain until timestamp ≤ target</td></tr>
+        <tr><td>Snapshots</td><td>Free — every State node IS a snapshot</td></tr>
+        <tr><td>Best for</td><td>Bitemporal modeling, audit trails, "what was state at time T?"</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop violet"><strong>The time-travel model.</strong> Every state is materialized. You get point-in-time queries for free. The cost: every write creates a full state node. For aggregates with many events and large state, this is storage-expensive. Best for audit-heavy domains (legal, healthcare, finance).</div>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">C</div>
+    <h3>Event-as-Node with Rich Relationships (The Full Causal Graph)</h3>
+    <span class="badge badge-pattern">Model C</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+(:Command:RegisterUser {id:"cmd-1", at:T0})
+      │ [:PRODUCED]                    [:TARGETS]
+      │                                     │
+      ▼                                     ▼
+(:Event:UserCreated {seq:1})  ──[:EMITTED_BY]──▶ (:Aggregate:User {id:"user-1"})
+      │                                          │
+      │ [:CORRELATES_WITH]                  [:HAS_EVENT]
+      │                                          │
+      ▼                                          ▼
+(:Event:WelcomeEmailSent {seq:1}) ◀─── [:TRIGGERED_BY]
+      │                                          │
+      │ [:CAUSED]                          (:Aggregate:Email {id:"email-99"})
+      │                                          │
+      ▼
+(:Command:PlaceOrder {id:"cmd-2"})
+      │ [:TARGETS]
+      ▼
+(:Aggregate:Order {id:"order-5"})
+      │
+  [:HAS_EVENT]
+      │
+      ▼
+(:Event:OrderPlaced {seq:1})
+      │ [:CORRELATES_WITH]
+      ▼
+(:Event:PaymentTaken {seq:2}) ◀── [:CAUSED_BY]
+</pre>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Relationship Type</th><th>From → To</th><th>Semantics</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>[:HAS_EVENT]</td><td>Aggregate → Event</td><td>This aggregate emitted this event</td></tr>
+        <tr><td>[:NEXT]</td><td>Event → Event</td><td>Sequential ordering within stream</td></tr>
+        <tr><td>[:PRODUCED]</td><td>Command → Event</td><td>This command produced these events</td></tr>
+        <tr><td>[:TARGETS]</td><td>Command → Aggregate</td><td>This command targets this aggregate</td></tr>
+        <tr><td>[:CORRELATES_WITH]</td><td>Event ↔ Event</td><td>Same business process (correlation ID)</td></tr>
+        <tr><td>[:CAUSED_BY]</td><td>Event → Event</td><td>Causal relationship (causation ID)</td></tr>
+        <tr><td>[:TRIGGERED_BY]</td><td>Event → Command</td><td>Saga step: event triggered this command</td></tr>
+        <tr><td>[:EMITTED_BY]</td><td>Event → Aggregate</td><td>Inverse of HAS_EVENT (for traversal)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop green"><strong>The full power of graph for event sourcing.</strong> This is where graph databases transcend traditional event stores. Every causal, correlational, and temporal relationship is a first-class edge. Cross-aggregate queries become O(k) traversals instead of O(n) scans. Saga orchestration becomes a subgraph. Impact analysis becomes a traversal. This model is WHY you'd choose a graph database over a flat store.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="mapping">
+<div class="part-header">
+  <div class="part-number">Part 3</div>
+  <h2>The Core Mapping: go-cqrs-lite → Graph</h2>
+  <p>How each go-cqrs-lite interface and type maps to graph database constructs. Validated against both Neo4j (Cypher) and JanusGraph (Gremlin).</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Aggregate → Node</h3>
+    <span class="badge badge-mapping">Mapping</span>
+  </div>
+  <div class="card-body">
+    <pre>CREATE (a:Aggregate:User {
+  id: "user-01JM3X...",
+  type: "User",
+  created_at: datetime("2026-05-29T10:00:00Z")
+})</pre>
+    <table>
+      <thead>
+        <tr><th>go-cqrs-lite</th><th>Graph</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AggregateRef{Type, ID}</td><td>Node with labels: Aggregate + {Type}</td><td>Double-labeled for polymorphic queries</td></tr>
+        <tr><td>id.Of[T] (ULID)</td><td>Node property: id (string)</td><td>Indexed for fast lookup</td></tr>
+        <tr><td>Aggregate type</td><td>Node label</td><td>Enables label-scanned queries</td></tr>
+        <tr><td>Current version</td><td>Node property: version (int)</td><td>Updated on each Save</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>Design choice:</strong> Use <code>:Aggregate:{Type}</code> double-labeling so you can query all aggregates (<code>MATCH (a:Aggregate)</code>) or type-specific (<code>MATCH (a:User)</code>).</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>Event → Node + Relationships</h3>
+    <span class="badge badge-mapping">Mapping</span>
+  </div>
+  <div class="card-body">
+    <pre>CREATE (e:Event:UserCreated {
+  event_id: "evt-01JM3X...",
+  type: "UserCreated",
+  seq: 1,
+  aggregate_type: "User",
+  payload: '{"name":"Alice","email":"alice@example.com"}',
+  schema_version: 1,
+  occurred_at: datetime("2026-05-29T10:00:01Z"),
+  correlation_id: "corr-abc",
+  causation_id: "cause-xyz"
+})
+CREATE (a)-[:HAS_EVENT]->(e)
+CREATE (prev)-[:NEXT]->(e)</pre>
+    <table>
+      <thead>
+        <tr><th>Event Field</th><th>Graph Property</th><th>Encoding</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Event ID</td><td>event_id (string)</td><td>ULID → indexed property</td></tr>
+        <tr><td>Event type</td><td>Node label + type property</td><td>Double-labeled like aggregate</td></tr>
+        <tr><td>AggregateRef</td><td>HAS_EVENT relationship</td><td>Points to aggregate node</td></tr>
+        <tr><td>Version (seq)</td><td>seq (integer)</td><td>Monotonic within stream</td></tr>
+        <tr><td>Payload</td><td>payload (string/JSON)</td><td>See payload discussion below</td></tr>
+        <tr><td>SchemaVersion</td><td>schema_version (int)</td><td>For upcasting on load</td></tr>
+        <tr><td>OccurredAt</td><td>occurred_at (datetime)</td><td>Neo4j native temporal type</td></tr>
+        <tr><td>CorrelationID</td><td>correlation_id (string)</td><td>+ CORRELATES_WITH edge</td></tr>
+        <tr><td>CausationID</td><td>causation_id (string)</td><td>+ CAUSED_BY edge</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Interface Compliance Matrix</h3>
+    <span class="badge badge-mapping">Fit Analysis</span>
+  </div>
+  <div class="card-body">
+    <table>
+      <thead>
+        <tr><th>Interface</th><th>Method</th><th>Feasible?</th><th>Mechanism</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>EventSink</td><td>Save</td><td style="color:var(--accent)">Yes</td><td>CREATE event node + NEXT + HAS_EVENT in single transaction</td></tr>
+        <tr><td>EventSink</td><td>AppendBatch</td><td style="color:var(--accent)">Yes</td><td>UNWIND + CREATE N event nodes in linked chain</td></tr>
+        <tr><td>EventSource</td><td>Load</td><td style="color:var(--accent)">Yes</td><td>MATCH (a)-[:HAS_EVENT]->(e) RETURN e ORDER BY e.seq</td></tr>
+        <tr><td>EventSource</td><td>LoadFromVersion</td><td style="color:var(--accent)">Yes</td><td>WHERE e.seq >= $version (exact, unlike TigerBeetle)</td></tr>
+        <tr><td>EventSource</td><td>LoadToVersion</td><td style="color:var(--accent)">Yes</td><td>WHERE e.seq <= $version</td></tr>
+        <tr><td>EventSource</td><td>LoadToTimestamp</td><td style="color:var(--accent)">Yes</td><td>WHERE e.occurred_at <= $timestamp</td></tr>
+        <tr><td>Journal</td><td>ReadAll</td><td style="color:var(--accent)">Yes</td><td>MATCH (e:Event) RETURN e ORDER BY e.occurred_at</td></tr>
+        <tr><td>SeekableJournal</td><td>ReadFrom</td><td style="color:var(--accent)">Yes</td><td>WHERE e.occurred_at > $timestamp</td></tr>
+        <tr><td>BackwardsSource</td><td>LoadBackwards</td><td style="color:var(--accent)">Yes</td><td>ORDER BY e.seq DESC</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop green"><strong>Score: 9/9 perfect.</strong> Unlike TigerBeetle (which had 2/9 approximate due to timestamp-only addressing), graph databases have first-class integer properties for exact version addressing. Every go-cqrs-lite interface maps cleanly.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="cypher">
+<div class="part-header">
+  <div class="part-number">Part 4</div>
+  <h2>Implementation Sketch: Neo4j (Cypher)</h2>
+  <p>Pseudocode for the full write/read path. Maps to go-cqrs-lite's <code>EventSink</code> and <code>EventSource</code> interfaces.</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Save — Append Events with Optimistic Concurrency</h3>
+    <span class="badge badge-code">Write</span>
+  </div>
+  <div class="card-body">
+<pre>func (s *Neo4jEventStore) Save(
+    ctx context.Context,
+    ref event.AggregateRef,
+    events []event.Event,
+    expectedVersion event.Version,
+) error {
+    return s.driver.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) {
+        // 1. Find or create aggregate node
+        result, _ := tx.Run(`
+            MERGE (a:Aggregate {id: $aggID})
+            ON CREATE SET a.type = $aggType,
+                          a.version = 0,
+                          a.created_at = datetime()
+            RETURN a.version AS currentVersion
+        `, map[string]any{
+            "aggID":   ref.ID.String(),
+            "aggType": ref.Type,
+        })
+
+        // 2. Optimistic concurrency check
+        currentVersion := result.Collect()[0]["currentVersion"]
+        if currentVersion != expectedVersion {
+            return event.ErrConcurrencyConflict
+        }
+
+        // 3. Find last event in chain (for NEXT relationship)
+        var lastEventNode string
+        if currentVersion == 0 {
+            lastEventNode = "a" // point to aggregate if first event
+        } else {
+            last, _ := tx.Run(`
+                MATCH (a:Aggregate {id: $aggID})-[:HAS_EVENT]->(e:Event)
+                WHERE NOT (e)-[:NEXT]->()
+                RETURN elementId(e) AS lastId
+            `, map[string]any{"aggID": ref.ID.String()})
+            lastEventNode = last.Collect()[0]["lastId"]
+        }
+
+        // 4. Append events as linked chain
+        for i, evt := range events {
+            payload, _ := json.Marshal(evt.Payload())
+            tx.Run(`
+                MATCH (prev) WHERE elementId(prev) = $prevId
+                CREATE (e:Event:`+evt.Type()+` {
+                    event_id:     $eventID,
+                    type:         $eventType,
+                    seq:          $seq,
+                    payload:      $payload,
+                    schema_version: $schemaVersion,
+                    occurred_at:  $occurredAt,
+                    correlation_id: $correlationID,
+                    causation_id: $causationID
+                })
+                CREATE (prev)-[:NEXT]->(e)
+                WITH e
+                MATCH (a:Aggregate {id: $aggID})
+                CREATE (a)-[:HAS_EVENT]->(e)
+                SET a.version = $seq
+            `, map[string]any{
+                "prevId":        lastEventNode,
+                "eventID":       evt.ID().String(),
+                "eventType":     evt.Type(),
+                "seq":           int(evt.Version()),
+                "payload":       string(payload),
+                "schemaVersion": int(evt.SchemaVersion()),
+                "occurredAt":    evt.OccurredAt(),
+                "correlationID": evt.CorrelationID(),
+                "causationID":   evt.CausationID(),
+                "aggID":         ref.ID.String(),
+            })
+            // Update lastEventNode for next iteration
+            lastEventNode = /* new event's element ID */
+        }
+    })
+}</pre>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>Load — Reconstruct Events by Traversal</h3>
+    <span class="badge badge-code">Read</span>
+  </div>
+  <div class="card-body">
+<pre>func (s *Neo4jEventStore) Load(
+    ctx context.Context,
+    ref event.AggregateRef,
+) ([]event.Event, error) {
+    result, err := s.driver.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) {
+        // Option A: Index-based (fastest for large streams)
+        records, _ := tx.Run(`
+            MATCH (a:Aggregate {id: $aggID})-[:HAS_EVENT]->(e:Event)
+            RETURN e ORDER BY e.seq ASC
+        `, map[string]any{"aggID": ref.ID.String()})
+        return records.Collect()
+
+        // Option B: Chain traversal (uses index-free adjacency)
+        // records, _ := tx.Run(`
+        //     MATCH (a:Aggregate {id: $aggID})-[:HAS_EVENT]->(e0:Event)
+        //     MATCH path = (e0)-[:NEXT*0..]->(e:Event)
+        //     RETURN e ORDER BY e.seq ASC
+        // `, map[string]any{"aggID": ref.ID.String()})
+    })
+
+    var events []event.Event
+    for _, record := range result {
+        nodeProps := record["e"].(neo4j.Node).Props
+        evt, _ := reconstructEvent(nodeProps)
+        events = append(events, evt)
+    }
+    return events, nil
+}
+
+func reconstructEvent(props map[string]any) (event.Event, error) {
+    return event.NewEvent(
+        props["type"].(string),
+        /* aggregate ID from HAS_EVENT relationship */,
+        props["aggregate_type"].(string),
+        event.Version(props["seq"].(int64)),
+        json.RawMessage(props["payload"].(string)),
+        event.WithSchemaVersion(int(props["schema_version"].(int64))),
+        event.WithOccurredAt(props["occurred_at"].(time.Time)),
+    )
+}</pre>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Cross-Aggregate Queries — Where Graph Shines</h3>
+    <span class="badge badge-code">Unique Power</span>
+  </div>
+  <div class="card-body">
+<pre>-- What caused this event? (Causal chain traversal)
+MATCH (e:Event {event_id: 'evt-01JM3X...'})-[:CAUSED_BY*1..5]->(cause:Event)
+RETURN cause
+
+-- Full saga trace: command → events → downstream commands → events
+MATCH path = (cmd:Command {id: 'cmd-42'})-[:PRODUCED|TRIGGERED_BY|CAUSED_BY*1..10]->(leaf)
+RETURN path
+
+-- What aggregates are affected by replaying this event?
+MATCH (e:Event {event_id: 'evt-01JM3X...'})-[:CORRELATES_WITH*1..3]->(related:Event)<-[:HAS_EVENT]-(a:Aggregate)
+RETURN DISTINCT a
+
+-- Dead letter detection: commands that produced no events
+MATCH (cmd:Command) WHERE NOT (cmd)-[:PRODUCED]->(:Event)
+RETURN cmd
+
+-- Anomaly: order placed but no payment within 24 hours
+MATCH (o:Aggregate:Order)-[:HAS_EVENT]->(placed:Event:OrderPlaced)
+WHERE NOT EXISTS {
+    MATCH (o)-[:HAS_EVENT]->(paid:Event:PaymentTaken)
+    WHERE paid.occurred_at < placed.occurred_at + duration({hours: 24})
+}
+RETURN o, placed
+
+-- Global event journal with causal context
+MATCH (e:Event)
+OPTIONAL MATCH (e)-[:CAUSED_BY]->(cause:Event)
+OPTIONAL MATCH (e)<-[:PRODUCED]-(cmd:Command)
+RETURN e, cause.event_id AS caused_by, cmd.id AS source_command
+ORDER BY e.occurred_at ASC</pre>
+    <div class="key-prop green"><strong>This is the killer feature.</strong> These queries are either impossible or require expensive recursive CTEs in a SQL event store. In a graph, they're single Cypher queries using variable-length path patterns. The database was BUILT for this.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="command">
+<div class="part-header">
+  <div class="part-number">Part 5</div>
+  <h2>Command Sourcing: The Missing Piece</h2>
+  <p>Most event sourcing implementations store only the outcome (events). Command sourcing stores the <strong>intent</strong> (command) alongside the outcome. Graph databases make this natural because commands and events are both nodes with explicit causal relationships.</p>
+</div>
+
+<div class="diagram-box">
+  <div class="diagram-label">Command Sourcing in a Graph</div>
+<pre>
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │                     Command Sourcing Graph                              │
+  │                                                                         │
+  │  (:Command:RegisterUser {id:"cmd-1", payload:{name:"Alice"}})          │
+  │       │ [:TARGETS]            [:PRODUCED]                               │
+  │       │                           │                                      │
+  │       ▼                           ▼                                      │
+  │  (:Aggregate:User {id:"u-1"})   (:Event:UserCreated {seq:1})           │
+  │       │                           │                                      │
+  │       │ [:HAS_EVENT]        [:CORRELATES_WITH]                          │
+  │       │                           │                                      │
+  │       ▼                           ▼                                      │
+  │  (:Event:UserCreated ...)  (:Event:WelcomeEmailSent ...)               │
+  │                                     │                                    │
+  │                               [:TRIGGERED_BY]                           │
+  │                                     │                                    │
+  │                                     ▼                                    │
+  │  (:Command:SendWelcomeEmail {id:"cmd-2", ...})                         │
+  │                                                                         │
+  │  ─────────────────────────────────────────────────                      │
+  │  With command sourcing you can answer:                                  │
+  │                                                                         │
+  │  "Why was this event emitted?"    → Follow [:PRODUCED] to command       │
+  │  "What did this command cause?"   → Follow [:PRODUCED] to events        │
+  │  "Who issued this command?"       → Command node has user/timestamp     │
+  │  "Was this command successful?"   → Does [:PRODUCED] edge exist?        │
+  │  "Debug this saga failure"        → Traverse the full subgraph          │
+  └─────────────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Command Node Schema</h3>
+    <span class="badge badge-mapping">Mapping</span>
+  </div>
+  <div class="card-body">
+<pre>CREATE (cmd:Command:RegisterUser {
+  id:            "cmd-01JM...",
+  type:          "RegisterUser",
+  payload:       '{"name":"Alice","email":"a@b.com"}',
+  issued_at:     datetime("2026-05-29T10:00:00Z"),
+  issued_by:     "user:admin-1",
+  aggregate_id:  "user-01JM...",
+  aggregate_type: "User"
+})
+
+CREATE (cmd)-[:TARGETS]->(:Aggregate:User {id: "user-01JM..."})</pre>
+    <table>
+      <thead>
+        <tr><th>Relationship</th><th>From → To</th><th>When Created</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>[:TARGETS]</td><td>Command → Aggregate</td><td>When command is dispatched</td></tr>
+        <tr><td>[:PRODUCED]</td><td>Command → Event(s)</td><td>When command handler succeeds</td></tr>
+        <tr><td>[:FAILED]</td><td>Command → Rejection</td><td>When command handler rejects</td></tr>
+        <tr><td>[:TRIGGERED_BY]</td><td>Command → Event</td><td>Saga: event triggers new command</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>Audit completeness.</strong> With command nodes, you have the full trace: WHO issued WHAT command, WHY (triggered by which event), and WHAT HAPPENED (which events were produced). This is the compliance holy grail.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>Saga as a First-Class Subgraph</h3>
+    <span class="badge badge-mapping">Saga Pattern</span>
+  </div>
+  <div class="card-body">
+<pre>-- A saga is a connected subgraph. Trace the entire saga:
+
+CREATE (saga:Saga:OrderFulfillment {
+  id: "saga-001",
+  status: "in_progress",
+  started_at: datetime()
+})
+
+-- Step 1: OrderPlaced event triggers saga
+CREATE (saga)-[:STEP {n:1, status:"completed"}]->(e1:Event:OrderPlaced)
+
+-- Step 2: Saga triggers ReserveInventory command
+CREATE (saga)-[:STEP {n:2, status:"completed"}]->(cmd1:Command:ReserveInventory)
+CREATE (e1)-[:TRIGGERED]->(cmd1)
+CREATE (cmd1)-[:PRODUCED]->(e2:Event:InventoryReserved)
+
+-- Step 3: Saga triggers TakePayment command
+CREATE (saga)-[:STEP {n:3, status:"pending"}]->(cmd2:Command:TakePayment)
+CREATE (e2)-[:TRIGGERED]->(cmd2)
+
+-- Query: What's the current state of this saga?
+MATCH (saga:Saga {id: 'saga-001'})-[step:STEP]->(node)
+RETURN step.n AS step_number, step.status AS status,
+       labels(node) AS type, node
+ORDER BY step.n</pre>
+    <div class="key-prop green"><strong>Sagas become queryable graphs.</strong> No separate saga state table. No saga orchestrator polling. The saga IS the subgraph. "Which step failed?" is a traversal. "What compensating actions do we need?" is a reverse traversal.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="secret">
+<div class="part-header">
+  <div class="part-number">Part 6</div>
+  <h2>The Secret Sauce: Why Graph Makes Event Sourcing Better</h2>
+  <p>Not just "can a graph database store events?" — but "what does a graph database give you that a flat store cannot?"</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Causal Discovery</h3>
+    <span class="badge badge-pro">Superpower</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:1rem">
+      In a traditional event store, causation is implicit — stored as a <code>causation_id</code> column that you must manually join on. In a graph, causation is a first-class relationship. You traverse <code>[:CAUSED_BY]</code> edges. The database was designed for exactly this.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Question</th><th>SQL Event Store</th><th>Graph Event Store</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>What caused event X?</td><td>SELECT ... WHERE id = (SELECT causation_id...)</td><td>MATCH (e)-[:CAUSED_BY]->(cause)</td></tr>
+        <tr><td>Full causal chain (5 levels)</td><td>Recursive CTE, 5 self-joins</td><td>MATCH (e)-[:CAUSED_BY*1..5]->(cause)</td></tr>
+        <tr><td>All effects of event X</td><td>Scan entire table</td><td>MATCH (e)<-[:CAUSED_BY*]-(effect)</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>Causation becomes structure.</strong> Not metadata you filter on — topology you traverse. O(k) where k = chain length, not O(n) where n = total events.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>Saga as First-Class Citizen</h3>
+    <span class="badge badge-pro">Superpower</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:1rem">
+      In traditional CQRS, sagas are implemented as state machines in a separate table, with polling or message queues for step transitions. In a graph database, a saga IS a subgraph. Each step is a node. Transitions are edges. The saga state IS the graph topology.
+    </p>
+    <ul class="variants">
+      <li><strong>Step status</strong> — query which [:STEP] edges have status:"completed"</li>
+      <li><strong>Compensation</strong> — reverse traversal to find completed steps, apply inverse</li>
+      <li><strong>Visualization</strong> — the saga subgraph IS the visualization</li>
+      <li><strong>Debugging</strong> — "why did saga X fail?" = traverse the saga subgraph</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Bitemporal Modeling</h3>
+    <span class="badge badge-pro">Superpower</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:1rem">
+      Graph databases naturally model valid time (when something happened in the real world) and transaction time (when it was recorded). In Model B (Event-as-Edge), every transition carries both timestamps as edge properties.
+    </p>
+<pre>-- "What did we know about user-1 at time T?"
+MATCH path = (s0:State:User {id:"user-1", version:0})
+              -[:TRANSITION*]->(sN:State:User)
+WHERE ALL(r IN relationships(path) WHERE
+    r.recorded_at <= datetime($asOfTime))
+RETURN last(nodes(path)) AS state_at_time</pre>
+    <div class="key-prop violet"><strong>Time travel for free.</strong> No temporal tables, no system-versioning, no audit log sidecar. The graph topology IS the temporal record.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">04</div>
+    <h3>Event Mesh & Microservice Tracing</h3>
+    <span class="badge badge-pro">Superpower</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:1rem">
+      In microservice architectures, events flow between services. A graph database can model the entire event mesh — which service produces which events, which consumes them, which sagas span services, and where dead letters accumulate.
+    </p>
+<pre>-- Cross-service event trace
+(:Service:OrderService)
+    -[:EMITS]->(:EventType:OrderPlaced)
+    -[:CONSUMED_BY]->(:Service:InventoryService)
+    -[:EMITS]->(:EventType:InventoryReserved)
+    -[:CONSUMED_BY]->(:Service:PaymentService)
+    -[:EMITS]->(:EventType:PaymentTaken)
+
+-- Dead letter detection
+MATCH (s:Service)-[:EMITS]->(e:EventType)
+WHERE NOT (e)-[:CONSUMED_BY]->(:Service)
+RETURN s.name AS orphan_producer, e.type AS unconsumed_event</pre>
+    <div class="key-prop"><strong>System-level observability.</strong> The graph doesn't just store YOUR domain events — it maps the entire distributed system's event topology. Dependency mapping, dead letter detection, and impact analysis become traversal queries.</div>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">05</div>
+    <h3>Pattern Detection & Anomaly Queries</h3>
+    <span class="badge badge-pro">Superpower</span>
+  </div>
+  <div class="card-body">
+<pre>-- Fraud detection: circular payment pattern
+MATCH path = (a:Aggregate:Account)-[:HAS_EVENT]->(:Event:TransferSent)
+              -[:CORRELATES_WITH]->(:Event:TransferReceived)
+              <-[:HAS_EVENT]-(b:Aggregate:Account)
+WHERE length(path) > 2
+AND ANY(node IN nodes(path) WHERE node = a)
+RETURN path
+
+-- Stale aggregate: no events in 30 days
+MATCH (a:Aggregate)-[:HAS_EVENT]->(last:Event)
+WHERE NOT (last)-[:NEXT]->(:Event)
+AND last.occurred_at < datetime() - duration({days: 30})
+RETURN a, last
+
+-- Event type statistics: which event types are most common?
+MATCH (e:Event)
+RETURN labels(e)[1] AS event_type, count(*) AS frequency
+ORDER BY frequency DESC LIMIT 20
+
+-- Version distribution: how many events per aggregate?
+MATCH (a:Aggregate)-[:HAS_EVENT]->(e:Event)
+RETURN a.id, max(e.seq) AS event_count
+ORDER BY event_count DESC LIMIT 10</pre>
+    <div class="key-prop"><strong>Operational intelligence.</strong> Cypher pattern matching turns your event store into an analytics engine. No separate monitoring stack needed for event-level queries.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="perf">
+<div class="part-header">
+  <div class="part-number">Part 7</div>
+  <h2>Performance: The Honest Assessment</h2>
+  <p>Graph databases have trade-offs. Event stores have specific requirements. Let's be honest about where graph databases excel and where they struggle.</p>
+</div>
+
+<div class="split">
+  <div class="split-col pro">
+    <h4>Where Graph Excels</h4>
+    <ul>
+      <li><strong>Cross-aggregate queries</strong> — O(k) traversal vs O(n) scan for causal chains, correlation, saga tracing</li>
+      <li><strong>Point-in-time queries</strong> — Model B gives free temporal reads via chain traversal</li>
+      <li><strong>Variable-depth queries</strong> — "find all events related to X within 5 hops" is a single Cypher pattern</li>
+      <li><strong>Schema flexibility</strong> — New event types are new labels; new relationships are new edge types. No migration needed</li>
+      <li><strong>Pattern detection</strong> — Anomaly detection, fraud patterns, dead letter detection as native queries</li>
+      <li><strong>Visualization</strong> — The graph IS the visualization. No ETL to a separate tool</li>
+    </ul>
+  </div>
+  <div class="split-col con">
+    <h4>Where Graph Struggles</h4>
+    <ul>
+      <li><strong>Sequential write throughput</strong> — Graph DBs optimize for reads, not append-only sequential writes. Event stores need the opposite</li>
+      <li><strong>Large event payloads</strong> — Storing KB-sized JSON as node properties is an anti-pattern. Neo4j's property storage isn't optimized for blobs</li>
+      <li><strong>Append-only semantics</strong> — Graph DBs allow mutation. You need constraints to enforce event immutability</li>
+      <li><strong>Write scaling</strong> — Neo4j is single-writer (causal clustering adds read replicas, not write scaling). JanusGraph distributes but with eventual consistency</li>
+      <li><strong>Journal throughput</strong> — Global event journal (ReadAll) requires scanning ALL event nodes. No dedicated append-only log optimization</li>
+      <li><strong>Operational complexity</strong> — Running Neo4j/JanusGraph is significantly more complex than PostgreSQL or SQLite</li>
+    </ul>
+  </div>
+</div>
+
+<div class="cards">
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">∞</div>
+    <h3>Performance Comparison Matrix</h3>
+    <span class="badge badge-verdict">Benchmark</span>
+  </div>
+  <div class="card-body">
+    <div class="mega-table-wrap">
+      <table class="mega-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>PostgreSQL</th>
+            <th>EventStoreDB</th>
+            <th>Neo4j</th>
+            <th>JanusGraph</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Append single event</td>
+            <td style="color:var(--accent)">~0.5ms</td>
+            <td style="color:var(--accent)">~0.1ms</td>
+            <td style="color:var(--amber)">~1-3ms</td>
+            <td style="color:var(--rose)">~5-15ms</td>
+          </tr>
+          <tr>
+            <td>Load aggregate (100 events)</td>
+            <td style="color:var(--accent)">~1ms</td>
+            <td style="color:var(--accent)">~0.5ms</td>
+            <td style="color:var(--amber)">~2-5ms</td>
+            <td style="color:var(--amber)">~5-20ms</td>
+          </tr>
+          <tr>
+            <td>Load from version (indexed)</td>
+            <td style="color:var(--accent)">~0.5ms</td>
+            <td style="color:var(--accent)">~0.3ms</td>
+            <td style="color:var(--accent)">~1-2ms</td>
+            <td style="color:var(--amber)">~5-10ms</td>
+          </tr>
+          <tr>
+            <td>Causal chain (5 hops)</td>
+            <td style="color:var(--rose)">~50ms (recursive CTE)</td>
+            <td style="color:var(--rose)">~200ms (scan)</td>
+            <td style="color:var(--accent)">~2ms (traversal)</td>
+            <td style="color:var(--accent)">~5ms (traversal)</td>
+          </tr>
+          <tr>
+            <td>Cross-aggregate correlation</td>
+            <td style="color:var(--rose)">~100ms (JOIN)</td>
+            <td style="color:var(--rose)">~500ms (scan)</td>
+            <td style="color:var(--accent)">~3ms (traversal)</td>
+            <td style="color:var(--accent)">~8ms (traversal)</td>
+          </tr>
+          <tr>
+            <td>Global journal replay</td>
+            <td style="color:var(--accent)">~10ms/page</td>
+            <td style="color:var(--accent)">~1ms/page</td>
+            <td style="color:var(--amber)">~20ms/page</td>
+            <td style="color:var(--rose)">~50ms/page</td>
+          </tr>
+          <tr>
+            <td>Write throughput (single node)</td>
+            <td style="color:var(--accent)">~50K/sec</td>
+            <td style="color:var(--accent)">~100K/sec</td>
+            <td style="color:var(--amber)">~10-30K/sec</td>
+            <td style="color:var(--amber)">~5-20K/sec</td>
+          </tr>
+          <tr>
+            <td>Saga state query</td>
+            <td style="color:var(--amber)">~5ms (JOIN saga table)</td>
+            <td style="color:var(--rose)">~50ms (projection query)</td>
+            <td style="color:var(--accent)">~1ms (subgraph traversal)</td>
+            <td style="color:var(--accent)">~3ms (subgraph traversal)</td>
+          </tr>
+          <tr>
+            <td>Operational complexity</td>
+            <td>Low</td>
+            <td>Medium</td>
+            <td>Medium</td>
+            <td>High</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="key-prop amber"><strong>Honest numbers.</strong> These are order-of-magnitude estimates for typical workloads on properly tuned systems. Graph databases lose on raw write throughput and single-stream reads. They win dramatically on relationship-heavy queries — the exact queries that are hardest in traditional event stores.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="engines">
+<div class="part-header">
+  <div class="part-number">Part 8</div>
+  <h2>Engine Comparison: Neo4j vs JanusGraph</h2>
+  <p>Two graph databases with fundamentally different architectures. Same graph model, wildly different operational characteristics.</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Neo4j</h3>
+    <span class="badge badge-neo4j">Native Graph</span>
+  </div>
+  <div class="card-body">
+    <table>
+      <thead>
+        <tr><th>Dimension</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Storage</td><td>Native graph — fixed-size records, pointer-based adjacency lists</td></tr>
+        <tr><td>Traversal</td><td>O(1) per hop via index-free adjacency (physical pointers)</td></tr>
+        <tr><td>Query language</td><td>Cypher — declarative, pattern-matching, expressive</td></tr>
+        <tr><td>Transactions</td><td>Full ACID — single-node serializable writes</td></tr>
+        <tr><td>Consistency</td><td>Strong consistency — read-committed default</td></tr>
+        <tr><td>Write scaling</td><td>Single writer + read replicas (causal clustering)</td></tr>
+        <tr><td>Indexes</td><td>B-tree, composite, full-text, vector (since 5.x)</td></tr>
+        <tr><td>Event store fit</td><td>Best for single-system event sourcing with rich queries</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop"><strong>Pick Neo4j when:</strong> You need strong consistency, rich Cypher queries, and your write throughput fits on a single node (~10-30K events/sec). Ideal for audit-heavy domains with complex cross-aggregate queries.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>JanusGraph</h3>
+    <span class="badge badge-janus">Distributed Graph</span>
+  </div>
+  <div class="card-body">
+    <table>
+      <thead>
+        <tr><th>Dimension</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Storage</td><td>Layered — graph engine on top of Cassandra/HBase/BerkeleyDB</td></tr>
+        <tr><td>Traversal</td><td>O(k) per hop via Gremlin traversal engine</td></tr>
+        <tr><td>Query language</td><td>Gremlin (Apache TinkerPop) — functional, path-oriented</td></tr>
+        <tr><td>Transactions</td><td>ACID at graph layer; consistency depends on backend</td></tr>
+        <tr><td>Consistency</td><td>Tunable — ONE, QUORUM, ALL (backend-dependent)</td></tr>
+        <tr><td>Write scaling</td><td>Horizontal — expand Cassandra/HBase cluster</td></tr>
+        <tr><td>Indexes</td><td>Composite, mixed (Elasticsearch/Solr/Lucene)</td></tr>
+        <tr><td>Event store fit</td><td>Best for distributed, high-scale event meshes</td></tr>
+      </tbody>
+    </table>
+    <div class="key-prop violet"><strong>Pick JanusGraph when:</strong> You need horizontal write scaling, multi-datacenter support, and can tolerate eventual consistency. Ideal for large-scale microservice event meshes where the graph spans many services.</div>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Head-to-Head Decision Matrix</h3>
+    <span class="badge badge-verdict">Comparison</span>
+  </div>
+  <div class="card-body">
+    <table>
+      <thead>
+        <tr><th>Criteria</th><th>Neo4j</th><th>JanusGraph</th><th>Winner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Single-stream write latency</td><td>1-3ms</td><td>5-15ms</td><td>Neo4j</td></tr>
+        <tr><td>Cross-aggregate traversal speed</td><td>~2ms</td><td>~5ms</td><td>Neo4j</td></tr>
+        <tr><td>Write throughput (horizontal)</td><td>~30K/sec</td><td>~100K+ (with Cassandra)</td><td>JanusGraph</td></tr>
+        <tr><td>Consistency guarantees</td><td>Strong (serializable)</td><td>Tunable (QUORUM+)</td><td>Neo4j</td></tr>
+        <tr><td>Query expressiveness</td><td>Cypher (declarative)</td><td>Gremlin (imperative/functional)</td><td>Tie (different paradigms)</td></tr>
+        <tr><td>Operational simplicity</td><td>Medium (single stack)</td><td>High (3+ components)</td><td>Neo4j</td></tr>
+        <tr><td>Multi-datacenter</td><td>Limited</td><td>Native (Cassandra backend)</td><td>JanusGraph</td></tr>
+        <tr><td>Schema flexibility</td><td>Dynamic labels/properties</td><td>Managed schema (Vertex/Edge labels)</td><td>Neo4j (simpler)</td></tr>
+        <tr><td>Event sourcing fit</td><td>Strong for single-system</td><td>Strong for distributed systems</td><td>Context-dependent</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="approaches">
+<div class="part-header">
+  <div class="part-number">Part 9</div>
+  <h2>Four Implementation Approaches: Practical → Research → Enterprise</h2>
+</div>
+
+<div class="cards">
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">A</div>
+    <h3>Pure Graph Store</h3>
+    <span class="badge badge-opt-a">Simple</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+┌──────────────────────────────────┐
+│  Neo4j / JanusGraph              │
+│                                   │
+│  (:Aggregate) → [:HAS_EVENT] →   │
+│  (:Event) → [:NEXT] → (:Event)   │
+│                                   │
+│  All events, commands, sagas,     │
+│  and relationships in one graph.  │
+└──────────────────────────────────┘</pre>
+                </div>
+    <ul class="variants">
+      <li><strong>Pro:</strong> Single store, single query language, single operational concern</li>
+      <li><strong>Pro:</strong> Full cross-aggregate traversal power available immediately</li>
+      <li><strong>Con:</strong> Large JSON payloads as node properties — graph DB anti-pattern</li>
+      <li><strong>Con:</strong> Write throughput limited by graph DB's write path</li>
+      <li><strong>Con:</strong> No append-only guarantee — must enforce immutability at application level</li>
+    </ul>
+    <div class="key-prop"><strong>Best for:</strong> Domains with small payloads (<500 bytes), moderate write rates (<10K/sec), and heavy cross-aggregate query needs. Audit, compliance, investigation domains.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">B</div>
+    <h3>Graph Metadata + External Payload Store</h3>
+    <span class="badge badge-opt-b">Practical</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+┌──────────────────────────┐      ┌──────────────────────────┐
+│  Graph Database           │      │  Blob / Object Store      │
+│  (Neo4j / JanusGraph)     │      │  (S3 / GCS / PG / Pebble) │
+│                            │      │                            │
+│  (:Event {                 │      │  key: sha256(payload)      │
+│    seq: 1,                 │      │  value: {"name":"Alice",   │
+│    type: "UserCreated",    │      │           "email":"..."}   │
+│    payload_hash: "abc123", │─────→│                            │
+│    payload_size: 234       │      │  Only the actual payload   │
+│  })                        │      │  data lives here.          │
+│                            │      │                            │
+│  Graph = index + structure │      │  Store = payload archive   │
+└──────────────────────────┘      └──────────────────────────┘</pre>
+                </div>
+    <ul class="variants">
+      <li><strong>Pro:</strong> Graph handles what it's best at — structure, relationships, traversal</li>
+      <li><strong>Pro:</strong> Blob store handles what it's best at — large values, high throughput</li>
+      <li><strong>Pro:</strong> Payload hash in event node enables integrity verification</li>
+      <li><strong>Con:</strong> Two stores to operate, synchronize, and back up</li>
+      <li><strong>Con:</strong> Read path requires two round trips (graph query + blob fetch)</li>
+    </ul>
+    <div class="key-prop amber"><strong>The pragmatic architecture.</strong> Same pattern as TigerBeetle Option A. Graph is the ordered index + relationship engine. Blob store is the payload archive. This works in production TODAY.</div>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">C</div>
+    <h3>Traditional Event Store + Graph Projection Layer</h3>
+    <span class="badge badge-opt-c">Enterprise</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+┌────────────────────────────┐     ┌──────────────────────────────────┐
+│  Traditional Event Store   │     │  Graph Database (Neo4j)           │
+│  (PostgreSQL / EventStoreDB│     │                                    │
+│   / Pebble / SQLite)       │     │  (:Aggregate) → [:HAS_EVENT] →    │
+│                             │     │  (:Event) → [:CAUSED_BY] → (...)  │
+│  Append events here.       │     │                                    │
+│  Source of truth.           │     │  (:Command) → [:PRODUCED] →       │
+│  Full replay.               │     │  (:Event)                         │
+│                             │     │                                    │
+│  Write: 100K+ events/sec   │     │  Read: cross-aggregate traversal, │
+│  Read: single-stream fast  │     │  saga tracing, audit, analytics   │
+└─────────────┬──────────────┘     └──────────────────────────────────┘
+              │                                     ▲
+              │         Projection Pipeline          │
+              │  (Kafka / Go goroutine / worker)     │
+              └─────────────────────────────────────┘
+
+  Event Store → Event written → Projection worker → Graph updated
+                                              │
+                                    Graph is ALWAYS a projection
+                                    (eventual consistency is fine
+                                     for read-side analytics)</pre>
+                </div>
+    <ul class="variants">
+      <li><strong>Pro:</strong> Best of both worlds — high-throughput event store + rich graph queries</li>
+      <li><strong>Pro:</strong> Each tool does what it's best at</li>
+      <li><strong>Pro:</strong> Event store remains source of truth. Graph is rebuildable from events</li>
+      <li><strong>Pro:</strong> No consistency risk — graph is eventually consistent by design</li>
+      <li><strong>Con:</strong> Three moving parts (event store + projection pipeline + graph DB)</li>
+      <li><strong>Con:</strong> Graph may lag behind event store during high write bursts</li>
+    </ul>
+    <div class="key-prop green"><strong>The production architecture.</strong> Use PostgreSQL/EventStoreDB as the source of truth. Use Neo4j as the projection/analysis engine. Bridge them via a projection pipeline that subscribes to events and updates the graph. This is how you'd actually deploy this in production.</div>
+  </div>
+</div>
+
+<div class="card card-full">
+  <div class="card-header">
+    <div class="card-num">D</div>
+    <h3>Graph as Event Catalog (Metadata-Only)</h3>
+    <span class="badge badge-opt-b">Minimal</span>
+  </div>
+  <div class="card-body">
+    <div class="diagram-box" style="margin:0 0 1rem">
+<pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│  Graph = Event Catalog (no event data, only metadata & topology)    │
+│                                                                       │
+│  (:EventType {name:"UserCreated", version:3, schema:{...}})          │
+│      -[:PRODUCED_BY]->(:CommandType {name:"RegisterUser"})           │
+│      -[:CONSUMED_BY]->(:Service {name:"EmailService"})               │
+│      -[:TRIGGERS]->(:CommandType {name:"SendWelcomeEmail"})          │
+│                                                                       │
+│  (:Service)-[:EMITS]->(:EventType)-[:CONSUMED_BY]->(:Service)        │
+│                                                                       │
+│  The graph maps the EVENT TOPOLOGY of your system,                   │
+│  not the event data itself.                                           │
+│                                                                       │
+│  Queries:                                                             │
+│  - What services consume OrderPlaced?                                 │
+│  - What events does the PaymentService emit?                          │
+│  - If I change UserCreated schema, what breaks?                       │
+│  - What's the full dependency graph of my event-driven system?        │
+└─────────────────────────────────────────────────────────────────────┘</pre>
+                </div>
+    <ul class="variants">
+      <li><strong>Pro:</strong> Minimal operational overhead — small graph, fast queries</li>
+      <li><strong>Pro:</strong> Goes perfectly with go-cqrs-lite's existing catalog module</li>
+      <li><strong>Pro:</strong> No payload storage concerns at all</li>
+      <li><strong>Con:</strong> No per-event instance data — cannot trace individual events</li>
+      <li><strong>Con:</strong> Cannot do causal chain queries on specific event instances</li>
+    </ul>
+    <div class="key-prop amber"><strong>The lightweight option.</strong> Use the graph as a living architectural diagram of your event-driven system. Pair it with go-cqrs-lite's catalog module. Zero event data stored — only types, schemas, and service topology.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="verdict">
+<div class="part-header">
+  <div class="part-number">Part 10</div>
+  <h2>The Verdict</h2>
+</div>
+
+<div class="verdict-grid">
+
+  <div class="verdict-card va">
+    <div class="label">Approach A</div>
+    <h4>Pure Graph Store</h4>
+    <p>Technically feasible, interface-compatible (9/9), and beautifully queryable. But large payloads, limited write throughput, and no append-only guarantee make it risky for production event sourcing. Best for domains with small payloads and heavy relationship queries.</p>
+    <div class="verdict-tag">Research-grade — gorgeous but impractical at scale</div>
+  </div>
+
+  <div class="verdict-card vb">
+    <div class="label">Approach B</div>
+    <h4>Graph + Blob Store</h4>
+    <p>Pragmatic two-store architecture. Graph handles ordering, relationships, and traversal. Blob store handles payloads. The same pattern as TigerBeetle Option A. Production-viable if you're comfortable operating two stores.</p>
+    <div class="verdict-tag">Production-viable with operational overhead</div>
+  </div>
+
+  <div class="verdict-card vc">
+    <div class="label">Approach C</div>
+    <h4>Event Store + Graph Projection</h4>
+    <p>The correct production answer. Keep PostgreSQL/EventStoreDB as source of truth. Use Neo4j as a projection layer for cross-aggregate analysis, saga tracing, and audit queries. Each tool does what it's best at. Rebuildable from events.</p>
+    <div class="verdict-tag">The enterprise answer — best of both worlds</div>
+  </div>
+
+</div>
+
+<div class="diagram-box">
+  <div class="diagram-label">The Sacred Rule of Graph Event Sourcing</div>
+<pre>
+  Graph databases are NOT better event stores.
+  They are better EVENT RELATIONSHIP engines.
+
+  The question isn't "can a graph store events?"
+  (Yes, trivially. Every database can.)
+
+  The question is: "What questions become trivial when events live in a graph?"
+
+    1. "What caused this?"              ← O(k) traversal, not O(n) scan
+    2. "Trace the full saga"            ← Subgraph traversal, not JOIN hell
+    3. "What did we know at time T?"    ← Chain walk, not temporal tables
+    4. "What if I replay event X?"      ← Follow outgoing edges
+    5. "Find anomalous patterns"        ← Cypher pattern matching
+    6. "Map the event topology"         ← The graph IS the topology
+
+  These questions are IMPOSSIBLE or EXPENSIVE in a flat event store.
+  They are TRIVIAL in a graph.
+
+  But these questions are READ-SIDE concerns.
+  The WRITE SIDE (append events) is where flat stores win.
+
+  Therefore: flat store for writes, graph for reads.
+  Project from one to the other.
+  Let each tool do what it does best.
+
+  The thought experiment isn't "should I use a graph as my event store?"
+  The thought experiment is "what would I gain if I projected my events
+  into a graph?" — and the answer is: superpowers you didn't know you needed.
+</pre>
+</div>
+
+<div class="diagram-box">
+  <div class="diagram-label">What This Teaches About Event Store Design</div>
+<pre>
+  Understanding WHY graph databases are almost-perfect event stores
+  teaches you what an event store actually needs:
+
+    1. Append-only immutability           ← Graph DBs: no native guarantee
+    2. Ordered reads within a stream       ← Graph DBs: via chain or index
+    3. Exact version addressing            ← Graph DBs: YES (unlike TigerBeetle)
+    4. Arbitrary payload size              ← Graph DBs: stored as properties (limited)
+    5. High write throughput               ← Graph DBs: weaker than flat stores
+    6. Schema evolution (upcasting)        ← Graph DBs: no native support
+    7. Cross-stream relationship queries   ← Graph DBs: THIS IS THE SUPERPOWER
+
+  The gap between "can store events" and "is an event store" is items 1, 5, 6.
+  The gap between "event store" and "event relationship engine" is item 7.
+
+  The future of event sourcing isn't one or the other.
+  It's a flat store for writes, projected into a graph for reads.
+</pre>
+</div>
+
+</section>
+
+<footer>
+  <p>go-cqrs-lite &middot; Research &middot; Graph × CQRS Thought Experiment &middot; 2026-05-29</p>
+</footer>
+
+</div>
+</body>
+</html>
