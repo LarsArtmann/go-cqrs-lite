@@ -136,11 +136,12 @@ func (r *Repository[State]) Execute(
 		return opError(ref, "%w: %w", ErrSaveFailed, err)
 	}
 
-	err = event.PublishChanges(ctx, r.publisher, newEvents)
+	err = r.publisher.Publish(ctx, newEvents...)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+		wrapErr := event.WrapInfrastructure(err, "event.publish_failed", "publish events")
 
-		return opError(ref, "publish events: %w", err)
+		return opError(ref, "%w", wrapErr)
 	}
 
 	newVersion := currentVersion.Add(len(newEvents))

@@ -35,7 +35,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 
 func (s *SQLEventStore) ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]event.Event, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_from", trace.SpanKindClient,
-		trace.WithAttributes(attribute.Int("cqrs.outbox.limit", limit)))
+		trace.WithAttributes(attribute.Int("cqrs.journal.limit", limit)))
 	defer span.End()
 	if afterEventID.IsZero() {
 		events, err := s.loadAllFromStart(ctx, limit)

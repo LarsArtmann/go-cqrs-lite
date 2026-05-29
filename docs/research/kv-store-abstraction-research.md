@@ -14,17 +14,17 @@
 
 Looking at what `pebble/` actually does with its underlying store:
 
-| Operation | Usage in Event Store |
-|---|---|
-| **Get(key) → value** | Load a single snapshot, checkpoint, or outbox entry |
-| **Set(key, value)** | Save snapshot, checkpoint, outbox entry |
-| **Delete(key)** | Delete snapshot, ack outbox entry |
-| **Prefix scan** | Load all events for an aggregate: `cqrs_event:{type}:{id}:*` |
+| Operation             | Usage in Event Store                                           |
+| --------------------- | -------------------------------------------------------------- |
+| **Get(key) → value**  | Load a single snapshot, checkpoint, or outbox entry            |
+| **Set(key, value)**   | Save snapshot, checkpoint, outbox entry                        |
+| **Delete(key)**       | Delete snapshot, ack outbox entry                              |
+| **Prefix scan**       | Load all events for an aggregate: `cqrs_event:{type}:{id}:*`   |
 | **Ordered iteration** | Events must come out in version order (lexicographic key sort) |
-| **Atomic batch** | Save multiple events + outbox entry in one write |
-| **Range delete** | (Optional) Delete all events for a decommissioned aggregate |
-| **Has/Exists** | Check if snapshot/checkpoint exists without reading value |
-| **Close** | Graceful shutdown |
+| **Atomic batch**      | Save multiple events + outbox entry in one write               |
+| **Range delete**      | (Optional) Delete all events for a decommissioned aggregate    |
+| **Has/Exists**        | Check if snapshot/checkpoint exists without reading value      |
+| **Close**             | Graceful shutdown                                              |
 
 The critical operations that disqualify most meta-APIs: **prefix scan** and **atomic batch**.
 
@@ -43,16 +43,16 @@ type Store interface {
 }
 ```
 
-| Criteria | Verdict |
-|---|---|
-| Backends | **30+** — Redis, Consul, etcd, bbolt, BadgerDB, LevelDB, DynamoDB, S3, PostgreSQL, MongoDB, CockroachDB, etc. |
-| Iteration/range scans | ❌ Not supported. `List()`/`GetAll()` planned for v1.0 but not implemented |
-| Atomic batch writes | ❌ Not supported |
-| Transactions | ❌ Not supported |
-| Generics | Uses `any` but no generic type parameters |
-| Go version | 1.20+ |
-| Maintenance | Active (v0.7.0, Jan 2024) |
-| **Verdict** | ❌ **Too simple.** No iteration = can't load events. No batch = can't save atomically. |
+| Criteria              | Verdict                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Backends              | **30+** — Redis, Consul, etcd, bbolt, BadgerDB, LevelDB, DynamoDB, S3, PostgreSQL, MongoDB, CockroachDB, etc. |
+| Iteration/range scans | ❌ Not supported. `List()`/`GetAll()` planned for v1.0 but not implemented                                    |
+| Atomic batch writes   | ❌ Not supported                                                                                              |
+| Transactions          | ❌ Not supported                                                                                              |
+| Generics              | Uses `any` but no generic type parameters                                                                     |
+| Go version            | 1.20+                                                                                                         |
+| Maintenance           | Active (v0.7.0, Jan 2024)                                                                                     |
+| **Verdict**           | ❌ **Too simple.** No iteration = can't load events. No batch = can't save atomically.                        |
 
 ### 2.2. valkeyrie (kvtools/valkeyrie) — 307★
 
@@ -73,16 +73,16 @@ type Store interface {
 }
 ```
 
-| Criteria | Verdict |
-|---|---|
-| Backends | 6 — Consul, etcd v2/v3, ZooKeeper, Redis, BoltDB, DynamoDB |
-| Iteration/range scans | ⚠️ `List(directory)` returns all keys under a prefix — crude but works |
-| Atomic batch writes | ❌ `AtomicPut` is CAS on a single key, not multi-key batch |
-| Transactions | ❌ No multi-key transactions |
-| Watch | ✅ `Watch`/`WatchTree` for change notification |
-| Locking | ✅ Distributed locks via `NewLock` |
-| Maintenance | Active (commits through Apr 2026) |
-| **Verdict** | ❌ **Distributed coordination focus.** Wrong abstraction level for embedded KV. Heavy API, no batch writes, `List()` is not ordered iteration. |
+| Criteria              | Verdict                                                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backends              | 6 — Consul, etcd v2/v3, ZooKeeper, Redis, BoltDB, DynamoDB                                                                                     |
+| Iteration/range scans | ⚠️ `List(directory)` returns all keys under a prefix — crude but works                                                                         |
+| Atomic batch writes   | ❌ `AtomicPut` is CAS on a single key, not multi-key batch                                                                                     |
+| Transactions          | ❌ No multi-key transactions                                                                                                                   |
+| Watch                 | ✅ `Watch`/`WatchTree` for change notification                                                                                                 |
+| Locking               | ✅ Distributed locks via `NewLock`                                                                                                             |
+| Maintenance           | Active (commits through Apr 2026)                                                                                                              |
+| **Verdict**           | ❌ **Distributed coordination focus.** Wrong abstraction level for embedded KV. Heavy API, no batch writes, `List()` is not ordered iteration. |
 
 ### 2.3. libkv (docker/libkv) — 850★
 
@@ -106,14 +106,14 @@ type KV interface {
 }
 ```
 
-| Criteria | Verdict |
-|---|---|
-| Backends | 3 — Pebble, Azure, Redis |
-| Iteration/range scans | ✅ `Enumerate` + `Query` with range support |
-| Atomic batch writes | ✅ `Batch` method |
-| RemoveRange | ✅ `RemoveRange` for bulk deletion |
-| Maintenance | Very new, small community |
-| **Verdict** | ⚠️ **Closest to what we need**, but too new and too few backends. Depends on `lexkey` package for key encoding. Interesting design but not battle-tested enough to bet on. |
+| Criteria              | Verdict                                                                                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backends              | 3 — Pebble, Azure, Redis                                                                                                                                                   |
+| Iteration/range scans | ✅ `Enumerate` + `Query` with range support                                                                                                                                |
+| Atomic batch writes   | ✅ `Batch` method                                                                                                                                                          |
+| RemoveRange           | ✅ `RemoveRange` for bulk deletion                                                                                                                                         |
+| Maintenance           | Very new, small community                                                                                                                                                  |
+| **Verdict**           | ⚠️ **Closest to what we need**, but too new and too few backends. Depends on `lexkey` package for key encoding. Interesting design but not battle-tested enough to bet on. |
 
 ### 2.5. chenyanchen/kv
 
@@ -225,22 +225,22 @@ Cursor:  First() → (key, value []byte)
 
 ### 3.4. Comparison Matrix
 
-| Feature | Pebble | BadgerDB | bbolt |
-|---|---|---|---|
-| **Data model** | Flat key-value | Flat key-value | Bucket-based (nested namespaces) |
-| **Get** | `Get(key) → ([]byte, Closer, error)` | `Get(key) → (ValueStruct, error)` | `bucket.Get(key) → []byte` |
-| **Set** | `Set(key, val, opts)` | `txn.Set(key, val)` | `bucket.Put(key, val)` |
-| **Delete** | `Delete(key, opts)` | `txn.Delete(key)` | `bucket.Delete(key)` |
-| **Prefix scan** | `SeekPrefixGE(prefix)` + `Next()` | `ValidForPrefix(prefix)` + `Seek()` + `Next()` | `Cursor.Seek(prefix)` + manual prefix check |
-| **Range scan** | `SeekGE`/`SeekLT` + bounds in IterOptions | `IteratorOptions.Prefix` + `Seek` | `Cursor.Seek` + manual bounds |
-| **Ordered iteration** | ✅ LSM-tree (sorted) | ✅ LSM-tree (sorted) | ✅ B+tree (sorted) |
-| **Atomic batch** | `Batch.Set/Delete/Commit` | `WriteBatch.Set/Delete/Flush` | `DB.Update(fn)` (whole TX) |
-| **Transactions** | ❌ Single write TX at a time | ✅ MVCC concurrent TX | ✅ Concurrent read TX, single write TX |
-| **Delete range** | ✅ `DeleteRange(start, end)` | ❌ Must iterate + delete | ❌ Must iterate + delete |
-| **Sync/Async writes** | ✅ `WriteOptions{Sync bool}` | ✅ `Options.SyncWrites` | ⚠️ `Options.NoSync` (default: synced) |
-| **Pure Go** | ✅ | ✅ | ✅ |
-| **Write performance** | Very high (LSM) | Very high (LSM) | Moderate (B+tree) |
-| **Read performance** | High (bloom filters) | High (bloom filters) | Very high (direct B+tree lookup) |
+| Feature               | Pebble                                    | BadgerDB                                       | bbolt                                       |
+| --------------------- | ----------------------------------------- | ---------------------------------------------- | ------------------------------------------- |
+| **Data model**        | Flat key-value                            | Flat key-value                                 | Bucket-based (nested namespaces)            |
+| **Get**               | `Get(key) → ([]byte, Closer, error)`      | `Get(key) → (ValueStruct, error)`              | `bucket.Get(key) → []byte`                  |
+| **Set**               | `Set(key, val, opts)`                     | `txn.Set(key, val)`                            | `bucket.Put(key, val)`                      |
+| **Delete**            | `Delete(key, opts)`                       | `txn.Delete(key)`                              | `bucket.Delete(key)`                        |
+| **Prefix scan**       | `SeekPrefixGE(prefix)` + `Next()`         | `ValidForPrefix(prefix)` + `Seek()` + `Next()` | `Cursor.Seek(prefix)` + manual prefix check |
+| **Range scan**        | `SeekGE`/`SeekLT` + bounds in IterOptions | `IteratorOptions.Prefix` + `Seek`              | `Cursor.Seek` + manual bounds               |
+| **Ordered iteration** | ✅ LSM-tree (sorted)                      | ✅ LSM-tree (sorted)                           | ✅ B+tree (sorted)                          |
+| **Atomic batch**      | `Batch.Set/Delete/Commit`                 | `WriteBatch.Set/Delete/Flush`                  | `DB.Update(fn)` (whole TX)                  |
+| **Transactions**      | ❌ Single write TX at a time              | ✅ MVCC concurrent TX                          | ✅ Concurrent read TX, single write TX      |
+| **Delete range**      | ✅ `DeleteRange(start, end)`              | ❌ Must iterate + delete                       | ❌ Must iterate + delete                    |
+| **Sync/Async writes** | ✅ `WriteOptions{Sync bool}`              | ✅ `Options.SyncWrites`                        | ⚠️ `Options.NoSync` (default: synced)       |
+| **Pure Go**           | ✅                                        | ✅                                             | ✅                                          |
+| **Write performance** | Very high (LSM)                           | Very high (LSM)                                | Moderate (B+tree)                           |
+| **Read performance**  | High (bloom filters)                      | High (bloom filters)                           | Very high (direct B+tree lookup)            |
 
 ---
 
@@ -364,12 +364,12 @@ type Batch interface {
 
 ### Adapter Complexity Estimates
 
-| Backend | Adapter Size | Complexity |
-|---|---|---|
-| Pebble | ~80 lines | Trivial — nearly 1:1 mapping (Pebble's API is the design target) |
-| BadgerDB | ~100 lines | Easy — prefix via `ValidForPrefix`, batch via `WriteBatch`, iteration via `NewIterator` |
-| bbolt | ~120 lines | Easy — bucket-based, cursor for iteration, `DB.Update` for atomic batch |
-| In-memory | ~100 lines | Easy — `sortedmap` or `btree` from Go stdlib |
+| Backend   | Adapter Size | Complexity                                                                              |
+| --------- | ------------ | --------------------------------------------------------------------------------------- |
+| Pebble    | ~80 lines    | Trivial — nearly 1:1 mapping (Pebble's API is the design target)                        |
+| BadgerDB  | ~100 lines   | Easy — prefix via `ValidForPrefix`, batch via `WriteBatch`, iteration via `NewIterator` |
+| bbolt     | ~120 lines   | Easy — bucket-based, cursor for iteration, `DB.Update` for atomic batch                 |
+| In-memory | ~100 lines   | Easy — `sortedmap` or `btree` from Go stdlib                                            |
 
 ### Module Structure
 
@@ -402,17 +402,17 @@ badger/                # Future module
 
 ### Why This Design Beats the Alternatives
 
-| Criterion | gokv | valkeyrie | hyddenio/kv | **Our kv/** |
-|---|---|---|---|---|
-| Iteration/range scans | ❌ | ⚠️ (List only) | ✅ | ✅ |
-| Atomic batch writes | ❌ | ❌ | ✅ | ✅ |
-| Byte-slice keys | ❌ (string) | ❌ (string) | ⚠️ (lexkey) | ✅ |
-| Lexicographic ordering guarantee | ❌ | ❌ | ✅ | ✅ |
-| Zero external deps | ❌ | ❌ | ❌ | ✅ |
-| Event store semantics | ❌ | ❌ | ⚠️ | ✅ |
-| No marshalling opinion | ❌ (auto) | ✅ | ✅ | ✅ |
-| Independent module | N/A | N/A | N/A | ✅ |
-| Go generics where useful | ❌ | ❌ | ⚠️ | ✅ (future) |
+| Criterion                        | gokv        | valkeyrie      | hyddenio/kv | **Our kv/** |
+| -------------------------------- | ----------- | -------------- | ----------- | ----------- |
+| Iteration/range scans            | ❌          | ⚠️ (List only) | ✅          | ✅          |
+| Atomic batch writes              | ❌          | ❌             | ✅          | ✅          |
+| Byte-slice keys                  | ❌ (string) | ❌ (string)    | ⚠️ (lexkey) | ✅          |
+| Lexicographic ordering guarantee | ❌          | ❌             | ✅          | ✅          |
+| Zero external deps               | ❌          | ❌             | ❌          | ✅          |
+| Event store semantics            | ❌          | ❌             | ⚠️          | ✅          |
+| No marshalling opinion           | ❌ (auto)   | ✅             | ✅          | ✅          |
+| Independent module               | N/A         | N/A            | N/A         | ✅          |
+| Go generics where useful         | ❌          | ❌             | ⚠️          | ✅ (future) |
 
 ---
 
@@ -421,12 +421,14 @@ badger/                # Future module
 ### pebble/ module changes
 
 Currently `pebble/` depends directly on `cockroachdb/pebble` for:
+
 - `pebble.Open` — database creation
 - `pebble.DB.Get/Set/Delete/NewIter/Apply/Flush/Close` — CRUD
 - `pebble.Iterator.SeekGE/SeekPrefixGE/Next/Valid/Key/Value/Error/Close` — iteration
 - `pebble.Batch.Set/Delete/Commit/Close` — atomic writes
 
 With `kv/` module:
+
 1. `pebble/adapter.go` implements `kv.Store` by wrapping `*pebble.DB` (~80 lines)
 2. All event store logic (`event_store.go`, `snapshot.go`, etc.) depends only on `kv.Store`, never on `pebble.DB` directly
 3. `pebble/` becomes: `adapter.go` (Pebble-specific) + `store.go` (generic, depends only on `kv.Store`)
@@ -445,27 +447,27 @@ Same pattern. bbolt adapter is slightly more complex (bucket-based) but still ~1
 
 These belong in the specific backend module, NOT in `kv/`:
 
-| Feature | Why |
-|---|---|
-| Database opening/configuration | Backend-specific options (cache size, WAL mode, compaction) |
-| Compaction triggers | Pebble-specific |
-| Metrics/statistics | Backend-specific |
-| Checkpoints/snapshots (Pebble-specific) | Not a general KV concept |
-| Merge operators | Pebble/Badger-specific; bbolt doesn't have them |
-| Range key operations | Pebble-specific MVCC feature |
-| Watch/subscribe | Only some backends support this |
+| Feature                                 | Why                                                         |
+| --------------------------------------- | ----------------------------------------------------------- |
+| Database opening/configuration          | Backend-specific options (cache size, WAL mode, compaction) |
+| Compaction triggers                     | Pebble-specific                                             |
+| Metrics/statistics                      | Backend-specific                                            |
+| Checkpoints/snapshots (Pebble-specific) | Not a general KV concept                                    |
+| Merge operators                         | Pebble/Badger-specific; bbolt doesn't have them             |
+| Range key operations                    | Pebble-specific MVCC feature                                |
+| Watch/subscribe                         | Only some backends support this                             |
 
 ---
 
 ## 8. Decision Matrix
 
-| Option | Pros | Cons | Verdict |
-|---|---|---|---|
-| **Use gokv** | 30+ backends, actively maintained | No iteration, no batch, string keys, auto-marshalling | ❌ Reject |
-| **Use valkeyrie** | Watch, Lock, AtomicPut, 6 backends | No batch, string keys, distributed focus, heavy | ❌ Reject |
-| **Use hyddenio/kv** | Closest fit, modern API | Too new, lexkey dep, 3 backends, no community | ❌ Reject |
-| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total) | ✅ **Recommended** |
-| **Keep direct Pebble dep** | Zero work, already works | Locked to one backend, violates "data store independent" | ⚠️ Fallback |
+| Option                      | Pros                                     | Cons                                                     | Verdict            |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------- | ------------------ |
+| **Use gokv**                | 30+ backends, actively maintained        | No iteration, no batch, string keys, auto-marshalling    | ❌ Reject          |
+| **Use valkeyrie**           | Watch, Lock, AtomicPut, 6 backends       | No batch, string keys, distributed focus, heavy          | ❌ Reject          |
+| **Use hyddenio/kv**         | Closest fit, modern API                  | Too new, lexkey dep, 3 backends, no community            | ❌ Reject          |
+| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total)                             | ✅ **Recommended** |
+| **Keep direct Pebble dep**  | Zero work, already works                 | Locked to one backend, violates "data store independent" | ⚠️ Fallback        |
 
 ---
 

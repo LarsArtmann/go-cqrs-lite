@@ -6,14 +6,13 @@ go-cqrs-lite supports multiple storage backends for event persistence.
 
 ### PostgreSQL
 
-Production-ready. Full transactional support with outbox co-participation.
+Production-ready. Full transactional support.
 
 ```go
 db, _ := sql.Open("pgx", "postgres://...")
 storage.PostgresInitSchema(ctx, db)
 
 store, _ := storage.NewSQLEventStore(db)
-outbox, _ := storage.NewSQLOutbox(db)
 snapshots, _ := storage.NewSQLSnapshotStore(db)
 checkpoints, _ := storage.NewSQLCheckpointStore(db)
 sagas, _ := storage.NewSQLSagaStore(db)
@@ -29,7 +28,6 @@ storage.SQLiteInitSchema(ctx, db)
 storage.SQLiteEnableWAL(ctx, db)
 
 store, _ := storage.NewSQLiteEventStore(db)
-outbox, _ := storage.NewSQLiteOutbox(db)
 ```
 
 ### Pebble (Embedded KV)
@@ -62,19 +60,6 @@ db, _ := storage.OpenTurso("libsql://...", authToken)
 | `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | Load events up to timestamp (time-travel)   |
 | `ReadAll(ctx)`                                       | Load all events across aggregates (Journal) |
 | `ReadFrom(ctx, afterEventID, limit)`                 | Cursor-based global load (SeekableJournal)  |
-| `SaveWithOutbox(ctx, aggType, aggID, events, ver)`   | Atomic save + outbox (TransactionalSink)    |
-
-## Outbox Pattern
-
-Reliable eventual publishing. Events are stored in the same transaction as the event store, then a background poller publishes them.
-
-```go
-poller := storage.NewOutboxPoller(outbox, bus,
-    storage.WithPollInterval(5*time.Second),
-    storage.WithPollLimit(100),
-)
-go poller.Run(ctx)
-```
 
 ## Snapshot Store
 
@@ -98,7 +83,7 @@ checkpointStore, _ := storage.NewSQLCheckpointStore(db)
 
 ```go
 // PostgreSQL
-storage.Schema()          // events + outbox tables
+storage.Schema()          // events table
 storage.SnapshotSchema()  // snapshots table
 storage.CheckpointSchema()// checkpoints table
 storage.SagaSchema()      // sagas table

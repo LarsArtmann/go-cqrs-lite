@@ -36,9 +36,6 @@ const (
 	// ProjectionName is the name of a projection.
 	AttrProjectionName = "cqrs.projection.name"
 
-	// OutboxEntryCount is the number of entries in an outbox operation.
-	AttrOutboxEntryCount = "cqrs.outbox.entry_count"
-
 	// Status indicates operation result: "success" or "error".
 	AttrStatus = "cqrs.status"
 

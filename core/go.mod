@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.0
-	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-20260529144800-51ed93d67be5
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0

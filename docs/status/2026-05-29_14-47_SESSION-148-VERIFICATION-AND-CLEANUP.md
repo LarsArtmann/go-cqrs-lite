@@ -22,18 +22,18 @@ The only remaining uncommitted change is `docs/modularization/PROPOSAL.md` which
 
 ## A) FULLY DONE ✅
 
-| What | Session(s) | Status |
-| --- | --- | --- |
-| **AggregateRef migration** (all core interfaces → `ref AggregateRef`) | 141–142 | ✅ Committed, all callers migrated |
-| **Checkpoint struct migration** (`id.EventID` → `event.Checkpoint{EventID, ProcessedAt}`) | 141–142 | ✅ Committed, memory/storage/projection all updated |
-| **`event.Checkpoint.String()`** method added | 148 | ✅ Committed in earlier session |
-| **saga/ module removal** | 146 | ✅ Committed, ADR-0004 superseded |
-| **stream/ → listing/ rename** | 146 | ✅ Committed |
-| **core/store.Backend creation & removal** | 144–147 | ✅ Deleted as wrong abstraction |
-| **catalog/schema extraction** | 145 | ✅ Committed |
-| **All test compilation fixes** (memory, storage, projection) | 142–147 | ✅ All committed |
-| **signing/multisig sub-package** | 143 | ✅ Extracted, compiles and passes |
-| **integration/signing tests** | 143 | ✅ Pass with multisig sub-package |
+| What                                                                                      | Session(s) | Status                                              |
+| ----------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------- |
+| **AggregateRef migration** (all core interfaces → `ref AggregateRef`)                     | 141–142    | ✅ Committed, all callers migrated                  |
+| **Checkpoint struct migration** (`id.EventID` → `event.Checkpoint{EventID, ProcessedAt}`) | 141–142    | ✅ Committed, memory/storage/projection all updated |
+| **`event.Checkpoint.String()`** method added                                              | 148        | ✅ Committed in earlier session                     |
+| **saga/ module removal**                                                                  | 146        | ✅ Committed, ADR-0004 superseded                   |
+| **stream/ → listing/ rename**                                                             | 146        | ✅ Committed                                        |
+| **core/store.Backend creation & removal**                                                 | 144–147    | ✅ Deleted as wrong abstraction                     |
+| **catalog/schema extraction**                                                             | 145        | ✅ Committed                                        |
+| **All test compilation fixes** (memory, storage, projection)                              | 142–147    | ✅ All committed                                    |
+| **signing/multisig sub-package**                                                          | 143        | ✅ Extracted, compiles and passes                   |
+| **integration/signing tests**                                                             | 143        | ✅ Pass with multisig sub-package                   |
 
 ### Full Test Matrix (Session 148)
 
@@ -56,12 +56,12 @@ The only remaining uncommitted change is `docs/modularization/PROPOSAL.md` which
 
 ## B) PARTIALLY DONE ⚠️
 
-| What | Status | What's Missing |
-| --- | --- | --- |
-| **docs/modularization/PROPOSAL.md** | File exists but was partially overwritten by a previous session (260 lines of module reorg proposal replaced with 115 lines of storage-only proposal) | Need to decide: restore original or commit new version |
-| **Pebble module coverage** | `PebbleEventStore` only (Save/Load/LoadFromVersion/LoadToTimestamp/AppendBatch) | No Journal, SeekableJournal, BackwardsSource, CheckpointStore, SnapshotStore, Outbox (~20% of storage surface) |
-| **FEATURES.md** | Last audited 2026-05-28 | May still reference `stream` imports and `saga` module |
-| **TODO_LIST.md** | Generated 2026-05-21, reconciled Session 139 | Missing recent work (AggregateRef, Checkpoint, multisig extraction) |
+| What                                | Status                                                                                                                                                | What's Missing                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **docs/modularization/PROPOSAL.md** | File exists but was partially overwritten by a previous session (260 lines of module reorg proposal replaced with 115 lines of storage-only proposal) | Need to decide: restore original or commit new version                                                         |
+| **Pebble module coverage**          | `PebbleEventStore` only (Save/Load/LoadFromVersion/LoadToTimestamp/AppendBatch)                                                                       | No Journal, SeekableJournal, BackwardsSource, CheckpointStore, SnapshotStore, Outbox (~20% of storage surface) |
+| **FEATURES.md**                     | Last audited 2026-05-28                                                                                                                               | May still reference `stream` imports and `saga` module                                                         |
+| **TODO_LIST.md**                    | Generated 2026-05-21, reconciled Session 139                                                                                                          | Missing recent work (AggregateRef, Checkpoint, multisig extraction)                                            |
 
 ---
 
@@ -87,12 +87,12 @@ The only remaining uncommitted change is `docs/modularization/PROPOSAL.md` which
 
 ## D) TOTALLY FUCKED UP 💥
 
-| What | Impact | Lesson |
-| --- | --- | --- |
-| **store.Backend abstraction** (sessions 144–147) | Wasted 4 sessions building a generic KV interface rejected as "not CQRS" | Ask before building. CQRS has domain-specific stores — raw Get/Put is the opposite. |
-| **Session 144 git disaster** | `git checkout HEAD -- .` destroyed uncommitted work | Never use blanket `.` with checkout. Stash first. |
-| **saga module premature deletion** | Removed before all downstream references cleaned | `grep -r "saga" */go.mod` before committing deletions |
-| **docs/modularization/PROPOSAL.md overwrite** | 260-line comprehensive proposal replaced with 115-line storage-only proposal | Should have been a new file, not an overwrite |
+| What                                             | Impact                                                                       | Lesson                                                                              |
+| ------------------------------------------------ | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **store.Backend abstraction** (sessions 144–147) | Wasted 4 sessions building a generic KV interface rejected as "not CQRS"     | Ask before building. CQRS has domain-specific stores — raw Get/Put is the opposite. |
+| **Session 144 git disaster**                     | `git checkout HEAD -- .` destroyed uncommitted work                          | Never use blanket `.` with checkout. Stash first.                                   |
+| **saga module premature deletion**               | Removed before all downstream references cleaned                             | `grep -r "saga" */go.mod` before committing deletions                               |
+| **docs/modularization/PROPOSAL.md overwrite**    | 260-line comprehensive proposal replaced with 115-line storage-only proposal | Should have been a new file, not an overwrite                                       |
 
 ---
 
@@ -114,48 +114,48 @@ The only remaining uncommitted change is `docs/modularization/PROPOSAL.md` which
 
 ### Tier 1: Fix Now (high impact, low effort)
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 1 | Restore or commit `docs/modularization/PROPOSAL.md` | MEDIUM | 5 min |
-| 2 | Create ROADMAP.md with v1.0.0 release criteria | HIGH | 30 min |
-| 3 | Create CHANGELOG.md summarizing sessions 100–148 | HIGH | 30 min |
-| 4 | Update TODO_LIST.md (mark AggregateRef, Checkpoint, multisig done) | MEDIUM | 15 min |
-| 5 | Full FEATURES.md re-audit | MEDIUM | 30 min |
+| #   | Task                                                               | Impact | Effort |
+| --- | ------------------------------------------------------------------ | ------ | ------ |
+| 1   | Restore or commit `docs/modularization/PROPOSAL.md`                | MEDIUM | 5 min  |
+| 2   | Create ROADMAP.md with v1.0.0 release criteria                     | HIGH   | 30 min |
+| 3   | Create CHANGELOG.md summarizing sessions 100–148                   | HIGH   | 30 min |
+| 4   | Update TODO_LIST.md (mark AggregateRef, Checkpoint, multisig done) | MEDIUM | 15 min |
+| 5   | Full FEATURES.md re-audit                                          | MEDIUM | 30 min |
 
 ### Tier 2: Pebble Completeness
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 6 | PebbleCheckpointStore | HIGH | LOW |
-| 7 | PebbleSnapshotStore | HIGH | LOW |
-| 8 | PebbleBackwardsSource (reverse iteration on aggregate prefix) | MEDIUM | LOW |
-| 9 | PebbleOutbox (pending queue with poll/ack) | HIGH | MEDIUM |
-| 10 | PebbleJournal (ReadAll — full scan + sort) | MEDIUM | MEDIUM |
-| 11 | PebbleSeekableJournal (ReadFrom — secondary index) | MEDIUM | HIGH |
-| 12 | Unified PebbleBackend facade | MEDIUM | LOW |
+| #   | Task                                                          | Impact | Effort |
+| --- | ------------------------------------------------------------- | ------ | ------ |
+| 6   | PebbleCheckpointStore                                         | HIGH   | LOW    |
+| 7   | PebbleSnapshotStore                                           | HIGH   | LOW    |
+| 8   | PebbleBackwardsSource (reverse iteration on aggregate prefix) | MEDIUM | LOW    |
+| 9   | PebbleOutbox (pending queue with poll/ack)                    | HIGH   | MEDIUM |
+| 10  | PebbleJournal (ReadAll — full scan + sort)                    | MEDIUM | MEDIUM |
+| 11  | PebbleSeekableJournal (ReadFrom — secondary index)            | MEDIUM | HIGH   |
+| 12  | Unified PebbleBackend facade                                  | MEDIUM | LOW    |
 
 ### Tier 3: New Capabilities
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 13 | Design CommandStore interface in `core/command/` | HIGH | MEDIUM |
-| 14 | Implement CommandStore on memory + pebble + SQL | HIGH | MEDIUM |
-| 15 | Design ProjectionStore / ReadModelStore | HIGH | MEDIUM |
-| 16 | Implement KVStore[T] generic for typed read model storage | MEDIUM | MEDIUM |
-| 17 | listing/ SQLAggregateReader | MEDIUM | MEDIUM |
+| #   | Task                                                      | Impact | Effort |
+| --- | --------------------------------------------------------- | ------ | ------ |
+| 13  | Design CommandStore interface in `core/command/`          | HIGH   | MEDIUM |
+| 14  | Implement CommandStore on memory + pebble + SQL           | HIGH   | MEDIUM |
+| 15  | Design ProjectionStore / ReadModelStore                   | HIGH   | MEDIUM |
+| 16  | Implement KVStore[T] generic for typed read model storage | MEDIUM | MEDIUM |
+| 17  | listing/ SQLAggregateReader                               | MEDIUM | MEDIUM |
 
 ### Tier 4: Architecture & Quality
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 18 | core/event god-package split (12 clusters → sub-packages) | HIGH | HIGH |
-| 19 | io.Closer removal from core interfaces | MEDIUM | MEDIUM |
-| 20 | Fix flaky projection BDD test (timing-sensitive) | LOW | MEDIUM |
-| 21 | Consolidate 63 status reports into architectural docs | LOW | HIGH |
-| 22 | Verify flake.nix module list | MEDIUM | 10 min |
-| 23 | Verify ci.yml module list | MEDIUM | 10 min |
-| 24 | Push v1.0.0 tags to remove replace directives | HIGH | LOW (irreversible) |
-| 25 | Clean up unused test helper functions (6 gopls warnings) | LOW | LOW |
+| #   | Task                                                      | Impact | Effort             |
+| --- | --------------------------------------------------------- | ------ | ------------------ |
+| 18  | core/event god-package split (12 clusters → sub-packages) | HIGH   | HIGH               |
+| 19  | io.Closer removal from core interfaces                    | MEDIUM | MEDIUM             |
+| 20  | Fix flaky projection BDD test (timing-sensitive)          | LOW    | MEDIUM             |
+| 21  | Consolidate 63 status reports into architectural docs     | LOW    | HIGH               |
+| 22  | Verify flake.nix module list                              | MEDIUM | 10 min             |
+| 23  | Verify ci.yml module list                                 | MEDIUM | 10 min             |
+| 24  | Push v1.0.0 tags to remove replace directives             | HIGH   | LOW (irreversible) |
+| 25  | Clean up unused test helper functions (6 gopls warnings)  | LOW    | LOW                |
 
 ---
 

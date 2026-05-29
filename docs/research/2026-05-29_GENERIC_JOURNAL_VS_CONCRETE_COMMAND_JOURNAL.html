@@ -1,436 +1,482 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Research: Generic Journal&lt;T, ID&gt; vs Concrete CommandJournal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --black: #0a0a0a;
-      --white: #fafafa;
-      --gray-100: #f5f5f5;
-      --gray-200: #e5e5e5;
-      --gray-300: #d4d4d4;
-      --gray-400: #a3a3a3;
-      --gray-500: #737373;
-      --gray-600: #525252;
-      --gray-700: #404040;
-      --gray-800: #262626;
-      --gray-900: #171717;
-      --accent: #d00000;
-      --accent-light: #fff1f1;
-      --green: #0a6e3a;
-      --green-light: #ecfdf5;
-      --blue: #1d4ed8;
-      --blue-light: #eff6ff;
-      --amber: #92400e;
-      --amber-light: #fffbeb;
-      --mono: 'JetBrains Mono', monospace;
-      --serif: 'Instrument Serif', Georgia, serif;
-      --sans: 'DM Sans', system-ui, sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research: Generic Journal&lt;T, ID&gt; vs Concrete CommandJournal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --white: #fafafa;
+        --gray-100: #f5f5f5;
+        --gray-200: #e5e5e5;
+        --gray-300: #d4d4d4;
+        --gray-400: #a3a3a3;
+        --gray-500: #737373;
+        --gray-600: #525252;
+        --gray-700: #404040;
+        --gray-800: #262626;
+        --gray-900: #171717;
+        --accent: #d00000;
+        --accent-light: #fff1f1;
+        --green: #0a6e3a;
+        --green-light: #ecfdf5;
+        --blue: #1d4ed8;
+        --blue-light: #eff6ff;
+        --amber: #92400e;
+        --amber-light: #fffbeb;
+        --mono: "JetBrains Mono", monospace;
+        --serif: "Instrument Serif", Georgia, serif;
+        --sans: "DM Sans", system-ui, sans-serif;
+      }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    html {
-      font-size: 16px;
-      scroll-behavior: smooth;
-    }
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
 
-    body {
-      font-family: var(--sans);
-      background: var(--white);
-      color: var(--black);
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
-    }
+      body {
+        font-family: var(--sans);
+        background: var(--white);
+        color: var(--black);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
 
-    .page {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+      .page {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
 
-    .hero {
-      padding: 120px 0 80px;
-      border-bottom: 1px solid var(--gray-200);
-      position: relative;
-    }
+      .hero {
+        padding: 120px 0 80px;
+        border-bottom: 1px solid var(--gray-200);
+        position: relative;
+      }
 
-    .hero::before {
-      content: 'RESEARCH';
-      position: absolute;
-      top: 60px;
-      left: 0;
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--gray-400);
-    }
+      .hero::before {
+        content: "RESEARCH";
+        position: absolute;
+        top: 60px;
+        left: 0;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--gray-400);
+      }
 
-    .hero h1 {
-      font-family: var(--serif);
-      font-size: clamp(2.8rem, 6vw, 4.2rem);
-      font-weight: 400;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      color: var(--black);
-    }
+      .hero h1 {
+        font-family: var(--serif);
+        font-size: clamp(2.8rem, 6vw, 4.2rem);
+        font-weight: 400;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--black);
+      }
 
-    .hero h1 em {
-      font-style: italic;
-      color: var(--accent);
-    }
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
 
-    .hero .subtitle {
-      margin-top: 24px;
-      font-size: 1.1rem;
-      color: var(--gray-500);
-      max-width: 560px;
-      line-height: 1.7;
-    }
+      .hero .subtitle {
+        margin-top: 24px;
+        font-size: 1.1rem;
+        color: var(--gray-500);
+        max-width: 560px;
+        line-height: 1.7;
+      }
 
-    .meta {
-      display: flex;
-      gap: 32px;
-      margin-top: 40px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--gray-400);
-      letter-spacing: 0.05em;
-    }
+      .meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 40px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--gray-400);
+        letter-spacing: 0.05em;
+      }
 
-    .toc {
-      padding: 48px 0;
-      border-bottom: 1px solid var(--gray-200);
-    }
+      .toc {
+        padding: 48px 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
 
-    .toc h2 {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gray-400);
-      margin-bottom: 20px;
-    }
+      .toc h2 {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 20px;
+      }
 
-    .toc ol {
-      list-style: none;
-      counter-reset: toc;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 32px;
-    }
+      .toc ol {
+        list-style: none;
+        counter-reset: toc;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 32px;
+      }
 
-    .toc li {
-      counter-increment: toc;
-      font-size: 0.9rem;
-    }
+      .toc li {
+        counter-increment: toc;
+        font-size: 0.9rem;
+      }
 
-    .toc li::before {
-      content: counter(toc, decimal-leading-zero);
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--gray-400);
-      margin-right: 12px;
-    }
+      .toc li::before {
+        content: counter(toc, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        margin-right: 12px;
+      }
 
-    .toc a {
-      color: var(--black);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.2s;
-    }
+      .toc a {
+        color: var(--black);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
 
-    .toc a:hover {
-      border-bottom-color: var(--black);
-    }
+      .toc a:hover {
+        border-bottom-color: var(--black);
+      }
 
-    .section {
-      padding: 64px 0;
-      border-bottom: 1px solid var(--gray-200);
-    }
+      .section {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
 
-    .section:last-of-type {
-      border-bottom: none;
-    }
+      .section:last-of-type {
+        border-bottom: none;
+      }
 
-    .section-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gray-400);
-      margin-bottom: 8px;
-    }
+      .section-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 8px;
+      }
 
-    .section h2 {
-      font-family: var(--serif);
-      font-size: 2rem;
-      font-weight: 400;
-      letter-spacing: -0.01em;
-      margin-bottom: 32px;
-    }
+      .section h2 {
+        font-family: var(--serif);
+        font-size: 2rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        margin-bottom: 32px;
+      }
 
-    .section h3 {
-      font-family: var(--sans);
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-top: 40px;
-      margin-bottom: 12px;
-    }
+      .section h3 {
+        font-family: var(--sans);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 40px;
+        margin-bottom: 12px;
+      }
 
-    .section p {
-      color: var(--gray-700);
-      max-width: 680px;
-    }
+      .section p {
+        color: var(--gray-700);
+        max-width: 680px;
+      }
 
-    .section p + p {
-      margin-top: 16px;
-    }
+      .section p + p {
+        margin-top: 16px;
+      }
 
-    .section ul, .section ol {
-      color: var(--gray-700);
-      max-width: 680px;
-      padding-left: 24px;
-      margin-top: 12px;
-    }
+      .section ul,
+      .section ol {
+        color: var(--gray-700);
+        max-width: 680px;
+        padding-left: 24px;
+        margin-top: 12px;
+      }
 
-    .section li {
-      margin-top: 8px;
-    }
+      .section li {
+        margin-top: 8px;
+      }
 
-    code {
-      font-family: var(--mono);
-      font-size: 0.88em;
-      background: var(--gray-100);
-      border: 1px solid var(--gray-200);
-      border-radius: 4px;
-      padding: 2px 6px;
-    }
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: 4px;
+        padding: 2px 6px;
+      }
 
-    pre {
-      background: var(--gray-900);
-      color: var(--gray-100);
-      border-radius: 8px;
-      padding: 24px;
-      overflow-x: auto;
-      margin-top: 24px;
-      margin-bottom: 24px;
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.75;
-      max-width: 100%;
-    }
+      pre {
+        background: var(--gray-900);
+        color: var(--gray-100);
+        border-radius: 8px;
+        padding: 24px;
+        overflow-x: auto;
+        margin-top: 24px;
+        margin-bottom: 24px;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.75;
+        max-width: 100%;
+      }
 
-    pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      color: inherit;
-      font-size: inherit;
-    }
+      pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-size: inherit;
+      }
 
-    .kw { color: #c084fc; }
-    .tp { color: #67e8f9; }
-    .fn { color: #fbbf24; }
-    .cm { color: #6b7280; font-style: italic; }
-    .str { color: #86efac; }
-    .op { color: #f87171; }
+      .kw {
+        color: #c084fc;
+      }
+      .tp {
+        color: #67e8f9;
+      }
+      .fn {
+        color: #fbbf24;
+      }
+      .cm {
+        color: #6b7280;
+        font-style: italic;
+      }
+      .str {
+        color: #86efac;
+      }
+      .op {
+        color: #f87171;
+      }
 
-    .callout {
-      border-radius: 8px;
-      padding: 20px 24px;
-      margin-top: 24px;
-      margin-bottom: 24px;
-      max-width: 680px;
-    }
+      .callout {
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+        max-width: 680px;
+      }
 
-    .callout-title {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
+      .callout-title {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
 
-    .callout p {
-      color: inherit;
-      max-width: 100%;
-    }
+      .callout p {
+        color: inherit;
+        max-width: 100%;
+      }
 
-    .callout-green {
-      background: var(--green-light);
-      border: 1px solid #bbf7d0;
-      color: var(--green);
-    }
+      .callout-green {
+        background: var(--green-light);
+        border: 1px solid #bbf7d0;
+        color: var(--green);
+      }
 
-    .callout-green .callout-title { color: #047857; }
+      .callout-green .callout-title {
+        color: #047857;
+      }
 
-    .callout-red {
-      background: var(--accent-light);
-      border: 1px solid #fecaca;
-      color: var(--accent);
-    }
+      .callout-red {
+        background: var(--accent-light);
+        border: 1px solid #fecaca;
+        color: var(--accent);
+      }
 
-    .callout-red .callout-title { color: #b91c1c; }
+      .callout-red .callout-title {
+        color: #b91c1c;
+      }
 
-    .callout-amber {
-      background: var(--amber-light);
-      border: 1px solid #fde68a;
-      color: var(--amber);
-    }
+      .callout-amber {
+        background: var(--amber-light);
+        border: 1px solid #fde68a;
+        color: var(--amber);
+      }
 
-    .callout-amber .callout-title { color: #92400e; }
+      .callout-amber .callout-title {
+        color: #92400e;
+      }
 
-    .callout-blue {
-      background: var(--blue-light);
-      border: 1px solid #bfdbfe;
-      color: var(--blue);
-    }
+      .callout-blue {
+        background: var(--blue-light);
+        border: 1px solid #bfdbfe;
+        color: var(--blue);
+      }
 
-    .callout-blue .callout-title { color: #1e40af; }
+      .callout-blue .callout-title {
+        color: #1e40af;
+      }
 
-    .comparison {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-top: 32px;
-    }
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 32px;
+      }
 
-    @media (max-width: 640px) {
-      .comparison { grid-template-columns: 1fr; }
-      .toc ol { grid-template-columns: 1fr; }
-    }
+      @media (max-width: 640px) {
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+        .toc ol {
+          grid-template-columns: 1fr;
+        }
+      }
 
-    .diagram {
-      background: var(--gray-100);
-      border: 1px solid var(--gray-200);
-      border-radius: 8px;
-      padding: 24px;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.8;
-      overflow-x: auto;
-    }
+      .diagram {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 24px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.8;
+        overflow-x: auto;
+      }
 
-    .diagram .label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gray-400);
-      margin-bottom: 16px;
-      display: block;
-    }
+      .diagram .label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 16px;
+        display: block;
+      }
 
-    .diagram .dir { color: var(--gray-500); }
-    .diagram .pkg { color: var(--black); font-weight: 600; }
-    .diagram .iface { color: var(--blue); }
-    .diagram .remove { color: var(--accent); text-decoration: line-through; opacity: 0.6; }
-    .diagram .add { color: var(--green); }
+      .diagram .dir {
+        color: var(--gray-500);
+      }
+      .diagram .pkg {
+        color: var(--black);
+        font-weight: 600;
+      }
+      .diagram .iface {
+        color: var(--blue);
+      }
+      .diagram .remove {
+        color: var(--accent);
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .diagram .add {
+        color: var(--green);
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 24px;
-      font-size: 0.9rem;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 24px;
+        font-size: 0.9rem;
+      }
 
-    th {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--gray-500);
-      text-align: left;
-      padding: 12px 16px;
-      border-bottom: 2px solid var(--gray-200);
-    }
+      th {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--gray-200);
+      }
 
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--gray-100);
-      color: var(--gray-700);
-    }
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+      }
 
-    tr:hover td {
-      background: var(--gray-100);
-    }
+      tr:hover td {
+        background: var(--gray-100);
+      }
 
-    .verdict {
-      padding: 80px 0;
-      text-align: center;
-    }
+      .verdict {
+        padding: 80px 0;
+        text-align: center;
+      }
 
-    .verdict h2 {
-      font-family: var(--serif);
-      font-size: 2.5rem;
-      font-weight: 400;
-      margin-bottom: 24px;
-    }
+      .verdict h2 {
+        font-family: var(--serif);
+        font-size: 2.5rem;
+        font-weight: 400;
+        margin-bottom: 24px;
+      }
 
-    .verdict p {
-      color: var(--gray-500);
-      max-width: 480px;
-      margin: 0 auto;
-      font-size: 1.05rem;
-      line-height: 1.7;
-    }
+      .verdict p {
+        color: var(--gray-500);
+        max-width: 480px;
+        margin: 0 auto;
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
 
-    footer {
-      padding: 48px 0;
-      border-top: 1px solid var(--gray-200);
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--gray-400);
-      letter-spacing: 0.05em;
-    }
-  </style>
-</head>
-<body>
+      footer {
+        padding: 48px 0;
+        border-top: 1px solid var(--gray-200);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="hero">
+        <h1>Journal, Outbox &amp; Persisted<br /><em>Command</em> — Design Research</h1>
+        <p class="subtitle">
+          Generic vs concrete CommandJournal, the relationship between Journal and Outbox, and why
+          PersistedCommand exists without a PersistedEvent counterpart.
+        </p>
+        <div class="meta">
+          <span>2026-05-29</span>
+          <span>Status: Decided</span>
+          <span>Verdict: Concrete</span>
+        </div>
+      </div>
 
-<div class="page">
+      <nav class="toc">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#context">Context</a></li>
+          <li><a href="#current-state">Current State</a></li>
+          <li><a href="#the-gap">The Gap: Missing CommandJournal</a></li>
+          <li><a href="#option-a">Option A — Generic Journal[T, ID]</a></li>
+          <li><a href="#option-b">Option B — Concrete CommandJournal</a></li>
+          <li><a href="#comparison">Side-by-Side Comparison</a></li>
+          <li><a href="#decision">Decision</a></li>
+          <li><a href="#journal-vs-outbox">Journal vs Outbox</a></li>
+          <li><a href="#persisted-command">PersistedCommand vs ImmutableEvent</a></li>
+          <li><a href="#next-steps">Next Steps</a></li>
+        </ol>
+      </nav>
 
-  <div class="hero">
-    <h1>Journal, Outbox &amp; Persisted<br><em>Command</em> — Design Research</h1>
-    <p class="subtitle">
-      Generic vs concrete CommandJournal, the relationship between Journal and Outbox, and why PersistedCommand exists without a PersistedEvent counterpart.
-    </p>
-    <div class="meta">
-      <span>2026-05-29</span>
-      <span>Status: Decided</span>
-      <span>Verdict: Concrete</span>
-    </div>
-  </div>
-
-  <nav class="toc">
-    <h2>Contents</h2>
-    <ol>
-      <li><a href="#context">Context</a></li>
-      <li><a href="#current-state">Current State</a></li>
-      <li><a href="#the-gap">The Gap: Missing CommandJournal</a></li>
-      <li><a href="#option-a">Option A — Generic Journal[T, ID]</a></li>
-      <li><a href="#option-b">Option B — Concrete CommandJournal</a></li>
-      <li><a href="#comparison">Side-by-Side Comparison</a></li>
-      <li><a href="#decision">Decision</a></li>
-      <li><a href="#journal-vs-outbox">Journal vs Outbox</a></li>
-      <li><a href="#persisted-command">PersistedCommand vs ImmutableEvent</a></li>
-      <li><a href="#next-steps">Next Steps</a></li>
-    </ol>
-  </nav>
-
-  <section class="section" id="context">
-    <span class="section-label">01</span>
-    <h2>Context</h2>
-    <p>
-      The <code>core/event</code> package defines two journal interfaces for cross-aggregate event replay:
-    </p>
-    <pre><code><span class="kw">type</span> <span class="tp">Journal</span> <span class="kw">interface</span> {
+      <section class="section" id="context">
+        <span class="section-label">01</span>
+        <h2>Context</h2>
+        <p>
+          The <code>core/event</code> package defines two journal interfaces for cross-aggregate
+          event replay:
+        </p>
+        <pre><code><span class="kw">type</span> <span class="tp">Journal</span> <span class="kw">interface</span> {
     <span class="fn">ReadAll</span>(ctx <span class="tp">context.Context</span>) ([]<span class="tp">Event</span>, <span class="tp">error</span>)
 }
 
@@ -438,83 +484,92 @@
     <span class="tp">Journal</span>
     <span class="fn">ReadFrom</span>(ctx <span class="tp">context.Context</span>, afterEventID <span class="tp">id.EventID</span>, limit <span class="tp">int</span>) ([]<span class="tp">Event</span>, <span class="tp">error</span>)
 }</code></pre>
-    <p>
-      Meanwhile, the <code>core/command</code> package already has the Sink/Source/Store split — mirroring the event side — but lacks the Journal equivalent. The question arose: should we introduce a generic <code>Journal[T, ID]</code> to serve both, or keep them as separate concrete interfaces?
-    </p>
-  </section>
+        <p>
+          Meanwhile, the <code>core/command</code> package already has the Sink/Source/Store split —
+          mirroring the event side — but lacks the Journal equivalent. The question arose: should we
+          introduce a generic <code>Journal[T, ID]</code> to serve both, or keep them as separate
+          concrete interfaces?
+        </p>
+      </section>
 
-  <section class="section" id="current-state">
-    <span class="section-label">02</span>
-    <h2>Current State</h2>
-    <p>
-      Both event and command packages follow the same ISP split pattern:
-    </p>
-    <table>
-      <thead>
-        <tr>
-          <th>Concern</th>
-          <th>Events</th>
-          <th>Commands</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Write side</td>
-          <td><code>EventSink</code></td>
-          <td><code>CommandSink</code></td>
-        </tr>
-        <tr>
-          <td>Read side</td>
-          <td><code>EventSource</code></td>
-          <td><code>CommandSource</code></td>
-        </tr>
-        <tr>
-          <td>Combined</td>
-          <td><code>Store</code></td>
-          <td><code>Store</code></td>
-        </tr>
-        <tr>
-          <td>Cross-aggregate read</td>
-          <td><code>Journal</code> / <code>SeekableJournal</code></td>
-          <td style="color: var(--accent); font-weight: 600;">❌ Missing</td>
-        </tr>
-        <tr>
-          <td>Position-based read</td>
-          <td><code>SeekableJournal.ReadFrom</code></td>
-          <td style="color: var(--accent); font-weight: 600;">❌ Missing</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>
-      The gap is real: there is no way to answer "what commands were dispatched across the system?" — which is essential for audit trails, compliance, and replay debugging.
-    </p>
-  </section>
+      <section class="section" id="current-state">
+        <span class="section-label">02</span>
+        <h2>Current State</h2>
+        <p>Both event and command packages follow the same ISP split pattern:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Concern</th>
+              <th>Events</th>
+              <th>Commands</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Write side</td>
+              <td><code>EventSink</code></td>
+              <td><code>CommandSink</code></td>
+            </tr>
+            <tr>
+              <td>Read side</td>
+              <td><code>EventSource</code></td>
+              <td><code>CommandSource</code></td>
+            </tr>
+            <tr>
+              <td>Combined</td>
+              <td><code>Store</code></td>
+              <td><code>Store</code></td>
+            </tr>
+            <tr>
+              <td>Cross-aggregate read</td>
+              <td><code>Journal</code> / <code>SeekableJournal</code></td>
+              <td style="color: var(--accent); font-weight: 600">❌ Missing</td>
+            </tr>
+            <tr>
+              <td>Position-based read</td>
+              <td><code>SeekableJournal.ReadFrom</code></td>
+              <td style="color: var(--accent); font-weight: 600">❌ Missing</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The gap is real: there is no way to answer "what commands were dispatched across the
+          system?" — which is essential for audit trails, compliance, and replay debugging.
+        </p>
+      </section>
 
-  <section class="section" id="the-gap">
-    <span class="section-label">03</span>
-    <h2>The Gap: Missing CommandJournal</h2>
-    <p>
-      A <code>CommandJournal</code> would serve several use cases that currently have no home:
-    </p>
-    <ul>
-      <li><strong>Audit trail</strong> — "Show me every command that touched aggregate X across all types"</li>
-      <li><strong>Compliance</strong> — "Who issued what commands and when?"</li>
-      <li><strong>Replay debugging</strong> — "Replay commands to reproduce a bug state"</li>
-      <li><strong>Analytics</strong> — "Which command types are most frequent? Which fail?"</li>
-    </ul>
-    <div class="callout callout-green">
-      <div class="callout-title">Agreed</div>
-      <p>CommandJournal is a legitimate concept. The question is only about <em>how</em> to model it — shared generic or independent concrete.</p>
-    </div>
-  </section>
+      <section class="section" id="the-gap">
+        <span class="section-label">03</span>
+        <h2>The Gap: Missing CommandJournal</h2>
+        <p>
+          A <code>CommandJournal</code> would serve several use cases that currently have no home:
+        </p>
+        <ul>
+          <li>
+            <strong>Audit trail</strong> — "Show me every command that touched aggregate X across
+            all types"
+          </li>
+          <li><strong>Compliance</strong> — "Who issued what commands and when?"</li>
+          <li><strong>Replay debugging</strong> — "Replay commands to reproduce a bug state"</li>
+          <li><strong>Analytics</strong> — "Which command types are most frequent? Which fail?"</li>
+        </ul>
+        <div class="callout callout-green">
+          <div class="callout-title">Agreed</div>
+          <p>
+            CommandJournal is a legitimate concept. The question is only about <em>how</em> to model
+            it — shared generic or independent concrete.
+          </p>
+        </div>
+      </section>
 
-  <section class="section" id="option-a">
-    <span class="section-label">04</span>
-    <h2>Option A — Generic Journal[T, ID]</h2>
-    <p>
-      Extract a generic base into a shared location (e.g. <code>core/pkg/journal</code>) and have both event and command journals inherit from it:
-    </p>
-    <pre><code><span class="cm">// core/pkg/journal/journal.go</span>
+      <section class="section" id="option-a">
+        <span class="section-label">04</span>
+        <h2>Option A — Generic Journal[T, ID]</h2>
+        <p>
+          Extract a generic base into a shared location (e.g. <code>core/pkg/journal</code>) and
+          have both event and command journals inherit from it:
+        </p>
+        <pre><code><span class="cm">// core/pkg/journal/journal.go</span>
 <span class="kw">package</span> journal
 
 <span class="kw">type</span> <span class="tp">Journal</span>[T <span class="tp">any</span>] <span class="kw">interface</span> {
@@ -530,35 +585,62 @@
 <span class="kw">var</span> _ journal.<span class="tp">SeekableJournal</span>[<span class="tp">Event</span>, <span class="tp">id.EventID</span>] = (*<span class="tp">SQLEventStore</span>)(<span class="op">nil</span>)
 <span class="kw">var</span> _ journal.<span class="tp">SeekableJournal</span>[*<span class="tp">PersistedCommand</span>, <span class="tp">id.CommandID</span>] = (*<span class="tp">SQLCommandStore</span>)(<span class="op">nil</span>)</code></pre>
 
-    <h3>Pros</h3>
-    <ul>
-      <li>DRY — one interface definition for the shared shape</li>
-      <li>Enforces structural consistency between event and command journals</li>
-      <li>Opens the door for generic utilities (e.g. replay logic that works on any journal)</li>
-    </ul>
+        <h3>Pros</h3>
+        <ul>
+          <li>DRY — one interface definition for the shared shape</li>
+          <li>Enforces structural consistency between event and command journals</li>
+          <li>
+            Opens the door for generic utilities (e.g. replay logic that works on any journal)
+          </li>
+        </ul>
 
-    <h3>Cons</h3>
-    <ul>
-      <li><strong>The return types diverge</strong> — events return <code>[]Event</code> (value), commands return <code>[]*PersistedCommand</code> (pointer with serialized payload). Consumers handle them completely differently.</li>
-      <li><strong>Only two implementations</strong> — if we had 5+ journal types, a generic pays off. With 2, it's abstraction overhead for symmetry.</li>
-      <li><strong>No good home</strong> — putting <code>Journal[T, ID]</code> in <code>core/pkg/journal/</code> creates a micro-dependency that exists purely for DRY. Neither event nor command package should depend on the other's abstraction.</li>
-      <li><strong>They will diverge</strong> — Command journals may need <code>ReadByStatus()</code>, <code>ReadByUser()</code>. Event journals may need <code>ReadByAggregateType()</code>. A shared generic constrains both to the lowest common denominator.</li>
-      <li><strong>Type parameters add noise</strong> — <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is harder to read than <code>SeekableCommandJournal</code>.</li>
-    </ul>
+        <h3>Cons</h3>
+        <ul>
+          <li>
+            <strong>The return types diverge</strong> — events return <code>[]Event</code> (value),
+            commands return <code>[]*PersistedCommand</code> (pointer with serialized payload).
+            Consumers handle them completely differently.
+          </li>
+          <li>
+            <strong>Only two implementations</strong> — if we had 5+ journal types, a generic pays
+            off. With 2, it's abstraction overhead for symmetry.
+          </li>
+          <li>
+            <strong>No good home</strong> — putting <code>Journal[T, ID]</code> in
+            <code>core/pkg/journal/</code> creates a micro-dependency that exists purely for DRY.
+            Neither event nor command package should depend on the other's abstraction.
+          </li>
+          <li>
+            <strong>They will diverge</strong> — Command journals may need
+            <code>ReadByStatus()</code>, <code>ReadByUser()</code>. Event journals may need
+            <code>ReadByAggregateType()</code>. A shared generic constrains both to the lowest
+            common denominator.
+          </li>
+          <li>
+            <strong>Type parameters add noise</strong> —
+            <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is harder to read than
+            <code>SeekableCommandJournal</code>.
+          </li>
+        </ul>
 
-    <div class="callout callout-amber">
-      <div class="callout-title">Risk</div>
-      <p>The generic base becomes a <em>least common denominator</em> that neither side is happy with. Each domain grows domain-specific methods, and the shared base becomes an empty ceremony.</p>
-    </div>
-  </section>
+        <div class="callout callout-amber">
+          <div class="callout-title">Risk</div>
+          <p>
+            The generic base becomes a <em>least common denominator</em> that neither side is happy
+            with. Each domain grows domain-specific methods, and the shared base becomes an empty
+            ceremony.
+          </p>
+        </div>
+      </section>
 
-  <section class="section" id="option-b">
-    <span class="section-label">05</span>
-    <h2>Option B — Concrete CommandJournal</h2>
-    <p>
-      Mirror the event pattern with domain-specific interfaces in <code>core/command/store.go</code>:
-    </p>
-    <pre><code><span class="cm">// core/command/store.go — new interfaces</span>
+      <section class="section" id="option-b">
+        <span class="section-label">05</span>
+        <h2>Option B — Concrete CommandJournal</h2>
+        <p>
+          Mirror the event pattern with domain-specific interfaces in
+          <code>core/command/store.go</code>:
+        </p>
+        <pre><code><span class="cm">// core/command/store.go — new interfaces</span>
 
 <span class="cm">// CommandJournal reads all commands across all aggregates,</span>
 <span class="cm">// ordered by ReceivedAt. The command-audit-trail equivalent of event.Journal.</span>
@@ -573,175 +655,230 @@
     <span class="fn">ReadFrom</span>(ctx <span class="tp">context.Context</span>, afterCommandID <span class="tp">id.CommandID</span>, limit <span class="tp">int</span>) ([]*<span class="tp">PersistedCommand</span>, <span class="tp">error</span>)
 }</code></pre>
 
-    <h3>Pros</h3>
-    <ul>
-      <li><strong>Zero coupling</strong> — command and event packages evolve independently</li>
-      <li><strong>Free to diverge</strong> — add <code>ReadByStatus()</code> to CommandJournal without breaking Event Journal's contract</li>
-      <li><strong>Clear naming</strong> — <code>SeekableCommandJournal</code> is self-documenting; <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is not</li>
-      <li><strong>Follows existing pattern</strong> — mirrors <code>CommandSink</code>/<code>CommandSource</code> which are already concrete</li>
-      <li><strong>10 lines of duplication</strong> — cheaper than the generic abstraction layer</li>
-    </ul>
+        <h3>Pros</h3>
+        <ul>
+          <li><strong>Zero coupling</strong> — command and event packages evolve independently</li>
+          <li>
+            <strong>Free to diverge</strong> — add <code>ReadByStatus()</code> to CommandJournal
+            without breaking Event Journal's contract
+          </li>
+          <li>
+            <strong>Clear naming</strong> — <code>SeekableCommandJournal</code> is self-documenting;
+            <code>SeekableJournal[*PersistedCommand, id.CommandID]</code> is not
+          </li>
+          <li>
+            <strong>Follows existing pattern</strong> — mirrors <code>CommandSink</code>/<code
+              >CommandSource</code
+            >
+            which are already concrete
+          </li>
+          <li>
+            <strong>10 lines of duplication</strong> — cheaper than the generic abstraction layer
+          </li>
+        </ul>
 
-    <h3>Cons</h3>
-    <ul>
-      <li>Structural duplication — both journals have <code>ReadAll</code> + <code>ReadFrom</code></li>
-      <li>No shared utility code (but no actual need for it yet)</li>
-    </ul>
+        <h3>Cons</h3>
+        <ul>
+          <li>
+            Structural duplication — both journals have <code>ReadAll</code> + <code>ReadFrom</code>
+          </li>
+          <li>No shared utility code (but no actual need for it yet)</li>
+        </ul>
 
-    <div class="callout callout-green">
-      <div class="callout-title">Strength</div>
-      <p>The ISP split pattern is already proven in this codebase. CommandSink/CommandSource are concrete mirrors of EventSink/EventSource. CommandJournal should follow the same proven pattern.</p>
-    </div>
-  </section>
+        <div class="callout callout-green">
+          <div class="callout-title">Strength</div>
+          <p>
+            The ISP split pattern is already proven in this codebase. CommandSink/CommandSource are
+            concrete mirrors of EventSink/EventSource. CommandJournal should follow the same proven
+            pattern.
+          </p>
+        </div>
+      </section>
 
-  <section class="section" id="comparison">
-    <span class="section-label">06</span>
-    <h2>Side-by-Side Comparison</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Criterion</th>
-          <th>Generic Journal[T, ID]</th>
-          <th>Concrete CommandJournal</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Coupling</td>
-          <td>Shared dependency on <code>core/pkg/journal</code></td>
-          <td style="color: var(--green); font-weight: 500;">Zero — fully independent</td>
-        </tr>
-        <tr>
-          <td>Evolvability</td>
-          <td>LCD constraint — both must fit the generic</td>
-          <td style="color: var(--green); font-weight: 500;">Free divergence per domain</td>
-        </tr>
-        <tr>
-          <td>Readability</td>
-          <td><code>SeekableJournal[*PersistedCommand, id.CommandID]</code></td>
-          <td style="color: var(--green); font-weight: 500;"><code>SeekableCommandJournal</code></td>
-        </tr>
-        <tr>
-          <td>Duplication cost</td>
-          <td>~0 lines</td>
-          <td>~10 lines of interface definitions</td>
-        </tr>
-        <tr>
-          <td>New package</td>
-          <td>Yes — <code>core/pkg/journal</code></td>
-          <td style="color: var(--green); font-weight: 500;">No — added to existing <code>core/command/store.go</code></td>
-        </tr>
-        <tr>
-          <td>Consistent with existing code</td>
-          <td>No — breaks Sink/Source precedent</td>
-          <td style="color: var(--green); font-weight: 500;">Yes — mirrors CommandSink/CommandSource</td>
-        </tr>
-        <tr>
-          <td>Future-proof for 3rd journal type</td>
-          <td style="color: var(--blue); font-weight: 500;">Easier to add</td>
-          <td>Copy 10 lines</td>
-        </tr>
-        <tr>
-          <td>Generic utility reuse</td>
-          <td style="color: var(--blue); font-weight: 500;">Possible (e.g. replay helpers)</td>
-          <td>Per-domain helpers</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+      <section class="section" id="comparison">
+        <span class="section-label">06</span>
+        <h2>Side-by-Side Comparison</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Criterion</th>
+              <th>Generic Journal[T, ID]</th>
+              <th>Concrete CommandJournal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Coupling</td>
+              <td>Shared dependency on <code>core/pkg/journal</code></td>
+              <td style="color: var(--green); font-weight: 500">Zero — fully independent</td>
+            </tr>
+            <tr>
+              <td>Evolvability</td>
+              <td>LCD constraint — both must fit the generic</td>
+              <td style="color: var(--green); font-weight: 500">Free divergence per domain</td>
+            </tr>
+            <tr>
+              <td>Readability</td>
+              <td><code>SeekableJournal[*PersistedCommand, id.CommandID]</code></td>
+              <td style="color: var(--green); font-weight: 500">
+                <code>SeekableCommandJournal</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Duplication cost</td>
+              <td>~0 lines</td>
+              <td>~10 lines of interface definitions</td>
+            </tr>
+            <tr>
+              <td>New package</td>
+              <td>Yes — <code>core/pkg/journal</code></td>
+              <td style="color: var(--green); font-weight: 500">
+                No — added to existing <code>core/command/store.go</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Consistent with existing code</td>
+              <td>No — breaks Sink/Source precedent</td>
+              <td style="color: var(--green); font-weight: 500">
+                Yes — mirrors CommandSink/CommandSource
+              </td>
+            </tr>
+            <tr>
+              <td>Future-proof for 3rd journal type</td>
+              <td style="color: var(--blue); font-weight: 500">Easier to add</td>
+              <td>Copy 10 lines</td>
+            </tr>
+            <tr>
+              <td>Generic utility reuse</td>
+              <td style="color: var(--blue); font-weight: 500">Possible (e.g. replay helpers)</td>
+              <td>Per-domain helpers</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-  <section class="section" id="decision">
-    <span class="section-label">07</span>
-    <h2>Decision</h2>
+      <section class="section" id="decision">
+        <span class="section-label">07</span>
+        <h2>Decision</h2>
 
-    <div class="callout callout-green">
-      <div class="callout-title">Verdict — Concrete CommandJournal</div>
-      <p>
-        The duplication is ~10 lines of interface definitions — far cheaper than the abstraction cost of a generic base. The two domains (events and commands) will diverge in their query needs, and a shared generic would become an LCD straightjacket. The existing Sink/Source precedent already proves the concrete-mirror pattern works well in this codebase.
-      </p>
-    </div>
+        <div class="callout callout-green">
+          <div class="callout-title">Verdict — Concrete CommandJournal</div>
+          <p>
+            The duplication is ~10 lines of interface definitions — far cheaper than the abstraction
+            cost of a generic base. The two domains (events and commands) will diverge in their
+            query needs, and a shared generic would become an LCD straightjacket. The existing
+            Sink/Source precedent already proves the concrete-mirror pattern works well in this
+            codebase.
+          </p>
+        </div>
 
-    <p>
-      The generic approach would only pay off if we had 5+ distinct journal types with identical semantics. With 2 (events and commands), the cost of the abstraction exceeds the cost of the duplication.
-    </p>
+        <p>
+          The generic approach would only pay off if we had 5+ distinct journal types with identical
+          semantics. With 2 (events and commands), the cost of the abstraction exceeds the cost of
+          the duplication.
+        </p>
 
-    <h3>Key reasons</h3>
-    <ol>
-      <li><strong>Return types diverge</strong> — <code>[]Event</code> vs <code>[]*PersistedCommand</code> are fundamentally different shapes</li>
-      <li><strong>Query needs will diverge</strong> — commands need status/user filtering; events need aggregate-type filtering</li>
-      <li><strong>No good home for the generic</strong> — a <code>core/pkg/journal</code> package exists purely for DRY</li>
-      <li><strong>Proven pattern</strong> — CommandSink/CommandSource already mirror EventSink/EventSource concretely</li>
-      <li><strong>YAGNI</strong> — exactly 2 implementations; generic overhead is premature</li>
-    </ol>
-  </section>
+        <h3>Key reasons</h3>
+        <ol>
+          <li>
+            <strong>Return types diverge</strong> — <code>[]Event</code> vs
+            <code>[]*PersistedCommand</code> are fundamentally different shapes
+          </li>
+          <li>
+            <strong>Query needs will diverge</strong> — commands need status/user filtering; events
+            need aggregate-type filtering
+          </li>
+          <li>
+            <strong>No good home for the generic</strong> — a <code>core/pkg/journal</code> package
+            exists purely for DRY
+          </li>
+          <li>
+            <strong>Proven pattern</strong> — CommandSink/CommandSource already mirror
+            EventSink/EventSource concretely
+          </li>
+          <li><strong>YAGNI</strong> — exactly 2 implementations; generic overhead is premature</li>
+        </ol>
+      </section>
 
-  <section class="section" id="next-steps">
-    <span class="section-label">08</span>
-    <h2>Next Steps</h2>
-    <ol>
-      <li>Add <code>CommandJournal</code> and <code>SeekableCommandJournal</code> interfaces to <code>core/command/store.go</code></li>
-      <li>Implement both on <code>storage.SQLEventStore</code> (or a new <code>SQLCommandStore</code>)</li>
-      <li>Add <code>CommandJournal</code> / <code>SeekableCommandJournal</code> to the in-memory <code>memory</code> package</li>
-      <li>Write integration tests for cross-aggregate command replay</li>
-      <li>Update AGENTS.md with the new interfaces</li>
-    </ol>
-  </section>
+      <section class="section" id="next-steps">
+        <span class="section-label">08</span>
+        <h2>Next Steps</h2>
+        <ol>
+          <li>
+            Add <code>CommandJournal</code> and <code>SeekableCommandJournal</code> interfaces to
+            <code>core/command/store.go</code>
+          </li>
+          <li>
+            Implement both on <code>storage.SQLEventStore</code> (or a new
+            <code>SQLCommandStore</code>)
+          </li>
+          <li>
+            Add <code>CommandJournal</code> / <code>SeekableCommandJournal</code> to the in-memory
+            <code>memory</code> package
+          </li>
+          <li>Write integration tests for cross-aggregate command replay</li>
+          <li>Update AGENTS.md with the new interfaces</li>
+        </ol>
+      </section>
 
-  <section class="section" id="journal-vs-outbox">
-    <span class="section-label">09</span>
-    <h2>Journal vs Outbox</h2>
+      <section class="section" id="journal-vs-outbox">
+        <span class="section-label">09</span>
+        <h2>Journal vs Outbox</h2>
 
-    <p>
-      Both Journal and Outbox deal with event streams, but they solve fundamentally different problems. They are complementary, not competing.
-    </p>
+        <p>
+          Both Journal and Outbox deal with event streams, but they solve fundamentally different
+          problems. They are complementary, not competing.
+        </p>
 
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Journal</th>
-          <th>Outbox</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Purpose</strong></td>
-          <td>Complete ordered log — replay, audit, projections</td>
-          <td>Reliable publishing queue</td>
-        </tr>
-        <tr>
-          <td><strong>Lifecycle</strong></td>
-          <td>Permanent, append-only</td>
-          <td>Temporary — entries deleted after ACK</td>
-        </tr>
-        <tr>
-          <td><strong>Data scope</strong></td>
-          <td>All events/commands ever</td>
-          <td>Only unpublished events</td>
-        </tr>
-        <tr>
-          <td><strong>Consumer</strong></td>
-          <td>Projections, audit, debugging</td>
-          <td>Background publisher → Bus</td>
-        </tr>
-        <tr>
-          <td><strong>Interface</strong></td>
-          <td><code>ReadAll</code> / <code>ReadFrom</code></td>
-          <td><code>Append</code> / <code>PollPending</code> / <code>Ack</code></td>
-        </tr>
-        <tr>
-          <td><strong>Ordering</strong></td>
-          <td>By OccurredAt (global)</td>
-          <td>By CreatedAt (FIFO queue)</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Journal</th>
+              <th>Outbox</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Purpose</strong></td>
+              <td>Complete ordered log — replay, audit, projections</td>
+              <td>Reliable publishing queue</td>
+            </tr>
+            <tr>
+              <td><strong>Lifecycle</strong></td>
+              <td>Permanent, append-only</td>
+              <td>Temporary — entries deleted after ACK</td>
+            </tr>
+            <tr>
+              <td><strong>Data scope</strong></td>
+              <td>All events/commands ever</td>
+              <td>Only unpublished events</td>
+            </tr>
+            <tr>
+              <td><strong>Consumer</strong></td>
+              <td>Projections, audit, debugging</td>
+              <td>Background publisher → Bus</td>
+            </tr>
+            <tr>
+              <td><strong>Interface</strong></td>
+              <td><code>ReadAll</code> / <code>ReadFrom</code></td>
+              <td><code>Append</code> / <code>PollPending</code> / <code>Ack</code></td>
+            </tr>
+            <tr>
+              <td><strong>Ordering</strong></td>
+              <td>By OccurredAt (global)</td>
+              <td>By CreatedAt (FIFO queue)</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <p>
-      The Outbox solves the <strong>dual-write problem</strong>: atomically persist events + stage them for <code>Bus.Publish</code> in the same transaction. Once published and ACKed, entries are deleted.
-    </p>
+        <p>
+          The Outbox solves the <strong>dual-write problem</strong>: atomically persist events +
+          stage them for <code>Bus.Publish</code> in the same transaction. Once published and ACKed,
+          entries are deleted.
+        </p>
 
-    <pre><code><span class="cm">// Outbox lifecycle (core/event/outbox.go):</span>
+        <pre><code><span class="cm">// Outbox lifecycle (core/event/outbox.go):</span>
 <span class="cm">// 1. Repository.Save calls Outbox.Append(events) inside the store tx</span>
 <span class="cm">// 2. Background OutboxPublisher polls Outbox.PollPending</span>
 <span class="cm">// 3. Publisher calls Bus.Publish for each entry</span>
@@ -754,78 +891,105 @@
     <span class="fn">Ack</span>(ctx <span class="tp">context.Context</span>, ids []<span class="tp">OutboxID</span>) <span class="tp">error</span>
 }</code></pre>
 
-    <p>
-      A Journal is the opposite: it <strong>keeps everything forever</strong> for replay. You never ACK or delete from a Journal.
-    </p>
+        <p>
+          A Journal is the opposite: it <strong>keeps everything forever</strong> for replay. You
+          never ACK or delete from a Journal.
+        </p>
 
-    <h3>Does CommandJournal need an Outbox?</h3>
-    <p>
-      <strong>Yes — if commands are published.</strong> Commands can and should be published, just like events. A <code>CommandBus</code> (or <code>CommandPublisher</code>) is the natural mirror of <code>event.Bus</code>. When a command is both persisted <em>and</em> published, the same dual-write problem applies: you need atomic persistence + staging, which is exactly the Outbox pattern.
-    </p>
+        <h3>Does CommandJournal need an Outbox?</h3>
+        <p>
+          <strong>Yes — if commands are published.</strong> Commands can and should be published,
+          just like events. A <code>CommandBus</code> (or <code>CommandPublisher</code>) is the
+          natural mirror of <code>event.Bus</code>. When a command is both persisted
+          <em>and</em> published, the same dual-write problem applies: you need atomic persistence +
+          staging, which is exactly the Outbox pattern.
+        </p>
 
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Events</th>
-          <th>Commands (future)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Publish</strong></td>
-          <td><code>event.Bus.Publish</code></td>
-          <td><code>CommandBus.Publish</code> (not yet implemented)</td>
-        </tr>
-        <tr>
-          <td><strong>Subscribe</strong></td>
-          <td><code>event.Bus.Subscribe</code></td>
-          <td><code>CommandBus.Subscribe</code></td>
-        </tr>
-        <tr>
-          <td><strong>Outbox</strong></td>
-          <td><code>event.Outbox</code> (implemented)</td>
-          <td><code>CommandOutbox</code> (not yet implemented)</td>
-        </tr>
-        <tr>
-          <td><strong>Journal</strong></td>
-          <td><code>event.Journal</code> (implemented)</td>
-          <td><code>CommandJournal</code> (proposed)</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Events</th>
+              <th>Commands (future)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Publish</strong></td>
+              <td><code>event.Bus.Publish</code></td>
+              <td><code>CommandBus.Publish</code> (not yet implemented)</td>
+            </tr>
+            <tr>
+              <td><strong>Subscribe</strong></td>
+              <td><code>event.Bus.Subscribe</code></td>
+              <td><code>CommandBus.Subscribe</code></td>
+            </tr>
+            <tr>
+              <td><strong>Outbox</strong></td>
+              <td><code>event.Outbox</code> (implemented)</td>
+              <td><code>CommandOutbox</code> (not yet implemented)</td>
+            </tr>
+            <tr>
+              <td><strong>Journal</strong></td>
+              <td><code>event.Journal</code> (implemented)</td>
+              <td><code>CommandJournal</code> (proposed)</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <p>
-      Currently, commands only have a <code>Dispatcher</code> (dispatch to handler in-process). There is no <code>CommandBus</code> / <code>CommandPublisher</code> yet. But the design should account for it — commands flowing between services (microservice orchestration, saga coordination) need the same reliable publishing guarantees as events.
-    </p>
+        <p>
+          Currently, commands only have a <code>Dispatcher</code> (dispatch to handler in-process).
+          There is no <code>CommandBus</code> / <code>CommandPublisher</code> yet. But the design
+          should account for it — commands flowing between services (microservice orchestration,
+          saga coordination) need the same reliable publishing guarantees as events.
+        </p>
 
-    <div class="callout callout-amber">
-      <div class="callout-title">Gap Identified</div>
-      <p>The command side is missing three event-side concepts: <strong>CommandBus</strong> (publish/subscribe), <strong>CommandOutbox</strong> (reliable publishing), and <strong>CommandJournal</strong> (audit trail). The event side has all three: <code>event.Bus</code>, <code>event.Outbox</code>, <code>event.Journal</code>. This is an architectural gap worth addressing.</p>
-    </div>
+        <div class="callout callout-amber">
+          <div class="callout-title">Gap Identified</div>
+          <p>
+            The command side is missing three event-side concepts:
+            <strong>CommandBus</strong> (publish/subscribe),
+            <strong>CommandOutbox</strong> (reliable publishing), and
+            <strong>CommandJournal</strong> (audit trail). The event side has all three:
+            <code>event.Bus</code>, <code>event.Outbox</code>, <code>event.Journal</code>. This is
+            an architectural gap worth addressing.
+          </p>
+        </div>
 
-    <div class="callout callout-blue">
-      <div class="callout-title">Insight</div>
-      <p>Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally: events/commands are persisted to the Journal <em>and</em> staged in the Outbox atomically. The Outbox empties; the Journal grows.</p>
-    </div>
-  </section>
+        <div class="callout callout-blue">
+          <div class="callout-title">Insight</div>
+          <p>
+            Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a
+            <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally:
+            events/commands are persisted to the Journal <em>and</em> staged in the Outbox
+            atomically. The Outbox empties; the Journal grows.
+          </p>
+        </div>
+      </section>
 
-  <section class="section" id="persisted-command">
-    <span class="section-label">10</span>
-    <h2>PersistedCommand vs ImmutableEvent</h2>
+      <section class="section" id="persisted-command">
+        <span class="section-label">10</span>
+        <h2>PersistedCommand vs ImmutableEvent</h2>
 
-    <p>
-      A natural question when encountering <code>PersistedCommand</code>: why does the command side have a separate "persisted" type, while events have <code>ImmutableEvent</code> and no <code>PersistedEvent</code>?
-    </p>
+        <p>
+          A natural question when encountering <code>PersistedCommand</code>: why does the command
+          side have a separate "persisted" type, while events have <code>ImmutableEvent</code> and
+          no <code>PersistedEvent</code>?
+        </p>
 
-    <div class="callout callout-green">
-      <div class="callout-title">Answer</div>
-      <p>Both sides actually have the same shape: an in-memory type that <em>can</em> be persisted but doesn't have to be. The naming difference is misleading — <code>ImmutableEvent</code> is just as "live" as <code>BasicCommand</code> until you call <code>Save()</code>.</p>
-    </div>
+        <div class="callout callout-green">
+          <div class="callout-title">Answer</div>
+          <p>
+            Both sides actually have the same shape: an in-memory type that <em>can</em> be
+            persisted but doesn't have to be. The naming difference is misleading —
+            <code>ImmutableEvent</code> is just as "live" as <code>BasicCommand</code> until you
+            call <code>Save()</code>.
+          </p>
+        </div>
 
-    <h3>Both sides have in-memory forms that become persisted on Save</h3>
+        <h3>Both sides have in-memory forms that become persisted on Save</h3>
 
-    <pre><code><span class="cm">// Events — ImmutableEvent is an in-memory struct. Only persisted when you call sink.Save().</span>
+        <pre><code><span class="cm">// Events — ImmutableEvent is an in-memory struct. Only persisted when you call sink.Save().</span>
 evt, _ := event.NewEvent("user.created", userID, "User", event.Version(1), UserCreated{Name: "Alice"})
 <span class="cm">// evt exists in memory. It's NOT persisted yet.</span>
 <span class="cm">// You could throw it away, publish it to a bus, or save it:</span>
@@ -837,150 +1001,174 @@ cmd := command.New("create.user", aggregateID, command.WithCorrelationID(corrID)
 <span class="cm">// You could dispatch it and forget, or persist it:</span>
 persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pre>
 
-    <p>
-      The real difference isn't "born persisted" vs "two lifecycles" — both types live in memory until explicitly persisted. The actual distinction is:
-    </p>
+        <p>
+          The real difference isn't "born persisted" vs "two lifecycles" — both types live in memory
+          until explicitly persisted. The actual distinction is:
+        </p>
 
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th><code>ImmutableEvent</code></th>
-          <th><code>BasicCommand</code> → <code>PersistedCommand</code></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>In-memory form</td>
-          <td><code>ImmutableEvent</code> (always has ID, timestamp, serialized payload)</td>
-          <td><code>BasicCommand</code> (no ID, no timestamp, typed payload)</td>
-        </tr>
-        <tr>
-          <td>Persisted form</td>
-          <td>Same struct — <code>ImmutableEvent</code> goes straight to <code>Sink.Save()</code></td>
-          <td>Separate struct — <code>NewPersistedCommand()</code> wraps with ID, timestamp, <code>[]byte</code></td>
-        </tr>
-        <tr>
-          <td>Serialization</td>
-          <td>At creation time (<code>NewEvent</code> marshals payload → bytes)</td>
-          <td>At persistence time (<code>NewPersistedCommand</code> takes <code>[]byte</code>)</td>
-        </tr>
-        <tr>
-          <td>ID allocation</td>
-          <td>Always (<code>id.EventID</code> via ULID)</td>
-          <td>Only on persist (<code>id.CommandID</code>)</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th><code>ImmutableEvent</code></th>
+              <th><code>BasicCommand</code> → <code>PersistedCommand</code></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>In-memory form</td>
+              <td><code>ImmutableEvent</code> (always has ID, timestamp, serialized payload)</td>
+              <td><code>BasicCommand</code> (no ID, no timestamp, typed payload)</td>
+            </tr>
+            <tr>
+              <td>Persisted form</td>
+              <td>
+                Same struct — <code>ImmutableEvent</code> goes straight to <code>Sink.Save()</code>
+              </td>
+              <td>
+                Separate struct — <code>NewPersistedCommand()</code> wraps with ID, timestamp,
+                <code>[]byte</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Serialization</td>
+              <td>At creation time (<code>NewEvent</code> marshals payload → bytes)</td>
+              <td>
+                At persistence time (<code>NewPersistedCommand</code> takes <code>[]byte</code>)
+              </td>
+            </tr>
+            <tr>
+              <td>ID allocation</td>
+              <td>Always (<code>id.EventID</code> via ULID)</td>
+              <td>Only on persist (<code>id.CommandID</code>)</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <div class="callout callout-amber">
-      <div class="callout-title">Honest Assessment</div>
-      <p>The event side <em>could</em> have a <code>PersistedEvent</code> too — a separate struct that adds storage-specific fields. It doesn't because <code>ImmutableEvent</code> was designed to be storage-ready from the start (ID, timestamp, bytes payload). The command side didn't get that treatment: <code>BasicCommand</code> is lightweight (no ID, no timestamp, typed payload), so <code>PersistedCommand</code> bridges the gap. Both approaches work, but the asymmetry is a design choice, not a law of nature.</p>
+        <div class="callout callout-amber">
+          <div class="callout-title">Honest Assessment</div>
+          <p>
+            The event side <em>could</em> have a <code>PersistedEvent</code> too — a separate struct
+            that adds storage-specific fields. It doesn't because <code>ImmutableEvent</code> was
+            designed to be storage-ready from the start (ID, timestamp, bytes payload). The command
+            side didn't get that treatment: <code>BasicCommand</code> is lightweight (no ID, no
+            timestamp, typed payload), so <code>PersistedCommand</code> bridges the gap. Both
+            approaches work, but the asymmetry is a design choice, not a law of nature.
+          </p>
+        </div>
+
+        <h3>The command side — two forms, two lifecycles</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th><code>BasicCommand</code> (live)</th>
+              <th><code>PersistedCommand</code> (storage)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>—</td>
+              <td><code>id.CommandID</code></td>
+            </tr>
+            <tr>
+              <td>Timestamp</td>
+              <td>—</td>
+              <td><code>ReceivedAt</code></td>
+            </tr>
+            <tr>
+              <td>Payload</td>
+              <td>typed struct (generic <code>T</code>)</td>
+              <td><code>[]byte</code> (serialized)</td>
+            </tr>
+            <tr>
+              <td>Aggregate info</td>
+              <td><code>AggregateID()</code></td>
+              <td><code>AggregateRef{Type, ID}</code></td>
+            </tr>
+            <tr>
+              <td>Use case</td>
+              <td>In-memory dispatch via <code>Dispatcher</code></td>
+              <td>Storage, audit, replay</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Commands have <strong>two distinct lifecycles</strong>: they're dispatched in-memory
+          (live) and optionally persisted to storage (audit). The split exists because not every
+          dispatched command needs persistence — allocating an ID and timestamp for every
+          fire-and-forget dispatch would be wasteful.
+        </p>
+
+        <h3>Revised comparison</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Aspect</th>
+              <th>Events</th>
+              <th>Commands</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nature</td>
+              <td>Facts — immutable by definition</td>
+              <td>Intentions — may succeed or fail</td>
+            </tr>
+            <tr>
+              <td>In-memory form</td>
+              <td><code>ImmutableEvent</code> (heavy: ID + timestamp + bytes)</td>
+              <td><code>BasicCommand</code> (light: type + aggregateID only)</td>
+            </tr>
+            <tr>
+              <td>Storage-ready?</td>
+              <td>Yes — same struct goes to <code>Sink.Save()</code></td>
+              <td>No — must convert to <code>PersistedCommand</code></td>
+            </tr>
+            <tr>
+              <td>Serialization timing</td>
+              <td>At creation (<code>NewEvent</code>)</td>
+              <td>At persist (<code>NewPersistedCommand</code>)</td>
+            </tr>
+            <tr>
+              <td>Publishable?</td>
+              <td>Yes — <code>Bus.Publish</code></td>
+              <td>Not yet — no <code>CommandBus</code> exists</td>
+            </tr>
+            <tr>
+              <td>Outbox?</td>
+              <td>Yes — <code>event.Outbox</code></td>
+              <td>Not yet — no <code>CommandOutbox</code> exists</td>
+            </tr>
+            <tr>
+              <td>Journal?</td>
+              <td>Yes — <code>event.Journal</code></td>
+              <td>Not yet — <code>CommandJournal</code> proposed</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-blue">
+          <div class="callout-title">Open Questions</div>
+          <p>
+            <strong>1.</strong> Could the command side follow the event pattern — make
+            <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating
+            <code>PersistedCommand</code>? This would unify the shapes but allocate IDs for
+            fire-and-forget dispatches. <strong>2.</strong> Should the event side introduce a
+            <code>PersistedEvent</code> too, for full symmetry? Probably not —
+            <code>ImmutableEvent</code> already works as both forms. <strong>3.</strong> When
+            <code>CommandBus</code> is added, should <code>PersistedCommand</code> become the
+            publishable type (like <code>ImmutableEvent</code> is for <code>Bus.Publish</code>), or
+            should publishing use <code>BasicCommand</code>?
+          </p>
+        </div>
+      </section>
+
+      <footer>go-cqrs-lite &middot; research &middot; 2026-05-29</footer>
     </div>
-
-    <h3>The command side — two forms, two lifecycles</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th><code>BasicCommand</code> (live)</th>
-          <th><code>PersistedCommand</code> (storage)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>ID</td>
-          <td>—</td>
-          <td><code>id.CommandID</code></td>
-        </tr>
-        <tr>
-          <td>Timestamp</td>
-          <td>—</td>
-          <td><code>ReceivedAt</code></td>
-        </tr>
-        <tr>
-          <td>Payload</td>
-          <td>typed struct (generic <code>T</code>)</td>
-          <td><code>[]byte</code> (serialized)</td>
-        </tr>
-        <tr>
-          <td>Aggregate info</td>
-          <td><code>AggregateID()</code></td>
-          <td><code>AggregateRef{Type, ID}</code></td>
-        </tr>
-        <tr>
-          <td>Use case</td>
-          <td>In-memory dispatch via <code>Dispatcher</code></td>
-          <td>Storage, audit, replay</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>
-      Commands have <strong>two distinct lifecycles</strong>: they're dispatched in-memory (live) and optionally persisted to storage (audit). The split exists because not every dispatched command needs persistence — allocating an ID and timestamp for every fire-and-forget dispatch would be wasteful.
-    </p>
-
-    <h3>Revised comparison</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Aspect</th>
-          <th>Events</th>
-          <th>Commands</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Nature</td>
-          <td>Facts — immutable by definition</td>
-          <td>Intentions — may succeed or fail</td>
-        </tr>
-        <tr>
-          <td>In-memory form</td>
-          <td><code>ImmutableEvent</code> (heavy: ID + timestamp + bytes)</td>
-          <td><code>BasicCommand</code> (light: type + aggregateID only)</td>
-        </tr>
-        <tr>
-          <td>Storage-ready?</td>
-          <td>Yes — same struct goes to <code>Sink.Save()</code></td>
-          <td>No — must convert to <code>PersistedCommand</code></td>
-        </tr>
-        <tr>
-          <td>Serialization timing</td>
-          <td>At creation (<code>NewEvent</code>)</td>
-          <td>At persist (<code>NewPersistedCommand</code>)</td>
-        </tr>
-        <tr>
-          <td>Publishable?</td>
-          <td>Yes — <code>Bus.Publish</code></td>
-          <td>Not yet — no <code>CommandBus</code> exists</td>
-        </tr>
-        <tr>
-          <td>Outbox?</td>
-          <td>Yes — <code>event.Outbox</code></td>
-          <td>Not yet — no <code>CommandOutbox</code> exists</td>
-        </tr>
-        <tr>
-          <td>Journal?</td>
-          <td>Yes — <code>event.Journal</code></td>
-          <td>Not yet — <code>CommandJournal</code> proposed</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout callout-blue">
-      <div class="callout-title">Open Questions</div>
-      <p><strong>1.</strong> Could the command side follow the event pattern — make <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating <code>PersistedCommand</code>? This would unify the shapes but allocate IDs for fire-and-forget dispatches. <strong>2.</strong> Should the event side introduce a <code>PersistedEvent</code> too, for full symmetry? Probably not — <code>ImmutableEvent</code> already works as both forms. <strong>3.</strong> When <code>CommandBus</code> is added, should <code>PersistedCommand</code> become the publishable type (like <code>ImmutableEvent</code> is for <code>Bus.Publish</code>), or should publishing use <code>BasicCommand</code>?</p>
-    </div>
-  </section>
-
-  <footer>
-    go-cqrs-lite &middot; research &middot; 2026-05-29
-  </footer>
-
-</div>
-
-</body>
+  </body>
 </html>

@@ -9,7 +9,7 @@ import (
 type Handler func(ctx context.Context, event Event) error
 
 // Publisher sends events without subscribing. Most consumers (repositories,
-// outbox publishers) only need this interface — they never subscribe.
+// projections) only need this interface — they never subscribe.
 type Publisher interface {
 	Publish(ctx context.Context, events ...Event) error
 }

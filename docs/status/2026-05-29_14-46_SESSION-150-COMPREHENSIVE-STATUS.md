@@ -8,38 +8,38 @@
 
 ## Module Health Dashboard
 
-| Module | Build | Tests | Coverage | Notes |
-|--------|-------|-------|----------|-------|
-| core/command | OK | PASS | 94.7% | |
-| core/decider | OK | PASS | 100.0% | |
-| core/event | OK | PASS | 90.7% | God-package, 30+ files |
-| core/pkg/dispatcher | OK | PASS | 92.2% | |
-| core/pkg/id | OK | PASS | 94.5% | Branded IDs |
-| memory | OK | PASS | 99.1% | |
-| storage | OK | PASS* | ~90% | 2 test fixes uncommitted |
-| projection | OK | PASS | 90.4% | |
-| pebble | OK | PASS | 87.9% | |
-| catalog | OK | PASS | 96.3% | |
-| catalog/asyncapi | OK | PASS | 93.7% | |
-| catalog/d2 | OK | PASS | 95.0% | |
-| catalog/docserver | OK | PASS | 89.9% | |
-| catalog/eventcatalog | OK | PASS | 92.8% | |
-| catalog/openapi | OK | PASS | 96.2% | |
-| catalog/schema | OK | PASS | 86.0% | |
-| middleware | OK | PASS | 94.0% | |
-| testhelpers | OK | PASS | 83.7% | |
-| signing | OK | PASS | 93.7% | |
-| signing/multisig | OK | PASS | 94.2% | |
-| integration | OK | PASS | — | Cross-module tests |
-| integration/signing | OK | PASS | — | |
-| watermill | OK | PASS | 94.4% | |
-| codec | OK | PASS | 100.0% | |
-| otel | OK | PASS | 96.6% | |
-| turso | OK | — | — | No test files |
-| listing | OK | — | — | New module |
-| saga | **DELETED** | — | — | Removed Session 146 |
-| stream | **DELETED** | — | — | Replaced by listing/ |
-| example/* | OK | PASS | — | 6 example modules |
+| Module               | Build       | Tests  | Coverage | Notes                    |
+| -------------------- | ----------- | ------ | -------- | ------------------------ |
+| core/command         | OK          | PASS   | 94.7%    |                          |
+| core/decider         | OK          | PASS   | 100.0%   |                          |
+| core/event           | OK          | PASS   | 90.7%    | God-package, 30+ files   |
+| core/pkg/dispatcher  | OK          | PASS   | 92.2%    |                          |
+| core/pkg/id          | OK          | PASS   | 94.5%    | Branded IDs              |
+| memory               | OK          | PASS   | 99.1%    |                          |
+| storage              | OK          | PASS\* | ~90%     | 2 test fixes uncommitted |
+| projection           | OK          | PASS   | 90.4%    |                          |
+| pebble               | OK          | PASS   | 87.9%    |                          |
+| catalog              | OK          | PASS   | 96.3%    |                          |
+| catalog/asyncapi     | OK          | PASS   | 93.7%    |                          |
+| catalog/d2           | OK          | PASS   | 95.0%    |                          |
+| catalog/docserver    | OK          | PASS   | 89.9%    |                          |
+| catalog/eventcatalog | OK          | PASS   | 92.8%    |                          |
+| catalog/openapi      | OK          | PASS   | 96.2%    |                          |
+| catalog/schema       | OK          | PASS   | 86.0%    |                          |
+| middleware           | OK          | PASS   | 94.0%    |                          |
+| testhelpers          | OK          | PASS   | 83.7%    |                          |
+| signing              | OK          | PASS   | 93.7%    |                          |
+| signing/multisig     | OK          | PASS   | 94.2%    |                          |
+| integration          | OK          | PASS   | —        | Cross-module tests       |
+| integration/signing  | OK          | PASS   | —        |                          |
+| watermill            | OK          | PASS   | 94.4%    |                          |
+| codec                | OK          | PASS   | 100.0%   |                          |
+| otel                 | OK          | PASS   | 96.6%    |                          |
+| turso                | OK          | —      | —        | No test files            |
+| listing              | OK          | —      | —        | New module               |
+| saga                 | **DELETED** | —      | —        | Removed Session 146      |
+| stream               | **DELETED** | —      | —        | Replaced by listing/     |
+| example/\*           | OK          | PASS   | —        | 6 example modules        |
 
 **Totals:** 28 modules in go.work, 26 build clean, 24 have tests, 22 test green.
 **Coverage:** Avg 93.2% across tested packages. All above 83% threshold.
@@ -151,33 +151,33 @@
 
 **Priority-ordered by impact × feasibility:**
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | Commit dangling storage test fixes (payload_encoding) | HIGH | 5min | storage |
-| 2 | Finish AggregateRef migration across ALL modules | CRITICAL | 2-3h | all |
-| 3 | Push v1.0.0 tags, remove replace directives | HIGH | 30min | infra |
-| 4 | Rewrite example/user/ as full-stack CQRS demo | HIGH | 4h | example |
-| 5 | Add example/user/ smoke test | MEDIUM | 30min | example |
-| 6 | Increase projection coverage to 95%+ | MEDIUM | 2h | projection |
-| 7 | Build catch-up projection runner | HIGH | 4h | projection |
-| 8 | Benchmark storage backends (PG vs SQLite vs Pebble) | MEDIUM | 3h | storage/pebble |
-| 9 | Add gofumpt/goimports to pre-commit hook | LOW | 15min | infra |
-| 10 | Parallelize CI matrix (one job per module) | MEDIUM | 1h | CI |
-| 11 | Fix storage test flake with -coverprofile | LOW | 30min | storage |
-| 12 | Add E2E throughput benchmarks | MEDIUM | 2h | cross-module |
-| 13 | Add fuzz tests (event creation, ID parsing, upcaster) | MEDIUM | 3h | core |
-| 14 | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | LOW | 1h | core |
-| 15 | Split decider_test.go (~1200L) into focused files | LOW | 1h | core/decider |
-| 16 | Enforce 350-line test file limit via pre-commit | LOW | 30min | infra |
-| 17 | Add stream/listing module integration tests | MEDIUM | 2h | listing |
-| 18 | Performance regression CI (benchmark comparison per PR) | MEDIUM | 2h | CI |
-| 19 | Set up pkg.go.dev documentation hosting | LOW | 30min | infra |
-| 20 | Create documentation site (Docusaurus/MkDocs) | MEDIUM | 8h | docs |
-| 21 | Split core/event god-package into sub-packages | HIGH | 8h | core |
-| 22 | Add high-level test utilities (AggregateTester, ProjectionTester) | MEDIUM | 4h | testhelpers |
-| 23 | Add catalog diff/breaking-change detection tool | MEDIUM | 4h | catalog |
-| 24 | Add thin PostgreSQL store adapter (no Watermill) | HIGH | 6h | storage |
-| 25 | Add thin NATS bus adapter (no Watermill) | HIGH | 6h | watermill |
+| #   | Task                                                               | Impact   | Effort | Module         |
+| --- | ------------------------------------------------------------------ | -------- | ------ | -------------- |
+| 1   | Commit dangling storage test fixes (payload_encoding)              | HIGH     | 5min   | storage        |
+| 2   | Finish AggregateRef migration across ALL modules                   | CRITICAL | 2-3h   | all            |
+| 3   | Push v1.0.0 tags, remove replace directives                        | HIGH     | 30min  | infra          |
+| 4   | Rewrite example/user/ as full-stack CQRS demo                      | HIGH     | 4h     | example        |
+| 5   | Add example/user/ smoke test                                       | MEDIUM   | 30min  | example        |
+| 6   | Increase projection coverage to 95%+                               | MEDIUM   | 2h     | projection     |
+| 7   | Build catch-up projection runner                                   | HIGH     | 4h     | projection     |
+| 8   | Benchmark storage backends (PG vs SQLite vs Pebble)                | MEDIUM   | 3h     | storage/pebble |
+| 9   | Add gofumpt/goimports to pre-commit hook                           | LOW      | 15min  | infra          |
+| 10  | Parallelize CI matrix (one job per module)                         | MEDIUM   | 1h     | CI             |
+| 11  | Fix storage test flake with -coverprofile                          | LOW      | 30min  | storage        |
+| 12  | Add E2E throughput benchmarks                                      | MEDIUM   | 2h     | cross-module   |
+| 13  | Add fuzz tests (event creation, ID parsing, upcaster)              | MEDIUM   | 3h     | core           |
+| 14  | Add BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | LOW      | 1h     | core           |
+| 15  | Split decider_test.go (~1200L) into focused files                  | LOW      | 1h     | core/decider   |
+| 16  | Enforce 350-line test file limit via pre-commit                    | LOW      | 30min  | infra          |
+| 17  | Add stream/listing module integration tests                        | MEDIUM   | 2h     | listing        |
+| 18  | Performance regression CI (benchmark comparison per PR)            | MEDIUM   | 2h     | CI             |
+| 19  | Set up pkg.go.dev documentation hosting                            | LOW      | 30min  | infra          |
+| 20  | Create documentation site (Docusaurus/MkDocs)                      | MEDIUM   | 8h     | docs           |
+| 21  | Split core/event god-package into sub-packages                     | HIGH     | 8h     | core           |
+| 22  | Add high-level test utilities (AggregateTester, ProjectionTester)  | MEDIUM   | 4h     | testhelpers    |
+| 23  | Add catalog diff/breaking-change detection tool                    | MEDIUM   | 4h     | catalog        |
+| 24  | Add thin PostgreSQL store adapter (no Watermill)                   | HIGH     | 6h     | storage        |
+| 25  | Add thin NATS bus adapter (no Watermill)                           | HIGH     | 6h     | watermill      |
 
 ---
 
@@ -198,6 +198,7 @@ store.Load(ctx, event.AggregateRef{Type: "User", ID: aggID})
 ```
 
 The new `AggregateRef` style is clearly better (strong types, fewer params). But:
+
 - Is `event.NewAggregateRef("User", aggID)` the canonical constructor, or should callers use struct literals?
 - Should `AggregateRef.Type` be `event.AggregateType` (string alias) or `string`?
 - Are there plans for `AggregateRef` to gain methods or become an interface?

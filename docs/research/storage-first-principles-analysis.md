@@ -22,29 +22,29 @@ Sources studied:
 
 What the design philosophy documents demand from storage, and how well the current module delivers:
 
-| # | Principle (from source docs) | Storage Implication | Current Status |
-|---|---|---|---|
-| 1 | **Choose persistence at RUNTIME, not build time** (Hate #4) | Dialect/backend swappable without recompilation | **GOOD** — `NewXxxWithDialect(db, dialect)` escape hatch; `SQLiteDialect`/`PostgresDialect` runtime selection |
-| 2 | **Adaptive I/O: HDD vs SSD vs NVMe** (Hate #21) | Configurable flush/durability strategies | **MISSING** — fixed behavior per backend; Pebble has `WithAsyncWrites()` but no general pattern |
-| 3 | **NEVER LOSE DATA** (Perfect #19) | Transactional integrity, outbox, durable writes | **GOOD** — `SaveWithOutbox` atomic TX, optimistic concurrency, tombstone over delete |
-| 4 | **Data Store aware but independent** (Perfect R2 #8) | Clean abstraction boundary; same API, any backend | **EXCELLENT** — ISP-split interfaces (Sink/Source/Journal/Seekable) + Dialect abstraction |
-| 5 | **Event Sourcing** (Perfect #3) | Immutable append-only store as foundation | **EXCELLENT** — no Delete, no mutation, version-ordered streams |
-| 6 | **Time-Travel + What-If** (Perfect #41, R4 #1) | `LoadToVersion`, `LoadToTimestamp`, retroactive scenarios | **GOOD** — `LoadToVersion` + `LoadToTimestamp` cover 95%; no bi-temporal model |
-| 7 | **Data locality** (Perfect #26) | Embedded (Pebble/SQLite) vs remote (PG/Turso) choice | **GOOD** — 4 backends cover the spectrum; Pebble gaps limit full locality |
-| 8 | **Local first** (Perfect #27) | SQLite/Pebble as first-class citizens | **PARTIAL** — SQLite is first-class; Pebble incomplete (no Snapshot/Checkpoint/Outbox) |
-| 9 | **Plugin system** (Perfect #2) | Storage backends as pluggable modules | **GOOD** — `Dialect` interface + `WithDialect` allow custom backends |
-| 10 | **Materialized Views / Projections** (Perfect #43) | Checkpoint store, aggregate reader | **GOOD** — `SQLCheckpointStore`, `AggregateProjection`, `SQLAggregateReader` exist |
-| 11 | **OTEL observability** (Perfect #35) | Tracing on every operation | **GOOD** — `storage/otel.go` + `storage/sql/otel.go`; spans on Save |
-| 12 | **Snapshots** (Perfect #42) | Snapshot store for fast aggregate hydration | **GOOD** — `SQLSnapshotStore` with Save/Load/LoadAtVersion/Delete |
-| 13 | **Dead-Letter Queues** (Perfect #39) | Outbox pattern with retry/error tracking | **PARTIAL** — Outbox exists but no DLQ; failed events stay pending forever |
-| 14 | **Idempotency** (Perfect #40) | Optimistic concurrency + idempotent outbox | **GOOD** — version check on Save, outbox append is idempotent |
-| 15 | **Smart Retry** (Perfect #25) | Retry middleware on transient failures | **GOOD** — `middleware.Retry` exists; storage itself doesn't retry |
-| 16 | **Errors as Values** (Perfect #20) | Typed errors, no panics | **EXCELLENT** — 5-family error taxonomy, sentinel errors, `%w` wrapping |
-| 17 | **Strong types** (Hate #24) | No `any`, unsigned for non-negative | **GOOD** — Version is `uint64`; `dialect.go` uses `any` for SQL interop (unavoidable) |
-| 18 | **No MEGA files** (Hate #44) | <250 lines per file | **GOOD** — most files under 250 lines; `snapshot.go` at 251 is borderline |
-| 19 | **Caching on every layer** (Perfect #65) | In-memory caching of snapshots/checkpoints | **MISSING** — no caching layer anywhere in storage |
-| 20 | **Compression** (Perfect R2 #4) | Payload compression in storage | **MISSING** — no compression; JSON metadata and raw bytes stored as-is |
-| 21 | **Automated docs** (Perfect #48) | Schema docs, AsyncAPI, auto-generated | **GOOD** — `catalog/` module handles this; storage just provides data |
+| #   | Principle (from source docs)                                | Storage Implication                                       | Current Status                                                                                                |
+| --- | ----------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1   | **Choose persistence at RUNTIME, not build time** (Hate #4) | Dialect/backend swappable without recompilation           | **GOOD** — `NewXxxWithDialect(db, dialect)` escape hatch; `SQLiteDialect`/`PostgresDialect` runtime selection |
+| 2   | **Adaptive I/O: HDD vs SSD vs NVMe** (Hate #21)             | Configurable flush/durability strategies                  | **MISSING** — fixed behavior per backend; Pebble has `WithAsyncWrites()` but no general pattern               |
+| 3   | **NEVER LOSE DATA** (Perfect #19)                           | Transactional integrity, outbox, durable writes           | **GOOD** — `SaveWithOutbox` atomic TX, optimistic concurrency, tombstone over delete                          |
+| 4   | **Data Store aware but independent** (Perfect R2 #8)        | Clean abstraction boundary; same API, any backend         | **EXCELLENT** — ISP-split interfaces (Sink/Source/Journal/Seekable) + Dialect abstraction                     |
+| 5   | **Event Sourcing** (Perfect #3)                             | Immutable append-only store as foundation                 | **EXCELLENT** — no Delete, no mutation, version-ordered streams                                               |
+| 6   | **Time-Travel + What-If** (Perfect #41, R4 #1)              | `LoadToVersion`, `LoadToTimestamp`, retroactive scenarios | **GOOD** — `LoadToVersion` + `LoadToTimestamp` cover 95%; no bi-temporal model                                |
+| 7   | **Data locality** (Perfect #26)                             | Embedded (Pebble/SQLite) vs remote (PG/Turso) choice      | **GOOD** — 4 backends cover the spectrum; Pebble gaps limit full locality                                     |
+| 8   | **Local first** (Perfect #27)                               | SQLite/Pebble as first-class citizens                     | **PARTIAL** — SQLite is first-class; Pebble incomplete (no Snapshot/Checkpoint/Outbox)                        |
+| 9   | **Plugin system** (Perfect #2)                              | Storage backends as pluggable modules                     | **GOOD** — `Dialect` interface + `WithDialect` allow custom backends                                          |
+| 10  | **Materialized Views / Projections** (Perfect #43)          | Checkpoint store, aggregate reader                        | **GOOD** — `SQLCheckpointStore`, `AggregateProjection`, `SQLAggregateReader` exist                            |
+| 11  | **OTEL observability** (Perfect #35)                        | Tracing on every operation                                | **GOOD** — `storage/otel.go` + `storage/sql/otel.go`; spans on Save                                           |
+| 12  | **Snapshots** (Perfect #42)                                 | Snapshot store for fast aggregate hydration               | **GOOD** — `SQLSnapshotStore` with Save/Load/LoadAtVersion/Delete                                             |
+| 13  | **Dead-Letter Queues** (Perfect #39)                        | Outbox pattern with retry/error tracking                  | **PARTIAL** — Outbox exists but no DLQ; failed events stay pending forever                                    |
+| 14  | **Idempotency** (Perfect #40)                               | Optimistic concurrency + idempotent outbox                | **GOOD** — version check on Save, outbox append is idempotent                                                 |
+| 15  | **Smart Retry** (Perfect #25)                               | Retry middleware on transient failures                    | **GOOD** — `middleware.Retry` exists; storage itself doesn't retry                                            |
+| 16  | **Errors as Values** (Perfect #20)                          | Typed errors, no panics                                   | **EXCELLENT** — 5-family error taxonomy, sentinel errors, `%w` wrapping                                       |
+| 17  | **Strong types** (Hate #24)                                 | No `any`, unsigned for non-negative                       | **GOOD** — Version is `uint64`; `dialect.go` uses `any` for SQL interop (unavoidable)                         |
+| 18  | **No MEGA files** (Hate #44)                                | <250 lines per file                                       | **GOOD** — most files under 250 lines; `snapshot.go` at 251 is borderline                                     |
+| 19  | **Caching on every layer** (Perfect #65)                    | In-memory caching of snapshots/checkpoints                | **MISSING** — no caching layer anywhere in storage                                                            |
+| 20  | **Compression** (Perfect R2 #4)                             | Payload compression in storage                            | **MISSING** — no compression; JSON metadata and raw bytes stored as-is                                        |
+| 21  | **Automated docs** (Perfect #48)                            | Schema docs, AsyncAPI, auto-generated                     | **GOOD** — `catalog/` module handles this; storage just provides data                                         |
 
 ---
 
@@ -52,38 +52,38 @@ What the design philosophy documents demand from storage, and how well the curre
 
 ### Module Inventory
 
-| Module | LOC | Interfaces Implemented | Backend |
-|---|---|---|---|
-| `storage/` | ~3,200 | Store, Journal, SeekableJournal, BackwardsSource, StreamLoader, TransactionalSink, Outbox, SnapshotStore, CheckpointStore | PostgreSQL, SQLite |
-| `storage/sql/` | ~800 | *(shared infrastructure, no interfaces)* | — |
-| `pebble/` | ~600 | Store only | Pebble KV |
-| `turso/` | ~200 | *(delegates to storage/)* | Turso/libSQL |
-| `memory/` | ~400 | Store, Bus, SnapshotStore | In-memory |
+| Module         | LOC    | Interfaces Implemented                                                                                                    | Backend            |
+| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `storage/`     | ~3,200 | Store, Journal, SeekableJournal, BackwardsSource, StreamLoader, TransactionalSink, Outbox, SnapshotStore, CheckpointStore | PostgreSQL, SQLite |
+| `storage/sql/` | ~800   | _(shared infrastructure, no interfaces)_                                                                                  | —                  |
+| `pebble/`      | ~600   | Store only                                                                                                                | Pebble KV          |
+| `turso/`       | ~200   | _(delegates to storage/)_                                                                                                 | Turso/libSQL       |
+| `memory/`      | ~400   | Store, Bus, SnapshotStore                                                                                                 | In-memory          |
 
 ### Interface Coverage Matrix
 
-| Interface | `storage/` (SQL) | `pebble/` | `memory/` | `turso/` (via SQL) |
-|---|---|---|---|---|
-| `EventSink` (Save, AppendBatch) | ✅ | ✅ | ✅ | ✅ |
-| `EventSource` (Load, LoadFromVersion, LoadToVersion, LoadToTimestamp) | ✅ | ✅ | ✅ | ✅ |
-| `Store` (Sink + Source) | ✅ | ✅ | ✅ | ✅ |
-| `Journal` (ReadAll) | ✅ | ❌ | ❌ | ✅ |
-| `SeekableJournal` (ReadFrom) | ✅ | ❌ | ❌ | ✅ |
-| `BackwardsSource` (LoadBackwards) | ✅ | ❌ | ❌ | ✅ |
-| `StreamLoader` (LoadStream) | ✅ | ❌ | ❌ | ✅ |
-| `TransactionalSink` (SaveWithOutbox) | ✅ | ❌ | ❌ | ✅ |
-| `Outbox` (Append, PollPending, Ack) | ✅ | ❌ | ❌ | ✅ |
-| `SnapshotStore` (Save, Load, LoadAtVersion, Delete) | ✅ | ❌ | ✅ | ✅ |
-| `CheckpointStore` (Load, Save) | ✅ | ❌ | ❌ | ✅ |
+| Interface                                                             | `storage/` (SQL) | `pebble/` | `memory/` | `turso/` (via SQL) |
+| --------------------------------------------------------------------- | ---------------- | --------- | --------- | ------------------ |
+| `EventSink` (Save, AppendBatch)                                       | ✅               | ✅        | ✅        | ✅                 |
+| `EventSource` (Load, LoadFromVersion, LoadToVersion, LoadToTimestamp) | ✅               | ✅        | ✅        | ✅                 |
+| `Store` (Sink + Source)                                               | ✅               | ✅        | ✅        | ✅                 |
+| `Journal` (ReadAll)                                                   | ✅               | ❌        | ❌        | ✅                 |
+| `SeekableJournal` (ReadFrom)                                          | ✅               | ❌        | ❌        | ✅                 |
+| `BackwardsSource` (LoadBackwards)                                     | ✅               | ❌        | ❌        | ✅                 |
+| `StreamLoader` (LoadStream)                                           | ✅               | ❌        | ❌        | ✅                 |
+| `TransactionalSink` (SaveWithOutbox)                                  | ✅               | ❌        | ❌        | ✅                 |
+| `Outbox` (Append, PollPending, Ack)                                   | ✅               | ❌        | ❌        | ✅                 |
+| `SnapshotStore` (Save, Load, LoadAtVersion, Delete)                   | ✅               | ❌        | ✅        | ✅                 |
+| `CheckpointStore` (Load, Save)                                        | ✅               | ❌        | ❌        | ✅                 |
 
 ### Schema (4 tables, dual DDL)
 
-| Table | Columns | PG Types | SQLite Types |
-|---|---|---|---|
-| `events` | id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at, created_at | `BYTEA`, `JSONB`, `TIMESTAMPTZ`, `VARCHAR(255)` | `BLOB`, `TEXT`, `TEXT` |
-| `snapshots` | aggregate_type, aggregate_id, version, state, created_at | `JSONB` state | `BLOB` state |
-| `checkpoints` | projection_name (PK), event_id, processed_at | `TIMESTAMP` | `TEXT` |
-| `outbox` | id (PK), status, events (JSON), created_at | `JSONB` events | `TEXT` events |
+| Table         | Columns                                                                                                           | PG Types                                        | SQLite Types           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ---------------------- |
+| `events`      | id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at, created_at | `BYTEA`, `JSONB`, `TIMESTAMPTZ`, `VARCHAR(255)` | `BLOB`, `TEXT`, `TEXT` |
+| `snapshots`   | aggregate_type, aggregate_id, version, state, created_at                                                          | `JSONB` state                                   | `BLOB` state           |
+| `checkpoints` | projection_name (PK), event_id, processed_at                                                                      | `TIMESTAMP`                                     | `TEXT`                 |
+| `outbox`      | id (PK), status, events (JSON), created_at                                                                        | `JSONB` events                                  | `TEXT` events          |
 
 **Indexes on `events`:** `(aggregate_type, aggregate_id)`, `(event_type)`, `(occurred_at)`, `(aggregate_type, aggregate_id, occurred_at)`
 
@@ -97,16 +97,16 @@ What the design philosophy documents demand from storage, and how well the curre
 
 The `storage/sql/` sub-package was started as an extraction of shared SQL infrastructure but was never completed. Both locations contain **near-identical** code:
 
-| File | `storage/` (root) | `storage/sql/` |
-|---|---|---|
-| Dialect interface + impls | `dialect.go` (190 lines) | `dialect.go` (190 lines) |
-| Base struct | `sql_base.go` (21 lines) | `base.go` (25 lines) |
-| Error sentinels | `errors.go` (53 lines) | `errors.go` (56 lines) |
-| Table constants | `tables.go` (9 lines) | `tables.go` (13 lines) |
-| SQL helpers | `sql_helpers.go` (234 lines) | `helpers.go` (229 lines) |
-| Event reconstruction | `event_reconstruction.go` (182 lines) | `reconstruction.go` (185 lines) |
-| OTEL helpers | `otel.go` (36 lines) | `otel.go` (38 lines) |
-| SQLite timestamp parsing | `sqlite_helpers.go` (partial) | `sqlite.go` (35 lines) |
+| File                      | `storage/` (root)                     | `storage/sql/`                  |
+| ------------------------- | ------------------------------------- | ------------------------------- |
+| Dialect interface + impls | `dialect.go` (190 lines)              | `dialect.go` (190 lines)        |
+| Base struct               | `sql_base.go` (21 lines)              | `base.go` (25 lines)            |
+| Error sentinels           | `errors.go` (53 lines)                | `errors.go` (56 lines)          |
+| Table constants           | `tables.go` (9 lines)                 | `tables.go` (13 lines)          |
+| SQL helpers               | `sql_helpers.go` (234 lines)          | `helpers.go` (229 lines)        |
+| Event reconstruction      | `event_reconstruction.go` (182 lines) | `reconstruction.go` (185 lines) |
+| OTEL helpers              | `otel.go` (36 lines)                  | `otel.go` (38 lines)            |
+| SQLite timestamp parsing  | `sqlite_helpers.go` (partial)         | `sqlite.go` (35 lines)          |
 
 **Root package uses private versions** (`sqlBase`, `placeholders`, `reconstructEvent`). **`sql/` has exported equivalents** (`Base`, `Placeholders`, `ReconstructEvent`). Neither imports from the other — they are fully independent copies.
 
@@ -155,6 +155,7 @@ References APIs that don't exist or have changed:
 From Hate #21: "Writing to DISK in randomly decided intervals... the dev needs to figure this out at compile time."
 
 Current behavior is fixed per backend:
+
 - PostgreSQL: `synchronous_commit=on` (consumer must tune)
 - SQLite: `PRAGMA synchronous=FULL` (set once at init, no runtime control)
 - Pebble: `WithAsyncWrites()` option exists but is the only knob
@@ -174,6 +175,7 @@ From Perfect #39: "Dead-Letter Queues." The `OutboxPoller` retries forever on fa
 #### 3.9. No Caching Layer
 
 From Perfect #65: "Smart Caches on every layer." No in-memory caching exists for:
+
 - Snapshots (frequently loaded for aggregate hydration)
 - Checkpoints (read on every projection tick)
 - Aggregate listing queries
@@ -184,28 +186,29 @@ From Perfect #65: "Smart Caches on every layer." No in-memory caching exists for
 
 ### How go-cqrs-lite Compares to Go CQRS/ES Libraries
 
-| Feature | go-cqrs-lite | looplab/eventhorizon (1.7k★) | thefabric-io/eventsourcing | global-soft-ba/go-eventstore |
-|---|---|---|---|---|
-| **Storage backends** | PG, SQLite, Pebble, Turso | Memory, MongoDB, PG (community), DynamoDB (community) | PostgreSQL only | PG, Memory, Redis, OpenSearch |
-| **Interface segregation** | ✅ 7 focused interfaces (Sink/Source/Journal/etc.) | ❌ Single `EventStore` interface | ❌ Single `Store` interface | ❌ Single `EventStore` interface |
-| **Dialect abstraction** | ✅ `Dialect` interface | ❌ Per-backend implementations | ❌ PG-only | ❌ Per-backend implementations |
-| **Transactional outbox** | ✅ Built-in, atomic | ❌ External middleware | ❌ Not built-in | ❌ Not built-in |
-| **Snapshots** | ✅ Full CRUD | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Projection checkpoints** | ✅ Built-in | ✅ Yes | ✅ Advanced offset mgmt | ✅ Yes |
-| **Time-travel queries** | ✅ LoadToVersion + LoadToTimestamp | ❌ Limited | ❌ Not visible | ✅ Bi-temporal (AsAt/AsOf) |
-| **Backwards loading** | ✅ `LoadBackwards` | ❌ No | ❌ No | ❌ No |
-| **Streaming reads** | ✅ `EventStream` cursor | ❌ No | ❌ No | ❌ No |
-| **Event signing** | ✅ HMAC + Ed25519 | ❌ No | ❌ No | ❌ No |
-| **OpenTelemetry** | ✅ Built-in | ✅ Via middleware | ❌ Not visible | ❌ Not visible |
-| **Event upcasting** | ✅ `VersionedStore` decorator | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Branded IDs** | ✅ `id.Of[T]` | ❌ `uuid.UUID` | ❌ String IDs | ❌ String IDs |
-| **Embedded/local-first** | ✅ SQLite + Pebble | ❌ No embedded option | ❌ No | ❌ No |
-| **Code generation** | ✅ `cqrs-gen` | ❌ No | ❌ No | ❌ No |
-| **Auto-docs (AsyncAPI/OpenAPI)** | ✅ `catalog/` module | ❌ No | ❌ No | ❌ No |
+| Feature                          | go-cqrs-lite                                       | looplab/eventhorizon (1.7k★)                          | thefabric-io/eventsourcing  | global-soft-ba/go-eventstore     |
+| -------------------------------- | -------------------------------------------------- | ----------------------------------------------------- | --------------------------- | -------------------------------- |
+| **Storage backends**             | PG, SQLite, Pebble, Turso                          | Memory, MongoDB, PG (community), DynamoDB (community) | PostgreSQL only             | PG, Memory, Redis, OpenSearch    |
+| **Interface segregation**        | ✅ 7 focused interfaces (Sink/Source/Journal/etc.) | ❌ Single `EventStore` interface                      | ❌ Single `Store` interface | ❌ Single `EventStore` interface |
+| **Dialect abstraction**          | ✅ `Dialect` interface                             | ❌ Per-backend implementations                        | ❌ PG-only                  | ❌ Per-backend implementations   |
+| **Transactional outbox**         | ✅ Built-in, atomic                                | ❌ External middleware                                | ❌ Not built-in             | ❌ Not built-in                  |
+| **Snapshots**                    | ✅ Full CRUD                                       | ✅ Yes                                                | ✅ Yes                      | ✅ Yes                           |
+| **Projection checkpoints**       | ✅ Built-in                                        | ✅ Yes                                                | ✅ Advanced offset mgmt     | ✅ Yes                           |
+| **Time-travel queries**          | ✅ LoadToVersion + LoadToTimestamp                 | ❌ Limited                                            | ❌ Not visible              | ✅ Bi-temporal (AsAt/AsOf)       |
+| **Backwards loading**            | ✅ `LoadBackwards`                                 | ❌ No                                                 | ❌ No                       | ❌ No                            |
+| **Streaming reads**              | ✅ `EventStream` cursor                            | ❌ No                                                 | ❌ No                       | ❌ No                            |
+| **Event signing**                | ✅ HMAC + Ed25519                                  | ❌ No                                                 | ❌ No                       | ❌ No                            |
+| **OpenTelemetry**                | ✅ Built-in                                        | ✅ Via middleware                                     | ❌ Not visible              | ❌ Not visible                   |
+| **Event upcasting**              | ✅ `VersionedStore` decorator                      | ✅ Yes                                                | ✅ Yes                      | ✅ Yes                           |
+| **Branded IDs**                  | ✅ `id.Of[T]`                                      | ❌ `uuid.UUID`                                        | ❌ String IDs               | ❌ String IDs                    |
+| **Embedded/local-first**         | ✅ SQLite + Pebble                                 | ❌ No embedded option                                 | ❌ No                       | ❌ No                            |
+| **Code generation**              | ✅ `cqrs-gen`                                      | ❌ No                                                 | ❌ No                       | ❌ No                            |
+| **Auto-docs (AsyncAPI/OpenAPI)** | ✅ `catalog/` module                               | ❌ No                                                 | ❌ No                       | ❌ No                            |
 
 ### Key Differentiators
 
 **go-cqrs-lite leads on:**
+
 1. Interface segregation — the Sink/Source/Journal split is genuinely superior
 2. Local-first support — SQLite + Pebble for embedded scenarios
 3. Dialect abstraction — one implementation, multiple SQL backends
@@ -213,6 +216,7 @@ From Perfect #65: "Smart Caches on every layer." No in-memory caching exists for
 5. Branded IDs — type-safe IDs with generics
 
 **go-cqrs-lite trails on:**
+
 1. Number of storage backends (eventhorizon has MongoDB, DynamoDB, Redis, ScyllaDB via community)
 2. Bi-temporal queries (go-eventstore has full bi-temporal model)
 3. Migration tooling (none vs basic in most libraries)
@@ -226,6 +230,7 @@ From Perfect #65: "Smart Caches on every layer." No in-memory caching exists for
 **1.1. Consolidate `storage/sql/` into `storage/`**
 
 Options:
+
 - **Option A: Absorb** — Move all `sql/` exports into root package, delete `sql/` sub-package
 - **Option B: Canonical `sql/`** — Root files import from `sql/`, re-export or delegate
 - **Option C: Keep `sql/` as public API** — Move all shared logic there, root package becomes thin wrapper
@@ -249,16 +254,19 @@ Both must accept and use `Dialect` for placeholder generation. This is a correct
 ### Phase 3: Complete Pebble [HIGH]
 
 **3.1. Pebble `SnapshotStore`**
+
 - Key: `cqrs_snapshot:{aggregateType}:{aggregateID}`
 - Value: JSON `{version, state, created_at}`
 - Implements `SnapshotSink`, `SnapshotSource`, `SnapshotStore`
 
 **3.2. Pebble `CheckpointStore`**
+
 - Key: `cqrs_checkpoint:{projectionName}`
 - Value: JSON `{event_id, processed_at}`
 - Implements `CheckpointSink`, `CheckpointSource`, `CheckpointStore`
 
 **3.3. Pebble `Outbox`**
+
 - Key: `cqrs_outbox:{id}` with separate pending index
 - Append: write entry + add to pending set
 - PollPending: scan pending set
@@ -312,16 +320,16 @@ const (
 
 ## 6. Deliberately Excluded (YAGNI)
 
-| Idea | Why Excluded |
-|---|---|
-| MySQL/Cockroach/ScyllaDB dialects | `WithDialect` escape hatch exists; add when there's real demand |
-| CRDT event merge | Fascinating but premature; requires core interface changes |
-| Bi-temporal event model | `LoadToTimestamp` + `LoadToVersion` covers 95%; bi-temporal is niche |
-| General migration framework | Just our own schema lifecycle, not a framework |
-| Streaming Journal for Pebble | ADR-0007 was correct; use SQL for global replay |
-| Batched async writes | Consumers handle batching via middleware |
-| Event compression | Premature; add when profiling shows storage is the bottleneck |
-| Read replicas / sharding | Consumer's infrastructure concern, not library's |
+| Idea                              | Why Excluded                                                         |
+| --------------------------------- | -------------------------------------------------------------------- |
+| MySQL/Cockroach/ScyllaDB dialects | `WithDialect` escape hatch exists; add when there's real demand      |
+| CRDT event merge                  | Fascinating but premature; requires core interface changes           |
+| Bi-temporal event model           | `LoadToTimestamp` + `LoadToVersion` covers 95%; bi-temporal is niche |
+| General migration framework       | Just our own schema lifecycle, not a framework                       |
+| Streaming Journal for Pebble      | ADR-0007 was correct; use SQL for global replay                      |
+| Batched async writes              | Consumers handle batching via middleware                             |
+| Event compression                 | Premature; add when profiling shows storage is the bottleneck        |
+| Read replicas / sharding          | Consumer's infrastructure concern, not library's                     |
 
 ---
 

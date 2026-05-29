@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/storage)
 
-Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, `event.Outbox`, and `event.CheckpointStore` interfaces.
+Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, and `event.CheckpointStore` interfaces.
 
 > **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
@@ -67,30 +67,6 @@ for {
 }
 ```
 
-### SQLOutbox + OutboxPoller
-
-Transactional outbox pattern — save events and outbox entries atomically, then poll and publish:
-
-```go
-outbox, _ := storage.NewSQLiteOutbox(db)
-
-// Append events to outbox (call after store.Save)
-outbox.Append(ctx, events)
-
-// Poll for pending entries
-entries, _ := outbox.PollPending(ctx, 100)
-
-// Ack processed entries
-outbox.Ack(ctx, entryIDs)
-
-// Background poller
-poller := storage.NewOutboxPoller(outbox, bus,
-    storage.WithPollInterval(5*time.Second),
-    storage.WithBatchSize(50),
-)
-poller.Start(ctx) // runs until ctx cancelled
-```
-
 ### SQLSnapshotStore
 
 Implements `event.SnapshotStore`:
@@ -150,7 +126,6 @@ Get DDL strings for custom schema management:
 storage.EventSchema()          // PostgreSQL events DDL
 storage.SnapshotSchema()       // PostgreSQL snapshots DDL
 storage.CheckpointSchema()     // PostgreSQL checkpoints DDL
-storage.OutboxSchema()         // PostgreSQL outbox DDL
 
 storage.SQLiteEventSchema()    // SQLite variants...
 ```
@@ -168,7 +143,6 @@ type Dialect interface {
     EventSchema() string
     SnapshotSchema() string
     CheckpointSchema() string
-    OutboxSchema() string
 }
 ```
 

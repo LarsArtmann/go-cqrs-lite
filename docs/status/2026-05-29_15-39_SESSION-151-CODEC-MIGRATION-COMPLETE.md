@@ -4,6 +4,7 @@
 **Branch:** master (up to date with origin/master)
 **Working tree:** CLEAN — all changes committed
 **Last 5 commits:**
+
 - `be6340d` docs: add core/ dissolution proposal v2 and Session 150 status report
 - `d10134d` fix(storage): add payload_encoding column to SQL mock expectations
 - `adbe6ce` docs(research): add KV store abstraction research document
@@ -14,29 +15,29 @@
 
 ## Module Health Dashboard
 
-| Module | Build | Tests | Coverage | Notes |
-|--------|-------|-------|----------|-------|
-| core/command | OK | PASS | 94.7% | |
-| core/decider | OK | PASS | 100.0% | |
-| core/event | OK | PASS | 90.7% | God-package, 30+ files |
-| core/pkg/dispatcher | OK | PASS | 92.2% | |
-| core/pkg/id | OK | PASS | 94.5% | Branded IDs |
-| memory | OK | PASS | 99.1% | |
-| storage | OK | PASS | ~90% | Fixed this session |
-| projection | OK | PASS | 90.4% | codec.JSONCodec wired |
-| pebble | OK | PASS | 87.8% | Encoding persisted |
-| catalog (6 sub-packages) | OK | PASS | 86–100% | |
-| middleware | OK | PASS | 94.0% | |
-| testhelpers | OK | PASS | 83.7% | |
-| signing (+ multisig) | OK | PASS | 93.7–94.2% | |
-| integration (4 sub-packages) | OK | PASS | — | Cross-module tests |
-| watermill | OK | PASS | 94.4% | |
-| codec | OK | PASS | 100.0% | New module — zero deps |
-| otel | OK | PASS | 96.6% | |
-| listing | OK | PASS | — | Renamed from stream/ |
-| turso | OK | — | — | No tests, builds clean |
-| saga | **DELETED** | — | — | Removed Session 146 |
-| stream | **DELETED** | — | — | Renamed to listing/ |
+| Module                       | Build       | Tests | Coverage   | Notes                  |
+| ---------------------------- | ----------- | ----- | ---------- | ---------------------- |
+| core/command                 | OK          | PASS  | 94.7%      |                        |
+| core/decider                 | OK          | PASS  | 100.0%     |                        |
+| core/event                   | OK          | PASS  | 90.7%      | God-package, 30+ files |
+| core/pkg/dispatcher          | OK          | PASS  | 92.2%      |                        |
+| core/pkg/id                  | OK          | PASS  | 94.5%      | Branded IDs            |
+| memory                       | OK          | PASS  | 99.1%      |                        |
+| storage                      | OK          | PASS  | ~90%       | Fixed this session     |
+| projection                   | OK          | PASS  | 90.4%      | codec.JSONCodec wired  |
+| pebble                       | OK          | PASS  | 87.8%      | Encoding persisted     |
+| catalog (6 sub-packages)     | OK          | PASS  | 86–100%    |                        |
+| middleware                   | OK          | PASS  | 94.0%      |                        |
+| testhelpers                  | OK          | PASS  | 83.7%      |                        |
+| signing (+ multisig)         | OK          | PASS  | 93.7–94.2% |                        |
+| integration (4 sub-packages) | OK          | PASS  | —          | Cross-module tests     |
+| watermill                    | OK          | PASS  | 94.4%      |                        |
+| codec                        | OK          | PASS  | 100.0%     | New module — zero deps |
+| otel                         | OK          | PASS  | 96.6%      |                        |
+| listing                      | OK          | PASS  | —          | Renamed from stream/   |
+| turso                        | OK          | —     | —          | No tests, builds clean |
+| saga                         | **DELETED** | —     | —          | Removed Session 146    |
+| stream                       | **DELETED** | —     | —          | Renamed to listing/    |
 
 **Totals:** 22 modules in go.work (+ 6 example modules), ALL build clean, ALL tests green.
 **Tested packages:** 29 ok, 0 FAIL, 2 no-test-files (storage/sql, turso).
@@ -50,75 +51,75 @@
 
 The `codec/` module is fully extracted, integrated, and working across the entire monorepo.
 
-| Artifact | Status | Details |
-|----------|--------|---------|
-| `codec/codec.go` | DONE | `Encoding` type (`"json"`, `"raw"`), `Codec` interface (`Encoding()`, `Encode()`, `Decode()`) |
-| `codec/json.go` | DONE | `JSONCodec` — thin `json.Marshal`/`Unmarshal` wrapper |
-| `codec/raw.go` | DONE | `RawCodec` — passthrough for `[]byte` |
-| `codec/codec_test.go` | DONE | 100% coverage, encoding mismatch tests |
-| `codec/go.mod` | DONE | Zero external dependencies |
+| Artifact              | Status | Details                                                                                       |
+| --------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| `codec/codec.go`      | DONE   | `Encoding` type (`"json"`, `"raw"`), `Codec` interface (`Encoding()`, `Encode()`, `Decode()`) |
+| `codec/json.go`       | DONE   | `JSONCodec` — thin `json.Marshal`/`Unmarshal` wrapper                                         |
+| `codec/raw.go`        | DONE   | `RawCodec` — passthrough for `[]byte`                                                         |
+| `codec/codec_test.go` | DONE   | 100% coverage, encoding mismatch tests                                                        |
+| `codec/go.mod`        | DONE   | Zero external dependencies                                                                    |
 
 ### 2. Encoding Persistence — COMPLETE
 
 Encoding travels with the event through the entire lifecycle: creation → storage → retrieval → deserialization.
 
-| Layer | Status | Details |
-|-------|--------|---------|
-| **SQL schema** | DONE | `payload_encoding TEXT NOT NULL DEFAULT 'json'` column in events table |
-| **SQL INSERT** | DONE | `SharedInsertEvents` includes `string(evt.Encoding())` |
-| **SQL SELECT** | DONE | All 5 SELECT queries include `payload_encoding` |
-| **SQL reconstruction** | DONE | `sqlpkg.ReconstructEvent()` accepts `codec.Encoding` parameter |
-| **Pebble** | DONE | `serializableEvent.Encoding` field, `omitempty` for backward compat |
-| **Outbox** | DONE | `outboxEvent.Encoding` field, marshaled/reconstructed |
-| **Event scanning** | DONE | `eventColumnCount` 9→10, encoding var added to Scan |
+| Layer                  | Status | Details                                                                |
+| ---------------------- | ------ | ---------------------------------------------------------------------- |
+| **SQL schema**         | DONE   | `payload_encoding TEXT NOT NULL DEFAULT 'json'` column in events table |
+| **SQL INSERT**         | DONE   | `SharedInsertEvents` includes `string(evt.Encoding())`                 |
+| **SQL SELECT**         | DONE   | All 5 SELECT queries include `payload_encoding`                        |
+| **SQL reconstruction** | DONE   | `sqlpkg.ReconstructEvent()` accepts `codec.Encoding` parameter         |
+| **Pebble**             | DONE   | `serializableEvent.Encoding` field, `omitempty` for backward compat    |
+| **Outbox**             | DONE   | `outboxEvent.Encoding` field, marshaled/reconstructed                  |
+| **Event scanning**     | DONE   | `eventColumnCount` 9→10, encoding var added to Scan                    |
 
 ### 3. Projection Migration — COMPLETE
 
-| Change | Status |
-|--------|--------|
-| `projection.On[T]()` accepts `codec.Codec` parameter | DONE |
-| All 6 test call sites updated to pass `codec.JSONCodec{}` | DONE |
-| `projection/go.mod` has codec replace directive | DONE |
+| Change                                                    | Status |
+| --------------------------------------------------------- | ------ |
+| `projection.On[T]()` accepts `codec.Codec` parameter      | DONE   |
+| All 6 test call sites updated to pass `codec.JSONCodec{}` | DONE   |
+| `projection/go.mod` has codec replace directive           | DONE   |
 
 ### 4. Example Migration — COMPLETE
 
-| Example | Status |
-|---------|--------|
-| `example/user/state.go` | DONE — uses `event.DecodePayload[T]` with `codec.JSONCodec{}` |
-| `example/projection/main.go` | DONE — `codec.JSONCodec{}` in both `On()` calls |
-| `example/projection/smoke_test.go` | DONE — test updated |
-| `example/saga-pattern/main.go` | DONE — `codec.JSONCodec{}` in all 4 `On()` calls |
-| `example/projection/go.mod` | DONE — codec replace directive + tidy |
-| `example/saga-pattern/go.mod` | DONE — codec replace directive + tidy |
-| `example/user/go.mod` | DONE — already had codec (from earlier session) |
+| Example                            | Status                                                        |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `example/user/state.go`            | DONE — uses `event.DecodePayload[T]` with `codec.JSONCodec{}` |
+| `example/projection/main.go`       | DONE — `codec.JSONCodec{}` in both `On()` calls               |
+| `example/projection/smoke_test.go` | DONE — test updated                                           |
+| `example/saga-pattern/main.go`     | DONE — `codec.JSONCodec{}` in all 4 `On()` calls              |
+| `example/projection/go.mod`        | DONE — codec replace directive + tidy                         |
+| `example/saga-pattern/go.mod`      | DONE — codec replace directive + tidy                         |
+| `example/user/go.mod`              | DONE — already had codec (from earlier session)               |
 
 ### 5. Storage Mock Tests — COMPLETE (This Session)
 
 Fixed all mock AddRow/WithArgs calls from 9→10 columns after `payload_encoding` column addition:
 
-| File | Fix |
-|------|-----|
-| `storage/event_store_load_query_test.go` | Added `"json"` to `expectLoadRows` call in `Load_Success` |
-| `storage/event_store_save_test.go` | Added `sqlmock.AnyArg()` for encoding in `AppendBatch` (2 events) |
-| `storage/benchmark_test.go` | Added `"json"` in `mockEventRows`, `sqlmock.AnyArg()` in `BenchmarkSQLEventStore_Save` |
+| File                                     | Fix                                                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage/event_store_load_query_test.go` | Added `"json"` to `expectLoadRows` call in `Load_Success`                                                                             |
+| `storage/event_store_save_test.go`       | Added `sqlmock.AnyArg()` for encoding in `AppendBatch` (2 events)                                                                     |
+| `storage/benchmark_test.go`              | Added `"json"` in `mockEventRows`, `sqlmock.AnyArg()` in `BenchmarkSQLEventStore_Save`                                                |
 | `storage/event_store_load_query_test.go` | Parallel session fixed 5 other AddRow calls (InvalidAggregateID, InvalidEventID, InvalidMetadata, MetadataRoundtrip, LoadFromVersion) |
 
 ### 6. Core Modules — Production Quality (From Prior Sessions)
 
-| Feature | Status |
-|---------|--------|
-| Command Store — ISP split (CommandSink + CommandSource) | DONE (S149) |
-| Event sourcing — Sink/Source/Journal/SeekableJournal | DONE |
-| Decider — pure-function aggregate pattern | DONE (100% coverage) |
-| Query — typed dispatch + pagination | DONE |
-| Branded IDs — 8 types (Aggregate, Event, Command, Correlation, Causation, User, Request, Client) | DONE |
-| Error taxonomy — 5-family (Rejection, Conflict, Transient, Infrastructure, Corruption) | DONE |
-| Tombstone soft-delete — Active/Tombstoned/Undetermined | DONE |
-| Signing — HMAC-SHA256 + Ed25519 + multisig | DONE |
-| Middleware — Logging, Retry, Recovery, Validation, Metrics, OTel | DONE |
-| Pebble — embedded KV event store with WithAsyncWrites | DONE |
-| Listing — read-model builder (renamed from stream) | DONE |
-| Turso — thin Turso/LibSQL adapter | DONE |
+| Feature                                                                                          | Status               |
+| ------------------------------------------------------------------------------------------------ | -------------------- |
+| Command Store — ISP split (CommandSink + CommandSource)                                          | DONE (S149)          |
+| Event sourcing — Sink/Source/Journal/SeekableJournal                                             | DONE                 |
+| Decider — pure-function aggregate pattern                                                        | DONE (100% coverage) |
+| Query — typed dispatch + pagination                                                              | DONE                 |
+| Branded IDs — 8 types (Aggregate, Event, Command, Correlation, Causation, User, Request, Client) | DONE                 |
+| Error taxonomy — 5-family (Rejection, Conflict, Transient, Infrastructure, Corruption)           | DONE                 |
+| Tombstone soft-delete — Active/Tombstoned/Undetermined                                           | DONE                 |
+| Signing — HMAC-SHA256 + Ed25519 + multisig                                                       | DONE                 |
+| Middleware — Logging, Retry, Recovery, Validation, Metrics, OTel                                 | DONE                 |
+| Pebble — embedded KV event store with WithAsyncWrites                                            | DONE                 |
+| Listing — read-model builder (renamed from stream)                                               | DONE                 |
+| Turso — thin Turso/LibSQL adapter                                                                | DONE                 |
 
 ---
 
@@ -127,6 +128,7 @@ Fixed all mock AddRow/WithArgs calls from 9→10 columns after `payload_encoding
 ### 1. Listing Module Rename — ~95% Done
 
 The `stream/` → `listing/` rename is committed and working:
+
 - ✅ Module path, package name, all imports updated
 - ✅ go.work updated
 - ✅ example/listing updated
@@ -137,6 +139,7 @@ The `stream/` → `listing/` rename is committed and working:
 ### 2. `storage/sql` Sub-Package Extraction — COMPLETE (Fixed by Parallel Session)
 
 This was listed as "totally fucked up" in S149. The parallel session completed the refactor:
+
 - ✅ 9 files extracted to `storage/sql/` (base, dialect, doc, errors, helpers, otel, reconstruction, sqlite, tables)
 - ✅ All 13+ consumer files updated
 - ✅ Storage module compiles and all tests pass
@@ -146,6 +149,7 @@ This was listed as "totally fucked up" in S149. The parallel session completed t
 ### 3. Core Dissolution Proposal — Written, Not Executed
 
 `docs/research/PROPOSAL-dissolve-core-v2.html` proposes splitting `core/` into standalone modules:
+
 - `core/event` → standalone `event` module
 - `core/command` → standalone `command` module
 - etc.
@@ -177,6 +181,7 @@ This was listed as "totally fucked up" in S149. The parallel session completed t
 ### 1. gopls Diagnostics — 300+ Stale Errors
 
 The LSP shows ~300 errors, mostly from:
+
 - Parallel session's incomplete refactoring of `AggregateRef` / store interfaces
 - `go mod tidy` complaints from stale gopls metadata
 - `core/decider/decider.go` references to `aggregateAttrs` (undefined)
@@ -227,33 +232,33 @@ Trivial but sloppy. Needs renumbering.
 
 Ranked by impact x urgency (Pareto order):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix gopls diagnostics — complete or revert parallel session's AggregateRef/store refactor | CRITICAL | 2h | Fix |
-| 2 | Update FEATURES.md — add codec, command.Store, listing; remove saga/stream | HIGH | 30min | Docs |
-| 3 | Write CHANGELOG.md — entries for Sessions 135-151 | HIGH | 1h | Docs |
-| 4 | Archive old status reports — move 50+ files to docs/status/archive/ | MEDIUM | 10min | Cleanup |
-| 5 | Renumber ADR-0007 duplicate → ADR-0008 | LOW | 5min | Docs |
-| 6 | Fix pre-commit hook / buildflow config | MEDIUM | 1h | Fix |
-| 7 | Implement `MemoryCommandStore` in memory/ module | HIGH | 2h | Feature |
-| 8 | Implement `SQLCommandStore` in storage/ module | HIGH | 4h | Feature |
-| 9 | Update listing/README.md — stream → listing | LOW | 10min | Docs |
-| 10 | Add turso module tests | MEDIUM | 2h | Testing |
-| 11 | Command Journal + SeekableCommandJournal interfaces | MEDIUM | 1h | Feature |
-| 12 | Command Outbox interface + SQL implementation | MEDIUM | 3h | Feature |
-| 13 | Split core/event god-package into sub-packages | HIGH | 8h | Refactor |
-| 14 | Execute core/ dissolution proposal (if accepted) | HIGH | 16h | Refactor |
-| 15 | Clean self-referencing replace directives (7 modules) | LOW | 30min | Cleanup |
-| 16 | Push v1.0.0 tags — unblock replace directive removal | HIGH | 30min | Release |
-| 17 | Remove replace directives after v1.0.0 tags | MEDIUM | 1h | Cleanup |
-| 18 | Add command.Store to integration tests | MEDIUM | 2h | Testing |
-| 19 | Add high-level test utilities (AggregateTester, ProjectionTester) | LOW | 6h | Feature |
-| 20 | Add catalog diff / breaking-change detection tool | LOW | 4h | Feature |
-| 21 | Add code-generated typed command handlers (cqrs-gen) | LOW | 4h | Feature |
-| 22 | Add Pebble command store implementation | LOW | 3h | Feature |
-| 23 | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md | LOW | 1h | Docs |
-| 24 | Investigate and document event upcasting workflow with codec | MEDIUM | 2h | Feature |
-| 25 | Add codec-aware benchmarks (JSON vs Raw encoding perf) | LOW | 1h | Testing |
+| #   | Task                                                                                      | Impact   | Effort | Category |
+| --- | ----------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1   | Fix gopls diagnostics — complete or revert parallel session's AggregateRef/store refactor | CRITICAL | 2h     | Fix      |
+| 2   | Update FEATURES.md — add codec, command.Store, listing; remove saga/stream                | HIGH     | 30min  | Docs     |
+| 3   | Write CHANGELOG.md — entries for Sessions 135-151                                         | HIGH     | 1h     | Docs     |
+| 4   | Archive old status reports — move 50+ files to docs/status/archive/                       | MEDIUM   | 10min  | Cleanup  |
+| 5   | Renumber ADR-0007 duplicate → ADR-0008                                                    | LOW      | 5min   | Docs     |
+| 6   | Fix pre-commit hook / buildflow config                                                    | MEDIUM   | 1h     | Fix      |
+| 7   | Implement `MemoryCommandStore` in memory/ module                                          | HIGH     | 2h     | Feature  |
+| 8   | Implement `SQLCommandStore` in storage/ module                                            | HIGH     | 4h     | Feature  |
+| 9   | Update listing/README.md — stream → listing                                               | LOW      | 10min  | Docs     |
+| 10  | Add turso module tests                                                                    | MEDIUM   | 2h     | Testing  |
+| 11  | Command Journal + SeekableCommandJournal interfaces                                       | MEDIUM   | 1h     | Feature  |
+| 12  | Command Outbox interface + SQL implementation                                             | MEDIUM   | 3h     | Feature  |
+| 13  | Split core/event god-package into sub-packages                                            | HIGH     | 8h     | Refactor |
+| 14  | Execute core/ dissolution proposal (if accepted)                                          | HIGH     | 16h    | Refactor |
+| 15  | Clean self-referencing replace directives (7 modules)                                     | LOW      | 30min  | Cleanup  |
+| 16  | Push v1.0.0 tags — unblock replace directive removal                                      | HIGH     | 30min  | Release  |
+| 17  | Remove replace directives after v1.0.0 tags                                               | MEDIUM   | 1h     | Cleanup  |
+| 18  | Add command.Store to integration tests                                                    | MEDIUM   | 2h     | Testing  |
+| 19  | Add high-level test utilities (AggregateTester, ProjectionTester)                         | LOW      | 6h     | Feature  |
+| 20  | Add catalog diff / breaking-change detection tool                                         | LOW      | 4h     | Feature  |
+| 21  | Add code-generated typed command handlers (cqrs-gen)                                      | LOW      | 4h     | Feature  |
+| 22  | Add Pebble command store implementation                                                   | LOW      | 3h     | Feature  |
+| 23  | Add .github/ISSUE_TEMPLATE and CONTRIBUTING.md                                            | LOW      | 1h     | Docs     |
+| 24  | Investigate and document event upcasting workflow with codec                              | MEDIUM   | 2h     | Feature  |
+| 25  | Add codec-aware benchmarks (JSON vs Raw encoding perf)                                    | LOW      | 1h     | Testing  |
 
 ---
 
@@ -262,12 +267,14 @@ Ranked by impact x urgency (Pareto order):
 **What is the parallel session's end-state for the `AggregateRef` and store interface refactor?**
 
 The LSP shows hundreds of errors from changes the parallel session is making:
+
 - `Save(ctx, AggregateType, AggregateID, ...)` → `Save(ctx, AggregateRef, ...)`
 - `AppendBatch(ctx, AggregateRef, ...)` → `AppendBatch(ctx, AggregateType, AggregateID, ...)`
 - `SnapshotStore.Delete(ctx, AggregateRef)` → `Delete(ctx, AggregateType, AggregateID)`
 - `aggregateAttrs` undefined in `decider.go`
 
 These are contradictory — `Save` is losing args while `AppendBatch` is gaining args. I cannot determine:
+
 1. What the final interface signatures should be
 2. Whether this is a pattern (ISP split on reads vs writes?) or a work-in-progress mess
 3. How to reconcile with the already-working codec/storage changes
@@ -278,18 +285,18 @@ These are contradictory — `Save` is losing args while `AppendBatch` is gaining
 
 ## Build & Test Summary
 
-| Check | Result |
-|-------|--------|
-| `go test` (all 29 packages) | PASS — ALL GREEN |
-| `go test ./storage/...` | PASS — fixed this session |
-| `go test ./projection/...` | PASS — codec wired |
-| `go test ./pebble/...` | PASS — encoding persisted |
-| `go test ./example/projection/...` | PASS |
-| `go test ./example/user/...` | PASS |
-| `go build ./...` (all modules) | PASS |
-| Pre-commit hook | FAILS (requires `--no-verify`) |
-| gopls diagnostics | ~300 stale errors from parallel session |
-| Working tree | CLEAN — all changes committed |
+| Check                              | Result                                  |
+| ---------------------------------- | --------------------------------------- |
+| `go test` (all 29 packages)        | PASS — ALL GREEN                        |
+| `go test ./storage/...`            | PASS — fixed this session               |
+| `go test ./projection/...`         | PASS — codec wired                      |
+| `go test ./pebble/...`             | PASS — encoding persisted               |
+| `go test ./example/projection/...` | PASS                                    |
+| `go test ./example/user/...`       | PASS                                    |
+| `go build ./...` (all modules)     | PASS                                    |
+| Pre-commit hook                    | FAILS (requires `--no-verify`)          |
+| gopls diagnostics                  | ~300 stale errors from parallel session |
+| Working tree                       | CLEAN — all changes committed           |
 
 ---
 

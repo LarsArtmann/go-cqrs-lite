@@ -22,7 +22,8 @@ Split `event.Store` into focused interfaces following ISP:
 4. **`Journal`** — Cross-aggregate reads: `ReadAll`.
 5. **`SeekableJournal`** — Position-based: `ReadFrom(ctx, afterEventID, limit)`.
 6. **`BackwardsSource`** — Reverse version order: `LoadBackwards`.
-7. **`TransactionalSink`** — Atomic save + outbox: `SaveWithOutbox`.
+
+> **Deprecated (2026-05-29):** `TransactionalSink` was removed along with the outbox pattern. Crash recovery is now handled via `SeekableJournal` + `CheckpointStore` (same pattern as `projection.Runner`). See `docs/planning/REMOVE-OUTBOX-PLAN.md`.
 
 **Remove `Delete`** entirely from the Store interface. History is immutable. Soft-delete is handled via tombstone metadata.
 
@@ -50,9 +51,8 @@ Instead of hard-delete, introduce `TombstoneStatus` (Active / Tombstoned / Undet
 
 **Negative:**
 
-- More interfaces to learn (7 vs 1).
+- More interfaces to learn (6 vs 1).
 - Deprecated aliases must be maintained until v2.0.
-- Consumers must type-assert for TransactionalSink (`if ts, ok := sink.(TransactionalSink); ok`).
 
 ## Naming collision resolution
 

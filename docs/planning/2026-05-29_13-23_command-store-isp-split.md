@@ -33,15 +33,15 @@ graph TD
 
 ## New Types
 
-| Type | File | Purpose |
-|------|------|---------|
-| `CommandID` | `core/pkg/id/command_id.go` | Branded ULID for command identity |
-| `AggregateType` | `core/command/aggregate_ref.go` | Type-safe aggregate type (mirrors event.AggregateType) |
-| `AggregateRef` | `core/command/aggregate_ref.go` | AggregateType + AggregateID composite key |
-| `PersistedCommand` | `core/command/store.go` | Immutable persisted command with ID, timestamp, payload |
-| `CommandSink` | `core/command/store.go` | Write interface: Save (idempotent), AppendBatch |
-| `CommandSource` | `core/command/store.go` | Read interface: Load, LoadFromTimestamp, LoadToTimestamp |
-| `Store` | `core/command/store.go` | Composite of Sink + Source |
+| Type               | File                            | Purpose                                                  |
+| ------------------ | ------------------------------- | -------------------------------------------------------- |
+| `CommandID`        | `core/pkg/id/command_id.go`     | Branded ULID for command identity                        |
+| `AggregateType`    | `core/command/aggregate_ref.go` | Type-safe aggregate type (mirrors event.AggregateType)   |
+| `AggregateRef`     | `core/command/aggregate_ref.go` | AggregateType + AggregateID composite key                |
+| `PersistedCommand` | `core/command/store.go`         | Immutable persisted command with ID, timestamp, payload  |
+| `CommandSink`      | `core/command/store.go`         | Write interface: Save (idempotent), AppendBatch          |
+| `CommandSource`    | `core/command/store.go`         | Read interface: Load, LoadFromTimestamp, LoadToTimestamp |
+| `Store`            | `core/command/store.go`         | Composite of Sink + Source                               |
 
 ## Key Design Decisions
 
@@ -74,6 +74,7 @@ graph LR
 ## Test Coverage
 
 17 new tests covering:
+
 - PersistedCommand construction + validation (7 tests)
 - Payload isolation (1 test)
 - Option functions: WithReceivedAt, WithCommandID (2 tests)

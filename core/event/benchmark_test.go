@@ -62,7 +62,7 @@ func BenchmarkIsRetryable(b *testing.B) {
 	}
 }
 
-func BenchmarkPublishChanges(b *testing.B) {
+func BenchmarkBusPublish(b *testing.B) {
 	bus := testhelpers.NewFakeBus()
 
 	aggID := id.NewAggregateID()
@@ -86,9 +86,9 @@ func BenchmarkPublishChanges(b *testing.B) {
 	ctx := context.Background()
 
 	for b.Loop() {
-		err := event.PublishChanges(ctx, bus, events)
+		err := bus.Publish(ctx, events...)
 		if err != nil {
-			b.Fatalf("PublishChanges: %v", err)
+			b.Fatalf("Publish: %v", err)
 		}
 	}
 }

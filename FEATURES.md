@@ -82,12 +82,9 @@
 || Journal | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay | ✅ |
 || SeekableJournal | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up | ✅ |
 || BackwardsSource | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order (`BackwardsLoader` alias kept) | ✅ |
-|| TransactionalSink | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox (`TransactionalStore` alias kept) | ✅ |
+|| BackwardsSource | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order (`BackwardsLoader` alias kept) | ✅ |
 || TombstoneStatus | `Active`, `Tombstoned`, `Undetermined` — tri-state enum for soft-delete; `DetectTombstone`, `MarkTombstone`, `MarkRebirth` | ✅ |
 || Time-travel queries | `LoadToVersion` and `LoadToTimestamp` — read aggregate state at a point in time | ✅ |
-|| Snapshot support | `SnapshotStore`, `Snapshot` struct, `SnapshotStrategy`, `EveryNEvents`, `MustEveryNEvents`, `ShouldSnapshot`, `SaveSnapshot` | ✅ |
-|| Outbox pattern | `Outbox` interface + `OutboxEntry` + `OutboxID` branded type | ✅ |
-|| OutboxPublisher | Background goroutine polls outbox and publishes to bus; `WithPollInterval`, `WithBatchSize`, `PublishNow` for sync | ✅ |
 || Projection interface | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅ |
 || BatchProjection | Optional interface extending `Projection` with `HandleBatch` for throughput | ✅ |
 || Context replay marker | `WithReplay(ctx, true)` — marks context as replay; handlers can distinguish | ✅ |
@@ -98,7 +95,6 @@
 || Cycle detection | UpcasterRegistry detects schema version revisits during upcast chain | ✅ |
 || Clock injection | `Clock` type + `WithClock` option for deterministic testing | ✅ |
 || Error taxonomy | 5-family: Rejection / Conflict / Transient / Infrastructure / Corruption; 13 helper funcs (`New*`, `Wrap*`, `Classify`, `IsRetryable`); 16 sentinel errors | ✅ |
-|| Publish helper | `PublishChanges(ctx, Publisher, Outbox, []Event)` — publishes via outbox if configured, else directly | ✅ |
 
 **Coverage:** 89.1%
 
@@ -115,8 +111,7 @@
 
 || LoadAtVersion | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version | ✅ |
 || LoadAtTime | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp | ✅ |
-|| Snapshot support | `WithSnapshotStore` + `WithCodec` + `WithSnapshotStrategy` — loads snapshot then replays | ✅ |
-|| Outbox support | `WithOutbox` — atomic save + outbox via `TransactionalSink` | ✅ |
+|| Crash recovery | `SeekableJournal.ReadFrom` + `CheckpointStore` — tail events from checkpoint, republish on restart | ✅ |
 || Context enrichment | `WithEnricher` — injects metadata from context into events | ✅ |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
@@ -130,10 +125,9 @@
 || Aggregate root base | `Core` provides `ID`, `Type`, `Version`, `RecordEvent`, `UncommittedChanges`, `LoadFromHistory` | ✅ |
 || Event sourcing | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store) | ✅ |
 || Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save` | ✅ |
-|| Snapshot support | `WithSnapshotStore` option — loads from snapshot then replays remaining events | ✅ |
 || Snapshot strategy | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider | ✅ |
 || Snapshot codec | `WithCodec` option for custom snapshot serialization | ✅ |
-|| Transactional outbox | `WithOutbox` option — events go to outbox instead of direct bus publish | ✅ |
+|| Crash recovery | `SeekableJournal.ReadFrom` + `CheckpointStore` — tail events from checkpoint, republish on restart
 || ISP Publisher | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible | ✅ |
 || Defensive copies | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array | ✅ |
 
@@ -183,7 +177,6 @@
 || MemoryStore | `event.Store` + `Journal` + `SeekableJournal` + `BackwardsSource` + `StreamLoader` with defensive copies | 🧪 |
 || MemoryBus | `event.Bus` with typed `Subscribe` + `SubscribeAll` + handler/publish middleware | 🧪 |
 || MemorySnapshotStore | `event.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion` | 🧪 |
-|| MemoryOutboxStore | `event.Outbox` with append/poll/ack, auto-incrementing IDs | 🧪 |
 || MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing | 🧪 |
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies.
@@ -401,7 +394,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || SQLite event store | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL | ✅ |
 || Turso convenience constructors | `NewTursoEventStore`, `NewTursoSnapshotStore`, `NewTursoOutbox`, `NewTursoCheckpointStore`, `NewTursoBackend`, `NewTursoTransactionalStore` | ✅ |
 || Schema DDL | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso | ✅ |
-|| Per-table DDL | `OutboxSchema`, `SnapshotSchema`, `CheckpointSchema` + SQLite variants | ✅ |
+|| Per-table DDL | `SnapshotSchema`, `CheckpointSchema` + SQLite variants | ✅ |
 || Optimistic concurrency | `Save` checks version in transaction | ✅ |
 || AppendBatch | Appends without concurrency check | ✅ |
 || Full load API | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete` | ✅ |
@@ -412,10 +405,6 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || Metadata persistence | Full roundtrip: correlation IDs, user IDs, custom metadata | ✅ |
 || SQL SnapshotStore | PostgreSQL + SQLite variants, upsert, version-aware load, delete | ✅ |
 || SQL CheckpointStore | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling | ✅ |
-|| SQL Outbox | PostgreSQL + SQLite variants, append/poll/ack | ✅ |
-|| TransactionalSink | `SQLTransactionalStore` — atomic save + outbox append, both engines | ✅ |
-|| SQLBackend | Unified facade: `EventStore()`, `Outbox()`, `TransactionalSink()`, `TransactionalStore()` (deprecated) | ✅ |
-|| OutboxPoller | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches | ✅ |
 || TursoSyncDB | `OpenTursoSync` returns `*TursoSyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅ |
 || DB helpers | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅ |
 || Dialect abstraction | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods | ✅ |
@@ -476,7 +465,6 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || `FakeStore` | Configurable `event.Store` with overridable `SaveFn` |
 || `FakeBus` | Records published events, injectable `PublishErr` |
 || `FakeSnapshotStore` | Configurable snapshot load/save with error injection |
-|| `FakeOutbox` | Simple outbox with auto-generated IDs |
 || `AppendEventsHandler` | Handler that collects events into a slice |
 || `NoopCommandHandler` / `NoopEventHandler` / `NoopQueryHandler` | No-op handlers |
 || `FailingCommandHandler` / `FailingEventHandler` | Handlers that always error |
