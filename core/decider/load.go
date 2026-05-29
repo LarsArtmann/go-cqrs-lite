@@ -16,21 +16,21 @@ import (
 
 func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 ) (State, event.Version, error) {
 	return r.loadByEvents(
-		func() ([]event.Event, error) { return r.store.Load(ctx, aggType, aggID) },
-		aggType,
-		aggID,
+		func() ([]event.Event, error) { return r.store.Load(ctx, aggregateType, aggregateID) },
+		aggregateType,
+		aggregateID,
 	)
 }
 
 func (r *Repository[State]) foldEvents(
 	state State,
 	events []event.Event,
-	aggType event.AggregateType,
-	aggID id.AggregateID,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
 ) (State, error) {
 	var err error
 
@@ -40,8 +40,8 @@ func (r *Repository[State]) foldEvents(
 			var zero State
 
 			return zero, opError(
-				aggType,
-				aggID,
+				aggregateType,
+				aggregateID,
 				"%w (event %s): %w",
 				ErrFoldFailed,
 				evt.Type(),
@@ -68,16 +68,16 @@ func opError(
 // Useful for time-travel queries: "what was the state at version N?".
 func (r *Repository[State]) LoadAtVersion(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
 		trace.SpanKindInternal,
 		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrAggregateType, string(aggType)),
-			attribute.String(cqrsotel.AttrAggregateID, aggID.String()),
+			attribute.String(cqrsotel.AttrAggregateType, string(aggregateType)),
+			attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
 			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
 		),
 	)
@@ -85,9 +85,9 @@ func (r *Repository[State]) LoadAtVersion(
 
 	state, ver, err := r.loadByEvents(
 		func() ([]event.Event, error) {
-			return r.store.LoadToVersion(ctx, aggType, aggID, maxVersion)
+			return r.store.LoadToVersion(ctx, aggregateType, aggregateID, maxVersion)
 		},
-		aggType, aggID,
+		aggregateType, aggregateID,
 	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
@@ -100,25 +100,25 @@ func (r *Repository[State]) LoadAtVersion(
 // Useful for temporal queries: "what was the state at this point in time?".
 func (r *Repository[State]) LoadAtTime(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
 		trace.SpanKindInternal,
 		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrAggregateType, string(aggType)),
-			attribute.String(cqrsotel.AttrAggregateID, aggID.String()),
+			attribute.String(cqrsotel.AttrAggregateType, string(aggregateType)),
+			attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
 		),
 	)
 	defer span.End()
 
 	state, ver, err := r.loadByEvents(
 		func() ([]event.Event, error) {
-			return r.store.LoadToTimestamp(ctx, aggType, aggID, maxTime)
+			return r.store.LoadToTimestamp(ctx, aggregateType, aggregateID, maxTime)
 		},
-		aggType, aggID,
+		aggregateType, aggregateID,
 	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
@@ -129,8 +129,8 @@ func (r *Repository[State]) LoadAtTime(
 
 func (r *Repository[State]) loadByEvents(
 	loadFn func() ([]event.Event, error),
-	aggType event.AggregateType,
-	aggID id.AggregateID,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
 ) (State, event.Version, error) {
 	events, err := loadFn()
 	if err != nil {
@@ -140,10 +140,10 @@ func (r *Repository[State]) loadByEvents(
 
 		var zero State
 
-		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+		return zero, 0, opError(aggregateType, aggregateID, "%w: %w", ErrLoadFailed, err)
 	}
 
-	state, err := r.foldEvents(r.decider.Initial, events, aggType, aggID)
+	state, err := r.foldEvents(r.decider.Initial, events, aggregateType, aggregateID)
 	if err != nil {
 		var zero State
 
@@ -154,30 +154,30 @@ func (r *Repository[State]) loadByEvents(
 }
 
 func (r *Repository[State]) shouldSnapshot(
-	aggType event.AggregateType,
+	aggregateType event.AggregateType,
 	version event.Version,
 ) bool {
-	return event.ShouldSnapshot(r.snapshotStrategy, r.snapshotStore, r.codec, aggType, version)
+	return event.ShouldSnapshot(r.snapshotStrategy, r.snapshotStore, r.codec, aggregateType, version)
 }
 
 func (r *Repository[State]) loadFromSnapshot(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 ) (State, event.Version, error) {
-	snap, err := r.snapshotStore.Load(ctx, aggType, aggID)
+	snap, err := r.snapshotStore.Load(ctx, aggregateType, aggregateID)
 	if err != nil {
 		if !errors.Is(err, event.ErrSnapshotNotFound) {
 			var zero State
 
-			return zero, 0, opError(aggType, aggID, "load snapshot: %w", err)
+			return zero, 0, opError(aggregateType, aggregateID, "load snapshot: %w", err)
 		}
 
-		return r.loadFromStore(ctx, aggID, aggType)
+		return r.loadFromStore(ctx, aggregateID, aggregateType)
 	}
 
 	if snap == nil {
-		return r.loadFromStore(ctx, aggID, aggType)
+		return r.loadFromStore(ctx, aggregateID, aggregateType)
 	}
 
 	var state State
@@ -186,17 +186,17 @@ func (r *Repository[State]) loadFromSnapshot(
 	if err != nil {
 		var zero State
 
-		return zero, 0, opError(aggType, aggID, "decode snapshot: %w", err)
+		return zero, 0, opError(aggregateType, aggregateID, "decode snapshot: %w", err)
 	}
 
-	events, err := r.store.LoadFromVersion(ctx, aggType, aggID, snap.Version)
+	events, err := r.store.LoadFromVersion(ctx, aggregateType, aggregateID, snap.Version)
 	if err != nil {
 		var zero State
 
-		return zero, 0, opError(aggType, aggID, "%w: %w", ErrLoadFailed, err)
+		return zero, 0, opError(aggregateType, aggregateID, "%w: %w", ErrLoadFailed, err)
 	}
 
-	state, err = r.foldEvents(state, events, aggType, aggID)
+	state, err = r.foldEvents(state, events, aggregateType, aggregateID)
 	if err != nil {
 		var zero State
 

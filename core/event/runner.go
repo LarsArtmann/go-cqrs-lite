@@ -78,10 +78,10 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 	copy(projections, r.projections)
 	r.mu.RUnlock()
 
-	evtType := evt.Type()
+	eventType := evt.Type()
 
 	for _, proj := range projections {
-		if !SubscribesTo(proj, evtType) {
+		if !SubscribesTo(proj, eventType) {
 			continue
 		}
 
@@ -91,7 +91,7 @@ func (r *InMemoryRunner) Handle(ctx context.Context, evt Event) error {
 				err,
 				Classify(err),
 				"event.projection_failed",
-				"projection "+proj.Name()+" handle event "+string(evtType),
+				"projection "+proj.Name()+" handle event "+string(eventType),
 			)
 		}
 
@@ -124,13 +124,13 @@ func (r *InMemoryRunner) handleParallel(ctx context.Context, evt Event) error {
 	return r.collectResults(ctx, results, projections, evt)
 }
 
-func (r *InMemoryRunner) matchingProjections(evtType Type) []Projection {
+func (r *InMemoryRunner) matchingProjections(eventType Type) []Projection {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	matched := make([]Projection, 0, len(r.projections))
 	for _, p := range r.projections {
-		if SubscribesTo(p, evtType) {
+		if SubscribesTo(p, eventType) {
 			matched = append(matched, p)
 		}
 	}

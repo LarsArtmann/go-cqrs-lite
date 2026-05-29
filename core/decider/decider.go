@@ -95,18 +95,18 @@ type DecideFunc[State any] func(state State, currentVersion event.Version) ([]ev
 // published — the caller can retry publishing via the bus directly.
 func (r *Repository[State]) Execute(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 	decide DecideFunc[State],
 ) error {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		trace.SpanKindInternal,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(aggType, aggID)...),
+		trace.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 
-	state, currentVersion, err := r.Load(ctx, aggID, aggType)
+	state, currentVersion, err := r.Load(ctx, aggregateID, aggregateType)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -129,31 +129,31 @@ func (r *Repository[State]) Execute(
 	r.applyEnricher(ctx, newEvents)
 
 	if ts, ok := r.store.(event.TransactionalSink); ok && r.outbox != nil {
-		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion)
+		err = ts.SaveWithOutbox(ctx, aggregateType, aggregateID, newEvents, currentVersion)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
+			return opError(aggregateType, aggregateID, "%w: %w", ErrSaveFailed, err)
 		}
 	} else {
-		err = r.store.Save(ctx, aggType, aggID, newEvents, currentVersion)
+		err = r.store.Save(ctx, aggregateType, aggregateID, newEvents, currentVersion)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
+			return opError(aggregateType, aggregateID, "%w: %w", ErrSaveFailed, err)
 		}
 
 		err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggType, aggID, "publish events: %w", err)
+			return opError(aggregateType, aggregateID, "publish events: %w", err)
 		}
 	}
 
 	newVersion := currentVersion.Add(len(newEvents))
 
-	r.saveSnapshotAfterEvents(ctx, aggType, aggID, newVersion, state, newEvents)
+	r.saveSnapshotAfterEvents(ctx, aggregateType, aggregateID, newVersion, state, newEvents)
 
 	return nil
 }
@@ -163,13 +163,13 @@ func (r *Repository[State]) Execute(
 // are best-effort and must not block the write path.
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
-	aggType event.AggregateType,
-	aggID id.AggregateID,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
 	newVersion event.Version,
 	state State,
 	newEvents []event.Event,
 ) {
-	if !r.shouldSnapshot(aggType, newVersion) {
+	if !r.shouldSnapshot(aggregateType, newVersion) {
 		return
 	}
 
@@ -180,7 +180,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
-			_ = opError(aggType, aggID, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+			_ = opError(aggregateType, aggregateID, "fold event %s for snapshot: %w", evt.Type(), foldErr)
 
 			return
 		}
@@ -188,25 +188,25 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 	encoded, encErr := r.codec.Encode(finalState)
 	if encErr != nil {
-		_ = opError(aggType, aggID, "encode snapshot: %w", encErr)
+		_ = opError(aggregateType, aggregateID, "encode snapshot: %w", encErr)
 
 		return
 	}
 
-	_ = event.SaveSnapshot(ctx, r.snapshotStore, aggType, aggID, newVersion, encoded)
+	_ = event.SaveSnapshot(ctx, r.snapshotStore, aggregateType, aggregateID, newVersion, encoded)
 }
 
 // Load reconstructs state from the aggregate's event history without any
 // side effects. Useful for read-only state access or debugging.
 func (r *Repository[State]) Load(
 	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggregateID id.AggregateID,
+	aggregateType event.AggregateType,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
 		trace.SpanKindInternal,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(aggType, aggID)...),
+		trace.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 
@@ -217,9 +217,9 @@ func (r *Repository[State]) Load(
 	)
 
 	if r.snapshotStore != nil && r.codec != nil {
-		state, ver, err = r.loadFromSnapshot(ctx, aggID, aggType)
+		state, ver, err = r.loadFromSnapshot(ctx, aggregateID, aggregateType)
 	} else {
-		state, ver, err = r.loadFromStore(ctx, aggID, aggType)
+		state, ver, err = r.loadFromStore(ctx, aggregateID, aggregateType)
 	}
 
 	if err != nil {
