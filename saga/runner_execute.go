@@ -34,20 +34,31 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 
 	instance, err := r.hydrate(state)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
 
 	if instance.Status != StatusRunning && instance.Status != StatusPending {
-		return event.NewRejection(
+		err := event.NewRejection(
 			"saga.not_running",
 			"saga "+instanceID.String()+" is not running (status="+string(instance.Status)+")",
 		)
+		cqrsotel.RecordError(span, err)
+
+		return err
 	}
 
 	if instance.CurrentStep >= len(instance.Steps) {
 		instance.Status = StatusCompleted
 		instance.UpdatedAt = time.Now()
-		return r.store.Save(ctx, &instance.State)
+
+		err := r.store.Save(ctx, &instance.State)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+		}
+
+		return err
 	}
 
 	step := instance.Steps[instance.CurrentStep]
@@ -68,7 +79,10 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 
 	cmd := step.Action(stepCtx, instance.ID)
 	if cmd == nil {
-		return event.NewRejection("saga.nil_command", "step "+step.Name+" returned nil command")
+		err := event.NewRejection("saga.nil_command", "step "+step.Name+" returned nil command")
+		cqrsotel.RecordError(span, err)
+
+		return err
 	}
 
 	err = r.dispatchWithRetry(stepCtx, cmd)
@@ -111,6 +125,8 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	}
 
 	if err := r.store.Save(ctx, &instance.State); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "saga.save_completion_failed", "save step completion")
 	}
 

@@ -6,8 +6,12 @@ import (
 	"errors"
 	"fmt"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
@@ -60,6 +64,17 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 			"saga state is nil")
 	}
 
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "saga.store.save",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.String("saga.type", state.SagaType),
+			attribute.String("saga.id", state.ID.String()),
+			attribute.String("saga.status", string(state.Status)),
+		),
+	)
+	defer span.End()
+
 	p1, p2, p3, p4, p5, p6, p7 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
 		s.dialect.Placeholder(3), s.dialect.Placeholder(4),
 		s.dialect.Placeholder(5), s.dialect.Placeholder(6),
@@ -93,6 +108,8 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 		s.dialect.FormatTime(state.UpdatedAt),
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.save_saga",
 			"save saga "+state.ID.String())
 	}
@@ -102,6 +119,15 @@ func (s *SQLSagaStore) Save(ctx context.Context, state *saga.State) error {
 
 // Load retrieves a saga state by ID.
 func (s *SQLSagaStore) Load(ctx context.Context, id id.AggregateID) (*saga.State, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "saga.store.load",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.String("saga.id", id.String()),
+		),
+	)
+	defer span.End()
+
 	p1 := s.dialect.Placeholder(1)
 
 	query := fmt.Sprintf(
@@ -112,11 +138,22 @@ func (s *SQLSagaStore) Load(ctx context.Context, id id.AggregateID) (*saga.State
 
 	row := s.db.QueryRowContext(ctx, query, id.String())
 
-	return s.scanState(row, id)
+	state, err := s.scanState(row, id)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return state, err
 }
 
 // LoadAllRunning returns all saga states that are currently running or compensating.
 func (s *SQLSagaStore) LoadAllRunning(ctx context.Context) ([]*saga.State, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "saga.store.load_all_running",
+		trace.SpanKindClient,
+	)
+	defer span.End()
+
 	query := `SELECT id, saga_type, status, current_step, err_msg, created_at, updated_at
 		FROM ` + tableSagas + ` WHERE status = ` + s.dialect.Placeholder(1) + ` OR status = ` + s.dialect.Placeholder(2)
 
@@ -127,6 +164,8 @@ func (s *SQLSagaStore) LoadAllRunning(ctx context.Context) ([]*saga.State, error
 		string(saga.StatusCompensating),
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.query_running_sagas",
 			"query running sagas")
 	}

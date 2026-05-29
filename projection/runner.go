@@ -88,6 +88,12 @@ func (r *Runner) Register(p event.Projection) error {
 // Run replays historical events from the loader (if non-nil), then subscribes to live events.
 // Blocks until the context is cancelled or Close is called. Returns ErrNoProjections if no projections are registered.
 func (r *Runner) Run(ctx context.Context) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projection.run",
+		trace.SpanKindClient,
+	)
+	defer span.End()
+
 	if len(r.projections) == 0 {
 		return ErrNoProjections
 	}
@@ -117,6 +123,7 @@ func (r *Runner) replay(ctx context.Context) error {
 
 		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
 		if cpErr != nil {
+			cqrsotel.RecordError(span, cpErr)
 			span.End()
 
 			return event.WrapInfrastructure(cpErr, "projection.load_checkpoint",

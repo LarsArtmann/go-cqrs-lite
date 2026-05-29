@@ -209,7 +209,12 @@ func (r *Repository[State]) Load(
 	)
 	defer span.End()
 
-	return r.loadState(ctx, aggID, aggType)
+	state, ver, err := r.loadState(ctx, aggID, aggType)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return state, ver, err
 }
 
 func (r *Repository[State]) applyEnricher(ctx context.Context, events []event.Event) {

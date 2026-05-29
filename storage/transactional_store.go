@@ -5,8 +5,12 @@ import (
 	"database/sql"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // SQLTransactionalStore wraps SQLEventStore and SQLOutbox to provide atomic
@@ -52,7 +56,17 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	return saveWithOutboxTx(
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.save_with_outbox",
+		trace.SpanKindClient,
+		trace.WithAttributes(append(
+			aggregateAttrsWithVersion(string(aggregateType), aggregateID.String(), expectedVersion.Int()),
+			attribute.Int(cqrsotel.AttrEventCount, len(events)),
+		)...),
+	)
+	defer span.End()
+
+	err := saveWithOutboxTx(
 		ctx,
 		s.db,
 		aggregateType,
@@ -63,6 +77,11 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 		s.insertEvents,
 		s.appendOutboxTx,
 	)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 func (s *SQLTransactionalStore) appendOutboxTx(

@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 var _ event.StreamLoader = (*SQLEventStore)(nil)
@@ -19,6 +22,13 @@ func (s *SQLEventStore) LoadStream(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (event.EventStream, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.load_stream",
+		trace.SpanKindClient,
+		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+	)
+	defer span.End()
+
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
 	query := fmt.Sprintf(
@@ -32,6 +42,8 @@ func (s *SQLEventStore) LoadStream(
 
 	rows, err := s.db.QueryContext(ctx, query, string(aggregateType), aggregateID)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.stream_query",
 			"sql stream query")
 	}

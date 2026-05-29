@@ -134,8 +134,19 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) (*event.Snapshot, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "snapshot.load_at_version",
+		trace.SpanKindClient,
+		trace.WithAttributes(aggregateAttrsWithVersion(
+			string(aggregateType), aggregateID.String(), version.Int(),
+		)...),
+	)
+	defer span.End()
+
 	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(
 			err,
 			"storage.load_snapshot_version",
@@ -149,7 +160,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	}
 
 	if snap.Version.Cmp(version) > 0 {
-		return nil, event.WrapRejection(
+		err := event.WrapRejection(
 			event.ErrSnapshotNotFound,
 			"storage.snapshot_version_exceeded",
 			fmt.Sprintf(
@@ -159,6 +170,9 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 				aggregateID,
 			),
 		)
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
 	}
 
 	return snap, nil

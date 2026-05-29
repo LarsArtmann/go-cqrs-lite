@@ -6,8 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 func (r *Repository[State]) loadState(
@@ -75,12 +79,28 @@ func (r *Repository[State]) LoadAtVersion(
 	aggType event.AggregateType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	return r.loadByEvents(
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "decider.load_at_version",
+		trace.SpanKindInternal,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrAggregateType, string(aggType)),
+			attribute.String(cqrsotel.AttrAggregateID, aggID.String()),
+			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
+		),
+	)
+	defer span.End()
+
+	state, ver, err := r.loadByEvents(
 		func() ([]event.Event, error) {
 			return r.store.LoadToVersion(ctx, aggType, aggID, maxVersion)
 		},
 		aggType, aggID,
 	)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return state, ver, err
 }
 
 // LoadAtTime reconstructs state from events up to and including maxTime.
@@ -91,12 +111,27 @@ func (r *Repository[State]) LoadAtTime(
 	aggType event.AggregateType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	return r.loadByEvents(
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "decider.load_at_time",
+		trace.SpanKindInternal,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrAggregateType, string(aggType)),
+			attribute.String(cqrsotel.AttrAggregateID, aggID.String()),
+		),
+	)
+	defer span.End()
+
+	state, ver, err := r.loadByEvents(
 		func() ([]event.Event, error) {
 			return r.store.LoadToTimestamp(ctx, aggType, aggID, maxTime)
 		},
 		aggType, aggID,
 	)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return state, ver, err
 }
 
 func (r *Repository[State]) loadByEvents(
