@@ -88,6 +88,8 @@ func (s *SQLEventStore) Save(
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.begin_tx",
 			"begin transaction")
 	}
@@ -98,17 +100,26 @@ func (s *SQLEventStore) Save(
 
 	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.check_version",
 			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.insert_events",
 			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
-	return commitTx(tx)
+	err = commitTx(tx)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 // AppendBatch appends events without optimistic concurrency checks.
