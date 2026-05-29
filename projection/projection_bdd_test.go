@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -41,6 +42,15 @@ func makeBDDEvent(eventType event.Type, version event.Version) event.Event {
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
+}
+
+func startRunnerAndWait(ctx context.Context, runner *projection.Runner, handler *countingHandler, matcher types.GomegaMatcher) {
+	go func() {
+		defer GinkgoRecover()
+		_ = runner.Run(ctx)
+	}()
+	Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
+		Should(matcher)
 }
 
 var _ = Describe("Projection Runner", func() {
@@ -82,14 +92,7 @@ var _ = Describe("Projection Runner", func() {
 				handler := &countingHandler{name: "user-projection"}
 				Expect(runner.Register(handler)).To(Succeed())
 
-				// Run in background, cancel after replay
-				go func() {
-					defer GinkgoRecover()
-					_ = runner.Run(ctx)
-				}()
-
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(Equal(int64(3)))
+				startRunnerAndWait(ctx, runner, handler, Equal(int64(3)))
 			})
 		})
 
@@ -113,13 +116,7 @@ var _ = Describe("Projection Runner", func() {
 				}
 				Expect(runner.Register(handler)).To(Succeed())
 
-				go func() {
-					defer GinkgoRecover()
-					_ = runner.Run(ctx)
-				}()
-
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(Equal(int64(2)))
+				startRunnerAndWait(ctx, runner, handler, Equal(int64(2)))
 			})
 		})
 
@@ -139,13 +136,7 @@ var _ = Describe("Projection Runner", func() {
 				handler := &countingHandler{name: "all-events", types: nil}
 				Expect(runner.Register(handler)).To(Succeed())
 
-				go func() {
-					defer GinkgoRecover()
-					_ = runner.Run(ctx)
-				}()
-
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(Equal(int64(2)))
+				startRunnerAndWait(ctx, runner, handler, Equal(int64(2)))
 			})
 		})
 
@@ -185,21 +176,13 @@ var _ = Describe("Projection Runner", func() {
 				handler := &countingHandler{name: "live-test"}
 				Expect(runner.Register(handler)).To(Succeed())
 
-				go func() {
-					defer GinkgoRecover()
-					_ = runner.Run(ctx)
-				}()
-
-				// Wait for replay
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(BeNumerically(">=", 1))
+				startRunnerAndWait(ctx, runner, handler, BeNumerically(">=", 1))
 
 				// Publish a live event
 				liveEvt := makeBDDEvent("UserUpdated", 2)
 				Expect(bus.Publish(ctx, liveEvt)).To(Succeed())
 
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(Equal(int64(2)))
+				startRunnerAndWait(ctx, runner, handler, Equal(int64(2)))
 			})
 		})
 
@@ -222,13 +205,7 @@ var _ = Describe("Projection Runner", func() {
 				handler := &countingHandler{name: "checkpoint-test"}
 				Expect(runner.Register(handler)).To(Succeed())
 
-				go func() {
-					defer GinkgoRecover()
-					_ = runner.Run(ctx)
-				}()
-
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(BeNumerically(">=", 1))
+				startRunnerAndWait(ctx, runner, handler, BeNumerically(">=", 1))
 
 				cp, err := runner.CurrentCheckpoint(ctx, "checkpoint-test")
 				Expect(err).ToNot(HaveOccurred())
@@ -275,8 +252,7 @@ var _ = Describe("Projection Runner", func() {
 				liveEvt := makeBDDEvent("UserCreated", 1)
 				Expect(bus.Publish(ctx, liveEvt)).To(Succeed())
 
-				Eventually(func() int64 { return handler.callCount.Load() }, time.Second).
-					Should(Equal(int64(1)))
+				startRunnerAndWait(ctx, runner, handler, Equal(int64(1)))
 			})
 		})
 	})

@@ -124,7 +124,13 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 		r.logInfo("saga completed", "id", instance.ID, "type", instance.SagaType)
 	}
 
-	if err := r.saveSagaState(ctx, span, &instance.State, "saga.save_completion_failed", "save step completion"); err != nil {
+	if err := r.saveSagaState(
+		ctx,
+		span,
+		&instance.State,
+		"saga.save_completion_failed",
+		"save step completion",
+	); err != nil {
 		return err
 	}
 

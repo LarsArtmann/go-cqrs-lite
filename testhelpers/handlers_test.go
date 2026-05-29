@@ -175,19 +175,23 @@ func TestFailingQueryHandler(t *testing.T) {
 	}
 }
 
+func assertPanicsWith(t *testing.T, want string) {
+	t.Helper()
+
+	r := recover()
+	if r == nil {
+		t.Fatal("expected panic")
+	}
+
+	if r != want {
+		t.Errorf("panic = %v, want %v", r, want)
+	}
+}
+
 func TestPanicCommandHandler(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-
-		if r != "boom" {
-			t.Errorf("panic = %v, want boom", r)
-		}
-	}()
+	defer assertPanicsWith(t, "boom")
 
 	handler := PanicCommandHandler("boom")
 	_ = handler(context.Background(), testCmd(t))
@@ -196,16 +200,7 @@ func TestPanicCommandHandler(t *testing.T) {
 func TestPanicEventHandler(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-
-		if r != "evt-boom" {
-			t.Errorf("panic = %v, want evt-boom", r)
-		}
-	}()
+	defer assertPanicsWith(t, "evt-boom")
 
 	handler := PanicEventHandler("evt-boom")
 	evt, _ := NewTestEvent()
@@ -215,16 +210,7 @@ func TestPanicEventHandler(t *testing.T) {
 func TestPanicQueryHandler(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-
-		if r != "q-boom" {
-			t.Errorf("panic = %v, want q-boom", r)
-		}
-	}()
+	defer assertPanicsWith(t, "q-boom")
 
 	handler := PanicQueryHandler("q-boom")
 	_, _ = handler(context.Background(), nil)
