@@ -273,7 +273,15 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
-	cattest.AddServiceWithCommand(t, reg, catalog.ServiceID("svc-a"), catalog.MessageID("DoA"), "DoA", "1.0.0", "")
+	cattest.AddServiceWithCommand(
+		t,
+		reg,
+		catalog.ServiceID("svc-a"),
+		catalog.MessageID("DoA"),
+		"DoA",
+		"1.0.0",
+		"",
+	)
 	cattest.AddEvent(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)

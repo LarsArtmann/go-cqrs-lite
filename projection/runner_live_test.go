@@ -19,10 +19,12 @@ func registerChanProjection(
 	handled chan<- string,
 ) {
 	t.Helper()
-	err := runner.Register(event.NewProjection(name, func(_ context.Context, evt event.Event) error {
-		handled <- string(evt.Type())
-		return nil
-	}, types))
+	err := runner.Register(
+		event.NewProjection(name, func(_ context.Context, evt event.Event) error {
+			handled <- string(evt.Type())
+			return nil
+		}, types),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

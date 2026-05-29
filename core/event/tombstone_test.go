@@ -82,7 +82,11 @@ func TestDetectTombstone(t *testing.T) {
 	}{
 		{"empty stream", nil, event.TombstoneUndetermined},
 		{"no metadata", []event.Event{evt("", "")}, event.TombstoneUndetermined},
-		{"tombstoned", []event.Event{evt(event.MetadataKeyTombstone, "true")}, event.TombstoneTombstoned},
+		{
+			"tombstoned",
+			[]event.Event{evt(event.MetadataKeyTombstone, "true")},
+			event.TombstoneTombstoned,
+		},
 		{"rebirth", []event.Event{evt(event.MetadataKeyRebirth, "true")}, event.TombstoneActive},
 		{"tombstone then rebirth", []event.Event{
 			evt(event.MetadataKeyTombstone, "true"),

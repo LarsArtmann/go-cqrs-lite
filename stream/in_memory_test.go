@@ -165,7 +165,13 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 		t.Fatal(err)
 	}
 
-	if err = store.Save(ctx, "User", activeID, []event.Event{activeEvt}, event.Version(0)); err != nil {
+	if err = store.Save(
+		ctx,
+		"User",
+		activeID,
+		[]event.Event{activeEvt},
+		event.Version(0),
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -180,7 +186,13 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 		t.Fatal(err)
 	}
 
-	if err = store.Save(ctx, "User", deletedID, []event.Event{deletedEvt}, event.Version(0)); err != nil {
+	if err = store.Save(
+		ctx,
+		"User",
+		deletedID,
+		[]event.Event{deletedEvt},
+		event.Version(0),
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,7 +206,13 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 		t.Fatal(err)
 	}
 
-	if err = store.Save(ctx, "Order", orderID, []event.Event{orderEvt}, event.Version(0)); err != nil {
+	if err = store.Save(
+		ctx,
+		"Order",
+		orderID,
+		[]event.Event{orderEvt},
+		event.Version(0),
+	); err != nil {
 		t.Fatal(err)
 	}
 }

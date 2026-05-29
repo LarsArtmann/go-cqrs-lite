@@ -52,7 +52,11 @@ func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
 
 	spans := recorder.Ended()
 	require.Len(t, spans, 1)
-	require.Equal(t, "github.com/larsartmann/go-cqrs-lite/test-component", spans[0].InstrumentationScope().Name)
+	require.Equal(
+		t,
+		"github.com/larsartmann/go-cqrs-lite/test-component",
+		spans[0].InstrumentationScope().Name,
+	)
 }
 
 func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
@@ -69,7 +73,11 @@ func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
 	var rm metricdata.ResourceMetrics
 	require.NoError(t, reader.Collect(context.Background(), &rm))
 	require.Len(t, rm.ScopeMetrics, 1)
-	require.Equal(t, "github.com/larsartmann/go-cqrs-lite/metrics-test", rm.ScopeMetrics[0].Scope.Name)
+	require.Equal(
+		t,
+		"github.com/larsartmann/go-cqrs-lite/metrics-test",
+		rm.ScopeMetrics[0].Scope.Name,
+	)
 }
 
 func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {
@@ -203,7 +211,11 @@ func TestComponentTracer_ReturnsExpectedFormat(t *testing.T) {
 	t.Parallel()
 
 	require.Equal(t, "github.com/larsartmann/go-cqrs-lite/storage", ComponentTracer("storage"))
-	require.Equal(t, "github.com/larsartmann/go-cqrs-lite/middleware", ComponentTracer("middleware"))
+	require.Equal(
+		t,
+		"github.com/larsartmann/go-cqrs-lite/middleware",
+		ComponentTracer("middleware"),
+	)
 }
 
 func TestNameConstant(t *testing.T) {

@@ -67,7 +67,11 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 				return event.WrapInfrastructure(
 					verifyErr,
 					"signing.verify_multi_sig",
-					"verify multi-sig for actor "+string(signer.Actor())+" on event "+string(evt.Type()),
+					"verify multi-sig for actor "+string(
+						signer.Actor(),
+					)+" on event "+string(
+						evt.Type(),
+					),
 				)
 			}
 

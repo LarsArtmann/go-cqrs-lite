@@ -91,7 +91,12 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 	}
 }
 
-func expectSnapshotLoadRows(mock sqlmock.Sqlmock, aggID id.AggregateID, name string, createdAt time.Time) {
+func expectSnapshotLoadRows(
+	mock sqlmock.Sqlmock,
+	aggID id.AggregateID,
+	name string,
+	createdAt time.Time,
+) {
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).

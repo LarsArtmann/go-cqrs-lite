@@ -93,7 +93,9 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 		event.Version(1), []byte(`{"name":"Alice"}`),
 	)
 	Expect(err).ToNot(HaveOccurred())
-	Expect(store.Save(ctx, "User", activeID, []event.Event{activeEvt}, event.Version(0))).To(Succeed())
+	Expect(
+		store.Save(ctx, "User", activeID, []event.Event{activeEvt}, event.Version(0)),
+	).To(Succeed())
 
 	deletedID := id.NewAggregateID()
 	deletedEvt, err := event.NewEvent(
@@ -102,7 +104,9 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 		event.WithCustom(event.MetadataKeyTombstone, "true"),
 	)
 	Expect(err).ToNot(HaveOccurred())
-	Expect(store.Save(ctx, "User", deletedID, []event.Event{deletedEvt}, event.Version(0))).To(Succeed())
+	Expect(
+		store.Save(ctx, "User", deletedID, []event.Event{deletedEvt}, event.Version(0)),
+	).To(Succeed())
 
 	orderID := id.NewAggregateID()
 	orderEvt, err := event.NewEvent(
@@ -110,5 +114,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 		event.Version(1), []byte(`{"total":99}`),
 	)
 	Expect(err).ToNot(HaveOccurred())
-	Expect(store.Save(ctx, "Order", orderID, []event.Event{orderEvt}, event.Version(0))).To(Succeed())
+	Expect(
+		store.Save(ctx, "Order", orderID, []event.Event{orderEvt}, event.Version(0)),
+	).To(Succeed())
 }

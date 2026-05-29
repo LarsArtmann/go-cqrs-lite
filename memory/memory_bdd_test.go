@@ -34,28 +34,34 @@ var _ = Describe("MemoryStore", func() {
 
 	Describe("As a developer using the in-memory event store", func() {
 		Context("when I save events for a new aggregate", func() {
-			It("should persist them and let me load them back for my aggregate reconstruction", func() {
-				events := []event.Event{makeMemEvent("Created", aggID, 1)}
-				err := store.Save(ctx, "TestAggregate", aggID, events, 0)
-				Expect(err).ToNot(HaveOccurred())
+			It(
+				"should persist them and let me load them back for my aggregate reconstruction",
+				func() {
+					events := []event.Event{makeMemEvent("Created", aggID, 1)}
+					err := store.Save(ctx, "TestAggregate", aggID, events, 0)
+					Expect(err).ToNot(HaveOccurred())
 
-				loaded, err := store.Load(ctx, "TestAggregate", aggID)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded).To(HaveLen(1))
-				Expect(loaded[0].Type()).To(Equal(event.Type("Created")))
-			})
+					loaded, err := store.Load(ctx, "TestAggregate", aggID)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(loaded).To(HaveLen(1))
+					Expect(loaded[0].Type()).To(Equal(event.Type("Created")))
+				},
+			)
 		})
 
 		Context("when I save events with the wrong expected version", func() {
-			It("should detect the version mismatch so concurrent writers don't silently overwrite each other", func() {
-				events := []event.Event{makeMemEvent("Created", aggID, 1)}
-				err := store.Save(ctx, "TestAggregate", aggID, events, 0)
-				Expect(err).ToNot(HaveOccurred())
+			It(
+				"should detect the version mismatch so concurrent writers don't silently overwrite each other",
+				func() {
+					events := []event.Event{makeMemEvent("Created", aggID, 1)}
+					err := store.Save(ctx, "TestAggregate", aggID, events, 0)
+					Expect(err).ToNot(HaveOccurred())
 
-				more := []event.Event{makeMemEvent("Updated", aggID, 2)}
-				err = store.Save(ctx, "TestAggregate", aggID, more, 0) // wrong expected version
-				Expect(err).To(HaveOccurred())
-			})
+					more := []event.Event{makeMemEvent("Updated", aggID, 2)}
+					err = store.Save(ctx, "TestAggregate", aggID, more, 0) // wrong expected version
+					Expect(err).To(HaveOccurred())
+				},
+			)
 		})
 
 		Context("when I load a non-existent aggregate", func() {
@@ -67,53 +73,62 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I append batch events", func() {
-			It("should append them after existing events for bulk imports without re-specifying the version", func() {
-				initial := []event.Event{makeMemEvent("Created", aggID, 1)}
-				Expect(store.Save(ctx, "TestAggregate", aggID, initial, 0)).To(Succeed())
+			It(
+				"should append them after existing events for bulk imports without re-specifying the version",
+				func() {
+					initial := []event.Event{makeMemEvent("Created", aggID, 1)}
+					Expect(store.Save(ctx, "TestAggregate", aggID, initial, 0)).To(Succeed())
 
-				batch := []event.Event{
-					makeMemEvent("Updated", aggID, 2),
-					makeMemEvent("Updated", aggID, 3),
-				}
-				Expect(store.AppendBatch(ctx, "TestAggregate", aggID, batch)).To(Succeed())
+					batch := []event.Event{
+						makeMemEvent("Updated", aggID, 2),
+						makeMemEvent("Updated", aggID, 3),
+					}
+					Expect(store.AppendBatch(ctx, "TestAggregate", aggID, batch)).To(Succeed())
 
-				loaded, err := store.Load(ctx, "TestAggregate", aggID)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded).To(HaveLen(3))
-			})
+					loaded, err := store.Load(ctx, "TestAggregate", aggID)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(loaded).To(HaveLen(3))
+				},
+			)
 		})
 
 		Context("when I load events from a specific version", func() {
-			It("should return only events from that version onward so I can replay just what I missed", func() {
-				events := []event.Event{
-					makeMemEvent("Created", aggID, 1),
-					makeMemEvent("Updated", aggID, 2),
-					makeMemEvent("Updated", aggID, 3),
-				}
-				Expect(store.Save(ctx, "TestAggregate", aggID, events, 0)).To(Succeed())
+			It(
+				"should return only events from that version onward so I can replay just what I missed",
+				func() {
+					events := []event.Event{
+						makeMemEvent("Created", aggID, 1),
+						makeMemEvent("Updated", aggID, 2),
+						makeMemEvent("Updated", aggID, 3),
+					}
+					Expect(store.Save(ctx, "TestAggregate", aggID, events, 0)).To(Succeed())
 
-				// LoadFromVersion(v) returns events from index v onward
-				// Version(2) → index 2 → only version 3 event
-				fromV2, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 2)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fromV2).To(HaveLen(1))
-				Expect(fromV2[0].Version()).To(Equal(event.Version(3)))
+					// LoadFromVersion(v) returns events from index v onward
+					// Version(2) → index 2 → only version 3 event
+					fromV2, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 2)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(fromV2).To(HaveLen(1))
+					Expect(fromV2[0].Version()).To(Equal(event.Version(3)))
 
-				// Version(1) → index 1 → versions 2 and 3
-				fromV1, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 1)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fromV1).To(HaveLen(2))
-			})
+					// Version(1) → index 1 → versions 2 and 3
+					fromV1, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 1)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(fromV1).To(HaveLen(2))
+				},
+			)
 		})
 
 		Context("when I close the store", func() {
-			It("should reject all further operations so I don't use a closed store by accident", func() {
-				Expect(store.Close()).To(Succeed())
+			It(
+				"should reject all further operations so I don't use a closed store by accident",
+				func() {
+					Expect(store.Close()).To(Succeed())
 
-				err := store.Save(ctx, "TestAggregate", aggID,
-					[]event.Event{makeMemEvent("Created", aggID, 1)}, 0)
-				Expect(err).To(HaveOccurred())
-			})
+					err := store.Save(ctx, "TestAggregate", aggID,
+						[]event.Event{makeMemEvent("Created", aggID, 1)}, 0)
+					Expect(err).To(HaveOccurred())
+				},
+			)
 		})
 	})
 })
@@ -131,53 +146,65 @@ var _ = Describe("MemoryBus", func() {
 
 	Describe("As a developer using the in-memory event bus", func() {
 		Context("when I publish events", func() {
-			It("should deliver them only to subscribers who registered for that specific type", func() {
-				var received []event.Event
+			It(
+				"should deliver them only to subscribers who registered for that specific type",
+				func() {
+					var received []event.Event
 
-				err := bus.Subscribe("UserCreated", func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
+					err := bus.Subscribe(
+						"UserCreated",
+						func(_ context.Context, evt event.Event) error {
+							received = append(received, evt)
 
-					return nil
-				})
-				Expect(err).ToNot(HaveOccurred())
+							return nil
+						},
+					)
+					Expect(err).ToNot(HaveOccurred())
 
-				evt := makeMemEvent("UserCreated", id.NewAggregateID(), 1)
-				Expect(bus.Publish(ctx, evt)).To(Succeed())
+					evt := makeMemEvent("UserCreated", id.NewAggregateID(), 1)
+					Expect(bus.Publish(ctx, evt)).To(Succeed())
 
-				Expect(received).To(HaveLen(1))
-				Expect(received[0].ID()).To(Equal(evt.ID()))
-			})
+					Expect(received).To(HaveLen(1))
+					Expect(received[0].ID()).To(Equal(evt.ID()))
+				},
+			)
 		})
 
 		Context("when I subscribe to all events", func() {
-			It("should receive events of any type for cross-cutting concerns like audit logging", func() {
-				var received []event.Event
+			It(
+				"should receive events of any type for cross-cutting concerns like audit logging",
+				func() {
+					var received []event.Event
 
-				err := bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-					received = append(received, evt)
+					err := bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+						received = append(received, evt)
 
-					return nil
-				})
-				Expect(err).ToNot(HaveOccurred())
+						return nil
+					})
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(
-					bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1)),
-				).To(Succeed())
-				Expect(
-					bus.Publish(ctx, makeMemEvent("OrderPlaced", id.NewAggregateID(), 1)),
-				).To(Succeed())
+					Expect(
+						bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1)),
+					).To(Succeed())
+					Expect(
+						bus.Publish(ctx, makeMemEvent("OrderPlaced", id.NewAggregateID(), 1)),
+					).To(Succeed())
 
-				Expect(received).To(HaveLen(2))
-			})
+					Expect(received).To(HaveLen(2))
+				},
+			)
 		})
 
 		Context("when I close the bus", func() {
-			It("should reject all further operations so I don't publish to a shut-down bus", func() {
-				Expect(bus.Close()).To(Succeed())
+			It(
+				"should reject all further operations so I don't publish to a shut-down bus",
+				func() {
+					Expect(bus.Close()).To(Succeed())
 
-				err := bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1))
-				Expect(err).To(HaveOccurred())
-			})
+					err := bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1))
+					Expect(err).To(HaveOccurred())
+				},
+			)
 		})
 	})
 })

@@ -76,7 +76,14 @@ func (s *SQLEventStore) Save(
 		return nil
 	}
 
-	ctx, span := startSaveSpan(ctx, "event.store.save", aggregateType, aggregateID, expectedVersion, len(events))
+	ctx, span := startSaveSpan(
+		ctx,
+		"event.store.save",
+		aggregateType,
+		aggregateID,
+		expectedVersion,
+		len(events),
+	)
 	defer span.End()
 
 	tx, err := s.db.BeginTx(ctx, nil)

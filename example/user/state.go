@@ -50,7 +50,12 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 
-		return UserState{Email: state.Email, Name: state.Name, Deleted: true, DeleteReason: p.Reason}, nil
+		return UserState{
+			Email:        state.Email,
+			Name:         state.Name,
+			Deleted:      true,
+			DeleteReason: p.Reason,
+		}, nil
 	case eventUserReborn:
 		p, err := unmarshalAs[UserRebornPayload](evt)
 		if err != nil {

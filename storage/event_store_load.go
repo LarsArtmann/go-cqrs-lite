@@ -78,7 +78,14 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	return s.loadSimple(ctx, aggregateType, aggregateID, "event.store.load", "ORDER BY version ASC", "query events")
+	return s.loadSimple(
+		ctx,
+		aggregateType,
+		aggregateID,
+		"event.store.load",
+		"ORDER BY version ASC",
+		"query events",
+	)
 }
 
 // LoadFromVersion retrieves events starting from a given version.
@@ -131,9 +138,12 @@ func (s *SQLEventStore) LoadToTimestamp(
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
-		spanName:   "event.store.load_to_timestamp",
-		attrs:      cqrsotel.AggregateAttrs(aggregateType, aggregateID),
-		where:      fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
+		spanName: "event.store.load_to_timestamp",
+		attrs:    cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+		where: fmt.Sprintf(
+			"AND occurred_at <= %s ORDER BY version ASC",
+			s.dialect.Placeholder(3),
+		),
 		extraArgs:  []any{s.dialect.FormatTime(maxTime)},
 		requireHit: true,
 		errMsg:     "query events to timestamp",
@@ -198,7 +208,12 @@ func (s *SQLEventStore) queryEvents(
 	}
 
 	if requireNonEmpty && len(events) == 0 {
-		return nil, fmt.Errorf("aggregate %s/%s: %w", aggregateType, aggregateID, event.ErrAggregateNotFound)
+		return nil, fmt.Errorf(
+			"aggregate %s/%s: %w",
+			aggregateType,
+			aggregateID,
+			event.ErrAggregateNotFound,
+		)
 	}
 
 	return events, nil

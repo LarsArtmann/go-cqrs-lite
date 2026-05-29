@@ -107,14 +107,20 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 
 	t.Run("MultiVerifyMiddlewareFor panics on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { signing.MultiVerifyMiddlewareFor(signing.Actor("device"), nil) },
-			"signing: MultiVerifyMiddlewareFor called with nil verifier")
+		assertPanicMessage(
+			t,
+			func() { signing.MultiVerifyMiddlewareFor(signing.Actor("device"), nil) },
+			"signing: MultiVerifyMiddlewareFor called with nil verifier",
+		)
 	})
 
 	t.Run("RequireMultiSigMiddleware panics on empty map", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { signing.RequireMultiSigMiddleware(map[signing.Actor]signing.Verifier{}) },
-			"signing: RequireMultiSigMiddleware called with empty verifiers map")
+		assertPanicMessage(
+			t,
+			func() { signing.RequireMultiSigMiddleware(map[signing.Actor]signing.Verifier{}) },
+			"signing: RequireMultiSigMiddleware called with empty verifiers map",
+		)
 	})
 }
 

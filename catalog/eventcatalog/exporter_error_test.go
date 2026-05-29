@@ -135,7 +135,15 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
-	cattest.AddCommandWithSchema(t, reg, "svc", "Cmd", "Cmd", "1.0.0", &catalog.Schema{Type: catalog.TypeObject})
+	cattest.AddCommandWithSchema(
+		t,
+		reg,
+		"svc",
+		"Cmd",
+		"Cmd",
+		"1.0.0",
+		&catalog.Schema{Type: catalog.TypeObject},
+	)
 
 	cat := reg.Build()
 

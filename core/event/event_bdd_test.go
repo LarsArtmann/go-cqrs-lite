@@ -13,7 +13,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
-func initMemoryStoreTest(ctx *context.Context, store **memory.MemoryStore, aggID *id.AggregateID, aggType *event.AggregateType, typ event.AggregateType) {
+func initMemoryStoreTest(
+	ctx *context.Context,
+	store **memory.MemoryStore,
+	aggID *id.AggregateID,
+	aggType *event.AggregateType,
+	typ event.AggregateType,
+) {
 	*ctx = context.Background()
 	*store = memory.NewMemoryStore()
 	*aggID = id.NewAggregateID()
@@ -55,43 +61,82 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.Metadata().UserID).To(Equal(userID))
 				Expect(evt.Metadata().RequestID).To(Equal(reqID))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api-gateway")))
-				Expect(evt.Metadata().Custom).To(HaveKeyWithValue(event.MetadataKey("tenant"), "acme-corp"))
+				Expect(
+					evt.Metadata().Custom,
+				).To(HaveKeyWithValue(event.MetadataKey("tenant"), "acme-corp"))
 			})
 		})
 
 		DescribeTable(
 			"validation rejects invalid inputs",
 			func(typ string, aggID id.AggregateID, aggType string, version event.Version, wantErr string) {
-				_, err := event.NewEvent(event.Type(typ), aggID, event.AggregateType(aggType), version, nil)
+				_, err := event.NewEvent(
+					event.Type(typ),
+					aggID,
+					event.AggregateType(aggType),
+					version,
+					nil,
+				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(wantErr))
 			},
-			Entry("empty type", "", id.NewAggregateID(), "User", event.Version(1), "event type is required"),
-			Entry("zero aggregate ID", "UserCreated", id.AggregateID{}, "User", event.Version(1), "aggregate ID is required"),
-			Entry("empty aggregate type", "UserCreated", id.NewAggregateID(), "", event.Version(1), "aggregate type is required"),
-			Entry("version zero", "UserCreated", id.NewAggregateID(), "User", event.Version(0), "version"),
+			Entry(
+				"empty type",
+				"",
+				id.NewAggregateID(),
+				"User",
+				event.Version(1),
+				"event type is required",
+			),
+			Entry(
+				"zero aggregate ID",
+				"UserCreated",
+				id.AggregateID{},
+				"User",
+				event.Version(1),
+				"aggregate ID is required",
+			),
+			Entry(
+				"empty aggregate type",
+				"UserCreated",
+				id.NewAggregateID(),
+				"",
+				event.Version(1),
+				"aggregate type is required",
+			),
+			Entry(
+				"version zero",
+				"UserCreated",
+				id.NewAggregateID(),
+				"User",
+				event.Version(0),
+				"version",
+			),
 		)
 
 		Context("when I clone an event", func() {
-			It("should give me an independent copy so I can mutate it without affecting the original", func() {
-				evt, err := event.NewEvent(
-					"UserCreated", id.NewAggregateID(), "User", 1,
-					[]byte(`{"name":"Alice"}`),
-					event.WithCustom("key", "value"),
-				)
-				Expect(err).ToNot(HaveOccurred())
+			It(
+				"should give me an independent copy so I can mutate it without affecting the original",
+				func() {
+					evt, err := event.NewEvent(
+						"UserCreated", id.NewAggregateID(), "User", 1,
+						[]byte(`{"name":"Alice"}`),
+						event.WithCustom("key", "value"),
+					)
+					Expect(err).ToNot(HaveOccurred())
 
-				clone := evt.Clone()
+					clone := evt.Clone()
 
-				Expect(clone.ID()).To(Equal(evt.ID()))
-				Expect(clone.Type()).To(Equal(evt.Type()))
-				Expect(clone.AggregateID()).To(Equal(evt.AggregateID()))
-				Expect(clone.Version()).To(Equal(evt.Version()))
-				Expect(clone.Payload()).To(Equal(evt.Payload()))
+					Expect(clone.ID()).To(Equal(evt.ID()))
+					Expect(clone.Type()).To(Equal(evt.Type()))
+					Expect(clone.AggregateID()).To(Equal(evt.AggregateID()))
+					Expect(clone.Version()).To(Equal(evt.Version()))
+					Expect(clone.Payload()).To(Equal(evt.Payload()))
 
-				clone.Payload()[0] = 'X'
-				Expect(evt.Payload()[0]).To(Equal(byte('{')))
-			})
+					clone.Payload()[0] = 'X'
+					Expect(evt.Payload()[0]).To(Equal(byte('{')))
+				},
+			)
 		})
 	})
 })
@@ -138,24 +183,27 @@ var _ = Describe("Event Store via MemoryStore", func() {
 		})
 
 		Context("when my save conflicts, but I reload and retry with the correct version", func() {
-			It("should succeed on the second attempt so I can recover from concurrent writes", func() {
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{
-					mustNewEvent("OrderPlaced", aggID, aggType, 1),
-				}, 0)).To(Succeed())
+			It(
+				"should succeed on the second attempt so I can recover from concurrent writes",
+				func() {
+					Expect(store.Save(ctx, aggType, aggID, []event.Event{
+						mustNewEvent("OrderPlaced", aggID, aggType, 1),
+					}, 0)).To(Succeed())
 
-				err := store.Save(ctx, aggType, aggID, []event.Event{
-					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
-				}, 0)
-				Expect(err).To(HaveOccurred())
+					err := store.Save(ctx, aggType, aggID, []event.Event{
+						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					}, 0)
+					Expect(err).To(HaveOccurred())
 
-				loaded, loadErr := store.Load(ctx, aggType, aggID)
-				Expect(loadErr).ToNot(HaveOccurred())
-				currentVersion := len(loaded)
+					loaded, loadErr := store.Load(ctx, aggType, aggID)
+					Expect(loadErr).ToNot(HaveOccurred())
+					currentVersion := len(loaded)
 
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{
-					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
-				}, event.Version(currentVersion))).To(Succeed())
-			})
+					Expect(store.Save(ctx, aggType, aggID, []event.Event{
+						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					}, event.Version(currentVersion))).To(Succeed())
+				},
+			)
 		})
 
 		Context("when I close the store", func() {
@@ -165,14 +213,17 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				}, 0)).To(Succeed())
 			})
 
-			It("should reject any further operations so I don't accidentally use a closed store", func() {
-				Expect(store.Close()).To(Succeed())
+			It(
+				"should reject any further operations so I don't accidentally use a closed store",
+				func() {
+					Expect(store.Close()).To(Succeed())
 
-				err := store.Save(ctx, aggType, aggID, []event.Event{
-					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
-				}, 1)
-				Expect(err).To(HaveOccurred())
-			})
+					err := store.Save(ctx, aggType, aggID, []event.Event{
+						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					}, 1)
+					Expect(err).To(HaveOccurred())
+				},
+			)
 		})
 	})
 })
@@ -212,23 +263,26 @@ var _ = Describe("Schema Evolution", func() {
 		})
 
 		Context("when events already at the latest version are loaded", func() {
-			It("should skip upcasting and keep my data intact, avoiding unnecessary transformations", func() {
-				v2Event, err := event.NewEvent(
-					"UserCreated", aggID, "User", 1,
-					[]byte(`{"name":"Alice","email":"a@b.com"}`),
-					event.WithSchemaVersion(2),
-				)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{v2Event}, 0)).To(Succeed())
+			It(
+				"should skip upcasting and keep my data intact, avoiding unnecessary transformations",
+				func() {
+					v2Event, err := event.NewEvent(
+						"UserCreated", aggID, "User", 1,
+						[]byte(`{"name":"Alice","email":"a@b.com"}`),
+						event.WithSchemaVersion(2),
+					)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(store.Save(ctx, aggType, aggID, []event.Event{v2Event}, 0)).To(Succeed())
 
-				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
-				versioned := event.NewVersionedStore(store, upcaster)
+					upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
+					versioned := event.NewVersionedStore(store, upcaster)
 
-				loaded, err := versioned.Load(ctx, aggType, aggID)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
-				Expect(loaded[0].Payload()).To(ContainSubstring("a@b.com"))
-			})
+					loaded, err := versioned.Load(ctx, aggType, aggID)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
+					Expect(loaded[0].Payload()).To(ContainSubstring("a@b.com"))
+				},
+			)
 		})
 
 		Context("when chained upcasters v1→v2→v3 are registered", func() {
@@ -241,8 +295,16 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(store.Save(ctx, aggType, aggID, []event.Event{v1Event}, 0)).To(Succeed())
 
-				upcasterV1toV2 := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
-				upcasterV2toV3 := makeUpcaster("UserCreated", 2, []byte(`{"fullName":"Alice","email":"","verified":false}`))
+				upcasterV1toV2 := makeUpcaster(
+					"UserCreated",
+					1,
+					[]byte(`{"name":"Alice","email":""}`),
+				)
+				upcasterV2toV3 := makeUpcaster(
+					"UserCreated",
+					2,
+					[]byte(`{"fullName":"Alice","email":"","verified":false}`),
+				)
 				versioned := event.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
 
 				loaded, err := versioned.Load(ctx, aggType, aggID)
@@ -257,20 +319,26 @@ var _ = Describe("Schema Evolution", func() {
 var _ = Describe("Error Classification", func() {
 	Describe("As a developer building retry logic", func() {
 		Context("when I classify errors", func() {
-			It("should treat transient errors as safe to retry, so my infrastructure can self-heal", func() {
-				err := event.NewTransient("test.retry", "connection timeout")
-				Expect(event.IsRetryable(err)).To(BeTrue())
-			})
+			It(
+				"should treat transient errors as safe to retry, so my infrastructure can self-heal",
+				func() {
+					err := event.NewTransient("test.retry", "connection timeout")
+					Expect(event.IsRetryable(err)).To(BeTrue())
+				},
+			)
 
 			It("should treat rejection errors as permanent, so I stop retrying bad input", func() {
 				err := event.NewRejection("test.reject", "invalid input")
 				Expect(event.IsRetryable(err)).To(BeFalse())
 			})
 
-			It("should treat conflict errors as permanent, so I don't hammer a version mismatch", func() {
-				err := event.NewConflict("test.conflict", "version mismatch")
-				Expect(event.IsRetryable(err)).To(BeFalse())
-			})
+			It(
+				"should treat conflict errors as permanent, so I don't hammer a version mismatch",
+				func() {
+					err := event.NewConflict("test.conflict", "version mismatch")
+					Expect(event.IsRetryable(err)).To(BeFalse())
+				},
+			)
 
 			It("should treat unknown errors as retryable (safe default)", func() {
 				Expect(event.IsRetryable(errors.New("something"))).To(BeTrue())
@@ -290,12 +358,20 @@ func mustNewEvent(
 	return evt
 }
 
-func makeUpcaster(targetType event.Type, fromVersion event.SchemaVersion, newPayload []byte) event.Upcaster {
-	return event.NewUpcaster(targetType, fromVersion, func(evt event.Event) (*event.ImmutableEvent, error) {
-		return event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-			newPayload,
-			event.WithSchemaVersion(fromVersion+1),
-		)
-	})
+func makeUpcaster(
+	targetType event.Type,
+	fromVersion event.SchemaVersion,
+	newPayload []byte,
+) event.Upcaster {
+	return event.NewUpcaster(
+		targetType,
+		fromVersion,
+		func(evt event.Event) (*event.ImmutableEvent, error) {
+			return event.NewEvent(
+				evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+				newPayload,
+				event.WithSchemaVersion(fromVersion+1),
+			)
+		},
+	)
 }

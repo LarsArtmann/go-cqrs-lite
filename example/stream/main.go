@@ -79,7 +79,11 @@ func populateEvents(ctx context.Context, store event.Store) {
 		log.Fatalf("save delete event: %v", err)
 	}
 
-	fmt.Printf("[setup] Created %d users, %d orders (1 tombstoned user)\n\n", len(userIDs), len(orderIDs))
+	fmt.Printf(
+		"[setup] Created %d users, %d orders (1 tombstoned user)\n\n",
+		len(userIDs),
+		len(orderIDs),
+	)
 }
 
 func runBasicList(ctx context.Context, reader *stream.InMemoryAggregateReader) {
@@ -126,7 +130,10 @@ func runTombstoneFilter(ctx context.Context, reader *stream.InMemoryAggregateRea
 
 	fmt.Printf("→ Active users: %d (tombstoned excluded)\n", len(activePage.Items))
 
-	deletedPage, err := stream.NewListBuilder(reader).OfType("User").OnlyDeleted().ListWithStatus(ctx)
+	deletedPage, err := stream.NewListBuilder(reader).
+		OfType("User").
+		OnlyDeleted().
+		ListWithStatus(ctx)
 	if err != nil {
 		log.Fatalf("list deleted: %v", err)
 	}

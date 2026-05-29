@@ -410,7 +410,15 @@ func TestLLMsTxt_AllResourceTypes(t *testing.T) {
 		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
 		Version: "1.0.0", Direction: catalog.Sends, Summary: "Order was created",
 	})
-	cattest.AddChannel(t, reg, "order-events", "Order Events", "1.0.0", "All order events", []string{"kafka"})
+	cattest.AddChannel(
+		t,
+		reg,
+		"order-events",
+		"Order Events",
+		"1.0.0",
+		"All order events",
+		[]string{"kafka"},
+	)
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders Database", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",

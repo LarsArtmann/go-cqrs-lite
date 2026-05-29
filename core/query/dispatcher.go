@@ -50,7 +50,11 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "query.register_failed", "registering query type "+string(queryType))
+		return errorfamily.WrapInfrastructure(
+			err,
+			"query.register_failed",
+			"registering query type "+string(queryType),
+		)
 	}
 
 	err = d.Inner().Register(

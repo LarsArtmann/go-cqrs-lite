@@ -44,7 +44,11 @@ func (s *MemoryStore) Load(_ context.Context, id id.AggregateID) (*State, error)
 
 	state, ok := s.states[id.String()]
 	if !ok {
-		return nil, event.WrapRejection(ErrSagaNotFound, "saga.not_found", "saga "+id.String()+" not found")
+		return nil, event.WrapRejection(
+			ErrSagaNotFound,
+			"saga.not_found",
+			"saga "+id.String()+" not found",
+		)
 	}
 
 	return copyState(state), nil

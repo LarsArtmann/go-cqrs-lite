@@ -63,7 +63,11 @@ func TestNewOutboxPublisher_Defaults(t *testing.T) {
 func TestNewOutboxPublisher_WithPollInterval(t *testing.T) {
 	t.Parallel()
 
-	p, err := NewOutboxPublisher(&stubOutbox{}, &stubPublisher{}, WithPollInterval(50*time.Millisecond))
+	p, err := NewOutboxPublisher(
+		&stubOutbox{},
+		&stubPublisher{},
+		WithPollInterval(50*time.Millisecond),
+	)
 	if err != nil {
 		t.Fatalf("NewOutboxPublisher: %v", err)
 	}

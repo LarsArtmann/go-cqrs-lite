@@ -17,7 +17,9 @@ func validateEventParams(
 		return WrapRejection(
 			ErrEmptyEventType,
 			"event.empty_event_type",
-			"event type is required: got empty for aggregate "+aggregateID.String()+" of type "+string(aggregateType),
+			"event type is required: got empty for aggregate "+aggregateID.String()+" of type "+string(
+				aggregateType,
+			),
 		)
 	}
 
@@ -25,7 +27,11 @@ func validateEventParams(
 		return WrapRejection(
 			ErrNilAggregateID,
 			"event.nil_aggregate_id",
-			"aggregate ID is required: for event type "+string(eventType)+", aggregate type "+string(aggregateType)+", version "+version.String(),
+			"aggregate ID is required: for event type "+string(
+				eventType,
+			)+", aggregate type "+string(
+				aggregateType,
+			)+", version "+version.String(),
 		)
 	}
 
@@ -33,7 +39,9 @@ func validateEventParams(
 		return WrapRejection(
 			ErrEmptyAggregateType,
 			"event.empty_aggregate_type",
-			"aggregate type is required: for aggregate "+aggregateID.String()+", event type "+string(eventType)+", version "+version.String(),
+			"aggregate type is required: for aggregate "+aggregateID.String()+", event type "+string(
+				eventType,
+			)+", version "+version.String(),
 		)
 	}
 
@@ -41,7 +49,13 @@ func validateEventParams(
 		return WrapRejection(
 			ErrVersionNotPositive,
 			"event.version_not_positive",
-			"version must be positive: for aggregate "+aggregateID.String()+" of type "+string(aggregateType)+" (event type "+string(eventType)+", payload size "+strconv.Itoa(len(payload))+")",
+			"version must be positive: for aggregate "+aggregateID.String()+" of type "+string(
+				aggregateType,
+			)+" (event type "+string(
+				eventType,
+			)+", payload size "+strconv.Itoa(
+				len(payload),
+			)+")",
 		)
 	}
 

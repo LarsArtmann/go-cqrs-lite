@@ -66,7 +66,13 @@ func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
 
 	requireExecuteStep(t, ctx, runner, instance.ID, "step")
 
-	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error when executing completed saga")
+	requireExecuteStepError(
+		t,
+		ctx,
+		runner,
+		instance.ID,
+		"expected error when executing completed saga",
+	)
 }
 
 func TestRunner_ExecuteStep_NilAction(t *testing.T) {

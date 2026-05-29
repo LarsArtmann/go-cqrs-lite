@@ -59,7 +59,11 @@ func (s *MemorySnapshotStore) Load(
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "memory.snapshot_load_failed", "snapshot store load")
+		return nil, event.WrapInfrastructure(
+			err,
+			"memory.snapshot_load_failed",
+			"snapshot store load",
+		)
 	}
 
 	s.mu.RLock()
@@ -132,7 +136,11 @@ func (s *MemorySnapshotStore) Delete(
 ) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.snapshot_delete_failed", "snapshot store delete")
+		return event.WrapInfrastructure(
+			err,
+			"memory.snapshot_delete_failed",
+			"snapshot store delete",
+		)
 	}
 
 	s.mu.Lock()

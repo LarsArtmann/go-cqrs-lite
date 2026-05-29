@@ -95,7 +95,12 @@ func (p Pagination) Validate() error {
 	if p.PageSize > maxPageSize {
 		return errorfamily.NewRejection(
 			"query.invalid_page_size",
-			"page size must be <= "+strconv.Itoa(maxPageSize)+", got "+strconv.FormatUint(uint64(p.PageSize), 10),
+			"page size must be <= "+strconv.Itoa(
+				maxPageSize,
+			)+", got "+strconv.FormatUint(
+				uint64(p.PageSize),
+				10,
+			),
 		)
 	}
 

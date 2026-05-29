@@ -18,7 +18,11 @@ func (s *MemoryStore) LoadStream(
 ) (event.EventStream, error) {
 	events, err := s.getEvents(aggregateType, aggregateID, "load stream")
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "memory.load_stream_failed", "memory store load stream")
+		return nil, event.WrapInfrastructure(
+			err,
+			"memory.load_stream_failed",
+			"memory store load stream",
+		)
 	}
 
 	return event.NewSliceStream(copyEvents(events)), nil

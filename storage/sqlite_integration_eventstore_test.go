@@ -10,7 +10,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func setupTwoTestEvents(t *testing.T, store *SQLEventStore) (event.Event, event.Event, id.AggregateID, id.AggregateID) {
+func setupTwoTestEvents(
+	t *testing.T,
+	store *SQLEventStore,
+) (event.Event, event.Event, id.AggregateID, id.AggregateID) {
 	t.Helper()
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
@@ -28,10 +31,20 @@ func setupTwoTestEvents(t *testing.T, store *SQLEventStore) (event.Event, event.
 		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
 	)
 
-	if err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1}); err != nil {
+	if err := store.AppendBatch(
+		context.Background(),
+		"Issue",
+		aggID1,
+		[]event.Event{evt1},
+	); err != nil {
 		t.Fatalf("AppendBatch 1: %v", err)
 	}
-	if err := store.AppendBatch(context.Background(), "Issue", aggID2, []event.Event{evt2}); err != nil {
+	if err := store.AppendBatch(
+		context.Background(),
+		"Issue",
+		aggID2,
+		[]event.Event{evt2},
+	); err != nil {
 		t.Fatalf("AppendBatch 2: %v", err)
 	}
 

@@ -27,7 +27,13 @@ func seedBenchAggregates(
 	for range n {
 		aggID := id.NewAggregateID()
 		payload, _ := json.Marshal(map[string]string{payloadKey: payloadVal})
-		evt, _ := event.NewEvent(event.Type(evtType), aggID, event.AggregateType(aggType), 1, payload)
+		evt, _ := event.NewEvent(
+			event.Type(evtType),
+			aggID,
+			event.AggregateType(aggType),
+			1,
+			payload,
+		)
 		_ = store.AppendBatch(ctx, event.AggregateType(aggType), aggID, []event.Event{evt})
 	}
 
@@ -51,7 +57,14 @@ func BenchmarkInMemoryList(b *testing.B) {
 
 	for _, tc := range tests {
 		b.Run(tc.name, func(b *testing.B) {
-			reader := seedBenchAggregates(b, string(tc.aggType), string(tc.evtType), tc.key, tc.val, tc.count)
+			reader := seedBenchAggregates(
+				b,
+				string(tc.aggType),
+				string(tc.evtType),
+				tc.key,
+				tc.val,
+				tc.count,
+			)
 			ctx := context.Background()
 
 			b.ResetTimer()

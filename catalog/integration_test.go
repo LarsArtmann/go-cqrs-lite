@@ -23,7 +23,14 @@ func TestIntegration_FullCatalogFlow(t *testing.T) {
 
 	reg := catalog.NewRegistry("E-Commerce API", "1.0.0")
 
-	cattest.AddServiceWithSummary(t, reg, "order-service", "Order Service", "1.0.0", "Manages orders")
+	cattest.AddServiceWithSummary(
+		t,
+		reg,
+		"order-service",
+		"Order Service",
+		"1.0.0",
+		"Manages orders",
+	)
 
 	schema := catalog.SchemaFromType[CreateOrderPayload]()
 

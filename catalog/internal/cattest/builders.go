@@ -103,7 +103,15 @@ func AddEvent(
 ) *catalog.Registry {
 	tb.Helper()
 
-	return AddEventSimple(tb, r, catalog.ServiceID(serviceID), catalog.MessageID(messageID), name, version, direction)
+	return AddEventSimple(
+		tb,
+		r,
+		catalog.ServiceID(serviceID),
+		catalog.MessageID(messageID),
+		name,
+		version,
+		direction,
+	)
 }
 
 func AddCommandWithSchema(
@@ -221,7 +229,17 @@ func AddServiceWithQuery(
 ) *catalog.Registry {
 	tb.Helper()
 
-	return addServiceWithMessage(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
+	return addServiceWithMessage(
+		tb,
+		r,
+		serviceID,
+		messageID,
+		name,
+		version,
+		summary,
+		catalog.QueryMessage,
+		r.AddQuery,
+	)
 }
 
 func AddServiceWithCommand(

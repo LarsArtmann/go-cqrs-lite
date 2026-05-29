@@ -53,7 +53,12 @@ func (r *Repository[State]) foldEvents(
 	return state, nil
 }
 
-func opError(aggregateType event.AggregateType, aggregateID id.AggregateID, msg string, args ...any) error {
+func opError(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	msg string,
+	args ...any,
+) error {
 	prefix := aggregateType.String() + " " + aggregateID.String() + ": "
 
 	return fmt.Errorf(prefix+msg, args...) //nolint:err113

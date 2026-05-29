@@ -114,5 +114,7 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 
 var (
 	_ event.TransactionalSink  = (*SQLTransactionalStore)(nil)
-	_ event.TransactionalStore = (*SQLTransactionalStore)(nil) //nolint:staticcheck // backward-compat assertion
+	_ event.TransactionalStore = (*SQLTransactionalStore)(
+		nil,
+	) //nolint:staticcheck // backward-compat assertion
 )

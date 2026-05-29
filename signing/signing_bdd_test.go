@@ -24,18 +24,21 @@ var _ = Describe("Signing", func() {
 		secret := []byte("this-is-a-32-byte-secret-key-xxxx")
 
 		When("I sign an event and verify it with the same key", func() {
-			It("should confirm the event has not been tampered with so I can trust its integrity", func() {
-				sv, err := NewHMAC(secret)
-				Expect(err).NotTo(HaveOccurred())
+			It(
+				"should confirm the event has not been tampered with so I can trust its integrity",
+				func() {
+					sv, err := NewHMAC(secret)
+					Expect(err).NotTo(HaveOccurred())
 
-				evt := makeEvent()
-				sig, err := sv.Sign(evt)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(sig).NotTo(BeNil())
+					evt := makeEvent()
+					sig, err := sv.Sign(evt)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(sig).NotTo(BeNil())
 
-				err = sv.Verify(evt, sig)
-				Expect(err).NotTo(HaveOccurred())
-			})
+					err = sv.Verify(evt, sig)
+					Expect(err).NotTo(HaveOccurred())
+				},
+			)
 		})
 
 		When("someone tampers with the event payload after signing", func() {
@@ -47,7 +50,13 @@ var _ = Describe("Signing", func() {
 				sig, err := sv.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
 
-				tampered, err := event.NewEvent("user.created", evt.AggregateID(), "User", 1, []byte(`{"name":"Eve"}`))
+				tampered, err := event.NewEvent(
+					"user.created",
+					evt.AggregateID(),
+					"User",
+					1,
+					[]byte(`{"name":"Eve"}`),
+				)
 				Expect(err).NotTo(HaveOccurred())
 
 				err = sv.Verify(tampered, sig)
@@ -81,44 +90,50 @@ var _ = Describe("Signing", func() {
 
 	Describe("Ed25519 signing", func() {
 		When("I sign an event and verify it with the corresponding public key", func() {
-			It("should confirm the event came from the private key holder so I can authenticate the source", func() {
-				pub, priv, err := GenerateEd25519KeyPair()
-				Expect(err).NotTo(HaveOccurred())
+			It(
+				"should confirm the event came from the private key holder so I can authenticate the source",
+				func() {
+					pub, priv, err := GenerateEd25519KeyPair()
+					Expect(err).NotTo(HaveOccurred())
 
-				signer, err := NewEd25519(priv)
-				Expect(err).NotTo(HaveOccurred())
-				verifier, err := NewEd25519Verifier(pub)
-				Expect(err).NotTo(HaveOccurred())
+					signer, err := NewEd25519(priv)
+					Expect(err).NotTo(HaveOccurred())
+					verifier, err := NewEd25519Verifier(pub)
+					Expect(err).NotTo(HaveOccurred())
 
-				evt := makeEvent()
-				sig, err := signer.Sign(evt)
-				Expect(err).NotTo(HaveOccurred())
+					evt := makeEvent()
+					sig, err := signer.Sign(evt)
+					Expect(err).NotTo(HaveOccurred())
 
-				err = verifier.Verify(evt, sig)
-				Expect(err).NotTo(HaveOccurred())
-			})
+					err = verifier.Verify(evt, sig)
+					Expect(err).NotTo(HaveOccurred())
+				},
+			)
 		})
 
 		When("I verify with the wrong public key", func() {
-			It("should reject the signature so a different key pair cannot impersonate the signer", func() {
-				_, priv, err := GenerateEd25519KeyPair()
-				Expect(err).NotTo(HaveOccurred())
+			It(
+				"should reject the signature so a different key pair cannot impersonate the signer",
+				func() {
+					_, priv, err := GenerateEd25519KeyPair()
+					Expect(err).NotTo(HaveOccurred())
 
-				wrongPub, _, err := GenerateEd25519KeyPair()
-				Expect(err).NotTo(HaveOccurred())
+					wrongPub, _, err := GenerateEd25519KeyPair()
+					Expect(err).NotTo(HaveOccurred())
 
-				signer, err := NewEd25519(priv)
-				Expect(err).NotTo(HaveOccurred())
-				verifier, err := NewEd25519Verifier(wrongPub)
-				Expect(err).NotTo(HaveOccurred())
+					signer, err := NewEd25519(priv)
+					Expect(err).NotTo(HaveOccurred())
+					verifier, err := NewEd25519Verifier(wrongPub)
+					Expect(err).NotTo(HaveOccurred())
 
-				evt := makeEvent()
-				sig, err := signer.Sign(evt)
-				Expect(err).NotTo(HaveOccurred())
+					evt := makeEvent()
+					sig, err := signer.Sign(evt)
+					Expect(err).NotTo(HaveOccurred())
 
-				err = verifier.Verify(evt, sig)
-				Expect(err).To(MatchError(ErrInvalidSignature))
-			})
+					err = verifier.Verify(evt, sig)
+					Expect(err).To(MatchError(ErrInvalidSignature))
+				},
+			)
 		})
 
 		When("I create an Ed25519 signer with a nil private key", func() {
@@ -150,12 +165,14 @@ var _ = Describe("Signing", func() {
 
 					evt := makeEvent()
 					var captured event.Event
-					inner := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
-						if len(events) > 0 {
-							captured = events[0]
-						}
-						return nil
-					})
+					inner := event.PublisherFunc(
+						func(_ context.Context, events ...event.Event) error {
+							if len(events) > 0 {
+								captured = events[0]
+							}
+							return nil
+						},
+					)
 
 					wrapped := mw(inner)
 					err = wrapped.Publish(context.Background(), evt)
@@ -178,7 +195,13 @@ var _ = Describe("Signing", func() {
 				sig, err := sv.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
 
-				tampered, err := event.NewEvent("user.created", evt.AggregateID(), "User", 1, []byte(`{"name":"Eve"}`))
+				tampered, err := event.NewEvent(
+					"user.created",
+					evt.AggregateID(),
+					"User",
+					1,
+					[]byte(`{"name":"Eve"}`),
+				)
 				Expect(err).NotTo(HaveOccurred())
 				signed, err := AttachSignature(tampered, sig)
 				Expect(err).NotTo(HaveOccurred())
@@ -219,18 +242,21 @@ var _ = Describe("Signing", func() {
 
 	Describe("debug inspection", func() {
 		When("I need to log or display a signature", func() {
-			It("should give me a base64 string so I can include it in debug output without binary garbage", func() {
-				sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
-				Expect(err).NotTo(HaveOccurred())
+			It(
+				"should give me a base64 string so I can include it in debug output without binary garbage",
+				func() {
+					sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+					Expect(err).NotTo(HaveOccurred())
 
-				evt := makeEvent()
-				sig, err := sv.Sign(evt)
-				Expect(err).NotTo(HaveOccurred())
+					evt := makeEvent()
+					sig, err := sv.Sign(evt)
+					Expect(err).NotTo(HaveOccurred())
 
-				str := sig.String()
-				Expect(str).NotTo(BeEmpty())
-				Expect(str).NotTo(ContainSubstring("\x00"))
-			})
+					str := sig.String()
+					Expect(str).NotTo(BeEmpty())
+					Expect(str).NotTo(ContainSubstring("\x00"))
+				},
+			)
 		})
 	})
 })

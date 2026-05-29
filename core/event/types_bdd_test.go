@@ -18,27 +18,36 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I parse a negative version", func() {
-			It("should reject it because negative versions are meaningless in event sourcing", func() {
-				_, err := event.ParseVersion(-1)
-				Expect(err).To(HaveOccurred())
-			})
+			It(
+				"should reject it because negative versions are meaningless in event sourcing",
+				func() {
+					_, err := event.ParseVersion(-1)
+					Expect(err).To(HaveOccurred())
+				},
+			)
 		})
 
 		Context("when I parse zero", func() {
-			It("should accept it as 'no events yet', letting me distinguish new aggregates", func() {
-				v, err := event.ParseVersion(0)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(v.IsZero()).To(BeTrue())
-			})
+			It(
+				"should accept it as 'no events yet', letting me distinguish new aggregates",
+				func() {
+					v, err := event.ParseVersion(0)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(v.IsZero()).To(BeTrue())
+				},
+			)
 		})
 
 		Context("when I increment a version", func() {
-			It("should return a new version without mutating the original, so I don't corrupt my state", func() {
-				v := event.Version(3)
-				v2 := v.Increment()
-				Expect(v2.Int()).To(Equal(4))
-				Expect(v.Int()).To(Equal(3))
-			})
+			It(
+				"should return a new version without mutating the original, so I don't corrupt my state",
+				func() {
+					v := event.Version(3)
+					v2 := v.Increment()
+					Expect(v2.Int()).To(Equal(4))
+					Expect(v.Int()).To(Equal(3))
+				},
+			)
 		})
 
 		Context("when I call IsPositive", func() {
@@ -60,9 +69,12 @@ var _ = Describe("Version", func() {
 				Expect(event.Version(5).Sub(2).Int()).To(Equal(3))
 			})
 
-			It("should compute modulo correctly so I can implement every-N-events snapshotting", func() {
-				Expect(event.Version(7).Mod(3)).To(Equal(1))
-			})
+			It(
+				"should compute modulo correctly so I can implement every-N-events snapshotting",
+				func() {
+					Expect(event.Version(7).Mod(3)).To(Equal(1))
+				},
+			)
 		})
 
 		Context("when I compare versions with Cmp", func() {
@@ -71,9 +83,24 @@ var _ = Describe("Version", func() {
 				func(v1, v2 event.Version, expected int) {
 					Expect(v1.Cmp(v2)).To(Equal(expected))
 				},
-				Entry("should return -1 when less than other, helping me detect version drift", event.Version(1), event.Version(3), -1),
-				Entry("should return 0 when equal, confirming my optimistic concurrency check passes", event.Version(3), event.Version(3), 0),
-				Entry("should return +1 when greater than other, telling me I'm ahead of the store", event.Version(5), event.Version(3), 1),
+				Entry(
+					"should return -1 when less than other, helping me detect version drift",
+					event.Version(1),
+					event.Version(3),
+					-1,
+				),
+				Entry(
+					"should return 0 when equal, confirming my optimistic concurrency check passes",
+					event.Version(3),
+					event.Version(3),
+					0,
+				),
+				Entry(
+					"should return +1 when greater than other, telling me I'm ahead of the store",
+					event.Version(5),
+					event.Version(3),
+					1,
+				),
 			)
 		})
 
@@ -88,10 +115,13 @@ var _ = Describe("Version", func() {
 var _ = Describe("SchemaVersion", func() {
 	Describe("As a developer managing event schema evolution", func() {
 		Context("when I create a SchemaVersion", func() {
-			It("should hold the version so I can track which schema migration each event uses", func() {
-				sv := event.SchemaVersion(2)
-				Expect(sv.Int()).To(Equal(2))
-			})
+			It(
+				"should hold the version so I can track which schema migration each event uses",
+				func() {
+					sv := event.SchemaVersion(2)
+					Expect(sv.Int()).To(Equal(2))
+				},
+			)
 		})
 
 		Context("when I convert to string", func() {
@@ -101,13 +131,19 @@ var _ = Describe("SchemaVersion", func() {
 		})
 
 		Context("when I check IsZero", func() {
-			It("should be true for zero, meaning no schema version was specified (legacy events)", func() {
-				Expect(event.SchemaVersion(0).IsZero()).To(BeTrue())
-			})
+			It(
+				"should be true for zero, meaning no schema version was specified (legacy events)",
+				func() {
+					Expect(event.SchemaVersion(0).IsZero()).To(BeTrue())
+				},
+			)
 
-			It("should be false for non-zero, meaning the event has explicit schema tracking", func() {
-				Expect(event.SchemaVersion(1).IsZero()).To(BeFalse())
-			})
+			It(
+				"should be false for non-zero, meaning the event has explicit schema tracking",
+				func() {
+					Expect(event.SchemaVersion(1).IsZero()).To(BeFalse())
+				},
+			)
 		})
 	})
 })

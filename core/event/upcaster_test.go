@@ -90,7 +90,9 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 
 	registry, evt := newTestEvent(7, `{"name":"Alice"}`)
 	registry.register(newTestUpcaster("UserCreated", 1, `{"name":"Alice","email":""}`))
-	registry.register(newTestUpcaster("UserCreated", 2, `{"name":"Alice","email":"","active":true}`))
+	registry.register(
+		newTestUpcaster("UserCreated", 2, `{"name":"Alice","email":"","active":true}`),
+	)
 
 	result, err := registry.upcast(evt)
 	if err != nil {

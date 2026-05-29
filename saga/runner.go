@@ -52,7 +52,11 @@ func (r *Runner) Register(def Definition) error {
 	}
 
 	if _, exists := r.registry[sagaType]; exists {
-		return event.WrapConflict(ErrSagaAlreadyExists, "saga.already_exists", "saga "+sagaType+" already exists")
+		return event.WrapConflict(
+			ErrSagaAlreadyExists,
+			"saga.already_exists",
+			"saga "+sagaType+" already exists",
+		)
 	}
 
 	r.registry[sagaType] = def
@@ -77,7 +81,11 @@ func (r *Runner) Start(
 	r.mu.RUnlock()
 
 	if !ok {
-		err := event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+sagaType+" not registered")
+		err := event.WrapRejection(
+			ErrSagaNotRegistered,
+			"saga.not_registered",
+			"saga "+sagaType+" not registered",
+		)
 		cqrsotel.RecordError(span, err)
 
 		return nil, err
@@ -92,12 +100,24 @@ func (r *Runner) Start(
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := r.saveSagaState(ctx, span, &state, "saga.save_failed", "save saga state"); err != nil {
+	if err := r.saveSagaState(
+		ctx,
+		span,
+		&state,
+		"saga.save_failed",
+		"save saga state",
+	); err != nil {
 		return nil, err
 	}
 
 	state.Status = StatusRunning
-	if err := r.saveSagaState(ctx, span, &state, "saga.update_failed", "update saga status"); err != nil {
+	if err := r.saveSagaState(
+		ctx,
+		span,
+		&state,
+		"saga.update_failed",
+		"update saga status",
+	); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +139,11 @@ func (r *Runner) Start(
 			_ = r.store.Save(ctx, &instance.State)
 			r.logError("initial command failed", "type", sagaType, "id", instance.ID, "error", err)
 
-			return instance, event.WrapInfrastructure(err, "saga.dispatch_failed", "dispatch initial command")
+			return instance, event.WrapInfrastructure(
+				err,
+				"saga.dispatch_failed",
+				"dispatch initial command",
+			)
 		}
 	}
 

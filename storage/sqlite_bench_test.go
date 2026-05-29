@@ -51,7 +51,12 @@ func BenchmarkSQLiteEventStore_Load(b *testing.B) {
 	benchLoadAggregate(b, store, "User", aggID)
 }
 
-func benchLoadAggregate(b *testing.B, store *SQLEventStore, aggType event.AggregateType, aggID id.AggregateID) {
+func benchLoadAggregate(
+	b *testing.B,
+	store *SQLEventStore,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+) {
 	ctx := context.Background()
 
 	b.ResetTimer()

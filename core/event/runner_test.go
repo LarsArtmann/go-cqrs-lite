@@ -21,7 +21,13 @@ func (nopCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error 
 
 func (nopCheckpointStore) Close() error { return nil }
 
-func registerOKProjection(t *testing.T, runner *InMemoryRunner, name string, mtx *sync.Mutex, handled map[string]bool) {
+func registerOKProjection(
+	t *testing.T,
+	runner *InMemoryRunner,
+	name string,
+	mtx *sync.Mutex,
+	handled map[string]bool,
+) {
 	t.Helper()
 	err := runner.Register(NewProjection(name, func(_ context.Context, _ Event) error {
 		mtx.Lock()

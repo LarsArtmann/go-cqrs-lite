@@ -137,7 +137,11 @@ func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {
 
 		err = b.notifyHandlers(ctx, e, b.handlers[e.Type()], "handler")
 		if err != nil {
-			return event.WrapInfrastructure(err, "memory.notify_handler_failed", "notify handler for "+string(e.Type()))
+			return event.WrapInfrastructure(
+				err,
+				"memory.notify_handler_failed",
+				"notify handler for "+string(e.Type()),
+			)
 		}
 
 		return nil

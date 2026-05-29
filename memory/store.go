@@ -74,7 +74,11 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.append_batch_failed", "memory store append batch")
+		return event.WrapInfrastructure(
+			err,
+			"memory.append_batch_failed",
+			"memory store append batch",
+		)
 	}
 
 	s.mu.Lock()

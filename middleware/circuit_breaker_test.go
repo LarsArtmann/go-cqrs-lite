@@ -246,7 +246,12 @@ func TestCommandCircuitBreaker_WithLogger(t *testing.T) {
 
 	config := testCBConfig(1, 1)
 
-	handler := CommandCircuitBreaker(config, WithLogger(slog.Default()))(testhelpers.FailingCommandHandler("fail"))
+	handler := CommandCircuitBreaker(
+		config,
+		WithLogger(slog.Default()),
+	)(
+		testhelpers.FailingCommandHandler("fail"),
+	)
 
 	_ = handler(t.Context(), &testCommand{})
 	_ = handler(t.Context(), &testCommand{})

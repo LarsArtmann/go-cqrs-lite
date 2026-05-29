@@ -257,8 +257,26 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 
 	assertFileExists(t, tmpDir, "svc-a directory not created", "services", "svc-a", "index.mdx")
 	assertFileExists(t, tmpDir, "svc-b directory not created", "services", "svc-b", "index.mdx")
-	assertFileExists(t, tmpDir, "CmdA command file not created", "services", "svc-a", "commands", "CmdA", "index.mdx")
-	assertFileExists(t, tmpDir, "EvtB event file not created", "services", "svc-b", "events", "EvtB", "index.mdx")
+	assertFileExists(
+		t,
+		tmpDir,
+		"CmdA command file not created",
+		"services",
+		"svc-a",
+		"commands",
+		"CmdA",
+		"index.mdx",
+	)
+	assertFileExists(
+		t,
+		tmpDir,
+		"EvtB event file not created",
+		"services",
+		"svc-b",
+		"events",
+		"EvtB",
+		"index.mdx",
+	)
 }
 
 func TestExporter_Export_NoSchema(t *testing.T) {

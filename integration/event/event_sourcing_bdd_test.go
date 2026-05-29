@@ -393,7 +393,13 @@ var _ = Describe("Event Creation", func() {
 				event.Version(1),
 				"aggregate type is required",
 			),
-			Entry("zero version", id.NewAggregateID(), event.AggregateType("User"), event.Version(0), "version"),
+			Entry(
+				"zero version",
+				id.NewAggregateID(),
+				event.AggregateType("User"),
+				event.Version(0),
+				"version",
+			),
 		)
 
 		Context("when I add custom metadata to an event", func() {

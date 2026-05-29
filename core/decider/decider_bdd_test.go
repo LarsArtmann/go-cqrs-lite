@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
-
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -205,33 +204,39 @@ var _ = Describe("Decider Repository", func() {
 		})
 
 		Context("when I load an aggregate that does not exist", func() {
-			It("should give me the initial state and version 0, so I know this aggregate has no history", func() {
-				state, version, err := repo.Load(ctx, aggID, "Counter")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(state.Value).To(Equal(0))
-				Expect(version).To(Equal(event.Version(0)))
-			})
+			It(
+				"should give me the initial state and version 0, so I know this aggregate has no history",
+				func() {
+					state, version, err := repo.Load(ctx, aggID, "Counter")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(state.Value).To(Equal(0))
+					Expect(version).To(Equal(event.Version(0)))
+				},
+			)
 		})
 
 		Context("when I decide based on current state", func() {
-			It("should pass the folded state from previous events so my decide function sees the full picture", func() {
-				createCounter(ctx, repo, aggID)
+			It(
+				"should pass the folded state from previous events so my decide function sees the full picture",
+				func() {
+					createCounter(ctx, repo, aggID)
 
-				var receivedState bddCounter
-				var receivedVersion event.Version
-				err := repo.Execute(
-					ctx, aggID, "Counter",
-					func(state bddCounter, v event.Version) ([]event.Event, error) {
-						receivedState = state
-						receivedVersion = v
+					var receivedState bddCounter
+					var receivedVersion event.Version
+					err := repo.Execute(
+						ctx, aggID, "Counter",
+						func(state bddCounter, v event.Version) ([]event.Event, error) {
+							receivedState = state
+							receivedVersion = v
 
-						return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
-					},
-				)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(receivedState.Value).To(Equal(1))
-				Expect(receivedVersion).To(Equal(event.Version(1)))
-			})
+							return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
+						},
+					)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(receivedState.Value).To(Equal(1))
+					Expect(receivedVersion).To(Equal(event.Version(1)))
+				},
+			)
 		})
 
 		Context("when I emit multiple events in a single decision", func() {

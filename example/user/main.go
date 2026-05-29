@@ -203,7 +203,12 @@ func runTombstoneRebirthDemo(
 		log.Fatalf("load state after rebirth: %v", err)
 	}
 
-	fmt.Printf("→ State after rebirth: Email=%q, Name=%q, Deleted=%v\n\n", state.Email, state.Name, state.Deleted)
+	fmt.Printf(
+		"→ State after rebirth: Email=%q, Name=%q, Deleted=%v\n\n",
+		state.Email,
+		state.Name,
+		state.Deleted,
+	)
 }
 
 func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {

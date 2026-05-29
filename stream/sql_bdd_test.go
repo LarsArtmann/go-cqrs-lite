@@ -51,7 +51,8 @@ func seedStreamDB(db *sql.DB, tableName string, rows []streamAggregateRow) {
 		_, err := db.Exec(
 			fmt.Sprintf(
 				`INSERT INTO %s (aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-			 VALUES (?, ?, ?, ?, ?, ?)`, tableName,
+			 VALUES (?, ?, ?, ?, ?, ?)`,
+				tableName,
 			),
 			r.aggType, r.aggID, r.version, r.count, r.lastAt, r.statusInt,
 		)
@@ -312,7 +313,8 @@ var _ = Describe("Aggregate Projection", func() {
 
 				var count int
 				err = db.QueryRow("SELECT event_count FROM test_stream_aggregates WHERE aggregate_id = ?",
-					aggID.String()).Scan(&count)
+					aggID.String()).
+					Scan(&count)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(count).To(Equal(1))
 			})
@@ -362,8 +364,12 @@ var _ = Describe("Aggregate Projection", func() {
 				userID := id.NewAggregateID()
 				orderID := id.NewAggregateID()
 
-				Expect(proj.Handle(ctx, makeStreamEvent("user.created", userID, "User", 1))).To(Succeed())
-				Expect(proj.Handle(ctx, makeStreamEvent("order.placed", orderID, "Order", 1))).To(Succeed())
+				Expect(
+					proj.Handle(ctx, makeStreamEvent("user.created", userID, "User", 1)),
+				).To(Succeed())
+				Expect(
+					proj.Handle(ctx, makeStreamEvent("order.placed", orderID, "Order", 1)),
+				).To(Succeed())
 
 				var count int
 				err := db.QueryRow("SELECT count(*) FROM test_stream_aggregates").Scan(&count)

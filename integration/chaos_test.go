@@ -71,7 +71,12 @@ func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 	_ = disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
 }
 
-func newRetryDispatcher(maxAttempts int, attempts *int, failUntil int, permanent bool) *command.Dispatcher {
+func newRetryDispatcher(
+	maxAttempts int,
+	attempts *int,
+	failUntil int,
+	permanent bool,
+) *command.Dispatcher {
 	disp := command.NewDispatcher()
 	disp.Use(middleware.CommandRetry(middleware.RetryConfig{
 		MaxAttempts:  maxAttempts,

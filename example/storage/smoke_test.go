@@ -42,7 +42,13 @@ func TestSQLite_SaveAndLoad(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	if err := eventStore.Save(ctx, "User", userID, []event.Event{evt}, event.Version(0)); err != nil {
+	if err := eventStore.Save(
+		ctx,
+		"User",
+		userID,
+		[]event.Event{evt},
+		event.Version(0),
+	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 

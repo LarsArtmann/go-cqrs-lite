@@ -87,12 +87,19 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
-		return nil, event.WrapRejection(err, "watermill.parse_aggregate_id_failed", "parse aggregate_id")
+		return nil, event.WrapRejection(
+			err,
+			"watermill.parse_aggregate_id_failed",
+			"parse aggregate_id",
+		)
 	}
 
 	aggregateType := event.AggregateType(md.Get(metaAggregateType))
 	if aggregateType == "" {
-		return nil, event.NewRejection("watermill.missing_metadata", "missing "+metaAggregateType+" metadata")
+		return nil, event.NewRejection(
+			"watermill.missing_metadata",
+			"missing "+metaAggregateType+" metadata",
+		)
 	}
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
@@ -114,7 +121,11 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
 		eventID, err := id.ParseEventID(eventIDStr)
 		if err != nil {
-			return nil, event.WrapRejection(err, "watermill.parse_event_id_failed", "parse event_id")
+			return nil, event.WrapRejection(
+				err,
+				"watermill.parse_event_id_failed",
+				"parse event_id",
+			)
 		}
 		opts = append(opts, event.WithEventID(eventID))
 	}
@@ -122,7 +133,11 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
 		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
 		if err != nil {
-			return nil, event.WrapRejection(err, "watermill.parse_occurred_at_failed", "parse occurred_at")
+			return nil, event.WrapRejection(
+				err,
+				"watermill.parse_occurred_at_failed",
+				"parse occurred_at",
+			)
 		}
 		opts = append(opts, event.WithOccurredAt(occurredAt))
 	}

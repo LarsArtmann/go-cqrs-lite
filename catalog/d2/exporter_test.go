@@ -121,7 +121,15 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
-	cattest.AddServiceWithCommand(t, reg, catalog.ServiceID("svc-a"), catalog.MessageID("DoA"), "DoA", "1.0.0", "")
+	cattest.AddServiceWithCommand(
+		t,
+		reg,
+		catalog.ServiceID("svc-a"),
+		catalog.MessageID("DoA"),
+		"DoA",
+		"1.0.0",
+		"",
+	)
 	cattest.AddEvent(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)
@@ -206,7 +214,15 @@ func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
 	)
 
 	cattest.AddEvent(t, reg, "order-svc", "OrderCreated", "OrderCreated", "1.0.0", catalog.Sends)
-	cattest.AddEvent(t, reg, "notification-svc", "OrderCreated", "OrderCreated", "1.0.0", catalog.Receives)
+	cattest.AddEvent(
+		t,
+		reg,
+		"notification-svc",
+		"OrderCreated",
+		"OrderCreated",
+		"1.0.0",
+		catalog.Receives,
+	)
 
 	cat := cattest.Build(t, reg)
 	output := NewExporter("E-Commerce", "1.0.0").Export(cat)
@@ -308,7 +324,15 @@ func TestExporter_Export_WithDirection(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddServiceWithCommand(t, reg, catalog.ServiceID("svc"), catalog.MessageID("DoWork"), "DoWork", "1.0.0", "")
+	cattest.AddServiceWithCommand(
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("DoWork"),
+		"DoWork",
+		"1.0.0",
+		"",
+	)
 
 	cat := cattest.Build(t, reg)
 	output := NewExporter("Test", "1.0.0", WithDirection("up")).Export(cat)

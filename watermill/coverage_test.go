@@ -59,9 +59,18 @@ func invalidMetadataTestCases() []struct {
 		name     string
 		metadata map[string]string
 	}{
-		{name: "invalid_schema_version", metadata: mergeMetadata(base, "schema_version", "not-a-number")},
-		{name: "invalid_event_id", metadata: mergeMetadata(base, "event_id", "not-a-valid-event-id")},
-		{name: "invalid_occurred_at", metadata: mergeMetadata(base, "occurred_at", "not-a-timestamp")},
+		{
+			name:     "invalid_schema_version",
+			metadata: mergeMetadata(base, "schema_version", "not-a-number"),
+		},
+		{
+			name:     "invalid_event_id",
+			metadata: mergeMetadata(base, "event_id", "not-a-valid-event-id"),
+		},
+		{
+			name:     "invalid_occurred_at",
+			metadata: mergeMetadata(base, "occurred_at", "not-a-timestamp"),
+		},
 	}
 }
 
@@ -148,7 +157,11 @@ func receiveMessageWithTimeout(
 	select {
 	case received := <-msgCh:
 		if received.Metadata.Get("event_type") != expectedEventType {
-			t.Errorf("event_type = %q, want %q", received.Metadata.Get("event_type"), expectedEventType)
+			t.Errorf(
+				"event_type = %q, want %q",
+				received.Metadata.Get("event_type"),
+				expectedEventType,
+			)
 		}
 		if assertions != nil {
 			assertions(received)

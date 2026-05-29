@@ -37,7 +37,11 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 			cqrsotel.RecordError(span, err)
 			r.logError("compensate step failed", "id", instance.ID, "step", step.Name, "error", err)
 			instance.Status = StatusFailed
-			instance.Err = event.WrapInfrastructure(err, "saga.compensate_step_failed", "compensate step "+step.Name)
+			instance.Err = event.WrapInfrastructure(
+				err,
+				"saga.compensate_step_failed",
+				"compensate step "+step.Name,
+			)
 			instance.ErrMsg = instance.Err.Error()
 			instance.UpdatedAt = time.Now()
 			_ = r.store.Save(ctx, &instance.State)

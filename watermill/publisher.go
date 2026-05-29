@@ -26,11 +26,19 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 	for _, msg := range messages {
 		evt, err := messageToEvent(topic, msg)
 		if err != nil {
-			return event.WrapCorruption(err, "watermill.convert_message_failed", "convert message "+msg.UUID)
+			return event.WrapCorruption(
+				err,
+				"watermill.convert_message_failed",
+				"convert message "+msg.UUID,
+			)
 		}
 
 		if err := a.publisher.Publish(ctx, evt); err != nil {
-			return event.WrapInfrastructure(err, "watermill.publish_event_failed", "publish event "+string(evt.Type()))
+			return event.WrapInfrastructure(
+				err,
+				"watermill.publish_event_failed",
+				"publish event "+string(evt.Type()),
+			)
 		}
 	}
 

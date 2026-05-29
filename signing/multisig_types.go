@@ -87,7 +87,10 @@ func (m MultiSignature) HasActor(actor Actor) bool {
 
 // Get returns the signature entry for a given actor, or nil.
 func (m MultiSignature) Get(actor Actor) *SignatureEntry {
-	if idx := slices.IndexFunc(m.Entries, func(e SignatureEntry) bool { return e.Actor == actor }); idx >= 0 {
+	if idx := slices.IndexFunc(
+		m.Entries,
+		func(e SignatureEntry) bool { return e.Actor == actor },
+	); idx >= 0 {
 		return &m.Entries[idx]
 	}
 

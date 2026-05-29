@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
-
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"

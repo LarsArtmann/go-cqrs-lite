@@ -39,11 +39,16 @@ var _ = Describe("Command Dispatcher", func() {
 		Context("when I register a handler and dispatch the matching command", func() {
 			It("should deliver my command to the handler I registered for this type", func() {
 				var received command.Command
-				Expect(dispatcher.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
-					received = cmd
+				Expect(
+					dispatcher.Register(
+						"CreateUser",
+						func(_ context.Context, cmd command.Command) error {
+							received = cmd
 
-					return nil
-				})).To(Succeed())
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				cmd, err := command.New("CreateUser", aggID)
 				Expect(err).ToNot(HaveOccurred())
@@ -56,31 +61,44 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when I dispatch a command with no registered handler", func() {
-			It("should reject my command and explain that no handler was registered for this type", func() {
-				cmd, err := command.New("UnknownCommand", aggID)
-				Expect(err).ToNot(HaveOccurred())
+			It(
+				"should reject my command and explain that no handler was registered for this type",
+				func() {
+					cmd, err := command.New("UnknownCommand", aggID)
+					Expect(err).ToNot(HaveOccurred())
 
-				err = dispatcher.Dispatch(ctx, cmd)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("handler not found"))
-			})
+					err = dispatcher.Dispatch(ctx, cmd)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("handler not found"))
+				},
+			)
 		})
 
 		Context("when I register multiple handlers for different types", func() {
 			It("should dispatch each type to its own handler independently", func() {
 				var createUserCalled, deleteUserCalled bool
 
-				Expect(dispatcher.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-					createUserCalled = true
+				Expect(
+					dispatcher.Register(
+						"CreateUser",
+						func(_ context.Context, _ command.Command) error {
+							createUserCalled = true
 
-					return nil
-				})).To(Succeed())
+							return nil
+						},
+					),
+				).To(Succeed())
 
-				Expect(dispatcher.Register("DeleteUser", func(_ context.Context, _ command.Command) error {
-					deleteUserCalled = true
+				Expect(
+					dispatcher.Register(
+						"DeleteUser",
+						func(_ context.Context, _ command.Command) error {
+							deleteUserCalled = true
 
-					return nil
-				})).To(Succeed())
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				createCmd, err := command.New("CreateUser", aggID)
 				Expect(err).ToNot(HaveOccurred())
@@ -98,9 +116,14 @@ var _ = Describe("Command Dispatcher", func() {
 		Context("when my handler returns an error", func() {
 			It("should surface the handler's error so I can decide what to do", func() {
 				expectedErr := errors.New("something went wrong")
-				Expect(dispatcher.Register("FailCommand", func(_ context.Context, _ command.Command) error {
-					return expectedErr
-				})).To(Succeed())
+				Expect(
+					dispatcher.Register(
+						"FailCommand",
+						func(_ context.Context, _ command.Command) error {
+							return expectedErr
+						},
+					),
+				).To(Succeed())
 
 				cmd, err := command.New("FailCommand", aggID)
 				Expect(err).ToNot(HaveOccurred())
@@ -113,20 +136,28 @@ var _ = Describe("Command Dispatcher", func() {
 
 	Describe("As a developer using middleware", func() {
 		Context("when I apply multiple middleware to the dispatcher", func() {
-			It("should execute outer middleware before inner, so I can layer cross-cutting concerns", func() {
-				var callOrder []string
+			It(
+				"should execute outer middleware before inner, so I can layer cross-cutting concerns",
+				func() {
+					var callOrder []string
 
-				dispatcher.Use(labelMiddleware(&callOrder, "mw1"))
-				dispatcher.Use(labelMiddleware(&callOrder, "mw2"))
+					dispatcher.Use(labelMiddleware(&callOrder, "mw1"))
+					dispatcher.Use(labelMiddleware(&callOrder, "mw2"))
 
-				Expect(dispatcher.Register("TestCommand", testhelpers.AppendCommandHandler(&callOrder))).To(Succeed())
+					Expect(
+						dispatcher.Register(
+							"TestCommand",
+							testhelpers.AppendCommandHandler(&callOrder),
+						),
+					).To(Succeed())
 
-				cmd, err := command.New("TestCommand", aggID)
-				Expect(err).ToNot(HaveOccurred())
+					cmd, err := command.New("TestCommand", aggID)
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(dispatcher.Dispatch(ctx, cmd)).To(Succeed())
-				Expect(callOrder).To(Equal([]string{"mw1", "mw2", "handler"}))
-			})
+					Expect(dispatcher.Dispatch(ctx, cmd)).To(Succeed())
+					Expect(callOrder).To(Equal([]string{"mw1", "mw2", "handler"}))
+				},
+			)
 		})
 
 		Context("when middleware short-circuits the chain", func() {
@@ -139,11 +170,16 @@ var _ = Describe("Command Dispatcher", func() {
 					}
 				})
 
-				Expect(dispatcher.Register("BlockedCommand", func(_ context.Context, _ command.Command) error {
-					handlerCalled = true
+				Expect(
+					dispatcher.Register(
+						"BlockedCommand",
+						func(_ context.Context, _ command.Command) error {
+							handlerCalled = true
 
-					return nil
-				})).To(Succeed())
+							return nil
+						},
+					),
+				).To(Succeed())
 
 				cmd, err := command.New("BlockedCommand", aggID)
 				Expect(err).ToNot(HaveOccurred())
@@ -157,22 +193,28 @@ var _ = Describe("Command Dispatcher", func() {
 
 	Describe("As a developer managing the dispatcher lifecycle", func() {
 		Context("when I close the dispatcher", func() {
-			It("should reject further dispatch and registration, explaining the dispatcher is closed", func() {
-				Expect(dispatcher.Close()).To(Succeed())
+			It(
+				"should reject further dispatch and registration, explaining the dispatcher is closed",
+				func() {
+					Expect(dispatcher.Close()).To(Succeed())
 
-				cmd, err := command.New("AnyCommand", aggID)
-				Expect(err).ToNot(HaveOccurred())
+					cmd, err := command.New("AnyCommand", aggID)
+					Expect(err).ToNot(HaveOccurred())
 
-				err = dispatcher.Dispatch(ctx, cmd)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
+					err = dispatcher.Dispatch(ctx, cmd)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
 
-				err = dispatcher.Register("NewCommand", func(_ context.Context, _ command.Command) error {
-					return nil
-				})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
-			})
+					err = dispatcher.Register(
+						"NewCommand",
+						func(_ context.Context, _ command.Command) error {
+							return nil
+						},
+					)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
+				},
+			)
 		})
 	})
 

@@ -44,7 +44,11 @@ func testLoadAllSuccess(
 	}
 }
 
-func setupLoadAllSuccess(t *testing.T, store *SQLEventStore, mock sqlmock.Sqlmock) (id.EventID, id.EventID) {
+func setupLoadAllSuccess(
+	t *testing.T,
+	store *SQLEventStore,
+	mock sqlmock.Sqlmock,
+) (id.EventID, id.EventID) {
 	t.Helper()
 
 	aggID1 := id.NewAggregateID()

@@ -83,7 +83,13 @@ func TestProjection_ReplayAndLive(t *testing.T) {
 			t.Fatalf("create event %d: %v", i, createErr)
 		}
 
-		if saveErr := store.Save(ctx, "Inventory", aggregateID, []event.Event{e}, event.Version(i)); saveErr != nil {
+		if saveErr := store.Save(
+			ctx,
+			"Inventory",
+			aggregateID,
+			[]event.Event{e},
+			event.Version(i),
+		); saveErr != nil {
 			t.Fatalf("save event %d: %v", i, saveErr)
 		}
 

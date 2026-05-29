@@ -83,7 +83,11 @@ func CommandAttrs(commandType string, aggregateID fmt.Stringer) []attribute.KeyV
 }
 
 // EventAttrs returns the standard set of event attributes for a span.
-func EventAttrs(eventType string, aggregateID fmt.Stringer, aggregateType string) []attribute.KeyValue {
+func EventAttrs(
+	eventType string,
+	aggregateID fmt.Stringer,
+	aggregateType string,
+) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, eventType),

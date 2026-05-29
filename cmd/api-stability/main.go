@@ -76,7 +76,11 @@ func main() {
 	data, err := os.ReadFile(goldenPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr, "golden file %s does not exist; run with -update to create\n", goldenPath)
+			fmt.Fprintf(
+				os.Stderr,
+				"golden file %s does not exist; run with -update to create\n",
+				goldenPath,
+			)
 			os.Exit(1)
 		}
 		fmt.Fprintf(os.Stderr, "read: %v\n", err)
@@ -87,7 +91,12 @@ func main() {
 
 	if len(exports) != len(expected) {
 		missing, added := diff(expected, exports)
-		fmt.Fprintf(os.Stderr, "API surface mismatch: %d expected, %d actual\n", len(expected), len(exports))
+		fmt.Fprintf(
+			os.Stderr,
+			"API surface mismatch: %d expected, %d actual\n",
+			len(expected),
+			len(exports),
+		)
 
 		if len(missing) > 0 {
 			fmt.Fprintf(os.Stderr, "REMOVED exports:\n  %s\n", strings.Join(missing, "\n  "))

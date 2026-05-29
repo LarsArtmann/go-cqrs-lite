@@ -338,7 +338,14 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	now := time.Now()
 
-	now, aggID = testhelpers.MakeLoadToTimestampFixtures(t, store, ctx, "User", aggID, [3]event.Version{1, 1, 2})
+	now, aggID = testhelpers.MakeLoadToTimestampFixtures(
+		t,
+		store,
+		ctx,
+		"User",
+		aggID,
+		[3]event.Version{1, 1, 2},
+	)
 
 	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
 	testhelpers.AssertNoError(t, err, "LoadToTimestamp")

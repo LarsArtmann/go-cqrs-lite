@@ -68,7 +68,10 @@ type stubReader struct {
 	listWithStatusFn func(ctx context.Context, opts stream.ListOptions) (*stream.Page[stream.AggregateStatus], error)
 }
 
-func (s *stubReader) List(ctx context.Context, opts stream.ListOptions) (*stream.Page[stream.AggregateRef], error) {
+func (s *stubReader) List(
+	ctx context.Context,
+	opts stream.ListOptions,
+) (*stream.Page[stream.AggregateRef], error) {
 	if s.listFn != nil {
 		return s.listFn(ctx, opts)
 	}

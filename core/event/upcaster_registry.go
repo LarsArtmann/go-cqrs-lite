@@ -51,7 +51,11 @@ func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
 			return nil, WrapCorruption(
 				err,
 				"event.upcast_failed",
-				"upcast "+string(uc.SourceType())+" from schema version "+strconv.Itoa(int(uc.SourceVersion())),
+				"upcast "+string(
+					uc.SourceType(),
+				)+" from schema version "+strconv.Itoa(
+					int(uc.SourceVersion()),
+				),
 			)
 		}
 

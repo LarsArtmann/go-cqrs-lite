@@ -76,7 +76,11 @@ func assertSnapshotVersion(t *testing.T, loaded *event.Snapshot, want event.Vers
 }
 
 func saveAndLoadSnapshot(
-	t *testing.T, store event.SnapshotStore, ctx context.Context, snap event.Snapshot, want event.Version,
+	t *testing.T,
+	store event.SnapshotStore,
+	ctx context.Context,
+	snap event.Snapshot,
+	want event.Version,
 ) *event.Snapshot {
 	t.Helper()
 

@@ -89,7 +89,10 @@ func (s *SQLCheckpointStore) Save(
 	return nil
 }
 
-func (s *SQLCheckpointStore) startSpan(ctx context.Context, name, projectionName string) (context.Context, trace.Span) {
+func (s *SQLCheckpointStore) startSpan(
+	ctx context.Context,
+	name, projectionName string,
+) (context.Context, trace.Span) {
 	return cqrsotel.StartSpan(
 		ctx, tracer(), name,
 		trace.SpanKindClient,

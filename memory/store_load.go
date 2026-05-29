@@ -48,9 +48,14 @@ func (s *MemoryStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	return s.loadFiltered(aggregateType, aggregateID, "load from version", func(evts []event.Event) []event.Event {
-		return event.SliceFromVersion(evts, version)
-	})
+	return s.loadFiltered(
+		aggregateType,
+		aggregateID,
+		"load from version",
+		func(evts []event.Event) []event.Event {
+			return event.SliceFromVersion(evts, version)
+		},
+	)
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
@@ -61,9 +66,14 @@ func (s *MemoryStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	return s.loadFiltered(aggregateType, aggregateID, "load to version", func(evts []event.Event) []event.Event {
-		return event.SliceToVersion(evts, maxVersion)
-	})
+	return s.loadFiltered(
+		aggregateType,
+		aggregateID,
+		"load to version",
+		func(evts []event.Event) []event.Event {
+			return event.SliceToVersion(evts, maxVersion)
+		},
+	)
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
@@ -74,9 +84,14 @@ func (s *MemoryStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	return s.loadFiltered(aggregateType, aggregateID, "load to timestamp", func(evts []event.Event) []event.Event {
-		return event.FilterByTimestamp(evts, maxTime)
-	})
+	return s.loadFiltered(
+		aggregateType,
+		aggregateID,
+		"load to timestamp",
+		func(evts []event.Event) []event.Event {
+			return event.FilterByTimestamp(evts, maxTime)
+		},
+	)
 }
 
 func (s *MemoryStore) getEvents(
@@ -86,7 +101,13 @@ func (s *MemoryStore) getEvents(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "memory.load_failed", "memory store %s failed", op)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"memory.load_failed",
+			"memory store %s failed",
+			op,
+		)
 	}
 
 	s.mu.RLock()
@@ -96,7 +117,12 @@ func (s *MemoryStore) getEvents(
 
 	events, exists := s.events[key]
 	if !exists {
-		return nil, fmt.Errorf("aggregate %s/%s: %w", aggregateType, aggregateID, event.ErrAggregateNotFound)
+		return nil, fmt.Errorf(
+			"aggregate %s/%s: %w",
+			aggregateType,
+			aggregateID,
+			event.ErrAggregateNotFound,
+		)
 	}
 
 	return events, nil
@@ -187,7 +213,10 @@ func (s *MemoryStore) ReadFrom(
 	startIdx := 0
 
 	if !afterEventID.IsZero() {
-		if idx := slices.IndexFunc(all, func(e event.Event) bool { return e.ID() == afterEventID }); idx >= 0 {
+		if idx := slices.IndexFunc(
+			all,
+			func(e event.Event) bool { return e.ID() == afterEventID },
+		); idx >= 0 {
 			startIdx = idx + 1
 		}
 	}

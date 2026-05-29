@@ -64,7 +64,10 @@ func newBDDCommand(_ context.Context, _ id.AggregateID) command.Command {
 	return &testCommand{BasicCommand: *command.MustNew("TestCommand", id.NewAggregateID())}
 }
 
-func compensateFn(steps *[]string, name string) func(context.Context, id.AggregateID) command.Command {
+func compensateFn(
+	steps *[]string,
+	name string,
+) func(context.Context, id.AggregateID) command.Command {
 	return func(_ context.Context, _ id.AggregateID) command.Command {
 		*steps = append(*steps, name)
 		return newBDDCommand(context.Background(), id.NewAggregateID())

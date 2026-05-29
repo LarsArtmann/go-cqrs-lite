@@ -46,7 +46,11 @@ func (a *SubscriberAdapter) Subscribe(
 	}
 
 	if err := a.bus.Subscribe(event.Type(topic), handler); err != nil {
-		return nil, event.WrapInfrastructure(err, "watermill.subscribe_failed", "subscribe to "+topic)
+		return nil, event.WrapInfrastructure(
+			err,
+			"watermill.subscribe_failed",
+			"subscribe to "+topic,
+		)
 	}
 
 	a.handlers[topic] = handler
