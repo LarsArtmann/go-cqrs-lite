@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestQueryRetry_Success(t *testing.T) {
@@ -46,9 +47,7 @@ func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 
 	mw := QueryRetry(config)
 
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		return nil, errors.New("always fail")
-	})
+	handler := mw(testhelpers.FailingQueryHandler("always fail"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {

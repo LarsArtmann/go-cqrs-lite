@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -110,9 +109,7 @@ func TestQueryCircuitBreaker(t *testing.T) {
 
 	config := testCBConfig(2, 1)
 
-	handler := QueryCircuitBreaker(config)(func(_ context.Context, _ query.Query) (any, error) {
-		return nil, errors.New("fail")
-	})
+	handler := QueryCircuitBreaker(config)(testhelpers.FailingQueryHandler("fail"))
 
 	for range 2 {
 		_, _ = handler(t.Context(), &testQuery{})

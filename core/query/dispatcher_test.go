@@ -218,9 +218,7 @@ func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
 	d := query.NewDispatcher()
 	_ = d.Close()
 
-	err := d.Register("Q", func(_ context.Context, _ query.Query) (any, error) {
-		return nil, errors.New("unreachable")
-	})
+	err := d.Register("Q", testhelpers.FailingQueryHandler("unreachable"))
 	if err == nil {
 		t.Fatal("expected error registering on closed dispatcher")
 	}
