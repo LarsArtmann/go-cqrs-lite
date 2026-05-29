@@ -7,6 +7,7 @@ use (
 	./core
 	./example/listing
 	./example/projection
+	./example/saga-pattern
 	./example/storage
 	./example/todo
 	./example/user

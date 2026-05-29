@@ -3,6 +3,7 @@ package pebble
 import (
 	"context"
 	"errors"
+	"slices"
 
 	pebbledb "github.com/cockroachdb/pebble"
 
@@ -89,9 +90,9 @@ func successor(prefix []byte) []byte {
 	ub := make([]byte, len(prefix))
 	copy(ub, prefix)
 
-	for i := len(ub) - 1; i >= 0; i-- {
-		ub[i]++
-		if ub[i] != 0 {
+	for _, v := range slices.Backward(ub) {
+		v++
+		if v != 0 {
 			return ub
 		}
 	}
