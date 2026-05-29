@@ -226,7 +226,7 @@ var _ = Describe("Saga Runner", func() {
 		Context("when my step action returns nil", func() {
 			It("should return a rejection error without progressing", func() {
 				def := &orderSaga{steps: []saga.Step{
-					{Name: "reserve-stock", Action: nilAction},
+					nilActionStep("reserve-stock"),
 				}}
 				Expect(runner.Register(def)).To(Succeed())
 

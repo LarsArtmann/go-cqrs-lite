@@ -59,6 +59,10 @@ func nilAction(_ context.Context, _ id.AggregateID) command.Command {
 	return nil
 }
 
+func nilActionStep(name string) saga.Step {
+	return saga.Step{Name: name, Action: nilAction}
+}
+
 func newThresholdDispatcher(counter *int, threshold int, failMsg string) dispatchFunc {
 	return dispatchFunc(func(_ context.Context, _ command.Command) error {
 		*counter++

@@ -73,7 +73,7 @@ func TestRunner_ExecuteStep_NilAction(t *testing.T) {
 	t.Parallel()
 
 	runner, instance, _ := setupTestSaga(t, nopDispatcher{}, []saga.Step{
-		{Name: "nil", Action: nilAction},
+		nilActionStep("nil"),
 	})
 
 	ctx := context.Background()
