@@ -101,10 +101,7 @@ func (s *SQLEventStore) Save(
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return event.WrapInfrastructure(err, "storage.insert_events",
-			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
+		return s.wrapInsertEventsErr(span, err, events, aggregateType, aggregateID)
 	}
 
 	err = commitTx(tx)
@@ -151,10 +148,7 @@ func (s *SQLEventStore) AppendBatch(
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return event.WrapInfrastructure(err, "storage.insert_events",
-			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
+		return s.wrapInsertEventsErr(span, err, events, aggregateType, aggregateID)
 	}
 
 	err = commitTx(tx)
@@ -165,7 +159,7 @@ func (s *SQLEventStore) AppendBatch(
 	return err
 }
 
-func (s *SQLEventStore) checkVersion(
+func (s *SQLEventStore) wrapInsertEventsErr(
 	ctx context.Context,
 	tx *sql.Tx,
 	aggregateType event.AggregateType,

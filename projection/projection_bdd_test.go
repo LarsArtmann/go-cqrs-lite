@@ -44,7 +44,12 @@ func makeBDDEvent(eventType event.Type, version event.Version) event.Event {
 	return evt
 }
 
-func startRunnerAndWait(ctx context.Context, runner *projection.Runner, handler *countingHandler, matcher types.GomegaMatcher) {
+func startRunnerAndWait(
+	ctx context.Context,
+	runner *projection.Runner,
+	handler *countingHandler,
+	matcher types.GomegaMatcher,
+) {
 	go func() {
 		defer GinkgoRecover()
 		_ = runner.Run(ctx)

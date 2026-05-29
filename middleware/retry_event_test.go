@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -120,7 +119,5 @@ func TestEventRetry_ContextCancellation(t *testing.T) {
 		t.Fatal("expected error from canceled context")
 	}
 
-	if !strings.Contains(err.Error(), "retry canceled") {
-		t.Errorf("expected retry canceled error, got: %s", err.Error())
-	}
+	assertRetryCanceled(t, err)
 }

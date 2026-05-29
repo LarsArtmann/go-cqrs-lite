@@ -13,6 +13,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func assertRetryCanceled(t *testing.T, err error) {
+	t.Helper()
+
+	if !strings.Contains(err.Error(), "retry canceled") {
+		t.Errorf("expected retry canceled error, got: %s", err.Error())
+	}
+}
+
 func TestCommandRetry_Success(t *testing.T) {
 	t.Parallel()
 
@@ -111,9 +119,7 @@ func TestCommandRetry_ContextCancellation(t *testing.T) {
 		t.Fatal("expected error from canceled context")
 	}
 
-	if !strings.Contains(err.Error(), "retry canceled") {
-		t.Errorf("expected retry canceled error, got: %s", err.Error())
-	}
+	assertRetryCanceled(t, err)
 }
 
 func TestDefaultRetryConfig(t *testing.T) {

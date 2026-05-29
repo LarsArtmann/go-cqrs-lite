@@ -167,12 +167,35 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 	}
 }
 
+func withQuery(
+	t *testing.T,
+	reg *catalog.Registry,
+	svcID catalog.ServiceID,
+	msgID catalog.MessageID,
+	name, version, summary string,
+) {
+	t.Helper()
+	cattest.AddService(t, reg, svcID, string(svcID), version)
+	cattest.AddMessageSimple(t, reg, svcID, msgID, name, version, summary, catalog.QueryMessage, reg.AddQuery)
+}
+
+func withCommand(
+	t *testing.T,
+	reg *catalog.Registry,
+	svcID catalog.ServiceID,
+	msgID catalog.MessageID,
+	name, version, summary string,
+) {
+	t.Helper()
+	cattest.AddService(t, reg, svcID, string(svcID), version)
+	cattest.AddMessageSimple(t, reg, svcID, msgID, name, version, summary, catalog.CommandMessage, reg.AddCommand)
+}
+
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddService(t, reg, catalog.ServiceID("catalog-svc"), "Catalog Service", "1.0.0")
-	cattest.AddMessageSimple(
+	withQuery(
 		t,
 		reg,
 		catalog.ServiceID("catalog-svc"),
@@ -180,8 +203,6 @@ func TestExporter_Export_Query(t *testing.T) {
 		"GetProduct",
 		"1.0.0",
 		"Get product details",
-		catalog.QueryMessage,
-		reg.AddQuery,
 	)
 
 	cat := cattest.Build(t, reg)
@@ -276,17 +297,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
-	cattest.AddMessageSimple(
-		t,
-		reg,
-		catalog.ServiceID("svc-a"),
-		catalog.MessageID("DoA"),
-		"DoA",
-		"1.0.0",
-		"",
-		catalog.CommandMessage,
-		reg.AddCommand,
-	)
+	withCommand(t, reg, catalog.ServiceID("svc-a"), catalog.MessageID("DoA"), "DoA", "1.0.0", "")
 	cattest.AddEvent(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)
