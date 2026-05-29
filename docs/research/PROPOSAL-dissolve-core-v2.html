@@ -551,7 +551,7 @@
       </li>
       <li>
         <span class="num">02</span>
-        <span class="text"><strong>Store interfaces live in their domain.</strong> <code>EventSink</code> in <code>event/</code>. <code>SnapshotStore</code> in <code>snapshot/</code>. No generic <code>store/</code>.</span>
+        <span class="text"><strong>Sink/Source is a domain pattern, not a shared module.</strong> Every domain owns its own read/write split: <code>EventSink</code>/<code>EventSource</code> in <code>event/</code>, <code>SnapshotSink</code>/<code>SnapshotSource</code> in <code>snapshot/</code>, <code>CommandSink</code>/<code>CommandSource</code> in <code>command/</code>. No generic <code>store/</code>.</span>
       </li>
       <li>
         <span class="num">03</span>
@@ -622,10 +622,17 @@
 
     <div class="module-grid">
       <div class="module-card">
-        <h4>event/ <span class="correction">home of Sink/Source</span></h4>
+        <h4>event/ <span class="correction">home of EventSink/EventSource</span></h4>
         <div class="lines">~1,100 lines · own go.mod</div>
-        <p>Event types, construction, metadata, tombstones, errors — and all event storage interfaces. In a CQRS library, the event store IS the event module.</p>
+        <p>Event types, construction, metadata, tombstones, errors — and the event store interfaces. In a CQRS library, the event store IS the event module.</p>
         <div class="exports">Event · ImmutableEvent · New · EventSink · EventSource · Store · Journal · SeekableJournal · BackwardsSource · TransactionalSink · StreamLoader · TombstoneStatus · Version</div>
+      </div>
+
+      <div class="module-card">
+        <h4>command/ <span class="correction">home of CommandSink/CommandSource</span></h4>
+        <div class="lines">~300 lines · own go.mod</div>
+        <p>Command types, dispatcher, handler, typed dispatch, metadata — and command persistence interfaces. Commands deserve their own Sink/Source for auditing, replay, and saga integration.</p>
+        <div class="exports">Command · Dispatcher · Handler · DispatchTyped · Middleware · CommandSink · CommandSource</div>
       </div>
 
       <div class="module-card">
@@ -659,7 +666,7 @@
       <div class="module-card">
         <h4>query/</h4>
         <div class="lines">~310 lines · own go.mod</div>
-        <p>Query types, dispatcher, pagination, typed dispatch.</p>
+        <p>Query types, dispatcher, pagination, typed dispatch. Queries are read-only — no Sink/Source needed.</p>
         <div class="exports">Query · Dispatcher · Pagination · PaginatedResult · DispatchTyped</div>
       </div>
 
@@ -1011,14 +1018,14 @@
       <br>
       <span class="node">bus/</span> <span class="arrow">→</span> <span class="node">event/</span>
       <br>
-      <span class="node">snapshot/</span> <span class="arrow">→</span> <span class="node">event/</span>
+      <span class="node">snapshot/</span> <span class="arrow">→</span> <span class="node">event/</span> <span class="comment">· owns SnapshotSink/SnapshotSource</span>
       <br>
       <span class="node">schema/</span> <span class="arrow">→</span> <span class="node">event/</span>
       <br><br>
-      <span class="label">Layer 2 — CQRS primitives</span>
-      <span class="node">command/</span> <span class="arrow">→</span> <span class="node">id/</span><span class="comment">, </span><span class="node">dispatcher/</span>
+      <span class="label">Layer 2 — CQRS primitives (each owns its own Sink/Source)</span>
+      <span class="node">command/</span> <span class="arrow">→</span> <span class="node">id/</span><span class="comment">, </span><span class="node">dispatcher/</span> <span class="comment">· owns CommandSink/CommandSource</span>
       <br>
-      <span class="node">query/</span> <span class="arrow">→</span> <span class="node">dispatcher/</span>
+      <span class="node">query/</span> <span class="arrow">→</span> <span class="node">dispatcher/</span> <span class="comment">· read-only, no Sink needed</span>
       <br><br>
       <span class="label">Layer 3 — Aggregate pattern</span>
       <span class="node">decider/</span> <span class="arrow">→</span> <span class="node">event/</span><span class="comment">, </span><span class="node">schema/</span><span class="comment">, </span><span class="node">snapshot/</span>
@@ -1161,6 +1168,11 @@
           <td>6</td>
           <td>Should <code>WithSchemaVersion</code> event option stay in <code>event/</code> or move to <code>schema/</code>?</td>
           <td>Stay (event construction) · Move (schema concern)</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>What shape should <code>CommandSink</code>/<code>CommandSource</code> take? Logging only? Full command store with replay?</td>
+          <td>Log-only (auditing) · Full store (replay + saga) · Defer to later</td>
         </tr>
       </tbody>
     </table>
