@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -61,8 +62,9 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.save",
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrsWithVersion(
-			snap.AggregateType, snap.AggregateID, snap.Version.Int(),
+		trace.WithAttributes(append(
+			cqrsotel.AggregateBaseAttrs(snap.AggregateType, snap.AggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, snap.Version.Int()),
 		)...),
 	)
 	defer span.End()
@@ -111,7 +113,7 @@ func (s *SQLSnapshotStore) Load(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.load",
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(aggregateType, aggregateID)...),
+		trace.WithAttributes(cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 
@@ -137,8 +139,9 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.load_at_version",
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrsWithVersion(
-			aggregateType, aggregateID, version.Int(),
+		trace.WithAttributes(append(
+			cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()),
 		)...),
 	)
 	defer span.End()

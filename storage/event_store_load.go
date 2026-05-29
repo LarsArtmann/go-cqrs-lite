@@ -62,7 +62,7 @@ func (s *SQLEventStore) Load(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName:   "event.store.load",
-		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		attrs:      cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
 		where:      "ORDER BY version ASC",
 		requireHit: true,
 		errMsg:     "query events",
@@ -78,8 +78,9 @@ func (s *SQLEventStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName: "event.store.load_from_version",
-		attrs: aggregateAttrsWithVersion(
-			aggregateType, aggregateID, version.Int(),
+		attrs: append(
+			cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()),
 		),
 		where:      fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		extraArgs:  []any{version.Int()},
@@ -98,8 +99,9 @@ func (s *SQLEventStore) LoadToVersion(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName: "event.store.load_to_version",
-		attrs: aggregateAttrsWithVersion(
-			aggregateType, aggregateID, maxVersion.Int(),
+		attrs: append(
+			cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
 		),
 		where:      fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		extraArgs:  []any{maxVersion.Int()},
@@ -118,7 +120,7 @@ func (s *SQLEventStore) LoadToTimestamp(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName:   "event.store.load_to_timestamp",
-		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		attrs:      cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
 		where:      fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		extraArgs:  []any{s.dialect.FormatTime(maxTime)},
 		requireHit: true,
@@ -135,7 +137,7 @@ func (s *SQLEventStore) LoadBackwards(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName:   "event.store.load_backwards",
-		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		attrs:      cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
 		where:      "ORDER BY version DESC",
 		requireHit: true,
 		errMsg:     "query events backwards",

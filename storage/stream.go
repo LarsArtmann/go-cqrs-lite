@@ -25,7 +25,7 @@ func (s *SQLEventStore) LoadStream(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "event.store.load_stream",
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+		trace.WithAttributes(cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 

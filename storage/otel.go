@@ -17,13 +17,6 @@ func tracer() trace.Tracer {
 	return cqrsotel.NewTracer(storageComponent)
 }
 
-func aggregateAttrs(aggregateType event.AggregateType, aggregateID id.AggregateID) []attribute.KeyValue {
-	return []attribute.KeyValue{
-		attribute.String(cqrsotel.AttrAggregateType, aggregateType.String()),
-		attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
-	}
-}
-
 func aggregateAttrsWithVersion(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
@@ -48,7 +41,8 @@ func startSaveSpan(
 		ctx, tracer(), spanName,
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
-			aggregateAttrsWithVersion(aggregateType, aggregateID, expectedVersion.Int()),
+			cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, expectedVersion.Int()),
 			attribute.Int(cqrsotel.AttrEventCount, eventCount),
 		)...),
 	)

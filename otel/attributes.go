@@ -74,6 +74,14 @@ func AggregateAttrs(aggregateType string, aggregateID fmt.Stringer, version int)
 	}
 }
 
+// AggregateBaseAttrs returns the aggregate type and ID attributes without version.
+func AggregateBaseAttrs(aggregateType, aggregateID fmt.Stringer) []attribute.KeyValue {
+	return []attribute.KeyValue{
+		attribute.String(AttrAggregateType, aggregateType.String()),
+		attribute.String(AttrAggregateID, aggregateID.String()),
+	}
+}
+
 // CommandAttrs returns the standard set of command attributes for a span.
 func CommandAttrs(commandType string, aggregateID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{

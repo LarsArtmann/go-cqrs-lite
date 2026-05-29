@@ -131,7 +131,7 @@ func (s *SQLEventStore) AppendBatch(
 		ctx, tracer(), "event.store.append_batch",
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
-			aggregateAttrs(string(aggregateType), aggregateID.String()),
+			cqrsotel.AggregateBaseAttrs(aggregateType, aggregateID),
 			attribute.Int(cqrsotel.AttrEventCount, len(events)),
 		)...),
 	)
