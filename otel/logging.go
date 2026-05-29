@@ -7,16 +7,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// TraceIDLogger wraps an *slog.Logger to automatically inject the trace ID
-// from the context into every log entry. If no span is active, the trace_id
-// field is set to "none".
+// TraceIDLogger wraps an *slog.Logger to inject the trace_id and span_id
+// from the context into every log entry. Since slog doesn't support
+// per-call middleware, use ContextLogger(logger, ctx) for per-entry
+// trace injection, or use the returned logger with InfoContext.
 //
-// Usage:
-//
-//	logger := slog.Default()
-//	tLogger := otel.TraceIDLogger(logger)
-//	tLogger.InfoContext(ctx, "handling command", "command_type", cmd.Type())
-//	// Output includes trace_id=<hex> when a span is active
+// This adds "component"="cqrs" as a static field.
 func TraceIDLogger(logger *slog.Logger) *slog.Logger {
 	return logger.With(slog.String("component", "cqrs"))
 }
