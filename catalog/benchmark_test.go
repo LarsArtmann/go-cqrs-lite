@@ -18,7 +18,15 @@ func newBenchRegistry() *catalog.Registry {
 
 func benchmarkRegistryWithCommand(tb testing.TB) *catalog.Catalog {
 	reg := newBenchRegistry()
-	cattest.AddCommandWithSchema(tb, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0", &catalog.Schema{Type: catalog.TypeObject})
+	cattest.AddCommandWithSchema(
+		tb,
+		reg,
+		"svc",
+		"CreateOrder",
+		"CreateOrder",
+		"1.0.0",
+		&catalog.Schema{Type: catalog.TypeObject},
+	)
 
 	return reg.Build()
 }

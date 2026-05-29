@@ -50,8 +50,6 @@ func saveWithOutboxEvt(t *testing.T, ts *SQLTransactionalStore, evt *event.Immut
 	)
 }
 
-
-
 func TestNewSQLTransactionalStore_NilStore(t *testing.T) {
 	t.Parallel()
 
@@ -107,7 +105,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_Success(t *testing.T) {
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
-	expectOutboxInsertSuccess(mock, evt)
+	ExpectOutboxInsert(mock, evt)
 	mock.ExpectCommit()
 
 	err := saveWithOutboxEvt(t, ts, evt)
@@ -220,7 +218,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_CommitFailure(t *testing.T) {
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
-	expectOutboxInsertSuccess(mock, evt)
+	ExpectOutboxInsert(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 
 	err := saveWithOutboxEvt(t, ts, evt)

@@ -77,13 +77,7 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	mw := CommandRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		callCount++
-
-		return errors.New("non-retryable")
-	})
-
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	handler, cmd := setupCommandNonRetryableTest(t, mw, &callCount, "non-retryable")
 
 	err := handler(context.Background(), cmd)
 	if err == nil {
@@ -103,16 +97,10 @@ func TestCommandRetry_ContextCancellation(t *testing.T) {
 	mw := CommandRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		callCount++
-
-		return errors.New("transient")
-	})
+	handler, cmd := setupCommandNonRetryableTest(t, mw, &callCount, "transient")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
 	err := handler(ctx, cmd)
 	if err == nil {

@@ -43,16 +43,21 @@ func BenchmarkSQLiteEventStore_Load(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	ctx := context.Background()
 	aggID := id.NewAggregateID()
 	payload := []byte(`{"name":"bench-user"}`)
 
 	seedSQLiteEvents(b, store, "User", aggID, "user.updated", payload, 10)
 
+	benchLoadAggregate(b, store, "User", aggID)
+}
+
+func benchLoadAggregate(b *testing.B, store *SQLEventStore, aggType event.AggregateType, aggID id.AggregateID) {
+	ctx := context.Background()
+
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := store.Load(ctx, "User", aggID)
+		_, err := store.Load(ctx, aggType, aggID)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -202,20 +207,12 @@ func BenchmarkTursoEventStore_Load(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	ctx := context.Background()
 	aggID := id.NewAggregateID()
 	payload := []byte(`{"name":"bench-turso"}`)
 
 	seedSQLiteEvents(b, store, "Order", aggID, "order.updated", payload, 10)
 
-	b.ResetTimer()
-
-	for b.Loop() {
-		_, err := store.Load(ctx, "Order", aggID)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
+	benchLoadAggregate(b, store, "Order", aggID)
 }
 
 func benchSaveNewAggregate(

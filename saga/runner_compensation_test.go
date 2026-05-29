@@ -69,14 +69,7 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 
 	runner, instance, _ := setupTestSaga(t, dispatcher, []saga.Step{
 		{Name: "step1", Action: newTestCommand},
-		{
-			Name:   "step2",
-			Action: newTestCommand,
-			Compensate: func(_ context.Context, _ id.AggregateID) command.Command {
-				compensateCalled = true
-				return &testCommand{}
-			},
-		},
+		{Name: "step2", Action: newTestCommand, Compensate: newCompensateFn(&compensateCalled)},
 		{Name: "step3", Action: newTestCommand},
 	})
 

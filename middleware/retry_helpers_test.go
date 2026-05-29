@@ -49,7 +49,12 @@ func newEventNonRetryableHandler(callCount *int, errMsg string) event.Handler {
 	}
 }
 
-func setupEventNonRetryableTest(t testing.TB, mw event.Middleware, callCount *int, errMsg string) (event.Handler, event.Event) {
+func setupEventNonRetryableTest(
+	t testing.TB,
+	mw event.Middleware,
+	callCount *int,
+	errMsg string,
+) (event.Handler, event.Event) {
 	t.Helper()
 
 	handler := mw(newEventNonRetryableHandler(callCount, errMsg))
@@ -69,7 +74,12 @@ func newCommandNonRetryableHandler(callCount *int, errMsg string) command.Handle
 	}
 }
 
-func setupCommandNonRetryableTest(t testing.TB, mw command.Middleware, callCount *int, errMsg string) (command.Handler, command.Command) {
+func setupCommandNonRetryableTest(
+	t testing.TB,
+	mw command.Middleware,
+	callCount *int,
+	errMsg string,
+) (command.Handler, command.Command) {
 	t.Helper()
 
 	handler := mw(newCommandNonRetryableHandler(callCount, errMsg))

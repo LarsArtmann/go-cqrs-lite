@@ -85,6 +85,13 @@ func newTestCommand(_ context.Context, _ id.AggregateID) command.Command {
 	return &testCommand{}
 }
 
+func newCompensateFn(called *bool) func(context.Context, id.AggregateID) command.Command {
+	return func(_ context.Context, _ id.AggregateID) command.Command {
+		*called = true
+		return &testCommand{}
+	}
+}
+
 type errorStore struct {
 	err error
 }

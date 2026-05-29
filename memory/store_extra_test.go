@@ -3,7 +3,6 @@ package memory_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -175,15 +174,7 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	evt1 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
-	})
-	evt2 := testhelpers.MakeTimelineEvents(t, "Order", aggID2, []testhelpers.TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -1 * time.Hour},
-	})
-	evt3 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
-		{Type: "Updated", Version: 1, Offset: 0},
-	})
+	evt1, evt2, evt3 := testhelpers.MakeThreeTimelineEvents(t, "User", aggID1, "Order", aggID2)
 
 	_ = store.AppendBatch(ctx, "User", aggID1, evt1)
 	_ = store.AppendBatch(ctx, "Order", aggID2, evt2)

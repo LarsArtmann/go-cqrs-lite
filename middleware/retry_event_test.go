@@ -71,18 +71,9 @@ func TestEventRetry_NonRetryable(t *testing.T) {
 	mw := EventRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		callCount++
+	handler, evt := setupEventNonRetryableTest(t, mw, &callCount, "non-retryable")
 
-		return errors.New("non-retryable")
-	})
-
-	evt, err := testhelpers.NewTestEvent()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	err = handler(context.Background(), evt)
+	err := handler(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -100,21 +91,12 @@ func TestEventRetry_ContextCancellation(t *testing.T) {
 	mw := EventRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ event.Event) error {
-		callCount++
-
-		return errors.New("transient")
-	})
+	handler, evt := setupEventNonRetryableTest(t, mw, &callCount, "transient")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	evt, err := testhelpers.NewTestEvent()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	err = handler(ctx, evt)
+	err := handler(ctx, evt)
 	if err == nil {
 		t.Fatal("expected error from canceled context")
 	}

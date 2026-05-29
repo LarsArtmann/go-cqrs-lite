@@ -97,10 +97,7 @@ func TestRunner_ExecuteStep_FailureWithCompensation(t *testing.T) {
 	runner := saga.NewRunner(store, dispatcher)
 
 	compensateCalled := false
-	compensateFn := func(_ context.Context, _ id.AggregateID) command.Command {
-		compensateCalled = true
-		return &testCommand{}
-	}
+	compensateFn := newCompensateFn(&compensateCalled)
 
 	def := testDefinition{
 		sagaType: "order",
