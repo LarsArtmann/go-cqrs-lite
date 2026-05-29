@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
