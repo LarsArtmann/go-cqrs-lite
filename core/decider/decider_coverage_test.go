@@ -226,9 +226,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
-		Fold: func(_ counterState, _ event.Event) (counterState, error) {
-			return counterState{}, errors.New("fold always fails")
-		},
+		Fold:    failingFold("fold always fails"),
 	}
 
 	repo, err := decider.NewRepository(

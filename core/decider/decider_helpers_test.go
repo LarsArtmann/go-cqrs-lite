@@ -140,12 +140,16 @@ func counterDecider() decider.Decider[counterState] {
 	return decider.Decider[counterState]{Initial: counterState{Value: 0}, Fold: foldCounter}
 }
 
+func failingFold(msg string) func(counterState, event.Event) (counterState, error) {
+	return func(_ counterState, _ event.Event) (counterState, error) {
+		return counterState{}, errors.New(msg)
+	}
+}
+
 func failingDecider() decider.Decider[counterState] {
 	return decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold: func(_ counterState, _ event.Event) (counterState, error) {
-			return counterState{}, errors.New("corrupted payload")
-		},
+		Fold:    failingFold("corrupted payload"),
 	}
 }
 

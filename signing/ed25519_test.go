@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestEd25519Signer(t *testing.T) {
@@ -87,13 +86,7 @@ func TestEd25519Verifier(t *testing.T) {
 	t.Run("verify tampered event", func(t *testing.T) {
 		t.Parallel()
 
-		tampered := testhelpers.QuickEvent(
-			evt.Type(),
-			evt.AggregateID(),
-			evt.AggregateType(),
-			evt.Version(),
-			[]byte(`{"tampered":true}`),
-		)
+		tampered := tamperEvent(t, evt)
 
 		err := verifier.Verify(tampered, sig)
 		if err == nil {

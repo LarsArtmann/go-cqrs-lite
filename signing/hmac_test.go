@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestHMACSigner_New(t *testing.T) {
@@ -91,13 +90,7 @@ func TestHMACSigner_SignAndVerify(t *testing.T) {
 		}
 
 		// Tamper with payload by creating a new event
-		tampered := testhelpers.QuickEvent(
-			evt.Type(),
-			evt.AggregateID(),
-			evt.AggregateType(),
-			evt.Version(),
-			[]byte(`{"key":"tampered"}`),
-		)
+		tampered := tamperEvent(t, evt)
 
 		err = signer.Verify(tampered, sig)
 		if err == nil {

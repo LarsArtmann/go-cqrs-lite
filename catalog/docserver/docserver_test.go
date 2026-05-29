@@ -64,7 +64,6 @@ func testServer(t *testing.T) *DocsServer {
 	})
 }
 
-
 func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder) map[string]any {
 	t.Helper()
 	var doc map[string]any
@@ -73,7 +72,6 @@ func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder) map[string]an
 	}
 	return doc
 }
-
 
 func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
 	srv := testServer(t)
@@ -94,7 +92,7 @@ func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
 		t.Errorf("expected application/json content type, got %s", ct)
 	}
 
-	 doc := decodeJSON(t, recorder)
+	doc := decodeJSON(t, recorder)
 	if doc["openapi"] != "3.0.3" {
 		t.Errorf("expected openapi 3.0.3, got %v", doc["openapi"])
 	}
@@ -177,11 +175,7 @@ func TestDocsServer_AsyncAPISpecJSON(t *testing.T) {
 		t.Errorf("expected 200, got %d", recorder.Code)
 	}
 
-	var doc map[string]any
-	if err := json.NewDecoder(recorder.Body).Decode(&doc); err != nil {
-		t.Fatalf("failed to decode JSON: %v", err)
-	}
-
+	doc := decodeJSON(t, recorder)
 	if doc["asyncapi"] != "3.0.0" {
 		t.Errorf("expected asyncapi 3.0.0, got %v", doc["asyncapi"])
 	}
