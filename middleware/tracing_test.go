@@ -19,7 +19,7 @@ func testTracerWithRecorder() (trace.Tracer, *tracetest.SpanRecorder) {
 	recorder := tracetest.NewSpanRecorder()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 
-	return provider.Tracer(instrumentationName), recorder
+	return provider.Tracer(cqrsotel.ComponentTracer("middleware")), recorder
 }
 
 func TestCommandTracing_Success(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -13,17 +12,10 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
-const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"
-
-func recordError(span trace.Span, err error) {
-	span.RecordError(err)
-	span.SetStatus(codes.Error, err.Error())
-}
-
 // CommandTracing creates an OpenTelemetry span for each command handled.
 // The tracer is typically obtained from a trace.TracerProvider:
 //
-//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.CommandTracing(tracer)
 func CommandTracing(tracer trace.Tracer) command.Middleware {
 	return func(next command.Handler) command.Handler {
@@ -40,7 +32,7 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 
 			err := next(ctx, cmd)
 			if err != nil {
-				recordError(span, err)
+				cqrsotel.RecordError(span, err)
 			}
 
 			return err
@@ -51,7 +43,7 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 // EventTracing creates an OpenTelemetry span for each event handled.
 // The tracer is typically obtained from a trace.TracerProvider:
 //
-//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.EventTracing(tracer)
 func EventTracing(tracer trace.Tracer) event.Middleware {
 	return func(next event.Handler) event.Handler {
@@ -73,7 +65,7 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 
 			err := next(ctx, evt)
 			if err != nil {
-				recordError(span, err)
+				cqrsotel.RecordError(span, err)
 			}
 
 			return err
@@ -84,7 +76,7 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 // QueryTracing creates an OpenTelemetry span for each query handled.
 // The tracer is typically obtained from a trace.TracerProvider:
 //
-//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.QueryTracing(tracer)
 func QueryTracing(tracer trace.Tracer) query.Middleware {
 	return func(next query.Handler) query.Handler {
@@ -100,7 +92,7 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 
 			result, err := next(ctx, qry)
 			if err != nil {
-				recordError(span, err)
+				cqrsotel.RecordError(span, err)
 			}
 
 			return result, err
@@ -112,7 +104,7 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 // This wraps the Publish path on the event bus, creating a Producer span with
 // attributes for the batch of events being published.
 //
-//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	tracer := cqrsotel.NewTracer("middleware")
 //	bus.UsePublish(middleware.EventPublishTracing(tracer))
 func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 	return func(next event.Publisher) event.Publisher {
@@ -140,7 +132,7 @@ func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 
 			err := next.Publish(ctx, events...)
 			if err != nil {
-				recordError(span, err)
+				cqrsotel.RecordError(span, err)
 			}
 
 			return err
