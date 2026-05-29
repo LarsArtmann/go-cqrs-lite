@@ -10,7 +10,10 @@ type SnapshotStrategy interface {
 
 func EveryNEvents(n int) (SnapshotStrategy, error) {
 	if n <= 0 {
-		return nil, event.NewRejection("snapshot.invalid_interval", "snapshot interval must be positive")
+		return nil, event.NewRejection(
+			"snapshot.invalid_interval",
+			"snapshot interval must be positive",
+		)
 	}
 
 	return &everyN{interval: n}, nil

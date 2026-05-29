@@ -2,7 +2,7 @@ module github.com/larsartmann/go-cqrs-lite/testhelpers
 
 go 1.26.3
 
-require github.com/larsartmann/go-cqrs-lite/event v1.6.0
+require github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect

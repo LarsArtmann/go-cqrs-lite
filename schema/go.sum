@@ -4,7 +4,6 @@ github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1v
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/pprof v0.0.0-20260507013755-92041b743c96 h1:YDDnaZ9afWajDboPMt9Vikqca/yWAX7KAxVzb4lJU1M=
 github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frqR5Ub3Cj+w0=
-github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0 h1:dRLGQVw3b+lujL+lfvjTmPLvYCZGur+JQ6ybkqr25HU=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
 github.com/onsi/ginkgo/v2 v2.29.0 h1:rfh+ZFjgJhYWRoIqVf3Uwx/W20yLrcrE2h2GmYVRaag=

@@ -2,6 +2,7 @@ package schema
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -28,7 +29,7 @@ func (s *VersionedStore) Load(
 ) ([]event.Event, error) {
 	events, err := s.Store.Load(ctx, ref)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("versioned store load %s: %w", ref, err)
 	}
 
 	return s.upcastAll(events)
@@ -41,7 +42,7 @@ func (s *VersionedStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	events, err := s.Store.LoadFromVersion(ctx, ref, version)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("versioned store load from version %s@%s: %w", ref, version, err)
 	}
 
 	return s.upcastAll(events)
@@ -54,7 +55,7 @@ func (s *VersionedStore) LoadToVersion(
 ) ([]event.Event, error) {
 	events, err := s.Store.LoadToVersion(ctx, ref, maxVersion)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("versioned store load to version %s@%s: %w", ref, maxVersion, err)
 	}
 
 	return s.upcastAll(events)
@@ -67,7 +68,12 @@ func (s *VersionedStore) LoadToTimestamp(
 ) ([]event.Event, error) {
 	events, err := s.Store.LoadToTimestamp(ctx, ref, maxTime)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"versioned store load to timestamp %s@%s: %w",
+			ref,
+			maxTime.Format(time.RFC3339),
+			err,
+		)
 	}
 
 	return s.upcastAll(events)

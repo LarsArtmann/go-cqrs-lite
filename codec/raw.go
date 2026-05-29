@@ -16,7 +16,7 @@ func (RawCodec) Encode(v any) ([]byte, error) {
 	case []byte:
 		return b, nil
 	default:
-		return nil, fmt.Errorf("raw codec: expected []byte, got %T", v)
+		return nil, fmt.Errorf("%w: got %T", ErrEncodeRawType, v)
 	}
 }
 
@@ -24,7 +24,7 @@ func (RawCodec) Encode(v any) ([]byte, error) {
 func (RawCodec) Decode(data []byte, v any) error {
 	p, ok := v.(*[]byte)
 	if !ok {
-		return fmt.Errorf("raw codec: expected *[]byte target, got %T", v)
+		return fmt.Errorf("%w: got %T", ErrDecodeRawType, v)
 	}
 
 	cp := make([]byte, len(data))

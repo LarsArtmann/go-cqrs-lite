@@ -6,16 +6,16 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/decider v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/dispatcher v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event v1.6.0
+	github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
-	github.com/larsartmann/go-cqrs-lite/middleware v1.6.0
-	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
-	github.com/larsartmann/go-cqrs-lite/projection v1.6.0
+	github.com/larsartmann/go-cqrs-lite/memory v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/middleware v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/otel v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/projection v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/signing v1.6.0
-	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
+	github.com/larsartmann/go-cqrs-lite/signing v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/stretchr/testify v1.11.1

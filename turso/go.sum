@@ -22,8 +22,6 @@ github.com/google/pprof v0.0.0-20260507013755-92041b743c96 h1:YDDnaZ9afWajDboPMt
 github.com/google/pprof v0.0.0-20260507013755-92041b743c96/go.mod h1:MxpfABSjhmINe3F1It9d+8exIHFvUqtLIRCdOGNXqiI=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/larsartmann/go-cqrs-lite/memory v1.6.0 h1:8uf1hV7m0Ws7/DN7XHaJ1/W5/rPVv2zmxU3fDDMep0c=
-github.com/larsartmann/go-cqrs-lite/memory v1.6.0/go.mod h1:2QCNShPIbZniA+Fb4IfvyYt6sG2UymBilpNDaWpKinE=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/larsartmann/go-error-family v0.2.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=

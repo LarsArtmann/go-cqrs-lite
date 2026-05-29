@@ -24,6 +24,8 @@ var (
 
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{
+		Lifecycle: dispatcher.Lifecycle{},
+		mu:        sync.RWMutex{},
 		snapshots: make(map[string]*snappkg.Snapshot),
 	}
 }

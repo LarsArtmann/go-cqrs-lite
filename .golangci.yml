@@ -137,13 +137,12 @@ linters:
                         - github.com/google/uuid
                         - github.com/cockroachdb/errors
                         - github.com/go-json-experiment/json
-                        - github.com/go-faster/yaml
+                        - gopkg.in/yaml.v3
                         - github.com/oklog/ulid
                         - github.com/DATA-DOG/go-sqlmock
                         - github.com/stretchr/testify
                         - github.com/onsi/ginkgo
                         - github.com/onsi/gomega
-                        - github.com/samber/ro
                         - go.opentelemetry.io/otel
                         - github.com/cockroachdb/pebble
                         - github.com/larsartmann/go-error-family

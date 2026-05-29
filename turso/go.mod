@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/turso
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v1.6.0
-	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
+	github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage v0.0.0-00010101000000-000000000000
 	turso.tech/database/tursogo v0.6.1
 )
 
@@ -13,8 +13,8 @@ require (
 	github.com/ebitengine/purego v0.10.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v1.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel v1.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel v0.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.6.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

@@ -2,6 +2,7 @@ package schema_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -18,14 +19,19 @@ type testUpcaster struct {
 func (u *testUpcaster) SourceType() event.Type             { return u.sourceType }
 func (u *testUpcaster) SourceVersion() event.SchemaVersion { return u.sourceVersion }
 func (u *testUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
-	return evt.(*event.ImmutableEvent), nil
+	immutable, ok := evt.(*event.ImmutableEvent)
+	if !ok {
+		return nil, fmt.Errorf("unexpected event type %T", evt)
+	}
+
+	return immutable, nil
 }
 
 func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	vs := schema.NewVersionedStore(store)
+	versioned := schema.NewVersionedStore(store)
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -40,7 +46,7 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
+	loaded, err := versioned.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -54,9 +60,8 @@ func TestVersionedStore_NewVersionedStore_NilUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	vs := schema.NewVersionedStore(store)
-
-	if vs == nil {
+	versioned := schema.NewVersionedStore(store)
+	if versioned == nil {
 		t.Fatal("expected non-nil VersionedStore")
 	}
 }
@@ -104,8 +109,8 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	vs := schema.NewVersionedStore(store, versionUpcaster{})
-	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
+	versioned := schema.NewVersionedStore(store, versionUpcaster{})
+	loaded, err := versioned.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -157,8 +162,8 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	vs := schema.NewVersionedStore(store, versionUpcaster{})
-	loaded, err := vs.LoadFromVersion(
+	versioned := schema.NewVersionedStore(store, versionUpcaster{})
+	loaded, err := versioned.LoadFromVersion(
 		ctx,
 		event.NewAggregateRef(event.AggregateType("Test"), aggID),
 		1,

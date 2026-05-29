@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.2.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0

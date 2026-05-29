@@ -12,8 +12,6 @@ github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frq
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/codec v0.0.0-20260529144800-51ed93d67be5 h1:ablyGTTiZg9ABMDVf8TzmKrDx25MeY78W9xfpZZfu3U=
 github.com/larsartmann/go-cqrs-lite/codec v0.0.0-20260529144800-51ed93d67be5/go.mod h1:Zj+CBGFMlThp2dDqij1yjPDqDI4dRnWfGiCZRWDo6Mo=
-github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0 h1:dRLGQVw3b+lujL+lfvjTmPLvYCZGur+JQ6ybkqr25HU=
-github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0/go.mod h1:eUbpe7wOIlaCZ3jbiBnmrRaubIJGIpkK/EMsqCizHCc=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/larsartmann/go-error-family v0.2.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
