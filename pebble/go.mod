@@ -11,11 +11,6 @@ require (
 )
 
 require (
-	github.com/samber/lo v1.52.0 // indirect
-	github.com/samber/ro v0.3.0 // indirect
-)
-
-require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

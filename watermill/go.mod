@@ -14,13 +14,6 @@ require (
 )
 
 require (
-	github.com/samber/lo v1.52.0 // indirect
-	github.com/samber/ro v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7 // indirect
-	golang.org/x/text v0.37.0 // indirect
-)
-
-require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
