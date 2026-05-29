@@ -37,6 +37,13 @@ func NewFakeStore() *FakeStore {
 	return &FakeStore{events: make(map[string][]event.Event)}
 }
 
+func getOverride[T any](s *FakeStore, fn *T) T {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return *fn
+}
+
 // Save appends events to the aggregate's stream.
 // SaveFn sets an optional override for Save calls.
 func (s *FakeStore) Save(
@@ -46,11 +53,7 @@ func (s *FakeStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	s.mu.RLock()
-	fn := s.saveFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.saveFn); fn != nil {
 		return fn(ctx, aggregateType, aggregateID, events, expectedVersion)
 	}
 
@@ -70,11 +73,7 @@ func (s *FakeStore) AppendBatch(
 	aggregateID id.AggregateID,
 	events []event.Event,
 ) error {
-	s.mu.RLock()
-	fn := s.appendBatchFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.appendBatchFn); fn != nil {
 		return fn(aggregateType, aggregateID, events)
 	}
 
@@ -93,11 +92,7 @@ func (s *FakeStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.loadFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.loadFn); fn != nil {
 		return fn(aggregateType, aggregateID)
 	}
 
@@ -116,11 +111,7 @@ func (s *FakeStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.loadFromVersionFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.loadFromVersionFn); fn != nil {
 		return fn(aggregateType, aggregateID, version)
 	}
 
@@ -146,11 +137,7 @@ func (s *FakeStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.loadToVersionFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.loadToVersionFn); fn != nil {
 		return fn(aggregateType, aggregateID, maxVersion)
 	}
 
@@ -172,11 +159,7 @@ func (s *FakeStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.loadToTimestampFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.loadToTimestampFn); fn != nil {
 		return fn(aggregateType, aggregateID, maxTime)
 	}
 
@@ -199,11 +182,7 @@ func (s *FakeStore) LoadToTimestamp(
 
 // ReadAll returns all events across all aggregates.
 func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.readAllFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.readAllFn); fn != nil {
 		return fn()
 	}
 
@@ -225,11 +204,7 @@ func (s *FakeStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
-	s.mu.RLock()
-	fn := s.readFromFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.readFromFn); fn != nil {
 		return fn(afterEventID, limit)
 	}
 
@@ -260,11 +235,7 @@ func (s *FakeStore) ReadFrom(
 
 // Close is a no-op for testing.
 func (s *FakeStore) Close() error {
-	s.mu.RLock()
-	fn := s.closeFn
-	s.mu.RUnlock()
-
-	if fn != nil {
+	if fn := getOverride(s, &s.closeFn); fn != nil {
 		return fn()
 	}
 
