@@ -834,6 +834,7 @@ Old root still valid → readers see consistent snapshot</pre>
     <tr><td>Wide-Column</td><td>—</td><td>Cassandra, ScyllaDB</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>Datalog</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Datomic</td><td>Datahike</td><td>—</td><td>—</td></tr>
     <tr><td>Streaming</td><td>—</td><td>Kafka (log segments)</td><td>—</td><td>—</td><td>Kafka, Pulsar</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr style="background:var(--accent-dim)"><td style="color:var(--accent)">NATS JetStream</td><td>—</td><td>File storage (RAID-ified)</td><td>KV bucket (hash)</td><td>—</td><td>Streams (append-only)</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>Vector</td><td>—</td><td>Qdrant (rocksdb)</td><td>—</td><td>Milvus</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
   </tbody>
 </table>
@@ -904,6 +905,21 @@ Old root still valid → readers see consistent snapshot</pre>
     <div class="card-header"><div class="card-num">✓</div><h3>CoW B+Tree (LMDB)</h3><span class="badge badge-fit">Fits</span></div>
     <div class="card-body"><div class="key-prop" style="border-left-color:var(--accent)">Snapshot reads for free (time-travel), lock-free readers. Trade-off: single writer bottleneck — acceptable for embedded use.</div></div>
   </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">★</div><h3>NATS JetStream</h3><span class="badge badge-fit">Unified Backend</span></div>
+    <div class="card-body">
+      <div class="key-prop" style="border-left-color:var(--blue)"><strong>One system covers all four storage needs:</strong></div>
+      <table style="margin-top:1rem">
+        <tr><th>go-cqrs-lite Need</th><th>JetStream Feature</th></tr>
+        <tr><td>Event Store</td><td><strong>Stream</strong> — subject <code>events.{type}.{id}</code>, append-only, ordered, replay, exactly-once dedup</td></tr>
+        <tr><td>Snapshot Store</td><td><strong>KeyValue</strong> bucket — Get/Put/Delete/Watch with revision-based CAS</td></tr>
+        <tr><td>Checkpoint Store</td><td><strong>KeyValue</strong> bucket — same Get/Put by projection name</td></tr>
+        <tr><td>Outbox</td><td><strong>WorkQueue Stream</strong> — exactly-once consumption, auto-delete after ack</td></tr>
+        <tr><td>Bus (pub/sub)</td><td><strong>NATS Core</strong> — already in <code>watermill/</code> module</td></tr>
+      </table>
+      <div class="key-prop" style="border-left-color:var(--blue);margin-top:1rem"><strong>Performance:</strong> 39-52K msg/sec (32-38× faster than Kafka). 6MB RAM cold start (vs 327MB for Kafka). Single binary <code>nats-server -js</code>. Built-in RAFT replication. Go-native client.</div>
+    </div>
+  </div>
 </div>
 
 <h3 style="font-size:.95rem;color:var(--fg-dim);margin:2rem 0 1rem;font-weight:400">Engines that do NOT fit</h3>
@@ -956,6 +972,47 @@ Old root still valid → readers see consistent snapshot</pre>
   <h3>SurrealDB <span class="tag badge-arch">Multi-Model Pluggable</span></h3>
   <p class="desc"><strong>Storage:</strong> Pluggable — RocksDB (embedded), TiKV (distributed), IndexedDB (browser).<br><strong>Interface:</strong> SurrealQL covers document, graph, relational, vector in one query language.</p>
   <div class="lesson"><strong>Lesson:</strong> The "backend is pluggable" pattern is viable. Same query language, different storage. Aligns with our <code>kv.Store</code> abstraction approach.</div>
+</div>
+
+<div class="adv-card" style="border-color:var(--blue);box-shadow:0 0 40px rgba(59,130,246,.15)">
+  <h3>NATS JetStream <span class="tag" style="background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)">Potential go-cqrs-lite Backend</span></h3>
+  <p class="desc"><strong>Storage:</strong> File (disk, RAFT-replicated) or Memory. Subject-partitioned append-only streams with configurable retention.<br><strong>Interface:</strong> Three built-in data models on one server — <strong>Streams</strong> (append-only log), <strong>KeyValue</strong> (KV with history + CAS), <strong>ObjectStore</strong> (binary blobs).</p>
+
+  <div style="background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin:.75rem 0;font-family:var(--mono);font-size:.75rem;line-height:1.7;color:var(--fg-dim);overflow-x:auto">
+    <span style="color:var(--fg-muted)">// Go client: github.com/nats-io/nats.go/jetstream</span><br>
+    js, _ := jetstream.New(nc)<br><br>
+    <span style="color:var(--fg-muted)">// Event Store → Stream (append-only, per-aggregate via subjects)</span><br>
+    stream, _ := js.CreateStream(ctx, jetstream.StreamConfig{<br>
+    &nbsp;&nbsp;Name: &quot;events&quot;, Subjects: []string{&quot;events.{type}.{id}&quot;},<br>
+    &nbsp;&nbsp;Retention: jetstream.LimitsPolicy,<br>
+    })<br>
+    ack, _ := js.Publish(ctx, &quot;events.User.01H4...&quot;, payload)<br><br>
+    <span style="color:var(--fg-muted)">// Snapshot + Checkpoint → KeyValue bucket</span><br>
+    kv, _ := js.CreateKeyValue(ctx, jetstream.KeyValueConfig{Bucket: &quot;snapshots&quot;})<br>
+    rev, _ := kv.Put(ctx, &quot;User:01H4...&quot;, snapshotBytes)<br>
+    entry, _ := kv.Get(ctx, &quot;User:01H4...&quot;)<br><br>
+    <span style="color:var(--fg-muted)">// Outbox → WorkQueue Stream (exactly-once, auto-delete after ack)</span><br>
+    outbox, _ := js.CreateStream(ctx, jetstream.StreamConfig{<br>
+    &nbsp;&nbsp;Name: &quot;outbox&quot;, Retention: jetstream.WorkQueuePolicy,<br>
+    })<br>
+    consumer, _ := outbox.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{<br>
+    &nbsp;&nbsp;AckPolicy: jetstream.AckExplicit,<br>
+    })
+  </div>
+
+  <div class="lesson" style="border-left-color:var(--blue)"><strong>Why it matters for go-cqrs-lite:</strong> A single NATS server replaces PostgreSQL/SQLite (for SQL storage) + message broker (for outbox/bus). The KeyValue API is remarkably close to our proposed <code>kv.Store</code> interface — Get/Put/Delete/Watch with revision-based CAS and history. For edge deployments and single-binary scenarios, JetStream + Pebble covers the full spectrum from embedded to distributed.</div>
+
+  <table style="margin-top:1rem">
+    <tr><th>Dimension</th><th>JetStream</th><th>Kafka</th></tr>
+    <tr><td>Throughput (small msgs)</td><td style="color:var(--accent)">39-52K msg/sec</td><td>1.2-1.4K msg/sec</td></tr>
+    <tr><td>RAM cold start</td><td style="color:var(--accent)">6 MB</td><td>327 MB</td></tr>
+    <tr><td>Deployment</td><td style="color:var(--accent)">Single binary</td><td>Brokers + KRaft + controllers</td></tr>
+    <tr><td>Go client</td><td style="color:var(--accent)">First-class (nats.go)</td><td>Third-party (confluent/sarama)</td></tr>
+    <tr><td>Built-in KV store</td><td style="color:var(--accent)">Yes (KeyValue bucket)</td><td>No</td></tr>
+    <tr><td>Ecosystem / connectors</td><td>Smaller</td><td style="color:var(--accent)">Massive (Kafka Connect, etc.)</td></tr>
+    <tr><td>Large message throughput</td><td>Degrades &gt;64KB</td><td style="color:var(--accent)">Handles well</td></tr>
+    <tr><td>Transactional API</td><td>Single-stream only</td><td style="color:var(--accent)">Multi-partition transactions</td></tr>
+  </table>
 </div>
 
 </section>
