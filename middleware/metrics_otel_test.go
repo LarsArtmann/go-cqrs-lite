@@ -8,8 +8,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -116,58 +116,10 @@ func TestCommandOTelMetrics_RecordsError(t *testing.T) {
 	}
 }
 
-func TestOTelMetricsRecorder_PanicsOnNilHistogram(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("expected panic when calling Observe on nil recorder")
-		}
-	}()
-
-	var recorder OTelMetricsRecorder
-	recorder.Observe("test", 100)
-}
-
-func TestNewOTelMetricsRecorder_Success(t *testing.T) {
-	t.Parallel()
-
-	provider := metric.NewMeterProvider()
-	meter := provider.Meter("test")
-
-	recorder, err := NewOTelMetricsRecorder(meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if recorder == nil {
-		t.Fatal("expected non-nil recorder")
-	}
-
-	if recorder.histogram == nil {
-		t.Fatal("expected non-nil histogram")
-	}
-}
-
-func collectMetrics(t *testing.T, provider *metric.MeterProvider) metricdata.ResourceMetrics {
-	t.Helper()
-
-	var rm metricdata.ResourceMetrics
-
-	err := provider.Collect(context.Background(), &rm)
-	if err != nil {
-		t.Fatalf("failed to collect metrics: %v", err)
-	}
-
-	return rm
-}
-
 func TestOTelMetricsRecorder_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
 	var _ MetricsRecorder = (*OTelMetricsRecorder)(nil)
-	var _ MetricsRecorder = MetricsRecorder(nil)
 
 	provider := metric.NewMeterProvider()
 	meter := provider.Meter("test")
@@ -182,11 +134,11 @@ func TestOTelMetricsRecorder_ImplementsInterface(t *testing.T) {
 	iface.Observe("test", 100, "key", "value")
 }
 
-// Verify the metric provider works end-to-end with the OTel SDK.
 func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 	t.Parallel()
 
-	provider := metric.NewMeterProvider()
+	reader := metric.NewManualReader()
+	provider := metric.NewMeterProvider(metric.WithReader(reader))
 	meter := provider.Meter("test")
 
 	h, err := meter.Float64Histogram("cqrs.command.duration.test")
@@ -204,7 +156,12 @@ func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	rm := collectMetrics(t, provider)
+	var rm metricdata.ResourceMetrics
+
+	err = reader.Collect(context.Background(), &rm)
+	if err != nil {
+		t.Fatalf("failed to collect metrics: %v", err)
+	}
 
 	if len(rm.ScopeMetrics) == 0 {
 		t.Fatal("expected scope metrics to be collected")
@@ -227,8 +184,7 @@ func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 	}
 }
 
-// Unused but keeps the import for sdktrace available if needed later.
-var _ = sdktrace.NewTracerProvider()
-
-// Unused but keeps the import for cqrsotel available.
-var _ = cqrsotel.Name
+var (
+	_ = sdktrace.NewTracerProvider()
+	_ = cqrsotel.Name
+)

@@ -7,10 +7,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"
@@ -123,7 +123,8 @@ func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 			}
 
 			if len(events) > 0 {
-				attrs = append(attrs,
+				attrs = append(
+					attrs,
 					attribute.String(cqrsotel.AttrEventType, string(events[0].Type())),
 					attribute.String(cqrsotel.AttrAggregateType, string(events[0].AggregateType())),
 					attribute.String(cqrsotel.AttrAggregateID, events[0].AggregateID().String()),

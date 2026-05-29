@@ -7,10 +7,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 const (
@@ -27,7 +27,8 @@ type OTelMetricsRecorder struct {
 // NewOTelMetricsRecorder creates a new OTelMetricsRecorder from the given meter.
 // The histogram instrument name is "cqrs.operation.duration".
 func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
-	h, err := meter.Float64Histogram("cqrs.operation.duration",
+	h, err := meter.Float64Histogram(
+		"cqrs.operation.duration",
 		metric.WithDescription("Duration of CQRS operations"),
 		metric.WithUnit("ms"),
 	)
@@ -65,7 +66,8 @@ func CommandOTelMetrics(histogram metric.Float64Histogram) command.Middleware {
 				status = cqrsotel.StatusError
 			}
 
-			histogram.Record(ctx, float64(time.Since(start).Milliseconds()),
+			histogram.Record(
+				ctx, float64(time.Since(start).Milliseconds()),
 				metric.WithAttributes(
 					attribute.String(cqrsotel.AttrMessageKind, cqrsotel.KindCommand),
 					attribute.String(cqrsotel.AttrCommandType, string(cmd.Type())),
@@ -90,7 +92,8 @@ func EventOTelMetrics(histogram metric.Float64Histogram) event.Middleware {
 				status = cqrsotel.StatusError
 			}
 
-			histogram.Record(ctx, float64(time.Since(start).Milliseconds()),
+			histogram.Record(
+				ctx, float64(time.Since(start).Milliseconds()),
 				metric.WithAttributes(
 					attribute.String(cqrsotel.AttrMessageKind, cqrsotel.KindEvent),
 					attribute.String(cqrsotel.AttrEventType, string(evt.Type())),
@@ -115,7 +118,8 @@ func QueryOTelMetrics(histogram metric.Float64Histogram) query.Middleware {
 				status = cqrsotel.StatusError
 			}
 
-			histogram.Record(ctx, float64(time.Since(start).Milliseconds()),
+			histogram.Record(
+				ctx, float64(time.Since(start).Milliseconds()),
 				metric.WithAttributes(
 					attribute.String(cqrsotel.AttrMessageKind, cqrsotel.KindQuery),
 					attribute.String(cqrsotel.AttrQueryType, string(q.Type())),
