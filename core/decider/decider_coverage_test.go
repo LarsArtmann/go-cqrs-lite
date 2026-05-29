@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -34,7 +35,172 @@ type failingCodec struct {
 func (f *failingCodec) Encode(_ any) ([]byte, error) { return nil, f.err }
 func (f *failingCodec) Decode(_ []byte, _ any) error { return nil }
 
-func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
+type nonImmutableEvent struct{}
+
+func (nonImmutableEvent) ID() id.EventID            { return id.NewEventID() }
+func (nonImmutableEvent) Type() event.Type           { return "Test" }
+func (nonImmutableEvent) AggregateID() id.AggregateID { return id.NewAggregateID() }
+func (nonImmutableEvent) AggregateType() event.AggregateType { return "Test" }
+func (nonImmutableEvent) Version() event.Version     { return 1 }
+func (nonImmutableEvent) Payload() []byte            { return nil }
+func (nonImmutableEvent) OccurredAt() time.Time      { return time.Now() }
+func (nonImmutableEvent) Metadata() *event.Metadata  { return nil }
+
+func TestExecute_EnricherAppliesOptions(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+	store := testhelpers.NewFakeStore()
+
+	enriched := false
+	enricher := func(_ context.Context) []event.Option {
+		return []event.Option{
+			func(_ *event.ImmutableEvent) { enriched = true },
+		}
+	}
+
+	d := counterDecider()
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithEnricher[counterState](enricher),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	if !enriched {
+		t.Error("expected enricher to be applied to events")
+	}
+}
+
+func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+	store := testhelpers.NewFakeStore()
+
+	enricher := func(_ context.Context) []event.Option {
+		return nil
+	}
+
+	d := counterDecider()
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithEnricher[counterState](enricher),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+}
+
+func TestExecute_EnricherSkipsNonImmutableEvents(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+	store := testhelpers.NewFakeStore()
+
+	enricher := func(_ context.Context) []event.Option {
+		return []event.Option{
+			func(_ *event.ImmutableEvent) {
+				t.Error("enricher should not be called for non-ImmutableEvent")
+			},
+		}
+	}
+
+	d := counterDecider()
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithEnricher[counterState](enricher),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{nonImmutableEvent{}}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+}
+
+func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+	store := testhelpers.NewFakeStore()
+
+	correlationID := id.NewCorrelationID()
+	enricher := func(_ context.Context) []event.Option {
+		return []event.Option{
+			event.WithCorrelationID(correlationID),
+		}
+	}
+
+	d := counterDecider()
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithEnricher[counterState](enricher),
+	)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	err = repo.Execute(
+		context.Background(), aggID, "Counter",
+		func(_ counterState, ver event.Version) ([]event.Event, error) {
+			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	published := bus.Published()
+	if len(published) == 0 {
+		t.Fatal("expected published events")
+	}
+
+	md := published[0].Metadata()
+	if md == nil {
+		t.Fatal("expected metadata on enriched event")
+	}
+
+	if md.CorrelationID != correlationID {
+		t.Errorf("expected correlation ID %s, got %s", correlationID, md.CorrelationID)
+	}
+}
 	t.Parallel()
 
 	bus := testhelpers.NewFakeBus()

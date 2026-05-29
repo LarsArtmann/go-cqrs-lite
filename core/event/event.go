@@ -22,6 +22,7 @@
 package event
 
 import (
+	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -166,6 +167,12 @@ func (e *ImmutableEvent) Metadata() *Metadata {
 
 // OccurredAt returns when the event occurred.
 func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
+
+// String returns a human-readable representation of the event for logging and debugging.
+func (e *ImmutableEvent) String() string {
+	return fmt.Sprintf("%s(%s) v%d %s@%s",
+		e.eventType, e.id, e.version, e.aggregateType, e.aggregateID)
+}
 
 // Clone returns a deep copy of the event. The returned event is fully independent —
 // mutations to its payload or metadata will not affect the original.

@@ -40,7 +40,8 @@ func TestEventHelpers_NewEventOpts(t *testing.T) {
 	aggID := id.NewAggregateID()
 	corrID := id.NewCorrelationID()
 
-	evt := NewEventOpts(t, "user.created", aggID, "User", 1, nil,
+	evt := NewEventOpts(
+		t, "user.created", aggID, "User", 1, nil,
 		event.WithCorrelationID(corrID),
 	)
 
