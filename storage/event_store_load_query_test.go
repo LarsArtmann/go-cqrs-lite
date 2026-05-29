@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestSQLEventStore_Load_Success(t *testing.T) {

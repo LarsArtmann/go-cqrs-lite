@@ -10,7 +10,7 @@ import (
 )
 
 func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
-	handler := mw(func(_ context.Context, _ command.Command) error { return nil })
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 	ctx := context.Background()

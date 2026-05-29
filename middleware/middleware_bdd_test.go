@@ -48,9 +48,7 @@ var _ = Describe("Recovery Middleware", func() {
 		Context("when my handler succeeds normally", func() {
 			It("should let my handler succeed normally without any overhead", func() {
 				mw := middleware.CommandRecovery()
-				handler := mw(func(_ context.Context, _ command.Command) error {
-					return nil
-				})
+				handler := mw(middleware.NoopCommandHandler())
 
 				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
 				Expect(err).ToNot(HaveOccurred())
@@ -147,9 +145,7 @@ var _ = Describe("Circuit Breaker Middleware", func() {
 			It("should allow all requests through", func() {
 				config := middleware.DefaultCircuitBreakerConfig()
 				mw := middleware.CommandCircuitBreaker(config)
-				handler := mw(func(_ context.Context, _ command.Command) error {
-					return nil
-				})
+				handler := mw(middleware.NoopCommandHandler())
 
 				for i := 0; i < 10; i++ {
 					err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})

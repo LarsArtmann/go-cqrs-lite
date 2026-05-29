@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func registerHandler(d *query.Dispatcher, name query.Type, result any) {
@@ -36,13 +37,7 @@ func TestNew_EmptyType(t *testing.T) {
 func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for empty query type")
-		}
-	}()
-
-	_ = query.MustNew("")
+	testhelpers.AssertPanics(t, func() { _ = query.MustNew("") })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {

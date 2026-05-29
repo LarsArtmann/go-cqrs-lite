@@ -64,9 +64,7 @@ func TestCommandTraceLogging_NoSpan(t *testing.T) {
 	logger, buf := newTraceLogger()
 	mw := middleware.CommandTraceLogging(logger)
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := mw(middleware.NoopCommandHandler())
 
 	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
 	require.NoError(t, err)

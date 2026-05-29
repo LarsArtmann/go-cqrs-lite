@@ -95,11 +95,17 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	return mux
 }
 
-func TestHealthEndpoint(t *testing.T) {
-	t.Parallel()
+func setupTestServer(t *testing.T) (*http.ServeMux, *httptest.Server) {
+	t.Helper()
 	mux := setupTestMux(t)
 	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	t.Cleanup(srv.Close)
+	return mux, srv
+}
+
+func TestHealthEndpoint(t *testing.T) {
+	t.Parallel()
+	_, srv := setupTestServer(t)
 
 	resp, err := http.Get(srv.URL + "/health")
 	if err != nil {
@@ -122,9 +128,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 func TestCreateTodo_Success(t *testing.T) {
 	t.Parallel()
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	body := `{"title":"Buy milk","description":"from store","priority":2,"tags":["errands"]}`
 	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
@@ -148,9 +152,7 @@ func TestCreateTodo_Success(t *testing.T) {
 
 func TestCreateTodo_EmptyTitle(t *testing.T) {
 	t.Parallel()
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	body := `{"title":"","description":"no title"}`
 	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
@@ -166,9 +168,7 @@ func TestCreateTodo_EmptyTitle(t *testing.T) {
 
 func TestListTodos_Empty(t *testing.T) {
 	t.Parallel()
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	resp, err := http.Get(srv.URL + "/api/v1/todos")
 	if err != nil {
@@ -183,9 +183,7 @@ func TestListTodos_Empty(t *testing.T) {
 
 func TestGetTodo_NotFound(t *testing.T) {
 	t.Parallel()
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	resp, err := http.Get(srv.URL + "/api/v1/todos/nonexistent")
 	if err != nil {
@@ -199,9 +197,7 @@ func TestGetTodo_NotFound(t *testing.T) {
 }
 
 func TestFullCommandLifecycle(t *testing.T) {
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	createBody := `{"title":"Test Todo","description":"test desc","priority":1,"tags":["test"]}`
 	resp, err := http.Post(
@@ -280,9 +276,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 
 func TestUpdateTodo_InvalidID(t *testing.T) {
 	t.Parallel()
-	mux := setupTestMux(t)
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+	_, srv := setupTestServer(t)
 
 	body := `{"title":"Updated","description":"test"}`
 	req, _ := http.NewRequest(

@@ -108,16 +108,16 @@ func TestSQLSagaStore_Load_Success(t *testing.T) {
 	}
 
 	if loaded.ID != stateID {
-		t.Errorf("ID mismatch: got %v, want %v", loaded.ID, stateID)
+		testhelpers.AssertEqual(t, loaded.ID, stateID, "ID")
 	}
 	if loaded.SagaType != "order" {
-		t.Errorf("SagaType mismatch: got %q, want %q", loaded.SagaType, "order")
+		testhelpers.AssertEqual(t, loaded.SagaType, "order", "SagaType")
 	}
 	if loaded.Status != saga.StatusRunning {
-		t.Errorf("Status mismatch: got %q, want %q", loaded.Status, saga.StatusRunning)
+		testhelpers.AssertEqual(t, loaded.Status, saga.StatusRunning, "Status")
 	}
 	if loaded.CurrentStep != 2 {
-		t.Errorf("CurrentStep mismatch: got %d, want %d", loaded.CurrentStep, 2)
+		testhelpers.AssertEqual(t, loaded.CurrentStep, 2, "CurrentStep")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

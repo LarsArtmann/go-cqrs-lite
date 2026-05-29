@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestBuilder_Build(t *testing.T) {
@@ -120,7 +119,13 @@ func TestBuilder_MustBuild_Panics(t *testing.T) {
 
 	b := newBuilder("", id.AggregateID{}, "", Version(0))
 
-	testhelpers.AssertPanics(t, func() { b.MustBuild() })
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for invalid event")
+		}
+	}()
+
+	b.MustBuild()
 }
 
 func TestBuilder_Build_WithOptions(t *testing.T) {

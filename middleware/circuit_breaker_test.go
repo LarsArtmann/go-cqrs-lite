@@ -177,7 +177,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 	_ = failingHandler(t.Context(), &testCommand{})
 	time.Sleep(60 * time.Millisecond)
 
-	successHandler := mw(func(_ context.Context, _ command.Command) error { return nil })
+	successHandler := mw(NoopCommandHandler())
 
 	for i := range 3 {
 		if err := successHandler(t.Context(), &testCommand{}); err != nil {

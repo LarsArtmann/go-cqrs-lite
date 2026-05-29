@@ -5,6 +5,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // FakeMetrics is a metrics collector for testing.
@@ -123,5 +125,23 @@ func AssertNotContains(t *testing.T, s, substr, msg string) {
 
 	if strings.Contains(s, substr) {
 		t.Error(msg)
+	}
+}
+
+// AssertEventType asserts that events[index].Type() equals want.
+func AssertEventType(t *testing.T, events []event.Event, index int, want string) {
+	t.Helper()
+
+	if got := string(events[index].Type()); got != want {
+		t.Errorf("events[%d].Type = %q, want %s", index, got, want)
+	}
+}
+
+// AssertEventVersion asserts that events[index].Version() equals want.
+func AssertEventVersion(t *testing.T, events []event.Event, index int, want int) {
+	t.Helper()
+
+	if got := int(events[index].Version()); got != want {
+		t.Errorf("events[%d].Version = %d, want %d", index, got, want)
 	}
 }

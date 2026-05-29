@@ -176,7 +176,15 @@ func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	cattest.AddServiceWithQuery(t, reg, catalog.ServiceID("catalog-svc"), catalog.MessageID("GetProduct"), "GetProduct", "1.0.0", "")
+	cattest.AddServiceWithQuery(
+		t,
+		reg,
+		catalog.ServiceID("catalog-svc"),
+		catalog.MessageID("GetProduct"),
+		"GetProduct",
+		"1.0.0",
+		"",
+	)
 
 	tmpDir := exportCatalog(t, reg)
 

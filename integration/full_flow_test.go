@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
 	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 // FullFlow tests a complete CQRS pipeline:

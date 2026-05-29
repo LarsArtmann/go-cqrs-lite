@@ -82,13 +82,9 @@ func TestRoundTrip(t *testing.T) {
 	}
 
 	// Receive via subscriber adapter
-	select {
-	case received := <-msgCh:
+	receiveMessageWithTimeout(t, msgCh, "user.created", func(received *message.Message) {
 		if string(received.Payload) != `{"name":"Alice"}` {
 			t.Errorf("payload = %q, want %q", received.Payload, `{"name":"Alice"}`)
-		}
-		if received.Metadata.Get("event_type") != "user.created" {
-			t.Errorf("event_type = %q", received.Metadata.Get("event_type"))
 		}
 		if received.Metadata.Get("aggregate_id") != aggID.String() {
 			t.Errorf("aggregate_id mismatch")
@@ -105,9 +101,7 @@ func TestRoundTrip(t *testing.T) {
 		if received.Metadata.Get("custom.tenant") != "acme" {
 			t.Errorf("custom.tenant = %q", received.Metadata.Get("custom.tenant"))
 		}
-	case <-time.After(time.Second):
-		t.Fatal("timeout waiting for message")
-	}
+	})
 }
 
 func TestPublisherAdapter_BadMetadata(t *testing.T) {
