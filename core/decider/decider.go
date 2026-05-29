@@ -6,6 +6,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
@@ -35,7 +36,7 @@ type Repository[State any] struct {
 	publisher        event.Publisher
 	outbox           event.Outbox
 	snapshotStore    event.SnapshotStore
-	codec            event.Codec
+	codec            codec.Codec
 	snapshotStrategy event.SnapshotStrategy
 	enricher         event.ContextEnricher
 	decider          Decider[State]

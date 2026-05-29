@@ -1,6 +1,7 @@
 package decider
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -26,7 +27,7 @@ func WithSnapshotStore[State any](store event.SnapshotStore) RepositoryOption[St
 // WithCodec sets the codec for snapshot serialization.
 // Required when using WithSnapshotStore — the codec encodes State to bytes
 // and decodes bytes back to State.
-func WithCodec[State any](codec event.Codec) RepositoryOption[State] {
+func WithCodec[State any](codec codec.Codec) RepositoryOption[State] {
 	return func(r *Repository[State]) {
 		r.codec = codec
 	}
