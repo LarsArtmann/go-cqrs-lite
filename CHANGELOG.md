@@ -8,6 +8,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `schema/` module — Upcaster, UpcasterRegistry, VersionedSource for schema evolution (extracted from event/)
+- `snapshot/` module — Snapshot, SnapshotStore, SnapshotStrategy, helpers, error sentinels (extracted from event/)
+- `samber/ro` integration in `event/reactive.go` — EventBus (ro.PublishSubject-backed), FilterEventType, FilterEventTypes, HandlerToObserver
+- `listing/` module added to flake.nix testModules
+- `otel/`, `pebble/`, `turso/`, `codec/` modules added to flake.nix testModules
+
+### Changed
+
+- **Dissolved `core/` module** — All 8 sub-packages (event, command, query, decider, id, dispatcher, schema, snapshot) are now flat peer-level modules. Import paths changed from `go-cqrs-lite/core/{pkg}` to `go-cqrs-lite/{pkg}`.
+- `event.Snapshot*` types moved to `snapshot/` package — all consumers updated (decider, memory, storage, testhelpers)
+- `event.ErrSnapshotNotFound` / `event.ErrSnapshotStoreClosed` moved to `snapshot/store.go`
+- `memory/snapshot.go` uses `snappkg` alias to avoid local variable shadowing
+- Removed duplicate `EventHandler` type from `event/reactive.go` (identical to `Handler`)
+- AGENTS.md fully rewritten with new monorepo structure, dependency graph, key patterns
+- Removed self-referencing replace directives (`module => ./`) from 6 go.mod files
+
+### Removed
+
+- `command/reactive.go` — dead code with zero consumers (ro dependency removed from command)
+- `core/` directory — all sub-packages promoted to workspace root
+
+### Fixed
+
+- `flake.nix` now includes all library modules in testModules
+- `go.work.sum` stale references cleaned via `go work sync`
+
+### Added
+
 - `event.DecodePayloads[T]()` batch decode helper for processing multiple events at once
 - `middleware.WithLogger(*slog.Logger)` option for retry, recovery, and validation middleware
 - `storage/tables.go` — 5 table name constants replacing inline SQL strings
