@@ -57,13 +57,7 @@ func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema()
 
 // Load returns the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "checkpoint.load",
-		trace.SpanKindClient,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrProjectionName, projectionName),
-		),
-	)
+	ctx, span := s.startSpan(ctx, "checkpoint.load", projectionName)
 	defer span.End()
 
 	eventID, err := sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
@@ -82,13 +76,7 @@ func (s *SQLCheckpointStore) Save(
 	projectionName string,
 	eventID id.EventID,
 ) error {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "checkpoint.save",
-		trace.SpanKindClient,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrProjectionName, projectionName),
-		),
-	)
+	ctx, span := s.startSpan(ctx, "checkpoint.save", projectionName)
 	defer span.End()
 
 	err := sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
@@ -99,6 +87,16 @@ func (s *SQLCheckpointStore) Save(
 	}
 
 	return nil
+}
+
+func (s *SQLCheckpointStore) startSpan(ctx context.Context, name, projectionName string) (context.Context, trace.Span) {
+	return cqrsotel.StartSpan(
+		ctx, tracer(), name,
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrProjectionName, projectionName),
+		),
+	)
 }
 
 var _ event.CheckpointStore = (*SQLCheckpointStore)(nil)

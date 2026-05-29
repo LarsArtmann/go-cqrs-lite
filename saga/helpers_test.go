@@ -55,6 +55,10 @@ func newFailingDispatcher(counter *int) dispatchFunc {
 	})
 }
 
+func nilAction(_ context.Context, _ id.AggregateID) command.Command {
+	return nil
+}
+
 func newThresholdDispatcher(counter *int, threshold int, failMsg string) dispatchFunc {
 	return dispatchFunc(func(_ context.Context, _ command.Command) error {
 		*counter++

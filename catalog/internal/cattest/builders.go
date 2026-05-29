@@ -182,8 +182,7 @@ func AddQuerySimple(
 ) *catalog.Registry {
 	tb.Helper()
 
-	AddService(tb, r, serviceID, string(serviceID), version)
-	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
+	return addServiceWithMessage(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
 }
 
 // CreateItemSchema returns a reusable object schema with a required "name" string property.

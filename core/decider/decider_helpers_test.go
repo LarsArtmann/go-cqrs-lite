@@ -165,6 +165,25 @@ func newFailingRepo(
 	return repo, store
 }
 
+func makeSnapshot(
+	t *testing.T,
+	codec event.JSONCodec,
+	aggID id.AggregateID,
+	value int,
+	version event.Version,
+) event.Snapshot {
+	t.Helper()
+
+	snapState, _ := codec.Encode(counterState{Value: value})
+	return event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Counter",
+		Version:       version,
+		State:         snapState,
+		CreatedAt:     time.Now(),
+	}
+}
+
 func saveSnapshot(
 	t *testing.T,
 	snapshotStore *testhelpers.FakeSnapshotStore,
@@ -175,14 +194,7 @@ func saveSnapshot(
 ) {
 	t.Helper()
 
-	snapState, _ := codec.Encode(counterState{Value: value})
-	_ = snapshotStore.Save(t.Context(), event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       version,
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	_ = snapshotStore.Save(t.Context(), makeSnapshot(t, codec, aggID, value, version))
 }
 
 func setSnapshot(
@@ -195,14 +207,8 @@ func setSnapshot(
 ) {
 	t.Helper()
 
-	snapState, _ := codec.Encode(counterState{Value: value})
-	snapshotStore.SetSnapshot(&event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
-		Version:       version,
-		State:         snapState,
-		CreatedAt:     time.Now(),
-	})
+	snap := makeSnapshot(t, codec, aggID, value, version)
+	snapshotStore.SetSnapshot(&snap)
 }
 
 func newEnricherRepo(

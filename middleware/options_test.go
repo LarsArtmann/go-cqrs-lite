@@ -11,6 +11,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func defaultRetryConfig() RetryConfig {
+	return RetryConfig{
+		MaxAttempts:  2,
+		InitialDelay: 10 * time.Millisecond,
+		MaxDelay:     10 * time.Millisecond,
+		Multiplier:   2,
+		IsRetryable:  func(err error) bool { return true },
+	}
+}
+
 func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 	t.Parallel()
 
@@ -18,13 +28,7 @@ func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 
 	retryErr := event.NewTransient("test.transient", "retry me")
 
-	middleware := CommandRetry(RetryConfig{
-		MaxAttempts:  2,
-		InitialDelay: 10 * time.Millisecond,
-		MaxDelay:     10 * time.Millisecond,
-		Multiplier:   2,
-		IsRetryable:  func(err error) bool { return true },
-	}, WithLogger(logger))
+	middleware := CommandRetry(defaultRetryConfig(), WithLogger(logger))
 
 	callCount := 0
 
@@ -107,13 +111,7 @@ func TestWithLogger_ValidationLogsFailure(t *testing.T) {
 func TestWithLogger_NoLogger_NoPanic(t *testing.T) {
 	t.Parallel()
 
-	middleware := CommandRetry(RetryConfig{
-		MaxAttempts:  2,
-		InitialDelay: 10 * time.Millisecond,
-		MaxDelay:     10 * time.Millisecond,
-		Multiplier:   2,
-		IsRetryable:  func(err error) bool { return true },
-	})
+	middleware := CommandRetry(defaultRetryConfig())
 
 	callCount := 0
 

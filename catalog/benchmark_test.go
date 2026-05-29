@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
 	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func newBenchRegistry() *catalog.Registry {
@@ -15,22 +16,16 @@ func newBenchRegistry() *catalog.Registry {
 	return reg
 }
 
-func benchmarkRegistryWithCommand() *catalog.Catalog {
+func benchmarkRegistryWithCommand(tb testing.TB) *catalog.Catalog {
 	reg := newBenchRegistry()
-	reg.AddCommand("svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Schema:  &catalog.Schema{Type: catalog.TypeObject},
-	})
+	cattest.AddCommandWithSchema(tb, reg, "svc", "CreateOrder", "CreateOrder", "1.0.0", &catalog.Schema{Type: catalog.TypeObject})
 
 	return reg.Build()
 }
 
 func BenchmarkRegistry_Build(b *testing.B) {
 	for b.Loop() {
-		benchmarkRegistryWithCommand()
+		benchmarkRegistryWithCommand(b)
 	}
 }
 
@@ -46,7 +41,7 @@ func BenchmarkSchemaFromType(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_Export(b *testing.B) {
-	cat := benchmarkRegistryWithCommand()
+	cat := benchmarkRegistryWithCommand(b)
 
 	b.ResetTimer()
 
@@ -56,7 +51,7 @@ func BenchmarkAsyncAPI_Export(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
-	cat := benchmarkRegistryWithCommand()
+	cat := benchmarkRegistryWithCommand(b)
 	doc := asyncapi.NewExporter("Bench", "1.0.0").Export(cat)
 
 	b.ResetTimer()

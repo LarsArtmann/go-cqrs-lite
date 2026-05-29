@@ -53,7 +53,13 @@ func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
 }
 
 // assertSliceLen is a shared helper for AssertLen and AssertLenFatal.
-func assertSliceLen[T any](t *testing.T, name string, slice []T, want int, fail func(string, ...any)) {
+func assertSliceLen[T any](
+	t *testing.T,
+	name string,
+	slice []T,
+	want int,
+	fail func(string, ...any),
+) {
 	t.Helper()
 
 	if len(slice) != want {

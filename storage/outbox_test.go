@@ -99,9 +99,7 @@ func TestSQLOutbox_Append_InsertError(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := newTestEvent(t, "UserCreated", aggID, 1)
 
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg()).
-		WillReturnError(errTestDB)
+	ExpectOutboxInsertError(mock, evt, errTestDB)
 
 	err := outbox.Append(t.Context(), []event.Event{evt})
 	if err == nil {

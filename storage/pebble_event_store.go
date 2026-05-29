@@ -170,17 +170,17 @@ func (a *PebbleEventStore) LoadFromVersion(
 	return a.iterateEvents(lowerBound, upperBound, nil)
 }
 
-// LoadToVersion retrieves events up to and including maxVersion.
-func (a *PebbleEventStore) LoadToVersion(
-	_ context.Context,
+// loadFiltered iterates events and returns them filtered by predicate.
+// Returns ErrAggregateNotFound if no events match the filter.
+func (a *PebbleEventStore) loadFiltered(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
-	maxVersion event.Version,
+	upperBound []byte,
+	predicate eventPredicate,
 ) ([]event.Event, error) {
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
-	upperBound := a.eventKey(aggregateType, aggregateID, maxVersion+1)
 
-	events, err := a.iterateEvents(prefix, upperBound, nil)
+	events, err := a.iterateEvents(prefix, upperBound, predicate)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +190,18 @@ func (a *PebbleEventStore) LoadToVersion(
 	}
 
 	return events, nil
+}
+
+// LoadToVersion retrieves events up to and including maxVersion.
+func (a *PebbleEventStore) LoadToVersion(
+	_ context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	upperBound := a.eventKey(aggregateType, aggregateID, maxVersion+1)
+
+	return a.loadFiltered(aggregateType, aggregateID, upperBound, nil)
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -202,21 +214,12 @@ func (a *PebbleEventStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
-
-	events, err := a.iterateEvents(prefix, upperBound, func(evt event.Event) bool {
+	predicate := func(evt event.Event) bool {
 		return evt.OccurredAt().After(maxTime)
-	})
-	if err != nil {
-		return nil, err
 	}
 
-	if len(events) == 0 {
-		return nil, event.ErrAggregateNotFound
-	}
-
-	return events, nil
+	return a.loadFiltered(aggregateType, aggregateID, upperBound, predicate)
 }
 
 func (a *PebbleEventStore) aggregateLockKey(

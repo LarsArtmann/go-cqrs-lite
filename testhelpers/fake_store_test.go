@@ -107,7 +107,7 @@ func TestFakeStore_SaveFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.SaveFn(func(
+	store.SaveFn(event.SaveFunc(func(
 		_ context.Context,
 		_ event.AggregateType,
 		_ id.AggregateID,
@@ -117,7 +117,7 @@ func TestFakeStore_SaveFn(t *testing.T) {
 		called = true
 
 		return nil
-	})
+	}))
 
 	err := store.Save(context.Background(), "User", id.NewAggregateID(), nil, 0)
 	if err != nil {
@@ -248,13 +248,7 @@ func TestFakeStore_LoadFromVersionFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.LoadFromVersionFn(func(
-		_ event.AggregateType, _ id.AggregateID, _ event.Version,
-	) ([]event.Event, error) {
-		called = true
-
-		return nil, nil
-	})
+	store.LoadFromVersionFn(testhelpers.VersionQueryFn(&called))
 
 	_, _ = store.LoadFromVersion(context.Background(), "User", id.NewAggregateID(), 1)
 	if !called {
@@ -378,10 +372,11 @@ func TestFakeStore_AppendBatchFn(t *testing.T) {
 	t.Parallel()
 
 	called := false
-	store := testhelpers.NewFakeStore().AppendBatchFn(func(_ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
-		called = true
-		return nil
-	})
+	store := testhelpers.NewFakeStore().
+		AppendBatchFn(func(_ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+			called = true
+			return nil
+		})
 
 	err := store.AppendBatch(context.Background(), "User", id.NewAggregateID(), nil)
 	if err != nil {
@@ -397,10 +392,8 @@ func TestFakeStore_LoadToVersionFn(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	called := false
-	store := testhelpers.NewFakeStore().LoadToVersionFn(func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
-		called = true
-		return nil, nil
-	})
+	store := testhelpers.NewFakeStore().
+		LoadToVersionFn(testhelpers.VersionQueryFn(&called))
 
 	_, err := store.LoadToVersion(context.Background(), "User", aggID, 3)
 	if err != nil {
@@ -416,10 +409,11 @@ func TestFakeStore_LoadToTimestampFn(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	called := false
-	store := testhelpers.NewFakeStore().LoadToTimestampFn(func(_ event.AggregateType, _ id.AggregateID, _ time.Time) ([]event.Event, error) {
-		called = true
-		return nil, nil
-	})
+	store := testhelpers.NewFakeStore().
+		LoadToTimestampFn(func(_ event.AggregateType, _ id.AggregateID, _ time.Time) ([]event.Event, error) {
+			called = true
+			return nil, nil
+		})
 
 	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, time.Now())
 	if err != nil {

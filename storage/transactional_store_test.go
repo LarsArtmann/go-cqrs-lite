@@ -50,21 +50,7 @@ func saveWithOutboxEvt(t *testing.T, ts *SQLTransactionalStore, evt *event.Immut
 	)
 }
 
-func expectOutboxInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(
-			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
-		).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-}
 
-func expectOutboxInsertError(mock sqlmock.Sqlmock, evt *event.ImmutableEvent, err error) {
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(
-			evt.ID(), string(OutboxStatusPending), sqlmock.AnyArg(), sqlmock.AnyArg(),
-		).
-		WillReturnError(err)
-}
 
 func TestNewSQLTransactionalStore_NilStore(t *testing.T) {
 	t.Parallel()
@@ -216,7 +202,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_OutboxInsertFailure(t *testing.T) 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
-	expectOutboxInsertError(mock, evt, errors.New("outbox insert failed"))
+	ExpectOutboxInsertError(mock, evt, errors.New("outbox insert failed"))
 	mock.ExpectRollback()
 
 	err := saveWithOutboxEvt(t, ts, evt)

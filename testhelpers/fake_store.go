@@ -13,15 +13,9 @@ import (
 // FakeStore implements event.Store for testing.
 // All methods are safe for concurrent use.
 type FakeStore struct {
-	mu     sync.RWMutex
-	events map[string][]event.Event
-	saveFn func(
-		ctx context.Context,
-		aggregateType event.AggregateType,
-		aggregateID id.AggregateID,
-		events []event.Event,
-		expectedVersion event.Version,
-	) error
+	mu                sync.RWMutex
+	events            map[string][]event.Event
+	saveFn            event.SaveFunc
 	loadFn            func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
 	loadFromVersionFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
 	loadToVersionFn   func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error)
@@ -35,6 +29,18 @@ type FakeStore struct {
 // NewFakeStore creates a FakeStore with empty state.
 func NewFakeStore() *FakeStore {
 	return &FakeStore{events: make(map[string][]event.Event)}
+}
+
+// VersionQueryFn returns an override function for LoadFromVersionFn/LoadToVersionFn
+// that sets *called to true and returns nil results.
+func VersionQueryFn(
+	called *bool,
+) func(event.AggregateType, id.AggregateID, event.Version) ([]event.Event, error) {
+	return func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+		*called = true
+
+		return nil, nil
+	}
 }
 
 func getOverride[T any](s *FakeStore, fn *T) T {
@@ -194,7 +200,12 @@ func (s *FakeStore) ReadFrom(
 
 	all, err := s.ReadAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("read all for ReadFrom (limit=%d, after=%s): %w", limit, afterEventID, err)
+		return nil, fmt.Errorf(
+			"read all for ReadFrom (limit=%d, after=%s): %w",
+			limit,
+			afterEventID,
+			err,
+		)
 	}
 
 	startIdx := 0

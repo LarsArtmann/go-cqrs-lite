@@ -32,6 +32,48 @@ func TestPublisherAdapter_PublishFails(t *testing.T) {
 	}
 }
 
+func missingAggregateTypeMetadata() map[string]string {
+	return map[string]string{
+		"aggregate_id": id.NewAggregateID().String(),
+		"version":      "1",
+	}
+}
+
+func missingVersionMetadata() map[string]string {
+	return map[string]string{
+		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_type": "User",
+	}
+}
+
+func invalidMetadataTestCases() []struct {
+	name     string
+	metadata map[string]string
+} {
+	base := map[string]string{
+		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_type": "User",
+		"version":        "1",
+	}
+	return []struct {
+		name     string
+		metadata map[string]string
+	}{
+		{name: "invalid_schema_version", metadata: mergeMetadata(base, "schema_version", "not-a-number")},
+		{name: "invalid_event_id", metadata: mergeMetadata(base, "event_id", "not-a-valid-event-id")},
+		{name: "invalid_occurred_at", metadata: mergeMetadata(base, "occurred_at", "not-a-timestamp")},
+	}
+}
+
+func mergeMetadata(base map[string]string, key, value string) map[string]string {
+	out := make(map[string]string, len(base)+1)
+	for k, v := range base {
+		out[k] = v
+	}
+	out[key] = value
+	return out
+}
+
 func TestMessageToEvent_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
@@ -39,47 +81,11 @@ func TestMessageToEvent_ValidationErrors(t *testing.T) {
 		name     string
 		metadata map[string]string
 	}{
-		{
-			name: "missing_aggregate_type",
-			metadata: map[string]string{
-				"aggregate_id": id.NewAggregateID().String(),
-				"version":      "1",
-			},
-		},
-		{
-			name: "missing_version",
-			metadata: map[string]string{
-				"aggregate_id":   id.NewAggregateID().String(),
-				"aggregate_type": "User",
-			},
-		},
-		{
-			name: "invalid_schema_version",
-			metadata: map[string]string{
-				"aggregate_id":   id.NewAggregateID().String(),
-				"aggregate_type": "User",
-				"version":        "1",
-				"schema_version": "not-a-number",
-			},
-		},
-		{
-			name: "invalid_event_id",
-			metadata: map[string]string{
-				"aggregate_id":   id.NewAggregateID().String(),
-				"aggregate_type": "User",
-				"version":        "1",
-				"event_id":       "not-a-valid-event-id",
-			},
-		},
-		{
-			name: "invalid_occurred_at",
-			metadata: map[string]string{
-				"aggregate_id":   id.NewAggregateID().String(),
-				"aggregate_type": "User",
-				"version":        "1",
-				"occurred_at":    "not-a-timestamp",
-			},
-		},
+		{name: "missing_aggregate_type", metadata: missingAggregateTypeMetadata()},
+		{name: "missing_version", metadata: missingVersionMetadata()},
+	}
+	for _, invalid := range invalidMetadataTestCases() {
+		tests = append(tests, invalid)
 	}
 
 	for _, tt := range tests {

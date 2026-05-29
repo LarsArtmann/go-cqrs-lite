@@ -151,7 +151,12 @@ func QuickEventOpts(
 
 // AppendBatcher is the minimal interface needed for MakeLoadToTimestampFixtures.
 type AppendBatcher interface {
-	AppendBatch(ctx context.Context, aggType event.AggregateType, aggID id.AggregateID, events []event.Event) error
+	AppendBatch(
+		ctx context.Context,
+		aggType event.AggregateType,
+		aggID id.AggregateID,
+		events []event.Event,
+	) error
 }
 
 // MakeLoadToTimestampFixtures creates a standard 3-event timeline (Created, Updated, Deleted)
@@ -178,6 +183,32 @@ func MakeLoadToTimestampFixtures(
 	}
 
 	return now, aggID
+}
+
+// MakeThreeTimelineEvents creates three events across two aggregates:
+//   - evt1: aggType1/aggID1 Created at -2h
+//   - evt2: aggType2/aggID2 Created at -1h
+//   - evt3: aggType1/aggID1 Updated at 0
+func MakeThreeTimelineEvents(
+	tb testing.TB,
+	aggType1 event.AggregateType,
+	aggID1 id.AggregateID,
+	aggType2 event.AggregateType,
+	aggID2 id.AggregateID,
+) ([]event.Event, []event.Event, []event.Event) {
+	tb.Helper()
+
+	evt1 := MakeTimelineEvents(tb, aggType1, aggID1, []TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
+	})
+	evt2 := MakeTimelineEvents(tb, aggType2, aggID2, []TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -1 * time.Hour},
+	})
+	evt3 := MakeTimelineEvents(tb, aggType1, aggID1, []TimelineEvent{
+		{Type: "Updated", Version: 1, Offset: 0},
+	})
+
+	return evt1, evt2, evt3
 }
 
 // QuickSnapshot creates a snapshot with the given parameters.

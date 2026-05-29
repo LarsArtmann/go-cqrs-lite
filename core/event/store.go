@@ -8,6 +8,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// SaveFunc is the function signature for EventSink.Save implementations.
+type SaveFunc func(
+	ctx context.Context,
+	aggregateType AggregateType,
+	aggregateID id.AggregateID,
+	events []Event,
+	expectedVersion Version,
+) error
+
 // EventSink is the write side of event persistence.
 // Appends events, never reads, never deletes.
 type EventSink interface {

@@ -1,7 +1,6 @@
 package testhelpers
 
 import (
-	"context"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -10,15 +9,7 @@ import (
 
 // SaveFn sets an optional override for Save calls.
 // Return an error to simulate store failures.
-func (s *FakeStore) SaveFn(
-	fn func(
-		ctx context.Context,
-		aggregateType event.AggregateType,
-		aggregateID id.AggregateID,
-		events []event.Event,
-		expectedVersion event.Version,
-	) error,
-) *FakeStore {
+func (s *FakeStore) SaveFn(fn event.SaveFunc) *FakeStore {
 	s.saveFn = fn
 
 	return s
