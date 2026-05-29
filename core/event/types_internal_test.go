@@ -8,7 +8,7 @@ func TestParseSchemaVersion(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		t.Parallel()
 
-		sv, err := parseSchemaVersion(2)
+		sv, err := ParseSchemaVersion(2)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -21,7 +21,7 @@ func TestParseSchemaVersion(t *testing.T) {
 	t.Run("zero errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := parseSchemaVersion(0)
+		_, err := ParseSchemaVersion(0)
 		if err == nil {
 			t.Error("expected error for zero")
 		}
@@ -30,7 +30,7 @@ func TestParseSchemaVersion(t *testing.T) {
 	t.Run("negative errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := parseSchemaVersion(-1)
+		_, err := ParseSchemaVersion(-1)
 		if err == nil {
 			t.Error("expected error for negative")
 		}

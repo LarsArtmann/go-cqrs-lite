@@ -158,7 +158,7 @@ type SchemaVersion int
 
 // ParseSchemaVersion validates and creates a SchemaVersion from an int.
 // Returns an error if the schema version is negative or zero.
-func parseSchemaVersion(v int) (SchemaVersion, error) {
+func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	if v < 1 {
 		//nolint:err113 // dynamic error required to include the invalid version number
 		return 0, fmt.Errorf("schema version must be positive: %d", v)

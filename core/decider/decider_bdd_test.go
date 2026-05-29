@@ -254,27 +254,30 @@ var _ = Describe("Decider Repository", func() {
 
 	Describe("As a developer validating my setup", func() {
 		Context("when I create a repository without a store", func() {
-			It("should return ErrNilStore", func() {
+			It("should reject my setup and explain that an event store is required", func() {
 				_, err := decider.NewRepository(nil, bus, bddCounterDecider())
-				Expect(err).To(MatchError(decider.ErrNilStore))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("event store is required"))
 			})
 		})
 
 		Context("when I create a repository without a bus", func() {
-			It("should return ErrNilBus", func() {
+			It("should reject my setup and explain that an event bus is required", func() {
 				_, err := decider.NewRepository(store, nil, bddCounterDecider())
-				Expect(err).To(MatchError(decider.ErrNilBus))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("event bus is required"))
 			})
 		})
 
 		Context("when I create a repository without a fold function", func() {
-			It("should return ErrNilFold", func() {
+			It("should reject my setup and explain that a fold function is required", func() {
 				_, err := decider.NewRepository(
 					store,
 					bus,
 					decider.Decider[bddCounter]{},
 				)
-				Expect(err).To(MatchError(decider.ErrNilFold))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fold function is required"))
 			})
 		})
 	})
