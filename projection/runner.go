@@ -5,6 +5,10 @@ import (
 	"io"
 	"log/slog"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -107,8 +111,15 @@ func (r *Runner) replay(ctx context.Context) error {
 	seekable, hasSeekable := r.journal.(event.SeekableJournal)
 
 	for _, p := range r.projections {
+		ctx, span := cqrsotel.StartSpan(ctx, tracer(), "projection.replay",
+			trace.SpanKindClient,
+			trace.WithAttributes(projectionAttrs(p.Name())...),
+		)
+
 		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
 		if cpErr != nil {
+			span.End()
+
 			return event.WrapInfrastructure(cpErr, "projection.load_checkpoint",
 				"load checkpoint for "+p.Name())
 		}
@@ -118,6 +129,9 @@ func (r *Runner) replay(ctx context.Context) error {
 		if hasSeekable && !checkpoint.IsZero() {
 			loaded, lErr := seekable.ReadFrom(ctx, checkpoint, 0)
 			if lErr != nil {
+				cqrsotel.RecordError(span, lErr)
+				span.End()
+
 				return event.WrapInfrastructure(lErr, "projection.load_events",
 					"load events from position for "+p.Name())
 			}
@@ -126,6 +140,9 @@ func (r *Runner) replay(ctx context.Context) error {
 		} else {
 			allEvents, lErr := r.journal.ReadAll(ctx)
 			if lErr != nil {
+				cqrsotel.RecordError(span, lErr)
+				span.End()
+
 				return event.WrapInfrastructure(lErr, "projection.load_events",
 					"load all events")
 			}
@@ -133,15 +150,22 @@ func (r *Runner) replay(ctx context.Context) error {
 			events = filterEvents(allEvents, p.EventTypes(), checkpoint)
 		}
 
+		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+
 		for _, evt := range events {
 			replayCtx := event.WithReplay(ctx, true)
 
 			hErr := r.handleAndCheckpoint(replayCtx, p, evt)
 			if hErr != nil {
+				cqrsotel.RecordError(span, hErr)
+				span.End()
+
 				return event.WrapCorruption(hErr, "projection.replay_event",
 					"replay "+p.Name()+" event "+evt.ID().String())
 			}
 		}
+
+		span.End()
 	}
 
 	return nil
@@ -169,8 +193,19 @@ func (r *Runner) handleAndCheckpoint(
 	p event.Projection,
 	evt event.Event,
 ) error {
+	ctx, span := cqrsotel.StartSpan(ctx, tracer(), "projection.handle",
+		trace.SpanKindConsumer,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrEventType, string(evt.Type())),
+			attribute.String(cqrsotel.AttrProjectionName, p.Name()),
+		),
+	)
+	defer span.End()
+
 	err := p.Handle(ctx, evt)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.Wrap(err, event.Classify(err), "projection.handle_event",
 			"projection "+p.Name()+" handle event "+string(evt.Type()))
 	}

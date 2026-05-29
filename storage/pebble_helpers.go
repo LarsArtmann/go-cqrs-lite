@@ -11,59 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Delete removes all events for an aggregate from the Pebble store.
-// Not part of the event.Store interface — kept as a utility for testing.
-func (a *PebbleEventStore) Delete(
-	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) error {
-	prefix := a.aggregatePrefix(aggregateType, aggregateID)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
-
-	iter, err := a.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
-	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.create_iterator",
-			"failed to create iterator")
-	}
-
-	defer func() { _ = iter.Close() }()
-
-	batch := a.db.NewBatch()
-
-	defer func() { _ = batch.Close() }()
-
-	count := 0
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		err := batch.Delete(iter.Key(), nil)
-		if err != nil {
-			return event.WrapInfrastructure(err, "pebble.delete_event",
-				"failed to delete event")
-		}
-
-		count++
-	}
-
-	commitErr := batch.Commit(pebble.Sync)
-	if commitErr != nil {
-		return event.WrapInfrastructure(commitErr, "pebble.commit_deletions",
-			"failed to commit deletions")
-	}
-
-	a.logger.Debug(
-		"events deleted",
-		slog.String("aggregate_type", string(aggregateType)),
-		slog.String("aggregate_id", aggregateID.String()),
-		slog.Int("count", count),
-	)
-
-	return nil
-}
-
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
 func (a *PebbleEventStore) AppendBatch(
