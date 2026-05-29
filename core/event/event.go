@@ -23,6 +23,7 @@ package event
 
 import (
 	"maps"
+	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -141,8 +142,7 @@ func (e *ImmutableEvent) Payload() []byte {
 		return nil
 	}
 
-	cp := make([]byte, len(e.payload))
-	copy(cp, e.payload)
+	cp := slices.Clone(e.payload)
 
 	return cp
 }

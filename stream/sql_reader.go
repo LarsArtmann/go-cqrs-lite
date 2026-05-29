@@ -17,6 +17,8 @@ type SQLAggregateReader struct {
 	tableName string
 }
 
+var _ AggregateReader = (*SQLAggregateReader)(nil)
+
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
 func NewSQLAggregateReader(db *sql.DB, tablePrefix string) (*SQLAggregateReader, error) {
 	if err := validateTablePrefix(tablePrefix); err != nil {

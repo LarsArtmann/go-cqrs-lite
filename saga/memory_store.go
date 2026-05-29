@@ -14,6 +14,8 @@ type MemoryStore struct {
 	states map[string]*State
 }
 
+var _ Store = (*MemoryStore)(nil)
+
 // NewMemoryStore creates a new in-memory saga store.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{

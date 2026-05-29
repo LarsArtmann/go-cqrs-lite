@@ -17,6 +17,8 @@ type InMemoryAggregateReader struct {
 	journal event.Journal
 }
 
+var _ AggregateReader = (*InMemoryAggregateReader)(nil)
+
 // NewInMemoryAggregateReader creates a reader that enumerates via Journal.ReadAll.
 func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader {
 	return &InMemoryAggregateReader{journal: journal}

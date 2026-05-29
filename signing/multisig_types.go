@@ -1,6 +1,7 @@
 package signing
 
 import (
+	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -81,21 +82,13 @@ func (m MultiSignature) Count() int { return len(m.Entries) }
 
 // HasActor reports whether the given actor has signed.
 func (m MultiSignature) HasActor(actor Actor) bool {
-	for _, entry := range m.Entries {
-		if entry.Actor == actor {
-			return true
-		}
-	}
-
-	return false
+	return slices.ContainsFunc(m.Entries, func(e SignatureEntry) bool { return e.Actor == actor })
 }
 
 // Get returns the signature entry for a given actor, or nil.
 func (m MultiSignature) Get(actor Actor) *SignatureEntry {
-	for idx := range m.Entries {
-		if m.Entries[idx].Actor == actor {
-			return &m.Entries[idx]
-		}
+	if idx := slices.IndexFunc(m.Entries, func(e SignatureEntry) bool { return e.Actor == actor }); idx >= 0 {
+		return &m.Entries[idx]
 	}
 
 	return nil
