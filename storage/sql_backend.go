@@ -3,7 +3,7 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 

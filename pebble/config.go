@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	cqrsEvent "github.com/larsartmann/go-cqrs-lite/core/event"
+	cqrsEvent "github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // PebbleBackend identifies an event store backend.

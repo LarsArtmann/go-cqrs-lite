@@ -3,8 +3,8 @@ package event_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/decider"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/decider"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
 	"github.com/larsartmann/go-cqrs-lite/projection"
 	"github.com/larsartmann/go-cqrs-lite/storage"

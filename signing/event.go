@@ -3,7 +3,7 @@ package signing
 import (
 	"encoding/base64"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // MetadataKey is the custom metadata key used to store event signatures.

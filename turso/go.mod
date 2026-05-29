@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/turso
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/event v1.6.0
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
 	turso.tech/database/tursogo v0.6.1
 )
@@ -29,7 +29,7 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../codec
-	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/event => ../event
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers

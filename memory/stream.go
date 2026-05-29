@@ -3,7 +3,7 @@ package memory
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 var _ event.StreamLoader = (*MemoryStore)(nil)

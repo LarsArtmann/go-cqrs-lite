@@ -3,7 +3,7 @@ package testhelpers
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // SaveFn sets an optional override for Save calls.

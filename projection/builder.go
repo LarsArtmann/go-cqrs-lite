@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // Builder constructs a Projection with type-safe event handlers.

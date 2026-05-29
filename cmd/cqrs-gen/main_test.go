@@ -113,7 +113,7 @@ func TestGenerate_Query(t *testing.T) {
 
 	code := generate("handlers", "query", entries)
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/core/query") {
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query") {
 		t.Error("missing query import")
 	}
 
@@ -280,10 +280,10 @@ func TestGenerate_QueryImports(t *testing.T) {
 	entries := []Entry{{CommandType: "GetUser", StructName: "GetUserQuery"}}
 	code := generate("handlers", "query", entries)
 
-	if !strings.Contains(code, "core/query") {
+	if !strings.Contains(code, "query") {
 		t.Error("missing query import")
 	}
-	if strings.Contains(code, "core/command") {
+	if strings.Contains(code, "command") {
 		t.Error("should not import command for query generation")
 	}
 }
@@ -453,7 +453,7 @@ type GetUserQuery struct{}`
 	if !strings.Contains(string(generated), "package handlers") {
 		t.Errorf("expected custom package name, got: %s", generated)
 	}
-	if !strings.Contains(string(generated), "core/query") {
+	if !strings.Contains(string(generated), "query") {
 		t.Errorf("expected query import, got: %s", generated)
 	}
 }

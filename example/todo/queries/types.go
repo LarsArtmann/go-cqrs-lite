@@ -3,7 +3,7 @@ package queries
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 const (

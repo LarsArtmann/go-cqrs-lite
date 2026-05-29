@@ -48,7 +48,12 @@
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
           testModules = [
-            "core"
+            "event"
+            "command"
+            "query"
+            "decider"
+            "id"
+            "dispatcher"
             "memory"
             "catalog"
             "middleware"

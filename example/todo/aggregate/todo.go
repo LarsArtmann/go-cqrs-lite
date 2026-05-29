@@ -5,8 +5,8 @@ import (
 	"time"
 
 	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
-	cqrsCommand "github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 

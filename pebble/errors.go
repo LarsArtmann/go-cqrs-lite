@@ -1,6 +1,6 @@
 package pebble
 
-import "github.com/larsartmann/go-cqrs-lite/core/event"
+import "github.com/larsartmann/go-cqrs-lite/event"
 
 var (
 	// ErrPebbleProviderRequired is returned when no PebbleProvider is configured.

@@ -3,7 +3,7 @@ package sql
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // ParseSQLiteTimestamp parses a SQLite timestamp string using multiple layouts.

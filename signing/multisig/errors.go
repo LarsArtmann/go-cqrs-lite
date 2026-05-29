@@ -1,7 +1,7 @@
 package multisig
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // ErrNoVerifier is returned when VerifyAll cannot find a verifier for an actor.

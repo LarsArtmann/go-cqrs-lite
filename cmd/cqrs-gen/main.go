@@ -197,7 +197,7 @@ func generate(pkg, genType string, entries []Entry) string {
 		b.WriteString(`import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/command"
 )
 
 `)
@@ -221,7 +221,7 @@ func generate(pkg, genType string, entries []Entry) string {
 		b.WriteString(`import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 `)

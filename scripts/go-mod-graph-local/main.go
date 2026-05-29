@@ -169,7 +169,7 @@ func buildGraph(root string) (*GraphData, error) {
 	for mod := range modules {
 		group := "external"
 		switch {
-		case mod == "github.com/larsartmann/go-cqrs-lite/core":
+		case mod == "github.com/larsartmann/go-cqrs-lite/event":
 			group = "core"
 		case mod == "github.com/larsartmann/go-cqrs-lite/codec" ||
 			mod == "github.com/larsartmann/go-cqrs-lite/otel":

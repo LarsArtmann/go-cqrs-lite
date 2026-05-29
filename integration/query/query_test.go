@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	catdispatcher "github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
+	catdispatcher "github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 

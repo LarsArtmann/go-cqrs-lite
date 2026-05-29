@@ -6,8 +6,8 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher"
 )
 
 // MemoryBus is an in-memory implementation of event.Bus for testing and single-process deployments.

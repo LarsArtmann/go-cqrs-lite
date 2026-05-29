@@ -3,13 +3,15 @@ module github.com/larsartmann/go-cqrs-lite/example/projection
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/codec v0.0.0
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/event v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/projection v1.6.0
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -24,8 +26,9 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/id => ../../id
 	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
-	github.com/larsartmann/go-cqrs-lite/core => ../../core
+	github.com/larsartmann/go-cqrs-lite/event => ../../event
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
 	github.com/larsartmann/go-cqrs-lite/projection => ../../projection

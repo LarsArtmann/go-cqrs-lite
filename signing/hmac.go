@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // MinimumKeyLength is the minimum acceptable key length in bytes for HMAC-SHA256.

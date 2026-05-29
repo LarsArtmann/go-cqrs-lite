@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/command"
 )
 
 // NoopCommandHandler returns a handler that always returns nil.

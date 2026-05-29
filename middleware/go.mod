@@ -3,7 +3,10 @@ module github.com/larsartmann/go-cqrs-lite/middleware
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event v1.6.0
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
@@ -17,6 +20,9 @@ require (
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command v0.0.0-00010101000000-000000000000
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -42,7 +48,10 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/query => ../query
+	github.com/larsartmann/go-cqrs-lite/command => ../command
+	github.com/larsartmann/go-cqrs-lite/event => ../event
 	github.com/larsartmann/go-cqrs-lite/middleware => ./
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers

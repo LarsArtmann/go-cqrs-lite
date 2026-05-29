@@ -3,7 +3,7 @@ package listing
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // StatusMiddleware returns PublishMiddleware that marks tombstone/rebirth metadata

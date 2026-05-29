@@ -7,7 +7,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )

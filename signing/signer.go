@@ -1,7 +1,7 @@
 package signing
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // Signer computes cryptographic signatures for events.

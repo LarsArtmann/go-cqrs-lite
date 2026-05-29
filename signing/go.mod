@@ -3,13 +3,15 @@ module github.com/larsartmann/go-cqrs-lite/signing
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
@@ -31,7 +33,8 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/event => ../event
 	github.com/larsartmann/go-cqrs-lite/signing => ./
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

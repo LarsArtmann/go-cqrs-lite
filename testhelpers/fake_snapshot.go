@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // FakeSnapshotStore implements event.SnapshotStore for testing.

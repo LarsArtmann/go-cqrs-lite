@@ -3,13 +3,15 @@ module github.com/larsartmann/go-cqrs-lite/pebble
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/codec v1.6.0
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/event v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -42,8 +44,9 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/codec => ../codec
-	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/event => ../event
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

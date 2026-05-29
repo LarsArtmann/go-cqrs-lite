@@ -4,13 +4,17 @@ use (
 	./catalog
 	./cmd/cqrs-gen
 	./codec
-	./core
+	./command
+	./decider
+	./dispatcher
+	./event
 	./example/listing
 	./example/projection
 	./example/saga-pattern
 	./example/storage
 	./example/todo
 	./example/user
+	./id
 	./integration
 	./listing
 	./memory
@@ -18,6 +22,7 @@ use (
 	./otel
 	./pebble
 	./projection
+	./query
 	./signing
 	./storage
 	./testhelpers

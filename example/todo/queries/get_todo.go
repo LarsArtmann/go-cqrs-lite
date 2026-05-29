@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 

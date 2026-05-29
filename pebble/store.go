@@ -9,7 +9,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // PebbleEventStore implements go-cqrs-lite/event.Store using Pebble.

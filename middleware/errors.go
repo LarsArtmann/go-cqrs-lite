@@ -1,6 +1,6 @@
 package middleware
 
-import "github.com/larsartmann/go-cqrs-lite/core/event"
+import "github.com/larsartmann/go-cqrs-lite/event"
 
 // ErrValidationFailed is returned when a message fails validation.
 var ErrValidationFailed = event.NewRejection(

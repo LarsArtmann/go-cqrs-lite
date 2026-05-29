@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
 type CreateUserCmd struct {
