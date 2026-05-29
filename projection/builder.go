@@ -26,7 +26,12 @@ func NewBuilder(name string) *Builder {
 // On registers a type-safe handler for the given event type.
 // The payload is decoded using the provided codec, which must match the event's encoding.
 // Returns ErrNilHandler if handler is nil.
-func On[T any](b *Builder, eventType event.Type, c codec.Codec, handler func(context.Context, T) error) error {
+func On[T any](
+	b *Builder,
+	eventType event.Type,
+	c codec.Codec,
+	handler func(context.Context, T) error,
+) error {
 	if handler == nil {
 		return ErrNilHandler
 	}

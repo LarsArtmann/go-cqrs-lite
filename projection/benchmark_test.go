@@ -67,7 +67,11 @@ func BenchmarkRunner_CurrentCheckpoint(b *testing.B) {
 
 	evtID := id.NewEventID()
 
-	err := checkpoint.Save(ctx, "bench-proj", event.Checkpoint{EventID: evtID, ProcessedAt: time.Now()})
+	err := checkpoint.Save(
+		ctx,
+		"bench-proj",
+		event.Checkpoint{EventID: evtID, ProcessedAt: time.Now()},
+	)
 	if err != nil {
 		b.Fatalf("Save checkpoint: %v", err)
 	}

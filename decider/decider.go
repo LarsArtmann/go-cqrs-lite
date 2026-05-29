@@ -8,9 +8,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 // Decider defines how to reconstruct state from events.

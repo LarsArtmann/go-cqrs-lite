@@ -14,9 +14,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
+	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 

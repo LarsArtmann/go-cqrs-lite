@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/query"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 const (

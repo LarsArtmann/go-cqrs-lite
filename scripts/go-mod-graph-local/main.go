@@ -92,7 +92,8 @@ func buildGraph(root string) (*GraphData, error) {
 		}
 		if info.IsDir() {
 			name := info.Name()
-			if name == "vendor" || name == ".git" || name == "node_modules" || name == ".direnv" || name == "example" {
+			if name == "vendor" || name == ".git" || name == "node_modules" || name == ".direnv" ||
+				name == "example" {
 				return filepath.SkipDir
 			}
 			return nil

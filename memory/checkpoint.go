@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // MemoryCheckpointStore is an in-memory CheckpointStore for testing.
@@ -26,7 +26,10 @@ func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 }
 
 // Load returns the last processed event ID for a projection.
-func (s *MemoryCheckpointStore) Load(_ context.Context, projectionName string) (event.Checkpoint, error) {
+func (s *MemoryCheckpointStore) Load(
+	_ context.Context,
+	projectionName string,
+) (event.Checkpoint, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

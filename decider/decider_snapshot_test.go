@@ -7,8 +7,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestExecute_WithSnapshot(t *testing.T) {

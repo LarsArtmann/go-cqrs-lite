@@ -119,7 +119,11 @@ func TestSQLiteCheckpointStore_Roundtrip(t *testing.T) {
 
 	newEventID := id.NewEventID()
 
-	err = store.Save(context.Background(), "issue_projection", event.Checkpoint{EventID: newEventID})
+	err = store.Save(
+		context.Background(),
+		"issue_projection",
+		event.Checkpoint{EventID: newEventID},
+	)
 	if err != nil {
 		t.Fatalf("Save update: %v", err)
 	}

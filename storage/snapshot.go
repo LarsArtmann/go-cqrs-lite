@@ -10,8 +10,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
@@ -70,7 +70,10 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 	return nil
 }
 
-func (s *SQLSnapshotStore) Load(ctx context.Context, ref event.AggregateRef) (*snapshot.Snapshot, error) {
+func (s *SQLSnapshotStore) Load(
+	ctx context.Context,
+	ref event.AggregateRef,
+) (*snapshot.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load", trace.SpanKindClient,
 		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...))
 	defer span.End()
@@ -88,9 +91,14 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load_at_version", trace.SpanKindClient,
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		"snapshot.load_at_version",
+		trace.SpanKindClient,
 		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...))
+			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...),
+	)
 	defer span.End()
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
@@ -99,37 +107,53 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 	}
 	if snap.Version.Cmp(version) > 0 {
-		err := event.WrapRejection(snapshot.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
-			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
+		err := event.WrapRejection(
+			snapshot.ErrSnapshotNotFound,
+			"storage.snapshot_version_exceeded",
+			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID),
+		)
 		cqrsotel.RecordError(span, err)
 		return nil, err
 	}
 	return snap, nil
 }
 
-func (s *SQLSnapshotStore) querySnapshot(ctx context.Context, ref event.AggregateRef) (*snapshot.Snapshot, error) {
+func (s *SQLSnapshotStore) querySnapshot(
+	ctx context.Context,
+	ref event.AggregateRef,
+) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
 		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
 	return s.scanSnapshot(s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID), ref)
 }
 
-func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*snapshot.Snapshot, error) {
+func (s *SQLSnapshotStore) scanSnapshot(
+	row *sql.Row,
+	ref event.AggregateRef,
+) (*snapshot.Snapshot, error) {
 	var version int
 	var stateBytes []byte
 	timeDest := s.Dialect.ScanTimeDest()
 	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, event.WrapRejection(snapshot.ErrSnapshotNotFound, "storage.snapshot_not_found",
-				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)))
+			return nil, event.WrapRejection(
+				snapshot.ErrSnapshotNotFound,
+				"storage.snapshot_not_found",
+				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)),
+			)
 		}
 		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",
 			fmt.Sprintf("scan snapshot for %s/%s", ref.Type, ref.ID))
 	}
 	createdAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_snapshot_created_at", "parse snapshot created_at")
+		return nil, event.WrapCorruption(
+			err,
+			"storage.parse_snapshot_created_at",
+			"parse snapshot created_at",
+		)
 	}
 	return &snapshot.Snapshot{
 		AggregateID: ref.ID, AggregateType: ref.Type,

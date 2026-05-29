@@ -16,7 +16,11 @@ func parseSQLiteTimestamp(s string) (time.Time, error) {
 func OpenSQLite(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.open_sqlite", "open sqlite database at "+dbPath)
+		return nil, event.WrapInfrastructure(
+			err,
+			"storage.open_sqlite",
+			"open sqlite database at "+dbPath,
+		)
 	}
 	return db, nil
 }

@@ -3,15 +3,20 @@ module github.com/larsartmann/go-cqrs-lite/example/storage
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event v1.6.0
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
 	modernc.org/sqlite v1.51.0
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
-	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
+	github.com/samber/lo v1.52.0 // indirect
+	github.com/samber/ro v0.3.0 // indirect
+	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7 // indirect
+	golang.org/x/text v0.37.0 // indirect
+)
+
+require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -36,8 +41,8 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/id => ../../id
 	github.com/larsartmann/go-cqrs-lite/event => ../../event
+	github.com/larsartmann/go-cqrs-lite/id => ../../id
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
 )

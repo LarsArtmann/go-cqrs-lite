@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 type bddCommand struct {

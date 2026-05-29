@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 type ListTodosQuery struct {

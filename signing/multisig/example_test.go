@@ -72,7 +72,10 @@ func ExampleVerifyAll() {
 	step1, _ := deviceMulti.Sign(evt)
 	step2, _ := serverMulti.Sign(step1)
 
-	if err := multisig.VerifyAll(step2, multisig.VerifierMap(deviceMulti, serverMulti)); err != nil {
+	if err := multisig.VerifyAll(
+		step2,
+		multisig.VerifierMap(deviceMulti, serverMulti),
+	); err != nil {
 		fmt.Println("verification failed:", err)
 	} else {
 		fmt.Println("all signatures valid")

@@ -40,18 +40,29 @@ func newSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpo
 func CheckpointSchema() string       { return sqlpkg.PostgresDialect{}.CheckpointSchema() }
 func SQLiteCheckpointSchema() string { return sqlpkg.SQLiteDialect{}.CheckpointSchema() }
 
-func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (event.Checkpoint, error) {
+func (s *SQLCheckpointStore) Load(
+	ctx context.Context,
+	projectionName string,
+) (event.Checkpoint, error) {
 	ctx, span := s.startSpan(ctx, "checkpoint.load", projectionName)
 	defer span.End()
 	cp, err := sqlpkg.SharedCheckpointLoad(ctx, s.DB, projectionName, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.Checkpoint{}, fmt.Errorf("load checkpoint for projection %s: %w", projectionName, err)
+		return event.Checkpoint{}, fmt.Errorf(
+			"load checkpoint for projection %s: %w",
+			projectionName,
+			err,
+		)
 	}
 	return cp, nil
 }
 
-func (s *SQLCheckpointStore) Save(ctx context.Context, projectionName string, cp event.Checkpoint) error {
+func (s *SQLCheckpointStore) Save(
+	ctx context.Context,
+	projectionName string,
+	cp event.Checkpoint,
+) error {
 	ctx, span := s.startSpan(ctx, "checkpoint.save", projectionName)
 	defer span.End()
 	err := sqlpkg.SharedCheckpointSave(ctx, s.DB, projectionName, cp, s.Dialect)
@@ -62,7 +73,10 @@ func (s *SQLCheckpointStore) Save(ctx context.Context, projectionName string, cp
 	return nil
 }
 
-func (s *SQLCheckpointStore) startSpan(ctx context.Context, name, projectionName string) (context.Context, trace.Span) {
+func (s *SQLCheckpointStore) startSpan(
+	ctx context.Context,
+	name, projectionName string,
+) (context.Context, trace.Span) {
 	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, trace.SpanKindClient,
 		trace.WithAttributes(attribute.String(cqrsotel.AttrProjectionName, projectionName)))
 }

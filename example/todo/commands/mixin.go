@@ -8,8 +8,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
 	todoaggregate "github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
 var ErrInvalidCommandType = errors.New("invalid command type")

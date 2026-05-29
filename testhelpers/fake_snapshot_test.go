@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestFakeSnapshotStore_SaveAndLoad(t *testing.T) {

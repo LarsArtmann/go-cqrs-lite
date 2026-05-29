@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
+	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
 func registerTodoRoutes(

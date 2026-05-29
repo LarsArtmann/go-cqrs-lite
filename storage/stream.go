@@ -14,9 +14,17 @@ import (
 
 var _ event.StreamLoader = (*SQLEventStore)(nil)
 
-func (s *SQLEventStore) LoadStream(ctx context.Context, ref event.AggregateRef) (event.EventStream, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.load_stream", trace.SpanKindClient,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...))
+func (s *SQLEventStore) LoadStream(
+	ctx context.Context,
+	ref event.AggregateRef,
+) (event.EventStream, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		"event.store.load_stream",
+		trace.SpanKindClient,
+		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
+	)
 	defer span.End()
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(

@@ -22,7 +22,11 @@ type loadParams struct {
 	errMsg     string
 }
 
-func (s *SQLEventStore) loadWithSpan(ctx context.Context, ref event.AggregateRef, p loadParams) ([]event.Event, error) {
+func (s *SQLEventStore) loadWithSpan(
+	ctx context.Context,
+	ref event.AggregateRef,
+	p loadParams,
+) ([]event.Event, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx,
 		sqlpkg.Tracer(),
@@ -89,14 +93,31 @@ func (s *SQLEventStore) LoadToTimestamp(
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, loadParams{
-		spanName: "event.store.load_to_timestamp", attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-		where:     fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
-		extraArgs: []any{s.Dialect.FormatTime(maxTime)}, requireHit: true, errMsg: "query events to timestamp",
+		spanName: "event.store.load_to_timestamp",
+		attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		where: fmt.Sprintf(
+			"AND occurred_at <= %s ORDER BY version ASC",
+			s.Dialect.Placeholder(3),
+		),
+		extraArgs: []any{
+			s.Dialect.FormatTime(maxTime),
+		},
+		requireHit: true,
+		errMsg:     "query events to timestamp",
 	})
 }
 
-func (s *SQLEventStore) LoadBackwards(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
-	return s.loadSimple(ctx, ref, "event.store.load_backwards", "ORDER BY version DESC", "query events backwards")
+func (s *SQLEventStore) LoadBackwards(
+	ctx context.Context,
+	ref event.AggregateRef,
+) ([]event.Event, error) {
+	return s.loadSimple(
+		ctx,
+		ref,
+		"event.store.load_backwards",
+		"ORDER BY version DESC",
+		"query events backwards",
+	)
 }
 
 func (s *SQLEventStore) queryEvents(
@@ -120,12 +141,20 @@ func (s *SQLEventStore) queryEvents(
 	args = append(args, extraArgs...)
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.query_events", errMsg+" (where="+whereSuffix+")")
+		return nil, event.WrapInfrastructure(
+			err,
+			"storage.query_events",
+			errMsg+" (where="+whereSuffix+")",
+		)
 	}
 	defer func() { _ = rows.Close() }()
 	events, err := s.scanEvents(rows)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.scan_events", errMsg+" (where="+whereSuffix+")")
+		return nil, event.WrapInfrastructure(
+			err,
+			"storage.scan_events",
+			errMsg+" (where="+whereSuffix+")",
+		)
 	}
 	if requireNonEmpty && len(events) == 0 {
 		return nil, event.WrapRejection(event.ErrAggregateNotFound, "storage.aggregate_not_found",

@@ -126,8 +126,16 @@ func TestMultiSignatureActors(t *testing.T) {
 
 	multiSig := multisig.MultiSignature{
 		Entries: []multisig.SignatureEntry{
-			{Actor: multisig.Actor("device"), Algorithm: multisig.AlgorithmEd25519, Sig: []byte("a")},
-			{Actor: multisig.Actor("device"), Algorithm: multisig.AlgorithmEd25519, Sig: []byte("b")},
+			{
+				Actor:     multisig.Actor("device"),
+				Algorithm: multisig.AlgorithmEd25519,
+				Sig:       []byte("a"),
+			},
+			{
+				Actor:     multisig.Actor("device"),
+				Algorithm: multisig.AlgorithmEd25519,
+				Sig:       []byte("b"),
+			},
 			{
 				Actor:     multisig.Actor("server"),
 				Algorithm: multisig.AlgorithmHMACSHA256,
@@ -228,7 +236,11 @@ func TestNewMultiSigner_Validation(t *testing.T) {
 
 	t.Run("rejects nil signer", func(t *testing.T) {
 		t.Parallel()
-		_, err := multisig.NewMultiSigner(multisig.Actor("server"), multisig.AlgorithmHMACSHA256, nil)
+		_, err := multisig.NewMultiSigner(
+			multisig.Actor("server"),
+			multisig.AlgorithmHMACSHA256,
+			nil,
+		)
 		if err == nil {
 			t.Fatal("expected error for nil signer")
 		}

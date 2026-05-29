@@ -61,7 +61,7 @@ func (r *upcasterRegistry) upcast(evt event.Event) (event.Event, error) {
 			)
 		}
 
-		event.WithSchemaVersion(uc.SourceVersion()+1)(next)
+		event.WithSchemaVersion(uc.SourceVersion() + 1)(next)
 		current = next
 	}
 

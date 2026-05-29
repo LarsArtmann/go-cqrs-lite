@@ -15,7 +15,12 @@ import (
 )
 
 func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_all", trace.SpanKindClient)
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		"event.store.read_all",
+		trace.SpanKindClient,
+	)
 	defer span.End()
 	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC`
@@ -33,9 +38,18 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	return events, scanErr
 }
 
-func (s *SQLEventStore) ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_from", trace.SpanKindClient,
-		trace.WithAttributes(attribute.Int("cqrs.journal.limit", limit)))
+func (s *SQLEventStore) ReadFrom(
+	ctx context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		"event.store.read_from",
+		trace.SpanKindClient,
+		trace.WithAttributes(attribute.Int("cqrs.journal.limit", limit)),
+	)
 	defer span.End()
 	if afterEventID.IsZero() {
 		events, err := s.loadAllFromStart(ctx, limit)

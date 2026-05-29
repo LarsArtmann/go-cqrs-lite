@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 // TimelineEvent describes an event in a timeline test.

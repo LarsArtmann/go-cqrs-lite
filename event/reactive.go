@@ -26,6 +26,7 @@ func FilterEventTypes(eventTypes ...Type) func(ro.Observable[Event]) ro.Observab
 
 	return ro.Filter(func(e Event) bool {
 		_, ok := types[e.Type()]
+
 		return ok
 	})
 }
@@ -33,7 +34,7 @@ func FilterEventTypes(eventTypes ...Type) func(ro.Observable[Event]) ro.Observab
 func HandlerToObserver(handler Handler) ro.Observer[Event] {
 	return ro.NewObserver(
 		func(e Event) { _ = handler(context.Background(), e) },
-		func(err error) {},
+		func(_ error) {},
 		func() {},
 	)
 }
@@ -41,7 +42,7 @@ func HandlerToObserver(handler Handler) ro.Observer[Event] {
 func HandlerToObserverWithContext(ctx context.Context, handler Handler) ro.Observer[Event] {
 	return ro.NewObserver(
 		func(e Event) { _ = handler(ctx, e) },
-		func(err error) {},
+		func(_ error) {},
 		func() {},
 	)
 }

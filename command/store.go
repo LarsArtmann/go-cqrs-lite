@@ -122,9 +122,17 @@ type CommandSource interface {
 
 	Load(ctx context.Context, ref AggregateRef) ([]*PersistedCommand, error)
 
-	LoadFromTimestamp(ctx context.Context, ref AggregateRef, after time.Time) ([]*PersistedCommand, error)
+	LoadFromTimestamp(
+		ctx context.Context,
+		ref AggregateRef,
+		after time.Time,
+	) ([]*PersistedCommand, error)
 
-	LoadToTimestamp(ctx context.Context, ref AggregateRef, maxTime time.Time) ([]*PersistedCommand, error)
+	LoadToTimestamp(
+		ctx context.Context,
+		ref AggregateRef,
+		maxTime time.Time,
+	) ([]*PersistedCommand, error)
 }
 
 type Store interface {

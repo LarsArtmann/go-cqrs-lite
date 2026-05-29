@@ -80,7 +80,12 @@ func (s *sagaState) advance(stepName string) {
 		s.Status = statusCompleted
 		fmt.Printf("  [saga] SAGA COMPLETED: %s\n", s.OrderID)
 	} else {
-		fmt.Printf("  [saga] step %d (%s) done, now at step %d\n", s.CurrentStep, stepName, s.CurrentStep+1)
+		fmt.Printf(
+			"  [saga] step %d (%s) done, now at step %d\n",
+			s.CurrentStep,
+			stepName,
+			s.CurrentStep+1,
+		)
 	}
 }
 

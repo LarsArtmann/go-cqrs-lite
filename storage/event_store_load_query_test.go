@@ -226,7 +226,8 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, time.Now(),
-		))
+		),
+		)
 
 	_, err := store.Load(
 		context.Background(),
@@ -267,7 +268,8 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 			AddRow(
 				eventID.String(),
 				"UserCreated", "User", aggID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
-			))
+			),
+		)
 
 	_, err := store.Load(
 		context.Background(),

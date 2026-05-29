@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -341,7 +341,9 @@ var _ = Describe("MemoryCheckpointStore", func() {
 		Context("when I save a checkpoint and load it back", func() {
 			It("should remember where my projection stopped so I can resume from there", func() {
 				evtID := id.NewEventID()
-				Expect(cpStore.Save(ctx, "user-projection", event.Checkpoint{EventID: evtID})).To(Succeed())
+				Expect(
+					cpStore.Save(ctx, "user-projection", event.Checkpoint{EventID: evtID}),
+				).To(Succeed())
 
 				loaded, err := cpStore.Load(ctx, "user-projection")
 				Expect(err).ToNot(HaveOccurred())

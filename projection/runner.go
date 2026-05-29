@@ -218,11 +218,18 @@ func (r *Runner) handleAndCheckpoint(
 			"projection "+p.Name()+" handle event "+string(evt.Type()))
 	}
 
-	return r.checkpoint.Save(ctx, p.Name(), event.Checkpoint{EventID: evt.ID(), ProcessedAt: time.Now()})
+	return r.checkpoint.Save(
+		ctx,
+		p.Name(),
+		event.Checkpoint{EventID: evt.ID(), ProcessedAt: time.Now()},
+	)
 }
 
 // CurrentCheckpoint returns the last processed event ID for the given projection.
-func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (event.Checkpoint, error) {
+func (r *Runner) CurrentCheckpoint(
+	ctx context.Context,
+	projectionName string,
+) (event.Checkpoint, error) {
 	return r.checkpoint.Load(ctx, projectionName)
 }
 

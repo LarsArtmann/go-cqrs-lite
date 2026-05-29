@@ -12,8 +12,8 @@ import (
 type MemorySnapshotStore struct {
 	dispatcher.Lifecycle
 
-	mu          sync.RWMutex
-	snapshots   map[string]*snappkg.Snapshot
+	mu        sync.RWMutex
+	snapshots map[string]*snappkg.Snapshot
 }
 
 var (
