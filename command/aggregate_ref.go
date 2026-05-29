@@ -12,7 +12,12 @@ type AggregateType = event.AggregateType
 type AggregateRef = event.AggregateRef
 
 func ParseAggregateType(s string) (AggregateType, error) {
-	return event.ParseAggregateType(s)
+	t, err := event.ParseAggregateType(s)
+	if err != nil {
+		return "", fmt.Errorf("command.ParseAggregateType: %w", err)
+	}
+
+	return t, nil
 }
 
 func MustParseAggregateType(s string) AggregateType {
