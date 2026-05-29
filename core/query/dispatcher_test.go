@@ -8,6 +8,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
+func useMiddleware(called *bool, d *query.Dispatcher) {
+	d.Use(func(next query.Handler) query.Handler {
+		return func(ctx context.Context, q query.Query) (any, error) {
+			*called = true
+
+			return next(ctx, q)
+		}
+	})
+}
+
 func TestNew_EmptyType(t *testing.T) {
 	t.Parallel()
 
@@ -184,15 +194,8 @@ func TestDispatcher_Use(t *testing.T) {
 	t.Parallel()
 
 	d := query.NewDispatcher()
-	called := false
-
-	d.Use(func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			called = true
-
-			return next(ctx, q)
-		}
-	})
+	var called bool
+	useMiddleware(&called, d)
 
 	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
 		return "result", nil
@@ -345,15 +348,8 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	called := false
-
-	d.Use(func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			called = true
-
-			return next(ctx, q)
-		}
-	})
+	var called bool
+	useMiddleware(&called, d)
 
 	err := query.RegisterTyped(d, "MWQuery", func(_ context.Context, _ query.Query) (int, error) {
 		return 42, nil

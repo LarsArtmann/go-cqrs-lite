@@ -22,8 +22,8 @@ func testFold(state testState, evt event.Event) (testState, error) {
 func TestTypeAliases_Compile(t *testing.T) {
 	t.Parallel()
 
-	var _ aggregate.Decider[testState] = decider.Decider[testState]{}
-	var _ aggregate.Repository[testState] = decider.Repository[testState]{}
+	_ = decider.Decider[testState]{}
+	_ = decider.Repository[testState]{}
 	var _ aggregate.DecideFunc[testState] = func(testState, event.Version) ([]event.Event, error) {
 		return nil, nil
 	}

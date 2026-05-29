@@ -131,7 +131,6 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	typed, ok := result.(T)
 	if !ok {
-		//nolint:err113 // dynamic error with runtime type info; no useful sentinel
 		return zero, errorfamily.NewCorruption(
 			"query.type_mismatch",
 			"unexpected result type for query "+string(query.Type()),

@@ -43,60 +43,21 @@ var _ = Describe("Pagination", func() {
 
 var _ = Describe("PaginatedResult", func() {
 	Describe("As a developer returning paged data to my frontend", func() {
-		Context("when I create a result with 50 total items and page size 10", func() {
-			It("should compute 5 total pages so my UI can render the correct number of page buttons", func() {
-				p := query.NewPagination(1, 10)
+		DescribeTable("NewPaginatedResult computes pages correctly",
+			func(page, pageSize, total uint, wantPages uint, wantNext, wantPrev bool) {
+				p := query.NewPagination(page, pageSize)
 				result := query.NewPaginatedResult(
-					[]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"},
-					50, p,
+					[]string{"a"}, total, p,
 				)
-				Expect(result.TotalPages).To(Equal(uint(5)))
-				Expect(result.HasNext()).To(BeTrue())
-				Expect(result.HasPrev()).To(BeFalse())
-			})
-		})
-
-		Context("when I am on the last page", func() {
-			It("should tell my UI there are no more pages ahead but I can go back", func() {
-				p := query.NewPagination(5, 10)
-				result := query.NewPaginatedResult(
-					[]string{"a"}, 50, p,
-				)
-				Expect(result.HasNext()).To(BeFalse())
-				Expect(result.HasPrev()).To(BeTrue())
-			})
-		})
-
-		Context("when I am on page 1 of 1", func() {
-			It("should disable both navigation arrows since there's nowhere to go", func() {
-				p := query.NewPagination(1, 10)
-				result := query.NewPaginatedResult(
-					[]string{"a", "b"}, 2, p,
-				)
-				Expect(result.TotalPages).To(Equal(uint(1)))
-				Expect(result.HasNext()).To(BeFalse())
-				Expect(result.HasPrev()).To(BeFalse())
-			})
-		})
-
-		Context("when I have zero total items", func() {
-			It("should show zero pages so my UI displays an empty state instead of a broken pager", func() {
-				p := query.NewPagination(1, 10)
-				result := query.NewPaginatedResult(
-					[]string{}, 0, p,
-				)
-				Expect(result.TotalPages).To(Equal(uint(0)))
-			})
-		})
-
-		Context("when total items don't divide evenly by page size", func() {
-			It("should round up so I don't lose the last partial page of results", func() {
-				p := query.NewPagination(1, 10)
-				result := query.NewPaginatedResult(
-					[]string{}, 23, p,
-				)
-				Expect(result.TotalPages).To(Equal(uint(3)))
-			})
-		})
+				Expect(result.TotalPages).To(Equal(wantPages))
+				Expect(result.HasNext()).To(Equal(wantNext))
+				Expect(result.HasPrev()).To(Equal(wantPrev))
+			},
+			Entry("page 1 of 5", uint(1), uint(10), uint(50), uint(5), true, false),
+			Entry("last page (5 of 5)", uint(5), uint(10), uint(50), uint(5), false, true),
+			Entry("page 1 of 1", uint(1), uint(10), uint(2), uint(1), false, false),
+			Entry("zero total items", uint(1), uint(10), uint(0), uint(0), false, false),
+			Entry("uneven division", uint(1), uint(10), uint(23), uint(3), true, false),
+		)
 	})
 })

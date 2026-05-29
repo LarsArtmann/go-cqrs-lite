@@ -30,6 +30,7 @@ var _ = Describe("Command Dispatcher", func() {
 				var received command.Command
 				Expect(dispatcher.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
 					received = cmd
+
 					return nil
 				})).To(Succeed())
 
@@ -60,11 +61,13 @@ var _ = Describe("Command Dispatcher", func() {
 
 				Expect(dispatcher.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 					createUserCalled = true
+
 					return nil
 				})).To(Succeed())
 
 				Expect(dispatcher.Register("DeleteUser", func(_ context.Context, _ command.Command) error {
 					deleteUserCalled = true
+
 					return nil
 				})).To(Succeed())
 
@@ -105,6 +108,7 @@ var _ = Describe("Command Dispatcher", func() {
 				dispatcher.Use(func(next command.Handler) command.Handler {
 					return func(ctx context.Context, cmd command.Command) error {
 						callOrder = append(callOrder, "mw1")
+
 						return next(ctx, cmd)
 					}
 				})
@@ -112,12 +116,14 @@ var _ = Describe("Command Dispatcher", func() {
 				dispatcher.Use(func(next command.Handler) command.Handler {
 					return func(ctx context.Context, cmd command.Command) error {
 						callOrder = append(callOrder, "mw2")
+
 						return next(ctx, cmd)
 					}
 				})
 
 				Expect(dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
 					callOrder = append(callOrder, "handler")
+
 					return nil
 				})).To(Succeed())
 
@@ -141,6 +147,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 				Expect(dispatcher.Register("BlockedCommand", func(_ context.Context, _ command.Command) error {
 					handlerCalled = true
+
 					return nil
 				})).To(Succeed())
 
@@ -229,6 +236,7 @@ var _ = Describe("Command Dispatcher", func() {
 	Describe("As a developer using typed handlers", func() {
 		type createUserCmd struct {
 			command.BasicCommand
+
 			Name string
 		}
 
@@ -240,6 +248,7 @@ var _ = Describe("Command Dispatcher", func() {
 					dispatcher, "CreateUser",
 					func(_ context.Context, cmd *createUserCmd) error {
 						receivedName = cmd.Name
+
 						return nil
 					},
 				)

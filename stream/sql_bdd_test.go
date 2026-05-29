@@ -58,6 +58,24 @@ func seedStreamDB(db *sql.DB, tableName string, rows []struct {
 	}
 }
 
+func seedUserAggregates(db *sql.DB, activeVers, activeCount uint, tombVers, tombCount uint) {
+	now := time.Now().UTC().Format(time.RFC3339)
+	activeID := id.NewAggregateID()
+	tombstonedID := id.NewAggregateID()
+
+	seedStreamDB(db, "test_stream_aggregates", []struct {
+		aggType   string
+		aggID     string
+		version   int
+		count     uint
+		lastAt    string
+		statusInt int
+	}{
+		{"User", activeID.String(), int(activeVers), activeCount, now, 0},
+		{"User", tombstonedID.String(), int(tombVers), tombCount, now, 1},
+	})
+}
+
 var _ = Describe("SQL Aggregate Reader", func() {
 	var (
 		ctx    context.Context
@@ -186,21 +204,7 @@ var _ = Describe("SQL Aggregate Reader", func() {
 
 		Context("when I list with status filtering", func() {
 			BeforeEach(func() {
-				now := time.Now().UTC().Format(time.RFC3339)
-				activeID := id.NewAggregateID()
-				tombstonedID := id.NewAggregateID()
-
-				seedStreamDB(db, "test_stream_aggregates", []struct {
-					aggType   string
-					aggID     string
-					version   int
-					count     uint
-					lastAt    string
-					statusInt int
-				}{
-					{"User", activeID.String(), 2, 2, now, 0},
-					{"User", tombstonedID.String(), 1, 1, now, 1},
-				})
+				seedUserAggregates(db, 2, 2, 1, 1)
 			})
 
 			It("should exclude tombstoned aggregates by default", func() {
@@ -244,21 +248,7 @@ var _ = Describe("SQL Aggregate Reader", func() {
 
 		Context("when I use List which delegates to ListWithStatus", func() {
 			It("should return AggregateRef items without status", func() {
-				now := time.Now().UTC().Format(time.RFC3339)
-				activeID := id.NewAggregateID()
-				tombstonedID := id.NewAggregateID()
-
-				seedStreamDB(db, "test_stream_aggregates", []struct {
-					aggType   string
-					aggID     string
-					version   int
-					count     uint
-					lastAt    string
-					statusInt int
-				}{
-					{"User", activeID.String(), 1, 1, now, 0},
-					{"User", tombstonedID.String(), 1, 1, now, 1},
-				})
+				seedUserAggregates(db, 1, 1, 1, 1)
 
 				page, err := reader.List(ctx, stream.ListOptions{
 					Type:      "User",

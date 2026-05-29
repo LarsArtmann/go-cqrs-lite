@@ -31,31 +31,20 @@ var _ = Describe("ListBuilder", func() {
 	})
 
 	Describe("As a developer building aggregate listing queries", func() {
-		Context("when I set PageSize to zero", func() {
-			It("should use the default page size", func() {
+		DescribeTable("PageSize is clamped to sensible bounds",
+			func(pageSize uint) {
 				seedStreamEvents(ctx, store)
 
 				page, err := stream.NewListBuilder(reader).
 					OfType("User").
-					PageSize(0).
+					PageSize(pageSize).
 					List(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(page.Items).ToNot(BeEmpty())
-			})
-		})
-
-		Context("when I set PageSize above the maximum", func() {
-			It("should clamp to the maximum page size", func() {
-				seedStreamEvents(ctx, store)
-
-				page, err := stream.NewListBuilder(reader).
-					OfType("User").
-					PageSize(200).
-					List(ctx)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(page.Items).ToNot(BeEmpty())
-			})
-		})
+			},
+			Entry("zero uses default", uint(0)),
+			Entry("exceeds max is clamped", uint(200)),
+		)
 
 		Context("when I list without filtering by type", func() {
 			It("should return aggregates across all types", func() {

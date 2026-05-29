@@ -56,9 +56,9 @@ func seedPebbleBenchEvents(
 
 func BenchmarkPebbleEventStore_LoadToTimestamp(b *testing.B) {
 	tests := []struct {
-		name      string
-		offset    time.Duration
-		expected  int
+		name     string
+		offset   time.Duration
+		expected int
 	}{
 		{"EarlyTermination", 100 * time.Second, 101},
 		{"FullScan", 2000 * time.Second, 1000},

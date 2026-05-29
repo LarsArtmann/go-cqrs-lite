@@ -79,7 +79,6 @@ func (r PaginatedResult[T]) HasPrev() bool {
 // Validate checks pagination values are within bounds.
 func (p Pagination) Validate() error {
 	if p.Page < 1 {
-		//nolint:err113 // dynamic error required to include actual page value
 		return errorfamily.NewRejection(
 			"query.invalid_page",
 			"page must be >= 1, got "+strconv.FormatUint(uint64(p.Page), 10),
@@ -87,7 +86,6 @@ func (p Pagination) Validate() error {
 	}
 
 	if p.PageSize < 1 {
-		//nolint:err113 // dynamic error required to include actual page size value
 		return errorfamily.NewRejection(
 			"query.invalid_page_size",
 			"page size must be >= 1, got "+strconv.FormatUint(uint64(p.PageSize), 10),
@@ -95,7 +93,6 @@ func (p Pagination) Validate() error {
 	}
 
 	if p.PageSize > maxPageSize {
-		//nolint:err113 // dynamic error required to include actual page size value
 		return errorfamily.NewRejection(
 			"query.invalid_page_size",
 			"page size must be <= "+strconv.Itoa(maxPageSize)+", got "+strconv.FormatUint(uint64(p.PageSize), 10),

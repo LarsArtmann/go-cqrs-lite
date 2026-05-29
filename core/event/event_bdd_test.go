@@ -52,37 +52,17 @@ var _ = Describe("Event Creation", func() {
 			})
 		})
 
-		Context("when I create an event with an empty type", func() {
-			It("should reject my input and explain that the event type is required", func() {
-				_, err := event.NewEvent("", id.NewAggregateID(), "User", 1, nil)
+		DescribeTable("validation rejects invalid inputs",
+			func(typ string, aggID id.AggregateID, aggType string, version event.Version, wantErr string) {
+				_, err := event.NewEvent(event.Type(typ), aggID, event.AggregateType(aggType), version, nil)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("event type is required"))
-			})
-		})
-
-		Context("when I create an event with a zero aggregate ID", func() {
-			It("should reject it with a descriptive error", func() {
-				_, err := event.NewEvent("UserCreated", id.AggregateID{}, "User", 1, nil)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
-			})
-		})
-
-		Context("when I create an event with an empty aggregate type", func() {
-			It("should reject it with a descriptive error", func() {
-				_, err := event.NewEvent("UserCreated", id.NewAggregateID(), "", 1, nil)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate type is required"))
-			})
-		})
-
-		Context("when I create an event with version zero", func() {
-			It("should reject it with a descriptive error", func() {
-				_, err := event.NewEvent("UserCreated", id.NewAggregateID(), "User", 0, nil)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("version"))
-			})
-		})
+				Expect(err.Error()).To(ContainSubstring(wantErr))
+			},
+			Entry("empty type", "", id.NewAggregateID(), "User", event.Version(1), "event type is required"),
+			Entry("zero aggregate ID", "UserCreated", id.AggregateID{}, "User", event.Version(1), "aggregate ID is required"),
+			Entry("empty aggregate type", "UserCreated", id.NewAggregateID(), "", event.Version(1), "aggregate type is required"),
+			Entry("version zero", "UserCreated", id.NewAggregateID(), "User", event.Version(0), "version"),
+		)
 
 		Context("when I clone an event", func() {
 			It("should give me an independent copy so I can mutate it without affecting the original", func() {

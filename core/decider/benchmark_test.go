@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/decider"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func benchEvent(
@@ -50,25 +49,12 @@ func seedCounterBench(
 }
 
 func BenchmarkDecider_Execute(b *testing.B) {
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(store, bus, d)
-	if err != nil {
-		b.Fatalf("NewRepository: %v", err)
-	}
-
-	ctx := context.Background()
+	repo, ctx := newBenchRepo(b)
 
 	for b.Loop() {
 		aggID := id.NewAggregateID()
 
-		err = repo.Execute(
+		err := repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterCreated", aggID, v.Increment())}, nil
@@ -81,20 +67,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 }
 
 func BenchmarkDecider_Execute_Update(b *testing.B) {
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(store, bus, d)
-	if err != nil {
-		b.Fatalf("NewRepository: %v", err)
-	}
-
-	ctx := context.Background()
+	repo, ctx := newBenchRepo(b)
 	aggID := id.NewAggregateID()
 
 	seedCounterBench(b, repo, aggID, 100)
@@ -102,7 +75,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		err = repo.Execute(
+		err := repo.Execute(
 			ctx, aggID, "Counter",
 			func(_ counterState, v event.Version) ([]event.Event, error) {
 				return []event.Event{benchEvent(b, "CounterIncremented", aggID, v.Increment())}, nil
@@ -115,20 +88,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 }
 
 func BenchmarkDecider_Load(b *testing.B) {
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
-	}
-
-	repo, err := decider.NewRepository(store, bus, d)
-	if err != nil {
-		b.Fatalf("NewRepository: %v", err)
-	}
-
-	ctx := context.Background()
+	repo, ctx := newBenchRepo(b)
 	aggID := id.NewAggregateID()
 
 	seedCounterBench(b, repo, aggID, 100)
@@ -136,7 +96,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err = repo.Load(ctx, aggID, "Counter")
+		_, _, err := repo.Load(ctx, aggID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

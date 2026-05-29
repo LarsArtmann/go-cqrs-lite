@@ -123,20 +123,23 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 	}
 }
 
+func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
+	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
+		WithArgs(evt.ID().String(), 10).
+		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
+			evt.ID(), "UserCreated", "User", evt.AggregateID(),
+			1, 1, evt.Payload(), nil, evt.OccurredAt(),
+		))
+}
+
 func TestSQLEventStore_LoadAllFromPosition_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
-
 	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evt.ID().String(), 10).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			evt.ID(), "UserCreated", "User", aggID,
-			1, 1, evt.Payload(), nil, evt.OccurredAt(),
-		))
+	mockLoadAllFromPosition(mock, evt)
 
 	events, err := store.LoadAllFromPosition(context.Background(), evt.ID(), 10)
 	if err != nil {
@@ -204,15 +207,9 @@ func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {
 
 	store, mock := newTestStore(t)
 	aggID := id.NewAggregateID()
-
 	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evt.ID().String(), 10).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			evt.ID(), "UserCreated", "User", aggID,
-			1, 1, evt.Payload(), nil, evt.OccurredAt(),
-		))
+	mockLoadAllFromPosition(mock, evt)
 
 	events, err := store.ReadFrom(context.Background(), evt.ID(), 10)
 	if err != nil {

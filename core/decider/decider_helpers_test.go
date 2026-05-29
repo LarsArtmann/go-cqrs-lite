@@ -62,6 +62,23 @@ func newTestRepo(
 	return repo, store, bus
 }
 
+func newBenchRepo(
+	b *testing.B,
+) (*decider.Repository[counterState], context.Context) {
+	b.Helper()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+
+	d := counterDecider()
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		b.Fatalf("NewRepository: %v", err)
+	}
+
+	return repo, context.Background()
+}
+
 func newCounterSnapshotRepo(
 	t *testing.T,
 	store event.Store,

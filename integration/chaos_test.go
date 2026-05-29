@@ -71,28 +71,35 @@ func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 	_ = disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
 }
 
-func TestChaos_CommandRetry_SucceedsAfterFailures(t *testing.T) {
-	t.Parallel()
-
+func newRetryDispatcher(maxAttempts int, attempts *int, failUntil int, permanent bool) *command.Dispatcher {
 	disp := command.NewDispatcher()
-
 	disp.Use(middleware.CommandRetry(middleware.RetryConfig{
-		MaxAttempts:  5,
+		MaxAttempts:  maxAttempts,
 		InitialDelay: time.Millisecond,
 		MaxDelay:     10 * time.Millisecond,
 		Multiplier:   1.5,
-		IsRetryable:  func(err error) bool { return true },
+		IsRetryable: func(err error) bool { return true },
 	}))
 
-	attempts := 0
+	*attempts = 0
 	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
-		attempts++
-		if attempts < 3 {
+		*attempts++
+		if permanent {
+			return errors.New("chaos: permanent failure")
+		}
+		if *attempts < failUntil {
 			return errors.New("chaos: transient failure")
 		}
-
 		return nil
 	})
+	return disp
+}
+
+func TestChaos_CommandRetry_SucceedsAfterFailures(t *testing.T) {
+	t.Parallel()
+
+	var attempts int
+	disp := newRetryDispatcher(5, &attempts, 3, false)
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
 	require.NoError(t, err)
@@ -144,21 +151,8 @@ func TestChaos_Context_Cancellation(t *testing.T) {
 func TestChaos_CommandRetry_ExhaustsAllAttempts(t *testing.T) {
 	t.Parallel()
 
-	disp := command.NewDispatcher()
-
-	disp.Use(middleware.CommandRetry(middleware.RetryConfig{
-		MaxAttempts:  3,
-		InitialDelay: time.Millisecond,
-		MaxDelay:     10 * time.Millisecond,
-		Multiplier:   1.5,
-		IsRetryable:  func(err error) bool { return true },
-	}))
-
-	attempts := 0
-	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
-		attempts++
-		return errors.New("chaos: permanent failure")
-	})
+	var attempts int
+	disp := newRetryDispatcher(3, &attempts, 0, true)
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
 	require.Error(t, err)
