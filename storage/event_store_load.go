@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // Load retrieves all events for an aggregate, ordered by version.
@@ -16,11 +20,27 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	return s.queryEvents(
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.load",
+		trace.SpanKindClient,
+		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+	)
+	defer span.End()
+
+	events, err := s.queryEvents(
 		ctx, aggregateType, aggregateID,
 		"ORDER BY version ASC", nil,
 		true, "query events",
 	)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+
+	return events, nil
 }
 
 // LoadFromVersion retrieves events starting from a given version.

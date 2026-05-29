@@ -4,8 +4,12 @@ import (
 	"context"
 	"database/sql"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // SQLCheckpointStore persists projection checkpoints in a SQL database.
@@ -52,6 +56,15 @@ func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema()
 
 // Load returns the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "checkpoint.load",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrProjectionName, projectionName),
+		),
+	)
+	defer span.End()
+
 	return sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
 }
 
@@ -61,6 +74,15 @@ func (s *SQLCheckpointStore) Save(
 	projectionName string,
 	eventID id.EventID,
 ) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "checkpoint.save",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrProjectionName, projectionName),
+		),
+	)
+	defer span.End()
+
 	return sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
 }
 

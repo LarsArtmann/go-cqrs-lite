@@ -6,7 +6,10 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
 	github.com/larsartmann/go-cqrs-lite/saga v1.6.0
+	go.opentelemetry.io/otel v1.43.0
+	go.opentelemetry.io/otel/trace v1.43.0
 	modernc.org/sqlite v1.51.0
 	turso.tech/database/tursogo v0.6.0
 )
@@ -23,6 +26,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/getsentry/sentry-go v0.46.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -43,6 +48,8 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.6.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	golang.org/x/exp v0.0.0-20260508232706-74f9aab9d74a // indirect
 	golang.org/x/sys v0.44.0 // indirect
@@ -55,5 +62,6 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/saga => ../saga
 )

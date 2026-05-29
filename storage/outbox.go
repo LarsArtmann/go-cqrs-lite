@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // SQLOutbox persists events for reliable eventual publishing in a SQL database.
@@ -62,8 +66,19 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 		return nil
 	}
 
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "outbox.append",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.Int(cqrsotel.AttrEventCount, len(events)),
+		),
+	)
+	defer span.End()
+
 	serialized, err := marshalOutboxEvents(events)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapCorruption(err, "storage.serialize_outbox",
 			"serialize outbox events")
 	}
@@ -94,6 +109,15 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 		return nil, event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
 			"context cancelled")
 	}
+
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "outbox.poll",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.Int("cqrs.outbox.limit", limit),
+		),
+	)
+	defer span.End()
 
 	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
 

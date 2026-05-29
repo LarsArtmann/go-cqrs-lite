@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // SQLSnapshotStore persists aggregate snapshots in a SQL database.
@@ -55,6 +58,15 @@ func SQLiteSnapshotSchema() string { return SQLiteDialect{}.SnapshotSchema() }
 // Save persists a snapshot for an aggregate.
 // State is stored as-is ([]byte) — no additional marshaling is applied.
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "snapshot.save",
+		trace.SpanKindClient,
+		trace.WithAttributes(aggregateAttrsWithVersion(
+			string(snap.AggregateType), snap.AggregateID.String(), snap.Version.Int(),
+		)...),
+	)
+	defer span.End()
+
 	p1, p2, p3, p4, p5 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
 		s.dialect.Placeholder(3), s.dialect.Placeholder(4), s.dialect.Placeholder(5)
 
@@ -94,8 +106,17 @@ func (s *SQLSnapshotStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) (*event.Snapshot, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "snapshot.load",
+		trace.SpanKindClient,
+		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+	)
+	defer span.End()
+
 	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.load_snapshot",
 			fmt.Sprintf("load snapshot for %s %s", aggregateType, aggregateID))
 	}

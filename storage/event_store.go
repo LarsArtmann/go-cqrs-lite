@@ -5,8 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
@@ -71,6 +75,16 @@ func (s *SQLEventStore) Save(
 	if len(events) == 0 {
 		return nil
 	}
+
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.save",
+		trace.SpanKindClient,
+		trace.WithAttributes(append(
+			aggregateAttrsWithVersion(string(aggregateType), aggregateID.String(), expectedVersion.Int()),
+			attribute.Int(cqrsotel.AttrEventCount, len(events)),
+		)...),
+	)
+	defer span.End()
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
