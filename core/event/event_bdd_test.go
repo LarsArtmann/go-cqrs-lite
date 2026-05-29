@@ -218,13 +218,7 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(store.Save(ctx, aggType, aggID, []event.Event{v1Event}, 0)).To(Succeed())
 
-				upcaster := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
-					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-						[]byte(`{"name":"Alice","email":""}`),
-						event.WithSchemaVersion(2),
-					)
-				})
+				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
 				versioned := event.NewVersionedStore(store, upcaster)
 
 				loaded, err := versioned.Load(ctx, aggType, aggID)
@@ -245,13 +239,7 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(store.Save(ctx, aggType, aggID, []event.Event{v2Event}, 0)).To(Succeed())
 
-				upcaster := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
-					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-						[]byte(`{"name":"","email":""}`),
-						event.WithSchemaVersion(2),
-					)
-				})
+				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
 				versioned := event.NewVersionedStore(store, upcaster)
 
 				loaded, err := versioned.Load(ctx, aggType, aggID)
@@ -271,20 +259,8 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(store.Save(ctx, aggType, aggID, []event.Event{v1Event}, 0)).To(Succeed())
 
-				upcasterV1toV2 := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
-					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-						[]byte(`{"name":"Alice","email":""}`),
-						event.WithSchemaVersion(2),
-					)
-				})
-				upcasterV2toV3 := event.NewUpcaster("UserCreated", 2, func(evt event.Event) (*event.ImmutableEvent, error) {
-					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-						[]byte(`{"fullName":"Alice","email":"","verified":false}`),
-						event.WithSchemaVersion(3),
-					)
-				})
+				upcasterV1toV2 := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
+				upcasterV2toV3 := makeUpcaster("UserCreated", 2, []byte(`{"fullName":"Alice","email":"","verified":false}`))
 				versioned := event.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
 
 				loaded, err := versioned.Load(ctx, aggType, aggID)
@@ -330,4 +306,14 @@ func mustNewEvent(
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 	return evt
+}
+
+func makeUpcaster(targetType event.Type, fromVersion event.SchemaVersion, newPayload []byte) event.Upcaster {
+	return event.NewUpcaster(targetType, fromVersion, func(evt event.Event) (*event.ImmutableEvent, error) {
+		return event.NewEvent(
+			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			newPayload,
+			event.WithSchemaVersion(fromVersion+1),
+		)
+	})
 }

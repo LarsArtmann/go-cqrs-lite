@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
@@ -61,17 +60,8 @@ func TestMultiSigner_VerifyTampered(t *testing.T) {
 	clone, _ := deviceMulti.Sign(evt)
 	md := clone.Metadata()
 
-	tampered, _ := event.NewEvent(
-		clone.Type(),
-		clone.AggregateID(),
-		clone.AggregateType(),
-		clone.Version(),
-		[]byte(`{"tampered":true}`),
-		event.WithEventID(clone.ID()),
-		event.WithOccurredAt(clone.OccurredAt()),
-		event.WithSchemaVersion(clone.SchemaVersion()),
-		event.WithMetadata(md),
-	)
+	tampered := tamperEvent(t, clone)
+	tampered.Metadata().Custom = md.Custom
 
 	if err := deviceMulti.Verify(tampered); err == nil {
 		t.Fatal("expected verification to fail for tampered event")
@@ -161,14 +151,7 @@ func TestMultiSigner_VerifyActor_BadSignature(t *testing.T) {
 	clone, _ := deviceMulti.Sign(evt)
 
 	// Tamper with the event after signing
-	tampered, _ := event.NewEvent(
-		clone.Type(), clone.AggregateID(), clone.AggregateType(), clone.Version(),
-		[]byte(`{"tampered":true}`),
-		event.WithEventID(clone.ID()),
-		event.WithOccurredAt(clone.OccurredAt()),
-		event.WithSchemaVersion(clone.SchemaVersion()),
-		event.WithMetadata(clone.Metadata()),
-	)
+	tampered := tamperEvent(t, clone)
 
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
 

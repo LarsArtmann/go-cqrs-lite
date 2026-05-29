@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/saga"
 	"github.com/stretchr/testify/require"
+
+	"github.com/larsartmann/go-cqrs-lite/saga"
 )
 
 func TestRunner_HealthCheck_WithMemoryStore(t *testing.T) {

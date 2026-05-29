@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRunner_HealthCheck_Healthy(t *testing.T) {

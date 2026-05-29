@@ -11,18 +11,32 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
-func BenchmarkInMemoryList_1000Aggregates(b *testing.B) {
+func seedBenchAggregates(
+	b *testing.B,
+	aggType string,
+	evtType string,
+	payloadKey string,
+	payloadVal string,
+	n int,
+) *stream.InMemoryAggregateReader {
+	b.Helper()
+
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	for range 1000 {
+	for range n {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"name": "user"})
-		evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload)
-		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+		payload, _ := json.Marshal(map[string]string{payloadKey: payloadVal})
+		evt, _ := event.NewEvent(event.Type(evtType), aggID, event.AggregateType(aggType), 1, payload)
+		_ = store.AppendBatch(ctx, event.AggregateType(aggType), aggID, []event.Event{evt})
 	}
 
-	reader := stream.NewInMemoryAggregateReader(store)
+	return stream.NewInMemoryAggregateReader(store)
+}
+
+func BenchmarkInMemoryList_1000Aggregates(b *testing.B) {
+	reader := seedBenchAggregates(b, "User", "UserCreated", "name", "user", 1000)
+	ctx := context.Background()
 
 	b.ResetTimer()
 
@@ -38,17 +52,8 @@ func BenchmarkInMemoryList_1000Aggregates(b *testing.B) {
 }
 
 func BenchmarkInMemoryList_100Aggregates(b *testing.B) {
-	store := memory.NewMemoryStore()
+	reader := seedBenchAggregates(b, "Order", "OrderCreated", "item", "widget", 100)
 	ctx := context.Background()
-
-	for range 100 {
-		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"item": "widget"})
-		evt, _ := event.NewEvent("OrderCreated", aggID, "Order", 1, payload)
-		_ = store.AppendBatch(ctx, "Order", aggID, []event.Event{evt})
-	}
-
-	reader := stream.NewInMemoryAggregateReader(store)
 
 	b.ResetTimer()
 
@@ -64,17 +69,8 @@ func BenchmarkInMemoryList_100Aggregates(b *testing.B) {
 }
 
 func BenchmarkInMemoryList_SmallPages(b *testing.B) {
-	store := memory.NewMemoryStore()
+	reader := seedBenchAggregates(b, "Cart", "ItemAdded", "sku", "ABC", 500)
 	ctx := context.Background()
-
-	for range 500 {
-		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"sku": "ABC"})
-		evt, _ := event.NewEvent("ItemAdded", aggID, "Cart", 1, payload)
-		_ = store.AppendBatch(ctx, "Cart", aggID, []event.Event{evt})
-	}
-
-	reader := stream.NewInMemoryAggregateReader(store)
 
 	b.ResetTimer()
 

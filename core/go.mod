@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/core
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-branded-id v0.1.0
+	github.com/larsartmann/go-branded-id v0.3.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
@@ -30,7 +30,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

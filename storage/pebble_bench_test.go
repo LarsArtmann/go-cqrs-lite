@@ -13,8 +13,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
-	const totalEvents = 1000
+func seedPebbleBenchEvents(
+	b *testing.B,
+	totalEvents int,
+) (*PebbleEventStore, id.AggregateID, time.Time) {
+	b.Helper()
 
 	dir := b.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
@@ -47,6 +50,13 @@ func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
+
+	return store, aggID, baseTime
+}
+
+func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
+	store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
+	ctx := context.Background()
 
 	b.ResetTimer()
 
@@ -64,39 +74,8 @@ func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
 }
 
 func BenchmarkPebbleEventStore_LoadToTimestamp_FullScan(b *testing.B) {
-	const totalEvents = 1000
-
-	dir := b.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
-	if err != nil {
-		b.Fatalf("open pebble: %v", err)
-	}
-
-	b.Cleanup(func() { _ = db.Close() })
-
-	store := NewPebbleStore(db, slog.Default())
-	aggID := id.NewAggregateID()
+	store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
 	ctx := context.Background()
-	baseTime := time.Now()
-
-	events := make([]event.Event, totalEvents)
-	for i := range totalEvents {
-		evt, err := event.NewEvent(
-			"IssueCreated", aggID, "Issue", event.Version(i+1),
-			[]byte(fmt.Sprintf(`{"title":"test-%d"}`, i+1)),
-			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)),
-		)
-		if err != nil {
-			b.Fatalf("create event %d: %v", i, err)
-		}
-
-		events[i] = evt
-	}
-
-	err = store.AppendBatch(ctx, "Issue", aggID, events)
-	if err != nil {
-		b.Fatalf("AppendBatch: %v", err)
-	}
 
 	b.ResetTimer()
 
@@ -107,8 +86,8 @@ func BenchmarkPebbleEventStore_LoadToTimestamp_FullScan(b *testing.B) {
 			b.Fatalf("LoadToTimestamp: %v", err)
 		}
 
-		if len(result) != totalEvents {
-			b.Fatalf("expected %d events, got %d", totalEvents, len(result))
+		if len(result) != 1000 {
+			b.Fatalf("expected 1000 events, got %d", len(result))
 		}
 	}
 }

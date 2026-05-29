@@ -78,20 +78,7 @@ func ExampleNewVersionedStore() {
 	store := memory.NewMemoryStore()
 	_ = store.Save(context.Background(), "User", aggID, []event.Event{v1Event}, 0)
 
-	upcaster := event.NewUpcaster(
-		"UserCreated",
-		1,
-		func(evt event.Event) (*event.ImmutableEvent, error) {
-			return event.NewEvent(
-				evt.Type(),
-				evt.AggregateID(),
-				evt.AggregateType(),
-				evt.Version(),
-				[]byte(`{"name":"Alice","fullname":"Alice Wonderland"}`),
-				event.WithSchemaVersion(2),
-			)
-		},
-	)
+	upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","fullname":"Alice Wonderland"}`))
 
 	versioned := event.NewVersionedStore(store, upcaster)
 
