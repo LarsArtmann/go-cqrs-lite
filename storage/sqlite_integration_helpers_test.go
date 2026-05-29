@@ -89,7 +89,7 @@ func saveAndLoadSnapshot(
 		t.Fatalf("Save snapshot: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, snap.AggregateType, snap.AggregateID)
+	loaded, err := store.Load(ctx, event.NewAggregateRef(snap.AggregateType, snap.AggregateID))
 	if err != nil {
 		t.Fatalf("Load snapshot: %v", err)
 	}

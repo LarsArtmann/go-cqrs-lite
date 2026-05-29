@@ -19,12 +19,17 @@ func TestFakeStore_Save_DefaultPath(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
 
-	err := store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, "User", aggID)
+	loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -43,16 +48,20 @@ func TestFakeStore_Load_DefaultPath_DefensiveCopy(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+	)
 
-	loaded, err := store.Load(ctx, "User", aggID)
+	loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
 	loaded[0] = nil
 
-	again, _ := store.Load(ctx, "User", aggID)
+	again, _ := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if again[0] == nil {
 		t.Fatal("Load returned a reference, not a defensive copy")
 	}
@@ -69,9 +78,17 @@ func TestFakeStore_LoadFromVersion_DefaultPath(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 2, nil)
 	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 3, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 
-	events, err := store.LoadFromVersion(ctx, "User", aggID, 1)
+	events, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		1,
+	)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -91,7 +108,11 @@ func TestFakeStore_LoadFromVersion_EmptyStream(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	events, err := store.LoadFromVersion(ctx, "User", aggID, 0)
+	events, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		0,
+	)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -109,8 +130,7 @@ func TestFakeStore_SaveFn(t *testing.T) {
 
 	store.SaveFn(event.SaveFunc(func(
 		_ context.Context,
-		_ event.AggregateType,
-		_ id.AggregateID,
+		_ event.AggregateRef,
 		_ []event.Event,
 		_ event.Version,
 	) error {
@@ -119,7 +139,12 @@ func TestFakeStore_SaveFn(t *testing.T) {
 		return nil
 	}))
 
-	err := store.Save(context.Background(), "User", id.NewAggregateID(), nil, 0)
+	err := store.Save(
+		context.Background(),
+		event.NewAggregateRef("User", id.NewAggregateID()),
+		nil,
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -151,9 +176,17 @@ func TestFakeStore_LoadToVersion(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 2, nil)
 	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 3, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 
-	events, err := store.LoadToVersion(ctx, "User", aggID, 2)
+	events, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		2,
+	)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -171,7 +204,11 @@ func TestFakeStore_LoadToVersion_EmptyStream(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	events, err := store.LoadToVersion(ctx, "User", aggID, 5)
+	events, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		5,
+	)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -196,7 +233,11 @@ func TestFakeStore_LoadToTimestamp(t *testing.T) {
 		[3]event.Version{1, 2, 3},
 	)
 
-	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
+	loaded, err := store.LoadToTimestamp(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		now.Add(-30*time.Minute),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -214,7 +255,11 @@ func TestFakeStore_LoadToTimestamp_EmptyStream(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	events, err := store.LoadToTimestamp(ctx, "User", aggID, time.Now())
+	events, err := store.LoadToTimestamp(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		time.Now(),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -230,13 +275,13 @@ func TestFakeStore_LoadFn(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	called := false
 
-	store.LoadFn(func(_ event.AggregateType, _ id.AggregateID) ([]event.Event, error) {
+	store.LoadFn(func(_ event.AggregateRef) ([]event.Event, error) {
 		called = true
 
 		return nil, nil
 	})
 
-	_, _ = store.Load(context.Background(), "User", id.NewAggregateID())
+	_, _ = store.Load(context.Background(), event.NewAggregateRef("User", id.NewAggregateID()))
 	if !called {
 		t.Fatal("expected LoadFn to be called")
 	}
@@ -250,7 +295,11 @@ func TestFakeStore_LoadFromVersionFn(t *testing.T) {
 
 	store.LoadFromVersionFn(testhelpers.VersionQueryFn(&called))
 
-	_, _ = store.LoadFromVersion(context.Background(), "User", id.NewAggregateID(), 1)
+	_, _ = store.LoadFromVersion(
+		context.Background(),
+		event.NewAggregateRef("User", id.NewAggregateID()),
+		1,
+	)
 	if !called {
 		t.Fatal("expected LoadFromVersionFn to be called")
 	}
@@ -285,8 +334,16 @@ func TestFakeStore_ReadAll(t *testing.T) {
 	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
 	evt2 := testhelpers.QuickEvent("Created", agg2, "Order", 1, nil)
 
-	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1})
-	_ = store.AppendBatch(ctx, "Order", agg2, []event.Event{evt2})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1},
+	)
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), agg2),
+		[]event.Event{evt2},
+	)
 
 	all, err := store.ReadAll(ctx)
 	if err != nil {
@@ -308,7 +365,11 @@ func TestFakeStore_ReadFrom(t *testing.T) {
 	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
 	evt2 := testhelpers.QuickEvent("Updated", agg1, "User", 2, nil)
 
-	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1, evt2})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1, evt2},
+	)
 
 	from, err := store.ReadFrom(ctx, evt1.ID(), 10)
 	if err != nil {
@@ -333,7 +394,11 @@ func TestFakeStore_ReadFrom_ZeroID(t *testing.T) {
 	agg1 := id.NewAggregateID()
 	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
 
-	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1},
+	)
 
 	from, err := store.ReadFrom(ctx, id.EventID{}, 10)
 	if err != nil {
@@ -356,7 +421,11 @@ func TestFakeStore_ReadFrom_WithLimit(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("Updated", agg1, "User", 2, nil)
 	evt3 := testhelpers.QuickEvent("Deleted", agg1, "User", 3, nil)
 
-	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1, evt2, evt3})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1, evt2, evt3},
+	)
 
 	from, err := store.ReadFrom(ctx, id.EventID{}, 2)
 	if err != nil {
@@ -373,12 +442,16 @@ func TestFakeStore_AppendBatchFn(t *testing.T) {
 
 	called := false
 	store := testhelpers.NewFakeStore().
-		AppendBatchFn(func(_ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+		AppendBatchFn(func(_ event.AggregateRef, _ []event.Event) error {
 			called = true
 			return nil
 		})
 
-	err := store.AppendBatch(context.Background(), "User", id.NewAggregateID(), nil)
+	err := store.AppendBatch(
+		context.Background(),
+		event.NewAggregateRef("User", id.NewAggregateID()),
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -395,7 +468,7 @@ func TestFakeStore_LoadToVersionFn(t *testing.T) {
 	store := testhelpers.NewFakeStore().
 		LoadToVersionFn(testhelpers.VersionQueryFn(&called))
 
-	_, err := store.LoadToVersion(context.Background(), "User", aggID, 3)
+	_, err := store.LoadToVersion(context.Background(), event.NewAggregateRef("User", aggID), 3)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -410,12 +483,16 @@ func TestFakeStore_LoadToTimestampFn(t *testing.T) {
 	aggID := id.NewAggregateID()
 	called := false
 	store := testhelpers.NewFakeStore().
-		LoadToTimestampFn(func(_ event.AggregateType, _ id.AggregateID, _ time.Time) ([]event.Event, error) {
+		LoadToTimestampFn(func(_ event.AggregateRef, _ time.Time) ([]event.Event, error) {
 			called = true
 			return nil, nil
 		})
 
-	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, time.Now())
+	_, err := store.LoadToTimestamp(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		time.Now(),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}

@@ -44,7 +44,11 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 		WithArgs("User", aggID, 1).
 		WillReturnRows(mockEventRowsForTest(evt, aggID))
 
-	events, err := store.LoadToVersion(context.Background(), "User", aggID, 1)
+	events, err := store.LoadToVersion(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		1,
+	)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -64,7 +68,7 @@ func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
 		WithArgs("User", aggID, 5).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	_, err := store.LoadToVersion(context.Background(), "User", aggID, 5)
+	_, err := store.LoadToVersion(context.Background(), event.NewAggregateRef("User", aggID), 5)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
@@ -80,7 +84,7 @@ func TestSQLEventStore_LoadToVersion_Mock_QueryError(t *testing.T) {
 		WithArgs("User", aggID, 5).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := store.LoadToVersion(context.Background(), "User", aggID, 5)
+	_, err := store.LoadToVersion(context.Background(), event.NewAggregateRef("User", aggID), 5)
 	if err == nil {
 		t.Fatal("expected error from query failure")
 	}
@@ -98,7 +102,11 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 		WithArgs("User", aggID, evt.OccurredAt()).
 		WillReturnRows(mockEventRowsForTest(evt, aggID))
 
-	events, err := store.LoadToTimestamp(context.Background(), "User", aggID, evt.OccurredAt())
+	events, err := store.LoadToTimestamp(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		evt.OccurredAt(),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -118,7 +126,11 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 		WithArgs("User", aggID, sqlmock.AnyArg()).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, testEvent(t).OccurredAt())
+	_, err := store.LoadToTimestamp(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		testEvent(t).OccurredAt(),
+	)
 	if err == nil {
 		t.Fatal("expected error from query failure")
 	}
@@ -133,41 +145,6 @@ func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 		))
 }
 
-func TestSQLEventStore_LoadAllFromPosition_Mock_Success(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
-	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
-
-	mockLoadAllFromPosition(mock, evt)
-
-	events, err := store.LoadAllFromPosition(context.Background(), evt.ID(), 10)
-	if err != nil {
-		t.Fatalf("LoadAllFromPosition: %v", err)
-	}
-
-	if len(events) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(events))
-	}
-}
-
-func TestSQLEventStore_LoadAllFromPosition_Mock_QueryError(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	evtID := id.NewEventID()
-
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evtID.String(), 10).
-		WillReturnError(errors.New("connection lost"))
-
-	_, err := store.LoadAllFromPosition(context.Background(), evtID, 10)
-	if err == nil {
-		t.Fatal("expected error from query failure")
-	}
-}
-
 func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 	t.Parallel()
 
@@ -180,20 +157,10 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
 		))
 
-	_, err := store.Load(context.Background(), "User", aggID)
+	_, err := store.Load(context.Background(), event.NewAggregateRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error from scan with invalid event ID")
 	}
-}
-
-func TestSQLEventStore_LoadAll_Mock_ScanError(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	mockLoadAllScanError(mock, t)
-
-	_, err := store.LoadAll(context.Background())
-	expectScanError(t, err, "LoadAll")
 }
 
 func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {

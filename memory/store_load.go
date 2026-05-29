@@ -16,7 +16,7 @@ func (s *MemoryStore) Load(
 	_ context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load")
+	events, err := s.getEvents(ref, "load")
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (s *MemoryStore) loadFiltered(
 	op string,
 	filter func([]event.Event) []event.Event,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, op)
+	events, err := s.getEvents(ref, op)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,7 @@ func (s *MemoryStore) LoadFromVersion(
 	version event.Version,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
-		aggregateType,
-		aggregateID,
+		ref,
 		"load from version",
 		func(evts []event.Event) []event.Event {
 			return event.SliceFromVersion(evts, version)
@@ -63,8 +62,7 @@ func (s *MemoryStore) LoadToVersion(
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
-		aggregateType,
-		aggregateID,
+		ref,
 		"load to version",
 		func(evts []event.Event) []event.Event {
 			return event.SliceToVersion(evts, maxVersion)
@@ -80,8 +78,7 @@ func (s *MemoryStore) LoadToTimestamp(
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
-		aggregateType,
-		aggregateID,
+		ref,
 		"load to timestamp",
 		func(evts []event.Event) []event.Event {
 			return event.FilterByTimestamp(evts, maxTime)
@@ -107,14 +104,13 @@ func (s *MemoryStore) getEvents(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 
 	events, exists := s.events[key]
 	if !exists {
 		return nil, fmt.Errorf(
-			"aggregate %s/%s: %w",
-			aggregateType,
-			aggregateID,
+			"aggregate %s: %w",
+			ref,
 			event.ErrAggregateNotFound,
 		)
 	}
@@ -128,7 +124,7 @@ func (s *MemoryStore) LoadBackwards(
 	_ context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load backwards")
+	events, err := s.getEvents(ref, "load backwards")
 	if err != nil {
 		return nil, err
 	}
@@ -173,13 +169,6 @@ func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	return copyEvents(all), nil
 }
 
-// LoadAll returns all events across all aggregates, sorted by OccurredAt.
-//
-// Deprecated: use ReadAll instead.
-func (s *MemoryStore) LoadAll(ctx context.Context) ([]event.Event, error) {
-	return s.ReadAll(ctx)
-}
-
 // ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
 // Implements event.SeekableJournal for efficient projection catch-up.
 func (s *MemoryStore) ReadFrom(
@@ -220,15 +209,4 @@ func (s *MemoryStore) ReadFrom(
 	}
 
 	return copyEvents(filtered), nil
-}
-
-// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
-//
-// Deprecated: use ReadFrom instead.
-func (s *MemoryStore) LoadAllFromPosition(
-	ctx context.Context,
-	afterEventID id.EventID,
-	limit int,
-) ([]event.Event, error) {
-	return s.ReadFrom(ctx, afterEventID, limit)
 }

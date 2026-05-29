@@ -71,7 +71,7 @@ func TestSQLBackend_TransactionalStore(t *testing.T) {
 
 	backend := newTestSQLBackend(t)
 
-	tx := backend.TransactionalStore()
+	tx := backend.TransactionalSink()
 	if tx == nil {
 		t.Fatal("expected non-nil TransactionalStore")
 	}
@@ -122,13 +122,19 @@ func TestSQLBackend_SaveWithOutbox(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	tx := backend.TransactionalStore()
-	if err := tx.SaveWithOutbox(ctx, "Test", aggID, []event.Event{evt}, 0); err != nil {
+	tx := backend.TransactionalSink()
+	if err := tx.SaveWithOutbox(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		[]event.Event{evt},
+		0,
+	); err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
 
 	// Verify event was saved
-	loaded, err := backend.EventStore().Load(ctx, "Test", aggID)
+	loaded, err := backend.EventStore().
+		Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -171,7 +177,7 @@ func TestNewSQLBackendWithDialect(t *testing.T) {
 	if backend.Outbox() == nil {
 		t.Fatal("expected non-nil Outbox")
 	}
-	if backend.TransactionalStore() == nil {
+	if backend.TransactionalSink() == nil {
 		t.Fatal("expected non-nil TransactionalStore")
 	}
 	if backend.SagaStore() == nil {

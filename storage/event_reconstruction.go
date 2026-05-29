@@ -141,8 +141,8 @@ func saveWithOutboxTx(
 	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
-	checkVersionFn func(context.Context, *sql.Tx, event.AggregateType, id.AggregateID, event.Version) error,
-	insertEventsFn func(context.Context, *sql.Tx, event.AggregateType, id.AggregateID, []event.Event) error,
+	checkVersionFn func(context.Context, *sql.Tx, event.AggregateRef, event.Version) error,
+	insertEventsFn func(context.Context, *sql.Tx, event.AggregateRef, []event.Event) error,
 	appendOutboxFn func(context.Context, *sql.Tx, []event.Event) error,
 ) error {
 	if len(events) == 0 {
@@ -159,16 +159,16 @@ func saveWithOutboxTx(
 		_ = tx.Rollback()
 	}()
 
-	err = checkVersionFn(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	err = checkVersionFn(ctx, tx, ref, expectedVersion)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.check_version",
-			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
+			fmt.Sprintf("check version for %s %s", ref.Type, ref.ID))
 	}
 
-	err = insertEventsFn(ctx, tx, aggregateType, aggregateID, events)
+	err = insertEventsFn(ctx, tx, ref, events)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.insert_events",
-			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
+			fmt.Sprintf("insert %d events for %s %s", len(events), ref.Type, ref.ID))
 	}
 
 	err = appendOutboxFn(ctx, tx, events)

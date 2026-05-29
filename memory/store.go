@@ -7,7 +7,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // MemoryStore is an in-memory implementation of event.Store and event.Journal.
@@ -51,7 +50,7 @@ func (s *MemoryStore) Save(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 	existing := s.events[key]
 
 	err = event.CheckVersionConflict(len(existing), expectedVersion)
@@ -82,7 +81,7 @@ func (s *MemoryStore) AppendBatch(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 	s.events[key] = append(s.events[key], events...)
 
 	return nil

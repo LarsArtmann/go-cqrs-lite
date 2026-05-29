@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // FakeSnapshotStore implements event.SnapshotStore for testing.
@@ -71,8 +70,7 @@ func (s *FakeSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
 // Load returns the configured snapshot or error.
 func (s *FakeSnapshotStore) Load(
 	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
+	_ event.AggregateRef,
 ) (*event.Snapshot, error) {
 	return s.loadSnapshot()
 }
@@ -80,8 +78,7 @@ func (s *FakeSnapshotStore) Load(
 // LoadAtVersion returns the configured snapshot or error.
 func (s *FakeSnapshotStore) LoadAtVersion(
 	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
+	_ event.AggregateRef,
 	_ event.Version,
 ) (*event.Snapshot, error) {
 	return s.loadSnapshot()
@@ -97,8 +94,7 @@ func (s *FakeSnapshotStore) loadSnapshot() (*event.Snapshot, error) {
 // Delete is a no-op for testing.
 func (s *FakeSnapshotStore) Delete(
 	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
+	_ event.AggregateRef,
 ) error {
 	return nil
 }

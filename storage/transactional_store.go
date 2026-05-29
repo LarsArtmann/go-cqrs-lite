@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -55,8 +54,7 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	ctx, span := startSaveSpan(
 		ctx,
 		"event.store.save_with_outbox",
-		aggregateType,
-		aggregateID,
+		ref,
 		expectedVersion,
 		len(events),
 	)
@@ -65,8 +63,7 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	err := saveWithOutboxTx(
 		ctx,
 		s.db,
-		aggregateType,
-		aggregateID,
+		ref,
 		events,
 		expectedVersion,
 		s.checkVersion,

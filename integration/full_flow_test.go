@@ -91,7 +91,10 @@ func TestFullFlow(t *testing.T) {
 				return UserState{}, query.ErrQueryNotSupported
 			}
 
-			events, err := store.Load(ctx, "User", gu.AggregateID)
+			events, err := store.Load(
+				ctx,
+				event.NewAggregateRef(event.AggregateType("User"), gu.AggregateID),
+			)
 			if err != nil {
 				return UserState{}, err
 			}
@@ -169,7 +172,7 @@ func TestFullFlow(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	// --- Verify events stored ---
-	events, err := store.Load(ctx, "User", aggID)
+	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -207,7 +210,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify stream loading works ---
-	stream, err := store.LoadStream(ctx, "User", aggID)
+	stream, err := store.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

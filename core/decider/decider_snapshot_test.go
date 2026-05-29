@@ -251,7 +251,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 	}
 
 	store2 := store.LoadFromVersionFn(
-		func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+		func(_ event.AggregateRef, _ event.Version) ([]event.Event, error) {
 			return nil, errors.New("db unavailable")
 		},
 	)

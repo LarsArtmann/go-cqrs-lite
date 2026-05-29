@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -37,7 +36,7 @@ func (s *SQLEventStore) loadWithSpan(
 	defer span.End()
 
 	events, err := s.queryEvents(
-		ctx, aggregateType, aggregateID,
+		ctx, ref,
 		p.where, p.extraArgs,
 		p.requireHit, p.errMsg,
 	)
@@ -60,9 +59,9 @@ func (s *SQLEventStore) loadSimple(
 	order string,
 	errMsg string,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName:   spanName,
-		attrs:      cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+		attrs:      cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 		where:      order,
 		requireHit: true,
 		errMsg:     errMsg,
@@ -77,8 +76,7 @@ func (s *SQLEventStore) Load(
 ) ([]event.Event, error) {
 	return s.loadSimple(
 		ctx,
-		aggregateType,
-		aggregateID,
+		ref,
 		"event.store.load",
 		"ORDER BY version ASC",
 		"query events",
@@ -91,10 +89,10 @@ func (s *SQLEventStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_from_version",
 		attrs: append(
-			cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()),
 		),
 		where:      fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
@@ -111,10 +109,10 @@ func (s *SQLEventStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_to_version",
 		attrs: append(
-			cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
 		),
 		where:      fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
@@ -131,9 +129,9 @@ func (s *SQLEventStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_to_timestamp",
-		attrs:    cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+		attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 		where: fmt.Sprintf(
 			"AND occurred_at <= %s ORDER BY version ASC",
 			s.dialect.Placeholder(3),
@@ -152,8 +150,7 @@ func (s *SQLEventStore) LoadBackwards(
 ) ([]event.Event, error) {
 	return s.loadSimple(
 		ctx,
-		aggregateType,
-		aggregateID,
+		ref,
 		"event.store.load_backwards",
 		"ORDER BY version DESC",
 		"query events backwards",
@@ -180,7 +177,7 @@ func (s *SQLEventStore) queryEvents(
 	)
 
 	args := make([]any, 0, 2+len(extraArgs))
-	args = append(args, string(aggregateType), aggregateID)
+	args = append(args, string(ref.Type), ref.ID)
 	args = append(args, extraArgs...)
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
@@ -200,12 +197,8 @@ func (s *SQLEventStore) queryEvents(
 	}
 
 	if requireNonEmpty && len(events) == 0 {
-		return nil, fmt.Errorf(
-			"aggregate %s/%s: %w",
-			aggregateType,
-			aggregateID,
-			event.ErrAggregateNotFound,
-		)
+		return nil, event.WrapRejection(event.ErrAggregateNotFound, "storage.aggregate_not_found",
+			fmt.Sprintf("no events found for %s %s", ref.Type, ref.ID))
 	}
 
 	return events, nil

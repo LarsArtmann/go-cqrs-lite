@@ -33,16 +33,14 @@ func setupTwoTestEvents(
 
 	if err := store.AppendBatch(
 		context.Background(),
-		"Issue",
-		aggID1,
+		event.NewAggregateRef("Issue", aggID1),
 		[]event.Event{evt1},
 	); err != nil {
 		t.Fatalf("AppendBatch 1: %v", err)
 	}
 	if err := store.AppendBatch(
 		context.Background(),
-		"Issue",
-		aggID2,
+		event.NewAggregateRef("Issue", aggID2),
 		[]event.Event{evt2},
 	); err != nil {
 		t.Fatalf("AppendBatch 2: %v", err)
@@ -77,25 +75,9 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	aggID := id.NewAggregateID()
 
-	_, err := store.Load(context.Background(), "Issue", aggID)
+	_, err := store.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
-	}
-}
-
-func TestSQLiteEventStore_LoadAll(t *testing.T) {
-	t.Parallel()
-
-	store := newSQLiteTestStore(t)
-	_, _, _, _ = setupTwoTestEvents(t, store)
-
-	all, err := store.LoadAll(context.Background())
-	if err != nil {
-		t.Fatalf("LoadAll: %v", err)
-	}
-
-	if len(all) != 2 {
-		t.Fatalf("expected 2 events, got %d", len(all))
 	}
 }
 

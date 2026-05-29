@@ -17,7 +17,7 @@ import (
 //	backend, err := storage.NewSQLBackend(db)
 //	if err != nil { ... }
 //
-//	store  := backend.TransactionalStore() // atomic save + outbox
+//	store  := backend.TransactionalSink() // atomic save + outbox
 //	outbox := backend.Outbox()             // for OutboxPoller
 //	go storage.NewOutboxPoller(outbox, bus).Start(ctx)
 type SQLBackend struct {
@@ -90,13 +90,6 @@ func (b *SQLBackend) Outbox() *SQLOutbox {
 
 // TransactionalSink returns the atomic save+outbox store.
 func (b *SQLBackend) TransactionalSink() event.TransactionalSink {
-	return b.tx
-}
-
-// TransactionalStore returns the atomic save+outbox store.
-//
-// Deprecated: use TransactionalSink instead.
-func (b *SQLBackend) TransactionalStore() event.TransactionalStore {
 	return b.tx
 }
 

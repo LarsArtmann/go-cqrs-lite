@@ -99,6 +99,8 @@ func (r *Repository[State]) Execute(
 	aggregateType event.AggregateType,
 	decide DecideFunc[State],
 ) error {
+	ref := event.NewAggregateRef(aggregateType, aggregateID)
+
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		trace.SpanKindInternal,
@@ -129,31 +131,31 @@ func (r *Repository[State]) Execute(
 	r.applyEnricher(ctx, newEvents)
 
 	if ts, ok := r.store.(event.TransactionalSink); ok && r.outbox != nil {
-		err = ts.SaveWithOutbox(ctx, aggregateType, aggregateID, newEvents, currentVersion)
+		err = ts.SaveWithOutbox(ctx, ref, newEvents, currentVersion)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggregateType, aggregateID, "%w: %w", ErrSaveFailed, err)
+			return opError(ref, "%w: %w", ErrSaveFailed, err)
 		}
 	} else {
-		err = r.store.Save(ctx, aggregateType, aggregateID, newEvents, currentVersion)
+		err = r.store.Save(ctx, ref, newEvents, currentVersion)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggregateType, aggregateID, "%w: %w", ErrSaveFailed, err)
+			return opError(ref, "%w: %w", ErrSaveFailed, err)
 		}
 
 		err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return opError(aggregateType, aggregateID, "publish events: %w", err)
+			return opError(ref, "publish events: %w", err)
 		}
 	}
 
 	newVersion := currentVersion.Add(len(newEvents))
 
-	r.saveSnapshotAfterEvents(ctx, aggregateType, aggregateID, newVersion, state, newEvents)
+	r.saveSnapshotAfterEvents(ctx, ref, newVersion, state, newEvents)
 
 	return nil
 }
@@ -168,7 +170,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	state State,
 	newEvents []event.Event,
 ) {
-	if !r.shouldSnapshot(aggregateType, newVersion) {
+	if !r.shouldSnapshot(ref.Type, newVersion) {
 		return
 	}
 
@@ -179,7 +181,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
-			_ = opError(aggregateType, aggregateID, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+			_ = opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr)
 
 			return
 		}
@@ -187,12 +189,12 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 	encoded, encErr := r.codec.Encode(finalState)
 	if encErr != nil {
-		_ = opError(aggregateType, aggregateID, "encode snapshot: %w", encErr)
+		_ = opError(ref, "encode snapshot: %w", encErr)
 
 		return
 	}
 
-	_ = event.SaveSnapshot(ctx, r.snapshotStore, aggregateType, aggregateID, newVersion, encoded)
+	_ = event.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
 }
 
 // Load reconstructs state from the aggregate's event history without any

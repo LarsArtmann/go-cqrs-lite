@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -112,16 +111,16 @@ func (s *SQLSnapshotStore) Load(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.load",
 		trace.SpanKindClient,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
+		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
 	)
 	defer span.End()
 
-	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
+	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return nil, event.WrapInfrastructure(err, "storage.load_snapshot",
-			fmt.Sprintf("load snapshot for %s %s", aggregateType, aggregateID))
+			fmt.Sprintf("load snapshot for %s %s", ref.Type, ref.ID))
 	}
 
 	return snap, nil
@@ -138,13 +137,13 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		ctx, tracer(), "snapshot.load_at_version",
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
-			cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()),
 		)...),
 	)
 	defer span.End()
 
-	snap, err := s.querySnapshot(ctx, aggregateType, aggregateID)
+	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -154,8 +153,8 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			fmt.Sprintf(
 				"load snapshot at version %d for %s %s",
 				version,
-				aggregateType,
-				aggregateID,
+				ref.Type,
+				ref.ID,
 			),
 		)
 	}
@@ -167,8 +166,8 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			fmt.Sprintf(
 				"load snapshot at version %d for %s %s",
 				version,
-				aggregateType,
-				aggregateID,
+				ref.Type,
+				ref.ID,
 			),
 		)
 		cqrsotel.RecordError(span, err)
@@ -189,9 +188,8 @@ func (s *SQLSnapshotStore) querySnapshot(
 		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
 
 	return s.scanSnapshot(
-		s.db.QueryRowContext(ctx, query, string(aggregateType), aggregateID),
-		aggregateType,
-		aggregateID,
+		s.db.QueryRowContext(ctx, query, string(ref.Type), ref.ID),
+		ref,
 	)
 }
 
@@ -210,11 +208,11 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_not_found",
-				fmt.Sprintf("%s/%s at v%d", aggregateType, aggregateID, event.Version(version)))
+				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)))
 		}
 
 		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",
-			fmt.Sprintf("scan snapshot for %s/%s", aggregateType, aggregateID))
+			fmt.Sprintf("scan snapshot for %s/%s", ref.Type, ref.ID))
 	}
 
 	createdAt, err := s.dialect.ParseTime(timeDest)
@@ -224,8 +222,8 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	}
 
 	return &event.Snapshot{
-		AggregateID:   aggregateID,
-		AggregateType: aggregateType,
+		AggregateID:   ref.ID,
+		AggregateType: ref.Type,
 		Version:       event.Version(version),
 		State:         stateBytes,
 		CreatedAt:     createdAt,
@@ -240,7 +238,7 @@ func (s *SQLSnapshotStore) Delete(
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
 	return deleteByAggregate(
-		s.db, ctx, aggregateType, aggregateID,
+		s.db, ctx, ref,
 		tableSnapshots, p1, p2, "snapshot",
 	)
 }

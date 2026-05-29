@@ -112,7 +112,7 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 
 	expectSnapshotLoadRows(mock, aggID, "John", createdAt)
 
-	snap, err := s.Load(context.Background(), "User", aggID)
+	snap, err := s.Load(context.Background(), event.NewAggregateRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := s.Load(context.Background(), "User", aggID)
+	_, err := s.Load(context.Background(), event.NewAggregateRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
@@ -160,7 +160,7 @@ func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := s.Load(context.Background(), "User", aggID)
+	_, err := s.Load(context.Background(), event.NewAggregateRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -175,7 +175,11 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	expectSnapshotLoadRows(mock, aggID, "Jane", createdAt)
 
-	snap, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(5))
+	snap, err := s.LoadAtVersion(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		event.Version(5),
+	)
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)
 	}
@@ -195,7 +199,11 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(99))
+	_, err := s.LoadAtVersion(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		event.Version(99),
+	)
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
@@ -216,7 +224,11 @@ func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
 			AddRow(10, []byte(`{"name":"Jane"}`), time.Now()))
 
-	_, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(5))
+	_, err := s.LoadAtVersion(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		event.Version(5),
+	)
 	if err == nil {
 		t.Fatal("expected error when stored version exceeds requested")
 	}
@@ -232,7 +244,7 @@ func TestSQLSnapshotStore_Delete(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := s.Delete(context.Background(), "User", aggID)
+	err := s.Delete(context.Background(), event.NewAggregateRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
@@ -248,7 +260,7 @@ func TestSQLSnapshotStore_Delete_Error(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(errors.New("db error"))
 
-	err := s.Delete(context.Background(), "User", aggID)
+	err := s.Delete(context.Background(), event.NewAggregateRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error")
 	}

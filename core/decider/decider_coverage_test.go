@@ -34,8 +34,7 @@ type fakeTransactionalStore struct {
 
 func (f *fakeTransactionalStore) SaveWithOutbox(
 	_ context.Context,
-	_ event.AggregateType,
-	_ id.AggregateID,
+	_ event.AggregateRef,
 	_ []event.Event,
 	_ event.Version,
 ) error {

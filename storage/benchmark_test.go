@@ -65,7 +65,10 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 			WithArgs("User", aggID.String()).
 			WillReturnRows(rows)
 
-		_, _ = store.Load(context.Background(), "User", aggID)
+		_, _ = store.Load(
+			context.Background(),
+			event.NewAggregateRef(event.AggregateType("User"), aggID),
+		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
 			b.Fatalf("unmet expectations: %v", err)
@@ -101,8 +104,8 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		_ = store.Save(
-			context.Background(), event.AggregateType("User"),
-			aggID, []event.Event{evt}, event.Version(1),
+			context.Background(), event.NewAggregateRef(event.AggregateType("User"), aggID),
+			[]event.Event{evt}, event.Version(1),
 		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -152,7 +155,11 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 			WithArgs("User", aggID.String(), 2).
 			WillReturnRows(rows)
 
-		_, _ = store.LoadToVersion(context.Background(), "User", aggID, 2)
+		_, _ = store.LoadToVersion(
+			context.Background(),
+			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			2,
+		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
 			b.Fatalf("unmet expectations: %v", err)

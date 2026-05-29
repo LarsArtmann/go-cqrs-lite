@@ -6,15 +6,14 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 func (a *PebbleEventStore) checkVersion(
 	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
-	prefix := a.aggregatePrefix(aggregateType, aggregateID)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
+	prefix := a.aggregatePrefix(ref)
+	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
 
 	existing, err := a.iterateEvents(prefix, upperBound, nil)
 	if err != nil {
@@ -38,7 +37,7 @@ func (a *PebbleEventStore) writeEventsToBatch(
 	expectedVersion event.Version,
 ) error {
 	for i, evt := range events {
-		err := validateEventOwnership(evt, aggregateType, aggregateID)
+		err := validateEventOwnership(evt, ref)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.validate_event",
 				fmt.Sprintf("validate event %d", i))
@@ -50,12 +49,12 @@ func (a *PebbleEventStore) writeEventsToBatch(
 				fmt.Sprintf("expected %d, got %d", expectedEventVersion, evt.Version()))
 		}
 
-		key := a.eventKey(aggregateType, aggregateID, event.Version(expectedEventVersion))
+		key := a.eventKey(ref, event.Version(expectedEventVersion))
 
 		err = a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.serialize_event",
-				fmt.Sprintf("serialize event %d for %s %s", i, aggregateType, aggregateID))
+				fmt.Sprintf("serialize event %d for %s %s", i, ref.Type, ref.ID))
 		}
 	}
 
@@ -66,14 +65,14 @@ func validateEventOwnership(
 	evt event.Event,
 	ref event.AggregateRef,
 ) error {
-	if evt.AggregateType() != aggregateType {
+	if evt.AggregateType() != ref.Type {
 		return event.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
-			fmt.Sprintf("expected %s, got %s", aggregateType, evt.AggregateType()))
+			fmt.Sprintf("expected %s, got %s", ref.Type, evt.AggregateType()))
 	}
 
-	if evt.AggregateID() != aggregateID {
+	if evt.AggregateID() != ref.ID {
 		return event.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
-			fmt.Sprintf("expected %s, got %s", aggregateID, evt.AggregateID()))
+			fmt.Sprintf("expected %s, got %s", ref.ID, evt.AggregateID()))
 	}
 
 	return nil

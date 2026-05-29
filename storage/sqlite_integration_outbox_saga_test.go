@@ -54,7 +54,7 @@ func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
 
 	err = txStore.SaveWithOutbox(
 		context.Background(),
-		"Issue", aggID,
+		event.NewAggregateRef("Issue", aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -62,7 +62,7 @@ func TestSQLiteTransactionalStore_SaveWithOutbox(t *testing.T) {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -221,8 +221,8 @@ func TestSQLiteOutbox_FullCycle(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	if err := backend.TransactionalStore().
-		SaveWithOutbox(ctx, "Order", aggID, []event.Event{evt}, 0); err != nil {
+	if err := backend.TransactionalSink().
+		SaveWithOutbox(ctx, event.NewAggregateRef("Order", aggID), []event.Event{evt}, 0); err != nil {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
 

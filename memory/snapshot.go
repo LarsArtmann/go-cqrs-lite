@@ -6,7 +6,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // MemorySnapshotStore is an in-memory implementation of event.SnapshotStore.
@@ -68,7 +67,7 @@ func (s *MemorySnapshotStore) Load(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -99,7 +98,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 
 	snapshot, exists := s.snapshots[key]
 	if !exists {
@@ -143,7 +142,7 @@ func (s *MemorySnapshotStore) Delete(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 	delete(s.snapshots, key)
 
 	return nil

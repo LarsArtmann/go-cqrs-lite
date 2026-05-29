@@ -102,14 +102,21 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 		),
 	}
 
-	err := store.AppendBatch(ctx, "Order", aggID, wantEvents)
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+		wantEvents,
+	)
 	if err != nil {
 		t.Fatalf("append batch: %v", err)
 	}
 
 	adapter := event.NewStoreStreamAdapter(store)
 
-	stream, err := adapter.LoadStream(ctx, "Order", aggID)
+	stream, err := adapter.LoadStream(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+	)
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -148,7 +155,10 @@ func TestStoreStreamAdapter_LoadStream_NotFound(t *testing.T) {
 
 	adapter := event.NewStoreStreamAdapter(store)
 
-	_, err := adapter.LoadStream(context.Background(), "Order", id.NewAggregateID())
+	_, err := adapter.LoadStream(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("Order"), id.NewAggregateID()),
+	)
 	if err == nil {
 		t.Fatal("expected error for non-existent aggregate")
 	}

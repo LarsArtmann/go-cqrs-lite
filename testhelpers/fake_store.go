@@ -16,11 +16,11 @@ type FakeStore struct {
 	mu                sync.RWMutex
 	events            map[string][]event.Event
 	saveFn            event.SaveFunc
-	loadFn            func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error)
-	loadFromVersionFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error)
-	loadToVersionFn   func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error)
-	loadToTimestampFn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxTime time.Time) ([]event.Event, error)
-	appendBatchFn     func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error
+	loadFn            func(ref event.AggregateRef) ([]event.Event, error)
+	loadFromVersionFn func(ref event.AggregateRef, version event.Version) ([]event.Event, error)
+	loadToVersionFn   func(ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error)
+	loadToTimestampFn func(ref event.AggregateRef, maxTime time.Time) ([]event.Event, error)
+	appendBatchFn     func(ref event.AggregateRef, events []event.Event) error
 	closeFn           func() error
 	readAllFn         func() ([]event.Event, error)
 	readFromFn        func(afterEventID id.EventID, limit int) ([]event.Event, error)
@@ -35,8 +35,8 @@ func NewFakeStore() *FakeStore {
 // that sets *called to true and returns nil results.
 func VersionQueryFn(
 	called *bool,
-) func(event.AggregateType, id.AggregateID, event.Version) ([]event.Event, error) {
-	return func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+) func(event.AggregateRef, event.Version) ([]event.Event, error) {
+	return func(_ event.AggregateRef, _ event.Version) ([]event.Event, error) {
 		*called = true
 
 		return nil, nil
@@ -59,13 +59,13 @@ func (s *FakeStore) Save(
 	expectedVersion event.Version,
 ) error {
 	if fn := getOverride(s, &s.saveFn); fn != nil {
-		return fn(ctx, aggregateType, aggregateID, events, expectedVersion)
+		return fn(ctx, ref, events, expectedVersion)
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -78,13 +78,13 @@ func (s *FakeStore) AppendBatch(
 	events []event.Event,
 ) error {
 	if fn := getOverride(s, &s.appendBatchFn); fn != nil {
-		return fn(aggregateType, aggregateID, events)
+		return fn(ref, events)
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 	s.events[key] = append(s.events[key], events...)
 
 	return nil
@@ -96,13 +96,13 @@ func (s *FakeStore) Load(
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFn); fn != nil {
-		return fn(aggregateType, aggregateID)
+		return fn(ref)
 	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 
 	return append([]event.Event{}, s.events[key]...), nil
 }
@@ -114,7 +114,7 @@ func (s *FakeStore) loadEventsHelper(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := event.StreamKey(aggregateType, aggregateID)
+	key := ref.StreamKey()
 
 	return s.events[key]
 }
@@ -126,10 +126,10 @@ func (s *FakeStore) LoadFromVersion(
 	version event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFromVersionFn); fn != nil {
-		return fn(aggregateType, aggregateID, version)
+		return fn(ref, version)
 	}
 
-	result := event.SliceFromVersion(s.loadEventsHelper(aggregateType, aggregateID), version)
+	result := event.SliceFromVersion(s.loadEventsHelper(ref), version)
 	if len(result) == 0 {
 		return nil, nil
 	}
@@ -144,10 +144,10 @@ func (s *FakeStore) LoadToVersion(
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToVersionFn); fn != nil {
-		return fn(aggregateType, aggregateID, maxVersion)
+		return fn(ref, maxVersion)
 	}
 
-	return event.SliceToVersion(s.loadEventsHelper(aggregateType, aggregateID), maxVersion), nil
+	return event.SliceToVersion(s.loadEventsHelper(ref), maxVersion), nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime.
@@ -157,10 +157,10 @@ func (s *FakeStore) LoadToTimestamp(
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToTimestampFn); fn != nil {
-		return fn(aggregateType, aggregateID, maxTime)
+		return fn(ref, maxTime)
 	}
 
-	return event.FilterByTimestamp(s.loadEventsHelper(aggregateType, aggregateID), maxTime), nil
+	return event.FilterByTimestamp(s.loadEventsHelper(ref), maxTime), nil
 }
 
 // ReadAll returns all events across all aggregates.

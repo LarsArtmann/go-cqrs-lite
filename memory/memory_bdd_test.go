@@ -38,10 +38,18 @@ var _ = Describe("MemoryStore", func() {
 				"should persist them and let me load them back for my aggregate reconstruction",
 				func() {
 					events := []event.Event{makeMemEvent("Created", aggID, 1)}
-					err := store.Save(ctx, "TestAggregate", aggID, events, 0)
+					err := store.Save(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						events,
+						0,
+					)
 					Expect(err).ToNot(HaveOccurred())
 
-					loaded, err := store.Load(ctx, "TestAggregate", aggID)
+					loaded, err := store.Load(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(1))
 					Expect(loaded[0].Type()).To(Equal(event.Type("Created")))
@@ -54,11 +62,21 @@ var _ = Describe("MemoryStore", func() {
 				"should detect the version mismatch so concurrent writers don't silently overwrite each other",
 				func() {
 					events := []event.Event{makeMemEvent("Created", aggID, 1)}
-					err := store.Save(ctx, "TestAggregate", aggID, events, 0)
+					err := store.Save(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						events,
+						0,
+					)
 					Expect(err).ToNot(HaveOccurred())
 
 					more := []event.Event{makeMemEvent("Updated", aggID, 2)}
-					err = store.Save(ctx, "TestAggregate", aggID, more, 0) // wrong expected version
+					err = store.Save(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						more,
+						0,
+					) // wrong expected version
 					Expect(err).To(HaveOccurred())
 				},
 			)
@@ -66,7 +84,10 @@ var _ = Describe("MemoryStore", func() {
 
 		Context("when I load a non-existent aggregate", func() {
 			It("should explain that the aggregate was not found", func() {
-				_, err := store.Load(ctx, "TestAggregate", aggID)
+				_, err := store.Load(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
 			})
@@ -77,15 +98,31 @@ var _ = Describe("MemoryStore", func() {
 				"should append them after existing events for bulk imports without re-specifying the version",
 				func() {
 					initial := []event.Event{makeMemEvent("Created", aggID, 1)}
-					Expect(store.Save(ctx, "TestAggregate", aggID, initial, 0)).To(Succeed())
+					Expect(
+						store.Save(
+							ctx,
+							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							initial,
+							0,
+						),
+					).To(Succeed())
 
 					batch := []event.Event{
 						makeMemEvent("Updated", aggID, 2),
 						makeMemEvent("Updated", aggID, 3),
 					}
-					Expect(store.AppendBatch(ctx, "TestAggregate", aggID, batch)).To(Succeed())
+					Expect(
+						store.AppendBatch(
+							ctx,
+							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							batch,
+						),
+					).To(Succeed())
 
-					loaded, err := store.Load(ctx, "TestAggregate", aggID)
+					loaded, err := store.Load(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
 				},
@@ -101,17 +138,32 @@ var _ = Describe("MemoryStore", func() {
 						makeMemEvent("Updated", aggID, 2),
 						makeMemEvent("Updated", aggID, 3),
 					}
-					Expect(store.Save(ctx, "TestAggregate", aggID, events, 0)).To(Succeed())
+					Expect(
+						store.Save(
+							ctx,
+							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							events,
+							0,
+						),
+					).To(Succeed())
 
 					// LoadFromVersion(v) returns events from index v onward
 					// Version(2) → index 2 → only version 3 event
-					fromV2, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 2)
+					fromV2, err := store.LoadFromVersion(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						2,
+					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fromV2).To(HaveLen(1))
 					Expect(fromV2[0].Version()).To(Equal(event.Version(3)))
 
 					// Version(1) → index 1 → versions 2 and 3
-					fromV1, err := store.LoadFromVersion(ctx, "TestAggregate", aggID, 1)
+					fromV1, err := store.LoadFromVersion(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						1,
+					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fromV1).To(HaveLen(2))
 				},
@@ -124,8 +176,12 @@ var _ = Describe("MemoryStore", func() {
 				func() {
 					Expect(store.Close()).To(Succeed())
 
-					err := store.Save(ctx, "TestAggregate", aggID,
-						[]event.Event{makeMemEvent("Created", aggID, 1)}, 0)
+					err := store.Save(
+						ctx,
+						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						[]event.Event{makeMemEvent("Created", aggID, 1)},
+						0,
+					)
 					Expect(err).To(HaveOccurred())
 				},
 			)
@@ -235,7 +291,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 				}
 				Expect(snapStore.Save(ctx, snap)).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, aggType, aggID)
+				loaded, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(5)))
 				Expect(loaded.State).To(Equal([]byte(`{"status":"active","items":3}`)))
@@ -252,7 +308,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 					aggID, aggType, event.Version(7), []byte(`{"status":"new"}`),
 				))).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, aggType, aggID)
+				loaded, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(7)))
 			})
@@ -260,7 +316,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 
 		Context("when I load a snapshot for a non-existent aggregate", func() {
 			It("should explain that no snapshot was found so I fall back to full replay", func() {
-				_, err := snapStore.Load(ctx, aggType, aggID)
+				_, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("snapshot not found"))
 			})

@@ -28,18 +28,16 @@ type SnapshotStore interface {
 	// Load retrieves the latest snapshot for an aggregate.
 	Load(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 	) (*Snapshot, error)
 
 	// LoadAtVersion retrieves a snapshot at or before the given version.
 	LoadAtVersion(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		version Version,
 	) (*Snapshot, error)
 
 	// Delete removes the snapshot for an aggregate.
-	Delete(ctx context.Context, aggregateType AggregateType, aggregateID id.AggregateID) error
+	Delete(ctx context.Context, ref AggregateRef) error
 }

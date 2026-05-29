@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-05-28 — Session 123
+**Reconciled:** 2026-05-29 — Session 139
 **Files Processed:** 252
 
 ## Legend
@@ -184,8 +184,8 @@
 - [ ] Build catch-up projection runner (start-from-checkpoint → replay → live-switch) (source: LIVESTORE_DEEP_DIVE)
 - [FUTURE] Make transactional projection contract explicit in Projection interface (source: LIVESTORE_DEEP_DIVE)
 - [x] ~~Add dead letter queue to projection runner~~ — DONE (WithDeadLetterHandler option, called when retries exhaust)
-- [x] ~~Add retry and dead-letter mechanism for InMemoryRunner projections~~ — DONE (WithRetry + WithDeadLetterHandler on Runner)
-- [ ] Add background polling for InMemoryRunner (currently push-model only) (source: FEATURES)
+- [x] ~~Add retry and dead-letter mechanism for InMemoryRunner projections~~ — DONE (WithRetry + WithDeadLetterHandler on projection.Runner; InMemoryRunner removed Session 139)
+- [x] ~~Add background polling for InMemoryRunner~~ — MOOT (InMemoryRunner removed Session 139; projection.Runner handles replay+live)
 - [ ] Increase projection coverage to 95%+ (source: SESSION_45)
 - [x] ~~Implement projection.Runner.Close()~~ — DONE
 - [x] ~~Test MemoryStore.ReadAll~~ — DONE

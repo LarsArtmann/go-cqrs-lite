@@ -18,6 +18,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
 )
 
+const yamlContentType = "text/yaml; charset=utf-8"
+
 // CatalogProvider returns a fresh catalog on each call.
 // Typically wraps catalog.Builder.Build().
 type CatalogProvider func() *catalog.Catalog
@@ -180,7 +182,7 @@ func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+	w.Header().Set("Content-Type", yamlContentType)
 
 	_, _ = w.Write(b)
 }
@@ -211,7 +213,7 @@ func (ds *DocsServer) serveYAML(w http.ResponseWriter, jsonBytes []byte, errMsg 
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+	w.Header().Set("Content-Type", yamlContentType)
 
 	_, _ = w.Write(yamlStr)
 }

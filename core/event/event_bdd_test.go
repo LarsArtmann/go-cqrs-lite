@@ -159,9 +159,11 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				events := []event.Event{
 					mustNewEvent("OrderPlaced", aggID, aggType, 1),
 				}
-				Expect(store.Save(ctx, aggType, aggID, events, 0)).To(Succeed())
+				Expect(
+					store.Save(ctx, event.NewAggregateRef(aggType, aggID), events, 0),
+				).To(Succeed())
 
-				loaded, err := store.Load(ctx, aggType, aggID)
+				loaded, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Version()).To(Equal(event.Version(1)))
@@ -170,11 +172,11 @@ var _ = Describe("Event Store via MemoryStore", func() {
 
 		Context("when I save with a wrong expected version", func() {
 			It("should detect the version conflict", func() {
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{
+				Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 					mustNewEvent("OrderPlaced", aggID, aggType, 1),
 				}, 0)).To(Succeed())
 
-				err := store.Save(ctx, aggType, aggID, []event.Event{
+				err := store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
 				}, 0)
 				Expect(err).To(HaveOccurred())
@@ -186,20 +188,20 @@ var _ = Describe("Event Store via MemoryStore", func() {
 			It(
 				"should succeed on the second attempt so I can recover from concurrent writes",
 				func() {
-					Expect(store.Save(ctx, aggType, aggID, []event.Event{
+					Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 						mustNewEvent("OrderPlaced", aggID, aggType, 1),
 					}, 0)).To(Succeed())
 
-					err := store.Save(ctx, aggType, aggID, []event.Event{
+					err := store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
 					}, 0)
 					Expect(err).To(HaveOccurred())
 
-					loaded, loadErr := store.Load(ctx, aggType, aggID)
+					loaded, loadErr := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
 					Expect(loadErr).ToNot(HaveOccurred())
 					currentVersion := len(loaded)
 
-					Expect(store.Save(ctx, aggType, aggID, []event.Event{
+					Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
 					}, event.Version(currentVersion))).To(Succeed())
 				},
@@ -208,7 +210,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 
 		Context("when I close the store", func() {
 			BeforeEach(func() {
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{
+				Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 					mustNewEvent("OrderPlaced", aggID, aggType, 1),
 				}, 0)).To(Succeed())
 			})
@@ -218,7 +220,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				func() {
 					Expect(store.Close()).To(Succeed())
 
-					err := store.Save(ctx, aggType, aggID, []event.Event{
+					err := store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
 					}, 1)
 					Expect(err).To(HaveOccurred())
@@ -249,12 +251,19 @@ var _ = Describe("Schema Evolution", func() {
 					event.WithSchemaVersion(1),
 				)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{v1Event}, 0)).To(Succeed())
+				Expect(
+					store.Save(
+						ctx,
+						event.NewAggregateRef(aggType, aggID),
+						[]event.Event{v1Event},
+						0,
+					),
+				).To(Succeed())
 
 				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
 				versioned := event.NewVersionedStore(store, upcaster)
 
-				loaded, err := versioned.Load(ctx, aggType, aggID)
+				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
@@ -272,12 +281,19 @@ var _ = Describe("Schema Evolution", func() {
 						event.WithSchemaVersion(2),
 					)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(store.Save(ctx, aggType, aggID, []event.Event{v2Event}, 0)).To(Succeed())
+					Expect(
+						store.Save(
+							ctx,
+							event.NewAggregateRef(aggType, aggID),
+							[]event.Event{v2Event},
+							0,
+						),
+					).To(Succeed())
 
 					upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
 					versioned := event.NewVersionedStore(store, upcaster)
 
-					loaded, err := versioned.Load(ctx, aggType, aggID)
+					loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
 					Expect(loaded[0].Payload()).To(ContainSubstring("a@b.com"))
@@ -293,7 +309,14 @@ var _ = Describe("Schema Evolution", func() {
 					event.WithSchemaVersion(1),
 				)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(store.Save(ctx, aggType, aggID, []event.Event{v1Event}, 0)).To(Succeed())
+				Expect(
+					store.Save(
+						ctx,
+						event.NewAggregateRef(aggType, aggID),
+						[]event.Event{v1Event},
+						0,
+					),
+				).To(Succeed())
 
 				upcasterV1toV2 := makeUpcaster(
 					"UserCreated",
@@ -307,7 +330,7 @@ var _ = Describe("Schema Evolution", func() {
 				)
 				versioned := event.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
 
-				loaded, err := versioned.Load(ctx, aggType, aggID)
+				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(3)))
 				Expect(loaded[0].Payload()).To(ContainSubstring("fullName"))

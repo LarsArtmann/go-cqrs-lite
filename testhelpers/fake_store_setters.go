@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // SaveFn sets an optional override for Save calls.
@@ -16,7 +15,7 @@ func (s *FakeStore) SaveFn(fn event.SaveFunc) *FakeStore {
 }
 
 func (s *FakeStore) LoadFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID) ([]event.Event, error),
+	fn func(ref event.AggregateRef) ([]event.Event, error),
 ) *FakeStore {
 	s.loadFn = fn
 
@@ -24,7 +23,7 @@ func (s *FakeStore) LoadFn(
 }
 
 func (s *FakeStore) LoadFromVersionFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, version event.Version) ([]event.Event, error),
+	fn func(ref event.AggregateRef, version event.Version) ([]event.Event, error),
 ) *FakeStore {
 	s.loadFromVersionFn = fn
 
@@ -39,7 +38,7 @@ func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
 }
 
 func (s *FakeStore) AppendBatchFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, events []event.Event) error,
+	fn func(ref event.AggregateRef, events []event.Event) error,
 ) *FakeStore {
 	s.appendBatchFn = fn
 
@@ -47,7 +46,7 @@ func (s *FakeStore) AppendBatchFn(
 }
 
 func (s *FakeStore) LoadToVersionFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxVersion event.Version) ([]event.Event, error),
+	fn func(ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error),
 ) *FakeStore {
 	s.loadToVersionFn = fn
 
@@ -55,7 +54,7 @@ func (s *FakeStore) LoadToVersionFn(
 }
 
 func (s *FakeStore) LoadToTimestampFn(
-	fn func(aggregateType event.AggregateType, aggregateID id.AggregateID, maxTime time.Time) ([]event.Event, error),
+	fn func(ref event.AggregateRef, maxTime time.Time) ([]event.Event, error),
 ) *FakeStore {
 	s.loadToTimestampFn = fn
 

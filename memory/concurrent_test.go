@@ -82,8 +82,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 
 			_ = store.Save(
 				context.Background(),
-				aggType,
-				aggID,
+				event.NewAggregateRef(aggType, aggID),
 				[]event.Event{evt},
 				event.Version(0),
 			)
@@ -197,7 +196,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 
 	wg.Wait()
 
-	snap, err := store.Load(context.Background(), aggType, aggID)
+	snap, err := store.Load(context.Background(), event.NewAggregateRef(aggType, aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

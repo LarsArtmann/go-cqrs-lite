@@ -22,12 +22,16 @@ func TestPebbleEventStore_LoadFromVersion(t *testing.T) {
 	evt2 := cfg.newTestEvent(t, aggID, 2)
 	evt3 := cfg.newTestEvent(t, aggID, 3)
 
-	err := store.AppendBatch(ctx, cfg.aggType, aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(cfg.aggType, aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, cfg.aggType, aggID, 1)
+	events, err := store.LoadFromVersion(ctx, event.NewAggregateRef(cfg.aggType, aggID), 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -50,12 +54,12 @@ func TestPebbleEventStore_LoadFromVersion_Empty(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	evt1 := cfg.newTestEvent(t, aggID, 1)
-	err := store.AppendBatch(ctx, cfg.aggType, aggID, []event.Event{evt1})
+	err := store.AppendBatch(ctx, event.NewAggregateRef(cfg.aggType, aggID), []event.Event{evt1})
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, cfg.aggType, aggID, 5)
+	events, err := store.LoadFromVersion(ctx, event.NewAggregateRef(cfg.aggType, aggID), 5)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -77,12 +81,16 @@ func TestPebbleEventStore_LoadToVersion(t *testing.T) {
 	evt2 := cfg.newTestEvent(t, aggID, 2)
 	evt3 := cfg.newTestEvent(t, aggID, 3)
 
-	err := store.AppendBatch(ctx, cfg.aggType, aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(cfg.aggType, aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToVersion(ctx, cfg.aggType, aggID, 2)
+	events, err := store.LoadToVersion(ctx, event.NewAggregateRef(cfg.aggType, aggID), 2)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -97,7 +105,11 @@ func TestPebbleEventStore_LoadToVersion_NotFound(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 
-	_, err := store.LoadToVersion(context.Background(), "Issue", id.NewAggregateID(), 5)
+	_, err := store.LoadToVersion(
+		context.Background(),
+		event.NewAggregateRef("Issue", id.NewAggregateID()),
+		5,
+	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
@@ -116,12 +128,20 @@ func TestPebbleEventStore_LoadToTimestamp(t *testing.T) {
 	evt2 := cfg.newTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
 	evt3 := cfg.newTestEvent(t, aggID, 3, event.WithOccurredAt(now))
 
-	err := store.AppendBatch(ctx, cfg.aggType, aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(cfg.aggType, aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToTimestamp(ctx, cfg.aggType, aggID, now.Add(-30*time.Minute))
+	events, err := store.LoadToTimestamp(
+		ctx,
+		event.NewAggregateRef(cfg.aggType, aggID),
+		now.Add(-30*time.Minute),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -136,7 +156,11 @@ func TestPebbleEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 
-	_, err := store.LoadToTimestamp(context.Background(), "Issue", id.NewAggregateID(), time.Now())
+	_, err := store.LoadToTimestamp(
+		context.Background(),
+		event.NewAggregateRef("Issue", id.NewAggregateID()),
+		time.Now(),
+	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
@@ -160,8 +184,7 @@ func TestPebbleEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 			evt := cfg.newTestEvent(t, aggID, 2)
 			errCh <- store.Save(
 				context.Background(),
-				cfg.aggType,
-				aggID,
+				event.NewAggregateRef(cfg.aggType, aggID),
 				[]event.Event{evt},
 				event.Version(1),
 			)
@@ -189,7 +212,7 @@ func TestPebbleEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 		t.Fatalf("expected %d conflicts, got %d", goroutines-1, conflicts)
 	}
 
-	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.aggType, aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

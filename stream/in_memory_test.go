@@ -166,9 +166,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx,
-		"User",
-		activeID,
+		ctx, event.NewAggregateRef(event.AggregateType("User"), activeID),
 		[]event.Event{activeEvt},
 		event.Version(0),
 	); err != nil {
@@ -187,9 +185,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx,
-		"User",
-		deletedID,
+		ctx, event.NewAggregateRef(event.AggregateType("User"), deletedID),
 		[]event.Event{deletedEvt},
 		event.Version(0),
 	); err != nil {
@@ -207,9 +203,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx,
-		"Order",
-		orderID,
+		ctx, event.NewAggregateRef(event.AggregateType("Order"), orderID),
 		[]event.Event{orderEvt},
 		event.Version(0),
 	); err != nil {

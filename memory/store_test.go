@@ -23,17 +23,27 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 
-	err := store.Save(ctx, "User", aggID, []event.Event{evt1}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = store.Save(ctx, "User", aggID, []event.Event{evt2}, 1)
+	err = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt2},
+		1,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, "User", aggID)
+	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -50,7 +60,12 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
-	err := store.Save(ctx, "User", aggID, []event.Event{evt}, 5)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+		5,
+	)
 	if err == nil {
 		t.Error("expected version conflict error")
 	}
@@ -62,7 +77,13 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	_, err := store.Load(ctx, "User", id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E"))
+	_, err := store.Load(
+		ctx,
+		event.NewAggregateRef(
+			event.AggregateType("User"),
+			id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E"),
+		),
+	)
 	if err == nil {
 		t.Error("expected aggregate not found error")
 	}
@@ -79,9 +100,18 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
-	_ = store.Save(ctx, "User", aggID, []event.Event{evt1, evt2, evt3}, 0)
+	_ = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+		0,
+	)
 
-	events, err := store.LoadFromVersion(ctx, "User", aggID, 1)
+	events, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		1,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +130,12 @@ func TestMemoryStore_Closed(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
-	err := store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+		0,
+	)
 	if err == nil {
 		t.Error("expected store closed error")
 	}
@@ -113,7 +148,13 @@ func TestMemoryStore_ClosedLoad(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Close()
 
-	_, err := store.Load(ctx, "User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	_, err := store.Load(
+		ctx,
+		event.NewAggregateRef(
+			event.AggregateType("User"),
+			id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		),
+	)
 	if err == nil {
 		t.Error("expected store closed error on Load")
 	}
@@ -128,7 +169,11 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	_, err := store.LoadFromVersion(ctx, "User", aggID, 0)
+	_, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		0,
+	)
 	if err == nil {
 		t.Error("expected store closed error on LoadFromVersion")
 	}
@@ -142,7 +187,11 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E")
 
-	_, err := store.LoadFromVersion(ctx, "User", aggID, 0)
+	_, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		0,
+	)
 	if err == nil {
 		t.Error("expected aggregate not found error")
 	}
@@ -156,9 +205,18 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK154PCGXJ80RFXRASTMSSK0")
 	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(ctx, "User", aggID, []event.Event{evt}, 0)
+	_ = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+		0,
+	)
 
-	events, err := store.LoadFromVersion(ctx, "User", aggID, 1)
+	events, err := store.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		1,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -177,12 +235,16 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
-	err := store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, "User", aggID)
+	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -198,17 +260,26 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK154RB0WD5V767Z27XMXRX0")
 	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	_ = store.Save(ctx, "User", aggID, []event.Event{evt1}, 0)
+	_ = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1},
+		0,
+	)
 
 	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
-	err := store.AppendBatch(ctx, "User", aggID, []event.Event{evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, "User", aggID)
+	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -225,7 +296,11 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK154SA8Y7AMZCYV919GE46K")
 	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
-	err := store.AppendBatch(context.Background(), "User", aggID, []event.Event{evt})
+	err := store.AppendBatch(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		[]event.Event{evt},
+	)
 	if err == nil {
 		t.Error("expected store closed error")
 	}
@@ -249,9 +324,14 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			for j := range eventsPerGoroutine {
-				evt := testhelpers.QuickEvent("UserCreated", aggID, "User", event.Version(j+1), nil)
-				_ = store.Save(ctx, "User", aggID, []event.Event{evt}, event.Version(j))
+			for idx := range eventsPerGoroutine {
+				evt := testhelpers.QuickEvent("UserCreated", aggID, "User", event.Version(idx+1), nil)
+				_ = store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("User"), aggID),
+					[]event.Event{evt},
+					event.Version(idx),
+				)
 			}
 		}()
 
@@ -259,7 +339,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for range eventsPerGoroutine {
-				_, _ = store.Load(ctx, "User", aggID)
+				_, _ = store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 			}
 		}()
 
@@ -280,9 +360,17 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 1, nil)
 	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 2, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 
-	events, err := store.LoadToVersion(ctx, "User", aggID, 2)
+	events, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		2,
+	)
 	testhelpers.AssertNoError(t, err, "LoadToVersion")
 	testhelpers.AssertLen(t, "events", events, 2)
 }
@@ -296,9 +384,17 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+	)
 
-	events, err := store.LoadToVersion(ctx, "User", aggID, 100)
+	events, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		100,
+	)
 	testhelpers.AssertNoError(t, err, "LoadToVersion")
 	testhelpers.AssertLen(t, "events", events, 1)
 }
@@ -311,7 +407,7 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	_, err := store.LoadToVersion(ctx, "User", aggID, 5)
+	_, err := store.LoadToVersion(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID), 5)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
@@ -323,7 +419,11 @@ func TestMemoryStore_LoadToVersion_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	_, err := store.LoadToVersion(context.Background(), "User", id.NewAggregateID(), 1)
+	_, err := store.LoadToVersion(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+		1,
+	)
 	if err == nil {
 		t.Fatal("expected error for closed store")
 	}
@@ -346,7 +446,11 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 		[3]event.Version{1, 1, 2},
 	)
 
-	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
+	loaded, err := store.LoadToTimestamp(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		now.Add(-30*time.Minute),
+	)
 	testhelpers.AssertNoError(t, err, "LoadToTimestamp")
 	testhelpers.AssertLen(t, "loaded", loaded, 2)
 }
@@ -357,8 +461,8 @@ func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 
 	_, err := store.LoadToTimestamp(
-		context.Background(), "User",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		context.Background(),
+		event.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -372,7 +476,11 @@ func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	_, err := store.LoadToTimestamp(context.Background(), "User", id.NewAggregateID(), time.Now())
+	_, err := store.LoadToTimestamp(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+		time.Now(),
+	)
 	if err == nil {
 		t.Fatal("expected error for closed store")
 	}
@@ -397,20 +505,20 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 		{Type: "Updated", Version: 1, Offset: 0},
 	})
 
-	_ = store.AppendBatch(ctx, "User", aggID1, evt1)
-	_ = store.AppendBatch(ctx, "Order", aggID2, evt2)
-	_ = store.AppendBatch(ctx, "User", aggID1, evt3)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt1)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID2), evt2)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt3)
 
-	all, err := store.LoadAll(ctx)
-	testhelpers.AssertNoError(t, err, "LoadAll")
+	all, err := store.ReadAll(ctx)
+	testhelpers.AssertNoError(t, err, "ReadAll")
 	testhelpers.AssertLen(t, "all events", all, 3)
 
-	fromPos, err := store.LoadAllFromPosition(ctx, evt1[0].ID(), 1)
-	testhelpers.AssertNoError(t, err, "LoadAllFromPosition")
+	fromPos, err := store.ReadFrom(ctx, evt1[0].ID(), 1)
+	testhelpers.AssertNoError(t, err, "ReadFrom")
 	testhelpers.AssertLen(t, "from position", fromPos, 1)
 }
 
-func TestMemoryStore_LoadAllFromPosition_ZeroID(t *testing.T) {
+func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
@@ -419,14 +527,18 @@ func TestMemoryStore_LoadAllFromPosition_ZeroID(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+	_ = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt},
+	)
 
-	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 10)
-	testhelpers.AssertNoError(t, err, "LoadAllFromPosition with zero ID")
+	events, err := store.ReadFrom(ctx, id.EventID{}, 10)
+	testhelpers.AssertNoError(t, err, "ReadFrom with zero ID")
 	testhelpers.AssertLen(t, "events", events, 1)
 }
 
-func TestMemoryStore_LoadAllFromPosition_WithLimit(t *testing.T) {
+func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
@@ -435,18 +547,18 @@ func TestMemoryStore_LoadAllFromPosition_WithLimit(t *testing.T) {
 	aggID := id.NewAggregateID()
 	seedTestEvents(t, store, ctx, aggID, 5)
 
-	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 3)
-	testhelpers.AssertNoError(t, err, "LoadAllFromPosition with limit")
+	events, err := store.ReadFrom(ctx, id.EventID{}, 3)
+	testhelpers.AssertNoError(t, err, "ReadFrom with limit")
 	testhelpers.AssertLen(t, "events", events, 3)
 }
 
-func TestMemoryStore_LoadAllFromPosition_Closed(t *testing.T) {
+func TestMemoryStore_ReadFrom_Closed(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	_, err := store.LoadAllFromPosition(context.Background(), id.EventID{}, 10)
+	_, err := store.ReadFrom(context.Background(), id.EventID{}, 10)
 	if err == nil {
 		t.Fatal("expected error for closed store")
 	}
@@ -463,13 +575,20 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 2, nil)
 	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 3, nil)
 
-	err := store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	backwardsLoader := event.BackwardsSource(store)
-	events, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
+	events, err := backwardsLoader.LoadBackwards(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -492,7 +611,10 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	backwardsLoader := event.BackwardsSource(store)
-	_, err := backwardsLoader.LoadBackwards(ctx, "User", aggID)
+	_, err := backwardsLoader.LoadBackwards(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
 	}
@@ -505,7 +627,7 @@ func TestMemoryStore_LoadBackwards_Closed(t *testing.T) {
 	_ = store.Close()
 
 	backwardsLoader := event.BackwardsSource(store)
-	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", id.AggregateID{})
+	_, err := backwardsLoader.LoadBackwards(context.Background(), event.AggregateRef{})
 	if err == nil {
 		t.Fatal("expected error for closed store")
 	}
@@ -522,6 +644,10 @@ func seedTestEvents(
 
 	for i := range n {
 		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
-		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
+		_ = store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			[]event.Event{evt},
+		)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 var _ event.StreamLoader = (*MemoryStore)(nil)
@@ -15,7 +14,7 @@ func (s *MemoryStore) LoadStream(
 	_ context.Context,
 	ref event.AggregateRef,
 ) (event.EventStream, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load stream")
+	events, err := s.getEvents(ref, "load stream")
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,

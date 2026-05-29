@@ -34,35 +34,6 @@ func ExampleNewEvent() {
 	// 1
 }
 
-func ExampleInMemoryRunner() {
-	checkpoint := memory.NewMemoryCheckpointStore()
-
-	runner, err := event.NewInMemoryRunner(checkpoint)
-	if err != nil {
-		fmt.Println("error:", err)
-
-		return
-	}
-
-	proj := event.NewProjection(
-		"my-projection",
-		func(_ context.Context, evt event.Event) error {
-			fmt.Println(string(evt.Type()))
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	)
-
-	_ = runner.Register(proj)
-
-	evt, _ := event.NewEvent("UserCreated", id.NewAggregateID(), "User", 1, nil)
-	_ = runner.Handle(context.Background(), evt)
-
-	// Output:
-	// UserCreated
-}
-
 func ExampleNewVersionedStore() {
 	aggID := id.NewAggregateID()
 
@@ -76,7 +47,12 @@ func ExampleNewVersionedStore() {
 	)
 
 	store := memory.NewMemoryStore()
-	_ = store.Save(context.Background(), "User", aggID, []event.Event{v1Event}, 0)
+	_ = store.Save(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		[]event.Event{v1Event},
+		0,
+	)
 
 	upcaster := makeUpcaster(
 		"UserCreated",
@@ -86,7 +62,10 @@ func ExampleNewVersionedStore() {
 
 	versioned := event.NewVersionedStore(store, upcaster)
 
-	events, err := versioned.Load(context.Background(), "User", aggID)
+	events, err := versioned.Load(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if err != nil {
 		fmt.Println("error:", err)
 

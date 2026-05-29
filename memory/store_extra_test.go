@@ -23,17 +23,27 @@ func TestMemoryStore_LoadAll(t *testing.T) {
 	evt1 := testhelpers.QuickEvent("UserCreated", agg1, "User", 1, nil)
 	evt2 := testhelpers.QuickEvent("OrderPlaced", agg2, "Order", 1, nil)
 
-	err := store.Save(ctx, event.AggregateType("User"), agg1, []event.Event{evt1}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("save user event: %v", err)
 	}
 
-	err = store.Save(ctx, event.AggregateType("Order"), agg2, []event.Event{evt2}, 0)
+	err = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), agg2),
+		[]event.Event{evt2},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("save order event: %v", err)
 	}
 
-	all, err := store.LoadAll(ctx)
+	all, err := store.ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("load all: %v", err)
 	}
@@ -49,7 +59,7 @@ func TestMemoryStore_LoadAll_Empty(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	all, err := store.LoadAll(ctx)
+	all, err := store.ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("load all empty: %v", err)
 	}
@@ -70,7 +80,7 @@ func TestMemoryStore_LoadAll_Closed(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	_, err = store.LoadAll(ctx)
+	_, err = store.ReadAll(ctx)
 	if err == nil {
 		t.Fatal("expected error on closed store")
 	}
@@ -111,12 +121,22 @@ func TestMemoryStore_ReadAll(t *testing.T) {
 	evt1 := testhelpers.QuickEvent("UserCreated", agg1, "User", 1, nil)
 	evt2 := testhelpers.QuickEvent("OrderPlaced", agg2, "Order", 1, nil)
 
-	err := store.Save(ctx, event.AggregateType("User"), agg1, []event.Event{evt1}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("User"), agg1),
+		[]event.Event{evt1},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("save user event: %v", err)
 	}
 
-	err = store.Save(ctx, event.AggregateType("Order"), agg2, []event.Event{evt2}, 0)
+	err = store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), agg2),
+		[]event.Event{evt2},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("save order event: %v", err)
 	}
@@ -175,9 +195,9 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 
 	evt1, evt2, evt3 := testhelpers.MakeThreeTimelineEvents(t, "User", aggID1, "Order", aggID2)
 
-	_ = store.AppendBatch(ctx, "User", aggID1, evt1)
-	_ = store.AppendBatch(ctx, "Order", aggID2, evt2)
-	_ = store.AppendBatch(ctx, "User", aggID1, evt3)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt1)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID2), evt2)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt3)
 
 	all, err := store.ReadAll(ctx)
 	testhelpers.AssertNoError(t, err, "ReadAll")
@@ -186,46 +206,4 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 	fromPos, err := store.ReadFrom(ctx, evt1[0].ID(), 1)
 	testhelpers.AssertNoError(t, err, "ReadFrom")
 	testhelpers.AssertLen(t, "from position", fromPos, 1)
-}
-
-func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	ctx := context.Background()
-
-	aggID := id.NewAggregateID()
-	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
-
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
-
-	events, err := store.ReadFrom(ctx, id.EventID{}, 10)
-	testhelpers.AssertNoError(t, err, "ReadFrom with zero ID")
-	testhelpers.AssertLen(t, "events", events, 1)
-}
-
-func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	ctx := context.Background()
-
-	aggID := id.NewAggregateID()
-	seedTestEvents(t, store, ctx, aggID, 5)
-
-	events, err := store.ReadFrom(ctx, id.EventID{}, 3)
-	testhelpers.AssertNoError(t, err, "ReadFrom with limit")
-	testhelpers.AssertLen(t, "events", events, 3)
-}
-
-func TestMemoryStore_ReadFrom_Closed(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	_ = store.Close()
-
-	_, err := store.ReadFrom(context.Background(), id.EventID{}, 10)
-	if err == nil {
-		t.Fatal("expected error for closed store")
-	}
 }

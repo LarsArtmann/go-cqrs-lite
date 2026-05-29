@@ -66,7 +66,12 @@ func TestSQLEventStore_Save_EmptyEvents(t *testing.T) {
 	store, _ := newTestStore(t)
 	aggID := id.NewAggregateID()
 
-	err := store.Save(context.Background(), "User", aggID, nil, event.Version(0))
+	err := store.Save(
+		context.Background(),
+		event.NewAggregateRef("User", aggID),
+		nil,
+		event.Version(0),
+	)
 	if err != nil {
 		t.Fatalf("Save with empty events: %v", err)
 	}
@@ -159,8 +164,7 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 
 	err := store.AppendBatch(
 		context.Background(),
-		"User",
-		evt1.AggregateID(),
+		event.NewAggregateRef("User", evt1.AggregateID()),
 		[]event.Event{evt1, evt2},
 	)
 	if err != nil {
@@ -179,7 +183,7 @@ func TestSQLEventStore_AppendBatch_EmptyEvents(t *testing.T) {
 	store, _ := newTestStore(t)
 	aggID := id.NewAggregateID()
 
-	err := store.AppendBatch(context.Background(), "User", aggID, nil)
+	err := store.AppendBatch(context.Background(), event.NewAggregateRef("User", aggID), nil)
 	if err != nil {
 		t.Fatalf("AppendBatch with empty events: %v", err)
 	}

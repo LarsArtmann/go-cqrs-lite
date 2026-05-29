@@ -93,7 +93,7 @@ func (s *SQLEventStore) insertEvents(
 	)
 
 	return sharedInsertEvents(
-		ctx, tx, aggregateType, aggregateID, events,
+		ctx, tx, ref, events,
 		insertSQL, s.dialect.FormatTime,
 	)
 }

@@ -169,8 +169,7 @@ func TestTurso_TransactionalStore_SaveWithOutbox(t *testing.T) {
 
 	err = txStore.SaveWithOutbox(
 		context.Background(),
-		"Order",
-		aggID,
+		event.NewAggregateRef("Order", aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -178,7 +177,7 @@ func TestTurso_TransactionalStore_SaveWithOutbox(t *testing.T) {
 		t.Fatalf("SaveWithOutbox: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), "Order", aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef("Order", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -245,7 +244,12 @@ func TestTurso_FullWorkflow(t *testing.T) {
 
 	for i := range 5 {
 		evt := orderStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
-		err := store.Save(ctx, "Order", aggID, []event.Event{evt}, event.Version(i))
+		err := store.Save(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Order"), aggID),
+			[]event.Event{evt},
+			event.Version(i),
+		)
 		if err != nil {
 			t.Fatalf("Save event %d: %v", i+1, err)
 		}
@@ -255,7 +259,7 @@ func TestTurso_FullWorkflow(t *testing.T) {
 		}
 	}
 
-	events, err := store.Load(ctx, "Order", aggID)
+	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -289,22 +293,17 @@ func TestTurso_FullWorkflow(t *testing.T) {
 		t.Errorf("checkpoint = %v, want %v", checkpoint, lastEventID)
 	}
 
-	toV3, err := store.LoadToVersion(ctx, "Order", aggID, event.Version(3))
+	toV3, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+		event.Version(3),
+	)
 	if err != nil {
 		t.Fatalf("LoadToVersion(3): %v", err)
 	}
 
 	if len(toV3) != 3 {
 		t.Fatalf("expected 3 events to version 3, got %d", len(toV3))
-	}
-
-	fromPosition, err := store.LoadAllFromPosition(ctx, events[2].ID(), 10)
-	if err != nil {
-		t.Fatalf("LoadAllFromPosition: %v", err)
-	}
-
-	if len(fromPosition) != 2 {
-		t.Fatalf("expected 2 events after position, got %d", len(fromPosition))
 	}
 
 	readFrom, err := store.ReadFrom(ctx, events[2].ID(), 10)
@@ -377,7 +376,7 @@ func TestNewTursoBackend(t *testing.T) {
 	if backend.Outbox() == nil {
 		t.Fatal("expected non-nil Outbox")
 	}
-	if backend.TransactionalStore() == nil {
+	if backend.TransactionalSink() == nil {
 		t.Fatal("expected non-nil TransactionalStore")
 	}
 	if backend.SagaStore() == nil {

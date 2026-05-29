@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	filePerm = 0o600
-	dirPerm  = 0o750
+	filePerm  = 0o600
+	dirPerm   = 0o750
+	indexFile = "index.mdx"
 )
 
 // Exporter generates EventCatalog-compatible MDX files from a catalog.
@@ -151,7 +152,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	writeAttachments(md, svc.Attachments)
 	md.finishWithGraph(svc.Name, svc.Summary)
 
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
 
 func collectMessageIDs(
@@ -211,5 +212,5 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	writeAttachments(md, domain.Attachments)
 	md.finishWithGraph(domain.Name, domain.Summary)
 
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }

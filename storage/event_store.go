@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -71,6 +70,7 @@ func (s *SQLEventStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
+	aggregateType, aggregateID := ref.Type, ref.ID
 	if len(events) == 0 {
 		return nil
 	}
@@ -78,8 +78,7 @@ func (s *SQLEventStore) Save(
 	ctx, span := startSaveSpan(
 		ctx,
 		"event.store.save",
-		aggregateType,
-		aggregateID,
+		ref,
 		expectedVersion,
 		len(events),
 	)
@@ -97,7 +96,7 @@ func (s *SQLEventStore) Save(
 		_ = tx.Rollback()
 	}()
 
-	err = s.checkVersion(ctx, tx, aggregateType, aggregateID, expectedVersion)
+	err = s.checkVersion(ctx, tx, ref, expectedVersion)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -105,9 +104,9 @@ func (s *SQLEventStore) Save(
 			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
-	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	err = s.insertEvents(ctx, tx, ref, events)
 	if err != nil {
-		return s.wrapInsertEventsErr(span, err, events, aggregateType, aggregateID)
+		return s.wrapInsertEventsErr(span, err, events, ref)
 	}
 
 	err = commitTx(tx)
@@ -133,7 +132,7 @@ func (s *SQLEventStore) AppendBatch(
 		ctx, tracer(), "event.store.append_batch",
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
-			cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrEventCount, len(events)),
 		)...),
 	)
@@ -151,9 +150,9 @@ func (s *SQLEventStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
+	err = s.insertEvents(ctx, tx, ref, events)
 	if err != nil {
-		return s.wrapInsertEventsErr(span, err, events, aggregateType, aggregateID)
+		return s.wrapInsertEventsErr(span, err, events, ref)
 	}
 
 	err = commitTx(tx)
@@ -173,7 +172,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 	cqrsotel.RecordError(span, err)
 
 	return event.WrapInfrastructure(err, "storage.insert_events",
-		fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
+		fmt.Sprintf("insert %d events for %s", len(events), ref))
 }
 
 func (s *SQLEventStore) checkVersion(
@@ -186,7 +185,7 @@ func (s *SQLEventStore) checkVersion(
 
 	query := fmt.Sprintf(checkVersionQuery, p1, p2)
 
-	return sharedCheckVersion(ctx, tx, aggregateType, aggregateID, expectedVersion, query)
+	return sharedCheckVersion(ctx, tx, ref, expectedVersion, query)
 }
 
 var (

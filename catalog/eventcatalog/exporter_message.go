@@ -24,7 +24,7 @@ func (e *Exporter) writeMessage(
 
 	md := buildMessageFrontmatter(messageID, msg)
 
-	err = e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	err = e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 	if err != nil {
 		return fmt.Errorf("write message file for %s/%s: %w", serviceID, kind, err)
 	}

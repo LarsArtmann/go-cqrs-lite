@@ -143,7 +143,12 @@ func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
-	saveErr := store.Save(context.Background(), "User", evt.AggregateID(), []event.Event{evt}, 0)
+	saveErr := store.Save(
+		context.Background(),
+		event.NewAggregateRef("User", evt.AggregateID()),
+		[]event.Event{evt},
+		0,
+	)
 	if saveErr != nil {
 		t.Fatalf("Save: %v", saveErr)
 	}
@@ -176,7 +181,12 @@ func TestRunner_ReplayError_HandlerFails(t *testing.T) {
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
-	saveErr := store.Save(context.Background(), "User", evt.AggregateID(), []event.Event{evt}, 0)
+	saveErr := store.Save(
+		context.Background(),
+		event.NewAggregateRef("User", evt.AggregateID()),
+		[]event.Event{evt},
+		0,
+	)
 	if saveErr != nil {
 		t.Fatalf("Save: %v", saveErr)
 	}

@@ -53,14 +53,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			event.AggregateType("User"),
-			aggID,
+			event.NewAggregateRef(event.AggregateType("User"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, event.AggregateType("User"), aggID)
+		loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(1))
 
@@ -94,14 +93,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			event.AggregateType("Test"),
-			aggID,
+			event.NewAggregateRef(event.AggregateType("Test"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, event.AggregateType("Test"), aggID)
+		loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded[0].Payload()).To(Equal(payload))
 		Expect(loaded[0].OccurredAt()).To(BeTemporally("~", evt.OccurredAt(), 0))
@@ -128,9 +126,15 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 			events = append(events, evt)
 		}
 
-		Expect(store.Save(ctx, aggType, aggID, events, event.Version(0))).To(Succeed())
+		Expect(
+			store.Save(ctx, event.NewAggregateRef(aggType, aggID), events, event.Version(0)),
+		).To(Succeed())
 
-		loaded, err := store.LoadFromVersion(ctx, aggType, aggID, event.Version(1))
+		loaded, err := store.LoadFromVersion(
+			ctx,
+			event.NewAggregateRef(aggType, aggID),
+			event.Version(1),
+		)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(2))
 		Expect(loaded[0].Version()).To(Equal(event.Version(2)))

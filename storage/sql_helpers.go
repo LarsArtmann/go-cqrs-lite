@@ -29,7 +29,7 @@ func deleteByAggregate(
 		table, placeholder1, placeholder2,
 	)
 
-	_, err := db.ExecContext(ctx, query, string(aggregateType), aggregateID)
+	_, err := db.ExecContext(ctx, query, string(ref.Type), ref.ID)
 	if err != nil {
 		return event.WrapInfrastructure(
 			err,
@@ -38,8 +38,8 @@ func deleteByAggregate(
 				"delete %s from table %s for %s %s",
 				what,
 				table,
-				aggregateType,
-				aggregateID,
+				ref.Type,
+				ref.ID,
 			),
 		)
 	}
@@ -69,8 +69,8 @@ func sharedInsertEvents(
 			sql,
 			evt.ID(),
 			string(evt.Type()),
-			string(aggregateType),
-			aggregateID,
+			string(ref.Type),
+			ref.ID,
 			evt.Version(),
 			evt.SchemaVersion().Int(),
 			evt.Payload(),
@@ -101,7 +101,7 @@ func sharedCheckVersion(
 ) error {
 	var currentVersion int
 
-	err := tx.QueryRowContext(ctx, query, string(aggregateType), aggregateID).
+	err := tx.QueryRowContext(ctx, query, string(ref.Type), ref.ID).
 		Scan(&currentVersion)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.check_version",
@@ -111,7 +111,7 @@ func sharedCheckVersion(
 	if currentVersion != expectedVersion.Int() {
 		return event.WrapConflict(ErrConcurrencyConflict, "storage.version_mismatch",
 			fmt.Sprintf("expected version %d, got %d for %s %s",
-				expectedVersion.Int(), currentVersion, aggregateType, aggregateID))
+				expectedVersion.Int(), currentVersion, ref.Type, ref.ID))
 	}
 
 	return nil

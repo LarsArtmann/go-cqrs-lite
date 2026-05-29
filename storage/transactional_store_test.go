@@ -43,8 +43,7 @@ func saveWithOutboxEvt(t *testing.T, ts *SQLTransactionalStore, evt *event.Immut
 
 	return ts.SaveWithOutbox(
 		context.Background(),
-		"User",
-		evt.AggregateID(),
+		event.NewAggregateRef("User", evt.AggregateID()),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -126,8 +125,7 @@ func TestSQLTransactionalStore_SaveWithOutbox_EmptyEvents(t *testing.T) {
 
 	err := ts.SaveWithOutbox(
 		context.Background(),
-		"User",
-		id.NewAggregateID(),
+		event.NewAggregateRef("User", id.NewAggregateID()),
 		nil,
 		event.Version(0),
 	)

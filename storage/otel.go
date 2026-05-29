@@ -7,7 +7,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -28,7 +27,7 @@ func startSaveSpan(
 		ctx, tracer(), spanName,
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
-			cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, expectedVersion.Int()),
 			attribute.Int(cqrsotel.AttrEventCount, eventCount),
 		)...),

@@ -155,8 +155,7 @@ func QuickEventOpts(
 type AppendBatcher interface {
 	AppendBatch(
 		ctx context.Context,
-		aggType event.AggregateType,
-		aggID id.AggregateID,
+		ref event.AggregateRef,
 		events []event.Event,
 	) error
 }
@@ -180,7 +179,7 @@ func MakeLoadToTimestampFixtures(
 		{Type: "Deleted", Version: versions[2], Offset: 0},
 	})
 
-	err := store.AppendBatch(ctx, aggType, aggID, events)
+	err := store.AppendBatch(ctx, event.NewAggregateRef(aggType, aggID), events)
 	if err != nil {
 		tb.Fatalf("AppendBatch: %v", err)
 	}

@@ -34,7 +34,10 @@ func TestFakeSnapshotStore_SaveAndLoad(t *testing.T) {
 
 	store.SetSnapshot(&snap)
 
-	loaded, err := store.Load(context.Background(), "User", aggID)
+	loaded, err := store.Load(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -59,7 +62,11 @@ func TestFakeSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	store.SetSnapshot(&snap)
 
-	loaded, err := store.LoadAtVersion(context.Background(), "User", aggID, event.Version(3))
+	loaded, err := store.LoadAtVersion(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		event.Version(3),
+	)
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)
 	}
@@ -75,7 +82,10 @@ func TestFakeSnapshotStore_LoadError(t *testing.T) {
 	store := NewFakeSnapshotStore()
 	store.SetLoadError(errors.New("disk failure"))
 
-	_, err := store.Load(context.Background(), "User", id.NewAggregateID())
+	_, err := store.Load(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+	)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -109,7 +119,10 @@ func TestFakeSnapshotStore_Delete(t *testing.T) {
 
 	store := NewFakeSnapshotStore()
 
-	err := store.Delete(context.Background(), "User", id.NewAggregateID())
+	err := store.Delete(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+	)
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}

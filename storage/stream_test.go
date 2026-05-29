@@ -35,11 +35,16 @@ func TestSQLEventStore_LoadStream(t *testing.T) {
 		mustEvent(t, "order.shipped", aggID, 3),
 	}
 
-	if err := store.Save(ctx, "Order", aggID, wantEvents, 0); err != nil {
+	if err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+		wantEvents,
+		0,
+	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, "Order", aggID)
+	stream, err := store.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -91,7 +96,7 @@ func TestSQLEventStore_LoadStream_NotFound(t *testing.T) {
 	}
 	defer func() { _ = store.Close() }()
 
-	stream, err := store.LoadStream(ctx, "Order", id.NewAggregateID())
+	stream, err := store.LoadStream(ctx, event.NewAggregateRef("Order", id.NewAggregateID()))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -151,7 +156,7 @@ func TestSQLEventStore_LoadStream_ScanError(t *testing.T) {
 		t.Fatalf("insert bad row: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, "Order", aggID)
+	stream, err := store.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

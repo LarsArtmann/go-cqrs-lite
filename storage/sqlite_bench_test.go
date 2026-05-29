@@ -62,7 +62,7 @@ func benchLoadAggregate(
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := store.Load(ctx, aggType, aggID)
+		_, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -83,34 +83,11 @@ func seedSQLiteBenchEvents(b *testing.B, store *SQLEventStore, n int) {
 			event.Version(1), payload,
 		)
 
-		err := store.AppendBatch(ctx, "Bench", aggID, []event.Event{evt})
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-func BenchmarkSQLiteEventStore_LoadAll(b *testing.B) {
-	db, err := openSQLiteBenchDB(b)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	defer func() { _ = db.Close() }()
-
-	store, err := NewSQLiteEventStore(db)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	seedSQLiteBenchEvents(b, store, 100)
-
-	ctx := context.Background()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		_, err := store.LoadAll(ctx)
+		err := store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Bench"), aggID),
+			[]event.Event{evt},
+		)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -166,7 +143,11 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := store.LoadToVersion(ctx, "User", aggID, event.Version(25))
+		_, err := store.LoadToVersion(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			event.Version(25),
+		)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -239,7 +220,12 @@ func benchSaveNewAggregate(
 			event.Version(1), payload,
 		)
 
-		err := store.Save(ctx, aggType, aggID, []event.Event{evt}, event.Version(0))
+		err := store.Save(
+			ctx,
+			event.NewAggregateRef(aggType, aggID),
+			[]event.Event{evt},
+			event.Version(0),
+		)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -265,7 +251,12 @@ func seedSQLiteEvents(
 			event.Version(i+1), payload,
 		)
 
-		err := store.Save(ctx, aggType, aggID, []event.Event{evt}, event.Version(i))
+		err := store.Save(
+			ctx,
+			event.NewAggregateRef(aggType, aggID),
+			[]event.Event{evt},
+			event.Version(i),
+		)
 		if err != nil {
 			b.Fatal(err)
 		}

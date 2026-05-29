@@ -33,12 +33,17 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 
 	// Save an event
 	evt, _ := event.New("test.event", aggID, "Test", event.Version(1), "payload")
-	if err := store.Save(ctx, "Test", aggID, []event.Event{evt}, event.Version(0)); err != nil {
+	if err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
 	// Load through versioned store
-	loaded, err := vs.Load(ctx, "Test", aggID)
+	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -94,13 +99,18 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 		"test.upcast", aggID, "Test", 1, []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	if err := store.Save(ctx, "Test", aggID, []event.Event{evt}, 0); err != nil {
+	if err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		[]event.Event{evt},
+		0,
+	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
 	// Load through VersionedStore with upcaster
 	vs := event.NewVersionedStore(store, versionUpcaster{})
-	loaded, err := vs.Load(ctx, "Test", aggID)
+	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -143,12 +153,21 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 	)
-	if err := store.Save(ctx, "Test", aggID, []event.Event{evt1, evt2}, 0); err != nil {
+	if err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		[]event.Event{evt1, evt2},
+		0,
+	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
 	vs := event.NewVersionedStore(store, versionUpcaster{})
-	loaded, err := vs.LoadFromVersion(ctx, "Test", aggID, 1)
+	loaded, err := vs.LoadFromVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		1,
+	)
 	if err != nil {
 		t.Fatalf("load from version: %v", err)
 	}

@@ -46,7 +46,7 @@ func seedPebbleBenchEvents(
 		events[i] = evt
 	}
 
-	err = store.AppendBatch(ctx, "Issue", aggID, events)
+	err = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("Issue"), aggID), events)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
@@ -72,7 +72,11 @@ func BenchmarkPebbleEventStore_LoadToTimestamp(b *testing.B) {
 			b.ResetTimer()
 
 			for b.Loop() {
-				result, err := store.LoadToTimestamp(ctx, "Issue", aggID, baseTime.Add(tc.offset))
+				result, err := store.LoadToTimestamp(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+					baseTime.Add(tc.offset),
+				)
 				if err != nil {
 					b.Fatalf("LoadToTimestamp: %v", err)
 				}

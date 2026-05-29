@@ -30,12 +30,16 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 				event.Version(i+1), nil, event.WithClock(clock)))
 	}
 
-	err := store.AppendBatch(ctx, "Order", aggID, wantEvents)
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+		wantEvents,
+	)
 	if err != nil {
 		t.Fatalf("append batch: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, "Order", aggID)
+	stream, err := store.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -75,7 +79,10 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close() //nolint:errcheck // test helper
 
-	_, err := store.LoadStream(context.Background(), "Order", id.NewAggregateID())
+	_, err := store.LoadStream(
+		context.Background(),
+		event.NewAggregateRef("Order", id.NewAggregateID()),
+	)
 	if err == nil {
 		t.Fatal("expected error for non-existent aggregate")
 	}

@@ -115,7 +115,12 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 
 	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
 
-	err = store.Save(context.Background(), "Issue", aggID, []event.Event{evt}, event.Version(0))
+	err = store.Save(
+		context.Background(),
+		event.NewAggregateRef("Issue", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -133,7 +138,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 	t.Cleanup(func() { _ = db2.Close() })
 
 	store2 := NewPebbleStore(db2, slog.Default())
-	loaded, err := store2.Load(context.Background(), "Issue", aggID)
+	loaded, err := store2.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load after reopen: %v", err)
 	}
@@ -189,8 +194,7 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 
 			err := store.Save(
 				context.Background(),
-				tt.saveAggType,
-				tt.saveAggID,
+				event.NewAggregateRef(tt.saveAggType, tt.saveAggID),
 				[]event.Event{evt},
 				event.Version(0),
 			)
@@ -216,7 +220,12 @@ func TestPebbleEventStore_Save_EmptyEvents(t *testing.T) {
 	store := newPebbleTestStore(t)
 	aggID := id.NewAggregateID()
 
-	err := store.Save(context.Background(), "Issue", aggID, nil, event.Version(0))
+	err := store.Save(
+		context.Background(),
+		event.NewAggregateRef("Issue", aggID),
+		nil,
+		event.Version(0),
+	)
 	if err != nil {
 		t.Fatalf("Save with empty events should return nil, got %v", err)
 	}
@@ -228,7 +237,7 @@ func TestPebbleEventStore_AppendBatch_EmptyEvents(t *testing.T) {
 	store := newPebbleTestStore(t)
 	aggID := id.NewAggregateID()
 
-	err := store.AppendBatch(context.Background(), "Issue", aggID, nil)
+	err := store.AppendBatch(context.Background(), event.NewAggregateRef("Issue", aggID), nil)
 	if err != nil {
 		t.Fatalf("AppendBatch with empty events should return nil, got %v", err)
 	}
@@ -240,7 +249,7 @@ func TestPebbleEventStore_Load_Empty(t *testing.T) {
 	store := newPebbleTestStore(t)
 	aggID := id.NewAggregateID()
 
-	loaded, err := store.Load(context.Background(), "Issue", aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load empty: %v", err)
 	}

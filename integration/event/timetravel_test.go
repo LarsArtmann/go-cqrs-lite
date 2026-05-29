@@ -43,12 +43,20 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 		event.WithOccurredAt(now),
 	)
 
-	err := store.AppendBatch(ctx, "Counter", aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Counter"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToVersion(ctx, "Counter", aggID, 2)
+	events, err := store.LoadToVersion(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Counter"), aggID),
+		2,
+	)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -89,12 +97,20 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 		event.WithOccurredAt(now),
 	)
 
-	err := store.AppendBatch(ctx, "Counter", aggID, []event.Event{evt1, evt2, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Counter"), aggID),
+		[]event.Event{evt1, evt2, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToTimestamp(ctx, "Counter", aggID, now.Add(-15*time.Minute))
+	events, err := store.LoadToTimestamp(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Counter"), aggID),
+		now.Add(-15*time.Minute),
+	)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -120,12 +136,20 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 	evt2, _ := event.NewEvent("Created", aggID2, "Issue", 1, nil)
 	evt3, _ := event.NewEvent("Updated", aggID1, "Issue", 2, nil)
 
-	err := store.AppendBatch(ctx, "Issue", aggID1, []event.Event{evt1, evt3})
+	err := store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Issue"), aggID1),
+		[]event.Event{evt1, evt3},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch agg1: %v", err)
 	}
 
-	err = store.AppendBatch(ctx, "Issue", aggID2, []event.Event{evt2})
+	err = store.AppendBatch(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Issue"), aggID2),
+		[]event.Event{evt2},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch agg2: %v", err)
 	}

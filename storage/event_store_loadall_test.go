@@ -68,49 +68,6 @@ func setupLoadAllSuccess(
 	return eventID1, eventID2
 }
 
-func TestSQLEventStore_LoadAll_Success(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-	eventID1, eventID2 := setupLoadAllSuccess(t, store, mock)
-
-	testLoadAllSuccess(t, store, mock, func() ([]event.Event, error) {
-		return store.LoadAll(context.Background())
-	}, eventID1, eventID2)
-}
-
-func TestSQLEventStore_LoadAll_Empty(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
-		WillReturnRows(sqlmock.NewRows(eventColumns()))
-
-	events, err := store.LoadAll(context.Background())
-	if err != nil {
-		t.Fatalf("LoadAll: %v", err)
-	}
-
-	if len(events) != 0 {
-		t.Fatalf("expected 0 events, got %d", len(events))
-	}
-}
-
-func TestSQLEventStore_LoadAll_QueryError(t *testing.T) {
-	t.Parallel()
-
-	store, mock := newTestStore(t)
-
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
-		WillReturnError(errors.New("query failed"))
-
-	_, err := store.LoadAll(context.Background())
-	if err == nil {
-		t.Fatal("expected error for query failure")
-	}
-}
-
 func TestSQLEventStore_ReadAll_Success(t *testing.T) {
 	t.Parallel()
 
@@ -170,7 +127,10 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, nil, ts))
 
 	backwardsLoader := event.BackwardsSource(store)
-	events, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
+	events, err := backwardsLoader.LoadBackwards(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
 	}
@@ -194,7 +154,10 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
 	backwardsLoader := event.BackwardsSource(store)
-	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", aggID)
+	_, err := backwardsLoader.LoadBackwards(
+		context.Background(),
+		event.NewAggregateRef(event.AggregateType("User"), aggID),
+	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
 	}
@@ -236,7 +199,10 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 		WithArgs(string(maliciousAggType), maliciousAggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	events, err := store.Load(context.Background(), maliciousAggType, maliciousAggID)
+	events, err := store.Load(
+		context.Background(),
+		event.NewAggregateRef(maliciousAggType, maliciousAggID),
+	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("Load with malicious input: expected ErrAggregateNotFound, got %v", err)
 	}

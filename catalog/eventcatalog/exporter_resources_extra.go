@@ -30,7 +30,7 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 	writeFlowSteps(md, f.Steps)
 	md.finishWithGraph(f.Name, f.Summary)
 
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
 
 func writeFlowSteps(md *frontmatterWriter, steps []catalog.FlowStep) {

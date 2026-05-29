@@ -34,7 +34,11 @@ func seedBenchAggregates(
 			1,
 			payload,
 		)
-		_ = store.AppendBatch(ctx, event.AggregateType(aggType), aggID, []event.Event{evt})
+		_ = store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType(aggType), aggID),
+			[]event.Event{evt},
+		)
 	}
 
 	return stream.NewInMemoryAggregateReader(store)
@@ -90,16 +94,28 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		aggID := id.NewAggregateID()
 		payload, _ := json.Marshal(map[string]string{"name": "doc"})
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
-		_ = store.AppendBatch(ctx, "Doc", aggID, []event.Event{evt})
+		_ = store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Doc"), aggID),
+			[]event.Event{evt},
+		)
 	}
 
 	for range 200 {
 		aggID := id.NewAggregateID()
 		payload, _ := json.Marshal(map[string]string{"name": "deleted"})
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
-		_ = store.AppendBatch(ctx, "Doc", aggID, []event.Event{evt})
+		_ = store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Doc"), aggID),
+			[]event.Event{evt},
+		)
 		marked, _ := event.MarkTombstone(evt)
-		_ = store.AppendBatch(ctx, "Doc", aggID, []event.Event{marked})
+		_ = store.AppendBatch(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Doc"), aggID),
+			[]event.Event{marked},
+		)
 	}
 
 	reader := stream.NewInMemoryAggregateReader(store)

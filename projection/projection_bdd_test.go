@@ -88,7 +88,12 @@ var _ = Describe("Projection Runner", func() {
 					makeBDDEvent("UserUpdated", 2),
 					makeBDDEvent("UserDeleted", 3),
 				}
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, events, 0)
+				err := store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					events,
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)
@@ -109,7 +114,12 @@ var _ = Describe("Projection Runner", func() {
 					makeBDDEvent("OrderPlaced", 2),
 					makeBDDEvent("UserUpdated", 3),
 				}
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, events, 0)
+				err := store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					events,
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)
@@ -132,7 +142,12 @@ var _ = Describe("Projection Runner", func() {
 					makeBDDEvent("UserCreated", 1),
 					makeBDDEvent("OrderPlaced", 2),
 				}
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, events, 0)
+				err := store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					events,
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)
@@ -172,7 +187,12 @@ var _ = Describe("Projection Runner", func() {
 				// Pre-populate one event
 				aggID := id.NewAggregateID()
 				events := []event.Event{makeBDDEvent("UserCreated", 1)}
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, events, 0)
+				err := store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					events,
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)
@@ -197,8 +217,7 @@ var _ = Describe("Projection Runner", func() {
 				evt := makeBDDEvent("UserCreated", 1)
 				err := store.Save(
 					ctx,
-					event.AggregateType("TestAggregate"),
-					aggID,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
 					[]event.Event{evt},
 					0,
 				)
@@ -267,7 +286,12 @@ var _ = Describe("Projection Runner", func() {
 			It("should dispatch events to each independently", func() {
 				aggID := id.NewAggregateID()
 				events := []event.Event{makeBDDEvent("UserCreated", 1)}
-				err := store.Save(ctx, event.AggregateType("TestAggregate"), aggID, events, 0)
+				err := store.Save(
+					ctx,
+					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					events,
+					0,
+				)
 				Expect(err).ToNot(HaveOccurred())
 
 				runner, err := projection.NewRunner(store, bus, checkpoint)

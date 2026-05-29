@@ -120,24 +120,6 @@ func (s *SQLEventStore) ReadFrom(
 	return events, nil
 }
 
-// LoadAll retrieves all events across all aggregates, ordered by occurrence time.
-//
-// Deprecated: use ReadAll instead.
-func (s *SQLEventStore) LoadAll(ctx context.Context) ([]event.Event, error) {
-	return s.ReadAll(ctx)
-}
-
-// LoadAllFromPosition retrieves events ordered by OccurredAt, starting after the given event ID.
-//
-// Deprecated: use ReadFrom instead.
-func (s *SQLEventStore) LoadAllFromPosition(
-	ctx context.Context,
-	afterEventID id.EventID,
-	limit int,
-) ([]event.Event, error) {
-	return s.ReadFrom(ctx, afterEventID, limit)
-}
-
 // loadAllFromStart loads from the beginning, with optional limit.
 func (s *SQLEventStore) loadAllFromStart(
 	ctx context.Context,

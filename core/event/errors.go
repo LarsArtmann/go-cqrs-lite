@@ -123,17 +123,11 @@ var (
 	ErrVersionConflict     = NewConflict("event.version_conflict", "version conflict")
 	ErrAggregateNotFound   = NewRejection("event.aggregate_not_found", "aggregate not found")
 	ErrSnapshotNotFound    = NewRejection("event.snapshot_not_found", "snapshot not found")
-	errDuplicateProjection = NewConflict("event.duplicate_projection", "duplicate projection")
 	ErrStoreClosed         = NewInfrastructure("event.store_closed", "event store is closed")
 	ErrBusClosed           = NewInfrastructure("event.bus_closed", "event bus is closed")
 	ErrSnapshotStoreClosed = NewInfrastructure(
 		"event.snapshot_store_closed",
 		"snapshot store is closed",
-	)
-	errNilProjection      = NewInfrastructure("event.nil_projection", "nil projection")
-	errNilCheckpointStore = NewInfrastructure(
-		"event.nil_checkpoint_store",
-		"nil checkpoint store",
 	)
 	ErrNilOutbox      = NewInfrastructure("event.nil_outbox", "nil outbox")
 	ErrNilBus         = NewInfrastructure("event.nil_bus", "nil bus")
@@ -144,9 +138,5 @@ var (
 	ErrPublisherClosed = NewInfrastructure(
 		"event.publisher_closed",
 		"outbox publisher is closed",
-	)
-	errProjectionPanicked = NewCorruption(
-		"event.projection_panicked",
-		"projection handler panicked",
 	)
 )

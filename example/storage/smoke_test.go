@@ -52,7 +52,7 @@ func TestSQLite_SaveAndLoad(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	loaded, err := eventStore.Load(ctx, "User", userID)
+	loaded, err := eventStore.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), userID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

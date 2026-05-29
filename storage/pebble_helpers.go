@@ -8,7 +8,6 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // AppendBatch implements event.Store.AppendBatch.
@@ -27,20 +26,19 @@ func (a *PebbleEventStore) AppendBatch(
 	defer func() { _ = batch.Close() }()
 
 	for _, evt := range events {
-		key := a.eventKey(aggregateType, aggregateID, evt.Version())
+		key := a.eventKey(ref, evt.Version())
 
 		err := a.serializeAndAddToBatch(batch, key, evt)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.serialize_event",
-				fmt.Sprintf("serialize event %s for %s %s", evt.Type(), aggregateType, aggregateID))
+				fmt.Sprintf("serialize event %s for %s %s", evt.Type(), ref.Type, ref.ID))
 		}
 	}
 
 	return a.commitAndLog(
 		batch,
 		"events appended in batch",
-		aggregateType,
-		aggregateID,
+		ref,
 		len(events),
 	)
 }
@@ -66,8 +64,8 @@ func (a *PebbleEventStore) logEventOperation(
 ) {
 	a.logger.Debug(
 		msg,
-		slog.String("aggregate_type", string(aggregateType)),
-		slog.String("aggregate_id", aggregateID.String()),
+		slog.String("aggregate_type", string(ref.Type)),
+		slog.String("aggregate_id", ref.ID.String()),
 		slog.Int("count", count),
 	)
 }
@@ -111,7 +109,7 @@ func (a *PebbleEventStore) commitAndLog(
 			fmt.Sprintf("failed to commit %d events (%s)", count, logMsg))
 	}
 
-	a.logEventOperation(logMsg, aggregateType, aggregateID, count)
+	a.logEventOperation(logMsg, ref, count)
 
 	return nil
 }

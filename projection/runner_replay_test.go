@@ -24,12 +24,17 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 
 	ctx := context.Background()
 
-	err := store.Save(ctx, "User", evt1.AggregateID(), []event.Event{evt1}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef("User", evt1.AggregateID()),
+		[]event.Event{evt1},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save evt1: %v", err)
 	}
 
-	err = store.Save(ctx, "User", evt2.AggregateID(), []event.Event{evt2}, 0)
+	err = store.Save(ctx, event.NewAggregateRef("User", evt2.AggregateID()), []event.Event{evt2}, 0)
 	if err != nil {
 		t.Fatalf("Save evt2: %v", err)
 	}
@@ -123,12 +128,17 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	ctx := context.Background()
 
-	err := store.Save(ctx, "User", evt1.AggregateID(), []event.Event{evt1}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef("User", evt1.AggregateID()),
+		[]event.Event{evt1},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save evt1: %v", err)
 	}
 
-	err = store.Save(ctx, "User", evt2.AggregateID(), []event.Event{evt2}, 0)
+	err = store.Save(ctx, event.NewAggregateRef("User", evt2.AggregateID()), []event.Event{evt2}, 0)
 	if err != nil {
 		t.Fatalf("Save evt2: %v", err)
 	}
@@ -203,12 +213,22 @@ func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
 
 	ctx := context.Background()
 
-	err := store.Save(ctx, "User", userEvt.AggregateID(), []event.Event{userEvt}, 0)
+	err := store.Save(
+		ctx,
+		event.NewAggregateRef("User", userEvt.AggregateID()),
+		[]event.Event{userEvt},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save userEvt: %v", err)
 	}
 
-	err = store.Save(ctx, "Order", orderEvt.AggregateID(), []event.Event{orderEvt}, 0)
+	err = store.Save(
+		ctx,
+		event.NewAggregateRef("Order", orderEvt.AggregateID()),
+		[]event.Event{orderEvt},
+		0,
+	)
 	if err != nil {
 		t.Fatalf("Save orderEvt: %v", err)
 	}

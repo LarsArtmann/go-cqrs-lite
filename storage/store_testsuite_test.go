@@ -73,8 +73,7 @@ func saveCfgEvent(
 
 	err := store.Save(
 		context.Background(),
-		cfg.aggType,
-		aggID,
+		event.NewAggregateRef(cfg.aggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -91,8 +90,7 @@ func testEventStore_SaveAndLoad(t *testing.T, store event.Store, cfg storeTestCo
 
 	err := store.Save(
 		context.Background(),
-		cfg.aggType,
-		aggID,
+		event.NewAggregateRef(cfg.aggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -100,7 +98,7 @@ func testEventStore_SaveAndLoad(t *testing.T, store event.Store, cfg storeTestCo
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.aggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -130,8 +128,7 @@ func testEventStore_ConcurrencyConflict(t *testing.T, store event.Store, cfg sto
 
 	err := store.Save(
 		context.Background(),
-		cfg.aggType,
-		aggID,
+		event.NewAggregateRef(cfg.aggType, aggID),
 		[]event.Event{evt2},
 		event.Version(0),
 	)
@@ -147,12 +144,16 @@ func testEventStore_AppendBatch(t *testing.T, store event.Store, cfg storeTestCo
 	evt1 := cfg.newTestEvent(t, aggID, 1)
 	evt2 := cfg.newTestEvent(t, aggID, 2)
 
-	err := store.AppendBatch(context.Background(), cfg.aggType, aggID, []event.Event{evt1, evt2})
+	err := store.AppendBatch(
+		context.Background(),
+		event.NewAggregateRef(cfg.aggType, aggID),
+		[]event.Event{evt1, evt2},
+	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.aggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -175,15 +176,18 @@ func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTe
 
 	err := store.AppendBatch(
 		context.Background(),
-		cfg.aggType,
-		aggID,
+		event.NewAggregateRef(cfg.aggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	loaded, err := store.LoadFromVersion(context.Background(), cfg.aggType, aggID, event.Version(1))
+	loaded, err := store.LoadFromVersion(
+		context.Background(),
+		event.NewAggregateRef(cfg.aggType, aggID),
+		event.Version(1),
+	)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -216,7 +220,7 @@ func testEventStore_MetadataRoundtrip(
 
 	saveCfgEvent(t, store, cfg, aggID, evt)
 
-	loaded, err := store.Load(context.Background(), cfg.aggType, aggID)
+	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.aggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

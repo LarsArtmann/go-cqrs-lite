@@ -48,7 +48,7 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 	writeBadges(md, ch.Badges)
 	md.finishWithGraph(ch.Name, ch.Summary)
 
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
 
 func writeChannelParams(md *frontmatterWriter, params map[string]catalog.ChannelParam) {
@@ -116,5 +116,5 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 	writeBadges(md, ds.Badges)
 	md.finishWithGraph(ds.Name, ds.Summary)
 
-	return e.writeMDXFile(filepath.Join(dir, "index.mdx"), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }

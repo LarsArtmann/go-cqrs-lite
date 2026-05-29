@@ -94,7 +94,12 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(
-		store.Save(ctx, "User", activeID, []event.Event{activeEvt}, event.Version(0)),
+		store.Save(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("User"), activeID),
+			[]event.Event{activeEvt},
+			event.Version(0),
+		),
 	).To(Succeed())
 
 	deletedID := id.NewAggregateID()
@@ -105,7 +110,12 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(
-		store.Save(ctx, "User", deletedID, []event.Event{deletedEvt}, event.Version(0)),
+		store.Save(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("User"), deletedID),
+			[]event.Event{deletedEvt},
+			event.Version(0),
+		),
 	).To(Succeed())
 
 	orderID := id.NewAggregateID()
@@ -115,6 +125,11 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(
-		store.Save(ctx, "Order", orderID, []event.Event{orderEvt}, event.Version(0)),
+		store.Save(
+			ctx,
+			event.NewAggregateRef(event.AggregateType("Order"), orderID),
+			[]event.Event{orderEvt},
+			event.Version(0),
+		),
 	).To(Succeed())
 }
