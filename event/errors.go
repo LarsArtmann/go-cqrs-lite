@@ -118,12 +118,7 @@ var (
 	)
 	ErrVersionConflict     = NewConflict("event.version_conflict", "version conflict")
 	ErrAggregateNotFound   = NewRejection("event.aggregate_not_found", "aggregate not found")
-	ErrSnapshotNotFound    = NewRejection("event.snapshot_not_found", "snapshot not found")
 	ErrStoreClosed         = NewInfrastructure("event.store_closed", "event store is closed")
 	ErrBusClosed           = NewInfrastructure("event.bus_closed", "event bus is closed")
-	ErrSnapshotStoreClosed = NewInfrastructure(
-		"event.snapshot_store_closed",
-		"snapshot store is closed",
-	)
 	ErrNilBus = NewInfrastructure("event.nil_bus", "nil bus")
 )

@@ -3,15 +3,20 @@ module github.com/larsartmann/go-cqrs-lite/listing
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event v1.6.0
+	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
+	github.com/samber/lo v1.52.0 // indirect
+	github.com/samber/ro v0.3.0 // indirect
+	golang.org/x/exp v0.0.0-20260527015227-08cc5374adb3 // indirect
+)
+
+require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
@@ -30,8 +35,8 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/event => ../event
+	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/listing => ./
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 )

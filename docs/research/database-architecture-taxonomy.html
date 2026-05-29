@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Architecture Taxonomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e17;--bg-raised:#111827;--bg-card:#151d2e;--bg-code:#0d1321;
+  --fg:#e2e8f0;--fg-dim:#94a3b8;--fg-muted:#64748b;
+  --accent:#06d6a0;--accent-dim:rgba(6,214,160,.12);--accent-glow:rgba(6,214,160,.25);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);
+  --rose:#f43f5e;--rose-dim:rgba(244,63,94,.12);
+  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.12);
+  --border:#1e293b;--border-light:#334155;
+  --radius:12px;--radius-sm:8px;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border-light) var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 10%,rgba(6,214,160,.04),transparent),
+  radial-gradient(ellipse 60% 50% at 80% 80%,rgba(59,130,246,.04),transparent);
+  pointer-events:none;z-index:0}
+
+/* Grid pattern overlay */
+body::after{content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:80px 80px;opacity:.15;pointer-events:none;z-index:0}
+
+.wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 2rem}
+
+/* --- NAV --- */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.75rem 0}
+nav .wrapper{display:flex;align-items:center;gap:2rem}
+nav .brand{font-family:var(--mono);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+nav .links{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+nav .links::-webkit-scrollbar{display:none}
+nav a{color:var(--fg-dim);text-decoration:none;font-size:.75rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:.4rem .75rem;border-radius:6px;transition:all .2s;white-space:nowrap;font-family:var(--mono)}
+nav a:hover,nav a.active{color:var(--accent);background:var(--accent-dim)}
+
+/* --- HERO --- */
+.hero{padding:6rem 0 4rem;text-align:center;position:relative}
+.hero h1{font-family:var(--sans);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;background:linear-gradient(135deg,var(--fg) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem}
+.hero .meta{font-family:var(--mono);font-size:.8rem;color:var(--fg-muted);letter-spacing:.05em}
+.hero .meta span{color:var(--accent)}
+.hero p.subtitle{max-width:640px;margin:1.5rem auto 0;color:var(--fg-dim);font-size:1.05rem;line-height:1.8}
+
+/* --- SECTIONS --- */
+.part{padding:4rem 0 2rem}
+.part-header{margin-bottom:3rem;position:relative}
+.part-number{font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:inline-block;padding:.35rem .75rem;background:var(--accent-dim);border:1px solid rgba(6,214,160,.2);border-radius:4px;margin-bottom:.75rem}
+.part-header h2{font-family:var(--sans);font-size:clamp(1.8rem,3vw,2.5rem);font-weight:700;letter-spacing:-.02em;color:var(--fg)}
+
+/* --- CARDS --- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:1.5rem}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .3s,box-shadow .3s;opacity:0;transform:translateY(20px);animation:cardIn .5s ease forwards}
+.card:hover{border-color:var(--accent);box-shadow:0 0 30px var(--accent-glow),inset 0 1px 0 rgba(6,214,160,.1)}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+
+.card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+.card-num{font-family:var(--mono);font-size:.7rem;font-weight:700;color:var(--accent);width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;background:var(--accent-dim);border:1px solid rgba(6,214,160,.2);border-radius:6px;flex-shrink:0}
+.card-header h3{font-family:var(--sans);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;color:var(--fg)}
+.card-header .badge{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px;margin-left:auto;flex-shrink:0}
+.badge-interface{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.badge-storage{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-fit{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(6,214,160,.2)}
+.badge-nofit{background:var(--rose-dim);color:var(--rose);border:1px solid rgba(244,63,94,.2)}
+.badge-arch{background:var(--violet-dim);color:var(--violet);border:1px solid rgba(167,139,250,.2)}
+
+.card-body{padding:1.25rem 1.5rem}
+.card pre{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.6;color:var(--fg-dim);margin-bottom:1rem}
+
+/* --- TABLES --- */
+.card table{width:100%;border-collapse:collapse;font-size:.82rem}
+.card table th,.card table td{padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+.card table th{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-muted);white-space:nowrap}
+.card table td:first-child{font-family:var(--mono);font-size:.75rem;font-weight:500;color:var(--accent);white-space:nowrap}
+.card table td{color:var(--fg-dim)}
+.card table tr:last-child td{border-bottom:none}
+
+.card .key-prop{margin-top:1rem;padding:.75rem 1rem;background:var(--accent-dim);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.85rem;color:var(--fg-dim);line-height:1.6}
+.card .key-prop strong{color:var(--fg)}
+
+.card .variants{margin-top:1rem;padding:0;list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.card .variants li{font-size:.83rem;color:var(--fg-dim);padding-left:1rem;position:relative}
+.card .variants li::before{content:'';position:absolute;left:0;top:.55rem;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+/* --- MEGA TABLE --- */
+.mega-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+.mega-table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:900px}
+.mega-table th,.mega-table td{padding:.6rem .75rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.mega-table thead th{background:var(--bg-raised);font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);position:sticky;top:0;border-bottom:2px solid var(--border-light)}
+.mega-table tbody td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:.78rem}
+.mega-table td{color:var(--fg-dim)}
+.mega-table .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:.4rem;vertical-align:middle}
+.dot-green{background:var(--accent)}
+.dot-blue{background:var(--blue)}
+.dot-amber{background:var(--amber)}
+.dot-muted{background:var(--fg-muted);opacity:.3}
+
+/* --- RELEVANCE --- */
+.relevance-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;margin-bottom:2rem}
+.rel-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem}
+.rel-item h4{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);margin-bottom:.35rem}
+.rel-item p{font-size:.85rem;color:var(--fg-dim);line-height:1.6}
+
+/* --- ADVANCED --- */
+.adv-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.25rem}
+.adv-card h3{font-family:var(--sans);font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.adv-card h3 .tag{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .45rem;border-radius:3px;margin-left:.75rem;vertical-align:middle}
+.adv-card .desc{font-size:.85rem;color:var(--fg-dim);line-height:1.7;margin-bottom:.75rem}
+.adv-card .lesson{padding:.6rem .9rem;background:var(--accent-dim);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:.82rem;color:var(--fg-dim)}
+.adv-card .lesson strong{color:var(--fg)}
+
+/* --- DIAGRAM --- */
+.diagram-box{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;margin:2rem 0;position:relative;overflow:hidden}
+.diagram-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--blue),var(--amber))}
+.diagram-box pre{font-family:var(--mono);font-size:.82rem;line-height:1.8;color:var(--fg-dim);white-space:pre;overflow-x:auto}
+.diagram-label{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.diagram-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* --- FOOTER --- */
+footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:4rem;text-align:center}
+footer p{font-family:var(--mono);font-size:.7rem;color:var(--fg-muted);letter-spacing:.05em}
+
+/* --- ANIMATIONS --- */
+@media(prefers-reduced-motion:no-preference){
+  .card:nth-child(1){animation-delay:.0s}
+  .card:nth-child(2){animation-delay:.05s}
+  .card:nth-child(3){animation-delay:.1s}
+  .card:nth-child(4){animation-delay:.15s}
+  .card:nth-child(5){animation-delay:.2s}
+  .card:nth-child(6){animation-delay:.25s}
+  .card:nth-child(7){animation-delay:.3s}
+  .card:nth-child(8){animation-delay:.35s}
+  .card:nth-child(9){animation-delay:.4s}
+  .card:nth-child(10){animation-delay:.45s}
+  .card:nth-child(11){animation-delay:.5s}
+  .card:nth-child(12){animation-delay:.55s}
+  .card:nth-child(13){animation-delay:.6s}
+}
+
+/* --- TOC highlight --- */
+.toc-note{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 2rem;margin-bottom:2rem;display:flex;gap:1.5rem;align-items:flex-start}
+.toc-note .axis{flex:1}
+.toc-note .axis h4{font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.35rem}
+.toc-note .axis p{font-size:.85rem;color:var(--fg-dim);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrapper">
+    <div class="brand">DB Taxonomy</div>
+    <div class="links">
+      <a href="#interfaces">Interfaces</a>
+      <a href="#storage">Storage</a>
+      <a href="#matrix">Matrix</a>
+      <a href="#relevance">Relevance</a>
+      <a href="#advanced">Advanced</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+<section class="hero">
+  <h1>Database Architecture<br>Taxonomy</h1>
+  <p class="meta">Date: <span>2026-05-29</span> &middot; Scope: All known database architectures from interface and storage perspectives</p>
+  <p class="subtitle">Two axes of classification. A single interface model can be backed by many storage engines. A single storage engine can power many interface models.</p>
+</section>
+
+<div class="toc-note">
+  <div class="axis">
+    <h4>Axis 1: Interface Model</h4>
+    <p>What operations the database exposes to consumers — the API shape.</p>
+  </div>
+  <div class="axis">
+    <h4>Axis 2: Storage Engine</h4>
+    <p>How data is physically laid out on disk or in memory — the data structure.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<section class="part" id="interfaces">
+<div class="part-header">
+  <div class="part-number">Part 1</div>
+  <h2>Interface Models</h2>
+</div>
+
+<div class="cards">
+
+<!-- 1. Key-Value -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>Key-Value</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Get(key) → value
+Put(key, value)
+Delete(key)</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Get, Put, Delete, Exists, Increment</td></tr>
+      <tr><td>Query model</td><td>Exact key match only. No range, no filtering, no joins</td></tr>
+      <tr><td>Ordering</td><td>None (hash) or lexicographic (ordered KV)</td></tr>
+      <tr><td>Schema</td><td>None — opaque byte values</td></tr>
+      <tr><td>Transactions</td><td>Optional — single-key atomic or multi-key batch</td></tr>
+      <tr><td>Notable</td><td>Redis, etcd, DynamoDB, LevelDB, RocksDB, Pebble</td></tr>
+    </table>
+    <ul class="variants">
+      <li><strong>Hash KV</strong> — O(1) point lookup, no range scan (Redis hash, Memcached)</li>
+      <li><strong>Ordered KV</strong> — O(log n) lookup, range scan via iterator (Pebble, LevelDB, BadgerDB)</li>
+      <li><strong>Distributed KV</strong> — Consensus-based, replicated (etcd, TiKV, FoundationDB)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 2. Document -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>Document</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Insert(collection, document)
+Find(collection, query) → []Document
+Update(collection, query, changes)
+Delete(collection, query)
+Aggregate(collection, pipeline) → []Document</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>CRUD + rich query + aggregation pipeline</td></tr>
+      <tr><td>Query model</td><td>Field matching, nested path queries, range, regex, geospatial</td></tr>
+      <tr><td>Schema</td><td>Optional / flexible — documents can vary within a collection</td></tr>
+      <tr><td>Transactions</td><td>Optional — MongoDB supports multi-document ACID</td></tr>
+      <tr><td>Notable</td><td>MongoDB, CouchDB, Couchbase, Firestore, RethinkDB</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> A document is a self-contained unit (JSON/BSON). Queries address fields within documents. Indexes are on fields, not the whole document.</div>
+  </div>
+</div>
+
+<!-- 3. Relational -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Relational (SQL)</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>SELECT columns FROM table WHERE condition
+    JOIN table2 ON ... GROUP BY ... ORDER BY ...
+INSERT INTO table (columns) VALUES (...)
+UPDATE table SET ... WHERE ...
+DELETE FROM table WHERE ...
+BEGIN / COMMIT / ROLLBACK</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Full relational algebra: select, project, join, aggregate, sort</td></tr>
+      <tr><td>Query model</td><td>Declarative (SQL). Optimizer chooses execution plan</td></tr>
+      <tr><td>Schema</td><td>Strict — typed columns, constraints, foreign keys, normalization</td></tr>
+      <tr><td>Transactions</td><td>Full ACID — BEGIN/COMMIT/ROLLBACK, isolation levels</td></tr>
+      <tr><td>Notable</td><td>PostgreSQL, MySQL, SQLite, Oracle, SQL Server, CockroachDB</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Data is normalized across tables. Joins reconstruct relationships. The optimizer is the magic — consumers say WHAT they want, not HOW to get it.</div>
+  </div>
+</div>
+
+<!-- 4. Graph -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">04</div>
+    <h3>Graph</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>CreateNode(label, properties) → Node
+CreateEdge(type, source, target, properties) → Edge
+Traverse(start, pattern) → []Path
+Query(cypher) → Result
+ShortestPath(a, b) → Path</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Node/edge CRUD + traversal + pattern matching + path algorithms</td></tr>
+      <tr><td>Query model</td><td>Graph traversal (Cypher, Gremlin, GQL). Pattern matching on topology</td></tr>
+      <tr><td>Schema</td><td>Optional — labels/types with optional property constraints</td></tr>
+      <tr><td>Notable</td><td>Neo4j, Neptune, JanusGraph, ArangoDB, TigerGraph</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Relationships are first-class citizens. Multi-hop traversal is O(k) where k = path length, not O(n²) like SQL joins.</div>
+  </div>
+</div>
+
+<!-- 5. Time-Series -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">05</div>
+    <h3>Time-Series</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Write(metric, tags, value, timestamp)
+Query(metric, tags, timeRange) → []Point
+Aggregate(metric, tags, window, fn) → []Bucket
+Downsample(metric, targetResolution)</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Write (high-throughput ingest), Query (time range + aggregation)</td></tr>
+      <tr><td>Query model</td><td>Time-bounded, tag-filtered, with windowed aggregation functions</td></tr>
+      <tr><td>Schema</td><td>Metric name + tag set + field set. Often schemaless</td></tr>
+      <tr><td>Notable</td><td>InfluxDB, Prometheus, TimescaleDB, TDengine, QuestDB, ClickHouse</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Optimized for append-heavy time-ordered data. Reads are almost always range scans over time windows. Compression exploits temporal locality.</div>
+  </div>
+</div>
+
+<!-- 6. Search -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">06</div>
+    <h3>Search / Full-Text</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Index(document, fields)
+Search(query, filters) → []Hit (ranked)
+Suggest(prefix) → []Suggestion
+Aggregate(query, facets) → FacetResults</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Index, Search (with relevance scoring), Facet, Autocomplete</td></tr>
+      <tr><td>Query model</td><td>Full-text query DSL (boolean, phrase, fuzzy, proximity)</td></tr>
+      <tr><td>Schema</td><td>Mapping definition (field types, analyzers)</td></tr>
+      <tr><td>Notable</td><td>Elasticsearch, Solr, OpenSearch, Meilisearch, Typesense</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Inverted index maps terms → documents. Relevance scoring is the differentiator. Not a primary store — usually sits alongside a source-of-truth database.</div>
+  </div>
+</div>
+
+<!-- 7. Wide-Column -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">07</div>
+    <h3>Wide-Column / Column-Family</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Put(rowKey, columnFamily, column, value)
+Get(rowKey, columnFamily, column) → value
+Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Put, Get, Scan (range over row keys), Multi-Get</td></tr>
+      <tr><td>Query model</td><td>Row-key based + column-family/column projection</td></tr>
+      <tr><td>Schema</td><td>Column families defined at creation; columns within a family are flexible</td></tr>
+      <tr><td>Notable</td><td>Cassandra, ScyllaDB, HBase, Bigtable, DynamoDB</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> A two-level map: <code>RowKey → (ColumnFamily → (Column → Value))</code>. Each row can have different columns. Optimized for write-heavy, wide-row access patterns.</div>
+  </div>
+</div>
+
+<!-- 8. Object Storage -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">08</div>
+    <h3>Object Storage</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>PUT(bucket, key, data, metadata)
+GET(bucket, key) → data + metadata
+DELETE(bucket, key)
+LIST(bucket, prefix) → []ObjectInfo</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>PUT, GET, DELETE, LIST, COPY. Versioning. Lifecycle rules</td></tr>
+      <tr><td>Query model</td><td>Prefix-based listing only. No content query</td></tr>
+      <tr><td>Schema</td><td>None — opaque binary blobs with user-defined metadata</td></tr>
+      <tr><td>Notable</td><td>S3, GCS, Azure Blob, MinIO, Cloudflare R2</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Infinite scale, eventual consistency, very high latency (100ms+). Not a database — a content-addressable file system. Used as a storage tier in many architectures.</div>
+  </div>
+</div>
+
+<!-- 9. Triple Store -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">09</div>
+    <h3>Triple Store / RDF / SPARQL</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Assert(subject, predicate, object)
+Retract(subject, predicate, object)
+Query(sparql) → Result</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Assert/Retract triples, SPARQL queries, ontology reasoning</td></tr>
+      <tr><td>Query model</td><td>Graph pattern matching via SPARQL. Logical inference over ontologies</td></tr>
+      <tr><td>Schema</td><td>OWL ontologies / RDFS — formal semantic schema</td></tr>
+      <tr><td>Notable</td><td>Virtuoso, Stardog, AllegroGraph, Jena, Neptune (RDF mode)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Every fact is a (subject, predicate, object) triple. Reasoning engine can derive new facts from rules. Used in knowledge graphs and semantic web.</div>
+  </div>
+</div>
+
+<!-- 10. Datalog -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">10</div>
+    <h3>Datalog</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Assert(fact)
+Rule(head ← body)
+Query(goal) → Result</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Fact assertion, rule definition, recursive query</td></tr>
+      <tr><td>Query model</td><td>Declarative logic programming. Recursive rules</td></tr>
+      <tr><td>Schema</td><td>Implicit — defined by fact structure and rules</td></tr>
+      <tr><td>Notable</td><td>Datomic, Datahike, XTDB, Soufflé</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Queries are logical deductions. Rules can be recursive. Datomic's "database as a value" — every query runs against an immutable snapshot. Natural fit for event sourcing.</div>
+  </div>
+</div>
+
+<!-- 11. Streaming -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">11</div>
+    <h3>Streaming</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Publish(topic, message)
+Subscribe(topic, handler)
+Process(stream → stream)
+Window(stream, duration) → []Batch
+Join(streamA, streamB) → streamC</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Publish, Subscribe, Transform, Window, Join, Aggregate</td></tr>
+      <tr><td>Query model</td><td>Continuous queries over unbounded streams. Event-time processing</td></tr>
+      <tr><td>Schema</td><td>Schema registry (Avro, Protobuf, JSON Schema)</td></tr>
+      <tr><td>Notable</td><td>Kafka, Flink, Pulsar, NATS JetStream, Redpanda</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Data flows continuously. No "load then query" — queries are always running. Kafka is both the database (log) and the transport.</div>
+  </div>
+</div>
+
+<!-- 12. Vector -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">12</div>
+    <h3>Vector / Similarity</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>Insert(id, vector, metadata)
+Search(queryVector, k) → []Neighbor
+Query(filter) → []Vector</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Insert, Search (k-NN), Filter, Hybrid search</td></tr>
+      <tr><td>Query model</td><td>Approximate nearest neighbor (ANN) search</td></tr>
+      <tr><td>Schema</td><td>Vector dimension + metadata schema</td></tr>
+      <tr><td>Notable</td><td>Pinecone, Weaviate, Qdrant, Milvus, Chroma, pgvector</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Queries find "things like this" rather than "things matching this exact key." Similarity replaces equality. The interface is fundamentally different from every other model.</div>
+  </div>
+</div>
+
+<!-- 13. Multi-Model -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">13</div>
+    <h3>Multi-Model</h3>
+    <span class="badge badge-interface">Interface</span>
+  </div>
+  <div class="card-body">
+    <pre>SQL("SELECT ...")              // Relational
+Cypher("MATCH ...")            // Graph
+KV.Get(key)                    // Key-Value
+Search(query)                  // Full-text
+Vector.Search(embedding, k)    // Similarity</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Operations</td><td>Union of multiple interface models</td></tr>
+      <tr><td>Query model</td><td>Unified query language (SurrealQL, AQL) or polyglot</td></tr>
+      <tr><td>Notable</td><td>ArangoDB, SurrealDB, Fauna, Oracle, PostgreSQL (with extensions)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> One database, multiple access patterns. Reduces operational complexity but may not excel at any single model.</div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="storage">
+<div class="part-header">
+  <div class="part-number">Part 2</div>
+  <h2>Storage Engines</h2>
+</div>
+
+<div class="cards">
+
+<!-- 1. B+Tree -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">01</div>
+    <h3>B-Tree / B+Tree</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>           [Internal Node: Keys + Child Pointers]
+          /              |                \
+  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]
+       ↔ linked list for range scans ↔</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>Balanced tree. Internal nodes: keys only. Leaves: key+value, linked for sequential scan</td></tr>
+      <tr><td>Read</td><td>O(log n) point lookup. O(k) range scan via leaf links</td></tr>
+      <tr><td>Write</td><td>O(log n) + possible node split/merge. Random I/O</td></tr>
+      <tr><td>Write amp</td><td>Medium — page splits touch O(log n) pages</td></tr>
+      <tr><td>Best for</td><td>Mixed read/write OLTP. Point lookups + range scans</td></tr>
+      <tr><td>Used by</td><td>PostgreSQL (default), MySQL InnoDB, SQLite, LMDB, bbolt</td></tr>
+    </table>
+    <div class="key-prop"><strong>B-Tree vs B+Tree:</strong> B-Tree stores values in internal nodes. B+Tree stores values only in leaves (denser internal nodes = shallower tree + leaf links for range scan). Most production databases use B+Tree.</div>
+  </div>
+</div>
+
+<!-- 2. LSM-Tree -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">02</div>
+    <h3>LSM-Tree (Log-Structured Merge)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Writes → [MemTable (sorted, in-memory)]
+              ↓ flush when full
+         [SSTable L0] → [SSTable L1] → [SSTable L2] → ...
+              ↑ background compaction merges levels ↑
+[WAL] → sequential log for crash recovery</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>In-memory sorted table (memtable) + immutable sorted files on disk (SSTables) in levels</td></tr>
+      <tr><td>Read</td><td>O(log n × L). Bloom filters skip empty SSTables</td></tr>
+      <tr><td>Write</td><td>O(1) amortized — sequential append to WAL + memtable insert</td></tr>
+      <tr><td>Write amp</td><td>High — data rewritten during compaction (10-30× for leveled)</td></tr>
+      <tr><td>Best for</td><td>Write-heavy workloads. Time-series. Event logs. Large datasets</td></tr>
+      <tr><td>Used by</td><td>RocksDB, LevelDB, Pebble, Cassandra, ScyllaDB, InfluxDB</td></tr>
+    </table>
+    <table style="margin-top:1rem">
+      <tr><th>Compaction</th><th>Write Amp</th><th>Read Amp</th><th>Space Amp</th><th>Best For</th></tr>
+      <tr><td>Size-tiered</td><td>Low</td><td>High</td><td>High</td><td>Write-heavy, bulk ingest</td></tr>
+      <tr><td>Leveled</td><td>High</td><td>Low</td><td>Low</td><td>Read-heavy, predictable latency</td></tr>
+      <tr><td>FIFO</td><td>Lowest</td><td>Medium</td><td>Lowest</td><td>Time-series, cache, TTL</td></tr>
+      <tr><td>Hybrid</td><td>Medium</td><td>Medium</td><td>Medium</td><td>Mixed workloads</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 3. Hash Index -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">03</div>
+    <h3>Hash Index</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>hash("user:123") → bucket 7 → [offset → disk position]
+                                      ↓
+                              [Log file: key, value, ...]</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>In-memory hash map: key → disk offset. Data in append-only log</td></tr>
+      <tr><td>Read</td><td>O(1) — hash lookup + single disk seek</td></tr>
+      <tr><td>Write</td><td>O(1) — append to log + update hash map</td></tr>
+      <tr><td>Range scan</td><td>❌ Not possible — hash destroys ordering</td></tr>
+      <tr><td>Best for</td><td>Pure key-value with no range queries. Caching</td></tr>
+      <tr><td>Used by</td><td>Bitcask (Riak), Redis hash tables</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 4. Columnar -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">04</div>
+    <h3>Columnar Storage</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Row-oriented:  [id=1,name="Alice",age=30] [id=2,name="Bob",age=25]
+Columnar:      id: [1, 2, 3, ...]
+               name: ["Alice", "Bob", ...]
+               age: [30, 25, ...]</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>Each column stored separately. Per-column compression (RLE, dictionary, delta)</td></tr>
+      <tr><td>Read</td><td>Only needed columns loaded. Vectorized processing (SIMD)</td></tr>
+      <tr><td>Write</td><td>Slow — must update multiple column files. Batch writes mitigate</td></tr>
+      <tr><td>Space amp</td><td>Very low — per-column compression is extremely effective</td></tr>
+      <tr><td>Best for</td><td>OLAP. Analytics. Aggregation over many rows, few columns</td></tr>
+      <tr><td>Used by</td><td>ClickHouse, DuckDB, Vertica, Parquet, Redshift, Snowflake</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 5. Append-Only -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">05</div>
+    <h3>Append-Only Log / Event Store</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>[Event 1] → [Event 2] → [Event 3] → ... → [Event N]
+  ↑ immutable, never modified, only appended ↑</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>Sequential, immutable records. Each record has a position/offset</td></tr>
+      <tr><td>Read</td><td>O(n) scan, O(log n) with index. Replay from any position</td></tr>
+      <tr><td>Write</td><td>O(1) — append to end. Fastest possible write pattern</td></tr>
+      <tr><td>Write amp</td><td>Zero — no in-place updates, no compaction</td></tr>
+      <tr><td>Best for</td><td>Event sourcing. Audit logs. CDC. Message queues. Kafka</td></tr>
+      <tr><td>Used by</td><td>Kafka, EventStoreDB, <strong>go-cqrs-lite</strong> events table, Datomic</td></tr>
+    </table>
+    <div class="key-prop"><strong>This is our model.</strong> go-cqrs-lite's event store is an append-only log per aggregate, with version as the sequence number.</div>
+  </div>
+</div>
+
+<!-- 6. mmap -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">06</div>
+    <h3>Memory-Mapped (mmap)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Process Virtual Memory:
+[0x0000 ... Database File ... 0xFFFF]
+     ↑ OS handles page faults ←→ Disk automatically ↑</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>Entire database file mapped into virtual address space</td></tr>
+      <tr><td>Read</td><td>Direct memory access — no system calls</td></tr>
+      <tr><td>Write</td><td>Copy-on-write (LMDB) or in-place with write barriers</td></tr>
+      <tr><td>Currency</td><td>Multiple processes can map the same file. Lock-free reads</td></tr>
+      <tr><td>Used by</td><td>LMDB, bbolt, SQLite (WAL mode)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> No buffer pool to manage — the OS IS the buffer pool. Reads are just memory dereferences. Writes are copy-on-write for crash safety.</div>
+  </div>
+</div>
+
+<!-- 7. Fractal Tree -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">07</div>
+    <h3>Fractal Tree (Cache-Oblivious B-Tree)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>[Root with buffer] → [Internal with buffer] → [Leaf]
+       ↓ flush              ↓ flush
+  Messages buffered in internal nodes, flushed in batches</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>B-Tree where internal nodes contain message buffers</td></tr>
+      <tr><td>Read</td><td>O(log_B N) — must check buffers along the path</td></tr>
+      <tr><td>Write</td><td>O(log_B N / B) — amortized, messages batched in buffers</td></tr>
+      <tr><td>Write amp</td><td>Very low — messages flushed in bulk</td></tr>
+      <tr><td>Used by</td><td>TokuDB (acquired by Percona, now EOL)</td></tr>
+    </table>
+    <div class="key-prop"><strong>Key property:</strong> Combines LSM's write throughput with B-Tree's read performance. Writes accumulate in node buffers and flush in batches.</div>
+  </div>
+</div>
+
+<!-- 8. ART -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">08</div>
+    <h3>Adaptive Radix Tree (ART)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Node4:  [≤4 children, compact]   → Node16: [≤16 children]
+                                      → Node48: [≤48 children]
+                                         → Node256: [256 children]</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>Trie that adapts node size to occupancy</td></tr>
+      <tr><td>Read</td><td>O(k) where k = key length. Cache-friendly</td></tr>
+      <tr><td>Write</td><td>O(k) — node type promotion/demotion as needed</td></tr>
+      <tr><td>Space</td><td>Very compact — empty slots not allocated</td></tr>
+      <tr><td>Used by</td><td>HyperLevelDB (index), Hyrise (in-memory DB)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 9. BW-Tree -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">09</div>
+    <h3>BW-Tree (Latch-Free B-Tree)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
+              ↑ CAS chain — updates without latches ↑</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>B-Tree with latch-free updates via CAS delta chains</td></tr>
+      <tr><td>Read</td><td>O(log n) — follow delta chain to base page</td></tr>
+      <tr><td>Write</td><td>O(log n) — prepend delta via CAS. No latches</td></tr>
+      <tr><td>Currency</td><td>Excellent — no lock contention on multi-core</td></tr>
+      <tr><td>Used by</td><td>Microsoft Hekaton (SQL Server in-memory OLTP)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 10. TSM -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">10</div>
+    <h3>Time-Structured Merge Tree (TSM)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>[Cache] → flush → [TSM File: time-sorted, compressed per field]
+                       ↓ compaction → [Larger TSM File]</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>LSM variant: shard by time range, compress per-field</td></tr>
+      <tr><td>Read</td><td>Time-range scan. Delta-of-delta + Gorilla compression</td></tr>
+      <tr><td>Compression</td><td>Exceptional — 10-20× on time-series data</td></tr>
+      <tr><td>Used by</td><td>InfluxDB</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 11. Vector Index -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">11</div>
+    <h3>Vector Index (HNSW / IVF)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>HNSW:                       IVF:
+  Layer 2: [sparse]           [Centroid 1] → [vectors near 1]
+  Layer 1: [medium]           [Centroid 2] → [vectors near 2]
+  Layer 0: [dense]            [Centroid N] → [vectors near N]</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>HNSW</td><td>Hierarchical navigable small world graph for ANN</td></tr>
+      <tr><td>IVF</td><td>Inverted file index. Partition via centroids</td></tr>
+      <tr><td>Read</td><td>O(log n) approximate. Recall vs speed tradeoff</td></tr>
+      <tr><td>Used by</td><td>Pinecone, Weaviate, Qdrant, Milvus, pgvector</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 12. CoW B-Tree -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-num">12</div>
+    <h3>Copy-on-Write B-Tree (CoW)</h3>
+    <span class="badge badge-storage">Storage</span>
+  </div>
+  <div class="card-body">
+    <pre>Write: Modify leaf → copy path to root → atomically swap root pointer
+Old root still valid → readers see consistent snapshot</pre>
+    <table>
+      <tr><th>Dimension</th><th>Detail</th></tr>
+      <tr><td>Structure</td><td>B-Tree where every write creates new node copies up to root</td></tr>
+      <tr><td>Read</td><td>O(log n) — no latches needed, consistent snapshot</td></tr>
+      <tr><td>Write</td><td>O(log n) — copies O(log n) nodes per write</td></tr>
+      <tr><td>Currency</td><td>Excellent — readers never block, single writer</td></tr>
+      <tr><td>Used by</td><td>LMDB, ZFS (filesystem), bbolt</td></tr>
+    </table>
+  </div>
+</div>
+
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="matrix">
+<div class="part-header">
+  <div class="part-number">Part 3</div>
+  <h2>Cross-Reference Matrix</h2>
+</div>
+
+<h3 style="font-size:1rem;color:var(--fg-dim);margin-bottom:1.5rem;font-weight:400">Interface × Storage Engine combinations in the wild</h3>
+
+<div class="mega-table-wrap">
+<table class="mega-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>B+Tree</th>
+      <th>LSM-Tree</th>
+      <th>Hash</th>
+      <th>Columnar</th>
+      <th>Append-Only</th>
+      <th>mmap</th>
+      <th>ART</th>
+      <th>Fractal</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Key-Value</td><td>bbolt, LMDB</td><td>RocksDB, Pebble, LevelDB</td><td>Bitcask, Redis</td><td>—</td><td>—</td><td>LMDB</td><td>HyperLevelDB</td><td>—</td></tr>
+    <tr><td>Document</td><td>MongoDB (WiredTiger)</td><td>MongoDB (WiredTiger)</td><td>—</td><td>MongoDB (col store)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Relational</td><td>PostgreSQL, MySQL, SQLite</td><td>MyRocks</td><td>—</td><td>ClickHouse, DuckDB</td><td>Datomic</td><td>SQLite</td><td>—</td><td>TokuDB</td></tr>
+    <tr><td>Graph</td><td>Neo4j (native)</td><td>JanusGraph</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Time-Series</td><td>TimescaleDB</td><td>InfluxDB, Cassandra</td><td>—</td><td>ClickHouse, QuestDB</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Search</td><td>—</td><td>—</td><td>—</td><td>Elasticsearch</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Wide-Column</td><td>—</td><td>Cassandra, ScyllaDB</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Datalog</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Datomic</td><td>Datahike</td><td>—</td><td>—</td></tr>
+    <tr><td>Streaming</td><td>—</td><td>Kafka (log segments)</td><td>—</td><td>—</td><td>Kafka, Pulsar</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Vector</td><td>—</td><td>Qdrant (rocksdb)</td><td>—</td><td>Milvus</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="diagram-box">
+  <div class="diagram-label">Trade-off Map</div>
+  <pre>                        Write Throughput
+                              ↑
+                              |
+           LSM-Tree ●         |         ● Fractal Tree
+                              |
+     ScyllaDB (sharded LSM)   |
+                              |
+    ──────────────────────────┼──────────────────→ Read Performance
+                              |
+            Hash Index ●      |         ● B+Tree
+                              |              ● mmap (LMDB)
+                              |
+              Append-Only ●   |
+                              |              ● Columnar
+                              |                    ● ART (in-memory)
+                              |
+                        Low Space Usage ←→ High Space Usage</pre>
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="relevance">
+<div class="part-header">
+  <div class="part-number">Part 4</div>
+  <h2>Relevance to go-cqrs-lite</h2>
+</div>
+
+<h3 style="font-size:.95rem;color:var(--fg-dim);margin-bottom:1.5rem;font-weight:400">What we use today</h3>
+<div class="relevance-grid">
+  <div class="rel-item"><h4>SQLEventStore</h4><p>Ordered KV (keyed by aggregate+version) → B+Tree via PostgreSQL / SQLite / Turso</p></div>
+  <div class="rel-item"><h4>PebbleEventStore</h4><p>Ordered KV (keyed by aggregate+version) → LSM-Tree via Pebble</p></div>
+  <div class="rel-item"><h4>SQLSnapshotStore</h4><p>Simple KV (keyed by aggregate) → B+Tree</p></div>
+  <div class="rel-item"><h4>SQLCheckpointStore</h4><p>Simple KV (keyed by projection name) → B+Tree</p></div>
+  <div class="rel-item"><h4>SQLOutbox</h4><p>FIFO queue (status-filtered) → B+Tree</p></div>
+</div>
+
+<h3 style="font-size:.95rem;color:var(--fg-dim);margin-bottom:1rem;font-weight:400">Our actual access pattern (despite using SQL as backend)</h3>
+<div class="relevance-grid">
+  <div class="rel-item"><h4>1. Event Store</h4><p>Ordered KV with prefix scan (load all events for aggregate) + append (save events)</p></div>
+  <div class="rel-item"><h4>2. Snapshot Store</h4><p>Simple KV — Get/Put by aggregate key</p></div>
+  <div class="rel-item"><h4>3. Checkpoint Store</h4><p>Simple KV — Get/Put by projection name</p></div>
+  <div class="rel-item"><h4>4. Outbox</h4><p>FIFO queue with status filter — poll pending, ack</p></div>
+</div>
+
+<h3 style="font-size:.95rem;color:var(--fg-dim);margin:2rem 0 1rem;font-weight:400">Engines that fit our patterns</h3>
+<div class="cards">
+  <div class="card">
+    <div class="card-header"><div class="card-num">✓</div><h3>LSM-Tree (Pebble, BadgerDB)</h3><span class="badge badge-fit">Fits</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--accent)">Append-heavy (events are append-only), prefix scan for aggregate loading. Trade-off: read amplification for large histories — mitigated by snapshots.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✓</div><h3>B+Tree (PostgreSQL, SQLite)</h3><span class="badge badge-fit">Fits</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--accent)">Point lookup for snapshots/checkpoints, range scan for events. Trade-off: write amplification on high-ingest — acceptable for most workloads.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✓</div><h3>Append-Only Log (Kafka-style)</h3><span class="badge badge-fit">Fits</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--accent)">Natural fit for event sourcing — events ARE append-only. Trade-off: no per-aggregate random access without secondary index.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✓</div><h3>CoW B+Tree (LMDB)</h3><span class="badge badge-fit">Fits</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--accent)">Snapshot reads for free (time-travel), lock-free readers. Trade-off: single writer bottleneck — acceptable for embedded use.</div></div>
+  </div>
+</div>
+
+<h3 style="font-size:.95rem;color:var(--fg-dim);margin:2rem 0 1rem;font-weight:400">Engines that do NOT fit</h3>
+<div class="cards">
+  <div class="card">
+    <div class="card-header"><div class="card-num">✗</div><h3>Columnar</h3><span class="badge badge-nofit">No Fit</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--rose)">We need row-level access (load one aggregate), not column aggregates.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✗</div><h3>Vector Index</h3><span class="badge badge-nofit">No Fit</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--rose)">No similarity search in event sourcing.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✗</div><h3>Fractal Tree</h3><span class="badge badge-nofit">No Fit</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--rose)">EOL (TokuDB), no maintained Go implementation.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-num">✗</div><h3>ART / BW-Tree</h3><span class="badge badge-nofit">No Fit</span></div>
+    <div class="card-body"><div class="key-prop" style="border-left-color:var(--rose)">In-memory only (ART) or research prototype (BW-Tree). No Go implementations.</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="advanced">
+<div class="part-header">
+  <div class="part-number">Part 5</div>
+  <h2>Advanced / Hybrid Architectures</h2>
+</div>
+
+<div class="adv-card">
+  <h3>FoundationDB <span class="tag badge-arch">Layer Architecture</span></h3>
+  <p class="desc"><strong>Storage:</strong> Ordered KV (serialized MVCC) + distributed consensus (Raft-like).<br><strong>Interface:</strong> Raw KV is the only interface. SQL, Document, Graph — all built as <em>layers</em> on top.</p>
+  <div class="lesson"><strong>Lesson:</strong> A single well-designed KV interface can power any higher-level model. This is the "data store aware but independent" principle taken to its extreme.</div>
+</div>
+
+<div class="adv-card">
+  <h3>Datomic <span class="tag badge-arch">Database as a Value</span></h3>
+  <p class="desc"><strong>Storage:</strong> Append-only transaction log (DynamoDB) + 5 sorted indexes (S3) + cache (EFS).<br><strong>Interface:</strong> Datalog queries against immutable database values (snapshots).</p>
+  <div class="lesson"><strong>Lesson:</strong> Every query sees a consistent point-in-time snapshot. "Time-travel" is free because history is never overwritten. This is the gold standard for event sourcing.</div>
+</div>
+
+<div class="adv-card">
+  <h3>TigerBeetle <span class="tag badge-arch">Deterministic Single-Thread</span></h3>
+  <p class="desc"><strong>Storage:</strong> LSM forest with direct I/O, no OS page cache.<br><strong>Interface:</strong> Two-phase accounting transfers (debit + credit in one operation).</p>
+  <div class="lesson"><strong>Lesson:</strong> Single-threaded deterministic execution eliminates entire classes of concurrency bugs. For financial data, this is worth the throughput trade-off.</div>
+</div>
+
+<div class="adv-card">
+  <h3>SurrealDB <span class="tag badge-arch">Multi-Model Pluggable</span></h3>
+  <p class="desc"><strong>Storage:</strong> Pluggable — RocksDB (embedded), TiKV (distributed), IndexedDB (browser).<br><strong>Interface:</strong> SurrealQL covers document, graph, relational, vector in one query language.</p>
+  <div class="lesson"><strong>Lesson:</strong> The "backend is pluggable" pattern is viable. Same query language, different storage. Aligns with our <code>kv.Store</code> abstraction approach.</div>
+</div>
+
+</section>
+
+<footer>
+  <p>Sources: DB-Engines ranking, database official documentation, architecture blogs, research papers (HNSW, ART, BW-Tree, Fractal Trees), system design resources.</p>
+</footer>
+
+</div>
+
+<script>
+const sections=document.querySelectorAll('.part[id]');
+const links=document.querySelectorAll('nav a');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if(a)a.classList.add('active');
+    }
+  });
+},{threshold:0.15,rootMargin:'-80px 0px -50% 0px'});
+sections.forEach(s=>observer.observe(s));
+</script>
+
+</body>
+</html>

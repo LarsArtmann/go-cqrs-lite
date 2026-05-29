@@ -64,7 +64,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 		event.NewAggregateRef("Issue", aggID),
 		event.Version(5),
 	)
-	if !errors.Is(err, event.ErrSnapshotNotFound) {
+	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
 		t.Fatalf("expected ErrSnapshotNotFound for version 5 < snapshot version 10, got %v", err)
 	}
 

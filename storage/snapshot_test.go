@@ -146,7 +146,7 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 		t.Fatal("expected error for not found")
 	}
 
-	if !errors.Is(err, event.ErrSnapshotNotFound) {
+	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
 		t.Errorf("expected ErrSnapshotNotFound, got %v", err)
 	}
 }
@@ -209,7 +209,7 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 		t.Fatal("expected error for not found")
 	}
 
-	if !errors.Is(err, event.ErrSnapshotNotFound) {
+	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
 		t.Errorf("error = %v, want ErrSnapshotNotFound", err)
 	}
 }

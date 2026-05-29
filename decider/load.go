@@ -177,7 +177,7 @@ func (r *Repository[State]) loadFromSnapshot(
 
 	snap, err := r.snapshotStore.Load(ctx, ref)
 	if err != nil {
-		if !errors.Is(err, event.ErrSnapshotNotFound) {
+		if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
 			var zero State
 
 			return zero, 0, opError(ref, "load snapshot: %w", err)

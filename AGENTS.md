@@ -33,24 +33,25 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 22 modules (15 library + 6 examples + 1 integration):
+Multi-module Go workspace (`go.work`) with 29 modules (22 library + 6 examples + 1 integration):
 
 ```
 go-cqrs-lite/
-├── core/                # github.com/larsartmann/go-cqrs-lite/core
-│   ├── command/         # Dispatcher, Handler, Middleware, Command, BasicCommand
-│   ├── query/           # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
-│   ├── event/           # EventSink, EventSource, Store, Journal, SeekableJournal, TombstoneStatus, Bus, SnapshotStore, ImmutableEvent, NewEvent, Clone, Codec, Upcaster
-│   ├── decider/         # Decider[State], Repository[State], Execute, Load (pure-function style)
-│   └── pkg/
-│       ├── id/          # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
-│       └── dispatcher/  # Generic Dispatcher[H, M] with LifecycleMixin
-├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore (in-memory test impls)
+├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
+│                        # Reactive: EventBus (= ro.Subject[Event]), FilterEventType, HandlerToObserver
+├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
+├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
+├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
+├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
+├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
+├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution)
+├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
+├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
-│   └── schema/         # JSON Schema types, reflection engine, YAML serialization
+│   └── schema/          # JSON Schema types, reflection engine, YAML serialization
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
-├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
+├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, FakeSnapshotStore, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
@@ -68,7 +69,7 @@ go-cqrs-lite/
 
 1. **Library, not framework** — Consumers import what they need. No opinionated transport, broker, or SQL driver.
 2. **Trustworthy modules** — Quality gate: "Would a consumer trust this enough to import it?"
-3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
+3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`, `samber/ro`.
 4. **Composition over inheritance** — Per Go best practices.
 5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
 6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
@@ -114,12 +115,12 @@ status := event.DetectTombstone(events) // Active, Tombstoned, or Undetermined
 marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 // Event upcasting (schema migration on load)
-//   upcaster := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
+//   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
 //       return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 //           newPayload, event.WithSchemaVersion(2))
 //   })
-//   versioned := event.NewVersionedStore(store, upcaster)
-//   events, _ := versioned.Load(ctx, "User", aggregateID)
+//   versioned := schema.NewVersionedStore(store, upcaster)
+//   events, _ := versioned.Load(ctx, event.NewAggregateRef("User", aggregateID))
 
 // Event signing (tamper-proof streams)
 //   signer, _ := signing.NewHMAC(secret)
@@ -142,21 +143,27 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 - Table-driven tests preferred; BDD via Ginkgo v2 + Gomega for event/decider/query
 - `t.Parallel()` for independent tests; core packages >80% coverage (most >90%)
-- Per-module isolation: `cd core && GOWORK=off go test ./... -count=1`
+- Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
 ## Dependencies
 
 | Category   | Packages                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, core, storage, middleware, projection) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                            |
 
-**Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
+**Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
 
-**Module Graph**: otel→go.opentelemetry.io/otel; core→otel+codec (prod), memory+testhelpers (test-only); testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
-catalog→core; storage→core+otel+testhelpers; projection→core+otel+memory+testhelpers; signing→core+testhelpers; listing→core+memory; watermill→core;
-pebble→core+codec+otel+testhelpers; codec (leaf); turso→storage; cmd/cqrs-gen→core;
-integration→core+memory+testhelpers.
+**Module Graph**:
+```
+Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
+Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher)
+Layer 2: schema/ (→event), snapshot/ (→event)
+Layer 3: decider/ (→event, snapshot)
+Layer 4: memory/, testhelpers/, signing/, otel/
+Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
+Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen
+```
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
 
@@ -165,3 +172,6 @@ integration→core+memory+testhelpers.
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)
 > and [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).
+
+> **Schema evolution**: Upcaster and VersionedStore moved to `schema/` module. See `schema/` package.
+> **Snapshot persistence**: Snapshot types moved to `snapshot/` module. See `snapshot/` package.

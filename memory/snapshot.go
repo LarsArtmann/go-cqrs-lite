@@ -4,37 +4,33 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/event"
+	snappkg "github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
-// MemorySnapshotStore is an in-memory implementation of snapshot.SnapshotStore.
-// It stores at most one snapshot per aggregate (the latest version).
 type MemorySnapshotStore struct {
 	dispatcher.Lifecycle
 
-	mu        sync.RWMutex
-	snapshots map[string]*snapshot.Snapshot
+	mu          sync.RWMutex
+	snapshots   map[string]*snappkg.Snapshot
 }
 
 var (
-	_ snapshot.SnapshotSink   = (*MemorySnapshotStore)(nil)
-	_ snapshot.SnapshotSource = (*MemorySnapshotStore)(nil)
-	_ snapshot.SnapshotStore  = (*MemorySnapshotStore)(nil)
+	_ snappkg.SnapshotSink   = (*MemorySnapshotStore)(nil)
+	_ snappkg.SnapshotSource = (*MemorySnapshotStore)(nil)
+	_ snappkg.SnapshotStore  = (*MemorySnapshotStore)(nil)
 )
 
-// NewMemorySnapshotStore creates a new in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
-	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemorySnapshotStore{
-		snapshots: make(map[string]*snapshot.Snapshot),
+		snapshots: make(map[string]*snappkg.Snapshot),
 	}
+	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 }
 
-// Save stores a snapshot. If a newer snapshot already exists for the aggregate, the save is silently skipped.
-func (s *MemorySnapshotStore) Save(_ context.Context, snapshot snapshot.Snapshot) error {
-	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {
+	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
 		return event.WrapInfrastructure(err, "memory.snapshot_save_failed", "snapshot store save")
 	}
@@ -42,25 +38,23 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot snapshot.Snapshot
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.StreamKey(snapshot.AggregateType, snapshot.AggregateID)
+	key := event.StreamKey(snap.AggregateType, snap.AggregateID)
 
 	existing, exists := s.snapshots[key]
-	if exists && existing.Version.Int() > snapshot.Version.Int() {
+	if exists && existing.Version.Int() > snap.Version.Int() {
 		return nil
 	}
 
-	s.snapshots[key] = copySnapshot(&snapshot)
+	s.snapshots[key] = copySnapshot(&snap)
 
 	return nil
 }
 
-// Load returns the latest snapshot for an aggregate.
-// Returns ErrSnapshotNotFound if no snapshot exists.
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
 	ref event.AggregateRef,
-) (*snapshot.Snapshot, error) {
-	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+) (*snappkg.Snapshot, error) {
+	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
@@ -74,24 +68,22 @@ func (s *MemorySnapshotStore) Load(
 
 	key := ref.StreamKey()
 
-	snapshot, exists := s.snapshots[key]
+	snap, exists := s.snapshots[key]
 	if !exists {
-		return nil, event.ErrSnapshotNotFound
+		return nil, snappkg.ErrSnapshotNotFound
 	}
 
-	cp := copySnapshot(snapshot)
+	cp := copySnapshot(snap)
 
 	return cp, nil
 }
 
-// LoadAtVersion returns the snapshot for an aggregate if its version is at or before the requested version.
-// Returns ErrSnapshotNotFound if no suitable snapshot exists.
 func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
 	ref event.AggregateRef,
 	version event.Version,
-) (*snapshot.Snapshot, error) {
-	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+) (*snappkg.Snapshot, error) {
+	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
@@ -105,37 +97,36 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 
 	key := ref.StreamKey()
 
-	snapshot, exists := s.snapshots[key]
+	snap, exists := s.snapshots[key]
 	if !exists {
-		return nil, event.ErrSnapshotNotFound
+		return nil, snappkg.ErrSnapshotNotFound
 	}
 
-	if snapshot.Version.Cmp(version) > 0 {
-		return nil, event.ErrSnapshotNotFound
+	if snap.Version.Cmp(version) > 0 {
+		return nil, snappkg.ErrSnapshotNotFound
 	}
 
-	cp := copySnapshot(snapshot)
+	cp := copySnapshot(snap)
 
 	return cp, nil
 }
 
-func copySnapshot(snapshot *snapshot.Snapshot) *snapshot.Snapshot {
-	snapshotCopy := *snapshot
+func copySnapshot(snap *snappkg.Snapshot) *snappkg.Snapshot {
+	snapshotCopy := *snap
 
-	if snapshot.State != nil {
-		snapshotCopy.State = make([]byte, len(snapshot.State))
-		copy(snapshotCopy.State, snapshot.State)
+	if snap.State != nil {
+		snapshotCopy.State = make([]byte, len(snap.State))
+		copy(snapshotCopy.State, snap.State)
 	}
 
 	return &snapshotCopy
 }
 
-// Delete removes the snapshot for an aggregate.
 func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
 	ref event.AggregateRef,
 ) error {
-	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
+	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
 		return event.WrapInfrastructure(
 			err,
@@ -153,13 +144,6 @@ func (s *MemorySnapshotStore) Delete(
 	return nil
 }
 
-// Close marks the store as closed. Subsequent operations return ErrSnapshotStoreClosed.
 func (s *MemorySnapshotStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
 }
-
-var (
-	_ snapshot.SnapshotSink   = (*MemorySnapshotStore)(nil)
-	_ snapshot.SnapshotSource = (*MemorySnapshotStore)(nil)
-	_ snapshot.SnapshotStore  = (*MemorySnapshotStore)(nil)
-)

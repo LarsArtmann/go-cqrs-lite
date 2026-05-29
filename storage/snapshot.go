@@ -99,7 +99,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 	}
 	if snap.Version.Cmp(version) > 0 {
-		err := event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
+		err := event.WrapRejection(snapshot.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
 			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 		cqrsotel.RecordError(span, err)
 		return nil, err
@@ -121,7 +121,7 @@ func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*
 	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_not_found",
+			return nil, event.WrapRejection(snapshot.ErrSnapshotNotFound, "storage.snapshot_not_found",
 				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)))
 		}
 		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",

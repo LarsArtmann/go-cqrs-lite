@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestFamily_String(t *testing.T) {
@@ -133,10 +134,10 @@ func TestClassify_sentinelMapping(t *testing.T) {
 	}{
 		{"version conflict", event.ErrVersionConflict, event.Conflict},
 		{"aggregate not found", event.ErrAggregateNotFound, event.Rejection},
-		{"snapshot not found", event.ErrSnapshotNotFound, event.Rejection},
+		{"snapshot not found", snapshot.ErrSnapshotNotFound, event.Rejection},
 		{"store closed", event.ErrStoreClosed, event.Infrastructure},
 		{"bus closed", event.ErrBusClosed, event.Infrastructure},
-		{"snapshot store closed", event.ErrSnapshotStoreClosed, event.Infrastructure},
+		{"snapshot store closed", snapshot.ErrSnapshotStoreClosed, event.Infrastructure},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
