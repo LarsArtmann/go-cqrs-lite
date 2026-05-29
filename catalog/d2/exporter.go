@@ -16,7 +16,7 @@ type Exporter struct {
 }
 
 // Option configures an Exporter.
-type Option = catalog.Option
+type Option = catalog.Option[Exporter]
 
 // WithDescription sets the diagram description.
 func WithDescription(desc string) Option {

@@ -25,6 +25,13 @@ const loadAllFromPositionQuery = `SELECT id, event_type, aggregate_type, aggrega
 		WHERE id > $1
 		ORDER BY occurred_at ASC LIMIT $2`
 
+func mockEventRowsForTest(evt *event.ImmutableEvent, aggID id.AggregateID) *sqlmock.Rows {
+	return sqlmock.NewRows(eventColumns()).AddRow(
+		evt.ID(), "UserCreated", "User", aggID,
+		1, 1, evt.Payload(), nil, evt.OccurredAt(),
+	)
+}
+
 func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 	t.Parallel()
 
@@ -35,10 +42,7 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
 		WithArgs("User", aggID, 1).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			evt.ID(), "UserCreated", "User", aggID,
-			1, 1, evt.Payload(), nil, evt.OccurredAt(),
-		))
+		WillReturnRows(mockEventRowsForTest(evt, aggID))
 
 	events, err := store.LoadToVersion(context.Background(), "User", aggID, 1)
 	if err != nil {
@@ -92,10 +96,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
 		WithArgs("User", aggID, evt.OccurredAt()).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			evt.ID(), "UserCreated", "User", aggID,
-			1, 1, evt.Payload(), nil, evt.OccurredAt(),
-		))
+		WillReturnRows(mockEventRowsForTest(evt, aggID))
 
 	events, err := store.LoadToTimestamp(context.Background(), "User", aggID, evt.OccurredAt())
 	if err != nil {

@@ -173,18 +173,6 @@ func AddCommandWithExamples(
 	return r
 }
 
-func AddQuerySimple(
-	tb testing.TB,
-	r *catalog.Registry,
-	serviceID catalog.ServiceID,
-	messageID catalog.MessageID,
-	name, version, summary string,
-) *catalog.Registry {
-	tb.Helper()
-
-	return addServiceWithMessage(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
-}
-
 // CreateItemSchema returns a reusable object schema with a required "name" string property.
 func CreateItemSchema() *catalog.Schema {
 	return &catalog.Schema{

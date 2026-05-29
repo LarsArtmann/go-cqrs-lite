@@ -29,7 +29,7 @@ type Exporter struct {
 }
 
 // Option configures an Exporter.
-type Option = catalog.Option
+type Option = catalog.Option[Exporter]
 
 // WithServer sets the server name, host, and protocol for the AsyncAPI document.
 func WithServer(name, host, protocol string) Option {

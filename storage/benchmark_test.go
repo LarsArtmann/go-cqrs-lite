@@ -145,17 +145,8 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	columns := []string{
-		"id", "event_type", "aggregate_type", "aggregate_id",
-		"version", "schema_version", "payload", "metadata", "occurred_at",
-	}
-
 	for b.Loop() {
-		rows := sqlmock.NewRows(columns).
-			AddRow(
-				id.NewEventID().String(), "user.created", "User",
-				aggID.String(), 1, 1, payload, metaJSON, now,
-			)
+		rows := mockEventRows(aggID, now, payload, metaJSON)
 
 		mock.ExpectQuery("SELECT (.+) FROM events WHERE aggregate_type").
 			WithArgs("User", aggID.String(), 2).
