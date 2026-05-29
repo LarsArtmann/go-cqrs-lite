@@ -56,6 +56,7 @@
             "dispatcher"
             "schema"
             "snapshot"
+            "codec"
             "memory"
             "catalog"
             "middleware"
@@ -65,6 +66,10 @@
             "storage"
             "testhelpers"
             "watermill"
+            "listing"
+            "otel"
+            "pebble"
+            "turso"
             "cmd/cqrs-gen"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);

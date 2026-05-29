@@ -13,7 +13,7 @@ require (
 require (
 	github.com/samber/lo v1.52.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20260527015227-08cc5374adb3 // indirect
+	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7 // indirect
 )
 
 require (
@@ -37,6 +37,5 @@ require (
 replace (
 	github.com/larsartmann/go-cqrs-lite/event => ../event
 	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/listing => ./
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 )
