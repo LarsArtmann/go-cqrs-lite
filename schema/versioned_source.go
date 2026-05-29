@@ -2,12 +2,13 @@ package schema
 
 import (
 	"context"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 type VersionedStore struct {
-	Store    event.Store
+	event.Store
 	registry *upcasterRegistry
 }
 
@@ -45,6 +46,32 @@ func (s *VersionedStore) LoadFromVersion(
 	return s.upcastAll(events)
 }
 
+func (s *VersionedStore) LoadToVersion(
+	ctx context.Context,
+	ref event.AggregateRef,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	events, err := s.Store.LoadToVersion(ctx, ref, maxVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.upcastAll(events)
+}
+
+func (s *VersionedStore) LoadToTimestamp(
+	ctx context.Context,
+	ref event.AggregateRef,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	events, err := s.Store.LoadToTimestamp(ctx, ref, maxTime)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.upcastAll(events)
+}
+
 func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) {
 	result := make([]event.Event, len(events))
 	for i, evt := range events {
@@ -52,7 +79,7 @@ func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) 
 		if err != nil {
 			return nil, event.WrapCorruption(
 				err,
-				"event.upcast_failed",
+				"schema.upcast_failed",
 				"upcast event "+evt.ID().String(),
 			)
 		}
