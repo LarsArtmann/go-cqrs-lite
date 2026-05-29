@@ -15,10 +15,6 @@ github.com/joshdk/go-junit v1.0.0 h1:S86cUKIdwBHWwA6xCmFlf3RTLfVXYQfvanM5Uh+K6GE
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frqR5Ub3Cj+w0=
-github.com/larsartmann/go-cqrs-lite/core v1.6.0 h1:sduOvVhLRsOJfE927IowIjS4I90YgSEcaFo0S1BpQ20=
-github.com/larsartmann/go-cqrs-lite/core v1.6.0/go.mod h1:1VZmqO5AnTFJs0kBG32EIp//igaoZ5n48mWdAjWuQqw=
-github.com/larsartmann/go-cqrs-lite/memory v1.6.0 h1:8uf1hV7m0Ws7/DN7XHaJ1/W5/rPVv2zmxU3fDDMep0c=
-github.com/larsartmann/go-cqrs-lite/memory v1.6.0/go.mod h1:2QCNShPIbZniA+Fb4IfvyYt6sG2UymBilpNDaWpKinE=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=
 github.com/mfridman/tparse v0.18.0 h1:wh6dzOKaIwkUGyKgOntDW4liXSo37qg5AXbIhkMV3vE=

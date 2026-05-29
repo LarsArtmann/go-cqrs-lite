@@ -122,12 +122,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	result, err := d.Dispatch(ctx, query)
 	if err != nil {
-		return zero, errorfamily.Wrap(
-			err,
-			errorfamily.Classify(err),
-			"query.dispatch_typed_failed",
-			"dispatch failed for query type "+string(query.Type()),
-		)
+		return zero, err
 	}
 
 	typed, ok := result.(T)

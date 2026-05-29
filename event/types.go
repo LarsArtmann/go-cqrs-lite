@@ -113,6 +113,16 @@ func (v Version) IsZero() bool { return v == 0 }
 // Increment returns a new Version incremented by 1.
 func (v Version) Increment() Version { return v + 1 }
 
+// Decrement returns a new Version decremented by 1.
+// Panics if v is 0.
+func (v Version) Decrement() Version {
+	if v == 0 {
+		panic("event: Version.Decrement() on zero version")
+	}
+
+	return v - 1
+}
+
 // String returns the version as a decimal string.
 func (v Version) String() string { return strconv.Itoa(int(v)) }
 
@@ -171,6 +181,16 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	}
 
 	return SchemaVersion(v), nil
+}
+
+// Decrement returns the previous schema version.
+// Panics if sv is 0 or 1 (minimum schema version is 1).
+func (sv SchemaVersion) Decrement() SchemaVersion {
+	if sv <= 1 {
+		panic("event: SchemaVersion.Decrement() on minimum version")
+	}
+
+	return sv - 1
 }
 
 // Int returns the underlying int value.
