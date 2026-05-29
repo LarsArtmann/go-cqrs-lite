@@ -1,24 +1,22 @@
-package event
+package schema
 
 import (
-	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-func newTestUpcaster(typ Type, version SchemaVersion, payload string) Upcaster {
-	return NewUpcaster(typ, version, func(evt Event) (*ImmutableEvent, error) {
-		return NewEvent(typ, evt.AggregateID(), "User", evt.Version(), []byte(payload))
+func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string) Upcaster {
+	return NewUpcaster(typ, version, func(evt event.Event) (*event.ImmutableEvent, error) {
+		return event.NewEvent(typ, evt.AggregateID(), "User", evt.Version(), []byte(payload))
 	})
 }
 
-// newTestEvent creates a registry and event for upcaster tests.
-func newTestEvent(version int, payload string) (*upcasterRegistry, Event) {
+func newTestEvent(version int, payload string) (*upcasterRegistry, event.Event) {
 	registry := newUpcasterRegistry()
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt, _ := NewEvent("UserCreated", aggID, "User", Version(version), []byte(payload))
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", event.Version(version), []byte(payload))
 	return registry, evt
 }
 
@@ -28,10 +26,10 @@ func TestUpcasterFunc(t *testing.T) {
 	uc := NewUpcaster(
 		"UserCreated",
 		1,
-		func(_ Event) (*ImmutableEvent, error) {
+		func(_ event.Event) (*event.ImmutableEvent, error) {
 			aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-			return NewEvent("UserCreated", aggID, "User", 2, nil)
+			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
 		},
 	)
 
@@ -51,7 +49,7 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -113,8 +111,8 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 func registerUserCreatedUpcasterV1(registry *upcasterRegistry) {
 	registry.register(NewUpcaster(
 		"UserCreated", 1,
-		func(evt Event) (*ImmutableEvent, error) {
-			return NewEvent(
+		func(evt event.Event) (*event.ImmutableEvent, error) {
+			return event.NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
@@ -133,7 +131,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
+	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -147,15 +145,15 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 
 func registerTrackingUpcaster(
 	registry *upcasterRegistry,
-	version SchemaVersion,
+	version event.SchemaVersion,
 	applied *[]int,
 ) {
 	registry.register(NewUpcaster(
 		"UserCreated", version,
-		func(evt Event) (*ImmutableEvent, error) {
+		func(evt event.Event) (*event.ImmutableEvent, error) {
 			*applied = append(*applied, int(version))
 
-			return NewEvent(
+			return event.NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
 				"User",
@@ -178,7 +176,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := NewEvent("UserCreated", aggID, "User", 3, nil)
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
 
 	_, err := registry.upcast(evt)
 	if err != nil {
@@ -202,7 +200,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := NewEvent("UserCreated", aggID, "User", 10, nil, WithSchemaVersion(3))
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 10, nil, event.WithSchemaVersion(3))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -230,7 +228,7 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := NewEvent("UserCreated", aggID, "User", 8, nil, WithSchemaVersion(2))
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 8, nil, event.WithSchemaVersion(2))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -258,7 +256,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := NewEvent("UserCreated", aggID, "User", 5, nil)
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -267,45 +265,5 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 
 	if result.SchemaVersion() != 2 {
 		t.Errorf("SchemaVersion = %d, want 2 (auto-incremented from 1)", result.SchemaVersion())
-	}
-}
-
-func TestNewProjection_WithDecode(t *testing.T) {
-	t.Parallel()
-
-	c := codec.JSONCodec{}
-
-	type userPayload struct {
-		Name string `json:"name"`
-	}
-
-	var name string
-
-	proj := NewProjection(
-		"user-name",
-		func(_ context.Context, evt Event) error {
-			p, err := DecodePayload[userPayload](evt, c)
-			if err != nil {
-				return err
-			}
-
-			name = p.Name
-
-			return nil
-		},
-		[]Type{"UserCreated"},
-	)
-
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-
-	evt, _ := NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
-
-	err := proj.Handle(context.Background(), evt)
-	if err != nil {
-		t.Fatalf("Handle: %v", err)
-	}
-
-	if name != "Alice" {
-		t.Errorf("name = %q, want Alice", name)
 	}
 }

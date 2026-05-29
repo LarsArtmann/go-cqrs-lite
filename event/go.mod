@@ -9,6 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/schema v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	github.com/larsartmann/go-error-family v0.2.0
 	github.com/oklog/ulid/v2 v2.1.1
@@ -22,5 +23,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 	github.com/larsartmann/go-cqrs-lite/query => ../query
+	github.com/larsartmann/go-cqrs-lite/schema => ../schema
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

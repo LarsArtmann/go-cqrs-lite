@@ -1,19 +1,21 @@
-package event
+package schema
 
 import (
 	"sort"
 	"strconv"
 	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 type upcasterRegistry struct {
 	mu        sync.RWMutex
-	upcasters map[Type][]Upcaster
+	upcasters map[event.Type][]Upcaster
 }
 
 func newUpcasterRegistry() *upcasterRegistry {
 	return &upcasterRegistry{
-		upcasters: make(map[Type][]Upcaster),
+		upcasters: make(map[event.Type][]Upcaster),
 		mu:        sync.RWMutex{},
 	}
 }
@@ -30,7 +32,7 @@ func (r *upcasterRegistry) register(u Upcaster) {
 	})
 }
 
-func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
+func (r *upcasterRegistry) upcast(evt event.Event) (event.Event, error) {
 	r.mu.RLock()
 	upcasters := r.upcasters[evt.Type()]
 	r.mu.RUnlock()
@@ -48,7 +50,7 @@ func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
 
 		next, err := uc.Upcast(current)
 		if err != nil {
-			return nil, WrapCorruption(
+			return nil, event.WrapCorruption(
 				err,
 				"event.upcast_failed",
 				"upcast "+string(
@@ -59,7 +61,7 @@ func (r *upcasterRegistry) upcast(evt Event) (Event, error) {
 			)
 		}
 
-		next.schemaVersion = uc.SourceVersion() + 1
+		event.WithSchemaVersion(uc.SourceVersion()+1)(next)
 		current = next
 	}
 

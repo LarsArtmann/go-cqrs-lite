@@ -54,6 +54,7 @@
             "decider"
             "id"
             "dispatcher"
+            "schema"
             "memory"
             "catalog"
             "middleware"

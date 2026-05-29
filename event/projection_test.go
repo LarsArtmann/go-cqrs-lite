@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
@@ -80,5 +81,45 @@ func TestProjectionFunc_HandleError(t *testing.T) {
 	err = proj.Handle(context.Background(), evt)
 	if !errors.Is(err, wantErr) {
 		t.Errorf("error = %v, want %v", err, wantErr)
+	}
+}
+
+func TestNewProjection_WithDecode(t *testing.T) {
+	t.Parallel()
+
+	c := codec.JSONCodec{}
+
+	type userPayload struct {
+		Name string `json:"name"`
+	}
+
+	var name string
+
+	proj := event.NewProjection(
+		"user-name",
+		func(_ context.Context, evt event.Event) error {
+			p, err := event.DecodePayload[userPayload](evt, c)
+			if err != nil {
+				return err
+			}
+
+			name = p.Name
+
+			return nil
+		},
+		[]event.Type{"UserCreated"},
+	)
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+
+	err := proj.Handle(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if name != "Alice" {
+		t.Errorf("name = %q, want Alice", name)
 	}
 }

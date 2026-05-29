@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/schema"
 )
 
 func ExampleNewEvent() {
@@ -60,7 +61,7 @@ func ExampleNewVersionedStore() {
 		[]byte(`{"name":"Alice","fullname":"Alice Wonderland"}`),
 	)
 
-	versioned := event.NewVersionedStore(store, upcaster)
+	versioned := schema.NewVersionedStore(store, upcaster)
 
 	events, err := versioned.Load(
 		context.Background(),

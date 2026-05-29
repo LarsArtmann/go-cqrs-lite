@@ -23,6 +23,7 @@ use (
 	./pebble
 	./projection
 	./query
+	./schema
 	./signing
 	./storage
 	./testhelpers

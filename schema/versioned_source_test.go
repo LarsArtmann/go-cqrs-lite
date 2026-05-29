@@ -1,4 +1,4 @@
-package event_test
+package schema_test
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/schema"
 )
 
-// testUpcaster increments a counter in the payload.
 type testUpcaster struct {
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
@@ -18,7 +18,6 @@ type testUpcaster struct {
 func (u *testUpcaster) SourceType() event.Type             { return u.sourceType }
 func (u *testUpcaster) SourceVersion() event.SchemaVersion { return u.sourceVersion }
 func (u *testUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
-	// In a real upcaster, transform payload here
 	return evt.(*event.ImmutableEvent), nil
 }
 
@@ -26,12 +25,11 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	vs := event.NewVersionedStore(store)
+	vs := schema.NewVersionedStore(store)
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
 
-	// Save an event
 	evt, _ := event.New("test.event", aggID, "Test", event.Version(1), "payload")
 	if err := store.Save(
 		ctx,
@@ -42,7 +40,6 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	// Load through versioned store
 	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
@@ -57,14 +54,13 @@ func TestVersionedStore_NewVersionedStore_NilUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	vs := event.NewVersionedStore(store)
+	vs := schema.NewVersionedStore(store)
 
 	if vs == nil {
 		t.Fatal("expected non-nil VersionedStore")
 	}
 }
 
-// versionUpcaster transforms payload from "v1" to "v2" and bumps schema version.
 type versionUpcaster struct{}
 
 func (versionUpcaster) SourceType() event.Type             { return "test.upcast" }
@@ -92,7 +88,6 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close() //nolint:errcheck // test helper
 
-	// Save a v1 event
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent(
@@ -108,8 +103,7 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	// Load through VersionedStore with upcaster
-	vs := event.NewVersionedStore(store, versionUpcaster{})
+	vs := schema.NewVersionedStore(store, versionUpcaster{})
 	loaded, err := vs.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
@@ -162,7 +156,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	vs := event.NewVersionedStore(store, versionUpcaster{})
+	vs := schema.NewVersionedStore(store, versionUpcaster{})
 	loaded, err := vs.LoadFromVersion(
 		ctx,
 		event.NewAggregateRef(event.AggregateType("Test"), aggID),
@@ -176,7 +170,6 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(loaded))
 	}
 
-	// Only evt2 is loaded (from version 1, exclusive), and it has schema v2 so no upcast
 	if string(loaded[0].Payload()) != "skip" {
 		t.Errorf("payload = %q, want skip", loaded[0].Payload())
 	}

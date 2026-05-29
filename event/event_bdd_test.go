@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/schema"
 )
 
 func initMemoryStoreTest(
@@ -261,7 +262,7 @@ var _ = Describe("Schema Evolution", func() {
 				).To(Succeed())
 
 				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
-				versioned := event.NewVersionedStore(store, upcaster)
+				versioned := schema.NewVersionedStore(store, upcaster)
 
 				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
@@ -291,7 +292,7 @@ var _ = Describe("Schema Evolution", func() {
 					).To(Succeed())
 
 					upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
-					versioned := event.NewVersionedStore(store, upcaster)
+					versioned := schema.NewVersionedStore(store, upcaster)
 
 					loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 					Expect(err).ToNot(HaveOccurred())
@@ -328,7 +329,7 @@ var _ = Describe("Schema Evolution", func() {
 					2,
 					[]byte(`{"fullName":"Alice","email":"","verified":false}`),
 				)
-				versioned := event.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
+				versioned := schema.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
 
 				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
@@ -385,8 +386,8 @@ func makeUpcaster(
 	targetType event.Type,
 	fromVersion event.SchemaVersion,
 	newPayload []byte,
-) event.Upcaster {
-	return event.NewUpcaster(
+) schema.Upcaster {
+	return schema.NewUpcaster(
 		targetType,
 		fromVersion,
 		func(evt event.Event) (*event.ImmutableEvent, error) {
