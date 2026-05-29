@@ -16,6 +16,7 @@ func labelMiddleware(callOrder *[]string, label string) func(next command.Handle
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			*callOrder = append(*callOrder, label)
+
 			return next(ctx, cmd)
 		}
 	}

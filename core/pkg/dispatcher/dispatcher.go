@@ -220,12 +220,13 @@ func newCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
 // metadata and handler dispatch.
 type DispatcherWithCatalog[KT comparable, VT any, H any, M any] struct {
 	CatalogDispatcher[KT, VT]
+
 	inner *Dispatcher[H, M]
 }
 
 // Init initializes the embedded CatalogDispatcher and creates the inner dispatcher.
 func (d *DispatcherWithCatalog[KT, VT, H, M]) Init() {
-	d.CatalogDispatcher.InitCatalogDispatcher()
+	d.InitCatalogDispatcher()
 	d.inner = NewDispatcher[H, M]()
 }
 

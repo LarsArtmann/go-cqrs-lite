@@ -221,6 +221,7 @@ func (r *Repository[State]) Load(
 	} else {
 		state, ver, err = r.loadFromStore(ctx, aggID, aggType)
 	}
+
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}
