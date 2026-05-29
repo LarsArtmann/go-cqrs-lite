@@ -173,6 +173,22 @@ footer p{font-family:var(--mono);font-size:.7rem;color:var(--fg-muted);letter-sp
 }
 
 .card-full{grid-column:1/-1}
+
+/* --- GRAPH VISUALIZATIONS --- */
+.graph-viz{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:2rem 0;position:relative}
+.graph-viz::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--accent))}
+.graph-viz-title{font-family:var(--mono);font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);padding:1.25rem 1.5rem .5rem;display:flex;align-items:center;gap:.5rem}
+.graph-viz-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.graph-viz svg{width:100%;height:auto;display:block}
+.graph-viz .legend{display:flex;gap:1.25rem;padding:.75rem 1.5rem 1.25rem;flex-wrap:wrap}
+.graph-viz .legend-item{display:flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.65rem;font-weight:500;color:var(--fg-dim);letter-spacing:.03em}
+.graph-viz .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.graph-viz .legend-line{width:20px;height:2px;border-radius:1px;flex-shrink:0}
+.graph-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin:2rem 0}
+@media(max-width:900px){.graph-grid{grid-template-columns:1fr}}
+.graph-grid .graph-viz{margin:0}
+.graph-hero{margin:3rem 0}
+.graph-hero .graph-viz{border-color:var(--border-light)}
 </style>
 </head>
 <body>
@@ -190,6 +206,7 @@ footer p{font-family:var(--mono);font-size:.7rem;color:var(--fg-muted);letter-sp
       <a href="#perf">Performance</a>
       <a href="#engines">Engines</a>
       <a href="#approaches">Approaches</a>
+      <a href="#visuals">Visuals</a>
       <a href="#verdict">Verdict</a>
     </div>
   </div>
@@ -432,6 +449,148 @@ footer p{font-family:var(--mono);font-size:.7rem;color:var(--fg-muted);letter-sp
 
 </div>
 </section>
+
+<!-- ============================================================ -->
+<div class="graph-grid">
+
+<div class="graph-viz">
+  <div class="graph-viz-title">Model A — Event Chain (User Aggregate)</div>
+  <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#64748b"/></marker>
+      <filter id="glowA"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <!-- Aggregate node -->
+    <rect x="110" y="18" width="120" height="38" rx="19" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="170" y="42" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#22d3ee">:User</text>
+    <!-- HAS_EVENT arrow -->
+    <line x1="170" y1="56" x2="170" y2="86" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrA)"/>
+    <text x="195" y="76" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">HAS_EVENT</text>
+    <!-- Event 1 -->
+    <rect x="75" y="88" width="190" height="42" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="170" y="106" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">UserCreated</text>
+    <text x="170" y="122" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">seq:1 · {name:"Alice"}</text>
+    <!-- NEXT arrow -->
+    <line x1="170" y1="130" x2="170" y2="152" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrA)"/>
+    <text x="195" y="146" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">NEXT</text>
+    <!-- Event 2 -->
+    <rect x="75" y="154" width="190" height="42" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="170" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">EmailChanged</text>
+    <text x="170" y="188" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">seq:2 · {email:"a@b.co"}</text>
+    <!-- NEXT arrow -->
+    <line x1="170" y1="196" x2="170" y2="218" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrA)"/>
+    <text x="195" y="212" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">NEXT</text>
+    <!-- Event 3 -->
+    <rect x="75" y="220" width="190" height="42" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="170" y="238" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">AddressMoved</text>
+    <text x="170" y="254" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">seq:3 · {city:"Berlin"}</text>
+  </svg>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>Aggregate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#06d6a0"></div>Event</div>
+    <div class="legend-item"><div class="legend-line" style="background:#64748b"></div>Relationship</div>
+  </div>
+</div>
+
+<div class="graph-viz">
+  <div class="graph-viz-title">Model B — State Machine (Bitemporal)</div>
+  <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f59e0b"/></marker>
+    </defs>
+    <!-- State 0 -->
+    <rect x="55" y="18" width="230" height="42" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="170" y="36" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#a78bfa">State v0</text>
+    <text x="170" y="52" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">{} — initial empty state</text>
+    <!-- TRANSITION arrow -->
+    <line x1="170" y1="60" x2="170" y2="86" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrB)"/>
+    <text x="70" y="78" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#f59e0b">TRANSITION {type:"UserCreated"}</text>
+    <!-- State 1 -->
+    <rect x="55" y="88" width="230" height="42" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="170" y="106" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#a78bfa">State v1</text>
+    <text x="170" y="122" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">{name:"Alice", email:null}</text>
+    <!-- TRANSITION arrow -->
+    <line x1="170" y1="130" x2="170" y2="156" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrB)"/>
+    <text x="60" y="148" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#f59e0b">TRANSITION {type:"EmailChanged"}</text>
+    <!-- State 2 -->
+    <rect x="55" y="158" width="230" height="42" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="170" y="176" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#a78bfa">State v2</text>
+    <text x="170" y="192" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">{name:"Alice", email:"a@b.co"}</text>
+    <!-- TRANSITION arrow -->
+    <line x1="170" y1="200" x2="170" y2="226" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrB)"/>
+    <text x="60" y="218" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#f59e0b">TRANSITION {type:"AddressMoved"}</text>
+    <!-- State 3 -->
+    <rect x="55" y="228" width="230" height="42" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="170" y="246" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#a78bfa">State v3 (current)</text>
+    <text x="170" y="262" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">{name:"Alice", email:"a@b.co", city:"Berlin"}</text>
+  </svg>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>State Node</div>
+    <div class="legend-item"><div class="legend-line" style="background:#f59e0b"></div>Transition (Edge)</div>
+  </div>
+</div>
+
+<div class="graph-viz">
+  <div class="graph-viz-title">Model C — Rich Causal Graph (Fragment)</div>
+  <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrC1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#06d6a0"/></marker>
+      <marker id="arrC2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#64748b"/></marker>
+      <marker id="arrC3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#f59e0b"/></marker>
+      <marker id="arrC4" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#f43f5e"/></marker>
+    </defs>
+    <!-- Command node -->
+    <rect x="15" y="30" width="105" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="67" y="51" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">RegisterUser</text>
+    <!-- PRODUCED arrow -->
+    <path d="M120,46 L145,46" stroke="#06d6a0" stroke-width="1.2" fill="none" marker-end="url(#arrC1)"/>
+    <text x="125" y="40" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#06d6a0">PRODUCED</text>
+    <!-- UserCreated event -->
+    <rect x="148" y="30" width="95" height="32" rx="6" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="195" y="51" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">UserCreated</text>
+    <!-- TARGETS arrow from cmd to aggregate -->
+    <path d="M67,62 L67,88" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrC2)"/>
+    <text x="12" y="80" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#64748b">TARGETS</text>
+    <!-- User aggregate -->
+    <rect x="22" y="90" width="90" height="32" rx="16" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="67" y="111" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#22d3ee">:User</text>
+    <!-- HAS_EVENT arrow -->
+    <path d="M112,106 L145,106" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrC2)"/>
+    <!-- Another event under User aggregate -->
+    <rect x="148" y="90" width="85" height="32" rx="6" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="190" y="111" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">EmailChanged</text>
+    <!-- CORRELATES_WITH from UserCreated to OrderPlaced -->
+    <path d="M243,46 Q290,46 290,90 Q290,140 270,156" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arrC3)"/>
+    <text x="278" y="95" font-family="IBM Plex Mono,monospace" font-size="6" fill="#f59e0b">CORRELATES</text>
+    <!-- Order aggregate -->
+    <rect x="170" y="155" width="90" height="32" rx="16" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="215" y="176" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#22d3ee">:Order</text>
+    <!-- OrderPlaced event -->
+    <rect x="130" y="210" width="90" height="32" rx="6" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="175" y="231" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">OrderPlaced</text>
+    <!-- HAS_EVENT from Order to OrderPlaced -->
+    <path d="M215,187 L195,210" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrC2)"/>
+    <!-- TRIGGERED_BY: OrderPlaced triggers PlaceOrder cmd -->
+    <rect x="232" y="210" width="85" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="274" y="231" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">TakePayment</text>
+    <!-- TRIGGERED arrow -->
+    <path d="M220,238 L232,238" stroke="#f43f5e" stroke-width="1.2" fill="none" marker-end="url(#arrC4)"/>
+    <text x="215" y="252" font-family="IBM Plex Mono,monospace" font-size="6" fill="#f43f5e">TRIGGERED</text>
+    <!-- PaymentTaken event -->
+    <rect x="170" y="256" width="95" height="22" rx="6" fill="rgba(6,214,160,.08)" stroke="#06d6a0" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="217" y="271" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#06d6a0">PaymentTaken</text>
+    <!-- PRODUCED from TakePayment to PaymentTaken -->
+    <path d="M274,242 L250,256" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#arrC1)"/>
+  </svg>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Command</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>Aggregate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#06d6a0"></div>Event</div>
+    <div class="legend-item"><div class="legend-line" style="background:#f59e0b"></div>Correlates</div>
+  </div>
+</div>
+
+</div>
 
 <!-- ============================================================ -->
 <section class="part" id="mapping">
@@ -843,6 +1002,358 @@ ORDER BY step.n</pre>
 
 </div>
 </section>
+
+<!-- ============================================================ -->
+<div class="graph-hero" id="visuals">
+<div class="graph-viz">
+  <div class="graph-viz-title">Order Fulfillment Saga — Cross-Aggregate Event Trace</div>
+  <svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#06d6a0"/></marker>
+      <marker id="arr-b" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3b82f6"/></marker>
+      <marker id="arr-y" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f59e0b"/></marker>
+      <marker id="arr-r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f43f5e"/></marker>
+      <marker id="arr-c" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#22d3ee"/></marker>
+      <marker id="arr-v" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
+    </defs>
+
+    <!-- ========== ROW 1: AGGREGATES ========== -->
+    <!-- Customer aggregate -->
+    <rect x="60" y="20" width="140" height="40" rx="20" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="130" y="46" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Customer</text>
+    <text x="130" y="14" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">customer-42</text>
+
+    <!-- Order aggregate -->
+    <rect x="380" y="20" width="120" height="40" rx="20" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="440" y="46" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Order</text>
+    <text x="440" y="14" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">order-99</text>
+
+    <!-- Inventory aggregate -->
+    <rect x="640" y="20" width="130" height="40" rx="20" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="705" y="46" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Inventory</text>
+    <text x="705" y="14" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">inventory-7</text>
+
+    <!-- Payment aggregate -->
+    <rect x="860" y="20" width="120" height="40" rx="20" fill="rgba(34,211,238,.15)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="920" y="46" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Payment</text>
+    <text x="920" y="14" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">payment-13</text>
+
+    <!-- ========== ROW 2: COMMANDS ========== -->
+    <!-- PlaceOrder command -->
+    <rect x="220" y="105" width="130" height="36" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="285" y="120" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">PlaceOrder</text>
+    <text x="285" y="134" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">{item:"Widget", qty:2}</text>
+
+    <!-- ReserveInventory command -->
+    <rect x="540" y="105" width="155" height="36" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="617" y="120" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">ReserveInventory</text>
+    <text x="617" y="134" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">{sku:"W-001", qty:2}</text>
+
+    <!-- TakePayment command -->
+    <rect x="790" y="105" width="130" height="36" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="855" y="120" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">TakePayment</text>
+    <text x="855" y="134" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">{amount:$49.90}</text>
+
+    <!-- TARGETS arrows: commands → aggregates -->
+    <path d="M285,105 L285,80 L420,80 L420,60" stroke="#22d3ee" stroke-width="1" fill="none" marker-end="url(#arr-c)" stroke-dasharray="4,3"/>
+    <text x="340" y="75" font-family="IBM Plex Mono,monospace" font-size="7" fill="#22d3ee">TARGETS</text>
+    <path d="M617,105 L617,80 L680,80 L680,60" stroke="#22d3ee" stroke-width="1" fill="none" marker-end="url(#arr-c)" stroke-dasharray="4,3"/>
+    <text x="630" y="75" font-family="IBM Plex Mono,monospace" font-size="7" fill="#22d3ee">TARGETS</text>
+    <path d="M855,105 L855,80 L905,80 L905,60" stroke="#22d3ee" stroke-width="1" fill="none" marker-end="url(#arr-c)" stroke-dasharray="4,3"/>
+    <text x="870" y="75" font-family="IBM Plex Mono,monospace" font-size="7" fill="#22d3ee">TARGETS</text>
+
+    <!-- ========== ROW 3: EVENTS ========== -->
+    <!-- OrderPlaced -->
+    <rect x="310" y="195" width="130" height="40" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="375" y="213" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">OrderPlaced</text>
+    <text x="375" y="228" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">seq:1 · T₁</text>
+
+    <!-- InventoryReserved -->
+    <rect x="560" y="195" width="150" height="40" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="635" y="213" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">InventoryReserved</text>
+    <text x="635" y="228" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">seq:1 · T₂</text>
+
+    <!-- PaymentTaken -->
+    <rect x="810" y="195" width="130" height="40" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="875" y="213" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">PaymentTaken</text>
+    <text x="875" y="228" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">seq:1 · T₃</text>
+
+    <!-- OrderConfirmed -->
+    <rect x="375" y="290" width="140" height="40" rx="8" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="445" y="308" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#06d6a0">OrderConfirmed</text>
+    <text x="445" y="323" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">seq:2 · T₄</text>
+
+    <!-- PRODUCED arrows: commands → events -->
+    <path d="M320,141 L365,195" stroke="#06d6a0" stroke-width="1.5" fill="none" marker-end="url(#arr-g)"/>
+    <text x="322" y="175" font-family="IBM Plex Mono,monospace" font-size="7" fill="#06d6a0">PRODUCED</text>
+    <path d="M640,141 L640,195" stroke="#06d6a0" stroke-width="1.5" fill="none" marker-end="url(#arr-g)"/>
+    <text x="648" y="175" font-family="IBM Plex Mono,monospace" font-size="7" fill="#06d6a0">PRODUCED</text>
+    <path d="M870,141 L878,195" stroke="#06d6a0" stroke-width="1.5" fill="none" marker-end="url(#arr-g)"/>
+    <text x="886" y="175" font-family="IBM Plex Mono,monospace" font-size="7" fill="#06d6a0">PRODUCED</text>
+
+    <!-- HAS_EVENT arrows: aggregates → events -->
+    <path d="M440,60 L400,195" stroke="#64748b" stroke-width="1" fill="none" marker-end="url(#arr-g)" stroke-dasharray="3,3"/>
+    <path d="M705,60 L650,195" stroke="#64748b" stroke-width="1" fill="none" marker-end="url(#arr-g)" stroke-dasharray="3,3"/>
+    <path d="M920,60 L890,195" stroke="#64748b" stroke-width="1" fill="none" marker-end="url(#arr-g)" stroke-dasharray="3,3"/>
+    <path d="M440,60 L445,290" stroke="#64748b" stroke-width="1" fill="none" marker-end="url(#arr-g)" stroke-dasharray="3,3"/>
+
+    <!-- ========== SAGA FLOW: TRIGGERED arrows ========== -->
+    <!-- OrderPlaced triggers ReserveInventory -->
+    <path d="M440,230 Q490,260 570,230 Q600,215 590,195" stroke="#f43f5e" stroke-width="1.5" fill="none" marker-end="url(#arr-r)" stroke-dasharray="5,3"/>
+    <text x="480" y="260" font-family="IBM Plex Mono,monospace" font-size="7" fill="#f43f5e">TRIGGERED</text>
+
+    <!-- InventoryReserved triggers TakePayment -->
+    <path d="M710,215 Q750,240 800,215 Q830,200 845,195" stroke="#f43f5e" stroke-width="1.5" fill="none" marker-end="url(#arr-r)" stroke-dasharray="5,3"/>
+    <text x="740" y="240" font-family="IBM Plex Mono,monospace" font-size="7" fill="#f43f5e">TRIGGERED</text>
+
+    <!-- PaymentTaken triggers ConfirmOrder command -->
+    <rect x="375" y="260" width="0" height="0" fill="none"/>
+    <path d="M870,235 Q870,270 600,290 Q530,295 515,290" stroke="#f43f5e" stroke-width="1.5" fill="none" marker-end="url(#arr-r)" stroke-dasharray="5,3"/>
+    <text x="700" y="275" font-family="IBM Plex Mono,monospace" font-size="7" fill="#f43f5e">TRIGGERED → ConfirmOrder → OrderConfirmed</text>
+
+    <!-- ========== CORRELATES_WITH (dashed yellow) ========== -->
+    <path d="M420,215 Q500,180 570,215" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,3"/>
+    <text x="485" y="195" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#f59e0b">CORRELATES</text>
+    <path d="M680,215 Q760,180 830,215" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,3"/>
+    <text x="740" y="195" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#f59e0b">CORRELATES</text>
+
+    <!-- ========== SAGA NODE ========== -->
+    <rect x="20" y="280" width="160" height="70" rx="10" fill="rgba(167,139,250,.1)" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6,3"/>
+    <text x="100" y="300" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#a78bfa">:Saga</text>
+    <text x="100" y="315" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">OrderFulfillment</text>
+    <text x="100" y="330" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#a78bfa">status: completed ✓</text>
+    <!-- STEP edges from saga to events -->
+    <path d="M180,300 L370,215" stroke="#a78bfa" stroke-width="1" fill="none" marker-end="url(#arr-v)" stroke-dasharray="3,3"/>
+    <text x="245" y="248" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#a78bfa">STEP 1 ✓</text>
+    <path d="M180,310 L560,215" stroke="#a78bfa" stroke-width="1" fill="none" marker-end="url(#arr-v)" stroke-dasharray="3,3"/>
+    <text x="350" y="272" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#a78bfa">STEP 2 ✓</text>
+    <path d="M180,320 L810,215" stroke="#a78bfa" stroke-width="1" fill="none" marker-end="url(#arr-v)" stroke-dasharray="3,3"/>
+    <text x="530" y="298" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#a78bfa">STEP 3 ✓</text>
+    <path d="M180,335 L375,310" stroke="#a78bfa" stroke-width="1" fill="none" marker-end="url(#arr-v)" stroke-dasharray="3,3"/>
+    <text x="250" y="332" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#a78bfa">STEP 4 ✓</text>
+
+    <!-- ========== TIME AXIS ========== -->
+    <line x1="50" y1="390" x2="960" y2="390" stroke="#334155" stroke-width="1"/>
+    <circle cx="130" cy="390" r="3" fill="#334155"/>
+    <text x="130" y="408" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">Customer registers</text>
+    <circle cx="375" cy="390" r="3" fill="#06d6a0"/>
+    <text x="375" y="408" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">T₁ Order placed</text>
+    <circle cx="635" cy="390" r="3" fill="#06d6a0"/>
+    <text x="635" y="408" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">T₂ Inventory reserved</text>
+    <circle cx="875" cy="390" r="3" fill="#06d6a0"/>
+    <text x="875" y="408" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">T₃ Payment taken</text>
+    <circle cx="445" cy="390" r="3" fill="#06d6a0"/>
+    <text x="445" y="416" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#64748b">T₄ Order confirmed</text>
+  </svg>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>Aggregate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Command</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#06d6a0"></div>Event</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>Saga</div>
+    <div class="legend-item"><div class="legend-line" style="background:#06d6a0"></div>PRODUCED</div>
+    <div class="legend-item"><div class="legend-line" style="background:#f43f5e"></div>TRIGGERED</div>
+    <div class="legend-item"><div class="legend-line" style="background:#f59e0b"></div>CORRELATES</div>
+    <div class="legend-item"><div class="legend-line" style="background:#a78bfa"></div>SAGA STEP</div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="graph-hero">
+<div class="graph-viz">
+  <div class="graph-viz-title">A Small Event-Sourced System — The Complete Graph (28 nodes, 34 edges)</div>
+  <svg viewBox="0 0 1000 550" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="ma" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#475569"/></marker>
+      <marker id="mb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#06d6a0"/></marker>
+      <marker id="mc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#3b82f6"/></marker>
+      <marker id="md" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#f43f5e"/></marker>
+      <marker id="me" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#f59e0b"/></marker>
+      <marker id="mf" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#a78bfa"/></marker>
+    </defs>
+
+    <!-- ======= AGGREGATE: USER (top-left) ======= -->
+    <rect x="80" y="45" width="120" height="38" rx="19" fill="rgba(34,211,238,.18)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="140" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:User</text>
+    <!-- HAS_EVENT lines -->
+    <line x1="115" y1="83" x2="68" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <line x1="140" y1="83" x2="140" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <line x1="165" y1="83" x2="215" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <!-- UserCreated -->
+    <rect x="18" y="157" width="100" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="68" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">UserCreated</text>
+    <text x="68" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:1</text>
+    <!-- EmailChanged -->
+    <rect x="130" y="157" width="108" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="184" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">EmailChanged</text>
+    <text x="184" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:2</text>
+    <!-- AddressMoved -->
+    <rect x="250" y="157" width="110" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="305" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">AddressMoved</text>
+    <text x="305" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:3</text>
+    <!-- NEXT chain -->
+    <line x1="118" y1="174" x2="130" y2="174" stroke="#06d6a0" stroke-width="1" marker-end="url(#mb)"/>
+    <line x1="238" y1="174" x2="250" y2="174" stroke="#06d6a0" stroke-width="1" marker-end="url(#mb)"/>
+
+    <!-- ======= COMMAND: RegisterUser ======= -->
+    <rect x="8" y="240" width="125" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="70" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">RegisterUser</text>
+    <!-- TARGETS: cmd → aggregate -->
+    <path d="M70,240 L110,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+    <!-- PRODUCED: cmd → event -->
+    <path d="M60,272 L66,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+    <text x="30" y="220" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#06d6a0">PRODUCED</text>
+
+    <!-- ======= COMMAND: ChangeEmail ======= -->
+    <rect x="145" y="240" width="115" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="202" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">ChangeEmail</text>
+    <path d="M202,240 L165,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+    <path d="M195,272 L188,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+
+    <!-- ======= AGGREGATE: ORDER (center) ======= -->
+    <rect x="440" y="45" width="120" height="38" rx="19" fill="rgba(34,211,238,.18)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="500" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Order</text>
+    <!-- Events -->
+    <line x1="475" y1="83" x2="430" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <line x1="500" y1="83" x2="530" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <line x1="525" y1="83" x2="640" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <!-- OrderPlaced -->
+    <rect x="380" y="157" width="100" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="430" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">OrderPlaced</text>
+    <text x="430" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:1</text>
+    <!-- PaymentTaken -->
+    <rect x="492" y="157" width="112" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="548" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">PaymentTaken</text>
+    <text x="548" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:2</text>
+    <!-- OrderShipped -->
+    <rect x="614" y="157" width="108" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="668" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">OrderShipped</text>
+    <text x="668" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:3</text>
+    <!-- NEXT chain -->
+    <line x1="480" y1="174" x2="492" y2="174" stroke="#06d6a0" stroke-width="1" marker-end="url(#mb)"/>
+    <line x1="604" y1="174" x2="614" y2="174" stroke="#06d6a0" stroke-width="1" marker-end="url(#mb)"/>
+
+    <!-- ======= COMMANDS FOR ORDER ======= -->
+    <!-- PlaceOrder -->
+    <rect x="355" y="240" width="110" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="410" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">PlaceOrder</text>
+    <path d="M430,272 L430,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+    <path d="M440,240 L480,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+
+    <!-- TakePayment -->
+    <rect x="480" y="240" width="115" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="537" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">TakePayment</text>
+    <path d="M540,272 L545,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+    <path d="M530,240 L510,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+
+    <!-- ShipOrder -->
+    <rect x="610" y="240" width="105" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="662" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">ShipOrder</text>
+    <path d="M662,272 L665,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+    <path d="M660,240 L530,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+
+    <!-- ======= AGGREGATE: INVENTORY (top-right) ======= -->
+    <rect x="780" y="45" width="120" height="38" rx="19" fill="rgba(34,211,238,.18)" stroke="#22d3ee" stroke-width="2"/>
+    <text x="840" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" fill="#22d3ee">:Inventory</text>
+    <!-- Events -->
+    <line x1="815" y1="83" x2="790" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <line x1="865" y1="83" x2="890" y2="155" stroke="#475569" stroke-width="1" marker-end="url(#ma)"/>
+    <!-- StockReserved -->
+    <rect x="738" y="157" width="108" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="792" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">StockReserved</text>
+    <text x="792" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:1</text>
+    <!-- StockReleased -->
+    <rect x="854" y="157" width="108" height="34" rx="7" fill="rgba(6,214,160,.12)" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="908" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#06d6a0">StockReleased</text>
+    <text x="908" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#64748b">v1 · seq:2</text>
+    <!-- NEXT chain -->
+    <line x1="846" y1="174" x2="854" y2="174" stroke="#06d6a0" stroke-width="1" marker-end="url(#mb)"/>
+    <!-- Commands -->
+    <rect x="735" y="240" width="130" height="32" rx="6" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="800" y="261" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#3b82f6">ReserveStock</text>
+    <path d="M795,272 L792,191" stroke="#06d6a0" stroke-width="1" fill="none" marker-end="url(#mb)"/>
+    <path d="M810,240 L830,83" stroke="#475569" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#ma)"/>
+
+    <!-- ======= CROSS-AGGREGATE: TRIGGERED (saga flow) ======= -->
+    <!-- OrderPlaced triggers ReserveStock -->
+    <path d="M460,191 Q560,235 735,256" stroke="#f43f5e" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#md)"/>
+    <text x="580" y="233" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#f43f5e" font-weight="600">TRIGGERED</text>
+
+    <!-- StockReserved triggers TakePayment -->
+    <path d="M790,191 Q700,230 595,256" stroke="#f43f5e" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#md)"/>
+    <text x="710" y="218" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#f43f5e" font-weight="600">TRIGGERED</text>
+
+    <!-- PaymentTaken triggers ShipOrder -->
+    <path d="M570,191 Q620,225 630,256" stroke="#f43f5e" stroke-width="1.2" fill="none" stroke-dasharray="6,3" marker-end="url(#md)"/>
+
+    <!-- ======= CORRELATION DASHES ======= -->
+    <!-- UserCreated correlates with OrderPlaced -->
+    <path d="M118,174 Q260,130 380,174" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,4"/>
+    <text x="240" y="140" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#f59e0b">CORRELATES</text>
+
+    <!-- OrderPlaced correlates with StockReserved -->
+    <path d="M480,174 Q630,130 738,174" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,4"/>
+    <text x="610" y="140" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="#f59e0b">CORRELATES</text>
+
+    <!-- ======= SAGA NODE ======= -->
+    <rect x="330" y="340" width="200" height="70" rx="12" fill="rgba(167,139,250,.08)" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="430" y="362" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700" fill="#a78bfa">:Saga:OrderFulfillment</text>
+    <text x="430" y="380" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#94a3b8">saga-001 · status: completed</text>
+    <text x="430" y="398" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#a78bfa">4 steps · 3 aggregates · 4 commands</text>
+    <!-- STEP edges to events -->
+    <path d="M370,410 L430,191" stroke="#a78bfa" stroke-width="1" fill="none" stroke-dasharray="2,3" marker-end="url(#mf)"/>
+    <path d="M400,410 L792,191" stroke="#a78bfa" stroke-width="1" fill="none" stroke-dasharray="2,3" marker-end="url(#mf)"/>
+    <path d="M460,410 L548,191" stroke="#a78bfa" stroke-width="1" fill="none" stroke-dasharray="2,3" marker-end="url(#mf)"/>
+    <path d="M480,410 L668,191" stroke="#a78bfa" stroke-width="1" fill="none" stroke-dasharray="2,3" marker-end="url(#mf)"/>
+    <!-- step labels -->
+    <text x="380" y="310" font-family="IBM Plex Mono,monospace" font-size="7" fill="#a78bfa">① place</text>
+    <text x="600" y="300" font-family="IBM Plex Mono,monospace" font-size="7" fill="#a78bfa">② reserve</text>
+    <text x="525" y="310" font-family="IBM Plex Mono,monospace" font-size="7" fill="#a78bfa">③ pay</text>
+    <text x="600" y="340" font-family="IBM Plex Mono,monospace" font-size="7" fill="#a78bfa">④ ship</text>
+
+    <!-- ======= SUMMARY BOX ======= -->
+    <rect x="650" y="340" width="320" height="150" rx="10" fill="rgba(21,29,46,.9)" stroke="#334155" stroke-width="1"/>
+    <text x="810" y="365" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#e2e8f0">Graph Statistics</text>
+    <line x1="670" y1="375" x2="950" y2="375" stroke="#334155" stroke-width="1"/>
+    <text x="680" y="396" font-family="IBM Plex Mono,monospace" font-size="9" fill="#94a3b8">Nodes:</text>
+    <text x="940" y="396" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#e2e8f0">28 total</text>
+    <text x="690" y="414" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#22d3ee">├ Aggregates: 3</text>
+    <text x="690" y="430" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#06d6a0">├ Events: 8</text>
+    <text x="690" y="446" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#3b82f6">├ Commands: 6</text>
+    <text x="690" y="462" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#a78bfa">├ Sagas: 1</text>
+    <text x="690" y="478" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#64748b">└ Services: ~4</text>
+
+    <text x="680" y="396" font-family="IBM Plex Mono,monospace" font-size="9" fill="#94a3b8">Nodes:</text>
+
+    <!-- ======= LEGEND ======= -->
+    <rect x="30" y="440" width="280" height="100" rx="8" fill="rgba(21,29,46,.9)" stroke="#334155" stroke-width="1"/>
+    <text x="170" y="460" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#e2e8f0">Legend</text>
+    <line x1="50" y1="468" x2="290" y2="468" stroke="#334155" stroke-width="1"/>
+    <!-- Row 1 -->
+    <circle cx="58" cy="482" r="5" fill="rgba(34,211,238,.5)" stroke="#22d3ee" stroke-width="1"/>
+    <text x="70" y="486" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">Aggregate</text>
+    <circle cx="158" cy="482" r="5" fill="rgba(6,214,160,.3)" stroke="#06d6a0" stroke-width="1"/>
+    <text x="170" y="486" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">Event</text>
+    <circle cx="238" cy="482" r="5" fill="rgba(59,130,246,.3)" stroke="#3b82f6" stroke-width="1"/>
+    <text x="250" y="486" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">Command</text>
+    <!-- Row 2 -->
+    <line x1="48" y1="500" x2="72" y2="500" stroke="#06d6a0" stroke-width="1.5"/>
+    <text x="80" y="504" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">NEXT / PRODUCED</text>
+    <line x1="178" y1="500" x2="202" y2="500" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="210" y="504" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">TRIGGERED</text>
+    <!-- Row 3 -->
+    <line x1="48" y1="518" x2="72" y2="518" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="80" y="522" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">CORRELATES</text>
+    <line x1="178" y1="518" x2="202" y2="518" stroke="#a78bfa" stroke-width="1" stroke-dasharray="2,3"/>
+    <text x="210" y="522" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">SAGA STEP</text>
+    <!-- Row 4 -->
+    <circle cx="58" cy="534" r="5" fill="rgba(167,139,250,.2)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="70" y="538" font-family="IBM Plex Mono,monospace" font-size="8" fill="#94a3b8">Saga</text>
+    <line x1="150" y1="534" x2="174" y2="534" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="182" y="538" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#94a3b8">HAS_EVENT / TARGETS</text>
+  </svg>
+</div>
+</div>
 
 <!-- ============================================================ -->
 <section class="part" id="secret">
