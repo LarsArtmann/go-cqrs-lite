@@ -38,7 +38,7 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
-			"stream.in_memory_list",
+			"listing.in_memory_list",
 			"stream in-memory list",
 		)
 	}

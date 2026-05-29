@@ -7,8 +7,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
 func seedBenchAggregates(
@@ -18,7 +18,7 @@ func seedBenchAggregates(
 	payloadKey string,
 	payloadVal string,
 	n int,
-) *stream.InMemoryAggregateReader {
+) *listing.InMemoryAggregateReader {
 	b.Helper()
 
 	store := memory.NewMemoryStore()
@@ -41,7 +41,7 @@ func seedBenchAggregates(
 		)
 	}
 
-	return stream.NewInMemoryAggregateReader(store)
+	return listing.NewInMemoryAggregateReader(store)
 }
 
 func BenchmarkInMemoryList(b *testing.B) {
@@ -74,7 +74,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 			b.ResetTimer()
 
 			for b.Loop() {
-				_, err := stream.NewListBuilder(reader).
+				_, err := listing.NewListBuilder(reader).
 					OfType(tc.aggType).
 					PageSize(tc.pageSize).
 					List(ctx)
@@ -118,12 +118,12 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		)
 	}
 
-	reader := stream.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryAggregateReader(store)
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := stream.NewListBuilder(reader).
+		_, err := listing.NewListBuilder(reader).
 			OfType("Doc").
 			PageSize(50).
 			List(ctx)

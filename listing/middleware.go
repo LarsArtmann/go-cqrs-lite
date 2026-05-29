@@ -11,7 +11,7 @@ import (
 //
 // Usage:
 //
-//	bus.UsePublish(stream.StatusMiddleware(
+//	bus.UsePublish(listing.StatusMiddleware(
 //	    []event.Type{"user.deleted", "order.cancelled"},   // tombstone types
 //	    []event.Type{"user.reactivated", "order.restored"}, // rebirth types
 //	))
@@ -33,7 +33,7 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 					if err != nil {
 						return event.WrapInfrastructure(
 							err,
-							"stream.tombstone",
+							"listing.tombstone",
 							"status middleware tombstone "+string(evt.Type()),
 						)
 					}
@@ -44,7 +44,7 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 					if err != nil {
 						return event.WrapInfrastructure(
 							err,
-							"stream.rebirth",
+							"listing.rebirth",
 							"status middleware rebirth "+string(evt.Type()),
 						)
 					}

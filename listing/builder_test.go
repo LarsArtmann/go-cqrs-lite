@@ -8,13 +8,13 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/stream"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 )
 
 func TestListBuilder_Chaining(t *testing.T) {
 	t.Parallel()
 
-	b := stream.NewListBuilder(&stubReader{})
+	b := listing.NewListBuilder(&stubReader{})
 
 	if b.OfType("User") != b {
 		t.Error("OfType should return builder")
@@ -38,22 +38,22 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 
 	called := false
 	reader := &stubReader{
-		listFn: func(_ context.Context, opts stream.ListOptions) (*stream.Page[stream.AggregateRef], error) {
+		listFn: func(_ context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateRef], error) {
 			called = true
 
 			if opts.Limit != 20 {
 				t.Errorf("default limit = %d, want 20", opts.Limit)
 			}
 
-			if opts.Tombstone != stream.TombstoneExclude {
+			if opts.Tombstone != listing.TombstoneExclude {
 				t.Errorf("default tombstone = %v, want TombstoneExclude", opts.Tombstone)
 			}
 
-			return &stream.Page[stream.AggregateRef]{}, nil
+			return &listing.Page[listing.AggregateRef]{}, nil
 		},
 	}
 
-	_, err := stream.NewListBuilder(reader).OfType("User").List(context.Background())
+	_, err := listing.NewListBuilder(reader).OfType("User").List(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,43 +64,43 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 }
 
 type stubReader struct {
-	listFn           func(ctx context.Context, opts stream.ListOptions) (*stream.Page[stream.AggregateRef], error)
-	listWithStatusFn func(ctx context.Context, opts stream.ListOptions) (*stream.Page[stream.AggregateStatus], error)
+	listFn           func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateRef], error)
+	listWithStatusFn func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateStatus], error)
 }
 
 func (s *stubReader) List(
 	ctx context.Context,
-	opts stream.ListOptions,
-) (*stream.Page[stream.AggregateRef], error) {
+	opts listing.ListOptions,
+) (*listing.Page[listing.AggregateRef], error) {
 	if s.listFn != nil {
 		return s.listFn(ctx, opts)
 	}
 
-	return &stream.Page[stream.AggregateRef]{}, nil
+	return &listing.Page[listing.AggregateRef]{}, nil
 }
 
 func (s *stubReader) ListWithStatus(
 	ctx context.Context,
-	opts stream.ListOptions,
-) (*stream.Page[stream.AggregateStatus], error) {
+	opts listing.ListOptions,
+) (*listing.Page[listing.AggregateStatus], error) {
 	if s.listWithStatusFn != nil {
 		return s.listWithStatusFn(ctx, opts)
 	}
 
-	return &stream.Page[stream.AggregateStatus]{}, nil
+	return &listing.Page[listing.AggregateStatus]{}, nil
 }
 
 func TestTombstonePolicy_String(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		policy stream.TombstonePolicy
+		policy listing.TombstonePolicy
 		want   string
 	}{
-		{stream.TombstoneExclude, "exclude"},
-		{stream.TombstoneInclude, "include"},
-		{stream.TombstoneOnly, "only"},
-		{stream.TombstonePolicy(99), "TombstonePolicy(99)"},
+		{listing.TombstoneExclude, "exclude"},
+		{listing.TombstoneInclude, "include"},
+		{listing.TombstoneOnly, "only"},
+		{listing.TombstonePolicy(99), "TombstonePolicy(99)"},
 	}
 
 	for _, tt := range tests {
@@ -117,8 +117,8 @@ func TestAggregateStatus_MarshalJSON(t *testing.T) {
 	ts := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
 	aggID := id.NewAggregateID()
 
-	status := stream.AggregateStatus{
-		Ref: stream.AggregateRef{
+	status := listing.AggregateStatus{
+		Ref: listing.AggregateRef{
 			ID:          aggID,
 			Type:        event.AggregateType("User"),
 			Version:     event.Version(3),

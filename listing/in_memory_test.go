@@ -6,8 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
 func TestInMemoryAggregateReader_List(t *testing.T) {
@@ -16,12 +16,12 @@ func TestInMemoryAggregateReader_List(t *testing.T) {
 	store := memory.NewMemoryStore()
 	seedEvents(t, store)
 
-	reader := stream.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryAggregateReader(store)
 
 	t.Run("lists all active users", func(t *testing.T) {
 		t.Parallel()
 
-		page, err := stream.NewListBuilder(reader).
+		page, err := listing.NewListBuilder(reader).
 			OfType("User").
 			PageSize(10).
 			List(context.Background())
@@ -41,7 +41,7 @@ func TestInMemoryAggregateReader_List(t *testing.T) {
 	t.Run("lists with status shows tombstoned", func(t *testing.T) {
 		t.Parallel()
 
-		page, err := stream.NewListBuilder(reader).
+		page, err := listing.NewListBuilder(reader).
 			OfType("User").
 			IncludeDeleted().
 			PageSize(10).
@@ -78,7 +78,7 @@ func TestInMemoryAggregateReader_List(t *testing.T) {
 	t.Run("OnlyDeleted filters to tombstoned", func(t *testing.T) {
 		t.Parallel()
 
-		page, err := stream.NewListBuilder(reader).
+		page, err := listing.NewListBuilder(reader).
 			OfType("User").
 			OnlyDeleted().
 			PageSize(10).
@@ -99,7 +99,7 @@ func TestInMemoryAggregateReader_List(t *testing.T) {
 	t.Run("pagination with cursor", func(t *testing.T) {
 		t.Parallel()
 
-		page1, err := stream.NewListBuilder(reader).
+		page1, err := listing.NewListBuilder(reader).
 			OfType("User").
 			IncludeDeleted().
 			PageSize(1).
@@ -116,7 +116,7 @@ func TestInMemoryAggregateReader_List(t *testing.T) {
 			t.Fatalf("got %d items, want 1", len(page1.Items))
 		}
 
-		page2, err := stream.NewListBuilder(reader).
+		page2, err := listing.NewListBuilder(reader).
 			OfType("User").
 			IncludeDeleted().
 			PageSize(1).
@@ -136,9 +136,9 @@ func TestInMemoryAggregateReader_EmptyJournal(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	reader := stream.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryAggregateReader(store)
 
-	page, err := stream.NewListBuilder(reader).
+	page, err := listing.NewListBuilder(reader).
 		OfType("User").
 		List(context.Background())
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
 func collectPublished(t *testing.T, bus *memory.MemoryBus, eventType event.Type) *[]event.Event {
@@ -28,7 +28,7 @@ func TestStatusMiddleware_Tombstone(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	bus.UsePublish(stream.StatusMiddleware(
+	bus.UsePublish(listing.StatusMiddleware(
 		[]event.Type{"user.deleted"},
 		[]event.Type{"user.reactivated"},
 	))
@@ -62,7 +62,7 @@ func TestStatusMiddleware_Rebirth(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	bus.UsePublish(stream.StatusMiddleware(
+	bus.UsePublish(listing.StatusMiddleware(
 		[]event.Type{"user.deleted"},
 		[]event.Type{"user.reactivated"},
 	))
@@ -96,7 +96,7 @@ func TestStatusMiddleware_UnmatchedPassthrough(t *testing.T) {
 	t.Parallel()
 
 	bus := memory.NewMemoryBus()
-	bus.UsePublish(stream.StatusMiddleware(
+	bus.UsePublish(listing.StatusMiddleware(
 		[]event.Type{"user.deleted"},
 		nil,
 	))

@@ -8,8 +8,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
 var _ = Describe("ListBuilder", func() {
@@ -17,13 +17,13 @@ var _ = Describe("ListBuilder", func() {
 		ctx    context.Context
 		cancel context.CancelFunc
 		store  *memory.MemoryStore
-		reader *stream.InMemoryAggregateReader
+		reader *listing.InMemoryAggregateReader
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		store = memory.NewMemoryStore()
-		reader = stream.NewInMemoryAggregateReader(store)
+		reader = listing.NewInMemoryAggregateReader(store)
 	})
 
 	AfterEach(func() {
@@ -36,7 +36,7 @@ var _ = Describe("ListBuilder", func() {
 			func(pageSize uint) {
 				seedStreamEvents(ctx, store)
 
-				page, err := stream.NewListBuilder(reader).
+				page, err := listing.NewListBuilder(reader).
 					OfType("User").
 					PageSize(pageSize).
 					List(ctx)
@@ -51,7 +51,7 @@ var _ = Describe("ListBuilder", func() {
 			It("should return aggregates across all types", func() {
 				seedStreamEvents(ctx, store)
 
-				page, err := stream.NewListBuilder(reader).
+				page, err := listing.NewListBuilder(reader).
 					IncludeDeleted().
 					PageSize(20).
 					ListWithStatus(ctx)
@@ -64,7 +64,7 @@ var _ = Describe("ListBuilder", func() {
 			It("should return an empty page", func() {
 				seedStreamEvents(ctx, store)
 
-				allPage, err := stream.NewListBuilder(reader).
+				allPage, err := listing.NewListBuilder(reader).
 					OfType("User").
 					IncludeDeleted().
 					PageSize(20).
@@ -73,7 +73,7 @@ var _ = Describe("ListBuilder", func() {
 				Expect(allPage.Items).ToNot(BeEmpty())
 
 				lastID := allPage.Items[len(allPage.Items)-1].ID
-				page, err := stream.NewListBuilder(reader).
+				page, err := listing.NewListBuilder(reader).
 					OfType("User").
 					IncludeDeleted().
 					After(lastID).
