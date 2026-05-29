@@ -26,7 +26,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 	Describe("As a developer dispatching commands", func() {
 		Context("when I register a handler and dispatch the matching command", func() {
-			It("should route the command to the correct handler", func() {
+			It("should deliver my command to the handler I registered for this type", func() {
 				var received command.Command
 				Expect(dispatcher.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
 					received = cmd
@@ -55,7 +55,7 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when I register multiple handlers for different types", func() {
-			It("should route each command to its own handler", func() {
+			It("should dispatch each type to its own handler independently", func() {
 				var createUserCalled, deleteUserCalled bool
 
 				Expect(dispatcher.Register("CreateUser", func(_ context.Context, _ command.Command) error {
@@ -82,7 +82,7 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when my handler returns an error", func() {
-			It("should propagate the error back to the caller", func() {
+			It("should surface the handler's error so I can decide what to do", func() {
 				expectedErr := errors.New("something went wrong")
 				Expect(dispatcher.Register("FailCommand", func(_ context.Context, _ command.Command) error {
 					return expectedErr
@@ -99,7 +99,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 	Describe("As a developer using middleware", func() {
 		Context("when I apply multiple middleware to the dispatcher", func() {
-			It("should wrap the handler in registration order", func() {
+			It("should execute outer middleware before inner, so I can layer cross-cutting concerns", func() {
 				var callOrder []string
 
 				dispatcher.Use(func(next command.Handler) command.Handler {
@@ -130,7 +130,7 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when middleware short-circuits the chain", func() {
-			It("should not call the handler", func() {
+			It("should block the handler call entirely, so no business logic runs", func() {
 				var handlerCalled bool
 
 				dispatcher.Use(func(_ command.Handler) command.Handler {
@@ -218,7 +218,7 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when I use MustNew with invalid inputs", func() {
-			It("should panic", func() {
+			It("should crash immediately so I notice the bug in development", func() {
 				Expect(func() {
 					command.MustNew("", aggID)
 				}).To(Panic())
@@ -233,7 +233,7 @@ var _ = Describe("Command Dispatcher", func() {
 		}
 
 		Context("when I register a typed handler", func() {
-			It("should receive the concrete command type", func() {
+			It("should give me the fully typed command struct without manual casting", func() {
 				var receivedName string
 
 				err := command.RegisterTyped[*createUserCmd](

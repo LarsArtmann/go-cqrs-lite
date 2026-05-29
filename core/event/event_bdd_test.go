@@ -53,7 +53,7 @@ var _ = Describe("Event Creation", func() {
 		})
 
 		Context("when I create an event with an empty type", func() {
-			It("should reject it with ErrEmptyEventType", func() {
+			It("should reject my input and explain that the event type is required", func() {
 				_, err := event.NewEvent("", id.NewAggregateID(), "User", 1, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("event type is required"))
