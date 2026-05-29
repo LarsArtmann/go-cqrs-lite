@@ -52,13 +52,13 @@ func newEventNonRetryableHandler(callCount *int, errMsg string) event.Handler {
 
 func setupEventNonRetryableTest(
 	t testing.TB,
-	mw event.Middleware,
+	wrapMW event.Middleware,
 	callCount *int,
 	errMsg string,
 ) (event.Handler, event.Event) {
 	t.Helper()
 
-	handler := mw(newEventNonRetryableHandler(callCount, errMsg))
+	handler := wrapMW(newEventNonRetryableHandler(callCount, errMsg))
 
 	evt, err := testhelpers.NewTestEvent()
 	if err != nil {
@@ -78,13 +78,13 @@ func newCommandNonRetryableHandler(callCount *int, errMsg string) command.Handle
 
 func setupCommandNonRetryableTest(
 	t testing.TB,
-	mw command.Middleware,
+	commandMW command.Middleware,
 	callCount *int,
 	errMsg string,
 ) (command.Handler, command.Command) {
 	t.Helper()
 
-	handler := mw(newCommandNonRetryableHandler(callCount, errMsg))
+	handler := commandMW(newCommandNonRetryableHandler(callCount, errMsg))
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
 	return handler, cmd

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -104,19 +103,4 @@ func (s *SQLEventStore) loadAllFromStart(ctx context.Context, limit int) ([]even
 	}
 	defer func() { _ = rows.Close() }()
 	return s.scanEvents(rows)
-}
-
-func queryContextWithError(
-	ctx context.Context,
-	span trace.Span,
-	db *sql.DB,
-	query, op, msg string,
-	queryArgs ...any,
-) (*sql.Rows, error) {
-	rows, err := db.QueryContext(ctx, query, queryArgs...)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, op, msg)
-	}
-	return rows, nil
 }

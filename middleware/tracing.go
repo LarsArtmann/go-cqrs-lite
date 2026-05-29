@@ -133,7 +133,7 @@ func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 				cqrsotel.RecordError(span, err)
 			}
 
-			return err
+			return err //nolint:wrapcheck // transparent proxy, caller wraps
 		})
 	}
 }

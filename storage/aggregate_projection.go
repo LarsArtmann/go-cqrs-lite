@@ -97,7 +97,7 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 }
 
 func (p *AggregateProjection) createTable() error {
-	_, err := p.db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+	_, err := p.db.ExecContext(context.Background(), fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 		aggregate_type  TEXT NOT NULL,
 		aggregate_id    TEXT NOT NULL,
 		version         INT  NOT NULL,

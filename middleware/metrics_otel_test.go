@@ -156,20 +156,20 @@ func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	var rm metricdata.ResourceMetrics
+	var resourceMetrics metricdata.ResourceMetrics
 
-	err = reader.Collect(context.Background(), &rm)
+	err = reader.Collect(context.Background(), &resourceMetrics)
 	if err != nil {
 		t.Fatalf("failed to collect metrics: %v", err)
 	}
 
-	if len(rm.ScopeMetrics) == 0 {
+	if len(resourceMetrics.ScopeMetrics) == 0 {
 		t.Fatal("expected scope metrics to be collected")
 	}
 
 	found := false
 
-	for _, sm := range rm.ScopeMetrics {
+	for _, sm := range resourceMetrics.ScopeMetrics {
 		for _, m := range sm.Metrics {
 			if m.Name == "cqrs.command.duration.test" {
 				found = true

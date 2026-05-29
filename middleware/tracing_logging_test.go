@@ -35,8 +35,8 @@ func newTP() *sdktrace.TracerProvider {
 }
 
 func TestCommandTraceLogging_WithSpan(t *testing.T) {
-	tp := newTP()
-	defer func() { _ = tp.Shutdown(context.Background()) }()
+	tracerProvider := newTP()
+	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
 	logger, buf := newTraceLogger()
 	mw := middleware.CommandTraceLogging(logger)
@@ -48,7 +48,7 @@ func TestCommandTraceLogging_WithSpan(t *testing.T) {
 		return nil
 	})
 
-	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
+	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
 	err := handler(ctx, &traceCmd{aggregateID: id.NewAggregateID()})
@@ -75,8 +75,8 @@ func TestCommandTraceLogging_NoSpan(t *testing.T) {
 }
 
 func TestEventTraceLogging_WithSpan(t *testing.T) {
-	tp := newTP()
-	defer func() { _ = tp.Shutdown(context.Background()) }()
+	tracerProvider := newTP()
+	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
 	logger, buf := newTraceLogger()
 	mw := middleware.EventTraceLogging(logger)
@@ -88,7 +88,7 @@ func TestEventTraceLogging_WithSpan(t *testing.T) {
 		return nil
 	})
 
-	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
+	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
 	aggID := id.NewAggregateID()

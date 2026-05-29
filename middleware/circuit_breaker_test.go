@@ -164,8 +164,8 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 
 	config := testCBConfig(2, 3)
 
-	mw := CommandCircuitBreaker(config)
-	failingHandler := mw(testhelpers.FailingCommandHandler("fail"))
+	circuitBreakerMW := CommandCircuitBreaker(config)
+	failingHandler := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
 
 	for range 2 {
 		_ = failingHandler(t.Context(), &testCommand{})
@@ -174,7 +174,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 	_ = failingHandler(t.Context(), &testCommand{})
 	time.Sleep(60 * time.Millisecond)
 
-	successHandler := mw(NoopCommandHandler())
+	successHandler := circuitBreakerMW(NoopCommandHandler())
 
 	for i := range 3 {
 		if err := successHandler(t.Context(), &testCommand{}); err != nil {
@@ -182,7 +182,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 		}
 	}
 
-	failAgain := mw(testhelpers.FailingCommandHandler("fail"))
+	failAgain := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
 	for range 2 {
 		_ = failAgain(t.Context(), &testCommand{})
 	}
@@ -198,8 +198,8 @@ func TestCommandCircuitBreaker_HalfOpenReopensOnFailure(t *testing.T) {
 
 	config := testCBConfig(1, 2)
 
-	mw := CommandCircuitBreaker(config)
-	handler := mw(testhelpers.FailingCommandHandler("fail"))
+	circuitBreakerMW := CommandCircuitBreaker(config)
+	handler := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
 
 	_ = handler(t.Context(), &testCommand{})
 	_ = handler(t.Context(), &testCommand{})

@@ -20,14 +20,14 @@ func TestOTel_CommandDispatch_EmitsSpans(t *testing.T) {
 	t.Parallel()
 
 	recorder := tracetest.NewSpanRecorder()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
-	defer func() { _ = tp.Shutdown(context.Background()) }()
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
 	original := otel.GetTracerProvider()
-	otel.SetTracerProvider(tp)
+	otel.SetTracerProvider(tracerProvider)
 	t.Cleanup(func() { otel.SetTracerProvider(original) })
 
-	tracer := tp.Tracer(cqrsotel.ComponentTracer("test"))
+	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
 	cmdDispatcher := command.NewDispatcher()
 	cmdDispatcher.Use(middleware.CommandTracing(tracer))
@@ -80,22 +80,22 @@ func TestOTel_EventBus_EmitsSpans(t *testing.T) {
 	t.Parallel()
 
 	recorder := tracetest.NewSpanRecorder()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
-	defer func() { _ = tp.Shutdown(context.Background()) }()
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
 	original := otel.GetTracerProvider()
-	otel.SetTracerProvider(tp)
+	otel.SetTracerProvider(tracerProvider)
 	t.Cleanup(func() { otel.SetTracerProvider(original) })
 
-	tracer := tp.Tracer(cqrsotel.ComponentTracer("test"))
+	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
 	bus := memory.NewMemoryBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
-	bus.Use(middleware.EventTracing(tracer))
+	_ = bus.Use(middleware.EventTracing(tracer))
 
 	received := false
-	bus.Subscribe("OrderCreated", func(_ context.Context, _ event.Event) error {
+	_ = bus.Subscribe("OrderCreated", func(_ context.Context, _ event.Event) error {
 		received = true
 
 		return nil

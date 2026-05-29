@@ -68,6 +68,8 @@ func (r *SQLAggregateReader) ListWithStatus(
 		conditions = append(conditions, "tombstone_status = 0")
 	case listing.TombstoneOnly:
 		conditions = append(conditions, "tombstone_status = 1")
+	case listing.TombstoneInclude:
+		// include all regardless of tombstone status
 	}
 
 	if !opts.After.IsZero() {

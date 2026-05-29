@@ -32,7 +32,7 @@ func TestChaos_CommandHandler_Error(t *testing.T) {
 	disp.Use(middleware.CommandRecovery())
 
 	handlerErr := errors.New("chaos: handler failed")
-	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
+	_ = disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
 		return handlerErr
 	})
 
@@ -46,7 +46,7 @@ func TestChaos_CommandHandler_Panic_Recovered(t *testing.T) {
 	disp := command.NewDispatcher()
 	disp.Use(middleware.CommandRecovery())
 
-	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
+	_ = disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
 		panic("chaos: unexpected panic")
 	})
 
@@ -64,7 +64,7 @@ func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 
 	disp := command.NewDispatcher()
 
-	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
+	_ = disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
 		panic("chaos: propagated")
 	})
 
@@ -87,7 +87,7 @@ func newRetryDispatcher(
 	}))
 
 	*attempts = 0
-	disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
+	_ = disp.Register("chaos.command", func(_ context.Context, cmd command.Command) error {
 		*attempts++
 		if permanent {
 			return errors.New("chaos: permanent failure")
@@ -147,7 +147,7 @@ func TestChaos_Context_Cancellation(t *testing.T) {
 	cancel()
 
 	disp := command.NewDispatcher()
-	disp.Register("chaos.command", func(ctx context.Context, cmd command.Command) error {
+	_ = disp.Register("chaos.command", func(ctx context.Context, cmd command.Command) error {
 		return ctx.Err()
 	})
 

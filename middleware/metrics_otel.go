@@ -33,7 +33,7 @@ func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
 		metric.WithUnit("ms"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // otel SDK error
 	}
 
 	return &OTelMetricsRecorder{histogram: h}, nil
@@ -43,7 +43,11 @@ func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
 // Labels are passed as alternating key-value string pairs.
 func (r *OTelMetricsRecorder) Observe(name string, duration time.Duration, labels ...string) {
 	opts := make([]metric.RecordOption, 0, 1)
-	attrs := make([]attribute.KeyValue, 0, (len(labels)/2)+1)
+	attrs := make(
+		[]attribute.KeyValue,
+		0,
+		(len(labels)/2)+1,
+	) //nolint:mnd // key-value pairs = half input + operation
 	attrs = append(attrs, attribute.String("operation", name))
 
 	for i := 0; i+1 < len(labels); i += 2 {

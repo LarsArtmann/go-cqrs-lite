@@ -11,6 +11,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
+const (
+	commandLogPrefix = "command"
+	eventLogPrefix   = "event"
+	queryLogPrefix   = "query"
+)
+
 // logContext holds common logging context for middleware.
 type logContext struct {
 	prefix      string
@@ -59,7 +65,7 @@ func CommandLogging(logger *slog.Logger) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			lc := logContext{
-				prefix:      "command",
+				prefix:      commandLogPrefix,
 				msgType:     string(cmd.Type()),
 				aggregateID: cmd.AggregateID(),
 			}
@@ -76,7 +82,7 @@ func EventLogging(logger *slog.Logger) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			lc := logContext{
-				prefix:      "event",
+				prefix:      eventLogPrefix,
 				msgType:     string(evt.Type()),
 				aggregateID: evt.AggregateID(),
 			}
@@ -93,7 +99,7 @@ func QueryLogging(logger *slog.Logger) query.Middleware {
 	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			lc := logContext{ //nolint:exhaustruct // queries have no aggregateID
-				prefix:  "query",
+				prefix:  queryLogPrefix,
 				msgType: string(q.Type()),
 			}
 

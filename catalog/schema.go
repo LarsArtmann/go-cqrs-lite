@@ -15,7 +15,7 @@ func SchemaFromReflect(t reflect.Type) *Schema {
 }
 
 func SchemaToJSON(s *Schema) ([]byte, error) {
-	return schema.ToJSON(s)
+	return schema.ToJSON(s) //nolint:wrapcheck // thin delegation to sub-package
 }
 
 func SchemaToAny(s *Schema) any {

@@ -28,15 +28,15 @@ var _ = Describe("Signing", func() {
 			It(
 				"should confirm the event has not been tampered with so I can trust its integrity",
 				func() {
-					sv, err := NewHMAC(secret)
+					signer, err := NewHMAC(secret)
 					Expect(err).NotTo(HaveOccurred())
 
 					evt := makeEvent()
-					sig, err := sv.Sign(evt)
+					sig, err := signer.Sign(evt)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(sig).NotTo(BeNil())
 
-					err = sv.Verify(evt, sig)
+					err = signer.Verify(evt, sig)
 					Expect(err).NotTo(HaveOccurred())
 				},
 			)
@@ -44,11 +44,11 @@ var _ = Describe("Signing", func() {
 
 		When("someone tampers with the event payload after signing", func() {
 			It("should reject the signature so I know the event was modified in transit", func() {
-				sv, err := NewHMAC(secret)
+				signer, err := NewHMAC(secret)
 				Expect(err).NotTo(HaveOccurred())
 
 				evt := makeEvent()
-				sig, err := sv.Sign(evt)
+				sig, err := signer.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
 
 				tampered, err := event.NewEvent(
@@ -60,20 +60,20 @@ var _ = Describe("Signing", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = sv.Verify(tampered, sig)
+				err = signer.Verify(tampered, sig)
 				Expect(err).To(MatchError(ErrInvalidSignature))
 			})
 		})
 
 		When("I sign the same event twice with the same key", func() {
 			It("should produce identical signatures so I can verify deterministically", func() {
-				sv, err := NewHMAC(secret)
+				signer, err := NewHMAC(secret)
 				Expect(err).NotTo(HaveOccurred())
 
 				evt := makeEvent()
-				sig1, err := sv.Sign(evt)
+				sig1, err := signer.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
-				sig2, err := sv.Sign(evt)
+				sig2, err := signer.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(sig1.Equal(sig2)).To(BeTrue())
@@ -159,10 +159,10 @@ var _ = Describe("Signing", func() {
 			It(
 				"should attach a signature to my event before it reaches the next publisher so downstream consumers can verify it",
 				func() {
-					sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+					signer, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
 					Expect(err).NotTo(HaveOccurred())
 
-					mw := SignMiddleware(sv)
+					signMW := SignMiddleware(signer)
 
 					evt := makeEvent()
 					var captured event.Event
@@ -176,25 +176,25 @@ var _ = Describe("Signing", func() {
 						},
 					)
 
-					wrapped := mw(inner)
+					wrapped := signMW(inner)
 					err = wrapped.Publish(context.Background(), evt)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(HasSignature(captured)).To(BeTrue())
 					sig, err := ExtractSignature(captured)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(sv.Verify(captured, sig)).NotTo(HaveOccurred())
+					Expect(signer.Verify(captured, sig)).NotTo(HaveOccurred())
 				},
 			)
 		})
 
 		When("VerifyMiddleware receives a tampered event", func() {
 			It("should block it so my handler never processes a corrupted event", func() {
-				sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+				signer, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
 				Expect(err).NotTo(HaveOccurred())
 
 				evt := makeEvent()
-				sig, err := sv.Sign(evt)
+				sig, err := signer.Sign(evt)
 				Expect(err).NotTo(HaveOccurred())
 
 				tampered, err := event.NewEvent(
@@ -209,8 +209,8 @@ var _ = Describe("Signing", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				handlerCalled := false
-				mw := VerifyMiddleware(sv)
-				wrapped := mw(func(_ context.Context, _ event.Event) error {
+				verifyMW := VerifyMiddleware(signer)
+				wrapped := verifyMW(func(_ context.Context, _ event.Event) error {
 					handlerCalled = true
 
 					return nil
@@ -224,14 +224,14 @@ var _ = Describe("Signing", func() {
 
 		When("RequireSignatureMiddleware receives an unsigned event", func() {
 			It("should reject it so I can enforce that every event in my stream is signed", func() {
-				sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+				signer, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
 				Expect(err).NotTo(HaveOccurred())
 
 				evt := makeEvent()
 
 				handlerCalled := false
-				mw := RequireSignatureMiddleware(sv)
-				wrapped := mw(func(_ context.Context, _ event.Event) error {
+				verifyMW := RequireSignatureMiddleware(signer)
+				wrapped := verifyMW(func(_ context.Context, _ event.Event) error {
 					handlerCalled = true
 
 					return nil
@@ -249,11 +249,11 @@ var _ = Describe("Signing", func() {
 			It(
 				"should give me a base64 string so I can include it in debug output without binary garbage",
 				func() {
-					sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+					signer, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
 					Expect(err).NotTo(HaveOccurred())
 
 					evt := makeEvent()
-					sig, err := sv.Sign(evt)
+					sig, err := signer.Sign(evt)
 					Expect(err).NotTo(HaveOccurred())
 
 					str := sig.String()

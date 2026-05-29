@@ -114,13 +114,13 @@ func TestRunner_Parallelism_CheckpointsSavedCorrectly(t *testing.T) {
 	for i := range 3 {
 		name := "proj-" + string(rune('A'+i))
 
-		cp, cpErr := runner.CurrentCheckpoint(context.Background(), name)
+		checkpoint, cpErr := runner.CurrentCheckpoint(context.Background(), name)
 		if cpErr != nil {
 			t.Fatalf("checkpoint for %s: %v", name, cpErr)
 		}
 
-		if cp.EventID != evt.ID() {
-			t.Errorf("checkpoint for %s = %v, want %v", name, cp.EventID, evt.ID())
+		if checkpoint.EventID != evt.ID() {
+			t.Errorf("checkpoint for %s = %v, want %v", name, checkpoint.EventID, evt.ID())
 		}
 	}
 }

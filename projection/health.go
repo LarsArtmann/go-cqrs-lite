@@ -11,12 +11,14 @@ import (
 // It pings the checkpoint store and the journal (if configured).
 // Returns nil if all dependencies are healthy.
 func (r *Runner) HealthCheck(ctx context.Context) error {
-	if _, err := r.checkpoint.Load(ctx, "__health__"); err != nil {
+	_, err := r.checkpoint.Load(ctx, "__health__")
+	if err != nil {
 		return fmt.Errorf("projection health: checkpoint store: %w", err)
 	}
 
 	if r.journal != nil {
-		if _, err := r.journal.ReadAll(ctx); err != nil {
+		_, err = r.journal.ReadAll(ctx)
+		if err != nil {
 			return fmt.Errorf("projection health: journal: %w", err)
 		}
 	}
@@ -42,12 +44,12 @@ func (r *Runner) IsRunning() bool {
 	}
 
 	for _, p := range r.projections {
-		cp, err := r.checkpoint.Load(context.Background(), p.Name())
+		checkpoint, err := r.checkpoint.Load(context.Background(), p.Name())
 		if err != nil {
 			return false
 		}
 
-		if !cp.IsZero() {
+		if !checkpoint.IsZero() {
 			return true
 		}
 	}
@@ -78,21 +80,21 @@ func (r *Runner) DetailedHealthCheck(ctx context.Context) *HealthStatus {
 	}
 
 	for _, p := range r.projections {
-		ph := ProjectionHealth{
+		projHealth := ProjectionHealth{
 			Name: p.Name(),
 		}
 
-		cp, err := r.checkpoint.Load(ctx, p.Name())
+		checkpoint, err := r.checkpoint.Load(ctx, p.Name())
 		if err != nil {
-			ph.Healthy = false
-			ph.Error = err.Error()
+			projHealth.Healthy = false
+			projHealth.Error = err.Error()
 			status.Healthy = false
 		} else {
-			ph.Healthy = true
-			ph.Checkpoint = cp.EventID.String()
+			projHealth.Healthy = true
+			projHealth.Checkpoint = checkpoint.EventID.String()
 		}
 
-		status.Projections = append(status.Projections, ph)
+		status.Projections = append(status.Projections, projHealth)
 	}
 
 	return status

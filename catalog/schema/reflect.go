@@ -14,6 +14,8 @@ import (
 
 var ErrNilSchema = errorfamily.NewRejection("catalog.nil_schema", "schema is nil")
 
+const jsonKeyType = "type"
+
 func FromType[T any]() *Schema {
 	var zero T
 
@@ -34,13 +36,14 @@ func ToJSON(s *Schema) ([]byte, error) {
 }
 
 func ToAny(s *Schema) any {
+	fallback := map[string]string{jsonKeyType: string(TypeObject)}
 	if s == nil {
-		return map[string]string{"type": string(TypeObject)}
+		return fallback
 	}
 
 	raw, err := json.Marshal(s)
 	if err != nil {
-		return map[string]string{"type": string(TypeObject)}
+		return fallback
 	}
 
 	var result any
