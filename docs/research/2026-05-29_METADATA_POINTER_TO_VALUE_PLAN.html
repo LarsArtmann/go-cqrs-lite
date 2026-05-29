@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan: Metadata — Pointer to Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --white: #fafafa;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-300: #d4d4d4;
+      --gray-400: #a3a3a3;
+      --gray-500: #737373;
+      --gray-600: #525252;
+      --gray-700: #404040;
+      --gray-800: #262626;
+      --gray-900: #171717;
+      --accent: #d00000;
+      --accent-light: #fff1f1;
+      --green: #0a6e3a;
+      --green-light: #ecfdf5;
+      --blue: #1d4ed8;
+      --blue-light: #eff6ff;
+      --amber: #92400e;
+      --amber-light: #fffbeb;
+      --mono: 'JetBrains Mono', monospace;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .hero {
+      padding: 120px 0 80px;
+      border-bottom: 1px solid var(--gray-200);
+      position: relative;
+    }
+
+    .hero::before {
+      content: 'PLAN';
+      position: absolute;
+      top: 60px;
+      left: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--gray-400);
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--black);
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero .subtitle {
+      margin-top: 24px;
+      font-size: 1.1rem;
+      color: var(--gray-500);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    .meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 40px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gray-400);
+      letter-spacing: 0.05em;
+    }
+
+    .toc {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .toc h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 20px;
+    }
+
+    .toc ol {
+      list-style: none;
+      counter-reset: toc;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 32px;
+    }
+
+    .toc li {
+      counter-increment: toc;
+      font-size: 0.9rem;
+    }
+
+    .toc li::before {
+      content: counter(toc, decimal-leading-zero);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-400);
+      margin-right: 12px;
+    }
+
+    .toc a {
+      color: var(--black);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .toc a:hover {
+      border-bottom-color: var(--black);
+    }
+
+    @media (max-width: 640px) {
+      .toc ol { grid-template-columns: 1fr; }
+    }
+
+    .section {
+      padding: 64px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 8px;
+    }
+
+    .section h2 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      margin-bottom: 32px;
+    }
+
+    .section h3 {
+      font-family: var(--sans);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 40px;
+      margin-bottom: 12px;
+    }
+
+    .section p {
+      color: var(--gray-700);
+      max-width: 680px;
+    }
+
+    .section p + p {
+      margin-top: 16px;
+    }
+
+    .section ul, .section ol {
+      color: var(--gray-700);
+      max-width: 680px;
+      padding-left: 24px;
+      margin-top: 12px;
+    }
+
+    .section li {
+      margin-top: 8px;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    pre {
+      background: var(--gray-900);
+      color: var(--gray-100);
+      border-radius: 8px;
+      padding: 24px;
+      overflow-x: auto;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.75;
+      max-width: 100%;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    .kw { color: #c084fc; }
+    .tp { color: #67e8f9; }
+    .fn { color: #fbbf24; }
+    .cm { color: #6b7280; font-style: italic; }
+    .str { color: #86efac; }
+    .op { color: #f87171; }
+    .del { color: #f87171; text-decoration: line-through; opacity: 0.6; }
+    .add { color: #86efac; }
+
+    .callout {
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      max-width: 680px;
+    }
+
+    .callout-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .callout p {
+      color: inherit;
+      max-width: 100%;
+    }
+
+    .callout-green {
+      background: var(--green-light);
+      border: 1px solid #bbf7d0;
+      color: var(--green);
+    }
+    .callout-green .callout-title { color: #047857; }
+
+    .callout-red {
+      background: var(--accent-light);
+      border: 1px solid #fecaca;
+      color: var(--accent);
+    }
+    .callout-red .callout-title { color: #b91c1c; }
+
+    .callout-amber {
+      background: var(--amber-light);
+      border: 1px solid #fde68a;
+      color: var(--amber);
+    }
+    .callout-amber .callout-title { color: #92400e; }
+
+    .callout-blue {
+      background: var(--blue-light);
+      border: 1px solid #bfdbfe;
+      color: var(--blue);
+    }
+    .callout-blue .callout-title { color: #1e40af; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-size: 0.9rem;
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-500);
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    tr:hover td {
+      background: var(--gray-100);
+    }
+
+    .diff-block {
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+
+    .file-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--gray-200);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-400);
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="hero">
+    <h1>Metadata: <em>Pointer</em> to Value</h1>
+    <p class="subtitle">
+      Change <code>*Metadata</code> to <code>Metadata</code> across the entire codebase — eliminating nil checks, lazy-init guards, and defensive copying.
+    </p>
+    <div class="meta">
+      <span>2026-05-29</span>
+      <span>Status: Plan</span>
+      <span>Scope: 11 files, ~50 changes</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#why">Why</a></li>
+      <li><a href="#principle">The Principle</a></li>
+      <li><a href="#current">Current State</a></li>
+      <li><a href="#target">Target State</a></li>
+      <li><a href="#impact">Impact Analysis</a></li>
+      <li><a href="#steps">Step-by-Step Plan</a></li>
+      <li><a href="#risks">Risks &amp; Mitigations</a></li>
+    </ol>
+  </nav>
+
+  <section class="section" id="why">
+    <span class="section-label">01</span>
+    <h2>Why</h2>
+
+    <p>
+      <code>*Metadata</code> exists to support lazy initialization — only allocating when a metadata option is used. But every production event <strong>should</strong> have metadata (at minimum correlation ID and source). The lazy-init pattern:
+    </p>
+
+    <ul>
+      <li>Requires <strong>8+ nil-check guards</strong> across <code>options.go</code> alone (lines 20, 44, 100, 104)</li>
+      <li>Requires <strong>12+ nil-check guards</strong> in consumers (tombstone, signing, aggregate projection, watermill, storage, catalog)</li>
+      <li>Makes it <strong>easy to forget metadata</strong> — no compile-time enforcement</li>
+      <li>Forces <code>Metadata()</code> to return a defensive copy on every call (event.go:171-184)</li>
+      <li>The "optimization" saves ~120 bytes on events that <em>should not exist in production</em></li>
+    </ul>
+
+    <div class="callout callout-red">
+      <div class="callout-title">Current Smell</div>
+      <p>Every <code>WithXxx</code> option repeats the same guard: <code>if e.metadata == nil { e.metadata = NewMetadata() }</code>. This is the type fighting its own design.</p>
+    </div>
+  </section>
+
+  <section class="section" id="principle">
+    <span class="section-label">02</span>
+    <h2>The Principle</h2>
+
+    <p>
+      <strong>Make impossible states unrepresentable.</strong> If metadata should always exist, the type system should enforce it. A value <code>Metadata</code> is always present — even if zero-valued. There is no nil to check, no guard to forget, no lazy-init to maintain.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th><code>*Metadata</code> (current)</th>
+          <th><code>Metadata</code> (proposed)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nil possible?</td>
+          <td>Yes — 12+ nil checks in codebase</td>
+          <td style="color: var(--green); font-weight: 500;">No — zero value is always valid</td>
+        </tr>
+        <tr>
+          <td>Lazy-init guards</td>
+          <td>8+ in options.go alone</td>
+          <td style="color: var(--green); font-weight: 500;">Zero — always initialized</td>
+        </tr>
+        <tr>
+          <td>Copy semantics</td>
+          <td>Defensive copy on every <code>Metadata()</code> call</td>
+          <td style="color: var(--green); font-weight: 500;">Value copy (Go default)</td>
+        </tr>
+        <tr>
+          <td>Forget metadata?</td>
+          <td>Easy — no compile error</td>
+          <td style="color: var(--green); font-weight: 500;">Impossible — always present (zero-valued)</td>
+        </tr>
+        <tr>
+          <td>Allocation cost</td>
+          <td>0 bytes if nil</td>
+          <td>~120 bytes always (7 branded IDs + map header)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="current">
+    <span class="section-label">03</span>
+    <h2>Current State</h2>
+
+    <h3>Interface &amp; struct (core/event/event.go)</h3>
+    <pre><code><span class="kw">type</span> <span class="tp">Event</span> <span class="kw">interface</span> {
+    <span class="cm">// ...</span>
+    <span class="fn">Metadata</span>() <span class="del">*Metadata</span>
+}
+
+<span class="kw">type</span> <span class="tp">ImmutableEvent</span> <span class="kw">struct</span> {
+    <span class="cm">// ...</span>
+    metadata      <span class="del">*Metadata</span>
+}</code></pre>
+
+    <h3>Nil-guard pattern (core/event/options.go — repeated 8 times)</h3>
+    <pre><code><span class="kw">func</span> <span class="fn">apply</span>[T <span class="tp">any</span>](field <span class="tp">metadataOption</span>[T], value T) <span class="tp">Option</span> {
+    <span class="kw">return func</span>(e *<span class="tp">ImmutableEvent</span>) {
+<span class="del">        if e.metadata == nil {</span>
+<span class="del">            e.metadata = NewMetadata()</span>
+<span class="del">        }</span>
+        field(e.metadata, value)
+    }
+}</code></pre>
+
+    <h3>Defensive copy on read (core/event/event.go:171-184)</h3>
+    <pre><code><span class="kw">func</span> (e *<span class="tp">ImmutableEvent</span>) <span class="fn">Metadata</span>() <span class="del">*Metadata</span> {
+<span class="del">    if e.metadata == nil {</span>
+<span class="del">        return nil</span>
+<span class="del">    }</span>
+    metadataCopy := *e.metadata
+    <span class="kw">if</span> e.metadata.Custom != <span class="op">nil</span> {
+        metadataCopy.Custom = <span class="fn">make</span>(<span class="kw">map</span>[MetadataKey]<span class="tp">string</span>, <span class="fn">len</span>(e.metadata.Custom))
+        <span class="fn">maps.Copy</span>(metadataCopy.Custom, e.metadata.Custom)
+    }
+    <span class="kw">return</span> &metadataCopy
+}</code></pre>
+
+    <h3>Consumer nil-checks (5 locations)</h3>
+    <pre><code><span class="cm">// core/event/tombstone.go:61</span>
+<span class="del">if md == nil || md.Custom == nil {</span> <span class="kw">return</span> TombstoneUndetermined }
+
+<span class="cm">// storage/aggregate_projection.go:115</span>
+<span class="del">if md == nil || md.Custom == nil {</span> <span class="kw">return</span> event.TombstoneUndetermined }
+
+<span class="cm">// signing/event.go:66</span>
+<span class="del">if md == nil || md.Custom == nil {</span> <span class="kw">return nil</span>, ErrNilSignature }
+
+<span class="cm">// signing/multisig/extract.go:55</span>
+<span class="del">if md == nil || md.Custom == nil {</span> <span class="kw">return nil</span>, ErrNilSignature }
+
+<span class="cm">// catalog/registry_helpers.go:76</span>
+<span class="del">if m == nil {</span> <span class="cm">// ...</span> }</code></pre>
+  </section>
+
+  <section class="section" id="target">
+    <span class="section-label">04</span>
+    <h2>Target State</h2>
+
+    <h3>Interface &amp; struct</h3>
+    <pre><code><span class="kw">type</span> <span class="tp">Event</span> <span class="kw">interface</span> {
+    <span class="cm">// ...</span>
+    <span class="fn">Metadata</span>() <span class="add">Metadata</span>
+}
+
+<span class="kw">type</span> <span class="tp">ImmutableEvent</span> <span class="kw">struct</span> {
+    <span class="cm">// ...</span>
+    metadata      <span class="add">Metadata</span>
+}</code></pre>
+
+    <h3>Option — no guards needed</h3>
+    <pre><code><span class="kw">func</span> <span class="fn">apply</span>[T <span class="tp">any</span>](field <span class="tp">metadataOption</span>[T], value T) <span class="tp">Option</span> {
+    <span class="kw">return func</span>(e *<span class="tp">ImmutableEvent</span>) {
+<span class="add">        field(&e.metadata, value)</span>
+    }
+}</code></pre>
+
+    <h3>Getter — simplified copy</h3>
+    <pre><code><span class="kw">func</span> (e *<span class="tp">ImmutableEvent</span>) <span class="fn">Metadata</span>() <span class="add">Metadata</span> {
+<span class="add">    return e.metadata.Clone()</span>
+}</code></pre>
+
+    <h3>Consumers — check map only, never nil struct</h3>
+    <pre><code><span class="cm">// Before:</span>
+<span class="del">if md == nil || md.Custom == nil {</span>
+
+<span class="cm">// After:</span>
+<span class="add">if md.Custom == nil {</span></code></pre>
+
+    <h3>NewMetadata becomes a value constructor</h3>
+    <pre><code><span class="cm">// Before:</span>
+<span class="del">func NewMetadata() *Metadata {</span>
+<span class="del">    return &Metadata{...}</span>
+<span class="del">}</span>
+
+<span class="cm">// After:</span>
+<span class="add">func NewMetadata() Metadata {</span>
+<span class="add">    return Metadata{</span>
+<span class="add">        Custom: make(map[MetadataKey]string),</span>
+<span class="add">    }</span>
+<span class="add">}</span></code></pre>
+
+    <h3>mergeFrom becomes a value-returning method</h3>
+    <pre><code><span class="cm">// Before:</span>
+<span class="del">func (m *Metadata) mergeFrom(other *Metadata) { ... }</span>
+
+<span class="cm">// After:</span>
+<span class="add">func (m Metadata) merge(other Metadata) Metadata { ... }</span></code></pre>
+  </section>
+
+  <section class="section" id="impact">
+    <span class="section-label">05</span>
+    <h2>Impact Analysis</h2>
+
+    <p>
+      Every file that touches <code>*Metadata</code> or <code>*event.Metadata</code> must change. Here's the complete inventory:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Changes</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>core/event/metadata.go</code></td>
+          <td><code>NewMetadata()</code> returns value; <code>mergeFrom</code> → <code>merge</code>; add <code>Clone()</code> method</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>core/event/event.go</code></td>
+          <td>Field <code>*Metadata</code> → <code>Metadata</code>; interface <code>Metadata()</code> returns value; simplify getter; <code>Clone()</code> update; <code>NewEvent</code> already calls <code>NewMetadata()</code></td>
+          <td style="color: var(--amber);">Medium</td>
+        </tr>
+        <tr>
+          <td><code>core/event/options.go</code></td>
+          <td>Remove all nil-check guards (8 locations); <code>metadataOption</code> takes <code>*Metadata</code> (still pointer for mutation); <code>WithMetadata</code> takes value</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>core/event/tombstone.go</code></td>
+          <td><code>md == nil ||</code> → remove struct nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>core/command/store.go</code></td>
+          <td><code>PersistedCommand.metadata</code> → value; <code>Metadata()</code> returns value; <code>WithCommandMetadata</code> takes value</td>
+          <td style="color: var(--amber);">Medium</td>
+        </tr>
+        <tr>
+          <td><code>storage/sql/reconstruction.go</code></td>
+          <td><code>MarshalMetadata</code> takes value; remove nil check; <code>UnmarshalEventMetadata</code> returns value option</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>storage/aggregate_projection.go</code></td>
+          <td><code>md == nil ||</code> → remove struct nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>storage/outbox_helpers.go</code></td>
+          <td>Update type in serialization</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>pebble/serialization.go</code></td>
+          <td>JSON struct field <code>*event.Metadata</code> → <code>event.Metadata</code></td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>pebble/reconstruct.go</code></td>
+          <td><code>marshalMetadata</code> takes value; remove nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>watermill/protocol.go</code></td>
+          <td><code>buildMetadata</code> returns value; remove nil checks in <code>setIfPresent</code>; simplify</td>
+          <td style="color: var(--amber);">Medium</td>
+        </tr>
+        <tr>
+          <td><code>signing/event.go</code></td>
+          <td><code>md == nil ||</code> → remove struct nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>signing/multisig/extract.go</code></td>
+          <td><code>md == nil ||</code> → remove struct nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>catalog/registry_helpers.go</code></td>
+          <td><code>m == nil</code> → remove nil check</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>core/decider/decider_coverage_test.go</code></td>
+          <td>Test stub <code>Metadata()</code> returns value</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+        <tr>
+          <td><code>core/event/event_metadata_test.go</code></td>
+          <td>Update assertions to value types; remove nil checks</td>
+          <td style="color: var(--green);">Low</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-blue">
+      <div class="callout-title">Breaking Change</div>
+      <p><code>Event.Metadata()</code> changes return type from <code>*Metadata</code> to <code>Metadata</code>. This is a public API break. Any external consumer calling <code>evt.Metadata()</code> and checking for nil will get a compile error — which is <em>good</em>, because it forces them to remove their nil checks too. Pre-v1.0 is the right time.</p>
+    </div>
+  </section>
+
+  <section class="section" id="steps">
+    <span class="section-label">06</span>
+    <h2>Step-by-Step Plan</h2>
+
+    <h3>Phase 1: Core types (core/event/)</h3>
+
+    <ol>
+      <li>
+        <strong>metadata.go</strong> — Change <code>NewMetadata()</code> to return <code>Metadata</code> value. Add <code>Clone() Metadata</code> method. Change <code>mergeFrom</code> to <code>merge(other Metadata) Metadata</code> (pure function style).
+        <pre><code><span class="cm">// New signature:</span>
+<span class="kw">func</span> <span class="fn">NewMetadata</span>() <span class="add">Metadata</span> {
+    <span class="kw">return</span> <span class="tp">Metadata</span>{
+        Custom: <span class="fn">make</span>(<span class="kw">map</span>[<span class="tp">MetadataKey</span>]<span class="tp">string</span>),
+    }
+}
+
+<span class="kw">func</span> (m <span class="tp">Metadata</span>) <span class="fn">Clone</span>() <span class="tp">Metadata</span> {
+    cp := m
+    <span class="kw">if</span> m.Custom != <span class="op">nil</span> {
+        cp.Custom = <span class="fn">make</span>(<span class="kw">map</span>[<span class="tp">MetadataKey</span>]<span class="tp">string</span>, <span class="fn">len</span>(m.Custom))
+        <span class="fn">maps.Copy</span>(cp.Custom, m.Custom)
+    }
+    <span class="kw">return</span> cp
+}</code></pre>
+      </li>
+
+      <li>
+        <strong>event.go</strong> — Change field and interface. Simplify <code>Metadata()</code> getter. Update <code>Clone()</code>.
+        <pre><code><span class="cm">// Field:</span>
+metadata      <span class="add">Metadata</span>
+
+<span class="cm">// Interface:</span>
+<span class="fn">Metadata</span>() <span class="add">Metadata</span>
+
+<span class="cm">// Getter:</span>
+<span class="kw">func</span> (e *<span class="tp">ImmutableEvent</span>) <span class="fn">Metadata</span>() <span class="add">Metadata</span> {
+    <span class="kw">return</span> e.metadata.<span class="fn">Clone</span>()
+}</code></pre>
+      </li>
+
+      <li>
+        <strong>options.go</strong> — Remove all nil-check guards. <code>metadataOption</code> still takes <code>*Metadata</code> for in-place mutation. <code>WithMetadata</code> takes value <code>Metadata</code>.
+        <pre><code><span class="kw">func</span> <span class="fn">apply</span>[T <span class="tp">any</span>](field <span class="tp">metadataOption</span>[T], value T) <span class="tp">Option</span> {
+    <span class="kw">return func</span>(e *<span class="tp">ImmutableEvent</span>) {
+<span class="add">        field(&e.metadata, value)</span>
+    }
+}
+
+<span class="kw">func</span> <span class="fn">WithMetadata</span>(m <span class="add">Metadata</span>) <span class="tp">Option</span> {
+    <span class="kw">return func</span>(e *<span class="tp">ImmutableEvent</span>) {
+<span class="add">        e.metadata = e.metadata.merge(m)</span>
+    }
+}
+
+<span class="kw">func</span> <span class="fn">WithCustom</span>(key <span class="tp">MetadataKey</span>, value <span class="tp">string</span>) <span class="tp">Option</span> {
+    <span class="kw">return func</span>(e *<span class="tp">ImmutableEvent</span>) {
+<span class="add">        if e.metadata.Custom == nil {</span>
+<span class="add">            e.metadata.Custom = make(map[MetadataKey]string)</span>
+<span class="add">        }</span>
+<span class="add">        e.metadata.Custom[key] = value</span>
+    }
+}</code></pre>
+      </li>
+
+      <li>
+        <strong>tombstone.go</strong> — Remove <code>md == nil ||</code> from the nil check.
+      </li>
+    </ol>
+
+    <h3>Phase 2: Command types (core/command/)</h3>
+
+    <ol start="5">
+      <li>
+        <strong>store.go</strong> — Change <code>PersistedCommand.metadata</code> to value. Update <code>Metadata()</code> getter and <code>WithCommandMetadata</code> option.
+      </li>
+    </ol>
+
+    <h3>Phase 3: Storage layer</h3>
+
+    <ol start="6">
+      <li><strong>storage/sql/reconstruction.go</strong> — <code>MarshalMetadata(m Metadata)</code>, remove nil check. <code>UnmarshalEventMetadata</code> returns <code>WithMetadata(meta)</code> with value.</li>
+      <li><strong>storage/aggregate_projection.go</strong> — Remove <code>md == nil ||</code>.</li>
+      <li><strong>storage/outbox_helpers.go</strong> — Update type.</li>
+      <li><strong>pebble/serialization.go</strong> — Change <code>*event.Metadata</code> → <code>event.Metadata</code> in JSON struct.</li>
+      <li><strong>pebble/reconstruct.go</strong> — <code>marshalMetadata(m Metadata)</code>, remove nil check.</li>
+    </ol>
+
+    <h3>Phase 4: Integrations</h3>
+
+    <ol start="11">
+      <li><strong>watermill/protocol.go</strong> — <code>buildMetadata</code> returns <code>event.Metadata</code>. Simplify <code>setIfPresent</code> — always init, no nil check. Return zero value instead of nil.</li>
+      <li><strong>signing/event.go</strong> — Remove <code>md == nil ||</code>.</li>
+      <li><strong>signing/multisig/extract.go</strong> — Remove <code>md == nil ||</code>.</li>
+      <li><strong>catalog/registry_helpers.go</strong> — Remove <code>m == nil</code> check.</li>
+    </ol>
+
+    <h3>Phase 5: Tests</h3>
+
+    <ol start="15">
+      <li><strong>core/event/event_metadata_test.go</strong> — Update assertions to value types. Remove nil checks on struct.</li>
+      <li><strong>core/decider/decider_coverage_test.go</strong> — Test stub returns <code>Metadata{}</code> instead of <code>nil</code>.</li>
+      <li>Run full test suite: <code>nix run .#test</code></li>
+      <li>Run linter: <code>nix run .#lint</code></li>
+    </ol>
+  </section>
+
+  <section class="section" id="risks">
+    <span class="section-label">07</span>
+    <h2>Risks &amp; Mitigations</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Risk</th>
+          <th>Likelihood</th>
+          <th>Mitigation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>External consumers break on <code>Metadata()</code> return type change</td>
+          <td style="color: var(--amber);">Medium</td>
+          <td>Pre-v1.0 — no stability guarantee. Compile error is a <em>feature</em> — it forces nil-check removal.</td>
+        </tr>
+        <tr>
+          <td>JSON serialization difference — <code>omitempty</code> skips zero struct differently than nil pointer</td>
+          <td style="color: var(--amber);">Medium</td>
+          <td>Value <code>Metadata{}</code> serializes to <code>{"correlationId":"","causationId":"",...}</code> instead of being omitted. Verify with pebble/storage roundtrip tests. Add <code>omitempty</code> to all Metadata JSON tags if needed.</td>
+        </tr>
+        <tr>
+          <td>Map field <code>Custom</code> is nil on zero-value <code>Metadata{}</code> — consumers still need <code>md.Custom == nil</code> checks</td>
+          <td style="color: var(--green);">Confirmed</td>
+          <td>Correct — <code>Custom</code> map nil-checks stay. Only struct nil-checks are removed. This is the right boundary: nil map = "no custom fields", nil struct = "impossible state" (eliminated).</td>
+        </tr>
+        <tr>
+          <td><code>mergeFrom</code> method mutates receiver — becomes <code>merge</code> returning new value</td>
+          <td style="color: var(--green);">Low</td>
+          <td>Pure function style is cleaner. Single call site in <code>WithMetadata</code> option.</td>
+        </tr>
+        <tr>
+          <td>Performance: ~120 bytes allocated per event even without metadata</td>
+          <td style="color: var(--green);">Low</td>
+          <td>Negligible. Events are not allocated in tight loops. The <code>[]byte</code> payload is always larger. Premature optimization.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-green">
+      <div class="callout-title">Net Effect</div>
+      <p>Remove ~50 lines of nil-check boilerplate. Eliminate an impossible state. Simplify the <code>Metadata()</code> getter from 15 lines to 3. Make the API honest — metadata is always present.</p>
+    </div>
+  </section>
+
+  <footer>
+    go-cqrs-lite &middot; plan &middot; 2026-05-29
+  </footer>
+
+</div>
+
+</body>
+</html>
