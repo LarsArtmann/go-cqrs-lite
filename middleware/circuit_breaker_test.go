@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -170,6 +171,114 @@ func TestCircuitBreakerConfig_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
+	t.Parallel()
+
+	config := CircuitBreakerConfig{
+		FailureThreshold: 2,
+		SuccessThreshold: 3,
+		Timeout:          50 * time.Millisecond,
+		IsFailure:        func(err error) bool { return true },
+	}
+
+	mw := CommandCircuitBreaker(config)
+	failingHandler := mw(testhelpers.FailingCommandHandler("fail"))
+
+	for range 2 {
+		_ = failingHandler(t.Context(), &testCommand{})
+	}
+
+	_ = failingHandler(t.Context(), &testCommand{})
+	time.Sleep(60 * time.Millisecond)
+
+	successHandler := mw(func(_ context.Context, _ command.Command) error { return nil })
+
+	for i := range 3 {
+		if err := successHandler(t.Context(), &testCommand{}); err != nil {
+			t.Fatalf("expected success in half-open attempt %d, got %v", i+1, err)
+		}
+	}
+
+	failAgain := mw(testhelpers.FailingCommandHandler("fail"))
+	for range 2 {
+		_ = failAgain(t.Context(), &testCommand{})
+	}
+
+	err := failAgain(t.Context(), &testCommand{})
+	if !errors.Is(err, ErrCircuitBreakerOpen) {
+		t.Fatalf("expected circuit to be closed (reset) and reopen, got %v", err)
+	}
+}
+
+func TestCommandCircuitBreaker_HalfOpenReopensOnFailure(t *testing.T) {
+	t.Parallel()
+
+	config := CircuitBreakerConfig{
+		FailureThreshold: 1,
+		SuccessThreshold: 2,
+		Timeout:          50 * time.Millisecond,
+		IsFailure:        func(err error) bool { return true },
+	}
+
+	mw := CommandCircuitBreaker(config)
+	handler := mw(testhelpers.FailingCommandHandler("fail"))
+
+	_ = handler(t.Context(), &testCommand{})
+	_ = handler(t.Context(), &testCommand{})
+	time.Sleep(60 * time.Millisecond)
+
+	err := handler(t.Context(), &testCommand{})
+	if err == nil {
+		t.Fatal("expected error from failing handler in half-open")
+	}
+
+	err = handler(t.Context(), &testCommand{})
+	if !errors.Is(err, ErrCircuitBreakerOpen) {
+		t.Fatalf("expected circuit to reopen after half-open failure, got %v", err)
+	}
+}
+
+func TestCommandCircuitBreaker_NonFailureErrorRecordsSuccess(t *testing.T) {
+	t.Parallel()
+
+	config := CircuitBreakerConfig{
+		FailureThreshold: 3,
+		SuccessThreshold: 1,
+		Timeout:          50 * time.Millisecond,
+		IsFailure:        func(err error) bool { return false },
+	}
+
+	handler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
+
+	for i := range 10 {
+		err := handler(t.Context(), &testCommand{})
+		if err == nil {
+			t.Fatalf("expected error from handler on attempt %d", i+1)
+		}
+	}
+
+	err := handler(t.Context(), &testCommand{})
+	if errors.Is(err, ErrCircuitBreakerOpen) {
+		t.Fatal("circuit should not open when errors are not classified as failures")
+	}
+}
+
+func TestCommandCircuitBreaker_WithLogger(t *testing.T) {
+	t.Parallel()
+
+	config := CircuitBreakerConfig{
+		FailureThreshold: 1,
+		SuccessThreshold: 1,
+		Timeout:          50 * time.Millisecond,
+		IsFailure:        func(err error) bool { return true },
+	}
+
+	handler := CommandCircuitBreaker(config, WithLogger(slog.Default()))(testhelpers.FailingCommandHandler("fail"))
+
+	_ = handler(t.Context(), &testCommand{})
+	_ = handler(t.Context(), &testCommand{})
 }
 
 func mustCBTestEvent(tb testing.TB) event.Event {

@@ -68,6 +68,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 	github.com/larsartmann/go-cqrs-lite/middleware => ../middleware
+	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/projection => ../projection
 	github.com/larsartmann/go-cqrs-lite/saga => ../saga
 	github.com/larsartmann/go-cqrs-lite/signing => ../signing

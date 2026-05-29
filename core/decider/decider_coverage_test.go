@@ -37,14 +37,19 @@ func (f *failingCodec) Decode(_ []byte, _ any) error { return nil }
 
 type nonImmutableEvent struct{}
 
-func (nonImmutableEvent) ID() id.EventID            { return id.NewEventID() }
-func (nonImmutableEvent) Type() event.Type           { return "Test" }
-func (nonImmutableEvent) AggregateID() id.AggregateID { return id.NewAggregateID() }
+func (nonImmutableEvent) ID() id.EventID                     { return id.NewEventID() }
+func (nonImmutableEvent) Type() event.Type                   { return "Test" }
+func (nonImmutableEvent) AggregateID() id.AggregateID        { return id.NewAggregateID() }
 func (nonImmutableEvent) AggregateType() event.AggregateType { return "Test" }
-func (nonImmutableEvent) Version() event.Version     { return 1 }
-func (nonImmutableEvent) Payload() []byte            { return nil }
-func (nonImmutableEvent) OccurredAt() time.Time      { return time.Now() }
-func (nonImmutableEvent) SchemaVersion() event.SchemaVersion { return event.MustParseSchemaVersion(1) }
+func (nonImmutableEvent) Version() event.Version             { return 1 }
+func (nonImmutableEvent) SchemaVersion() event.SchemaVersion {
+	sv, _ := event.ParseSchemaVersion(1)
+
+	return sv
+}
+func (nonImmutableEvent) Payload() []byte           { return nil }
+func (nonImmutableEvent) Metadata() *event.Metadata { return nil }
+func (nonImmutableEvent) OccurredAt() time.Time     { return time.Now() }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()

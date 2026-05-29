@@ -55,7 +55,7 @@ jobs:
 
       - name: Test each module in isolation
         run: |
-          for mod in core memory catalog middleware testhelpers integration projection signing storage saga watermill cmd/cqrs-gen; do
+          for mod in core memory catalog middleware testhelpers integration projection signing storage saga watermill stream otel cmd/cqrs-gen; do
             echo "::group::$mod"
             (cd "$mod" && GOWORK=off go test ./... -count=1 -race)
             echo "::endgroup::"
