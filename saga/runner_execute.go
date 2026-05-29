@@ -5,15 +5,30 @@ import (
 	"errors"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // ExecuteStep runs the current step of a saga instance.
 func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "saga.step.execute",
+		trace.SpanKindInternal,
+		trace.WithAttributes(
+			attribute.String(cqrsotel.AttrAggregateID, instanceID.String()),
+		),
+	)
+	defer span.End()
+
 	state, err := r.store.Load(ctx, instanceID)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "saga.load_failed", "load saga "+instanceID.String())
 	}
 
@@ -36,6 +51,11 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	}
 
 	step := instance.Steps[instance.CurrentStep]
+
+	span.SetAttributes(
+		attribute.String(cqrsotel.AttrSagaStep, step.Name),
+		attribute.Int(cqrsotel.AttrSagaStep, instance.CurrentStep),
+	)
 
 	var stepCtx context.Context
 	var cancel context.CancelFunc

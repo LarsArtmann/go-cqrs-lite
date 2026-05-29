@@ -87,10 +87,7 @@ func (c *middlewareChain[H, M]) Middleware() []M {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	result := make([]M, len(c.middleware))
-	copy(result, c.middleware)
-
-	return result
+	return slices.Clone(c.middleware)
 }
 
 // Dispatcher is a generic dispatcher that routes requests to their handlers.

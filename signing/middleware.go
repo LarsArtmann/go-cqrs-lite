@@ -26,12 +26,20 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 			for _, evt := range events {
 				sig, err := signer.Sign(evt)
 				if err != nil {
-					return fmt.Errorf("sign event %s: %w", evt.Type(), err)
+					return event.WrapInfrastructure(
+						err,
+						"signing.sign_event",
+						"sign event "+string(evt.Type()),
+					)
 				}
 
 				clone, err := AttachSignature(evt, sig)
 				if err != nil {
-					return fmt.Errorf("attach signature to event %s: %w", evt.Type(), err)
+					return event.WrapInfrastructure(
+						err,
+						"signing.attach_signature",
+						"attach signature to event "+string(evt.Type()),
+					)
 				}
 
 				signed = append(signed, clone)
@@ -62,12 +70,20 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 					return next(ctx, evt)
 				}
 
-				return fmt.Errorf("corrupt signature on event %s: %w", evt.Type(), err)
+				return event.WrapInfrastructure(
+					err,
+					"signing.corrupt_signature",
+					"corrupt signature on event "+string(evt.Type()),
+				)
 			}
 
 			err = verifier.Verify(evt, sig)
 			if err != nil {
-				return fmt.Errorf("verify event %s: %w", evt.Type(), err)
+				return event.WrapInfrastructure(
+					err,
+					"signing.verify_event",
+					"verify event "+string(evt.Type()),
+				)
 			}
 
 			return next(ctx, evt)
@@ -94,12 +110,20 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 
 			sig, extractErr := ExtractSignature(evt)
 			if extractErr != nil {
-				return fmt.Errorf("corrupt signature on event %s: %w", evt.Type(), extractErr)
+				return event.WrapInfrastructure(
+					extractErr,
+					"signing.corrupt_signature",
+					"corrupt signature on event "+string(evt.Type()),
+				)
 			}
 
 			verifyErr := verifier.Verify(evt, sig)
 			if verifyErr != nil {
-				return fmt.Errorf("verify event %s: %w", evt.Type(), verifyErr)
+				return event.WrapInfrastructure(
+					verifyErr,
+					"signing.verify_event",
+					"verify event "+string(evt.Type()),
+				)
 			}
 
 			return next(ctx, evt)

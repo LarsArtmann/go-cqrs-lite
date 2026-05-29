@@ -180,3 +180,111 @@ var _ = Describe("MemoryBus", func() {
 		})
 	})
 })
+
+var _ = Describe("MemorySnapshotStore", func() {
+	var (
+		ctx       context.Context
+		snapStore *memory.MemorySnapshotStore
+		aggID     id.AggregateID
+		aggType   event.AggregateType
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		snapStore = memory.NewMemorySnapshotStore()
+		aggID = id.NewAggregateID()
+		aggType = event.AggregateType("Order")
+	})
+
+	Describe("As a developer speeding up aggregate loading with snapshots", func() {
+		Context("when I save a snapshot and load it back", func() {
+			It("should roundtrip my aggregate state so I can skip replaying all events", func() {
+				snap := event.Snapshot{
+					AggregateID:   aggID,
+					AggregateType: aggType,
+					Version:       event.Version(5),
+					State:         []byte(`{"status":"active","items":3}`),
+				}
+				Expect(snapStore.Save(ctx, snap)).To(Succeed())
+
+				loaded, err := snapStore.Load(ctx, aggType, aggID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loaded.Version).To(Equal(event.Version(5)))
+				Expect(loaded.State).To(Equal([]byte(`{"status":"active","items":3}`)))
+			})
+		})
+
+		Context("when I save a newer snapshot for the same aggregate", func() {
+			It("should replace the old one so I always get the latest state", func() {
+				Expect(snapStore.Save(ctx, event.Snapshot{
+					AggregateID: aggID, AggregateType: aggType,
+					Version: event.Version(3), State: []byte(`{"status":"old"}`),
+				})).To(Succeed())
+
+				Expect(snapStore.Save(ctx, event.Snapshot{
+					AggregateID: aggID, AggregateType: aggType,
+					Version: event.Version(7), State: []byte(`{"status":"new"}`),
+				})).To(Succeed())
+
+				loaded, err := snapStore.Load(ctx, aggType, aggID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loaded.Version).To(Equal(event.Version(7)))
+			})
+		})
+
+		Context("when I load a snapshot for a non-existent aggregate", func() {
+			It("should explain that no snapshot was found so I fall back to full replay", func() {
+				_, err := snapStore.Load(ctx, aggType, aggID)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("snapshot not found"))
+			})
+		})
+	})
+})
+
+var _ = Describe("MemoryCheckpointStore", func() {
+	var (
+		ctx     context.Context
+		cpStore *memory.MemoryCheckpointStore
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		cpStore = memory.NewMemoryCheckpointStore()
+	})
+
+	Describe("As a developer tracking my projection position in the event stream", func() {
+		Context("when I save a checkpoint and load it back", func() {
+			It("should remember where my projection stopped so I can resume from there", func() {
+				evtID := id.NewEventID()
+				Expect(cpStore.Save(ctx, "user-projection", evtID)).To(Succeed())
+
+				loaded, err := cpStore.Load(ctx, "user-projection")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loaded).To(Equal(evtID))
+			})
+		})
+
+		Context("when I load a checkpoint for a projection that never ran", func() {
+			It("should return a zero ID so I know to start from the beginning", func() {
+				loaded, err := cpStore.Load(ctx, "never-ran-projection")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loaded.IsZero()).To(BeTrue())
+			})
+		})
+
+		Context("when I update the checkpoint after processing more events", func() {
+			It("should overwrite the old position so I always resume from the latest", func() {
+				first := id.NewEventID()
+				Expect(cpStore.Save(ctx, "orders", first)).To(Succeed())
+
+				second := id.NewEventID()
+				Expect(cpStore.Save(ctx, "orders", second)).To(Succeed())
+
+				loaded, err := cpStore.Load(ctx, "orders")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loaded).To(Equal(second))
+			})
+		})
+	})
+})

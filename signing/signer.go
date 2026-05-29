@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -79,7 +78,11 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &encoded)
 	if err != nil {
-		return fmt.Errorf("unmarshal signature string: %w", err)
+		return event.WrapInfrastructure(
+			err,
+			"signing.unmarshal_signature",
+			"unmarshal signature string",
+		)
 	}
 
 	decoded, decodeErr := base64.URLEncoding.DecodeString(encoded)
@@ -88,8 +91,10 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 
 		decoded, fallbackErr = base64.StdEncoding.DecodeString(encoded)
 		if fallbackErr != nil {
-			return fmt.Errorf(
-				"decode signature: URL-safe: %w, standard: %w",
+			return event.Newf(
+				event.Infrastructure,
+				"signing.decode_signature",
+				"decode signature: URL-safe: %v, standard: %v",
 				decodeErr,
 				fallbackErr,
 			)

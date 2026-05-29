@@ -2,7 +2,6 @@ package signing
 
 import (
 	"encoding/base64"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -46,7 +45,11 @@ func AttachSignature(evt event.Event, sig Signature) (*event.ImmutableEvent, err
 
 	clone, err := cloneEvent(evt, MetadataKey, encoded)
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct event with signature: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"signing.attach_signature",
+			"reconstruct event with signature",
+		)
 	}
 
 	return clone, nil
@@ -71,7 +74,11 @@ func ExtractSignature(evt event.Event) (Signature, error) {
 
 	decoded, err := base64.URLEncoding.DecodeString(encoded)
 	if err != nil {
-		return nil, fmt.Errorf("%w: decode signature: %w", ErrInvalidSignature, err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"signing.decode_signature",
+			"decode signature from base64",
+		)
 	}
 
 	return Signature(decoded), nil
