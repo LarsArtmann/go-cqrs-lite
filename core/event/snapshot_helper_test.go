@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
@@ -22,7 +23,7 @@ func TestShouldSnapshot_NilSnapshotStore(t *testing.T) {
 
 	strategy := event.MustEveryNEvents(3)
 
-	if event.ShouldSnapshot(strategy, nil, &event.JSONCodec{}, "User", event.Version(3)) {
+	if event.ShouldSnapshot(strategy, nil, &codec.JSONCodec{}, "User", event.Version(3)) {
 		t.Error("expected false when snapshot store is nil")
 	}
 }
@@ -44,7 +45,7 @@ func TestShouldSnapshot_True(t *testing.T) {
 	strategy := event.MustEveryNEvents(3)
 	store := testhelpers.NewFakeSnapshotStore()
 
-	if !event.ShouldSnapshot(strategy, store, &event.JSONCodec{}, "User", event.Version(6)) {
+	if !event.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(6)) {
 		t.Error("expected true when all conditions met and version is multiple")
 	}
 }
@@ -55,7 +56,7 @@ func TestShouldSnapshot_VersionNotMultiple(t *testing.T) {
 	strategy := event.MustEveryNEvents(3)
 	store := testhelpers.NewFakeSnapshotStore()
 
-	if event.ShouldSnapshot(strategy, store, &event.JSONCodec{}, "User", event.Version(4)) {
+	if event.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(4)) {
 		t.Error("expected false when version is not a multiple of interval")
 	}
 }

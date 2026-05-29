@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
@@ -51,8 +52,8 @@ func makeCreatedEvent(
 	payload aggregate.TodoPayload,
 ) event.Event {
 	t.Helper()
-	var codec event.JSONCodec
-	data, err := codec.Encode(payload)
+	var c codec.JSONCodec
+	data, err := c.Encode(payload)
 	if err != nil {
 		t.Fatalf("encode payload: %v", err)
 	}

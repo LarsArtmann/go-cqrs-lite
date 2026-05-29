@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
@@ -43,7 +44,7 @@ func (p *TodoProjection) handleUpsert(evt event.Event) error {
 	return p.store.Put(todo)
 }
 
-var codec = event.JSONCodec{}
+var codec = codecpkg.JSONCodec{}
 
 func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	todoID, err := domain.ParseTodoID(evt.AggregateID().String())

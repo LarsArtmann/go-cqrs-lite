@@ -7,16 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 )
 
-// Codec serializes and deserializes event payloads.
-//
-// Deprecated: Use [codec.Codec] instead. This is a type alias kept for backward compatibility.
-type Codec = codec.Codec
-
-// JSONCodec implements Codec using encoding/json.
-//
-// Deprecated: Use [codec.JSONCodec] instead. This is a type alias kept for backward compatibility.
-type JSONCodec = codec.JSONCodec
-
 // DecodePayload decodes an event's payload bytes into a typed value using
 // the provided codec. This is the standard way to deserialize event data
 // in event handlers and projectors.

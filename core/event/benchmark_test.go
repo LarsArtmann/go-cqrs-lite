@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
@@ -106,10 +107,10 @@ func BenchmarkDecodePayload(b *testing.B) {
 		b.Fatalf("NewEvent: %v", err)
 	}
 
-	codec := event.JSONCodec{}
+	c := codec.JSONCodec{}
 
 	for b.Loop() {
-		_, err = event.DecodePayload[map[string]string](evt, codec)
+		_, err = event.DecodePayload[map[string]string](evt, c)
 		if err != nil {
 			b.Fatalf("DecodePayload: %v", err)
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -49,18 +50,18 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	defer s.mu.Unlock()
 
 	aggID := evt.AggregateID()
-	codec := event.JSONCodec{}
+	c := codec.JSONCodec{}
 
 	switch evt.Type() {
 	case eventUserCreated:
-		p, err := event.DecodePayload[UserCreatedPayload](evt, codec)
+		p, err := event.DecodePayload[UserCreatedPayload](evt, c)
 		if err != nil {
 			return fmt.Errorf("decode UserCreated in projection: %w", err)
 		}
 
 		s.users[aggID] = ReadModel(p)
 	case eventUserNameChanged:
-		p, err := event.DecodePayload[UserNameChangedPayload](evt, codec)
+		p, err := event.DecodePayload[UserNameChangedPayload](evt, c)
 		if err != nil {
 			return fmt.Errorf("decode UserNameChanged in projection: %w", err)
 		}

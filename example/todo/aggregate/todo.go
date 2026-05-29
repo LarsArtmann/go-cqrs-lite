@@ -7,6 +7,8 @@ import (
 	cqrsCommand "github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
 )
 
 var ErrTodoAlreadyExists = errors.New("todo already exists")
@@ -21,7 +23,7 @@ const (
 	EventStatusChanged event.Type = "todo.status_changed"
 )
 
-var codec = event.JSONCodec{}
+var codec = codecpkg.JSONCodec{}
 
 type TodoPayload struct {
 	Title       string            `json:"title"`

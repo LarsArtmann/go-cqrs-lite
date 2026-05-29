@@ -4,6 +4,7 @@ go 1.26.3
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
+	github.com/larsartmann/go-cqrs-lite/codec v1.6.0
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
@@ -56,6 +57,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel

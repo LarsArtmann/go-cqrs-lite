@@ -13,7 +13,7 @@ import (
 func TestJSONCodec_Encode(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 
 	got, err := codec.Encode(map[string]string{"key": "value"})
 	if err != nil {
@@ -29,7 +29,7 @@ func TestJSONCodec_Encode(t *testing.T) {
 func TestJSONCodec_Decode(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 
 	var got struct {
 		Name string `json:"name"`
@@ -53,7 +53,7 @@ func TestJSONCodec_Decode(t *testing.T) {
 func TestJSONCodec_Roundtrip(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 
 	type userCreated struct {
 		UserID string `json:"userId"`
@@ -87,7 +87,7 @@ func TestJSONCodec_Roundtrip(t *testing.T) {
 func TestJSONCodec_Encode_Nil(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 
 	got, err := codec.Encode(nil)
 	if err != nil {
@@ -102,7 +102,7 @@ func TestJSONCodec_Encode_Nil(t *testing.T) {
 func TestJSONCodec_Decode_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 
 	var v any
 
@@ -115,13 +115,13 @@ func TestJSONCodec_Decode_InvalidJSON(t *testing.T) {
 func TestCodecInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ event.Codec = event.JSONCodec{}
+	var _ codecpkg.Codec = codecpkg.JSONCodec{}
 }
 
 func TestDecodePayload(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
@@ -157,7 +157,7 @@ func TestDecodePayload(t *testing.T) {
 func TestDecodePayload_EmptyPayload(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserDeleted", aggID, "User", 1, nil)
@@ -176,7 +176,7 @@ func TestDecodePayload_EmptyPayload(t *testing.T) {
 func TestDecodePayload_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{broken`))
@@ -215,7 +215,7 @@ func TestDecodePayload_CodecError(t *testing.T) {
 func TestDecodePayloads(t *testing.T) {
 	t.Parallel()
 
-	codec := event.JSONCodec{}
+	codec := codecpkg.JSONCodec{}
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
@@ -262,7 +262,7 @@ func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 
 	_, err := event.DecodePayloads[struct{ Name string }](
 		[]event.Event{goodEvt, badEvt},
-		event.JSONCodec{},
+		codecpkg.JSONCodec{},
 	)
 	if err == nil {
 		t.Error("expected error for invalid JSON")
@@ -282,7 +282,7 @@ func TestDecodePayload_EncodingMismatch(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	_, err = event.DecodePayload[struct{ Name string }](evt, event.JSONCodec{})
+	_, err = event.DecodePayload[struct{ Name string }](evt, codecpkg.JSONCodec{})
 	if err == nil {
 		t.Fatal("expected error for encoding mismatch")
 	}
@@ -301,7 +301,7 @@ func TestDecodePayload_EncodingMatch(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	result, err := event.DecodePayload[struct{ Name string }](evt, event.JSONCodec{})
+	result, err := event.DecodePayload[struct{ Name string }](evt, codecpkg.JSONCodec{})
 	if err != nil {
 		t.Fatalf("DecodePayload: %v", err)
 	}
