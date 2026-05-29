@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Outbox Pattern — go-cqrs-lite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --surface-2: #18181b;
+    --surface-3: #1f1f23;
+    --border: #27272a;
+    --border-light: #3f3f46;
+    --text: #e4e4e7;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #f59e0b;
+    --accent-dim: #b45309;
+    --accent-glow: rgba(245, 158, 11, 0.12);
+    --danger: #ef4444;
+    --success: #22c55e;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --code-bg: #0c0c0d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Ambient glow */
+  .glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-1 { top: -200px; left: -100px; background: var(--accent); }
+  .glow-2 { bottom: -300px; right: -200px; background: var(--purple); }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Hero ── */
+  header {
+    padding: 120px 0 80px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 100px;
+    padding: 6px 16px;
+    margin-bottom: 32px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  /* ── Sections ── */
+  section {
+    padding: 80px 0;
+  }
+
+  section + section {
+    border-top: 1px solid var(--border);
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 2rem;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  h2 .num {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 12px;
+    vertical-align: super;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  p {
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    max-width: 680px;
+  }
+
+  /* ── The Problem ── */
+  .problem-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 40px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .step-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 56px;
+  }
+
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 52px;
+    text-align: center;
+    flex-shrink: 0;
+    background: var(--surface);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-bar {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .step-bar.save {
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--success);
+  }
+
+  .step-bar.publish {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--blue);
+  }
+
+  .step-bar.crash {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+
+  .step-bar.lost {
+    background: rgba(239, 68, 68, 0.06);
+    color: rgba(239, 68, 68, 0.7);
+    font-style: italic;
+    text-decoration: line-through;
+  }
+
+  .crash-divider {
+    display: flex;
+    align-items: center;
+    background: rgba(239, 68, 68, 0.04);
+    padding: 0;
+    border-top: 1px dashed rgba(239, 68, 68, 0.3);
+    border-bottom: 1px dashed rgba(239, 68, 68, 0.3);
+    min-height: 40px;
+  }
+
+  .crash-divider span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--danger);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding-left: 72px;
+  }
+
+  /* ── Solution Diagram ── */
+  .flow-container {
+    margin: 48px 0;
+    position: relative;
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-node.highlight {
+    border-color: var(--accent-dim);
+    background: linear-gradient(135deg, var(--surface-2), rgba(245, 158, 11, 0.05));
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.06);
+  }
+
+  .flow-node .icon {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .flow-node .label {
+    font-weight: 600;
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .flow-node .desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+  }
+
+  /* ── Lifecycle Steps ── */
+  .lifecycle {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 40px 0;
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .lifecycle::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent-dim), transparent);
+    border-radius: 2px;
+  }
+
+  .lifecycle-step {
+    position: relative;
+  }
+
+  .lifecycle-step::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+
+  .lifecycle-step:nth-child(4)::before {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .lifecycle-step h3 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+
+  .lifecycle-step h3 code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--surface-3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+
+  .lifecycle-step p {
+    margin-bottom: 0;
+  }
+
+  /* ── Code ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    overflow-x: auto;
+    margin: 24px 0;
+    position: relative;
+  }
+
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--text-dim);
+  }
+
+  code .keyword { color: var(--purple); }
+  code .type { color: var(--accent); }
+  code .string { color: var(--success); }
+  code .comment { color: var(--text-muted); font-style: italic; }
+  code .func { color: var(--blue); }
+
+  /* ── Interface Box ── */
+  .interface-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 32px 0;
+    overflow: hidden;
+  }
+
+  .interface-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .interface-header .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .interface-header .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .interface-header .dot:nth-child(1) { background: #ef4444; }
+  .interface-header .dot:nth-child(2) { background: #f59e0b; }
+  .interface-header .dot:nth-child(3) { background: #22c55e; }
+
+  .interface-header .filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .interface-body {
+    padding: 20px 24px;
+  }
+
+  .method {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .method:last-child { border-bottom: none; }
+
+  .method-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .method-sig {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .method-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-left: auto;
+    text-align: right;
+    padding-left: 16px;
+  }
+
+  /* ── Tradeoffs ── */
+  .tradeoffs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  .tradeoff-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .tradeoff-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tradeoff-card.pro h3 { color: var(--success); }
+  .tradeoff-card.con h3 { color: var(--danger); }
+
+  .tradeoff-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .tradeoff-card li {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .tradeoff-card.pro li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 600;
+  }
+
+  .tradeoff-card.con li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  /* ── Database Schema ── */
+  .schema-table {
+    margin: 24px 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .schema-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .schema-table th {
+    background: var(--surface-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .schema-table td {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .schema-table tr:last-child td { border-bottom: none; }
+
+  .schema-table .col-name { color: var(--accent); font-weight: 600; }
+  .schema-table .col-type { color: var(--purple); font-size: 0.78rem; }
+
+  /* ── Footer ── */
+  footer {
+    padding: 60px 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  footer a:hover { border-bottom-color: var(--accent); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .flow {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .flow-arrow { transform: rotate(90deg); padding: 8px 0; }
+    .tradeoffs { grid-template-columns: 1fr; }
+    .method { flex-wrap: wrap; gap: 4px; }
+    .method-desc { text-align: left; padding-left: 0; width: 100%; }
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate {
+    opacity: 0;
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<header class="container">
+  <div class="badge animate">go-cqrs-lite</div>
+  <h1 class="animate delay-1">The <em>Outbox</em> Pattern</h1>
+  <p class="subtitle animate delay-2">
+    How to reliably publish events in a distributed system without losing them — even when the process crashes halfway through.
+  </p>
+</header>
+
+<main>
+
+  <!-- ═══ The Problem ═══ -->
+  <section class="container animate delay-3">
+    <h2><span class="num">01</span>The Problem</h2>
+    <p>
+      In CQRS + Event Sourcing, every state change produces an event. That event must be
+      <strong style="color:var(--text)">both</strong> persisted to the store
+      <strong style="color:var(--text)">and</strong> broadcast to subscribers.
+      The naive approach looks like this:
+    </p>
+
+    <div class="problem-diagram">
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-bar save">
+          <span style="font-size:1.1em">💾</span> Save events to database
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-bar publish">
+          <span style="font-size:1.1em">📡</span> Publish events to message bus
+        </div>
+      </div>
+      <div class="crash-divider">
+        <span>💥 process crashes between steps 1 &amp; 2</span>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-bar lost">Publish — never happened</div>
+      </div>
+    </div>
+
+    <p>
+      If the process crashes after saving but before publishing, the event is
+      <strong style="color:var(--danger)">permanently lost</strong> to subscribers.
+      The data is in the store, but no projection, saga, or read model will ever see it.
+      This violates the fundamental invariant of event-driven systems: <em>every event must be delivered</em>.
+    </p>
+
+    <p>
+      Common workarounds have their own flaws:
+      two-phase commit is slow and complex, in-process buses couple store to transport,
+      and change-data-capture (Debezium) requires external infrastructure.
+    </p>
+  </section>
+
+  <!-- ═══ The Solution ═══ -->
+  <section class="container">
+    <h2><span class="num">02</span>The Solution</h2>
+    <p>
+      The <strong style="color:var(--accent)">Transactional Outbox</strong> pattern writes events to the database
+      and an outbox table <em>in the same transaction</em>. A background poller then reads pending entries
+      and publishes them to the bus. If it crashes, the entry remains "pending" and gets retried.
+    </p>
+
+    <div class="flow-container">
+      <div class="flow">
+        <div class="flow-node">
+          <span class="icon">💾</span>
+          <div class="label">Save Events</div>
+          <div class="desc">Write to event store table</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">
+          <span class="icon">📤</span>
+          <div class="label">Outbox.Append</div>
+          <div class="desc">Same transaction — atomic!</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <span class="icon">🔄</span>
+          <div class="label">Poller</div>
+          <div class="desc">Background goroutine polls pending</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <span class="icon">📡</span>
+          <div class="label">Bus.Publish</div>
+          <div class="desc">Broadcast to subscribers</div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      The key insight: the outbox entry lives in the <em>same database</em> as the event store.
+      This means a single SQL transaction guarantees <strong style="color:var(--text)">atomicity</strong> —
+      either both commit or neither does. No distributed coordination needed.
+    </p>
+  </section>
+
+  <!-- ═══ The Interface ═══ -->
+  <section class="container">
+    <h2><span class="num">03</span>The Interface</h2>
+    <p>
+      The core abstraction is <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">event.Outbox</code> —
+      three methods, one purpose:
+    </p>
+
+    <div class="interface-box">
+      <div class="interface-header">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <span class="filename">core/event/outbox.go</span>
+      </div>
+      <div class="interface-body">
+        <div class="method">
+          <span class="method-name">Append</span>
+          <span class="method-sig">(ctx, []Event) → error</span>
+          <span class="method-desc">Stage events inside the save transaction</span>
+        </div>
+        <div class="method">
+          <span class="method-name">PollPending</span>
+          <span class="method-sig">(ctx, limit) → []OutboxEntry</span>
+          <span class="method-desc">Fetch unacknowledged entries, oldest first</span>
+        </div>
+        <div class="method">
+          <span class="method-name">Ack</span>
+          <span class="method-sig">(ctx, []OutboxID) → error</span>
+          <span class="method-desc">Mark entries as successfully published</span>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Each entry wraps a batch of events with a unique ID and timestamp. The poller reads them in order,
+      publishes via the bus, and acknowledges on success. Failed entries stay pending for the next poll cycle.
+    </p>
+  </section>
+
+  <!-- ═══ Database Schema ═══ -->
+  <section class="container">
+    <h2><span class="num">04</span>Database Schema</h2>
+    <p>
+      Under the hood, the <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">SQLOutbox</code>
+      stores event batches as JSON in a single table:
+    </p>
+
+    <div class="schema-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="col-type">text</span></td>
+            <td>OutboxID (event batch identifier)</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">status</span></td>
+            <td><span class="col-type">text</span></td>
+            <td>"pending" or "acknowledged"</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">events</span></td>
+            <td><span class="col-type">jsonb</span></td>
+            <td>Serialized event batch</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">created_at</span></td>
+            <td><span class="col-type">timestamptz</span></td>
+            <td>When the entry was created</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The <code style="color:var(--text-muted)">status</code> column drives the entire lifecycle.
+      <code style="color:var(--accent)">pending</code> entries are picked up by the poller.
+      After successful publishing, they become <code style="color:var(--success)">acknowledged</code>
+      (and are deleted, not updated — keeping the table small).
+    </p>
+  </section>
+
+  <!-- ═══ Lifecycle ═══ -->
+  <section class="container">
+    <h2><span class="num">05</span>The Lifecycle</h2>
+    <p>
+      Here's exactly what happens from command to subscriber — step by step:
+    </p>
+
+    <div class="lifecycle">
+      <div class="lifecycle-step">
+        <h3>Save + Outbox <code>TransactionalSink.SaveWithOutbox()</code></h3>
+        <p>
+          A single SQL transaction inserts events into the event store <em>and</em> appends them to the outbox table.
+          If either fails, the entire transaction rolls back. No partial state.
+        </p>
+      </div>
+      <div class="lifecycle-step">
+        <h3>Poll <code>Outbox.PollPending(ctx, limit)</code></h3>
+        <p>
+          A background goroutine (the <code>OutboxPublisher</code>) periodically queries for entries
+          with <code>status = 'pending'</code>, ordered by <code>created_at</code>.
+        </p>
+      </div>
+      <div class="lifecycle-step">
+        <h3>Publish <code>Bus.Publish(ctx, events...)</code></h3>
+        <p>
+          For each pending entry, the poller publishes its events through the event bus.
+          If publishing fails for one entry, the remaining entries in the batch are still published.
+          The failed entry stays pending and will be retried on the next poll cycle.
+        </p>
+      </div>
+      <div class="lifecycle-step">
+        <h3>Acknowledge <code>Outbox.Ack(ctx, ids)</code></h3>
+        <p>
+          Successfully published entries are acknowledged — which deletes them from the outbox table.
+          If the process crashes before ack, the entry remains pending and gets republished
+          (subscribers must be idempotent to handle this).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Code Example ═══ -->
+  <section class="container">
+    <h2><span class="num">06</span>Usage</h2>
+    <p>Setting up the outbox in your application takes three pieces:</p>
+
+    <pre data-lang="Go"><code><span class="comment">// 1. Create the outbox alongside your event store</span>
+<span class="keyword">var</span> db <span class="type">*</span><span class="type">sql.DB</span> = <span class="comment">/* your database */</span>
+store, _  := storage.<span class="func">NewSQLEventStore</span>(db)
+outbox, _ := storage.<span class="func">NewSQLOutbox</span>(db)
+txStore, _ := storage.<span class="func">NewSQLTransactionalStore</span>(store, outbox)
+
+<span class="comment">// 2. Wire the background publisher</span>
+publisher, _ := event.<span class="func">NewOutboxPublisher</span>(outbox, bus,
+    event.<span class="func">WithPollInterval</span>(<span class="type">5</span> * time.Second),
+    event.<span class="func">WithBatchSize</span>(<span class="type">100</span>),
+)
+publisher.<span class="func">Start</span>()  <span class="comment">// begins background polling</span>
+<span class="keyword">defer</span> publisher.<span class="func">Close</span>()
+
+<span class="comment">// 3. Use SaveWithOutbox instead of Save</span>
+err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
+    event.<span class="func">AggregateRef</span>{<span class="string">"User"</span>, userID},
+    events,
+    expectedVersion,
+)</code></pre>
+
+    <p style="margin-top:8px">
+      For a lower-level approach, the <code style="color:var(--text-muted)">storage.OutboxPoller</code> provides
+      a standalone <code>Run(ctx)</code> method with configurable interval and batch size, without the lifecycle
+      management of <code>OutboxPublisher</code>.
+    </p>
+  </section>
+
+  <!-- ═══ Atomicity ═══ -->
+  <section class="container">
+    <h2><span class="num">07</span>Why It Works</h2>
+    <p>
+      The entire pattern hinges on one property: <strong style="color:var(--text)">atomicity</strong>.
+      The <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">SaveWithOutbox</code>
+      method opens a single SQL transaction that:
+    </p>
+
+    <div class="problem-diagram" style="border-color: var(--accent-dim);">
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(245,158,11,0.08)">T</div>
+        <div class="step-bar save">
+          <span style="font-size:1.1em">💾</span> INSERT INTO events ...
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(245,158,11,0.08)">T</div>
+        <div class="step-bar" style="background:rgba(245,158,11,0.08);color:var(--accent)">
+          <span style="font-size:1.1em">📤</span> INSERT INTO outbox (status='pending', events=...)
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(245,158,11,0.08)">T</div>
+        <div class="step-bar" style="background:rgba(34,197,94,0.08);color:var(--success)">
+          <span style="font-size:1.1em">✓</span> COMMIT — both succeed, or neither does
+        </div>
+      </div>
+    </div>
+
+    <p>
+      If the INSERT into events succeeds but the outbox INSERT fails, the entire transaction rolls back.
+      If the process crashes before COMMIT, the database rolls back automatically.
+      <strong style="color:var(--text)">There is no window where events are saved but not outboxed.</strong>
+    </p>
+
+    <p>
+      This is why the outbox lives in the <em>same database</em> as the event store — it piggybacks on the
+      database's existing ACID guarantees instead of requiring distributed coordination.
+    </p>
+  </section>
+
+  <!-- ═══ Tradeoffs ═══ -->
+  <section class="container">
+    <h2><span class="num">08</span>Tradeoffs</h2>
+
+    <div class="tradeoffs">
+      <div class="tradeoff-card pro">
+        <h3>+ Advantages</h3>
+        <ul>
+          <li>Exactly-once storage — events are atomically stored and outboxed</li>
+          <li>Crash-resilient — pending entries are retried on restart</li>
+          <li>Minimal infrastructure — single SQL table, no Debezium or Kafka required</li>
+          <li>Decoupled — poller runs independently, async consumers supported</li>
+          <li>Observable — poll metrics, pending counts, processing rates</li>
+          <li>Works with PostgreSQL, SQLite, and Turso</li>
+        </ul>
+      </div>
+      <div class="tradeoff-card con">
+        <h3>− Considerations</h3>
+        <ul>
+          <li>Slight latency — events arrive after poll interval (default: 1s), not instantly</li>
+          <li>At-least-once delivery — ack before crash means republish; subscribers must be idempotent</li>
+          <li>Storage overhead — outbox entries exist until acknowledged and deleted</li>
+          <li>Batch-level ack — partial failure retries the entire batch</li>
+          <li>Requires wiring — Outbox + Publisher + Bus must be composed by the consumer</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Implementations ═══ -->
+  <section class="container">
+    <h2><span class="num">09</span>Implementations</h2>
+    <p>The library provides three <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">event.Outbox</code> implementations:</p>
+
+    <div class="tradeoffs">
+      <div class="tradeoff-card">
+        <h3>SQLOutbox</h3>
+        <p style="margin:0;font-size:0.82rem">
+          Production implementation backed by PostgreSQL or SQLite.
+          Supports the full lifecycle with transactional co-participation via
+          <code style="color:var(--accent)">SQLTransactionalStore</code>.
+        </p>
+      </div>
+      <div class="tradeoff-card">
+        <h3>MemoryOutboxStore</h3>
+        <p style="margin:0;font-size:0.82rem">
+          In-memory implementation in the <code style="color:var(--accent)">memory</code> module.
+          Perfect for testing without a real database. Thread-safe with mutex protection.
+        </p>
+      </div>
+      <div class="tradeoff-card">
+        <h3>FakeOutbox</h3>
+        <p style="margin:0;font-size:0.82rem">
+          Test double in <code style="color:var(--accent)">testhelpers</code>.
+          Records calls for assertion. No actual persistence.
+        </p>
+      </div>
+      <div class="tradeoff-card" style="border-color:var(--accent-dim)">
+        <h3 style="color:var(--accent)">OutboxPublisher</h3>
+        <p style="margin:0;font-size:0.82rem">
+          Not an Outbox itself — the background poller that drives the lifecycle.
+          Configurable poll interval, batch size, and graceful shutdown via <code>Close()</code>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a>
+      &nbsp;·&nbsp;
+      ADR: <a href="https://github.com/larsartmann/go-cqrs-lite/blob/master/docs/adr/0005-outbox-pattern.md">0005-outbox-pattern</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
