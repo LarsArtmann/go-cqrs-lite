@@ -1,15 +1,17 @@
 package event
 
 import (
+	"maps"
+
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // Metadata contains tracing and contextual information for events.
 type Metadata struct {
-	CorrelationID id.CorrelationID       `json:"correlationId"`
-	CausationID   id.CausationID         `json:"causationId"`
-	UserID        id.UserID              `json:"userId"`
-	RequestID     id.RequestID           `json:"requestId"`
+	CorrelationID id.CorrelationID       `json:"correlationId,omitempty"`
+	CausationID   id.CausationID         `json:"causationId,omitempty"`
+	UserID        id.UserID              `json:"userId,omitempty"`
+	RequestID     id.RequestID           `json:"requestId,omitempty"`
 	Source        Source                 `json:"source,omitempty"`
 	IPAddress     IPAddress              `json:"ipAddress,omitempty"`
 	UserAgent     UserAgent              `json:"userAgent,omitempty"`
@@ -17,53 +19,63 @@ type Metadata struct {
 }
 
 // NewMetadata creates a Metadata with all fields initialized.
-func NewMetadata() *Metadata {
-	return &Metadata{
-		CorrelationID: id.CorrelationID{},
-		CausationID:   id.CausationID{},
-		UserID:        id.UserID{},
-		RequestID:     id.RequestID{},
-		Source:        "",
-		IPAddress:     "",
-		UserAgent:     "",
-		Custom:        make(map[MetadataKey]string),
+func NewMetadata() Metadata {
+	return Metadata{
+		Custom: make(map[MetadataKey]string),
 	}
 }
 
-func (m *Metadata) mergeFrom(other *Metadata) {
+// Clone returns a deep copy of the metadata.
+func (m Metadata) Clone() Metadata {
+	cp := m
+
+	if m.Custom != nil {
+		cp.Custom = make(map[MetadataKey]string, len(m.Custom))
+		maps.Copy(cp.Custom, m.Custom)
+	}
+
+	return cp
+}
+
+// Merge returns a new Metadata with non-zero fields from other overlaid onto m.
+func (m Metadata) Merge(other Metadata) Metadata {
+	result := m
+
 	if !other.CorrelationID.IsZero() {
-		m.CorrelationID = other.CorrelationID
+		result.CorrelationID = other.CorrelationID
 	}
 
 	if !other.CausationID.IsZero() {
-		m.CausationID = other.CausationID
+		result.CausationID = other.CausationID
 	}
 
 	if !other.UserID.IsZero() {
-		m.UserID = other.UserID
+		result.UserID = other.UserID
 	}
 
 	if !other.RequestID.IsZero() {
-		m.RequestID = other.RequestID
+		result.RequestID = other.RequestID
 	}
 
 	if other.Source != "" {
-		m.Source = other.Source
+		result.Source = other.Source
 	}
 
 	if other.IPAddress != "" {
-		m.IPAddress = other.IPAddress
+		result.IPAddress = other.IPAddress
 	}
 
 	if other.UserAgent != "" {
-		m.UserAgent = other.UserAgent
+		result.UserAgent = other.UserAgent
 	}
 
 	for k, v := range other.Custom {
-		if m.Custom == nil {
-			m.Custom = make(map[MetadataKey]string)
+		if result.Custom == nil {
+			result.Custom = make(map[MetadataKey]string)
 		}
 
-		m.Custom[k] = v
+		result.Custom[k] = v
 	}
+
+	return result
 }

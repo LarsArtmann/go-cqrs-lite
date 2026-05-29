@@ -17,11 +17,7 @@ type metadataOption[T any] func(*Metadata, T)
 // apply applies a metadataOption to a Metadata pointer.
 func apply[T any](field metadataOption[T], value T) Option {
 	return func(e *ImmutableEvent) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
-		field(e.metadata, value)
+		field(&e.metadata, value)
 	}
 }
 
@@ -39,15 +35,9 @@ func WithOccurredAt(v time.Time) Option {
 
 // WithMetadata merges the given metadata into the event's existing metadata.
 // Existing fields are overwritten by the provided metadata.
-func WithMetadata(m *Metadata) Option {
+func WithMetadata(m Metadata) Option {
 	return func(e *ImmutableEvent) {
-		if e.metadata == nil {
-			e.metadata = m
-
-			return
-		}
-
-		e.metadata.mergeFrom(m)
+		e.metadata = e.metadata.Merge(m)
 	}
 }
 
@@ -97,10 +87,6 @@ const (
 // WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) Option {
 	return func(e *ImmutableEvent) {
-		if e.metadata == nil {
-			e.metadata = NewMetadata()
-		}
-
 		if e.metadata.Custom == nil {
 			e.metadata.Custom = make(map[MetadataKey]string)
 		}

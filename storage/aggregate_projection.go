@@ -112,7 +112,7 @@ func (p *AggregateProjection) createTable() error {
 
 func detectStatusFromMetadata(evt event.Event) event.TombstoneStatus {
 	md := evt.Metadata()
-	if md == nil || md.Custom == nil {
+	if md.Custom == nil {
 		return event.TombstoneUndetermined
 	}
 

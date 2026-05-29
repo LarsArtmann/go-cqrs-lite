@@ -72,10 +72,6 @@ func TestBuilder_Build_WithMetadata(t *testing.T) {
 	}
 
 	meta := evt.Metadata()
-	if meta == nil {
-		t.Fatal("expected metadata, got nil")
-	}
-
 	if meta.CorrelationID != correlationID {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, meta.CorrelationID)
 	}
@@ -143,10 +139,6 @@ func TestBuilder_Build_WithOptions(t *testing.T) {
 	}
 
 	meta := evt.Metadata()
-	if meta == nil {
-		t.Fatal("expected metadata, got nil")
-	}
-
 	if meta.CorrelationID != correlationID {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, meta.CorrelationID)
 	}

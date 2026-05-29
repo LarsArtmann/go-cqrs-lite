@@ -113,15 +113,11 @@ func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 			"unmarshal metadata for event "+eventType)
 	}
 
-	return []event.Option{event.WithMetadata(&meta)}, nil
+	return []event.Option{event.WithMetadata(meta)}, nil
 }
 
 // MarshalMetadata serializes event metadata to JSON.
-func MarshalMetadata(m *event.Metadata) ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-
+func MarshalMetadata(m event.Metadata) ([]byte, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
 		return nil, event.WrapCorruption(err, "storage.marshal_metadata",

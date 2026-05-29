@@ -58,7 +58,7 @@ func DetectTombstone(events []Event) TombstoneStatus {
 
 	last := events[len(events)-1]
 	md := last.Metadata()
-	if md == nil || md.Custom == nil {
+	if md.Custom == nil {
 		return TombstoneUndetermined
 	}
 

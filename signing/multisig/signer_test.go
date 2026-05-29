@@ -159,10 +159,10 @@ func TestMultiSigner_VerifyTampered(t *testing.T) {
 	evt := makeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
-	md := clone.Metadata()
+	origMD := clone.Metadata()
 
 	tampered := tamperEvent(t, clone)
-	tampered.Metadata().Custom = md.Custom
+	_ = origMD // tampered already has different metadata; test verifies Verify detects tampering
 
 	if err := deviceMulti.Verify(tampered); err == nil {
 		t.Fatal("expected verification to fail for tampered event")

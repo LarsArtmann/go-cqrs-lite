@@ -172,14 +172,14 @@ func TestSQLEventStore_Close(t *testing.T) {
 	}
 }
 
-func TestMarshalMetadata_Nil(t *testing.T) {
-	result, err := sqlpkg.MarshalMetadata(nil)
+func TestMarshalMetadata_Empty(t *testing.T) {
+	result, err := sqlpkg.MarshalMetadata(event.Metadata{})
 	if err != nil {
-		t.Fatalf("sqlpkg.MarshalMetadata(nil): %v", err)
+		t.Fatalf("sqlpkg.MarshalMetadata(event.Metadata{}): %v", err)
 	}
 
-	if result != nil {
-		t.Errorf("expected nil, got %v", result)
+	if len(result) == 0 {
+		t.Errorf("expected non-empty result for empty metadata, got %v", result)
 	}
 }
 
@@ -338,10 +338,6 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	if !got.OccurredAt().Equal(ts) {
 		t.Errorf("OccurredAt = %v, want %v", got.OccurredAt(), ts)
-	}
-
-	if got.Metadata() == nil {
-		t.Fatal("Metadata is nil")
 	}
 
 	if got.Metadata().CorrelationID != cid {

@@ -45,31 +45,30 @@ func eventToMessage(evt event.Event) *message.Message {
 	md.Set(metaSchemaVersion, strconv.Itoa(evt.SchemaVersion().Int()))
 	md.Set(metaOccurredAt, evt.OccurredAt().Format(time.RFC3339Nano))
 
-	if m := evt.Metadata(); m != nil {
-		if !m.CorrelationID.IsZero() {
-			md.Set(metaCorrelationID, m.CorrelationID.String())
-		}
-		if !m.CausationID.IsZero() {
-			md.Set(metaCausationID, m.CausationID.String())
-		}
-		if !m.UserID.IsZero() {
-			md.Set(metaUserID, m.UserID.String())
-		}
-		if !m.RequestID.IsZero() {
-			md.Set(metaRequestID, m.RequestID.String())
-		}
-		if m.Source != "" {
-			md.Set(metaSource, string(m.Source))
-		}
-		if m.IPAddress != "" {
-			md.Set(metaIPAddress, string(m.IPAddress))
-		}
-		if m.UserAgent != "" {
-			md.Set(metaUserAgent, string(m.UserAgent))
-		}
-		for k, v := range m.Custom {
-			md.Set(metaCustomPrefix+string(k), v)
-		}
+	m := evt.Metadata()
+	if !m.CorrelationID.IsZero() {
+		md.Set(metaCorrelationID, m.CorrelationID.String())
+	}
+	if !m.CausationID.IsZero() {
+		md.Set(metaCausationID, m.CausationID.String())
+	}
+	if !m.UserID.IsZero() {
+		md.Set(metaUserID, m.UserID.String())
+	}
+	if !m.RequestID.IsZero() {
+		md.Set(metaRequestID, m.RequestID.String())
+	}
+	if m.Source != "" {
+		md.Set(metaSource, string(m.Source))
+	}
+	if m.IPAddress != "" {
+		md.Set(metaIPAddress, string(m.IPAddress))
+	}
+	if m.UserAgent != "" {
+		md.Set(metaUserAgent, string(m.UserAgent))
+	}
+	for k, v := range m.Custom {
+		md.Set(metaCustomPrefix+string(k), v)
 	}
 
 	return msg
@@ -143,9 +142,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	}
 
 	metadata := buildMetadata(md)
-	if metadata != nil {
-		opts = append(opts, event.WithMetadata(metadata))
-	}
+	opts = append(opts, event.WithMetadata(metadata))
 
 	evt, err := event.NewEvent(
 		eventType,
@@ -162,49 +159,34 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	return evt, nil
 }
 
-func buildMetadata(md message.Metadata) *event.Metadata {
-	var m *event.Metadata
+func buildMetadata(md message.Metadata) event.Metadata {
+	m := event.NewMetadata()
 
-	setIfPresent := func(key string, setter func(*event.Metadata)) {
-		if v := md.Get(key); v != "" {
-			if m == nil {
-				m = event.NewMetadata()
-			}
-			setter(m)
-		}
+	if v := md.Get(metaCorrelationID); v != "" {
+		m.CorrelationID = id.MustParseCorrelationID(v)
+	}
+	if v := md.Get(metaCausationID); v != "" {
+		m.CausationID = id.MustParseCausationID(v)
+	}
+	if v := md.Get(metaUserID); v != "" {
+		m.UserID = id.MustParseUserID(v)
+	}
+	if v := md.Get(metaRequestID); v != "" {
+		m.RequestID = id.MustParseRequestID(v)
+	}
+	if v := md.Get(metaSource); v != "" {
+		m.Source = event.Source(v)
+	}
+	if v := md.Get(metaIPAddress); v != "" {
+		m.IPAddress = event.IPAddress(v)
+	}
+	if v := md.Get(metaUserAgent); v != "" {
+		m.UserAgent = event.UserAgent(v)
 	}
 
-	setIfPresent(metaCorrelationID, func(m *event.Metadata) {
-		m.CorrelationID = id.MustParseCorrelationID(md.Get(metaCorrelationID))
-	})
-	setIfPresent(metaCausationID, func(m *event.Metadata) {
-		m.CausationID = id.MustParseCausationID(md.Get(metaCausationID))
-	})
-	setIfPresent(metaUserID, func(m *event.Metadata) {
-		m.UserID = id.MustParseUserID(md.Get(metaUserID))
-	})
-	setIfPresent(metaRequestID, func(m *event.Metadata) {
-		m.RequestID = id.MustParseRequestID(md.Get(metaRequestID))
-	})
-	setIfPresent(
-		metaSource,
-		func(m *event.Metadata) { m.Source = event.Source(md.Get(metaSource)) },
-	)
-	setIfPresent(
-		metaIPAddress,
-		func(m *event.Metadata) { m.IPAddress = event.IPAddress(md.Get(metaIPAddress)) },
-	)
-	setIfPresent(
-		metaUserAgent,
-		func(m *event.Metadata) { m.UserAgent = event.UserAgent(md.Get(metaUserAgent)) },
-	)
-
 	for k, v := range md {
-		if strings.HasPrefix(k, metaCustomPrefix) {
-			if m == nil {
-				m = event.NewMetadata()
-			}
-			customKey := event.MetadataKey(strings.TrimPrefix(k, metaCustomPrefix))
+		if after, ok := strings.CutPrefix(k, metaCustomPrefix); ok {
+			customKey := event.MetadataKey(after)
 			m.Custom[customKey] = v
 		}
 	}

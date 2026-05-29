@@ -63,7 +63,7 @@ func ExtractSignature(evt event.Event) (Signature, error) {
 	}
 
 	md := evt.Metadata()
-	if md == nil || md.Custom == nil {
+	if md.Custom == nil {
 		return nil, ErrNilSignature
 	}
 

@@ -52,7 +52,7 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 	}
 
 	md := evt.Metadata()
-	if md == nil || md.Custom == nil {
+	if md.Custom == nil {
 		return MultiSignature{Entries: nil}, signing.ErrNilSignature
 	}
 

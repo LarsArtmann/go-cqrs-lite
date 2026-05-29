@@ -84,7 +84,7 @@ func TestExtractMultiSignature_InvalidJSON(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent(
 		"test.invalid", aggID, "Test", 1, []byte(`{}`),
-		event.WithMetadata(&event.Metadata{
+		event.WithMetadata(event.Metadata{
 			Custom: map[event.MetadataKey]string{
 				multisig.MultiSigMetadataKey: `{invalid json`,
 			},

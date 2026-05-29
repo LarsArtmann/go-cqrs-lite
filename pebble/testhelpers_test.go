@@ -226,10 +226,6 @@ func testEventStore_MetadataRoundtrip(
 	}
 
 	meta := loaded[0].Metadata()
-	if meta == nil {
-		t.Fatal("Metadata is nil")
-	}
-
 	if meta.CorrelationID != cid {
 		t.Errorf("CorrelationID = %v, want %v", meta.CorrelationID, cid)
 	}

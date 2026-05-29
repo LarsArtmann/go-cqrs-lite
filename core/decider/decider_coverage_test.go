@@ -46,11 +46,11 @@ func (nonImmutableEvent) SchemaVersion() event.SchemaVersion {
 
 	return sv
 }
-func (nonImmutableEvent) Payload() []byte           { return nil }
-func (nonImmutableEvent) Metadata() *event.Metadata { return nil }
-func (nonImmutableEvent) OccurredAt() time.Time     { return time.Now() }
-func (nonImmutableEvent) Encoding() codec.Encoding  { return codec.EncodingJSON }
-func (nonImmutableEvent) Context() context.Context  { return context.Background() }
+func (nonImmutableEvent) Payload() []byte          { return nil }
+func (nonImmutableEvent) Metadata() event.Metadata { return event.Metadata{} }
+func (nonImmutableEvent) OccurredAt() time.Time    { return time.Now() }
+func (nonImmutableEvent) Encoding() codec.Encoding { return codec.EncodingJSON }
+func (nonImmutableEvent) Context() context.Context { return context.Background() }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()
@@ -141,10 +141,6 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 	}
 
 	md := published[0].Metadata()
-	if md == nil {
-		t.Fatal("expected metadata on enriched event")
-	}
-
 	if md.CorrelationID != correlationID {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, md.CorrelationID)
 	}

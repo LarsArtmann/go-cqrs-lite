@@ -68,10 +68,6 @@ func TestNewMetadata(t *testing.T) {
 	t.Parallel()
 
 	m := event.NewMetadata()
-	if m == nil {
-		t.Fatal("NewMetadata() should return non-nil")
-	}
-
 	if m.Custom == nil {
 		t.Error("Custom map should be initialized")
 	}
@@ -144,7 +140,7 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID(correlationID),
-		event.WithMetadata(&event.Metadata{UserID: userID}),
+		event.WithMetadata(event.Metadata{UserID: userID}),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -166,7 +162,7 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 func TestWithMetadata_NilExisting(t *testing.T) {
 	t.Parallel()
 
-	meta := &event.Metadata{Source: "test"}
+	meta := event.Metadata{Source: "test"}
 	evt, err := event.NewEvent(
 		"UserCreated",
 		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
@@ -200,7 +196,7 @@ func TestMetadataKeyConstants(t *testing.T) {
 	}
 }
 
-func assertCustomKV(t *testing.T, m *event.Metadata, key, want string) {
+func assertCustomKV(t *testing.T, m event.Metadata, key, want string) {
 	t.Helper()
 	if m.Custom[event.MetadataKey(key)] != want {
 		t.Errorf("expected %s=%s, got %s", key, want, m.Custom[event.MetadataKey(key)])
@@ -216,7 +212,7 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 		"User",
 		1,
 		nil,
-		event.WithMetadata(&event.Metadata{}),
+		event.WithMetadata(event.Metadata{}),
 		event.WithCustom("key1", "value1"),
 	)
 	if err != nil {
@@ -292,13 +288,14 @@ func TestWithClientOccurredAt(t *testing.T) {
 	}
 }
 
-func TestCore_MetadataNil(t *testing.T) {
+func TestCore_MetadataDefaultValue(t *testing.T) {
 	t.Parallel()
 
 	core := &event.ImmutableEvent{}
 
-	if core.Metadata() != nil {
-		t.Error("expected nil metadata for zero-value ImmutableEvent")
+	md := core.Metadata()
+	if md.Custom != nil {
+		t.Error("expected nil Custom map for zero-value ImmutableEvent")
 	}
 }
 
@@ -309,10 +306,6 @@ func TestEnsureMetadata_WhenNil(t *testing.T) {
 
 	opt := event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH"))
 	opt(core)
-
-	if core.Metadata() == nil {
-		t.Fatal("expected metadata to be initialized by ensureMetadata")
-	}
 
 	if core.Metadata().CorrelationID != id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
 		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)

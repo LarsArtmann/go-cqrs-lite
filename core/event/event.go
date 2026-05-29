@@ -24,7 +24,6 @@ package event
 import (
 	"context"
 	"fmt"
-	"maps"
 	"slices"
 	"time"
 
@@ -99,7 +98,7 @@ type Event interface {
 	SchemaVersion() SchemaVersion
 	Encoding() codec.Encoding
 	Payload() []byte
-	Metadata() *Metadata
+	Metadata() Metadata
 	OccurredAt() time.Time
 	// Context returns a context with the event's deadline (if any).
 	// Handlers can use this to check if the original operation's
@@ -117,7 +116,7 @@ type ImmutableEvent struct {
 	schemaVersion SchemaVersion
 	encoding      codec.Encoding
 	payload       []byte
-	metadata      *Metadata
+	metadata      Metadata
 	occurredAt    time.Time
 	clock         Clock
 	newCodec      codec.Codec
@@ -167,21 +166,8 @@ func (e *ImmutableEvent) Payload() []byte {
 	return cp
 }
 
-// Metadata returns a copy of the event metadata.
-func (e *ImmutableEvent) Metadata() *Metadata {
-	if e.metadata == nil {
-		return nil
-	}
-
-	metadataCopy := *e.metadata
-
-	if e.metadata.Custom != nil {
-		metadataCopy.Custom = make(map[MetadataKey]string, len(e.metadata.Custom))
-
-		maps.Copy(metadataCopy.Custom, e.metadata.Custom)
-	}
-
-	return &metadataCopy
+func (e *ImmutableEvent) Metadata() Metadata {
+	return e.metadata.Clone()
 }
 
 // OccurredAt returns when the event occurred.

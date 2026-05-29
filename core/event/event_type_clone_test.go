@@ -213,7 +213,8 @@ func TestClone_IndependentMetadata(t *testing.T) {
 
 	cloned := evt.Clone()
 
-	cloned.Metadata().CorrelationID = id.CorrelationID{}
+	clonedMeta := cloned.Metadata()
+	clonedMeta.CorrelationID = id.CorrelationID{}
 
 	if evt.Metadata().CorrelationID.String() == "" {
 		t.Error("mutating cloned metadata should not affect original")

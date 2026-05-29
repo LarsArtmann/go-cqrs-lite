@@ -18,7 +18,7 @@ type PersistedCommand struct {
 	aggregateRef AggregateRef
 	receivedAt   time.Time
 	payload      []byte
-	metadata     *Metadata
+	metadata     Metadata
 }
 
 var _ fmt.Stringer = (*PersistedCommand)(nil)
@@ -36,7 +36,7 @@ func (c *PersistedCommand) Payload() []byte {
 
 	return slices.Clone(c.payload)
 }
-func (c *PersistedCommand) Metadata() *Metadata { return c.metadata }
+func (c *PersistedCommand) Metadata() Metadata { return c.metadata }
 
 func (c *PersistedCommand) String() string {
 	return fmt.Sprintf("%s(%s) %s@%s",
@@ -53,7 +53,7 @@ func WithCommandID(cmdID id.CommandID) PersistOption {
 	return func(c *PersistedCommand) { c.id = cmdID }
 }
 
-func WithCommandMetadata(m *Metadata) PersistOption {
+func WithCommandMetadata(m Metadata) PersistOption {
 	return func(c *PersistedCommand) { c.metadata = m }
 }
 
@@ -99,7 +99,7 @@ func NewPersistedCommand(
 		aggregateRef: ref,
 		receivedAt:   time.Now(),
 		payload:      payloadCopy,
-		metadata:     &Metadata{},
+		metadata:     Metadata{},
 	}
 
 	for _, opt := range opts {

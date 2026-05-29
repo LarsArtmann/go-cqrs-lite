@@ -48,8 +48,8 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 		t.Error("ReceivedAt() should not be zero")
 	}
 
-	if cmd.Metadata() == nil {
-		t.Error("Metadata() should not be nil")
+	if (command.Metadata{}) != cmd.Metadata() {
+		t.Error("Metadata() should return zero value")
 	}
 
 	gotPayload := cmd.Payload()

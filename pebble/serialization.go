@@ -37,10 +37,7 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 			"failed to unmarshal event")
 	}
 
-	var metadataJSON []byte
-	if s.Metadata != nil {
-		metadataJSON, _ = marshalMetadata(s.Metadata)
-	}
+	metadataJSON, _ := marshalMetadata(s.Metadata)
 
 	return reconstructEvent(
 		s.ID, s.Type, s.AggregateType, s.AggregateID,
@@ -53,14 +50,14 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 // serializableEvent represents the JSON storage format for events.
 type serializableEvent struct {
-	ID            id.EventID      `json:"id"`
-	Type          string          `json:"type"`
-	AggregateID   id.AggregateID  `json:"aggregate_id"`
-	AggregateType string          `json:"aggregate_type"`
-	Version       int             `json:"version"`
-	SchemaVersion int             `json:"schema_version,omitempty"`
-	Payload       []byte          `json:"payload"`
-	OccurredAt    int64           `json:"occurred_at"`
-	Metadata      *event.Metadata `json:"metadata,omitempty"`
-	Encoding      string          `json:"encoding,omitempty"`
+	ID            id.EventID     `json:"id"`
+	Type          string         `json:"type"`
+	AggregateID   id.AggregateID `json:"aggregate_id"`
+	AggregateType string         `json:"aggregate_type"`
+	Version       int            `json:"version"`
+	SchemaVersion int            `json:"schema_version,omitempty"`
+	Payload       []byte         `json:"payload"`
+	OccurredAt    int64          `json:"occurred_at"`
+	Metadata      event.Metadata `json:"metadata,omitempty"`
+	Encoding      string         `json:"encoding,omitempty"`
 }
