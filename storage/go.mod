@@ -4,13 +4,13 @@ go 1.26.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/listing v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/otel v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/snapshot v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.0
+	github.com/larsartmann/go-cqrs-lite/id v1.7.0
+	github.com/larsartmann/go-cqrs-lite/listing v1.7.0
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.0
+	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	modernc.org/sqlite v1.51.0
@@ -34,15 +34,4 @@ require (
 	modernc.org/libc v1.72.5 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec => ../codec
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/listing => ../listing
-	github.com/larsartmann/go-cqrs-lite/memory => ../memory
-	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/snapshot => ../snapshot
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

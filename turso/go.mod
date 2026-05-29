@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/turso
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event v1.7.0
+	github.com/larsartmann/go-cqrs-lite/storage v1.7.0
 	turso.tech/database/tursogo v0.6.1
 )
 
@@ -13,8 +13,8 @@ require (
 	github.com/ebitengine/purego v0.10.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel v0.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec v1.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.6.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -22,12 +22,4 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec => ../codec
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/storage => ../storage
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

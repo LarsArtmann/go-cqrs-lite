@@ -3,19 +3,19 @@ module github.com/larsartmann/go-cqrs-lite/integration
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/decider v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/dispatcher v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/memory v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/middleware v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/otel v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/projection v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/signing v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/testhelpers v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command v1.7.0
+	github.com/larsartmann/go-cqrs-lite/decider v1.7.0
+	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.0
+	github.com/larsartmann/go-cqrs-lite/id v1.7.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.7.0
+	github.com/larsartmann/go-cqrs-lite/middleware v1.7.0
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.0
+	github.com/larsartmann/go-cqrs-lite/projection v1.7.0
+	github.com/larsartmann/go-cqrs-lite/query v1.7.0
+	github.com/larsartmann/go-cqrs-lite/signing v1.7.0
+	github.com/larsartmann/go-cqrs-lite/storage v1.7.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/stretchr/testify v1.11.1
@@ -48,20 +48,4 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/command => ../command
-	github.com/larsartmann/go-cqrs-lite/decider => ../decider
-	github.com/larsartmann/go-cqrs-lite/dispatcher => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/memory => ../memory
-	github.com/larsartmann/go-cqrs-lite/middleware => ../middleware
-	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/projection => ../projection
-	github.com/larsartmann/go-cqrs-lite/query => ../query
-	github.com/larsartmann/go-cqrs-lite/signing => ../signing
-	github.com/larsartmann/go-cqrs-lite/storage => ../storage
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )
