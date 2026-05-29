@@ -110,17 +110,15 @@ func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			attrs := []attribute.KeyValue{
-				attribute.String(cqrsotel.AttrMessageKind, cqrsotel.KindEvent),
 				attribute.Int(cqrsotel.AttrEventCount, len(events)),
 			}
 
 			if len(events) > 0 {
-				attrs = append(
-					attrs,
-					attribute.String(cqrsotel.AttrEventType, string(events[0].Type())),
-					attribute.String(cqrsotel.AttrAggregateType, string(events[0].AggregateType())),
-					attribute.String(cqrsotel.AttrAggregateID, events[0].AggregateID().String()),
-				)
+				attrs = append(attrs, cqrsotel.EventAttrs(
+					string(events[0].Type()),
+					events[0].AggregateID(),
+					string(events[0].AggregateType()),
+				)...)
 			}
 
 			ctx, span := tracer.Start(
