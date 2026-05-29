@@ -14,54 +14,54 @@ Completed a comprehensive self-review and hardening of the OpenTelemetry instrum
 
 ## a) FULLY DONE ✅
 
-| Area | What was done |
-|------|--------------|
-| **RecordError on all spans** | Every span in `storage/`, `decider/`, `projection/`, `saga/`, `middleware/` now calls `cqrsotel.RecordError(span, err)` on error paths |
+| Area                             | What was done                                                                                                                                                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RecordError on all spans**     | Every span in `storage/`, `decider/`, `projection/`, `saga/`, `middleware/` now calls `cqrsotel.RecordError(span, err)` on error paths                                                                      |
 | **Storage: all methods spanned** | `Save`, `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `LoadBackwards`, `ReadAll`, `ReadFrom`, outbox `Append/PollPending/Ack`, checkpoint `Load/Save`, snapshot `Save/Load` |
-| **Saga: all methods spanned** | `Start`, `ExecuteStep`, `compensate` — all with appropriate attributes |
-| **Middleware dedup** | Removed local `instrumentationName` const and `recordError` helper — both now use `cqrsotel` shared module |
-| **otel/ module tests** | 15 test cases covering: `NewTracer`, `NewMeter`, `StartSpan`, `RecordError`, `EndWithError`, `SpanFromContext`, `ComponentTracer`, `Name` constant, all 4 attribute helper functions |
-| **Attribute constants** | `AttrSagaStepName` added for saga step names alongside existing `AttrSagaStep` index |
-| **go.sum propagation** | All 12 modules' go.sum files updated after otel dependency additions |
-| **integration/go.mod** | Added missing `otel` replace directive for transitive dep resolution |
-| **Doc comments** | `middleware/tracing.go` doc comments now reference `cqrsotel.NewTracer("middleware")` instead of raw `otel.GetTracerProvider().Tracer(...)` |
+| **Saga: all methods spanned**    | `Start`, `ExecuteStep`, `compensate` — all with appropriate attributes                                                                                                                                      |
+| **Middleware dedup**             | Removed local `instrumentationName` const and `recordError` helper — both now use `cqrsotel` shared module                                                                                                  |
+| **otel/ module tests**           | 15 test cases covering: `NewTracer`, `NewMeter`, `StartSpan`, `RecordError`, `EndWithError`, `SpanFromContext`, `ComponentTracer`, `Name` constant, all 4 attribute helper functions                        |
+| **Attribute constants**          | `AttrSagaStepName` added for saga step names alongside existing `AttrSagaStep` index                                                                                                                        |
+| **go.sum propagation**           | All 12 modules' go.sum files updated after otel dependency additions                                                                                                                                        |
+| **integration/go.mod**           | Added missing `otel` replace directive for transitive dep resolution                                                                                                                                        |
+| **Doc comments**                 | `middleware/tracing.go` doc comments now reference `cqrsotel.NewTracer("middleware")` instead of raw `otel.GetTracerProvider().Tracer(...)`                                                                 |
 
 ---
 
 ## b) PARTIALLY DONE 🔶
 
-| Area | Status | What remains |
-|------|--------|-------------|
-| **stream/ module** | No spans | Aggregate reader, tombstone detection have zero OTel instrumentation |
-| **signing/ module** | No spans | HMAC/Ed25519 signing/verification have zero OTel instrumentation |
-| **memory/ module** | No spans | In-memory store/bus are test doubles — low priority but could benefit from spans for test observability |
-| **watermill/ module** | No spans | Protocol adapter has no OTel instrumentation |
-| **OTel metrics for storage** | Only middleware has OTel metrics | Storage operations (store latency histogram, checkpoint latency) have no metrics |
-| **OTel semconv adoption** | Using custom `cqrs.*` attributes | Could adopt `go.opentelemetry.io/otel/semconv` for standard `messaging.*`/`db.*` attributes where applicable |
+| Area                         | Status                           | What remains                                                                                                 |
+| ---------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **stream/ module**           | No spans                         | Aggregate reader, tombstone detection have zero OTel instrumentation                                         |
+| **signing/ module**          | No spans                         | HMAC/Ed25519 signing/verification have zero OTel instrumentation                                             |
+| **memory/ module**           | No spans                         | In-memory store/bus are test doubles — low priority but could benefit from spans for test observability      |
+| **watermill/ module**        | No spans                         | Protocol adapter has no OTel instrumentation                                                                 |
+| **OTel metrics for storage** | Only middleware has OTel metrics | Storage operations (store latency histogram, checkpoint latency) have no metrics                             |
+| **OTel semconv adoption**    | Using custom `cqrs.*` attributes | Could adopt `go.opentelemetry.io/otel/semconv` for standard `messaging.*`/`db.*` attributes where applicable |
 
 ---
 
 ## c) NOT STARTED ⬜
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Adopt OTel semconv v1.41+ standard attributes (`db.operation`, `messaging.system`, etc.) | High — makes spans compatible with standard dashboards | Medium — need to add semconv dependency and map attributes |
-| 2 | OTel metrics for storage operations (histograms for store/query latency) | High — latency SLO monitoring | Medium — similar pattern to middleware metrics |
-| 3 | Integration test with full trace propagation (command → decider → store → bus → projection) | High — validates end-to-end observability | Medium |
-| 4 | stream/ module instrumentation | Medium — aggregate reader spans | Low — same pattern as storage |
-| 5 | signing/ module instrumentation | Medium — crypto operation timing | Low — same pattern |
-| 6 | Example code showing how to wire up OTel provider | Medium — consumer onboarding | Low |
-| 7 | PebbleEventStore spans | Low — only SQL store instrumented | Low — same pattern |
-| 8 | watermill/ module instrumentation | Low — protocol adapter | Low |
-| 9 | OTel baggage propagation through decider → store | Medium — cross-service correlation | Medium |
+| #   | Item                                                                                        | Impact                                                 | Effort                                                     |
+| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| 1   | Adopt OTel semconv v1.41+ standard attributes (`db.operation`, `messaging.system`, etc.)    | High — makes spans compatible with standard dashboards | Medium — need to add semconv dependency and map attributes |
+| 2   | OTel metrics for storage operations (histograms for store/query latency)                    | High — latency SLO monitoring                          | Medium — similar pattern to middleware metrics             |
+| 3   | Integration test with full trace propagation (command → decider → store → bus → projection) | High — validates end-to-end observability              | Medium                                                     |
+| 4   | stream/ module instrumentation                                                              | Medium — aggregate reader spans                        | Low — same pattern as storage                              |
+| 5   | signing/ module instrumentation                                                             | Medium — crypto operation timing                       | Low — same pattern                                         |
+| 6   | Example code showing how to wire up OTel provider                                           | Medium — consumer onboarding                           | Low                                                        |
+| 7   | PebbleEventStore spans                                                                      | Low — only SQL store instrumented                      | Low — same pattern                                         |
+| 8   | watermill/ module instrumentation                                                           | Low — protocol adapter                                 | Low                                                        |
+| 9   | OTel baggage propagation through decider → store                                            | Medium — cross-service correlation                     | Medium                                                     |
 
 ---
 
 ## d) TOTALLY FUCKED UP 💥
 
-| Issue | Severity | Details |
-|-------|----------|---------|
-| None critical | — | All tests pass. No compilation errors. No broken APIs. The pre-commit hook's golangci-lint exit-7 is a known go.work incompatibility, not a real issue. |
+| Issue         | Severity | Details                                                                                                                                                 |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| None critical | —        | All tests pass. No compilation errors. No broken APIs. The pre-commit hook's golangci-lint exit-7 is a known go.work incompatibility, not a real issue. |
 
 ---
 
@@ -91,48 +91,48 @@ Completed a comprehensive self-review and hardening of the OpenTelemetry instrum
 
 ### High Impact, Low Effort (do first)
 
-| # | Item | Effort |
-|---|------|--------|
-| 1 | Extract `testTracerWithRecorder()` to `testhelpers/otel.go` | 30 min |
-| 2 | Add `stream/` module OTel spans (3 public methods) | 30 min |
-| 3 | Add `signing/` module OTel spans (sign/verify) | 30 min |
-| 4 | Adopt `db.operation` semconv attribute on storage spans | 1 hr |
-| 5 | Adopt `messaging.operation` semconv on event bus spans | 1 hr |
-| 6 | Add example code for OTel provider wiring | 1 hr |
+| #   | Item                                                        | Effort |
+| --- | ----------------------------------------------------------- | ------ |
+| 1   | Extract `testTracerWithRecorder()` to `testhelpers/otel.go` | 30 min |
+| 2   | Add `stream/` module OTel spans (3 public methods)          | 30 min |
+| 3   | Add `signing/` module OTel spans (sign/verify)              | 30 min |
+| 4   | Adopt `db.operation` semconv attribute on storage spans     | 1 hr   |
+| 5   | Adopt `messaging.operation` semconv on event bus spans      | 1 hr   |
+| 6   | Add example code for OTel provider wiring                   | 1 hr   |
 
 ### High Impact, Medium Effort
 
-| # | Item | Effort |
-|---|------|--------|
-| 7 | OTel metrics for storage operations (latency histograms) | 2 hr |
-| 8 | Integration test with full trace propagation | 2 hr |
-| 9 | Span naming convention audit & normalization | 1 hr |
-| 10 | Add `messaging.destination` attribute to event bus spans | 1 hr |
-| 11 | Consolidate per-module `otel.go` tracer/attrs into shared pattern | 2 hr |
-| 12 | Add W3C trace context propagation through event bus | 3 hr |
+| #   | Item                                                              | Effort |
+| --- | ----------------------------------------------------------------- | ------ |
+| 7   | OTel metrics for storage operations (latency histograms)          | 2 hr   |
+| 8   | Integration test with full trace propagation                      | 2 hr   |
+| 9   | Span naming convention audit & normalization                      | 1 hr   |
+| 10  | Add `messaging.destination` attribute to event bus spans          | 1 hr   |
+| 11  | Consolidate per-module `otel.go` tracer/attrs into shared pattern | 2 hr   |
+| 12  | Add W3C trace context propagation through event bus               | 3 hr   |
 
 ### Medium Impact, Medium Effort
 
-| # | Item | Effort |
-|---|------|--------|
-| 13 | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr |
-| 14 | OTel metrics for decider operations | 2 hr |
-| 15 | watermill/ module OTel spans | 1 hr |
-| 16 | memory/ module OTel spans (test observability) | 1 hr |
-| 17 | PebbleEventStore spans | 1 hr |
-| 18 | Add `error.type` attribute (error family classification) | 1 hr |
-| 19 | Span links between producer/consumer (event bus) | 2 hr |
+| #   | Item                                                        | Effort |
+| --- | ----------------------------------------------------------- | ------ |
+| 13  | Option pattern API for span creation (`cqrsotel.Span(...)`) | 3 hr   |
+| 14  | OTel metrics for decider operations                         | 2 hr   |
+| 15  | watermill/ module OTel spans                                | 1 hr   |
+| 16  | memory/ module OTel spans (test observability)              | 1 hr   |
+| 17  | PebbleEventStore spans                                      | 1 hr   |
+| 18  | Add `error.type` attribute (error family classification)    | 1 hr   |
+| 19  | Span links between producer/consumer (event bus)            | 2 hr   |
 
 ### Lower Impact, Higher Effort
 
-| # | Item | Effort |
-|---|------|--------|
-| 20 | `gosec` + `govulncheck` on otel dependencies | 1 hr |
-| 21 | Performance benchmark for span overhead (noop vs real provider) | 2 hr |
-| 22 | OTel logs integration (structured logging via slog → OTel) | 3 hr |
-| 23 | Custom OTel sampler for high-volume event streams | 3 hr |
-| 24 | Documentation: ADR for OTel instrumentation decisions | 1 hr |
-| 25 | CI pipeline addition: OTel integration test in GitHub Actions | 2 hr |
+| #   | Item                                                            | Effort |
+| --- | --------------------------------------------------------------- | ------ |
+| 20  | `gosec` + `govulncheck` on otel dependencies                    | 1 hr   |
+| 21  | Performance benchmark for span overhead (noop vs real provider) | 2 hr   |
+| 22  | OTel logs integration (structured logging via slog → OTel)      | 3 hr   |
+| 23  | Custom OTel sampler for high-volume event streams               | 3 hr   |
+| 24  | Documentation: ADR for OTel instrumentation decisions           | 1 hr   |
+| 25  | CI pipeline addition: OTel integration test in GitHub Actions   | 2 hr   |
 
 ---
 
@@ -141,11 +141,13 @@ Completed a comprehensive self-review and hardening of the OpenTelemetry instrum
 **Should we adopt `go.opentelemetry.io/otel/semconv` standard attributes now, or keep the custom `cqrs.*` namespace?**
 
 Arguments for semconv:
+
 - Standard dashboards (Grafana, Datadog, Jaeger) recognize `db.operation`, `messaging.system` etc.
 - Better ecosystem integration out of the box
 - Recommended by OTel specification
 
 Arguments for `cqrs.*`:
+
 - Simpler, no additional dependency
 - Domain-specific attributes not covered by semconv (e.g., `cqrs.aggregate.version`)
 - Library consumers can always map `cqrs.*` → standard attributes in their own telemetry pipeline
@@ -170,4 +172,5 @@ Arguments for `cqrs.*`:
 6. `refactor(core, signing, stream, saga, otel): modernize slice ops, add interface checks, expand OTel test coverage`
 7. `fix(otel): fix test compilation errors and add NilProvider test`
 8. `chore: propagate go.sum tidy, fix integration replace for otel, add tests`
-+ 12 related refactoring/test commits from parallel work
+
+- 12 related refactoring/test commits from parallel work

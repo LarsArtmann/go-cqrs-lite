@@ -37,6 +37,7 @@ func main() {
 	cmdDisp, qryDisp := setupDispatchers(deciderRepo, readModel)
 
 	userID := runDemoSteps(ctx, cmdDisp, qryDisp, &publishedEvents)
+	runTombstoneRebirthDemo(ctx, cmdDisp, deciderRepo, userID)
 	runErrorDemo(ctx, cmdDisp)
 	runEventCatalog()
 
@@ -159,6 +160,50 @@ func runDemoSteps(
 	fmt.Printf("→ User{Email: %q, Name: %q}\n\n", rm.Email, rm.Name)
 
 	return userID
+}
+
+func runTombstoneRebirthDemo(
+	ctx context.Context,
+	cmdDisp *command.Dispatcher,
+	deciderRepo *decider.Repository[UserState],
+	userID id.AggregateID,
+) {
+	fmt.Println("--- Step 4: Tombstone + Rebirth ---")
+
+	err := cmdDisp.Dispatch(ctx, &DeleteUserCmd{
+		aggregateID: userID,
+		reason:      "GDPR request",
+	})
+	if err != nil {
+		log.Fatalf("delete user: %v", err)
+	}
+
+	fmt.Printf("→ Deleted user %s (tombstoned)\n", userID)
+
+	state, _, err := deciderRepo.Load(ctx, userID, aggregateType)
+	if err != nil {
+		log.Fatalf("load state after delete: %v", err)
+	}
+
+	fmt.Printf("→ State after delete: Deleted=%v, Reason=%q\n", state.Deleted, state.DeleteReason)
+
+	err = cmdDisp.Dispatch(ctx, &RebirthUserCmd{
+		aggregateID: userID,
+		email:       "alice.v2@example.com",
+		name:        "Alice Reborn",
+	})
+	if err != nil {
+		log.Fatalf("rebirth user: %v", err)
+	}
+
+	fmt.Printf("→ Reborn user %s as alice.v2@example.com\n", userID)
+
+	state, _, err = deciderRepo.Load(ctx, userID, aggregateType)
+	if err != nil {
+		log.Fatalf("load state after rebirth: %v", err)
+	}
+
+	fmt.Printf("→ State after rebirth: Email=%q, Name=%q, Deleted=%v\n\n", state.Email, state.Name, state.Deleted)
 }
 
 func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {

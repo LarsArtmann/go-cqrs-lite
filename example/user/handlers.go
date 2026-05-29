@@ -37,6 +37,26 @@ func registerCommandHandlers(
 			)
 		},
 	)
+
+	_ = command.RegisterTyped(
+		dispatcher, cmdDeleteUser,
+		func(ctx context.Context, c *DeleteUserCmd) error {
+			return deciderRepo.Execute(
+				ctx, c.AggregateID(), aggregateType,
+				decideDeleteUser(c.AggregateID(), c.reason),
+			)
+		},
+	)
+
+	_ = command.RegisterTyped(
+		dispatcher, cmdRebirthUser,
+		func(ctx context.Context, c *RebirthUserCmd) error {
+			return deciderRepo.Execute(
+				ctx, c.AggregateID(), aggregateType,
+				decideRebirthUser(c.AggregateID(), c.email, c.name),
+			)
+		},
+	)
 }
 
 func registerQueryHandlers(
