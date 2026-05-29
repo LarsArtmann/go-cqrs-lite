@@ -17,6 +17,13 @@ require (
 	github.com/onsi/gomega v1.41.0
 )
 
+require (
+	github.com/samber/lo v1.52.0 // indirect
+	github.com/samber/ro v0.3.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
+	golang.org/x/text v0.37.0 // indirect
+)
+
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../codec
 	github.com/larsartmann/go-cqrs-lite/command => ../command
