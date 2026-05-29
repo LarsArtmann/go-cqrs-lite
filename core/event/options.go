@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
@@ -145,4 +146,22 @@ func WithClientID(v id.ClientID) Option {
 // Used for offline-first timing analysis.
 func WithClientOccurredAt(t time.Time) Option {
 	return WithCustom(MetadataKeyClientOccurredAt, t.Format(time.RFC3339Nano))
+}
+
+// WithDeadline sets the event's deadline for cancellation propagation.
+// Handlers can use Event.Context() to check if the deadline has passed.
+func WithDeadline(t time.Time) Option {
+	return func(e *ImmutableEvent) { e.deadline = t }
+}
+
+// FromContext extracts the deadline from the given context and sets it on the event.
+// If the context has no deadline, this is a no-op.
+// This allows propagating cancellation/deadline from the caller's context to event handlers.
+func FromContext(ctx context.Context) Option {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return func(*ImmutableEvent) {} // no-op
+	}
+
+	return WithDeadline(deadline)
 }

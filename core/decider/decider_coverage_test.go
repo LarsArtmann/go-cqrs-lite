@@ -65,6 +65,7 @@ func (nonImmutableEvent) Payload() []byte           { return nil }
 func (nonImmutableEvent) Metadata() *event.Metadata { return nil }
 func (nonImmutableEvent) OccurredAt() time.Time     { return time.Now() }
 func (nonImmutableEvent) Encoding() codec.Encoding  { return codec.EncodingJSON }
+func (nonImmutableEvent) Context() context.Context  { return context.Background() }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()

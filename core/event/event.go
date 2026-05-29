@@ -22,6 +22,7 @@
 package event
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"slices"
@@ -100,6 +101,10 @@ type Event interface {
 	Payload() []byte
 	Metadata() *Metadata
 	OccurredAt() time.Time
+	// Context returns a context with the event's deadline (if any).
+	// Handlers can use this to check if the original operation's
+	// deadline has passed or was cancelled.
+	Context() context.Context
 }
 
 // ImmutableEvent provides a default implementation of Event interface.
@@ -116,6 +121,7 @@ type ImmutableEvent struct {
 	occurredAt    time.Time
 	clock         Clock
 	newCodec      codec.Codec
+	deadline      time.Time
 }
 
 var _ Event = (*ImmutableEvent)(nil)
@@ -181,6 +187,24 @@ func (e *ImmutableEvent) Metadata() *Metadata {
 // OccurredAt returns when the event occurred.
 func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
 
+// Context returns a context with the event's deadline (if any).
+// Returns context.Background() if no deadline was set.
+func (e *ImmutableEvent) Context() context.Context {
+	if e.deadline.IsZero() {
+		return context.Background()
+	}
+
+	ctx, cancel := context.WithDeadline(context.Background(), e.deadline)
+	defer cancel() //nolint:gocritic // context created here is scoped to this method's return value
+
+	return ctx
+}
+
+// Deadline returns the event's deadline (if any).
+func (e *ImmutableEvent) Deadline() (time.Time, bool) {
+	return e.deadline, !e.deadline.IsZero()
+}
+
 // String returns a human-readable representation of the event for logging and debugging.
 func (e *ImmutableEvent) String() string {
 	return fmt.Sprintf("%s(%s) v%d %s@%s",
@@ -208,6 +232,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 		metadata:      e.Metadata(),
 		occurredAt:    e.occurredAt,
 		clock:         e.clock,
+		deadline:      e.deadline,
 	}
 }
 
