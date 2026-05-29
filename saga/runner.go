@@ -5,6 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -62,12 +65,21 @@ func (r *Runner) Start(
 	sagaType string,
 	initialCommand command.Command,
 ) (*Instance, error) {
+	ctx, span := cqrsotel.StartSpan(ctx, tracer(), "saga.start",
+		trace.SpanKindClient,
+		trace.WithAttributes(sagaAttrs(sagaType)...),
+	)
+	defer span.End()
+
 	r.mu.RLock()
 	def, ok := r.registry[sagaType]
 	r.mu.RUnlock()
 
 	if !ok {
-		return nil, event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+sagaType+" not registered")
+		err := event.WrapRejection(ErrSagaNotRegistered, "saga.not_registered", "saga "+sagaType+" not registered")
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
 	}
 
 	state := State{
@@ -80,11 +92,15 @@ func (r *Runner) Start(
 	}
 
 	if err := r.store.Save(ctx, &state); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "saga.save_failed", "save saga state")
 	}
 
 	state.Status = StatusRunning
 	if err := r.store.Save(ctx, &state); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "saga.update_failed", "update saga status")
 	}
 
@@ -97,12 +113,15 @@ func (r *Runner) Start(
 
 	if initialCommand != nil {
 		if err := r.dispatcher.Dispatch(ctx, initialCommand); err != nil {
+			cqrsotel.RecordError(span, err)
+
 			instance.Status = StatusFailed
 			instance.Err = err
 			instance.ErrMsg = err.Error()
 			instance.UpdatedAt = time.Now()
 			_ = r.store.Save(ctx, &instance.State)
 			r.logError("initial command failed", "type", sagaType, "id", instance.ID, "error", err)
+
 			return instance, event.WrapInfrastructure(err, "saga.dispatch_failed", "dispatch initial command")
 		}
 	}
