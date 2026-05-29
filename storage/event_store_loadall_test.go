@@ -124,8 +124,8 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).
-			AddRow(evtID2.String(), "UserUpdated", "User", aggID.String(), 2, 1, nil, nil, ts).
-			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, nil, ts))
+			AddRow(evtID2.String(), "UserUpdated", "User", aggID.String(), 2, 1, nil, "", nil, ts).
+			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, ts))
 
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(

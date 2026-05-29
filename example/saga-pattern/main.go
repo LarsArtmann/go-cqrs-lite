@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
@@ -158,6 +159,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"inventory.reserved",
+		codec.JSONCodec{},
 		func(_ context.Context, p InventoryReserved) error {
 			state.advance("reserve-inventory")
 
@@ -172,6 +174,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"payment.charged",
+		codec.JSONCodec{},
 		func(_ context.Context, p PaymentCharged) error {
 			state.advance("charge-payment")
 
@@ -186,6 +189,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"order.confirmed",
+		codec.JSONCodec{},
 		func(_ context.Context, _ OrderConfirmed) error {
 			state.advance("confirm-order")
 
@@ -199,6 +203,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"saga.step_failed",
+		codec.JSONCodec{},
 		func(_ context.Context, p StepFailed) error {
 			state.fail(p.Step)
 

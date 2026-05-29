@@ -15,6 +15,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
@@ -78,6 +79,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"item.added",
+		codec.JSONCodec{},
 		func(_ context.Context, p ItemAdded) error {
 			applyInventory(p.Name, p.Quantity, "added", func(a, b int) int { return a + b })
 			return nil
@@ -89,6 +91,7 @@ func run() error {
 	if err := projection.On(
 		builder,
 		"item.removed",
+		codec.JSONCodec{},
 		func(_ context.Context, p ItemRemoved) error {
 			applyInventory(p.Name, p.Quantity, "removed", func(a, b int) int { return a - b })
 			return nil

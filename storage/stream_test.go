@@ -148,7 +148,7 @@ func TestSQLEventStore_LoadStream_ScanError(t *testing.T) {
 
 	_, err = db.ExecContext(
 		ctx,
-		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
+		`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at)
 		 VALUES ('invalid-id', 'test', 'Order', ?, 1, 1, '{}', '{}', '2024-01-01T00:00:00Z')`,
 		aggID.String(),
 	)

@@ -32,30 +32,30 @@ func newTestStore(t *testing.T) (*SQLEventStore, sqlmock.Sqlmock) {
 func eventColumns() []string {
 	return []string{
 		"id", "event_type", "aggregate_type", "aggregate_id",
-		"version", "schema_version", "payload", "metadata", "occurred_at",
+		"version", "schema_version", "payload", "payload_encoding", "metadata", "occurred_at",
 	}
 }
 
-const loadQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+const loadQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version ASC`
 
-const loadFromVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+const loadFromVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND version > $3
 		ORDER BY version ASC`
 
-const insertQuery = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+const insertQuery = `INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 const versionQuery = `SELECT COALESCE(MAX(version), 0) FROM events WHERE aggregate_type = $1 AND aggregate_id = $2`
 
-const loadAllQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+const loadAllQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM events
 		ORDER BY occurred_at ASC`
 
-const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version DESC`

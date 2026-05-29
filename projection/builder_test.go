@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/projection"
@@ -22,7 +23,7 @@ func TestBuilder_On_TypedHandler(t *testing.T) {
 	builder := projection.NewBuilder("order-proj")
 
 	err := projection.On(
-		builder, "order.created",
+		builder, "order.created", codec.JSONCodec{},
 		func(_ context.Context, evt OrderCreated) error {
 			received = evt
 			return nil
@@ -85,7 +86,7 @@ func TestBuilder_On_MultipleEventTypes(t *testing.T) {
 	builder := projection.NewBuilder("multi-proj")
 
 	err := projection.On(
-		builder, "order.created",
+		builder, "order.created", codec.JSONCodec{},
 		func(_ context.Context, _ OrderCreated) error {
 			handled <- "order.created"
 			return nil
@@ -96,7 +97,7 @@ func TestBuilder_On_MultipleEventTypes(t *testing.T) {
 	}
 
 	err = projection.On(
-		builder, "order.shipped",
+		builder, "order.shipped", codec.JSONCodec{},
 		func(_ context.Context, _ OrderShipped) error {
 			handled <- "order.shipped"
 			return nil
@@ -151,7 +152,7 @@ func TestBuilder_On_NilHandler(t *testing.T) {
 
 	builder := projection.NewBuilder("nil-test")
 
-	err := projection.On[dummy](builder, "test.event", nil)
+	err := projection.On[dummy](builder, "test.event", codec.JSONCodec{}, nil)
 	if err == nil {
 		t.Fatal("expected error for nil handler")
 	}
@@ -183,7 +184,7 @@ func TestBuilder_Handle_UnregisteredType(t *testing.T) {
 	handled := false
 
 	err := projection.On(
-		builder, "order.created", func(_ context.Context, _ OrderCreated) error {
+		builder, "order.created", codec.JSONCodec{}, func(_ context.Context, _ OrderCreated) error {
 			handled = true
 			return nil
 		},
@@ -223,7 +224,7 @@ func TestBuilder_Handle_InvalidPayload(t *testing.T) {
 	builder := projection.NewBuilder("decode-proj")
 
 	err := projection.On(
-		builder, "bad.payload",
+		builder, "bad.payload", codec.JSONCodec{},
 		func(_ context.Context, _ Strict) error { return nil },
 	)
 	if err != nil {

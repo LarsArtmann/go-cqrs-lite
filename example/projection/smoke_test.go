@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
@@ -27,6 +28,7 @@ func TestProjection_ReplayAndLive(t *testing.T) {
 	if err := projection.On[ItemAdded](
 		builder,
 		"item.added",
+		codec.JSONCodec{},
 		func(_ context.Context, payload ItemAdded) error {
 			readModel.Items[payload.Name] += payload.Quantity
 			return nil
@@ -38,6 +40,7 @@ func TestProjection_ReplayAndLive(t *testing.T) {
 	if err := projection.On[ItemRemoved](
 		builder,
 		"item.removed",
+		codec.JSONCodec{},
 		func(_ context.Context, payload ItemRemoved) error {
 			readModel.Items[payload.Name] -= payload.Quantity
 			return nil

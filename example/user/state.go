@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -15,12 +13,7 @@ type UserState struct {
 }
 
 func unmarshalAs[T any](evt event.Event) (T, error) {
-	var payload T
-	if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
-		return payload, fmt.Errorf("unmarshal %s: %w", evt.Type(), err)
-	}
-
-	return payload, nil
+	return event.DecodePayload[T](evt, codec.JSONCodec{})
 }
 
 func foldUser(state UserState, evt event.Event) (UserState, error) {

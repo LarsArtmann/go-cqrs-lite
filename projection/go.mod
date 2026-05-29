@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/projection
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
@@ -40,6 +41,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/codec => ../codec
 	github.com/larsartmann/go-cqrs-lite/core => ../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
