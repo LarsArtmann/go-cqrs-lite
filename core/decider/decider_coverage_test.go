@@ -44,7 +44,7 @@ func (nonImmutableEvent) AggregateType() event.AggregateType { return "Test" }
 func (nonImmutableEvent) Version() event.Version     { return 1 }
 func (nonImmutableEvent) Payload() []byte            { return nil }
 func (nonImmutableEvent) OccurredAt() time.Time      { return time.Now() }
-func (nonImmutableEvent) Metadata() *event.Metadata  { return nil }
+func (nonImmutableEvent) SchemaVersion() event.SchemaVersion { return event.MustParseSchemaVersion(1) }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()
@@ -187,7 +187,7 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 		t.Fatalf("Execute: %v", err)
 	}
 
-	published := bus.Published()
+	published := bus.Published
 	if len(published) == 0 {
 		t.Fatal("expected published events")
 	}
@@ -201,6 +201,8 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, md.CorrelationID)
 	}
 }
+
+func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
 	t.Parallel()
 
 	bus := testhelpers.NewFakeBus()
