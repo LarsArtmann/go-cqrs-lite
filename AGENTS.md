@@ -23,9 +23,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                  |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                              |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `otel`, `watermill`, `cqrs-gen`                                                         |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `cqrs-gen` |
 | Build     | `nix run .#build`                                                                                                                                                                                                      |
-| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./stream/... ./watermill/... -count=1` |
+| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./stream/... ./watermill/... ./pebble/... ./codec/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                       |
 | Format    | `nix fmt`                                                                                                                                                                                                              |
 | Dev shell | `nix develop`                                                                                                                                                                                                          |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 14 modules:
+Multi-module Go workspace (`go.work`) with 22 modules:
 
 ```
 go-cqrs-lite/
@@ -48,7 +48,7 @@ go-cqrs-lite/
 ├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
-├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, middleware
+├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── saga/                # Runner, Definition, Step, Instance, State, Store, compensation
@@ -56,7 +56,11 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── stream/              # Aggregate listing, tombstone detection, StatusMiddleware, SQL/projection readers
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── integration/         # Cross-module tests (command, event, query)
+├── pebble/              # Embedded key-value event store (PebbleDB)
+├── codec/               # Payload encoding: JSON, Raw passthrough
+├── turso/               # Turso database connector (embedded LibSQL sync)
+├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
+├── integration/         # Cross-module tests (command, event, query, signing)
 └── docs/                # Status reports, ADRs, architecture patterns, storage guide
 ```
 
@@ -150,7 +154,8 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
 **Module Graph**: otel→go.opentelemetry.io/otel; core→otel+memory+testhelpers; testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
-catalog→core; storage→core+otel+saga; projection→core+otel+memory+testhelpers; signing→core; saga→core+otel; stream→core+memory; watermill→core;
+catalog→core; storage→core+otel+saga; projection→core+otel+memory+testhelpers; signing→core+signing/multisig; saga→core+otel; stream→core+memory; watermill→core;
+pebble→core; codec→core; turso→storage; cmd/cqrs-gen→core;
 integration→core+memory+testhelpers.
 
 **Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote.

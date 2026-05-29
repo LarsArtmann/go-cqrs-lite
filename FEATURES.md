@@ -90,7 +90,6 @@
 || OutboxPublisher | Background goroutine polls outbox and publishes to bus; `WithPollInterval`, `WithBatchSize`, `PublishNow` for sync | ✅ |
 || Projection interface | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅ |
 || BatchProjection | Optional interface extending `Projection` with `HandleBatch` for throughput | ✅ |
-|| InMemoryRunner | Single-process runner with per-projection checkpointing, thread-safe (DEPRECATED) | ✅ |
 || Context replay marker | `WithReplay(ctx, true)` — marks context as replay; handlers can distinguish | ✅ |
 || JSON Codec | `JSONcodec` using `encoding/json` | ✅ |
 || DecodePayload[T] | `DecodePayload[T](evt, codec)` — type-safe payload deserialization | ✅ |
