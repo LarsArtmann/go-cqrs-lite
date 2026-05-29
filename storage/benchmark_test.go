@@ -114,19 +114,6 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 	}
 }
 
-func BenchmarkPebbleSerialize(b *testing.B) {
-	evt, _ := benchTestEvent(b)
-
-	adapter := &PebbleEventStore{prefix: "test"}
-
-	for b.Loop() {
-		_, err := adapter.serializeEvent(evt)
-		if err != nil {
-			b.Fatalf("serializeEvent: %v", err)
-		}
-	}
-}
-
 func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -167,16 +154,3 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 	}
 }
 
-func BenchmarkPebbleDeserialize(b *testing.B) {
-	evt, _ := benchTestEvent(b)
-
-	adapter := &PebbleEventStore{prefix: "test"}
-	data, _ := adapter.serializeEvent(evt)
-
-	for b.Loop() {
-		_, err := adapter.deserializeEvent(data)
-		if err != nil {
-			b.Fatalf("deserializeEvent: %v", err)
-		}
-	}
-}

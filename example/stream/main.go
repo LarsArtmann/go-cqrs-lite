@@ -45,7 +45,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 			log.Fatalf("create event: %v", err)
 		}
 
-		err = store.Save(ctx, "User", userIDs[i], []event.Event{evt}, event.Version(0))
+		err = store.Save(ctx, event.NewAggregateRef("User", userIDs[i]), []event.Event{evt}, event.Version(0))
 		if err != nil {
 			log.Fatalf("save event: %v", err)
 		}
@@ -59,7 +59,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 			log.Fatalf("create event: %v", err)
 		}
 
-		err = store.Save(ctx, "Order", orderIDs[i], []event.Event{evt}, event.Version(0))
+		err = store.Save(ctx, event.NewAggregateRef("Order", orderIDs[i]), []event.Event{evt}, event.Version(0))
 		if err != nil {
 			log.Fatalf("save event: %v", err)
 		}
@@ -77,7 +77,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 		log.Fatalf("mark tombstone: %v", err)
 	}
 
-	err = store.Save(ctx, "User", deletedID, []event.Event{marked}, event.Version(1))
+	err = store.Save(ctx, event.NewAggregateRef("User", deletedID), []event.Event{marked}, event.Version(1))
 	if err != nil {
 		log.Fatalf("save delete event: %v", err)
 	}

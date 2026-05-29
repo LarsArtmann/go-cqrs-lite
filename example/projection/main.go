@@ -151,8 +151,7 @@ func run() error {
 
 		if saveErr := store.Save(
 			ctx,
-			"Inventory",
-			aggregateID,
+			event.NewAggregateRef("Inventory", aggregateID),
 			[]event.Event{e},
 			event.Version(i),
 		); saveErr != nil {

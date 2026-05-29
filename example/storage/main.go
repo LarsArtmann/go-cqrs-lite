@@ -74,15 +74,14 @@ func run() error {
 
 	if err := eventStore.Save(
 		ctx,
-		"User",
-		userID,
+		event.NewAggregateRef("User", userID),
 		[]event.Event{evt},
 		event.Version(0),
 	); err != nil {
 		return fmt.Errorf("save events: %w", err)
 	}
 
-	loaded, err := eventStore.Load(ctx, "User", userID)
+	loaded, err := eventStore.Load(ctx, event.NewAggregateRef("User", userID))
 	if err != nil {
 		return fmt.Errorf("load events: %w", err)
 	}

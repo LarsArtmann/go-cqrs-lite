@@ -44,8 +44,7 @@ func TestSQLite_SaveAndLoad(t *testing.T) {
 
 	if err := eventStore.Save(
 		ctx,
-		"User",
-		userID,
+		event.NewAggregateRef("User", userID),
 		[]event.Event{evt},
 		event.Version(0),
 	); err != nil {

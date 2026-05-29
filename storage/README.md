@@ -2,7 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/storage)
 
-Persistent event store implementations for PostgreSQL, SQLite, Turso, and Pebble. Implements the `event.Store`, `event.SnapshotStore`, `event.Bus` (outbox), and `saga.Store` interfaces from core.
+Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, `event.Outbox`, and `saga.Store` interfaces from core.
+
+> **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/storage
@@ -32,27 +34,7 @@ storage.PostgresInitSchema(ctx, db)
 store, _ := storage.NewSQLEventStore(db)
 ```
 
-## SQLBackend (Recommended)
-
-`SQLBackend` creates all SQL-backed stores at once — event store, outbox, transactional store, and saga store — sharing a single `*sql.DB`:
-
-```go
-backend, _ := storage.NewSQLiteBackend(db)
-
-// Access individual stores
-backend.EventStore()        // *SQLEventStore — implements event.Store
-backend.Outbox()            // *SQLOutbox — append/poll/ack
-backend.TransactionalSink()  // event.TransactionalSink — atomic save+outbox
-backend.SagaStore()         // saga.Store — persistent saga state
-```
-
-### Constructors
-
-| Function                          | Dialect    |
-| --------------------------------- | ---------- |
-| `NewSQLBackend(db)`               | PostgreSQL |
-| `NewSQLiteBackend(db)`            | SQLite     |
-| `NewSQLBackendWithDialect(db, d)` | Custom     |
+## Components
 
 ## Components
 
@@ -147,15 +129,13 @@ running, _ := sagaStore.LoadAllRunning(ctx)
 
 ### PebbleEventStore
 
-Embedded key-value store for single-process apps. No SQL dependency:
+Moved to separate module: `github.com/larsartmann/go-cqrs-lite/pebble`
 
 ```go
-db, _ := pebble.Open("data", &pebble.Options{})
-store := storage.NewPebbleStore(db, slog.Default())
+import "github.com/larsartmann/go-cqrs-lite/pebble"
 
-// Same event.Store interface
-store.Save(ctx, "User", aggID, events, 0)
-events, _ := store.Load(ctx, "User", aggID)
+db, _ := pebble.Open("data", &pebble.Options{})
+store := pebble.NewPebbleStore(db, slog.Default())
 ```
 
 ## Schema Management
