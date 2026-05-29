@@ -268,3 +268,58 @@ func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 		t.Error("expected error for invalid JSON")
 	}
 }
+
+func TestDecodePayload_EncodingMismatch(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+		event.WithEncoding(codecpkg.Encoding("protobuf")),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	_, err = event.DecodePayload[struct{ Name string }](evt, event.JSONCodec{})
+	if err == nil {
+		t.Fatal("expected error for encoding mismatch")
+	}
+}
+
+func TestDecodePayload_EncodingMatch(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+		event.WithEncoding(codecpkg.EncodingJSON),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	result, err := event.DecodePayload[struct{ Name string }](evt, event.JSONCodec{})
+	if err != nil {
+		t.Fatalf("DecodePayload: %v", err)
+	}
+
+	if result.Name != "Alice" {
+		t.Errorf("Name = %q, want Alice", result.Name)
+	}
+}
+
+func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if evt.Encoding() != codecpkg.EncodingJSON {
+		t.Errorf("Encoding() = %q, want %q", evt.Encoding(), codecpkg.EncodingJSON)
+	}
+}

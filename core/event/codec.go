@@ -1,40 +1,34 @@
 package event
 
 import (
-	"encoding/json"
+	"fmt"
 	"strconv"
+
+	"github.com/larsartmann/go-cqrs-lite/codec"
 )
 
 // Codec serializes and deserializes event payloads.
-type Codec interface {
-	// Encode marshals a value to bytes.
-	Encode(v any) ([]byte, error)
-	// Decode unmarshals bytes into a value.
-	Decode(data []byte, v any) error
-}
+//
+// Deprecated: Use [codec.Codec] instead. This is a type alias kept for backward compatibility.
+type Codec = codec.Codec
 
 // JSONCodec implements Codec using encoding/json.
-type JSONCodec struct{}
-
-var _ Codec = JSONCodec{}
-
-// Encode marshals a value to JSON bytes.
-func (JSONCodec) Encode(v any) ([]byte, error) {
-	//nolint:wrapcheck // thin wrapper over json.Marshal
-	return json.Marshal(v)
-}
-
-// Decode unmarshals JSON bytes into a value.
-func (JSONCodec) Decode(data []byte, v any) error {
-	//nolint:wrapcheck // thin wrapper over json.Unmarshal
-	return json.Unmarshal(data, v)
-}
+//
+// Deprecated: Use [codec.JSONCodec] instead. This is a type alias kept for backward compatibility.
+type JSONCodec = codec.JSONCodec
 
 // DecodePayload decodes an event's payload bytes into a typed value using
 // the provided codec. This is the standard way to deserialize event data
 // in event handlers and projectors.
-func DecodePayload[T any](evt Event, codec Codec) (T, error) {
+//
+// Returns a rejection error if the codec's encoding does not match the event's
+// declared encoding (when both are non-empty and differ).
+func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 	var zero T
+
+	if err := validateEncodingMatch(evt, c); err != nil {
+		return zero, err
+	}
 
 	payload := evt.Payload()
 	if len(payload) == 0 {
@@ -43,7 +37,7 @@ func DecodePayload[T any](evt Event, codec Codec) (T, error) {
 
 	var target T
 
-	err := codec.Decode(payload, &target)
+	err := c.Decode(payload, &target)
 	if err != nil {
 		return zero, WrapCorruption(
 			err,
@@ -57,11 +51,11 @@ func DecodePayload[T any](evt Event, codec Codec) (T, error) {
 
 // DecodePayloads decodes multiple events' payloads into a slice of typed values.
 // Returns an error at the first decode failure, indicating the index.
-func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
+func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 	result := make([]T, 0, len(events))
 
 	for i, evt := range events {
-		v, err := DecodePayload[T](evt, codec)
+		v, err := DecodePayload[T](evt, c)
 		if err != nil {
 			return nil, WrapCorruption(
 				err,
@@ -74,4 +68,22 @@ func DecodePayloads[T any](events []Event, codec Codec) ([]T, error) {
 	}
 
 	return result, nil
+}
+
+func validateEncodingMatch(evt Event, c codec.Codec) error {
+	evtEnc := evt.Encoding()
+	if evtEnc == "" || evtEnc == codec.EncodingJSON {
+		return nil
+	}
+
+	codecEnc := c.Encoding()
+	if codecEnc != evtEnc {
+		return WrapRejection(
+			fmt.Errorf("event encoding %q does not match codec encoding %q", evtEnc, codecEnc),
+			"event.encoding_mismatch",
+			"decode payload for event "+string(evt.Type()),
+		)
+	}
+
+	return nil
 }
