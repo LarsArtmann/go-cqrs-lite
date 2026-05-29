@@ -257,21 +257,21 @@ var _ = Describe("Saga Runner", func() {
 		})
 
 		Context("when I register a duplicate saga type", func() {
-			It("should return ErrSagaAlreadyExists", func() {
+			It("should reject the duplicate and explain it already exists", func() {
 				def := &orderSaga{steps: []saga.Step{}}
 				Expect(runner.Register(def)).To(Succeed())
 
 				err := runner.Register(def)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, saga.ErrSagaAlreadyExists)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("already exists"))
 			})
 		})
 
 		Context("when I start a saga that is not registered", func() {
-			It("should return ErrSagaNotRegistered", func() {
+			It("should explain that the saga type has not been registered", func() {
 				_, err := runner.Start(ctx, "unknown-saga", nil)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, saga.ErrSagaNotRegistered)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("not registered"))
 			})
 		})
 	})

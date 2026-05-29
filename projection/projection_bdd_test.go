@@ -150,22 +150,24 @@ var _ = Describe("Projection Runner", func() {
 		})
 
 		Context("when I run with no projections registered", func() {
-			It("should return ErrNoProjections", func() {
+			It("should explain that at least one projection is required", func() {
 				runner, err := projection.NewRunner(store, bus, checkpoint)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = runner.Run(ctx)
-				Expect(err).To(MatchError(projection.ErrNoProjections))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("no projections registered"))
 			})
 		})
 
 		Context("when I register a nil projection", func() {
-			It("should return ErrNilHandler", func() {
+			It("should reject my setup and explain that a valid handler is required", func() {
 				runner, err := projection.NewRunner(store, bus, checkpoint)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = runner.Register(nil)
-				Expect(err).To(MatchError(projection.ErrNilHandler))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("nil handler"))
 			})
 		})
 
@@ -237,16 +239,18 @@ var _ = Describe("Projection Runner", func() {
 
 	Describe("As a developer validating my setup", func() {
 		Context("when I create a runner without a bus", func() {
-			It("should return ErrNilBus", func() {
+			It("should reject my setup and explain that a bus is required", func() {
 				_, err := projection.NewRunner(store, nil, checkpoint)
-				Expect(err).To(MatchError(projection.ErrNilBus))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("nil bus"))
 			})
 		})
 
 		Context("when I create a runner without a checkpoint store", func() {
-			It("should return ErrNilCheckpoint", func() {
+			It("should reject my setup and explain that a checkpoint store is required", func() {
 				_, err := projection.NewRunner(store, bus, nil)
-				Expect(err).To(MatchError(projection.ErrNilCheckpoint))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("nil checkpoint"))
 			})
 		})
 

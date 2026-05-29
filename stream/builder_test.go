@@ -2,8 +2,12 @@ package stream_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
@@ -81,4 +85,69 @@ func (s *stubReader) ListWithStatus(
 	}
 
 	return &stream.Page[stream.AggregateStatus]{}, nil
+}
+
+func TestTombstonePolicy_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		policy stream.TombstonePolicy
+		want   string
+	}{
+		{stream.TombstoneExclude, "exclude"},
+		{stream.TombstoneInclude, "include"},
+		{stream.TombstoneOnly, "only"},
+		{stream.TombstonePolicy(99), "TombstonePolicy(99)"},
+	}
+
+	for _, tt := range tests {
+		got := tt.policy.String()
+		if got != tt.want {
+			t.Errorf("TombstonePolicy(%d).String() = %q, want %q", tt.policy, got, tt.want)
+		}
+	}
+}
+
+func TestAggregateStatus_MarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	ts := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+	aggID := id.NewAggregateID()
+
+	status := stream.AggregateStatus{
+		Ref: stream.AggregateRef{
+			ID:          aggID,
+			Type:        event.AggregateType("User"),
+			Version:     event.Version(3),
+			EventCount:  3,
+			LastEventAt: ts,
+		},
+		Status: event.TombstoneActive,
+	}
+
+	data, err := json.Marshal(status)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatal(err)
+	}
+
+	if result["type"] != "User" {
+		t.Errorf("type = %v, want User", result["type"])
+	}
+
+	if result["status"] != "active" {
+		t.Errorf("status = %v, want active", result["status"])
+	}
+
+	if result["version"] != float64(3) {
+		t.Errorf("version = %v, want 3", result["version"])
+	}
+
+	if result["event_count"] != float64(3) {
+		t.Errorf("event_count = %v, want 3", result["event_count"])
+	}
 }
