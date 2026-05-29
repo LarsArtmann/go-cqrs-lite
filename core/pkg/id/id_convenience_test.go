@@ -3,6 +3,7 @@ package id
 import (
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -287,13 +288,7 @@ func TestMustParseConvenienceFuncs_Panic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			defer func() {
-				if r := recover(); r == nil {
-					t.Error("expected panic")
-				}
-			}()
-
-			tc.fn()
+			testhelpers.AssertPanics(t, tc.fn)
 		})
 	}
 }

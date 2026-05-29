@@ -104,6 +104,19 @@ func AssertContains(t *testing.T, s, substr, msg string) {
 	}
 }
 
+// AssertPanics asserts that fn panics.
+func AssertPanics(t *testing.T, fn func()) {
+	t.Helper()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic")
+		}
+	}()
+
+	fn()
+}
+
 // AssertNotContains fails if s contains substr.
 func AssertNotContains(t *testing.T, s, substr, msg string) {
 	t.Helper()

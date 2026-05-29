@@ -22,37 +22,6 @@ func newCommand(id string) catalog.Message {
 	return msg
 }
 
-func withService(t *testing.T, reg *catalog.Registry, svcID catalog.ServiceID, name, version string) {
-	t.Helper()
-	cattest.AddService(t, reg, svcID, name, version)
-}
-
-func withQuery(
-	t *testing.T,
-	reg *catalog.Registry,
-	svcID catalog.ServiceID,
-	msgID catalog.MessageID,
-	name, version, summary string,
-) {
-	t.Helper()
-	cattest.AddService(t, reg, svcID, string(svcID), version)
-	cattest.AddMessageSimple(t, reg, svcID, msgID, name, version, summary, catalog.QueryMessage, reg.AddQuery)
-}
-
-func withMessage(
-	t *testing.T,
-	reg *catalog.Registry,
-	svcID catalog.ServiceID,
-	msgID catalog.MessageID,
-	name, version, summary string,
-	kind catalog.MessageKind,
-	addFn func(catalog.ServiceID, catalog.Message),
-) {
-	t.Helper()
-	cattest.AddService(t, reg, svcID, string(svcID), version)
-	cattest.AddMessageSimple(t, reg, svcID, msgID, name, version, summary, kind, addFn)
-}
-
 func exportCatalog(t *testing.T, reg *catalog.Registry) string {
 	t.Helper()
 	tmpDir := t.TempDir()
@@ -207,7 +176,7 @@ func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	withQuery(t, reg, catalog.ServiceID("catalog-svc"), catalog.MessageID("GetProduct"), "GetProduct", "1.0.0", "")
+	cattest.AddServiceWithQuery(t, reg, catalog.ServiceID("catalog-svc"), catalog.MessageID("GetProduct"), "GetProduct", "1.0.0", "")
 
 	tmpDir := exportCatalog(t, reg)
 
@@ -430,7 +399,15 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 	})
-	withQuery(t, reg, catalog.ServiceID("order-svc"), catalog.MessageID("GetOrder"), "GetOrder", "1.0.0", "")
+	cattest.AddServiceWithQuery(
+		t,
+		reg,
+		catalog.ServiceID("order-svc"),
+		catalog.MessageID("GetOrder"),
+		"GetOrder",
+		"1.0.0",
+		"",
+	)
 
 	tmpDir := exportCatalog(t, reg)
 

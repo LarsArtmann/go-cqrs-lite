@@ -171,7 +171,15 @@ func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
-	cattest.AddServiceWithQuery(t, reg, catalog.ServiceID("catalog-svc"), catalog.MessageID("GetProduct"), "GetProduct", "1.0.0", "Get product details")
+	cattest.AddServiceWithQuery(
+		t,
+		reg,
+		catalog.ServiceID("catalog-svc"),
+		catalog.MessageID("GetProduct"),
+		"GetProduct",
+		"1.0.0",
+		"Get product details",
+	)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Catalog Service", "1.0.0")

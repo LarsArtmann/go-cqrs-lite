@@ -15,6 +15,23 @@ import (
 	wm "github.com/larsartmann/go-cqrs-lite/watermill"
 )
 
+func TestPublisherAdapter_PublishFails(t *testing.T) {
+	t.Parallel()
+
+	bus := testhelpers.NewFakeBus()
+	bus.PublishErr = errors.New("publish failed")
+	publisher := wm.NewPublisherAdapter(bus)
+
+	msg := message.NewMessage("test-id", []byte(`{}`))
+	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_type", "User")
+	msg.Metadata.Set("version", "1")
+
+	if err := publisher.Publish("user.created", msg); err == nil {
+		t.Error("expected error for failing publisher")
+	}
+}
+
 func TestMessageToEvent_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
@@ -113,30 +130,25 @@ func TestMessageToEvent_NoCustomMetadata(t *testing.T) {
 		t.Fatalf("publish: %v", err)
 	}
 
+	receiveMessageWithTimeout(t, msgCh, "user.created", nil)
+}
+
+func receiveMessageWithTimeout(
+	t *testing.T,
+	msgCh <-chan *message.Message,
+	expectedEventType string,
+	assertions func(*message.Message),
+) {
 	select {
 	case received := <-msgCh:
-		if received.Metadata.Get("event_type") != "user.created" {
-			t.Errorf("event_type = %q", received.Metadata.Get("event_type"))
+		if received.Metadata.Get("event_type") != expectedEventType {
+			t.Errorf("event_type = %q, want %q", received.Metadata.Get("event_type"), expectedEventType)
+		}
+		if assertions != nil {
+			assertions(received)
 		}
 	case <-time.After(time.Second):
 		t.Fatal("timeout waiting for message")
-	}
-}
-
-func TestPublisherAdapter_PublishFails(t *testing.T) {
-	t.Parallel()
-
-	bus := testhelpers.NewFakeBus()
-	bus.PublishErr = errors.New("publish failed")
-	publisher := wm.NewPublisherAdapter(bus)
-
-	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
-	msg.Metadata.Set("aggregate_type", "User")
-	msg.Metadata.Set("version", "1")
-
-	if err := publisher.Publish("user.created", msg); err == nil {
-		t.Error("expected error for failing publisher")
 	}
 }
 

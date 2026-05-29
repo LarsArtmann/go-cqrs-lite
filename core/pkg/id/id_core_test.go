@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -99,13 +100,7 @@ func TestMustParse(t *testing.T) {
 	t.Run("empty string panics", func(t *testing.T) {
 		t.Parallel()
 
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("MustParse() should panic on empty string")
-			}
-		}()
-
-		_ = MustParse[AggregateID]("")
+		testhelpers.AssertPanics(t, func() { _ = MustParse[AggregateID]("") })
 	})
 }
 

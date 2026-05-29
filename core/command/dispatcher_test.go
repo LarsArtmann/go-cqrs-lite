@@ -41,26 +41,14 @@ func TestNew_ZeroAggregateID(t *testing.T) {
 func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for empty command type")
-		}
-	}()
-
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	_ = command.MustNew("", aggID)
+	testhelpers.AssertPanics(t, func() { _ = command.MustNew("", aggID) })
 }
 
 func TestMustNew_PanicsOnZeroAggregateID(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for zero aggregate ID")
-		}
-	}()
-
-	_ = command.MustNew("CreateUser", id.AggregateID{})
+	testhelpers.AssertPanics(t, func() { _ = command.MustNew("CreateUser", id.AggregateID{}) })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
