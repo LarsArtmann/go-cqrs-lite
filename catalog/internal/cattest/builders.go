@@ -194,3 +194,29 @@ func AddQuerySimple(
 
 	return r
 }
+
+func AddServiceWithQuery(
+	tb testing.TB,
+	r *catalog.Registry,
+	serviceID catalog.ServiceID,
+	messageID catalog.MessageID,
+	name, version, summary string,
+) *catalog.Registry {
+	tb.Helper()
+
+	AddService(tb, r, serviceID, string(serviceID), version)
+	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
+}
+
+func AddServiceWithCommand(
+	tb testing.TB,
+	r *catalog.Registry,
+	serviceID catalog.ServiceID,
+	messageID catalog.MessageID,
+	name, version, summary string,
+) *catalog.Registry {
+	tb.Helper()
+
+	AddService(tb, r, serviceID, string(serviceID), version)
+	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.CommandMessage, r.AddCommand)
+}

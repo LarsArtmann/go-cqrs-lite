@@ -161,14 +161,6 @@ type TransactionalSink interface {
 //
 // Deprecated: use TransactionalSink instead.
 type TransactionalStore interface {
-	Store
-
-	// SaveWithOutbox atomically persists events and appends them to the outbox.
-	SaveWithOutbox(
-		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
-		events []Event,
-		expectedVersion Version,
-	) error
+	TransactionalSink
+	EventSource
 }

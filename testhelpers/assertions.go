@@ -49,22 +49,23 @@ func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
 	}
 }
 
-// AssertLen asserts that the slice has the expected length.
-func AssertLen[T any](t *testing.T, name string, slice []T, want int) {
+// assertSliceLen is a shared helper for AssertLen and AssertLenFatal.
+func assertSliceLen[T any](t *testing.T, name string, slice []T, want int, fail func(string, ...any)) {
 	t.Helper()
 
 	if len(slice) != want {
-		t.Errorf("%s = %d, want %d", name, len(slice), want)
+		fail("%s = %d, want %d", name, len(slice), want)
 	}
+}
+
+// AssertLen asserts that the slice has the expected length.
+func AssertLen[T any](t *testing.T, name string, slice []T, want int) {
+	assertSliceLen(t, name, slice, want, t.Errorf)
 }
 
 // AssertLenFatal asserts that the slice has the expected length, fataling on mismatch.
 func AssertLenFatal[T any](t *testing.T, name string, slice []T, want int) {
-	t.Helper()
-
-	if len(slice) != want {
-		t.Fatalf("%s = %d, want %d", name, len(slice), want)
-	}
+	assertSliceLen(t, name, slice, want, t.Fatalf)
 }
 
 // AssertNoError fails if err is not nil.

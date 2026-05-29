@@ -160,6 +160,19 @@ func (s *SQLEventStore) AppendBatch(
 }
 
 func (s *SQLEventStore) wrapInsertEventsErr(
+	span trace.Span,
+	err error,
+	events []event.Event,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) error {
+	cqrsotel.RecordError(span, err)
+
+	return event.WrapInfrastructure(err, "storage.insert_events",
+		fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
+}
+
+func (s *SQLEventStore) checkVersion(
 	ctx context.Context,
 	tx *sql.Tx,
 	aggregateType event.AggregateType,

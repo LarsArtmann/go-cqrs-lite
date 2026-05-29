@@ -144,15 +144,12 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 	}
 }
 
-// queryHandler is a plain query handler function.
-type queryHandler = func(context.Context, query.Query) (any, error)
-
 // QueryMiddleware creates middleware that tracks call order for query handlers.
 func QueryMiddleware(
 	callOrder *[]string,
 	name string,
-) func(h func(context.Context, query.Query) (any, error)) queryHandler {
-	return func(h func(context.Context, query.Query) (any, error)) queryHandler {
+) func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)
 
