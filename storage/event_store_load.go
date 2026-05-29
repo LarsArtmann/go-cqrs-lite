@@ -109,7 +109,7 @@ func (s *SQLEventStore) queryEvents(
 ) ([]event.Event, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(
-		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM `+sqlpkg.TableEvents+` WHERE aggregate_type = %s AND aggregate_id = %s %s`,
 		p1,
 		p2,
