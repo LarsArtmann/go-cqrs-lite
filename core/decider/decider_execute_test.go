@@ -176,7 +176,6 @@ func TestExecute_NoEvents(t *testing.T) {
 	}
 }
 
-
 func TestExecute_Concurrent(t *testing.T) {
 	t.Parallel()
 

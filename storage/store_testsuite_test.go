@@ -246,4 +246,3 @@ func testEventStore_MetadataRoundtrip(
 		t.Errorf("Custom[env] = %q, want %q", meta.Custom["env"], customEnv)
 	}
 }
-
