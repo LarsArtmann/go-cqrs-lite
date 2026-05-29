@@ -17,13 +17,22 @@ type Snapshot struct {
 	CreatedAt     time.Time
 }
 
-// SnapshotStore persists and retrieves aggregate snapshots.
-// All implementations must support lifecycle management via io.Closer.
-type SnapshotStore interface {
+// SnapshotSink is the write side of snapshot persistence.
+// Saves and deletes snapshots, never reads.
+type SnapshotSink interface {
 	io.Closer
 
 	// Save persists a snapshot for an aggregate at a specific version.
 	Save(ctx context.Context, snapshot Snapshot) error
+
+	// Delete removes the snapshot for an aggregate.
+	Delete(ctx context.Context, ref AggregateRef) error
+}
+
+// SnapshotSource is the read side of snapshot persistence.
+// Loads snapshots, never writes.
+type SnapshotSource interface {
+	io.Closer
 
 	// Load retrieves the latest snapshot for an aggregate.
 	Load(
@@ -37,7 +46,11 @@ type SnapshotStore interface {
 		ref AggregateRef,
 		version Version,
 	) (*Snapshot, error)
+}
 
-	// Delete removes the snapshot for an aggregate.
-	Delete(ctx context.Context, ref AggregateRef) error
+// SnapshotStore is the composite of SnapshotSink + SnapshotSource.
+// All existing implementations satisfy SnapshotStore.
+type SnapshotStore interface {
+	SnapshotSink
+	SnapshotSource
 }

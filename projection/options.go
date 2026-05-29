@@ -9,10 +9,11 @@ import (
 )
 
 type runnerOptions struct {
-	retryCount int
-	retryDelay time.Duration
-	logger     *slog.Logger
-	deadLetter DeadLetterHandler
+	retryCount  int
+	retryDelay  time.Duration
+	logger      *slog.Logger
+	deadLetter  DeadLetterHandler
+	parallelism int
 }
 
 // DeadLetterHandler is called when a projection handler fails after all retries are exhausted.
@@ -44,5 +45,14 @@ func WithLogger(logger *slog.Logger) RunnerOption {
 func WithDeadLetterHandler(h DeadLetterHandler) RunnerOption {
 	return func(o *runnerOptions) {
 		o.deadLetter = h
+	}
+}
+
+// WithParallelism sets the maximum number of projections that can process an
+// event concurrently. A value of 0 or 1 (default) means sequential processing.
+// Use values > 1 when projections are independent and I/O-bound.
+func WithParallelism(n int) RunnerOption {
+	return func(o *runnerOptions) {
+		o.parallelism = n
 	}
 }

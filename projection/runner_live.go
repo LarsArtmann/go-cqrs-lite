@@ -3,6 +3,7 @@ package projection
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -27,24 +28,62 @@ func (r *Runner) subscribeLive(ctx context.Context) error {
 }
 
 func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
+	var candidates []event.Projection
+
 	for _, p := range r.projections {
-		if !subscribesTo(p, evt.Type()) {
-			continue
+		if subscribesTo(p, evt.Type()) {
+			candidates = append(candidates, p)
 		}
+	}
 
-		err := r.handleWithRetry(ctx, p, evt)
-		if err != nil {
-			r.logger.ErrorContext(
-				ctx, "projection handler failed",
-				"projection", p.Name(),
-				"event_id", evt.ID(),
-				"event_type", evt.Type(),
-				"error", err,
-			)
+	if len(candidates) == 0 {
+		return
+	}
 
-			if r.opts.deadLetter != nil {
-				r.opts.deadLetter(ctx, p.Name(), evt, err)
-			}
+	if r.opts.parallelism > 1 {
+		r.dispatchParallel(ctx, evt, candidates)
+
+		return
+	}
+
+	for _, p := range candidates {
+		r.dispatchOne(ctx, p, evt)
+	}
+}
+
+func (r *Runner) dispatchParallel(ctx context.Context, evt event.Event, projections []event.Projection) {
+	sem := make(chan struct{}, r.opts.parallelism)
+	var wg sync.WaitGroup
+
+	for _, p := range projections {
+		wg.Add(1)
+
+		go func(p event.Projection) {
+			defer wg.Done()
+
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			r.dispatchOne(ctx, p, evt)
+		}(p)
+	}
+
+	wg.Wait()
+}
+
+func (r *Runner) dispatchOne(ctx context.Context, p event.Projection, evt event.Event) {
+	err := r.handleWithRetry(ctx, p, evt)
+	if err != nil {
+		r.logger.ErrorContext(
+			ctx, "projection handler failed",
+			"projection", p.Name(),
+			"event_id", evt.ID(),
+			"event_type", evt.Type(),
+			"error", err,
+		)
+
+		if r.opts.deadLetter != nil {
+			r.opts.deadLetter(ctx, p.Name(), evt, err)
 		}
 	}
 }

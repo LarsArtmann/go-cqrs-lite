@@ -24,18 +24,27 @@ func (c Checkpoint) String() string {
 	return c.EventID.String()
 }
 
-// CheckpointStore tracks the last processed event position for projections.
-// Each projection maintains its own checkpoint, enabling independent
-// recovery and replay.
-// All implementations must support lifecycle management via io.Closer.
-type CheckpointStore interface {
+// CheckpointSink is the write side of checkpoint persistence.
+type CheckpointSink interface {
+	io.Closer
+
+	// Save persists the checkpoint for a projection.
+	// ProcessedAt should record when the event was successfully handled.
+	Save(ctx context.Context, projectionName string, cp Checkpoint) error
+}
+
+// CheckpointSource is the read side of checkpoint persistence.
+type CheckpointSource interface {
 	io.Closer
 
 	// Load returns the last checkpoint for a projection.
 	// Returns a zero-value Checkpoint if no checkpoint exists.
 	Load(ctx context.Context, projectionName string) (Checkpoint, error)
+}
 
-	// Save persists the checkpoint for a projection.
-	// ProcessedAt should record when the event was successfully handled.
-	Save(ctx context.Context, projectionName string, cp Checkpoint) error
+// CheckpointStore is the composite of CheckpointSink + CheckpointSource.
+// All existing implementations satisfy CheckpointStore.
+type CheckpointStore interface {
+	CheckpointSink
+	CheckpointSource
 }

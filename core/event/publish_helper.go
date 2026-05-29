@@ -41,13 +41,13 @@ func PublishChanges(
 // The caller is responsible for encoding the state before calling.
 func SaveSnapshot(
 	ctx context.Context,
-	store SnapshotStore,
+	sink SnapshotSink,
 	aggType AggregateType,
 	aggID id.AggregateID,
 	version Version,
 	state []byte,
 ) error {
-	err := store.Save(ctx, Snapshot{
+	err := sink.Save(ctx, Snapshot{
 		AggregateID:   aggID,
 		AggregateType: aggType,
 		Version:       version,

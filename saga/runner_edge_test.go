@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
+	"github.com/larsartmann/go-cqrs-lite/saga/sagatest"
 )
 
 func TestRunner_ConcurrentInstances(t *testing.T) {
@@ -118,8 +118,8 @@ func TestRunner_ExecuteStep_HydrateUnregisteredSagaType(t *testing.T) {
 	runner := saga.NewRunner(store, nopDispatcher{})
 
 	ctx := context.Background()
-	state := testhelpers.NewSagaState("unknown-saga", saga.StatusRunning, 0, "")
-	testhelpers.SaveSagaState(t, ctx, store, state)
+	state := sagatest.NewSagaState("unknown-saga", saga.StatusRunning, 0, "")
+	sagatest.SaveSagaState(t, ctx, store, state)
 
 	err := runner.ExecuteStep(ctx, state.ID)
 	if err == nil {

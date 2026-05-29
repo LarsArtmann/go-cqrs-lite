@@ -102,4 +102,8 @@ func (s *FakeSnapshotStore) Delete(
 // Close is a no-op for testing.
 func (s *FakeSnapshotStore) Close() error { return nil }
 
-var _ event.SnapshotStore = (*FakeSnapshotStore)(nil)
+var (
+	_ event.SnapshotSink   = (*FakeSnapshotStore)(nil)
+	_ event.SnapshotSource = (*FakeSnapshotStore)(nil)
+	_ event.SnapshotStore  = (*FakeSnapshotStore)(nil)
+)

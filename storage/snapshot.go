@@ -243,4 +243,8 @@ func (s *SQLSnapshotStore) Delete(
 	)
 }
 
-var _ event.SnapshotStore = (*SQLSnapshotStore)(nil)
+var (
+	_ event.SnapshotSink   = (*SQLSnapshotStore)(nil)
+	_ event.SnapshotSource = (*SQLSnapshotStore)(nil)
+	_ event.SnapshotStore  = (*SQLSnapshotStore)(nil)
+)

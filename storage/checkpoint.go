@@ -101,4 +101,8 @@ func (s *SQLCheckpointStore) startSpan(
 	)
 }
 
-var _ event.CheckpointStore = (*SQLCheckpointStore)(nil)
+var (
+	_ event.CheckpointSink   = (*SQLCheckpointStore)(nil)
+	_ event.CheckpointSource = (*SQLCheckpointStore)(nil)
+	_ event.CheckpointStore  = (*SQLCheckpointStore)(nil)
+)

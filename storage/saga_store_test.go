@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/saga/sagatest"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -54,13 +55,13 @@ func TestSQLSagaStore_Save_Success(t *testing.T) {
 	store, mock := newTestSagaStore(t)
 	ctx := context.Background()
 
-	state := testhelpers.NewSagaState("order", saga.StatusRunning, 1, "")
+	state := sagatest.NewSagaState("order", saga.StatusRunning, 1, "")
 
 	mock.ExpectExec("INSERT INTO sagas").
 		WithArgs(state.ID.String(), state.SagaType, string(state.Status), state.CurrentStep, state.ErrMsg, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	testhelpers.SaveSagaState(t, ctx, store, state)
+	sagatest.SaveSagaState(t, ctx, store, state)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("expectations: %v", err)

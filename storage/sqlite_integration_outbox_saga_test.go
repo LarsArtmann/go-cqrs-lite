@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/saga/sagatest"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -87,9 +88,9 @@ func TestSQLiteSagaStore_SaveAndLoad(t *testing.T) {
 	store := newSQLiteTestSagaStore(t)
 	ctx := context.Background()
 
-	state := testhelpers.NewSagaState("order", saga.StatusRunning, 2, "test error")
+	state := sagatest.NewSagaState("order", saga.StatusRunning, 2, "test error")
 
-	testhelpers.SaveSagaState(t, ctx, store, state)
+	sagatest.SaveSagaState(t, ctx, store, state)
 
 	loaded, err := store.Load(ctx, state.ID)
 	if err != nil {
@@ -131,8 +132,8 @@ func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
 	store := newSQLiteTestSagaStore(t)
 	ctx := context.Background()
 
-	running := testhelpers.NewSagaState("order", saga.StatusRunning, 1, "")
-	testhelpers.SaveSagaState(t, ctx, store, running)
+	running := sagatest.NewSagaState("order", saga.StatusRunning, 1, "")
+	sagatest.SaveSagaState(t, ctx, store, running)
 
 	completed := &saga.State{
 		ID:          id.NewAggregateID(),
@@ -142,7 +143,7 @@ func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-	testhelpers.SaveSagaState(t, ctx, store, completed)
+	sagatest.SaveSagaState(t, ctx, store, completed)
 
 	compensating := &saga.State{
 		ID:          id.NewAggregateID(),
@@ -181,13 +182,13 @@ func TestSQLiteSagaStore_Save_Upsert(t *testing.T) {
 		UpdatedAt:   time.Now(),
 	}
 
-	testhelpers.SaveSagaState(t, ctx, store, state)
+	sagatest.SaveSagaState(t, ctx, store, state)
 
 	state.Status = saga.StatusRunning
 	state.CurrentStep = 1
 	state.UpdatedAt = time.Now()
 
-	testhelpers.SaveSagaState(t, ctx, store, state)
+	sagatest.SaveSagaState(t, ctx, store, state)
 
 	loaded, err := store.Load(ctx, state.ID)
 	if err != nil {

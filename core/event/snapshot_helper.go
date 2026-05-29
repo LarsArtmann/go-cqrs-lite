@@ -7,13 +7,13 @@ import "github.com/larsartmann/go-cqrs-lite/codec"
 // the aggregate's current type and version.
 func ShouldSnapshot(
 	strategy SnapshotStrategy,
-	snapshotStore SnapshotStore,
+	sink SnapshotSink,
 	c codec.Codec,
 	aggType AggregateType,
 	version Version,
 ) bool {
 	return strategy != nil &&
-		snapshotStore != nil &&
+		sink != nil &&
 		c != nil &&
 		strategy.ShouldSnapshot(aggType, version)
 }

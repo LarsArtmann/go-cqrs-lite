@@ -17,7 +17,11 @@ type MemorySnapshotStore struct {
 	snapshots map[string]*event.Snapshot
 }
 
-var _ event.SnapshotStore = (*MemorySnapshotStore)(nil)
+var (
+	_ event.SnapshotSink   = (*MemorySnapshotStore)(nil)
+	_ event.SnapshotSource = (*MemorySnapshotStore)(nil)
+	_ event.SnapshotStore  = (*MemorySnapshotStore)(nil)
+)
 
 // NewMemorySnapshotStore creates a new in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
@@ -152,3 +156,9 @@ func (s *MemorySnapshotStore) Delete(
 func (s *MemorySnapshotStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
 }
+
+var (
+	_ event.SnapshotSink   = (*MemorySnapshotStore)(nil)
+	_ event.SnapshotSource = (*MemorySnapshotStore)(nil)
+	_ event.SnapshotStore  = (*MemorySnapshotStore)(nil)
+)

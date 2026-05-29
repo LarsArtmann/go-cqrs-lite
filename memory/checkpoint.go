@@ -52,4 +52,8 @@ func (s *MemoryCheckpointStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
 }
 
-var _ event.CheckpointStore = (*MemoryCheckpointStore)(nil)
+var (
+	_ event.CheckpointSink   = (*MemoryCheckpointStore)(nil)
+	_ event.CheckpointSource = (*MemoryCheckpointStore)(nil)
+	_ event.CheckpointStore  = (*MemoryCheckpointStore)(nil)
+)

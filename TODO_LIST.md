@@ -146,7 +146,7 @@
 - [x] ~~Add command metadata~~ — DONE (Metadata struct + WithCorrelationID/CausationID/UserID/RequestID options)
 - [x] ~~Add ClientID branded type and WithClientID option~~ — DONE
 - [x] ~~Add PublishedAt to OutboxEntry~~ — DONE (CreatedAt time.Time field added to OutboxEntry, populated by memory+SQL implementations)
-- [ ] Add ProcessedAt to CheckpointStore — store (EventID, time.Time) not just EventID (source: OFFLINE_FIRST)
+- [x] ~~Add ProcessedAt to CheckpointStore~~ — DONE (event.Checkpoint struct with EventID + ProcessedAt, memory/SQL/storage/projection all updated)
 - [FUTURE] Add ServerReceivedAt and ServerStoredAt server-side timestamps (source: OFFLINE_FIRST)
 - [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
 - [x] ~~Add ContextEnricher wiring to repositories~~ — DONE (Session 112c, event.ContextEnricher + WithEnricher on Repository)
@@ -230,14 +230,14 @@
 - [x] ~~Split `multisig_test.go` (1338L → focused files)~~ — DONE (Session 119)
 - [x] ~~Add cross-module signing integration test~~ — DONE (Session 122, `integration/signing/signing_integration_test.go`)
 - [BLOCKED] Push signing v1.0.0 tag — code ready, needs tag + push
-- [ ] Add WithAsyncWrites() option for PebbleEventStore (source: SESSION_74)
+- [x] ~~Add WithAsyncWrites() option for PebbleEventStore~~ — DONE (StoreOption + WithAsyncWrites() disables pebble.Sync on commit)
 - [FUTURE] Add bi-temporal support: ValidAt, WithValidAt, LoadToValidTime (source: TIME_TRAVEL)
 - [x] ~~Add Upcaster interface + UpcasterRegistry~~ — DONE
 - [x] ~~Add UpcasterRegistry cycle detection~~ — DONE
 - [v2] Split event.Store into Writer/Reader/Deleter (source: SESSION13)
 - [x] ~~Add DecodePayloads batch decode helper~~ — DONE
 - [v2] Make event Core truly immutable (source: PROJECT_REVIEW)
-- [ ] Add projection parallel processing — goroutine pool (source: SESSION17)
+- [x] ~~Add projection parallel processing~~ — DONE (WithParallelism(n) option, semaphore-bounded goroutine pool, race-tested)
 - [x] ~~Add projection rebuild/reset API~~ — DONE (Runner.Reset(ctx, projectionName) clears checkpoint)
 - [x] ~~Add HandleBatch(ctx, []Event) error to projections~~ — DONE (event.BatchProjection optional interface)
 - [FUTURE] Absorb projection/ module into core/event (source: SESSION_77)
