@@ -76,7 +76,19 @@ func (b *Backend) Batch(_ context.Context, fn func(store.Transaction) error) err
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	return fn(&memTx{data: b.data})
+	snapshot := make(map[string][]byte, len(b.data))
+	for k, v := range b.data {
+		snapshot[k] = v
+	}
+
+	tx := &memTx{data: b.data}
+
+	if err := fn(tx); err != nil {
+		b.data = snapshot
+		return err
+	}
+
+	return nil
 }
 
 func (b *Backend) Close() error { return nil }

@@ -3,7 +3,6 @@ package pebble
 import (
 	"context"
 	"errors"
-	"slices"
 
 	pebbledb "github.com/cockroachdb/pebble"
 
@@ -69,7 +68,7 @@ func (b *Backend) Scan(_ context.Context, prefix []byte) (store.Iterator, error)
 }
 
 func (b *Backend) Batch(_ context.Context, fn func(store.Transaction) error) error {
-	batch := b.db.NewBatch()
+	batch := b.db.NewIndexedBatch()
 	defer batch.Close()
 
 	tx := &pebbleTx{batch: batch}
@@ -82,13 +81,7 @@ func (b *Backend) Batch(_ context.Context, fn func(store.Transaction) error) err
 	return batch.Commit(b.syncOpt)
 }
 
-func (b *Backend) Close() error {
-	if b.db != nil {
-		return b.db.Close()
-	}
-
-	return nil
-}
+func (b *Backend) Close() error { return nil }
 
 var _ store.Backend = (*Backend)(nil)
 
@@ -96,9 +89,9 @@ func successor(prefix []byte) []byte {
 	ub := make([]byte, len(prefix))
 	copy(ub, prefix)
 
-	for _, v := range slices.Backward(ub) {
-		v++
-		if v != 0 {
+	for i := len(ub) - 1; i >= 0; i-- {
+		ub[i]++
+		if ub[i] != 0 {
 			return ub
 		}
 	}
