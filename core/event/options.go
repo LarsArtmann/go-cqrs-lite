@@ -122,6 +122,13 @@ func WithEncoding(v codec.Encoding) Option {
 	return func(e *ImmutableEvent) { e.encoding = v }
 }
 
+// WithNewCodec sets the codec used by [New] to marshal typed payloads.
+// The codec's encoding is auto-stamped on the resulting event.
+// Has no effect when used with [NewEvent] (which accepts pre-marshaled []byte).
+func WithNewCodec(c codec.Codec) Option {
+	return func(e *ImmutableEvent) { e.newCodec = c }
+}
+
 // WithClock sets the clock function used to determine OccurredAt.
 // Override for deterministic testing. Without this option, events use time.Now.
 func WithClock(clock Clock) Option {

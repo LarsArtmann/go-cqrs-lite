@@ -274,7 +274,8 @@ func TestDecodePayload_EncodingMismatch(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+	evt, err := event.NewEvent(
+		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
 		event.WithEncoding(codecpkg.Encoding("protobuf")),
 	)
 	if err != nil {
@@ -292,7 +293,8 @@ func TestDecodePayload_EncodingMatch(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+	evt, err := event.NewEvent(
+		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
 		event.WithEncoding(codecpkg.EncodingJSON),
 	)
 	if err != nil {

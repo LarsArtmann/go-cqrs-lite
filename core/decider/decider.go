@@ -101,7 +101,7 @@ func (r *Repository[State]) Execute(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		trace.SpanKindInternal,
-		trace.WithAttributes(aggregateAttrs(string(aggType), aggID.String())...),
+		trace.WithAttributes(aggregateAttrs(string(aggType), aggID)...),
 	)
 	defer span.End()
 
@@ -205,7 +205,7 @@ func (r *Repository[State]) Load(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
 		trace.SpanKindInternal,
-		trace.WithAttributes(aggregateAttrs(string(aggType), aggID.String())...),
+		trace.WithAttributes(aggregateAttrs(string(aggType), aggID)...),
 	)
 	defer span.End()
 

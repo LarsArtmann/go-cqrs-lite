@@ -1,6 +1,10 @@
 package otel
 
-import "go.opentelemetry.io/otel/attribute"
+import (
+	"fmt"
+
+	"go.opentelemetry.io/otel/attribute"
+)
 
 // Semantic attribute keys for CQRS telemetry.
 // Follows OpenTelemetry messaging semantic conventions where applicable.
@@ -62,29 +66,29 @@ const (
 )
 
 // AggregateAttrs returns the standard set of aggregate attributes for a span.
-func AggregateAttrs(aggType, aggID string, version int) []attribute.KeyValue {
+func AggregateAttrs(aggType string, aggregateID fmt.Stringer, version int) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrAggregateType, aggType),
-		attribute.String(AttrAggregateID, aggID),
+		attribute.String(AttrAggregateID, aggregateID.String()),
 		attribute.Int(AttrAggregateVersion, version),
 	}
 }
 
 // CommandAttrs returns the standard set of command attributes for a span.
-func CommandAttrs(cmdType, aggID string) []attribute.KeyValue {
+func CommandAttrs(cmdType string, aggregateID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, cmdType),
-		attribute.String(AttrAggregateID, aggID),
+		attribute.String(AttrAggregateID, aggregateID.String()),
 	}
 }
 
 // EventAttrs returns the standard set of event attributes for a span.
-func EventAttrs(evtType, aggID, aggType string) []attribute.KeyValue {
+func EventAttrs(evtType string, aggregateID fmt.Stringer, aggType string) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, evtType),
-		attribute.String(AttrAggregateID, aggID),
+		attribute.String(AttrAggregateID, aggregateID.String()),
 		attribute.String(AttrAggregateType, aggType),
 	}
 }

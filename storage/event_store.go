@@ -76,14 +76,7 @@ func (s *SQLEventStore) Save(
 		return nil
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.save",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
-			aggregateAttrsWithVersion(string(aggregateType), aggregateID.String(), expectedVersion.Int()),
-			attribute.Int(cqrsotel.AttrEventCount, len(events)),
-		)...),
-	)
+	ctx, span := startSaveSpan(ctx, "event.store.save", aggregateType, aggregateID, expectedVersion, len(events))
 	defer span.End()
 
 	tx, err := s.db.BeginTx(ctx, nil)

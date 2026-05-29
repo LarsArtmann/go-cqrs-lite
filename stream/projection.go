@@ -19,7 +19,7 @@ type AggregateProjection struct {
 // The table is created if it does not exist.
 func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
 	if err := validateTablePrefix(tablePrefix); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
 	}
 
 	p := &AggregateProjection{

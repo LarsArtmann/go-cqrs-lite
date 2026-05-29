@@ -25,7 +25,7 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 				trace.WithSpanKind(trace.SpanKindServer),
 				trace.WithAttributes(cqrsotel.CommandAttrs(
 					string(cmd.Type()),
-					cmd.AggregateID().String(),
+					cmd.AggregateID(),
 				)...),
 			)
 			defer span.End()
@@ -53,7 +53,7 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 				trace.WithSpanKind(trace.SpanKindConsumer),
 				trace.WithAttributes(cqrsotel.EventAttrs(
 					string(evt.Type()),
-					evt.AggregateID().String(),
+					evt.AggregateID(),
 					string(evt.AggregateType()),
 				)...),
 			)

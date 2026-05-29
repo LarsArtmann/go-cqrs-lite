@@ -12,6 +12,22 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func benchTestEvent(b *testing.B) (*event.ImmutableEvent, id.AggregateID) {
+	b.Helper()
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type("user.created"), aggID, event.AggregateType("User"),
+		event.Version(1),
+		[]byte(`{"name":"test","email":"test@example.com"}`),
+		event.WithEventID(id.NewEventID()),
+		event.WithCorrelationID(id.NewCorrelationID()),
+	)
+	if err != nil {
+		b.Fatalf("NewEvent: %v", err)
+	}
+	return evt, aggID
+}
+
 func BenchmarkSQLEventStore_Load(b *testing.B) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -97,14 +113,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 }
 
 func BenchmarkPebbleSerialize(b *testing.B) {
-	aggID := id.NewAggregateID()
-	evt, _ := event.NewEvent(
-		event.Type("user.created"), aggID, event.AggregateType("User"),
-		event.Version(1),
-		[]byte(`{"name":"test","email":"test@example.com"}`),
-		event.WithEventID(id.NewEventID()),
-		event.WithCorrelationID(id.NewCorrelationID()),
-	)
+	evt, _ := benchTestEvent(b)
 
 	adapter := &PebbleEventStore{prefix: "test"}
 
@@ -162,14 +171,7 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 }
 
 func BenchmarkPebbleDeserialize(b *testing.B) {
-	aggID := id.NewAggregateID()
-	evt, _ := event.NewEvent(
-		event.Type("user.created"), aggID, event.AggregateType("User"),
-		event.Version(1),
-		[]byte(`{"name":"test","email":"test@example.com"}`),
-		event.WithEventID(id.NewEventID()),
-		event.WithCorrelationID(id.NewCorrelationID()),
-	)
+	evt, _ := benchTestEvent(b)
 
 	adapter := &PebbleEventStore{prefix: "test"}
 	data, _ := adapter.serializeEvent(evt)

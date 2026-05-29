@@ -12,6 +12,13 @@ import (
 
 var errTestProjection = errors.New("projection failed")
 
+func appendingProjection(name string, types []event.Type, handled *[]string) event.Projection {
+	return event.NewProjection(name, func(_ context.Context, evt event.Event) error {
+		*handled = append(*handled, string(evt.Type()))
+		return nil
+	}, types)
+}
+
 func TestInMemoryRunner_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -19,21 +26,12 @@ func TestInMemoryRunner_Handle(t *testing.T) {
 
 	var handled []string
 
-	proj := event.NewProjection(
-		"user-stats",
-		func(_ context.Context, evt event.Event) error {
-			handled = append(handled, string(evt.Type()))
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	)
-
 	runner, err := event.NewInMemoryRunner(checkpoint)
 	if err != nil {
 		t.Fatalf("NewInMemoryRunner: %v", err)
 	}
 
+	proj := appendingProjection("user-stats", []event.Type{"UserCreated"}, &handled)
 	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)
@@ -76,21 +74,12 @@ func TestInMemoryRunner_FiltersByEventType(t *testing.T) {
 
 	var handled []string
 
-	proj := event.NewProjection(
-		"filtered",
-		func(_ context.Context, evt event.Event) error {
-			handled = append(handled, string(evt.Type()))
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	)
-
 	runner, err := event.NewInMemoryRunner(checkpoint)
 	if err != nil {
 		t.Fatalf("NewInMemoryRunner: %v", err)
 	}
 
+	proj := appendingProjection("filtered", []event.Type{"UserCreated"}, &handled)
 	err = runner.Register(proj)
 	if err != nil {
 		t.Fatalf("Register: %v", err)

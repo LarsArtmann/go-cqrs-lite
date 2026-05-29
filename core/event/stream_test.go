@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -158,5 +159,5 @@ func TestStoreStreamAdapter_LoadStream_NotFound(t *testing.T) {
 }
 
 func isAggregateNotFound(err error) bool {
-	return err == event.ErrAggregateNotFound
+	return errors.Is(err, event.ErrAggregateNotFound)
 }

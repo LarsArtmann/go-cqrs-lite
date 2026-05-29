@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"time"
 
@@ -103,7 +104,7 @@ func (s *MemoryStore) getEvents(
 
 	events, exists := s.events[key]
 	if !exists {
-		return nil, event.ErrAggregateNotFound
+		return nil, fmt.Errorf("aggregate %s/%s: %w", aggregateType, aggregateID, event.ErrAggregateNotFound)
 	}
 
 	return events, nil

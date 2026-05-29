@@ -16,6 +16,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+type testStringer string
+
+func (s testStringer) String() string { return string(s) }
+
 func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder) {
 	recorder := tracetest.NewSpanRecorder()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
@@ -142,7 +146,7 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 func TestAggregateAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
 
-	attrs := AggregateAttrs("Order", "order-123", 5)
+	attrs := AggregateAttrs("Order", testStringer("order-123"), 5)
 	require.Equal(t, []attribute.KeyValue{
 		attribute.String(AttrAggregateType, "Order"),
 		attribute.String(AttrAggregateID, "order-123"),
@@ -153,7 +157,7 @@ func TestAggregateAttrs_ReturnsCorrectAttributes(t *testing.T) {
 func TestCommandAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
 
-	attrs := CommandAttrs("CreateOrder", "order-123")
+	attrs := CommandAttrs("CreateOrder", testStringer("order-123"))
 	require.Equal(t, []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, "CreateOrder"),
@@ -164,7 +168,7 @@ func TestCommandAttrs_ReturnsCorrectAttributes(t *testing.T) {
 func TestEventAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
 
-	attrs := EventAttrs("OrderCreated", "order-123", "Order")
+	attrs := EventAttrs("OrderCreated", testStringer("order-123"), "Order")
 	require.Equal(t, []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, "OrderCreated"),

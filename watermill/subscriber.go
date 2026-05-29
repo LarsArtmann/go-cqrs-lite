@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -38,9 +39,9 @@ func (a *SubscriberAdapter) Subscribe(
 		case a.outputCh <- msg:
 			return nil
 		case <-a.closeCh:
-			return event.ErrBusClosed
+			return fmt.Errorf("topic %s: %w", topic, event.ErrBusClosed)
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("topic %s: %w", topic, ctx.Err())
 		}
 	}
 

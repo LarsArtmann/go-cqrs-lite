@@ -8,7 +8,25 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/projection"
 )
+
+func registerChanProjection(
+	t *testing.T,
+	runner *projection.Runner,
+	name string,
+	types []event.Type,
+	handled chan<- string,
+) {
+	t.Helper()
+	err := runner.Register(event.NewProjection(name, func(_ context.Context, evt event.Event) error {
+		handled <- string(evt.Type())
+		return nil
+	}, types))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestRunner_ProcessesLiveEvents(t *testing.T) {
 	t.Parallel()
@@ -17,23 +35,13 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection(
-		"user-proj",
-		func(_ context.Context, evt event.Event) error {
-			handled <- string(evt.Type())
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerChanProjection(t, runner, "user-proj", []event.Type{"UserCreated"}, handled)
 
 	defer startRunner(t, runner, ready)()
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
+	var err error
 	err = bus.Publish(context.Background(), evt)
 	if err != nil {
 		t.Fatal(err)
@@ -105,18 +113,7 @@ func TestRunner_FiltersUnregisteredTypes(t *testing.T) {
 
 	runner, bus, ready := newTestRunnerWithReady(t)
 
-	err := runner.Register(event.NewProjection(
-		"user-proj",
-		func(_ context.Context, evt event.Event) error {
-			handled <- string(evt.Type())
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
+	registerChanProjection(t, runner, "user-proj", []event.Type{"UserCreated"}, handled)
 
 	defer startRunner(t, runner, ready)()
 

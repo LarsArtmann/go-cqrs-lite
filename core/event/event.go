@@ -115,6 +115,7 @@ type ImmutableEvent struct {
 	metadata      *Metadata
 	occurredAt    time.Time
 	clock         Clock
+	newCodec      codec.Codec
 }
 
 var _ Event = (*ImmutableEvent)(nil)

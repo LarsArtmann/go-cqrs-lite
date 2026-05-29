@@ -114,7 +114,7 @@ func collectExports(dir string) ([]string, error) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, dir, nonTestFilter, 0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse dir %s: %w", dir, err)
 	}
 
 	var exports []string

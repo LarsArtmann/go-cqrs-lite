@@ -12,6 +12,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func subscribeTo(t *testing.T, bus *memory.MemoryBus, topic string, received *[]event.Event) {
+	t.Helper()
+	if err := bus.Subscribe(event.Type(topic), func(_ context.Context, evt event.Event) error {
+		*received = append(*received, evt)
+		return nil
+	}); err != nil {
+		t.Fatalf("subscribe: %v", err)
+	}
+}
+
 // TestSigningFullFlow tests the complete signing pipeline across modules:
 //
 //	event.NewEvent -> MultiSigner.Sign -> Bus.Publish (with MultiSignMiddleware)
@@ -47,12 +57,7 @@ func TestSigningFullFlow(t *testing.T) {
 
 	var received []event.Event
 
-	if err := bus.Subscribe("user.created", func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-		return nil
-	}); err != nil {
-		t.Fatalf("subscribe: %v", err)
-	}
+	subscribeTo(t, bus, "user.created", &received)
 
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent(
@@ -134,12 +139,7 @@ func TestSigningTamperDetection(t *testing.T) {
 
 	var received []event.Event
 
-	if err := bus.Subscribe("user.created", func(_ context.Context, evt event.Event) error {
-		received = append(received, evt)
-		return nil
-	}); err != nil {
-		t.Fatalf("subscribe: %v", err)
-	}
+	subscribeTo(t, bus, "user.created", &received)
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent(

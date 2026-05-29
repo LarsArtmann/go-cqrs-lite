@@ -183,7 +183,7 @@ func (s *SQLEventStore) queryEvents(
 	}
 
 	if requireNonEmpty && len(events) == 0 {
-		return nil, event.ErrAggregateNotFound
+		return nil, fmt.Errorf("aggregate %s/%s: %w", aggregateType, aggregateID, event.ErrAggregateNotFound)
 	}
 
 	return events, nil

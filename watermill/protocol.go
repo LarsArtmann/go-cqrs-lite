@@ -1,6 +1,7 @@
 package watermill
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -96,14 +97,14 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("topic %s: parse %s: %w", topic, metaVersion, err)
 	}
 
 	schemaVersion := 1
 	if svStr := md.Get(metaSchemaVersion); svStr != "" {
 		sv, err := parseInt(svStr, metaSchemaVersion)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("topic %s: parse %s: %w", topic, metaSchemaVersion, err)
 		}
 		schemaVersion = sv
 	}

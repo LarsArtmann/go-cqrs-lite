@@ -65,11 +65,13 @@ func (s *SQLEventStore) ReadFrom(
 		events, err := s.loadAllFromStart(ctx, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
+
+			return events, fmt.Errorf("read from start (limit=%d): %w", limit, err)
 		}
 
 		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
 
-		return events, err
+		return events, nil
 	}
 
 	p1 := s.dialect.Placeholder(1)
@@ -110,7 +112,11 @@ func (s *SQLEventStore) ReadFrom(
 
 	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
 
-	return events, scanErr
+	if scanErr != nil {
+		return events, fmt.Errorf("read from position (limit=%d): %w", limit, scanErr)
+	}
+
+	return events, nil
 }
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.

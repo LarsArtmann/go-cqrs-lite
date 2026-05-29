@@ -5,9 +5,6 @@ import (
 	"database/sql"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
@@ -56,13 +53,13 @@ func (s *SQLTransactionalStore) SaveWithOutbox(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.save_with_outbox",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
-			aggregateAttrsWithVersion(string(aggregateType), aggregateID.String(), expectedVersion.Int()),
-			attribute.Int(cqrsotel.AttrEventCount, len(events)),
-		)...),
+	ctx, span := startSaveSpan(
+		ctx,
+		"event.store.save_with_outbox",
+		aggregateType,
+		aggregateID,
+		expectedVersion,
+		len(events),
 	)
 	defer span.End()
 

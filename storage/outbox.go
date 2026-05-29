@@ -143,9 +143,11 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 	entries, err := scanOutboxEntries(rows, o.dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
+		return nil, fmt.Errorf("scan outbox entries (limit=%d): %w", limit, err)
 	}
 
-	return entries, err
+	return entries, nil
 }
 
 // Ack removes outbox entries by their IDs.

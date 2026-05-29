@@ -219,7 +219,7 @@ func (cb *circuitBreaker) execute(
 				"operation", opName, "error", err)
 		}
 
-		return err
+		return fmt.Errorf("circuit breaker open for %s: %w", opName, err)
 	}
 
 	err = fn()
@@ -235,7 +235,7 @@ func (cb *circuitBreaker) execute(
 		cb.recordSuccess()
 	}
 
-	return err
+	return fmt.Errorf("%s: %w", opName, err)
 }
 
 // ErrCircuitBreakerOpen is returned when the circuit breaker is open.
