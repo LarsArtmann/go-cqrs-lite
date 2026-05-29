@@ -15,9 +15,9 @@ func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
-	cp := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
+	checkpoint := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 
-	err := store.Save(ctx, "my-projection", cp)
+	err := store.Save(ctx, "my-projection", checkpoint)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -27,8 +27,8 @@ func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded.EventID != cp.EventID {
-		t.Errorf("Load.EventID = %v, want %v", loaded.EventID, cp.EventID)
+	if loaded.EventID != checkpoint.EventID {
+		t.Errorf("Load.EventID = %v, want %v", loaded.EventID, checkpoint.EventID)
 	}
 }
 

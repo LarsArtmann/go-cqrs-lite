@@ -1,7 +1,14 @@
 # ADR-0004: Saga / Process Manager Module
 
-**Status:** Accepted  
+**Status:** Superseded  
 **Date:** 2026-05-26
+**Superseded:** 2026-05-29
+
+## Supersession
+
+The `saga/` module was removed in session 146 (2026-05-29). Saga-style orchestration is better expressed as an emergent pattern using existing library primitives — projection + command dispatch — rather than a dedicated abstraction. This avoids the framework-like coupling and state management complexity of a standalone saga module.
+
+See `example/saga-pattern/` for the recommended approach.
 
 ## Context
 

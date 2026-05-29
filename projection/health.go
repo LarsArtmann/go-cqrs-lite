@@ -99,7 +99,7 @@ func (r *Runner) DetailedHealthCheck(ctx context.Context) *HealthStatus {
 }
 
 // HealthChecker provides a standardized health check interface.
-// Both projection.Runner and saga.Runner implement this interface.
+// projection.Runner implements this interface.
 type HealthChecker interface {
 	HealthCheck(ctx context.Context) error
 }

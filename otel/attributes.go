@@ -36,15 +36,6 @@ const (
 	// ProjectionName is the name of a projection.
 	AttrProjectionName = "cqrs.projection.name"
 
-	// SagaType is the saga definition type.
-	AttrSagaType = "cqrs.saga.type"
-
-	// SagaStep is the saga step index.
-	AttrSagaStep = "cqrs.saga.step"
-
-	// SagaStepName is the human-readable name of the saga step.
-	AttrSagaStepName = "cqrs.saga.step_name"
-
 	// OutboxEntryCount is the number of entries in an outbox operation.
 	AttrOutboxEntryCount = "cqrs.outbox.entry_count"
 

@@ -49,7 +49,7 @@
 | Example                | Demonstrates                                               |
 | ---------------------- | ---------------------------------------------------------- |
 | `example/user`         | Full CQRS + Event Sourcing with Decider pattern            |
-| `example/stream`       | Aggregate listing, tombstone filtering, cursor pagination  |
+| `example/listing`      | Aggregate listing, tombstone filtering, cursor pagination  |
 | `example/storage`      | SQL-backed event store                                     |
 | `example/projection`   | Projection replay and live subscription                    |
 | `example/saga-pattern` | Saga-style orchestration via projection + command dispatch |
