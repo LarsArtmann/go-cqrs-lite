@@ -23,9 +23,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                  |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                              |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `cqrs-gen` |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `cqrs-gen` |
 | Build     | `nix run .#build`                                                                                                                                                                                                      |
-| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./stream/... ./watermill/... ./pebble/... ./codec/... -count=1` |
+| Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                       |
 | Format    | `nix fmt`                                                                                                                                                                                                              |
 | Dev shell | `nix develop`                                                                                                                                                                                                          |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 22 modules:
+Multi-module Go workspace (`go.work`) with 21 modules:
 
 ```
 go-cqrs-lite/
@@ -51,9 +51,6 @@ go-cqrs-lite/
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
-├── saga/                # Runner, Definition, Step, Instance, State, Store, compensation
-│   └── sagatest/        # Test helpers: NewSagaState, SaveSagaState
-│   └── sagatest/        # Test helpers: NewSagaState, SaveSagaState
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLOutbox, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── stream/              # Aggregate listing, tombstone detection, StatusMiddleware, SQL/projection readers
@@ -150,17 +147,17 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                                                     |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, core, storage, middleware, projection, saga) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, core, storage, middleware, projection) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                                  |
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
 **Module Graph**: otel→go.opentelemetry.io/otel; core→otel+codec (prod), memory+testhelpers (test-only); testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
-catalog→core; storage→core+otel+saga+testhelpers; projection→core+otel+memory+testhelpers; signing→core+testhelpers; saga→core+otel+testhelpers (+sagatest sub-package); listing→core+memory; watermill→core;
+catalog→core; storage→core+otel+testhelpers; projection→core+otel+memory+testhelpers; signing→core+testhelpers; listing→core+memory; watermill→core;
 pebble→core+codec+otel+testhelpers; codec (leaf); turso→storage; cmd/cqrs-gen→core;
 integration→core+memory+testhelpers.
 
-**Key coupling fix**: `testhelpers` no longer depends on `saga` (moved to `saga/sagatest`). See `docs/modularization/PROPOSAL.md`.
+> **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
 
 **Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote. Both `replace` and `go.work` are needed — replace for `GOWORK=off` per-module CI, go.work for developer convenience.
 

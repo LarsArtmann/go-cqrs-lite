@@ -64,6 +64,7 @@
 
           examplePaths = builtins.concatStringsSep " " [
             "./example/projection/..."
+            "./example/saga-pattern/..."
             "./example/storage/..."
             "./example/todo/..."
             "./example/user/..."
