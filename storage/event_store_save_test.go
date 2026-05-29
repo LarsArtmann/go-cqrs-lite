@@ -152,12 +152,12 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt1.ID(),
-		"UserCreated", "User", evt1.AggregateID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), evt1.OccurredAt(),
+		"UserCreated", "User", evt1.AggregateID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt1.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt2.ID(),
-		"UserCreated", "User", evt2.AggregateID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), evt2.OccurredAt(),
+		"UserCreated", "User", evt2.AggregateID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt2.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(2, 1))
 	mock.ExpectCommit()

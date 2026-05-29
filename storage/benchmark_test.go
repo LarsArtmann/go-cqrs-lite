@@ -16,7 +16,7 @@ func mockEventRows(aggID id.AggregateID, now time.Time, payload, metaJSON []byte
 	return sqlmock.NewRows(eventColumns()).
 		AddRow(
 			id.NewEventID().String(), "user.created", "User",
-			aggID.String(), 1, 1, payload, metaJSON, now,
+			aggID.String(), 1, 1, payload, "json", metaJSON, now,
 		)
 }
 
@@ -99,7 +99,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 		mock.ExpectExec("INSERT INTO events").
 			WithArgs(
 				sqlmock.AnyArg(), "user.created", "User", aggID.String(),
-				1, 1, payload, sqlmock.AnyArg(), sqlmock.AnyArg(),
+				1, 1, payload, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(),
 			).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 

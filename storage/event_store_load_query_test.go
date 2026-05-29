@@ -33,6 +33,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		1,
 		1,
 		[]byte(`{"name":"test"}`),
+		"json",
 		nil,
 		ts,
 	)
@@ -102,7 +103,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 		WithArgs("User", aggID, 2).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			eventID.String(),
-			"UserUpdated", "User", aggID.String(), 3, 1, []byte(`{"name":"updated"}`), nil, ts,
+			"UserUpdated", "User", aggID.String(), 3, 1, []byte(`{"name":"updated"}`), "", nil, ts,
 		))
 
 	events, err := store.LoadFromVersion(
@@ -206,7 +207,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", "bad").
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, 1, nil, nil, time.Now(),
+			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, 1, nil, "", nil, time.Now(),
 		))
 
 	_, err := store.Load(context.Background(), event.NewAggregateRef("User", id.NewAggregateID()))
@@ -224,7 +225,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, nil, time.Now(),
+			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, time.Now(),
 		))
 
 	_, err := store.Load(
@@ -265,7 +266,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(eventColumns()).
 			AddRow(
 				eventID.String(),
-				"UserCreated", "User", aggID.String(), 1, 1, nil, []byte(`{invalid`), time.Now(),
+				"UserCreated", "User", aggID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
 			))
 
 	_, err := store.Load(
@@ -314,7 +315,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 			sqlmock.NewRows(eventColumns()).
 				AddRow(
 					eventID.String(),
-					"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), metaJSON, ts,
+					"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), "", metaJSON, ts,
 				),
 		)
 
