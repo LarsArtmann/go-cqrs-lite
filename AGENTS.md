@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                                                                                                                   |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language  | Go 1.26.3                                                                                                                                                                                                               |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `cqrs-gen`                                                |
-| Build     | `nix run .#build`                                                                                                                                                                                                       |
+| Item      | Value                                                                                                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                                                                                                             |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `cqrs-gen`                                                              |
+| Build     | `nix run .#build`                                                                                                                                                                                                                     |
 | Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                                                                                                                        |
-| Format    | `nix fmt`                                                                                                                                                                                                               |
-| Dev shell | `nix develop`                                                                                                                                                                                                           |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                           |
+| Lint      | `nix run .#lint`                                                                                                                                                                                                                      |
+| Format    | `nix fmt`                                                                                                                                                                                                                             |
+| Dev shell | `nix develop`                                                                                                                                                                                                                         |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                         |
 
 ## Monorepo Structure
 
