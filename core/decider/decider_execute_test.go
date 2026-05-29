@@ -79,26 +79,13 @@ func TestExecute_DecideError(t *testing.T) {
 func TestExecute_FoldError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
+	repo, store := newFailingRepo(t)
 	aggID := id.NewAggregateID()
-
-	d := decider.Decider[counterState]{
-		Initial: counterState{},
-		Fold: func(_ counterState, _ event.Event) (counterState, error) {
-			return counterState{}, errors.New("corrupted payload")
-		},
-	}
-
-	repo, err := decider.NewRepository(store, bus, d)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
 
 	existing := makeEvent(t, "CounterCreated", aggID, 1)
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{existing})
 
-	err = repo.Execute(
+	err := repo.Execute(
 		t.Context(), aggID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil

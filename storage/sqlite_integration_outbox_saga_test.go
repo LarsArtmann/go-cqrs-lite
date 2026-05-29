@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestSQLiteOutbox_Roundtrip(t *testing.T) {
@@ -96,9 +97,7 @@ func TestSQLiteSagaStore_SaveAndLoad(t *testing.T) {
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := store.Save(ctx, state); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, state)
 
 	loaded, err := store.Load(ctx, state.ID)
 	if err != nil {
@@ -106,19 +105,19 @@ func TestSQLiteSagaStore_SaveAndLoad(t *testing.T) {
 	}
 
 	if loaded.ID != state.ID {
-		t.Errorf("ID mismatch: got %v, want %v", loaded.ID, state.ID)
+		testhelpers.AssertEqual(t, loaded.ID, state.ID, "ID")
 	}
 	if loaded.SagaType != state.SagaType {
-		t.Errorf("SagaType mismatch: got %q, want %q", loaded.SagaType, state.SagaType)
+		testhelpers.AssertEqual(t, loaded.SagaType, state.SagaType, "SagaType")
 	}
 	if loaded.Status != state.Status {
-		t.Errorf("Status mismatch: got %q, want %q", loaded.Status, state.Status)
+		testhelpers.AssertEqual(t, loaded.Status, state.Status, "Status")
 	}
 	if loaded.CurrentStep != state.CurrentStep {
-		t.Errorf("CurrentStep mismatch: got %d, want %d", loaded.CurrentStep, state.CurrentStep)
+		testhelpers.AssertEqual(t, loaded.CurrentStep, state.CurrentStep, "CurrentStep")
 	}
 	if loaded.ErrMsg != state.ErrMsg {
-		t.Errorf("ErrMsg mismatch: got %q, want %q", loaded.ErrMsg, state.ErrMsg)
+		testhelpers.AssertEqual(t, loaded.ErrMsg, state.ErrMsg, "ErrMsg")
 	}
 }
 
@@ -148,9 +147,7 @@ func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-	if err := store.Save(ctx, running); err != nil {
-		t.Fatalf("save running: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, running)
 
 	completed := &saga.State{
 		ID:          id.NewAggregateID(),
@@ -160,9 +157,7 @@ func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-	if err := store.Save(ctx, completed); err != nil {
-		t.Fatalf("save completed: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, completed)
 
 	compensating := &saga.State{
 		ID:          id.NewAggregateID(),
@@ -201,17 +196,13 @@ func TestSQLiteSagaStore_Save_Upsert(t *testing.T) {
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := store.Save(ctx, state); err != nil {
-		t.Fatalf("first save: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, state)
 
 	state.Status = saga.StatusRunning
 	state.CurrentStep = 1
 	state.UpdatedAt = time.Now()
 
-	if err := store.Save(ctx, state); err != nil {
-		t.Fatalf("second save (upsert): %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, state)
 
 	loaded, err := store.Load(ctx, state.ID)
 	if err != nil {
@@ -219,10 +210,10 @@ func TestSQLiteSagaStore_Save_Upsert(t *testing.T) {
 	}
 
 	if loaded.Status != saga.StatusRunning {
-		t.Errorf("Status mismatch after upsert: got %q, want %q", loaded.Status, saga.StatusRunning)
+		testhelpers.AssertEqual(t, loaded.Status, saga.StatusRunning, "Status")
 	}
 	if loaded.CurrentStep != 1 {
-		t.Errorf("CurrentStep mismatch after upsert: got %d, want %d", loaded.CurrentStep, 1)
+		testhelpers.AssertEqual(t, loaded.CurrentStep, 1, "CurrentStep")
 	}
 }
 

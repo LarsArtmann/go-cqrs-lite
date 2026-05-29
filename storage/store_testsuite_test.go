@@ -159,13 +159,8 @@ func testEventStore_AppendBatch(t *testing.T, store event.Store, cfg storeTestCo
 		t.Fatalf("expected 2 events, got %d", len(loaded))
 	}
 
-	if loaded[0].Version() != 1 {
-		t.Errorf("events[0].Version = %d, want 1", loaded[0].Version())
-	}
-
-	if loaded[1].Version() != 2 {
-		t.Errorf("events[1].Version = %d, want 2", loaded[1].Version())
-	}
+	testhelpers.AssertEventVersion(t, loaded, 0, 1)
+	testhelpers.AssertEventVersion(t, loaded, 1, 2)
 }
 
 func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTestConfig) {
@@ -195,9 +190,7 @@ func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTe
 		t.Fatalf("expected 2 events after version 1, got %d", len(loaded))
 	}
 
-	if loaded[0].Version() != 2 {
-		t.Errorf("events[0].Version = %d, want 2", loaded[0].Version())
-	}
+	testhelpers.AssertEventVersion(t, loaded, 0, 2)
 }
 
 func testEventStore_MetadataRoundtrip(

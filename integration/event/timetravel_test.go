@@ -57,13 +57,8 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	if events[0].Version() != 1 {
-		t.Errorf("first event version = %d, want 1", events[0].Version())
-	}
-
-	if events[1].Version() != 2 {
-		t.Errorf("second event version = %d, want 2", events[1].Version())
-	}
+	testhelpers.AssertEventVersion(t, events, 0, 1)
+	testhelpers.AssertEventVersion(t, events, 1, 2)
 }
 
 func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {

@@ -2,6 +2,7 @@ package decider_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -137,6 +138,31 @@ func requireLoadState(
 
 func counterDecider() decider.Decider[counterState] {
 	return decider.Decider[counterState]{Initial: counterState{Value: 0}, Fold: foldCounter}
+}
+
+func failingDecider() decider.Decider[counterState] {
+	return decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+			return counterState{}, errors.New("corrupted payload")
+		},
+	}
+}
+
+func newFailingRepo(
+	t *testing.T,
+) (*decider.Repository[counterState], *testhelpers.FakeStore) {
+	t.Helper()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+
+	repo, err := decider.NewRepository(store, bus, failingDecider())
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	return repo, store
 }
 
 func saveSnapshot(

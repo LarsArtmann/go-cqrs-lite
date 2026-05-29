@@ -45,9 +45,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	if events[0].Type() != "UserCreated" {
-		t.Errorf("Type = %q, want UserCreated", events[0].Type())
-	}
+	testhelpers.AssertEventType(t, events, 0, "UserCreated")
 
 	if events[0].ID() != eventID {
 		t.Errorf("ID = %v, want %v", events[0].ID(), eventID)

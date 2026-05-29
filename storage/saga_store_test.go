@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func newTestSagaStore(t *testing.T) (*SQLSagaStore, sqlmock.Sqlmock) {
@@ -67,9 +68,7 @@ func TestSQLSagaStore_Save_Success(t *testing.T) {
 		WithArgs(state.ID.String(), state.SagaType, string(state.Status), state.CurrentStep, state.ErrMsg, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if err := store.Save(ctx, state); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, state)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("expectations: %v", err)

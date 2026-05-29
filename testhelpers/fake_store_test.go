@@ -80,9 +80,7 @@ func TestFakeStore_LoadFromVersion_DefaultPath(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	if events[0].Version() != 2 {
-		t.Errorf("first event version = %d, want 2", events[0].Version())
-	}
+	testhelpers.AssertEventVersion(t, events, 0, 2)
 }
 
 func TestFakeStore_LoadFromVersion_EmptyStream(t *testing.T) {

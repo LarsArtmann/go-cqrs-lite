@@ -142,13 +142,7 @@ func TestFoldUser(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	createdEvt, err := event.NewEvent(
-		eventUserCreated, aggID, aggregateType, event.Version(1),
-		mustMarshal(UserCreatedPayload{Email: "a@b.com", Name: "A"}),
-	)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	createdEvt := newUserCreatedEvent(t, aggID, "a@b.com", "A")
 
 	state, err := foldUser(UserState{}, createdEvt)
 	if err != nil {
@@ -191,15 +185,9 @@ func TestReadModel_Projection(t *testing.T) {
 	aggID := id.NewAggregateID()
 	store := NewReadModelStore()
 
-	createdEvt, err := event.NewEvent(
-		eventUserCreated, aggID, aggregateType, event.Version(1),
-		mustMarshal(UserCreatedPayload{Email: "x@y.com", Name: "X"}),
-	)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	createdEvt := newUserCreatedEvent(t, aggID, "x@y.com", "X")
 
-	err = store.Handle(context.Background(), createdEvt)
+	err := store.Handle(context.Background(), createdEvt)
 	if err != nil {
 		t.Fatalf("handle UserCreated: %v", err)
 	}
@@ -302,13 +290,7 @@ func TestQueryDispatcher(t *testing.T) {
 	readModel := NewReadModelStore()
 	aggID := id.NewAggregateID()
 
-	createdEvt, err := event.NewEvent(
-		eventUserCreated, aggID, aggregateType, event.Version(1),
-		mustMarshal(UserCreatedPayload{Email: "q@test.com", Name: "Q"}),
-	)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
+	createdEvt := newUserCreatedEvent(t, aggID, "q@test.com", "Q")
 
 	_ = readModel.Handle(t.Context(), createdEvt)
 
@@ -410,4 +392,16 @@ func TestErrorClassification(t *testing.T) {
 	if event.IsRetryable(err) {
 		t.Error("empty email rejection should not be retryable")
 	}
+}
+
+func newUserCreatedEvent(t *testing.T, aggID id.AggregateID, email, name string) *event.ImmutableEvent {
+	t.Helper()
+	evt, err := event.NewEvent(
+		eventUserCreated, aggID, aggregateType, event.Version(1),
+		mustMarshal(UserCreatedPayload{Email: email, Name: name}),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+	return evt
 }

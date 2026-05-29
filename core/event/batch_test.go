@@ -31,17 +31,9 @@ func TestNewEvents(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	if events[0].Type() != "user.created" {
-		t.Errorf("events[0].Type = %q, want user.created", events[0].Type())
-	}
-
-	if events[0].Version() != 1 {
-		t.Errorf("events[0].Version = %d, want 1", events[0].Version())
-	}
-
-	if events[1].Version() != 2 {
-		t.Errorf("events[1].Version = %d, want 2", events[1].Version())
-	}
+	testhelpers.AssertEventType(t, events, 0, "user.created")
+	testhelpers.AssertEventVersion(t, events, 0, 1)
+	testhelpers.AssertEventVersion(t, events, 1, 2)
 }
 
 func TestNewEvents_MismatchedCount(t *testing.T) {

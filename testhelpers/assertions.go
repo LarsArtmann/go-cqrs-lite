@@ -138,7 +138,7 @@ func AssertEventType(t *testing.T, events []event.Event, index int, want string)
 }
 
 // AssertEventVersion asserts that events[index].Version() equals want.
-func AssertEventVersion(t *testing.T, events []event.Event, index int, want int) {
+func AssertEventVersion(t *testing.T, events []event.Event, index, want int) {
 	t.Helper()
 
 	if got := int(events[index].Version()); got != want {

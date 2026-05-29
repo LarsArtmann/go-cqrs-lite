@@ -175,13 +175,8 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	if events[0].Type() != "UserUpdated" {
-		t.Errorf("first event = %q, want UserUpdated", events[0].Type())
-	}
-
-	if events[1].Type() != "UserCreated" {
-		t.Errorf("second event = %q, want UserCreated", events[1].Type())
-	}
+	testhelpers.AssertEventType(t, events, 0, "UserUpdated")
+	testhelpers.AssertEventType(t, events, 1, "UserCreated")
 }
 
 func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {

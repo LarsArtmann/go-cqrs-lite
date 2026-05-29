@@ -503,17 +503,9 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 		t.Fatalf("expected 3 events, got %d", len(events))
 	}
 
-	if events[0].Type() != "UserDeleted" {
-		t.Errorf("expected first event UserDeleted, got %s", events[0].Type())
-	}
-
-	if events[1].Type() != "UserUpdated" {
-		t.Errorf("expected second event UserUpdated, got %s", events[1].Type())
-	}
-
-	if events[2].Type() != "UserCreated" {
-		t.Errorf("expected third event UserCreated, got %s", events[2].Type())
-	}
+	testhelpers.AssertEventType(t, events, 0, "UserDeleted")
+	testhelpers.AssertEventType(t, events, 1, "UserUpdated")
+	testhelpers.AssertEventType(t, events, 2, "UserCreated")
 }
 
 func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {

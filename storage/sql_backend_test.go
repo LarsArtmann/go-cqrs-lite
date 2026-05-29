@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func newTestSQLBackend(t *testing.T) *SQLBackend {
@@ -113,7 +114,7 @@ func TestSQLBackend_SagaStore_SaveAndLoad(t *testing.T) {
 	}
 
 	if loaded.ID != state.ID {
-		t.Errorf("ID mismatch: got %v, want %v", loaded.ID, state.ID)
+		testhelpers.AssertEqual(t, loaded.ID, state.ID, "ID")
 	}
 }
 

@@ -178,9 +178,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	if events[0].Type() != "UserCreated" {
-		t.Errorf("event type = %q, want UserCreated", events[0].Type())
-	}
+	testhelpers.AssertEventType(t, events, 0, "UserCreated")
 
 	// --- Verify projection received live event ---
 	if len(projectedNames) != 1 {

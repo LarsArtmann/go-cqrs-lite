@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
@@ -57,18 +58,14 @@ func TestMemoryStore_LoadAllRunning(t *testing.T) {
 		SagaType: "test",
 		Status:   saga.StatusRunning,
 	}
-	if err := store.Save(ctx, running); err != nil {
-		t.Fatalf("save running: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, running)
 
 	completed := &saga.State{
 		ID:       id.NewAggregateID(),
 		SagaType: "test",
 		Status:   saga.StatusCompleted,
 	}
-	if err := store.Save(ctx, completed); err != nil {
-		t.Fatalf("save completed: %v", err)
-	}
+	testhelpers.SaveSagaState(t, ctx, store, completed)
 
 	all, err := store.LoadAllRunning(ctx)
 	if err != nil {

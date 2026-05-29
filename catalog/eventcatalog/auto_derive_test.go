@@ -11,15 +11,9 @@ func TestAutoDerive_MultipleProducers(t *testing.T) {
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
-	reg.AddEvent("svc-a", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
-		Version: "1.0.0", Direction: catalog.Sends,
-	})
+	reg.AddEvent("svc-a", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
-	reg.AddEvent("svc-b", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
-		Version: "1.0.0", Direction: catalog.Sends,
-	})
+	reg.AddEvent("svc-b", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
 
 	cat := reg.Build()
 	enriched := autoDeriveProducersConsumers(cat)

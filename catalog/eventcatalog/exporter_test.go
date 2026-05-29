@@ -22,6 +22,16 @@ func newCommand(id string) catalog.Message {
 	return msg
 }
 
+func newEvent(id, name string, direction catalog.Direction) catalog.Message {
+	return catalog.Message{
+		Kind:      catalog.EventMessage,
+		ID:        catalog.MessageID(id),
+		Name:      name,
+		Version:   "1.0.0",
+		Direction: direction,
+	}
+}
+
 func exportCatalog(t *testing.T, reg *catalog.Registry) string {
 	t.Helper()
 	tmpDir := t.TempDir()
@@ -347,20 +357,8 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "OrderCreated",
-		Name:      "OrderCreated",
-		Version:   "1.0.0",
-		Direction: catalog.Sends,
-	})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "PaymentProcessed",
-		Name:      "PaymentProcessed",
-		Version:   "2.0.0",
-		Direction: catalog.Receives,
-	})
+	reg.AddEvent("order-svc", newEvent("OrderCreated", "OrderCreated", catalog.Sends))
+	reg.AddEvent("order-svc", newEvent("PaymentProcessed", "PaymentProcessed", catalog.Receives))
 
 	tmpDir := exportCatalog(t, reg)
 
