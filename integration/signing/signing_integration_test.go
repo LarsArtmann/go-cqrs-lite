@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 // TestSigningFullFlow tests the complete signing pipeline across modules:
@@ -149,17 +150,7 @@ func TestSigningTamperDetection(t *testing.T) {
 	deviceSigned, _ := deviceMulti.Sign(evt)
 	serverSigned, _ := serverMulti.Sign(deviceSigned)
 
-	tampered, _ := event.NewEvent(
-		serverSigned.Type(),
-		serverSigned.AggregateID(),
-		serverSigned.AggregateType(),
-		serverSigned.Version(),
-		[]byte(`{"name":"Bob"}`),
-		event.WithEventID(serverSigned.ID()),
-		event.WithOccurredAt(serverSigned.OccurredAt()),
-		event.WithSchemaVersion(serverSigned.SchemaVersion()),
-		event.WithMetadata(serverSigned.Metadata()),
-	)
+	tampered := testhelpers.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
 
 	if err := bus.Publish(ctx, tampered); err == nil {
 		t.Fatal("expected error for tampered event, got nil")

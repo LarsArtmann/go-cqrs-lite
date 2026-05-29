@@ -54,40 +54,33 @@ func seedPebbleBenchEvents(
 	return store, aggID, baseTime
 }
 
-func BenchmarkPebbleEventStore_LoadToTimestamp_EarlyTermination(b *testing.B) {
-	store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
-	ctx := context.Background()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		result, err := store.LoadToTimestamp(ctx, "Issue", aggID,
-			baseTime.Add(100*time.Second))
-		if err != nil {
-			b.Fatalf("LoadToTimestamp: %v", err)
-		}
-
-		if len(result) != 101 {
-			b.Fatalf("expected 101 events, got %d", len(result))
-		}
+func BenchmarkPebbleEventStore_LoadToTimestamp(b *testing.B) {
+	tests := []struct {
+		name      string
+		offset    time.Duration
+		expected  int
+	}{
+		{"EarlyTermination", 100 * time.Second, 101},
+		{"FullScan", 2000 * time.Second, 1000},
 	}
-}
 
-func BenchmarkPebbleEventStore_LoadToTimestamp_FullScan(b *testing.B) {
-	store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
-	ctx := context.Background()
+	for _, tc := range tests {
+		b.Run(tc.name, func(b *testing.B) {
+			store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
+			ctx := context.Background()
 
-	b.ResetTimer()
+			b.ResetTimer()
 
-	for b.Loop() {
-		result, err := store.LoadToTimestamp(ctx, "Issue", aggID,
-			baseTime.Add(2000*time.Second))
-		if err != nil {
-			b.Fatalf("LoadToTimestamp: %v", err)
-		}
+			for b.Loop() {
+				result, err := store.LoadToTimestamp(ctx, "Issue", aggID, baseTime.Add(tc.offset))
+				if err != nil {
+					b.Fatalf("LoadToTimestamp: %v", err)
+				}
 
-		if len(result) != 1000 {
-			b.Fatalf("expected 1000 events, got %d", len(result))
-		}
+				if len(result) != tc.expected {
+					b.Fatalf("expected %d events, got %d", tc.expected, len(result))
+				}
+			}
+		})
 	}
 }

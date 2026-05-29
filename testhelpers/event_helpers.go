@@ -77,6 +77,25 @@ func QuickEvent(
 	return evt
 }
 
+// TamperEvent creates a copy of the original event with a different payload but
+// the same ID, timestamp, schema version, and metadata — useful for testing
+// tamper detection in signing middleware.
+func TamperEvent(original event.Event, newPayload []byte) event.Event {
+	tampered, _ := event.NewEvent(
+		original.Type(),
+		original.AggregateID(),
+		original.AggregateType(),
+		original.Version(),
+		newPayload,
+		event.WithEventID(original.ID()),
+		event.WithOccurredAt(original.OccurredAt()),
+		event.WithSchemaVersion(original.SchemaVersion()),
+		event.WithMetadata(original.Metadata()),
+	)
+
+	return tampered
+}
+
 // QuickEventOpts creates an event with the given parameters and options, discarding errors.
 func QuickEventOpts(
 	eventType event.Type,

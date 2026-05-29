@@ -34,54 +34,38 @@ func seedBenchAggregates(
 	return stream.NewInMemoryAggregateReader(store)
 }
 
-func BenchmarkInMemoryList_1000Aggregates(b *testing.B) {
-	reader := seedBenchAggregates(b, "User", "UserCreated", "name", "user", 1000)
-	ctx := context.Background()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		_, err := stream.NewListBuilder(reader).
-			OfType("User").
-			PageSize(50).
-			List(ctx)
-		if err != nil {
-			b.Fatal(err)
-		}
+func BenchmarkInMemoryList(b *testing.B) {
+	tests := []struct {
+		name     string
+		aggType  event.AggregateType
+		evtType  event.Type
+		key      string
+		val      string
+		count    int
+		pageSize uint
+	}{
+		{"1000Aggregates", "User", "UserCreated", "name", "user", 1000, 50},
+		{"100Aggregates", "Order", "OrderCreated", "item", "widget", 100, 10},
+		{"SmallPages", "Cart", "ItemAdded", "sku", "ABC", 500, 5},
 	}
-}
 
-func BenchmarkInMemoryList_100Aggregates(b *testing.B) {
-	reader := seedBenchAggregates(b, "Order", "OrderCreated", "item", "widget", 100)
-	ctx := context.Background()
+	for _, tc := range tests {
+		b.Run(tc.name, func(b *testing.B) {
+			reader := seedBenchAggregates(b, string(tc.aggType), string(tc.evtType), tc.key, tc.val, tc.count)
+			ctx := context.Background()
 
-	b.ResetTimer()
+			b.ResetTimer()
 
-	for b.Loop() {
-		_, err := stream.NewListBuilder(reader).
-			OfType("Order").
-			PageSize(10).
-			List(ctx)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-func BenchmarkInMemoryList_SmallPages(b *testing.B) {
-	reader := seedBenchAggregates(b, "Cart", "ItemAdded", "sku", "ABC", 500)
-	ctx := context.Background()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		_, err := stream.NewListBuilder(reader).
-			OfType("Cart").
-			PageSize(5).
-			List(ctx)
-		if err != nil {
-			b.Fatal(err)
-		}
+			for b.Loop() {
+				_, err := stream.NewListBuilder(reader).
+					OfType(tc.aggType).
+					PageSize(tc.pageSize).
+					List(ctx)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	}
 }
 

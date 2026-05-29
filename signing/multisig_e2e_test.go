@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMultiSignerEndToEnd(t *testing.T) {
@@ -107,17 +108,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 	}
 
 	// Step 6: Tamper detection.
-	tampered, _ := event.NewEvent(
-		serverSigned.Type(),
-		serverSigned.AggregateID(),
-		serverSigned.AggregateType(),
-		serverSigned.Version(),
-		[]byte(`{"name":"Bob"}`),
-		event.WithEventID(serverSigned.ID()),
-		event.WithOccurredAt(serverSigned.OccurredAt()),
-		event.WithSchemaVersion(serverSigned.SchemaVersion()),
-		event.WithMetadata(serverSigned.Metadata()),
-	)
+	tampered := testhelpers.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
 
 	if verifyErr := deviceMulti.Verify(tampered); verifyErr == nil {
 		t.Fatal("expected verification to fail for tampered event")

@@ -10,6 +10,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) {
+	t.Helper()
+	ctx := context.Background()
+
+	for i := range 5 {
+		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
+		if err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt}); err != nil {
+			t.Fatalf("AppendBatch: %v", err)
+		}
+	}
+}
+
 func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 	t.Parallel()
 
@@ -229,19 +241,10 @@ func TestSQLiteEventStore_ReadFrom_NoLimit(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	ctx := context.Background()
-
 	aggID := id.NewAggregateID()
+	appendFiveEvents(t, store, aggID)
 
-	for i := range 5 {
-		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
-		err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
-		if err != nil {
-			t.Fatalf("AppendBatch: %v", err)
-		}
-	}
-
-	events, err := store.ReadFrom(ctx, id.EventID{}, 0)
+	events, err := store.ReadFrom(context.Background(), id.EventID{}, 0)
 	if err != nil {
 		t.Fatalf("ReadFrom no limit: %v", err)
 	}
@@ -255,19 +258,10 @@ func TestSQLiteEventStore_LoadAllFromPosition_NoLimit(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	ctx := context.Background()
-
 	aggID := id.NewAggregateID()
+	appendFiveEvents(t, store, aggID)
 
-	for i := range 5 {
-		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
-		err := store.AppendBatch(ctx, "Issue", aggID, []event.Event{evt})
-		if err != nil {
-			t.Fatalf("AppendBatch: %v", err)
-		}
-	}
-
-	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 0)
+	events, err := store.LoadAllFromPosition(context.Background(), id.EventID{}, 0)
 	if err != nil {
 		t.Fatalf("LoadAllFromPosition no limit: %v", err)
 	}
