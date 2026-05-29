@@ -144,14 +144,14 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                             |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, storage, middleware) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, core, storage, middleware, projection, saga) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                          |
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
-**Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers+otel;
-catalog→core; storage→core+otel+saga; projection→core; signing→core; saga→core; stream→core+memory; watermill→core;
-otel→core; integration→core+memory+testhelpers.
+**Module Graph**: otel→go.opentelemetry.io/otel; core→otel+memory+testhelpers; testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
+catalog→core; storage→core+otel+saga; projection→core+otel+memory+testhelpers; signing→core; saga→core+otel; stream→core+memory; watermill→core;
+integration→core+memory+testhelpers.
 
 **Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote.
 

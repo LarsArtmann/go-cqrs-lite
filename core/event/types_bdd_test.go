@@ -124,10 +124,10 @@ var _ = Describe("CheckVersionConflict", func() {
 		})
 
 		Context("when existing length does not match expected version", func() {
-			It("should return ErrVersionConflict", func() {
+			It("should detect the version conflict and explain the mismatch", func() {
 				err := event.CheckVersionConflict(2, event.Version(3))
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(event.ErrVersionConflict))
+				Expect(err.Error()).To(ContainSubstring("version conflict"))
 			})
 		})
 

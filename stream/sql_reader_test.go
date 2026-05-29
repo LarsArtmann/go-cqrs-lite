@@ -111,3 +111,96 @@ func TestSQLAggregateReader_TombstoneFiltering(t *testing.T) {
 		t.Errorf("only deleted: got %d items, want 1", len(onlyDeleted.Items))
 	}
 }
+
+func TestSQLAggregateReader_CursorPagination(t *testing.T) {
+	t.Parallel()
+
+	db := newSQLiteDB(t)
+
+	proj, _ := stream.NewAggregateProjection(db, "test_")
+	reader, _ := stream.NewSQLAggregateReader(db, "test_")
+
+	ctx := context.Background()
+
+	var ids []id.AggregateID
+	for i := 0; i < 5; i++ {
+		aggID := id.NewAggregateID()
+		ids = append(ids, aggID)
+
+		evt := newProjEvent(t, "user.created", "User", aggID, 1, nil)
+		if err := proj.Handle(ctx, evt); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	page1, err := reader.List(ctx, stream.ListOptions{
+		Type:  "User",
+		Limit: 2,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page1.Items) != 2 {
+		t.Fatalf("page 1: got %d items, want 2", len(page1.Items))
+	}
+
+	if !page1.HasMore {
+		t.Error("page 1: expected HasMore=true")
+	}
+
+	page2, err := reader.List(ctx, stream.ListOptions{
+		Type:  "User",
+		Limit: 2,
+		After: page1.Items[1].ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page2.Items) != 2 {
+		t.Fatalf("page 2: got %d items, want 2", len(page2.Items))
+	}
+
+	if !page2.HasMore {
+		t.Error("page 2: expected HasMore=true")
+	}
+
+	page3, err := reader.List(ctx, stream.ListOptions{
+		Type:  "User",
+		Limit: 2,
+		After: page2.Items[1].ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page3.Items) != 1 {
+		t.Fatalf("page 3: got %d items, want 1", len(page3.Items))
+	}
+
+	if page3.HasMore {
+		t.Error("page 3: expected HasMore=false")
+	}
+
+	var allIDs []id.AggregateID
+	for _, p := range []*stream.Page[stream.AggregateRef]{page1, page2, page3} {
+		for _, item := range p.Items {
+			allIDs = append(allIDs, item.ID)
+		}
+	}
+
+	seen := make(map[string]bool, len(allIDs))
+	for _, aggID := range allIDs {
+		s := aggID.String()
+		if seen[s] {
+			t.Errorf("duplicate aggregate ID in pagination: %s", s)
+		}
+
+		seen[s] = true
+	}
+
+	if len(seen) != 5 {
+		t.Errorf("got %d unique IDs, want 5", len(seen))
+	}
+}
