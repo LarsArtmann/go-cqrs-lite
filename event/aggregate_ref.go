@@ -27,5 +27,23 @@ func NewAggregateRef(aggregateType AggregateType, aggregateID id.AggregateID) Ag
 	return AggregateRef{Type: aggregateType, ID: aggregateID}
 }
 
+// IsZero returns true if both Type and ID are their zero values.
+func (r AggregateRef) IsZero() bool {
+	return r.Type == "" && r.ID.IsZero()
+}
+
+// Validate returns an error if Type is empty or ID is zero.
+func (r AggregateRef) Validate() error {
+	if r.Type == "" {
+		return ErrEmptyAggregateType
+	}
+
+	if r.ID.IsZero() {
+		return ErrNilAggregateID
+	}
+
+	return nil
+}
+
 // Verify AggregateRef satisfies fmt.Stringer at compile time.
 var _ fmt.Stringer = AggregateRef{}
