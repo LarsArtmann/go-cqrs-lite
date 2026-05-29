@@ -1015,6 +1015,100 @@ Old root still valid → readers see consistent snapshot</pre>
   </table>
 </div>
 
+
+<h3 style="font-size:1rem;color:var(--fg-dim);margin:2.5rem 0 1rem;font-weight:400">Columnar OLAP — The Projection Powerhouses</h3>
+<p style="font-size:.85rem;color:var(--fg-muted);margin-bottom:1.5rem;max-width:700px;line-height:1.7">Both are columnar OLAP engines. Both are wrong for the <em>event store</em> (row-level access). Both are <strong>phenomenal</strong> for the <em>read side</em> of CQRS — materialized views, projection stores, real-time analytics on event streams.</p>
+
+<div class="adv-card" style="border-color:var(--amber);box-shadow:0 0 40px rgba(245,158,11,.1)">
+  <h3>DuckDB <span class="tag" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)">Embedded OLAP — SQLite for Analytics</span></h3>
+  <p class="desc"><strong>Storage:</strong> Columnar, vectorized execution (2,048-row batches), mmap-based, in-process (no server).<br><strong>Interface:</strong> Full SQL, <code>database/sql</code> compatible Go driver. Reads Parquet, CSV, JSON, Arrow natively — no import needed.</p>
+
+  <div style="background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin:.75rem 0;font-family:var(--mono);font-size:.73rem;line-height:1.7;color:var(--fg-dim);overflow-x:auto">
+    <span style="color:var(--fg-muted)">// Go: github.com/duckdb/duckdb-go/v2 — full database/sql compat</span><br>
+    db, _ := sql.Open("duckdb", "projections.ddb")<br><br>
+    <span style="color:var(--fg-muted)">// Query Parquet event files directly — no import</span><br>
+    rows, _ := db.Query(`SELECT aggregate_id, count() as events,<br>
+    &nbsp;&nbsp;max(timestamp) as last_event FROM read_parquet('events/*.parquet')<br>
+    &nbsp;&nbsp;GROUP BY aggregate_id`)<br><br>
+    <span style="color:var(--fg-muted)">// Build projection table from event stream</span><br>
+    db.Exec(`CREATE TABLE user_read_model AS<br>
+    &nbsp;&nbsp;SELECT aggregate_id, json_extract(payload, '$.name') as name,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;json_extract(payload, '$.email') as email,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;max(version) as current_version<br>
+    &nbsp;&nbsp;FROM read_parquet('events/*.parquet')<br>
+    &nbsp;&nbsp;WHERE event_type = 'UserCreated'<br>
+    &nbsp;&nbsp;GROUP BY aggregate_id`)
+  </div>
+
+  <table style="margin-top:.75rem">
+    <tr><th>Dimension</th><th>Detail</th></tr>
+    <tr><td>Execution</td><td>Vectorized — 2,048 rows/batch, SIMD (AVX2, AVX-512)</td></tr>
+    <tr><td>Deployment</td><td>In-process (like SQLite). No server. Zero config</td></tr>
+    <tr><td>Go client</td><td><code>database/sql</code> driver + bulk Appender API</td></tr>
+    <tr><td>File formats</td><td>Native read: Parquet, CSV, JSON, Iceberg. Direct S3/GCS</td></tr>
+    <tr><td>Extensions</td><td>httpfs, spatial, full_text_search, postgres (federation), excel</td></tr>
+    <tr><td>Concurrency</td><td>Single writer, multiple readers</td></tr>
+    <tr><td>Scale</td><td>Single machine. Comparable to ClickHouse &lt; 1TB</td></tr>
+  </table>
+
+  <div class="lesson" style="border-left-color:var(--amber);margin-top:1rem"><strong>Why it matters for go-cqrs-lite:</strong> DuckDB is the ideal <em>projection store for edge/embedded</em>. Imagine a <code>duckdb/</code> module that implements <code>listing.AggregateReader</code> + <code>projection.Handler</code> backed by DuckDB — embedded analytics on event data without PostgreSQL. Could also query Parquet event exports directly. Fills the gap between Pebble (raw KV) and full PostgreSQL.</div>
+</div>
+
+<div class="adv-card" style="border-color:var(--amber);box-shadow:0 0 40px rgba(245,158,11,.1)">
+  <h3>ClickHouse <span class="tag" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)">Distributed OLAP — Petabyte-Scale Analytics</span></h3>
+  <p class="desc"><strong>Storage:</strong> Columnar, MergeTree engine family (ReplacingMergeTree, CollapsingMergeTree, AggregatingMergeTree, SummingMergeTree). RAFT-based replication.<br><strong>Interface:</strong> Full SQL with materialized views. Go client: native API (<code>clickhouse.Open</code>) + <code>database/sql</code> (<code>clickhouse.OpenDB</code>).</p>
+
+  <div style="background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin:.75rem 0;font-family:var(--mono);font-size:.73rem;line-height:1.7;color:var(--fg-dim);overflow-x:auto">
+    <span style="color:var(--fg-muted)">// Go: github.com/ClickHouse/clickhouse-go/v2</span><br>
+    conn, _ := clickhouse.Open(&clickhouse.Options{<br>
+    &nbsp;&nbsp;Addr: []string{"clickhouse:9000"},<br>
+    })<br><br>
+    <span style="color:var(--fg-muted)">// Event table — append-only, partitioned by month</span><br>
+    conn.Exec(ctx, `CREATE TABLE events (<br>
+    &nbsp;&nbsp;event_id UUID, aggregate_id String, event_type String,<br>
+    &nbsp;&nbsp;version UInt32, payload String, timestamp DateTime64<br>
+    ) ENGINE = MergeTree()<br>
+    &nbsp;&nbsp;PARTITION BY toYYYYMM(timestamp)<br>
+    &nbsp;&nbsp;ORDER BY (aggregate_id, version)`)<br><br>
+    <span style="color:var(--fg-muted)">// Materialized view — auto-projection on insert!</span><br>
+    conn.Exec(ctx, `CREATE MATERIALIZED VIEW user_stats_mv<br>
+    &nbsp;&nbsp;TO user_stats AS<br>
+    &nbsp;&nbsp;SELECT aggregate_id, event_type, count() as cnt,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;max(timestamp) as last_seen<br>
+    &nbsp;&nbsp;FROM events GROUP BY aggregate_id, event_type`)<br><br>
+    <span style="color:var(--fg-muted)">// Bulk insert — millions of events/sec</span><br>
+    batch, _ := conn.PrepareBatch(ctx, "INSERT INTO events")<br>
+    batch.Append(uuid.New(), "User:01H4", "UserCreated", 1, payload, time.Now())<br>
+    batch.Send()
+  </div>
+
+  <table style="margin-top:.75rem">
+    <tr><th>Dimension</th><th>Detail</th></tr>
+    <tr><td>Execution</td><td>Vectorized — 1,024-4,098 rows/batch, SIMD (AVX2, AVX-512, NEON)</td></tr>
+    <tr><td>Deployment</td><td>Server cluster. Sharding + replication via ClickHouse Keeper (RAFT)</td></tr>
+    <tr><td>Go client</td><td>Native API + <code>database/sql</code>. Batch inserts, columnar encoding</td></tr>
+    <tr><td>MergeTree family</td><td>Base, Replicated, Replacing, Collapsing, Aggregating, Summing</td></tr>
+    <tr><td>Materialized views</td><td>Incremental (on insert) + Refreshable (scheduled). Server-side projections</td></tr>
+    <tr><td>Compression</td><td>1:10 to 1:100 depending on data type</td></tr>
+    <tr><td>Scale</td><td>Petabyte-scale distributed. Billions of rows/sec read</td></tr>
+    <tr><td>Write throughput</td><td>Millions of rows/sec per node</td></tr>
+  </table>
+
+  <div class="lesson" style="border-left-color:var(--amber);margin-top:1rem"><strong>Why it matters for go-cqrs-lite:</strong> ClickHouse is the <em>production-scale projection backend</em>. Its materialized views auto-populate read models on every event insert — the projection runs inside the database, not in application code. The MergeTree engine family handles deduplication (ReplacingMergeTree), state cancellation (CollapsingMergeTree), and pre-aggregation (AggregatingMergeTree). For enterprises running go-cqrs-lite at scale, a <code>clickhouse/</code> projection module would complement the PostgreSQL event store with real-time analytics.</div>
+
+  <table style="margin-top:1rem">
+    <tr><th></th><th>DuckDB</th><th>ClickHouse</th><th>PostgreSQL</th></tr>
+    <tr><td>Deployment</td><td style="color:var(--accent)">Embedded (in-process)</td><td>Server cluster</td><td>Server</td></tr>
+    <tr><td>Best role in CQRS</td><td style="color:var(--accent)">Edge projections</td><td style="color:var(--accent)">Enterprise projections</td><td>Event store + OLTP</td></tr>
+    <tr><td>Event store?</td><td>Possible (not ideal)</td><td>Possible (append-only OK)</td><td style="color:var(--accent)">Excellent</td></tr>
+    <tr><td>Projection store?</td><td style="color:var(--accent)">Excellent</td><td style="color:var(--accent)">Excellent (materialized views)</td><td>Good</td></tr>
+    <tr><td>Analytical queries</td><td style="color:var(--accent)">Very fast (&lt;1TB)</td><td style="color:var(--accent)">Very fast (petabyte)</td><td>Slow</td></tr>
+    <tr><td>Go client</td><td style="color:var(--accent)">database/sql</td><td>Native + database/sql</td><td style="color:var(--accent)">database/sql</td></tr>
+    <tr><td>Operational cost</td><td style="color:var(--accent)">Zero (embedded)</td><td>High (cluster ops)</td><td>Medium</td></tr>
+    <tr><td>Sweet spot</td><td>Desktop/edge analytics</td><td>Enterprise dashboards</td><td>Transactional OLTP</td></tr>
+  </table>
+</div>
+
 </section>
 
 <footer>
