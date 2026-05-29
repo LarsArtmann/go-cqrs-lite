@@ -134,3 +134,53 @@ jobs:
             echo "::error::One or more production files exceed 350 lines"
             exit 1
           fi
+
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Run benchmarks
+        run: |
+          echo '=== Core benchmarks ==='
+          go test ./core/... -bench=. -benchmem -count=1 -run=^$ 2>&1 | tee benchmark-results.txt
+          echo ''
+          echo '=== Catalog benchmarks ==='
+          go test ./catalog/... -bench=. -benchmem -count=1 -run=^$ 2>&1 | tee -a benchmark-results.txt
+
+      - name: Check for regressions (>2x slowdown vs main)
+        run: |
+          if git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt >/dev/null 2>&1; then
+            echo "Baseline found, comparing..."
+            git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt > baseline.txt
+            grep -E '^Benchmark' benchmark-results.txt | while read -r line; do
+              name=$(echo "$line" | awk '{print $1}')
+              ns=$(echo "$line" | awk '{print $3}')
+              base_ns=$(grep "^${name} " baseline.txt 2>/dev/null | awk '{print $3}')
+              if [ -n "$base_ns" ] && [ -n "$ns" ]; then
+                ratio=$(echo "scale=2; $ns / $base_ns" | bc)
+                echo "  $name: ${ns}ns (baseline: ${base_ns}ns, ratio: ${ratio}x)"
+                threshold=$(echo "$ratio > 2.0" | bc)
+                if [ "$threshold" -eq 1 ]; then
+                  echo "::warning::$name regressed ${ratio}x vs baseline (${base_ns}ns → ${ns}ns)"
+                fi
+              fi
+            done
+          else
+            echo "No baseline found. Skipping comparison."
+            echo "To create a baseline: commit benchmark-baseline.txt to the repo root."
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 30

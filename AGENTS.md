@@ -23,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                  |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                              |
-| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `watermill`, `cqrs-gen`                                                                 |
+| Modules   | `core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `saga`, `stream`, `otel`, `watermill`, `cqrs-gen`                                                         |
 | Build     | `nix run .#build`                                                                                                                                                                                                      |
 | Test      | `nix run .#test` or `go test ./core/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./saga/... ./stream/... ./watermill/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                       |
@@ -33,14 +33,14 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 13 modules:
+Multi-module Go workspace (`go.work`) with 15 modules:
 
 ```
 go-cqrs-lite/
 ├── core/                # github.com/larsartmann/go-cqrs-lite/core
 │   ├── command/         # Dispatcher, Handler, Middleware, Command, BasicCommand
 │   ├── query/           # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
-│   ├── event/           # Store, Bus, SnapshotStore, ImmutableEvent, NewEvent, Clone, Codec, Upcaster, VersionedStore, NewUpcaster
+│   ├── event/           # EventSink, EventSource, Store, Journal, SeekableJournal, TombstoneStatus, Bus, SnapshotStore, ImmutableEvent, NewEvent, Clone, Codec, Upcaster
 │   ├── decider/         # Decider[State], Repository[State], Execute, Load (pure-function style)
 │   └── pkg/
 │       ├── id/          # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
@@ -53,6 +53,7 @@ go-cqrs-lite/
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── saga/                # Runner, Definition, Step, Instance, State, Store, compensation
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLOutbox, SQLCheckpointStore (PG/SQLite/Turso)
+├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── stream/              # Aggregate listing, tombstone detection, StatusMiddleware, SQL/projection readers
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
 ├── integration/         # Cross-module tests (command, event, query)
@@ -65,11 +66,13 @@ go-cqrs-lite/
 2. **Trustworthy modules** — Quality gate: "Would a consumer trust this enough to import it?"
 3. **Minimal core dependencies** — core depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
 4. **Composition over inheritance** — Per Go best practices.
-5. **Interface-first design** — All core types are interfaces (`Store`, `Bus`, etc.).
-6. **Context-aware** — All handlers accept `context.Context`.
-7. **Errors as values** — No panics, explicit error returns, sentinel errors + `%w` wrapping.
-8. **Strong types** — No `any` types (except `dialect.go` for database/sql interop). Max 250 lines/file, 30 lines/function.
-9. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
+5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
+6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource, TransactionalSink.
+7. **Context-aware** — All handlers accept `context.Context`.
+8. **Errors as values** — No panics, explicit error returns, sentinel errors + `%w` wrapping.
+9. **Strong types** — No `any` types (except `dialect.go` for database/sql interop). Max 250 lines/file, 30 lines/function.
+10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
+11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 
 ## Error Handling
 
@@ -96,6 +99,16 @@ uid := id.New[UserID]()
 // Query dispatch (type-safe)
 result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
 
+// Sink/Source split (ISP)
+var sink event.EventSink = store   // write side: Save, AppendBatch
+var source event.EventSource = store // read side: Load, LoadFromVersion, LoadToVersion, LoadToTimestamp
+var journal event.Journal = store   // ReadAll (cross-aggregate)
+var seekable event.SeekableJournal = store // ReadFrom (position-based)
+
+// Tombstone soft-delete (no Delete on Store)
+status := event.DetectTombstone(events) // Active, Tombstoned, or Undetermined
+marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
+
 // Event upcasting (schema migration on load)
 //   upcaster := event.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
 //       return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
@@ -118,16 +131,16 @@ result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
 
 ## Dependencies
 
-| Category   | Packages                                                                       |
-| ---------- | ------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                    |
+| Category   | Packages                                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family (core); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, storage, middleware) |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                          |
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
-**Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers;
-catalog→core; storage→core; projection→core; signing→core; saga→core; stream→core+memory; watermill→core;
-integration→core+memory+testhelpers.
+**Module Graph**: testhelpers→core; memory→core+testhelpers; middleware→core+testhelpers+otel;
+catalog→core; storage→core+otel+saga; projection→core; signing→core; saga→core; stream→core+memory; watermill→core;
+otel→core; integration→core+memory+testhelpers.
 
 **Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote.
 

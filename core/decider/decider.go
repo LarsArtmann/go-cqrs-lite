@@ -3,8 +3,12 @@ package decider
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // Decider defines how to reconstruct state from events.
@@ -94,13 +98,24 @@ func (r *Repository[State]) Execute(
 	aggType event.AggregateType,
 	decide DecideFunc[State],
 ) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "decider.execute",
+		trace.SpanKindInternal,
+		trace.WithAttributes(aggregateAttrs(string(aggType), aggID.String())...),
+	)
+	defer span.End()
+
 	state, currentVersion, err := r.loadState(ctx, aggID, aggType)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
 
 	newEvents, err := decide(state, currentVersion)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
 
@@ -108,21 +123,29 @@ func (r *Repository[State]) Execute(
 		return nil
 	}
 
+	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(newEvents)))
+
 	r.applyEnricher(ctx, newEvents)
 
 	if ts, ok := r.store.(event.TransactionalSink); ok && r.outbox != nil {
 		err = ts.SaveWithOutbox(ctx, aggType, aggID, newEvents, currentVersion)
 		if err != nil {
+			cqrsotel.RecordError(span, err)
+
 			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
 		}
 	} else {
 		err = r.store.Save(ctx, aggType, aggID, newEvents, currentVersion)
 		if err != nil {
+			cqrsotel.RecordError(span, err)
+
 			return opError(aggType, aggID, "%w: %w", ErrSaveFailed, err)
 		}
 
 		err = event.PublishChanges(ctx, r.publisher, r.outbox, newEvents)
 		if err != nil {
+			cqrsotel.RecordError(span, err)
+
 			return opError(aggType, aggID, "publish events: %w", err)
 		}
 	}
@@ -179,6 +202,13 @@ func (r *Repository[State]) Load(
 	aggID id.AggregateID,
 	aggType event.AggregateType,
 ) (State, event.Version, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "decider.load",
+		trace.SpanKindInternal,
+		trace.WithAttributes(aggregateAttrs(string(aggType), aggID.String())...),
+	)
+	defer span.End()
+
 	return r.loadState(ctx, aggID, aggType)
 }
 

@@ -12,18 +12,18 @@ go test ./...  # runs all tests including the signing pipeline
 
 ## What It Demonstrates
 
-| Capability | File | API |
-|---|---|---|
-| **Decider pattern** — pure `fold` + `decide` | `state.go`, `decide.go` | `decider.Decider[State]` |
-| **Command dispatch** with typed structs | `commands.go`, `handlers.go` | `command.RegisterTyped` |
-| **Event sourcing** — load→fold→decide→save→publish | via `decider.Repository` | `deciderRepo.Execute` |
-| **Bus subscriptions** — real-time projections | `handlers.go` | `bus.SubscribeAll` |
-| **Read model projection** from events | `projection.go` | `ReadModelStore.Handle` |
-| **Query dispatch** with typed results | `queries.go`, `handlers.go` | `query.DispatchTyped[T]` |
-| **Middleware chain** — Recovery→Logging→Metrics→Retry | `main.go`, `middleware_adapters.go` | `dispatcher.Use` |
-| **Event signing** — HMAC-SHA256 sign/verify | `main.go` | `signing.SignMiddleware` |
-| **Error classification** — Rejection, Conflict | `decide.go` | `event.NewRejection` / `NewConflict` |
-| **EventCatalog generation** | `catalog.go` | `catalog.NewBuilder` |
+| Capability                                            | File                                | API                                  |
+| ----------------------------------------------------- | ----------------------------------- | ------------------------------------ |
+| **Decider pattern** — pure `fold` + `decide`          | `state.go`, `decide.go`             | `decider.Decider[State]`             |
+| **Command dispatch** with typed structs               | `commands.go`, `handlers.go`        | `command.RegisterTyped`              |
+| **Event sourcing** — load→fold→decide→save→publish    | via `decider.Repository`            | `deciderRepo.Execute`                |
+| **Bus subscriptions** — real-time projections         | `handlers.go`                       | `bus.SubscribeAll`                   |
+| **Read model projection** from events                 | `projection.go`                     | `ReadModelStore.Handle`              |
+| **Query dispatch** with typed results                 | `queries.go`, `handlers.go`         | `query.DispatchTyped[T]`             |
+| **Middleware chain** — Recovery→Logging→Metrics→Retry | `main.go`, `middleware_adapters.go` | `dispatcher.Use`                     |
+| **Event signing** — HMAC-SHA256 sign/verify           | `main.go`                           | `signing.SignMiddleware`             |
+| **Error classification** — Rejection, Conflict        | `decide.go`                         | `event.NewRejection` / `NewConflict` |
+| **EventCatalog generation**                           | `catalog.go`                        | `catalog.NewBuilder`                 |
 
 ## Architecture
 
@@ -152,20 +152,20 @@ retryable := event.IsRetryable(err) // → false
 
 ## Tests
 
-| Test | What it covers |
-|------|---------------|
-| `TestDecider_CreateUser` | Pure decide function, event creation |
-| `TestDecider_CreateUser_EmptyEmail` | Validation rejection |
-| `TestDecider_CreateUser_AlreadyExists` | Conflict detection |
-| `TestDecider_ChangeName` | Update decide function |
-| `TestFoldUser` | State reconstruction from events |
-| `TestReadModel_Projection` | Event → read model mapping |
-| `TestFullCQRS_Lifecycle` | End-to-end: create→changeName→query→list |
-| `TestQueryDispatcher` | Query dispatch with typed results |
-| `TestEventCatalog_Generation` | AsyncAPI + EventCatalog export |
-| `TestErrorClassification` | Error family classification |
-| `TestFullStack_WithSigning` | Full pipeline with HMAC sign/verify |
-| `TestFullStack_DuplicateUserRejection` | Conflict error path |
+| Test                                   | What it covers                           |
+| -------------------------------------- | ---------------------------------------- |
+| `TestDecider_CreateUser`               | Pure decide function, event creation     |
+| `TestDecider_CreateUser_EmptyEmail`    | Validation rejection                     |
+| `TestDecider_CreateUser_AlreadyExists` | Conflict detection                       |
+| `TestDecider_ChangeName`               | Update decide function                   |
+| `TestFoldUser`                         | State reconstruction from events         |
+| `TestReadModel_Projection`             | Event → read model mapping               |
+| `TestFullCQRS_Lifecycle`               | End-to-end: create→changeName→query→list |
+| `TestQueryDispatcher`                  | Query dispatch with typed results        |
+| `TestEventCatalog_Generation`          | AsyncAPI + EventCatalog export           |
+| `TestErrorClassification`              | Error family classification              |
+| `TestFullStack_WithSigning`            | Full pipeline with HMAC sign/verify      |
+| `TestFullStack_DuplicateUserRejection` | Conflict error path                      |
 
 ```bash
 go test ./... -v         # run all tests

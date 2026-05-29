@@ -543,6 +543,25 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ---
 
+## Stream Read Model ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/stream"`
+
+||| Feature | Detail | Status |
+||| --------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------ |
+||| AggregateReader | `List(ctx, ListOptions) → Page[AggregateStatus]` — cursor-based aggregate listing | ✅ |
+||| ListBuilder | Fluent API: `stream.NewListBuilder(reader).WithType("User").After(cursor).Limit(50).IncludeTombstoned()` | ✅ |
+||| InMemoryAggregateReader | Reads from `event.Journal.ReadAll()` — single-pass, no persistence | ✅ |
+||| SQLAggregateReader | Reads from projection tables with prefix validation (`^[a-z_][a-z0-9_]*$`) | ✅ |
+||| AggregateProjection | Maintains SQL read-model tables from event streams with tombstone detection | ✅ |
+||| StatusMiddleware | Event bus middleware that publishes aggregate status changes | ✅ |
+||| TombstonePolicy | `Exclude` (default), `Include`, `Only` — controls visibility of soft-deleted aggregates | ✅ |
+||| Page[T] | Cursor-based pagination with `HasMore` — no expensive TotalCount | ✅ |
+||| AggregateRef | Lightweight identity: ID, Type, Version, EventCount, LastEventAt | ✅ |
+||| AggregateStatus | Pairs AggregateRef with computed TombstoneStatus | ✅ |
+
+---
+
 ## cqrs-gen Code Generator 💡 TOOL
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen`
@@ -594,6 +613,8 @@ Features mentioned in project docs/planning but with **no production code**:
 || `projection` | `…/projection` | ~95% | ✅ Production |
 || `saga` | `…/saga` | 93.8% | ✅ Production |
 || `watermill` | `…/watermill` | 89.6% | ✅ Production |
+|| `stream` | `…/stream` | ~90% | ✅ Production |
+|| `otel` | `…/otel` | N/A | ✅ Production |
 || `cmd/cqrs-gen` | `…/cmd/cqrs-gen` | 70.8% | ⚠️ Partial |
 || `example/user` | `…/example/user` | N/A | 💡 Demo |
 

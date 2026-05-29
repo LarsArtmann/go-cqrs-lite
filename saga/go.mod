@@ -4,6 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 )
@@ -27,4 +28,7 @@ require (
 	golang.org/x/tools v0.45.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/core => ../core
+replace (
+	github.com/larsartmann/go-cqrs-lite/core => ../core
+	github.com/larsartmann/go-cqrs-lite/otel => ../otel
+)

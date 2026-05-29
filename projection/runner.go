@@ -8,9 +8,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // Runner orchestrates projection replay from an event journal and live subscription via an event bus.
@@ -111,7 +111,8 @@ func (r *Runner) replay(ctx context.Context) error {
 	seekable, hasSeekable := r.journal.(event.SeekableJournal)
 
 	for _, p := range r.projections {
-		ctx, span := cqrsotel.StartSpan(ctx, tracer(), "projection.replay",
+		ctx, span := cqrsotel.StartSpan(
+			ctx, tracer(), "projection.replay",
 			trace.SpanKindClient,
 			trace.WithAttributes(projectionAttrs(p.Name())...),
 		)
@@ -193,7 +194,8 @@ func (r *Runner) handleAndCheckpoint(
 	p event.Projection,
 	evt event.Event,
 ) error {
-	ctx, span := cqrsotel.StartSpan(ctx, tracer(), "projection.handle",
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projection.handle",
 		trace.SpanKindConsumer,
 		trace.WithAttributes(
 			attribute.String(cqrsotel.AttrEventType, string(evt.Type())),
