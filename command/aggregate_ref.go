@@ -3,25 +3,20 @@ package command
 import (
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-type AggregateType string
+type AggregateType = event.AggregateType
 
-func (a AggregateType) String() string { return string(a) }
-
-func (a AggregateType) IsZero() bool { return a == "" }
+type AggregateRef = event.AggregateRef
 
 func ParseAggregateType(s string) (AggregateType, error) {
-	if s == "" {
-		return "", ErrEmptyAggregateType
-	}
-
-	return AggregateType(s), nil
+	return event.ParseAggregateType(s)
 }
 
 func MustParseAggregateType(s string) AggregateType {
-	t, err := ParseAggregateType(s)
+	t, err := event.ParseAggregateType(s)
 	if err != nil {
 		panic(fmt.Sprintf("command.MustParseAggregateType: %v", err))
 	}
@@ -29,15 +24,6 @@ func MustParseAggregateType(s string) AggregateType {
 	return t
 }
 
-type AggregateRef struct {
-	Type AggregateType
-	ID   id.AggregateID
-}
-
-func (r AggregateRef) String() string {
-	return r.Type.String() + ":" + r.ID.String()
-}
-
 func NewAggregateRef(aggregateType AggregateType, aggregateID id.AggregateID) AggregateRef {
-	return AggregateRef{Type: aggregateType, ID: aggregateID}
+	return event.NewAggregateRef(aggregateType, aggregateID)
 }
