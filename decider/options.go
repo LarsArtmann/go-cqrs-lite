@@ -3,13 +3,14 @@ package decider
 import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 // RepositoryOption configures a Repository.
 type RepositoryOption[State any] func(*Repository[State])
 
 // WithSnapshotStore enables snapshot support for the repository.
-func WithSnapshotStore[State any](store event.SnapshotStore) RepositoryOption[State] {
+func WithSnapshotStore[State any](store snapshot.SnapshotStore) RepositoryOption[State] {
 	return func(r *Repository[State]) {
 		r.snapshotStore = store
 	}
@@ -27,7 +28,7 @@ func WithCodec[State any](codec codec.Codec) RepositoryOption[State] {
 // WithSnapshotStrategy sets the strategy for automatic snapshotting.
 // When set, Execute checks the strategy after persisting events and
 // creates a snapshot if the strategy triggers.
-func WithSnapshotStrategy[State any](strategy event.SnapshotStrategy) RepositoryOption[State] {
+func WithSnapshotStrategy[State any](strategy snapshot.SnapshotStrategy) RepositoryOption[State] {
 	return func(r *Repository[State]) {
 		r.snapshotStrategy = strategy
 	}

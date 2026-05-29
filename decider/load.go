@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
@@ -158,7 +159,7 @@ func (r *Repository[State]) shouldSnapshot(
 	aggregateType event.AggregateType,
 	version event.Version,
 ) bool {
-	return event.ShouldSnapshot(
+	return snapshot.ShouldSnapshot(
 		r.snapshotStrategy,
 		r.snapshotStore,
 		r.codec,

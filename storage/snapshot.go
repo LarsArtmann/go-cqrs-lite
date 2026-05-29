@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
@@ -41,7 +42,7 @@ func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotS
 func SnapshotSchema() string       { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
-func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
+func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.save", trace.SpanKindClient,
 		trace.WithAttributes(append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...))
@@ -69,7 +70,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 	return nil
 }
 
-func (s *SQLSnapshotStore) Load(ctx context.Context, ref event.AggregateRef) (*event.Snapshot, error) {
+func (s *SQLSnapshotStore) Load(ctx context.Context, ref event.AggregateRef) (*snapshot.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load", trace.SpanKindClient,
 		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...))
 	defer span.End()
@@ -86,7 +87,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx context.Context,
 	ref event.AggregateRef,
 	version event.Version,
-) (*event.Snapshot, error) {
+) (*snapshot.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load_at_version", trace.SpanKindClient,
 		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...))
@@ -106,14 +107,14 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	return snap, nil
 }
 
-func (s *SQLSnapshotStore) querySnapshot(ctx context.Context, ref event.AggregateRef) (*event.Snapshot, error) {
+func (s *SQLSnapshotStore) querySnapshot(ctx context.Context, ref event.AggregateRef) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
 		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
 	return s.scanSnapshot(s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID), ref)
 }
 
-func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*event.Snapshot, error) {
+func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*snapshot.Snapshot, error) {
 	var version int
 	var stateBytes []byte
 	timeDest := s.Dialect.ScanTimeDest()
@@ -130,7 +131,7 @@ func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*
 	if err != nil {
 		return nil, event.WrapCorruption(err, "storage.parse_snapshot_created_at", "parse snapshot created_at")
 	}
-	return &event.Snapshot{
+	return &snapshot.Snapshot{
 		AggregateID: ref.ID, AggregateType: ref.Type,
 		Version: event.Version(version), State: stateBytes, CreatedAt: createdAt,
 	}, nil
@@ -142,7 +143,7 @@ func (s *SQLSnapshotStore) Delete(ctx context.Context, ref event.AggregateRef) e
 }
 
 var (
-	_ event.SnapshotSink   = (*SQLSnapshotStore)(nil)
-	_ event.SnapshotSource = (*SQLSnapshotStore)(nil)
-	_ event.SnapshotStore  = (*SQLSnapshotStore)(nil)
+	_ snapshot.SnapshotSink   = (*SQLSnapshotStore)(nil)
+	_ snapshot.SnapshotSource = (*SQLSnapshotStore)(nil)
+	_ snapshot.SnapshotStore  = (*SQLSnapshotStore)(nil)
 )

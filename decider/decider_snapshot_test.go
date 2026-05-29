@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
@@ -17,7 +18,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(2)),
+		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(2)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -65,7 +66,7 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
 	aggID := id.NewAggregateID()
-	snapshotStore.SetSnapshot(&event.Snapshot{
+	snapshotStore.SetSnapshot(&snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Counter",
 		Version:       event.Version(1),
@@ -147,7 +148,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -176,7 +177,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -204,7 +205,7 @@ func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 		}
 	}()
 
-	event.MustEveryNEvents(-1)
+	snapshot.MustEveryNEvents(-1)
 }
 
 func TestLoad_SnapshotWithEventsAfter(t *testing.T) {

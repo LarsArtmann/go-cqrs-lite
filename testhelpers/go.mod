@@ -5,6 +5,7 @@ go 1.26.3
 require github.com/larsartmann/go-cqrs-lite/event v1.6.0
 
 require (
+	github.com/larsartmann/go-cqrs-lite/snapshot v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/command v0.0.0-00010101000000-000000000000
@@ -15,6 +16,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/snapshot => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/query => ../query
 	github.com/larsartmann/go-cqrs-lite/command => ../command

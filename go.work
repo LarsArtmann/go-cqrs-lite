@@ -25,6 +25,7 @@ use (
 	./query
 	./schema
 	./signing
+	./snapshot
 	./storage
 	./testhelpers
 	./turso

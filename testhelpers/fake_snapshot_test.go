@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
@@ -15,7 +16,7 @@ func TestFakeSnapshotStore_SaveAndLoad(t *testing.T) {
 	store := NewFakeSnapshotStore()
 
 	aggID := id.NewAggregateID()
-	snap := event.Snapshot{
+	snap := snapshot.Snapshot{
 		AggregateType: "User",
 		AggregateID:   aggID,
 		Version:       event.Version(5),
@@ -53,7 +54,7 @@ func TestFakeSnapshotStore_LoadAtVersion(t *testing.T) {
 	store := NewFakeSnapshotStore()
 
 	aggID := id.NewAggregateID()
-	snap := event.Snapshot{
+	snap := snapshot.Snapshot{
 		AggregateType: "User",
 		AggregateID:   aggID,
 		Version:       event.Version(3),
@@ -97,7 +98,7 @@ func TestFakeSnapshotStore_SaveError(t *testing.T) {
 	store := NewFakeSnapshotStore()
 	store.SetSaveError(errors.New("disk full"))
 
-	err := store.Save(context.Background(), event.Snapshot{})
+	err := store.Save(context.Background(), snapshot.Snapshot{})
 	if err == nil {
 		t.Fatal("expected error")
 	}

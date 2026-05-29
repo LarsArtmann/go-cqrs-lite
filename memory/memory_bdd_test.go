@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
@@ -284,7 +285,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 	Describe("As a developer speeding up aggregate loading with snapshots", func() {
 		Context("when I save a snapshot and load it back", func() {
 			It("should roundtrip my aggregate state so I can skip replaying all events", func() {
-				snap := event.Snapshot{
+				snap := snapshot.Snapshot{
 					AggregateID:   aggID,
 					AggregateType: aggType,
 					Version:       event.Version(5),

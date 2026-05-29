@@ -1,15 +1,16 @@
-package event_test
+package snapshot_test
 
 import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestEveryNEvents_ReturnsErrorForZero(t *testing.T) {
 	t.Parallel()
 
-	_, err := event.EveryNEvents(0)
+	_, err := snapshot.EveryNEvents(0)
 	if err == nil {
 		t.Error("EveryNEvents(0) should return error")
 	}
@@ -18,7 +19,7 @@ func TestEveryNEvents_ReturnsErrorForZero(t *testing.T) {
 func TestEveryNEvents_ReturnsErrorForNegative(t *testing.T) {
 	t.Parallel()
 
-	_, err := event.EveryNEvents(-5)
+	_, err := snapshot.EveryNEvents(-5)
 	if err == nil {
 		t.Error("EveryNEvents(-5) should return error")
 	}
@@ -27,7 +28,7 @@ func TestEveryNEvents_ReturnsErrorForNegative(t *testing.T) {
 func TestEveryNEvents_Success(t *testing.T) {
 	t.Parallel()
 
-	strategy, err := event.EveryNEvents(5)
+	strategy, err := snapshot.EveryNEvents(5)
 	if err != nil {
 		t.Fatalf("EveryNEvents(5) err = %v", err)
 	}
@@ -63,13 +64,13 @@ func TestMustEveryNEvents_PanicsOnZero(t *testing.T) {
 		}
 	}()
 
-	event.MustEveryNEvents(0)
+	snapshot.MustEveryNEvents(0)
 }
 
 func TestMustEveryNEvents_Success(t *testing.T) {
 	t.Parallel()
 
-	s := event.MustEveryNEvents(3)
+	s := snapshot.MustEveryNEvents(3)
 	if s == nil {
 		t.Fatal("MustEveryNEvents(3) returned nil")
 	}

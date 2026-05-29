@@ -101,10 +101,6 @@ type (
 )
 
 var (
-	errInvalidSnapshotInterval = NewRejection(
-		"event.invalid_snapshot_interval",
-		"snapshot interval must be positive",
-	)
 	ErrEmptyEventType     = NewRejection("event.empty_event_type", "event type is required")
 	ErrNilAggregateID     = NewRejection("event.nil_aggregate_id", "aggregate ID is required")
 	ErrEmptyAggregateType = NewRejection(

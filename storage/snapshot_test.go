@@ -11,6 +11,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
@@ -46,7 +47,7 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 
 	s, mock := newTestSnapshotStore(t)
 
-	snap := event.Snapshot{
+	snap := snapshot.Snapshot{
 		AggregateID:   id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2"),
 		AggregateType: "User",
 		Version:       event.Version(5),
@@ -74,7 +75,7 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 
 	s, mock := newTestSnapshotStore(t)
 
-	snap := event.Snapshot{
+	snap := snapshot.Snapshot{
 		AggregateID:   id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2"),
 		AggregateType: "User",
 		Version:       event.Version(1),

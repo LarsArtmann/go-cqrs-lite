@@ -5,13 +5,14 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
-// FakeSnapshotStore implements event.SnapshotStore for testing.
+// FakeSnapshotStore implements snapshot.SnapshotStore for testing.
 type FakeSnapshotStore struct {
 	mu       sync.RWMutex
-	snapshot *event.Snapshot
-	saved    []event.Snapshot
+	snapshot *snapshot.Snapshot
+	saved    []snapshot.Snapshot
 	loadErr  error
 	saveErr  error
 }
@@ -22,7 +23,7 @@ func NewFakeSnapshotStore() *FakeSnapshotStore {
 }
 
 // SetSnapshot configures the snapshot returned by Load.
-func (s *FakeSnapshotStore) SetSnapshot(snap *event.Snapshot) {
+func (s *FakeSnapshotStore) SetSnapshot(snap *snapshot.Snapshot) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -46,15 +47,15 @@ func (s *FakeSnapshotStore) SetSaveError(err error) {
 }
 
 // Saved returns a copy of all snapshots saved via Save.
-func (s *FakeSnapshotStore) Saved() []event.Snapshot {
+func (s *FakeSnapshotStore) Saved() []snapshot.Snapshot {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return append([]event.Snapshot{}, s.saved...)
+	return append([]snapshot.Snapshot{}, s.saved...)
 }
 
 // Save records the snapshot for later verification.
-func (s *FakeSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
+func (s *FakeSnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -71,7 +72,7 @@ func (s *FakeSnapshotStore) Save(_ context.Context, snap event.Snapshot) error {
 func (s *FakeSnapshotStore) Load(
 	_ context.Context,
 	_ event.AggregateRef,
-) (*event.Snapshot, error) {
+) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
 }
 
@@ -80,11 +81,11 @@ func (s *FakeSnapshotStore) LoadAtVersion(
 	_ context.Context,
 	_ event.AggregateRef,
 	_ event.Version,
-) (*event.Snapshot, error) {
+) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
 }
 
-func (s *FakeSnapshotStore) loadSnapshot() (*event.Snapshot, error) {
+func (s *FakeSnapshotStore) loadSnapshot() (*snapshot.Snapshot, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -103,7 +104,7 @@ func (s *FakeSnapshotStore) Delete(
 func (s *FakeSnapshotStore) Close() error { return nil }
 
 var (
-	_ event.SnapshotSink   = (*FakeSnapshotStore)(nil)
-	_ event.SnapshotSource = (*FakeSnapshotStore)(nil)
-	_ event.SnapshotStore  = (*FakeSnapshotStore)(nil)
+	_ snapshot.SnapshotSink   = (*FakeSnapshotStore)(nil)
+	_ snapshot.SnapshotSource = (*FakeSnapshotStore)(nil)
+	_ snapshot.SnapshotStore  = (*FakeSnapshotStore)(nil)
 )

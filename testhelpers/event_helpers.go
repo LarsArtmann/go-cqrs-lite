@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
@@ -219,8 +220,8 @@ func QuickSnapshot(
 	aggType event.AggregateType,
 	version event.Version,
 	state []byte,
-) event.Snapshot {
-	return event.Snapshot{
+) snapshot.Snapshot {
+	return snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: aggType,
 		Version:       version,

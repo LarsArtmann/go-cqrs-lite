@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
@@ -34,9 +35,9 @@ type Decider[State any] struct {
 type Repository[State any] struct {
 	store            event.Store
 	publisher        event.Publisher
-	snapshotStore    event.SnapshotStore
+	snapshotStore    snapshot.SnapshotStore
 	codec            codec.Codec
-	snapshotStrategy event.SnapshotStrategy
+	snapshotStrategy snapshot.SnapshotStrategy
 	enricher         event.ContextEnricher
 	decider          Decider[State]
 }
@@ -185,7 +186,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 		return
 	}
 
-	_ = event.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
+	_ = snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
 }
 
 // Load reconstructs state from the aggregate's event history without any

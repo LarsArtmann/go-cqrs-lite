@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/memory
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite/snapshot v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/dispatcher v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event v1.6.0
@@ -12,6 +13,7 @@ require (
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/snapshot v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/dispatcher v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id v0.0.0-00010101000000-000000000000
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -35,6 +37,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite/snapshot => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/dispatcher => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/event => ../event

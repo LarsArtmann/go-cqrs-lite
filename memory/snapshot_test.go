@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
@@ -15,10 +16,10 @@ func newTestSnapshot(
 	aggregateID id.AggregateID,
 	version int,
 	status string,
-) event.Snapshot {
+) snapshot.Snapshot {
 	tb.Helper()
 
-	return event.Snapshot{
+	return snapshot.Snapshot{
 		AggregateID:   aggregateID,
 		AggregateType: "Order",
 		Version:       event.Version(version),
@@ -306,7 +307,7 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	originalState := []byte(`{"status":"placed"}`)
-	snapshot := event.Snapshot{
+	snapshot := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Order",
 		Version:       1,
@@ -349,7 +350,7 @@ func TestMemorySnapshotStore_Load_NilState(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	snapshot := event.Snapshot{
+	snapshot := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Order",
 		Version:       1,
@@ -380,7 +381,7 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	originalState := []byte(`{"status":"shipped"}`)
-	snapshot := event.Snapshot{
+	snapshot := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Order",
 		Version:       5,

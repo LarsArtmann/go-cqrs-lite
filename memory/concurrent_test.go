@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
@@ -142,7 +143,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 		go func(version int) {
 			defer wg.Done()
 
-			snap := event.Snapshot{
+			snap := snapshot.Snapshot{
 				AggregateID:   aggID,
 				AggregateType: aggType,
 				Version:       event.Version(version + 1),

@@ -9,6 +9,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
@@ -58,8 +59,8 @@ func newTestSnapshot(
 	aggregateType event.AggregateType,
 	version event.Version,
 	state []byte,
-) event.Snapshot {
-	return event.Snapshot{
+) snapshot.Snapshot {
+	return snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: aggregateType,
 		Version:       version,
@@ -68,7 +69,7 @@ func newTestSnapshot(
 	}
 }
 
-func assertSnapshotVersion(t *testing.T, loaded *event.Snapshot, want event.Version) {
+func assertSnapshotVersion(t *testing.T, loaded *snapshot.Snapshot, want event.Version) {
 	t.Helper()
 
 	if loaded.Version.Int() != int(want) {
@@ -78,11 +79,11 @@ func assertSnapshotVersion(t *testing.T, loaded *event.Snapshot, want event.Vers
 
 func saveAndLoadSnapshot(
 	t *testing.T,
-	store event.SnapshotStore,
+	store snapshot.SnapshotStore,
 	ctx context.Context,
-	snap event.Snapshot,
+	snap snapshot.Snapshot,
 	want event.Version,
-) *event.Snapshot {
+) *snapshot.Snapshot {
 	t.Helper()
 
 	err := store.Save(ctx, snap)

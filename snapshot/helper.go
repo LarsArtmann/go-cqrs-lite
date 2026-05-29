@@ -1,21 +1,20 @@
-package event
+package snapshot
 
 import (
 	"context"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-// ShouldSnapshot returns true if a snapshot should be created based on the
-// given strategy, snapshot store availability, codec availability, and
-// the aggregate's current type and version.
 func ShouldSnapshot(
 	strategy SnapshotStrategy,
 	sink SnapshotSink,
 	c codec.Codec,
-	aggType AggregateType,
-	version Version,
+	aggType event.AggregateType,
+	version event.Version,
 ) bool {
 	return strategy != nil &&
 		sink != nil &&
@@ -23,14 +22,12 @@ func ShouldSnapshot(
 		strategy.ShouldSnapshot(aggType, version)
 }
 
-// SaveSnapshot persists a snapshot with the given pre-encoded state.
-// The caller is responsible for encoding the state before calling.
 func SaveSnapshot(
 	ctx context.Context,
 	sink SnapshotSink,
-	aggType AggregateType,
+	aggType event.AggregateType,
 	aggID id.AggregateID,
-	version Version,
+	version event.Version,
 	state []byte,
 ) error {
 	err := sink.Save(ctx, Snapshot{
@@ -38,10 +35,10 @@ func SaveSnapshot(
 		AggregateType: aggType,
 		Version:       version,
 		State:         state,
-		CreatedAt:     defaultClock().UTC(),
+		CreatedAt:     time.Now().UTC(),
 	})
 	if err != nil {
-		return WrapInfrastructure(
+		return event.WrapInfrastructure(
 			err,
 			"event.snapshot_save_failed",
 			"save snapshot for "+string(aggType)+" "+aggID.String(),

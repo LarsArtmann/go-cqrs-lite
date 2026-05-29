@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
@@ -84,7 +85,7 @@ func newSnapshotRepo(
 		store, bus, bddCounterDecider(),
 		decider.WithSnapshotStore[bddCounter](snapStore),
 		decider.WithCodec[bddCounter](codec.JSONCodec{}),
-		decider.WithSnapshotStrategy[bddCounter](event.MustEveryNEvents(n)),
+		decider.WithSnapshotStrategy[bddCounter](snapshot.MustEveryNEvents(n)),
 	)
 }
 

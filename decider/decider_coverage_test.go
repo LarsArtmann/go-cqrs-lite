@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -158,7 +159,7 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 		store, bus, counterDecider(),
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -205,7 +206,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 		t.Fatalf("encode: %v", snapErr)
 	}
 
-	snap := event.Snapshot{
+	snap := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Counter",
 		Version:       event.Version(1),

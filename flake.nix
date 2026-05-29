@@ -55,6 +55,7 @@
             "id"
             "dispatcher"
             "schema"
+            "snapshot"
             "memory"
             "catalog"
             "middleware"

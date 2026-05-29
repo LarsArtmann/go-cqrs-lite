@@ -5,34 +5,35 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/dispatcher"
 )
 
-// MemorySnapshotStore is an in-memory implementation of event.SnapshotStore.
+// MemorySnapshotStore is an in-memory implementation of snapshot.SnapshotStore.
 // It stores at most one snapshot per aggregate (the latest version).
 type MemorySnapshotStore struct {
 	dispatcher.Lifecycle
 
 	mu        sync.RWMutex
-	snapshots map[string]*event.Snapshot
+	snapshots map[string]*snapshot.Snapshot
 }
 
 var (
-	_ event.SnapshotSink   = (*MemorySnapshotStore)(nil)
-	_ event.SnapshotSource = (*MemorySnapshotStore)(nil)
-	_ event.SnapshotStore  = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotSink   = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotSource = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotStore  = (*MemorySnapshotStore)(nil)
 )
 
 // NewMemorySnapshotStore creates a new in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemorySnapshotStore{
-		snapshots: make(map[string]*event.Snapshot),
+		snapshots: make(map[string]*snapshot.Snapshot),
 	}
 }
 
 // Save stores a snapshot. If a newer snapshot already exists for the aggregate, the save is silently skipped.
-func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) error {
+func (s *MemorySnapshotStore) Save(_ context.Context, snapshot snapshot.Snapshot) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
 		return event.WrapInfrastructure(err, "memory.snapshot_save_failed", "snapshot store save")
@@ -58,7 +59,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
 	ref event.AggregateRef,
-) (*event.Snapshot, error) {
+) (*snapshot.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
@@ -89,7 +90,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
 	ref event.AggregateRef,
 	version event.Version,
-) (*event.Snapshot, error) {
+) (*snapshot.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
@@ -118,7 +119,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	return cp, nil
 }
 
-func copySnapshot(snapshot *event.Snapshot) *event.Snapshot {
+func copySnapshot(snapshot *snapshot.Snapshot) *snapshot.Snapshot {
 	snapshotCopy := *snapshot
 
 	if snapshot.State != nil {
@@ -158,7 +159,7 @@ func (s *MemorySnapshotStore) Close() error {
 }
 
 var (
-	_ event.SnapshotSink   = (*MemorySnapshotStore)(nil)
-	_ event.SnapshotSource = (*MemorySnapshotStore)(nil)
-	_ event.SnapshotStore  = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotSink   = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotSource = (*MemorySnapshotStore)(nil)
+	_ snapshot.SnapshotStore  = (*MemorySnapshotStore)(nil)
 )

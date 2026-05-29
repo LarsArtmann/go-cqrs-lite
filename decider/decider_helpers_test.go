@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -176,12 +177,12 @@ func makeSnapshot(
 	aggID id.AggregateID,
 	value int,
 	version event.Version,
-) event.Snapshot {
+) snapshot.Snapshot {
 	t.Helper()
 
 	snapState, _ := c.Encode(counterState{Value: value})
 
-	return event.Snapshot{
+	return snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Counter",
 		Version:       version,
