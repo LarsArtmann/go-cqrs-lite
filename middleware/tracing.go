@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -14,7 +15,6 @@ import (
 
 const instrumentationName = "github.com/larsartmann/go-cqrs-lite/middleware"
 
-// recordError records an error on the span and sets error status.
 func recordError(span trace.Span, err error) {
 	span.RecordError(err)
 	span.SetStatus(codes.Error, err.Error())
@@ -31,10 +31,10 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 			ctx, span := tracer.Start(
 				ctx, "command.handle",
 				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(
-					attribute.String("cqrs.message.kind", "command"),
-					attribute.String("cqrs.command.type", string(cmd.Type())),
-				),
+				trace.WithAttributes(cqrsotel.CommandAttrs(
+					string(cmd.Type()),
+					cmd.AggregateID().String(),
+				)...),
 			)
 			defer span.End()
 
@@ -59,12 +59,17 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 			ctx, span := tracer.Start(
 				ctx, "event.handle",
 				trace.WithSpanKind(trace.SpanKindConsumer),
-				trace.WithAttributes(
-					attribute.String("cqrs.message.kind", "event"),
-					attribute.String("cqrs.event.type", string(evt.Type())),
-				),
+				trace.WithAttributes(cqrsotel.EventAttrs(
+					string(evt.Type()),
+					evt.AggregateID().String(),
+					string(evt.AggregateType()),
+				)...),
 			)
 			defer span.End()
+
+			span.SetAttributes(
+				attribute.Int(cqrsotel.AttrAggregateVersion, int(evt.Version())),
+			)
 
 			err := next(ctx, evt)
 			if err != nil {
@@ -87,10 +92,9 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 			ctx, span := tracer.Start(
 				ctx, "query.handle",
 				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(
-					attribute.String("cqrs.message.kind", "query"),
-					attribute.String("cqrs.query.type", string(qry.Type())),
-				),
+				trace.WithAttributes(cqrsotel.QueryAttrs(
+					string(qry.Type()),
+				)...),
 			)
 			defer span.End()
 
@@ -101,5 +105,44 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 
 			return result, err
 		}
+	}
+}
+
+// EventPublishTracing creates an OpenTelemetry span for each event publish operation.
+// This wraps the Publish path on the event bus, creating a Producer span with
+// attributes for the batch of events being published.
+//
+//	tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+//	bus.UsePublish(middleware.EventPublishTracing(tracer))
+func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
+	return func(next event.Publisher) event.Publisher {
+		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+			attrs := []attribute.KeyValue{
+				attribute.String(cqrsotel.AttrMessageKind, cqrsotel.KindEvent),
+				attribute.Int(cqrsotel.AttrEventCount, len(events)),
+			}
+
+			if len(events) > 0 {
+				attrs = append(attrs,
+					attribute.String(cqrsotel.AttrEventType, string(events[0].Type())),
+					attribute.String(cqrsotel.AttrAggregateType, string(events[0].AggregateType())),
+					attribute.String(cqrsotel.AttrAggregateID, events[0].AggregateID().String()),
+				)
+			}
+
+			ctx, span := tracer.Start(
+				ctx, "event.publish",
+				trace.WithSpanKind(trace.SpanKindProducer),
+				trace.WithAttributes(attrs...),
+			)
+			defer span.End()
+
+			err := next.Publish(ctx, events...)
+			if err != nil {
+				recordError(span, err)
+			}
+
+			return err
+		})
 	}
 }

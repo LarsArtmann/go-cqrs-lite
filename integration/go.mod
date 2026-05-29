@@ -60,6 +60,7 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	modernc.org/sqlite v1.51.0 // indirect
 	turso.tech/database/tursogo v0.6.0 // indirect
 )
 

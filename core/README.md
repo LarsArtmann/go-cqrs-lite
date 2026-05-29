@@ -133,12 +133,20 @@ payload, _ := event.DecodePayload[UserCreated](evt, event.JSONCodec{})
 ### Store & Bus Interfaces
 
 ```go
-type Store interface {
+// Store = EventSink + EventSource (ISP split)
+type EventSink interface {
     Save(ctx, aggType, aggID, events, expectedVersion) error
+    AppendBatch(ctx, aggType, aggID, events) error
+}
+
+type EventSource interface {
     Load(ctx, aggType, aggID) ([]Event, error)
     LoadFromVersion(ctx, aggType, aggID, fromVersion) ([]Event, error)
-    // ...see event.Store for full interface
+    LoadToVersion(ctx, aggType, aggID, maxVersion) ([]Event, error)
+    LoadToTimestamp(ctx, aggType, aggID, maxTime) ([]Event, error)
 }
+
+type Store interface { EventSink; EventSource }
 
 type Bus interface {
     Publish(ctx, ...Event) error

@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
-	modernc.org/sqlite v1.50.0
+	modernc.org/sqlite v1.51.0
 )
 
 require (
@@ -47,7 +47,7 @@ require (
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	modernc.org/libc v1.72.0 // indirect
+	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	turso.tech/database/tursogo v0.6.0 // indirect

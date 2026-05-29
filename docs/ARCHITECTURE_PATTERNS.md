@@ -9,7 +9,7 @@ The event store supports querying historical state:
 | `LoadToVersion(ctx, aggType, aggID, maxVersion)` | Load events up to and including a version |
 | `LoadToTimestamp(ctx, aggType, aggID, maxTime)`  | Load events up to a point in time         |
 | `LoadFromVersion(ctx, aggType, aggID, version)`  | Load events starting from a version       |
-| `LoadAllFromPosition(ctx, afterEventID, limit)`  | Cursor-based global event loading         |
+| `ReadFrom(ctx, afterEventID, limit)`              | Cursor-based global event loading (SeekableJournal) |
 
 The decider module provides convenience methods:
 
@@ -67,7 +67,7 @@ Never hard-delete events. Instead:
 1. Append a `UserDeleted` event
 2. The fold function sets a `Deleted: true` flag on state
 3. Projections filter out deleted entities in their queries
-4. Hard delete (`Store.Delete`) is only for GDPR compliance or admin operations
+4. Hard delete is no longer available on the Store interface — use tombstone metadata (`event.MarkTombstone`) for soft-delete, or drop data at the storage layer for GDPR
 
 ## Offline-First Metadata Conventions
 

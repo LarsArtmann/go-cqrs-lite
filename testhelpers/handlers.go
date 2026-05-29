@@ -32,6 +32,20 @@ func NoopEventHandler() event.Handler {
 	}
 }
 
+// NoopEventPublisher returns a publisher that does nothing.
+func NoopEventPublisher() event.Publisher {
+	return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+		return nil
+	})
+}
+
+// FailingEventPublisher returns a publisher that always returns an error.
+func FailingEventPublisher(msg string) event.Publisher {
+	return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+		return errors.New(msg) //nolint:err113 // test helper with dynamic message
+	})
+}
+
 // NoopQueryHandler returns a handler that does nothing and returns nil.
 func NoopQueryHandler() func(context.Context, query.Query) (any, error) {
 	return func(_ context.Context, _ query.Query) (any, error) {

@@ -12,6 +12,7 @@ use (
 	./integration
 	./memory
 	./middleware
+	./otel
 	./projection
 	./saga
 	./signing
