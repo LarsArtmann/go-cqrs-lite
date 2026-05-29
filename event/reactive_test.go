@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"context"
 	"testing"
 
 	ro "github.com/samber/ro"
@@ -81,13 +82,13 @@ func TestNewEventBus_MultipleSubscribers(t *testing.T) {
 
 	bus.Subscribe(ro.NewObserver[event.Event](
 		func(e event.Event) { count1++ },
-		func(err error) {},
+		func(_ error) {},
 		func() {},
 	))
 
 	bus.Subscribe(ro.NewObserver[event.Event](
 		func(e event.Event) { count2++ },
-		func(err error) {},
+		func(_ error) {},
 		func() {},
 	))
 
@@ -97,5 +98,51 @@ func TestNewEventBus_MultipleSubscribers(t *testing.T) {
 
 	if count1 != 1 || count2 != 1 {
 		t.Errorf("subscribers: %d, %d — want both 1", count1, count2)
+	}
+}
+
+func TestHandlerToObserver_invokes_handler(t *testing.T) {
+	t.Parallel()
+
+	var called bool
+	handler := event.Handler(func(_ context.Context, _ event.Event) error {
+		called = true
+
+		return nil
+	})
+
+	observer := event.HandlerToObserver(handler)
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{}`))
+	observer.Next(evt)
+
+	if !called {
+		t.Fatal("expected handler to be called via observer")
+	}
+}
+
+func TestHandlerToObserverWithContext_passes_context(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.WithValue(context.Background(), "key", "value")
+
+	var gotCtx context.Context
+	handler := event.Handler(func(ctx context.Context, _ event.Event) error {
+		gotCtx = ctx
+
+		return nil
+	})
+
+	observer := event.HandlerToObserverWithContext(ctx, handler)
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{}`))
+	observer.Next(evt)
+
+	if gotCtx == nil {
+		t.Fatal("expected handler to receive context")
+	}
+
+	if gotCtx.Value("key") != "value" {
+		t.Error("expected context value to be passed through")
 	}
 }
