@@ -1,7 +1,6 @@
 package signing
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -76,7 +75,10 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 
 	sig, err := m.signer.Sign(evt)
 	if err != nil {
-		return nil, fmt.Errorf("sign event for actor %s: %w", m.actor, err)
+		return nil, event.WrapInfrastructure(err,
+		"signing.multi_sign",
+		"sign event for actor "+string(m.actor),
+	)
 	}
 
 	existing, extractErr := ExtractMultiSignature(evt)
@@ -98,7 +100,10 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 
 	validateErr := entry.Validate()
 	if validateErr != nil {
-		return nil, fmt.Errorf("validate signature entry: %w", validateErr)
+		return nil, event.WrapRejection(validateErr,
+		"signing.invalid_entry",
+		"validate signature entry",
+	)
 	}
 
 	multiSig.Entries = removeActor(multiSig.Entries, m.actor)
@@ -111,7 +116,10 @@ func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 func (m *MultiSigner) Verify(evt event.Event) error {
 	err := verifyActorEntry(evt, m.actor, m.verifier)
 	if err != nil {
-		return fmt.Errorf("verify actor %s: %w", m.actor, err)
+		return event.WrapInfrastructure(err,
+			"signing.verify_actor",
+			"verify actor "+string(m.actor),
+		)
 	}
 
 	return nil
@@ -122,7 +130,10 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifier) error {
 	err := verifyActorEntry(evt, actor, verifier)
 	if err != nil {
-		return fmt.Errorf("verify actor %s: %w", actor, err)
+		return event.WrapInfrastructure(err,
+			"signing.verify_actor",
+			"verify actor "+string(actor),
+		)
 	}
 
 	return nil
@@ -141,12 +152,19 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier Verifier) error {
 
 	entry := multiSig.Get(actor)
 	if entry == nil {
-		return fmt.Errorf("%w: no signature found for actor %s", ErrNilSignature, actor)
+		return event.Wrapf(ErrNilSignature, event.Rejection,
+		"signing.no_actor_signature",
+		"no signature found for actor %s",
+		actor,
+	)
 	}
 
 	verifyErr := verifier.Verify(evt, entry.Sig)
 	if verifyErr != nil {
-		return fmt.Errorf("verify entry for actor %s: %w", actor, verifyErr)
+		return event.WrapInfrastructure(verifyErr,
+		"signing.verify_actor_entry",
+		"verify entry for actor "+string(actor),
+	)
 	}
 
 	return nil

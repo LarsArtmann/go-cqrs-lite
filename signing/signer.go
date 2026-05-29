@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"slices"
 	"strconv"
 	"time"
 
@@ -45,10 +46,7 @@ type Signature []byte
 
 // Bytes returns a copy of the raw signature bytes.
 func (s Signature) Bytes() []byte {
-	cp := make([]byte, len(s))
-	copy(cp, s)
-
-	return cp
+	return slices.Clone(s)
 }
 
 // IsZero reports whether the signature is empty.

@@ -38,6 +38,9 @@ const (
 	// SagaStep is the saga step index.
 	AttrSagaStep = "cqrs.saga.step"
 
+	// SagaStepName is the human-readable name of the saga step.
+	AttrSagaStepName = "cqrs.saga.step_name"
+
 	// OutboxEntryCount is the number of entries in an outbox operation.
 	AttrOutboxEntryCount = "cqrs.outbox.entry_count"
 

@@ -3,7 +3,6 @@ package signing
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -101,9 +100,9 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if !HasSignature(evt) {
-				return fmt.Errorf(
-					"%w: event %s is missing a signature",
-					ErrNilSignature,
+				return event.Newf(event.Rejection,
+					"signing.missing_signature",
+					"event %s is missing a signature",
 					evt.Type(),
 				)
 			}

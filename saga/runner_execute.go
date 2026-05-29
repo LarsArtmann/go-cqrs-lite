@@ -53,7 +53,7 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 	step := instance.Steps[instance.CurrentStep]
 
 	span.SetAttributes(
-		attribute.String(cqrsotel.AttrSagaStep, step.Name),
+		attribute.String(cqrsotel.AttrSagaStepName, step.Name),
 		attribute.Int(cqrsotel.AttrSagaStep, instance.CurrentStep),
 	)
 
