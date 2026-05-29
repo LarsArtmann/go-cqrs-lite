@@ -102,14 +102,26 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 				err,
 			)
 			instance.Status = StatusCompensating
-			if err := r.saveSagaState(ctx, span, &instance.State, "saga.save_compensating_failed", "save compensating status"); err != nil {
+			if err := r.saveSagaState(
+				ctx,
+				span,
+				&instance.State,
+				"saga.save_compensating_failed",
+				"save compensating status",
+			); err != nil {
 				return err
 			}
 			return r.compensate(ctx, instance)
 		}
 
 		instance.Status = StatusFailed
-		if err := r.saveSagaState(ctx, span, &instance.State, "saga.save_failed_status_failed", "save failed status"); err != nil {
+		if err := r.saveSagaState(
+			ctx,
+			span,
+			&instance.State,
+			"saga.save_failed_status_failed",
+			"save failed status",
+		); err != nil {
 			return err
 		}
 		r.logError("step failed", "id", instanceID, "step", step.Name, "error", err)
