@@ -1011,6 +1011,182 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
     </div>
   </section>
 
+  <!-- ═══ Why Do We Need An Outbox? ═══ -->
+  <section class="container">
+    <h2><span class="num">10</span>Why Do We Need An Outbox?</h2>
+    <p>
+      A fair question. Your event store already persists events. Your bus already publishes them.
+      Why add a third component?
+    </p>
+
+    <p>
+      The answer is a <strong style="color:var(--text)">single word</strong>: <strong style="color:var(--accent)">atomicity</strong>.
+    </p>
+
+    <p>
+      Without the outbox, you have <strong style="color:var(--text)">two separate systems</strong> — a database and a message broker —
+      and <strong style="color:var(--text)">no transaction that spans both</strong>. There is no way to atomically commit to PostgreSQL
+      <em>and</em> publish to NATS/Kafka/Redis in a single operation. The moment you do them sequentially,
+      you have a window where the process can crash between the two — and that window is always open.
+    </p>
+
+    <div class="tradeoffs" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="tradeoff-card" style="border-color:var(--danger)">
+        <h3 style="color:var(--danger)">Two-Phase Commit</h3>
+        <p style="margin:0;font-size:0.82rem">
+          Technically solves it. But 2PC is <strong>slow</strong>, <strong>complex</strong>,
+          and <strong>not supported</strong> by most message brokers. It also creates tight coupling
+          between your database and your broker — exactly what you want to avoid in a CQRS system.
+        </p>
+      </div>
+      <div class="tradeoff-card" style="border-color:var(--danger)">
+        <h3 style="color:var(--danger)">Change Data Capture</h3>
+        <p style="margin:0;font-size:0.82rem">
+          Run Debezium to tail the WAL. Works, but now you have <strong>external infrastructure</strong>
+          — Kafka Connect, Debezium connectors, schema registry. You went from "I need to publish events"
+          to "I need a platform team."
+        </p>
+      </div>
+      <div class="tradeoff-card" style="border-color:var(--success)">
+        <h3 style="color:var(--success)">Outbox Pattern</h3>
+        <p style="margin:0;font-size:0.82rem">
+          One extra table in your <em>existing</em> database. One background goroutine.
+          <strong>No new infrastructure</strong>. Uses the ACID guarantees you already have.
+          Events and outbox entry commit together, or not at all.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      The outbox pattern is the <strong style="color:var(--text)">simplest solution that actually works</strong>.
+      It doesn't require distributed transactions, external CDC pipelines, or message broker XA support.
+      It just uses your database — which already knows how to commit atomically.
+    </p>
+
+    <p>
+      In go-cqrs-lite, the outbox is <strong style="color:var(--text)">opt-in</strong>.
+      If you only use the in-process <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">MemoryBus</code>,
+      you don't need it — bus.Publish happens synchronously inside the same process. But the moment you
+      publish to an <em>external broker</em> (NATS, Kafka, Google PubSub, RabbitMQ), the outbox becomes essential.
+    </p>
+  </section>
+
+  <!-- ═══ How Watermill Handles It ═══ -->
+  <section class="container">
+    <h2><span class="num">11</span>How Watermill Handles It</h2>
+    <p>
+      <a href="https://watermill.io/" style="color:var(--blue);text-decoration:underline">Watermill</a>
+      is a Go library for event-driven applications with built-in CQRS, routing, and middleware.
+      It solves the same problem with a component called the
+      <strong style="color:var(--text)">Forwarder</strong> — Watermill's name for the outbox pattern.
+    </p>
+
+    <h3>The Forwarder</h3>
+    <p>
+      Watermill's approach is architecturally identical to go-cqrs-lite's outbox, but the mechanics differ:
+    </p>
+
+    <div class="schema-table" style="margin-bottom:32px">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th style="color:var(--accent)">go-cqrs-lite Outbox</th>
+            <th style="color:var(--blue)">Watermill Forwarder</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">Storage</span></td>
+            <td>Dedicated <code>outbox</code> table (id, status, events JSON, created_at)</td>
+            <td>Watermill's built-in SQL Pub/Sub (a separate <code>messages</code> table)</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Write path</span></td>
+            <td><code>SaveWithOutbox()</code> — single tx inserts into events + outbox</td>
+            <td><code>sql.NewPublisher(tx, ...)</code> — publisher decorated to write to SQL instead of broker</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Read path</span></td>
+            <td><code>PollPending()</code> — explicit poll with status column</td>
+            <td>SQL Subscriber listens on an intermediate topic; Forwarder subscribes and forwards</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Ack model</span></td>
+            <td>Explicit <code>Ack(ids)</code> deletes entries</td>
+            <td>Watermill's standard Ack/Nack on messages</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Scope</span></td>
+            <td>Domain-aware — stores typed events with aggregate metadata</td>
+            <td>Generic — wraps any <code>message.Message</code> (topic + payload + metadata)</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Event store coupling</span></td>
+            <td>Tight — outbox is co-located with the event store in the same tx</td>
+            <td>Loose — Forwarder is broker-agnostic, works with any SQL Pub/Sub</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>How Watermill's Flow Works</h3>
+
+    <div class="problem-diagram" style="border-color:var(--border)">
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(59,130,246,0.08);color:var(--blue)">1</div>
+        <div class="step-bar" style="background:rgba(59,130,246,0.06);color:var(--blue)">
+          App code writes to DB + publishes via <strong>decorated Publisher</strong> (writes to SQL table instead of broker)
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(59,130,246,0.08);color:var(--blue)">2</div>
+        <div class="step-bar" style="background:rgba(59,130,246,0.06);color:var(--blue)">
+          <strong>Forwarder</strong> subscribes to the SQL Pub/Sub's intermediate topic
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(59,130,246,0.08);color:var(--blue)">3</div>
+        <div class="step-bar" style="background:rgba(59,130,246,0.06);color:var(--blue)">
+          Forwarder <strong>unwraps</strong> the enveloped message and publishes to the <strong>real broker</strong> (NATS, Kafka, etc.)
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:rgba(34,197,94,0.08);color:var(--success)">4</div>
+        <div class="step-bar save">
+          On success, SQL subscriber <strong>acks</strong> → message removed from SQL table
+        </div>
+      </div>
+    </div>
+
+    <h3>The Key Difference</h3>
+    <p>
+      Watermill's Forwarder is a <strong style="color:var(--text)">generic message relay</strong> — it sits between
+      any SQL-backed Pub/Sub and any broker-backed Pub/Sub. It doesn't know about event sourcing, aggregates,
+      or domain events. It just forwards opaque messages.
+    </p>
+    <p>
+      go-cqrs-lite's outbox is <strong style="color:var(--text)">domain-aware</strong> — it stores typed events
+      with aggregate IDs, versions, and metadata. It's co-designed with the event store, so the
+      <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">SaveWithOutbox</code>
+      method is a single atomic operation that inserts into <em>both</em> tables in one transaction.
+    </p>
+    <p>
+      They solve the same fundamental problem — <em>"don't lose events between database and broker"</em> —
+      with different tradeoffs. Watermill is more generic and broker-agnostic. go-cqrs-lite is more integrated
+      with the event sourcing lifecycle.
+    </p>
+
+    <h3>Using Them Together</h3>
+    <p>
+      In go-cqrs-lite, the <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">watermill</code>
+      module provides adapters: <code>PublisherAdapter</code> and <code>SubscriberAdapter</code> that bridge
+      go-cqrs-lite's <code>event.Bus</code> with Watermill's <code>message.Publisher</code> /
+      <code>message.Subscriber</code>. If you want to use Watermill's Forwarder <em>instead of</em>
+      the built-in outbox, you can — the adapters make the two libraries interoperable.
+    </p>
+  </section>
+
 </main>
 
 <footer>
@@ -1019,6 +1195,8 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
       <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a>
       &nbsp;·&nbsp;
       ADR: <a href="https://github.com/larsartmann/go-cqrs-lite/blob/master/docs/adr/0005-outbox-pattern.md">0005-outbox-pattern</a>
+      &nbsp;·&nbsp;
+      <a href="https://watermill.io/docs/outbox-pattern/">Watermill Forwarder docs</a>
     </p>
   </div>
 </footer>
