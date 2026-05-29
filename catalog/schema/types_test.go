@@ -1,13 +1,13 @@
-package catalog_test
+package schema_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
-func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
+func TestFromType_EmbeddedStruct(t *testing.T) {
 	t.Parallel()
 
 	type Inner struct {
@@ -19,9 +19,9 @@ func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
 		Name  string `json:"name"`
 	}
 
-	schema := catalog.SchemaFromType[Outer]()
+	s := schema.FromType[Outer]()
 
-	inner, ok := schema.Properties["inner"]
+	inner, ok := s.Properties["inner"]
 	if !ok {
 		t.Fatal("expected inner property")
 	}
@@ -35,45 +35,45 @@ func TestSchemaFromType_EmbeddedStruct(t *testing.T) {
 	}
 }
 
-func TestSchemaFromType_PointerField(t *testing.T) {
+func TestFromType_PointerField(t *testing.T) {
 	t.Parallel()
 
 	type WithPtr struct {
 		Name *string `json:"name"`
 	}
 
-	schema := catalog.SchemaFromType[WithPtr]()
+	s := schema.FromType[WithPtr]()
 
-	prop, ok := schema.Properties["name"]
+	prop, ok := s.Properties["name"]
 	if !ok {
 		t.Fatal("expected name property")
 	}
 
-	if prop.Type != catalog.TypeString {
+	if prop.Type != schema.TypeString {
 		t.Errorf("expected string, got %s", prop.Type)
 	}
 }
 
-func TestSchemaFromType_MapField(t *testing.T) {
+func TestFromType_MapField(t *testing.T) {
 	t.Parallel()
 
 	type WithMap struct {
 		Meta map[string]string `json:"meta"`
 	}
 
-	schema := catalog.SchemaFromType[WithMap]()
+	s := schema.FromType[WithMap]()
 
-	prop, ok := schema.Properties["meta"]
+	prop, ok := s.Properties["meta"]
 	if !ok {
 		t.Fatal("expected meta property")
 	}
 
-	if prop.Type != catalog.TypeObject {
+	if prop.Type != schema.TypeObject {
 		t.Errorf("expected object, got %s", prop.Type)
 	}
 }
 
-func TestSchemaFromType_FormatTag(t *testing.T) {
+func TestFromType_FormatTag(t *testing.T) {
 	t.Parallel()
 
 	type WithFormat struct {
@@ -81,7 +81,7 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 		CreatedAt string `format:"date-time" json:"createdAt"`
 	}
 
-	schema := catalog.SchemaFromType[WithFormat]()
+	s := schema.FromType[WithFormat]()
 	for _, tc := range []struct {
 		prop   string
 		format string
@@ -89,26 +89,26 @@ func TestSchemaFromType_FormatTag(t *testing.T) {
 		{"email", "email"},
 		{"createdAt", "date-time"},
 	} {
-		if schema.Properties[tc.prop].Format != tc.format {
-			t.Errorf("expected format %q, got %q", tc.format, schema.Properties[tc.prop].Format)
+		if s.Properties[tc.prop].Format != tc.format {
+			t.Errorf("expected format %q, got %q", tc.format, s.Properties[tc.prop].Format)
 		}
 	}
 }
 
-func TestSchemaFromType_DescriptionTag(t *testing.T) {
+func TestFromType_DescriptionTag(t *testing.T) {
 	t.Parallel()
 
 	type WithDesc struct {
 		Name string `description:"The name" json:"name"`
 	}
 
-	schema := catalog.SchemaFromType[WithDesc]()
-	if schema.Properties["name"].Description != "The name" {
-		t.Errorf("expected description 'The name', got %q", schema.Properties["name"].Description)
+	s := schema.FromType[WithDesc]()
+	if s.Properties["name"].Description != "The name" {
+		t.Errorf("expected description 'The name', got %q", s.Properties["name"].Description)
 	}
 }
 
-func TestSchemaFromType_SkipsUnexportedAndIgnored(t *testing.T) {
+func TestFromType_SkipsUnexportedAndIgnored(t *testing.T) {
 	t.Parallel()
 
 	type Mixed struct {
@@ -117,53 +117,53 @@ func TestSchemaFromType_SkipsUnexportedAndIgnored(t *testing.T) {
 		Ignored string `json:"-"`
 	}
 
-	schema := catalog.SchemaFromType[Mixed]()
-	if _, ok := schema.Properties["private"]; ok {
+	s := schema.FromType[Mixed]()
+	if _, ok := s.Properties["private"]; ok {
 		t.Error("unexported field should be skipped")
 	}
 
-	if _, ok := schema.Properties["Ignored"]; ok {
+	if _, ok := s.Properties["Ignored"]; ok {
 		t.Error("json:'-' field should be skipped")
 	}
 
-	if len(schema.Properties) != 1 {
-		t.Errorf("expected 1 property, got %d", len(schema.Properties))
+	if len(s.Properties) != 1 {
+		t.Errorf("expected 1 property, got %d", len(s.Properties))
 	}
 }
 
-func TestSchemaFromType_ArrayField(t *testing.T) {
+func TestFromType_ArrayField(t *testing.T) {
 	t.Parallel()
 
 	type WithArray struct {
 		IDs [3]string `json:"ids"`
 	}
 
-	schema := catalog.SchemaFromType[WithArray]()
+	s := schema.FromType[WithArray]()
 
-	prop, ok := schema.Properties["ids"]
+	prop, ok := s.Properties["ids"]
 	if !ok {
 		t.Fatal("expected ids property")
 	}
 
-	if prop.Type != catalog.TypeArray {
+	if prop.Type != schema.TypeArray {
 		t.Errorf("expected array, got %s", prop.Type)
 	}
 }
 
-func TestSchemaFromType_EmptyTag(t *testing.T) {
+func TestFromType_EmptyTag(t *testing.T) {
 	t.Parallel()
 
 	type NoJSON struct {
 		Name string
 	}
 
-	schema := catalog.SchemaFromType[NoJSON]()
-	if _, ok := schema.Properties["Name"]; !ok {
+	s := schema.FromType[NoJSON]()
+	if _, ok := s.Properties["Name"]; !ok {
 		t.Error("expected Name property (no json tag uses field name)")
 	}
 }
 
-func TestSchemaFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
+func TestFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
 	t.Parallel()
 
 	type Embed struct {
@@ -177,20 +177,20 @@ func TestSchemaFromType_SkipsAnonymousEmbeddedFields(t *testing.T) {
 		Email string `json:"email"`
 	}
 
-	schema := catalog.SchemaFromType[WithEmbed]()
+	s := schema.FromType[WithEmbed]()
 
-	if _, ok := schema.Properties["Embed"]; ok {
+	if _, ok := s.Properties["Embed"]; ok {
 		t.Error("anonymous embedded field 'Embed' should be skipped")
 	}
 
-	if _, ok := schema.Properties["id"]; ok {
+	if _, ok := s.Properties["id"]; ok {
 		t.Error("promoted fields from anonymous embed should not appear")
 	}
 
-	assertPropertyCount(t, schema, 2)
+	assertPropertyCount(t, s, 2)
 }
 
-func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
+func TestFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
 	t.Parallel()
 
 	type Core struct {
@@ -203,16 +203,16 @@ func TestSchemaFromType_SkipsAnonymousPointerEmbeddedFields(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	schema := catalog.SchemaFromType[WithPtrEmbed]()
+	s := schema.FromType[WithPtrEmbed]()
 
-	if _, ok := schema.Properties["Core"]; ok {
+	if _, ok := s.Properties["Core"]; ok {
 		t.Error("anonymous embedded pointer field 'Core' should be skipped")
 	}
 
-	assertPropertyCount(t, schema, 1)
+	assertPropertyCount(t, s, 1)
 }
 
-func TestSchemaFromType_TimeTime(t *testing.T) {
+func TestFromType_TimeTime(t *testing.T) {
 	t.Parallel()
 
 	type WithTime struct {
@@ -220,9 +220,9 @@ func TestSchemaFromType_TimeTime(t *testing.T) {
 		CreatedAt time.Time `json:"createdAt"`
 	}
 
-	schema := catalog.SchemaFromType[WithTime]()
+	s := schema.FromType[WithTime]()
 
-	createdAt, ok := schema.Properties["createdAt"]
+	createdAt, ok := s.Properties["createdAt"]
 	if !ok {
 		t.Fatal("expected createdAt property")
 	}
@@ -240,21 +240,21 @@ func TestSchemaFromType_TimeTime(t *testing.T) {
 	}
 }
 
-func TestSchemaFromType_PointerTimeTime(t *testing.T) {
+func TestFromType_PointerTimeTime(t *testing.T) {
 	t.Parallel()
 
 	type WithPtrTime struct {
 		UpdatedAt *time.Time `json:"updatedAt"`
 	}
 
-	schema := catalog.SchemaFromType[WithPtrTime]()
+	s := schema.FromType[WithPtrTime]()
 
-	prop, ok := schema.Properties["updatedAt"]
+	prop, ok := s.Properties["updatedAt"]
 	if !ok {
 		t.Fatal("expected updatedAt property")
 	}
 
-	if prop.Type != catalog.TypeString {
+	if prop.Type != schema.TypeString {
 		t.Errorf("expected type string for *time.Time, got %q", prop.Type)
 	}
 
