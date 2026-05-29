@@ -61,6 +61,8 @@ node_modules/
 
 # Example binaries
 example/*/catalog
+example/*/listing
+example/*/stream
 example/*/user
 
 # CLI tool binaries

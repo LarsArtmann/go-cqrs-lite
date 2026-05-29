@@ -53,6 +53,7 @@ func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
 
 func (r *Runner) dispatchParallel(ctx context.Context, evt event.Event, projections []event.Projection) {
 	sem := make(chan struct{}, r.opts.parallelism)
+
 	var wg sync.WaitGroup
 
 	for _, p := range projections {

@@ -31,4 +31,4 @@
 //	// SQL-backed (production)
 //	reader := stream.NewSQLAggregateReader(db, "cqrs_")
 //	page, err := stream.NewListBuilder(reader).OfType("User").List(ctx)
-package stream
+package listing

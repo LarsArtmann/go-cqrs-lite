@@ -52,6 +52,8 @@ go-cqrs-lite/
 ├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── saga/                # Runner, Definition, Step, Instance, State, Store, compensation
+│   └── sagatest/        # Test helpers: NewSagaState, SaveSagaState
+│   └── sagatest/        # Test helpers: NewSagaState, SaveSagaState
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLOutbox, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── stream/              # Aggregate listing, tombstone detection, StatusMiddleware, SQL/projection readers
@@ -153,12 +155,14 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 **Coverage**: 84–100% across 27 packages. See `docs/status/` for latest.
 
-**Module Graph**: otel→go.opentelemetry.io/otel; core→otel+memory+testhelpers; testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
-catalog→core; storage→core+otel+saga; projection→core+otel+memory+testhelpers; signing→core+signing/multisig; saga→core+otel; stream→core+memory; watermill→core;
-pebble→core; codec→core; turso→storage; cmd/cqrs-gen→core;
+**Module Graph**: otel→go.opentelemetry.io/otel; core→otel+codec (prod), memory+testhelpers (test-only); testhelpers→core; memory→core+testhelpers; middleware→core+otel+testhelpers;
+catalog→core; storage→core+otel+saga+testhelpers; projection→core+otel+memory+testhelpers; signing→core+testhelpers; saga→core+otel+testhelpers (+sagatest sub-package); listing→core+memory; watermill→core;
+pebble→core+codec+otel+testhelpers; codec (leaf); turso→storage; cmd/cqrs-gen→core;
 integration→core+memory+testhelpers.
 
-**Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote.
+**Key coupling fix**: `testhelpers` no longer depends on `saga` (moved to `saga/sagatest`). See `docs/modularization/PROPOSAL.md`.
+
+**Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote. Both `replace` and `go.work` are needed — replace for `GOWORK=off` per-module CI, go.work for developer convenience.
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)

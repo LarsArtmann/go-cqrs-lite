@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/listing"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/stream"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 
 	populateEvents(ctx, store)
 
-	reader := stream.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryAggregateReader(store)
 
 	runBasicList(ctx, reader)
 	runTypeFilter(ctx, reader)
@@ -89,10 +89,10 @@ func populateEvents(ctx context.Context, store event.Store) {
 	)
 }
 
-func runBasicList(ctx context.Context, reader *stream.InMemoryAggregateReader) {
+func runBasicList(ctx context.Context, reader *listing.InMemoryAggregateReader) {
 	fmt.Println("--- Basic List (all active aggregates) ---")
 
-	page, err := stream.NewListBuilder(reader).PageSize(10).List(ctx)
+	page, err := listing.NewListBuilder(reader).PageSize(10).List(ctx)
 	if err != nil {
 		log.Fatalf("list: %v", err)
 	}
@@ -106,10 +106,10 @@ func runBasicList(ctx context.Context, reader *stream.InMemoryAggregateReader) {
 	fmt.Println()
 }
 
-func runTypeFilter(ctx context.Context, reader *stream.InMemoryAggregateReader) {
+func runTypeFilter(ctx context.Context, reader *listing.InMemoryAggregateReader) {
 	fmt.Println("--- Filter by Type: User ---")
 
-	page, err := stream.NewListBuilder(reader).OfType("User").PageSize(10).List(ctx)
+	page, err := listing.NewListBuilder(reader).OfType("User").PageSize(10).List(ctx)
 	if err != nil {
 		log.Fatalf("list users: %v", err)
 	}
@@ -123,17 +123,17 @@ func runTypeFilter(ctx context.Context, reader *stream.InMemoryAggregateReader) 
 	fmt.Println()
 }
 
-func runTombstoneFilter(ctx context.Context, reader *stream.InMemoryAggregateReader) {
+func runTombstoneFilter(ctx context.Context, reader *listing.InMemoryAggregateReader) {
 	fmt.Println("--- Tombstone Filters ---")
 
-	activePage, err := stream.NewListBuilder(reader).OfType("User").List(ctx)
+	activePage, err := listing.NewListBuilder(reader).OfType("User").List(ctx)
 	if err != nil {
 		log.Fatalf("list active: %v", err)
 	}
 
 	fmt.Printf("→ Active users: %d (tombstoned excluded)\n", len(activePage.Items))
 
-	deletedPage, err := stream.NewListBuilder(reader).
+	deletedPage, err := listing.NewListBuilder(reader).
 		OfType("User").
 		OnlyDeleted().
 		ListWithStatus(ctx)
@@ -150,10 +150,10 @@ func runTombstoneFilter(ctx context.Context, reader *stream.InMemoryAggregateRea
 	fmt.Println()
 }
 
-func runCursorPagination(ctx context.Context, reader *stream.InMemoryAggregateReader) {
+func runCursorPagination(ctx context.Context, reader *listing.InMemoryAggregateReader) {
 	fmt.Println("--- Cursor Pagination (page size 2) ---")
 
-	builder := stream.NewListBuilder(reader).PageSize(2)
+	builder := listing.NewListBuilder(reader).PageSize(2)
 
 	pageNum := 1
 

@@ -224,3 +224,30 @@ Initial proposal called for removing all `replace` directives. **Wrong.** CI run
 1. **saga transitive leak through testhelpers** — still a real problem
 2. **core/event god-package** — still 90+ exports across 12 concerns
 3. **Version inconsistencies** — `testhelpers` references `saga v1.0.0` while others use `v1.6.0`
+
+---
+
+## Execution Results
+
+### T1: Move saga_helpers out of testhelpers - DONE
+
+- Created saga/sagatest/saga_helpers.go
+- Deleted testhelpers/saga_helpers.go
+- Removed saga from testhelpers/go.mod
+- Updated imports in saga/ (3 test files) and storage/ (3 test files)
+- Result: testhelpers no longer depends on saga. Seven modules no longer transitively pull saga.
+
+### T2: Version normalization - DONE
+
+- Ran go mod tidy in clean modules, go work sync at root
+- Pre-existing stream-to-listing rename was detected and preserved
+
+### T3: core/event split - DEFERRED
+
+- Reason: 242 files import core/event. While type aliases provide backward compat, the internal code update is a large mechanical refactor better suited for a dedicated PR.
+- The proposal and execution plan are ready for when the team wants to proceed.
+
+### Pre-existing issue found
+
+- stream module is being renamed to listing - this is in-progress and should be completed separately
+- Some example/stream files are staged as deleted; go.work was updated to reflect new listing module

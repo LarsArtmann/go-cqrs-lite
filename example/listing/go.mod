@@ -1,11 +1,11 @@
-module github.com/larsartmann/go-cqrs-lite/example/stream
+module github.com/larsartmann/go-cqrs-lite/example/listing
 
 go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/listing v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
-	github.com/larsartmann/go-cqrs-lite/stream v1.6.0
 )
 
 require (
@@ -16,6 +16,6 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../../core
+	github.com/larsartmann/go-cqrs-lite/listing => ../../listing
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
-	github.com/larsartmann/go-cqrs-lite/stream => ../../stream
 )

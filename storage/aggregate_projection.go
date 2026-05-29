@@ -1,38 +1,48 @@
-package stream
+package storage
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-// AggregateProjection maintains the stream_aggregates read model table.
-// Register it with projection.Runner to keep the read model in sync.
+var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
+
+func validateListingTablePrefix(prefix string) error {
+	if !validListingTablePrefix.MatchString(prefix) {
+		return event.NewRejection(
+			"listing.invalid_table_prefix",
+			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
+		)
+	}
+
+	return nil
+}
+
 type AggregateProjection struct {
 	db        *sql.DB
 	tableName string
 }
 
-// NewAggregateProjection creates a projection that maintains the aggregates table.
-// The table is created if it does not exist.
 func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
-	err := validateTablePrefix(tablePrefix)
+	err := validateListingTablePrefix(tablePrefix)
 	if err != nil {
 		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
 	}
 
 	p := &AggregateProjection{
 		db:        db,
-		tableName: tablePrefix + "stream_aggregates",
+		tableName: tablePrefix + "listing_aggregates",
 	}
 
 	err = p.createTable()
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
-			"stream.create_table",
+			"listing.create_table",
 			"create aggregates table",
 		)
 	}
@@ -40,13 +50,10 @@ func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjectio
 	return p, nil
 }
 
-// Name returns the projection name for checkpoint tracking.
-func (p *AggregateProjection) Name() string { return "stream.aggregate_projection" }
+func (p *AggregateProjection) Name() string { return "listing.aggregate_projection" }
 
-// EventTypes returns nil to subscribe to all event types.
 func (p *AggregateProjection) EventTypes() []event.Type { return nil }
 
-// Handle upserts the aggregate row for each event.
 func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error {
 	status := detectStatusFromMetadata(evt)
 
@@ -103,8 +110,6 @@ func (p *AggregateProjection) createTable() error {
 	return err
 }
 
-// detectStatusFromMetadata checks a single event's metadata for tombstone/rebirth markers.
-// Returns Undetermined if no markers found (normal event).
 func detectStatusFromMetadata(evt event.Event) event.TombstoneStatus {
 	md := evt.Metadata()
 	if md == nil || md.Custom == nil {

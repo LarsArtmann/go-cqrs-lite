@@ -5,13 +5,14 @@ use (
 	./cmd/cqrs-gen
 	./codec
 	./core
+	./example/listing
 	./example/projection
 	./example/saga
 	./example/storage
-	./example/stream
 	./example/todo
 	./example/user
 	./integration
+	./listing
 	./memory
 	./middleware
 	./otel
@@ -20,7 +21,6 @@ use (
 	./saga
 	./signing
 	./storage
-	./stream
 	./testhelpers
 	./turso
 	./watermill

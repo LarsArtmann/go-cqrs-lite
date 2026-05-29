@@ -1,4 +1,4 @@
-package stream
+package listing
 
 import (
 	"context"

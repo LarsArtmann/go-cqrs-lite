@@ -24,7 +24,7 @@ var modules = []string{
 	"signing",
 	"projection",
 	"saga",
-	"stream",
+	"listing",
 	"otel",
 	"storage",
 	"testhelpers",
