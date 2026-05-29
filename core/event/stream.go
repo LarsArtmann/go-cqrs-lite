@@ -19,8 +19,7 @@ type StreamLoader interface {
 	// LoadStream returns a stream of events for a single aggregate, ordered by version.
 	LoadStream(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 	) (EventStream, error)
 }
 
@@ -104,10 +103,9 @@ func NewStoreStreamAdapter(store Store) *StoreStreamAdapter {
 // LoadStream implements StreamLoader by loading all events and yielding them sequentially.
 func (a *StoreStreamAdapter) LoadStream(
 	ctx context.Context,
-	aggregateType AggregateType,
-	aggregateID id.AggregateID,
+	ref AggregateRef,
 ) (EventStream, error) {
-	events, err := a.store.Load(ctx, aggregateType, aggregateID)
+	events, err := a.store.Load(ctx, ref)
 	if err != nil {
 		return nil, err
 	}

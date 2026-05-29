@@ -54,8 +54,7 @@ func getOverride[T any](s *FakeStore, fn *T) T {
 // SaveFn sets an optional override for Save calls.
 func (s *FakeStore) Save(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -75,8 +74,7 @@ func (s *FakeStore) Save(
 // AppendBatch appends events without concurrency checks.
 func (s *FakeStore) AppendBatch(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 ) error {
 	if fn := getOverride(s, &s.appendBatchFn); fn != nil {
@@ -95,8 +93,7 @@ func (s *FakeStore) AppendBatch(
 // Load returns all events for an aggregate.
 func (s *FakeStore) Load(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFn); fn != nil {
 		return fn(aggregateType, aggregateID)
@@ -112,8 +109,7 @@ func (s *FakeStore) Load(
 
 // loadEventsHelper retrieves events for an aggregate under the read lock.
 func (s *FakeStore) loadEventsHelper(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) []event.Event {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -126,8 +122,7 @@ func (s *FakeStore) loadEventsHelper(
 // LoadFromVersion returns events starting after the given version.
 func (s *FakeStore) LoadFromVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFromVersionFn); fn != nil {
@@ -145,8 +140,7 @@ func (s *FakeStore) LoadFromVersion(
 // LoadToVersion returns events up to and including maxVersion.
 func (s *FakeStore) LoadToVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToVersionFn); fn != nil {
@@ -159,8 +153,7 @@ func (s *FakeStore) LoadToVersion(
 // LoadToTimestamp returns events where OccurredAt <= maxTime.
 func (s *FakeStore) LoadToTimestamp(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToTimestampFn); fn != nil {

@@ -48,8 +48,7 @@ func NewSQLTransactionalStore(
 // transaction rolls back.
 func (s *SQLTransactionalStore) SaveWithOutbox(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {

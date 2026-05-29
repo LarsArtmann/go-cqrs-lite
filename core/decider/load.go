@@ -29,8 +29,7 @@ func (r *Repository[State]) loadFromStore(
 func (r *Repository[State]) foldEvents(
 	state State,
 	events []event.Event,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (State, error) {
 	var err error
 
@@ -54,8 +53,7 @@ func (r *Repository[State]) foldEvents(
 }
 
 func opError(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	msg string,
 	args ...any,
 ) error {
@@ -129,8 +127,7 @@ func (r *Repository[State]) LoadAtTime(
 
 func (r *Repository[State]) loadByEvents(
 	loadFn func() ([]event.Event, error),
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (State, event.Version, error) {
 	events, err := loadFn()
 	if err != nil {

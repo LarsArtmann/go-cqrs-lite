@@ -39,8 +39,7 @@ func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *PebbleEventStore {
 // eventKey generates a storage key for an event.
 // Pattern: cqrs_event:{aggregateType}:{aggregateID}:{version}.
 func (a *PebbleEventStore) eventKey(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:%010d", a.prefix, aggregateType, aggregateID, version.Int())
@@ -48,8 +47,7 @@ func (a *PebbleEventStore) eventKey(
 
 // aggregatePrefix returns the prefix for all events of an aggregate.
 func (a *PebbleEventStore) aggregatePrefix(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, aggregateType, aggregateID)
 }
@@ -57,8 +55,7 @@ func (a *PebbleEventStore) aggregatePrefix(
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *PebbleEventStore) Save(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -147,8 +144,7 @@ func (a *PebbleEventStore) iterateEvents(
 // Load implements event.Store.Load.
 func (a *PebbleEventStore) Load(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
@@ -160,8 +156,7 @@ func (a *PebbleEventStore) Load(
 // Returns events with version strictly greater than the given version.
 func (a *PebbleEventStore) LoadFromVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	lowerBound := a.eventKey(aggregateType, aggregateID, version+1)
@@ -173,8 +168,7 @@ func (a *PebbleEventStore) LoadFromVersion(
 // loadFiltered iterates events and returns them filtered by predicate.
 // Returns ErrAggregateNotFound if no events match the filter.
 func (a *PebbleEventStore) loadFiltered(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	upperBound []byte,
 	predicate eventPredicate,
 ) ([]event.Event, error) {
@@ -195,8 +189,7 @@ func (a *PebbleEventStore) loadFiltered(
 // LoadToVersion retrieves events up to and including maxVersion.
 func (a *PebbleEventStore) LoadToVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	upperBound := a.eventKey(aggregateType, aggregateID, maxVersion+1)
@@ -210,8 +203,7 @@ func (a *PebbleEventStore) LoadToVersion(
 // encounters an event past maxTime — avoiding a full aggregate scan.
 func (a *PebbleEventStore) LoadToTimestamp(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
@@ -223,15 +215,13 @@ func (a *PebbleEventStore) LoadToTimestamp(
 }
 
 func (a *PebbleEventStore) aggregateLockKey(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) string {
 	return string(aggregateType) + ":" + aggregateID.String()
 }
 
 func (a *PebbleEventStore) lockAggregate(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) {
 	key := a.aggregateLockKey(aggregateType, aggregateID)
 
@@ -245,8 +235,7 @@ func (a *PebbleEventStore) lockAggregate(
 }
 
 func (a *PebbleEventStore) unlockAggregate(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) {
 	key := a.aggregateLockKey(aggregateType, aggregateID)
 

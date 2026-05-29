@@ -14,8 +14,7 @@ import (
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	events, err := s.getEvents(aggregateType, aggregateID, "load")
 	if err != nil {
@@ -27,8 +26,7 @@ func (s *MemoryStore) Load(
 
 // loadFiltered is a shared helper that loads events for an aggregate and applies a filter function.
 func (s *MemoryStore) loadFiltered(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	op string,
 	filter func([]event.Event) []event.Event,
 ) ([]event.Event, error) {
@@ -44,8 +42,7 @@ func (s *MemoryStore) loadFiltered(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadFromVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
@@ -62,8 +59,7 @@ func (s *MemoryStore) LoadFromVersion(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadToVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
@@ -80,8 +76,7 @@ func (s *MemoryStore) LoadToVersion(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadToTimestamp(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadFiltered(
@@ -95,8 +90,7 @@ func (s *MemoryStore) LoadToTimestamp(
 }
 
 func (s *MemoryStore) getEvents(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	op string,
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
@@ -132,8 +126,7 @@ func (s *MemoryStore) getEvents(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadBackwards(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	events, err := s.getEvents(aggregateType, aggregateID, "load backwards")
 	if err != nil {

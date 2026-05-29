@@ -19,8 +19,7 @@ var _ event.StreamLoader = (*SQLEventStore)(nil)
 // for aggregates with large event histories.
 func (s *SQLEventStore) LoadStream(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (event.EventStream, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "event.store.load_stream",

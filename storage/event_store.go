@@ -67,8 +67,7 @@ func (s *SQLEventStore) Close() error {
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -123,8 +122,7 @@ func (s *SQLEventStore) Save(
 // All events are inserted in a single transaction for atomicity.
 func (s *SQLEventStore) AppendBatch(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 ) error {
 	if len(events) == 0 {
@@ -170,8 +168,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 	span trace.Span,
 	err error,
 	events []event.Event,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) error {
 	cqrsotel.RecordError(span, err)
 
@@ -182,8 +179,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 func (s *SQLEventStore) checkVersion(
 	ctx context.Context,
 	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)

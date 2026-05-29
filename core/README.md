@@ -39,7 +39,7 @@ d := decider.Decider[UserState]{
     Fold: func(s UserState, evt event.Event) (UserState, error) {
         switch evt.Type() {
         case "user.created":
-            p, err := event.DecodePayload[UserCreated](evt, event.JSONCodec{})
+            p, err := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
             if err != nil {
                 return s, err
             }
@@ -127,7 +127,7 @@ events, _ := event.NewEvents(aggID, "User", 0,
 )
 
 // Decode payload
-payload, _ := event.DecodePayload[UserCreated](evt, event.JSONCodec{})
+payload, _ := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
 ```
 
 ### Store & Bus Interfaces

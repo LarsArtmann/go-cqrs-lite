@@ -39,8 +39,7 @@ func NewMemoryStore() *MemoryStore {
 // Returns ErrVersionConflict if the expected version does not match the current stream length.
 func (s *MemoryStore) Save(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -68,8 +67,7 @@ func (s *MemoryStore) Save(
 // AppendBatch appends events without a version check. Useful for testing idempotent writes.
 func (s *MemoryStore) AppendBatch(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)

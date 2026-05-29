@@ -20,8 +20,7 @@ func tracer() trace.Tracer {
 func startSaveSpan(
 	ctx context.Context,
 	spanName string,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	expectedVersion event.Version,
 	eventCount int,
 ) (context.Context, trace.Span) {

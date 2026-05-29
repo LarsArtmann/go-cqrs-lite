@@ -10,8 +10,7 @@ import (
 )
 
 func (a *PebbleEventStore) checkVersion(
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
@@ -34,8 +33,7 @@ func (a *PebbleEventStore) checkVersion(
 
 func (a *PebbleEventStore) writeEventsToBatch(
 	batch *pebble.Batch,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -66,8 +64,7 @@ func (a *PebbleEventStore) writeEventsToBatch(
 
 func validateEventOwnership(
 	evt event.Event,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) error {
 	if evt.AggregateType() != aggregateType {
 		return event.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",

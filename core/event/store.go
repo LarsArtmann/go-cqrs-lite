@@ -11,8 +11,7 @@ import (
 // SaveFunc is the function signature for EventSink.Save implementations.
 type SaveFunc func(
 	ctx context.Context,
-	aggregateType AggregateType,
-	aggregateID id.AggregateID,
+	ref AggregateRef,
 	events []Event,
 	expectedVersion Version,
 ) error
@@ -25,8 +24,7 @@ type EventSink interface {
 	// Save appends events with optimistic concurrency check.
 	Save(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		events []Event,
 		expectedVersion Version,
 	) error
@@ -35,8 +33,7 @@ type EventSink interface {
 	// For bulk imports, event replay, and migrations.
 	AppendBatch(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		events []Event,
 	) error
 }
@@ -49,15 +46,13 @@ type EventSource interface {
 	// Load retrieves all events for an aggregate.
 	Load(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 	) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting after version (exclusive).
 	LoadFromVersion(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		version Version,
 	) ([]Event, error)
 
@@ -65,8 +60,7 @@ type EventSource interface {
 	// Returns ErrAggregateNotFound if no events exist for the aggregate.
 	LoadToVersion(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		maxVersion Version,
 	) ([]Event, error)
 
@@ -74,8 +68,7 @@ type EventSource interface {
 	// Returns ErrAggregateNotFound if no events exist for the aggregate.
 	LoadToTimestamp(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		maxTime time.Time,
 	) ([]Event, error)
 }
@@ -114,7 +107,7 @@ type SeekableJournal interface {
 // Useful for tail-loading scenarios where only the most recent events are needed.
 type BackwardsSource interface {
 	EventSource
-	LoadBackwards(ctx context.Context, aggType AggregateType, aggID id.AggregateID) ([]Event, error)
+	LoadBackwards(ctx context.Context, ref AggregateRef) ([]Event, error)
 }
 
 // TransactionalSink extends EventSink with atomic save+outbox append.
@@ -126,7 +119,7 @@ type BackwardsSource interface {
 // two-step Save+Append approach when available:
 //
 //	if ts, ok := sink.(TransactionalSink); ok {
-//	    return ts.SaveWithOutbox(ctx, aggType, aggID, events, ver)
+//	    return ts.SaveWithOutbox(ctx, ref, events, ver)
 //	}
 type TransactionalSink interface {
 	EventSink
@@ -134,8 +127,7 @@ type TransactionalSink interface {
 	// SaveWithOutbox atomically persists events and appends them to the outbox.
 	SaveWithOutbox(
 		ctx context.Context,
-		aggregateType AggregateType,
-		aggregateID id.AggregateID,
+		ref AggregateRef,
 		events []Event,
 		expectedVersion Version,
 	) error

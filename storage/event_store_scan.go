@@ -69,8 +69,7 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 func (s *SQLEventStore) insertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 ) error {
 	ph := make([]string, eventColumnCount)

@@ -18,8 +18,7 @@ import (
 func deleteByAggregate(
 	db *sql.DB,
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	table string,
 	placeholder1 string,
 	placeholder2 string,
@@ -53,8 +52,7 @@ func deleteByAggregate(
 func sharedInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	sql string,
 	formatTime func(time.Time) any,
@@ -97,8 +95,7 @@ const checkVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM ` + tableEvents
 func sharedCheckVersion(
 	ctx context.Context,
 	tx *sql.Tx,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	expectedVersion event.Version,
 	query string,
 ) error {

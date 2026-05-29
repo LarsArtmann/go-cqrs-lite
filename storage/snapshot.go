@@ -107,8 +107,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 // Returns ErrSnapshotNotFound if no snapshot exists.
 func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (*event.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.load",
@@ -132,8 +131,7 @@ func (s *SQLSnapshotStore) Load(
 // Returns ErrSnapshotNotFound if no snapshot exists or the stored version exceeds the requested version.
 func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) (*event.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(
@@ -183,8 +181,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 
 func (s *SQLSnapshotStore) querySnapshot(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (*event.Snapshot, error) {
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 
@@ -200,8 +197,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 
 func (s *SQLSnapshotStore) scanSnapshot(
 	row *sql.Row,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (*event.Snapshot, error) {
 	var (
 		version    int
@@ -239,8 +235,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 // Delete removes a snapshot for an aggregate.
 func (s *SQLSnapshotStore) Delete(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) error {
 	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
 

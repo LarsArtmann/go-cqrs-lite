@@ -15,8 +15,7 @@ import (
 // Appends events without optimistic concurrency checks.
 func (a *PebbleEventStore) AppendBatch(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 ) error {
 	if len(events) == 0 {
@@ -62,8 +61,7 @@ func (a *PebbleEventStore) Close() error {
 // logEventOperation logs a debug message for event operations.
 func (a *PebbleEventStore) logEventOperation(
 	msg string,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	count int,
 ) {
 	a.logger.Debug(
@@ -104,8 +102,7 @@ func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) err
 func (a *PebbleEventStore) commitAndLog(
 	batch *pebble.Batch,
 	logMsg string,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	count int,
 ) error {
 	err := batch.Commit(pebble.Sync)

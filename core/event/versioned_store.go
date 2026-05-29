@@ -2,8 +2,6 @@ package event
 
 import (
 	"context"
-
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // VersionedStore wraps an event.Store and automatically upcasts loaded events.
@@ -26,10 +24,9 @@ func NewVersionedStore(store Store, upcasters ...Upcaster) *VersionedStore {
 // Load retrieves and upcasts events for an aggregate.
 func (s *VersionedStore) Load(
 	ctx context.Context,
-	aggregateType AggregateType,
-	aggregateID id.AggregateID,
+	ref AggregateRef,
 ) ([]Event, error) {
-	events, err := s.Store.Load(ctx, aggregateType, aggregateID)
+	events, err := s.Store.Load(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +37,10 @@ func (s *VersionedStore) Load(
 // LoadFromVersion retrieves and upcasts events starting from a specific version.
 func (s *VersionedStore) LoadFromVersion(
 	ctx context.Context,
-	aggregateType AggregateType,
-	aggregateID id.AggregateID,
+	ref AggregateRef,
 	version Version,
 ) ([]Event, error) {
-	events, err := s.Store.LoadFromVersion(ctx, aggregateType, aggregateID, version)
+	events, err := s.Store.LoadFromVersion(ctx, ref, version)
 	if err != nil {
 		return nil, err
 	}

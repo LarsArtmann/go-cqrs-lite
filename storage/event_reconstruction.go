@@ -138,8 +138,7 @@ func commitTx(tx *sql.Tx) error {
 func saveWithOutboxTx(
 	ctx context.Context,
 	db *sql.DB,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 	checkVersionFn func(context.Context, *sql.Tx, event.AggregateType, id.AggregateID, event.Version) error,

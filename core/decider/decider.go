@@ -163,8 +163,7 @@ func (r *Repository[State]) Execute(
 // are best-effort and must not block the write path.
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	newVersion event.Version,
 	state State,
 	newEvents []event.Event,

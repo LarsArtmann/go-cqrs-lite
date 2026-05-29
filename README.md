@@ -113,7 +113,7 @@ func main() {
     // Load and read
     events, _ := store.Load(context.Background(), "User", aggID)
     for _, e := range events {
-        p, _ := event.DecodePayload[UserCreated](e, event.JSONCodec{})
+        p, _ := event.DecodePayload[UserCreated](e, codec.JSONCodec{})
         fmt.Printf("User created: %s\n", p.Name)
     }
 }
@@ -133,7 +133,7 @@ type UserState struct{ Name string }
 d := decider.Decider[UserState]{
     Initial: UserState{},
     Fold: func(s UserState, evt event.Event) (UserState, error) {
-        p, _ := event.DecodePayload[UserCreated](evt, event.JSONCodec{})
+        p, _ := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
         s.Name = p.Name
         return s, nil
     },

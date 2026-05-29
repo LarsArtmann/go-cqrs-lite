@@ -54,8 +54,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snapshot event.Snapshot) e
 // Returns ErrSnapshotNotFound if no snapshot exists.
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {
@@ -85,8 +84,7 @@ func (s *MemorySnapshotStore) Load(
 // Returns ErrSnapshotNotFound if no suitable snapshot exists.
 func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) (*event.Snapshot, error) {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
@@ -131,8 +129,7 @@ func copySnapshot(snapshot *event.Snapshot) *event.Snapshot {
 // Delete removes the snapshot for an aggregate.
 func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) error {
 	err := s.CheckClosed(event.ErrSnapshotStoreClosed)
 	if err != nil {

@@ -26,8 +26,7 @@ type loadParams struct {
 // the result count. All Load* methods share this skeleton.
 func (s *SQLEventStore) loadWithSpan(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	p loadParams,
 ) ([]event.Event, error) {
 	ctx, span := cqrsotel.StartSpan(
@@ -56,8 +55,7 @@ func (s *SQLEventStore) loadWithSpan(
 // loadSimple retrieves events for an aggregate with configurable sort order.
 func (s *SQLEventStore) loadSimple(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	spanName string,
 	order string,
 	errMsg string,
@@ -75,8 +73,7 @@ func (s *SQLEventStore) loadSimple(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) Load(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	return s.loadSimple(
 		ctx,
@@ -91,8 +88,7 @@ func (s *SQLEventStore) Load(
 // LoadFromVersion retrieves events starting from a given version.
 func (s *SQLEventStore) LoadFromVersion(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
@@ -112,8 +108,7 @@ func (s *SQLEventStore) LoadFromVersion(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) LoadToVersion(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
@@ -133,8 +128,7 @@ func (s *SQLEventStore) LoadToVersion(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) LoadToTimestamp(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
@@ -154,8 +148,7 @@ func (s *SQLEventStore) LoadToTimestamp(
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) LoadBackwards(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	return s.loadSimple(
 		ctx,
@@ -169,8 +162,7 @@ func (s *SQLEventStore) LoadBackwards(
 
 func (s *SQLEventStore) queryEvents(
 	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 	whereSuffix string,
 	extraArgs []any,
 	requireNonEmpty bool,

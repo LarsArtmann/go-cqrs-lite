@@ -13,8 +13,7 @@ var _ event.StreamLoader = (*MemoryStore)(nil)
 // Implements event.StreamLoader for memory-efficient iteration over large aggregates.
 func (s *MemoryStore) LoadStream(
 	_ context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
+	ref event.AggregateRef,
 ) (event.EventStream, error) {
 	events, err := s.getEvents(aggregateType, aggregateID, "load stream")
 	if err != nil {
