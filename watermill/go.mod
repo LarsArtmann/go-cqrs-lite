@@ -4,13 +4,13 @@ go 1.26.3
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
-	github.com/larsartmann/go-cqrs-lite/event v1.7.0
-	github.com/larsartmann/go-cqrs-lite/id v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/memory v1.7.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
+	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 )
 
 require (
@@ -21,4 +21,10 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+)
+replace (
+	github.com/larsartmann/go-cqrs-lite/event => ../event
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

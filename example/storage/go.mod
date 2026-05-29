@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/example/storage
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v1.7.0
-	github.com/larsartmann/go-cqrs-lite/id v1.7.0
-	github.com/larsartmann/go-cqrs-lite/storage v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1
+	github.com/larsartmann/go-cqrs-lite/storage v1.7.1
 	modernc.org/sqlite v1.51.0
 )
 
@@ -16,8 +16,8 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v0.0.0-20260529144800-51ed93d67be5 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel v1.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.1 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -31,4 +31,11 @@ require (
 	modernc.org/libc v1.72.5 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
+)
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
+	github.com/larsartmann/go-cqrs-lite/event => ../../event
+	github.com/larsartmann/go-cqrs-lite/id => ../../id
+	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
+	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
 )

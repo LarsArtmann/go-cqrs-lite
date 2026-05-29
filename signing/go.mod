@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/signing
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v1.7.0
-	github.com/larsartmann/go-cqrs-lite/id v1.7.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 )
@@ -34,4 +34,9 @@ require (
 	golang.org/x/tools v0.45.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+)
+replace (
+	github.com/larsartmann/go-cqrs-lite/event => ../event
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

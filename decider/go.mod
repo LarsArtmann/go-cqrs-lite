@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/decider
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v1.7.0
-	github.com/larsartmann/go-cqrs-lite/id v1.7.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.7.0
-	github.com/larsartmann/go-cqrs-lite/otel v1.7.0
-	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1
+	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.1
+	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	go.opentelemetry.io/otel v1.44.0
@@ -35,4 +35,12 @@ require (
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
+)
+replace (
+	github.com/larsartmann/go-cqrs-lite/event => ../event
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+	github.com/larsartmann/go-cqrs-lite/otel => ../otel
+	github.com/larsartmann/go-cqrs-lite/snapshot => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

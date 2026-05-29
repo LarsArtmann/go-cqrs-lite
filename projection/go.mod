@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/projection
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec v1.7.0
-	github.com/larsartmann/go-cqrs-lite/event v1.7.0
-	github.com/larsartmann/go-cqrs-lite/id v1.7.0
-	github.com/larsartmann/go-cqrs-lite/memory v1.7.0
-	github.com/larsartmann/go-cqrs-lite/otel v1.7.0
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.0
+	github.com/larsartmann/go-cqrs-lite/codec v1.7.1
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1
+	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
+	github.com/larsartmann/go-cqrs-lite/otel v1.7.1
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/stretchr/testify v1.11.1
@@ -39,4 +39,12 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec => ../codec
+	github.com/larsartmann/go-cqrs-lite/event => ../event
+	github.com/larsartmann/go-cqrs-lite/id => ../id
+	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+	github.com/larsartmann/go-cqrs-lite/otel => ../otel
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )
