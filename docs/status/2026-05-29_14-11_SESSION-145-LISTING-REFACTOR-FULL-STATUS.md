@@ -37,13 +37,13 @@ Deep analysis of both modules — their purpose, dependencies, quality, and rela
 
 Extracted SQL files from `listing/` into `storage/`:
 
-| File | What | Where |
-|---|---|---|
-| `aggregate_projection.go` | `AggregateProjection` — writes events → SQL | `storage/` |
-| `sql_aggregate_reader.go` | `SQLAggregateReader` — implements `listing.AggregateReader` | `storage/` |
-| `validateListingTablePrefix()` | SQL identifier validation | `storage/aggregate_projection.go` |
-| `detectStatusFromMetadata()` | Tombstone detection from metadata | `storage/aggregate_projection.go` |
-| `listRefsFromStatus()` | Strips status to return refs only | `storage/sql_aggregate_reader.go` |
+| File                           | What                                                        | Where                             |
+| ------------------------------ | ----------------------------------------------------------- | --------------------------------- |
+| `aggregate_projection.go`      | `AggregateProjection` — writes events → SQL                 | `storage/`                        |
+| `sql_aggregate_reader.go`      | `SQLAggregateReader` — implements `listing.AggregateReader` | `storage/`                        |
+| `validateListingTablePrefix()` | SQL identifier validation                                   | `storage/aggregate_projection.go` |
+| `detectStatusFromMetadata()`   | Tombstone detection from metadata                           | `storage/aggregate_projection.go` |
+| `listRefsFromStatus()`         | Strips status to return refs only                           | `storage/sql_aggregate_reader.go` |
 
 `storage/` now imports `listing/` for the `AggregateReader` interface. No circular dependency.
 
@@ -101,6 +101,7 @@ The README shows SQL examples but references the old table name and module paths
 ### 3. Watermill `SubscriberAdapter` Fix
 
 The shared-channel design issue identified in the analysis:
+
 - Single `outputCh` for all topics
 - `Close()` panics on double-close
 - No per-topic channel isolation
@@ -120,6 +121,7 @@ The `go.work.sum` still has entries from deleted modules (`saga`, `stream`).
 ### 1. Lost SQL Test Files
 
 The test files (`projection_test.go`, `sql_reader_test.go`, `sql_bdd_test.go`) were deleted from `listing/` but never recreated in `storage/`. This means:
+
 - `AggregateProjection.Handle()` has zero test coverage in `storage/`
 - `SQLAggregateReader.ListWithStatus()` has zero test coverage in `storage/`
 - The integration test (Projection → SQL Reader pipeline) is gone
@@ -129,6 +131,7 @@ The test files (`projection_test.go`, `sql_reader_test.go`, `sql_bdd_test.go`) w
 ### 2. File Persistence Issues During Session
 
 Multiple files kept reverting during editing sessions. Root cause unclear — possibly:
+
 - LSP auto-format reverting writes
 - `go mod tidy` rewriting go.mod files
 - Git stash/pop cycles losing uncommitted new files
@@ -165,33 +168,33 @@ This caused several cycles of "write file → verify → find it reverted → re
 
 ## f) Top 25 Things to Do Next
 
-| # | Priority | Item |
-|---|---|---|
-| 1 | **CRITICAL** | Restore SQL test files to `storage/` (migrate from git history) |
-| 2 | **HIGH** | Add SQL dialect support to `aggregate_projection.go` and `sql_aggregate_reader.go` |
-| 3 | **HIGH** | Update root `README.md` to reference `listing/` instead of `stream/` |
-| 4 | **HIGH** | Update `FEATURES.md` to reference `listing/` |
-| 5 | **HIGH** | Fix pre-existing `pebble` ScanPrefix test failure |
-| 6 | **MEDIUM** | Write ADR for `stream/` → `listing/` rename |
-| 7 | **MEDIUM** | Update `listing/README.md` to reference `storage/` for SQL usage |
-| 8 | **MEDIUM** | Rename `listing/stream_bdd_suite_test.go` → `listing/listing_bdd_suite_test.go` |
-| 9 | **MEDIUM** | Update `listing/doc.go` comments (still says "Package stream") |
-| 10 | **MEDIUM** | Clean up `go.work.sum` stale entries |
-| 11 | **MEDIUM** | Add `storage/` section to `storage/README.md` for AggregateProjection + SQLAggregateReader |
-| 12 | **MEDIUM** | Add godoc examples to `listing/` (e.g., `ExampleNewBuilder`) |
-| 13 | **MEDIUM** | Fix `watermill/SubscriberAdapter` shared-channel issue |
-| 14 | **MEDIUM** | Add README.md to `watermill/` module |
-| 15 | **MEDIUM** | Deduplicate `detectStatusFromMetadata()` — use `core/event.DetectTombstone` |
-| 16 | **LOW** | Update `docs/DOMAIN_LANGUAGE.md` to reference `listing/` |
-| 17 | **LOW** | Update `docs/MIGRATION_v1.md` to reference `listing/` |
-| 18 | **LOW** | Update `docs/modularization/PROPOSAL.md` and `EXECUTION_PLAN.md` |
-| 19 | **LOW** | Add `listing/` to `ci.yml` per-module coverage loop |
-| 20 | **LOW** | Consider renaming `listing.AggregateRef` → `listing.AggregateListing` to avoid collision with `event.AggregateRef` |
-| 21 | **LOW** | Add benchmarks for `SQLAggregateReader` in `storage/` |
-| 22 | **LOW** | Update `example/listing/main.go` to show SQL path via `storage/` |
-| 23 | **LOW** | Update `TODO_LIST.md` to reference `listing/` |
-| 24 | **LOW** | Clean up `listing/cover.out` (leftover from testing) |
-| 25 | **LOW** | Verify `flake.nix` test command includes `listing/` and not `stream/` |
+| #   | Priority     | Item                                                                                                               |
+| --- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | **CRITICAL** | Restore SQL test files to `storage/` (migrate from git history)                                                    |
+| 2   | **HIGH**     | Add SQL dialect support to `aggregate_projection.go` and `sql_aggregate_reader.go`                                 |
+| 3   | **HIGH**     | Update root `README.md` to reference `listing/` instead of `stream/`                                               |
+| 4   | **HIGH**     | Update `FEATURES.md` to reference `listing/`                                                                       |
+| 5   | **HIGH**     | Fix pre-existing `pebble` ScanPrefix test failure                                                                  |
+| 6   | **MEDIUM**   | Write ADR for `stream/` → `listing/` rename                                                                        |
+| 7   | **MEDIUM**   | Update `listing/README.md` to reference `storage/` for SQL usage                                                   |
+| 8   | **MEDIUM**   | Rename `listing/stream_bdd_suite_test.go` → `listing/listing_bdd_suite_test.go`                                    |
+| 9   | **MEDIUM**   | Update `listing/doc.go` comments (still says "Package stream")                                                     |
+| 10  | **MEDIUM**   | Clean up `go.work.sum` stale entries                                                                               |
+| 11  | **MEDIUM**   | Add `storage/` section to `storage/README.md` for AggregateProjection + SQLAggregateReader                         |
+| 12  | **MEDIUM**   | Add godoc examples to `listing/` (e.g., `ExampleNewBuilder`)                                                       |
+| 13  | **MEDIUM**   | Fix `watermill/SubscriberAdapter` shared-channel issue                                                             |
+| 14  | **MEDIUM**   | Add README.md to `watermill/` module                                                                               |
+| 15  | **MEDIUM**   | Deduplicate `detectStatusFromMetadata()` — use `core/event.DetectTombstone`                                        |
+| 16  | **LOW**      | Update `docs/DOMAIN_LANGUAGE.md` to reference `listing/`                                                           |
+| 17  | **LOW**      | Update `docs/MIGRATION_v1.md` to reference `listing/`                                                              |
+| 18  | **LOW**      | Update `docs/modularization/PROPOSAL.md` and `EXECUTION_PLAN.md`                                                   |
+| 19  | **LOW**      | Add `listing/` to `ci.yml` per-module coverage loop                                                                |
+| 20  | **LOW**      | Consider renaming `listing.AggregateRef` → `listing.AggregateListing` to avoid collision with `event.AggregateRef` |
+| 21  | **LOW**      | Add benchmarks for `SQLAggregateReader` in `storage/`                                                              |
+| 22  | **LOW**      | Update `example/listing/main.go` to show SQL path via `storage/`                                                   |
+| 23  | **LOW**      | Update `TODO_LIST.md` to reference `listing/`                                                                      |
+| 24  | **LOW**      | Clean up `listing/cover.out` (leftover from testing)                                                               |
+| 25  | **LOW**      | Verify `flake.nix` test command includes `listing/` and not `stream/`                                              |
 
 ---
 
@@ -200,6 +203,7 @@ This caused several cycles of "write file → verify → find it reverted → re
 **Why did files keep reverting during this session?**
 
 Multiple files (`aggregate_projection.go`, `go.mod`, `go.work`) kept reverting to old content after being written with the `write` tool. Possible causes:
+
 - LSP (gopls) auto-format or auto-organize-imports rewriting files
 - `go mod tidy` being triggered automatically by tooling
 - The `write` tool silently failing
@@ -260,10 +264,12 @@ integration → core + memory + testhelpers
 ## Files Changed This Session
 
 ### Committed
+
 - `8b9fdfc` — Rename stream/ → listing/, update all references, extract SQL to storage/
 - `d3af14d` — Add saga-pattern example, remove migration scripts, add sql_aggregate_reader.go
 
 ### Unstaged
+
 - `flake.nix` — Add `example/saga-pattern/...` to test paths
 - `example/saga-pattern/go.sum` — Untracked (auto-generated)
 

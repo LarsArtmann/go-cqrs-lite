@@ -19,15 +19,15 @@ A message that should not be processed immediately, but at a specific future tim
 
 The concept is simple, but a **durable** scheduler requires:
 
-| Concern | Why It Matters |
-|---|---|
-| **Timer store** | Must survive process restarts (database table with `fire_at` column) |
-| **Dispatcher loop** | Must poll or be notified when timers fire |
-| **Clock skew** | Distributed nodes may disagree on "now" |
-| **Cancellation** | What if the condition already resolved? Need `Cancel(scheduleID)` |
-| **Partitioning** | Which node owns which timers? Needs coordination |
-| **Exact-once** | A fired timer must not fire again after restart |
-| **Backpressure** | Thousands of timers firing simultaneously |
+| Concern             | Why It Matters                                                       |
+| ------------------- | -------------------------------------------------------------------- |
+| **Timer store**     | Must survive process restarts (database table with `fire_at` column) |
+| **Dispatcher loop** | Must poll or be notified when timers fire                            |
+| **Clock skew**      | Distributed nodes may disagree on "now"                              |
+| **Cancellation**    | What if the condition already resolved? Need `Cancel(scheduleID)`    |
+| **Partitioning**    | Which node owns which timers? Needs coordination                     |
+| **Exact-once**      | A fired timer must not fire again after restart                      |
+| **Backpressure**    | Thousands of timers firing simultaneously                            |
 
 This is fundamentally a **side-effectful infrastructure concern**, not a pure domain primitive. The library should define the interface; consumers bring their own backend.
 
@@ -108,6 +108,7 @@ type SQLScheduler struct {
 ### Tier 3: External Backends (consumer choice)
 
 Consumers can implement `Scheduler` with:
+
 - PostgreSQL `pg_partman` + `SELECT FOR UPDATE SKIP LOCKED`
 - Temporal workflows
 - Watermill scheduler middleware
@@ -160,16 +161,17 @@ func decide(cmd Command, state State) ([]event.Event, []ScheduleRequest, error) 
 
 Should the scheduler dispatch **commands** or **events**?
 
-| Choice | Implication |
-|---|---|
+| Choice       | Implication                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------- |
 | **Commands** | The scheduled message may be rejected (e.g., order already paid). Handler decides. More flexible. |
-| **Events** | The scheduled message is a fact (deadline reached). Cannot be rejected. Simpler but less nuanced. |
+| **Events**   | The scheduled message is a fact (deadline reached). Cannot be rejected. Simpler but less nuanced. |
 
 **Recommendation:** Schedule **commands**. A timeout is a request ("check if this needs handling"), not a fact. The handler decides what to do.
 
 ### Cancellation Granularity
 
 Should cancellation be:
+
 - By schedule ID (exact, explicit)
 - By aggregate ID + command type (pattern-based, automatic)
 
@@ -179,11 +181,11 @@ Should cancellation be:
 
 For multi-node deployments:
 
-| Strategy | Trade-off |
-|---|---|
+| Strategy                                     | Trade-off                   |
+| -------------------------------------------- | --------------------------- |
 | Row-level locking (`FOR UPDATE SKIP LOCKED`) | Simple, PostgreSQL-specific |
-| Lease-based (claim timer, renew until done) | Portable, more complex |
-| Single timer owner (partition by hash) | Efficient, less flexible |
+| Lease-based (claim timer, renew until done)  | Portable, more complex      |
+| Single timer owner (partition by hash)       | Efficient, less flexible    |
 
 **Recommendation:** Row-level locking for SQL implementation. Keep the interface backend-agnostic.
 

@@ -9,10 +9,10 @@ Events and commands in `core/event` and `core/command` are structurally disconne
 
 ## Current State: Events and Commands are Strangers
 
-| | Command | Event |
-|---|---|---|
-| Has | `Type`, `AggregateID`, `Metadata` | `Type`, `AggregateID`, `AggregateType`, `Version`, `Payload`, `Metadata` |
-| Metadata | `CorrelationID`, `CausationID`, `UserID`, `RequestID` | Same + `Source`, `IPAddress`, `UserAgent`, `Custom` |
+|          | Command                                               | Event                                                                    |
+| -------- | ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| Has      | `Type`, `AggregateID`, `Metadata`                     | `Type`, `AggregateID`, `AggregateType`, `Version`, `Payload`, `Metadata` |
+| Metadata | `CorrelationID`, `CausationID`, `UserID`, `RequestID` | Same + `Source`, `IPAddress`, `UserAgent`, `Custom`                      |
 
 ### What's Missing
 
@@ -98,13 +98,13 @@ Keep existing `Decider` for backward compat, add a `CommandDecider` that takes a
 
 ## Trade-off Matrix
 
-| Criterion | A: Metadata | B: DecideFunc | C: Required arg | D: New type |
-|---|---|---|---|---|
-| Structural enforcement | No | Yes | Yes | Opt-in |
-| Breaking change | None | Medium | Large | None |
-| core/event ↔ core/command coupling | None | Weak (interface) | Strong | Weak |
-| Replay/rehydration safe | Yes | Yes | Problematic | Yes |
-| Automatic propagation | No (manual) | Yes | Yes | Yes |
+| Criterion                          | A: Metadata | B: DecideFunc    | C: Required arg | D: New type |
+| ---------------------------------- | ----------- | ---------------- | --------------- | ----------- |
+| Structural enforcement             | No          | Yes              | Yes             | Opt-in      |
+| Breaking change                    | None        | Medium           | Large           | None        |
+| core/event ↔ core/command coupling | None        | Weak (interface) | Strong          | Weak        |
+| Replay/rehydration safe            | Yes         | Yes              | Problematic     | Yes         |
+| Automatic propagation              | No (manual) | Yes              | Yes             | Yes         |
 
 ## Preliminary Recommendation
 
@@ -121,6 +121,6 @@ The `command.Command` interface would need to be importable by `core/decider`. C
 ## Open Questions
 
 1. Should `command.Command` grow an `ID()` field for per-instance traceability?
-2. Should derived events (from sagas) carry the *original* command type or the saga's internal command type?
+2. Should derived events (from sagas) carry the _original_ command type or the saga's internal command type?
 3. How does this interact with `event.Builder` — should it also require command context?
 4. Is a `CommandReference` type (just Type + ID + Metadata, no payload) useful to avoid importing the full `command.Command`?

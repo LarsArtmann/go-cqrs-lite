@@ -18,15 +18,15 @@
 
 ## Architecture Decision Records (ADR)
 
-| ADR                                            | Title                      | Status   |
-| ---------------------------------------------- | -------------------------- | -------- |
-| [0001](adr/0001-decider-over-aggregate.md)     | Decider over Aggregate     | Accepted |
-| [0002](adr/0002-error-taxonomy.md)             | Error Taxonomy             | Accepted |
-| [0003](adr/0003-multi-module-monorepo.md)      | Multi-Module Monorepo      | Accepted |
+| ADR                                            | Title                      | Status                                            |
+| ---------------------------------------------- | -------------------------- | ------------------------------------------------- |
+| [0001](adr/0001-decider-over-aggregate.md)     | Decider over Aggregate     | Accepted                                          |
+| [0002](adr/0002-error-taxonomy.md)             | Error Taxonomy             | Accepted                                          |
+| [0003](adr/0003-multi-module-monorepo.md)      | Multi-Module Monorepo      | Accepted                                          |
 | [0004](adr/0004-saga-process-manager.md)       | Saga Process Manager       | Superseded — removed, see `example/saga-pattern/` |
-| [0005](adr/0005-outbox-pattern.md)             | Outbox Pattern             | Accepted |
-| [0006](adr/0006-sink-source-split.md)          | Sink/Source ISP Split      | Accepted |
-| [0007](adr/0007-gopls-workspace-workaround.md) | gopls Workspace Workaround | Accepted |
+| [0005](adr/0005-outbox-pattern.md)             | Outbox Pattern             | Accepted                                          |
+| [0006](adr/0006-sink-source-split.md)          | Sink/Source ISP Split      | Accepted                                          |
+| [0007](adr/0007-gopls-workspace-workaround.md) | gopls Workspace Workaround | Accepted                                          |
 
 ## Modules
 
@@ -46,12 +46,12 @@
 
 ## Examples
 
-| Example              | Demonstrates                                              |
-| -------------------- | --------------------------------------------------------- |
-| `example/user`       | Full CQRS + Event Sourcing with Decider pattern           |
-| `example/stream`     | Aggregate listing, tombstone filtering, cursor pagination |
-| `example/storage`    | SQL-backed event store                                    |
-| `example/projection` | Projection replay and live subscription                   |
+| Example                | Demonstrates                                               |
+| ---------------------- | ---------------------------------------------------------- |
+| `example/user`         | Full CQRS + Event Sourcing with Decider pattern            |
+| `example/stream`       | Aggregate listing, tombstone filtering, cursor pagination  |
+| `example/storage`      | SQL-backed event store                                     |
+| `example/projection`   | Projection replay and live subscription                    |
 | `example/saga-pattern` | Saga-style orchestration via projection + command dispatch |
 
 ## API Surface

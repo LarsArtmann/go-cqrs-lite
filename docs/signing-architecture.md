@@ -160,22 +160,22 @@ This means the signing module could be extracted to its own repository with mini
 
 ## File Map
 
-| File                     | Lines | Purpose                                                                     |
-| ------------------------ | ----- | --------------------------------------------------------------------------- |
-| `signer.go`              | 38    | `Signer`/`Verifier`/`SignerVerifier` interfaces                             |
-| `signature.go`           | 70    | `Signature` type + serialization                                            |
-| `payload.go`             | 60    | `canonicalPayload`, `appendLenPrefixed`                                     |
-| `hmac.go`                | 78    | `hmacSigner` (unexported) — HMAC-SHA256 implementation                      |
-| `ed25519.go`             | 105   | `ed25519Signer`/`ed25519Verifier` (unexported) — Ed25519 implementation     |
-| `multisig/signer.go`     | 178   | `NewMultiSigner`, `Sign`, `Verify`, `VerifyActor`, `verifyActorEntry`       |
-| `multisig/types.go`      | 151   | `Actor`, `SignatureEntry`, `MultiSignature`, options                        |
-| `multisig/extract.go`    | 140   | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `HasMultiSignature`    |
-| `multisig/middleware.go` | 179   | 4 middleware functions with nil guards                                      |
-| `multisig/errors.go`     | ~10   | `ErrNoVerifier`                                                             |
-| `middleware.go`          | 108   | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware`          |
-| `event.go`               | 93    | `CloneEvent`, `AttachSignature`, `ExtractSignature`, `HasSignature`         |
-| `errors.go`              | 31    | Sentinel errors (`ErrNilEvent`, `ErrInvalidSignature`, etc.)                |
-| `benchmark_test.go`      | ~120  | HMAC + Ed25519 + VerifyAll benchmarks                                       |
+| File                     | Lines | Purpose                                                                  |
+| ------------------------ | ----- | ------------------------------------------------------------------------ |
+| `signer.go`              | 38    | `Signer`/`Verifier`/`SignerVerifier` interfaces                          |
+| `signature.go`           | 70    | `Signature` type + serialization                                         |
+| `payload.go`             | 60    | `canonicalPayload`, `appendLenPrefixed`                                  |
+| `hmac.go`                | 78    | `hmacSigner` (unexported) — HMAC-SHA256 implementation                   |
+| `ed25519.go`             | 105   | `ed25519Signer`/`ed25519Verifier` (unexported) — Ed25519 implementation  |
+| `multisig/signer.go`     | 178   | `NewMultiSigner`, `Sign`, `Verify`, `VerifyActor`, `verifyActorEntry`    |
+| `multisig/types.go`      | 151   | `Actor`, `SignatureEntry`, `MultiSignature`, options                     |
+| `multisig/extract.go`    | 140   | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `HasMultiSignature` |
+| `multisig/middleware.go` | 179   | 4 middleware functions with nil guards                                   |
+| `multisig/errors.go`     | ~10   | `ErrNoVerifier`                                                          |
+| `middleware.go`          | 108   | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware`       |
+| `event.go`               | 93    | `CloneEvent`, `AttachSignature`, `ExtractSignature`, `HasSignature`      |
+| `errors.go`              | 31    | Sentinel errors (`ErrNilEvent`, `ErrInvalidSignature`, etc.)             |
+| `benchmark_test.go`      | ~120  | HMAC + Ed25519 + VerifyAll benchmarks                                    |
 
 ---
 

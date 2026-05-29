@@ -10,13 +10,13 @@
 
 All 28 packages build, test, and lint clean. Three broken test modules fixed (projection, query BDD, decider snapshots). Deprecated codec aliases fully migrated to standalone `codec` module. Two botched auto-migrations repaired.
 
-| Metric | Before Session 137 | After Session 138 |
-|--------|--------------------|--------------------|
-| Build | ✅ Clean | ✅ Clean |
-| Test | 25/28 (3 FAIL, 1 build-fail) | **28/28 pass** |
-| Lint | 15 issues (7 deprecated, 4 projection, rest style) | **0 issues in core + memory**, 4 low-priority in catalog |
-| Production clones (t=25) | 14 groups | 12 groups (0 actionable) |
-| Deprecated aliases | 17 remaining | **0 remaining** |
+| Metric                   | Before Session 137                                 | After Session 138                                        |
+| ------------------------ | -------------------------------------------------- | -------------------------------------------------------- |
+| Build                    | ✅ Clean                                           | ✅ Clean                                                 |
+| Test                     | 25/28 (3 FAIL, 1 build-fail)                       | **28/28 pass**                                           |
+| Lint                     | 15 issues (7 deprecated, 4 projection, rest style) | **0 issues in core + memory**, 4 low-priority in catalog |
+| Production clones (t=25) | 14 groups                                          | 12 groups (0 actionable)                                 |
+| Deprecated aliases       | 17 remaining                                       | **0 remaining**                                          |
 
 ---
 
@@ -24,17 +24,17 @@ All 28 packages build, test, and lint clean. Three broken test modules fixed (pr
 
 ### 1. Three Broken Test Modules — ALL FIXED
 
-| Module | Error | Root Cause | Fix |
-|--------|-------|------------|-----|
-| projection (4 compile errors) | `*event.Projection` pointer-to-interface | `testProjection()` returned `*event.Projection` but `event.NewProjection` returns interface | Removed `*` from return type |
-| core/query (2 BDD panics) | Ginkgo table "Too few parameters" | `DescribeTable` body expected 3 params but `Entry` calls passed 2 | Added missing `description` string parameter |
-| core/decider (2 test failures) | Snapshot+events load returned wrong state | Tests set snapshot at v5 but didn't store v1-v5 events in event store. `SliceFromVersion` uses index-based slicing, so `SliceFromVersion([v6,v7], 5)` returned empty | Pre-populated events v1-v5 before snapshot |
+| Module                         | Error                                     | Root Cause                                                                                                                                                           | Fix                                          |
+| ------------------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| projection (4 compile errors)  | `*event.Projection` pointer-to-interface  | `testProjection()` returned `*event.Projection` but `event.NewProjection` returns interface                                                                          | Removed `*` from return type                 |
+| core/query (2 BDD panics)      | Ginkgo table "Too few parameters"         | `DescribeTable` body expected 3 params but `Entry` calls passed 2                                                                                                    | Added missing `description` string parameter |
+| core/decider (2 test failures) | Snapshot+events load returned wrong state | Tests set snapshot at v5 but didn't store v1-v5 events in event store. `SliceFromVersion` uses index-based slicing, so `SliceFromVersion([v6,v7], 5)` returned empty | Pre-populated events v1-v5 before snapshot   |
 
 ### 2. Deprecated Codec Alias Migration — COMPLETE
 
-| From | To | Status |
-|------|-----|--------|
-| `event.Codec` | `codec.Codec` | ✅ Zero references remaining |
+| From              | To                | Status                       |
+| ----------------- | ----------------- | ---------------------------- |
+| `event.Codec`     | `codec.Codec`     | ✅ Zero references remaining |
 | `event.JSONCodec` | `codec.JSONCodec` | ✅ Zero references remaining |
 
 The `codec` module was extracted in Session 135. Sessions 136-138 completed the full migration across all 82 files.
@@ -49,11 +49,11 @@ The `codec` module was extracted in Session 135. Sessions 136-138 completed the 
 
 The pre-commit hook's codec migration (`74bdb03`) renamed parameters from `codec` to `c` to avoid shadowing the `codec` package import, but missed updating references in:
 
-| File | Bug | Fix |
-|------|-----|-----|
-| `core/decider/decider_helpers_test.go` | `WithCodec[counterState](codec)` used package instead of param `c` | Changed to `c` |
-| `core/decider/decider_helpers_test.go` | `c.Encode(...)` but param named `codec` | Fixed param usage |
-| `core/event/upcaster_test.go` | `DecodePayload(..., codec)` used package instead of param `c` | Changed to `c` |
+| File                                   | Bug                                                                | Fix               |
+| -------------------------------------- | ------------------------------------------------------------------ | ----------------- |
+| `core/decider/decider_helpers_test.go` | `WithCodec[counterState](codec)` used package instead of param `c` | Changed to `c`    |
+| `core/decider/decider_helpers_test.go` | `c.Encode(...)` but param named `codec`                            | Fixed param usage |
+| `core/event/upcaster_test.go`          | `DecodePayload(..., codec)` used package instead of param `c`      | Changed to `c`    |
 
 ### 5. Style Cleanup
 
@@ -93,6 +93,7 @@ None. All identified issues resolved.
 **Root Cause:** The auto-migration tool renames variables to avoid package shadowing but doesn't update all usage sites.
 
 **Fix needed:** Either:
+
 - Disable the auto-migration feature in buildflow, OR
 - Run the migration manually once and verify, OR
 - Add post-migration compilation verification to the hook
@@ -129,33 +130,33 @@ None. All identified issues resolved.
 
 ## F) TOP #25 THINGS TO DO NEXT
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | Add binaries to `.gitignore` | HIGH | 2min | root |
-| 2 | Fix pre-commit hook: add post-migration compile check | HIGH | 30min | CI |
-| 3 | Publish v1.0.0 tags (eliminate replace directives) | HIGH | 60min | all |
-| 4 | Write top-level README with quickstart guide | MED | 60min | docs |
-| 5 | Create CHANGELOG.md from session history | MED | 30min | docs |
-| 6 | Fix `SliceFromVersion` to use version-field filtering | MED | 60min | core/event |
-| 7 | Document snapshot contract (events must exist) | MED | 15min | core/decider |
-| 8 | Add CI coverage threshold gate (80%) | MED | 30min | CI |
-| 9 | Create CONTRIBUTING.md | LOW | 30min | docs |
-| 10 | Fix catalog lint: exhaustruct on Flow/FlowStep | LOW | 10min | catalog |
-| 11 | Fix catalog lint: goconst on "1.0.0" | LOW | 5min | catalog |
-| 12 | Fix catalog lint: mnd magic number in builders | LOW | 5min | catalog |
-| 13 | Add godoc badges to module READMEs | LOW | 15min | docs |
-| 14 | Verify all 5 example apps build and run | MED | 30min | example/* |
-| 15 | Add storage module migration guide | MED | 60min | docs |
-| 16 | Add saga module usage examples | MED | 30min | docs |
-| 17 | Review stream module API completeness | MED | 60min | stream |
-| 18 | Watermill adapter: verify API surface, add tests | MED | 60min | watermill |
-| 19 | Add OpenTelemetry integration example | LOW | 30min | docs |
-| 20 | Add signing module usage guide | LOW | 20min | docs |
-| 21 | Consider `catalog.WithDescription[T]()` shared option | LOW | 15min | catalog |
-| 22 | Add PR template with checklist requirements | LOW | 15min | CI |
-| 23 | Remove remaining deprecated aliases from `event/store.go` | LOW | 10min | core/event |
-| 24 | Add `cqrs-gen` CLI usage documentation | LOW | 30min | cmd/cqrs-gen |
-| 25 | Add integration test for snapshot round-trip | MED | 20min | core/decider |
+| #   | Task                                                      | Impact | Effort | Module       |
+| --- | --------------------------------------------------------- | ------ | ------ | ------------ |
+| 1   | Add binaries to `.gitignore`                              | HIGH   | 2min   | root         |
+| 2   | Fix pre-commit hook: add post-migration compile check     | HIGH   | 30min  | CI           |
+| 3   | Publish v1.0.0 tags (eliminate replace directives)        | HIGH   | 60min  | all          |
+| 4   | Write top-level README with quickstart guide              | MED    | 60min  | docs         |
+| 5   | Create CHANGELOG.md from session history                  | MED    | 30min  | docs         |
+| 6   | Fix `SliceFromVersion` to use version-field filtering     | MED    | 60min  | core/event   |
+| 7   | Document snapshot contract (events must exist)            | MED    | 15min  | core/decider |
+| 8   | Add CI coverage threshold gate (80%)                      | MED    | 30min  | CI           |
+| 9   | Create CONTRIBUTING.md                                    | LOW    | 30min  | docs         |
+| 10  | Fix catalog lint: exhaustruct on Flow/FlowStep            | LOW    | 10min  | catalog      |
+| 11  | Fix catalog lint: goconst on "1.0.0"                      | LOW    | 5min   | catalog      |
+| 12  | Fix catalog lint: mnd magic number in builders            | LOW    | 5min   | catalog      |
+| 13  | Add godoc badges to module READMEs                        | LOW    | 15min  | docs         |
+| 14  | Verify all 5 example apps build and run                   | MED    | 30min  | example/\*   |
+| 15  | Add storage module migration guide                        | MED    | 60min  | docs         |
+| 16  | Add saga module usage examples                            | MED    | 30min  | docs         |
+| 17  | Review stream module API completeness                     | MED    | 60min  | stream       |
+| 18  | Watermill adapter: verify API surface, add tests          | MED    | 60min  | watermill    |
+| 19  | Add OpenTelemetry integration example                     | LOW    | 30min  | docs         |
+| 20  | Add signing module usage guide                            | LOW    | 20min  | docs         |
+| 21  | Consider `catalog.WithDescription[T]()` shared option     | LOW    | 15min  | catalog      |
+| 22  | Add PR template with checklist requirements               | LOW    | 15min  | CI           |
+| 23  | Remove remaining deprecated aliases from `event/store.go` | LOW    | 10min  | core/event   |
+| 24  | Add `cqrs-gen` CLI usage documentation                    | LOW    | 30min  | cmd/cqrs-gen |
+| 25  | Add integration test for snapshot round-trip              | MED    | 20min  | core/decider |
 
 ---
 

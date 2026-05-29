@@ -60,21 +60,21 @@ Consequences:
 
 Two positions:
 
-| Position | Rule | Trade-off |
-|---|---|---|
-| **Strict 1:1** | One command → one event. Split `CreateOrder` into `CreateOrder` + `AddOrderLines` | Purest invariant, more commands, very granular events |
-| **1:N bounded** | One command → N events, but each event type belongs to exactly one command type | Pragmatic, reverse direction still unique |
+| Position        | Rule                                                                              | Trade-off                                             |
+| --------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Strict 1:1**  | One command → one event. Split `CreateOrder` into `CreateOrder` + `AddOrderLines` | Purest invariant, more commands, very granular events |
+| **1:N bounded** | One command → N events, but each event type belongs to exactly one command type   | Pragmatic, reverse direction still unique             |
 
 Strict 1:1 is the aspirational target. 1:N bounded is acceptable if the aggregate truly needs atomic multi-event writes.
 
 ## Unified Primitive Table
 
-| Primitive | Input | Output | Stateful? |
-|---|---|---|---|
-| **Decider** | Command + State | Events | Yes (aggregate state) |
-| **Projection** | Events | Read model | Yes (projection state) |
-| **Saga** | Events | Commands | Yes (saga state machine) |
-| **Derivation** | Events | Commands | No (stateless) |
+| Primitive      | Input           | Output     | Stateful?                |
+| -------------- | --------------- | ---------- | ------------------------ |
+| **Decider**    | Command + State | Events     | Yes (aggregate state)    |
+| **Projection** | Events          | Read model | Yes (projection state)   |
+| **Saga**       | Events          | Commands   | Yes (saga state machine) |
+| **Derivation** | Events          | Commands   | No (stateless)           |
 
 Note: both **Saga** and **Derivation** produce commands, not events. The only difference is statefulness. A derivation is a stateless saga — or equivalently, a saga is a stateful derivation.
 
@@ -114,7 +114,7 @@ This makes the full audit trail: source events → derived command → decider �
 
 ### 1. Where does the derived command target?
 
-The derived command targets an aggregate — same as any command. The derivation decides *which* aggregate based on the source events.
+The derived command targets an aggregate — same as any command. The derivation decides _which_ aggregate based on the source events.
 
 - Same aggregate as source events → simple, natural for invariants within one aggregate
 - Different aggregate → cross-aggregate invariant, the decider on the target validates independently
@@ -125,11 +125,11 @@ The derived command targets an aggregate — same as any command. The derivation
 
 The deriver must not dispatch the same command twice for the same input events.
 
-| Strategy | How |
-|---|---|
-| Checkpoint tracking | "Last derived at position N" per deriver |
+| Strategy                 | How                                                           |
+| ------------------------ | ------------------------------------------------------------- |
+| Checkpoint tracking      | "Last derived at position N" per deriver                      |
 | Deterministic command ID | Hash input event IDs → command ID (deduplicate at dispatcher) |
-| Consumer-side dedup | Decider rejects if event already exists (version conflict) |
+| Consumer-side dedup      | Decider rejects if event already exists (version conflict)    |
 
 **Recommendation:** Deterministic command ID from input event IDs + decider's natural idempotency (version check). Belt and suspenders.
 

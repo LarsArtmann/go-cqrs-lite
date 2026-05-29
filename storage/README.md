@@ -176,7 +176,7 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
 ## Dependencies
 
-| Dependency           | Purpose                           |
-| -------------------- | --------------------------------- |
-| `core`               | Event/ID interfaces                 |
-| `cockroachdb/pebble` | PebbleEventStore (optional)       |
+| Dependency           | Purpose                     |
+| -------------------- | --------------------------- |
+| `core`               | Event/ID interfaces         |
+| `cockroachdb/pebble` | PebbleEventStore (optional) |

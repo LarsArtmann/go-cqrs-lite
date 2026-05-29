@@ -22,57 +22,57 @@ The **CheckpointStore ISP split** completed in this session is clean and fully t
 
 ### Core Infrastructure
 
-| Feature | Module | Coverage | Notes |
-|---------|--------|----------|-------|
-| Command dispatcher | `core/command` | 100% | Typed handlers, middleware, lifecycle |
-| Query dispatcher | `core/query` | 96.8% | Typed dispatch, pagination |
-| Event system | `core/event` | 90.7% | 15 creation options, bus/store, journal, snapshots, outbox, upcasters, tombstones, ISP-split interfaces |
-| Decider pattern | `core/decider` | ~95% | Pure-function aggregates |
-| Branded IDs | `core/pkg/id` | 100% | 7 built-in types + custom |
-| Generic dispatcher | `core/pkg/dispatcher` | 92.2% | `Dispatcher[H, M]` with lifecycle |
-| JSON/Raw codec | `codec` | 100% | Standalone encoding module |
+| Feature            | Module                | Coverage | Notes                                                                                                   |
+| ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| Command dispatcher | `core/command`        | 100%     | Typed handlers, middleware, lifecycle                                                                   |
+| Query dispatcher   | `core/query`          | 96.8%    | Typed dispatch, pagination                                                                              |
+| Event system       | `core/event`          | 90.7%    | 15 creation options, bus/store, journal, snapshots, outbox, upcasters, tombstones, ISP-split interfaces |
+| Decider pattern    | `core/decider`        | ~95%     | Pure-function aggregates                                                                                |
+| Branded IDs        | `core/pkg/id`         | 100%     | 7 built-in types + custom                                                                               |
+| Generic dispatcher | `core/pkg/dispatcher` | 92.2%    | `Dispatcher[H, M]` with lifecycle                                                                       |
+| JSON/Raw codec     | `codec`               | 100%     | Standalone encoding module                                                                              |
 
 ### CheckpointStore ISP Split (THIS SESSION)
 
-| Change | File | Status |
-|--------|------|--------|
-| `CheckpointSink` (Save + Close) | `core/event/checkpoint.go:27-34` | ✅ |
-| `CheckpointSource` (Load + Close) | `core/event/checkpoint.go:36-43` | ✅ |
-| `CheckpointStore` (Sink + Source composite) | `core/event/checkpoint.go:45-50` | ✅ |
-| Memory impl assertions | `memory/checkpoint.go:55-59` | ✅ |
-| SQL impl assertions | `storage/checkpoint.go:104-108` | ✅ |
-| All 14 test packages pass | — | ✅ |
-| Zero breaking changes | — | ✅ Backward-compatible |
+| Change                                      | File                             | Status                 |
+| ------------------------------------------- | -------------------------------- | ---------------------- |
+| `CheckpointSink` (Save + Close)             | `core/event/checkpoint.go:27-34` | ✅                     |
+| `CheckpointSource` (Load + Close)           | `core/event/checkpoint.go:36-43` | ✅                     |
+| `CheckpointStore` (Sink + Source composite) | `core/event/checkpoint.go:45-50` | ✅                     |
+| Memory impl assertions                      | `memory/checkpoint.go:55-59`     | ✅                     |
+| SQL impl assertions                         | `storage/checkpoint.go:104-108`  | ✅                     |
+| All 14 test packages pass                   | —                                | ✅                     |
+| Zero breaking changes                       | —                                | ✅ Backward-compatible |
 
 ### Storage Layer
 
-| Feature | Module | Coverage |
-|---------|--------|----------|
-| SQL event store (PG/SQLite) | `storage` | 93.7% |
-| SQL snapshot store | `storage` | — |
-| SQL checkpoint store | `storage` | — |
-| SQL outbox | `storage` | — |
-| SQL saga store | `storage` | — |
-| Pebble KV store | `pebble` | 87.8% |
-| Turso connector | `turso` | — |
+| Feature                     | Module    | Coverage |
+| --------------------------- | --------- | -------- |
+| SQL event store (PG/SQLite) | `storage` | 93.7%    |
+| SQL snapshot store          | `storage` | —        |
+| SQL checkpoint store        | `storage` | —        |
+| SQL outbox                  | `storage` | —        |
+| SQL saga store              | `storage` | —        |
+| Pebble KV store             | `pebble`  | 87.8%    |
+| Turso connector             | `turso`   | —        |
 
 ### Middleware Stack (24 factories)
 
-| Concern | Coverage |
-|---------|----------|
-| Logging, Metrics, Recovery, Retry, Tracing, Validation, Circuit Breaker, Timeout, Rate Limiting | 94.0% |
+| Concern                                                                                         | Coverage |
+| ----------------------------------------------------------------------------------------------- | -------- |
+| Logging, Metrics, Recovery, Retry, Tracing, Validation, Circuit Breaker, Timeout, Rate Limiting | 94.0%    |
 
 ### Cross-Cutting
 
-| Feature | Status |
-|---------|--------|
-| OpenTelemetry integration | ✅ `otel` module, no-op when no provider |
-| Event signing (HMAC + Ed25519 + multisig) | ✅ 93.7-94.2% |
-| Watermill adapter | ✅ 94.4% |
-| Catalog exporters (AsyncAPI, D2, OpenAPI, EventCatalog, DocServer) | ✅ 89-96% |
-| Code generator (`cqrs-gen`) | ✅ 70.8% |
-| Memory test implementations | ✅ 99.1% |
-| Test helpers | ✅ 83.7% |
+| Feature                                                            | Status                                   |
+| ------------------------------------------------------------------ | ---------------------------------------- |
+| OpenTelemetry integration                                          | ✅ `otel` module, no-op when no provider |
+| Event signing (HMAC + Ed25519 + multisig)                          | ✅ 93.7-94.2%                            |
+| Watermill adapter                                                  | ✅ 94.4%                                 |
+| Catalog exporters (AsyncAPI, D2, OpenAPI, EventCatalog, DocServer) | ✅ 89-96%                                |
+| Code generator (`cqrs-gen`)                                        | ✅ 70.8%                                 |
+| Memory test implementations                                        | ✅ 99.1%                                 |
+| Test helpers                                                       | ✅ 83.7%                                 |
 
 ### Modularization Phase 1 (DONE)
 
@@ -90,14 +90,14 @@ The **CheckpointStore ISP split** completed in this session is clean and fully t
 
 **Status:** 70% done. Files moved, go.mod updated, go.work updated. But:
 
-| Issue | Files Affected | Severity |
-|-------|----------------|----------|
-| Production files still `package stream` | 10 files in `listing/` | 🔴 Build broken for `GOWORK=off` |
-| Test files still `package stream_test` | 9 test files in `listing/` | 🔴 gopls errors |
-| `doc.go` says "Package stream" | `listing/doc.go` | 🟡 Misleading |
-| Ghost `stream/` directory (empty go.mod) | `stream/` | 🟡 Cleanup needed |
-| Ghost `example/stream/` directory | `example/stream/` | 🟡 Cleanup needed |
-| `example/listing/main.go` imports old paths | `example/listing/main.go` | 🔴 May reference `stream` |
+| Issue                                       | Files Affected             | Severity                         |
+| ------------------------------------------- | -------------------------- | -------------------------------- |
+| Production files still `package stream`     | 10 files in `listing/`     | 🔴 Build broken for `GOWORK=off` |
+| Test files still `package stream_test`      | 9 test files in `listing/` | 🔴 gopls errors                  |
+| `doc.go` says "Package stream"              | `listing/doc.go`           | 🟡 Misleading                    |
+| Ghost `stream/` directory (empty go.mod)    | `stream/`                  | 🟡 Cleanup needed                |
+| Ghost `example/stream/` directory           | `example/stream/`          | 🟡 Cleanup needed                |
+| `example/listing/main.go` imports old paths | `example/listing/main.go`  | 🔴 May reference `stream`        |
 
 Works in workspace mode because Go resolves by directory, not package name. **Will break per-module CI (`GOWORK=off`).**
 
@@ -105,15 +105,15 @@ Works in workspace mode because Go resolves by directory, not package name. **Wi
 
 **Status:** 30% done. Interface designed, memory backend written. But:
 
-| Issue | Status |
-|-------|--------|
-| `core/store/backend.go` (interface) | ✅ Staged |
-| `memory/backend.go` (in-memory impl) | ⚠️ Untracked, NOT staged |
-| `pebble/backend.go` (pebble impl) | ⚠️ Untracked, NOT staged |
-| `storage/sql_aggregate_reader.go` | ⚠️ Untracked, NOT staged, **BROKEN** (references `listing` package which is `package stream`) |
-| No tests for `core/store` | ❌ Missing |
-| No go.mod for `core/store` (it's a sub-package of `core`) | ✅ Correct |
-| No documentation in AGENTS.md | ❌ Missing |
+| Issue                                                     | Status                                                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `core/store/backend.go` (interface)                       | ✅ Staged                                                                                     |
+| `memory/backend.go` (in-memory impl)                      | ⚠️ Untracked, NOT staged                                                                      |
+| `pebble/backend.go` (pebble impl)                         | ⚠️ Untracked, NOT staged                                                                      |
+| `storage/sql_aggregate_reader.go`                         | ⚠️ Untracked, NOT staged, **BROKEN** (references `listing` package which is `package stream`) |
+| No tests for `core/store`                                 | ❌ Missing                                                                                    |
+| No go.mod for `core/store` (it's a sub-package of `core`) | ✅ Correct                                                                                    |
+| No documentation in AGENTS.md                             | ❌ Missing                                                                                    |
 
 ### 3. Projection Parallel Processing — PARTIAL
 
@@ -166,12 +166,12 @@ The untracked file `storage/sql_aggregate_reader.go` imports `github.com/larsart
 
 48 files staged mixing **three unrelated concerns**:
 
-| Concern | Files | Risk |
-|---------|-------|------|
-| stream→listing rename | ~35 files | Incomplete, will break CI |
-| core/store.Backend + adapters | ~5 files | Untracked, unstaged |
-| Modularization proposal/docs | ~5 files | Safe |
-| AGENTS.md update | 1 file | Unstaged, has duplicate line |
+| Concern                       | Files     | Risk                         |
+| ----------------------------- | --------- | ---------------------------- |
+| stream→listing rename         | ~35 files | Incomplete, will break CI    |
+| core/store.Backend + adapters | ~5 files  | Untracked, unstaged          |
+| Modularization proposal/docs  | ~5 files  | Safe                         |
+| AGENTS.md update              | 1 file    | Unstaged, has duplicate line |
 
 **A single monolithic commit of all staged changes would be a mess.**
 
@@ -212,33 +212,33 @@ The untracked file `storage/sql_aggregate_reader.go` imports `github.com/larsart
 
 ## F) Top #25 Things to Do Next
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | 🔴 P0 | Complete `stream` → `listing` package rename (all declarations) | Fixes CI | 30min |
-| 2 | 🔴 P0 | Delete ghost `stream/` and `example/stream/` directories | Cleanup | 5min |
-| 3 | 🔴 P0 | Fix `storage/sql_aggregate_reader.go` broken build | Fixes race tests | 1hr |
-| 4 | 🔴 P0 | Split staging area into focused commits | Git hygiene | 15min |
-| 5 | 🟡 P1 | Write tests for `core/store.Backend` interface | Quality | 2hr |
-| 6 | 🟡 P1 | Stage and test `memory/backend.go` + `pebble/backend.go` | Feature complete | 2hr |
-| 7 | 🟡 P1 | Fix AGENTS.md duplicate sagatest line + update module tree | Docs accuracy | 10min |
-| 8 | 🟡 P1 | Restart gopls to clear stale `stream_test` diagnostics | DX | 1min |
-| 9 | 🟡 P1 | Run `go work sync` to fix `example/listing/go.mod` missing require | Module health | 2min |
-| 10 | 🟡 P1 | Update `listing/doc.go` to say "Package listing" | Naming | 2min |
-| 11 | 🟢 P2 | Add `listing` integration tests with `storage` module | Coverage | 4hr |
-| 12 | 🟢 P2 | Implement `query.Handler` generic typed return (`any` → `T`) | Type safety | 3hr |
-| 13 | 🟢 P2 | Remove `io.Closer` from core interfaces | ISP purity | 4hr |
-| 14 | 🟢 P2 | Add PostgreSQL integration tests (testcontainers) | Coverage | 6hr |
-| 15 | 🟢 P2 | Benchmark storage backends (PG vs SQLite vs Pebble) | Performance | 4hr |
-| 16 | 🟢 P2 | Split `core/event` god-package into sub-packages | Maintainability | 8hr |
-| 17 | 🟢 P2 | Add catalog diff/breaking-change detection | Developer tooling | 8hr |
-| 18 | 🟢 P2 | High-level test utilities (AggregateTester, ProjectionTester) | Developer experience | 6hr |
-| 19 | 🟢 P2 | Schema registry — JSON Schema middleware for events | Validation | 6hr |
-| 20 | ⚪ P3 | Global `TransactionID` branded type | Cross-aggregate | 3hr |
-| 21 | ⚪ P3 | Performance regression CI — benchmark comparison per PR | CI quality | 4hr |
-| 22 | ⚪ P3 | Add fuzz tests for event creation, ID parsing, upcaster chain | Robustness | 4hr |
-| 23 | ⚪ P3 | Documentation site (Docusaurus/MkDocs/Hugo) | Discoverability | 8hr |
-| 24 | ⚪ P3 | Thin PostgreSQL store adapter (no Watermill) | Independence | 8hr |
-| 25 | ⚪ P3 | Thin NATS bus adapter (no Watermill) | Transport flexibility | 8hr |
+| #   | Priority | Task                                                               | Impact                | Effort |
+| --- | -------- | ------------------------------------------------------------------ | --------------------- | ------ |
+| 1   | 🔴 P0    | Complete `stream` → `listing` package rename (all declarations)    | Fixes CI              | 30min  |
+| 2   | 🔴 P0    | Delete ghost `stream/` and `example/stream/` directories           | Cleanup               | 5min   |
+| 3   | 🔴 P0    | Fix `storage/sql_aggregate_reader.go` broken build                 | Fixes race tests      | 1hr    |
+| 4   | 🔴 P0    | Split staging area into focused commits                            | Git hygiene           | 15min  |
+| 5   | 🟡 P1    | Write tests for `core/store.Backend` interface                     | Quality               | 2hr    |
+| 6   | 🟡 P1    | Stage and test `memory/backend.go` + `pebble/backend.go`           | Feature complete      | 2hr    |
+| 7   | 🟡 P1    | Fix AGENTS.md duplicate sagatest line + update module tree         | Docs accuracy         | 10min  |
+| 8   | 🟡 P1    | Restart gopls to clear stale `stream_test` diagnostics             | DX                    | 1min   |
+| 9   | 🟡 P1    | Run `go work sync` to fix `example/listing/go.mod` missing require | Module health         | 2min   |
+| 10  | 🟡 P1    | Update `listing/doc.go` to say "Package listing"                   | Naming                | 2min   |
+| 11  | 🟢 P2    | Add `listing` integration tests with `storage` module              | Coverage              | 4hr    |
+| 12  | 🟢 P2    | Implement `query.Handler` generic typed return (`any` → `T`)       | Type safety           | 3hr    |
+| 13  | 🟢 P2    | Remove `io.Closer` from core interfaces                            | ISP purity            | 4hr    |
+| 14  | 🟢 P2    | Add PostgreSQL integration tests (testcontainers)                  | Coverage              | 6hr    |
+| 15  | 🟢 P2    | Benchmark storage backends (PG vs SQLite vs Pebble)                | Performance           | 4hr    |
+| 16  | 🟢 P2    | Split `core/event` god-package into sub-packages                   | Maintainability       | 8hr    |
+| 17  | 🟢 P2    | Add catalog diff/breaking-change detection                         | Developer tooling     | 8hr    |
+| 18  | 🟢 P2    | High-level test utilities (AggregateTester, ProjectionTester)      | Developer experience  | 6hr    |
+| 19  | 🟢 P2    | Schema registry — JSON Schema middleware for events                | Validation            | 6hr    |
+| 20  | ⚪ P3    | Global `TransactionID` branded type                                | Cross-aggregate       | 3hr    |
+| 21  | ⚪ P3    | Performance regression CI — benchmark comparison per PR            | CI quality            | 4hr    |
+| 22  | ⚪ P3    | Add fuzz tests for event creation, ID parsing, upcaster chain      | Robustness            | 4hr    |
+| 23  | ⚪ P3    | Documentation site (Docusaurus/MkDocs/Hugo)                        | Discoverability       | 8hr    |
+| 24  | ⚪ P3    | Thin PostgreSQL store adapter (no Watermill)                       | Independence          | 8hr    |
+| 25  | ⚪ P3    | Thin NATS bus adapter (no Watermill)                               | Transport flexibility | 8hr    |
 
 ---
 
@@ -290,27 +290,27 @@ listing                                   — (tests pass, no coverage data coll
 
 ## Staging Area Breakdown (48 files)
 
-| Category | Files | Status |
-|----------|-------|--------|
-| stream→listing rename | 35 | Incomplete (package declarations unchanged) |
-| core/store.Backend | 1 (staged) + 3 (untracked) | No tests |
-| Modularization docs | 2 | Ready |
-| Turso go.sum | 1 | Auto-generated |
-| AGENTS.md | 1 | Unstaged, has duplicate line |
+| Category              | Files                      | Status                                      |
+| --------------------- | -------------------------- | ------------------------------------------- |
+| stream→listing rename | 35                         | Incomplete (package declarations unchanged) |
+| core/store.Backend    | 1 (staged) + 3 (untracked) | No tests                                    |
+| Modularization docs   | 2                          | Ready                                       |
+| Turso go.sum          | 1                          | Auto-generated                              |
+| AGENTS.md             | 1                          | Unstaged, has duplicate line                |
 
 ## Unstaged Changes
 
-| File | Change |
-|------|--------|
-| `AGENTS.md` | Module graph update (has duplicate line) |
-| `storage/go.mod` | Added listing dependency |
-| `go.work` | Updated use directives |
+| File             | Change                                   |
+| ---------------- | ---------------------------------------- |
+| `AGENTS.md`      | Module graph update (has duplicate line) |
+| `storage/go.mod` | Added listing dependency                 |
+| `go.work`        | Updated use directives                   |
 
 ## Untracked Files
 
-| File | Status |
-|------|--------|
-| `memory/backend.go` | Written, not staged |
-| `pebble/backend.go` | Written, not staged |
+| File                              | Status                                     |
+| --------------------------------- | ------------------------------------------ |
+| `memory/backend.go`               | Written, not staged                        |
+| `pebble/backend.go`               | Written, not staged                        |
 | `storage/sql_aggregate_reader.go` | Written, BROKEN (listing package mismatch) |
-| `docs/status/` | This report |
+| `docs/status/`                    | This report                                |

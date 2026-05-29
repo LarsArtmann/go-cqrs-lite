@@ -19,27 +19,27 @@ Both violate the project's own principles: "small and composable" modules, max 2
 
 ### Module Inventory
 
-| Module | Lines | Internal Deps (direct) | State |
-|---|---|---|---|
-| `otel` | 590 | none | **Clean** — leaf module |
-| `codec` | 271 | none | **Clean** — leaf module |
-| `catalog` | 11,957 | none | **Clean** — zero internal deps |
-| `core` | 14,877 | codec, otel (prod); memory, testhelpers (test-only) | **Go-inherent leak** — test deps in prod go.mod |
-| `saga` | 2,255 | core, otel, testhelpers | **Leaky** — pulls saga via testhelpers |
-| `testhelpers` | 2,512 | core, saga | **Leaky** — saga in production code |
-| `memory` | 3,386 | core, testhelpers | **Leaky** — pulls saga transitively |
-| `middleware` | 3,932 | core, otel, testhelpers | **Leaky** — pulls saga transitively |
-| `signing` | 4,156 | core, testhelpers | **Leaky** — pulls saga transitively |
-| `projection` | 3,120 | core, memory, otel, testhelpers | **Leaky** — pulls saga transitively |
-| `storage` | 8,466 | core, otel, saga, testhelpers | **Borderline** — legitimate saga dep |
-| `stream` | 2,513 | core, memory | **Leaky** — memory is test-only |
-| `watermill` | 741 | core, memory, testhelpers | **Leaky** — pulls saga transitively |
-| `pebble` | 1,535 | core, codec, otel, testhelpers | **Leaky** — pulls saga transitively |
-| `integration` | 2,299 | 8 modules | Acceptable — cross-module tests |
-| `turso` | 206 | core, storage | **Clean** — thin adapter |
-| `cmd/cqrs-gen` | 747 | none | **Clean** |
-| `example/*` | 100–3,472 | varies | Acceptable — demos |
-| ROOT | 0 | none | Empty shell |
+| Module         | Lines     | Internal Deps (direct)                              | State                                           |
+| -------------- | --------- | --------------------------------------------------- | ----------------------------------------------- |
+| `otel`         | 590       | none                                                | **Clean** — leaf module                         |
+| `codec`        | 271       | none                                                | **Clean** — leaf module                         |
+| `catalog`      | 11,957    | none                                                | **Clean** — zero internal deps                  |
+| `core`         | 14,877    | codec, otel (prod); memory, testhelpers (test-only) | **Go-inherent leak** — test deps in prod go.mod |
+| `saga`         | 2,255     | core, otel, testhelpers                             | **Leaky** — pulls saga via testhelpers          |
+| `testhelpers`  | 2,512     | core, saga                                          | **Leaky** — saga in production code             |
+| `memory`       | 3,386     | core, testhelpers                                   | **Leaky** — pulls saga transitively             |
+| `middleware`   | 3,932     | core, otel, testhelpers                             | **Leaky** — pulls saga transitively             |
+| `signing`      | 4,156     | core, testhelpers                                   | **Leaky** — pulls saga transitively             |
+| `projection`   | 3,120     | core, memory, otel, testhelpers                     | **Leaky** — pulls saga transitively             |
+| `storage`      | 8,466     | core, otel, saga, testhelpers                       | **Borderline** — legitimate saga dep            |
+| `stream`       | 2,513     | core, memory                                        | **Leaky** — memory is test-only                 |
+| `watermill`    | 741       | core, memory, testhelpers                           | **Leaky** — pulls saga transitively             |
+| `pebble`       | 1,535     | core, codec, otel, testhelpers                      | **Leaky** — pulls saga transitively             |
+| `integration`  | 2,299     | 8 modules                                           | Acceptable — cross-module tests                 |
+| `turso`        | 206       | core, storage                                       | **Clean** — thin adapter                        |
+| `cmd/cqrs-gen` | 747       | none                                                | **Clean**                                       |
+| `example/*`    | 100–3,472 | varies                                              | Acceptable — demos                              |
+| ROOT           | 0         | none                                                | Empty shell                                     |
 
 ### Replace Directive Inventory
 
@@ -51,20 +51,20 @@ Both violate the project's own principles: "small and composable" modules, max 2
 
 90+ exported symbols across 12 logical concern clusters:
 
-| Cluster | Files | Key Types |
-|---|---|---|
-| Core Event Model | 7 | `Event`, `ImmutableEvent`, `Type`, `Metadata`, `Option`, `New` |
-| Store Interfaces | 3 | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal` |
-| Bus / Pub-Sub | 1 | `Bus`, `Publisher`, `Subscriber`, `Middleware` |
-| Outbox Pattern | 3 | `Outbox`, `OutboxPublisher`, `OutboxEntry` |
-| Snapshotting | 3 | `Snapshot`, `SnapshotStore`, `SnapshotStrategy` |
-| Projection/Checkpoint | 2 | `Projection`, `Checkpoint`, `CheckpointStore` |
-| Upcasting | 3 | `Upcaster`, `VersionedStore` |
-| Tombstone | 1 | `TombstoneStatus`, `MarkTombstone` |
-| Error Taxonomy | 1 | ~30 error family re-exports |
-| Context/Enrichment | 2 | `ContextEnricher`, `WithReplay` |
-| Slice Utilities | 1 | `SliceFromVersion`, `FilterByTimestamp` |
-| Codec/Batch | 2 | `DecodePayload`, `NewEvents` |
+| Cluster               | Files | Key Types                                                         |
+| --------------------- | ----- | ----------------------------------------------------------------- |
+| Core Event Model      | 7     | `Event`, `ImmutableEvent`, `Type`, `Metadata`, `Option`, `New`    |
+| Store Interfaces      | 3     | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal` |
+| Bus / Pub-Sub         | 1     | `Bus`, `Publisher`, `Subscriber`, `Middleware`                    |
+| Outbox Pattern        | 3     | `Outbox`, `OutboxPublisher`, `OutboxEntry`                        |
+| Snapshotting          | 3     | `Snapshot`, `SnapshotStore`, `SnapshotStrategy`                   |
+| Projection/Checkpoint | 2     | `Projection`, `Checkpoint`, `CheckpointStore`                     |
+| Upcasting             | 3     | `Upcaster`, `VersionedStore`                                      |
+| Tombstone             | 1     | `TombstoneStatus`, `MarkTombstone`                                |
+| Error Taxonomy        | 1     | ~30 error family re-exports                                       |
+| Context/Enrichment    | 2     | `ContextEnricher`, `WithReplay`                                   |
+| Slice Utilities       | 1     | `SliceFromVersion`, `FilterByTimestamp`                           |
+| Codec/Batch           | 2     | `DecodePayload`, `NewEvents`                                      |
 
 ---
 
@@ -108,6 +108,7 @@ pebble → testhelpers → saga    (pebble never uses saga)
 `core` is the **foundation module** — every other module depends on it. Having `memory` and `testhelpers` as direct deps is a violation: the core library module should be zero-internal-deps.
 
 Options:
+
 - **A) Inline test doubles** — Create `core/event/testutil` package with minimal fakes needed for tests (no external deps)
 - **B) Accept test deps** — Go doesn't support test-only requires, so this is a known limitation
 
@@ -116,6 +117,7 @@ Options:
 ### Change 3: Keep Replace + go.work (Corrected After Self-Review)
 
 **Both `replace` directives AND `go.work` are needed and correct.** They serve different purposes:
+
 - `go.work` — developer convenience, workspace builds
 - `replace` — per-module isolation (`GOWORK=off go test` in CI)
 
@@ -125,15 +127,15 @@ Options:
 
 Split the god-package while maintaining backward compatibility via type aliases:
 
-| New Package | Contents | Rationale |
-|---|---|---|
-| `core/event` (keeps) | Core model, metadata, options, types, builder, errors, tombstone, enricher, replay, slice, codec, batch | The essential event types |
-| `core/event/store` | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `BackwardsSource`, `TransactionalSink`, `AggregateRef`, `StreamKey` | ISP — store interfaces |
-| `core/event/bus` | `Bus`, `Publisher`, `Subscriber`, `Handler`, `Middleware`, `PublishMiddleware` | Pub-sub is a distinct concern |
-| `core/event/outbox` | `Outbox`, `OutboxEntry`, `OutboxPublisher`, `OutboxPublisherOption`, `PublishNow` | Outbox pattern is optional |
-| `core/event/snapshot` | `Snapshot`, `SnapshotStore`, `SnapshotStrategy`, `EveryNEvents`, `ShouldSnapshot`, `SaveSnapshot` | Snapshotting is optional |
-| `core/event/projection` | `Projection`, `BatchProjection`, `NewProjection`, `Checkpoint`, `CheckpointStore` | Projection support types |
-| `core/event/upcaster` | `Upcaster`, `NewUpcaster`, `VersionedStore`, `NewVersionedStore` | Schema evolution is optional |
+| New Package             | Contents                                                                                                                               | Rationale                     |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `core/event` (keeps)    | Core model, metadata, options, types, builder, errors, tombstone, enricher, replay, slice, codec, batch                                | The essential event types     |
+| `core/event/store`      | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `BackwardsSource`, `TransactionalSink`, `AggregateRef`, `StreamKey` | ISP — store interfaces        |
+| `core/event/bus`        | `Bus`, `Publisher`, `Subscriber`, `Handler`, `Middleware`, `PublishMiddleware`                                                         | Pub-sub is a distinct concern |
+| `core/event/outbox`     | `Outbox`, `OutboxEntry`, `OutboxPublisher`, `OutboxPublisherOption`, `PublishNow`                                                      | Outbox pattern is optional    |
+| `core/event/snapshot`   | `Snapshot`, `SnapshotStore`, `SnapshotStrategy`, `EveryNEvents`, `ShouldSnapshot`, `SaveSnapshot`                                      | Snapshotting is optional      |
+| `core/event/projection` | `Projection`, `BatchProjection`, `NewProjection`, `Checkpoint`, `CheckpointStore`                                                      | Projection support types      |
+| `core/event/upcaster`   | `Upcaster`, `NewUpcaster`, `VersionedStore`, `NewVersionedStore`                                                                       | Schema evolution is optional  |
 
 **Backward compatibility:** `core/event` re-exports all types via type aliases and wrapper functions so existing consumers don't break:
 
@@ -172,6 +174,7 @@ type EventSink = store.EventSink
 ```
 
 **After changes:**
+
 - `core` → zero internal deps (only codec if needed)
 - `testhelpers` → core only (saga removed)
 - `saga` → core, otel (testhelpers removed from prod deps)
@@ -181,8 +184,8 @@ type EventSink = store.EventSink
 
 ## Replace / Workspace Strategy
 
-| Strategy | Decision |
-|---|---|
+| Strategy         | Decision                                                                |
+| ---------------- | ----------------------------------------------------------------------- |
 | Replace strategy | **Keep both** — go.work for dev, replace for per-module CI (GOWORK=off) |
 
 ## Versioning Strategy
@@ -191,36 +194,40 @@ type EventSink = store.EventSink
 
 ## Risk Assessment
 
-| Risk | Severity | Mitigation |
-|---|---|---|
-| Splitting `core/event` breaks consumers | High | Type aliases in `core/event` provide backward compat |
-| Removing replace breaks builds without go.work | Medium | Verify `go work sync` works; CI uses go.work |
-| Moving saga_helpers breaks saga/storage tests | Low | Simple import path change |
-| Circular imports after split | Low | DAG verified; core/event has no imports from sub-packages |
+| Risk                                           | Severity | Mitigation                                                |
+| ---------------------------------------------- | -------- | --------------------------------------------------------- |
+| Splitting `core/event` breaks consumers        | High     | Type aliases in `core/event` provide backward compat      |
+| Removing replace breaks builds without go.work | Medium   | Verify `go work sync` works; CI uses go.work              |
+| Moving saga_helpers breaks saga/storage tests  | Low      | Simple import path change                                 |
+| Circular imports after split                   | Low      | DAG verified; core/event has no imports from sub-packages |
 
 ## What We're NOT Changing
 
-| Item | Reason |
-|---|---|
-| `storage/` package structure | All stores share `sqlBase`+`Dialect`; splitting adds import complexity without benefit |
-| `catalog/` package structure | Cohesive domain model; exporters already properly split |
-| Module boundaries (go.mod locations) | The 24-module split is correct; the problem is coupling, not boundary placement |
-| `example/` modules | Demos are fine as-is |
+| Item                                 | Reason                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `storage/` package structure         | All stores share `sqlBase`+`Dialect`; splitting adds import complexity without benefit |
+| `catalog/` package structure         | Cohesive domain model; exporters already properly split                                |
+| Module boundaries (go.mod locations) | The 24-module split is correct; the problem is coupling, not boundary placement        |
+| `example/` modules                   | Demos are fine as-is                                                                   |
 
 ---
 
 ## Self-Review Corrections (Phase 4)
 
 ### Correction 1: Core production deps are clean
+
 Initial analysis said `core` has `memory`/`testhelpers` as production deps. **Wrong.** Core's production code only imports `codec` and `otel`. The `memory`/`testhelpers` deps are test-only (`_test.go` files). Go's module system puts them in the `require` block regardless. This is a Go limitation, not a design flaw.
 
 ### Correction 2: Replace directives are necessary
+
 Initial proposal called for removing all `replace` directives. **Wrong.** CI runs `GOWORK=off go test` per module, which requires `replace` directives to resolve local modules. Both strategies serve different purposes and coexist correctly.
 
 ### Correction 3: Self-referencing replaces are a smell but functional
+
 7 modules replace themselves (`saga => ./`). This is unusual but works — it tells `go mod tidy` to use the local copy instead of fetching from a proxy. Harmless but could be cleaner.
 
 ### Remaining Valid Issues
+
 1. **saga transitive leak through testhelpers** — still a real problem
 2. **core/event god-package** — still 90+ exports across 12 concerns
 3. **Version inconsistencies** — `testhelpers` references `saga v1.0.0` while others use `v1.6.0`

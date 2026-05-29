@@ -4,25 +4,25 @@
 
 This directory contains the architecture visualization of the go-cqrs-lite multi-module workspace.
 
-| File | Description |
-|------|-------------|
-| `module-graph.d2` | Source D2 diagram (editable) |
+| File               | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| `module-graph.d2`  | Source D2 diagram (editable)                            |
 | `module-graph.svg` | Compiled SVG output (open in browser or markdown embed) |
 
 ## Layers
 
 The modules are organized into 8 layers, from low-level primitives to high-level composition:
 
-| Layer | Modules | Role |
-|-------|---------|------|
-| **0** | `codec`, `otel` | External infrastructure primitives. No internal deps. |
-| **1** | `core` | The heart of the library: command, query, event, decider, id, dispatcher. |
-| **2** | `testhelpers` | Test utilities (Noop/Failing/Panic handlers, FakeMetrics). Depends on `core`. |
-| **3** | `memory`, `catalog`, `signing` | Thin near-core wrappers. `catalog` has zero internal deps. |
-| **4** | `middleware`, `stream`, `watermill` | Mid-tier modules bridging infrastructure to core. |
-| **5** | `storage`, `projection`, `pebble`, `turso` | Higher-level composition modules (SQL stores, projection runner). |
-| **6** | `example/*`, `integration` | Integration tests and usage demos (compose everything). |
-| **7** | `cmd/cqrs-gen` | Code generation tool. No internal deps. |
+| Layer | Modules                                    | Role                                                                          |
+| ----- | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| **0** | `codec`, `otel`                            | External infrastructure primitives. No internal deps.                         |
+| **1** | `core`                                     | The heart of the library: command, query, event, decider, id, dispatcher.     |
+| **2** | `testhelpers`                              | Test utilities (Noop/Failing/Panic handlers, FakeMetrics). Depends on `core`. |
+| **3** | `memory`, `catalog`, `signing`             | Thin near-core wrappers. `catalog` has zero internal deps.                    |
+| **4** | `middleware`, `stream`, `watermill`        | Mid-tier modules bridging infrastructure to core.                             |
+| **5** | `storage`, `projection`, `pebble`, `turso` | Higher-level composition modules (SQL stores, projection runner).             |
+| **6** | `example/*`, `integration`                 | Integration tests and usage demos (compose everything).                       |
+| **7** | `cmd/cqrs-gen`                             | Code generation tool. No internal deps.                                       |
 
 ## Key Dependency Rules
 
@@ -35,11 +35,11 @@ The modules are organized into 8 layers, from low-level primitives to high-level
 
 ## Edge Legend
 
-| Style | Meaning |
-|-------|---------|
-| Solid arrow | Production dependency (appears in source code) |
-| Dashed arrow | Test-only dependency (only in `_test.go` / test modules) |
-| Color | Layer identity: green = infra, blue = core, yellow = module, purple = test, pink = example |
+| Style        | Meaning                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Solid arrow  | Production dependency (appears in source code)                                             |
+| Dashed arrow | Test-only dependency (only in `_test.go` / test modules)                                   |
+| Color        | Layer identity: green = infra, blue = core, yellow = module, purple = test, pink = example |
 
 ## Generating
 
