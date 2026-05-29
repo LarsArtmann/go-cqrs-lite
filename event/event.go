@@ -151,6 +151,7 @@ func (e *ImmutableEvent) Encoding() codec.Encoding {
 	if e.encoding == "" {
 		return codec.EncodingJSON
 	}
+
 	return e.encoding
 }
 
@@ -181,7 +182,7 @@ func (e *ImmutableEvent) Context() context.Context {
 	}
 
 	ctx, cancel := context.WithDeadline(context.Background(), e.deadline)
-	defer cancel() //nolint:gocritic // context created here is scoped to this method's return value
+	defer cancel()
 
 	return ctx
 }

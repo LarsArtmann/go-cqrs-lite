@@ -38,6 +38,7 @@ func NewEvents(
 
 	for i := range eventTypes {
 		evtVersion := version.Add(i + 1)
+
 		payload, err := marshalPayload(payloads[i], eventTypes[i], c)
 		if err != nil {
 			return nil, WrapCorruption(

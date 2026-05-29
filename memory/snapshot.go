@@ -26,7 +26,6 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{
 		snapshots: make(map[string]*snappkg.Snapshot),
 	}
-	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 }
 
 func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {

@@ -17,6 +17,7 @@ func newTestEvent(version int, payload string) (*upcasterRegistry, event.Event) 
 	registry := newUpcasterRegistry()
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", event.Version(version), []byte(payload))
+
 	return registry, evt
 }
 

@@ -56,7 +56,9 @@ func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) 
 				"upcast event "+evt.ID().String(),
 			)
 		}
+
 		result[i] = upcasted
 	}
+
 	return result, nil
 }

@@ -16,6 +16,7 @@ type mockSink struct {
 
 func (m *mockSink) Save(_ context.Context, snap snapshot.Snapshot) error {
 	m.saved = append(m.saved, snap)
+
 	return nil
 }
 

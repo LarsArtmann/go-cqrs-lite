@@ -70,6 +70,7 @@ func (versionUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
 	if payload == "v1" {
 		payload = "v2"
 	}
+
 	return event.NewEvent(
 		evt.Type(),
 		evt.AggregateID(),

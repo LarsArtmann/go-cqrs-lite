@@ -44,9 +44,11 @@ func probeCodec(opts []Option) codec.Codec {
 	for _, opt := range opts {
 		opt(probe)
 	}
+
 	if probe.newCodec != nil {
 		return probe.newCodec
 	}
+
 	return codec.JSONCodec{}
 }
 

@@ -379,6 +379,7 @@ func mustNewEvent(
 ) event.Event {
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
+
 	return evt
 }
 

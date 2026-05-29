@@ -3,9 +3,10 @@ package event_test
 import (
 	"testing"
 
+	ro "github.com/samber/ro"
+
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	ro "github.com/samber/ro"
 )
 
 func TestNewEventBus_PublishSubscribe(t *testing.T) {
