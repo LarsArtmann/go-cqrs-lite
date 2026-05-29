@@ -39,10 +39,10 @@ operations:
         channel:
             $ref: '#/channels/queries.GetOrder'
         messages:
-            -   $ref: '#/components/messages/query.GetOrder'
+            - $ref: '#/components/messages/query.GetOrder'
         tags:
-            -   name: queries
-            -   name: order-svc
+            - name: queries
+            - name: order-svc
     publishOrderCreated:
         title: Publish Order Created
         summary: Order was created
@@ -50,10 +50,10 @@ operations:
         channel:
             $ref: '#/channels/events.OrderCreated'
         messages:
-            -   $ref: '#/components/messages/event.OrderCreated'
+            - $ref: '#/components/messages/event.OrderCreated'
         tags:
-            -   name: events
-            -   name: order-svc
+            - name: events
+            - name: order-svc
     receiveCreateOrder:
         title: Receive Create Order
         summary: Create a new order
@@ -61,10 +61,10 @@ operations:
         channel:
             $ref: '#/channels/commands.CreateOrder'
         messages:
-            -   $ref: '#/components/messages/command.CreateOrder'
+            - $ref: '#/components/messages/command.CreateOrder'
         tags:
-            -   name: commands
-            -   name: order-svc
+            - name: commands
+            - name: order-svc
 components:
     schemas:
         command.CreateOrder:
@@ -85,7 +85,7 @@ components:
             payload:
                 $ref: '#/components/schemas/command.CreateOrder'
             tags:
-                -   name: commands
+                - name: commands
         event.OrderCreated:
             name: OrderCreated
             title: Order Created
@@ -94,7 +94,7 @@ components:
             payload:
                 $ref: '#/components/schemas/event.OrderCreated'
             tags:
-                -   name: events
+                - name: events
         query.GetOrder:
             name: GetOrder
             title: Get Order
@@ -103,5 +103,5 @@ components:
             payload:
                 $ref: '#/components/schemas/query.GetOrder'
             tags:
-                -   name: queries
+                - name: queries
 

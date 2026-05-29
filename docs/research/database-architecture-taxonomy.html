@@ -1394,29 +1394,83 @@ Old root still valid → readers see consistent snapshot</pre>
 </table>
 </div>
 
-<h3 style="font-size:.95rem;color:var(--fg-dim);margin:2.5rem 0 1rem;font-weight:400">Notable databases further down the ranking</h3>
+<h3 style="font-size:.95rem;color:var(--fg-dim);margin:2.5rem 0 1rem;font-weight:400">Notable databases further down the ranking (31–434)</h3>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Projection &amp; Analytics Backends</h4>
 <div class="relevance-grid">
-  <div class="rel-item"><h4 style="color:var(--amber)">#42 DuckDB — 9.59</h4><p>Embedded OLAP. Potential edge projection backend for go-cqrs-lite.</p></div>
-  <div class="rel-item"><h4>#46 Prometheus — 9.06</h4><p>Time-series. Monitoring/observability for go-cqrs-lite deployments.</p></div>
-  <div class="rel-item"><h4>#48 Pinecone — 8.33</h4><p>Vector DB. Not relevant for event sourcing.</p></div>
-  <div class="rel-item"><h4>#53 etcd — 6.92</h4><p>Key-value (RAFT). Distributed coordination, not event storage.</p></div>
-  <div class="rel-item"><h4>#56 Milvus — 6.33</h4><p>Vector DB. Not relevant for event sourcing.</p></div>
-  <div class="rel-item"><h4>#63 TimescaleDB — 5.62</h4><p>Time-series on PostgreSQL. Could use same PG instance for events + metrics.</p></div>
-  <div class="rel-item"><h4>#65 Qdrant — 5.16</h4><p>Vector DB (uses RocksDB internally). Not relevant.</p></div>
-  <div class="rel-item"><h4>#70 Weaviate — 4.24</h4><p>Vector DB. Not relevant for event sourcing.</p></div>
-  <div class="rel-item"><h4>#73 CockroachDB — 3.70</h4><p>Relational, distributed. Could use go-cqrs-lite storage module with PG dialect.</p></div>
-  <div class="rel-item"><h4>#76 RocksDB — 3.50</h4><p>Key-value engine. Pebble (what we use) is RocksDB-compatible.</p></div>
-  <div class="rel-item"><h4 style="color:var(--blue)">#103 FoundationDB — 0.92</h4><p>Ordered KV + layers. Architecture inspiration for our kv.Store design.</p></div>
-  <div class="rel-item"><h4>#123 LMDB — 1.94</h4><p>mmap B+Tree. Potential future backend via kv.Store adapter.</p></div>
-  <div class="rel-item"><h4>#146 Datomic — 1.56</h4><p>Datalog + event sourcing. Architecture inspiration (database as a value).</p></div>
-  <div class="rel-item"><h4>#156 SurrealDB — 1.46</h4><p>Multi-model pluggable. Architecture inspiration (pluggable storage).</p></div>
-  <div class="rel-item"><h4>#189 EventStoreDB — 1.01</h4><p>Event store. Direct competitor for the event sourcing niche.</p></div>
-  <div class="rel-item"><h4>#239 bbolt (BoltDB) — 0.55</h4><p>Key-value (B+Tree). Potential future backend via kv.Store adapter.</p></div>
-  <div class="rel-item"><h4>#305 Immudb — 0.21</h4><p>Key-value, tamper-proof. Audit log use case.</p></div>
-  <div class="rel-item"><h4>#349 Badger — 0.08</h4><p>Key-value (LSM). Potential future backend via kv.Store adapter.</p></div>
+  <div class="rel-item"><h4 style="color:var(--amber)">#42 DuckDB — 9.59</h4><p>Embedded OLAP. Ideal edge projection backend for go-cqrs-lite.</p></div>
+  <div class="rel-item"><h4 style="color:var(--amber)">#47 Vertica — 8.45</h4><p>Columnar, enterprise OLAP. Legacy projection backend option.</p></div>
+  <div class="rel-item"><h4 style="color:var(--amber)">#93 SingleStore — 2.86</h4><p>HTAP (row + column). Real-time analytics on event streams.</p></div>
+  <div class="rel-item"><h4 style="color:var(--amber)">#140 StarRocks — 1.61</h4><p>OLAP, ClickHouse competitor. Vectorized query engine.</p></div>
+  <div class="rel-item"><h4>#60 Greenplum — 5.95</h4><p>MPP PostgreSQL fork. Batch analytics on event data.</p></div>
 </div>
 
-<div class="key-prop" style="border-left-color:var(--accent);margin-top:2rem"><strong>Takeaway:</strong> go-cqrs-lite's storage stack (PostgreSQL #4, SQLite #12, Pebble/RocksDB-family, Turso) sits on the most popular and battle-tested databases in the world. DuckDB (#42) and ClickHouse (#26) are the natural choices for projection/read-model backends. The niche we occupy — event sourcing library for Go — has one direct competitor (EventStoreDB at #189 with score 1.01), confirming the market gap.</div>
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Distributed SQL — Scale-Out PostgreSQL</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4 style="color:var(--blue)">#73 CockroachDB — 3.70</h4><p>Uses Pebble (our engine). PG-compatible. Drop-in distributed replacement.</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#84 TiDB — 3.37</h4><p>MySQL-compatible HTAP. TiKV (RocksDB) + TiFlash (columnar).</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#95 Google Cloud Spanner — 2.80</h4><p>Globally distributed relational. TrueTime external consistency.</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#110 OceanBase — 2.33</h4><p>Alibaba's distributed SQL. Powers Alipay (1B+ users).</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#122 YugabyteDB — 1.99</h4><p>PG-compatible distributed SQL. RocksDB under the hood.</p></div>
+  <div class="rel-item"><h4>#115 Citus — 2.22</h4><p>PostgreSQL sharding extension. Horizontal scale without leaving PG.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Key-Value &amp; Embedded Engines — go-cqrs-lite Backend Candidates</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4 style="color:var(--accent)">#76 RocksDB — 3.50</h4><p>The KV engine. Pebble (what we use) is RocksDB-compatible.</p></div>
+  <div class="rel-item"><h4 style="color:var(--accent)">#104 Google Cloud Bigtable — 2.53</h4><p>Wide-column, ordered KV. RocksDB-compatible SSTable format.</p></div>
+  <div class="rel-item"><h4 style="color:var(--accent)">#123 LMDB — 1.94</h4><p>mmap B+Tree. Potential future backend via kv.Store adapter.</p></div>
+  <div class="rel-item"><h4 style="color:var(--accent)">#129 LevelDB — 1.87</h4><p>LSM KV. The ancestor of RocksDB and Pebble. Still widely used.</p></div>
+  <div class="rel-item"><h4 style="color:var(--accent)">#231 bbolt (BoltDB) — 0.55</h4><p>CoW B+Tree. Potential future backend via kv.Store adapter.</p></div>
+  <div class="rel-item"><h4 style="color:var(--accent)">#334 Badger — 0.08</h4><p>LSM KV (Go-native). Potential future backend via kv.Store adapter.</p></div>
+  <div class="rel-item"><h4>#109 Valkey — 2.34</h4><p>Redis fork (community-driven after Redis license change). In-memory KV.</p></div>
+  <div class="rel-item"><h4>#229 Dragonfly — 0.57</h4><p>Redis-compatible, multi-threaded. 25× faster than Redis for some workloads.</p></div>
+  <div class="rel-item"><h4>#291 Immudb — 0.22</h4><p>Key-value, tamper-proof (Merkle tree). Audit log use case.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Wide-Column &amp; Time-Series</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4>#69 ScyllaDB — 4.45</h4><p>C++ Cassandra. 10× lower latency. CQL-compatible.</p></div>
+  <div class="rel-item"><h4>#75 QuestDB — 3.59</h4><p>Time-series, SQL. Append-optimized, SIMD-accelerated. Good fit for event storage.</p></div>
+  <div class="rel-item"><h4>#134 VictoriaMetrics — 1.75</h4><p>Time-series. Popular Prometheus replacement. Uses MergeTree-like storage.</p></div>
+  <div class="rel-item"><h4>#98 TDengine — 2.74</h4><p>Time-series, clustered. 10× faster than InfluxDB for IoT metrics.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Event Sourcing &amp; Bitemporal — Direct Relatives</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4 style="color:var(--blue)">#143 Datomic — 1.56</h4><p>Datalog + event sourcing. Architecture inspiration (database as a value).</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#154 SurrealDB — 1.46</h4><p>Multi-model pluggable. Architecture inspiration (pluggable storage backends).</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#191 FoundationDB — 0.92</h4><p>Ordered KV + layers. Architecture inspiration for our kv.Store design.</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#289 XTDB — 0.22</h4><p>Bitemporal Datalog (formerly Crux). Direct event sourcing competitor.</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#300 NEventStore — 0.19</h4><p>Event Store (.NET). Same niche, different ecosystem.</p></div>
+  <div class="rel-item"><h4 style="color:var(--blue)">#190 Dolt — 0.92</h4><p>Git-for-SQL. Versioned relational data with Prolly Trees.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Streaming &amp; Messaging</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4>#41 Apache Flink — 9.71</h4><p>Stream processing. Exactly-once semantics. Event processing pipeline.</p></div>
+  <div class="rel-item"><h4>#209 RisingWave — 0.73</h4><p>Streaming SQL with materialized views. Real-time projections from event streams.</p></div>
+  <div class="rel-item"><h4>#52 Trino — 7.04</h4><p>Distributed SQL query engine. Federation across event stores and projections.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--accent);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Legacy &amp; Niche Models (for completeness)</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4>#97 Adabas — 2.77</h4><p>Multivalue DBMS (1970). Still runs core banking at major European banks.</p></div>
+  <div class="rel-item"><h4>#148 IMS — 1.53</h4><p>Navigational DBMS (1966). Oldest DBMS still in production. 50B+ txns/day.</p></div>
+  <div class="rel-item"><h4>#156 BaseX — 1.44</h4><p>Native XML DBMS. XQuery processor. Publishing/government.</p></div>
+  <div class="rel-item"><h4>#72 Apache Jackrabbit — 3.83</h4><p>Content store (JCR reference impl). CMS/ECM systems.</p></div>
+  <div class="rel-item"><h4>#171 ObjectBox — 1.18</h4><p>Object-oriented DBMS. Go-friendly. Embedded/mobile. Edge computing.</p></div>
+  <div class="rel-item"><h4>#46 Prometheus — 9.06</h4><p>Time-series. Monitoring/observability for go-cqrs-lite deployments.</p></div>
+  <div class="rel-item"><h4>#63 TimescaleDB — 5.62</h4><p>Time-series on PostgreSQL. Same PG instance for events + metrics.</p></div>
+  <div class="rel-item"><h4>#149 PlanetScale — 1.48</h4><p>Serverless MySQL (Vitess). Branch-based workflow like Dolt.</p></div>
+</div>
+
+<h4 style="font-size:.78rem;color:var(--fg-muted);margin:1.5rem 0 .75rem;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Not Relevant (listed for completeness)</h4>
+<div class="relevance-grid">
+  <div class="rel-item"><h4 style="color:var(--fg-muted)">#48 Pinecone, #56 Milvus, #65 Qdrant, #70 Weaviate, #92 Chroma</h4><p>Vector DBs. Not relevant for event sourcing — included because they dominate the DB-Engines "trending" lists.</p></div>
+</div>
+
+<div class="key-prop" style="border-left-color:var(--accent);margin-top:2rem"><strong>Takeaway:</strong> go-cqrs-lite's storage stack (PostgreSQL #4, SQLite #12, Pebble/RocksDB-family, Turso) sits on the most popular and battle-tested databases in the world. DuckDB (#42) and ClickHouse (#26) are the natural choices for projection/read-model backends. CockroachDB (#73) uses Pebble directly. The event sourcing niche has two library competitors (EventStoreDB at #300/NEventStore at #300) and two architectural inspirations (Datomic #143, XTDB #289). The market gap is real — no Go-native event sourcing library exists at scale.</div>
 
 </section>
 
