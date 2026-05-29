@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/storage)
 
-Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, `event.Outbox`, and `saga.Store` interfaces from core.
+Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `event.SnapshotStore`, `event.Outbox`, and `event.CheckpointStore` interfaces.
 
 > **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
@@ -116,17 +116,6 @@ cpStore.Save(ctx, "user-projection", lastEventID)
 checkpoint, _ := cpStore.Load(ctx, "user-projection")
 ```
 
-### SQLSagaStore
-
-Persistent saga state (implements `saga.Store`):
-
-```go
-sagaStore, _ := storage.NewSQLiteSagaStore(db)
-sagaStore.Save(ctx, &saga.State{...})
-state, _ := sagaStore.Load(ctx, sagaInstanceID)
-running, _ := sagaStore.LoadAllRunning(ctx)
-```
-
 ### PebbleEventStore
 
 Moved to separate module: `github.com/larsartmann/go-cqrs-lite/pebble`
@@ -162,7 +151,6 @@ storage.EventSchema()          // PostgreSQL events DDL
 storage.SnapshotSchema()       // PostgreSQL snapshots DDL
 storage.CheckpointSchema()     // PostgreSQL checkpoints DDL
 storage.OutboxSchema()         // PostgreSQL outbox DDL
-storage.SagaSchema()           // PostgreSQL sagas DDL
 
 storage.SQLiteEventSchema()    // SQLite variants...
 ```
@@ -181,7 +169,6 @@ type Dialect interface {
     SnapshotSchema() string
     CheckpointSchema() string
     OutboxSchema() string
-    SagaSchema() string
 }
 ```
 
@@ -191,6 +178,5 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
 | Dependency           | Purpose                           |
 | -------------------- | --------------------------------- |
-| `core`               | Event/ID/saga interfaces          |
-| `saga`               | Saga state types for SQLSagaStore |
+| `core`               | Event/ID interfaces                 |
 | `cockroachdb/pebble` | PebbleEventStore (optional)       |

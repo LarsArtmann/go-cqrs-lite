@@ -49,9 +49,6 @@ go get github.com/larsartmann/go-cqrs-lite/middleware
 # Projection runner with replay and live subscription
 go get github.com/larsartmann/go-cqrs-lite/projection
 
-# Saga / Process Manager with compensation
-go get github.com/larsartmann/go-cqrs-lite/saga
-
 # Watermill message bus adapter
 go get github.com/larsartmann/go-cqrs-lite/watermill
 ```
@@ -228,7 +225,6 @@ All IDs are branded types backed by ULID strings:
 | **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        | [README](catalog/README.md) |
 | **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |                             |
 | **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |                             |
-| **saga**         | `.../saga`                            | Saga / Process Manager with compensation         | core                              |                             |
 | **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              | [README](storage/README.md) |
 | **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   |                             |
 | **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |                             |
@@ -536,82 +532,6 @@ evt, err := event.NewBuilder(
     WithCorrelationID(id.NewCorrelationID()).
     WithUserID(id.NewUserID()).
     Build()
-```
-
-## Saga / Process Manager
-
-Coordinate long-running business processes across multiple aggregates with automatic compensation (rollback) on failure:
-
-```go
-package main
-
-import (
-    "context"
-    "fmt"
-    "time"
-
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-    "github.com/larsartmann/go-cqrs-lite/saga"
-)
-
-// OrderSaga defines a 3-step order fulfillment process.
-type OrderSaga struct{}
-
-func (OrderSaga) SagaType() string { return "order-fulfillment" }
-
-func (OrderSaga) Steps() []saga.Step {
-    return []saga.Step{
-        {
-            Name: "reserve-inventory",
-            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
-                return &ReserveInventoryCmd{/* ... */}
-            },
-            Compensate: func(ctx context.Context, instanceID id.AggregateID) command.Command {
-                return &ReleaseInventoryCmd{/* ... */}
-            },
-            Timeout: 5 * time.Second,
-        },
-        {
-            Name: "charge-payment",
-            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
-                return &ChargePaymentCmd{/* ... */}
-            },
-            Compensate: func(ctx context.Context, instanceID id.AggregateID) command.Command {
-                return &RefundPaymentCmd{/* ... */}
-            },
-            Timeout: 10 * time.Second,
-        },
-        {
-            Name: "ship-order",
-            Action: func(ctx context.Context, instanceID id.AggregateID) command.Command {
-                return &ShipOrderCmd{/* ... */}
-            },
-        },
-    }
-}
-
-func main() {
-    store := saga.NewMemoryStore()
-    cmds := command.NewDispatcher()
-    runner := saga.NewRunner(store, cmds)
-
-    // Register the saga definition
-    _ = runner.Register(OrderSaga{})
-
-    // Start a new saga instance
-    ctx := context.Background()
-    instance, _ := runner.Start(ctx, "order-fulfillment", &CreateOrderCmd{})
-    fmt.Printf("Saga started: %s\n", instance.ID)
-
-    // Execute steps sequentially
-    _ = runner.ExecuteStep(ctx, instance.ID) // reserve inventory
-    _ = runner.ExecuteStep(ctx, instance.ID) // charge payment
-    _ = runner.ExecuteStep(ctx, instance.ID) // ship order
-
-    // If any step fails, completed steps are automatically compensated
-    // (inventory released, payment refunded) in reverse order.
-}
 ```
 
 ## Stream Loading

@@ -35,16 +35,18 @@ const (
 
 // --- Domain events ---
 
-type InventoryReserved struct{ OrderID string }
-type InventoryReleased struct{ OrderID string }
-type PaymentCharged struct{ OrderID string }
-type PaymentRefunded struct{ OrderID string }
-type OrderConfirmed struct{ OrderID string }
-type StepFailed struct {
-	OrderID string
-	Step    string
-	Reason  string
-}
+type (
+	InventoryReserved struct{ OrderID string }
+	InventoryReleased struct{ OrderID string }
+	PaymentCharged    struct{ OrderID string }
+	PaymentRefunded   struct{ OrderID string }
+	OrderConfirmed    struct{ OrderID string }
+	StepFailed        struct {
+		OrderID string
+		Step    string
+		Reason  string
+	}
+)
 
 // --- Saga state (the "projected view") ---
 
@@ -87,6 +89,7 @@ func (s *sagaState) fail(step string) {
 
 	s.Status = statusCompensating
 	s.Compensating = true
+
 	fmt.Printf("  [saga] FAILED at step %q, compensating...\n", step)
 }
 
@@ -104,7 +107,12 @@ type commandDispatcher struct {
 	bus event.Publisher
 }
 
-func (d *commandDispatcher) dispatch(ctx context.Context, eventType event.Type, aggregateID id.AggregateID, payload any) error {
+func (d *commandDispatcher) dispatch(
+	ctx context.Context,
+	eventType event.Type,
+	aggregateID id.AggregateID,
+	payload any,
+) error {
 	bytes, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("marshal payload: %w", err)
@@ -154,7 +162,7 @@ func run() error {
 			state.advance("reserve-inventory")
 
 			return dispatcher.dispatch(ctx, "charge-payment", orderID,
-				PaymentCharged{OrderID: p.OrderID})
+				PaymentCharged(p))
 		},
 	); err != nil {
 		return fmt.Errorf("register inventory.reserved: %w", err)
@@ -168,7 +176,7 @@ func run() error {
 			state.advance("charge-payment")
 
 			return dispatcher.dispatch(ctx, "confirm-order", orderID,
-				OrderConfirmed{OrderID: p.OrderID})
+				OrderConfirmed(p))
 		},
 	); err != nil {
 		return fmt.Errorf("register payment.charged: %w", err)

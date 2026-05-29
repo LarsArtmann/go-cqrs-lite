@@ -399,9 +399,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || ------------------------------- | --------------------------------------------------------------------------------- | ------ |
 || PostgreSQL event store | `NewSQLEventStore(db)` implements `event.Store` | ✅ |
 || SQLite event store | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL | ✅ |
-|| Turso convenience constructors | `NewTursoEventStore`, `NewTursoSnapshotStore`, `NewTursoOutbox`, `NewTursoCheckpointStore`, `NewTursoSagaStore`, `NewTursoBackend`, `NewTursoTransactionalStore` | ✅ |
+|| Turso convenience constructors | `NewTursoEventStore`, `NewTursoSnapshotStore`, `NewTursoOutbox`, `NewTursoCheckpointStore`, `NewTursoBackend`, `NewTursoTransactionalStore` | ✅ |
 || Schema DDL | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso | ✅ |
-|| Per-table DDL | `OutboxSchema`, `SnapshotSchema`, `CheckpointSchema`, `SagaSchema` + SQLite variants | ✅ |
+|| Per-table DDL | `OutboxSchema`, `SnapshotSchema`, `CheckpointSchema` + SQLite variants | ✅ |
 || Optimistic concurrency | `Save` checks version in transaction | ✅ |
 || AppendBatch | Appends without concurrency check | ✅ |
 || Full load API | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete` | ✅ |
@@ -414,8 +414,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || SQL CheckpointStore | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling | ✅ |
 || SQL Outbox | PostgreSQL + SQLite variants, append/poll/ack | ✅ |
 || TransactionalSink | `SQLTransactionalStore` — atomic save + outbox append, both engines | ✅ |
-|| SQLSagaStore | PostgreSQL + SQLite variants — `Save`, `Load`, `LoadAllRunning` | ✅ |
-|| SQLBackend | Unified facade: `EventStore()`, `Outbox()`, `TransactionalSink()`, `TransactionalStore()` (deprecated), `SagaStore()` | ✅ |
+|| SQLBackend | Unified facade: `EventStore()`, `Outbox()`, `TransactionalSink()`, `TransactionalStore()` (deprecated) | ✅ |
 || OutboxPoller | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches | ✅ |
 || TursoSyncDB | `OpenTursoSync` returns `*TursoSyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅ |
 || DB helpers | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅ |
@@ -503,26 +502,10 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ---
 
-## Saga / Process Manager ✅ FULLY_FUNCTIONAL
+## Saga Pattern — Removed
 
-> `import "github.com/larsartmann/go-cqrs-lite/saga"`
-
-|| Feature | Detail | Status |
-|| ------------------ | --------------------------------------------------------------------------- | ------ |
-|| Saga Definition | `Definition` interface: `SagaType()` + `Steps()` — register saga blueprints | ✅ |
-|| Step definition | `Step` with `Name`, `Action`, `Compensate`, `Timeout` | ✅ |
-|| State / Instance | `State` (serializable) + `Instance` (runtime view with hydrated `Steps`) | ✅ |
-|| Runner | `Runner` manages lifecycle: `Register`, `Start`, `ExecuteStep` | ✅ |
-|| Compensation | Reverse-order compensation of completed steps on failure | ✅ |
-|| Retry with backoff | `dispatchWithRetry` — exponential backoff, respects `IsRetryable` | ✅ |
-|| Step timeouts | Per-step `context.WithTimeout` via `Step.Timeout` | ✅ |
-|| Store interface | `Store`: `Save`, `Load`, `LoadAllRunning` — pluggable persistence | ✅ |
-|| Persistent store | `storage.SQLSagaStore` — PostgreSQL, SQLite, Turso via `Dialect` | ✅ |
-|| MemoryStore | Thread-safe in-memory `Store` for testing | 🧪 |
-|| Runner options | `WithLogger`, `WithRetryPolicy`, `WithRetryMultiplier` | ✅ |
-|| Status lifecycle | `Pending` → `Running` → `Completed` / `Failed` / `Compensating` | ✅ |
-
-**Coverage:** 93.8%
+> Saga-style orchestration is demonstrated via `example/saga-pattern/`.
+> No dedicated module is needed — sagas emerge from projection + command dispatch.
 
 ---
 
@@ -610,7 +593,6 @@ Features mentioned in project docs/planning but with **no production code**:
 || `integration` | `…/integration` | N/A | ✅ Test suite |
 || `storage` | `…/storage` | 89.6% | ✅ Production |
 || `projection` | `…/projection` | ~95% | ✅ Production |
-|| `saga` | `…/saga` | 93.8% | ✅ Production |
 || `watermill` | `…/watermill` | 89.6% | ✅ Production |
 || `stream` | `…/stream` | ~90% | ✅ Production |
 || `otel` | `…/otel` | N/A | ✅ Production |

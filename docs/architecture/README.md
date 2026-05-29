@@ -17,9 +17,9 @@ The modules are organized into 8 layers, from low-level primitives to high-level
 |-------|---------|------|
 | **0** | `codec`, `otel` | External infrastructure primitives. No internal deps. |
 | **1** | `core` | The heart of the library: command, query, event, decider, id, dispatcher. |
-| **2** | `testhelpers` | Test utilities (Noop/Failing/Panic handlers, FakeMetrics). Depends on `core` + `saga`. |
+| **2** | `testhelpers` | Test utilities (Noop/Failing/Panic handlers, FakeMetrics). Depends on `core`. |
 | **3** | `memory`, `catalog`, `signing` | Thin near-core wrappers. `catalog` has zero internal deps. |
-| **4** | `middleware`, `saga`, `stream`, `watermill` | Mid-tier modules bridging infrastructure to core. |
+| **4** | `middleware`, `stream`, `watermill` | Mid-tier modules bridging infrastructure to core. |
 | **5** | `storage`, `projection`, `pebble`, `turso` | Higher-level composition modules (SQL stores, projection runner). |
 | **6** | `example/*`, `integration` | Integration tests and usage demos (compose everything). |
 | **7** | `cmd/cqrs-gen` | Code generation tool. No internal deps. |

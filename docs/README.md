@@ -23,7 +23,7 @@
 | [0001](adr/0001-decider-over-aggregate.md)     | Decider over Aggregate     | Accepted |
 | [0002](adr/0002-error-taxonomy.md)             | Error Taxonomy             | Accepted |
 | [0003](adr/0003-multi-module-monorepo.md)      | Multi-Module Monorepo      | Accepted |
-| [0004](adr/0004-saga-process-manager.md)       | Saga Process Manager       | Accepted |
+| [0004](adr/0004-saga-process-manager.md)       | Saga Process Manager       | Superseded — removed, see `example/saga-pattern/` |
 | [0005](adr/0005-outbox-pattern.md)             | Outbox Pattern             | Accepted |
 | [0006](adr/0006-sink-source-split.md)          | Sink/Source ISP Split      | Accepted |
 | [0007](adr/0007-gopls-workspace-workaround.md) | gopls Workspace Workaround | Accepted |
@@ -37,7 +37,6 @@
 | `storage`     | SQL Store (PG/SQLite/Turso), Outbox, Checkpoint                      |
 | `middleware`  | Logging, Retry, Recovery, Metrics, OTel, Circuit Breaker, Validation |
 | `projection`  | Replay + Live runner, HandlerRegistry                                |
-| `saga`        | Saga Runner, Steps, Compensation, Memory Store                       |
 | `stream`      | Aggregate listing, Tombstone filtering, Cursor pagination            |
 | `catalog`     | Registry, AsyncAPI/D2/OpenAPI exporters                              |
 | `signing`     | Event signing/verification (HMAC, Ed25519)                           |
@@ -53,11 +52,11 @@
 | `example/stream`     | Aggregate listing, tombstone filtering, cursor pagination |
 | `example/storage`    | SQL-backed event store                                    |
 | `example/projection` | Projection replay and live subscription                   |
-| `example/saga`       | Saga orchestration with compensation                      |
+| `example/saga-pattern` | Saga-style orchestration via projection + command dispatch |
 
 ## API Surface
 
-- **[API Surface Snapshot](api_surface.txt)** — Machine-readable list of all 1058+ exported symbols
+- **[API Surface Snapshot](api_surface.txt)** — Machine-readable list of all 992 exported symbols
 - Run `go run ./cmd/api-stability/ -update` to regenerate
 - Run `go run ./cmd/api-stability/` to verify no breaking changes
 

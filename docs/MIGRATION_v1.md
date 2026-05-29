@@ -28,7 +28,6 @@ import (
     "github.com/larsartmann/go-cqrs-lite/storage"
     "github.com/larsartmann/go-cqrs-lite/middleware"
     "github.com/larsartmann/go-cqrs-lite/projection"
-    "github.com/larsartmann/go-cqrs-lite/saga"
     "github.com/larsartmann/go-cqrs-lite/catalog"
     "github.com/larsartmann/go-cqrs-lite/signing"
     "github.com/larsartmann/go-cqrs-lite/stream"
@@ -67,8 +66,8 @@ v1.0.0 adopts the `go-error-family` v0.2.0 error taxonomy. All errors returned b
 
 | Family             | Factory                        | Meaning                    | Example                |
 | ------------------ | ------------------------------ | -------------------------- | ---------------------- |
-| **Rejection**      | `event.NewRejection(...)`      | Business rule violation    | "saga not found"       |
-| **Conflict**       | `event.NewConflict(...)`       | State conflict             | "duplicate saga type"  |
+| **Rejection**      | `event.NewRejection(...)`      | Business rule violation    | "not found"            |
+| **Conflict**       | `event.NewConflict(...)`       | State conflict             | "duplicate type"       |
 | **Transient**      | `event.NewTransient(...)`      | Retryable failure          | "connection reset"     |
 | **Infrastructure** | `event.NewInfrastructure(...)` | Non-retryable system error | "database unreachable" |
 | **Corruption**     | `event.NewCorruption(...)`     | Data integrity violation   | "checksum mismatch"    |
