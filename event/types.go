@@ -181,3 +181,6 @@ func (sv SchemaVersion) String() string { return strconv.Itoa(int(sv)) }
 
 // IsZero returns true if the schema version is zero.
 func (sv SchemaVersion) IsZero() bool { return sv == 0 }
+
+// Increment returns the next schema version.
+func (sv SchemaVersion) Increment() SchemaVersion { return sv + 1 }
