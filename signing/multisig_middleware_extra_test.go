@@ -55,14 +55,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 		evt := makeTestEvent(t)
 		clone, _ := deviceMulti.Sign(evt)
 
-		tampered, _ := event.NewEvent(
-			clone.Type(), clone.AggregateID(), clone.AggregateType(), clone.Version(),
-			[]byte(`{"tampered":true}`),
-			event.WithEventID(clone.ID()),
-			event.WithOccurredAt(clone.OccurredAt()),
-			event.WithSchemaVersion(clone.SchemaVersion()),
-			event.WithMetadata(clone.Metadata()),
-		)
+		tampered := tamperEvent(t, clone)
 
 		if err := wrapped(context.Background(), tampered); err == nil {
 			t.Fatal("expected error for tampered event")

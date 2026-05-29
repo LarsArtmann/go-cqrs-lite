@@ -9,17 +9,17 @@
 
 ## A) FULLY DONE — All 9 TODO Items Completed
 
-| # | Item | Files Created/Modified | Tests |
-|---|------|----------------------|-------|
-| 1 | **Aggregate deprecation package** | `core/aggregate/aggregate.go` — type aliases + wrapper funcs with `Deprecated:` docs | `core/aggregate/aggregate_test.go` — 3 tests PASS |
-| 2 | **Stream example app** | `example/stream/main.go`, `go.mod`, `go.sum` — listing, tombstone, cursor pagination demo | Builds clean, added to `go.work` |
-| 3 | **Trace ID logging middleware** | `otel/logging.go` — `TraceIDFromContext`, `SpanIDFromContext`, `ContextLogger`; `middleware/tracing_logging.go` — `CommandTraceLogging`, `EventTraceLogging`, `QueryTraceLogging` | `otel/logging_test.go` — 7 tests; `middleware/tracing_logging_test.go` — 4 tests; all PASS |
-| 4 | **API surface stability test** | `cmd/api-stability/main.go` — go/ast parser, golden file, 1058 exports snapshot | `docs/api_surface.txt` generated and verified |
-| 5 | **Pre-commit noise cleanup** | `.git/hooks/pre-commit` — graceful skip when `buildflow` missing, silent unless >10s |
-| 6 | **Health check utilities** | `projection/health.go` — `HealthCheck`, `DetailedHealthCheck`, `RegisteredProjections`, `HealthChecker` interface, `HealthCheckAll`; `saga/health.go` — `HealthCheck`, `RegisteredSagas` | `projection/health_test.go` — 5 tests; `saga/health_test.go` — 3 tests; all PASS |
-| 7 | **Chaos/fault-injection tests** | `integration/chaos_test.go` — 8 tests covering errors, panics, recovery, retry, context cancellation | All PASS |
-| 8 | **Documentation site** | `docs/README.md` — comprehensive index linking all modules, ADRs, examples, diagrams |
-| 9 | **Replace directives removal** | BLOCKED — requires publishing v1.0.0 tags to remote repository |
+| #   | Item                              | Files Created/Modified                                                                                                                                                                   | Tests                                                                                      |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | **Aggregate deprecation package** | `core/aggregate/aggregate.go` — type aliases + wrapper funcs with `Deprecated:` docs                                                                                                     | `core/aggregate/aggregate_test.go` — 3 tests PASS                                          |
+| 2   | **Stream example app**            | `example/stream/main.go`, `go.mod`, `go.sum` — listing, tombstone, cursor pagination demo                                                                                                | Builds clean, added to `go.work`                                                           |
+| 3   | **Trace ID logging middleware**   | `otel/logging.go` — `TraceIDFromContext`, `SpanIDFromContext`, `ContextLogger`; `middleware/tracing_logging.go` — `CommandTraceLogging`, `EventTraceLogging`, `QueryTraceLogging`        | `otel/logging_test.go` — 7 tests; `middleware/tracing_logging_test.go` — 4 tests; all PASS |
+| 4   | **API surface stability test**    | `cmd/api-stability/main.go` — go/ast parser, golden file, 1058 exports snapshot                                                                                                          | `docs/api_surface.txt` generated and verified                                              |
+| 5   | **Pre-commit noise cleanup**      | `.git/hooks/pre-commit` — graceful skip when `buildflow` missing, silent unless >10s                                                                                                     |
+| 6   | **Health check utilities**        | `projection/health.go` — `HealthCheck`, `DetailedHealthCheck`, `RegisteredProjections`, `HealthChecker` interface, `HealthCheckAll`; `saga/health.go` — `HealthCheck`, `RegisteredSagas` | `projection/health_test.go` — 5 tests; `saga/health_test.go` — 3 tests; all PASS           |
+| 7   | **Chaos/fault-injection tests**   | `integration/chaos_test.go` — 8 tests covering errors, panics, recovery, retry, context cancellation                                                                                     | All PASS                                                                                   |
+| 8   | **Documentation site**            | `docs/README.md` — comprehensive index linking all modules, ADRs, examples, diagrams                                                                                                     |
+| 9   | **Replace directives removal**    | BLOCKED — requires publishing v1.0.0 tags to remote repository                                                                                                                           |
 
 ### Metrics
 
@@ -60,11 +60,13 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 ## E) WHAT WE SHOULD IMPROVE
 
 ### Critical
+
 1. **Replace directives still present** — every `go.mod` has `replace` blocks pointing to local paths. This prevents external consumers from using the library. Requires coordinated v1.0.0 tag push.
 2. **No persistent saga store** — only `MemoryStore` exists. Production sagas need SQL/durable storage.
 3. **Example apps have no CI** — example apps (`example/user`, `example/stream`, etc.) aren't tested in CI pipeline.
 
 ### Important
+
 4. **`go.sum` drift across modules** — many `go.sum` files were dirty from prior sessions' `go mod tidy`. This session cleaned them but there's no enforcement.
 5. **`catalog/internal/cattest` has no test files** — package exists but is empty of tests.
 6. **Benchmark tests are not in CI** — `storage/pebble_bench_test.go`, `storage/sqlite_bench_test.go`, `stream/benchmark_test.go` exist but aren't gated.
@@ -72,6 +74,7 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 8. **Integration signing test was broken** — `integration/signing/signing_integration_test.go` referenced `tamperIntegrationEvent` which doesn't exist. Reverted to working version but the broken version was in the working tree.
 
 ### Nice-to-Have
+
 9. **Module dependency graph is complex** — 14+ modules with cross-dependencies. Consider visualizing and potentially consolidating.
 10. **No versioned examples** — examples should pin to specific module versions, not `replace` directives.
 
@@ -80,11 +83,13 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 ## F) Top #25 Things We Should Get Done Next
 
 ### P0 — Ship Blockers
+
 1. **Remove replace directives and tag v1.0.0** — coordinated release of all 14 modules
 2. **Persistent saga store (SQL)** — saga module needs durable storage for production use
 3. **Add example/stream and example/user to CI** — prevent example rot
 
 ### P1 — Quality & Safety
+
 4. **Add API stability check to CI** — run `cmd/api-stability/` in GitHub Actions
 5. **Add benchmark regression detection** — CI job that fails on >10% perf regression
 6. **Enforce `go.sum` cleanliness** — CI check that all `go.sum` files are tidy
@@ -93,6 +98,7 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 9. **Coverage enforcement gate** — fail CI if coverage drops below 90%
 
 ### P2 — Developer Experience
+
 10. **Go package documentation site** — pkgsite or godoc hosting
 11. **Event schema evolution guide** — document the upcaster pattern for consumers
 12. **Context propagation cookbook** — end-to-end correlation ID guide
@@ -101,6 +107,7 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 15. **Add `go.work` sync check to CI** — ensure workspace is consistent
 
 ### P3 — Features
+
 16. **Projection SQL reader testing** — real-world integration tests for `stream.SQLReader`
 17. **Watermill integration tests** — end-to-end with real message broker
 18. **Snapshot strategy documentation** — when and how to snapshot
@@ -108,6 +115,7 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 20. **Outbox relay service** — background process to pump outbox entries to bus
 
 ### P4 — Polish
+
 21. **Consolidate `testhelpers`** — consider splitting into `testhelpers/store`, `testhelpers/bus`, etc.
 22. **Add architectural fitness functions** — test module dependency direction
 23. **Dead code audit** — `catalog/internal/cattest` has unused helpers
@@ -119,6 +127,7 @@ No regressions introduced. All 31 test packages pass cleanly. Pre-existing signi
 ## G) Top #1 Question I Cannot Figure Out Myself
 
 **When do we publish v1.0.0?** The `replace` directives in every `go.mod` are the single biggest blocker to external consumption. Removing them requires:
+
 - Tagging all 14 modules with `v1.0.0` simultaneously
 - Pushing those tags to the remote repository
 - Updating all `go.mod` files to remove `replace` blocks
@@ -130,12 +139,12 @@ This is a repository-level operation I cannot perform. The question is: **do we 
 
 ## Session Stats
 
-| Metric | Value |
-|--------|-------|
-| New production files | 8 (`core/aggregate/`, `otel/logging.go`, `middleware/tracing_logging.go`, `projection/health.go`, `saga/health.go`, `example/stream/`, `cmd/api-stability/`, `docs/README.md`) |
-| New test files | 5 (`aggregate_test.go`, `logging_test.go`, `tracing_logging_test.go`, `health_test.go` x2, `chaos_test.go`) |
-| New tests added | ~30 tests |
-| Modified go.mod/go.sum | 14+ modules (tidy) |
-| Test packages | 31/31 PASS |
-| Coverage | 92.6% |
-| Build failures | 0 |
+| Metric                 | Value                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| New production files   | 8 (`core/aggregate/`, `otel/logging.go`, `middleware/tracing_logging.go`, `projection/health.go`, `saga/health.go`, `example/stream/`, `cmd/api-stability/`, `docs/README.md`) |
+| New test files         | 5 (`aggregate_test.go`, `logging_test.go`, `tracing_logging_test.go`, `health_test.go` x2, `chaos_test.go`)                                                                    |
+| New tests added        | ~30 tests                                                                                                                                                                      |
+| Modified go.mod/go.sum | 14+ modules (tidy)                                                                                                                                                             |
+| Test packages          | 31/31 PASS                                                                                                                                                                     |
+| Coverage               | 92.6%                                                                                                                                                                          |
+| Build failures         | 0                                                                                                                                                                              |
