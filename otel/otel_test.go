@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder) {
@@ -22,15 +23,15 @@ func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder
 	return provider, recorder
 }
 
-func withGlobalProvider(t *testing.T, provider *sdktrace.TracerProvider) *tracetest.SpanRecorder {
+func withGlobalProvider(t *testing.T) *tracetest.SpanRecorder {
 	t.Helper()
 
 	recorder := tracetest.NewSpanRecorder()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 
-	previous := otel.SetTracerProvider(tp)
+	otel.SetTracerProvider(tp)
 	t.Cleanup(func() {
-		otel.SetTracerProvider(previous)
+		otel.SetTracerProvider(otel.GetTracerProvider())
 	})
 
 	return recorder
@@ -82,10 +83,21 @@ func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {
 	require.Equal(t, 2, int(spans[0].SpanKind()))
 }
 
+func TestStartSpan_NilProvider_NoPanic(t *testing.T) {
+	t.Parallel()
+
+	tr := NewTracer("test")
+	ctx, span := StartSpan(context.Background(), tr, "noop", 1)
+	defer span.End()
+
+	sc := trace.SpanFromContext(ctx).SpanContext()
+	_ = sc
+}
+
 func TestRecordError_SetsErrorStatus(t *testing.T) {
 	t.Parallel()
 
-	recorder := withGlobalProvider(t, nil)
+	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
@@ -102,7 +114,7 @@ func TestRecordError_SetsErrorStatus(t *testing.T) {
 func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 	t.Parallel()
 
-	recorder := withGlobalProvider(t, nil)
+	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
@@ -116,7 +128,7 @@ func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	t.Parallel()
 
-	recorder := withGlobalProvider(t, nil)
+	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
