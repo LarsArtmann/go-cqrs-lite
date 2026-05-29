@@ -1,7 +1,6 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"database/sql/driver"
 	"errors"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 func newTestOutbox(t *testing.T) (*SQLOutbox, sqlmock.Sqlmock) {

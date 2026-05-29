@@ -1,7 +1,6 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"errors"
 	"regexp"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 func newTestTransactionalStore(t *testing.T) (*SQLTransactionalStore, sqlmock.Sqlmock) {

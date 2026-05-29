@@ -154,7 +154,7 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
+			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 
 	_, err := store.Load(context.Background(), event.NewAggregateRef("User", aggID))
@@ -212,7 +212,7 @@ func mockLoadAllScanError(mock sqlmock.Sqlmock, t *testing.T) {
 	aggID := id.NewAggregateID()
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
+			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 }
 

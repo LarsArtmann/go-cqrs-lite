@@ -1,10 +1,11 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 func TestOutboxStatus_String(t *testing.T) {

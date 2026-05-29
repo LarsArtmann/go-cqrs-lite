@@ -1,7 +1,6 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"database/sql"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 func BenchmarkSQLiteEventStore_Save(b *testing.B) {

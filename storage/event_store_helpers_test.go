@@ -88,7 +88,7 @@ func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 func expectInsertExec(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) *sqlmock.ExpectedExec {
 	return mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), string(evt.Encoding()), sqlmock.AnyArg(), evt.OccurredAt(),
 	)
 }
 

@@ -1,10 +1,11 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"errors"
 	"testing"
 	"time"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 func TestPostgresDialect_Placeholder(t *testing.T) {

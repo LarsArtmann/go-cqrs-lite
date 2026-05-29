@@ -12,6 +12,7 @@ import (
 
 type SQLTransactionalStore struct {
 	*SQLEventStore
+
 	outbox *SQLOutbox
 }
 
