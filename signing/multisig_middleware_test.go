@@ -65,12 +65,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("rejects unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
@@ -79,7 +74,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 		if err := wrapped(context.Background(), evt); err == nil {
 			t.Fatal("expected error for unsigned event")
 		}
-		if called {
+		if wasCalled() {
 			t.Fatal("handler should not have been called")
 		}
 	})
@@ -87,9 +82,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("rejects partially signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error {
-			return nil
-		}
+		handler := noopHandler
 
 		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
@@ -105,12 +98,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("allows fully signed events", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
@@ -122,7 +110,7 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 		if err := wrapped(context.Background(), clone2); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called")
 		}
 	})
@@ -133,9 +121,7 @@ func TestMultiVerifyMiddleware_RejectsTampered(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 
-	handler := func(_ context.Context, _ event.Event) error {
-		return nil
-	}
+	handler := noopHandler
 
 	mw := signing.MultiVerifyMiddleware(deviceMulti)
 	wrapped := mw(handler)
@@ -156,12 +142,7 @@ func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 
-	called := false
-	handler := func(_ context.Context, _ event.Event) error {
-		called = true
-
-		return nil
-	}
+	handler, wasCalled := trackingHandler()
 
 	mw := signing.MultiVerifyMiddleware(deviceMulti)
 	wrapped := mw(handler)
@@ -172,7 +153,7 @@ func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !called {
+	if !wasCalled() {
 		t.Fatal("handler should have been called for unsigned event")
 	}
 }
@@ -180,9 +161,7 @@ func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 func TestRequireMultiSigMiddleware_NilEvent(t *testing.T) {
 	t.Parallel()
 
-	handler := func(_ context.Context, _ event.Event) error {
-		return nil
-	}
+	handler := noopHandler
 
 	key := []byte("nil-event-test-key-thirty-two-by!")
 	verifier, _ := signing.NewHMAC(key)

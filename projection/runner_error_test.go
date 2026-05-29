@@ -113,13 +113,7 @@ func TestRunner_NoRetryOnNonRetryableError(t *testing.T) {
 func TestRunner_ReplayError_ReadAllFails(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-
-	t.Cleanup(func() {
-		_ = bus.Close()
-		_ = checkpoint.Close()
-	})
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	loader := &failingJournal{err: errors.New("read all failed")}
 

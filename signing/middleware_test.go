@@ -91,12 +91,7 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("allows unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
@@ -106,7 +101,7 @@ func TestVerifyMiddleware(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called")
 		}
 	})
@@ -114,12 +109,7 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("allows valid signed events", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
@@ -132,7 +122,7 @@ func TestVerifyMiddleware(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called")
 		}
 	})
@@ -140,9 +130,7 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("rejects tampered signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error {
-			return nil
-		}
+		handler := noopHandler
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
@@ -161,12 +149,7 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("rejects corrupt signature metadata", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
@@ -187,7 +170,7 @@ func TestVerifyMiddleware(t *testing.T) {
 		if err == nil {
 			t.Fatal("expected error for corrupt signature metadata")
 		}
-		if called {
+		if wasCalled() {
 			t.Fatal("handler should not have been called for corrupt signature")
 		}
 	})
@@ -202,9 +185,7 @@ func TestRequireSignatureMiddleware(t *testing.T) {
 	t.Run("rejects unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error {
-			return nil
-		}
+		handler := noopHandler
 
 		mw := signing.RequireSignatureMiddleware(signer)
 		wrapped := mw(handler)
@@ -219,12 +200,7 @@ func TestRequireSignatureMiddleware(t *testing.T) {
 	t.Run("allows valid signed events", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.RequireSignatureMiddleware(signer)
 		wrapped := mw(handler)
@@ -237,7 +213,7 @@ func TestRequireSignatureMiddleware(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called")
 		}
 	})

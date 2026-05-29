@@ -92,17 +92,13 @@ func (r *Runner) Start(
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := r.store.Save(ctx, &state); err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, event.WrapInfrastructure(err, "saga.save_failed", "save saga state")
+	if err := r.saveSagaState(ctx, span, &state, "saga.save_failed", "save saga state"); err != nil {
+		return nil, err
 	}
 
 	state.Status = StatusRunning
-	if err := r.store.Save(ctx, &state); err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, event.WrapInfrastructure(err, "saga.update_failed", "update saga status")
+	if err := r.saveSagaState(ctx, span, &state, "saga.update_failed", "update saga status"); err != nil {
+		return nil, err
 	}
 
 	instance := &Instance{
@@ -140,4 +136,17 @@ func (r *Runner) logError(msg string, attrs ...any) {
 	if r.config.logger != nil {
 		r.config.logger.Error(msg, attrs...)
 	}
+}
+
+func (r *Runner) saveSagaState(
+	ctx context.Context,
+	span trace.Span,
+	state *State,
+	code, msg string,
+) error {
+	if err := r.store.Save(ctx, state); err != nil {
+		cqrsotel.RecordError(span, err)
+		return event.WrapInfrastructure(err, code, msg)
+	}
+	return nil
 }

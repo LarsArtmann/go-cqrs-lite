@@ -30,9 +30,7 @@ func TestRunner_WithRetryPolicy(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected retry exhaustion error")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected retry exhaustion error")
 
 	if callCount != 2 {
 		t.Errorf("expected 2 dispatch calls with maxRetries=1, got %d", callCount)
@@ -62,13 +60,9 @@ func TestRunner_CompensateFailure(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 1: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 1")
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected error")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error")
 
 	loaded, _ := store.Load(ctx, instance.ID)
 	if loaded.Status != saga.StatusFailed {
@@ -104,12 +98,8 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 1: %v", err)
-	}
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 2: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 1")
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 2")
 
 	_ = runner.ExecuteStep(ctx, instance.ID)
 
@@ -145,9 +135,7 @@ func TestRunner_CompensateReturnsNilSkipped(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 1: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 1")
 
 	_ = runner.ExecuteStep(ctx, instance.ID)
 

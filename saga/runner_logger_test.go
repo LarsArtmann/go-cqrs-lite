@@ -15,13 +15,7 @@ func TestRunner_WithLogger_StartedAndCompleted(t *testing.T) {
 	dispatcher := &countingDispatcher{}
 	runner := saga.NewRunner(store, dispatcher, saga.WithLogger(log))
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", nil)
@@ -34,9 +28,7 @@ func TestRunner_WithLogger_StartedAndCompleted(t *testing.T) {
 		t.Errorf("expected 'saga started' log, got %v", infos)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step")
 
 	infos = log.getInfos()
 	found := false
@@ -57,13 +49,7 @@ func TestRunner_WithLogger_StepFailed(t *testing.T) {
 	store := saga.NewMemoryStore()
 	runner := saga.NewRunner(store, failingDispatcher{}, saga.WithLogger(log))
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", nil)

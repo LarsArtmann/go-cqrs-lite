@@ -74,16 +74,7 @@ func TestRunner_Start(t *testing.T) {
 	dispatcher := nopDispatcher{}
 	runner := saga.NewRunner(store, dispatcher)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps: []saga.Step{
-			{Name: "create", Action: newTestCommand},
-		},
-	}
-
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", nil)
@@ -121,13 +112,7 @@ func TestRunner_StartInitialCommandFails(t *testing.T) {
 	dispatcher := failingDispatcher{}
 	runner := saga.NewRunner(store, dispatcher)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", &testCommand{})

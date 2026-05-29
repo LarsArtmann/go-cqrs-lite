@@ -1,12 +1,27 @@
 package signing_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
+
+// trackingHandler returns an event handler and a function to check if it was called.
+func trackingHandler() (func(context.Context, event.Event) error, func() bool) {
+	called := false
+
+	return func(_ context.Context, _ event.Event) error {
+		called = true
+
+		return nil
+	}, func() bool { return called }
+}
+
+// noopHandler returns an event handler that does nothing.
+func noopHandler(_ context.Context, _ event.Event) error { return nil }
 
 // makeTestEvent creates a deterministic event for signing tests.
 func makeTestEvent(t *testing.T) event.Event {

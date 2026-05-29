@@ -108,6 +108,36 @@ func (l *mockLogger) getErrors() []string {
 	return result
 }
 
+// requireExecuteStepError executes a saga step and fails the test if no error occurs.
+func requireExecuteStepError(
+	tb testing.TB,
+	ctx context.Context,
+	runner *saga.Runner,
+	instanceID id.AggregateID,
+	msg string,
+) {
+	tb.Helper()
+
+	if err := runner.ExecuteStep(ctx, instanceID); err == nil {
+		tb.Fatal(msg)
+	}
+}
+
+// requireExecuteStep executes a saga step and fails the test if an error occurs.
+func requireExecuteStep(
+	tb testing.TB,
+	ctx context.Context,
+	runner *saga.Runner,
+	instanceID id.AggregateID,
+	stepDesc string,
+) {
+	tb.Helper()
+
+	if err := runner.ExecuteStep(ctx, instanceID); err != nil {
+		tb.Fatalf("execute %s: %v", stepDesc, err)
+	}
+}
+
 // setupTestSaga creates a runner, registers a test definition, starts a saga instance,
 // and returns the runner, instance, and store for test assertions.
 func setupTestSaga(
@@ -132,4 +162,18 @@ func setupTestSaga(
 	}
 
 	return runner, instance, store
+}
+
+// registerSimpleSaga registers a test saga definition with a single "create" step
+// using newTestCommand as the action. It fails the test if registration errors.
+func registerSimpleSaga(tb testing.TB, runner *saga.Runner) {
+	tb.Helper()
+
+	def := testDefinition{
+		sagaType: "order",
+		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
+	}
+	if err := runner.Register(def); err != nil {
+		tb.Fatalf("register: %v", err)
+	}
 }

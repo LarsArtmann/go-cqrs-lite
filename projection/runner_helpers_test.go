@@ -153,6 +153,20 @@ func newTestRunner(t *testing.T) *projection.Runner {
 	return r
 }
 
+func newTestBusAndCheckpoint(t *testing.T) (*memory.MemoryBus, *memory.MemoryCheckpointStore) {
+	t.Helper()
+
+	bus := memory.NewMemoryBus()
+	checkpoint := memory.NewMemoryCheckpointStore()
+
+	t.Cleanup(func() {
+		_ = bus.Close()
+		_ = checkpoint.Close()
+	})
+
+	return bus, checkpoint
+}
+
 type failingJournal struct {
 	err error
 }

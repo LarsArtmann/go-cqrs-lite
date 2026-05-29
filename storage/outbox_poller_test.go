@@ -99,6 +99,27 @@ func (p *fakePollerPublisher) Published() []event.Event {
 	return p.published
 }
 
+func assertPublishedCount(t *testing.T, publisher *fakePollerPublisher, want int) {
+	t.Helper()
+	if got := len(publisher.Published()); got != want {
+		t.Fatalf("expected %d published event(s), got %d", want, got)
+	}
+}
+
+func assertPublishedAtLeast(t *testing.T, publisher *fakePollerPublisher, min int) {
+	t.Helper()
+	if got := len(publisher.Published()); got < min {
+		t.Fatalf("expected at least %d published event(s), got %d", min, got)
+	}
+}
+
+func assertAckedCount(t *testing.T, outbox *fakePollerOutbox, want int) {
+	t.Helper()
+	if got := len(outbox.ackedIDs); got != want {
+		t.Fatalf("expected %d acked ID(s), got %v", want, outbox.ackedIDs)
+	}
+}
+
 func newPollerTestEvent(
 	t *testing.T,
 	eventType string,
@@ -148,9 +169,7 @@ func TestOutboxPoller_PollAndPublish(t *testing.T) {
 		t.Fatal("expected at least one poll call")
 	}
 
-	if len(publisher.Published()) != 1 {
-		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
-	}
+	assertPublishedCount(t, publisher, 1)
 
 	if len(outbox.ackedIDs) != 1 || !outbox.ackedIDs[0].Equal(event.NewOutboxID("outbox-1")) {
 		t.Fatalf("expected ack outbox-1, got %v", outbox.ackedIDs)
@@ -176,9 +195,7 @@ func TestOutboxPoller_PollError(t *testing.T) {
 		t.Fatal("expected at least one poll call")
 	}
 
-	if len(publisher.Published()) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
-	}
+	assertPublishedCount(t, publisher, 0)
 }
 
 func TestOutboxPoller_PublishError_SkipsAck(t *testing.T) {
@@ -203,13 +220,8 @@ func TestOutboxPoller_PublishError_SkipsAck(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.Published()) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
-	}
-
-	if len(outbox.ackedIDs) != 0 {
-		t.Fatalf("expected 0 acked IDs, got %v", outbox.ackedIDs)
-	}
+	assertPublishedCount(t, publisher, 0)
+	assertAckedCount(t, outbox, 0)
 }
 
 func TestOutboxPoller_AckError(t *testing.T) {
@@ -235,9 +247,7 @@ func TestOutboxPoller_AckError(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.Published()) < 1 {
-		t.Fatalf("expected at least 1 published event, got %d", len(publisher.Published()))
-	}
+	assertPublishedAtLeast(t, publisher, 1)
 }
 
 func TestOutboxPoller_EmptyEntries(t *testing.T) {
@@ -255,13 +265,8 @@ func TestOutboxPoller_EmptyEntries(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.Published()) != 0 {
-		t.Fatalf("expected 0 published events, got %d", len(publisher.Published()))
-	}
-
-	if len(outbox.ackedIDs) != 0 {
-		t.Fatalf("expected 0 acked IDs, got %v", outbox.ackedIDs)
-	}
+	assertPublishedCount(t, publisher, 0)
+	assertAckedCount(t, outbox, 0)
 }
 
 func TestOutboxPoller_MultipleEventsPerEntry(t *testing.T) {
@@ -287,9 +292,7 @@ func TestOutboxPoller_MultipleEventsPerEntry(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.Published()) != 2 {
-		t.Fatalf("expected 2 published events, got %d", len(publisher.Published()))
-	}
+	assertPublishedCount(t, publisher, 2)
 
 	if acked := outbox.AckedIDs(); len(acked) != 1 {
 		t.Fatalf("expected 1 acked entry, got %d", len(acked))
@@ -340,9 +343,7 @@ func TestOutboxPoller_PartialPublish_SkipsFailedEntry(t *testing.T) {
 	<-ctx.Done()
 	poller.Stop()
 
-	if len(publisher.Published()) != 1 {
-		t.Fatalf("expected 1 published event, got %d", len(publisher.Published()))
-	}
+	assertPublishedCount(t, publisher, 1)
 
 	if acked := outbox.AckedIDs(); len(acked) != 1 ||
 		!acked[0].Equal(event.NewOutboxID("outbox-1")) {

@@ -19,13 +19,7 @@ func TestRunner_ConcurrentInstances(t *testing.T) {
 	dispatcher := &countingDispatcher{}
 	runner := saga.NewRunner(store, dispatcher)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	var wg sync.WaitGroup
@@ -81,9 +75,7 @@ func TestRunner_TimeoutCancellation(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected timeout error")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected timeout error")
 }
 
 func TestRunner_ExecuteStep_LoadError(t *testing.T) {
@@ -110,9 +102,7 @@ func TestRunner_ExecuteStep_AlreadyAtEnd(t *testing.T) {
 	runner, instance, store := setupTestSaga(t, nopDispatcher{}, []saga.Step{})
 
 	ctx := context.Background()
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step")
 
 	loaded, _ := store.Load(ctx, instance.ID)
 	if loaded.Status != saga.StatusCompleted {

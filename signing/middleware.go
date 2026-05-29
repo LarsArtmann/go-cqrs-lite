@@ -13,6 +13,27 @@ import (
 // Usage:
 //
 //	bus.UsePublish(signing.SignMiddleware(signer))
+func extractOrPassThrough[T any](
+	ctx context.Context,
+	evt event.Event,
+	next event.Handler,
+	extract func(event.Event) (T, error),
+	code, msg string,
+) (T, bool, error) {
+	var zero T
+
+	result, err := extract(evt)
+	if err != nil {
+		if errors.Is(err, ErrNilSignature) {
+			return zero, true, next(ctx, evt)
+		}
+
+		return zero, true, event.WrapInfrastructure(err, code, msg)
+	}
+
+	return result, false, nil
+}
+
 func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
 		panic("signing: SignMiddleware called with nil signer")
@@ -63,17 +84,12 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			sig, err := ExtractSignature(evt)
-			if err != nil {
-				if errors.Is(err, ErrNilSignature) {
-					return next(ctx, evt)
-				}
-
-				return event.WrapInfrastructure(
-					err,
-					"signing.corrupt_signature",
-					"corrupt signature on event "+string(evt.Type()),
-				)
+			sig, handled, err := extractOrPassThrough(
+				ctx, evt, next, ExtractSignature,
+				"signing.corrupt_signature", "corrupt signature on event "+string(evt.Type()),
+			)
+			if handled {
+				return err
 			}
 
 			err = verifier.Verify(evt, sig)

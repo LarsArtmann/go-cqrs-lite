@@ -124,10 +124,8 @@ func (r *Runner) ExecuteStep(ctx context.Context, instanceID id.AggregateID) err
 		r.logInfo("saga completed", "id", instance.ID, "type", instance.SagaType)
 	}
 
-	if err := r.store.Save(ctx, &instance.State); err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return event.WrapInfrastructure(err, "saga.save_completion_failed", "save step completion")
+	if err := r.saveSagaState(ctx, span, &instance.State, "saga.save_completion_failed", "save step completion"); err != nil {
+		return err
 	}
 
 	r.logInfo(

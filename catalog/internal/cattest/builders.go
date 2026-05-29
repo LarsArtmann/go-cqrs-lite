@@ -95,6 +95,17 @@ func AddEventSimple(
 	return r
 }
 
+func AddEvent(
+	tb testing.TB,
+	r *catalog.Registry,
+	serviceID, messageID, name, version string,
+	direction catalog.Direction,
+) *catalog.Registry {
+	tb.Helper()
+
+	return AddEventSimple(tb, r, catalog.ServiceID(serviceID), catalog.MessageID(messageID), name, version, direction)
+}
+
 func AddCommandWithSchema(
 	tb testing.TB,
 	r *catalog.Registry,

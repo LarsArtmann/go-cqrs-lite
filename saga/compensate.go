@@ -54,10 +54,8 @@ func (r *Runner) compensate(ctx context.Context, instance *Instance) error {
 
 	r.logInfo("compensation completed", "id", instance.ID, "type", instance.SagaType)
 
-	if err := r.store.Save(ctx, &instance.State); err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return event.WrapInfrastructure(err, "saga.save_compensated_failed", "save compensated status")
+	if err := r.saveSagaState(ctx, span, &instance.State, "saga.save_compensated_failed", "save compensated status"); err != nil {
+		return err
 	}
 
 	return ErrStepFailed

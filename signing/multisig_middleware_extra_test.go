@@ -19,12 +19,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("allows valid signature", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
@@ -37,7 +32,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called")
 		}
 	})
@@ -45,9 +40,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("rejects tampered event", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error {
-			return nil
-		}
+		handler := noopHandler
 
 		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
@@ -65,12 +58,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("passes through unsigned event", func(t *testing.T) {
 		t.Parallel()
 
-		called := false
-		handler := func(_ context.Context, _ event.Event) error {
-			called = true
-
-			return nil
-		}
+		handler, wasCalled := trackingHandler()
 
 		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
@@ -80,7 +68,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if !called {
+		if !wasCalled() {
 			t.Fatal("handler should have been called for unsigned event")
 		}
 	})
@@ -88,9 +76,7 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("rejects missing actor signature", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error {
-			return nil
-		}
+		handler := noopHandler
 
 		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
@@ -157,7 +143,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 	t.Run("MultiVerifyMiddleware rejects corrupt multi-sig", func(t *testing.T) {
 		t.Parallel()
 
-		handler := func(_ context.Context, _ event.Event) error { return nil }
+		handler := noopHandler
 		mw := signing.MultiVerifyMiddleware(deviceMulti)
 		wrapped := mw(handler)
 
@@ -173,7 +159,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 
 		key := []byte("corrupt-test-key-thirty-two-bytes!")
 		verifier, _ := signing.NewHMAC(key)
-		handler := func(_ context.Context, _ event.Event) error { return nil }
+		handler := noopHandler
 		mw := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), verifier)
 		wrapped := mw(handler)
 

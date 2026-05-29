@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
@@ -15,9 +14,7 @@ import (
 func TestRunner_HealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-	t.Cleanup(func() { _ = bus.Close(); _ = checkpoint.Close() })
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)
@@ -29,9 +26,7 @@ func TestRunner_HealthCheck_Healthy(t *testing.T) {
 func TestRunner_HealthCheck_DetailedHealth(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-	t.Cleanup(func() { _ = bus.Close(); _ = checkpoint.Close() })
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)
@@ -49,9 +44,7 @@ func TestRunner_HealthCheck_DetailedHealth(t *testing.T) {
 func TestRunner_RegisteredProjections(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-	t.Cleanup(func() { _ = bus.Close(); _ = checkpoint.Close() })
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)
@@ -71,9 +64,7 @@ func TestRunner_RegisteredProjections(t *testing.T) {
 func TestHealthCheckAll_AllHealthy(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-	t.Cleanup(func() { _ = bus.Close(); _ = checkpoint.Close() })
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)

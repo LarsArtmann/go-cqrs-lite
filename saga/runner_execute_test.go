@@ -37,18 +37,14 @@ func TestRunner_ExecuteStep_HappyPath(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 1: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 1")
 
 	loaded, _ := store.Load(ctx, instance.ID)
 	if loaded.CurrentStep != 1 {
 		t.Errorf("expected step 1, got %d", loaded.CurrentStep)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 2: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 2")
 
 	loaded, _ = store.Load(ctx, instance.ID)
 	if loaded.Status != saga.StatusCompleted {
@@ -68,13 +64,9 @@ func TestRunner_ExecuteStep_AlreadyCompleted(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step")
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected error when executing completed saga")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error when executing completed saga")
 }
 
 func TestRunner_ExecuteStep_NilAction(t *testing.T) {
@@ -88,9 +80,7 @@ func TestRunner_ExecuteStep_NilAction(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected error for nil action")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error for nil action")
 }
 
 func TestRunner_ExecuteStep_FailureWithCompensation(t *testing.T) {
@@ -133,9 +123,7 @@ func TestRunner_ExecuteStep_FailureWithCompensation(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err != nil {
-		t.Fatalf("execute step 1: %v", err)
-	}
+	requireExecuteStep(t, ctx, runner, instance.ID, "step 1")
 
 	loaded, _ := store.Load(ctx, instance.ID)
 	if loaded.CurrentStep != 1 {
@@ -166,9 +154,7 @@ func TestRunner_ExecuteStep_FirstStepFailsNoCompensation(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected error on first step failure")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error on first step failure")
 
 	loaded, _ := store.Load(ctx, instance.ID)
 	if loaded.Status != saga.StatusFailed {
@@ -227,13 +213,7 @@ func TestRunner_ExecuteStep_RetryExhaustion(t *testing.T) {
 	store := saga.NewMemoryStore()
 	runner := saga.NewRunner(store, dispatcher)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", nil)
@@ -241,9 +221,7 @@ func TestRunner_ExecuteStep_RetryExhaustion(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected retry exhaustion error")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected retry exhaustion error")
 
 	if callCount != 4 {
 		t.Errorf("expected 4 dispatch calls, got %d", callCount)
@@ -262,13 +240,7 @@ func TestRunner_ExecuteStep_NonRetryable(t *testing.T) {
 	store := saga.NewMemoryStore()
 	runner := saga.NewRunner(store, dispatcher)
 
-	def := testDefinition{
-		sagaType: "order",
-		steps:    []saga.Step{{Name: "create", Action: newTestCommand}},
-	}
-	if err := runner.Register(def); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	registerSimpleSaga(t, runner)
 
 	ctx := context.Background()
 	instance, err := runner.Start(ctx, "order", nil)
@@ -276,9 +248,7 @@ func TestRunner_ExecuteStep_NonRetryable(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 
-	if err := runner.ExecuteStep(ctx, instance.ID); err == nil {
-		t.Fatal("expected error")
-	}
+	requireExecuteStepError(t, ctx, runner, instance.ID, "expected error")
 
 	if callCount != 1 {
 		t.Errorf("expected 1 dispatch call (non-retryable), got %d", callCount)

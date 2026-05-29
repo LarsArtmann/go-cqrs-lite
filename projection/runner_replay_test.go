@@ -341,13 +341,7 @@ func TestRunner_ReplayWithSeekableJournal(t *testing.T) {
 func TestRunner_ReplayEmptyStore(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
-	checkpoint := memory.NewMemoryCheckpointStore()
-
-	t.Cleanup(func() {
-		_ = bus.Close()
-		_ = checkpoint.Close()
-	})
+	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	loader := &emptyJournal{}
 

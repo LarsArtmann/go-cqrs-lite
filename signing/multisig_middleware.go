@@ -2,7 +2,6 @@ package signing
 
 import (
 	"context"
-	"errors"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -55,17 +54,12 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			_, err := ExtractMultiSignature(evt)
-			if err != nil {
-				if errors.Is(err, ErrNilSignature) {
-					return next(ctx, evt)
-				}
-
-				return event.WrapInfrastructure(
-					err,
-					"signing.corrupt_multi_sig",
-					"corrupt multi-sig on event "+string(evt.Type()),
-				)
+			_, handled, err := extractOrPassThrough(
+				ctx, evt, next, ExtractMultiSignature,
+				"signing.corrupt_multi_sig", "corrupt multi-sig on event "+string(evt.Type()),
+			)
+			if handled {
+				return err
 			}
 
 			verifyErr := signer.Verify(evt)
@@ -93,17 +87,12 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			multiSig, err := ExtractMultiSignature(evt)
-			if err != nil {
-				if errors.Is(err, ErrNilSignature) {
-					return next(ctx, evt)
-				}
-
-				return event.WrapInfrastructure(
-					err,
-					"signing.corrupt_multi_sig",
-					"corrupt multi-sig on event "+string(evt.Type()),
-				)
+			multiSig, handled, err := extractOrPassThrough(
+				ctx, evt, next, ExtractMultiSignature,
+				"signing.corrupt_multi_sig", "corrupt multi-sig on event "+string(evt.Type()),
+			)
+			if handled {
+				return err
 			}
 
 			entry := multiSig.Get(actor)
