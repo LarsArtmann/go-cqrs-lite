@@ -47,7 +47,7 @@ func TestRunner_Register_NilProjection(t *testing.T) {
 	}
 }
 
-func testProjection() *event.Projection {
+func testProjection() event.Projection {
 	return event.NewProjection("test", func(_ context.Context, _ event.Event) error {
 		return nil
 	}, []event.Type{"UserCreated"})
