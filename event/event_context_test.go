@@ -75,6 +75,10 @@ func TestEventContext_ContextMethod(t *testing.T) {
 		if !gotDeadline.Equal(deadline) {
 			t.Errorf("expected deadline %v, got %v", deadline, gotDeadline)
 		}
+
+		if ctx.Err() != nil {
+			t.Fatalf("expected context to be active, got err: %v", ctx.Err())
+		}
 	})
 
 	t.Run("past deadline context is already done", func(t *testing.T) {

@@ -181,8 +181,7 @@ func (e *ImmutableEvent) Context() context.Context {
 		return context.Background()
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), e.deadline)
-	defer cancel()
+	ctx, _ := context.WithDeadline(context.Background(), e.deadline)
 
 	return ctx
 }
