@@ -55,6 +55,7 @@ func invalidMetadataTestCases() []struct {
 		"aggregate_type": "User",
 		"version":        "1",
 	}
+
 	return []struct {
 		name     string
 		metadata map[string]string
@@ -80,6 +81,7 @@ func mergeMetadata(base map[string]string, key, value string) map[string]string 
 		out[k] = v
 	}
 	out[key] = value
+
 	return out
 }
 
@@ -93,9 +95,7 @@ func TestMessageToEvent_ValidationErrors(t *testing.T) {
 		{name: "missing_aggregate_type", metadata: missingAggregateTypeMetadata()},
 		{name: "missing_version", metadata: missingVersionMetadata()},
 	}
-	for _, invalid := range invalidMetadataTestCases() {
-		tests = append(tests, invalid)
-	}
+	tests = append(tests, invalidMetadataTestCases()...)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

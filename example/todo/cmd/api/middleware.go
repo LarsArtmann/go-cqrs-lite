@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	httputil "github.com/larsartmann/httputil"
@@ -12,6 +13,7 @@ func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
+
 			next.ServeHTTP(w, r)
 			logger.Info(
 				"HTTP",
@@ -40,8 +42,8 @@ func chainMiddleware(
 	final http.Handler,
 	middlewares ...func(http.Handler) http.Handler,
 ) http.Handler {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		final = middlewares[i](final)
+	for _, v := range slices.Backward(middlewares) {
+		final = v(final)
 	}
 
 	return final

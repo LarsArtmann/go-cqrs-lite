@@ -217,6 +217,7 @@ func addServiceWithMessage(
 	tb.Helper()
 
 	AddService(tb, r, serviceID, string(serviceID), version)
+
 	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, kind, addFn)
 }
 

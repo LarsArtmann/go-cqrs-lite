@@ -46,7 +46,7 @@ func SpanFromContext(ctx context.Context) trace.Span {
 }
 
 // ComponentTracer returns a tracer name for a go-cqrs-lite component.
-// Example: ComponentTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage"
+// Example: ComponentTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage".
 func ComponentTracer(component string) string {
 	return fmt.Sprintf("%s/%s", Name, component)
 }

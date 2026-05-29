@@ -388,6 +388,7 @@ func mustDecide(f decider.DecideFunc[aggregate.TodoState], opts ...decideOption)
 	if err != nil {
 		panic(err)
 	}
+
 	return events
 }
 
@@ -399,6 +400,7 @@ func invoke(
 	for _, opt := range opts {
 		opt(o)
 	}
+
 	return f(o.state, o.version)
 }
 
@@ -428,6 +430,7 @@ func mustDecideFrom(
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	return events
 }
 
@@ -440,11 +443,13 @@ func createThenDecide(
 	created := mustDecide(aggregate.DecideCreate(aggID, "Title", "", 1, nil))
 	state := foldAll(t, created)
 	nextEvents := mustDecideFrom(t, state, 1, next)
+
 	return append(created, nextEvents...)
 }
 
 func foldAll(t *testing.T, events []event.Event) aggregate.TodoState {
 	t.Helper()
+
 	return foldAllFrom(t, aggregate.InitialState, events)
 }
 
@@ -461,6 +466,7 @@ func foldAllFrom(
 			t.Fatalf("Fold: %v", err)
 		}
 	}
+
 	return state
 }
 
@@ -469,5 +475,6 @@ func createDeleteState(t *testing.T, aggID id.AggregateID) aggregate.TodoState {
 	created := mustDecide(aggregate.DecideCreate(aggID, "Title", "", 1, nil))
 	state := foldAll(t, created)
 	deleted := mustDecideFrom(t, state, 1, aggregate.DecideDelete(aggID))
+
 	return foldAllFrom(t, state, deleted)
 }

@@ -95,8 +95,10 @@ func newRetryDispatcher(
 		if *attempts < failUntil {
 			return errors.New("chaos: transient failure")
 		}
+
 		return nil
 	})
+
 	return disp
 }
 

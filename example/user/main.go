@@ -100,6 +100,7 @@ func setupDispatchers(
 
 func setupSigning(bus event.Bus) signing.Signer {
 	hmacSecret := []byte("demo-hmac-secret-key-exactly-32-b!")
+
 	signer, err := signing.NewHMAC(hmacSecret)
 	if err != nil {
 		log.Fatalf("create HMAC signer: %v", err)

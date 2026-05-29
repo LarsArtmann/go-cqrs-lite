@@ -11,6 +11,7 @@ import (
 
 type CountTodosQuery struct {
 	*query.BasicQuery
+
 	Status   *domain.TodoStatus `json:"status,omitempty"`
 	Tags     []string           `json:"tags,omitempty"`
 	Priority *int               `json:"priority,omitempty"`
@@ -22,6 +23,7 @@ func NewCountTodosQuery() (*CountTodosQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new count todos query: %w", err)
 	}
+
 	return &CountTodosQuery{BasicQuery: core}, nil
 }
 
@@ -40,19 +42,23 @@ func (h *CountTodosHandler) Handle(ctx context.Context, q query.Query) (*CountTo
 	if err != nil {
 		return nil, err
 	}
+
 	filter := domain.TodoFilter{
 		Status: countQuery.Status, Tags: countQuery.Tags,
 		Priority: countQuery.Priority, Search: countQuery.Search,
 	}
+
 	count, err := h.readModel.Count(filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count todos with filter %+v: %w", filter, err)
 	}
+
 	return &CountTodosResult{Count: count}, nil
 }
 
 func (q *CountTodosQuery) MarshalJSON() ([]byte, error) {
 	type Alias CountTodosQuery
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

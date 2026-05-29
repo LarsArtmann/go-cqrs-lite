@@ -45,6 +45,7 @@ func retryConfigSlow() RetryConfig {
 func newEventNonRetryableHandler(callCount *int, errMsg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
 		*callCount++
+
 		return errors.New(errMsg)
 	}
 }
@@ -70,6 +71,7 @@ func setupEventNonRetryableTest(
 func newCommandNonRetryableHandler(callCount *int, errMsg string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
 		*callCount++
+
 		return errors.New(errMsg)
 	}
 }

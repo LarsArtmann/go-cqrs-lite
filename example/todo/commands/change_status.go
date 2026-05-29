@@ -14,6 +14,7 @@ import (
 
 type ChangeStatusCommand struct {
 	command.BasicCommand
+
 	Status domain.TodoStatus `json:"status"`
 }
 
@@ -25,6 +26,7 @@ func NewChangeStatusCommand(
 	if err != nil {
 		return nil, fmt.Errorf("new change status command for todo %s: %w", todoID, err)
 	}
+
 	return &ChangeStatusCommand{
 		BasicCommand: *core,
 		Status:       status,
@@ -42,6 +44,7 @@ func (h *ChangeStatusHandler) Handle(ctx context.Context, cmd command.Command) e
 	if err != nil {
 		return err
 	}
+
 	return h.execute(
 		ctx, typed.AggregateID(),
 		aggregate.DecideChangeStatus(typed.AggregateID(), typed.Status),
@@ -50,6 +53,7 @@ func (h *ChangeStatusHandler) Handle(ctx context.Context, cmd command.Command) e
 
 func (c *ChangeStatusCommand) MarshalJSON() ([]byte, error) {
 	type Alias ChangeStatusCommand
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

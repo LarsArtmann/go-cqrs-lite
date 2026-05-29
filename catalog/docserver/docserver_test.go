@@ -70,6 +70,7 @@ func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder) map[string]an
 	if err := json.NewDecoder(recorder.Body).Decode(&doc); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
+
 	return doc
 }
 

@@ -102,9 +102,11 @@ func AssertErrorWithResult(t *testing.T, result any, err error, substr string) {
 	if result != nil && !reflect.ValueOf(result).IsNil() {
 		t.Errorf("result = %v, want nil", result)
 	}
+
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
+
 	if !strings.Contains(err.Error(), substr) {
 		t.Errorf("error = %q, want containing %q", err.Error(), substr)
 	}

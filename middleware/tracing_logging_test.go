@@ -44,6 +44,7 @@ func TestCommandTraceLogging_WithSpan(t *testing.T) {
 	called := false
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		called = true
+
 		return nil
 	})
 
@@ -83,6 +84,7 @@ func TestEventTraceLogging_WithSpan(t *testing.T) {
 	called := false
 	handler := mw(func(_ context.Context, _ event.Event) error {
 		called = true
+
 		return nil
 	})
 

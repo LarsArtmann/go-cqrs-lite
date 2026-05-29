@@ -2,7 +2,7 @@ package saga
 
 import (
 	"context"
-	"fmt"
+	"errors"
 )
 
 // HealthCheck verifies that the runner's downstream dependencies are reachable.
@@ -10,7 +10,7 @@ import (
 // Returns nil if the store is healthy.
 func (r *Runner) HealthCheck(ctx context.Context) error {
 	if r.store == nil {
-		return fmt.Errorf("saga health: store is nil")
+		return errors.New("saga health: store is nil")
 	}
 
 	if healthChecker, ok := r.store.(interface {

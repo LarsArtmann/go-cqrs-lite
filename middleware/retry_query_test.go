@@ -58,6 +58,7 @@ func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 func errorQueryHandler(errMsg string, callCount *int) query.Handler {
 	return func(_ context.Context, _ query.Query) (any, error) {
 		*callCount++
+
 		return nil, errors.New(errMsg)
 	}
 }
@@ -67,6 +68,7 @@ func setupQueryRetryHandler(t *testing.T, config RetryConfig, errMsg string) (qu
 	mw := QueryRetry(config)
 	callCount := 0
 	handler := mw(errorQueryHandler(errMsg, &callCount))
+
 	return handler, &callCount
 }
 

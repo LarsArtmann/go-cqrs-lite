@@ -53,6 +53,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 	case EventDeleted:
 		state.Deleted = true
 		state.UpdatedAt = payload.UpdatedAt
+
 		return state, nil
 	default:
 		return state, fmt.Errorf("unknown event type: %s", evt.Type())
@@ -76,6 +77,7 @@ func foldUpdated(state TodoState, p TodoPayload) TodoState {
 	state.Title = p.Title
 	state.Description = p.Description
 	state.UpdatedAt = p.UpdatedAt
+
 	return state
 }
 
@@ -83,6 +85,7 @@ func foldStatusChanged(state TodoState, p TodoPayload) TodoState {
 	state.Status = p.Status
 	state.UpdatedAt = p.UpdatedAt
 	state.CompletedAt = p.CompletedAt
+
 	return state
 }
 
@@ -111,19 +114,23 @@ func DecideCreate(
 		if !state.IsNew() {
 			return nil, ErrTodoAlreadyExists
 		}
+
 		if title == "" {
 			return nil, domain.ErrEmptyTitle
 		}
+
 		now := time.Now().UTC()
 		payload := TodoPayload{
 			Title: title, Description: description,
 			Status: domain.StatusPending, Priority: priority,
 			Tags: tags, CreatedAt: now, UpdatedAt: now,
 		}
+
 		evt, err := newEventFromPayload(EventCreated, aggID, int(version)+1, payload)
 		if err != nil {
 			return nil, err
 		}
+
 		return []event.Event{evt}, nil
 	}
 }
@@ -136,19 +143,23 @@ func DecideUpdate(
 		if state.Deleted {
 			return nil, domain.ErrNotFound
 		}
+
 		if title == "" {
 			return nil, domain.ErrEmptyTitle
 		}
+
 		payload := TodoPayload{
 			Title: title, Description: description,
 			Status: state.Status, Priority: state.Priority,
 			Tags: state.Tags, CreatedAt: state.CreatedAt,
 			UpdatedAt: time.Now().UTC(), CompletedAt: state.CompletedAt,
 		}
+
 		evt, err := newEventFromPayload(EventUpdated, aggID, int(version)+1, payload)
 		if err != nil {
 			return nil, err
 		}
+
 		return []event.Event{evt}, nil
 	}
 }
@@ -158,19 +169,23 @@ func DecideDelete(aggID id.AggregateID) decider.DecideFunc[TodoState] {
 		if state.Deleted {
 			return nil, domain.ErrNotFound
 		}
+
 		if state.IsNew() {
 			return nil, domain.ErrNotFound
 		}
+
 		payload := TodoPayload{
 			Title: state.Title, Description: state.Description,
 			Status: state.Status, Priority: state.Priority,
 			Tags: state.Tags, CreatedAt: state.CreatedAt,
 			UpdatedAt: time.Now().UTC(), CompletedAt: state.CompletedAt,
 		}
+
 		evt, err := newEventFromPayload(EventDeleted, aggID, int(version)+1, payload)
 		if err != nil {
 			return nil, err
 		}
+
 		return []event.Event{evt}, nil
 	}
 }
@@ -183,33 +198,41 @@ func DecideChangeStatus(
 		if state.Deleted {
 			return nil, domain.ErrNotFound
 		}
+
 		if state.IsNew() {
 			return nil, domain.ErrNotFound
 		}
+
 		if !status.IsValid() {
 			return nil, domain.ErrInvalidStatus
 		}
+
 		now := time.Now().UTC()
+
 		var completedAt *time.Time
 		if status == domain.StatusCompleted && state.CompletedAt == nil {
 			completedAt = &now
 		} else {
 			completedAt = state.CompletedAt
 		}
+
 		payload := TodoPayload{
 			Title: state.Title, Description: state.Description,
 			Status: status, Priority: state.Priority,
 			Tags: state.Tags, CreatedAt: state.CreatedAt,
 			UpdatedAt: now, CompletedAt: completedAt,
 		}
+
 		eventType := EventStatusChanged
 		if status == domain.StatusCompleted {
 			eventType = EventCompleted
 		}
+
 		evt, err := newEventFromPayload(eventType, aggID, int(version)+1, payload)
 		if err != nil {
 			return nil, err
 		}
+
 		return []event.Event{evt}, nil
 	}
 }
@@ -230,5 +253,6 @@ func newEventFromPayload(
 			err,
 		)
 	}
+
 	return event.NewEvent(eventType, aggID, AggregateType, event.Version(version), data)
 }

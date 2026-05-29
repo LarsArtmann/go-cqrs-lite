@@ -108,7 +108,8 @@ type HealthChecker interface {
 // and returns the first error encountered.
 func HealthCheckAll(ctx context.Context, checkers ...HealthChecker) error {
 	for _, c := range checkers {
-		if err := c.HealthCheck(ctx); err != nil {
+		err := c.HealthCheck(ctx)
+		if err != nil {
 			return event.WrapInfrastructure(err, "projection.health_check_all",
 				"health check failed")
 		}

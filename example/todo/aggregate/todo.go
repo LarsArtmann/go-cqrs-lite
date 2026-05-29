@@ -4,11 +4,10 @@ import (
 	"errors"
 	"time"
 
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
 	cqrsCommand "github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-
-	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
 )
 
 var ErrTodoAlreadyExists = errors.New("todo already exists")

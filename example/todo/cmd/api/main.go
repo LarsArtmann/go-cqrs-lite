@@ -96,6 +96,7 @@ func main() {
 
 	go func() {
 		logger.Info("Server starting", slog.String("port", port))
+
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("Server failed", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -104,9 +105,12 @@ func main() {
 
 	<-quit
 	logger.Info("Shutting down...")
+
 	shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
 	_ = srv.Shutdown(shutdownCtx)
+
 	logger.Info("Server exited")
 }
 

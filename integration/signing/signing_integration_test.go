@@ -16,6 +16,7 @@ func subscribeTo(t *testing.T, bus *memory.MemoryBus, topic string, received *[]
 	t.Helper()
 	if err := bus.Subscribe(event.Type(topic), func(_ context.Context, evt event.Event) error {
 		*received = append(*received, evt)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("subscribe: %v", err)

@@ -113,7 +113,7 @@ func TestRecordError_SetsErrorStatus(t *testing.T) {
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
-	testErr := errors.New("something broke") //nolint:err113 // test error
+	testErr := errors.New("something broke")
 	RecordError(span, testErr)
 	span.End()
 
@@ -144,7 +144,7 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
-	EndWithError(span, errors.New("fail")) //nolint:err113 // test error
+	EndWithError(span, errors.New("fail"))
 
 	spans := recorder.Ended()
 	require.Len(t, spans, 1)

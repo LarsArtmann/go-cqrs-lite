@@ -32,6 +32,7 @@ func NewListBuilder(reader AggregateReader) *ListBuilder {
 // OfType filters to a specific aggregate type.
 func (b *ListBuilder) OfType(t event.AggregateType) *ListBuilder {
 	b.opts.Type = t
+
 	return b
 }
 
@@ -39,6 +40,7 @@ func (b *ListBuilder) OfType(t event.AggregateType) *ListBuilder {
 // Pass the last AggregateRef.ID from the previous Page.
 func (b *ListBuilder) After(id id.AggregateID) *ListBuilder {
 	b.opts.After = id
+
 	return b
 }
 
@@ -59,12 +61,14 @@ func (b *ListBuilder) PageSize(n uint) *ListBuilder {
 // IncludeDeleted shows all aggregates, including tombstoned ones.
 func (b *ListBuilder) IncludeDeleted() *ListBuilder {
 	b.opts.Tombstone = TombstoneInclude
+
 	return b
 }
 
 // OnlyDeleted shows only tombstoned aggregates.
 func (b *ListBuilder) OnlyDeleted() *ListBuilder {
 	b.opts.Tombstone = TombstoneOnly
+
 	return b
 }
 

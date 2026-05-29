@@ -11,6 +11,7 @@ import (
 
 type ListTodosQuery struct {
 	*query.BasicQuery
+
 	Status     *domain.TodoStatus `json:"status,omitempty"`
 	Tags       []string           `json:"tags,omitempty"`
 	Priority   *int               `json:"priority,omitempty"`
@@ -23,6 +24,7 @@ func NewListTodosQuery() (*ListTodosQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new list todos query: %w", err)
 	}
+
 	return &ListTodosQuery{
 		BasicQuery: core,
 		Pagination: query.NewPagination(1, 20),
@@ -45,20 +47,24 @@ func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodo
 	if err != nil {
 		return nil, err
 	}
+
 	filter := domain.TodoFilter{
 		Status: listQuery.Status, Tags: listQuery.Tags,
 		Priority: listQuery.Priority, Search: listQuery.Search,
 		Limit:  int(listQuery.Pagination.PageSize),
 		Offset: listQuery.Pagination.Offset(),
 	}
+
 	todos, err := h.readModel.List(filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list todos with filter %+v: %w", filter, err)
 	}
+
 	results := make([]*GetTodoResult, len(todos))
 	for i, todo := range todos {
 		results[i] = FromDomain(todo)
 	}
+
 	return &ListTodosResult{
 		Todos: results,
 		Page:  query.NewPaginatedResult(results, uint(len(todos)), listQuery.Pagination),
@@ -67,6 +73,7 @@ func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodo
 
 func (q *ListTodosQuery) MarshalJSON() ([]byte, error) {
 	type Alias ListTodosQuery
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

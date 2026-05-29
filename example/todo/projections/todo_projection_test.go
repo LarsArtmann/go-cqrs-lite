@@ -29,16 +29,19 @@ func (m *mockReadModel) List(_ domain.TodoFilter) ([]*domain.Todo, error) {
 	for _, t := range m.todos {
 		result = append(result, t)
 	}
+
 	return result, nil
 }
 
 func (m *mockReadModel) Put(todo *domain.Todo) error {
 	m.todos[todo.ID.String()] = todo
+
 	return nil
 }
 
 func (m *mockReadModel) Delete(todoID domain.TodoID) error {
 	delete(m.todos, todoID.String())
+
 	return nil
 }
 
@@ -61,6 +64,7 @@ func makeCreatedEvent(
 	if err != nil {
 		t.Fatalf("new event: %v", err)
 	}
+
 	return evt
 }
 

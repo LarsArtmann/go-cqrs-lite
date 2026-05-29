@@ -411,5 +411,6 @@ func newUserCreatedEvent(
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
+
 	return evt
 }

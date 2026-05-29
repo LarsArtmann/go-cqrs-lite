@@ -3,7 +3,6 @@ package middleware_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -85,6 +84,7 @@ var _ = Describe("Retry Middleware", func() {
 				mw := middleware.CommandRetry(config)
 				handler := mw(func(_ context.Context, _ command.Command) error {
 					attempts.Add(1)
+
 					return nil
 				})
 
@@ -101,6 +101,7 @@ var _ = Describe("Retry Middleware", func() {
 				mw := middleware.CommandRetry(config)
 				handler := mw(func(_ context.Context, _ command.Command) error {
 					attempts.Add(1)
+
 					return event.NewRejection("test.reject", "not retryable")
 				})
 
@@ -122,7 +123,7 @@ var _ = Describe("Retry Middleware", func() {
 				}
 				mw := middleware.CommandRetry(config)
 				handler := mw(func(_ context.Context, _ command.Command) error {
-					return fmt.Errorf("transient failure")
+					return errors.New("transient failure")
 				})
 
 				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})

@@ -18,7 +18,8 @@ type AggregateProjection struct {
 // NewAggregateProjection creates a projection that maintains the aggregates table.
 // The table is created if it does not exist.
 func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
-	if err := validateTablePrefix(tablePrefix); err != nil {
+	err := validateTablePrefix(tablePrefix)
+	if err != nil {
 		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
 	}
 
@@ -27,7 +28,8 @@ func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjectio
 		tableName: tablePrefix + "stream_aggregates",
 	}
 
-	if err := p.createTable(); err != nil {
+	err = p.createTable()
+	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
 			"stream.create_table",

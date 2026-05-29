@@ -27,6 +27,7 @@ func MakeTimelineEvents(
 	tb.Helper()
 
 	now := time.Now()
+
 	result := make([]event.Event, len(events))
 	for i, e := range events {
 		evt, err := event.NewEvent(
@@ -40,6 +41,7 @@ func MakeTimelineEvents(
 		if err != nil {
 			tb.Fatalf("MakeTimelineEvents: create event %q: %v", e.Type, err)
 		}
+
 		result[i] = evt
 	}
 
@@ -178,7 +180,8 @@ func MakeLoadToTimestampFixtures(
 		{Type: "Deleted", Version: versions[2], Offset: 0},
 	})
 
-	if err := store.AppendBatch(ctx, aggType, aggID, events); err != nil {
+	err := store.AppendBatch(ctx, aggType, aggID, events)
+	if err != nil {
 		tb.Fatalf("AppendBatch: %v", err)
 	}
 

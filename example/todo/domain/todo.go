@@ -26,6 +26,7 @@ func (s TodoStatus) IsValid() bool {
 	case StatusPending, StatusInProgress, StatusCompleted, StatusArchived:
 		return true
 	}
+
 	return false
 }
 
@@ -52,12 +53,14 @@ func (t *Todo) Clone() *Todo {
 		completed := *t.CompletedAt
 		cloned.CompletedAt = &completed
 	}
+
 	if len(t.Tags) > 0 {
 		cloned.Tags = make([]string, len(t.Tags))
 		copy(cloned.Tags, t.Tags)
 	} else {
 		cloned.Tags = make([]string, 0)
 	}
+
 	return cloned
 }
 

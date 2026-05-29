@@ -12,6 +12,7 @@ import (
 
 type GetTodoQuery struct {
 	*query.BasicQuery
+
 	TodoID domain.TodoID `json:"todo_id"`
 }
 
@@ -20,6 +21,7 @@ func NewGetTodoQuery(todoID domain.TodoID) (*GetTodoQuery, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new get todo query for todo %s: %w", todoID, err)
 	}
+
 	return &GetTodoQuery{BasicQuery: core, TodoID: todoID}, nil
 }
 
@@ -56,15 +58,18 @@ func (h *GetTodoHandler) Handle(ctx context.Context, q query.Query) (*GetTodoRes
 	if err != nil {
 		return nil, err
 	}
+
 	todo, err := h.readModel.Get(getQuery.TodoID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get todo %s: %w", getQuery.TodoID, err)
 	}
+
 	return FromDomain(todo), nil
 }
 
 func (q *GetTodoQuery) MarshalJSON() ([]byte, error) {
 	type Alias GetTodoQuery
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

@@ -18,6 +18,7 @@ func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new delete todo command for todo %s: %w", todoID, err)
 	}
+
 	return &DeleteTodoCommand{BasicCommand: *core}, nil
 }
 
@@ -32,6 +33,7 @@ func (h *DeleteTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
+
 	return h.execute(
 		ctx, typed.AggregateID(),
 		aggregate.DecideDelete(typed.AggregateID()),
@@ -40,6 +42,7 @@ func (h *DeleteTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 
 func (c *DeleteTodoCommand) MarshalJSON() ([]byte, error) {
 	type Alias DeleteTodoCommand
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

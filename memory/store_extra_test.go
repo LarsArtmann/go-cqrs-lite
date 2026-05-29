@@ -164,7 +164,6 @@ func TestMemoryStore_ReadAll_Closed(t *testing.T) {
 	}
 }
 
-//nolint:dupl // mirrors LoadAllFromPosition backward-compat test
 func TestMemoryStore_ReadFrom(t *testing.T) {
 	t.Parallel()
 

@@ -43,8 +43,7 @@ func TestRunner_ProcessesLiveEvents(t *testing.T) {
 
 	evt := mustNewEvent(t, "UserCreated", id.NewAggregateID())
 
-	var err error
-	err = bus.Publish(context.Background(), evt)
+	var err error = bus.Publish(context.Background(), evt)
 	if err != nil {
 		t.Fatal(err)
 	}

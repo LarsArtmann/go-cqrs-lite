@@ -16,6 +16,7 @@ func setupCommandHandlers(
 	t.Helper()
 	store := cqrsMemory.NewMemoryStore()
 	bus := cqrsMemory.NewMemoryBus()
+
 	return commands.NewCreateTodoHandler(store, bus),
 		commands.NewUpdateTodoHandler(store, bus),
 		commands.NewDeleteTodoHandler(store, bus),

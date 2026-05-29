@@ -15,10 +15,12 @@ func collectPublished(t *testing.T, bus *memory.MemoryBus, eventType event.Type)
 	published := make([]event.Event, 0, 1)
 	if err := bus.Subscribe(eventType, func(_ context.Context, evt event.Event) error {
 		published = append(published, evt)
+
 		return nil
 	}); err != nil {
 		t.Fatal(err)
 	}
+
 	return &published
 }
 

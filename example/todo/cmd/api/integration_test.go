@@ -100,6 +100,7 @@ func setupTestServer(t *testing.T) (*http.ServeMux, *httptest.Server) {
 	mux := setupTestMux(t)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
+
 	return mux, srv
 }
 

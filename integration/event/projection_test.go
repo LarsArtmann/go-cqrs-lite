@@ -15,6 +15,7 @@ var errTestProjection = errors.New("projection failed")
 func appendingProjection(name string, types []event.Type, handled *[]string) event.Projection {
 	return event.NewProjection(name, func(_ context.Context, evt event.Event) error {
 		*handled = append(*handled, string(evt.Type()))
+
 		return nil
 	}, types)
 }

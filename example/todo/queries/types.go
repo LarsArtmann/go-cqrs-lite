@@ -17,9 +17,11 @@ func requireQueryType[T any](q query.Query, expected string) (T, error) {
 	if q == nil {
 		return zero, fmt.Errorf("invalid query type: expected %s, got nil", expected)
 	}
+
 	typed, ok := q.(T)
 	if !ok {
 		return zero, fmt.Errorf("invalid query type: expected %s, got %T", expected, q)
 	}
+
 	return typed, nil
 }

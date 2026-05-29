@@ -13,6 +13,7 @@ import (
 
 type CreateTodoCommand struct {
 	command.BasicCommand
+
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Priority    int      `json:"priority"`
@@ -36,6 +37,7 @@ func NewCreateTodoCommand(
 			err,
 		)
 	}
+
 	return &CreateTodoCommand{
 		BasicCommand: *core,
 		Title:        title,
@@ -56,6 +58,7 @@ func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
+
 	return h.execute(
 		ctx, createCmd.AggregateID(),
 		aggregate.DecideCreate(
@@ -70,6 +73,7 @@ func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 
 func (c *CreateTodoCommand) MarshalJSON() ([]byte, error) {
 	type Alias CreateTodoCommand
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

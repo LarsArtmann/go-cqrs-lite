@@ -25,6 +25,7 @@ func NewHandler(events event.Store, eventBus event.Publisher) CommandHandler {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create repository: %v", err))
 	}
+
 	return CommandHandler{repo: repo}
 }
 
@@ -45,9 +46,11 @@ func requireCommandType[T any](cmd command.Command, expected string) (T, error) 
 	if cmd == nil {
 		return zero, fmt.Errorf("%w: expected %s, got nil", ErrInvalidCommandType, expected)
 	}
+
 	typed, ok := cmd.(T)
 	if !ok {
 		return zero, fmt.Errorf("%w: expected %s, got %T", ErrInvalidCommandType, expected, cmd)
 	}
+
 	return typed, nil
 }

@@ -225,6 +225,7 @@ var testTodoID = domain.NewTodoID()
 
 type fakeReadModel struct {
 	domain.TodoReadModel
+
 	todos    map[domain.TodoID]*domain.Todo
 	todoList []*domain.Todo
 	listErr  error
@@ -239,6 +240,7 @@ func (f *fakeReadModel) Get(id domain.TodoID) (*domain.Todo, error) {
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
+
 	return todo, nil
 }
 
@@ -256,6 +258,7 @@ func (f *fakeReadModel) List(filter domain.TodoFilter) ([]*domain.Todo, error) {
 		}
 		results = append(results, todo)
 	}
+
 	return results, nil
 }
 
@@ -267,6 +270,7 @@ func (f *fakeReadModel) Count(filter domain.TodoFilter) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return len(todos), nil
 }
 

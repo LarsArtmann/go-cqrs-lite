@@ -21,7 +21,8 @@ var _ AggregateReader = (*SQLAggregateReader)(nil)
 
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
 func NewSQLAggregateReader(db *sql.DB, tablePrefix string) (*SQLAggregateReader, error) {
-	if err := validateTablePrefix(tablePrefix); err != nil {
+	err := validateTablePrefix(tablePrefix)
+	if err != nil {
 		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
 	}
 
@@ -49,8 +50,10 @@ func (r *SQLAggregateReader) ListWithStatus(
 		)
 	}
 
-	var conditions []string
-	var args []any
+	var (
+		conditions []string
+		args       []any
+	)
 
 	conditions = append(conditions, "aggregate_type = ?")
 	args = append(args, string(opts.Type))
@@ -77,6 +80,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 		r.tableName,
 		strings.Join(conditions, " AND "),
 	)
+
 	args = append(args, limit+1)
 
 	rows, err := r.db.QueryContext(ctx, query, args...)

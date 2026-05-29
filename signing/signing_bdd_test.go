@@ -17,6 +17,7 @@ var _ = Describe("Signing", func() {
 		aggID := id.NewAggregateID()
 		evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 		Expect(err).NotTo(HaveOccurred())
+
 		return evt
 	}
 
@@ -170,6 +171,7 @@ var _ = Describe("Signing", func() {
 							if len(events) > 0 {
 								captured = events[0]
 							}
+
 							return nil
 						},
 					)
@@ -210,6 +212,7 @@ var _ = Describe("Signing", func() {
 				mw := VerifyMiddleware(sv)
 				wrapped := mw(func(_ context.Context, _ event.Event) error {
 					handlerCalled = true
+
 					return nil
 				})
 
@@ -230,6 +233,7 @@ var _ = Describe("Signing", func() {
 				mw := RequireSignatureMiddleware(sv)
 				wrapped := mw(func(_ context.Context, _ event.Event) error {
 					handlerCalled = true
+
 					return nil
 				})
 

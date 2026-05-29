@@ -116,5 +116,5 @@ var (
 	_ event.TransactionalSink  = (*SQLTransactionalStore)(nil)
 	_ event.TransactionalStore = (*SQLTransactionalStore)(
 		nil,
-	) //nolint:staticcheck // backward-compat assertion
+	)
 )

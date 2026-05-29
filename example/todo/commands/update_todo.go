@@ -13,6 +13,7 @@ import (
 
 type UpdateTodoCommand struct {
 	command.BasicCommand
+
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
@@ -31,6 +32,7 @@ func NewUpdateTodoCommand(
 			err,
 		)
 	}
+
 	return &UpdateTodoCommand{
 		BasicCommand: *core,
 		Title:        title,
@@ -49,6 +51,7 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	if err != nil {
 		return err
 	}
+
 	return h.execute(
 		ctx, typed.AggregateID(),
 		aggregate.DecideUpdate(typed.AggregateID(), typed.Title, typed.Description),
@@ -57,6 +60,7 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 
 func (c *UpdateTodoCommand) MarshalJSON() ([]byte, error) {
 	type Alias UpdateTodoCommand
+
 	return json.Marshal(&struct {
 		Type string `json:"type"`
 		*Alias

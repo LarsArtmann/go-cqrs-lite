@@ -39,6 +39,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 
 	for i := range userIDs {
 		userIDs[i] = id.NewAggregateID()
+
 		evt, err := event.NewEvent("user.created", userIDs[i], "User", event.Version(1), nil)
 		if err != nil {
 			log.Fatalf("create event: %v", err)
@@ -52,6 +53,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 
 	for i := range orderIDs {
 		orderIDs[i] = id.NewAggregateID()
+
 		evt, err := event.NewEvent("order.placed", orderIDs[i], "Order", event.Version(1), nil)
 		if err != nil {
 			log.Fatalf("create event: %v", err)
@@ -64,6 +66,7 @@ func populateEvents(ctx context.Context, store event.Store) {
 	}
 
 	deletedID := userIDs[4]
+
 	deleteEvt, err := event.NewEvent("user.deleted", deletedID, "User", event.Version(2), nil)
 	if err != nil {
 		log.Fatalf("create delete event: %v", err)
@@ -153,6 +156,7 @@ func runCursorPagination(ctx context.Context, reader *stream.InMemoryAggregateRe
 	builder := stream.NewListBuilder(reader).PageSize(2)
 
 	pageNum := 1
+
 	var lastID id.AggregateID
 
 	for {
