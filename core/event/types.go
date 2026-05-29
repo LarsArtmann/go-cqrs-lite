@@ -28,8 +28,7 @@ func ParseSource(s string) (Source, error) {
 	if s == "" {
 		return "", NewRejection(
 			"event.empty_source",
-			"source cannot be empty (input: %q)",
-			original,
+			fmt.Sprintf("source cannot be empty (input: %q)", original),
 		)
 	}
 
@@ -98,8 +97,7 @@ func ParseVersion(v int) (Version, error) {
 	if v < 0 {
 		return 0, NewRejection(
 			"event.negative_version",
-			"version cannot be negative: %d",
-			v,
+			fmt.Sprintf("version cannot be negative: %d", v),
 		)
 	}
 
@@ -168,8 +166,7 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	if v < 1 {
 		return 0, NewRejection(
 			"event.invalid_schema_version",
-			"schema version must be positive: %d",
-			v,
+			fmt.Sprintf("schema version must be positive: %d", v),
 		)
 	}
 
