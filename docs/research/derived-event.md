@@ -2,35 +2,88 @@
 
 > A `DerivedEvent` is an event produced not from a single command, but from the combination of multiple events or multiple other conditions being met.
 
-## Concept
+**Date:** 2026-05-29
+**Status:** Research — refined after command-event causality analysis
+
+## Core Invariant
+
+> **Every event traces to a command. No exceptions.**
+
+This means derived events don't bypass the command→event pipeline — they produce **derived commands** instead.
+
+## Concept: Derived Commands, Not Derived Events
+
+### Old model (rejected)
 
 ```
-Events[] → derive() → Event
+Events[] → derive() → Event     ← breaks command→event invariant
 ```
 
-A deterministic derivation function that watches multiple event streams and produces a new event when a condition is met. Unlike commands (which are imperative), derived events are **declarative** — they describe *what happened* as a consequence of observed facts.
+### New model
 
-## Relation to Existing Primitives
+```
+Events[] → derive() → Command → Decider → Events
+```
+
+The derivation layer is a **command factory**. It observes events and emits commands, not events. The command goes through the normal pipeline: validation, middleware, metrics, decider. Events are only ever produced by deciders processing commands.
+
+### Why commands, not events?
+
+- **Rejection is a feature**: By the time the derived command executes, state may have changed. The decider validates against current reality. A raw derived event would bypass that.
+- **Reuses everything**: Middleware, tracing, metrics, logging — all already wired for the command→event path.
+- **Command carries intent**: `ConfirmOrder` (a command) is clearer than `OrderConfirmed` (an event asserted without validation).
+- **Sagas already do this**: `Event → Saga → Command → Events`. A derivation is a simpler, stateless version of the same pattern.
+- **Preserves 1:1 invariant**: Every event type is produced by exactly one command type.
+
+## The 1:1 Command–Event Invariant
+
+Every event type maps to exactly one command type:
+
+```
+CreateTodo          → TodoCreated
+UpdateTodo          → TodoUpdated
+DeleteTodo          → TodoDeleted
+ConfirmOrder        → OrderConfirmed        ← derived command, same shape
+ReceiveWebhook      → ExternalEventIngested ← external, same shape
+ScheduleTimeout     → TimeoutExpired        ← timer, same shape
+```
+
+Consequences:
+
+- **No CommandType metadata needed** — structurally derivable from the event type itself
+- **Catalog is trivial** — one table, two columns, no ambiguity
+- **Event naming is deterministic** — `DoX` → `XDone`
+- **Audit trail is complete** — "which command produced this event?" is always answerable
+- **Derived events don't break the rule** — they go through a derived command
+
+### What about commands that produce multiple events?
+
+Two positions:
+
+| Position | Rule | Trade-off |
+|---|---|---|
+| **Strict 1:1** | One command → one event. Split `CreateOrder` into `CreateOrder` + `AddOrderLines` | Purest invariant, more commands, very granular events |
+| **1:N bounded** | One command → N events, but each event type belongs to exactly one command type | Pragmatic, reverse direction still unique |
+
+Strict 1:1 is the aspirational target. 1:N bounded is acceptable if the aggregate truly needs atomic multi-event writes.
+
+## Unified Primitive Table
 
 | Primitive | Input | Output | Stateful? |
 |---|---|---|---|
 | **Decider** | Command + State | Events | Yes (aggregate state) |
 | **Projection** | Events | Read model | Yes (projection state) |
-| **Saga** | Command + State | Commands | Yes (saga state machine) |
-| **DerivedEvent** | Events | Events | Possibly (derivation checkpoint) |
+| **Saga** | Events | Commands | Yes (saga state machine) |
+| **Derivation** | Events | Commands | No (stateless) |
 
-go-cqrs-lite already has:
-- **`projection`** — watches events, writes to read models, not event streams
-- **`saga`** — orchestrates commands across multiple steps, but is command-driven
-
-What's missing is the **"Events → Event"** primitive — a deterministic derivation that doesn't need a saga's state machine.
+Note: both **Saga** and **Derivation** produce commands, not events. The only difference is statefulness. A derivation is a stateless saga — or equivalently, a saga is a stateful derivation.
 
 ## Example Use Cases
 
-- "When `OrderPlaced` + `PaymentReceived` → emit `OrderConfirmed`"
-- "When 3 `SensorReading` events exceed threshold → emit `AlertRaised`"
-- "When `UserCreated` + `EmailVerified` + `ProfileCompleted` → emit `UserOnboarded`"
-- "When `InvoiceCreated` and `PaymentFailed` after 3 retries → emit `PaymentDefaulted`"
+- "When `OrderPlaced` + `PaymentReceived` → dispatch `ConfirmOrder` command"
+- "When 3 `SensorReading` events exceed threshold → dispatch `RaiseAlert` command"
+- "When `UserCreated` + `EmailVerified` + `ProfileCompleted` → dispatch `OnboardUser` command"
+- "When `InvoiceCreated` and `PaymentFailed` after 3 retries → dispatch `DefaultPayment` command"
 
 ## Proposed Interface
 
@@ -39,61 +92,83 @@ type Deriver interface {
     // SourceTypes declares which event types this deriver subscribes to.
     SourceTypes() []string
 
-    // Derive inspects a batch of events and returns zero or more derived events.
-    // Called with events in aggregate order. May be called multiple times as new events arrive.
-    Derive(ctx context.Context, events []event.ImmutableEvent) ([]event.ImmutableEvent, error)
+    // Derive inspects a batch of events and returns zero or more commands.
+    // Commands are dispatched through the normal command pipeline (validation, middleware, decider).
+    Derive(ctx context.Context, events []event.Event) ([]command.Command, error)
 }
 ```
 
-A runner would subscribe to the declared event types, buffer/order them, and call `Derive` for each relevant batch.
+A runner subscribes to the declared event types, buffers/orders them, calls `Derive` for each batch, and dispatches returned commands through the command dispatcher.
+
+### Derived command metadata
+
+A derived command sets:
+
+- `Source: "derivation"` or `"derived:OrderConfirmationRule"`
+- `CausationID`: hash of the triggering event IDs (links back to provenance)
+- `CorrelationID`: propagated from the source events
+
+This makes the full audit trail: source events → derived command → decider → derived event. Every link is traceable.
 
 ## Key Design Questions
 
-### 1. Where does the derived event land?
+### 1. Where does the derived command target?
 
-| Option | Trade-off |
-|---|---|
-| Same aggregate/stream | Simple, but couples derivation to aggregate lifecycle |
-| Different aggregate/stream | Cleaner separation, but needs cross-aggregate write |
+The derived command targets an aggregate — same as any command. The derivation decides *which* aggregate based on the source events.
 
-**Recommendation:** Different stream. Derivation results are owned by the deriver, not the source aggregate.
+- Same aggregate as source events → simple, natural for invariants within one aggregate
+- Different aggregate → cross-aggregate invariant, the decider on the target validates independently
+
+**Recommendation:** No restriction. The deriver specifies the target `AggregateID` in the returned command.
 
 ### 2. Idempotency
 
-The deriver must not emit the same derived event twice for the same input events.
+The deriver must not dispatch the same command twice for the same input events.
 
 | Strategy | How |
 |---|---|
 | Checkpoint tracking | "Last derived at position N" per deriver |
-| Deterministic event ID | Hash input event IDs → derived event ID (idempotent append) |
-| Deduplication store | Track `(deriver, source_event_ids) → derived_event_id` |
+| Deterministic command ID | Hash input event IDs → command ID (deduplicate at dispatcher) |
+| Consumer-side dedup | Decider rejects if event already exists (version conflict) |
 
-**Recommendation:** Deterministic event ID from input event IDs. Aligns with the library's append-only, no-delete philosophy.
+**Recommendation:** Deterministic command ID from input event IDs + decider's natural idempotency (version check). Belt and suspenders.
 
 ### 3. Ordering
 
-Must the deriver see events in causal order? If so, it needs a journal/subscription with ordering guarantees.
+Must the deriver see events in causal order?
 
 **Recommendation:** Start with ordered delivery per source type. Cross-type ordering is the consumer's responsibility (same as projection today).
 
 ### 4. State
 
-Is the deriver pure (stateless, derives from the event batch alone) or stateful (tracks what it has seen across calls)?
+Is the deriver pure (stateless) or stateful?
 
-- **Stateless:** Simpler, but can only react to the current batch. Misses multi-batch patterns.
-- **Stateful:** Needs a checkpoint or state store. More powerful, but more complex.
+- **Stateless:** Simpler. Can only react to the current batch. Misses multi-batch patterns.
+- **Stateful:** Needs a checkpoint or state store. More powerful. Equivalent to a saga.
 
-**Recommendation:** Start stateless. Stateful derivation can be built on top (consumer manages state in a projection).
+**Recommendation:** Start stateless. Stateful derivation is a saga — use the existing `saga` module for that case.
 
 ## Relationship to Existing Modules
 
-- **`projection`**: A derived event is a "projection that writes events instead of read models." Could share the runner infrastructure.
-- **`saga`**: Sagas produce *commands*. Derived events produce *events*. Different semantics — events are facts (already happened), commands are requests (may be rejected).
+- **`projection`**: Derivation is a "projection that dispatches commands instead of writing read models." Could share the runner infrastructure.
+- **`saga`**: Sagas produce commands statefully. Derivations produce commands statelessly. Same output type, different lifecycle. Derivation is strictly simpler.
 - **`stream`**: Could use `stream` for aggregate listing and tombstone detection on source aggregates.
+- **`command`**: Derived commands are regular commands. No special type needed — just metadata to mark provenance.
+
+## Impact on command-event-causality.md
+
+This refinement eliminates the original "Option C" problem (events requiring commands at construction):
+
+- Replay/rehydration reads events — never produces new ones → unaffected
+- Derived events now go through commands → no bypass
+- External ingestion already modeled as commands → already aligned
+- Timer triggers modeled as commands → already aligned
+
+See `docs/research/command-event-causality.md` for the full options analysis.
 
 ## Open Questions
 
-1. Should the deriver support **time windows** ("emit if A and B arrive within 10 minutes")? This would require a scheduler/timer component.
-2. Should derived events carry **provenance metadata** (which source events produced them)?
-3. How does this interact with **tombstones**? If a source aggregate is tombstoned, should derived events be retracted?
-4. What about **derived event chains** (a derived event triggers another derivation)? Needs cycle detection.
+1. Should the deriver support **time windows** ("dispatch if A and B arrive within 10 minutes")? This requires a scheduler/timer component — essentially a stateful saga.
+2. How does this interact with **tombstones**? If a source aggregate is tombstoned, should derived commands be suppressed?
+3. What about **derivation chains** (a derived event triggers another derivation)? Since derived events go through commands→decider, the chain is: `Events → Deriver → Command → Decider → Event → Deriver → ...`. Cycles are prevented naturally if the decider rejects (state unchanged).
+4. Should derivation be a **separate module** (`derivation`) or live inside `saga` as a stateless variant?
