@@ -62,7 +62,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 		ctx, tracer(), "snapshot.save",
 		trace.SpanKindClient,
 		trace.WithAttributes(aggregateAttrsWithVersion(
-			string(snap.AggregateType), snap.AggregateID.String(), snap.Version.Int(),
+			snap.AggregateType, snap.AggregateID, snap.Version.Int(),
 		)...),
 	)
 	defer span.End()
@@ -111,7 +111,7 @@ func (s *SQLSnapshotStore) Load(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "snapshot.load",
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+		trace.WithAttributes(aggregateAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 
@@ -138,7 +138,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		ctx, tracer(), "snapshot.load_at_version",
 		trace.SpanKindClient,
 		trace.WithAttributes(aggregateAttrsWithVersion(
-			string(aggregateType), aggregateID.String(), version.Int(),
+			aggregateType, aggregateID, version.Int(),
 		)...),
 	)
 	defer span.End()

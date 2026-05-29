@@ -79,7 +79,7 @@ func (s *SQLEventStore) LoadFromVersion(
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName: "event.store.load_from_version",
 		attrs: aggregateAttrsWithVersion(
-			string(aggregateType), aggregateID.String(), version.Int(),
+			aggregateType, aggregateID, version.Int(),
 		),
 		where:      fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		extraArgs:  []any{version.Int()},
@@ -99,7 +99,7 @@ func (s *SQLEventStore) LoadToVersion(
 	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
 		spanName: "event.store.load_to_version",
 		attrs: aggregateAttrsWithVersion(
-			string(aggregateType), aggregateID.String(), maxVersion.Int(),
+			aggregateType, aggregateID, maxVersion.Int(),
 		),
 		where:      fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
 		extraArgs:  []any{maxVersion.Int()},

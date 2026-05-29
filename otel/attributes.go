@@ -66,37 +66,37 @@ const (
 )
 
 // AggregateAttrs returns the standard set of aggregate attributes for a span.
-func AggregateAttrs(aggType string, aggregateID fmt.Stringer, version int) []attribute.KeyValue {
+func AggregateAttrs(aggregateType string, aggregateID fmt.Stringer, version int) []attribute.KeyValue {
 	return []attribute.KeyValue{
-		attribute.String(AttrAggregateType, aggType),
+		attribute.String(AttrAggregateType, aggregateType),
 		attribute.String(AttrAggregateID, aggregateID.String()),
 		attribute.Int(AttrAggregateVersion, version),
 	}
 }
 
 // CommandAttrs returns the standard set of command attributes for a span.
-func CommandAttrs(cmdType string, aggregateID fmt.Stringer) []attribute.KeyValue {
+func CommandAttrs(commandType string, aggregateID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
-		attribute.String(AttrCommandType, cmdType),
+		attribute.String(AttrCommandType, commandType),
 		attribute.String(AttrAggregateID, aggregateID.String()),
 	}
 }
 
 // EventAttrs returns the standard set of event attributes for a span.
-func EventAttrs(evtType string, aggregateID fmt.Stringer, aggType string) []attribute.KeyValue {
+func EventAttrs(eventType string, aggregateID fmt.Stringer, aggregateType string) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
-		attribute.String(AttrEventType, evtType),
+		attribute.String(AttrEventType, eventType),
 		attribute.String(AttrAggregateID, aggregateID.String()),
-		attribute.String(AttrAggregateType, aggType),
+		attribute.String(AttrAggregateType, aggregateType),
 	}
 }
 
 // QueryAttrs returns the standard set of query attributes for a span.
-func QueryAttrs(qryType string) []attribute.KeyValue {
+func QueryAttrs(queryType string) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindQuery),
-		attribute.String(AttrQueryType, qryType),
+		attribute.String(AttrQueryType, queryType),
 	}
 }

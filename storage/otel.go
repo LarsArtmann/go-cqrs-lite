@@ -24,7 +24,11 @@ func aggregateAttrs(aggregateType event.AggregateType, aggregateID id.AggregateI
 	}
 }
 
-func aggregateAttrsWithVersion(aggregateType event.AggregateType, aggregateID id.AggregateID, version int) []attribute.KeyValue {
+func aggregateAttrsWithVersion(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	version int,
+) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(cqrsotel.AttrAggregateType, aggregateType.String()),
 		attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
