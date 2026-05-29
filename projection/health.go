@@ -89,7 +89,7 @@ func (r *Runner) DetailedHealthCheck(ctx context.Context) *HealthStatus {
 			status.Healthy = false
 		} else {
 			ph.Healthy = true
-			ph.Checkpoint = cp.String()
+			ph.Checkpoint = cp.EventID.String()
 		}
 
 		status.Projections = append(status.Projections, ph)
