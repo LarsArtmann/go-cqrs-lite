@@ -31,3 +31,27 @@ var ErrTypeAssertion = errorfamily.NewCorruption(
 	"command.type_assertion",
 	"command type assertion failed",
 )
+
+// ErrEmptyAggregateType is returned when an aggregate type is empty.
+var ErrEmptyAggregateType = errorfamily.NewRejection(
+	"command.empty_aggregate_type",
+	"aggregate type is required",
+)
+
+// ErrDuplicateCommand is returned when a command with the same ID already exists.
+var ErrDuplicateCommand = errorfamily.NewConflict(
+	"command.duplicate",
+	"command with this ID already exists",
+)
+
+// ErrCommandNotFound is returned when a command is not found.
+var ErrCommandNotFound = errorfamily.NewRejection(
+	"command.not_found",
+	"command not found",
+)
+
+// ErrStoreClosed is returned when the command store is closed.
+var ErrStoreClosed = errorfamily.NewInfrastructure(
+	"command.store_closed",
+	"command store is closed",
+)
