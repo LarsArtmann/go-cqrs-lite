@@ -108,9 +108,4 @@ func (s *SQLTransactionalStore) appendOutboxTx(
 	return nil
 }
 
-var (
-	_ event.TransactionalSink  = (*SQLTransactionalStore)(nil)
-	_ event.TransactionalStore = (*SQLTransactionalStore)(
-		nil,
-	)
-)
+var _ event.TransactionalSink = (*SQLTransactionalStore)(nil)

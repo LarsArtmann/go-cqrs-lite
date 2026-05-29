@@ -132,11 +132,3 @@ type TransactionalSink interface {
 		expectedVersion Version,
 	) error
 }
-
-// TransactionalStore extends Store with atomic save+outbox append.
-//
-// Deprecated: use TransactionalSink instead.
-type TransactionalStore interface {
-	TransactionalSink
-	EventSource
-}
