@@ -2,6 +2,7 @@
 package catalog
 
 import (
+	"cmp"
 	"reflect"
 	"strings"
 	"time"
@@ -80,9 +81,7 @@ func fieldToProperty(field reflect.StructField) (string, Property, bool, bool) {
 	}
 
 	name, omit := parseJSONTag(jsonTag)
-	if name == "" {
-		name = field.Name
-	}
+	name = cmp.Or(name, field.Name)
 
 	prop := *propertyFromReflect(field.Type)
 

@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"cmp"
 	"fmt"
 	"strings"
 
@@ -71,10 +72,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	}
 
 	for _, svc := range cat.Services {
-		tagName := svc.Name
-		if tagName == "" {
-			tagName = string(svc.ID)
-		}
+		tagName := cmp.Or(svc.Name, string(svc.ID))
 
 		doc.Tags = append(doc.Tags, Tag{
 			Name:        tagName,

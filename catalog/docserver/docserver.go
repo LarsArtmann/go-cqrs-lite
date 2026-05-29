@@ -9,6 +9,7 @@
 package docserver
 
 import (
+	"cmp"
 	"encoding/json"
 	"io/fs"
 	"net/http"
@@ -57,13 +58,8 @@ type DocsServer struct {
 
 // NewDocsServer creates a new docs server.
 func NewDocsServer(provider CatalogProvider, cfg Config) *DocsServer {
-	if cfg.BasePath == "" {
-		cfg.BasePath = "/api"
-	}
-
-	if cfg.DocsPath == "" {
-		cfg.DocsPath = "/docs"
-	}
+	cfg.BasePath = cmp.Or(cfg.BasePath, "/api")
+	cfg.DocsPath = cmp.Or(cfg.DocsPath, "/docs")
 
 	if cfg.AsyncAPIServer.Protocol == "" {
 		cfg.AsyncAPIServer = AsyncAPIServerConfig{

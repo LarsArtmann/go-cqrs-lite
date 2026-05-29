@@ -1,6 +1,7 @@
 package projection
 
 import (
+	"cmp"
 	"context"
 	"io"
 	"log/slog"
@@ -51,10 +52,7 @@ func NewRunner(
 		opt(&o)
 	}
 
-	logger := o.logger
-	if logger == nil {
-		logger = slog.Default()
-	}
+	logger := cmp.Or(o.logger, slog.Default())
 
 	cancel := context.CancelFunc(func() {})
 
