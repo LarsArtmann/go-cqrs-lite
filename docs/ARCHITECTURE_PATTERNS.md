@@ -4,12 +4,12 @@
 
 The event store supports querying historical state:
 
-| Method                                           | Description                               |
-| ------------------------------------------------ | ----------------------------------------- |
-| `LoadToVersion(ctx, aggType, aggID, maxVersion)` | Load events up to and including a version |
-| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`  | Load events up to a point in time         |
-| `LoadFromVersion(ctx, aggType, aggID, version)`  | Load events starting from a version       |
-| `ReadFrom(ctx, afterEventID, limit)`              | Cursor-based global event loading (SeekableJournal) |
+| Method                                           | Description                                         |
+| ------------------------------------------------ | --------------------------------------------------- |
+| `LoadToVersion(ctx, aggType, aggID, maxVersion)` | Load events up to and including a version           |
+| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`  | Load events up to a point in time                   |
+| `LoadFromVersion(ctx, aggType, aggID, version)`  | Load events starting from a version                 |
+| `ReadFrom(ctx, afterEventID, limit)`             | Cursor-based global event loading (SeekableJournal) |
 
 The decider module provides convenience methods:
 

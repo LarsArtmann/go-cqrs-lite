@@ -52,17 +52,17 @@ db, _ := storage.OpenTurso("libsql://...", authToken)
 
 ## Event Store Operations
 
-| Method                                               | Description                               |
-| ---------------------------------------------------- | ----------------------------------------- |
-| `Save(ctx, aggType, aggID, events, expectedVersion)` | Append events with optimistic concurrency |
-| `AppendBatch(ctx, aggType, aggID, events)`           | Append without concurrency check          |
-| `Load(ctx, aggType, aggID)`                          | Load all events for an aggregate          |
-| `LoadFromVersion(ctx, aggType, aggID, version)`      | Load events starting from version         |
-| `LoadToVersion(ctx, aggType, aggID, maxVersion)`     | Load events up to version (time-travel)   |
-| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | Load events up to timestamp (time-travel) |
+| Method                                               | Description                                 |
+| ---------------------------------------------------- | ------------------------------------------- |
+| `Save(ctx, aggType, aggID, events, expectedVersion)` | Append events with optimistic concurrency   |
+| `AppendBatch(ctx, aggType, aggID, events)`           | Append without concurrency check            |
+| `Load(ctx, aggType, aggID)`                          | Load all events for an aggregate            |
+| `LoadFromVersion(ctx, aggType, aggID, version)`      | Load events starting from version           |
+| `LoadToVersion(ctx, aggType, aggID, maxVersion)`     | Load events up to version (time-travel)     |
+| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | Load events up to timestamp (time-travel)   |
 | `ReadAll(ctx)`                                       | Load all events across aggregates (Journal) |
-| `ReadFrom(ctx, afterEventID, limit)`                 | Cursor-based global load (SeekableJournal) |
-| `SaveWithOutbox(ctx, aggType, aggID, events, ver)`   | Atomic save + outbox (TransactionalSink)  |
+| `ReadFrom(ctx, afterEventID, limit)`                 | Cursor-based global load (SeekableJournal)  |
+| `SaveWithOutbox(ctx, aggType, aggID, events, ver)`   | Atomic save + outbox (TransactionalSink)    |
 
 ## Outbox Pattern
 
