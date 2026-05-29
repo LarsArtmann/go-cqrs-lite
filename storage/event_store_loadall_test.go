@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"errors"
 	"regexp"
@@ -164,26 +165,26 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 }
 
 func TestSchema_ContainsExpectedDDL(t *testing.T) {
-	ddl := Schema()
+	ddl := sqlpkg.Schema()
 
 	if !regexp.MustCompile(`(?s)CREATE TABLE.*events`).MatchString(ddl) {
-		t.Error("Schema() missing CREATE TABLE events")
+		t.Error("sqlpkg.Schema() missing CREATE TABLE events")
 	}
 
 	if !regexp.MustCompile(`(?s)CREATE TABLE.*outbox`).MatchString(ddl) {
-		t.Error("Schema() missing CREATE TABLE outbox")
+		t.Error("sqlpkg.Schema() missing CREATE TABLE outbox")
 	}
 
 	if !regexp.MustCompile(`UNIQUE\(aggregate_type,\s*aggregate_id,\s*version\)`).MatchString(ddl) {
-		t.Error("Schema() missing UNIQUE constraint")
+		t.Error("sqlpkg.Schema() missing UNIQUE constraint")
 	}
 
 	if !regexp.MustCompile(`idx_events_aggregate`).MatchString(ddl) {
-		t.Error("Schema() missing idx_events_aggregate index")
+		t.Error("sqlpkg.Schema() missing idx_events_aggregate index")
 	}
 
 	if !regexp.MustCompile(`idx_events_type`).MatchString(ddl) {
-		t.Error("Schema() missing idx_events_type index")
+		t.Error("sqlpkg.Schema() missing idx_events_type index")
 	}
 }
 

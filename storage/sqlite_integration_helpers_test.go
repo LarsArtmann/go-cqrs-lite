@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"database/sql"
 	"testing"
@@ -30,7 +31,7 @@ func newSQLiteTestDB(t *testing.T) *sql.DB {
 func initSQLiteSchema(t *testing.T, db *sql.DB) {
 	t.Helper()
 
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
+	for _, ddl := range []string{sqlpkg.SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
 		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			t.Fatalf("exec DDL: %v\nDDL: %s", err, ddl)

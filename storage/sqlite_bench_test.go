@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"database/sql"
 	"fmt"
@@ -226,7 +227,7 @@ func openSQLiteBenchDB(b *testing.B) (*sql.DB, error) {
 
 	db.SetMaxOpenConns(1)
 
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
+	for _, ddl := range []string{sqlpkg.SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
 		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			return nil, fmt.Errorf("exec DDL: %w", err)

@@ -17,7 +17,7 @@ import (
 func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_all", trace.SpanKindClient)
 	defer span.End()
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
 		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC`
 	rows, err := s.DB.QueryContext(ctx, query)
 	if err != nil {

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"database/sql/driver"
 	"errors"
@@ -67,7 +68,7 @@ func TestSQLOutbox_Append(t *testing.T) {
 	}
 
 	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO outbox (id, status, events, created_at) VALUES ($1, $2, $3, $4)`)).
-		WithArgs(evt.ID(), string(OutboxStatusPending), expectedJSON, sqlmock.AnyArg()).
+		WithArgs(evt.ID(), string(sqlpkg.OutboxStatusPending), expectedJSON, sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = outbox.Append(t.Context(), events)
@@ -130,7 +131,7 @@ func TestSQLOutbox_PollPending(t *testing.T) {
 		AddRow(evt.ID().String(), eventsJSON, time.Now())
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
-		WithArgs(string(OutboxStatusPending), 10).
+		WithArgs(string(sqlpkg.OutboxStatusPending), 10).
 		WillReturnRows(rows)
 
 	entries, err := outbox.PollPending(t.Context(), 10)
@@ -170,7 +171,7 @@ func TestSQLOutbox_PollPending_Empty(t *testing.T) {
 		LIMIT $2`
 
 	mock.ExpectQuery(regexp.QuoteMeta(pollQuery)).
-		WithArgs(string(OutboxStatusPending), 10).
+		WithArgs(string(sqlpkg.OutboxStatusPending), 10).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "events", "created_at"}))
 
 	entries, err := outbox.PollPending(t.Context(), 10)

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"errors"
 	"regexp"
@@ -171,9 +172,9 @@ func TestSQLEventStore_Close(t *testing.T) {
 }
 
 func TestMarshalMetadata_Nil(t *testing.T) {
-	result, err := marshalMetadata(nil)
+	result, err := sqlpkg.MarshalMetadata(nil)
 	if err != nil {
-		t.Fatalf("marshalMetadata(nil): %v", err)
+		t.Fatalf("sqlpkg.MarshalMetadata(nil): %v", err)
 	}
 
 	if result != nil {
@@ -187,7 +188,7 @@ func TestMarshalMetadata_Full(t *testing.T) {
 	meta.UserID = id.NewUserID()
 	meta.Custom = map[event.MetadataKey]string{"env": "test"}
 
-	result, err := marshalMetadata(meta)
+	result, err := sqlpkg.MarshalMetadata(meta)
 	if err != nil {
 		t.Fatalf("marshalMetadata: %v", err)
 	}
@@ -302,7 +303,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	metaJSON, err := marshalMetadata(evt.Metadata())
+	metaJSON, err := sqlpkg.MarshalMetadata(evt.Metadata())
 	if err != nil {
 		t.Fatalf("marshal metadata: %v", err)
 	}

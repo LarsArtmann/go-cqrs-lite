@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"errors"
 	"testing"
 	"time"
@@ -9,7 +10,7 @@ import (
 func TestPostgresDialect_Placeholder(t *testing.T) {
 	t.Parallel()
 
-	d := PostgresDialect{}
+	d := sqlpkg.PostgresDialect{}
 
 	tests := []struct {
 		index    int
@@ -31,7 +32,7 @@ func TestPostgresDialect_Placeholder(t *testing.T) {
 func TestPostgresDialect_FormatTime(t *testing.T) {
 	t.Parallel()
 
-	d := PostgresDialect{}
+	d := sqlpkg.PostgresDialect{}
 	now := time.Now()
 
 	result := d.FormatTime(now)
@@ -43,7 +44,7 @@ func TestPostgresDialect_FormatTime(t *testing.T) {
 func TestPostgresDialect_ScanTimeDest(t *testing.T) {
 	t.Parallel()
 
-	d := PostgresDialect{}
+	d := sqlpkg.PostgresDialect{}
 	dest := d.ScanTimeDest()
 
 	tp, ok := dest.(*time.Time)
@@ -59,7 +60,7 @@ func TestPostgresDialect_ScanTimeDest(t *testing.T) {
 func TestPostgresDialect_ParseTime(t *testing.T) {
 	t.Parallel()
 
-	d := PostgresDialect{}
+	d := sqlpkg.PostgresDialect{}
 	now := time.Now()
 
 	parsed, err := d.ParseTime(&now)
@@ -75,7 +76,7 @@ func TestPostgresDialect_ParseTime(t *testing.T) {
 func TestPostgresDialect_ParseTime_WrongType(t *testing.T) {
 	t.Parallel()
 
-	d := PostgresDialect{}
+	d := sqlpkg.PostgresDialect{}
 
 	_, err := d.ParseTime("not a time pointer")
 	if err == nil {
@@ -86,7 +87,7 @@ func TestPostgresDialect_ParseTime_WrongType(t *testing.T) {
 func TestSQLiteDialect_Placeholder(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 
 	for _, index := range []int{1, 2, 10} {
 		got := d.Placeholder(index)
@@ -99,7 +100,7 @@ func TestSQLiteDialect_Placeholder(t *testing.T) {
 func TestSQLiteDialect_FormatTime(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 	now := time.Now()
 
 	result := d.FormatTime(now)
@@ -121,7 +122,7 @@ func TestSQLiteDialect_FormatTime(t *testing.T) {
 func TestSQLiteDialect_ScanTimeDest(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 	dest := d.ScanTimeDest()
 
 	sp, ok := dest.(*string)
@@ -137,7 +138,7 @@ func TestSQLiteDialect_ScanTimeDest(t *testing.T) {
 func TestSQLiteDialect_ParseTime(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 	ts := "2024-01-15T10:30:00.123456789Z"
 
 	parsed, err := d.ParseTime(&ts)
@@ -154,7 +155,7 @@ func TestSQLiteDialect_ParseTime(t *testing.T) {
 func TestSQLiteDialect_ParseTime_WrongType(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 
 	_, err := d.ParseTime(42)
 	if err == nil {
@@ -165,7 +166,7 @@ func TestSQLiteDialect_ParseTime_WrongType(t *testing.T) {
 func TestSQLiteDialect_ParseTime_Empty(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 	empty := ""
 
 	parsed, err := d.ParseTime(&empty)
@@ -181,7 +182,7 @@ func TestSQLiteDialect_ParseTime_Empty(t *testing.T) {
 func TestSQLiteDialect_ParseTime_UnsupportedFormat(t *testing.T) {
 	t.Parallel()
 
-	d := SQLiteDialect{}
+	d := sqlpkg.SQLiteDialect{}
 	bad := "not-a-date"
 
 	_, err := d.ParseTime(&bad)
@@ -189,8 +190,8 @@ func TestSQLiteDialect_ParseTime_UnsupportedFormat(t *testing.T) {
 		t.Fatal("expected error for unsupported format")
 	}
 
-	if !errors.Is(err, ErrUnsupportedTimestamp) {
-		t.Errorf("error = %v, want ErrUnsupportedTimestamp", err)
+	if !errors.Is(err, sqlpkg.ErrUnsupportedTimestamp) {
+		t.Errorf("error = %v, want sqlpkg.ErrUnsupportedTimestamp", err)
 	}
 }
 
@@ -199,21 +200,21 @@ func TestPlaceholders(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		dialect  Dialect
+		dialect  sqlpkg.Dialect
 		count    int
 		offset   int
 		expected string
 	}{
-		{"postgres 3 from 0", PostgresDialect{}, 3, 0, "$1, $2, $3"},
-		{"postgres 2 from 5", PostgresDialect{}, 2, 5, "$6, $7"},
-		{"sqlite 3 from 0", SQLiteDialect{}, 3, 0, "?, ?, ?"},
-		{"sqlite 2 from 5", SQLiteDialect{}, 2, 5, "?, ?"},
+		{"postgres 3 from 0", sqlpkg.PostgresDialect{}, 3, 0, "$1, $2, $3"},
+		{"postgres 2 from 5", sqlpkg.PostgresDialect{}, 2, 5, "$6, $7"},
+		{"sqlite 3 from 0", sqlpkg.SQLiteDialect{}, 3, 0, "?, ?, ?"},
+		{"sqlite 2 from 5", sqlpkg.SQLiteDialect{}, 2, 5, "?, ?"},
 	}
 
 	for _, tt := range tests {
-		got := placeholders(tt.dialect, tt.count, tt.offset)
+		got := sqlpkg.Placeholders(tt.dialect, tt.count, tt.offset)
 		if got != tt.expected {
-			t.Errorf("%s: placeholders(%d, %d) = %q, want %q",
+			t.Errorf("%s: sqlpkg.Placeholders(%d, %d) = %q, want %q",
 				tt.name, tt.count, tt.offset, got, tt.expected)
 		}
 	}

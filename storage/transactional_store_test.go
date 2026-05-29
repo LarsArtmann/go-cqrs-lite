@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"errors"
 	"regexp"
@@ -67,8 +68,8 @@ func TestNewSQLTransactionalStore_NilStore(t *testing.T) {
 		t.Fatal("expected error for nil store")
 	}
 
-	if !errors.Is(err, ErrNilDB) {
-		t.Errorf("error should wrap ErrNilDB, got: %v", err)
+	if !errors.Is(err, sqlpkg.ErrNilDB) {
+		t.Errorf("error should wrap sqlpkg.ErrNilDB, got: %v", err)
 	}
 }
 
@@ -90,8 +91,8 @@ func TestNewSQLTransactionalStore_NilOutbox(t *testing.T) {
 		t.Fatal("expected error for nil outbox")
 	}
 
-	if !errors.Is(err, ErrNilDB) {
-		t.Errorf("error should wrap ErrNilDB, got: %v", err)
+	if !errors.Is(err, sqlpkg.ErrNilDB) {
+		t.Errorf("error should wrap sqlpkg.ErrNilDB, got: %v", err)
 	}
 }
 

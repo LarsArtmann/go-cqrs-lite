@@ -51,8 +51,6 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 	return &SQLEventStore{Base: base}, nil
 }
 
-var ErrConcurrencyConflict = event.ErrVersionConflict
-
 // Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
 func (s *SQLEventStore) Close() error {
 	if s.ownDB {

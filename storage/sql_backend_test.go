@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"context"
 	"testing"
 
@@ -129,7 +130,7 @@ func TestNewSQLBackendWithDialect(t *testing.T) {
 	db := newSQLiteTestDB(t)
 	initSQLiteSchema(t, db)
 
-	backend, err := NewSQLBackendWithDialect(db, SQLiteDialect{})
+	backend, err := NewSQLBackendWithDialect(db, sqlpkg.SQLiteDialect{})
 	if err != nil {
 		t.Fatalf("NewSQLBackendWithDialect: %v", err)
 	}

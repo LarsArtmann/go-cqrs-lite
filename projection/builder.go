@@ -2,8 +2,8 @@ package projection
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -24,22 +24,17 @@ func NewBuilder(name string) *Builder {
 }
 
 // On registers a type-safe handler for the given event type.
-// The payload is JSON-decoded into T before calling handler.
+// The payload is decoded using the provided codec, which must match the event's encoding.
 // Returns ErrNilHandler if handler is nil.
-func On[T any](b *Builder, eventType event.Type, handler func(context.Context, T) error) error {
+func On[T any](b *Builder, eventType event.Type, c codec.Codec, handler func(context.Context, T) error) error {
 	if handler == nil {
 		return ErrNilHandler
 	}
 
 	wrapper := func(ctx context.Context, evt event.Event) error {
-		var payload T
-
-		if len(evt.Payload()) > 0 {
-			err := json.Unmarshal(evt.Payload(), &payload)
-			if err != nil {
-				return event.WrapCorruption(err, "projection.decode_payload",
-					"decode payload for "+string(eventType))
-			}
+		payload, err := event.DecodePayload[T](evt, c)
+		if err != nil {
+			return err
 		}
 
 		return handler(ctx, payload)

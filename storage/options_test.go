@@ -1,6 +1,7 @@
 package storage
 
 import (
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -9,12 +10,12 @@ import (
 func TestOutboxStatus_String(t *testing.T) {
 	t.Parallel()
 
-	if got := OutboxStatusPending.String(); got != "pending" {
-		t.Errorf("OutboxStatusPending.String() = %q, want %q", got, "pending")
+	if got := sqlpkg.OutboxStatusPending.String(); got != "pending" {
+		t.Errorf("sqlpkg.OutboxStatusPending.String() = %q, want %q", got, "pending")
 	}
 
-	if got := OutboxStatusAcked.String(); got != "acked" {
-		t.Errorf("OutboxStatusAcked.String() = %q, want %q", got, "acked")
+	if got := sqlpkg.OutboxStatusAcked.String(); got != "acked" {
+		t.Errorf("sqlpkg.OutboxStatusAcked.String() = %q, want %q", got, "acked")
 	}
 }
 
