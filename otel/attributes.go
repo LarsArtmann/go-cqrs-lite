@@ -65,17 +65,8 @@ const (
 	KindQuery   = "query"
 )
 
-// AggregateAttrs returns the standard set of aggregate attributes for a span.
-func AggregateAttrs(aggregateType string, aggregateID fmt.Stringer, version int) []attribute.KeyValue {
-	return []attribute.KeyValue{
-		attribute.String(AttrAggregateType, aggregateType),
-		attribute.String(AttrAggregateID, aggregateID.String()),
-		attribute.Int(AttrAggregateVersion, version),
-	}
-}
-
-// AggregateBaseAttrs returns the aggregate type and ID attributes without version.
-func AggregateBaseAttrs(aggregateType, aggregateID fmt.Stringer) []attribute.KeyValue {
+// AggregateAttrs returns the aggregate type and ID attributes for a span.
+func AggregateAttrs(aggregateType, aggregateID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrAggregateType, aggregateType.String()),
 		attribute.String(AttrAggregateID, aggregateID.String()),

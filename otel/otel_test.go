@@ -146,11 +146,10 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 func TestAggregateAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
 
-	attrs := AggregateAttrs("Order", testStringer("order-123"), 5)
+	attrs := AggregateAttrs(testStringer("Order"), testStringer("order-123"))
 	require.Equal(t, []attribute.KeyValue{
 		attribute.String(AttrAggregateType, "Order"),
 		attribute.String(AttrAggregateID, "order-123"),
-		attribute.Int(AttrAggregateVersion, 5),
 	}, attrs)
 }
 
