@@ -18,13 +18,14 @@ Ran `art-dupl -t 45 . --semantic --sort total-tokens` across the entire monorepo
 
 ### Production Code Deduplication (3 clone groups → 0)
 
-| Clone | Files | Fix |
-|-------|-------|-----|
-| **#18: stream List() delegation** | `stream/aggregate_reader.go`, `in_memory.go`, `sql_reader.go` | Extracted `listRefsFromStatus()` helper — both `List()` implementations now delegate to it |
-| **#17: pebble iterateEvents duplication** | `storage/pebble_event_store.go`, `pebble_save.go` | Added `eventPredicate` parameter to `iterateEvents()` — `LoadToTimestamp` now uses it for early termination instead of duplicating the entire iteration body |
-| **#19: SQL Load* boilerplate** | `storage/event_store_load.go` | Extracted `loadWithSpan()` + `loadParams` struct — all 5 `Load*`/`LoadBackwards` methods share the span→query→record boilerplate |
+| Clone                                     | Files                                                         | Fix                                                                                                                                                          |
+| ----------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **#18: stream List() delegation**         | `stream/aggregate_reader.go`, `in_memory.go`, `sql_reader.go` | Extracted `listRefsFromStatus()` helper — both `List()` implementations now delegate to it                                                                   |
+| **#17: pebble iterateEvents duplication** | `storage/pebble_event_store.go`, `pebble_save.go`             | Added `eventPredicate` parameter to `iterateEvents()` — `LoadToTimestamp` now uses it for early termination instead of duplicating the entire iteration body |
+| **#19: SQL Load\* boilerplate**           | `storage/event_store_load.go`                                 | Extracted `loadWithSpan()` + `loadParams` struct — all 5 `Load*`/`LoadBackwards` methods share the span→query→record boilerplate                             |
 
 **Production code: ZERO clones at threshold 45.** Verified with:
+
 ```bash
 art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 # Found total 0 clone groups.
@@ -32,41 +33,41 @@ art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 
 ### Test Code Deduplication (5 major clone groups eliminated)
 
-| Clone | Files | Fix |
-|-------|-------|-----|
-| **#1: event upcasters** | `core/event/event_bdd_test.go`, `example_test.go` | Extracted `makeUpcaster()` helper — 5 inline upcaster definitions → 1 helper |
+| Clone                        | Files                                                     | Fix                                                                                                     |
+| ---------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **#1: event upcasters**      | `core/event/event_bdd_test.go`, `example_test.go`         | Extracted `makeUpcaster()` helper — 5 inline upcaster definitions → 1 helper                            |
 | **#2: signing tamper event** | `signing/multisig_*.go` (4 files), `integration/signing/` | Extended `tamperEvent()` with optional payload param — 6 inline tamper clones → 1 helper + 1 local copy |
-| **#7+8: stream benchmarks** | `stream/benchmark_test.go` | Extracted `seedBenchAggregates()` — 4 seed loops → 1 helper |
-| **#10: pebble benchmarks** | `storage/pebble_bench_test.go` | Extracted `seedPebbleBenchEvents()` — 2 full seed loops → 1 helper |
-| **#15: sqlite benchmarks** | `storage/sqlite_bench_test.go` | Extracted `seedSQLiteBenchEvents()` — 2 seed loops → 1 helper |
+| **#7+8: stream benchmarks**  | `stream/benchmark_test.go`                                | Extracted `seedBenchAggregates()` — 4 seed loops → 1 helper                                             |
+| **#10: pebble benchmarks**   | `storage/pebble_bench_test.go`                            | Extracted `seedPebbleBenchEvents()` — 2 full seed loops → 1 helper                                      |
+| **#15: sqlite benchmarks**   | `storage/sqlite_bench_test.go`                            | Extracted `seedSQLiteBenchEvents()` — 2 seed loops → 1 helper                                           |
 
 ### Test Suite Status
 
 **28 test packages, ALL PASS, zero failures:**
 
-| Module | Coverage |
-|--------|----------|
-| core/aggregate | 100.0% |
-| core/decider | 100.0% |
-| core/pkg/dispatcher | 100.0% |
-| core/pkg/id | 100.0% |
-| memory | 99.6% |
-| catalog | 96.3% |
-| core/query | 96.8% |
-| catalog/openapi | 96.2% |
-| catalog/d2 | 95.0% |
-| core/command | 94.3% |
-| middleware | 93.9% |
-| stream | 93.9% |
-| testhelpers | 94.0% |
-| watermill | 94.4% |
-| signing | 93.8% |
-| catalog/asyncapi | 93.7% |
-| core/event | 92.7% |
-| catalog/eventcatalog | 92.8% |
-| storage | 90.6% |
-| catalog/docserver | 89.9% |
-| catalog/internal/schemautil | 84.2% |
+| Module                      | Coverage |
+| --------------------------- | -------- |
+| core/aggregate              | 100.0%   |
+| core/decider                | 100.0%   |
+| core/pkg/dispatcher         | 100.0%   |
+| core/pkg/id                 | 100.0%   |
+| memory                      | 99.6%    |
+| catalog                     | 96.3%    |
+| core/query                  | 96.8%    |
+| catalog/openapi             | 96.2%    |
+| catalog/d2                  | 95.0%    |
+| core/command                | 94.3%    |
+| middleware                  | 93.9%    |
+| stream                      | 93.9%    |
+| testhelpers                 | 94.0%    |
+| watermill                   | 94.4%    |
+| signing                     | 93.8%    |
+| catalog/asyncapi            | 93.7%    |
+| core/event                  | 92.7%    |
+| catalog/eventcatalog        | 92.8%    |
+| storage                     | 90.6%    |
+| catalog/docserver           | 89.9%    |
+| catalog/internal/schemautil | 84.2%    |
 
 ---
 
@@ -76,25 +77,25 @@ art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 
 17 test clone groups remain at threshold 45. These are small (2-5 tokens each) idiomatic Go patterns that are borderline for extraction:
 
-| Group | File | Pattern | Why kept |
-|-------|------|---------|----------|
-| #3 | `core/decider/decider_coverage_test.go` | 5× repo.Execute enrichment test | Each test has different enricher behavior — extracting loses test readability |
-| #5 | `core/decider/benchmark_test.go` | 3× bench repo setup | Different bench scenarios (create, update, load) |
-| #6 | `saga/saga_bdd_test.go` | 3× compensation step definitions | Different step structures per scenario |
-| #4 | `core/event/event_bdd_test.go` | 3× validation error checks | 3-line Context/It blocks with different error messages |
-| #9 | `core/event/outbox_publisher_*.go` | 3× constructor option test | Different options (interval, batchSize, zero-default) |
-| #7 | `stream/benchmark_test.go` | 3× bench loop bodies | Remaining bench loop structure (seed extracted already) |
-| #12 | `core/command/command_bdd_test.go` | 2× middleware registration | Two different middleware functions |
-| #13 | `core/query/query_bdd_test.go` | 2× pagination test | Different data points (0 items vs 23 items) |
-| #14 | `core/query/dispatcher_test.go` | 2× Use() middleware registration | Identical middleware pattern in different test functions |
-| #16 | `stream/listbuilder_bdd_test.go` | 2× page size test | Different page sizes (0 vs 200) |
-| #17 | `stream/sql_bdd_test.go` | 2× seed data setup | Different test data |
-| #18 | `storage/event_store_loadall_test.go` | 2× mock query setup | Different query types |
-| #19 | `storage/event_store_mock_test.go` | 2× mock expectation setup | Different query/method targets |
-| #11 | `storage/event_store_timetravel_test.go` | 2× append loop | Different store methods |
-| New | `integration/chaos_test.go` | 2× chaos test setup | Same structure different params |
-| Remaining | `integration/signing/signing_integration_test.go` | 2× tamper pattern | Different package, local helper already |
-| Remaining | `storage/pebble_bench_test.go` | 2× bench loop body | Bench boilerplate |
+| Group     | File                                              | Pattern                          | Why kept                                                                      |
+| --------- | ------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
+| #3        | `core/decider/decider_coverage_test.go`           | 5× repo.Execute enrichment test  | Each test has different enricher behavior — extracting loses test readability |
+| #5        | `core/decider/benchmark_test.go`                  | 3× bench repo setup              | Different bench scenarios (create, update, load)                              |
+| #6        | `saga/saga_bdd_test.go`                           | 3× compensation step definitions | Different step structures per scenario                                        |
+| #4        | `core/event/event_bdd_test.go`                    | 3× validation error checks       | 3-line Context/It blocks with different error messages                        |
+| #9        | `core/event/outbox_publisher_*.go`                | 3× constructor option test       | Different options (interval, batchSize, zero-default)                         |
+| #7        | `stream/benchmark_test.go`                        | 3× bench loop bodies             | Remaining bench loop structure (seed extracted already)                       |
+| #12       | `core/command/command_bdd_test.go`                | 2× middleware registration       | Two different middleware functions                                            |
+| #13       | `core/query/query_bdd_test.go`                    | 2× pagination test               | Different data points (0 items vs 23 items)                                   |
+| #14       | `core/query/dispatcher_test.go`                   | 2× Use() middleware registration | Identical middleware pattern in different test functions                      |
+| #16       | `stream/listbuilder_bdd_test.go`                  | 2× page size test                | Different page sizes (0 vs 200)                                               |
+| #17       | `stream/sql_bdd_test.go`                          | 2× seed data setup               | Different test data                                                           |
+| #18       | `storage/event_store_loadall_test.go`             | 2× mock query setup              | Different query types                                                         |
+| #19       | `storage/event_store_mock_test.go`                | 2× mock expectation setup        | Different query/method targets                                                |
+| #11       | `storage/event_store_timetravel_test.go`          | 2× append loop                   | Different store methods                                                       |
+| New       | `integration/chaos_test.go`                       | 2× chaos test setup              | Same structure different params                                               |
+| Remaining | `integration/signing/signing_integration_test.go` | 2× tamper pattern                | Different package, local helper already                                       |
+| Remaining | `storage/pebble_bench_test.go`                    | 2× bench loop body               | Bench boilerplate                                                             |
 
 ---
 
@@ -156,34 +157,34 @@ These were present before Session 131 and were NOT caused by deduplication work.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Priority | Item | Why |
-|---|----------|------|-----|
-| 1 | **P0** | Fix saga/projection health test build failures | Tests don't compile — broken CI |
-| 2 | **P0** | Fix or remove `example/saga/go.mod` from go.work | Breaks all workspace commands |
-| 3 | **P0** | Run `nix run .#lint` and fix findings | Verify code quality after dedup |
-| 4 | **P0** | Generate `docs/TODO_LIST.md` from all .md files | Project has no central TODO tracking |
-| 5 | **P0** | Generate `docs/FEATURES.md` from code audit | No feature inventory exists |
-| 6 | **P1** | Push v1.0.0 tags and remove replace directives | Unblock per-module independence |
-| 7 | **P1** | Move `tamperEvent` to `testhelpers` module | Share across signing + integration |
-| 8 | **P1** | Eliminate remaining 17 test clone groups | Get to ZERO at threshold 45 |
-| 9 | **P1** | Persistent saga store (SQL-backed) | In-memory only → production-unusable |
-| 10 | **P1** | Watermill integration tests (real Pub/Sub) | Module exists but untested against real infra |
-| 11 | **P1** | Projection SQL reader for stream module | SQLAggregateReader needs projection table |
-| 12 | **P2** | Go API reference (go doc / pkgsite) | Library needs browsable API docs |
-| 13 | **P2** | Schema evolution guide in docs/ | Upcaster/VersionsStore documentation |
-| 13 | **P2** | Performance regression benchmarks in CI | Track perf across changes |
-| 14 | **P2** | Context propagation E2E tests | Verify correlation/causation IDs flow end-to-end |
-| 15 | **P2** | `docs/api_surface.txt` cleanup and CI check | Generated file needs formatting standards |
-| 16 | **P2** | Pre-commit hook standardization | golangci-lint, go vet, art-dupl |
-| 17 | **P3** | Example app with all modules integrated | Show consumers how to compose the stack |
-| 18 | **P3** | Contributing guide (CONTRIBUTING.md) | Open-source readiness |
-| 19 | **P3** | README.md refresh with current module graph | Docs may be stale |
-| 20 | **P3** | Add `projection/health.go` and `saga/health.go` implementations | Stubs exist, need real health check logic |
-| 21 | **P3** | Chaos test coverage expansion | Only signing module has chaos tests |
-| 22 | **P4** | Turso/LibSQL integration tests | storage module supports it but no E2E |
-| 23 | **P4** | Snapshot store integration tests | SQLSnapshotStore exists but no integration test |
-| 24 | **P4** | Outbox publisher graceful shutdown test | Lifecycle tests exist but no graceful shutdown |
-| 25 | **P4** | Benchmark comparison across storage backends | No perf comparison between SQLite/Pebble/Turso |
+| #   | Priority | Item                                                            | Why                                              |
+| --- | -------- | --------------------------------------------------------------- | ------------------------------------------------ |
+| 1   | **P0**   | Fix saga/projection health test build failures                  | Tests don't compile — broken CI                  |
+| 2   | **P0**   | Fix or remove `example/saga/go.mod` from go.work                | Breaks all workspace commands                    |
+| 3   | **P0**   | Run `nix run .#lint` and fix findings                           | Verify code quality after dedup                  |
+| 4   | **P0**   | Generate `docs/TODO_LIST.md` from all .md files                 | Project has no central TODO tracking             |
+| 5   | **P0**   | Generate `docs/FEATURES.md` from code audit                     | No feature inventory exists                      |
+| 6   | **P1**   | Push v1.0.0 tags and remove replace directives                  | Unblock per-module independence                  |
+| 7   | **P1**   | Move `tamperEvent` to `testhelpers` module                      | Share across signing + integration               |
+| 8   | **P1**   | Eliminate remaining 17 test clone groups                        | Get to ZERO at threshold 45                      |
+| 9   | **P1**   | Persistent saga store (SQL-backed)                              | In-memory only → production-unusable             |
+| 10  | **P1**   | Watermill integration tests (real Pub/Sub)                      | Module exists but untested against real infra    |
+| 11  | **P1**   | Projection SQL reader for stream module                         | SQLAggregateReader needs projection table        |
+| 12  | **P2**   | Go API reference (go doc / pkgsite)                             | Library needs browsable API docs                 |
+| 13  | **P2**   | Schema evolution guide in docs/                                 | Upcaster/VersionsStore documentation             |
+| 13  | **P2**   | Performance regression benchmarks in CI                         | Track perf across changes                        |
+| 14  | **P2**   | Context propagation E2E tests                                   | Verify correlation/causation IDs flow end-to-end |
+| 15  | **P2**   | `docs/api_surface.txt` cleanup and CI check                     | Generated file needs formatting standards        |
+| 16  | **P2**   | Pre-commit hook standardization                                 | golangci-lint, go vet, art-dupl                  |
+| 17  | **P3**   | Example app with all modules integrated                         | Show consumers how to compose the stack          |
+| 18  | **P3**   | Contributing guide (CONTRIBUTING.md)                            | Open-source readiness                            |
+| 19  | **P3**   | README.md refresh with current module graph                     | Docs may be stale                                |
+| 20  | **P3**   | Add `projection/health.go` and `saga/health.go` implementations | Stubs exist, need real health check logic        |
+| 21  | **P3**   | Chaos test coverage expansion                                   | Only signing module has chaos tests              |
+| 22  | **P4**   | Turso/LibSQL integration tests                                  | storage module supports it but no E2E            |
+| 23  | **P4**   | Snapshot store integration tests                                | SQLSnapshotStore exists but no integration test  |
+| 24  | **P4**   | Outbox publisher graceful shutdown test                         | Lifecycle tests exist but no graceful shutdown   |
+| 25  | **P4**   | Benchmark comparison across storage backends                    | No perf comparison between SQLite/Pebble/Turso   |
 
 ---
 
@@ -205,6 +206,7 @@ This blocks the #1 architectural improvement (module independence) and I cannot 
 ## Art-dupl Scan Results
 
 ### Before Session 131
+
 ```
 22 clone groups (6 production + 16 test)
 Production clones: 3 groups (stream, storage/pebble, storage/sql)
@@ -212,6 +214,7 @@ Test clones: 19 groups
 ```
 
 ### After Session 131
+
 ```
 17 clone groups (0 production + 17 test)
 Production clones: 0 groups
@@ -219,6 +222,7 @@ Test clones: 17 groups (all 2-5 tokens, idiomatic Go patterns)
 ```
 
 ### Production Verification
+
 ```bash
 art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 # Found total 0 clone groups. ✅
@@ -229,6 +233,7 @@ art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 ## Files Changed This Session
 
 ### Production Code
+
 - `storage/event_store_load.go` — Extracted `loadWithSpan()` + `loadParams`
 - `storage/pebble_event_store.go` — Added `eventPredicate`, refactored `iterateEvents()` + `LoadToTimestamp()`
 - `storage/pebble_save.go` — Updated `iterateEvents()` call signature
@@ -237,6 +242,7 @@ art-dupl -t 45 . --semantic --sort total-tokens --exclude-pattern "**/*_test.go"
 - `stream/sql_reader.go` — `List()` delegates to `listRefsFromStatus()`
 
 ### Test Code
+
 - `core/event/event_bdd_test.go` — Added `makeUpcaster()`, replaced 4 upcaster clones
 - `core/event/example_test.go` — Used `makeUpcaster()` in Example
 - `signing/test_helpers_test.go` — Extended `tamperEvent()` with optional payload
