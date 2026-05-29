@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -272,7 +273,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 func TestNewProjection_WithDecode(t *testing.T) {
 	t.Parallel()
 
-	codec := JSONCodec{}
+	c := codec.JSONCodec{}
 
 	type userPayload struct {
 		Name string `json:"name"`
@@ -283,7 +284,7 @@ func TestNewProjection_WithDecode(t *testing.T) {
 	proj := NewProjection(
 		"user-name",
 		func(_ context.Context, evt Event) error {
-			p, err := DecodePayload[userPayload](evt, codec)
+			p, err := DecodePayload[userPayload](evt, c)
 			if err != nil {
 				return err
 			}
