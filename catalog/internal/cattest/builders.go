@@ -48,60 +48,6 @@ func AddDomain(
 	})
 }
 
-func AddServiceWithSummary(
-	tb testing.TB,
-	r *catalog.Registry,
-	id catalog.ServiceID,
-	name, version, summary string,
-) *catalog.Registry {
-	tb.Helper()
-
-	r.AddService(catalog.Service{
-		ID:      id,
-		Name:    name,
-		Version: version,
-		Summary: summary,
-	})
-
-	return r
-}
-
-func addMessage(
-	tb testing.TB,
-	r *catalog.Registry,
-	serviceID catalog.ServiceID,
-	msg catalog.Message,
-	fn func(catalog.ServiceID, catalog.Message),
-) *catalog.Registry {
-	tb.Helper()
-
-	fn(serviceID, msg)
-
-	return r
-}
-
-func AddMessage(
-	tb testing.TB,
-	r *catalog.Registry,
-	serviceID catalog.ServiceID,
-	msg catalog.Message,
-) *catalog.Registry {
-	tb.Helper()
-
-	switch msg.Kind {
-	case catalog.CommandMessage:
-		return addMessage(tb, r, serviceID, msg, r.AddCommand)
-	case catalog.EventMessage:
-		return addMessage(tb, r, serviceID, msg, r.AddEvent)
-	case catalog.QueryMessage:
-		return addMessage(tb, r, serviceID, msg, r.AddQuery)
-	default:
-		tb.Fatalf("unknown message kind: %v", msg.Kind)
-
-		return nil
-	}
-}
-
 func AddMessageSimple(
 	tb testing.TB,
 	r *catalog.Registry,

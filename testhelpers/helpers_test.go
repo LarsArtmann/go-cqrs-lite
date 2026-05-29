@@ -34,6 +34,25 @@ func TestEventHelpers_NewEvent(t *testing.T) {
 	}
 }
 
+func TestEventHelpers_NewEventOpts(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	corrID := id.NewCorrelationID()
+
+	evt := NewEventOpts(t, "user.created", aggID, "User", 1, nil,
+		event.WithCorrelationID(corrID),
+	)
+
+	if evt.AggregateID() != aggID {
+		t.Error("AggregateID mismatch")
+	}
+
+	if evt.Metadata().CorrelationID != corrID {
+		t.Error("CorrelationID mismatch")
+	}
+}
+
 func TestEventHelpers_MakeEvent(t *testing.T) {
 	t.Parallel()
 

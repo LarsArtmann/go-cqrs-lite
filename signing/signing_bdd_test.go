@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	. "github.com/larsartmann/go-cqrs-lite/signing"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Signing", func() {
@@ -139,30 +140,33 @@ var _ = Describe("Signing", func() {
 
 	Describe("publish pipeline middleware", func() {
 		When("I use SignMiddleware on my publisher", func() {
-			It("should attach a signature to my event before it reaches the next publisher so downstream consumers can verify it", func() {
-				sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
-				Expect(err).NotTo(HaveOccurred())
+			It(
+				"should attach a signature to my event before it reaches the next publisher so downstream consumers can verify it",
+				func() {
+					sv, err := NewHMAC([]byte("this-is-a-32-byte-secret-key-xxxx"))
+					Expect(err).NotTo(HaveOccurred())
 
-				mw := SignMiddleware(sv)
+					mw := SignMiddleware(sv)
 
-				evt := makeEvent()
-				var captured event.Event
-				inner := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
-					if len(events) > 0 {
-						captured = events[0]
-					}
-					return nil
-				})
+					evt := makeEvent()
+					var captured event.Event
+					inner := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
+						if len(events) > 0 {
+							captured = events[0]
+						}
+						return nil
+					})
 
-				wrapped := mw(inner)
-				err = wrapped.Publish(context.Background(), evt)
-				Expect(err).NotTo(HaveOccurred())
+					wrapped := mw(inner)
+					err = wrapped.Publish(context.Background(), evt)
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(HasSignature(captured)).To(BeTrue())
-				sig, err := ExtractSignature(captured)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(sv.Verify(captured, sig)).NotTo(HaveOccurred())
-			})
+					Expect(HasSignature(captured)).To(BeTrue())
+					sig, err := ExtractSignature(captured)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(sv.Verify(captured, sig)).NotTo(HaveOccurred())
+				},
+			)
 		})
 
 		When("VerifyMiddleware receives a tampered event", func() {

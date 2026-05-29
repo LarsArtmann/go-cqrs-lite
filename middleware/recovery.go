@@ -2,8 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
-	"runtime/debug"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -12,13 +10,13 @@ import (
 
 // panicError formats a recovered panic into an error message.
 func panicError(msgKind, typeName string, r any) error {
-	return fmt.Errorf(
-		"%w: panic recovered in %s %s: %v\n%s",
-		ErrPanicRecovered,
+	return event.Wrapf(
+		ErrPanicRecovered, event.Corruption,
+		"middleware.panic_detail",
+		"panic recovered in %s %s: %v",
 		msgKind,
 		typeName,
 		r,
-		debug.Stack(),
 	)
 }
 

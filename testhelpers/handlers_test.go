@@ -251,6 +251,57 @@ func TestCommandMiddleware(t *testing.T) {
 	}
 }
 
+func TestNoopEventPublisher(t *testing.T) {
+	t.Parallel()
+
+	pub := NoopEventPublisher()
+
+	evt, _ := NewTestEvent()
+
+	err := pub.Publish(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("NoopEventPublisher: %v", err)
+	}
+}
+
+func TestFailingEventPublisher(t *testing.T) {
+	t.Parallel()
+
+	pub := FailingEventPublisher("pub fail")
+
+	evt, _ := NewTestEvent()
+
+	err := pub.Publish(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if err.Error() != "pub fail" {
+		t.Errorf("error = %q, want pub fail", err.Error())
+	}
+}
+
+func TestQueryMiddleware(t *testing.T) {
+	t.Parallel()
+
+	var order []string
+
+	mw := QueryMiddleware(&order, "qmw1")
+
+	inner := NoopQueryHandler()
+
+	wrapped := mw(inner)
+
+	_, err := wrapped(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("wrapped: %v", err)
+	}
+
+	if len(order) != 1 || order[0] != "qmw1" {
+		t.Errorf("order = %v, want [qmw1]", order)
+	}
+}
+
 func TestEventMiddleware(t *testing.T) {
 	t.Parallel()
 

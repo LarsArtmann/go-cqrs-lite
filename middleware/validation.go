@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
@@ -26,11 +25,11 @@ func CommandValidation(validate CommandValidator, opts ...Option) command.Middle
 					)
 				}
 
-				return fmt.Errorf(
-					"%w: validation failed for command %s: %w",
-					ErrValidationFailed,
+				return event.Wrapf(
+					ErrValidationFailed, event.Rejection,
+					"middleware.command_validation",
+					"validation failed for command %s",
 					cmd.Type(),
-					err,
 				)
 			}
 
@@ -56,11 +55,11 @@ func EventValidation(validate EventValidator, opts ...Option) event.Middleware {
 					)
 				}
 
-				return fmt.Errorf(
-					"%w: validation failed for event %s: %w",
-					ErrValidationFailed,
+				return event.Wrapf(
+					ErrValidationFailed, event.Rejection,
+					"middleware.event_validation",
+					"validation failed for event %s",
 					evt.Type(),
-					err,
 				)
 			}
 
@@ -86,11 +85,11 @@ func QueryValidation(validate QueryValidator, opts ...Option) query.Middleware {
 					)
 				}
 
-				return nil, fmt.Errorf(
-					"%w: validation failed for query %s: %w",
-					ErrValidationFailed,
+				return nil, event.Wrapf(
+					ErrValidationFailed, event.Rejection,
+					"middleware.query_validation",
+					"validation failed for query %s",
 					q.Type(),
-					err,
 				)
 			}
 

@@ -16,7 +16,10 @@ var validTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 // validateTablePrefix checks that the prefix is a safe SQL identifier.
 func validateTablePrefix(prefix string) error {
 	if !validTablePrefix.MatchString(prefix) {
-		return fmt.Errorf("stream: invalid table prefix %q: must match ^[a-z_][a-z0-9_]*$", prefix)
+		return event.NewRejection(
+			"stream.invalid_table_prefix",
+			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
+		)
 	}
 
 	return nil

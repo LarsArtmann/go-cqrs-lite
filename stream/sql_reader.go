@@ -53,7 +53,10 @@ func (r *SQLAggregateReader) ListWithStatus(
 	opts ListOptions,
 ) (*Page[AggregateStatus], error) {
 	if opts.Type == "" {
-		return nil, fmt.Errorf("stream sql list: ListOptions.Type is required")
+		return nil, event.NewRejection(
+			"stream.type_required",
+			"ListOptions.Type is required",
+		)
 	}
 
 	var conditions []string
@@ -88,7 +91,11 @@ func (r *SQLAggregateReader) ListWithStatus(
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("stream sql list: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"stream.sql_list",
+			"stream sql list",
+		)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -106,12 +113,20 @@ func (r *SQLAggregateReader) ListWithStatus(
 
 		err = rows.Scan(&aggType, &aggID, &version, &count, &lastAt, &statusInt)
 		if err != nil {
-			return nil, fmt.Errorf("stream sql scan: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"stream.sql_scan",
+				"stream sql scan",
+			)
 		}
 
 		parsedID, err := id.ParseAggregateID(aggID)
 		if err != nil {
-			return nil, fmt.Errorf("stream sql parse id: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"stream.sql_parse_id",
+				"stream sql parse id",
+			)
 		}
 
 		items = append(items, AggregateStatus{
@@ -126,7 +141,11 @@ func (r *SQLAggregateReader) ListWithStatus(
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("stream sql rows: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"stream.sql_rows",
+			"stream sql rows",
+		)
 	}
 
 	hasMore := uint(len(items)) > limit

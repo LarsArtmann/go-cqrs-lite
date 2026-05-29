@@ -2,7 +2,6 @@ package stream
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
@@ -32,14 +31,22 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 				case isDelete:
 					m, err := event.MarkTombstone(evt)
 					if err != nil {
-						return fmt.Errorf("status middleware tombstone %s: %w", evt.Type(), err)
+						return event.WrapInfrastructure(
+							err,
+							"stream.tombstone",
+							"status middleware tombstone "+string(evt.Type()),
+						)
 					}
 
 					marked = append(marked, m)
 				case isRebirth:
 					m, err := event.MarkRebirth(evt)
 					if err != nil {
-						return fmt.Errorf("status middleware rebirth %s: %w", evt.Type(), err)
+						return event.WrapInfrastructure(
+							err,
+							"stream.rebirth",
+							"status middleware rebirth "+string(evt.Type()),
+						)
 					}
 
 					marked = append(marked, m)

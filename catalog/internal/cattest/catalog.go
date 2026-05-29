@@ -12,21 +12,6 @@ func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 	return r.Build()
 }
 
-func MustExport(
-	tb testing.TB,
-	exp interface {
-		Export(cat *catalog.Catalog) error
-	},
-	cat *catalog.Catalog,
-) {
-	tb.Helper()
-
-	err := exp.Export(cat)
-	if err != nil {
-		tb.Fatalf("export catalog: %v", err)
-	}
-}
-
 const testVersion = "1.0.0"
 
 func BuildTestCatalog() *catalog.Catalog {

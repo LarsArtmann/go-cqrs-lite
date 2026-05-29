@@ -2,7 +2,6 @@ package stream
 
 import (
 	"context"
-	"fmt"
 	"slices"
 	"strings"
 
@@ -47,7 +46,11 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 ) (*Page[AggregateStatus], error) {
 	all, err := r.journal.ReadAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("stream in-memory list: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"stream.in_memory_list",
+			"stream in-memory list",
+		)
 	}
 
 	refs := buildRefs(all)

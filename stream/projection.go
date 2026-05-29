@@ -28,7 +28,11 @@ func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjectio
 	}
 
 	if err := p.createTable(); err != nil {
-		return nil, fmt.Errorf("create aggregates table: %w", err)
+		return nil, event.WrapInfrastructure(
+			err,
+			"stream.create_table",
+			"create aggregates table",
+		)
 	}
 
 	return p, nil

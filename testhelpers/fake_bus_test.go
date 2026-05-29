@@ -119,3 +119,14 @@ func TestFakeBus_Close(t *testing.T) {
 		t.Fatalf("Close: %v", err)
 	}
 }
+
+func TestFakeBus_UsePublish(t *testing.T) {
+	t.Parallel()
+
+	bus := NewFakeBus()
+
+	err := bus.UsePublish(func(_ event.Publisher) event.Publisher { return nil })
+	if err != nil {
+		t.Fatalf("UsePublish: %v", err)
+	}
+}

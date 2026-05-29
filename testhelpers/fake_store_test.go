@@ -295,3 +295,97 @@ func TestFakeStore_CloseFn(t *testing.T) {
 		t.Fatal("expected CloseFn to be called")
 	}
 }
+
+func TestFakeStore_ReadAll(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	agg1 := id.NewAggregateID()
+	agg2 := id.NewAggregateID()
+	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("Created", agg2, "Order", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1})
+	_ = store.AppendBatch(ctx, "Order", agg2, []event.Event{evt2})
+
+	all, err := store.ReadAll(ctx)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(all))
+	}
+}
+
+func TestFakeStore_ReadFrom(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	agg1 := id.NewAggregateID()
+	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("Updated", agg1, "User", 2, nil)
+
+	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1, evt2})
+
+	from, err := store.ReadFrom(ctx, evt1.ID(), 10)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(from) != 1 {
+		t.Fatalf("expected 1 event after first, got %d", len(from))
+	}
+
+	if from[0].Version() != 2 {
+		t.Errorf("event version = %d, want 2", from[0].Version())
+	}
+}
+
+func TestFakeStore_ReadFrom_ZeroID(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	agg1 := id.NewAggregateID()
+	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
+
+	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1})
+
+	from, err := store.ReadFrom(ctx, id.EventID{}, 10)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(from) != 1 {
+		t.Fatalf("expected 1 event from start, got %d", len(from))
+	}
+}
+
+func TestFakeStore_ReadFrom_WithLimit(t *testing.T) {
+	t.Parallel()
+
+	store := testhelpers.NewFakeStore()
+	ctx := context.Background()
+
+	agg1 := id.NewAggregateID()
+	evt1 := testhelpers.QuickEvent("Created", agg1, "User", 1, nil)
+	evt2 := testhelpers.QuickEvent("Updated", agg1, "User", 2, nil)
+	evt3 := testhelpers.QuickEvent("Deleted", agg1, "User", 3, nil)
+
+	_ = store.AppendBatch(ctx, "User", agg1, []event.Event{evt1, evt2, evt3})
+
+	from, err := store.ReadFrom(ctx, id.EventID{}, 2)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(from) != 2 {
+		t.Fatalf("expected 2 events with limit, got %d", len(from))
+	}
+}
