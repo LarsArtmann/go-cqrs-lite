@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import "github.com/larsartmann/go-cqrs-lite/core/event"
 
@@ -50,3 +50,6 @@ var ErrUnexpectedTimeType = event.NewCorruption(
 	"storage.unexpected_time_type",
 	"storage: unexpected time type",
 )
+
+// ErrConcurrencyConflict is returned when an optimistic concurrency check fails.
+var ErrConcurrencyConflict = event.ErrVersionConflict

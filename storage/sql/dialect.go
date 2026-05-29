@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	"fmt"
@@ -123,7 +123,7 @@ func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 		)
 	}
 
-	return parseSQLiteTimestamp(*sp)
+	return ParseSQLiteTimestamp(*sp)
 }
 
 func (SQLiteDialect) EventSchema() string {
@@ -177,8 +177,8 @@ func (SQLiteDialect) OutboxSchema() string {
 CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(created_at) WHERE status = '` + string(OutboxStatusPending) + `'` + `;`
 }
 
-// placeholders returns a comma-separated list of placeholders for the given count.
-func placeholders(d Dialect, count, offset int) string {
+// Placeholders returns a comma-separated list of placeholders for the given count.
+func Placeholders(d Dialect, count, offset int) string {
 	parts := make([]string, count)
 
 	for i := range count {

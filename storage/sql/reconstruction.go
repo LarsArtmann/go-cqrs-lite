@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	"context"
@@ -7,24 +7,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Schema returns the SQL DDL for creating the events and outbox tables.
+// Schema returns the SQL DDL for creating the events and outbox tables (PostgreSQL).
 func Schema() string {
 	pg := PostgresDialect{}
 	return pg.EventSchema() + "\n" + pg.OutboxSchema()
 }
 
-// SQLiteSchema returns the SQL DDL for creating the events and outbox tables in SQLite.
+// SQLiteSchema returns the SQL DDL for creating the events and outbox tables (SQLite).
 func SQLiteSchema() string {
 	sqlite := SQLiteDialect{}
 	return sqlite.EventSchema() + "\n" + sqlite.OutboxSchema()
 }
 
-// scanSlice is a generic helper that deduplicates event scanning.
-func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
+// ScanSlice is a generic helper that deduplicates event scanning.
+func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
 	var result []T
 
 	for rows.Next() {
@@ -45,15 +46,17 @@ func scanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 	return result, nil
 }
 
-func reconstructEvent(
+// ReconstructEvent rebuilds an event.ImmutableEvent from database row fields.
+func ReconstructEvent(
 	eventID id.EventID,
 	eventType, aggType string,
 	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
 	occurredAt time.Time,
+	encoding codec.Encoding,
 ) (event.Event, error) {
-	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
+	metaOpts, err := UnmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
 		return nil, event.WrapCorruption(
 			err,
@@ -77,6 +80,10 @@ func reconstructEvent(
 
 	opts = append(opts, metaOpts...)
 
+	if encoding != "" {
+		opts = append(opts, event.WithEncoding(encoding))
+	}
+
 	evt, err := event.NewEvent(
 		event.Type(eventType),
 		aggID,
@@ -93,7 +100,8 @@ func reconstructEvent(
 	return evt, nil
 }
 
-func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
+// UnmarshalEventMetadata parses metadata JSON into event options.
+func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -109,7 +117,8 @@ func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 	return []event.Option{event.WithMetadata(&meta)}, nil
 }
 
-func marshalMetadata(m *event.Metadata) ([]byte, error) {
+// MarshalMetadata serializes event metadata to JSON.
+func MarshalMetadata(m *event.Metadata) ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -123,7 +132,8 @@ func marshalMetadata(m *event.Metadata) ([]byte, error) {
 	return data, nil
 }
 
-func commitTx(tx *sql.Tx) error {
+// CommitTx commits a transaction, wrapping errors with infrastructure context.
+func CommitTx(tx *sql.Tx) error {
 	err := tx.Commit()
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.commit_tx",
@@ -133,9 +143,8 @@ func commitTx(tx *sql.Tx) error {
 	return nil
 }
 
-// saveWithOutboxTx is the shared implementation for SaveWithOutbox.
-// It performs version checking, event insertion, and outbox append in a single transaction.
-func saveWithOutboxTx(
+// SaveWithOutboxTx performs version checking, event insertion, and outbox append in a single transaction.
+func SaveWithOutboxTx(
 	ctx context.Context,
 	db *sql.DB,
 	ref event.AggregateRef,
@@ -177,5 +186,5 @@ func saveWithOutboxTx(
 			fmt.Sprintf("append %d events to outbox", len(events)))
 	}
 
-	return commitTx(tx)
+	return CommitTx(tx)
 }

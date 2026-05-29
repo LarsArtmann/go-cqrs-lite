@@ -10,11 +10,12 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	sqlBase
+	sqlpkg.Base
 
 	ownDB bool
 }
@@ -23,41 +24,39 @@ type SQLEventStore struct {
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.
 func NewSQLEventStore(db *sql.DB) (*SQLEventStore, error) {
-	return newSQLEventStoreWithDialect(db, PostgresDialect{})
+	return newSQLEventStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
 
 // NewSQLiteEventStore creates a new SQLite-backed event store.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.
 func NewSQLiteEventStore(db *sql.DB) (*SQLEventStore, error) {
-	return newSQLEventStoreWithDialect(db, SQLiteDialect{})
+	return newSQLEventStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
 
 // NewSQLEventStoreWithDialect creates a new SQL-backed event store with a custom dialect.
 // This enables consumers to use any SQL backend (MySQL, CockroachDB, etc.) by implementing the Dialect interface.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.
-func NewSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
+func NewSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, error) {
 	return newSQLEventStoreWithDialect(db, d)
 }
 
-func newSQLEventStoreWithDialect(db *sql.DB, d Dialect) (*SQLEventStore, error) {
-	base, err := newSQLBase(db, d)
+func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, error) {
+	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLEventStore{sqlBase: base}, nil
+	return &SQLEventStore{Base: base}, nil
 }
 
-// ErrConcurrencyConflict indicates an optimistic concurrency violation.
-// Alias of event.ErrVersionConflict for unified errors.Is checking.
 var ErrConcurrencyConflict = event.ErrVersionConflict
 
 // Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
 func (s *SQLEventStore) Close() error {
 	if s.ownDB {
-		return s.db.Close()
+		return s.DB.Close()
 	}
 
 	return nil
@@ -75,7 +74,7 @@ func (s *SQLEventStore) Save(
 		return nil
 	}
 
-	ctx, span := startSaveSpan(
+	ctx, span := sqlpkg.StartSaveSpan(
 		ctx,
 		"event.store.save",
 		ref,
@@ -84,7 +83,7 @@ func (s *SQLEventStore) Save(
 	)
 	defer span.End()
 
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -109,7 +108,7 @@ func (s *SQLEventStore) Save(
 		return s.wrapInsertEventsErr(span, err, events, ref)
 	}
 
-	err = commitTx(tx)
+	err = sqlpkg.CommitTx(tx)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}
@@ -129,7 +128,7 @@ func (s *SQLEventStore) AppendBatch(
 	}
 
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.append_batch",
+		ctx, sqlpkg.Tracer(), "event.store.append_batch",
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
 			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
@@ -138,7 +137,7 @@ func (s *SQLEventStore) AppendBatch(
 	)
 	defer span.End()
 
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -155,7 +154,7 @@ func (s *SQLEventStore) AppendBatch(
 		return s.wrapInsertEventsErr(span, err, events, ref)
 	}
 
-	err = commitTx(tx)
+	err = sqlpkg.CommitTx(tx)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}
@@ -181,11 +180,11 @@ func (s *SQLEventStore) checkVersion(
 	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
+	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 
-	query := fmt.Sprintf(checkVersionQuery, p1, p2)
+	query := fmt.Sprintf(sqlpkg.CheckVersionQuery, p1, p2)
 
-	return sharedCheckVersion(ctx, tx, ref, expectedVersion, query)
+	return sqlpkg.SharedCheckVersion(ctx, tx, ref, expectedVersion, query)
 }
 
 var (

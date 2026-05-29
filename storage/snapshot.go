@@ -11,236 +11,121 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
-// SQLSnapshotStore persists aggregate snapshots in a SQL database.
 type SQLSnapshotStore struct {
-	sqlBase
+	sqlpkg.Base
 }
 
-// NewSQLSnapshotStore creates a new SQL-backed snapshot store using PostgreSQL dialect.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
-	return newSQLSnapshotStoreWithDialect(db, PostgresDialect{})
+	return newSQLSnapshotStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
-
-// NewSQLiteSnapshotStore creates a new SQLite-backed snapshot store.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLiteSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
-	return newSQLSnapshotStoreWithDialect(db, SQLiteDialect{})
+	return newSQLSnapshotStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
-
-// NewSQLSnapshotStoreWithDialect creates a new SQL-backed snapshot store with a custom dialect.
-// This enables consumers to use any SQL backend by implementing the Dialect interface.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
-func NewSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
+func NewSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, d)
 }
-
-func newSQLSnapshotStoreWithDialect(db *sql.DB, d Dialect) (*SQLSnapshotStore, error) {
-	base, err := newSQLBase(db, d)
+func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
+	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
 		return nil, err
 	}
-
-	return &SQLSnapshotStore{sqlBase: base}, nil
+	return &SQLSnapshotStore{Base: base}, nil
 }
 
-// SnapshotSchema returns the SQL DDL for creating the snapshots table.
-func SnapshotSchema() string { return PostgresDialect{}.SnapshotSchema() }
+func SnapshotSchema() string         { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
+func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
-// SQLiteSnapshotSchema returns the SQL DDL for creating the snapshots table (SQLite variant).
-func SQLiteSnapshotSchema() string { return SQLiteDialect{}.SnapshotSchema() }
-
-// Save persists a snapshot for an aggregate.
-// State is stored as-is ([]byte) — no additional marshaling is applied.
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "snapshot.save",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
-			cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, snap.Version.Int()),
-		)...),
-	)
+	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.save", trace.SpanKindClient,
+		trace.WithAttributes(append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...))
 	defer span.End()
-
-	p1, p2, p3, p4, p5 := s.dialect.Placeholder(1), s.dialect.Placeholder(2),
-		s.dialect.Placeholder(3), s.dialect.Placeholder(4), s.dialect.Placeholder(5)
-
-	query := fmt.Sprintf(
-		`INSERT INTO `+tableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
+	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
+		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5)
+	query := fmt.Sprintf(`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s)
 		ON CONFLICT (aggregate_type, aggregate_id)
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
-		p1,
-		p2,
-		p3,
-		p4,
-		p5,
-	)
-
-	_, err := s.db.ExecContext(
-		ctx,
-		query,
-		string(snap.AggregateType),
-		snap.AggregateID,
-		snap.Version.Int(),
-		snap.State,
-		s.dialect.FormatTime(snap.CreatedAt),
-	)
+		p1, p2, p3, p4, p5)
+	_, err := s.DB.ExecContext(ctx, query, string(snap.AggregateType), snap.AggregateID,
+		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-
 		return event.WrapInfrastructure(err, "storage.save_snapshot",
 			fmt.Sprintf("save snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
-
 	return nil
 }
 
-// Load retrieves the latest snapshot for an aggregate.
-// Returns ErrSnapshotNotFound if no snapshot exists.
-func (s *SQLSnapshotStore) Load(
-	ctx context.Context,
-	ref event.AggregateRef,
-) (*event.Snapshot, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "snapshot.load",
-		trace.SpanKindClient,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
-	)
+func (s *SQLSnapshotStore) Load(ctx context.Context, ref event.AggregateRef) (*event.Snapshot, error) {
+	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load", trace.SpanKindClient,
+		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...))
 	defer span.End()
-
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-
 		return nil, event.WrapInfrastructure(err, "storage.load_snapshot",
 			fmt.Sprintf("load snapshot for %s %s", ref.Type, ref.ID))
 	}
-
 	return snap, nil
 }
 
-// LoadAtVersion retrieves a snapshot at or before a specific version.
-// Returns ErrSnapshotNotFound if no snapshot exists or the stored version exceeds the requested version.
-func (s *SQLSnapshotStore) LoadAtVersion(
-	ctx context.Context,
-	ref event.AggregateRef,
-	version event.Version,
-) (*event.Snapshot, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "snapshot.load_at_version",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
-			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()),
-		)...),
-	)
+func (s *SQLSnapshotStore) LoadAtVersion(ctx context.Context, ref event.AggregateRef, version event.Version) (*event.Snapshot, error) {
+	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load_at_version", trace.SpanKindClient,
+		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...))
 	defer span.End()
-
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-
-		return nil, event.WrapInfrastructure(
-			err,
-			"storage.load_snapshot_version",
-			fmt.Sprintf(
-				"load snapshot at version %d for %s %s",
-				version,
-				ref.Type,
-				ref.ID,
-			),
-		)
+		return nil, event.WrapInfrastructure(err, "storage.load_snapshot_version",
+			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 	}
-
 	if snap.Version.Cmp(version) > 0 {
-		err := event.WrapRejection(
-			event.ErrSnapshotNotFound,
-			"storage.snapshot_version_exceeded",
-			fmt.Sprintf(
-				"load snapshot at version %d for %s %s",
-				version,
-				ref.Type,
-				ref.ID,
-			),
-		)
+		err := event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_version_exceeded",
+			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 		cqrsotel.RecordError(span, err)
-
 		return nil, err
 	}
-
 	return snap, nil
 }
 
-func (s *SQLSnapshotStore) querySnapshot(
-	ctx context.Context,
-	ref event.AggregateRef,
-) (*event.Snapshot, error) {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
-
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+tableSnapshots+`
+func (s *SQLSnapshotStore) querySnapshot(ctx context.Context, ref event.AggregateRef) (*event.Snapshot, error) {
+	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
 		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
-
-	return s.scanSnapshot(
-		s.db.QueryRowContext(ctx, query, string(ref.Type), ref.ID),
-		ref,
-	)
+	return s.scanSnapshot(s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID), ref)
 }
 
-func (s *SQLSnapshotStore) scanSnapshot(
-	row *sql.Row,
-	ref event.AggregateRef,
-) (*event.Snapshot, error) {
-	var (
-		version    int
-		stateBytes []byte
-	)
-
-	timeDest := s.dialect.ScanTimeDest()
-
+func (s *SQLSnapshotStore) scanSnapshot(row *sql.Row, ref event.AggregateRef) (*event.Snapshot, error) {
+	var version int
+	var stateBytes []byte
+	timeDest := s.Dialect.ScanTimeDest()
 	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, event.WrapRejection(event.ErrSnapshotNotFound, "storage.snapshot_not_found",
 				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)))
 		}
-
 		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",
 			fmt.Sprintf("scan snapshot for %s/%s", ref.Type, ref.ID))
 	}
-
-	createdAt, err := s.dialect.ParseTime(timeDest)
+	createdAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_snapshot_created_at",
-			"parse snapshot created_at")
+		return nil, event.WrapCorruption(err, "storage.parse_snapshot_created_at", "parse snapshot created_at")
 	}
-
 	return &event.Snapshot{
-		AggregateID:   ref.ID,
-		AggregateType: ref.Type,
-		Version:       event.Version(version),
-		State:         stateBytes,
-		CreatedAt:     createdAt,
+		AggregateID: ref.ID, AggregateType: ref.Type,
+		Version: event.Version(version), State: stateBytes, CreatedAt: createdAt,
 	}, nil
 }
 
-// Delete removes a snapshot for an aggregate.
-func (s *SQLSnapshotStore) Delete(
-	ctx context.Context,
-	ref event.AggregateRef,
-) error {
-	p1, p2 := s.dialect.Placeholder(1), s.dialect.Placeholder(2)
-
-	return deleteByAggregate(
-		s.db, ctx, ref,
-		tableSnapshots, p1, p2, "snapshot",
-	)
+func (s *SQLSnapshotStore) Delete(ctx context.Context, ref event.AggregateRef) error {
+	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
+	return sqlpkg.DeleteByAggregate(s.DB, ctx, ref, sqlpkg.TableSnapshots, p1, p2, "snapshot")
 }
 
 var (

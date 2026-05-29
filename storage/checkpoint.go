@@ -10,95 +10,58 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
-// SQLCheckpointStore persists projection checkpoints in a SQL database.
 type SQLCheckpointStore struct {
-	sqlBase
+	sqlpkg.Base
 }
 
-// NewSQLCheckpointStore creates a new SQL-backed checkpoint store using PostgreSQL dialect.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
-	return newSQLCheckpointStoreWithDialect(db, PostgresDialect{})
+	return newSQLCheckpointStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
-
-// NewSQLiteCheckpointStore creates a new SQLite-backed checkpoint store.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLiteCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
-	return newSQLCheckpointStoreWithDialect(db, SQLiteDialect{})
+	return newSQLCheckpointStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
-
-// NewSQLCheckpointStoreWithDialect creates a new SQL-backed checkpoint store with a custom dialect.
-// This enables consumers to use any SQL backend by implementing the Dialect interface.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
-func NewSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStore, error) {
+func NewSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpointStore, error) {
 	return newSQLCheckpointStoreWithDialect(db, d)
 }
-
-func newSQLCheckpointStoreWithDialect(db *sql.DB, d Dialect) (*SQLCheckpointStore, error) {
-	base, err := newSQLBase(db, d)
+func newSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpointStore, error) {
+	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
 		return nil, err
 	}
-
-	return &SQLCheckpointStore{sqlBase: base}, nil
+	return &SQLCheckpointStore{Base: base}, nil
 }
 
-// CheckpointSchema returns the SQL DDL for creating the checkpoints table.
-func CheckpointSchema() string { return PostgresDialect{}.CheckpointSchema() }
+func CheckpointSchema() string         { return sqlpkg.PostgresDialect{}.CheckpointSchema() }
+func SQLiteCheckpointSchema() string { return sqlpkg.SQLiteDialect{}.CheckpointSchema() }
 
-// SQLiteCheckpointSchema returns the SQL DDL for creating the checkpoints table (SQLite variant).
-func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema() }
-
-// Load returns the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (event.Checkpoint, error) {
 	ctx, span := s.startSpan(ctx, "checkpoint.load", projectionName)
 	defer span.End()
-
-	cp, err := sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
+	cp, err := sqlpkg.SharedCheckpointLoad(ctx, s.DB, projectionName, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-
 		return event.Checkpoint{}, fmt.Errorf("load checkpoint for projection %s: %w", projectionName, err)
 	}
-
 	return cp, nil
 }
 
-// Save persists the last processed event ID for a projection.
-func (s *SQLCheckpointStore) Save(
-	ctx context.Context,
-	projectionName string,
-	cp event.Checkpoint,
-) error {
+func (s *SQLCheckpointStore) Save(ctx context.Context, projectionName string, cp event.Checkpoint) error {
 	ctx, span := s.startSpan(ctx, "checkpoint.save", projectionName)
 	defer span.End()
-
-	err := sharedCheckpointSave(ctx, s.db, projectionName, cp, s.dialect)
+	err := sqlpkg.SharedCheckpointSave(ctx, s.DB, projectionName, cp, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-
 		return fmt.Errorf("save checkpoint for projection %s: %w", projectionName, err)
 	}
-
 	return nil
 }
 
-func (s *SQLCheckpointStore) startSpan(
-	ctx context.Context,
-	name, projectionName string,
-) (context.Context, trace.Span) {
-	return cqrsotel.StartSpan(
-		ctx, tracer(), name,
-		trace.SpanKindClient,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrProjectionName, projectionName),
-		),
-	)
+func (s *SQLCheckpointStore) startSpan(ctx context.Context, name, projectionName string) (context.Context, trace.Span) {
+	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, trace.SpanKindClient,
+		trace.WithAttributes(attribute.String(cqrsotel.AttrProjectionName, projectionName)))
 }
 
 var (

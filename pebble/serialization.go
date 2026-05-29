@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -20,6 +21,7 @@ func (a *PebbleEventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		Payload:       evt.Payload(),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
 		Metadata:      evt.Metadata(),
+		Encoding:      string(evt.Encoding()),
 	}
 
 	return json.Marshal(s)
@@ -45,18 +47,20 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 		s.Version, s.SchemaVersion,
 		s.Payload, metadataJSON,
 		time.Unix(0, s.OccurredAt),
+		codec.Encoding(s.Encoding),
 	)
 }
 
 // serializableEvent represents the JSON storage format for events.
 type serializableEvent struct {
-	ID            id.EventID      `json:"id"`
-	Type          string          `json:"type"`
-	AggregateID   id.AggregateID  `json:"aggregate_id"`
-	AggregateType string          `json:"aggregate_type"`
-	Version       int             `json:"version"`
-	SchemaVersion int             `json:"schema_version,omitempty"`
-	Payload       []byte          `json:"payload"`
-	OccurredAt    int64           `json:"occurred_at"`
-	Metadata      *event.Metadata `json:"metadata,omitempty"`
+	ID            id.EventID       `json:"id"`
+	Type          string           `json:"type"`
+	AggregateID   id.AggregateID   `json:"aggregate_id"`
+	AggregateType string           `json:"aggregate_type"`
+	Version       int              `json:"version"`
+	SchemaVersion int              `json:"schema_version,omitempty"`
+	Payload       []byte           `json:"payload"`
+	OccurredAt    int64            `json:"occurred_at"`
+	Metadata      *event.Metadata  `json:"metadata,omitempty"`
+	Encoding      string           `json:"encoding,omitempty"`
 }

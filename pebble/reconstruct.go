@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
@@ -16,6 +17,7 @@ func reconstructEvent(
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
 	occurredAt time.Time,
+	encoding codec.Encoding,
 ) (event.Event, error) {
 	metaOpts, err := unmarshalEventMetadata(metadataJSON, eventType)
 	if err != nil {
@@ -40,6 +42,10 @@ func reconstructEvent(
 	}
 
 	opts = append(opts, metaOpts...)
+
+	if encoding != "" {
+		opts = append(opts, event.WithEncoding(encoding))
+	}
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),

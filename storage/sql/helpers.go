@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	"context"
@@ -12,10 +12,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// deleteByAggregate is the shared implementation for Delete methods across event
-// and snapshot stores. It deduplicates the identical 7-line Delete bodies that
-// differ only by placeholder syntax ($1/$2 vs ?) and error message prefix.
-func deleteByAggregate(
+// DeleteByAggregate is the shared implementation for Delete methods across event
+// and snapshot stores.
+func DeleteByAggregate(
 	db *sql.DB,
 	ctx context.Context,
 	ref event.AggregateRef,
@@ -47,18 +46,17 @@ func deleteByAggregate(
 	return nil
 }
 
-// sharedInsertEvents is the common loop body for insertEvents (PostgreSQL) and
-// sqliteInsertEvents (SQLite), separated only by the time formatter and SQL template.
-func sharedInsertEvents(
+// SharedInsertEvents is the common loop body for inserting events, separated only by the time formatter and SQL template.
+func SharedInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
 	ref event.AggregateRef,
 	events []event.Event,
-	sql string,
+	sqlQuery string,
 	formatTime func(time.Time) any,
 ) error {
 	for _, evt := range events {
-		metadata, err := marshalMetadata(evt.Metadata())
+		metadata, err := MarshalMetadata(evt.Metadata())
 		if err != nil {
 			return event.WrapCorruption(err, "storage.marshal_metadata",
 				"marshal metadata for event "+string(evt.Type()))
@@ -66,7 +64,7 @@ func sharedInsertEvents(
 
 		_, err = tx.ExecContext(
 			ctx,
-			sql,
+			sqlQuery,
 			evt.ID(),
 			string(evt.Type()),
 			string(ref.Type),
@@ -86,13 +84,11 @@ func sharedInsertEvents(
 	return nil
 }
 
-// checkVersionQuery is the SQL query template for checking aggregate version.
-// Placeholders must be in the database driver's native format ($1, $2 for PostgreSQL, ?, ? for SQLite).
-const checkVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM ` + tableEvents + ` WHERE aggregate_type = %s AND aggregate_id = %s`
+// CheckVersionQuery is the SQL query template for checking aggregate version.
+const CheckVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM ` + TableEvents + ` WHERE aggregate_type = %s AND aggregate_id = %s`
 
-// sharedCheckVersion is the common implementation for checkVersion (PostgreSQL) and
-// sqliteCheckVersion (SQLite), separated only by the SQL placeholder format.
-func sharedCheckVersion(
+// SharedCheckVersion is the common implementation for optimistic concurrency checks.
+func SharedCheckVersion(
 	ctx context.Context,
 	tx *sql.Tx,
 	ref event.AggregateRef,
@@ -117,15 +113,14 @@ func sharedCheckVersion(
 	return nil
 }
 
-// sharedCheckpointLoad returns the last checkpoint for a projection
-// using the provided placeholder format.
-func sharedCheckpointLoad(
+// SharedCheckpointLoad returns the last checkpoint for a projection.
+func SharedCheckpointLoad(
 	ctx context.Context,
 	db *sql.DB,
 	projectionName string,
 	d Dialect,
 ) (event.Checkpoint, error) {
-	query := "SELECT event_id, processed_at FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(
+	query := "SELECT event_id, processed_at FROM " + TableCheckpoints + " WHERE projection_name = " + d.Placeholder(
 		1,
 	)
 
@@ -157,9 +152,8 @@ func sharedCheckpointLoad(
 	return event.Checkpoint{EventID: parsed, ProcessedAt: processedAt}, nil
 }
 
-// sharedCheckpointSave persists a checkpoint using the provided placeholder format.
-// placeholderFormat is "$" for PostgreSQL or "?" for SQLite.
-func sharedCheckpointSave(
+// SharedCheckpointSave persists a checkpoint.
+func SharedCheckpointSave(
 	ctx context.Context,
 	db *sql.DB,
 	projectionName string,
@@ -167,7 +161,7 @@ func sharedCheckpointSave(
 	d Dialect,
 ) error {
 	query := fmt.Sprintf(
-		"INSERT INTO "+tableCheckpoints+" (projection_name, event_id, processed_at) VALUES (%s, %s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id, processed_at = EXCLUDED.processed_at",
+		"INSERT INTO "+TableCheckpoints+" (projection_name, event_id, processed_at) VALUES (%s, %s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id, processed_at = EXCLUDED.processed_at",
 		d.Placeholder(1),
 		d.Placeholder(2),
 		d.Placeholder(3),
@@ -182,8 +176,8 @@ func sharedCheckpointSave(
 	return nil
 }
 
-// sharedAckBatch deletes outbox entries by ID, using the provided dialect for placeholders.
-func sharedAckBatch(
+// SharedAckBatch deletes outbox entries by ID.
+func SharedAckBatch(
 	ctx context.Context,
 	db *sql.DB,
 	ids []event.OutboxID,
@@ -193,17 +187,17 @@ func sharedAckBatch(
 		return nil
 	}
 
-	placeholders := make([]string, len(ids))
+	phs := make([]string, len(ids))
 	args := make([]any, len(ids))
 
 	for i, oid := range ids {
-		placeholders[i] = d.Placeholder(i + 1)
+		phs[i] = d.Placeholder(i + 1)
 		args[i] = oid.Get()
 	}
 
 	query := fmt.Sprintf(
-		"DELETE FROM "+tableOutbox+" WHERE id IN (%s)",
-		strings.Join(placeholders, ", "),
+		"DELETE FROM "+TableOutbox+" WHERE id IN (%s)",
+		strings.Join(phs, ", "),
 	)
 
 	_, err := db.ExecContext(ctx, query, args...)
@@ -215,7 +209,8 @@ func sharedAckBatch(
 	return nil
 }
 
-func outboxInsertSQL(dialect Dialect) string {
+// OutboxInsertSQL returns the INSERT statement for the outbox table using the given dialect.
+func OutboxInsertSQL(dialect Dialect) string {
 	p1, p2, p3, p4 := dialect.Placeholder(
 		1,
 	), dialect.Placeholder(
@@ -227,7 +222,7 @@ func outboxInsertSQL(dialect Dialect) string {
 	)
 
 	return fmt.Sprintf(
-		`INSERT INTO `+tableOutbox+` (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
+		`INSERT INTO `+TableOutbox+` (id, status, events, created_at) VALUES (%s, %s, %s, %s)`,
 		p1, p2, p3, p4,
 	)
 }

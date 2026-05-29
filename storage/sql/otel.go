@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	"context"
@@ -12,11 +12,13 @@ import (
 
 const storageComponent = "storage"
 
-func tracer() trace.Tracer {
+// Tracer returns an OpenTelemetry tracer for the storage module.
+func Tracer() trace.Tracer {
 	return cqrsotel.NewTracer(storageComponent)
 }
 
-func startSaveSpan(
+// StartSaveSpan creates a span for a save operation with aggregate attributes.
+func StartSaveSpan(
 	ctx context.Context,
 	spanName string,
 	ref event.AggregateRef,
@@ -24,7 +26,7 @@ func startSaveSpan(
 	eventCount int,
 ) (context.Context, trace.Span) {
 	return cqrsotel.StartSpan(
-		ctx, tracer(), spanName,
+		ctx, Tracer(), spanName,
 		trace.SpanKindClient,
 		trace.WithAttributes(append(
 			cqrsotel.AggregateAttrs(ref.Type, ref.ID),

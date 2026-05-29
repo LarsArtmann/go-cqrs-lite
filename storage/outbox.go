@@ -11,51 +11,38 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 // SQLOutbox persists events for reliable eventual publishing in a SQL database.
 type SQLOutbox struct {
-	sqlBase
+	sqlpkg.Base
 }
 
-// NewSQLOutbox creates a new SQL-backed outbox using PostgreSQL dialect.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLOutbox(db *sql.DB) (*SQLOutbox, error) {
-	return newSQLOutboxWithDialect(db, PostgresDialect{})
+	return newSQLOutboxWithDialect(db, sqlpkg.PostgresDialect{})
 }
 
-// NewSQLiteOutbox creates a new SQLite-backed outbox.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
 func NewSQLiteOutbox(db *sql.DB) (*SQLOutbox, error) {
-	return newSQLOutboxWithDialect(db, SQLiteDialect{})
+	return newSQLOutboxWithDialect(db, sqlpkg.SQLiteDialect{})
 }
 
-// NewSQLOutboxWithDialect creates a new SQL-backed outbox with a custom dialect.
-// This enables consumers to use any SQL backend by implementing the Dialect interface.
-// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
-// Returns an error if db is nil.
-func NewSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
+func NewSQLOutboxWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLOutbox, error) {
 	return newSQLOutboxWithDialect(db, d)
 }
 
-func newSQLOutboxWithDialect(db *sql.DB, d Dialect) (*SQLOutbox, error) {
-	base, err := newSQLBase(db, d)
+func newSQLOutboxWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLOutbox, error) {
+	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLOutbox{sqlBase: base}, nil
+	return &SQLOutbox{Base: base}, nil
 }
 
-// OutboxSchema returns the SQL DDL for creating the outbox table.
-func OutboxSchema() string { return PostgresDialect{}.OutboxSchema() }
+func OutboxSchema() string  { return sqlpkg.PostgresDialect{}.OutboxSchema() }
+func SQLiteOutboxSchema() string { return sqlpkg.SQLiteDialect{}.OutboxSchema() }
 
-// SQLiteOutboxSchema returns the SQL DDL for creating the outbox table (SQLite variant).
-func SQLiteOutboxSchema() string { return SQLiteDialect{}.OutboxSchema() }
-
-// Append writes events to the outbox in a single transaction.
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 	if err := ctx.Err(); err != nil {
 		return event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
@@ -67,7 +54,7 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 	}
 
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "outbox.append",
+		ctx, sqlpkg.Tracer(), "outbox.append",
 		trace.SpanKindClient,
 		trace.WithAttributes(
 			attribute.Int(cqrsotel.AttrEventCount, len(events)),
@@ -85,15 +72,15 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 
 	outboxID := events[0].ID()
 
-	insertSQL := outboxInsertSQL(o.dialect)
+	insertSQL := sqlpkg.OutboxInsertSQL(o.Dialect)
 
-	_, err = o.db.ExecContext(
+	_, err = o.DB.ExecContext(
 		ctx,
 		insertSQL,
 		outboxID,
-		string(OutboxStatusPending),
+		string(sqlpkg.OutboxStatusPending),
 		serialized,
-		o.dialect.FormatTime(time.Now()),
+		o.Dialect.FormatTime(time.Now()),
 	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
@@ -105,7 +92,6 @@ func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {
 	return nil
 }
 
-// PollPending returns unacknowledged outbox entries, oldest first.
 func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxEntry, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
@@ -113,7 +99,7 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 	}
 
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "outbox.poll",
+		ctx, sqlpkg.Tracer(), "outbox.poll",
 		trace.SpanKindClient,
 		trace.WithAttributes(
 			attribute.Int("cqrs.outbox.limit", limit),
@@ -121,17 +107,17 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 	)
 	defer span.End()
 
-	p1, p2 := o.dialect.Placeholder(1), o.dialect.Placeholder(2)
+	p1, p2 := o.Dialect.Placeholder(1), o.Dialect.Placeholder(2)
 
-	query := fmt.Sprintf(`SELECT id, events, created_at FROM `+tableOutbox+`
+	query := fmt.Sprintf(`SELECT id, events, created_at FROM `+sqlpkg.TableOutbox+`
 		WHERE status = %s
 		ORDER BY created_at ASC
 		LIMIT %s`, p1, p2)
 
-	rows, err := queryContextWithError(ctx, span, o.db, query,
+	rows, err := queryContextWithError(ctx, span, o.DB, query,
 		"storage.poll_pending_outbox",
 		fmt.Sprintf("poll pending outbox (limit %d)", limit),
-		string(OutboxStatusPending), limit)
+		string(sqlpkg.OutboxStatusPending), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +126,7 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 		_ = rows.Close()
 	}()
 
-	entries, err := scanOutboxEntries(rows, o.dialect)
+	entries, err := scanOutboxEntries(rows, o.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -150,9 +136,8 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 	return entries, nil
 }
 
-// Ack removes outbox entries by their IDs.
-// Deletes in batches of maxAckBatchSize to avoid exceeding PostgreSQL's
-// parameter limit (65535).
+const maxAckBatchSize = 500
+
 func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 	if err := ctx.Err(); err != nil {
 		return event.WrapInfrastructure(err, "storage.outbox_context_cancelled",
@@ -164,7 +149,7 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 	}
 
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "outbox.ack",
+		ctx, sqlpkg.Tracer(), "outbox.ack",
 		trace.SpanKindClient,
 		trace.WithAttributes(
 			attribute.Int(cqrsotel.AttrOutboxEntryCount, len(ids)),
@@ -189,12 +174,8 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 	return nil
 }
 
-// maxAckBatchSize limits the number of IDs in a single DELETE to avoid
-// exceeding PostgreSQL's 65535 parameter limit.
-const maxAckBatchSize = 500
-
 func (o *SQLOutbox) ackBatch(ctx context.Context, ids []event.OutboxID) error {
-	return sharedAckBatch(ctx, o.db, ids, o.dialect)
+	return sqlpkg.SharedAckBatch(ctx, o.DB, ids, o.Dialect)
 }
 
 var _ event.Outbox = (*SQLOutbox)(nil)
