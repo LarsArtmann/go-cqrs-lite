@@ -121,19 +121,14 @@ func (s *MemoryStore) LoadBackwards(
 		return nil, err
 	}
 
-	reversed := make([]event.Event, len(events))
-	for i, e := range events {
-		reversed[len(events)-1-i] = e
-	}
+	reversed := slices.Clone(events)
+	slices.Reverse(reversed)
 
 	return reversed, nil
 }
 
 func copyEvents(events []event.Event) []event.Event {
-	result := make([]event.Event, len(events))
-	copy(result, events)
-
-	return result
+	return slices.Clone(events)
 }
 
 func (s *MemoryStore) collectAllSorted() []event.Event {
@@ -199,12 +194,8 @@ func (s *MemoryStore) ReadFrom(
 	startIdx := 0
 
 	if !afterEventID.IsZero() {
-		for i, e := range all {
-			if e.ID() == afterEventID {
-				startIdx = i + 1
-
-				break
-			}
+		if idx := slices.IndexFunc(all, func(e event.Event) bool { return e.ID() == afterEventID }); idx >= 0 {
+			startIdx = idx + 1
 		}
 	}
 
