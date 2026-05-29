@@ -760,16 +760,53 @@
 
     <h3>Does CommandJournal need an Outbox?</h3>
     <p>
-      No. Commands flow <em>in</em> (dispatched by consumers), they don't flow <em>out</em> (published by the library). The Outbox pattern solves outbound publishing. For commands, the Journal alone suffices — it's the audit trail of everything that was received.
+      <strong>Yes — if commands are published.</strong> Commands can and should be published, just like events. A <code>CommandBus</code> (or <code>CommandPublisher</code>) is the natural mirror of <code>event.Bus</code>. When a command is both persisted <em>and</em> published, the same dual-write problem applies: you need atomic persistence + staging, which is exactly the Outbox pattern.
     </p>
 
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Events</th>
+          <th>Commands (future)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Publish</strong></td>
+          <td><code>event.Bus.Publish</code></td>
+          <td><code>CommandBus.Publish</code> (not yet implemented)</td>
+        </tr>
+        <tr>
+          <td><strong>Subscribe</strong></td>
+          <td><code>event.Bus.Subscribe</code></td>
+          <td><code>CommandBus.Subscribe</code></td>
+        </tr>
+        <tr>
+          <td><strong>Outbox</strong></td>
+          <td><code>event.Outbox</code> (implemented)</td>
+          <td><code>CommandOutbox</code> (not yet implemented)</td>
+        </tr>
+        <tr>
+          <td><strong>Journal</strong></td>
+          <td><code>event.Journal</code> (implemented)</td>
+          <td><code>CommandJournal</code> (proposed)</td>
+        </tr>
+      </tbody>
+    </table>
+
     <p>
-      An Outbox for commands would only make sense if you were forwarding commands between services (a command queue) — which is a different pattern entirely and not in scope for this library.
+      Currently, commands only have a <code>Dispatcher</code> (dispatch to handler in-process). There is no <code>CommandBus</code> / <code>CommandPublisher</code> yet. But the design should account for it — commands flowing between services (microservice orchestration, saga coordination) need the same reliable publishing guarantees as events.
     </p>
+
+    <div class="callout callout-amber">
+      <div class="callout-title">Gap Identified</div>
+      <p>The command side is missing three event-side concepts: <strong>CommandBus</strong> (publish/subscribe), <strong>CommandOutbox</strong> (reliable publishing), and <strong>CommandJournal</strong> (audit trail). The event side has all three: <code>event.Bus</code>, <code>event.Outbox</code>, <code>event.Journal</code>. This is an architectural gap worth addressing.</p>
+    </div>
 
     <div class="callout callout-blue">
       <div class="callout-title">Insight</div>
-      <p>Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally: every event in the Journal was once in the Outbox, but the Outbox empties while the Journal grows.</p>
+      <p>Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally: events/commands are persisted to the Journal <em>and</em> staged in the Outbox atomically. The Outbox empties; the Journal grows.</p>
     </div>
   </section>
 
@@ -783,28 +820,63 @@
 
     <div class="callout callout-green">
       <div class="callout-title">Answer</div>
-      <p><code>ImmutableEvent</code> <strong>is</strong> <code>PersistedEvent</code> — it just doesn't use that name. Events are born persisted. Commands have two distinct lifecycles.</p>
+      <p>Both sides actually have the same shape: an in-memory type that <em>can</em> be persisted but doesn't have to be. The naming difference is misleading — <code>ImmutableEvent</code> is just as "live" as <code>BasicCommand</code> until you call <code>Save()</code>.</p>
     </div>
 
-    <h3>The event side — one form does both</h3>
+    <h3>Both sides have in-memory forms that become persisted on Save</h3>
 
-    <pre><code><span class="cm">// ImmutableEvent already carries everything persistence needs:</span>
-<span class="kw">type</span> <span class="tp">ImmutableEvent</span> <span class="kw">struct</span> {
-    id            <span class="tp">id.EventID</span>         <span class="cm">// unique ID</span>
-    eventType     <span class="tp">Type</span>               <span class="cm">// domain event type</span>
-    aggregateID   <span class="tp">id.AggregateID</span>    <span class="cm">// which aggregate</span>
-    aggregateType <span class="tp">AggregateType</span>     <span class="cm">// aggregate kind</span>
-    version       <span class="tp">Version</span>            <span class="cm">// stream position</span>
-    schemaVersion <span class="tp">SchemaVersion</span>     <span class="cm">// for upcasting</span>
-    encoding      <span class="tp">codec.Encoding</span>     <span class="cm">// JSON, raw, etc.</span>
-    payload       []<span class="tp">byte</span>              <span class="cm">// serialized data</span>
-    metadata      *<span class="tp">Metadata</span>           <span class="cm">// correlation, causation, etc.</span>
-    occurredAt    <span class="tp">time.Time</span>          <span class="cm">// when it happened</span>
-}</code></pre>
+    <pre><code><span class="cm">// Events — ImmutableEvent is an in-memory struct. Only persisted when you call sink.Save().</span>
+evt, _ := event.NewEvent("user.created", userID, "User", event.Version(1), UserCreated{Name: "Alice"})
+<span class="cm">// evt exists in memory. It's NOT persisted yet.</span>
+<span class="cm">// You could throw it away, publish it to a bus, or save it:</span>
+_ = sink.Save(ctx, event.AggregateRef{Type: "User", ID: userID}, event.Version(1), evt)
+
+<span class="cm">// Commands — BasicCommand is an in-memory struct. Only persisted when you create a PersistedCommand.</span>
+cmd := command.New("create.user", aggregateID, command.WithCorrelationID(corrID))
+<span class="cm">// cmd exists in memory. It's NOT persisted yet.</span>
+<span class="cm">// You could dispatch it and forget, or persist it:</span>
+persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, payload)</code></pre>
 
     <p>
-      The <code>NewEvent()</code> constructor marshals typed payloads into serialized bytes <em>at creation time</em>. There is no "live" event type — events are born immutable and persisted. The name <code>ImmutableEvent</code> emphasizes immutability, but it's functionally equivalent to a <code>PersistedEvent</code>.
+      The real difference isn't "born persisted" vs "two lifecycles" — both types live in memory until explicitly persisted. The actual distinction is:
     </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th><code>ImmutableEvent</code></th>
+          <th><code>BasicCommand</code> → <code>PersistedCommand</code></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>In-memory form</td>
+          <td><code>ImmutableEvent</code> (always has ID, timestamp, serialized payload)</td>
+          <td><code>BasicCommand</code> (no ID, no timestamp, typed payload)</td>
+        </tr>
+        <tr>
+          <td>Persisted form</td>
+          <td>Same struct — <code>ImmutableEvent</code> goes straight to <code>Sink.Save()</code></td>
+          <td>Separate struct — <code>NewPersistedCommand()</code> wraps with ID, timestamp, <code>[]byte</code></td>
+        </tr>
+        <tr>
+          <td>Serialization</td>
+          <td>At creation time (<code>NewEvent</code> marshals payload → bytes)</td>
+          <td>At persistence time (<code>NewPersistedCommand</code> takes <code>[]byte</code>)</td>
+        </tr>
+        <tr>
+          <td>ID allocation</td>
+          <td>Always (<code>id.EventID</code> via ULID)</td>
+          <td>Only on persist (<code>id.CommandID</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-amber">
+      <div class="callout-title">Honest Assessment</div>
+      <p>The event side <em>could</em> have a <code>PersistedEvent</code> too — a separate struct that adds storage-specific fields. It doesn't because <code>ImmutableEvent</code> was designed to be storage-ready from the start (ID, timestamp, bytes payload). The command side didn't get that treatment: <code>BasicCommand</code> is lightweight (no ID, no timestamp, typed payload), so <code>PersistedCommand</code> bridges the gap. Both approaches work, but the asymmetry is a design choice, not a law of nature.</p>
+    </div>
 
     <h3>The command side — two forms, two lifecycles</h3>
 
@@ -849,7 +921,7 @@
       Commands have <strong>two distinct lifecycles</strong>: they're dispatched in-memory (live) and optionally persisted to storage (audit). The split exists because not every dispatched command needs persistence — allocating an ID and timestamp for every fire-and-forget dispatch would be wasteful.
     </p>
 
-    <h3>Why the asymmetry is correct</h3>
+    <h3>Revised comparison</h3>
 
     <table>
       <thead>
@@ -866,26 +938,41 @@
           <td>Intentions — may succeed or fail</td>
         </tr>
         <tr>
-          <td>Always persisted?</td>
-          <td>Yes — event sourcing requires it</td>
-          <td>No — only when audit is needed</td>
+          <td>In-memory form</td>
+          <td><code>ImmutableEvent</code> (heavy: ID + timestamp + bytes)</td>
+          <td><code>BasicCommand</code> (light: type + aggregateID only)</td>
         </tr>
         <tr>
-          <td>Lifecycle</td>
-          <td>Single form (born persisted)</td>
-          <td>Two forms (live → optionally persisted)</td>
+          <td>Storage-ready?</td>
+          <td>Yes — same struct goes to <code>Sink.Save()</code></td>
+          <td>No — must convert to <code>PersistedCommand</code></td>
         </tr>
         <tr>
-          <td>Serialization</td>
+          <td>Serialization timing</td>
           <td>At creation (<code>NewEvent</code>)</td>
-          <td>At persistence (<code>NewPersistedCommand</code>)</td>
+          <td>At persist (<code>NewPersistedCommand</code>)</td>
+        </tr>
+        <tr>
+          <td>Publishable?</td>
+          <td>Yes — <code>Bus.Publish</code></td>
+          <td>Not yet — no <code>CommandBus</code> exists</td>
+        </tr>
+        <tr>
+          <td>Outbox?</td>
+          <td>Yes — <code>event.Outbox</code></td>
+          <td>Not yet — no <code>CommandOutbox</code> exists</td>
+        </tr>
+        <tr>
+          <td>Journal?</td>
+          <td>Yes — <code>event.Journal</code></td>
+          <td>Not yet — <code>CommandJournal</code> proposed</td>
         </tr>
       </tbody>
     </table>
 
     <div class="callout callout-blue">
-      <div class="callout-title">Open Question</div>
-      <p>Could the command side follow the event pattern — make <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating the separate <code>PersistedCommand</code>? Yes, but it would mean every dispatched command allocates an ID and timestamp even when persistence isn't needed. The current split is a deliberate performance/clarity tradeoff.</p>
+      <div class="callout-title">Open Questions</div>
+      <p><strong>1.</strong> Could the command side follow the event pattern — make <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating <code>PersistedCommand</code>? This would unify the shapes but allocate IDs for fire-and-forget dispatches. <strong>2.</strong> Should the event side introduce a <code>PersistedEvent</code> too, for full symmetry? Probably not — <code>ImmutableEvent</code> already works as both forms. <strong>3.</strong> When <code>CommandBus</code> is added, should <code>PersistedCommand</code> become the publishable type (like <code>ImmutableEvent</code> is for <code>Bus.Publish</code>), or should publishing use <code>BasicCommand</code>?</p>
     </div>
   </section>
 
