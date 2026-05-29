@@ -33,7 +33,7 @@ var _ = Describe("Recovery Middleware", func() {
 
 	Describe("As a developer protecting my command handlers", func() {
 		Context("when my handler panics", func() {
-			It("should recover and return ErrPanicRecovered", func() {
+			It("should recover the panic and explain what went wrong", func() {
 				mw := middleware.CommandRecovery()
 				handler := mw(func(_ context.Context, _ command.Command) error {
 					panic("something went terribly wrong")
@@ -114,7 +114,7 @@ var _ = Describe("Retry Middleware", func() {
 		})
 
 		Context("when the handler fails consistently", func() {
-			It("should exhaust retries and return ErrRetryExhausted", func() {
+			It("should exhaust retries and report that all attempts failed", func() {
 				config := middleware.RetryConfig{
 					MaxAttempts:  2,
 					InitialDelay: time.Millisecond,

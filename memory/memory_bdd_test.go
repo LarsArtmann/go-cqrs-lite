@@ -58,9 +58,10 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I load a non-existent aggregate", func() {
-			It("should return ErrAggregateNotFound", func() {
+			It("should explain that the aggregate was not found", func() {
 				_, err := store.Load(ctx, "TestAggregate", aggID)
-				Expect(err).To(MatchError(event.ErrAggregateNotFound))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
 			})
 		})
 

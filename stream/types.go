@@ -48,6 +48,39 @@ const (
 	TombstoneOnly
 )
 
+func (p TombstonePolicy) String() string {
+	switch p {
+	case TombstoneExclude:
+		return "exclude"
+	case TombstoneInclude:
+		return "include"
+	case TombstoneOnly:
+		return "only"
+	default:
+		return fmt.Sprintf("TombstonePolicy(%d)", p)
+	}
+}
+
+type aggregateStatusJSON struct {
+	ID          string `json:"id"`
+	Type        string `json:"type"`
+	Version     int    `json:"version"`
+	EventCount  uint   `json:"event_count"`
+	LastEventAt string `json:"last_event_at"`
+	Status      string `json:"status"`
+}
+
+func (s AggregateStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(aggregateStatusJSON{
+		ID:          s.Ref.ID.String(),
+		Type:        string(s.Ref.Type),
+		Version:     s.Ref.Version.Int(),
+		EventCount:  s.Ref.EventCount,
+		LastEventAt: s.Ref.LastEventAt.Format(time.RFC3339),
+		Status:      s.Status.String(),
+	})
+}
+
 // ListOptions controls aggregate listing queries.
 type ListOptions struct {
 	// Type is the aggregate type to list. Required for cursor pagination.
