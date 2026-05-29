@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -56,30 +55,30 @@ func CheckpointSchema() string { return PostgresDialect{}.CheckpointSchema() }
 func SQLiteCheckpointSchema() string { return SQLiteDialect{}.CheckpointSchema() }
 
 // Load returns the last processed event ID for a projection.
-func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (id.EventID, error) {
+func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (event.Checkpoint, error) {
 	ctx, span := s.startSpan(ctx, "checkpoint.load", projectionName)
 	defer span.End()
 
-	eventID, err := sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
+	cp, err := sharedCheckpointLoad(ctx, s.db, projectionName, s.dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return eventID, fmt.Errorf("load checkpoint for projection %s: %w", projectionName, err)
+		return event.Checkpoint{}, fmt.Errorf("load checkpoint for projection %s: %w", projectionName, err)
 	}
 
-	return eventID, nil
+	return cp, nil
 }
 
 // Save persists the last processed event ID for a projection.
 func (s *SQLCheckpointStore) Save(
 	ctx context.Context,
 	projectionName string,
-	eventID id.EventID,
+	cp event.Checkpoint,
 ) error {
 	ctx, span := s.startSpan(ctx, "checkpoint.save", projectionName)
 	defer span.End()
 
-	err := sharedCheckpointSave(ctx, s.db, projectionName, eventID, s.dialect)
+	err := sharedCheckpointSave(ctx, s.db, projectionName, cp, s.dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 

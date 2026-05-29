@@ -1,4 +1,4 @@
-package signing_test
+package multisig_test
 
 import (
 	"context"
@@ -8,15 +8,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
 )
 
 func ExampleNewMultiSigner() {
 	key := []byte("example-key-with-at-least-32-bytes!")
 	signerverifier, _ := signing.NewHMAC(key)
 
-	deviceMulti, err := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmHMACSHA256,
+	deviceMulti, err := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmHMACSHA256,
 		signerverifier,
 	)
 	if err != nil {
@@ -32,7 +33,7 @@ func ExampleNewMultiSigner() {
 	}
 
 	fmt.Println("actor:", deviceMulti.Actor())
-	fmt.Println("has multi-sig:", signing.HasMultiSignature(signed))
+	fmt.Println("has multi-sig:", multisig.HasMultiSignature(signed))
 
 	// Output:
 	// actor: device
@@ -52,28 +53,26 @@ func ExampleVerifyAll() {
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
 	serverVerifier, _ := signing.NewEd25519Verifier(serverPub)
 
-	deviceMulti, _ := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmEd25519,
+	deviceMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmEd25519,
 		deviceSigner,
-		signing.WithVerifier(deviceVerifier),
+		multisig.WithVerifier(deviceVerifier),
 	)
-	serverMulti, _ := signing.NewMultiSigner(
-		signing.Actor("server"),
-		signing.AlgorithmEd25519,
+	serverMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("server"),
+		multisig.AlgorithmEd25519,
 		serverSigner,
-		signing.WithVerifier(serverVerifier),
+		multisig.WithVerifier(serverVerifier),
 	)
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("order.shipped", aggID, "Order", 1, []byte(`{}`))
 
-	// Device signs first, then server signs the already-signed event
 	step1, _ := deviceMulti.Sign(evt)
 	step2, _ := serverMulti.Sign(step1)
 
-	// Verify all signatures using the MultiSigners directly
-	if err := signing.VerifyAll(step2, signing.VerifierMap(deviceMulti, serverMulti)); err != nil {
+	if err := multisig.VerifyAll(step2, multisig.VerifierMap(deviceMulti, serverMulti)); err != nil {
 		fmt.Println("verification failed:", err)
 	} else {
 		fmt.Println("all signatures valid")
@@ -87,20 +86,20 @@ func ExampleVerifierMap() {
 	key := []byte("example-key-with-at-least-32-bytes!")
 	signer, _ := signing.NewHMAC(key)
 
-	deviceMulti, _ := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmHMACSHA256,
+	deviceMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmHMACSHA256,
 		signer,
 	)
-	serverMulti, _ := signing.NewMultiSigner(
-		signing.Actor("server"),
-		signing.AlgorithmHMACSHA256,
+	serverMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("server"),
+		multisig.AlgorithmHMACSHA256,
 		signer,
 	)
 
-	verifiers := signing.VerifierMap(deviceMulti, serverMulti)
-	fmt.Println("device actor:", verifiers[signing.Actor("device")] != nil)
-	fmt.Println("server actor:", verifiers[signing.Actor("server")] != nil)
+	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	fmt.Println("device actor:", verifiers[multisig.Actor("device")] != nil)
+	fmt.Println("server actor:", verifiers[multisig.Actor("server")] != nil)
 	fmt.Println("total:", len(verifiers))
 
 	// Output:
@@ -115,17 +114,15 @@ func ExampleMultiVerifyMiddlewareFor() {
 
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)
-	deviceMulti, _ := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmEd25519,
+	deviceMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmEd25519,
 		deviceSigner,
-		signing.WithVerifier(deviceVerifier),
+		multisig.WithVerifier(deviceVerifier),
 	)
 
-	// Create middleware that verifies the "device" actor's signature
-	verifyMiddleware := signing.MultiVerifyMiddlewareFor(signing.Actor("device"), deviceVerifier)
+	verifyMiddleware := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), deviceVerifier)
 
-	// The middleware rejects events without a valid device signature
 	handler := func(_ context.Context, evt event.Event) error {
 		fmt.Println("handling:", evt.Type())
 
@@ -137,10 +134,8 @@ func ExampleMultiVerifyMiddlewareFor() {
 	aggID := id.NewAggregateID()
 	unsignedEvt, _ := event.NewEvent("test.event", aggID, "Test", 1, nil)
 
-	// Unsigned events pass through (to support mixed streams)
 	_ = wrapped(context.Background(), unsignedEvt)
 
-	// Signed events are verified before reaching the handler
 	signedEvt, _ := deviceMulti.Sign(unsignedEvt)
 	_ = wrapped(context.Background(), signedEvt)
 

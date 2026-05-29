@@ -9,9 +9,9 @@ import (
 // MetadataKey is the custom metadata key used to store event signatures.
 const MetadataKey event.MetadataKey = "event.signature"
 
-// cloneEvent reconstructs an event preserving all fields and adding a custom
-// metadata key. Used by AttachSignature and attachMultiSignature.
-func cloneEvent(
+// CloneEvent reconstructs an event preserving all fields and adding a custom
+// metadata key-value pair. Returns a new ImmutableEvent; the original is unmodified.
+func CloneEvent(
 	evt event.Event,
 	key event.MetadataKey,
 	value string,
@@ -43,7 +43,7 @@ func AttachSignature(evt event.Event, sig Signature) (*event.ImmutableEvent, err
 
 	encoded := base64.URLEncoding.EncodeToString(sig.Bytes())
 
-	clone, err := cloneEvent(evt, MetadataKey, encoded)
+	clone, err := CloneEvent(evt, MetadataKey, encoded)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,

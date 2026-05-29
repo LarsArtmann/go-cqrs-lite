@@ -149,7 +149,7 @@ func TestConcurrent_CheckpointSaveLoad(t *testing.T) {
 
 			for range 10 {
 				eid := id.NewEventID()
-				_ = checkpoint.Save(context.Background(), n, eid)
+				_ = checkpoint.Save(context.Background(), n, event.Checkpoint{EventID: eid})
 			}
 		}(name)
 	}

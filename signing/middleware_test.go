@@ -258,12 +258,3 @@ func TestMiddlewareNilGuards(t *testing.T) {
 			"signing: RequireSignatureMiddleware called with nil verifier")
 	})
 }
-
-func TestActor_String(t *testing.T) {
-	t.Parallel()
-
-	actor := signing.Actor("device")
-	if got := actor.String(); got != "device" {
-		t.Fatalf("got %q, want %q", got, "device")
-	}
-}

@@ -1,18 +1,19 @@
-package signing
+package multisig
 
 import (
 	"encoding/json"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
 // VerifyAll verifies every signature entry in the multi-sig collection
 // using each entry's algorithm-appropriate verifier from the provided map.
 // The map keys are actor names; the values are their respective verifiers.
 // Returns the first verification failure, or nil if all pass.
-func VerifyAll(evt event.Event, verifiers map[Actor]Verifier) error {
+func VerifyAll(evt event.Event, verifiers map[Actor]signing.Verifier) error {
 	if evt == nil {
-		return ErrNilEvent
+		return signing.ErrNilEvent
 	}
 
 	multiSig, err := ExtractMultiSignature(evt)
@@ -47,17 +48,17 @@ func VerifyAll(evt event.Event, verifiers map[Actor]Verifier) error {
 // ExtractMultiSignature retrieves the multi-signature collection from an event.
 func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 	if evt == nil {
-		return MultiSignature{Entries: nil}, ErrNilEvent
+		return MultiSignature{Entries: nil}, signing.ErrNilEvent
 	}
 
 	md := evt.Metadata()
 	if md == nil || md.Custom == nil {
-		return MultiSignature{Entries: nil}, ErrNilSignature
+		return MultiSignature{Entries: nil}, signing.ErrNilSignature
 	}
 
 	encoded, ok := md.Custom[MultiSigMetadataKey]
 	if !ok || encoded == "" {
-		return MultiSignature{Entries: nil}, ErrNilSignature
+		return MultiSignature{Entries: nil}, signing.ErrNilSignature
 	}
 
 	var multiSig MultiSignature
@@ -80,8 +81,8 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 // or RequireMultiSigMiddleware.
 //
 // Panics if any signer is nil.
-func VerifierMap(signers ...*MultiSigner) map[Actor]Verifier {
-	verifiers := make(map[Actor]Verifier, len(signers))
+func VerifierMap(signers ...*MultiSigner) map[Actor]signing.Verifier {
+	verifiers := make(map[Actor]signing.Verifier, len(signers))
 
 	for _, s := range signers {
 		if s == nil {
@@ -114,7 +115,7 @@ func attachMultiSignature(
 		)
 	}
 
-	clone, err := cloneEvent(evt, MultiSigMetadataKey, string(encoded))
+	clone, err := signing.CloneEvent(evt, MultiSigMetadataKey, string(encoded))
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,

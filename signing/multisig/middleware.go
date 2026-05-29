@@ -1,24 +1,50 @@
-package signing
+package multisig
 
 import (
 	"context"
+	"errors"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/signing"
 )
+
+// extractOrPassThrough extracts a value from an event, passing through to the next handler
+// if no signature is present (ErrNilSignature). Returns the extracted value, whether the
+// event was already handled, and any error.
+func extractOrPassThrough[T any](
+	ctx context.Context,
+	evt event.Event,
+	next event.Handler,
+	extract func(event.Event) (T, error),
+	code, msg string,
+) (T, bool, error) {
+	var zero T
+
+	result, err := extract(evt)
+	if err != nil {
+		if errors.Is(err, signing.ErrNilSignature) {
+			return zero, true, next(ctx, evt)
+		}
+
+		return zero, true, event.WrapInfrastructure(err, code, msg)
+	}
+
+	return result, false, nil
+}
 
 // MultiSignMiddleware returns event.PublishMiddleware that signs every published event
 // on behalf of the given actor, appending to any existing multi-signature entries.
 //
 // Chain multiple MultiSignMiddleware calls for each actor in the pipeline:
 //
-//	deviceSigner := signing.NewMultiSigner("device", signing.AlgorithmEd25519, edSigner)
-//	serverSigner := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, hmacSigner)
+//	deviceSigner := multisig.NewMultiSigner("device", multisig.AlgorithmEd25519, edSigner)
+//	serverSigner := multisig.NewMultiSigner("server", multisig.AlgorithmHMACSHA256, hmacSigner)
 //
-//	bus.UsePublish(signing.MultiSignMiddleware(deviceSigner))
-//	bus.UsePublish(signing.MultiSignMiddleware(serverSigner))
+//	bus.UsePublish(multisig.MultiSignMiddleware(deviceSigner))
+//	bus.UsePublish(multisig.MultiSignMiddleware(serverSigner))
 func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 	if signer == nil {
-		panic("signing: MultiSignMiddleware called with nil signer")
+		panic("multisig: MultiSignMiddleware called with nil signer")
 	}
 
 	return func(next event.Publisher) event.Publisher {
@@ -49,7 +75,7 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 // (to support mixed streams). Use RequireMultiSigMiddleware to enforce presence.
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	if signer == nil {
-		panic("signing: MultiVerifyMiddleware called with nil signer")
+		panic("multisig: MultiVerifyMiddleware called with nil signer")
 	}
 
 	return func(next event.Handler) event.Handler {
@@ -84,9 +110,9 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // actor's signature without requiring the caller to construct a *MultiSigner.
 // This is a convenience wrapper for the common case where you already have
 // a Verifier and just want to check one actor's signature.
-func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
+func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Middleware {
 	if verifier == nil {
-		panic("signing: MultiVerifyMiddlewareFor called with nil verifier")
+		panic("multisig: MultiVerifyMiddlewareFor called with nil verifier")
 	}
 
 	return func(next event.Handler) event.Handler {
@@ -128,16 +154,16 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier Verifier) event.Middleware {
 // missing verified signatures from all actors in the provided verifier map.
 // Cryptographically verifies every signature entry and ensures every actor
 // in the verifier map has a corresponding valid signature.
-func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
+func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middleware {
 	if len(verifiers) == 0 {
-		panic("signing: RequireMultiSigMiddleware called with empty verifiers map")
+		panic("multisig: RequireMultiSigMiddleware called with empty verifiers map")
 	}
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if evt == nil {
 				return event.WrapRejection(
-					ErrNilSignature,
+					signing.ErrNilSignature,
 					"signing.nil_event_multi_sig",
 					"nil event",
 				)
@@ -146,7 +172,7 @@ func RequireMultiSigMiddleware(verifiers map[Actor]Verifier) event.Middleware {
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
 				return event.WrapRejection(
-					ErrNilSignature,
+					signing.ErrNilSignature,
 					"signing.no_multi_sig",
 					"event "+string(evt.Type())+" has no multi-signature",
 				)

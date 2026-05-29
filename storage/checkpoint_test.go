@@ -6,9 +6,11 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -45,17 +47,18 @@ func TestSQLCheckpointStore_Load(t *testing.T) {
 	s, mock := newTestCheckpointStore(t)
 	eventID := id.NewEventID()
 
-	mock.ExpectQuery(`SELECT event_id FROM checkpoints`).
+	mock.ExpectQuery(`SELECT event_id, processed_at FROM checkpoints`).
 		WithArgs("my-projection").
-		WillReturnRows(sqlmock.NewRows([]string{"event_id"}).AddRow(eventID.String()))
+		WillReturnRows(sqlmock.NewRows([]string{"event_id", "processed_at"}).
+			AddRow(eventID.String(), time.Now()))
 
 	got, err := s.Load(context.Background(), "my-projection")
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if got != eventID {
-		t.Fatalf("got %v, want %v", got, eventID)
+	if got.EventID != eventID {
+		t.Fatalf("got %v, want %v", got.EventID, eventID)
 	}
 }
 
@@ -64,7 +67,7 @@ func TestSQLCheckpointStore_Load_NoRows(t *testing.T) {
 
 	s, mock := newTestCheckpointStore(t)
 
-	mock.ExpectQuery(`SELECT event_id FROM checkpoints`).
+	mock.ExpectQuery(`SELECT event_id, processed_at FROM checkpoints`).
 		WithArgs("new-projection").
 		WillReturnError(sql.ErrNoRows)
 
@@ -74,7 +77,7 @@ func TestSQLCheckpointStore_Load_NoRows(t *testing.T) {
 	}
 
 	if !got.IsZero() {
-		t.Fatalf("expected zero EventID for missing checkpoint, got %v", got)
+		t.Fatalf("expected zero Checkpoint for missing checkpoint, got %v", got)
 	}
 }
 
@@ -83,7 +86,7 @@ func TestSQLCheckpointStore_Load_QueryError(t *testing.T) {
 
 	s, mock := newTestCheckpointStore(t)
 
-	mock.ExpectQuery(`SELECT event_id FROM checkpoints`).
+	mock.ExpectQuery(`SELECT event_id, processed_at FROM checkpoints`).
 		WithArgs("my-projection").
 		WillReturnError(errors.New("connection lost"))
 
@@ -98,9 +101,10 @@ func TestSQLCheckpointStore_Load_InvalidEventID(t *testing.T) {
 
 	s, mock := newTestCheckpointStore(t)
 
-	mock.ExpectQuery(`SELECT event_id FROM checkpoints`).
+	mock.ExpectQuery(`SELECT event_id, processed_at FROM checkpoints`).
 		WithArgs("my-projection").
-		WillReturnRows(sqlmock.NewRows([]string{"event_id"}).AddRow("not-a-valid-ulid"))
+		WillReturnRows(sqlmock.NewRows([]string{"event_id", "processed_at"}).
+			AddRow("not-a-valid-ulid", time.Now()))
 
 	_, err := s.Load(context.Background(), "my-projection")
 	if err == nil {
@@ -112,13 +116,13 @@ func TestSQLCheckpointStore_Save(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestCheckpointStore(t)
-	eventID := id.NewEventID()
+	cp := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 
 	mock.ExpectExec(`INSERT INTO checkpoints`).
-		WithArgs("my-projection", eventID).
+		WithArgs("my-projection", cp.EventID, sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := s.Save(context.Background(), "my-projection", eventID)
+	err := s.Save(context.Background(), "my-projection", cp)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -128,13 +132,13 @@ func TestSQLCheckpointStore_Save_Error(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestCheckpointStore(t)
-	eventID := id.NewEventID()
+	cp := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 
 	mock.ExpectExec(`INSERT INTO checkpoints`).
-		WithArgs("my-projection", eventID).
+		WithArgs("my-projection", cp.EventID, sqlmock.AnyArg()).
 		WillReturnError(errors.New("db error"))
 
-	err := s.Save(context.Background(), "my-projection", eventID)
+	err := s.Save(context.Background(), "my-projection", cp)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -145,7 +149,7 @@ func TestCheckpointSchema_ContainsExpectedDDL(t *testing.T) {
 
 	schema := CheckpointSchema()
 
-	for _, want := range []string{"CREATE TABLE", "checkpoints", "projection_name", "event_id"} {
+	for _, want := range []string{"CREATE TABLE", "checkpoints", "projection_name", "event_id", "processed_at"} {
 		if !strings.Contains(schema, want) {
 			t.Errorf("schema missing %q", want)
 		}

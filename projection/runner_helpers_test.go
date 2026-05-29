@@ -193,11 +193,11 @@ type failingCheckpointStore struct {
 	loadErr error
 }
 
-func (f *failingCheckpointStore) Load(_ context.Context, _ string) (id.EventID, error) {
-	return id.EventID{}, f.loadErr
+func (f *failingCheckpointStore) Load(_ context.Context, _ string) (event.Checkpoint, error) {
+	return event.Checkpoint{}, f.loadErr
 }
 
-func (f *failingCheckpointStore) Save(_ context.Context, _ string, _ id.EventID) error {
+func (f *failingCheckpointStore) Save(_ context.Context, _ string, _ event.Checkpoint) error {
 	return nil
 }
 

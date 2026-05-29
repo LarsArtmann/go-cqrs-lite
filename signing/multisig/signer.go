@@ -1,9 +1,10 @@
-package signing
+package multisig
 
 import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.
@@ -12,7 +13,7 @@ import (
 func NewMultiSigner(
 	actor Actor,
 	algorithm SignatureAlgorithm,
-	signer Signer,
+	signer signing.Signer,
 	opts ...MultiSignerOption,
 ) (*MultiSigner, error) {
 	if actor == "" {
@@ -27,8 +28,8 @@ func NewMultiSigner(
 		return nil, event.NewRejection("signing.empty_algorithm", "algorithm cannot be empty")
 	}
 
-	var verifier Verifier
-	if sv, ok := signer.(Verifier); ok {
+	var verifier signing.Verifier
+	if sv, ok := signer.(signing.Verifier); ok {
 		verifier = sv
 	}
 
@@ -70,7 +71,7 @@ func (m *MultiSigner) Algorithm() SignatureAlgorithm { return m.algorithm }
 // the previous entry is replaced.
 func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
 	if evt == nil {
-		return nil, ErrNilEvent
+		return nil, signing.ErrNilEvent
 	}
 
 	sig, err := m.signer.Sign(evt)
@@ -130,7 +131,7 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 
 // VerifyActor verifies a specific actor's signature using the provided verifier.
 // Useful when one actor wants to check another actor's signature.
-func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifier) error {
+func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier signing.Verifier) error {
 	err := verifyActorEntry(evt, actor, verifier)
 	if err != nil {
 		return event.WrapInfrastructure(
@@ -144,9 +145,9 @@ func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier Verifie
 }
 
 // verifyActorEntry extracts the multi-sig, finds the actor's entry, and verifies it.
-func verifyActorEntry(evt event.Event, actor Actor, verifier Verifier) error {
+func verifyActorEntry(evt event.Event, actor Actor, verifier signing.Verifier) error {
 	if evt == nil {
-		return ErrNilEvent
+		return signing.ErrNilEvent
 	}
 
 	multiSig, err := ExtractMultiSignature(evt)
@@ -157,7 +158,7 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier Verifier) error {
 	entry := multiSig.Get(actor)
 	if entry == nil {
 		return event.Wrapf(
-			ErrNilSignature, event.Rejection,
+			signing.ErrNilSignature, event.Rejection,
 			"signing.no_actor_signature",
 			"no signature found for actor %s",
 			actor,

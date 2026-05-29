@@ -2,6 +2,7 @@ package memory_test
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -339,11 +340,11 @@ var _ = Describe("MemoryCheckpointStore", func() {
 		Context("when I save a checkpoint and load it back", func() {
 			It("should remember where my projection stopped so I can resume from there", func() {
 				evtID := id.NewEventID()
-				Expect(cpStore.Save(ctx, "user-projection", evtID)).To(Succeed())
+				Expect(cpStore.Save(ctx, "user-projection", event.Checkpoint{EventID: evtID})).To(Succeed())
 
 				loaded, err := cpStore.Load(ctx, "user-projection")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded).To(Equal(evtID))
+				Expect(loaded.EventID).To(Equal(evtID))
 			})
 		})
 
@@ -357,15 +358,15 @@ var _ = Describe("MemoryCheckpointStore", func() {
 
 		Context("when I update the checkpoint after processing more events", func() {
 			It("should overwrite the old position so I always resume from the latest", func() {
-				first := id.NewEventID()
+				first := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 				Expect(cpStore.Save(ctx, "orders", first)).To(Succeed())
 
-				second := id.NewEventID()
+				second := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 				Expect(cpStore.Save(ctx, "orders", second)).To(Succeed())
 
 				loaded, err := cpStore.Load(ctx, "orders")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(loaded).To(Equal(second))
+				Expect(loaded.EventID).To(Equal(second.EventID))
 			})
 		})
 	})

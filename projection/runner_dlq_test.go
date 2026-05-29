@@ -102,7 +102,7 @@ func TestRunner_Reset(t *testing.T) {
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
 	evtID := id.NewEventID()
-	if saveErr := checkpointStore.Save(t.Context(), "test-projection", evtID); saveErr != nil {
+	if saveErr := checkpointStore.Save(t.Context(), "test-projection", event.Checkpoint{EventID: evtID, ProcessedAt: time.Now()}); saveErr != nil {
 		t.Fatalf("Save checkpoint: %v", saveErr)
 	}
 
@@ -116,7 +116,7 @@ func TestRunner_Reset(t *testing.T) {
 		t.Fatalf("Load before reset: %v", loadErr)
 	}
 
-	if !loaded.Equal(evtID) {
+	if loaded.EventID != evtID {
 		t.Fatalf("expected checkpoint %s before reset, got %s", evtID, loaded)
 	}
 

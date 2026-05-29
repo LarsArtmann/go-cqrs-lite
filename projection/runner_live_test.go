@@ -102,7 +102,7 @@ func TestRunner_SavesCheckpoint(t *testing.T) {
 		t.Fatalf("CurrentCheckpoint: %v", err)
 	}
 
-	if cpResult != evt.ID() {
+	if cpResult.EventID != evt.ID() {
 		t.Errorf("checkpoint = %v, want %v", cpResult, evt.ID())
 	}
 }

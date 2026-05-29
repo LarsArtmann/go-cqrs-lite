@@ -85,7 +85,8 @@ func (PostgresDialect) SnapshotSchema() string {
 func (PostgresDialect) CheckpointSchema() string {
 	return `CREATE TABLE IF NOT EXISTS checkpoints (
     projection_name VARCHAR(255) PRIMARY KEY,
-    event_id        TEXT NOT NULL
+    event_id        TEXT NOT NULL,
+    processed_at    TIMESTAMP NOT NULL DEFAULT NOW()
 );`
 }
 
@@ -176,7 +177,8 @@ func (SQLiteDialect) SnapshotSchema() string {
 func (SQLiteDialect) CheckpointSchema() string {
 	return `CREATE TABLE IF NOT EXISTS checkpoints (
     projection_name TEXT PRIMARY KEY,
-    event_id        TEXT NOT NULL
+    event_id        TEXT NOT NULL,
+    processed_at    TEXT NOT NULL DEFAULT(datetime('now'))
 );`
 }
 

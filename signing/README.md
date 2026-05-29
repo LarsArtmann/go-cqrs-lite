@@ -79,18 +79,24 @@ bus.Use(signing.VerifyMiddleware(verifier))
 
 When events travel through multiple actors (e.g., end-user device → server), each actor adds its own signature. The event accumulates a `MultiSignature` collection that anyone can verify.
 
+Import the multisig sub-package:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/signing/multisig"
+```
+
 ### Device → Server Chain
 
 ```go
 // Device signs with Ed25519 (private key stays on device)
 deviceSigner, _ := signing.NewEd25519(devicePrivKey)
 deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
-deviceMulti, _ := signing.NewMultiSigner(signing.Actor("device"), signing.AlgorithmEd25519, deviceSigner,
-    signing.WithVerifier(deviceVerifier))
+deviceMulti, _ := multisig.NewMultiSigner(multisig.Actor("device"), multisig.AlgorithmEd25519, deviceSigner,
+    multisig.WithVerifier(deviceVerifier))
 
 // Server signs with HMAC (shared secret within org)
 serverSigner, _ := signing.NewHMAC(serverKey)
-serverMulti, _ := signing.NewMultiSigner(signing.Actor("server"), signing.AlgorithmHMACSHA256, serverSigner)
+serverMulti, _ := multisig.NewMultiSigner(multisig.Actor("server"), multisig.AlgorithmHMACSHA256, serverSigner)
 
 // Step 1: Device signs
 signed, _ := deviceMulti.Sign(event)
@@ -100,29 +106,29 @@ deviceMulti.Verify(signed) // verifies device's sig
 signed, _ = serverMulti.Sign(signed) // appends server's sig
 
 // Final event carries both signatures
-multiSig, _ := signing.ExtractMultiSignature(signed)
-multiSig.HasActor(signing.Actor("device")) // true
-multiSig.HasActor(signing.Actor("server")) // true
+multiSig, _ := multisig.ExtractMultiSignature(signed)
+multiSig.HasActor(multisig.Actor("device")) // true
+multiSig.HasActor(multisig.Actor("server")) // true
 ```
 
 ### Verify All Actors
 
 ```go
-err := signing.VerifyAll(signed, signing.VerifierMap(deviceMulti, serverMulti))
+err := multisig.VerifyAll(signed, multisig.VerifierMap(deviceMulti, serverMulti))
 ```
 
 ### Require All Actors via Middleware
 
 ```go
-bus.Use(signing.RequireMultiSigMiddleware(signing.VerifierMap(deviceMulti, serverMulti)))
+bus.Use(multisig.RequireMultiSigMiddleware(multisig.VerifierMap(deviceMulti, serverMulti)))
 ```
 
 ### Middleware for Each Actor in the Pipeline
 
 ```go
 // On the device's publish path
-bus.UsePublish(signing.MultiSignMiddleware(deviceMulti))
+bus.UsePublish(multisig.MultiSignMiddleware(deviceMulti))
 
 // On the server's publish path
-bus.UsePublish(signing.MultiSignMiddleware(serverMulti))
+bus.UsePublish(multisig.MultiSignMiddleware(serverMulti))
 ```

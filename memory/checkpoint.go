@@ -6,7 +6,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
 // MemoryCheckpointStore is an in-memory CheckpointStore for testing.
@@ -14,20 +13,20 @@ type MemoryCheckpointStore struct {
 	dispatcher.Lifecycle
 
 	mu          sync.RWMutex
-	checkpoints map[string]id.EventID
+	checkpoints map[string]event.Checkpoint
 }
 
 // NewMemoryCheckpointStore creates a new empty MemoryCheckpointStore.
 func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 	return &MemoryCheckpointStore{
 		Lifecycle:   dispatcher.Lifecycle{},
-		checkpoints: make(map[string]id.EventID),
+		checkpoints: make(map[string]event.Checkpoint),
 		mu:          sync.RWMutex{},
 	}
 }
 
 // Load returns the last processed event ID for a projection.
-func (s *MemoryCheckpointStore) Load(_ context.Context, projectionName string) (id.EventID, error) {
+func (s *MemoryCheckpointStore) Load(_ context.Context, projectionName string) (event.Checkpoint, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -38,12 +37,12 @@ func (s *MemoryCheckpointStore) Load(_ context.Context, projectionName string) (
 func (s *MemoryCheckpointStore) Save(
 	_ context.Context,
 	projectionName string,
-	eventID id.EventID,
+	cp event.Checkpoint,
 ) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.checkpoints[projectionName] = eventID
+	s.checkpoints[projectionName] = cp
 
 	return nil
 }

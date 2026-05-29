@@ -1,10 +1,11 @@
-package signing
+package multisig
 
 import (
 	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
 // MultiSigMetadataKey is the custom metadata key used to store multi-party signatures.
@@ -19,9 +20,6 @@ const (
 	// AlgorithmEd25519 identifies Ed25519 signatures.
 	AlgorithmEd25519 SignatureAlgorithm = "Ed25519"
 )
-
-// ErrNoVerifier is returned when VerifyAll cannot find a verifier for an actor.
-var ErrNoVerifier = event.NewRejection("signing.no_verifier", "no verifier provided for actor")
 
 // Actor identifies a signing entity in a multi-party chain (e.g., "device", "server").
 type Actor string
@@ -38,7 +36,7 @@ type SignatureEntry struct {
 	Algorithm SignatureAlgorithm `json:"algorithm"`
 
 	// Sig is the raw signature bytes (base64-encoded in JSON via Signature type).
-	Sig Signature `json:"sig"`
+	Sig signing.Signature `json:"sig"`
 
 	// SignedAt is when this actor produced the signature.
 	SignedAt time.Time `json:"signedAt"`
@@ -119,17 +117,17 @@ type Clock func() time.Time
 // multi-signature entries without removing prior signatures.
 //
 // For HMAC, the same Signer handles both signing and verification.
-// For Ed25519, create a signer with NewEd25519 and a verifier with NewEd25519Verifier,
+// For Ed25519, create a signer with signing.NewEd25519 and a verifier with signing.NewEd25519Verifier,
 // then pass the verifier via the WithVerifier option:
 //
-//	deviceMulti := signing.NewMultiSigner("device", signing.AlgorithmEd25519, ed25519Signer,
-//	    signing.WithVerifier(ed25519Verifier))
-//	serverMulti := signing.NewMultiSigner("server", signing.AlgorithmHMACSHA256, hmacSigner)
+//	deviceMulti := multisig.NewMultiSigner("device", multisig.AlgorithmEd25519, ed25519Signer,
+//	    multisig.WithVerifier(ed25519Verifier))
+//	serverMulti := multisig.NewMultiSigner("server", multisig.AlgorithmHMACSHA256, hmacSigner)
 type MultiSigner struct {
 	actor     Actor
 	algorithm SignatureAlgorithm
-	signer    Signer
-	verifier  Verifier
+	signer    signing.Signer
+	verifier  signing.Verifier
 	clock     Clock
 }
 
@@ -139,7 +137,7 @@ type MultiSignerOption func(*MultiSigner)
 // WithVerifier sets a separate verifier for the Verify path.
 // Use this for Ed25519 where the signer (private key) cannot verify.
 // For HMAC, the signer already implements both Sign and Verify.
-func WithVerifier(verifier Verifier) MultiSignerOption {
+func WithVerifier(verifier signing.Verifier) MultiSignerOption {
 	return func(multi *MultiSigner) { multi.verifier = verifier }
 }
 

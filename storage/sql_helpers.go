@@ -117,37 +117,38 @@ func sharedCheckVersion(
 	return nil
 }
 
-// sharedCheckpointLoad returns the last processed event ID for a projection
+// sharedCheckpointLoad returns the last checkpoint for a projection
 // using the provided placeholder format.
 func sharedCheckpointLoad(
 	ctx context.Context,
 	db *sql.DB,
 	projectionName string,
 	d Dialect,
-) (id.EventID, error) {
-	query := "SELECT event_id FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(
+) (event.Checkpoint, error) {
+	query := "SELECT event_id, processed_at FROM " + tableCheckpoints + " WHERE projection_name = " + d.Placeholder(
 		1,
 	)
 
 	var eventIDStr string
+	var processedAt time.Time
 
-	err := db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr)
+	err := db.QueryRowContext(ctx, query, projectionName).Scan(&eventIDStr, &processedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return id.EventID{}, nil
+			return event.Checkpoint{}, nil
 		}
 
-		return id.EventID{}, event.WrapInfrastructure(err, "storage.load_checkpoint",
+		return event.Checkpoint{}, event.WrapInfrastructure(err, "storage.load_checkpoint",
 			"load checkpoint for projection "+projectionName)
 	}
 
 	parsed, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return id.EventID{}, event.WrapCorruption(err, "storage.parse_event_id",
+		return event.Checkpoint{}, event.WrapCorruption(err, "storage.parse_event_id",
 			fmt.Sprintf("parse event ID %q for projection %q", eventIDStr, projectionName))
 	}
 
-	return parsed, nil
+	return event.Checkpoint{EventID: parsed, ProcessedAt: processedAt}, nil
 }
 
 // sharedCheckpointSave persists a checkpoint using the provided placeholder format.
@@ -156,16 +157,17 @@ func sharedCheckpointSave(
 	ctx context.Context,
 	db *sql.DB,
 	projectionName string,
-	eventID id.EventID,
+	cp event.Checkpoint,
 	d Dialect,
 ) error {
 	query := fmt.Sprintf(
-		"INSERT INTO "+tableCheckpoints+" (projection_name, event_id) VALUES (%s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id",
+		"INSERT INTO "+tableCheckpoints+" (projection_name, event_id, processed_at) VALUES (%s, %s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id, processed_at = EXCLUDED.processed_at",
 		d.Placeholder(1),
 		d.Placeholder(2),
+		d.Placeholder(3),
 	)
 
-	_, err := db.ExecContext(ctx, query, projectionName, eventID)
+	_, err := db.ExecContext(ctx, query, projectionName, cp.EventID, d.FormatTime(cp.ProcessedAt))
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.save_checkpoint",
 			"save checkpoint for projection "+projectionName)

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
@@ -39,22 +40,22 @@ func TestSigningFullFlow(t *testing.T) {
 	serverKey := []byte("server-secret-key-thirty-two-by!")
 	serverHMAC, _ := signing.NewHMAC(serverKey)
 
-	deviceMulti, _ := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmHMACSHA256,
+	deviceMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmHMACSHA256,
 		deviceHMAC,
 	)
-	serverMulti, _ := signing.NewMultiSigner(
-		signing.Actor("server"),
-		signing.AlgorithmHMACSHA256,
+	serverMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("server"),
+		multisig.AlgorithmHMACSHA256,
 		serverHMAC,
 	)
 
-	bus.UsePublish(signing.MultiSignMiddleware(deviceMulti))
-	bus.UsePublish(signing.MultiSignMiddleware(serverMulti))
+	bus.UsePublish(multisig.MultiSignMiddleware(deviceMulti))
+	bus.UsePublish(multisig.MultiSignMiddleware(serverMulti))
 
-	verifiers := signing.VerifierMap(deviceMulti, serverMulti)
-	bus.Use(signing.RequireMultiSigMiddleware(verifiers))
+	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	bus.Use(multisig.RequireMultiSigMiddleware(verifiers))
 
 	var received []event.Event
 
@@ -84,11 +85,11 @@ func TestSigningFullFlow(t *testing.T) {
 
 	receivedEvt := received[0]
 
-	if !signing.HasMultiSignature(receivedEvt) {
+	if !multisig.HasMultiSignature(receivedEvt) {
 		t.Fatal("received event should have multi-signature")
 	}
 
-	multiSig, err := signing.ExtractMultiSignature(receivedEvt)
+	multiSig, err := multisig.ExtractMultiSignature(receivedEvt)
 	if err != nil {
 		t.Fatalf("extract multi-sig: %v", err)
 	}
@@ -97,15 +98,15 @@ func TestSigningFullFlow(t *testing.T) {
 		t.Fatalf("expected 2 signatures, got %d", multiSig.Count())
 	}
 
-	if !multiSig.HasActor(signing.Actor("device")) {
+	if !multiSig.HasActor(multisig.Actor("device")) {
 		t.Fatal("expected device signature")
 	}
 
-	if !multiSig.HasActor(signing.Actor("server")) {
+	if !multiSig.HasActor(multisig.Actor("server")) {
 		t.Fatal("expected server signature")
 	}
 
-	if err := signing.VerifyAll(receivedEvt, verifiers); err != nil {
+	if err := multisig.VerifyAll(receivedEvt, verifiers); err != nil {
 		t.Fatalf("verify all: %v", err)
 	}
 }
@@ -124,19 +125,19 @@ func TestSigningTamperDetection(t *testing.T) {
 	serverKey := []byte("tamper-server-key-thirty-two-by!")
 	serverHMAC, _ := signing.NewHMAC(serverKey)
 
-	deviceMulti, _ := signing.NewMultiSigner(
-		signing.Actor("device"),
-		signing.AlgorithmHMACSHA256,
+	deviceMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmHMACSHA256,
 		deviceHMAC,
 	)
-	serverMulti, _ := signing.NewMultiSigner(
-		signing.Actor("server"),
-		signing.AlgorithmHMACSHA256,
+	serverMulti, _ := multisig.NewMultiSigner(
+		multisig.Actor("server"),
+		multisig.AlgorithmHMACSHA256,
 		serverHMAC,
 	)
 
-	verifiers := signing.VerifierMap(deviceMulti, serverMulti)
-	bus.Use(signing.RequireMultiSigMiddleware(verifiers))
+	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	bus.Use(multisig.RequireMultiSigMiddleware(verifiers))
 
 	var received []event.Event
 

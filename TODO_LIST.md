@@ -151,7 +151,7 @@
 - [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
 - [x] ~~Add ContextEnricher wiring to repositories~~ — DONE (Session 112c, event.ContextEnricher + WithEnricher on Repository)
 - [x] ~~Add event.Event.Clone()~~ — DONE
-- [ ] Add event.Context propagation — thread ctx through NewEvent, PublishChanges (source: SESSION_82)
+- [x] ~~Add event.Context propagation~~ — DONE (Event.Context() + deadline field + ContextEnricher pattern; commit 0baa0be)
 - [x] ~~Re-export errorfamily.Wrap as event.Wrap~~ — DONE
 - [FUTURE] Add Filter, Predicate types to core/event/ for context queries (source: HYBRID_ARCHITECTURE)
 - [FUTURE] Add ContextQuerier, ContextAppender, QueryResult interfaces (source: HYBRID_ARCHITECTURE)
@@ -170,7 +170,7 @@
 - [x] ~~Add query/pagination.go helpers~~ — VERIFIED (NewPagination, Offset, NewPaginatedResult, HasNext, HasPrev, Validate)
 - [x] ~~Add catalog.Exporter interface + WalkMessages helper~~ — DONE (catalog.Exporter[T], catalog.ErrorExporter, catalog.WalkMessages)
 - [x] ~~Delete catalog/internal/cattest/ package~~ — VERIFIED (7 test files depend on it, cannot delete without breaking tests)
-- [ ] Wire example/user/aggregate.go to use catalog-aware event constructors (source: SESSION16)
+- [x] ~~Wire example/user/aggregate.go to use catalog-aware event constructors~~ — MOOT (no aggregate.go exists; catalog is for documentation, event.NewEvent is for runtime — different concerns)
 - [x] ~~Add enum + default struct tag support~~ — VERIFIED (enum, default, nullable, deprecated, pattern all work)
 - [x] ~~Make AsyncAPI servers configurable~~ — DONE (WithServer option exists in asyncapi/exporter.go:33)
 - [x] ~~Simplify cattest/catalog.go to use zero-cost API~~ — VERIFIED (63 lines, already uses direct struct literals)

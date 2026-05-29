@@ -102,7 +102,7 @@ func TestSQLiteCheckpointStore_Roundtrip(t *testing.T) {
 
 	eventID := id.NewEventID()
 
-	err = store.Save(context.Background(), "issue_projection", eventID)
+	err = store.Save(context.Background(), "issue_projection", event.Checkpoint{EventID: eventID})
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -112,13 +112,13 @@ func TestSQLiteCheckpointStore_Roundtrip(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded != eventID {
+	if loaded.EventID != eventID {
 		t.Errorf("EventID = %v, want %v", loaded, eventID)
 	}
 
 	newEventID := id.NewEventID()
 
-	err = store.Save(context.Background(), "issue_projection", newEventID)
+	err = store.Save(context.Background(), "issue_projection", event.Checkpoint{EventID: newEventID})
 	if err != nil {
 		t.Fatalf("Save update: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestSQLiteCheckpointStore_Roundtrip(t *testing.T) {
 		t.Fatalf("Load after update: %v", err)
 	}
 
-	if loaded != newEventID {
+	if loaded.EventID != newEventID {
 		t.Errorf("EventID = %v, want %v", loaded, newEventID)
 	}
 }

@@ -287,7 +287,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || VerifyMiddleware | `event.Middleware` — verifies signatures if present; allows unsigned through | ✅ |
 || RequireSignature | `event.Middleware` — rejects unsigned events; verifies present signatures | ✅ |
 
-### Multi-Signature Mode
+### Multi-Signature Mode (`signing/multisig` sub-package)
 
 || Feature | Detail | Status |
 || ------------------- | ----------------------------------------------------------------------------------------------- | ------ |

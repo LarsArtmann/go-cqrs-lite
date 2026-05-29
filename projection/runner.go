@@ -6,12 +6,12 @@ import (
 	"io"
 	"log/slog"
 	"slices"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
@@ -134,7 +134,7 @@ func (r *Runner) replay(ctx context.Context) error {
 		var events []event.Event
 
 		if hasSeekable && !checkpoint.IsZero() {
-			loaded, lErr := seekable.ReadFrom(ctx, checkpoint, 0)
+			loaded, lErr := seekable.ReadFrom(ctx, checkpoint.EventID, 0)
 			if lErr != nil {
 				cqrsotel.RecordError(span, lErr)
 				span.End()
@@ -218,17 +218,17 @@ func (r *Runner) handleAndCheckpoint(
 			"projection "+p.Name()+" handle event "+string(evt.Type()))
 	}
 
-	return r.checkpoint.Save(ctx, p.Name(), evt.ID())
+	return r.checkpoint.Save(ctx, p.Name(), event.Checkpoint{EventID: evt.ID(), ProcessedAt: time.Now()})
 }
 
 // CurrentCheckpoint returns the last processed event ID for the given projection.
-func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (id.EventID, error) {
+func (r *Runner) CurrentCheckpoint(ctx context.Context, projectionName string) (event.Checkpoint, error) {
 	return r.checkpoint.Load(ctx, projectionName)
 }
 
 // Reset clears the checkpoint for a projection, allowing full replay on the next Run.
 func (r *Runner) Reset(ctx context.Context, projectionName string) error {
-	return r.checkpoint.Save(ctx, projectionName, id.EventID{})
+	return r.checkpoint.Save(ctx, projectionName, event.Checkpoint{})
 }
 
 // Close cancels the internal context, causing Run to return gracefully.
@@ -247,7 +247,7 @@ func subscribesTo(p event.Projection, eventType event.Type) bool {
 func filterEvents(
 	all []event.Event,
 	types []event.Type,
-	checkpoint id.EventID,
+	checkpoint event.Checkpoint,
 ) []event.Event {
 	result := make([]event.Event, 0, len(all))
 
@@ -256,7 +256,7 @@ func filterEvents(
 
 	for _, evt := range all {
 		if !pastCheckpoint {
-			if evt.ID() == checkpoint {
+			if evt.ID() == checkpoint.EventID {
 				pastCheckpoint = true
 			}
 

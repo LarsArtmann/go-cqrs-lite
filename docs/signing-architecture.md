@@ -74,13 +74,19 @@ extracted, _ := signing.ExtractSignature(signedEvt)
 
 Multi-signature enables **multi-party authorization** — multiple actors sign the same event, and a verifier checks that all required signatures are present and valid.
 
+Import the multisig sub-package:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/signing/multisig"
+```
+
 ```go
 // Each actor creates their own MultiSigner
-deviceMulti, _ := signing.NewMultiSigner(
-    signing.Actor("device"),
-    signing.AlgorithmEd25519,
+deviceMulti, _ := multisig.NewMultiSigner(
+    multisig.Actor("device"),
+    multisig.AlgorithmEd25519,
     deviceSigner,
-    signing.WithVerifier(deviceVerifier),
+    multisig.WithVerifier(deviceVerifier),
 )
 
 // Sign the event (adds actor's signature to metadata)
@@ -90,8 +96,8 @@ deviceSigned, _ := deviceMulti.Sign(evt)
 serverSigned, _ := serverMulti.Sign(deviceSigned)
 
 // Verify all signatures at once
-verifiers := signing.VerifierMap(deviceMulti, serverMulti)
-err := signing.VerifyAll(serverSigned, verifiers)
+verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+err := multisig.VerifyAll(serverSigned, verifiers)
 ```
 
 **Key design decisions:**
@@ -119,9 +125,9 @@ bus.Use(signing.VerifyMiddleware(verifier))
 bus.Use(signing.RequireSignatureMiddleware(verifier))
 
 // Multi-sig variants
-bus.UsePublish(signing.MultiSignMiddleware(multiSigner))
-bus.Use(signing.MultiVerifyMiddleware(multiSigner))
-bus.Use(signing.RequireMultiSigMiddleware(verifierMap))
+bus.UsePublish(multisig.MultiSignMiddleware(multiSigner))
+bus.Use(multisig.MultiVerifyMiddleware(multiSigner))
+bus.Use(multisig.RequireMultiSigMiddleware(verifierMap))
 ```
 
 ---
@@ -156,15 +162,18 @@ This means the signing module could be extracted to its own repository with mini
 
 | File                     | Lines | Purpose                                                                     |
 | ------------------------ | ----- | --------------------------------------------------------------------------- |
-| `signer.go`              | 171   | `Signature` type, `canonicalPayload`, `Signer`/`Verifier` interfaces        |
+| `signer.go`              | 38    | `Signer`/`Verifier`/`SignerVerifier` interfaces                             |
+| `signature.go`           | 70    | `Signature` type + serialization                                            |
+| `payload.go`             | 60    | `canonicalPayload`, `appendLenPrefixed`                                     |
 | `hmac.go`                | 78    | `hmacSigner` (unexported) — HMAC-SHA256 implementation                      |
 | `ed25519.go`             | 105   | `ed25519Signer`/`ed25519Verifier` (unexported) — Ed25519 implementation     |
-| `multisig.go`            | 153   | `MultiSigner`, `Sign`, `Verify`, `verifyActorEntry`                         |
-| `multisig_types.go`      | 154   | `Actor`, `SignatureEntry`, `MultiSignature`, options                        |
-| `multisig_extract.go`    | 123   | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `attachMultiSignature` |
-| `multisig_middleware.go` | 172   | 4 middleware functions with nil guards                                      |
+| `multisig/signer.go`     | 178   | `NewMultiSigner`, `Sign`, `Verify`, `VerifyActor`, `verifyActorEntry`       |
+| `multisig/types.go`      | 151   | `Actor`, `SignatureEntry`, `MultiSignature`, options                        |
+| `multisig/extract.go`    | 140   | `VerifyAll`, `VerifierMap`, `ExtractMultiSignature`, `HasMultiSignature`    |
+| `multisig/middleware.go` | 179   | 4 middleware functions with nil guards                                      |
+| `multisig/errors.go`     | ~10   | `ErrNoVerifier`                                                             |
 | `middleware.go`          | 108   | `SignMiddleware`, `VerifyMiddleware`, `RequireSignatureMiddleware`          |
-| `event.go`               | 85    | `cloneEvent`, `ExtractSignature`, `HasSignature`                            |
+| `event.go`               | 93    | `CloneEvent`, `AttachSignature`, `ExtractSignature`, `HasSignature`         |
 | `errors.go`              | 31    | Sentinel errors (`ErrNilEvent`, `ErrInvalidSignature`, etc.)                |
 | `benchmark_test.go`      | ~120  | HMAC + Ed25519 + VerifyAll benchmarks                                       |
 

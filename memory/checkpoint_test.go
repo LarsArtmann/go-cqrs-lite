@@ -3,7 +3,9 @@ package memory
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
@@ -13,9 +15,9 @@ func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
-	eventID := id.NewEventID()
+	cp := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 
-	err := store.Save(ctx, "my-projection", eventID)
+	err := store.Save(ctx, "my-projection", cp)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -25,8 +27,8 @@ func TestMemoryCheckpointStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded != eventID {
-		t.Errorf("Load = %v, want %v", loaded, eventID)
+	if loaded.EventID != cp.EventID {
+		t.Errorf("Load.EventID = %v, want %v", loaded.EventID, cp.EventID)
 	}
 }
 
@@ -52,8 +54,8 @@ func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 	store := NewMemoryCheckpointStore()
 	ctx := context.Background()
 
-	first := id.NewEventID()
-	second := id.NewEventID()
+	first := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
+	second := event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()}
 
 	err := store.Save(ctx, "proj", first)
 	if err != nil {
@@ -70,8 +72,8 @@ func TestMemoryCheckpointStore_Save_Overwrite(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded != second {
-		t.Errorf("Load = %v, want %v (second save)", loaded, second)
+	if loaded.EventID != second.EventID {
+		t.Errorf("Load.EventID = %v, want %v (second save)", loaded.EventID, second.EventID)
 	}
 }
 

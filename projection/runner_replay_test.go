@@ -151,7 +151,7 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 
 	t.Cleanup(func() { _ = checkpoint.Close() })
 
-	err = checkpoint.Save(ctx, "replay-proj", evt1.ID())
+	err = checkpoint.Save(ctx, "replay-proj", event.Checkpoint{EventID: evt1.ID(), ProcessedAt: time.Now()})
 	if err != nil {
 		t.Fatalf("Save checkpoint: %v", err)
 	}
@@ -309,7 +309,7 @@ func TestRunner_ReplayWithSeekableJournal(t *testing.T) {
 
 	ctx := context.Background()
 
-	err := checkpoint.Save(ctx, "user-proj", evt1.ID())
+	err := checkpoint.Save(ctx, "user-proj", event.Checkpoint{EventID: evt1.ID(), ProcessedAt: time.Now()})
 	if err != nil {
 		t.Fatalf("Save checkpoint: %v", err)
 	}

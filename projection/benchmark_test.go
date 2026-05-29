@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -66,7 +67,7 @@ func BenchmarkRunner_CurrentCheckpoint(b *testing.B) {
 
 	evtID := id.NewEventID()
 
-	err := checkpoint.Save(ctx, "bench-proj", evtID)
+	err := checkpoint.Save(ctx, "bench-proj", event.Checkpoint{EventID: evtID, ProcessedAt: time.Now()})
 	if err != nil {
 		b.Fatalf("Save checkpoint: %v", err)
 	}

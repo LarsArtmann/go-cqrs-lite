@@ -8,7 +8,12 @@
 //  3. Use PublishMiddleware to auto-sign events on the bus
 //  4. Use VerifyMiddleware to auto-verify events before handling
 //
-// Example:
+// For multi-party signing (multiple actors signing the same event), see the
+// [multisig] sub-package:
+//
+//	import "github.com/larsartmann/go-cqrs-lite/signing/multisig"
+//
+// Example (single-signature):
 //
 //	signer, err := signing.NewHMAC("my-secret-key")
 //	if err != nil { ... }
