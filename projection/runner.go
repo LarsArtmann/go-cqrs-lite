@@ -237,8 +237,8 @@ func (r *Runner) Close() error {
 	return nil
 }
 
-func subscribesTo(p event.Projection, evtType event.Type) bool {
-	return event.SubscribesTo(p, evtType)
+func subscribesTo(p event.Projection, eventType event.Type) bool {
+	return event.SubscribesTo(p, eventType)
 }
 
 func filterEvents(

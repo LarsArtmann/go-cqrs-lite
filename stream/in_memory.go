@@ -109,11 +109,11 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	return result
 }
 
-func filterByType(refs []AggregateStatus, aggType event.AggregateType) []AggregateStatus {
+func filterByType(refs []AggregateStatus, aggregateType event.AggregateType) []AggregateStatus {
 	filtered := make([]AggregateStatus, 0, len(refs))
 
 	for _, r := range refs {
-		if r.Ref.Type == aggType {
+		if r.Ref.Type == aggregateType {
 			filtered = append(filtered, r)
 		}
 	}

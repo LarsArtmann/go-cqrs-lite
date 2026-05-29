@@ -226,13 +226,13 @@ func (r *InMemoryRunner) collectResults(
 
 // SubscribesTo returns true if the projection subscribes to the given event type.
 // Returns true if the projection subscribes to all events (nil or empty EventTypes).
-func SubscribesTo(proj Projection, evtType Type) bool {
+func SubscribesTo(proj Projection, eventType Type) bool {
 	types := proj.EventTypes()
 	if len(types) == 0 {
 		return true
 	}
 
-	return slices.Contains(types, evtType)
+	return slices.Contains(types, eventType)
 }
 
 var _ Handler = (*InMemoryRunner)(nil).Handle
