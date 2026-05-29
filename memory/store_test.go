@@ -325,7 +325,13 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for idx := range eventsPerGoroutine {
-				evt := testhelpers.QuickEvent("UserCreated", aggID, "User", event.Version(idx+1), nil)
+				evt := testhelpers.QuickEvent(
+					"UserCreated",
+					aggID,
+					"User",
+					event.Version(idx+1),
+					nil,
+				)
 				_ = store.Save(
 					ctx,
 					event.NewAggregateRef(event.AggregateType("User"), aggID),

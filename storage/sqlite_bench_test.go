@@ -154,53 +154,6 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	}
 }
 
-func BenchmarkTursoEventStore_Save(b *testing.B) {
-	db, err := OpenTurso(":memory:")
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	defer func() { _ = db.Close() }()
-
-	if err := TursoInitSchema(context.Background(), db); err != nil {
-		b.Fatal(err)
-	}
-
-	store, err := NewTursoEventStore(db)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	payload := []byte(`{"name":"bench-turso"}`)
-
-	benchSaveNewAggregate(b, store, "Order", "order.placed", payload)
-}
-
-func BenchmarkTursoEventStore_Load(b *testing.B) {
-	db, err := OpenTurso(":memory:")
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	defer func() { _ = db.Close() }()
-
-	if err := TursoInitSchema(context.Background(), db); err != nil {
-		b.Fatal(err)
-	}
-
-	store, err := NewTursoEventStore(db)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	aggID := id.NewAggregateID()
-	payload := []byte(`{"name":"bench-turso"}`)
-
-	seedSQLiteEvents(b, store, "Order", aggID, "order.updated", payload, 10)
-
-	benchLoadAggregate(b, store, "Order", aggID)
-}
-
 func benchSaveNewAggregate(
 	b *testing.B,
 	store *SQLEventStore,

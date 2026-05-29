@@ -20,7 +20,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	cqrsStorage "github.com/larsartmann/go-cqrs-lite/storage"
+	cqrsPebble "github.com/larsartmann/go-cqrs-lite/pebble"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	}
 	defer readModelStore.Close()
 
-	eventStore := cqrsStorage.NewPebbleStore(readModelStore.DB(), logger)
+	eventStore := cqrsPebble.NewPebbleStore(readModelStore.DB(), logger)
 	eventBus := memory.NewMemoryBus()
 
 	todoProjection := projections.NewTodoProjection(readModelStore)

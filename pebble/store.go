@@ -1,4 +1,4 @@
-package storage
+package pebble
 
 import (
 	"context"
@@ -225,6 +225,7 @@ func (a *PebbleEventStore) lockAggregate(
 	key := a.aggregateLockKey(ref)
 
 	m := &sync.Mutex{}
+
 	actual, loaded := a.locks.LoadOrStore(key, m)
 	if loaded {
 		m = actual.(*sync.Mutex)

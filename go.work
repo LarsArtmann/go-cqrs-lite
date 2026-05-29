@@ -15,11 +15,13 @@ use (
 	./memory
 	./middleware
 	./otel
+	./pebble
 	./projection
 	./saga
 	./signing
 	./storage
 	./stream
 	./testhelpers
+	./turso
 	./watermill
 )

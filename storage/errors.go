@@ -39,28 +39,10 @@ var ErrVersionMismatch = event.NewConflict(
 	"storage: event version mismatch",
 )
 
-// ErrPebbleProviderRequired is returned when no PebbleProvider is configured.
-var ErrPebbleProviderRequired = event.NewInfrastructure(
-	"storage.pebble_provider_required",
-	"storage: pebble requires a Provider: use WithPebbleProvider",
-)
-
-// ErrUnknownBackend is returned when an unknown event store backend is specified.
-var ErrUnknownBackend = event.NewInfrastructure(
-	"storage.unknown_backend",
-	"storage: unknown event store backend",
-)
-
 // ErrUnsupportedTimestamp is returned when a timestamp format cannot be parsed.
 var ErrUnsupportedTimestamp = event.NewCorruption(
 	"storage.unsupported_timestamp",
 	"storage: unsupported timestamp format",
-)
-
-// ErrTursoMemorySync is returned when trying to sync an in-memory Turso database.
-var ErrTursoMemorySync = event.NewRejection(
-	"storage.turso_memory_sync",
-	"storage: turso sync requires a file path for dbPath",
 )
 
 // ErrUnexpectedTimeType is returned when a time scan destination has an unexpected type.
