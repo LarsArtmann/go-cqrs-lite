@@ -9,6 +9,7 @@ import (
 
 type VersionedStore struct {
 	event.Store
+
 	registry *upcasterRegistry
 }
 
