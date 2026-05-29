@@ -1,14 +1,7 @@
-// api_stability_test.go verifies that exported API symbols are not accidentally
-// removed between versions. Run with: go test -run TestAPIStability ./...
-//
-// This test uses go/ast to parse source files and snapshot the exported
-// symbols. A golden file (docs/api_surface.txt) stores the expected surface.
-// If the surface changes intentionally, regenerate with:
-//
-//	go test -run TestAPIStability -update ./...
-package api_stability
+package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -16,8 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"testing"
-}
+)
 
 var modules = []string{
 	"core/command",
@@ -39,8 +31,8 @@ var modules = []string{
 	"watermill",
 }
 
-func TestAPIStability(t *testing.T) {
-	projectRoot := filepath.Join("..", "..")
+func main() {
+	projectRoot := filepath.Join(".", "..", "..")
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
 
 	var exports []string
@@ -53,8 +45,7 @@ func TestAPIStability(t *testing.T) {
 
 		exps, err := collectExports(modPath)
 		if err != nil {
-			t.Logf("skip %s: %v", mod, err)
-
+			fmt.Fprintf(os.Stderr, "skip %s: %v\n", mod, err)
 			continue
 		}
 
@@ -65,59 +56,62 @@ func TestAPIStability(t *testing.T) {
 
 	sort.Strings(exports)
 
-	if os.Getenv("UPDATE") == "1" || os.Getenv("update") == "1" {
+	if len(os.Args) > 1 && os.Args[1] == "-update" {
 		err := os.MkdirAll(filepath.Dir(goldenPath), 0o755)
 		if err != nil {
-			t.Fatalf("mkdir: %v", err)
+			fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
+			os.Exit(1)
 		}
 
 		err = os.WriteFile(goldenPath, []byte(strings.Join(exports, "\n")+"\n"), 0o644)
 		if err != nil {
-			t.Fatalf("write golden: %v", err)
+			fmt.Fprintf(os.Stderr, "write: %v\n", err)
+			os.Exit(1)
 		}
 
-		t.Logf("Updated %s (%d exports)", goldenPath, len(exports))
-
-		return
+		fmt.Printf("Updated %s (%d exports)\n", goldenPath, len(exports))
+		os.Exit(0)
 	}
 
 	data, err := os.ReadFile(goldenPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			t.Skipf("golden file %s does not exist; run with -update to create", goldenPath)
+			fmt.Fprintf(os.Stderr, "golden file %s does not exist; run with -update to create\n", goldenPath)
+			os.Exit(1)
 		}
-
-		t.Fatalf("read golden: %v", err)
+		fmt.Fprintf(os.Stderr, "read: %v\n", err)
+		os.Exit(1)
 	}
 
 	expected := strings.Split(strings.TrimSpace(string(data)), "\n")
 
 	if len(exports) != len(expected) {
 		missing, added := diff(expected, exports)
-
-		t.Errorf("API surface mismatch: %d expected, %d actual", len(expected), len(exports))
+		fmt.Fprintf(os.Stderr, "API surface mismatch: %d expected, %d actual\n", len(expected), len(exports))
 
 		if len(missing) > 0 {
-			t.Errorf("Removed exports:\n  %s", strings.Join(missing, "\n  "))
+			fmt.Fprintf(os.Stderr, "REMOVED exports:\n  %s\n", strings.Join(missing, "\n  "))
 		}
 
 		if len(added) > 0 {
-			t.Logf("New exports:\n  %s", strings.Join(added, "\n  "))
+			fmt.Fprintf(os.Stderr, "NEW exports:\n  %s\n", strings.Join(added, "\n  "))
 		}
 
-		return
+		os.Exit(1)
 	}
 
 	for i, exp := range expected {
 		if exports[i] != exp {
-			t.Errorf("export %d: expected %q, got %q", i, exp, exports[i])
+			fmt.Fprintf(os.Stderr, "export %d: expected %q, got %q\n", i, exp, exports[i])
+			os.Exit(1)
 		}
 	}
+
+	fmt.Printf("API surface OK: %d exports verified\n", len(exports))
 }
 
 func collectExports(dir string) ([]string, error) {
 	fset := token.NewFileSet()
-
 	pkgs, err := parser.ParseDir(fset, dir, nonTestFilter, 0)
 	if err != nil {
 		return nil, err
@@ -149,31 +143,16 @@ func collectExports(dir string) ([]string, error) {
 					}
 				}
 
-				if genDecl.Tok.String() == "var" {
+				if genDecl.Tok.String() == "var" || genDecl.Tok.String() == "const" {
+					prefix := strings.ToLower(genDecl.Tok.String())
 					for _, spec := range genDecl.Specs {
 						vs, ok := spec.(*ast.ValueSpec)
 						if !ok {
 							continue
 						}
-
 						for _, name := range vs.Names {
 							if name.IsExported() {
-								exports = append(exports, "var "+name.Name)
-							}
-						}
-					}
-				}
-
-				if genDecl.Tok.String() == "const" {
-					for _, spec := range genDecl.Specs {
-						vs, ok := spec.(*ast.ValueSpec)
-						if !ok {
-							continue
-						}
-
-						for _, name := range vs.Names {
-							if name.IsExported() {
-								exports = append(exports, "const "+name.Name)
+								exports = append(exports, prefix+" "+name.Name)
 							}
 						}
 					}
@@ -196,7 +175,6 @@ func collectExports(dir string) ([]string, error) {
 	}
 
 	sort.Strings(exports)
-
 	return exports, nil
 }
 

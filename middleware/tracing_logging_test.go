@@ -4,24 +4,23 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
-	"github.com/stretchr/testify/require"
-
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 type traceCmd struct {
 	aggregateID id.AggregateID
 }
 
-func (c *traceCmd) Type() command.Type     { return "test.command" }
+func (c *traceCmd) Type() command.Type          { return "test.command" }
 func (c *traceCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 func newTraceLogger() (*slog.Logger, *bytes.Buffer) {

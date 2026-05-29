@@ -4,11 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // CommandTraceLogging returns a command middleware that injects trace_id and
@@ -17,14 +16,16 @@ func CommandTraceLogging(logger *slog.Logger) command.Middleware {
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			tLogger := cqrsotel.ContextLogger(logger, ctx)
-			tLogger.Info("command dispatching",
+			tLogger.Info(
+				"command dispatching",
 				"type", string(cmd.Type()),
 				"aggregate_id", cmd.AggregateID().String(),
 			)
 
 			err := next(ctx, cmd)
 			if err != nil {
-				tLogger.Error("command failed",
+				tLogger.Error(
+					"command failed",
 					"type", string(cmd.Type()),
 					"error", err,
 				)
@@ -45,14 +46,16 @@ func EventTraceLogging(logger *slog.Logger) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			tLogger := cqrsotel.ContextLogger(logger, ctx)
-			tLogger.Info("event handling",
+			tLogger.Info(
+				"event handling",
 				"type", string(evt.Type()),
 				"aggregate_id", evt.AggregateID().String(),
 			)
 
 			err := next(ctx, evt)
 			if err != nil {
-				tLogger.Error("event handler failed",
+				tLogger.Error(
+					"event handler failed",
 					"type", string(evt.Type()),
 					"error", err,
 				)
@@ -77,7 +80,8 @@ func QueryTraceLogging(logger *slog.Logger) query.Middleware {
 
 			result, err := next(ctx, q)
 			if err != nil {
-				tLogger.Error("query failed",
+				tLogger.Error(
+					"query failed",
 					"type", string(q.Type()),
 					"error", err,
 				)
