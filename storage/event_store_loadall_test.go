@@ -37,10 +37,9 @@ func testLoadAllSuccess(t *testing.T, store *SQLEventStore, mock sqlmock.Sqlmock
 	}
 }
 
-func TestSQLEventStore_LoadAll_Success(t *testing.T) {
-	t.Parallel()
+func setupLoadAllSuccess(t *testing.T, store *SQLEventStore, mock sqlmock.Sqlmock) (id.EventID, id.EventID) {
+	t.Helper()
 
-	store, mock := newTestStore(t)
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 	eventID1 := id.NewEventID()
@@ -54,6 +53,15 @@ func TestSQLEventStore_LoadAll_Success(t *testing.T) {
 				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), nil, ts1).
 				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), nil, ts2),
 		)
+
+	return eventID1, eventID2
+}
+
+func TestSQLEventStore_LoadAll_Success(t *testing.T) {
+	t.Parallel()
+
+	store, mock := newTestStore(t)
+	eventID1, eventID2 := setupLoadAllSuccess(t, store, mock)
 
 	testLoadAllSuccess(t, store, mock, func() ([]event.Event, error) {
 		return store.LoadAll(context.Background())
@@ -96,19 +104,7 @@ func TestSQLEventStore_ReadAll_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
-	eventID1 := id.NewEventID()
-	eventID2 := id.NewEventID()
-	ts1 := time.Now().Truncate(time.Microsecond)
-	ts2 := ts1.Add(time.Second)
-
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
-		WillReturnRows(
-			sqlmock.NewRows(eventColumns()).
-				AddRow(eventID1.String(), "UserCreated", "User", aggID1.String(), 1, 1, []byte(`{}`), nil, ts1).
-				AddRow(eventID2.String(), "UserCreated", "User", aggID2.String(), 1, 1, []byte(`{}`), nil, ts2),
-		)
+	eventID1, eventID2 := setupLoadAllSuccess(t, store, mock)
 
 	testLoadAllSuccess(t, store, mock, func() ([]event.Event, error) {
 		return store.ReadAll(context.Background())

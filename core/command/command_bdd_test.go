@@ -11,6 +11,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func labelMiddleware(callOrder *[]string, label string) func(next command.Handler) command.Handler {
+	return func(next command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			*callOrder = append(*callOrder, label)
+			return next(ctx, cmd)
+		}
+	}
+}
+
 var _ = Describe("Command Dispatcher", func() {
 	var (
 		ctx        context.Context
@@ -105,21 +114,8 @@ var _ = Describe("Command Dispatcher", func() {
 			It("should execute outer middleware before inner, so I can layer cross-cutting concerns", func() {
 				var callOrder []string
 
-				dispatcher.Use(func(next command.Handler) command.Handler {
-					return func(ctx context.Context, cmd command.Command) error {
-						callOrder = append(callOrder, "mw1")
-
-						return next(ctx, cmd)
-					}
-				})
-
-				dispatcher.Use(func(next command.Handler) command.Handler {
-					return func(ctx context.Context, cmd command.Command) error {
-						callOrder = append(callOrder, "mw2")
-
-						return next(ctx, cmd)
-					}
-				})
+				dispatcher.Use(labelMiddleware(&callOrder, "mw1"))
+				dispatcher.Use(labelMiddleware(&callOrder, "mw2"))
 
 				Expect(dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
 					callOrder = append(callOrder, "handler")
