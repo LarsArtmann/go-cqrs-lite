@@ -122,13 +122,13 @@ These items from Session 130's backlog remain untouched:
 
 **Every module compiles and passes tests.** Verified with `go test` across all 30 packages — zero failures.
 
-| Claimed broken | Actual result | Root cause of false alarm |
-| --- | --- | --- |
-| `saga/health_test.go` — undefined symbols | `ok` (0.708s) | gopls misreported; code uses local `nopDispatcher{}`, `testDefinition{}` types |
-| `projection/health_test.go` — undefined symbols | `ok` (0.261s) | gopls misreported; code uses `testhelpers.NoopEventHandler()`, `event.NewProjection()` |
-| `core/aggregate/aggregate_test.go` — testify not in go.mod | `ok` (0.003s) | gopls doesn't resolve workspace `replace` directives; testify IS in go.mod |
-| `middleware/tracing_logging_test.go` — undefined `errTest` | `ok` (0.156s) | gopls misreported; actual code uses `errors.New("test error")` inline |
-| `example/saga/go.mod` — breaks go.work | `ok` individually | Only `go test ./example/...` glob fails; individual modules work fine |
+| Claimed broken                                             | Actual result     | Root cause of false alarm                                                              |
+| ---------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| `saga/health_test.go` — undefined symbols                  | `ok` (0.708s)     | gopls misreported; code uses local `nopDispatcher{}`, `testDefinition{}` types         |
+| `projection/health_test.go` — undefined symbols            | `ok` (0.261s)     | gopls misreported; code uses `testhelpers.NoopEventHandler()`, `event.NewProjection()` |
+| `core/aggregate/aggregate_test.go` — testify not in go.mod | `ok` (0.003s)     | gopls doesn't resolve workspace `replace` directives; testify IS in go.mod             |
+| `middleware/tracing_logging_test.go` — undefined `errTest` | `ok` (0.156s)     | gopls misreported; actual code uses `errors.New("test error")` inline                  |
+| `example/saga/go.mod` — breaks go.work                     | `ok` individually | Only `go test ./example/...` glob fails; individual modules work fine                  |
 
 ### Root cause
 
@@ -166,34 +166,34 @@ This generated 25+ spurious project-level diagnostics that looked like real buil
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                            | Why                                              |
-| --- | -------- | --------------------------------------------------------------- | ------------------------------------------------ |
-| 1   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix saga/projection health test build failures~~ | Session 132: gopls false positives, all tests pass  |
-| 2   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix or remove `example/saga/go.mod` from go.work~~ | Session 132: works fine, go.work glob limitation only |
-| 3   | **P0**   | Run `nix run .#lint` and fix findings                           | Verify code quality after dedup                  |
-| 4   | **P0**   | Generate `docs/TODO_LIST.md` from all .md files                 | Project has no central TODO tracking             |
-| 5   | **P0**   | Generate `docs/FEATURES.md` from code audit                     | No feature inventory exists                      |
-| 6   | **P1**   | Push v1.0.0 tags and remove replace directives                  | Unblock per-module independence                  |
-| 7   | **P1**   | Move `tamperEvent` to `testhelpers` module                      | Share across signing + integration               |
-| 8   | **P1**   | Eliminate remaining 17 test clone groups                        | Get to ZERO at threshold 45                      |
-| 9   | **P1**   | Persistent saga store (SQL-backed)                              | In-memory only → production-unusable             |
-| 10  | **P1**   | Watermill integration tests (real Pub/Sub)                      | Module exists but untested against real infra    |
-| 11  | **P1**   | Projection SQL reader for stream module                         | SQLAggregateReader needs projection table        |
-| 12  | **P2**   | Go API reference (go doc / pkgsite)                             | Library needs browsable API docs                 |
-| 13  | **P2**   | Schema evolution guide in docs/                                 | Upcaster/VersionsStore documentation             |
-| 13  | **P2**   | Performance regression benchmarks in CI                         | Track perf across changes                        |
-| 14  | **P2**   | Context propagation E2E tests                                   | Verify correlation/causation IDs flow end-to-end |
-| 15  | **P2**   | `docs/api_surface.txt` cleanup and CI check                     | Generated file needs formatting standards        |
-| 16  | **P2**   | Pre-commit hook standardization                                 | golangci-lint, go vet, art-dupl                  |
-| 17  | **P3**   | Example app with all modules integrated                         | Show consumers how to compose the stack          |
-| 18  | **P3**   | Contributing guide (CONTRIBUTING.md)                            | Open-source readiness                            |
-| 19  | **P3**   | README.md refresh with current module graph                     | Docs may be stale                                |
-| 20  | **P3**   | Add `projection/health.go` and `saga/health.go` implementations | Stubs exist, need real health check logic        |
-| 21  | **P3**   | Chaos test coverage expansion                                   | Only signing module has chaos tests              |
-| 22  | **P4**   | Turso/LibSQL integration tests                                  | storage module supports it but no E2E            |
-| 23  | **P4**   | Snapshot store integration tests                                | SQLSnapshotStore exists but no integration test  |
-| 24  | **P4**   | Outbox publisher graceful shutdown test                         | Lifecycle tests exist but no graceful shutdown   |
-| 25  | **P4**   | Benchmark comparison across storage backends                    | No perf comparison between SQLite/Pebble/Turso   |
+| #   | Priority                | Item                                                            | Why                                                   |
+| --- | ----------------------- | --------------------------------------------------------------- | ----------------------------------------------------- |
+| 1   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix saga/projection health test build failures~~              | Session 132: gopls false positives, all tests pass    |
+| 2   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix or remove `example/saga/go.mod` from go.work~~            | Session 132: works fine, go.work glob limitation only |
+| 3   | **P0**                  | Run `nix run .#lint` and fix findings                           | Verify code quality after dedup                       |
+| 4   | **P0**                  | Generate `docs/TODO_LIST.md` from all .md files                 | Project has no central TODO tracking                  |
+| 5   | **P0**                  | Generate `docs/FEATURES.md` from code audit                     | No feature inventory exists                           |
+| 6   | **P1**                  | Push v1.0.0 tags and remove replace directives                  | Unblock per-module independence                       |
+| 7   | **P1**                  | Move `tamperEvent` to `testhelpers` module                      | Share across signing + integration                    |
+| 8   | **P1**                  | Eliminate remaining 17 test clone groups                        | Get to ZERO at threshold 45                           |
+| 9   | **P1**                  | Persistent saga store (SQL-backed)                              | In-memory only → production-unusable                  |
+| 10  | **P1**                  | Watermill integration tests (real Pub/Sub)                      | Module exists but untested against real infra         |
+| 11  | **P1**                  | Projection SQL reader for stream module                         | SQLAggregateReader needs projection table             |
+| 12  | **P2**                  | Go API reference (go doc / pkgsite)                             | Library needs browsable API docs                      |
+| 13  | **P2**                  | Schema evolution guide in docs/                                 | Upcaster/VersionsStore documentation                  |
+| 13  | **P2**                  | Performance regression benchmarks in CI                         | Track perf across changes                             |
+| 14  | **P2**                  | Context propagation E2E tests                                   | Verify correlation/causation IDs flow end-to-end      |
+| 15  | **P2**                  | `docs/api_surface.txt` cleanup and CI check                     | Generated file needs formatting standards             |
+| 16  | **P2**                  | Pre-commit hook standardization                                 | golangci-lint, go vet, art-dupl                       |
+| 17  | **P3**                  | Example app with all modules integrated                         | Show consumers how to compose the stack               |
+| 18  | **P3**                  | Contributing guide (CONTRIBUTING.md)                            | Open-source readiness                                 |
+| 19  | **P3**                  | README.md refresh with current module graph                     | Docs may be stale                                     |
+| 20  | **P3**                  | Add `projection/health.go` and `saga/health.go` implementations | Stubs exist, need real health check logic             |
+| 21  | **P3**                  | Chaos test coverage expansion                                   | Only signing module has chaos tests                   |
+| 22  | **P4**                  | Turso/LibSQL integration tests                                  | storage module supports it but no E2E                 |
+| 23  | **P4**                  | Snapshot store integration tests                                | SQLSnapshotStore exists but no integration test       |
+| 24  | **P4**                  | Outbox publisher graceful shutdown test                         | Lifecycle tests exist but no graceful shutdown        |
+| 25  | **P4**                  | Benchmark comparison across storage backends                    | No perf comparison between SQLite/Pebble/Turso        |
 
 ---
 

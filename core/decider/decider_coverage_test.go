@@ -54,9 +54,6 @@ func (nonImmutableEvent) OccurredAt() time.Time     { return time.Now() }
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
-
 	enriched := false
 	enricher := func(_ context.Context) []event.Option {
 		return []event.Option{
@@ -64,24 +61,13 @@ func TestExecute_EnricherAppliesOptions(t *testing.T) {
 		}
 	}
 
-	d := counterDecider()
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithEnricher[counterState](enricher),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
+	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
-	)
-	if err != nil {
+	evtFn := func(_ counterState, ver event.Version) ([]event.Event, error) {
+		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+	}
+	if err := executeWithAggID(t, repo, aggID, evtFn); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
@@ -93,40 +79,21 @@ func TestExecute_EnricherAppliesOptions(t *testing.T) {
 func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
+	enricher := func(_ context.Context) []event.Option { return nil }
 
-	enricher := func(_ context.Context) []event.Option {
-		return nil
-	}
-
-	d := counterDecider()
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithEnricher[counterState](enricher),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
+	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
-	)
-	if err != nil {
+	evtFn := func(_ counterState, ver event.Version) ([]event.Event, error) {
+		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+	}
+	if err := executeWithAggID(t, repo, aggID, evtFn); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }
 
 func TestExecute_EnricherSkipsNonImmutableEvents(t *testing.T) {
 	t.Parallel()
-
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
 
 	enricher := func(_ context.Context) []event.Option {
 		return []event.Option{
@@ -136,33 +103,18 @@ func TestExecute_EnricherSkipsNonImmutableEvents(t *testing.T) {
 		}
 	}
 
-	d := counterDecider()
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithEnricher[counterState](enricher),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
+	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{nonImmutableEvent{}}, nil
-		},
-	)
-	if err != nil {
+	if err := executeWithAggID(t, repo, aggID, func(_ counterState, _ event.Version) ([]event.Event, error) {
+		return []event.Event{nonImmutableEvent{}}, nil
+	}); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }
 
 func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 	t.Parallel()
-
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
 
 	correlationID := id.NewCorrelationID()
 	enricher := func(_ context.Context) []event.Option {
@@ -171,24 +123,12 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 		}
 	}
 
-	d := counterDecider()
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithEnricher[counterState](enricher),
-	)
-	if err != nil {
-		t.Fatalf("NewRepository: %v", err)
-	}
-
+	bus, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(
-		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
-	)
-	if err != nil {
+	if err := executeWithAggID(t, repo, aggID, func(_ counterState, ver event.Version) ([]event.Event, error) {
+		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+	}); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
@@ -211,17 +151,14 @@ func TestExecute_TransactionalStore_SaveWithOutboxError(t *testing.T) {
 	t.Parallel()
 
 	bus := testhelpers.NewFakeBus()
-	outbox := testhelpers.NewFakeOutbox()
-	store := &fakeTransactionalStore{
+	txStore := &fakeTransactionalStore{
 		FakeStore:         testhelpers.NewFakeStore(),
 		saveWithOutboxErr: errors.New("tx failed"),
 	}
 
-	d := counterDecider()
-
 	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithOutbox[counterState](outbox),
+		txStore, bus, counterDecider(),
+		decider.WithOutbox[counterState](testhelpers.NewFakeOutbox()),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -248,10 +185,8 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 	snapshotStore := testhelpers.NewFakeSnapshotStore()
 	codec := &failingCodec{err: errors.New("encode failed")}
 
-	d := counterDecider()
-
 	repo, err := decider.NewRepository(
-		store, bus, d,
+		store, bus, counterDecider(),
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
 		decider.WithSnapshotStrategy[counterState](event.MustEveryNEvents(1)),

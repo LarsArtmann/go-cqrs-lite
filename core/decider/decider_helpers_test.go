@@ -162,6 +162,39 @@ func setSnapshot(
 	})
 }
 
+func newEnricherRepo(
+	t *testing.T,
+	enricher func(context.Context) []event.Option,
+	opts ...decider.RepositoryOption[counterState],
+) (*testhelpers.FakeBus, *decider.Repository[counterState]) {
+	t.Helper()
+
+	store := testhelpers.NewFakeStore()
+	bus := testhelpers.NewFakeBus()
+
+	d := counterDecider()
+	allOpts := append([]decider.RepositoryOption[counterState]{
+		decider.WithEnricher[counterState](enricher),
+	}, opts...)
+	repo, err := decider.NewRepository(store, bus, d, allOpts...)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	return bus, repo
+}
+
+func executeWithAggID(
+	t *testing.T,
+	repo *decider.Repository[counterState],
+	aggID id.AggregateID,
+	fn func(counterState, event.Version) ([]event.Event, error),
+) error {
+	t.Helper()
+
+	return repo.Execute(context.Background(), aggID, "Counter", fn)
+}
+
 func makeEvent(
 	t *testing.T,
 	eventType string,
