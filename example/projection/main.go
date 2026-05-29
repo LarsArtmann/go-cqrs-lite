@@ -66,10 +66,16 @@ func run() error {
 
 	applyInventory := func(name string, quantity int, verb string, op func(int, int) int) {
 		readModel.Items[name] = op(readModel.Items[name], quantity)
-		fmt.Printf("  [projection] %s %d %s (total: %d)\n", verb, quantity, name, readModel.Items[name])
+		fmt.Printf(
+			"  [projection] %s %d %s (total: %d)\n",
+			verb,
+			quantity,
+			name,
+			readModel.Items[name],
+		)
 	}
 
-	if err := projection.On[ItemAdded](
+	if err := projection.On(
 		builder,
 		"item.added",
 		func(_ context.Context, p ItemAdded) error {
@@ -80,7 +86,7 @@ func run() error {
 		return fmt.Errorf("register item.added: %w", err)
 	}
 
-	if err := projection.On[ItemRemoved](
+	if err := projection.On(
 		builder,
 		"item.removed",
 		func(_ context.Context, p ItemRemoved) error {
