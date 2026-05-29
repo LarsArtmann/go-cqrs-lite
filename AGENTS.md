@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 15 modules:
+Multi-module Go workspace (`go.work`) with 14 modules:
 
 ```
 go-cqrs-lite/
@@ -47,7 +47,7 @@ go-cqrs-lite/
 │       └── dispatcher/  # Generic Dispatcher[H, M] with LifecycleMixin
 ├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
-├── middleware/           # Logging, Retry, Recovery, Validation, Metrics (command+event+query)
+├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, middleware
 ├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
@@ -121,6 +121,17 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 //   signer, _ := signing.NewHMAC(secret)
 //   bus.UsePublish(signing.SignMiddleware(signer))
 //   bus.Use(signing.VerifyMiddleware(signer))
+
+// OpenTelemetry tracing (opt-in, no-op when no provider configured)
+//   tracer := otel.GetTracerProvider().Tracer("my-app")
+//   bus.Use(middleware.EventTracing(tracer))
+//   bus.UsePublish(middleware.EventPublishTracing(tracer))
+//   cmdDispatcher.Use(middleware.CommandTracing(tracer))
+
+// OpenTelemetry metrics (opt-in, replace custom MetricsRecorder)
+//   meter := otel.GetMeterProvider().Meter("my-app")
+//   recorder, _ := middleware.NewOTelMetricsRecorder(meter)
+//   cmdDispatcher.Use(middleware.CommandMetrics(recorder))
 ```
 
 ## Testing

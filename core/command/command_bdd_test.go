@@ -44,13 +44,13 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when I dispatch a command with no registered handler", func() {
-			It("should return ErrHandlerNotFound", func() {
+			It("should reject my command and explain that no handler was registered for this type", func() {
 				cmd, err := command.New("UnknownCommand", aggID)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = dispatcher.Dispatch(ctx, cmd)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, command.ErrHandlerNotFound)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("handler not found"))
 			})
 		})
 
@@ -156,7 +156,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 	Describe("As a developer managing the dispatcher lifecycle", func() {
 		Context("when I close the dispatcher", func() {
-			It("should reject further dispatch and registration", func() {
+			It("should reject further dispatch and registration, explaining the dispatcher is closed", func() {
 				Expect(dispatcher.Close()).To(Succeed())
 
 				cmd, err := command.New("AnyCommand", aggID)
@@ -164,13 +164,13 @@ var _ = Describe("Command Dispatcher", func() {
 
 				err = dispatcher.Dispatch(ctx, cmd)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, command.ErrDispatcherClosed)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
 
 				err = dispatcher.Register("NewCommand", func(_ context.Context, _ command.Command) error {
 					return nil
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, command.ErrDispatcherClosed)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("dispatcher is closed"))
 			})
 		})
 	})
@@ -202,18 +202,18 @@ var _ = Describe("Command Dispatcher", func() {
 		})
 
 		Context("when I create a command with an empty type", func() {
-			It("should return ErrEmptyCommandType", func() {
+			It("should reject my input and explain that the command type is required", func() {
 				_, err := command.New("", aggID)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, command.ErrEmptyCommandType)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("command type is required"))
 			})
 		})
 
 		Context("when I create a command with a zero aggregate ID", func() {
-			It("should return ErrNilAggregateID", func() {
+			It("should reject my input and explain that the aggregate ID is required", func() {
 				_, err := command.New("CreateUser", id.AggregateID{})
 				Expect(err).To(HaveOccurred())
-				Expect(errors.Is(err, command.ErrNilAggregateID)).To(BeTrue())
+				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
 			})
 		})
 

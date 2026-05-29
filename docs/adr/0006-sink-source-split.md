@@ -35,18 +35,21 @@ Split `event.Store` into focused interfaces following ISP:
 ### Tombstone soft-delete
 
 Instead of hard-delete, introduce `TombstoneStatus` (Active / Tombstoned / Undetermined) with:
+
 - `DetectTombstone(events)` — O(1) on last event metadata
 - `MarkTombstone(evt)` / `MarkRebirth(evt)` — set metadata keys
 
 ## Consequences
 
 **Positive:**
+
 - Consumers depend only on what they use (projections → EventSource, commands → EventSink).
 - Delete is impossible at the type level — enforced by the compiler.
 - Clear migration path: all existing code using `Store` continues to work.
 - Journal/SeekableJournal enable projection replay without loading all events.
 
 **Negative:**
+
 - More interfaces to learn (7 vs 1).
 - Deprecated aliases must be maintained until v2.0.
 - Consumers must type-assert for TransactionalSink (`if ts, ok := sink.(TransactionalSink); ok`).

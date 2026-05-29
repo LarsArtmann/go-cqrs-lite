@@ -7,10 +7,10 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // Runner manages the lifecycle of saga instances.
@@ -65,7 +65,8 @@ func (r *Runner) Start(
 	sagaType string,
 	initialCommand command.Command,
 ) (*Instance, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, tracer(), "saga.start",
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "saga.start",
 		trace.SpanKindClient,
 		trace.WithAttributes(sagaAttrs(sagaType)...),
 	)
