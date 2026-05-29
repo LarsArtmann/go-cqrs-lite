@@ -4,19 +4,31 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
 // ReadAll retrieves all events across all aggregates, ordered by occurrence time.
 // Returns an empty slice (not an error) if no events exist.
 func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.read_all",
+		trace.SpanKindClient,
+	)
+	defer span.End()
+
 	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
 		FROM ` + tableEvents + `
 		ORDER BY occurred_at ASC`
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.query_all_events",
 			"query all events")
 	}
@@ -25,7 +37,14 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		_ = rows.Close()
 	}()
 
-	return s.scanEvents(rows)
+	events, scanErr := s.scanEvents(rows)
+	if scanErr != nil {
+		cqrsotel.RecordError(span, scanErr)
+	}
+
+	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+
+	return events, scanErr
 }
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
@@ -35,8 +54,22 @@ func (s *SQLEventStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.read_from",
+		trace.SpanKindClient,
+		trace.WithAttributes(attribute.Int("cqrs.outbox.limit", limit)),
+	)
+	defer span.End()
+
 	if afterEventID.IsZero() {
-		return s.loadAllFromStart(ctx, limit)
+		events, err := s.loadAllFromStart(ctx, limit)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+		}
+
+		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+
+		return events, err
 	}
 
 	p1 := s.dialect.Placeholder(1)
@@ -60,6 +93,8 @@ func (s *SQLEventStore) ReadFrom(
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query events from position (limit=%d)", limit))
 	}
@@ -68,7 +103,14 @@ func (s *SQLEventStore) ReadFrom(
 		_ = rows.Close()
 	}()
 
-	return s.scanEvents(rows)
+	events, scanErr := s.scanEvents(rows)
+	if scanErr != nil {
+		cqrsotel.RecordError(span, scanErr)
+	}
+
+	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+
+	return events, scanErr
 }
 
 // LoadAll retrieves all events across all aggregates, ordered by occurrence time.

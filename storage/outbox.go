@@ -161,6 +161,15 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 		return nil
 	}
 
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "outbox.ack",
+		trace.SpanKindClient,
+		trace.WithAttributes(
+			attribute.Int(cqrsotel.AttrOutboxEntryCount, len(ids)),
+		),
+	)
+	defer span.End()
+
 	for start := 0; start < len(ids); start += maxAckBatchSize {
 		end := min(start+maxAckBatchSize, len(ids))
 
@@ -168,6 +177,8 @@ func (o *SQLOutbox) Ack(ctx context.Context, ids []event.OutboxID) error {
 
 		err := o.ackBatch(ctx, batch)
 		if err != nil {
+			cqrsotel.RecordError(span, err)
+
 			return event.WrapInfrastructure(err, "storage.ack_outbox_batch",
 				fmt.Sprintf("ack outbox entries [%d:%d]", start, end))
 		}

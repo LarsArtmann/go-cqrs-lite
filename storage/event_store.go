@@ -134,8 +134,20 @@ func (s *SQLEventStore) AppendBatch(
 		return nil
 	}
 
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "event.store.append_batch",
+		trace.SpanKindClient,
+		trace.WithAttributes(append(
+			aggregateAttrs(string(aggregateType), aggregateID.String()),
+			attribute.Int(cqrsotel.AttrEventCount, len(events)),
+		)...),
+	)
+	defer span.End()
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.begin_tx",
 			"begin transaction")
 	}
@@ -146,11 +158,18 @@ func (s *SQLEventStore) AppendBatch(
 
 	err = s.insertEvents(ctx, tx, aggregateType, aggregateID, events)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "storage.insert_events",
 			fmt.Sprintf("insert %d events for %s %s", len(events), aggregateType, aggregateID))
 	}
 
-	return commitTx(tx)
+	err = commitTx(tx)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 func (s *SQLEventStore) checkVersion(
