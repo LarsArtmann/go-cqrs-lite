@@ -200,12 +200,38 @@ func (c *CatalogDispatcher[KT, VT]) InitCatalogDispatcher() {
 	c.catalogEntries = make(map[KT]VT)
 }
 
+// Init initializes the catalog entries map. Returns self for chaining.
+func (c *CatalogDispatcher[KT, VT]) Init() *CatalogDispatcher[KT, VT] {
+	c.catalogEntries = make(map[KT]VT)
+
+	return c
+}
+
 // newCatalogDispatcher creates a new initialized CatalogDispatcher.
 func newCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
 	c := CatalogDispatcher[KT, VT]{} //nolint:exhaustruct // unexported field requires Init method
 	c.InitCatalogDispatcher()
 
 	return c
+}
+
+// DispatcherWithCatalog combines CatalogDispatcher with an inner Dispatcher.
+// This is a reusable base for command/query dispatchers that need both catalog
+// metadata and handler dispatch.
+type DispatcherWithCatalog[KT comparable, VT any, H any, M any] struct {
+	CatalogDispatcher[KT, VT]
+	inner *Dispatcher[H, M]
+}
+
+// Init initializes the embedded CatalogDispatcher and creates the inner dispatcher.
+func (d *DispatcherWithCatalog[KT, VT, H, M]) Init() {
+	d.CatalogDispatcher.InitCatalogDispatcher()
+	d.inner = NewDispatcher[H, M]()
+}
+
+// Inner returns the inner dispatcher.
+func (d *DispatcherWithCatalog[KT, VT, H, M]) Inner() *Dispatcher[H, M] {
+	return d.inner
 }
 
 // RegisterHandlerMeta stores catalog metadata for a type.

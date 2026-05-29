@@ -135,6 +135,16 @@ func copyChannel(ch *Channel) Channel {
 	}
 }
 
+// NewTestCreateOrderFlow returns a standard test flow for order creation.
+func NewTestCreateOrderFlow(title string) Flow {
+	return Flow{
+		ID: "create-order", Name: "Create Order", Version: "1.0.0",
+		Steps: []FlowStep{
+			{ID: "1", Title: title, Message: &FlowStepRef{ID: "CreateOrder"}},
+		},
+	}
+}
+
 func copyChannelParams(params map[string]ChannelParam) map[string]ChannelParam {
 	if params == nil {
 		return nil

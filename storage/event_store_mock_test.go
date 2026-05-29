@@ -189,17 +189,10 @@ func TestSQLEventStore_LoadAll_Mock_ScanError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
-
-	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
-		))
+	mockLoadAllScanError(mock, t)
 
 	_, err := store.LoadAll(context.Background())
-	if err == nil {
-		t.Fatal("expected error from scan with invalid event ID in LoadAll")
-	}
+	expectScanError(t, err, "LoadAll")
 }
 
 func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {
@@ -241,15 +234,22 @@ func TestSQLEventStore_ReadAll_Mock_ScanError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	mockLoadAllScanError(mock, t)
 
+	_, err := store.ReadAll(context.Background())
+	expectScanError(t, err, "ReadAll")
+}
+
+func mockLoadAllScanError(mock sqlmock.Sqlmock, t *testing.T) {
+	aggID := id.NewAggregateID()
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			"invalid-id", "", "User", aggID, 1, 1, nil, nil, testEvent(t).OccurredAt(),
 		))
+}
 
-	_, err := store.ReadAll(context.Background())
+func expectScanError(t *testing.T, err error, method string) {
 	if err == nil {
-		t.Fatal("expected error from scan with invalid event ID in ReadAll")
+		t.Fatalf("expected error from scan with invalid event ID in %s", method)
 	}
 }

@@ -63,18 +63,17 @@ func run() error {
 	readModel := newInventoryReadModel()
 
 	builder := projection.NewBuilder("inventory-projection")
+
+	applyInventory := func(name string, quantity int, verb string, op func(int, int) int) {
+		readModel.Items[name] = op(readModel.Items[name], quantity)
+		fmt.Printf("  [projection] %s %d %s (total: %d)\n", verb, quantity, name, readModel.Items[name])
+	}
+
 	if err := projection.On[ItemAdded](
 		builder,
 		"item.added",
-		func(_ context.Context, payload ItemAdded) error {
-			readModel.Items[payload.Name] += payload.Quantity
-			fmt.Printf(
-				"  [projection] added %d %s (total: %d)\n",
-				payload.Quantity,
-				payload.Name,
-				readModel.Items[payload.Name],
-			)
-
+		func(_ context.Context, p ItemAdded) error {
+			applyInventory(p.Name, p.Quantity, "added", func(a, b int) int { return a + b })
 			return nil
 		},
 	); err != nil {
@@ -84,15 +83,8 @@ func run() error {
 	if err := projection.On[ItemRemoved](
 		builder,
 		"item.removed",
-		func(_ context.Context, payload ItemRemoved) error {
-			readModel.Items[payload.Name] -= payload.Quantity
-			fmt.Printf(
-				"  [projection] removed %d %s (total: %d)\n",
-				payload.Quantity,
-				payload.Name,
-				readModel.Items[payload.Name],
-			)
-
+		func(_ context.Context, p ItemRemoved) error {
+			applyInventory(p.Name, p.Quantity, "removed", func(a, b int) int { return a - b })
 			return nil
 		},
 	); err != nil {

@@ -338,17 +338,11 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	now := time.Now()
 
-	events := testhelpers.MakeTimelineEvents(t, "User", aggID, []testhelpers.TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
-		{Type: "Updated", Version: 1, Offset: -1 * time.Hour},
-		{Type: "Deleted", Version: 2, Offset: 0},
-	})
+	now, aggID = testhelpers.MakeLoadToTimestampFixtures(t, store, ctx, "User", aggID, [3]event.Version{1, 1, 2})
 
-	_ = store.AppendBatch(ctx, "User", aggID, events)
-
-	events, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
+	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
 	testhelpers.AssertNoError(t, err, "LoadToTimestamp")
-	testhelpers.AssertLen(t, "events", events, 2)
+	testhelpers.AssertLen(t, "loaded", loaded, 2)
 }
 
 func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
@@ -434,11 +428,7 @@ func TestMemoryStore_LoadAllFromPosition_WithLimit(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-
-	for i := range 5 {
-		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
-		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
-	}
+	seedTestEvents(t, store, ctx, aggID, 5)
 
 	events, err := store.LoadAllFromPosition(ctx, id.EventID{}, 3)
 	testhelpers.AssertNoError(t, err, "LoadAllFromPosition with limit")
@@ -513,5 +503,20 @@ func TestMemoryStore_LoadBackwards_Closed(t *testing.T) {
 	_, err := backwardsLoader.LoadBackwards(context.Background(), "User", id.AggregateID{})
 	if err == nil {
 		t.Fatal("expected error for closed store")
+	}
+}
+
+func seedTestEvents(
+	t *testing.T,
+	store *memory.MemoryStore,
+	ctx context.Context,
+	aggID id.AggregateID,
+	n int,
+) {
+	t.Helper()
+
+	for i := range n {
+		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
+		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
 	}
 }

@@ -94,7 +94,7 @@ func TestSQLBackend_SagaStore_SaveAndLoad(t *testing.T) {
 	backend := newTestSQLBackend(t)
 	ctx := context.Background()
 
-	state := testhelpers.NewSagaState("order", saga.StatusRunning, 1)
+	state := testhelpers.NewSagaState("order", saga.StatusRunning, 1, "")
 
 	if err := backend.SagaStore().Save(ctx, state); err != nil {
 		t.Fatalf("Save: %v", err)

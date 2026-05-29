@@ -13,9 +13,7 @@ import (
 
 // Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	dispatcher.CatalogDispatcher[Type, dispatcher.HandlerMeta]
-
-	inner *dispatcher.Dispatcher[Handler, Middleware]
+	dispatcher.DispatcherWithCatalog[Type, dispatcher.HandlerMeta, Handler, Middleware]
 }
 
 var _ io.Closer = (*Dispatcher)(nil)
@@ -23,20 +21,19 @@ var _ io.Closer = (*Dispatcher)(nil)
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
-	d.InitCatalogDispatcher()
-	d.inner = dispatcher.NewDispatcher[Handler, Middleware]()
+	d.Init()
 
 	return d
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.inner.Use(middleware...)
+	d.Inner().Use(middleware...)
 }
 
 // Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
-	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,
@@ -45,7 +42,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		)
 	}
 
-	err = d.inner.Register(
+	err = d.Inner().Register(
 		string(cmdType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -65,7 +62,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 
 // Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
-	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,
@@ -74,7 +71,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		)
 	}
 
-	wrapped, err := d.inner.Dispatch(string(cmd.Type()))
+	wrapped, err := d.Inner().Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return errorfamily.WrapRejection(
@@ -97,5 +94,5 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	return d.inner.Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
+	return d.Inner().Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
 }

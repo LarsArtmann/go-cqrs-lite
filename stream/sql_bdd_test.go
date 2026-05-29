@@ -37,15 +37,16 @@ func makeStreamEvent(
 	return evt
 }
 
-func seedStreamDB(db *sql.DB, tableName string, rows []struct {
+type streamAggregateRow struct {
 	aggType   string
 	aggID     string
 	version   int
 	count     uint
 	lastAt    string
 	statusInt int
-},
-) {
+}
+
+func seedStreamDB(db *sql.DB, tableName string, rows []streamAggregateRow) {
 	for _, r := range rows {
 		_, err := db.Exec(
 			fmt.Sprintf(
@@ -58,19 +59,30 @@ func seedStreamDB(db *sql.DB, tableName string, rows []struct {
 	}
 }
 
-func seedUserAggregates(db *sql.DB, activeVers, activeCount, tombVers, tombCount uint) {
-	now := time.Now().UTC().Format(time.RFC3339)
-	activeID := id.NewAggregateID()
-	tombstonedID := id.NewAggregateID()
-
-	seedStreamDB(db, "test_stream_aggregates", []struct {
+func seedStreamUserRow(aggID, now string) struct {
+	aggType   string
+	aggID     string
+	version   int
+	count     uint
+	lastAt    string
+	statusInt int
+} {
+	return struct {
 		aggType   string
 		aggID     string
 		version   int
 		count     uint
 		lastAt    string
 		statusInt int
-	}{
+	}{"User", aggID, 1, 1, now, 0}
+}
+
+func seedUserAggregates(db *sql.DB, activeVers, activeCount, tombVers, tombCount uint) {
+	now := time.Now().UTC().Format(time.RFC3339)
+	activeID := id.NewAggregateID()
+	tombstonedID := id.NewAggregateID()
+
+	seedStreamDB(db, "test_stream_aggregates", []streamAggregateRow{
 		{"User", activeID.String(), int(activeVers), activeCount, now, 0},
 		{"User", tombstonedID.String(), int(tombVers), tombCount, now, 1},
 	})
@@ -116,14 +128,7 @@ var _ = Describe("SQL Aggregate Reader", func() {
 				orderID := id.NewAggregateID()
 				now := time.Now().UTC().Format(time.RFC3339)
 
-				seedStreamDB(db, "test_stream_aggregates", []struct {
-					aggType   string
-					aggID     string
-					version   int
-					count     uint
-					lastAt    string
-					statusInt int
-				}{
+				seedStreamDB(db, "test_stream_aggregates", []streamAggregateRow{
 					{"User", userID1.String(), 3, 3, now, 0},
 					{"User", userID2.String(), 1, 1, now, 0},
 					{"Order", orderID.String(), 1, 1, now, 0},
@@ -151,14 +156,11 @@ var _ = Describe("SQL Aggregate Reader", func() {
 				for range 5 {
 					uid := id.NewAggregateID()
 					ids = append(ids, uid.String())
-					seedStreamDB(db, "test_stream_aggregates", []struct {
-						aggType   string
-						aggID     string
-						version   int
-						count     uint
-						lastAt    string
-						statusInt int
-					}{{"User", uid.String(), 1, 1, now, 0}})
+					seedStreamDB(
+						db,
+						"test_stream_aggregates",
+						[]streamAggregateRow{seedStreamUserRow(uid.String(), now)},
+					)
 				}
 
 				page, err := reader.List(ctx, stream.ListOptions{Type: "User", Limit: 3})
@@ -176,14 +178,11 @@ var _ = Describe("SQL Aggregate Reader", func() {
 				for range 4 {
 					uid := id.NewAggregateID()
 					ids = append(ids, uid)
-					seedStreamDB(db, "test_stream_aggregates", []struct {
-						aggType   string
-						aggID     string
-						version   int
-						count     uint
-						lastAt    string
-						statusInt int
-					}{{"User", uid.String(), 1, 1, now, 0}})
+					seedStreamDB(
+						db,
+						"test_stream_aggregates",
+						[]streamAggregateRow{{"User", uid.String(), 1, 1, now, 0}},
+					)
 				}
 
 				page1, err := reader.List(ctx, stream.ListOptions{Type: "User", Limit: 2})

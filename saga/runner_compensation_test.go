@@ -2,7 +2,6 @@ package saga_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -38,13 +37,7 @@ func TestRunner_CompensateFailure(t *testing.T) {
 	t.Parallel()
 
 	callCount := 0
-	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
-		callCount++
-		if callCount == 1 {
-			return nil
-		}
-		return errors.New("always fails")
-	})
+	dispatcher := newThresholdDispatcher(&callCount, 1, "always fails")
 
 	compensateFails := func(_ context.Context, _ id.AggregateID) command.Command {
 		return &testCommand{}
@@ -72,13 +65,7 @@ func TestRunner_CompensateNilCompensateSkipped(t *testing.T) {
 
 	callCount := 0
 	compensateCalled := false
-	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
-		callCount++
-		if callCount <= 2 {
-			return nil
-		}
-		return errors.New("step 3 fails")
-	})
+	dispatcher := newThresholdDispatcher(&callCount, 2, "step 3 fails")
 
 	runner, instance, _ := setupTestSaga(t, dispatcher, []saga.Step{
 		{Name: "step1", Action: newTestCommand},

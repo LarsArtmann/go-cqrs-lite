@@ -104,6 +104,19 @@ func (s *FakeStore) Load(
 	return append([]event.Event{}, s.events[key]...), nil
 }
 
+// loadEventsHelper retrieves events for an aggregate under the read lock.
+func (s *FakeStore) loadEventsHelper(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) []event.Event {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key := event.StreamKey(aggregateType, aggregateID)
+
+	return s.events[key]
+}
+
 // LoadFromVersion returns events starting after the given version.
 func (s *FakeStore) LoadFromVersion(
 	_ context.Context,
@@ -115,13 +128,7 @@ func (s *FakeStore) LoadFromVersion(
 		return fn(aggregateType, aggregateID, version)
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := event.StreamKey(aggregateType, aggregateID)
-	all := s.events[key]
-
-	result := event.SliceFromVersion(all, version)
+	result := event.SliceFromVersion(s.loadEventsHelper(aggregateType, aggregateID), version)
 	if len(result) == 0 {
 		return nil, nil
 	}
@@ -140,13 +147,7 @@ func (s *FakeStore) LoadToVersion(
 		return fn(aggregateType, aggregateID, maxVersion)
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := event.StreamKey(aggregateType, aggregateID)
-	all := s.events[key]
-
-	return event.SliceToVersion(all, maxVersion), nil
+	return event.SliceToVersion(s.loadEventsHelper(aggregateType, aggregateID), maxVersion), nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime.
@@ -160,13 +161,7 @@ func (s *FakeStore) LoadToTimestamp(
 		return fn(aggregateType, aggregateID, maxTime)
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := event.StreamKey(aggregateType, aggregateID)
-	all := s.events[key]
-
-	return event.FilterByTimestamp(all, maxTime), nil
+	return event.FilterByTimestamp(s.loadEventsHelper(aggregateType, aggregateID), maxTime), nil
 }
 
 // ReadAll returns all events across all aggregates.

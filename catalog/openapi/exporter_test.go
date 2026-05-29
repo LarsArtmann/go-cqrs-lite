@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestExporter_Export(t *testing.T) {
@@ -18,14 +19,8 @@ func TestExporter_Export(t *testing.T) {
 				Name:    "CreateItem",
 				Version: "1.0.0",
 				Summary: "Creates a new item",
-				Schema: &catalog.Schema{
-					Type: "object",
-					Properties: map[string]catalog.Property{
-						"name": {Type: "string", Description: "Item name"},
-					},
-					Required: []string{"name"},
-				},
-				Kind: catalog.CommandMessage,
+				Schema:  cattest.CreateItemSchema(),
+				Kind:    catalog.CommandMessage,
 			},
 		},
 		Queries: []catalog.Message{
@@ -45,17 +40,11 @@ func TestExporter_Export(t *testing.T) {
 		},
 		Events: []catalog.Message{
 			{
-				ID:      "item-created",
-				Name:    "ItemCreated",
-				Version: "1.0.0",
-				Summary: "An item was created",
-				Schema: &catalog.Schema{
-					Type: "object",
-					Properties: map[string]catalog.Property{
-						"id":   {Type: "string"},
-						"name": {Type: "string"},
-					},
-				},
+				ID:        "item-created",
+				Name:      "ItemCreated",
+				Version:   "1.0.0",
+				Summary:   "An item was created",
+				Schema:    cattest.StringSchema("id", "name"),
 				Kind:      catalog.EventMessage,
 				Direction: catalog.Sends,
 			},
@@ -102,13 +91,7 @@ func TestToKebab(t *testing.T) {
 		{"item_created", "item-created"},
 		{"item created", "item-created"},
 	}
-
-	for _, tt := range tests {
-		got := toKebab(tt.input)
-		if got != tt.expected {
-			t.Errorf("toKebab(%q) = %q, want %q", tt.input, got, tt.expected)
-		}
-	}
+	runToKebabTests(t, tests)
 }
 
 func TestToPascal(t *testing.T) {
@@ -230,7 +213,15 @@ func TestToKebab_EdgeCases(t *testing.T) {
 		{"ABC123", "abc-123"},
 		{"v2User", "v-2user"},
 	}
+	runToKebabTests(t, tests)
+}
 
+func runToKebabTests(t *testing.T, tests []struct {
+	input    string
+	expected string
+},
+) {
+	t.Helper()
 	for _, tt := range tests {
 		got := toKebab(tt.input)
 		if got != tt.expected {

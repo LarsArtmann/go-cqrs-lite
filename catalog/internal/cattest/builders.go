@@ -182,17 +182,19 @@ func AddQuerySimple(
 ) *catalog.Registry {
 	tb.Helper()
 
-	msg := catalog.Message{
-		Kind:    catalog.QueryMessage,
-		ID:      messageID,
-		Name:    name,
-		Version: version,
-		Summary: summary,
+	AddService(tb, r, serviceID, string(serviceID), version)
+	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
+}
+
+// CreateItemSchema returns a reusable object schema with a required "name" string property.
+func CreateItemSchema() *catalog.Schema {
+	return &catalog.Schema{
+		Type: "object",
+		Properties: map[string]catalog.Property{
+			"name": {Type: "string", Description: "Item name"},
+		},
+		Required: []string{"name"},
 	}
-
-	r.AddQuery(serviceID, msg)
-
-	return r
 }
 
 func StringSchema(props ...string) *catalog.Schema {
@@ -208,6 +210,21 @@ func StringSchema(props ...string) *catalog.Schema {
 	return &catalog.Schema{Type: catalog.TypeObject, Properties: m}
 }
 
+func addServiceWithMessage(
+	tb testing.TB,
+	r *catalog.Registry,
+	serviceID catalog.ServiceID,
+	messageID catalog.MessageID,
+	name, version, summary string,
+	kind catalog.MessageKind,
+	addFn func(catalog.ServiceID, catalog.Message),
+) *catalog.Registry {
+	tb.Helper()
+
+	AddService(tb, r, serviceID, string(serviceID), version)
+	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, kind, addFn)
+}
+
 func AddServiceWithQuery(
 	tb testing.TB,
 	r *catalog.Registry,
@@ -217,8 +234,7 @@ func AddServiceWithQuery(
 ) *catalog.Registry {
 	tb.Helper()
 
-	AddService(tb, r, serviceID, string(serviceID), version)
-	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
+	return addServiceWithMessage(tb, r, serviceID, messageID, name, version, summary, catalog.QueryMessage, r.AddQuery)
 }
 
 func AddServiceWithCommand(
@@ -230,8 +246,17 @@ func AddServiceWithCommand(
 ) *catalog.Registry {
 	tb.Helper()
 
-	AddService(tb, r, serviceID, string(serviceID), version)
-	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.CommandMessage, r.AddCommand)
+	return addServiceWithMessage(
+		tb,
+		r,
+		serviceID,
+		messageID,
+		name,
+		version,
+		summary,
+		catalog.CommandMessage,
+		r.AddCommand,
+	)
 }
 
 func AddCommandWithExample(

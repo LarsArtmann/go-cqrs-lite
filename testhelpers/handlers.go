@@ -95,6 +95,15 @@ func PanicQueryHandler(msg string) func(context.Context, query.Query) (any, erro
 	}
 }
 
+// AppendCommandHandler returns a handler that appends "handler" to *callOrder.
+func AppendCommandHandler(callOrder *[]string) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		*callOrder = append(*callOrder, "handler")
+
+		return nil
+	}
+}
+
 // CallbackCommandHandler returns a handler that sets *called to true.
 func CallbackCommandHandler(called *bool) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
@@ -145,11 +154,8 @@ func EventMiddleware(callOrder *[]string, name string) func(h event.Handler) eve
 }
 
 // QueryMiddleware creates middleware that tracks call order for query handlers.
-func QueryMiddleware(
-	callOrder *[]string,
-	name string,
-) func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
-	return func(h func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
+func QueryMiddleware(callOrder *[]string, name string) query.Middleware {
+	return func(h query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			*callOrder = append(*callOrder, name)
 

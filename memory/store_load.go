@@ -25,6 +25,21 @@ func (s *MemoryStore) Load(
 	return copyEvents(events), nil
 }
 
+// loadFiltered is a shared helper that loads events for an aggregate and applies a filter function.
+func (s *MemoryStore) loadFiltered(
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	op string,
+	filter func([]event.Event) []event.Event,
+) ([]event.Event, error) {
+	events, err := s.getEvents(aggregateType, aggregateID, op)
+	if err != nil {
+		return nil, err
+	}
+
+	return copyEvents(filter(events)), nil
+}
+
 // LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadFromVersion(
@@ -33,12 +48,9 @@ func (s *MemoryStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load from version")
-	if err != nil {
-		return nil, err
-	}
-
-	return copyEvents(event.SliceFromVersion(events, version)), nil
+	return s.loadFiltered(aggregateType, aggregateID, "load from version", func(evts []event.Event) []event.Event {
+		return event.SliceFromVersion(evts, version)
+	})
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
@@ -49,12 +61,9 @@ func (s *MemoryStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load to version")
-	if err != nil {
-		return nil, err
-	}
-
-	return copyEvents(event.SliceToVersion(events, maxVersion)), nil
+	return s.loadFiltered(aggregateType, aggregateID, "load to version", func(evts []event.Event) []event.Event {
+		return event.SliceToVersion(evts, maxVersion)
+	})
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
@@ -65,12 +74,9 @@ func (s *MemoryStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	events, err := s.getEvents(aggregateType, aggregateID, "load to timestamp")
-	if err != nil {
-		return nil, err
-	}
-
-	return copyEvents(event.FilterByTimestamp(events, maxTime)), nil
+	return s.loadFiltered(aggregateType, aggregateID, "load to timestamp", func(evts []event.Event) []event.Event {
+		return event.FilterByTimestamp(evts, maxTime)
+	})
 }
 
 func (s *MemoryStore) getEvents(

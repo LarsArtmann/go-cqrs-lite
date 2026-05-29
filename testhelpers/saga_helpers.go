@@ -10,13 +10,14 @@ import (
 )
 
 // NewSagaState creates a saga.State with sensible defaults for tests.
-func NewSagaState(sagaType string, status saga.Status, currentStep int) *saga.State {
+func NewSagaState(sagaType string, status saga.Status, currentStep int, errMsg string) *saga.State {
 	now := time.Now()
 	return &saga.State{
 		ID:          id.NewAggregateID(),
 		SagaType:    sagaType,
 		Status:      status,
 		CurrentStep: currentStep,
+		ErrMsg:      errMsg,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}

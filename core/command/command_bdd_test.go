@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func labelMiddleware(callOrder *[]string, label string) func(next command.Handler) command.Handler {
@@ -117,11 +118,7 @@ var _ = Describe("Command Dispatcher", func() {
 				dispatcher.Use(labelMiddleware(&callOrder, "mw1"))
 				dispatcher.Use(labelMiddleware(&callOrder, "mw2"))
 
-				Expect(dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
-					callOrder = append(callOrder, "handler")
-
-					return nil
-				})).To(Succeed())
+				Expect(dispatcher.Register("TestCommand", testhelpers.AppendCommandHandler(&callOrder))).To(Succeed())
 
 				cmd, err := command.New("TestCommand", aggID)
 				Expect(err).ToNot(HaveOccurred())

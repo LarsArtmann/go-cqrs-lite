@@ -336,7 +336,7 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 		"Work command",
 	)
 	cattest.AddEvent(t, reg, "svc", "WorkDone", "WorkDone", "1.0.0", catalog.Sends)
-	cattest.AddQuerySimple(
+	cattest.AddMessageSimple(
 		t,
 		reg,
 		catalog.ServiceID("svc"),
@@ -344,6 +344,7 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 		"GetStatus",
 		"1.0.0",
 		"Get status",
+		catalog.QueryMessage, reg.AddQuery,
 	)
 
 	cat := cattest.Build(t, reg)

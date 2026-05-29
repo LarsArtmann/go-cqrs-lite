@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -146,6 +147,37 @@ func QuickEventOpts(
 	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
 
 	return evt
+}
+
+// AppendBatcher is the minimal interface needed for MakeLoadToTimestampFixtures.
+type AppendBatcher interface {
+	AppendBatch(ctx context.Context, aggType event.AggregateType, aggID id.AggregateID, events []event.Event) error
+}
+
+// MakeLoadToTimestampFixtures creates a standard 3-event timeline (Created, Updated, Deleted)
+// and appends them to the store. Returns the current time and the aggID used.
+func MakeLoadToTimestampFixtures(
+	tb testing.TB,
+	store AppendBatcher,
+	ctx context.Context,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	versions [3]event.Version,
+) (time.Time, id.AggregateID) {
+	tb.Helper()
+
+	now := time.Now()
+	events := MakeTimelineEvents(tb, aggType, aggID, []TimelineEvent{
+		{Type: "Created", Version: versions[0], Offset: -2 * time.Hour},
+		{Type: "Updated", Version: versions[1], Offset: -1 * time.Hour},
+		{Type: "Deleted", Version: versions[2], Offset: 0},
+	})
+
+	if err := store.AppendBatch(ctx, aggType, aggID, events); err != nil {
+		tb.Fatalf("AppendBatch: %v", err)
+	}
+
+	return now, aggID
 }
 
 // QuickSnapshot creates a snapshot with the given parameters.

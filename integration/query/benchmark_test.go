@@ -30,11 +30,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 	dispatcher := query.NewDispatcher()
 
-	middleware := func(next func(context.Context, query.Query) (any, error)) func(context.Context, query.Query) (any, error) {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			return next(ctx, q)
-		}
-	}
+	middleware := testhelpers.QueryMiddleware(nil, "middleware")
 
 	dispatcher.Use(middleware, middleware)
 

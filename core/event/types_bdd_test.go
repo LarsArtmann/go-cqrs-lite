@@ -66,17 +66,15 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I compare versions with Cmp", func() {
-			It("should return -1 when less than other, helping me detect version drift", func() {
-				Expect(event.Version(1).Cmp(event.Version(3))).To(Equal(-1))
-			})
-
-			It("should return 0 when equal, confirming my optimistic concurrency check passes", func() {
-				Expect(event.Version(3).Cmp(event.Version(3))).To(Equal(0))
-			})
-
-			It("should return +1 when greater than other, telling me I'm ahead of the store", func() {
-				Expect(event.Version(5).Cmp(event.Version(3))).To(Equal(1))
-			})
+			DescribeTable(
+				"comparisons",
+				func(v1, v2 event.Version, expected int) {
+					Expect(v1.Cmp(v2)).To(Equal(expected))
+				},
+				Entry("should return -1 when less than other, helping me detect version drift", event.Version(1), event.Version(3), -1),
+				Entry("should return 0 when equal, confirming my optimistic concurrency check passes", event.Version(3), event.Version(3), 0),
+				Entry("should return +1 when greater than other, telling me I'm ahead of the store", event.Version(5), event.Version(3), 1),
+			)
 		})
 
 		Context("when I convert to string", func() {
@@ -116,25 +114,21 @@ var _ = Describe("SchemaVersion", func() {
 
 var _ = Describe("CheckVersionConflict", func() {
 	Describe("As a developer implementing optimistic concurrency", func() {
-		Context("when existing length matches expected version", func() {
-			It("should let my save proceed because nobody else modified this aggregate", func() {
-				err := event.CheckVersionConflict(3, event.Version(3))
+		DescribeTable(
+			"version matches succeed without error",
+			func(existing int, expected event.Version) {
+				err := event.CheckVersionConflict(existing, expected)
 				Expect(err).ToNot(HaveOccurred())
-			})
-		})
+			},
+			Entry("existing length matches expected version", 3, event.Version(3)),
+			Entry("starting fresh with zero events", 0, event.Version(0)),
+		)
 
 		Context("when existing length does not match expected version", func() {
 			It("should detect the version conflict and explain the mismatch", func() {
 				err := event.CheckVersionConflict(2, event.Version(3))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("version conflict"))
-			})
-		})
-
-		Context("when starting fresh with zero events", func() {
-			It("should succeed when expected version is zero, confirming a brand-new aggregate", func() {
-				err := event.CheckVersionConflict(0, event.Version(0))
-				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})

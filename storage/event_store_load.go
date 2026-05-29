@@ -53,6 +53,24 @@ func (s *SQLEventStore) loadWithSpan(
 	return events, nil
 }
 
+// loadSimple retrieves events for an aggregate with configurable sort order.
+func (s *SQLEventStore) loadSimple(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+	spanName string,
+	order string,
+	errMsg string,
+) ([]event.Event, error) {
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName:   spanName,
+		attrs:      cqrsotel.AggregateAttrs(aggregateType, aggregateID),
+		where:      order,
+		requireHit: true,
+		errMsg:     errMsg,
+	})
+}
+
 // Load retrieves all events for an aggregate, ordered by version.
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *SQLEventStore) Load(
@@ -60,13 +78,7 @@ func (s *SQLEventStore) Load(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
-		spanName:   "event.store.load",
-		attrs:      cqrsotel.AggregateAttrs(aggregateType, aggregateID),
-		where:      "ORDER BY version ASC",
-		requireHit: true,
-		errMsg:     "query events",
-	})
+	return s.loadSimple(ctx, aggregateType, aggregateID, "event.store.load", "ORDER BY version ASC", "query events")
 }
 
 // LoadFromVersion retrieves events starting from a given version.
@@ -135,13 +147,14 @@ func (s *SQLEventStore) LoadBackwards(
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
-		spanName:   "event.store.load_backwards",
-		attrs:      cqrsotel.AggregateAttrs(aggregateType, aggregateID),
-		where:      "ORDER BY version DESC",
-		requireHit: true,
-		errMsg:     "query events backwards",
-	})
+	return s.loadSimple(
+		ctx,
+		aggregateType,
+		aggregateID,
+		"event.store.load_backwards",
+		"ORDER BY version DESC",
+		"query events backwards",
+	)
 }
 
 func (s *SQLEventStore) queryEvents(

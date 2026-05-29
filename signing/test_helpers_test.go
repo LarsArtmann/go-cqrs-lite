@@ -9,6 +9,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+// collectingPublisher returns a PublisherFunc that captures all published events
+// and a pointer to the slice of collected events.
+func collectingPublisher() (event.PublisherFunc, *[]event.Event) {
+	var published []event.Event
+
+	pub := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
+		published = append(published, events...)
+
+		return nil
+	})
+
+	return pub, &published
+}
+
 // trackingHandler returns an event handler and a function to check if it was called.
 func trackingHandler() (func(context.Context, event.Event) error, func() bool) {
 	called := false

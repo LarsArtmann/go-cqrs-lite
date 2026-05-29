@@ -123,15 +123,19 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 	}
 }
 
+func stubOutboxWithEntries(evt1, evt2 Event) *stubOutbox {
+	return &stubOutbox{entries: []OutboxEntry{
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt1}},
+		{ID: NewOutboxID("entry-2"), Events: []Event{evt2}},
+	}}
+}
+
 func TestOutboxPublisher_PublishNow_MultipleEntries(t *testing.T) {
 	t.Parallel()
 
 	evt1 := mustNewTestEvent("user.created")
 	evt2 := mustNewTestEvent("user.updated")
-	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: NewOutboxID("entry-1"), Events: []Event{evt1}},
-		{ID: NewOutboxID("entry-2"), Events: []Event{evt2}},
-	}}
+	outbox := stubOutboxWithEntries(evt1, evt2)
 	bus := &stubPublisher{}
 
 	p, err := NewOutboxPublisher(outbox, bus)
@@ -211,10 +215,7 @@ func TestOutboxPublisher_PublishNow_PublishError_StopsAtFailure(t *testing.T) {
 
 	evt1 := mustNewTestEvent("user.created")
 	evt2 := mustNewTestEvent("user.updated")
-	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: NewOutboxID("entry-1"), Events: []Event{evt1}},
-		{ID: NewOutboxID("entry-2"), Events: []Event{evt2}},
-	}}
+	outbox := stubOutboxWithEntries(evt1, evt2)
 
 	callCount := 0
 	bus := &stubPublisher{publishErrFn: func() error {

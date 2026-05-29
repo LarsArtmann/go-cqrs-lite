@@ -25,19 +25,15 @@ var _ = Describe("Pagination", func() {
 			})
 		})
 
-		Context("when I create pagination with zero page size", func() {
-			It("should default to 20 so I don't accidentally return unbounded result sets", func() {
-				p := query.NewPagination(1, 0)
-				Expect(p.PageSize).To(Equal(uint(20)))
-			})
-		})
-
-		Context("when I create pagination with page size exceeding max", func() {
-			It("should clamp to 100 to protect my database from excessive queries", func() {
-				p := query.NewPagination(1, 500)
-				Expect(p.PageSize).To(Equal(uint(100)))
-			})
-		})
+		DescribeTable(
+			"NewPagination clamps invalid page size values",
+			func(pageSize, expected uint, description string) {
+				p := query.NewPagination(1, pageSize)
+				Expect(p.PageSize).To(Equal(expected), description)
+			},
+			Entry("zero page size defaults to 20 to prevent unbounded result sets", uint(0), uint(20)),
+			Entry("page size exceeding max clamps to 100 to protect the database", uint(500), uint(100)),
+		)
 	})
 })
 

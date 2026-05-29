@@ -115,6 +115,30 @@ func incrementCounter(
 	Expect(err).ToNot(HaveOccurred())
 }
 
+func executeAndAssertNoStateChange(
+	ctx context.Context,
+	repo *decider.Repository[bddCounter],
+	aggID id.AggregateID,
+	decideErr error,
+) {
+	err := repo.Execute(
+		ctx, aggID, "Counter",
+		func(_ bddCounter, _ event.Version) ([]event.Event, error) {
+			return nil, decideErr
+		},
+	)
+	if decideErr != nil {
+		Expect(err).To(MatchError(decideErr))
+	} else {
+		Expect(err).ToNot(HaveOccurred())
+	}
+
+	state, version, err := repo.Load(ctx, aggID, "Counter")
+	Expect(err).ToNot(HaveOccurred())
+	Expect(state.Value).To(Equal(0))
+	Expect(version).To(Equal(event.Version(0)))
+}
+
 var _ = Describe("Decider Repository", func() {
 	var (
 		ctx   context.Context
@@ -168,35 +192,13 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when my decide function returns no events", func() {
 			It("should not save or publish anything", func() {
-				err := repo.Execute(
-					ctx, aggID, "Counter",
-					func(_ bddCounter, _ event.Version) ([]event.Event, error) {
-						return nil, nil
-					},
-				)
-				Expect(err).ToNot(HaveOccurred())
-
-				state, version, err := repo.Load(ctx, aggID, "Counter")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(state.Value).To(Equal(0))
-				Expect(version).To(Equal(event.Version(0)))
+				executeAndAssertNoStateChange(ctx, repo, aggID, nil)
 			})
 		})
 
 		Context("when my decide function returns an error", func() {
 			It("should not save any events", func() {
-				err := repo.Execute(
-					ctx, aggID, "Counter",
-					func(_ bddCounter, _ event.Version) ([]event.Event, error) {
-						return nil, errBDDRejected
-					},
-				)
-				Expect(err).To(MatchError(errBDDRejected))
-
-				state, version, err := repo.Load(ctx, aggID, "Counter")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(state.Value).To(Equal(0))
-				Expect(version).To(Equal(event.Version(0)))
+				executeAndAssertNoStateChange(ctx, repo, aggID, errBDDRejected)
 			})
 		})
 

@@ -187,16 +187,14 @@ func TestFakeStore_LoadToTimestamp(t *testing.T) {
 	store := testhelpers.NewFakeStore()
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
-	now := time.Now()
-
-	events := testhelpers.MakeTimelineEvents(t, "User", aggID, []testhelpers.TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
-		{Type: "Updated", Version: 2, Offset: -1 * time.Hour},
-		{Type: "Deleted", Version: 3, Offset: 0},
-	})
-
-	_ = store.AppendBatch(ctx, "User", aggID, events)
+	now, aggID := testhelpers.MakeLoadToTimestampFixtures(
+		t,
+		store,
+		ctx,
+		"User",
+		id.NewAggregateID(),
+		[3]event.Version{1, 2, 3},
+	)
 
 	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
 	if err != nil {
@@ -373,5 +371,61 @@ func TestFakeStore_ReadFrom_WithLimit(t *testing.T) {
 
 	if len(from) != 2 {
 		t.Fatalf("expected 2 events with limit, got %d", len(from))
+	}
+}
+
+func TestFakeStore_AppendBatchFn(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	store := testhelpers.NewFakeStore().AppendBatchFn(func(_ event.AggregateType, _ id.AggregateID, _ []event.Event) error {
+		called = true
+		return nil
+	})
+
+	err := store.AppendBatch(context.Background(), "User", id.NewAggregateID(), nil)
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+	if !called {
+		t.Fatal("AppendBatchFn not called")
+	}
+}
+
+func TestFakeStore_LoadToVersionFn(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	called := false
+	store := testhelpers.NewFakeStore().LoadToVersionFn(func(_ event.AggregateType, _ id.AggregateID, _ event.Version) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, err := store.LoadToVersion(context.Background(), "User", aggID, 3)
+	if err != nil {
+		t.Fatalf("LoadToVersion: %v", err)
+	}
+	if !called {
+		t.Fatal("LoadToVersionFn not called")
+	}
+}
+
+func TestFakeStore_LoadToTimestampFn(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	called := false
+	store := testhelpers.NewFakeStore().LoadToTimestampFn(func(_ event.AggregateType, _ id.AggregateID, _ time.Time) ([]event.Event, error) {
+		called = true
+		return nil, nil
+	})
+
+	_, err := store.LoadToTimestamp(context.Background(), "User", aggID, time.Now())
+	if err != nil {
+		t.Fatalf("LoadToTimestamp: %v", err)
+	}
+	if !called {
+		t.Fatal("LoadToTimestampFn not called")
 	}
 }

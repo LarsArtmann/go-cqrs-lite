@@ -294,7 +294,7 @@ var _ = Describe("Saga Runner", func() {
 	Describe("As a developer using the saga store", func() {
 		Context("when I save and load a saga state", func() {
 			It("should roundtrip all fields correctly", func() {
-				state := testhelpers.NewSagaState("order", saga.StatusRunning, 2)
+				state := testhelpers.NewSagaState("order", saga.StatusRunning, 2, "")
 				Expect(store.Save(ctx, state)).To(Succeed())
 
 				loaded, err := store.Load(ctx, state.ID)

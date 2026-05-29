@@ -247,18 +247,7 @@ func TestInMemoryRunner_HandleParallel_DispatchesConcurrently(t *testing.T) {
 	}
 
 	for _, name := range []string{"proj-a", "proj-b", "proj-c"} {
-		p := NewProjection(name, func(_ context.Context, _ Event) error {
-			mtx.Lock()
-			handled[name] = true
-			mtx.Unlock()
-
-			return nil
-		}, nil)
-
-		err = runner.Register(p)
-		if err != nil {
-			t.Fatalf("Register %s: %v", name, err)
-		}
+		registerOKProjection(t, runner, name, &mtx, handled)
 	}
 
 	evt, err := NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)

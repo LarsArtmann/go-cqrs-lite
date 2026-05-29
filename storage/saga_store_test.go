@@ -54,15 +54,7 @@ func TestSQLSagaStore_Save_Success(t *testing.T) {
 	store, mock := newTestSagaStore(t)
 	ctx := context.Background()
 
-	state := &saga.State{
-		ID:          id.NewAggregateID(),
-		SagaType:    "order",
-		Status:      saga.StatusRunning,
-		CurrentStep: 1,
-		ErrMsg:      "",
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+	state := testhelpers.NewSagaState("order", saga.StatusRunning, 1, "")
 
 	mock.ExpectExec("INSERT INTO sagas").
 		WithArgs(state.ID.String(), state.SagaType, string(state.Status), state.CurrentStep, state.ErrMsg, sqlmock.AnyArg(), sqlmock.AnyArg()).

@@ -10,6 +10,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
+func newTestEvent(version int, payload []byte) (event.Event, error) {
+	return event.NewEvent(
+		event.Type("test.event"),
+		id.NewAggregateID(),
+		event.AggregateType("Test"),
+		event.Version(version),
+		payload,
+	)
+}
+
 func TestConcurrent_BusPublish(t *testing.T) {
 	t.Parallel()
 
@@ -34,13 +44,7 @@ func TestConcurrent_BusPublish(t *testing.T) {
 
 	for i := range 100 {
 		wg.Go(func() {
-			evt, _ := event.NewEvent(
-				event.Type("test.event"),
-				id.NewAggregateID(),
-				event.AggregateType("Test"),
-				event.Version(i+1),
-				[]byte(`{"i":0}`),
-			)
+			evt, _ := newTestEvent(i+1, []byte(`{"i":0}`))
 
 			_ = bus.Publish(context.Background(), evt)
 		})
@@ -97,13 +101,7 @@ func TestConcurrent_OutboxAppendPollAck(t *testing.T) {
 
 	for i := range 20 {
 		wg.Go(func() {
-			evt, _ := event.NewEvent(
-				event.Type("test.event"),
-				id.NewAggregateID(),
-				event.AggregateType("Test"),
-				event.Version(i+1),
-				[]byte(`{}`),
-			)
+			evt, _ := newTestEvent(i+1, []byte(`{}`))
 
 			_ = outbox.Append(context.Background(), []event.Event{evt})
 		})

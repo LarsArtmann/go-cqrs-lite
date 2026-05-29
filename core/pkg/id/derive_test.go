@@ -6,25 +6,34 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-func TestDeriveAggregateID_Deterministic(t *testing.T) {
+func TestDeriveAggregateID(t *testing.T) {
 	t.Parallel()
 
-	a := id.DeriveAggregateID("lock", "user1", "resource1")
-	b := id.DeriveAggregateID("lock", "user1", "resource1")
-
-	if a != b {
-		t.Error("same inputs should produce same ID")
+	tests := []struct {
+		name   string
+		a, b   id.AggregateID
+		wantEq bool
+	}{
+		{
+			"deterministic",
+			id.DeriveAggregateID("lock", "user1", "resource1"),
+			id.DeriveAggregateID("lock", "user1", "resource1"),
+			true,
+		},
+		{
+			"different inputs",
+			id.DeriveAggregateID("lock", "user1", "resource1"),
+			id.DeriveAggregateID("lock", "user2", "resource1"),
+			false,
+		},
 	}
-}
-
-func TestDeriveAggregateID_DifferentInputs(t *testing.T) {
-	t.Parallel()
-
-	a := id.DeriveAggregateID("lock", "user1", "resource1")
-	b := id.DeriveAggregateID("lock", "user2", "resource1")
-
-	if a == b {
-		t.Error("different inputs should produce different IDs")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.a == tt.b; got != tt.wantEq {
+				t.Errorf("a == b = %v, want %v", got, tt.wantEq)
+			}
+		})
 	}
 }
 

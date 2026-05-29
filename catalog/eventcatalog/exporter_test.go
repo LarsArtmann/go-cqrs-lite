@@ -54,6 +54,13 @@ func readExported(t *testing.T, tmpDir string, parts ...string) string {
 	return string(data)
 }
 
+func assertFileExists(t *testing.T, tmpDir, msg string, parts ...string) {
+	t.Helper()
+	if _, err := os.Stat(filepath.Join(append([]string{tmpDir}, parts...)...)); os.IsNotExist(err) {
+		t.Error(msg)
+	}
+}
+
 func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, readOnlyDir string) {
 	t.Helper()
 
@@ -248,37 +255,10 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	if _, err := os.Stat(
-		filepath.Join(tmpDir, "services", "svc-a", "index.mdx"),
-	); os.IsNotExist(
-		err,
-	) {
-		t.Error("svc-a directory not created")
-	}
-
-	if _, err := os.Stat(
-		filepath.Join(tmpDir, "services", "svc-b", "index.mdx"),
-	); os.IsNotExist(
-		err,
-	) {
-		t.Error("svc-b directory not created")
-	}
-
-	if _, err := os.Stat(
-		filepath.Join(tmpDir, "services", "svc-a", "commands", "CmdA", "index.mdx"),
-	); os.IsNotExist(
-		err,
-	) {
-		t.Error("CmdA command file not created")
-	}
-
-	if _, err := os.Stat(
-		filepath.Join(tmpDir, "services", "svc-b", "events", "EvtB", "index.mdx"),
-	); os.IsNotExist(
-		err,
-	) {
-		t.Error("EvtB event file not created")
-	}
+	assertFileExists(t, tmpDir, "svc-a directory not created", "services", "svc-a", "index.mdx")
+	assertFileExists(t, tmpDir, "svc-b directory not created", "services", "svc-b", "index.mdx")
+	assertFileExists(t, tmpDir, "CmdA command file not created", "services", "svc-a", "commands", "CmdA", "index.mdx")
+	assertFileExists(t, tmpDir, "EvtB event file not created", "services", "svc-b", "events", "EvtB", "index.mdx")
 }
 
 func TestExporter_Export_NoSchema(t *testing.T) {
@@ -433,7 +413,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		"Order was created",
 		catalog.Sends,
 	)
-	cattest.AddQuerySimple(
+	cattest.AddMessageSimple(
 		t,
 		reg,
 		catalog.ServiceID("order-svc"),
@@ -441,6 +421,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 		"GetOrder",
 		"1.0.0",
 		"Get order by ID",
+		catalog.QueryMessage, reg.AddQuery,
 	)
 
 	tmpDir := exportCatalog(t, reg)

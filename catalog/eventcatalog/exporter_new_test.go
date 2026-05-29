@@ -361,13 +361,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
 	})
-	createOrderFlow := catalog.Flow{
-		ID: "create-order", Name: "Create Order", Version: "1.0.0",
-		Steps: []catalog.FlowStep{
-			{ID: "1", Title: "Create Order", Message: &catalog.FlowStepRef{ID: "CreateOrder"}},
-		},
-	}
-	reg.AddFlow(createOrderFlow)
+	reg.AddFlow(catalog.NewTestCreateOrderFlow("Create Order"))
 	reg.AddTeam(catalog.Team{ID: "order-team", Name: "Order Team", Members: []string{"alice"}})
 	reg.AddUser(catalog.User{ID: "alice", Name: "Alice", Role: "Engineer"})
 

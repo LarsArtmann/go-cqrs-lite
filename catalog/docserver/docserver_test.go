@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func testProvider() *catalog.Catalog {
@@ -25,13 +26,7 @@ func testProvider() *catalog.Catalog {
 				Version:   "1.0.0",
 				Summary:   "Creates a new item",
 				Direction: catalog.Receives,
-				Schema: &catalog.Schema{
-					Type: "object",
-					Properties: map[string]catalog.Property{
-						"name": {Type: "string", Description: "Item name"},
-					},
-					Required: []string{"name"},
-				},
+				Schema:    cattest.CreateItemSchema(),
 			},
 		},
 		Queries: []catalog.Message{

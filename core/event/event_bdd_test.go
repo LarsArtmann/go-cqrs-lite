@@ -13,6 +13,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
+func initMemoryStoreTest(ctx *context.Context, store **memory.MemoryStore, aggID *id.AggregateID, aggType *event.AggregateType, typ event.AggregateType) {
+	*ctx = context.Background()
+	*store = memory.NewMemoryStore()
+	*aggID = id.NewAggregateID()
+	*aggType = typ
+}
+
 var _ = Describe("Event Creation", func() {
 	Describe("As a developer building domain events", func() {
 		Context("when I create a fully populated event", func() {
@@ -98,10 +105,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
-		store = memory.NewMemoryStore()
-		aggID = id.NewAggregateID()
-		aggType = event.AggregateType("Order")
+		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, event.AggregateType("Order"))
 	})
 
 	Describe("As a developer persisting aggregate events", func() {
@@ -182,10 +186,7 @@ var _ = Describe("Schema Evolution", func() {
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
-		store = memory.NewMemoryStore()
-		aggID = id.NewAggregateID()
-		aggType = event.AggregateType("User")
+		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, event.AggregateType("User"))
 	})
 
 	Describe("As a developer deploying schema v2", func() {

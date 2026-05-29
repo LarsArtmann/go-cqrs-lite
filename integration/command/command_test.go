@@ -91,11 +91,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 		testhelpers.CommandMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = dispatcher.Register("TestCommand", func(_ context.Context, _ command.Command) error {
-		callOrder = append(callOrder, "handler")
-
-		return nil
-	})
+	dispatcher.Register("TestCommand", testhelpers.AppendCommandHandler(&callOrder))
 
 	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 	_ = dispatcher.Dispatch(ctx, cmd)

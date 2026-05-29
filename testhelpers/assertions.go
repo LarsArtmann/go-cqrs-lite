@@ -144,6 +144,15 @@ func AssertNotContains(t *testing.T, s, substr, msg string) {
 	}
 }
 
+// AssertErrorContains fails if err.Error() does not contain substr.
+func AssertErrorContains(t *testing.T, err error, substr string) {
+	t.Helper()
+
+	if !strings.Contains(err.Error(), substr) {
+		t.Fatalf("error = %q, want containing %q", err.Error(), substr)
+	}
+}
+
 // AssertEventType asserts that events[index].Type() equals want.
 func AssertEventType(t *testing.T, events []event.Event, index int, want string) {
 	t.Helper()

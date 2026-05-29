@@ -68,27 +68,8 @@ func TestTurso_SnapshotStore_Roundtrip(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	snap := event.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Order",
-		Version:       event.Version(5),
-		State:         []byte(`{"item":"turbo-widget"}`),
-		CreatedAt:     time.Now().Truncate(time.Microsecond),
-	}
-
-	err = store.Save(context.Background(), snap)
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := store.Load(context.Background(), "Order", aggID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if loaded.Version.Int() != 5 {
-		t.Errorf("Version = %d, want 5", loaded.Version.Int())
-	}
+	snap := newTestSnapshot(aggID, "Order", 5, []byte(`{"item":"turbo-widget"}`))
+	saveAndLoadSnapshot(t, store, context.Background(), snap, 5)
 }
 
 func TestTurso_CheckpointStore_Roundtrip(t *testing.T) {
@@ -291,19 +272,7 @@ func TestTurso_FullWorkflow(t *testing.T) {
 		CreatedAt:     time.Now().Truncate(time.Microsecond),
 	}
 
-	err = snapStore.Save(ctx, snap)
-	if err != nil {
-		t.Fatalf("Save snapshot: %v", err)
-	}
-
-	loadedSnap, err := snapStore.Load(ctx, "Order", aggID)
-	if err != nil {
-		t.Fatalf("Load snapshot: %v", err)
-	}
-
-	if loadedSnap.Version.Int() != 5 {
-		t.Errorf("snapshot Version = %d, want 5", loadedSnap.Version.Int())
-	}
+	_ = saveAndLoadSnapshot(t, snapStore, ctx, snap, 5)
 
 	lastEventID := events[4].ID()
 	err = checkpointStore.Save(ctx, "order_projection", lastEventID)

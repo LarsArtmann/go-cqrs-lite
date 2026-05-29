@@ -40,24 +40,26 @@ func (c storeTestConfig) newTestEvent(
 	return evt
 }
 
-func issueStoreConfig() storeTestConfig {
+func newStoreTestConfig(
+	aggType event.AggregateType,
+	evtType event.Type,
+	jsonField, valuePrefix string,
+) storeTestConfig {
 	return storeTestConfig{
-		aggType: "Issue",
-		evtType: "IssueCreated",
+		aggType: aggType,
+		evtType: evtType,
 		payload: func(v event.Version) []byte {
-			return []byte(fmt.Sprintf(`{"title":"test-%d"}`, v))
+			return []byte(fmt.Sprintf(`{"%s":"%s-%d"}`, jsonField, valuePrefix, v))
 		},
 	}
 }
 
+func issueStoreConfig() storeTestConfig {
+	return newStoreTestConfig("Issue", "IssueCreated", "title", "test")
+}
+
 func orderStoreConfig() storeTestConfig {
-	return storeTestConfig{
-		aggType: "Order",
-		evtType: "OrderPlaced",
-		payload: func(v event.Version) []byte {
-			return []byte(fmt.Sprintf(`{"item":"widget-%d"}`, v))
-		},
-	}
+	return newStoreTestConfig("Order", "OrderPlaced", "item", "widget")
 }
 
 func saveCfgEvent(

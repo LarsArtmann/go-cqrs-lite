@@ -381,27 +381,20 @@ var _ = Describe("Event Creation", func() {
 			})
 		})
 
-		Context("when I create an event with an empty aggregate type", func() {
-			It("should reject it with a descriptive error", func() {
-				expectNewEventValidationFails(
-					id.NewAggregateID(),
-					event.AggregateType(""),
-					1,
-					"aggregate type is required",
-				)
-			})
-		})
-
-		Context("when I create an event with a zero version", func() {
-			It("should reject it with a descriptive error", func() {
-				expectNewEventValidationFails(
-					id.NewAggregateID(),
-					event.AggregateType("User"),
-					0,
-					"version",
-				)
-			})
-		})
+		DescribeTable(
+			"when I create an event with invalid parameters",
+			func(aggID id.AggregateID, aggType event.AggregateType, version event.Version, expectedMsg string) {
+				expectNewEventValidationFails(aggID, aggType, version, expectedMsg)
+			},
+			Entry(
+				"empty aggregate type",
+				id.NewAggregateID(),
+				event.AggregateType(""),
+				event.Version(1),
+				"aggregate type is required",
+			),
+			Entry("zero version", id.NewAggregateID(), event.AggregateType("User"), event.Version(0), "version"),
+		)
 
 		Context("when I add custom metadata to an event", func() {
 			It("should preserve it through the metadata map", func() {

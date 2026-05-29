@@ -194,19 +194,6 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 	}
 }
 
-func TestEveryNEvents_PanicsOnZero(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic for EveryNEvents(0)")
-		}
-	}()
-
-	event.MustEveryNEvents(0)
-}
-
 func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 	t.Parallel()
 

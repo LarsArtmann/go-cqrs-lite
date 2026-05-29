@@ -221,11 +221,7 @@ func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-
-	for i := range 5 {
-		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
-		_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt})
-	}
+	seedTestEvents(t, store, ctx, aggID, 5)
 
 	events, err := store.ReadFrom(ctx, id.EventID{}, 3)
 	testhelpers.AssertNoError(t, err, "ReadFrom with limit")

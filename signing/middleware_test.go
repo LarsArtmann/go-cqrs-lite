@@ -33,13 +33,7 @@ func TestSignMiddleware(t *testing.T) {
 	t.Run("signs events before publishing", func(t *testing.T) {
 		t.Parallel()
 
-		var published []event.Event
-
-		pub := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
-			published = append(published, events...)
-
-			return nil
-		})
+		pub, publishedPtr := collectingPublisher()
 
 		mw := signing.SignMiddleware(signer)
 		signedPub := mw(pub)
@@ -50,11 +44,11 @@ func TestSignMiddleware(t *testing.T) {
 			t.Fatalf("publish: %v", err)
 		}
 
-		if len(published) != 1 {
-			t.Fatalf("expected 1 event, got %d", len(published))
+		if len(*publishedPtr) != 1 {
+			t.Fatalf("expected 1 event, got %d", len(*publishedPtr))
 		}
 
-		if !signing.HasSignature(published[0]) {
+		if !signing.HasSignature((*publishedPtr)[0]) {
 			t.Fatal("event should have signature after middleware")
 		}
 	})

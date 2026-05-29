@@ -63,6 +63,14 @@ func errorQueryHandler(errMsg string, callCount *int) query.Handler {
 	}
 }
 
+func setupQueryRetryHandler(t *testing.T, config RetryConfig, errMsg string) (query.Handler, *int) {
+	t.Helper()
+	mw := QueryRetry(config)
+	callCount := 0
+	handler := mw(errorQueryHandler(errMsg, &callCount))
+	return handler, &callCount
+}
+
 func TestQueryRetry_NonRetryable(t *testing.T) {
 	t.Parallel()
 
@@ -70,18 +78,15 @@ func TestQueryRetry_NonRetryable(t *testing.T) {
 	config.MaxAttempts = 3
 	config.IsRetryable = func(_ error) bool { return false }
 
-	mw := QueryRetry(config)
-
-	callCount := 0
-	handler := mw(errorQueryHandler("non-retryable", &callCount))
+	handler, callCount := setupQueryRetryHandler(t, config, "non-retryable")
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
 		t.Fatal("expected error")
 	}
 
-	if callCount != 1 {
-		t.Errorf("expected 1 call (no retry), got %d", callCount)
+	if *callCount != 1 {
+		t.Errorf("expected 1 call (no retry), got %d", *callCount)
 	}
 }
 
@@ -90,10 +95,7 @@ func TestQueryRetry_ContextCancellation(t *testing.T) {
 
 	config := retryConfigSlow()
 
-	mw := QueryRetry(config)
-
-	callCount := 0
-	handler := mw(errorQueryHandler("transient", &callCount))
+	handler, _ := setupQueryRetryHandler(t, config, "transient")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()

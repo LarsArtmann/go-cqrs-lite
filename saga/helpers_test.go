@@ -55,6 +55,16 @@ func newFailingDispatcher(counter *int) dispatchFunc {
 	})
 }
 
+func newThresholdDispatcher(counter *int, threshold int, failMsg string) dispatchFunc {
+	return dispatchFunc(func(_ context.Context, _ command.Command) error {
+		*counter++
+		if *counter <= threshold {
+			return nil
+		}
+		return errors.New(failMsg)
+	})
+}
+
 type testDefinition struct {
 	sagaType string
 	steps    []saga.Step

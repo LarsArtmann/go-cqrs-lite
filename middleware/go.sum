@@ -36,6 +36,7 @@ github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM
 github.com/larsartmann/go-cqrs-lite/memory v1.6.0 h1:8uf1hV7m0Ws7/DN7XHaJ1/W5/rPVv2zmxU3fDDMep0c=
 github.com/larsartmann/go-cqrs-lite/memory v1.6.0/go.mod h1:2QCNShPIbZniA+Fb4IfvyYt6sG2UymBilpNDaWpKinE=
 github.com/larsartmann/go-cqrs-lite/saga v1.0.0 h1:PFpI0FgmM2Ac1CGoO80ayHBhosxg8abpvY/Gxihe4/Y=
+github.com/larsartmann/go-cqrs-lite/saga v1.0.0/go.mod h1:gfCszsrOsCDbfMBg95Qy/gTORJqG7L7oEA9gN4QpVnU=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/larsartmann/go-error-family v0.2.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=

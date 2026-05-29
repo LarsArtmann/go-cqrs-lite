@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
@@ -16,13 +15,7 @@ func TestMultiSignMiddleware(t *testing.T) {
 	t.Run("signs events before publishing", func(t *testing.T) {
 		t.Parallel()
 
-		var published []event.Event
-
-		pub := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
-			published = append(published, events...)
-
-			return nil
-		})
+		pub, publishedPtr := collectingPublisher()
 
 		mw := signing.MultiSignMiddleware(deviceMulti)
 		signedPub := mw(pub)
@@ -32,15 +25,15 @@ func TestMultiSignMiddleware(t *testing.T) {
 			t.Fatalf("publish: %v", err)
 		}
 
-		if len(published) != 1 {
-			t.Fatalf("expected 1 event, got %d", len(published))
+		if len(*publishedPtr) != 1 {
+			t.Fatalf("expected 1 event, got %d", len(*publishedPtr))
 		}
 
-		if !signing.HasMultiSignature(published[0]) {
+		if !signing.HasMultiSignature((*publishedPtr)[0]) {
 			t.Fatal("event should have multi-sig after middleware")
 		}
 
-		extracted, _ := signing.ExtractMultiSignature(published[0])
+		extracted, _ := signing.ExtractMultiSignature((*publishedPtr)[0])
 		if !extracted.HasActor(signing.Actor("device")) {
 			t.Fatal("expected device signature")
 		}

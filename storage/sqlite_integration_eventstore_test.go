@@ -10,6 +10,34 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func setupTwoTestEvents(t *testing.T, store *SQLEventStore) (event.Event, event.Event, id.AggregateID, id.AggregateID) {
+	t.Helper()
+	aggID1 := id.NewAggregateID()
+	aggID2 := id.NewAggregateID()
+
+	evt1 := issueStoreConfig().newTestEvent(
+		t,
+		aggID1,
+		1,
+		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
+	)
+	evt2 := issueStoreConfig().newTestEvent(
+		t,
+		aggID2,
+		1,
+		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
+	)
+
+	if err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1}); err != nil {
+		t.Fatalf("AppendBatch 1: %v", err)
+	}
+	if err := store.AppendBatch(context.Background(), "Issue", aggID2, []event.Event{evt2}); err != nil {
+		t.Fatalf("AppendBatch 2: %v", err)
+	}
+
+	return evt1, evt2, aggID1, aggID2
+}
+
 func TestSQLiteEventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 	testEventStore_SaveAndLoad(t, newSQLiteTestStore(t), issueStoreConfig())
@@ -46,31 +74,7 @@ func TestSQLiteEventStore_LoadAll(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
-
-	evt1 := issueStoreConfig().newTestEvent(
-		t,
-		aggID1,
-		1,
-		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
-	)
-	evt2 := issueStoreConfig().newTestEvent(
-		t,
-		aggID2,
-		1,
-		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
-	)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1})
-	if err != nil {
-		t.Fatalf("AppendBatch 1: %v", err)
-	}
-
-	err = store.AppendBatch(context.Background(), "Issue", aggID2, []event.Event{evt2})
-	if err != nil {
-		t.Fatalf("AppendBatch 2: %v", err)
-	}
+	_, _, _, _ = setupTwoTestEvents(t, store)
 
 	all, err := store.LoadAll(context.Background())
 	if err != nil {
@@ -86,31 +90,7 @@ func TestSQLiteEventStore_ReadAll(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
-
-	evt1 := issueStoreConfig().newTestEvent(
-		t,
-		aggID1,
-		1,
-		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
-	)
-	evt2 := issueStoreConfig().newTestEvent(
-		t,
-		aggID2,
-		1,
-		event.WithOccurredAt(time.Now().Add(time.Second).Truncate(time.Microsecond)),
-	)
-
-	err := store.AppendBatch(context.Background(), "Issue", aggID1, []event.Event{evt1})
-	if err != nil {
-		t.Fatalf("AppendBatch 1: %v", err)
-	}
-
-	err = store.AppendBatch(context.Background(), "Issue", aggID2, []event.Event{evt2})
-	if err != nil {
-		t.Fatalf("AppendBatch 2: %v", err)
-	}
+	_, _, _, _ = setupTwoTestEvents(t, store)
 
 	all, err := store.ReadAll(context.Background())
 	if err != nil {

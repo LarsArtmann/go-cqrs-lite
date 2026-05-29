@@ -35,13 +35,7 @@ func TestRegistry_AddFlow(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	createOrderFlow := catalog.Flow{
-		ID: "create-order", Name: "Create Order", Version: "1.0.0",
-		Steps: []catalog.FlowStep{
-			{ID: "1", Title: "Submit", Message: &catalog.FlowStepRef{ID: "CreateOrder"}},
-		},
-	}
-	reg.AddFlow(createOrderFlow)
+	reg.AddFlow(catalog.NewTestCreateOrderFlow("Submit"))
 
 	cat := reg.Build()
 	if len(cat.Flows) != 1 {
