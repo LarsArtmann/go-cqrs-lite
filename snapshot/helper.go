@@ -40,7 +40,7 @@ func SaveSnapshot(
 	if err != nil {
 		return event.WrapInfrastructure(
 			err,
-			"event.snapshot_save_failed",
+			"snapshot.save_failed",
 			"save snapshot for "+string(aggType)+" "+aggID.String(),
 		)
 	}
