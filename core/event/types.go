@@ -26,8 +26,11 @@ func ParseSource(s string) (Source, error) {
 
 	s = strings.TrimSpace(s)
 	if s == "" {
-		//nolint:err113 // dynamic error required to include original input
-		return "", fmt.Errorf("source cannot be empty (input: %q)", original)
+		return "", NewRejection(
+			"event.empty_source",
+			"source cannot be empty (input: %q)",
+			original,
+		)
 	}
 
 	return Source(s), nil
@@ -93,8 +96,11 @@ type Version int
 // Returns an error if the version is negative.
 func ParseVersion(v int) (Version, error) {
 	if v < 0 {
-		//nolint:err113 // dynamic error required to include the invalid version number
-		return 0, fmt.Errorf("version cannot be negative: %d", v)
+		return 0, NewRejection(
+			"event.negative_version",
+			"version cannot be negative: %d",
+			v,
+		)
 	}
 
 	return Version(v), nil
@@ -160,8 +166,11 @@ type SchemaVersion int
 // Returns an error if the schema version is negative or zero.
 func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	if v < 1 {
-		//nolint:err113 // dynamic error required to include the invalid version number
-		return 0, fmt.Errorf("schema version must be positive: %d", v)
+		return 0, NewRejection(
+			"event.invalid_schema_version",
+			"schema version must be positive: %d",
+			v,
+		)
 	}
 
 	return SchemaVersion(v), nil
