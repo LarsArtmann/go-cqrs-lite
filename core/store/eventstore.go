@@ -43,29 +43,26 @@ func (s *EventStore) Save(
 	}
 
 	return s.backend.Batch(context.Background(), func(tx Transaction) error {
-		prefix := eventPrefix(ref)
-		upper := fmt.Appendf(nil, "%s%s:%s:\xff", eventKeyPrefix, ref.Type, ref.ID)
-
-		it, err := s.backend.Scan(context.Background(), prefix)
-		if err != nil {
-			return err
+		if expectedVersion > 0 {
+			lastKey := eventKey(ref, expectedVersion)
+			if _, err := tx.Get(lastKey); err != nil {
+				return event.WrapConflict(
+					event.CheckVersionConflict(0, expectedVersion),
+					"store.event_save",
+					fmt.Sprintf("version check for %s: key %s not found", ref, string(lastKey)),
+				)
+			}
 		}
 
-		count := 0
-		for it.Next() {
-			count++
-		}
-
-		_ = it.Close()
-
-		if count != expectedVersion.Int() {
-			upper_bound := upper
-
-			return event.WrapConflict(
-				event.CheckVersionConflict(count, expectedVersion),
-				"store.event_save",
-				fmt.Sprintf("version check for %s (upper=%s)", ref, string(upper_bound)),
-			)
+		if expectedVersion == 0 {
+			firstKey := eventKey(ref, 1)
+			if _, err := tx.Get(firstKey); err == nil {
+				return event.WrapConflict(
+					event.CheckVersionConflict(1, 0),
+					"store.event_save",
+					fmt.Sprintf("version check for %s: aggregate already has events", ref),
+				)
+			}
 		}
 
 		for i, evt := range events {
@@ -129,10 +126,23 @@ func (s *EventStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	lower := eventKey(ref, version+1)
-	upper := fmt.Appendf(nil, "%s%s:%s:\xff", eventKeyPrefix, ref.Type, ref.ID)
+	events, err := s.loadFromPrefix(ref, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	return s.iterateRange(lower, upper)
+	var filtered []event.Event
+	for _, evt := range events {
+		if evt.Version() > version {
+			filtered = append(filtered, evt)
+		}
+	}
+
+	if len(filtered) == 0 {
+		return nil, event.ErrAggregateNotFound
+	}
+
+	return filtered, nil
 }
 
 func (s *EventStore) LoadToVersion(

@@ -30,7 +30,7 @@ func newSQLiteTestDB(t *testing.T) *sql.DB {
 func initSQLiteSchema(t *testing.T, db *sql.DB) {
 	t.Helper()
 
-	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema(), SQLiteSagaSchema()} {
+	for _, ddl := range []string{SQLiteSchema(), SQLiteSnapshotSchema(), SQLiteCheckpointSchema()} {
 		_, err := db.ExecContext(context.Background(), ddl)
 		if err != nil {
 			t.Fatalf("exec DDL: %v\nDDL: %s", err, ddl)
@@ -97,20 +97,6 @@ func saveAndLoadSnapshot(
 	assertSnapshotVersion(t, loaded, want)
 
 	return loaded
-}
-
-func newSQLiteTestSagaStore(t *testing.T) *SQLSagaStore {
-	t.Helper()
-
-	db := newSQLiteTestDB(t)
-	initSQLiteSchema(t, db)
-
-	store, err := NewSQLiteSagaStore(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteSagaStore: %v", err)
-	}
-
-	return store
 }
 
 func TestNewSQLiteEventStore_NilDB(t *testing.T) {

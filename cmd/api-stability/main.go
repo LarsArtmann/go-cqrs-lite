@@ -23,7 +23,6 @@ var modules = []string{
 	"middleware",
 	"signing",
 	"projection",
-	"saga",
 	"listing",
 	"otel",
 	"storage",

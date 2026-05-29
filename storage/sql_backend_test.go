@@ -8,9 +8,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-	"github.com/larsartmann/go-cqrs-lite/saga"
-	"github.com/larsartmann/go-cqrs-lite/saga/sagatest"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func newTestSQLBackend(t *testing.T) *SQLBackend {
@@ -75,39 +72,6 @@ func TestSQLBackend_TransactionalStore(t *testing.T) {
 	tx := backend.TransactionalSink()
 	if tx == nil {
 		t.Fatal("expected non-nil TransactionalStore")
-	}
-}
-
-func TestSQLBackend_SagaStore(t *testing.T) {
-	t.Parallel()
-
-	backend := newTestSQLBackend(t)
-
-	sagaStore := backend.SagaStore()
-	if sagaStore == nil {
-		t.Fatal("expected non-nil SagaStore")
-	}
-}
-
-func TestSQLBackend_SagaStore_SaveAndLoad(t *testing.T) {
-	t.Parallel()
-
-	backend := newTestSQLBackend(t)
-	ctx := context.Background()
-
-	state := sagatest.NewSagaState("order", saga.StatusRunning, 1, "")
-
-	if err := backend.SagaStore().Save(ctx, state); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := backend.SagaStore().Load(ctx, state.ID)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if loaded.ID != state.ID {
-		testhelpers.AssertEqual(t, loaded.ID, state.ID, "ID")
 	}
 }
 
@@ -180,8 +144,5 @@ func TestNewSQLBackendWithDialect(t *testing.T) {
 	}
 	if backend.TransactionalSink() == nil {
 		t.Fatal("expected non-nil TransactionalStore")
-	}
-	if backend.SagaStore() == nil {
-		t.Fatal("expected non-nil SagaStore")
 	}
 }

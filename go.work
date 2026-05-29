@@ -7,7 +7,6 @@ use (
 	./core
 	./example/listing
 	./example/projection
-	./example/saga
 	./example/storage
 	./example/todo
 	./example/user
@@ -18,7 +17,6 @@ use (
 	./otel
 	./pebble
 	./projection
-	./saga
 	./signing
 	./storage
 	./testhelpers

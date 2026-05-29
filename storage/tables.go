@@ -5,5 +5,4 @@ const (
 	tableOutbox      = "outbox"
 	tableSnapshots   = "snapshots"
 	tableCheckpoints = "checkpoints"
-	tableSagas       = "sagas"
 )

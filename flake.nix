@@ -57,7 +57,6 @@
             "signing"
             "storage"
             "testhelpers"
-            "saga"
             "watermill"
             "cmd/cqrs-gen"
           ];
@@ -65,7 +64,6 @@
 
           examplePaths = builtins.concatStringsSep " " [
             "./example/projection/..."
-            "./example/saga/..."
             "./example/storage/..."
             "./example/todo/..."
             "./example/user/..."
