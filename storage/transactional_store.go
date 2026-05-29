@@ -25,10 +25,24 @@ func NewSQLTransactionalStore(store *SQLEventStore, outbox *SQLOutbox) (*SQLTran
 	return &SQLTransactionalStore{SQLEventStore: store, outbox: outbox}, nil
 }
 
-func (s *SQLTransactionalStore) SaveWithOutbox(ctx context.Context, ref event.AggregateRef, events []event.Event, expectedVersion event.Version) error {
+func (s *SQLTransactionalStore) SaveWithOutbox(
+	ctx context.Context,
+	ref event.AggregateRef,
+	events []event.Event,
+	expectedVersion event.Version,
+) error {
 	ctx, span := sqlpkg.StartSaveSpan(ctx, "event.store.save_with_outbox", ref, expectedVersion, len(events))
 	defer span.End()
-	err := sqlpkg.SaveWithOutboxTx(ctx, s.DB, ref, events, expectedVersion, s.checkVersion, s.insertEvents, s.appendOutboxTx)
+	err := sqlpkg.SaveWithOutboxTx(
+		ctx,
+		s.DB,
+		ref,
+		events,
+		expectedVersion,
+		s.checkVersion,
+		s.insertEvents,
+		s.appendOutboxTx,
+	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}
@@ -42,7 +56,14 @@ func (s *SQLTransactionalStore) appendOutboxTx(ctx context.Context, tx *sql.Tx, 
 	}
 	outboxID := events[0].ID()
 	insertSQL := sqlpkg.OutboxInsertSQL(s.Dialect)
-	_, err = tx.ExecContext(ctx, insertSQL, outboxID, string(sqlpkg.OutboxStatusPending), serialized, s.Dialect.FormatTime(time.Now()))
+	_, err = tx.ExecContext(
+		ctx,
+		insertSQL,
+		outboxID,
+		string(sqlpkg.OutboxStatusPending),
+		serialized,
+		s.Dialect.FormatTime(time.Now()),
+	)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.insert_outbox", "insert outbox entry "+outboxID.String())
 	}

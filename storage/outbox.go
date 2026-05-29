@@ -40,7 +40,7 @@ func newSQLOutboxWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLOutbox, error) {
 	return &SQLOutbox{Base: base}, nil
 }
 
-func OutboxSchema() string  { return sqlpkg.PostgresDialect{}.OutboxSchema() }
+func OutboxSchema() string       { return sqlpkg.PostgresDialect{}.OutboxSchema() }
 func SQLiteOutboxSchema() string { return sqlpkg.SQLiteDialect{}.OutboxSchema() }
 
 func (o *SQLOutbox) Append(ctx context.Context, events []event.Event) error {

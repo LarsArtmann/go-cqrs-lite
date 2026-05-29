@@ -23,12 +23,12 @@ type PersistedCommand struct {
 
 var _ fmt.Stringer = (*PersistedCommand)(nil)
 
-func (c *PersistedCommand) ID() id.CommandID        { return c.id }
-func (c *PersistedCommand) Type() Type               { return c.cmdType }
-func (c *PersistedCommand) AggregateID() id.AggregateID { return c.aggregateRef.ID }
+func (c *PersistedCommand) ID() id.CommandID             { return c.id }
+func (c *PersistedCommand) Type() Type                   { return c.cmdType }
+func (c *PersistedCommand) AggregateID() id.AggregateID  { return c.aggregateRef.ID }
 func (c *PersistedCommand) AggregateType() AggregateType { return c.aggregateRef.Type }
 func (c *PersistedCommand) AggregateRef() AggregateRef   { return c.aggregateRef }
-func (c *PersistedCommand) ReceivedAt() time.Time     { return c.receivedAt }
+func (c *PersistedCommand) ReceivedAt() time.Time        { return c.receivedAt }
 func (c *PersistedCommand) Payload() []byte {
 	if c.payload == nil {
 		return nil

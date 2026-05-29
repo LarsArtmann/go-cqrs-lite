@@ -72,6 +72,7 @@ func SharedInsertEvents(
 			evt.Version(),
 			evt.SchemaVersion().Int(),
 			evt.Payload(),
+			string(evt.Encoding()),
 			metadata,
 			formatTime(evt.OccurredAt()),
 		)

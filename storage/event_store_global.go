@@ -48,8 +48,11 @@ func (s *SQLEventStore) ReadFrom(ctx context.Context, afterEventID id.EventID, l
 	}
 	p1 := s.Dialect.Placeholder(1)
 	p2 := s.Dialect.Placeholder(2)
-	query := fmt.Sprintf(`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM `+sqlpkg.TableEvents+` WHERE id > %s ORDER BY occurred_at ASC`, p1)
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM `+sqlpkg.TableEvents+` WHERE id > %s ORDER BY occurred_at ASC`,
+		p1,
+	)
 	args := []any{afterEventID.String()}
 	if limit > 0 {
 		query += " LIMIT " + p2
@@ -89,7 +92,13 @@ func (s *SQLEventStore) loadAllFromStart(ctx context.Context, limit int) ([]even
 	return s.scanEvents(rows)
 }
 
-func queryContextWithError(ctx context.Context, span trace.Span, db *sql.DB, query, op, msg string, queryArgs ...any) (*sql.Rows, error) {
+func queryContextWithError(
+	ctx context.Context,
+	span trace.Span,
+	db *sql.DB,
+	query, op, msg string,
+	queryArgs ...any,
+) (*sql.Rows, error) {
 	rows, err := db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		cqrsotel.RecordError(span, err)

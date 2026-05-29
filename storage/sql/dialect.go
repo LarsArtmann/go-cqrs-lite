@@ -51,16 +51,17 @@ func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 
 func (PostgresDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
-    id              TEXT PRIMARY KEY,
-    event_type      VARCHAR(255) NOT NULL,
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    schema_version  INTEGER NOT NULL DEFAULT 1,
-    payload         BYTEA,
-    metadata        JSONB,
-    occurred_at     TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    id               TEXT PRIMARY KEY,
+    event_type       VARCHAR(255) NOT NULL,
+    aggregate_type   VARCHAR(255) NOT NULL,
+    aggregate_id     TEXT NOT NULL,
+    version          INTEGER NOT NULL,
+    schema_version   INTEGER NOT NULL DEFAULT 1,
+    payload          BYTEA,
+    payload_encoding TEXT NOT NULL DEFAULT 'json',
+    metadata         JSONB,
+    occurred_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     UNIQUE(aggregate_type, aggregate_id, version)
 );
 
@@ -128,16 +129,17 @@ func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 
 func (SQLiteDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
-    id              TEXT PRIMARY KEY,
-    event_type      TEXT NOT NULL,
-    aggregate_type  TEXT NOT NULL,
-    aggregate_id    TEXT NOT NULL,
-    version         INTEGER NOT NULL,
-    schema_version  INTEGER NOT NULL DEFAULT 1,
-    payload         BLOB,
-    metadata        TEXT,
-    occurred_at     TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    id               TEXT PRIMARY KEY,
+    event_type       TEXT NOT NULL,
+    aggregate_type   TEXT NOT NULL,
+    aggregate_id     TEXT NOT NULL,
+    version          INTEGER NOT NULL,
+    schema_version   INTEGER NOT NULL DEFAULT 1,
+    payload          BLOB,
+    payload_encoding TEXT NOT NULL DEFAULT 'json',
+    metadata         TEXT,
+    occurred_at      TEXT NOT NULL,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(aggregate_type, aggregate_id, version)
 );
 

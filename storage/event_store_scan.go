@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
-const eventColumnCount = 9
+const eventColumnCount = 10
 
 func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
 	return sqlpkg.ScanSlice(rows, s.scanEvent)
@@ -25,10 +26,22 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 		version       int
 		schemaVersion int
 		payload       []byte
+		encoding      string
 		metadataJSON  []byte
 	)
 	timeDest := s.Dialect.ScanTimeDest()
-	err := rows.Scan(&eventIDStr, &eventType, &aggType, &aggIDStr, &version, &schemaVersion, &payload, &metadataJSON, timeDest)
+	err := rows.Scan(
+		&eventIDStr,
+		&eventType,
+		&aggType,
+		&aggIDStr,
+		&version,
+		&schemaVersion,
+		&payload,
+		&encoding,
+		&metadataJSON,
+		timeDest,
+	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.scan_event",
 			fmt.Sprintf("scan event row for %s/%s v%d (schema v%d) event %s (id %s)",
@@ -51,16 +64,32 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 			fmt.Sprintf("parse aggregate ID %q for %s v%d", aggIDStr, aggType, version))
 	}
 	return sqlpkg.ReconstructEvent(parsedEventID, eventType, aggType, parsedAggID,
-		version, schemaVersion, payload, metadataJSON, occurredAt)
+		version, schemaVersion, payload, metadataJSON, occurredAt, codec.Encoding(encoding))
 }
 
-func (s *SQLEventStore) insertEvents(ctx context.Context, tx *sql.Tx, ref event.AggregateRef, events []event.Event) error {
+func (s *SQLEventStore) insertEvents(
+	ctx context.Context,
+	tx *sql.Tx,
+	ref event.AggregateRef,
+	events []event.Event,
+) error {
 	ph := make([]string, eventColumnCount)
 	for i := range eventColumnCount {
 		ph[i] = s.Dialect.Placeholder(i + 1)
 	}
-	insertSQL := fmt.Sprintf(`INSERT INTO `+sqlpkg.TableEvents+` (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at)
-		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)`,
-		ph[0], ph[1], ph[2], ph[3], ph[4], ph[5], ph[6], ph[7], ph[8])
+	insertSQL := fmt.Sprintf(
+		`INSERT INTO `+sqlpkg.TableEvents+` (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at)
+		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)`,
+		ph[0],
+		ph[1],
+		ph[2],
+		ph[3],
+		ph[4],
+		ph[5],
+		ph[6],
+		ph[7],
+		ph[8],
+		ph[9],
+	)
 	return sqlpkg.SharedInsertEvents(ctx, tx, ref, events, insertSQL, s.Dialect.FormatTime)
 }

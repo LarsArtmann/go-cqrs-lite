@@ -21,12 +21,15 @@ type SQLSnapshotStore struct {
 func NewSQLSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
+
 func NewSQLiteSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
+
 func NewSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, d)
 }
+
 func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
 	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
@@ -35,7 +38,7 @@ func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotS
 	return &SQLSnapshotStore{Base: base}, nil
 }
 
-func SnapshotSchema() string         { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
+func SnapshotSchema() string       { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error {
@@ -45,11 +48,17 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap event.Snapshot) error 
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
 		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5)
-	query := fmt.Sprintf(`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
+	query := fmt.Sprintf(
+		`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s)
 		ON CONFLICT (aggregate_type, aggregate_id)
 		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
-		p1, p2, p3, p4, p5)
+		p1,
+		p2,
+		p3,
+		p4,
+		p5,
+	)
 	_, err := s.DB.ExecContext(ctx, query, string(snap.AggregateType), snap.AggregateID,
 		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
@@ -73,7 +82,11 @@ func (s *SQLSnapshotStore) Load(ctx context.Context, ref event.AggregateRef) (*e
 	return snap, nil
 }
 
-func (s *SQLSnapshotStore) LoadAtVersion(ctx context.Context, ref event.AggregateRef, version event.Version) (*event.Snapshot, error) {
+func (s *SQLSnapshotStore) LoadAtVersion(
+	ctx context.Context,
+	ref event.AggregateRef,
+	version event.Version,
+) (*event.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load_at_version", trace.SpanKindClient,
 		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...))

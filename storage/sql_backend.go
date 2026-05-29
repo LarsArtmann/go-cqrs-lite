@@ -16,12 +16,15 @@ type SQLBackend struct {
 func NewSQLBackend(db *sql.DB) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, sqlpkg.PostgresDialect{})
 }
+
 func NewSQLiteBackend(db *sql.DB) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, sqlpkg.SQLiteDialect{})
 }
+
 func NewSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, d)
 }
+
 func newSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
 	store, err := newSQLEventStoreWithDialect(db, d)
 	if err != nil {
@@ -38,6 +41,6 @@ func newSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error)
 	return &SQLBackend{store: store, outbox: outbox, tx: tx}, nil
 }
 
-func (b *SQLBackend) EventStore() *SQLEventStore        { return b.store }
-func (b *SQLBackend) Outbox() *SQLOutbox                 { return b.outbox }
+func (b *SQLBackend) EventStore() *SQLEventStore                 { return b.store }
+func (b *SQLBackend) Outbox() *SQLOutbox                         { return b.outbox }
 func (b *SQLBackend) TransactionalSink() event.TransactionalSink { return b.tx }

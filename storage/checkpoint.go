@@ -20,12 +20,15 @@ type SQLCheckpointStore struct {
 func NewSQLCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
 	return newSQLCheckpointStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
+
 func NewSQLiteCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
 	return newSQLCheckpointStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
+
 func NewSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpointStore, error) {
 	return newSQLCheckpointStoreWithDialect(db, d)
 }
+
 func newSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpointStore, error) {
 	base, err := sqlpkg.NewBase(db, d)
 	if err != nil {
@@ -34,7 +37,7 @@ func newSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpo
 	return &SQLCheckpointStore{Base: base}, nil
 }
 
-func CheckpointSchema() string         { return sqlpkg.PostgresDialect{}.CheckpointSchema() }
+func CheckpointSchema() string       { return sqlpkg.PostgresDialect{}.CheckpointSchema() }
 func SQLiteCheckpointSchema() string { return sqlpkg.SQLiteDialect{}.CheckpointSchema() }
 
 func (s *SQLCheckpointStore) Load(ctx context.Context, projectionName string) (event.Checkpoint, error) {

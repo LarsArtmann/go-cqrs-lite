@@ -23,7 +23,13 @@ type loadParams struct {
 }
 
 func (s *SQLEventStore) loadWithSpan(ctx context.Context, ref event.AggregateRef, p loadParams) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), p.spanName, trace.SpanKindClient, trace.WithAttributes(p.attrs...))
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		p.spanName,
+		trace.SpanKindClient,
+		trace.WithAttributes(p.attrs...),
+	)
 	defer span.End()
 	events, err := s.queryEvents(ctx, ref, p.where, p.extraArgs, p.requireHit, p.errMsg)
 	if err != nil {
@@ -34,7 +40,11 @@ func (s *SQLEventStore) loadWithSpan(ctx context.Context, ref event.AggregateRef
 	return events, nil
 }
 
-func (s *SQLEventStore) loadSimple(ctx context.Context, ref event.AggregateRef, spanName, order, errMsg string) ([]event.Event, error) {
+func (s *SQLEventStore) loadSimple(
+	ctx context.Context,
+	ref event.AggregateRef,
+	spanName, order, errMsg string,
+) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: spanName, attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 		where: order, requireHit: true, errMsg: errMsg,
@@ -45,30 +55,42 @@ func (s *SQLEventStore) Load(ctx context.Context, ref event.AggregateRef) ([]eve
 	return s.loadSimple(ctx, ref, "event.store.load", "ORDER BY version ASC", "query events")
 }
 
-func (s *SQLEventStore) LoadFromVersion(ctx context.Context, ref event.AggregateRef, version event.Version) ([]event.Event, error) {
+func (s *SQLEventStore) LoadFromVersion(
+	ctx context.Context,
+	ref event.AggregateRef,
+	version event.Version,
+) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_from_version",
 		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int())),
-		where: fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
+		where:     fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		extraArgs: []any{version.Int()}, requireHit: false, errMsg: "query events from version",
 	})
 }
 
-func (s *SQLEventStore) LoadToVersion(ctx context.Context, ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error) {
+func (s *SQLEventStore) LoadToVersion(
+	ctx context.Context,
+	ref event.AggregateRef,
+	maxVersion event.Version,
+) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_to_version",
 		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int())),
-		where: fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
+		where:     fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		extraArgs: []any{maxVersion.Int()}, requireHit: true, errMsg: "query events to version",
 	})
 }
 
-func (s *SQLEventStore) LoadToTimestamp(ctx context.Context, ref event.AggregateRef, maxTime time.Time) ([]event.Event, error) {
+func (s *SQLEventStore) LoadToTimestamp(
+	ctx context.Context,
+	ref event.AggregateRef,
+	maxTime time.Time,
+) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_to_timestamp", attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-		where: fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
+		where:     fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		extraArgs: []any{s.Dialect.FormatTime(maxTime)}, requireHit: true, errMsg: "query events to timestamp",
 	})
 }
@@ -77,10 +99,22 @@ func (s *SQLEventStore) LoadBackwards(ctx context.Context, ref event.AggregateRe
 	return s.loadSimple(ctx, ref, "event.store.load_backwards", "ORDER BY version DESC", "query events backwards")
 }
 
-func (s *SQLEventStore) queryEvents(ctx context.Context, ref event.AggregateRef, whereSuffix string, extraArgs []any, requireNonEmpty bool, errMsg string) ([]event.Event, error) {
+func (s *SQLEventStore) queryEvents(
+	ctx context.Context,
+	ref event.AggregateRef,
+	whereSuffix string,
+	extraArgs []any,
+	requireNonEmpty bool,
+	errMsg string,
+) ([]event.Event, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
-	query := fmt.Sprintf(`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
-		FROM `+sqlpkg.TableEvents+` WHERE aggregate_type = %s AND aggregate_id = %s %s`, p1, p2, whereSuffix)
+	query := fmt.Sprintf(
+		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, metadata, occurred_at
+		FROM `+sqlpkg.TableEvents+` WHERE aggregate_type = %s AND aggregate_id = %s %s`,
+		p1,
+		p2,
+		whereSuffix,
+	)
 	args := make([]any, 0, 2+len(extraArgs))
 	args = append(args, string(ref.Type), ref.ID)
 	args = append(args, extraArgs...)

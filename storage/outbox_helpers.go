@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
 // outboxEvent represents an outbox entry for JSON serialization.
@@ -20,6 +22,7 @@ type outboxEvent struct {
 	Payload       []byte              `json:"payload"`
 	Metadata      *event.Metadata     `json:"metadata,omitempty"`
 	OccurredAt    time.Time           `json:"occurred_at"`
+	Encoding      string              `json:"encoding,omitempty"`
 }
 
 func marshalOutboxEvents(events []event.Event) ([]byte, error) {
@@ -36,6 +39,7 @@ func marshalOutboxEvents(events []event.Event) ([]byte, error) {
 			Payload:       evt.Payload(),
 			Metadata:      evt.Metadata(),
 			OccurredAt:    evt.OccurredAt(),
+			Encoding:      string(evt.Encoding()),
 		}
 	}
 
@@ -72,17 +76,18 @@ func unmarshalOutboxEvents(data []byte) ([]event.Event, error) {
 }
 
 func reconstructOutboxEvent(row outboxEvent) (event.Event, error) {
-	metadataJSON, _ := marshalMetadata(row.Metadata)
+	metadataJSON, _ := sqlpkg.MarshalMetadata(row.Metadata)
 
-	return reconstructEvent(
+	return sqlpkg.ReconstructEvent(
 		row.ID, row.Type, row.AggregateType, row.AggregateID,
 		row.Version.Int(), row.SchemaVersion.Int(),
 		row.Payload, metadataJSON,
 		row.OccurredAt,
+		codec.Encoding(row.Encoding),
 	)
 }
 
-func scanOutboxEntries(rows *sql.Rows, d Dialect) ([]event.OutboxEntry, error) {
+func scanOutboxEntries(rows *sql.Rows, d sqlpkg.Dialect) ([]event.OutboxEntry, error) {
 	var entries []event.OutboxEntry
 
 	for rows.Next() {
