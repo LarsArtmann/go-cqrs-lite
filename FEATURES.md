@@ -77,13 +77,13 @@
 || Event Bus interface | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use`, `UsePublish` | ✅ |
 || PublishMiddleware | `Bus.UsePublish(mw)` — middleware for publish path | ✅ |
 || PublisherFunc adapter | `PublisherFunc` — function adapter for `Publisher` | ✅ |
-|| Event Store interface | `Store` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete` | ✅ |
-|| ISP sub-interfaces | `Publisher` and `Subscriber` extracted from `Bus` — fine-grained dependency injection | ✅ |
+|| Event Store interface | `Store = EventSink + EventSource` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` | ✅ |
+|| ISP split | `EventSink` (write) + `EventSource` (read) — fine-grained dependency injection | ✅ |
 || Journal | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay | ✅ |
 || SeekableJournal | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up | ✅ |
-|| BackwardsLoader | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order | ✅ |
-|| TransactionalStore | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox | ✅ |
-|| StreamLoader | `LoadStream(ctx, aggType, aggID)` returns `EventStream` — cursor-based memory-efficient iteration | ✅ |
+|| BackwardsSource | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order (`BackwardsLoader` alias kept) | ✅ |
+|| TransactionalSink | `SaveWithOutbox(ctx, aggType, aggID, version, events, outbox)` — atomic save + outbox (`TransactionalStore` alias kept) | ✅ |
+|| TombstoneStatus | `Active`, `Tombstoned`, `Undetermined` — tri-state enum for soft-delete; `DetectTombstone`, `MarkTombstone`, `MarkRebirth` | ✅ |
 || Time-travel queries | `LoadToVersion` and `LoadToTimestamp` — read aggregate state at a point in time | ✅ |
 || Snapshot support | `SnapshotStore`, `Snapshot` struct, `SnapshotStrategy`, `EveryNEvents`, `MustEveryNEvents`, `ShouldSnapshot`, `SaveSnapshot` | ✅ |
 || Outbox pattern | `Outbox` interface + `OutboxEntry` + `OutboxID` branded type | ✅ |
@@ -113,11 +113,11 @@
 || Repository[State] | `NewRepository[State](store, publisher, decider, opts...)` — manages aggregate lifecycle | ✅ |
 || Execute | `Repository.Execute(ctx, aggID, aggType, decide)` — load → decide → save → publish | ✅ |
 || Load | `Repository.Load(ctx, aggID, aggType)` — returns `(State, Version, error)` | ✅ |
-|| Delete | `Repository.Delete(ctx, aggID, aggType)` — delegates to `store.Delete` | ✅ |
+
 || LoadAtVersion | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version | ✅ |
 || LoadAtTime | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp | ✅ |
 || Snapshot support | `WithSnapshotStore` + `WithCodec` + `WithSnapshotStrategy` — loads snapshot then replays | ✅ |
-|| Outbox support | `WithOutbox` — atomic save + outbox via `TransactionalStore` | ✅ |
+|| Outbox support | `WithOutbox` — atomic save + outbox via `TransactionalSink` | ✅ |
 || Context enrichment | `WithEnricher` — injects metadata from context into events | ✅ |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
@@ -181,7 +181,7 @@
 
 || Component | Detail | Status |
 || --------------------- | ---------------------------------------------------------------------------------------------------------- | ------ |
-|| MemoryStore | `event.Store` + `Journal` + `SeekableJournal` + `BackwardsLoader` + `StreamLoader` with defensive copies | 🧪 |
+|| MemoryStore | `event.Store` + `Journal` + `SeekableJournal` + `BackwardsSource` + `StreamLoader` with defensive copies | 🧪 |
 || MemoryBus | `event.Bus` with typed `Subscribe` + `SubscribeAll` + handler/publish middleware | 🧪 |
 || MemorySnapshotStore | `event.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion` | 🧪 |
 || MemoryOutboxStore | `event.Outbox` with append/poll/ack, auto-incrementing IDs | 🧪 |
@@ -406,7 +406,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || Optimistic concurrency | `Save` checks version in transaction | ✅ |
 || AppendBatch | Appends without concurrency check | ✅ |
 || Full load API | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`, `Delete` | ✅ |
-|| LoadBackwards | Implements `event.BackwardsLoader` — newest-first | ✅ |
+|| LoadBackwards | Implements `event.BackwardsSource` — newest-first | ✅ |
 || Time-travel SQL queries | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index | ✅ |
 || Journal / SeekableJournal | `ReadAll()`, `ReadFrom(afterEventID, limit)` | ✅ |
 || Stream loading | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration | ✅ |
@@ -414,9 +414,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 || SQL SnapshotStore | PostgreSQL + SQLite variants, upsert, version-aware load, delete | ✅ |
 || SQL CheckpointStore | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling | ✅ |
 || SQL Outbox | PostgreSQL + SQLite variants, append/poll/ack | ✅ |
-|| TransactionalStore | `SQLTransactionalStore` — atomic save + outbox append, both engines | ✅ |
+|| TransactionalSink | `SQLTransactionalStore` — atomic save + outbox append, both engines | ✅ |
 || SQLSagaStore | PostgreSQL + SQLite variants — `Save`, `Load`, `LoadAllRunning` | ✅ |
-|| SQLBackend | Unified facade: `EventStore()`, `Outbox()`, `TransactionalStore()`, `SagaStore()` | ✅ |
+|| SQLBackend | Unified facade: `EventStore()`, `Outbox()`, `TransactionalSink()`, `TransactionalStore()` (deprecated), `SagaStore()` | ✅ |
 || OutboxPoller | Background goroutine polls outbox, publishes via `event.Publisher`, acks batches | ✅ |
 || TursoSyncDB | `OpenTursoSync` returns `*TursoSyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅ |
 || DB helpers | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅ |

@@ -88,7 +88,14 @@ func (b *SQLBackend) Outbox() *SQLOutbox {
 	return b.outbox
 }
 
+// TransactionalSink returns the atomic save+outbox store.
+func (b *SQLBackend) TransactionalSink() event.TransactionalSink {
+	return b.tx
+}
+
 // TransactionalStore returns the atomic save+outbox store.
+//
+// Deprecated: use TransactionalSink instead.
 func (b *SQLBackend) TransactionalStore() event.TransactionalStore {
 	return b.tx
 }

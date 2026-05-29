@@ -42,7 +42,7 @@ backend, _ := storage.NewSQLiteBackend(db)
 // Access individual stores
 backend.EventStore()        // *SQLEventStore — implements event.Store
 backend.Outbox()            // *SQLOutbox — append/poll/ack
-backend.TransactionalStore() // event.TransactionalStore — atomic save+outbox
+backend.TransactionalSink()  // event.TransactionalSink — atomic save+outbox
 backend.SagaStore()         // saga.Store — persistent saga state
 ```
 

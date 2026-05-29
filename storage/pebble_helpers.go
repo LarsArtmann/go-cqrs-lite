@@ -11,7 +11,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
-// Delete implements event.Store.Delete.
+// Delete removes all events for an aggregate.
+// Note: Delete is not part of the event.Store interface (removed in Sink/Source split).
+// Kept as a utility method for testing and administrative purposes.
 func (a *PebbleEventStore) Delete(
 	_ context.Context,
 	aggregateType event.AggregateType,
