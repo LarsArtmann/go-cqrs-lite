@@ -397,9 +397,9 @@
 <div class="page">
 
   <div class="hero">
-    <h1>Generic <em>Journal[T, ID]</em> vs<br>Concrete CommandJournal</h1>
+    <h1>Journal, Outbox &amp; Persisted<br><em>Command</em> — Design Research</h1>
     <p class="subtitle">
-      Should the event Journal and a proposed CommandJournal share a generic base, or remain independent concrete interfaces?
+      Generic vs concrete CommandJournal, the relationship between Journal and Outbox, and why PersistedCommand exists without a PersistedEvent counterpart.
     </p>
     <div class="meta">
       <span>2026-05-29</span>
@@ -418,6 +418,8 @@
       <li><a href="#option-b">Option B — Concrete CommandJournal</a></li>
       <li><a href="#comparison">Side-by-Side Comparison</a></li>
       <li><a href="#decision">Decision</a></li>
+      <li><a href="#journal-vs-outbox">Journal vs Outbox</a></li>
+      <li><a href="#persisted-command">PersistedCommand vs ImmutableEvent</a></li>
       <li><a href="#next-steps">Next Steps</a></li>
     </ol>
   </nav>
@@ -683,6 +685,208 @@
       <li>Write integration tests for cross-aggregate command replay</li>
       <li>Update AGENTS.md with the new interfaces</li>
     </ol>
+  </section>
+
+  <section class="section" id="journal-vs-outbox">
+    <span class="section-label">09</span>
+    <h2>Journal vs Outbox</h2>
+
+    <p>
+      Both Journal and Outbox deal with event streams, but they solve fundamentally different problems. They are complementary, not competing.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Journal</th>
+          <th>Outbox</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Purpose</strong></td>
+          <td>Complete ordered log — replay, audit, projections</td>
+          <td>Reliable publishing queue</td>
+        </tr>
+        <tr>
+          <td><strong>Lifecycle</strong></td>
+          <td>Permanent, append-only</td>
+          <td>Temporary — entries deleted after ACK</td>
+        </tr>
+        <tr>
+          <td><strong>Data scope</strong></td>
+          <td>All events/commands ever</td>
+          <td>Only unpublished events</td>
+        </tr>
+        <tr>
+          <td><strong>Consumer</strong></td>
+          <td>Projections, audit, debugging</td>
+          <td>Background publisher → Bus</td>
+        </tr>
+        <tr>
+          <td><strong>Interface</strong></td>
+          <td><code>ReadAll</code> / <code>ReadFrom</code></td>
+          <td><code>Append</code> / <code>PollPending</code> / <code>Ack</code></td>
+        </tr>
+        <tr>
+          <td><strong>Ordering</strong></td>
+          <td>By OccurredAt (global)</td>
+          <td>By CreatedAt (FIFO queue)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      The Outbox solves the <strong>dual-write problem</strong>: atomically persist events + stage them for <code>Bus.Publish</code> in the same transaction. Once published and ACKed, entries are deleted.
+    </p>
+
+    <pre><code><span class="cm">// Outbox lifecycle (core/event/outbox.go):</span>
+<span class="cm">// 1. Repository.Save calls Outbox.Append(events) inside the store tx</span>
+<span class="cm">// 2. Background OutboxPublisher polls Outbox.PollPending</span>
+<span class="cm">// 3. Publisher calls Bus.Publish for each entry</span>
+<span class="cm">// 4. On success, publisher calls Outbox.Ack(entry.ID)</span>
+
+<span class="kw">type</span> <span class="tp">Outbox</span> <span class="kw">interface</span> {
+    <span class="tp">io</span>.<span class="tp">Closer</span>
+    <span class="fn">Append</span>(ctx <span class="tp">context.Context</span>, events []<span class="tp">Event</span>) <span class="tp">error</span>
+    <span class="fn">PollPending</span>(ctx <span class="tp">context.Context</span>, limit <span class="tp">int</span>) ([]<span class="tp">OutboxEntry</span>, <span class="tp">error</span>)
+    <span class="fn">Ack</span>(ctx <span class="tp">context.Context</span>, ids []<span class="tp">OutboxID</span>) <span class="tp">error</span>
+}</code></pre>
+
+    <p>
+      A Journal is the opposite: it <strong>keeps everything forever</strong> for replay. You never ACK or delete from a Journal.
+    </p>
+
+    <h3>Does CommandJournal need an Outbox?</h3>
+    <p>
+      No. Commands flow <em>in</em> (dispatched by consumers), they don't flow <em>out</em> (published by the library). The Outbox pattern solves outbound publishing. For commands, the Journal alone suffices — it's the audit trail of everything that was received.
+    </p>
+
+    <p>
+      An Outbox for commands would only make sense if you were forwarding commands between services (a command queue) — which is a different pattern entirely and not in scope for this library.
+    </p>
+
+    <div class="callout callout-blue">
+      <div class="callout-title">Insight</div>
+      <p>Journal is a <em>source of truth</em> (permanent, read-heavy). Outbox is a <em>reliability mechanism</em> (ephemeral, write-then-delete). They coexist naturally: every event in the Journal was once in the Outbox, but the Outbox empties while the Journal grows.</p>
+    </div>
+  </section>
+
+  <section class="section" id="persisted-command">
+    <span class="section-label">10</span>
+    <h2>PersistedCommand vs ImmutableEvent</h2>
+
+    <p>
+      A natural question when encountering <code>PersistedCommand</code>: why does the command side have a separate "persisted" type, while events have <code>ImmutableEvent</code> and no <code>PersistedEvent</code>?
+    </p>
+
+    <div class="callout callout-green">
+      <div class="callout-title">Answer</div>
+      <p><code>ImmutableEvent</code> <strong>is</strong> <code>PersistedEvent</code> — it just doesn't use that name. Events are born persisted. Commands have two distinct lifecycles.</p>
+    </div>
+
+    <h3>The event side — one form does both</h3>
+
+    <pre><code><span class="cm">// ImmutableEvent already carries everything persistence needs:</span>
+<span class="kw">type</span> <span class="tp">ImmutableEvent</span> <span class="kw">struct</span> {
+    id            <span class="tp">id.EventID</span>         <span class="cm">// unique ID</span>
+    eventType     <span class="tp">Type</span>               <span class="cm">// domain event type</span>
+    aggregateID   <span class="tp">id.AggregateID</span>    <span class="cm">// which aggregate</span>
+    aggregateType <span class="tp">AggregateType</span>     <span class="cm">// aggregate kind</span>
+    version       <span class="tp">Version</span>            <span class="cm">// stream position</span>
+    schemaVersion <span class="tp">SchemaVersion</span>     <span class="cm">// for upcasting</span>
+    encoding      <span class="tp">codec.Encoding</span>     <span class="cm">// JSON, raw, etc.</span>
+    payload       []<span class="tp">byte</span>              <span class="cm">// serialized data</span>
+    metadata      *<span class="tp">Metadata</span>           <span class="cm">// correlation, causation, etc.</span>
+    occurredAt    <span class="tp">time.Time</span>          <span class="cm">// when it happened</span>
+}</code></pre>
+
+    <p>
+      The <code>NewEvent()</code> constructor marshals typed payloads into serialized bytes <em>at creation time</em>. There is no "live" event type — events are born immutable and persisted. The name <code>ImmutableEvent</code> emphasizes immutability, but it's functionally equivalent to a <code>PersistedEvent</code>.
+    </p>
+
+    <h3>The command side — two forms, two lifecycles</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th><code>BasicCommand</code> (live)</th>
+          <th><code>PersistedCommand</code> (storage)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ID</td>
+          <td>—</td>
+          <td><code>id.CommandID</code></td>
+        </tr>
+        <tr>
+          <td>Timestamp</td>
+          <td>—</td>
+          <td><code>ReceivedAt</code></td>
+        </tr>
+        <tr>
+          <td>Payload</td>
+          <td>typed struct (generic <code>T</code>)</td>
+          <td><code>[]byte</code> (serialized)</td>
+        </tr>
+        <tr>
+          <td>Aggregate info</td>
+          <td><code>AggregateID()</code></td>
+          <td><code>AggregateRef{Type, ID}</code></td>
+        </tr>
+        <tr>
+          <td>Use case</td>
+          <td>In-memory dispatch via <code>Dispatcher</code></td>
+          <td>Storage, audit, replay</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Commands have <strong>two distinct lifecycles</strong>: they're dispatched in-memory (live) and optionally persisted to storage (audit). The split exists because not every dispatched command needs persistence — allocating an ID and timestamp for every fire-and-forget dispatch would be wasteful.
+    </p>
+
+    <h3>Why the asymmetry is correct</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Aspect</th>
+          <th>Events</th>
+          <th>Commands</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nature</td>
+          <td>Facts — immutable by definition</td>
+          <td>Intentions — may succeed or fail</td>
+        </tr>
+        <tr>
+          <td>Always persisted?</td>
+          <td>Yes — event sourcing requires it</td>
+          <td>No — only when audit is needed</td>
+        </tr>
+        <tr>
+          <td>Lifecycle</td>
+          <td>Single form (born persisted)</td>
+          <td>Two forms (live → optionally persisted)</td>
+        </tr>
+        <tr>
+          <td>Serialization</td>
+          <td>At creation (<code>NewEvent</code>)</td>
+          <td>At persistence (<code>NewPersistedCommand</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-blue">
+      <div class="callout-title">Open Question</div>
+      <p>Could the command side follow the event pattern — make <code>BasicCommand</code> carry an ID and timestamp from creation, eliminating the separate <code>PersistedCommand</code>? Yes, but it would mean every dispatched command allocates an ID and timestamp even when persistence isn't needed. The current split is a deliberate performance/clarity tradeoff.</p>
+    </div>
   </section>
 
   <footer>

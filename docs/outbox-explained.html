@@ -1187,6 +1187,142 @@ err := txStore.<span class="func">SaveWithOutbox</span>(ctx,
     </p>
   </section>
 
+  <!-- ═══ The Simpler Alternative: Checkpoint Tail ═══ -->
+  <section class="container">
+    <h2><span class="num">12</span>Wait — Is There a Simpler Way?</h2>
+    <p>
+      A legitimate question. You write events to disk. The process crashes before publishing.
+      On restart, the events are <em>still there</em> in the event store. Do you really need an outbox table?
+    </p>
+
+    <h3>The Event Store IS Already Your Outbox</h3>
+    <p>
+      The events are durably persisted. All you need is a <strong style="color:var(--text)">pointer</strong>
+      to track where you stopped publishing — a checkpoint. You already have the building blocks:
+    </p>
+
+    <pre data-lang="Pseudocode"><code><span class="comment">// On startup: resume from where we left off</span>
+checkpoint := checkpointStore.<span class="func">Load</span>(ctx, <span class="string">"event-publisher"</span>)
+events     := journal.<span class="func">ReadFrom</span>(ctx, checkpoint, batchSize)
+
+<span class="keyword">for</span> _, evt := <span class="keyword">range</span> events {
+    bus.<span class="func">Publish</span>(ctx, evt)
+}
+checkpointStore.<span class="func">Save</span>(ctx, <span class="string">"event-publisher"</span>, lastEventID)</code></pre>
+
+    <p>
+      This is literally what the <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">projection.Runner</code>
+      already does — it tails the journal from a checkpoint. You'd just swap "call projection handler" with
+      "call Bus.Publish". No extra table, no duplicate data, no outbox at all.
+    </p>
+
+    <div class="schema-table" style="margin:32px 0">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th style="color:var(--success)">Checkpoint Tail <span style="font-weight:400;font-size:0.7rem">(simpler)</span></th>
+            <th style="color:var(--accent)">Outbox Table <span style="font-weight:400;font-size:0.7rem">(current)</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">Crash recovery</span></td>
+            <td>Replay from journal position</td>
+            <td>Replay pending entries</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Atomicity with save</span></td>
+            <td>Implicit — events ARE persisted</td>
+            <td>Explicit — outbox entry in same tx</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Batch boundaries</span></td>
+            <td style="color:var(--danger)">Lost — you just stream from position</td>
+            <td style="color:var(--success)">Preserved — each save = one outbox entry</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Selective publishing</span></td>
+            <td style="color:var(--danger)">ALL events get published</td>
+            <td style="color:var(--success)">You choose what to outbox</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Extra storage</span></td>
+            <td style="color:var(--success)">Zero — just one checkpoint row</td>
+            <td style="color:var(--danger)">Duplicate events in outbox table</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">Complexity</span></td>
+            <td style="color:var(--success)">Minimal</td>
+            <td style="color:var(--danger)">Outbox + Poller + Publisher lifecycle</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Honest Answer</h3>
+    <p>
+      For <strong style="color:var(--text)">90% of use cases</strong>,
+      <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">SeekableJournal</code>
+      + <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">CheckpointStore</code>
+      is simpler and sufficient. The events are already durably stored. A checkpoint lets you resume
+      exactly where you left off. No duplicate data, no extra table, no additional lifecycle to manage.
+    </p>
+    <p>
+      The outbox matters when you need <strong style="color:var(--text)">batch-level ack semantics</strong>
+      (knowing that a specific batch of events was published as a unit) or
+      <strong style="color:var(--text)">selective publishing</strong> (not all events go to the broker).
+      For the common case — "publish all events to a broker, resume on crash" — the checkpoint approach
+      is the right default.
+    </p>
+  </section>
+
+  <!-- ═══ Watermill as Outbox Backend: PRO / CONTRA ═══ -->
+  <section class="container">
+    <h2><span class="num">13</span>Should We Use Watermill as the Outbox Backend?</h2>
+    <p>
+      Could go-cqrs-lite delegate the outbox entirely to Watermill's Forwarder instead of maintaining its own
+      outbox table + poller? The <code style="color:var(--accent);background:var(--surface-2);padding:2px 6px;border-radius:4px">watermill</code>
+      module already has adapters. Here's the honest tradeoff:
+    </p>
+
+    <div class="tradeoffs">
+      <div class="tradeoff-card pro">
+        <h3>+ PRO</h3>
+        <ul>
+          <li>Battle-tested Forwarder with built-in retry, dedup, poison queue middleware</li>
+          <li>Works with every broker — NATS, Kafka, RabbitMQ, Google PubSub, AMQP, SQL...</li>
+          <li><code>sql.NewPublisher(tx, ...)</code> can write to Watermill's messages table in the <strong>same tx</strong> as your event store — same atomicity guarantee</li>
+          <li>The <code>PublisherAdapter</code> / <code>SubscriberAdapter</code> already bridge both libraries</li>
+          <li>Less outbox code to maintain in go-cqrs-lite itself</li>
+        </ul>
+      </div>
+      <div class="tradeoff-card con">
+        <h3>− CONTRA</h3>
+        <ul>
+          <li><strong>Heavy dependency</strong> — Watermill pulls in many transitive deps, violates go-cqrs-lite's "minimal core" philosophy</li>
+          <li><strong>Loses domain types</strong> — Forwarder is generic (opaque <code>message.Message</code>), aggregate ID/version/event type all become metadata strings</li>
+          <li><strong>Separate schema</strong> — Watermill's SQL Pub/Sub has its own <code>messages</code> table, not co-designed with the event store</li>
+          <li><strong>Unnecessary for embedded use</strong> — users with SQLite/Pebble who don't need a broker shouldn't need Watermill</li>
+          <li><strong>Marginal benefit</strong> — go-cqrs-lite's outbox is a few hundred lines; replacing it adds ~15 dependencies</li>
+          <li><strong>Adapter is shallow</strong> — <code>PublisherAdapter</code> is a bridge, not deep integration; custom wiring still needed</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Verdict</h3>
+    <p>
+      Watermill makes sense as a <strong style="color:var(--text)">transport adapter</strong> — publish to NATS/Kafka
+      via Watermill instead of directly. But <strong style="color:var(--text)">not as the outbox mechanism itself</strong>.
+    </p>
+    <p>
+      The outbox should stay in go-cqrs-lite — it's small, domain-aware, and has zero external dependencies.
+      If anything, the right move is to <strong style="color:var(--accent)">simplify</strong>: make the checkpoint-based
+      approach the default for crash recovery, and keep the outbox as opt-in for batch ack semantics.
+      Watermill sits at the transport layer, not the persistence layer.
+    </p>
+  </section>
+
 </main>
 
 <footer>
