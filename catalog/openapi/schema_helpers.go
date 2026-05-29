@@ -2,7 +2,7 @@ package openapi
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
 func schemaKey(msg catalog.Message) string {
@@ -10,9 +10,9 @@ func schemaKey(msg catalog.Message) string {
 }
 
 func schemaToAny(s *catalog.Schema) any {
-	return schemautil.SchemaToAny(s)
+	return schema.ToAny(s)
 }
 
 func objectSchema() map[string]string {
-	return schemautil.ObjectSchema()
+	return map[string]string{"type": string(schema.TypeObject)}
 }

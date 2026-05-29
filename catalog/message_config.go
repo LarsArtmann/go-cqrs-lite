@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strings"
 	"unicode"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
 // MessageConfig is implemented by message builders produced by Command[T](),
@@ -165,7 +167,7 @@ func newMessageBuilder[T any](
 	rt := reflect.TypeFor[T]()
 
 	name := camelCaseToHuman(rt.Name())
-	schema := schemaFromReflect(rt)
+	sch := schema.FromReflect(rt)
 
 	msgBuilder := &messageBuilder{ //nolint:exhaustruct
 		kind:      kind,
@@ -173,7 +175,7 @@ func newMessageBuilder[T any](
 		name:      name,
 		version:   defaultVersion,
 		summary:   "",
-		schema:    schema,
+		schema:    sch,
 		direction: direction,
 	}
 

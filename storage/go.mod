@@ -5,9 +5,7 @@ go 1.26.3
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
-	github.com/larsartmann/go-cqrs-lite/listing v1.6.0
 	github.com/larsartmann/go-cqrs-lite/otel v1.6.0
-	github.com/larsartmann/go-cqrs-lite/saga v1.6.0
 	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
@@ -39,6 +37,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/listing => ../listing
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/saga => ../saga
 	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

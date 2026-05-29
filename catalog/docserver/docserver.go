@@ -15,7 +15,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
 const yamlContentType = "text/yaml; charset=utf-8"
@@ -206,7 +206,7 @@ func (ds *DocsServer) serveJSON(w http.ResponseWriter, v any) {
 }
 
 func (ds *DocsServer) serveYAML(w http.ResponseWriter, jsonBytes []byte, errMsg string) {
-	yamlStr, err := schemautil.JSONToYAML(jsonBytes)
+	yamlStr, err := schema.JSONToYAML(jsonBytes)
 	if err != nil {
 		http.Error(w, errMsg, http.StatusInternalServerError)
 

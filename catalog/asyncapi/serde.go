@@ -7,12 +7,11 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/internal/caseutil"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/schemautil"
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
-// SchemaToAny converts a catalog.Schema to a generic map for JSON serialization.
 func SchemaToAny(s *catalog.Schema) any {
-	return schemautil.SchemaToAny(s)
+	return schema.ToAny(s)
 }
 
 func dotSeparated(s string) string {

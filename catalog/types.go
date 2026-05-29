@@ -2,99 +2,73 @@ package catalog
 
 import (
 	"encoding/json"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
 )
 
-// ServiceID identifies a service in the catalog (e.g., "user-service").
 type ServiceID string
 
-// SchemaType represents a JSON Schema type value (e.g., "string", "object", "array").
-type SchemaType string
-
-const (
-	// TypeString represents the JSON Schema "string" type.
-	TypeString SchemaType = "string"
-	// TypeObject represents the JSON Schema "object" type.
-	TypeObject SchemaType = "object"
-	// TypeInteger represents the JSON Schema "integer" type.
-	TypeInteger SchemaType = "integer"
-	// TypeNumber represents the JSON Schema "number" type.
-	TypeNumber SchemaType = "number"
-	// TypeBoolean represents the JSON Schema "boolean" type.
-	TypeBoolean SchemaType = "boolean"
-	// TypeArray represents the JSON Schema "array" type.
-	TypeArray SchemaType = "array"
-	// TypeNull represents the JSON Schema "null" type.
-	TypeNull SchemaType = "null"
-)
-
-// String returns the underlying string value.
 func (id ServiceID) String() string { return string(id) }
 
-// DomainID identifies a business domain in the catalog (e.g., "users").
 type DomainID string
 
-// String returns the underlying string value.
 func (id DomainID) String() string { return string(id) }
 
-// MessageID identifies a message in the catalog (e.g., "CreateUser").
 type MessageID string
 
-// String returns the underlying string value.
 func (id MessageID) String() string { return string(id) }
 
-// ChannelID identifies a messaging channel in the catalog (e.g., "user.commands").
 type ChannelID string
 
-// String returns the underlying string value.
 func (id ChannelID) String() string { return string(id) }
 
-// DataStoreID identifies a data store in the catalog (e.g., "orders-db").
 type DataStoreID string
 
-// String returns the underlying string value.
 func (id DataStoreID) String() string { return string(id) }
 
-// FlowID identifies a message flow in the catalog (e.g., "create-order").
 type FlowID string
 
-// String returns the underlying string value.
 func (id FlowID) String() string { return string(id) }
 
-// TeamID identifies a team in the catalog (e.g., "order-team").
 type TeamID string
 
-// String returns the underlying string value.
 func (id TeamID) String() string { return string(id) }
 
-// UserID identifies a user in the catalog (e.g., "alice").
 type UserID string
 
-// String returns the underlying string value.
 func (id UserID) String() string { return string(id) }
 
-// Direction represents the flow direction of a message relative to a service.
 type Direction string
 
 const (
-	// Sends indicates the service publishes this message.
-	Sends Direction = "sends"
-	// Receives indicates the service consumes this message.
+	Sends    Direction = "sends"
 	Receives Direction = "receives"
 )
 
-// MessageKind categorizes a message as a command, event, or query.
 type MessageKind string
 
 const (
-	// CommandMessage identifies a command message.
 	CommandMessage MessageKind = "command"
-	// EventMessage identifies an event message.
-	EventMessage MessageKind = "event"
-	// QueryMessage identifies a query message.
-	QueryMessage MessageKind = "query"
+	EventMessage   MessageKind = "event"
+	QueryMessage   MessageKind = "query"
 )
 
-// Message describes a single command, event, or query in the catalog.
+type Schema = schema.Schema
+
+type SchemaType = schema.Type
+
+const (
+	TypeString  = schema.TypeString
+	TypeObject  = schema.TypeObject
+	TypeInteger = schema.TypeInteger
+	TypeNumber  = schema.TypeNumber
+	TypeBoolean = schema.TypeBoolean
+	TypeArray   = schema.TypeArray
+	TypeNull    = schema.TypeNull
+)
+
+type Property = schema.Property
+
 type Message struct {
 	Kind       MessageKind       `json:"kind"`
 	ID         MessageID         `json:"id"`
@@ -115,32 +89,6 @@ type Message struct {
 	Repository *Repository       `json:"repository,omitempty"`
 }
 
-// Schema represents a JSON Schema object with properties, required fields, and items.
-type Schema struct {
-	Type       SchemaType          `json:"type"`
-	Properties map[string]Property `json:"properties,omitempty"`
-	Required   []string            `json:"required,omitempty"`
-	Items      *Property           `json:"items,omitempty"`
-	Examples   []json.RawMessage   `json:"examples,omitempty"`
-}
-
-// Property describes a single field within a JSON Schema.
-type Property struct {
-	Type        SchemaType          `json:"type"`
-	Description string              `json:"description,omitempty"`
-	Format      string              `json:"format,omitempty"`
-	Properties  map[string]Property `json:"properties,omitempty"`
-	Items       *Property           `json:"items,omitempty"`
-	Required    []string            `json:"required,omitempty"`
-	Default     string              `json:"default,omitempty"`
-	Enum        []string            `json:"enum,omitempty"`
-	Nullable    bool                `json:"nullable,omitempty"`
-	Deprecated  bool                `json:"deprecated,omitempty"`
-	Pattern     string              `json:"pattern,omitempty"`
-	Examples    []json.RawMessage   `json:"examples,omitempty"`
-}
-
-// Service groups related commands, events, and queries under a logical service.
 type Service struct {
 	ID             ServiceID       `json:"id"`
 	Name           string          `json:"name"`
@@ -160,7 +108,6 @@ type Service struct {
 	Attachments    []Attachment    `json:"attachments,omitempty"`
 }
 
-// Domain represents a business domain that groups multiple services.
 type Domain struct {
 	ID          DomainID     `json:"id"`
 	Name        string       `json:"name"`
@@ -176,7 +123,6 @@ type Domain struct {
 	Attachments []Attachment `json:"attachments,omitempty"`
 }
 
-// Channel represents a messaging channel used for message transport.
 type Channel struct {
 	ID                ChannelID               `json:"id"`
 	Name              string                  `json:"name"`
@@ -192,7 +138,6 @@ type Channel struct {
 	Badges            []Badge                 `json:"badges,omitempty"`
 }
 
-// Catalog is an immutable snapshot of all registered resources.
 type Catalog struct {
 	Title      string      `json:"title"`
 	Version    string      `json:"version"`
@@ -205,7 +150,6 @@ type Catalog struct {
 	Users      []User      `json:"users,omitempty"`
 }
 
-// GetID returns the ID of a message, falling back to its Name if ID is empty.
 func GetID(msg Message) MessageID {
 	if msg.ID != "" {
 		return msg.ID

@@ -132,6 +132,7 @@ func (s *EventStore) LoadFromVersion(
 	}
 
 	var filtered []event.Event
+
 	for _, evt := range events {
 		if evt.Version() > version {
 			filtered = append(filtered, evt)

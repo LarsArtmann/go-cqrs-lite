@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/stream
+module github.com/larsartmann/go-cqrs-lite/listing
 
 go 1.26.3
 
@@ -39,5 +39,5 @@ require (
 replace (
 	github.com/larsartmann/go-cqrs-lite/core => ../core
 	github.com/larsartmann/go-cqrs-lite/memory => ../memory
-	github.com/larsartmann/go-cqrs-lite/stream => ./
+	github.com/larsartmann/go-cqrs-lite/listing => ./
 )
