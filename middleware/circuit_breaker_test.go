@@ -14,15 +14,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
-func TestCommandCircuitBreaker_OpensAfterFailures(t *testing.T) {
-	t.Parallel()
-
-	config := CircuitBreakerConfig{
-		FailureThreshold: 3,
-		SuccessThreshold: 1,
+func testCBConfig(failureThreshold, successThreshold int) CircuitBreakerConfig {
+	return CircuitBreakerConfig{
+		FailureThreshold: failureThreshold,
+		SuccessThreshold: successThreshold,
 		Timeout:          50 * time.Millisecond,
 		IsFailure:        func(err error) bool { return true },
 	}
+}
+
+func TestCommandCircuitBreaker_OpensAfterFailures(t *testing.T) {
+	t.Parallel()
+
+	config := testCBConfig(3, 1)
 
 	handler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
 
@@ -41,12 +45,7 @@ func TestCommandCircuitBreaker_OpensAfterFailures(t *testing.T) {
 func TestCommandCircuitBreaker_HalfOpenAfterTimeout(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 2,
-		SuccessThreshold: 1,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(2, 1)
 
 	failingHandler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
 
@@ -91,12 +90,7 @@ func TestCommandCircuitBreaker_InvalidConfig(t *testing.T) {
 func TestEventCircuitBreaker(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 2,
-		SuccessThreshold: 1,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(2, 1)
 
 	handler := EventCircuitBreaker(config)(testhelpers.FailingEventHandler("fail"))
 	evt := mustCBTestEvent(t)
@@ -114,12 +108,7 @@ func TestEventCircuitBreaker(t *testing.T) {
 func TestQueryCircuitBreaker(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 2,
-		SuccessThreshold: 1,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(2, 1)
 
 	handler := QueryCircuitBreaker(config)(func(_ context.Context, _ query.Query) (any, error) {
 		return nil, errors.New("fail")
@@ -176,12 +165,7 @@ func TestCircuitBreakerConfig_Validate(t *testing.T) {
 func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 2,
-		SuccessThreshold: 3,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(2, 3)
 
 	mw := CommandCircuitBreaker(config)
 	failingHandler := mw(testhelpers.FailingCommandHandler("fail"))
@@ -215,12 +199,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 func TestCommandCircuitBreaker_HalfOpenReopensOnFailure(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 1,
-		SuccessThreshold: 2,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(1, 2)
 
 	mw := CommandCircuitBreaker(config)
 	handler := mw(testhelpers.FailingCommandHandler("fail"))
@@ -268,12 +247,7 @@ func TestCommandCircuitBreaker_NonFailureErrorRecordsSuccess(t *testing.T) {
 func TestCommandCircuitBreaker_WithLogger(t *testing.T) {
 	t.Parallel()
 
-	config := CircuitBreakerConfig{
-		FailureThreshold: 1,
-		SuccessThreshold: 1,
-		Timeout:          50 * time.Millisecond,
-		IsFailure:        func(err error) bool { return true },
-	}
+	config := testCBConfig(1, 1)
 
 	handler := CommandCircuitBreaker(config, WithLogger(slog.Default()))(testhelpers.FailingCommandHandler("fail"))
 

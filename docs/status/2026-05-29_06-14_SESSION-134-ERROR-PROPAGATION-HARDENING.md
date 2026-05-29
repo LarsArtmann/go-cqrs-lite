@@ -19,28 +19,28 @@ Fixed **23 medium-severity error propagation issues** across 13 files, bringing 
 
 Every error return site now includes the critical context variable that was previously lost. Wrapped errors preserve `errors.Is()` compatibility.
 
-| # | File | Fix | Context Added |
-|---|------|-----|---------------|
-| 1 | `cmd/api-stability/main.go:117` | Wrap `err` from ParseDir | `dir` |
-| 2 | `example/user/catalog.go:78` | Wrap eventcatalog export error | `outputDir` |
-| 3 | `example/user/catalog.go:85` | Wrap d2 write error | `d2Path` |
-| 4 | `example/user/catalog.go:92` | Wrap asyncapi write error | `asyncPath` |
-| 5 | `storage/checkpoint.go:73` | Conditional wrap Load error | `projectionName` |
-| 6 | `storage/checkpoint.go:96` | Conditional wrap Save error | `projectionName` |
-| 7 | `watermill/subscriber.go:41` | Wrap ErrBusClosed | `topic` |
-| 8 | `watermill/subscriber.go:43` | Wrap ctx.Err() | `topic` |
-| 9 | `middleware/circuit_breaker.go:222` | Wrap rejection error | `opName` |
-| 10 | `middleware/circuit_breaker.go:238` | Wrap execution error | `opName` |
-| 11 | `storage/outbox.go:148` | Wrap scan error | `limit` |
-| 12 | `stream/projection.go:22` | Wrap validation error | `tablePrefix` |
-| 13 | `watermill/protocol.go:99` | Wrap parseInt error | `topic`, field name |
-| 14 | `watermill/protocol.go:106` | Wrap parseInt error | `topic`, field name |
-| 15 | `testhelpers/fake_store.go:237` | Wrap ReadAll error | `limit`, `afterEventID` |
-| 16 | `memory/store_load.go:106` | Wrap ErrAggregateNotFound | `aggregateType`, `aggregateID` |
-| 17 | `storage/event_store_global.go:72` | Conditional wrap loadAllFromStart error | `limit` |
-| 18 | `storage/event_store_global.go:113` | Conditional wrap scanEvents error | `limit` |
-| 19 | `storage/event_store_load.go:186` | Wrap ErrAggregateNotFound | `aggregateType`, `aggregateID` |
-| 20 | `stream/sql_reader.go:25` | Wrap validation error | `tablePrefix` |
+| #   | File                                | Fix                                     | Context Added                  |
+| --- | ----------------------------------- | --------------------------------------- | ------------------------------ |
+| 1   | `cmd/api-stability/main.go:117`     | Wrap `err` from ParseDir                | `dir`                          |
+| 2   | `example/user/catalog.go:78`        | Wrap eventcatalog export error          | `outputDir`                    |
+| 3   | `example/user/catalog.go:85`        | Wrap d2 write error                     | `d2Path`                       |
+| 4   | `example/user/catalog.go:92`        | Wrap asyncapi write error               | `asyncPath`                    |
+| 5   | `storage/checkpoint.go:73`          | Conditional wrap Load error             | `projectionName`               |
+| 6   | `storage/checkpoint.go:96`          | Conditional wrap Save error             | `projectionName`               |
+| 7   | `watermill/subscriber.go:41`        | Wrap ErrBusClosed                       | `topic`                        |
+| 8   | `watermill/subscriber.go:43`        | Wrap ctx.Err()                          | `topic`                        |
+| 9   | `middleware/circuit_breaker.go:222` | Wrap rejection error                    | `opName`                       |
+| 10  | `middleware/circuit_breaker.go:238` | Wrap execution error                    | `opName`                       |
+| 11  | `storage/outbox.go:148`             | Wrap scan error                         | `limit`                        |
+| 12  | `stream/projection.go:22`           | Wrap validation error                   | `tablePrefix`                  |
+| 13  | `watermill/protocol.go:99`          | Wrap parseInt error                     | `topic`, field name            |
+| 14  | `watermill/protocol.go:106`         | Wrap parseInt error                     | `topic`, field name            |
+| 15  | `testhelpers/fake_store.go:237`     | Wrap ReadAll error                      | `limit`, `afterEventID`        |
+| 16  | `memory/store_load.go:106`          | Wrap ErrAggregateNotFound               | `aggregateType`, `aggregateID` |
+| 17  | `storage/event_store_global.go:72`  | Conditional wrap loadAllFromStart error | `limit`                        |
+| 18  | `storage/event_store_global.go:113` | Conditional wrap scanEvents error       | `limit`                        |
+| 19  | `storage/event_store_load.go:186`   | Wrap ErrAggregateNotFound               | `aggregateType`, `aggregateID` |
+| 20  | `stream/sql_reader.go:25`           | Wrap validation error                   | `tablePrefix`                  |
 
 ### 2. Test Correctness Fix
 
@@ -48,10 +48,10 @@ Every error return site now includes the critical context variable that was prev
 
 ### 3. False Positives Correctly Skipped (2)
 
-| File | Reason |
-|------|--------|
-| `saga/runner.go:83` | `sagaType` already in error message: `"saga "+sagaType+" not registered"` |
-| `core/decider/load.go:71` | `msg` IS the error content, `aggID` already in prefix string |
+| File                      | Reason                                                                    |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `saga/runner.go:83`       | `sagaType` already in error message: `"saga "+sagaType+" not registered"` |
+| `core/decider/load.go:71` | `msg` IS the error content, `aggID` already in prefix string              |
 
 ### 4. Build Verification
 
@@ -101,6 +101,7 @@ The previous session (commits `7c6202b`/`d10d7af`) refactored OTEL attribute hel
 ### 2. OTEL Test Type Mismatches
 
 `otel/otel_test.go` has 3 test functions that pass `string` literals to `fmt.Stringer` parameters:
+
 - `TestAggregateAttrs_ReturnsCorrectAttributes` (line 145)
 - `TestCommandAttrs_ReturnsCorrectAttributes` (line 156)
 - `TestEventAttrs_ReturnsCorrectAttributes` (line 167)
@@ -141,53 +142,53 @@ The `otel` module builds and tests pass because `testStringer` helper wraps them
 
 ### P0 — Immediate (breaks build / blocks others)
 
-| # | Task | Module | Effort |
-|---|------|--------|--------|
-| 1 | Commit the 8 uncommitted OTEL refactoring files | storage, core/decider | 5 min |
-| 2 | Audit all test files for `err == sentinel` → `errors.Is(err, sentinel)` | all | 30 min |
-| 3 | Restart gopls and verify zero phantom errors | — | 2 min |
+| #   | Task                                                                    | Module                | Effort |
+| --- | ----------------------------------------------------------------------- | --------------------- | ------ |
+| 1   | Commit the 8 uncommitted OTEL refactoring files                         | storage, core/decider | 5 min  |
+| 2   | Audit all test files for `err == sentinel` → `errors.Is(err, sentinel)` | all                   | 30 min |
+| 3   | Restart gopls and verify zero phantom errors                            | —                     | 2 min  |
 
 ### P1 — High Impact
 
-| # | Task | Module | Effort |
-|---|------|--------|--------|
-| 4 | Add custom linter rule for bare `return err` without context | tooling | 2 hr |
-| 5 | Push release tags to remote (`git push --tags`) | release | 5 min |
-| 6 | Remove replace directives from go.mod files after tag push | build | 30 min |
-| 7 | Add ProcessedAt to CheckpointStore | storage | 1 hr |
-| 8 | Write error wrapping style guide in docs/adr/ | docs | 1 hr |
-| 9 | Full coverage scan — get all modules to >90% | all | 2 hr |
+| #   | Task                                                         | Module  | Effort |
+| --- | ------------------------------------------------------------ | ------- | ------ |
+| 4   | Add custom linter rule for bare `return err` without context | tooling | 2 hr   |
+| 5   | Push release tags to remote (`git push --tags`)              | release | 5 min  |
+| 6   | Remove replace directives from go.mod files after tag push   | build   | 30 min |
+| 7   | Add ProcessedAt to CheckpointStore                           | storage | 1 hr   |
+| 8   | Write error wrapping style guide in docs/adr/                | docs    | 1 hr   |
+| 9   | Full coverage scan — get all modules to >90%                 | all     | 2 hr   |
 
 ### P2 — Quality Improvements
 
-| # | Task | Module | Effort |
-|---|------|--------|--------|
-| 10 | Move example/todo to own repository | example | 30 min |
-| 11 | Add PostgreSQL integration tests with testcontainers | storage | 4 hr |
-| 12 | Bump testhelpers to v1.2.0 after tag push | release | 15 min |
-| 13 | Add catalog diff/breaking-change detection tool | catalog | 4 hr |
-| 14 | High-level test utilities (AggregateTester, ProjectionTester) | testhelpers | 8 hr |
-| 15 | Document OTEL attribute conventions in ADR | docs | 1 hr |
-| 16 | Add ServerReceivedAt / ServerStoredAt timestamps | event | 4 hr |
-| 17 | Verify circuit breaker wrapping doesn't break any consumer expectations | middleware | 30 min |
+| #   | Task                                                                    | Module      | Effort |
+| --- | ----------------------------------------------------------------------- | ----------- | ------ |
+| 10  | Move example/todo to own repository                                     | example     | 30 min |
+| 11  | Add PostgreSQL integration tests with testcontainers                    | storage     | 4 hr   |
+| 12  | Bump testhelpers to v1.2.0 after tag push                               | release     | 15 min |
+| 13  | Add catalog diff/breaking-change detection tool                         | catalog     | 4 hr   |
+| 14  | High-level test utilities (AggregateTester, ProjectionTester)           | testhelpers | 8 hr   |
+| 15  | Document OTEL attribute conventions in ADR                              | docs        | 1 hr   |
+| 16  | Add ServerReceivedAt / ServerStoredAt timestamps                        | event       | 4 hr   |
+| 17  | Verify circuit breaker wrapping doesn't break any consumer expectations | middleware  | 30 min |
 
 ### P3 — v2 Breaking Changes
 
-| # | Task | Module | Effort |
-|---|------|--------|--------|
-| 18 | query.Handler generic TypedHandler[T] returning (T, error) | query | 4 hr |
-| 19 | Add global TransactionID branded type | core | 2 hr |
-| 20 | Remove io.Closer from core interfaces | core | 4 hr |
-| 21 | Pebble event store — seekable journal support | storage | 4 hr |
+| #   | Task                                                       | Module  | Effort |
+| --- | ---------------------------------------------------------- | ------- | ------ |
+| 18  | query.Handler generic TypedHandler[T] returning (T, error) | query   | 4 hr   |
+| 19  | Add global TransactionID branded type                      | core    | 2 hr   |
+| 20  | Remove io.Closer from core interfaces                      | core    | 4 hr   |
+| 21  | Pebble event store — seekable journal support              | storage | 4 hr   |
 
 ### P4 — Future / Speculative
 
-| # | Task | Module | Effort |
-|---|------|--------|--------|
-| 22 | Nix flake migration (replace justfile fully) | infra | 8 hr |
-| 23 | Event schema registry with protobuf support | catalog | 16 hr |
-| 24 | Multi-region event replication | storage | 40 hr |
-| 25 | Consumer group support for projection parallelism | projection | 16 hr |
+| #   | Task                                              | Module     | Effort |
+| --- | ------------------------------------------------- | ---------- | ------ |
+| 22  | Nix flake migration (replace justfile fully)      | infra      | 8 hr   |
+| 23  | Event schema registry with protobuf support       | catalog    | 16 hr  |
+| 24  | Multi-region event replication                    | storage    | 40 hr  |
+| 25  | Consumer group support for projection parallelism | projection | 16 hr  |
 
 ---
 
@@ -201,33 +202,33 @@ The files (`core/decider/decider.go`, `core/decider/otel.go`, `otel/attributes.g
 
 ## Test Coverage Summary
 
-| Package | Coverage |
-|---------|----------|
-| core/aggregate | 100.0% |
-| core/command | 94.3% |
-| core/decider | 100.0% |
-| core/event | 92.5% |
-| core/pkg/dispatcher | 100.0% |
-| core/pkg/id | 100.0% |
-| core/query | 96.8% |
-| memory | 99.6% |
-| catalog | 96.3% |
-| catalog/asyncapi | 93.7% |
-| catalog/d2 | 95.0% |
-| catalog/docserver | 89.9% |
-| catalog/eventcatalog | 92.8% |
-| catalog/internal/caseutil | 100.0% |
-| catalog/internal/schemautil | 84.2% |
-| catalog/openapi | 96.2% |
-| middleware | 93.9% |
-| testhelpers | 93.3% |
-| projection | 89.0% |
-| signing | 93.8% |
-| storage | 90.1% |
-| saga | 93.1% |
-| stream | 93.9% |
-| watermill | 94.4% |
-| otel | 93.3% |
+| Package                     | Coverage |
+| --------------------------- | -------- |
+| core/aggregate              | 100.0%   |
+| core/command                | 94.3%    |
+| core/decider                | 100.0%   |
+| core/event                  | 92.5%    |
+| core/pkg/dispatcher         | 100.0%   |
+| core/pkg/id                 | 100.0%   |
+| core/query                  | 96.8%    |
+| memory                      | 99.6%    |
+| catalog                     | 96.3%    |
+| catalog/asyncapi            | 93.7%    |
+| catalog/d2                  | 95.0%    |
+| catalog/docserver           | 89.9%    |
+| catalog/eventcatalog        | 92.8%    |
+| catalog/internal/caseutil   | 100.0%   |
+| catalog/internal/schemautil | 84.2%    |
+| catalog/openapi             | 96.2%    |
+| middleware                  | 93.9%    |
+| testhelpers                 | 93.3%    |
+| projection                  | 89.0%    |
+| signing                     | 93.8%    |
+| storage                     | 90.1%    |
+| saga                        | 93.1%    |
+| stream                      | 93.9%    |
+| watermill                   | 94.4%    |
+| otel                        | 93.3%    |
 
 **All 31 packages: PASS. Zero failures.**
 
@@ -236,6 +237,7 @@ The files (`core/decider/decider.go`, `core/decider/otel.go`, `otel/attributes.g
 ## Files Changed This Session
 
 ### Error Propagation (committed)
+
 - `cmd/api-stability/main.go`
 - `example/user/catalog.go`
 - `storage/checkpoint.go`
@@ -252,6 +254,7 @@ The files (`core/decider/decider.go`, `core/decider/otel.go`, `otel/attributes.g
 - `core/event/stream_test.go` (test fix)
 
 ### OTEL Refactoring (pre-existing, uncommitted)
+
 - `core/decider/decider.go`
 - `core/decider/otel.go`
 - `otel/attributes.go`

@@ -8,6 +8,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
+func registerHandler(d *query.Dispatcher, name query.Type, result any) {
+	_ = d.Register(name, func(_ context.Context, _ query.Query) (any, error) {
+		return result, nil
+	})
+}
+
 func useMiddleware(called *bool, d *query.Dispatcher) {
 	d.Use(func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
@@ -140,9 +146,7 @@ func TestDispatcher_Dispatch_Success(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return "result", nil
-	})
+	registerHandler(d, "TestQuery", "result")
 
 	q := query.MustNew("TestQuery")
 
@@ -160,9 +164,7 @@ func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
 	t.Parallel()
 
 	d := query.NewDispatcher()
-	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return "", nil
-	})
+	registerHandler(d, "TestQuery", "")
 	_ = d.Close()
 
 	q := query.MustNew("TestQuery")
@@ -197,9 +199,7 @@ func TestDispatcher_Use(t *testing.T) {
 	var called bool
 	useMiddleware(&called, d)
 
-	_ = d.Register("TestQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return "result", nil
-	})
+	registerHandler(d, "TestQuery", "result")
 
 	q := query.MustNew("TestQuery")
 
@@ -236,9 +236,7 @@ func TestDispatchTyped_TypeMismatch(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	_ = d.Register("IntQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return 42, nil
-	})
+	registerHandler(d, "IntQuery", 42)
 
 	q := query.MustNew("IntQuery")
 
@@ -253,9 +251,7 @@ func TestDispatchTyped_Success(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	_ = d.Register("StringQuery", func(_ context.Context, _ query.Query) (any, error) {
-		return "hello", nil
-	})
+	registerHandler(d, "StringQuery", "hello")
 
 	q := query.MustNew("StringQuery")
 
