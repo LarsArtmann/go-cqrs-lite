@@ -33,7 +33,7 @@ var _ = Describe("MemoryStore", func() {
 
 	Describe("As a developer using the in-memory event store", func() {
 		Context("when I save events for a new aggregate", func() {
-			It("should persist them and allow loading", func() {
+			It("should persist them and let me load them back for my aggregate reconstruction", func() {
 				events := []event.Event{makeMemEvent("Created", aggID, 1)}
 				err := store.Save(ctx, "TestAggregate", aggID, events, 0)
 				Expect(err).ToNot(HaveOccurred())
@@ -46,7 +46,7 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I save events with the wrong expected version", func() {
-			It("should return an error", func() {
+			It("should detect the version mismatch so concurrent writers don't silently overwrite each other", func() {
 				events := []event.Event{makeMemEvent("Created", aggID, 1)}
 				err := store.Save(ctx, "TestAggregate", aggID, events, 0)
 				Expect(err).ToNot(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I append batch events", func() {
-			It("should add them after existing events", func() {
+			It("should append them after existing events for bulk imports without re-specifying the version", func() {
 				initial := []event.Event{makeMemEvent("Created", aggID, 1)}
 				Expect(store.Save(ctx, "TestAggregate", aggID, initial, 0)).To(Succeed())
 
@@ -83,7 +83,7 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I load events from a specific version", func() {
-			It("should return only events from that version onward", func() {
+			It("should return only events from that version onward so I can replay just what I missed", func() {
 				events := []event.Event{
 					makeMemEvent("Created", aggID, 1),
 					makeMemEvent("Updated", aggID, 2),
@@ -106,7 +106,7 @@ var _ = Describe("MemoryStore", func() {
 		})
 
 		Context("when I close the store", func() {
-			It("should reject further operations", func() {
+			It("should reject all further operations so I don't use a closed store by accident", func() {
 				Expect(store.Close()).To(Succeed())
 
 				err := store.Save(ctx, "TestAggregate", aggID,
@@ -130,7 +130,7 @@ var _ = Describe("MemoryBus", func() {
 
 	Describe("As a developer using the in-memory event bus", func() {
 		Context("when I publish events", func() {
-			It("should deliver them to type-specific subscribers", func() {
+			It("should deliver them only to subscribers who registered for that specific type", func() {
 				var received []event.Event
 
 				err := bus.Subscribe("UserCreated", func(_ context.Context, evt event.Event) error {
@@ -149,7 +149,7 @@ var _ = Describe("MemoryBus", func() {
 		})
 
 		Context("when I subscribe to all events", func() {
-			It("should receive events of any type", func() {
+			It("should receive events of any type for cross-cutting concerns like audit logging", func() {
 				var received []event.Event
 
 				err := bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
@@ -171,7 +171,7 @@ var _ = Describe("MemoryBus", func() {
 		})
 
 		Context("when I close the bus", func() {
-			It("should reject further operations", func() {
+			It("should reject all further operations so I don't publish to a shut-down bus", func() {
 				Expect(bus.Close()).To(Succeed())
 
 				err := bus.Publish(ctx, makeMemEvent("UserCreated", id.NewAggregateID(), 1))

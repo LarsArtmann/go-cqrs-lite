@@ -201,7 +201,7 @@ var _ = Describe("Decider Repository", func() {
 		})
 
 		Context("when I load an aggregate that does not exist", func() {
-			It("should return initial state and version 0", func() {
+			It("should give me the initial state and version 0, so I know this aggregate has no history", func() {
 				state, version, err := repo.Load(ctx, aggID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(0))
@@ -210,7 +210,7 @@ var _ = Describe("Decider Repository", func() {
 		})
 
 		Context("when I decide based on current state", func() {
-			It("should receive the folded state from previous events", func() {
+			It("should pass the folded state from previous events so my decide function sees the full picture", func() {
 				createCounter(ctx, repo, aggID)
 
 				var receivedState bddCounter

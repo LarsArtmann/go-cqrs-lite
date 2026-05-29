@@ -46,7 +46,7 @@ var _ = Describe("Recovery Middleware", func() {
 		})
 
 		Context("when my handler succeeds normally", func() {
-			It("should pass through without interference", func() {
+			It("should let my handler succeed normally without any overhead", func() {
 				mw := middleware.CommandRecovery()
 				handler := mw(func(_ context.Context, _ command.Command) error {
 					return nil
@@ -58,7 +58,7 @@ var _ = Describe("Recovery Middleware", func() {
 		})
 
 		Context("when my handler returns a normal error", func() {
-			It("should propagate the error unchanged", func() {
+			It("should surface my business error unchanged so I can handle it upstream", func() {
 				expectedErr := errors.New("business rule violated")
 				mw := middleware.CommandRecovery()
 				handler := mw(func(_ context.Context, _ command.Command) error {

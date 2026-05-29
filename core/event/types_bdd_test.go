@@ -10,7 +10,7 @@ import (
 var _ = Describe("Version", func() {
 	Describe("As a developer working with event versions", func() {
 		Context("when I parse a valid version", func() {
-			It("should return the version without error", func() {
+			It("should accept it so I can use it for optimistic concurrency checks", func() {
 				v, err := event.ParseVersion(5)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v.Int()).To(Equal(5))
@@ -18,14 +18,14 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I parse a negative version", func() {
-			It("should return an error", func() {
+			It("should reject it because negative versions are meaningless in event sourcing", func() {
 				_, err := event.ParseVersion(-1)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when I parse zero", func() {
-			It("should succeed and report IsZero", func() {
+			It("should accept it as 'no events yet', letting me distinguish new aggregates", func() {
 				v, err := event.ParseVersion(0)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v.IsZero()).To(BeTrue())
@@ -33,7 +33,7 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I increment a version", func() {
-			It("should return a new version without mutating the original", func() {
+			It("should return a new version without mutating the original, so I don't corrupt my state", func() {
 				v := event.Version(3)
 				v2 := v.Increment()
 				Expect(v2.Int()).To(Equal(4))
@@ -42,45 +42,45 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I call IsPositive", func() {
-			It("should be true for positive versions", func() {
+			It("should be true for positive versions, telling me the aggregate has events", func() {
 				Expect(event.Version(1).IsPositive()).To(BeTrue())
 			})
 
-			It("should be false for zero", func() {
+			It("should be false for zero, telling me the aggregate is new", func() {
 				Expect(event.Version(0).IsPositive()).To(BeFalse())
 			})
 		})
 
 		Context("when I use arithmetic methods", func() {
-			It("should add correctly", func() {
+			It("should add correctly so I can project ahead in my snapshot strategy", func() {
 				Expect(event.Version(5).Add(3).Int()).To(Equal(8))
 			})
 
-			It("should subtract correctly", func() {
+			It("should subtract correctly so I can compute how many events to replay", func() {
 				Expect(event.Version(5).Sub(2).Int()).To(Equal(3))
 			})
 
-			It("should compute modulo correctly", func() {
+			It("should compute modulo correctly so I can implement every-N-events snapshotting", func() {
 				Expect(event.Version(7).Mod(3)).To(Equal(1))
 			})
 		})
 
 		Context("when I compare versions with Cmp", func() {
-			It("should return -1 when less than other", func() {
+			It("should return -1 when less than other, helping me detect version drift", func() {
 				Expect(event.Version(1).Cmp(event.Version(3))).To(Equal(-1))
 			})
 
-			It("should return 0 when equal", func() {
+			It("should return 0 when equal, confirming my optimistic concurrency check passes", func() {
 				Expect(event.Version(3).Cmp(event.Version(3))).To(Equal(0))
 			})
 
-			It("should return +1 when greater than other", func() {
+			It("should return +1 when greater than other, telling me I'm ahead of the store", func() {
 				Expect(event.Version(5).Cmp(event.Version(3))).To(Equal(1))
 			})
 		})
 
 		Context("when I convert to string", func() {
-			It("should return the decimal representation", func() {
+			It("should return the decimal representation for logging and debugging", func() {
 				Expect(event.Version(42).String()).To(Equal("42"))
 			})
 		})
@@ -90,24 +90,24 @@ var _ = Describe("Version", func() {
 var _ = Describe("SchemaVersion", func() {
 	Describe("As a developer managing event schema evolution", func() {
 		Context("when I create a SchemaVersion", func() {
-			It("should return the correct Int value", func() {
+			It("should hold the version so I can track which schema migration each event uses", func() {
 				sv := event.SchemaVersion(2)
 				Expect(sv.Int()).To(Equal(2))
 			})
 		})
 
 		Context("when I convert to string", func() {
-			It("should return the decimal representation", func() {
+			It("should return the decimal representation for my migration logs", func() {
 				Expect(event.SchemaVersion(3).String()).To(Equal("3"))
 			})
 		})
 
 		Context("when I check IsZero", func() {
-			It("should be true for zero schema version", func() {
+			It("should be true for zero, meaning no schema version was specified (legacy events)", func() {
 				Expect(event.SchemaVersion(0).IsZero()).To(BeTrue())
 			})
 
-			It("should be false for non-zero schema version", func() {
+			It("should be false for non-zero, meaning the event has explicit schema tracking", func() {
 				Expect(event.SchemaVersion(1).IsZero()).To(BeFalse())
 			})
 		})
@@ -117,7 +117,7 @@ var _ = Describe("SchemaVersion", func() {
 var _ = Describe("CheckVersionConflict", func() {
 	Describe("As a developer implementing optimistic concurrency", func() {
 		Context("when existing length matches expected version", func() {
-			It("should return nil", func() {
+			It("should let my save proceed because nobody else modified this aggregate", func() {
 				err := event.CheckVersionConflict(3, event.Version(3))
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -132,7 +132,7 @@ var _ = Describe("CheckVersionConflict", func() {
 		})
 
 		Context("when starting fresh with zero events", func() {
-			It("should succeed when expected version is zero", func() {
+			It("should succeed when expected version is zero, confirming a brand-new aggregate", func() {
 				err := event.CheckVersionConflict(0, event.Version(0))
 				Expect(err).ToNot(HaveOccurred())
 			})

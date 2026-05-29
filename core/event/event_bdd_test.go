@@ -85,7 +85,7 @@ var _ = Describe("Event Creation", func() {
 		})
 
 		Context("when I clone an event", func() {
-			It("should produce an independent deep copy", func() {
+			It("should give me an independent copy so I can mutate it without affecting the original", func() {
 				evt, err := event.NewEvent(
 					"UserCreated", id.NewAggregateID(), "User", 1,
 					[]byte(`{"name":"Alice"}`),
@@ -152,6 +152,27 @@ var _ = Describe("Event Store via MemoryStore", func() {
 			})
 		})
 
+		Context("when my save conflicts, but I reload and retry with the correct version", func() {
+			It("should succeed on the second attempt so I can recover from concurrent writes", func() {
+				Expect(store.Save(ctx, aggType, aggID, []event.Event{
+					mustNewEvent("OrderPlaced", aggID, aggType, 1),
+				}, 0)).To(Succeed())
+
+				err := store.Save(ctx, aggType, aggID, []event.Event{
+					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+				}, 0)
+				Expect(err).To(HaveOccurred())
+
+				loaded, loadErr := store.Load(ctx, aggType, aggID)
+				Expect(loadErr).ToNot(HaveOccurred())
+				currentVersion := len(loaded)
+
+				Expect(store.Save(ctx, aggType, aggID, []event.Event{
+					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+				}, event.Version(currentVersion))).To(Succeed())
+			})
+		})
+
 		Context("when I close the store", func() {
 			BeforeEach(func() {
 				Expect(store.Save(ctx, aggType, aggID, []event.Event{
@@ -159,7 +180,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				}, 0)).To(Succeed())
 			})
 
-			It("should reject further operations", func() {
+			It("should reject any further operations so I don't accidentally use a closed store", func() {
 				Expect(store.Close()).To(Succeed())
 
 				err := store.Save(ctx, aggType, aggID, []event.Event{
@@ -215,7 +236,7 @@ var _ = Describe("Schema Evolution", func() {
 		})
 
 		Context("when events already at the latest version are loaded", func() {
-			It("should pass them through unchanged", func() {
+			It("should skip upcasting and keep my data intact, avoiding unnecessary transformations", func() {
 				v2Event, err := event.NewEvent(
 					"UserCreated", aggID, "User", 1,
 					[]byte(`{"name":"Alice","email":"a@b.com"}`),
@@ -278,17 +299,17 @@ var _ = Describe("Schema Evolution", func() {
 var _ = Describe("Error Classification", func() {
 	Describe("As a developer building retry logic", func() {
 		Context("when I classify errors", func() {
-			It("should identify transient errors as retryable", func() {
+			It("should treat transient errors as safe to retry, so my infrastructure can self-heal", func() {
 				err := event.NewTransient("test.retry", "connection timeout")
 				Expect(event.IsRetryable(err)).To(BeTrue())
 			})
 
-			It("should identify rejection errors as non-retryable", func() {
+			It("should treat rejection errors as permanent, so I stop retrying bad input", func() {
 				err := event.NewRejection("test.reject", "invalid input")
 				Expect(event.IsRetryable(err)).To(BeFalse())
 			})
 
-			It("should identify conflict errors as non-retryable", func() {
+			It("should treat conflict errors as permanent, so I don't hammer a version mismatch", func() {
 				err := event.NewConflict("test.conflict", "version mismatch")
 				Expect(event.IsRetryable(err)).To(BeFalse())
 			})
