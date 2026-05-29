@@ -116,21 +116,30 @@ These items from Session 130's backlog remain untouched:
 
 ---
 
-## d) TOTALLY FUCKED UP
+## d) INCORRECTLY REPORTED AS BROKEN — ALL FALSE POSITIVES
 
-### Pre-existing build failures (NOT introduced by this session)
+### Session 131 claimed pre-existing build failures. Session 132 investigation proved ALL were gopls false positives.
 
-- **`saga/health_test.go`** — References undefined `testhelpers.NewFakeCommandDispatcher` and `saga.DefinitionFuncs` — build fails
-- **`projection/health_test.go`** — References undefined `testhelpers.NewFakeCheckpointStore`, `testhelpers.NewNoopProjection` — build fails
-- **`core/aggregate/aggregate_test.go`** — References `github.com/stretchr/testify` not in go.mod
-- **`middleware/tracing_logging_test.go`** — References undefined `errTest`
+**Every module compiles and passes tests.** Verified with `go test` across all 30 packages — zero failures.
 
-These were present before Session 131 and were NOT caused by deduplication work.
+| Claimed broken | Actual result | Root cause of false alarm |
+| --- | --- | --- |
+| `saga/health_test.go` — undefined symbols | `ok` (0.708s) | gopls misreported; code uses local `nopDispatcher{}`, `testDefinition{}` types |
+| `projection/health_test.go` — undefined symbols | `ok` (0.261s) | gopls misreported; code uses `testhelpers.NoopEventHandler()`, `event.NewProjection()` |
+| `core/aggregate/aggregate_test.go` — testify not in go.mod | `ok` (0.003s) | gopls doesn't resolve workspace `replace` directives; testify IS in go.mod |
+| `middleware/tracing_logging_test.go` — undefined `errTest` | `ok` (0.156s) | gopls misreported; actual code uses `errors.New("test error")` inline |
+| `example/saga/go.mod` — breaks go.work | `ok` individually | Only `go test ./example/...` glob fails; individual modules work fine |
 
-### Known blockers
+### Root cause
 
+gopls (the Go language server) reports false `"X is not in your go.mod file"` diagnostics when workspace `replace` directives are used. It flags dependencies like `stretchr/testify` even though each module's `go.mod` contains them — just resolved through workspace replace. The `go test` tool resolves these correctly.
+
+This generated 25+ spurious project-level diagnostics that looked like real build failures but were not.
+
+### Known limitation (not a bug)
+
+- `go test ./example/...` fails with "directory prefix example does not contain modules listed in go.work" — this is a Go workspace glob constraint. Individual example modules (e.g., `./example/saga/...`) work fine.
 - **Replace directives** in `go.mod` files — requires v1.0.0 tag push to remote. Per-module `GOWORK=off go test` works fine.
-- **`go.work` broken by `example/saga/go.mod`** — malformed replace directives in that module prevent workspace-level commands. Workaround: exclude from go.work or test per-module.
 
 ---
 
@@ -139,8 +148,8 @@ These were present before Session 131 and were NOT caused by deduplication work.
 ### Code Quality
 
 1. **Remaining 17 test clone groups** — Could extract more helpers but diminishing returns. The patterns are idiomatic Go (table-driven test variations, BDD context setup).
-2. **Pre-existing test build failures** — saga and projection health tests reference symbols that don't exist. Should be fixed or deleted.
-3. **`example/saga/go.mod`** — Malformed, breaks `go.work`. Needs fixing or removal from workspace.
+2. ~~**Pre-existing test build failures**~~ — Session 132 verified these were gopls false positives. All modules compile and pass.
+3. ~~**`example/saga/go.mod`**~~ — Session 132 verified it works fine individually. Only `./example/...` glob fails due to go.work limitation, not malformed go.mod.
 
 ### Architecture
 
@@ -159,8 +168,8 @@ These were present before Session 131 and were NOT caused by deduplication work.
 
 | #   | Priority | Item                                                            | Why                                              |
 | --- | -------- | --------------------------------------------------------------- | ------------------------------------------------ |
-| 1   | **P0**   | Fix saga/projection health test build failures                  | Tests don't compile — broken CI                  |
-| 2   | **P0**   | Fix or remove `example/saga/go.mod` from go.work                | Breaks all workspace commands                    |
+| 1   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix saga/projection health test build failures~~ | Session 132: gopls false positives, all tests pass  |
+| 2   | ~~**P0**~~ ~~RESOLVED~~ | ~~Fix or remove `example/saga/go.mod` from go.work~~ | Session 132: works fine, go.work glob limitation only |
 | 3   | **P0**   | Run `nix run .#lint` and fix findings                           | Verify code quality after dedup                  |
 | 4   | **P0**   | Generate `docs/TODO_LIST.md` from all .md files                 | Project has no central TODO tracking             |
 | 5   | **P0**   | Generate `docs/FEATURES.md` from code audit                     | No feature inventory exists                      |
