@@ -153,14 +153,7 @@ func TestRunner_WildcardProjection(t *testing.T) {
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "UserCreated", id.NewAggregateID()))
 	_ = bus.Publish(context.Background(), mustNewEvent(t, "OrderPlaced", id.NewAggregateID()))
 
-	for i := range 2 {
-		select {
-		case h := <-handled:
-			_ = h
-		case <-time.After(time.Second):
-			t.Fatalf("timed out waiting for event %d", i)
-		}
-	}
+	drainChan(t, handled, 2, "event")
 }
 
 func TestRunner_MultipleProjections(t *testing.T) {

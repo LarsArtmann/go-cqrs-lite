@@ -106,7 +106,7 @@ func (r *Repository[State]) Execute(
 	)
 	defer span.End()
 
-	state, currentVersion, err := r.loadState(ctx, aggID, aggType)
+	state, currentVersion, err := r.Load(ctx, aggID, aggType)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -210,7 +210,17 @@ func (r *Repository[State]) Load(
 	)
 	defer span.End()
 
-	state, ver, err := r.loadState(ctx, aggID, aggType)
+	var (
+		state State
+		ver   event.Version
+		err   error
+	)
+
+	if r.snapshotStore != nil && r.codec != nil {
+		state, ver, err = r.loadFromSnapshot(ctx, aggID, aggType)
+	} else {
+		state, ver, err = r.loadFromStore(ctx, aggID, aggType)
+	}
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}

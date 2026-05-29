@@ -195,6 +195,19 @@ func AddQuerySimple(
 	return r
 }
 
+func StringSchema(props ...string) *catalog.Schema {
+	if len(props)%2 != 0 {
+		panic("StringSchema: props must be key-value pairs")
+	}
+
+	m := make(map[string]catalog.Property, len(props)/2)
+	for i := 0; i < len(props); i += 2 {
+		m[props[i]] = catalog.Property{Type: catalog.TypeString}
+	}
+
+	return &catalog.Schema{Type: catalog.TypeObject, Properties: m}
+}
+
 func AddServiceWithQuery(
 	tb testing.TB,
 	r *catalog.Registry,
@@ -219,4 +232,91 @@ func AddServiceWithCommand(
 
 	AddService(tb, r, serviceID, string(serviceID), version)
 	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, catalog.CommandMessage, r.AddCommand)
+}
+
+func AddCommandWithExample(
+	tb testing.TB,
+	r *catalog.Registry,
+	messageID, name, version, payload string,
+) *catalog.Registry {
+	tb.Helper()
+
+	return AddCommandWithExamples(
+		tb,
+		r,
+		catalog.ServiceID("svc"),
+		catalog.MessageID(messageID),
+		name,
+		version,
+		json.RawMessage(payload),
+	)
+}
+
+func AddServiceWithSummary(
+	tb testing.TB,
+	r *catalog.Registry,
+	id catalog.ServiceID,
+	name, version, summary string,
+) *catalog.Registry {
+	tb.Helper()
+
+	r.AddService(catalog.Service{
+		ID:      id,
+		Name:    name,
+		Version: version,
+		Summary: summary,
+	})
+
+	return r
+}
+
+func AddDataStore(
+	tb testing.TB,
+	r *catalog.Registry,
+	id catalog.DataStoreID,
+	name, version, containerType string,
+) *catalog.Registry {
+	tb.Helper()
+
+	r.AddDataStore(catalog.DataStore{
+		ID:            id,
+		Name:          name,
+		Version:       version,
+		ContainerType: containerType,
+	})
+
+	return r
+}
+
+func AddChannel(
+	tb testing.TB,
+	r *catalog.Registry,
+	id catalog.ChannelID,
+	name, version, summary string,
+	protocols []string,
+) *catalog.Registry {
+	tb.Helper()
+
+	r.AddChannel(catalog.Channel{
+		ID:        id,
+		Name:      name,
+		Version:   version,
+		Summary:   summary,
+		Protocols: protocols,
+	})
+
+	return r
+}
+
+func AddCreateOrderCommand(
+	tb testing.TB,
+	r *catalog.Registry,
+	name string,
+) {
+	tb.Helper()
+
+	r.AddCommand("order-svc", catalog.Message{
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: name,
+		Version: "1.0.0", Summary: "Create a new order",
+	})
 }

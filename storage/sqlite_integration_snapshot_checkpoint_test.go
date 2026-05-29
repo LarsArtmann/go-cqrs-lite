@@ -21,7 +21,7 @@ func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	snap := newTestSnapshot(aggID, 5, []byte(`{"title":"snapshot-issue"}`))
+	snap := newTestSnapshot(aggID, "Issue", 5, []byte(`{"title":"snapshot-issue"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {
@@ -33,9 +33,7 @@ func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded.Version.Int() != 5 {
-		t.Errorf("Version = %d, want 5", loaded.Version.Int())
-	}
+	assertSnapshotVersion(t, loaded, 5)
 
 	if string(loaded.State) != `{"title":"snapshot-issue"}` {
 		t.Errorf("State = %s, want snapshot-issue", loaded.State)
@@ -54,7 +52,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	snap := newTestSnapshot(aggID, 10, []byte(`{"title":"v10"}`))
+	snap := newTestSnapshot(aggID, "Issue", 10, []byte(`{"title":"v10"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {
@@ -71,9 +69,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 		t.Fatalf("LoadAtVersion(15): %v", err)
 	}
 
-	if loaded.Version.Int() != 10 {
-		t.Errorf("Version = %d, want 10", loaded.Version.Int())
-	}
+	assertSnapshotVersion(t, loaded, 10)
 }
 
 func TestSQLiteCheckpointStore_Roundtrip(t *testing.T) {

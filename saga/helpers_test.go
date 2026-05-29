@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
 )
@@ -45,6 +46,13 @@ type dispatchFunc func(ctx context.Context, cmd command.Command) error
 
 func (f dispatchFunc) Dispatch(ctx context.Context, cmd command.Command) error {
 	return f(ctx, cmd)
+}
+
+func newFailingDispatcher(counter *int) dispatchFunc {
+	return dispatchFunc(func(_ context.Context, _ command.Command) error {
+		*counter++
+		return event.NewTransient("test.transient", "temporary failure")
+	})
 }
 
 type testDefinition struct {

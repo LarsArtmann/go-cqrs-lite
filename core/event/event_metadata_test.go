@@ -200,6 +200,13 @@ func TestMetadataKeyConstants(t *testing.T) {
 	}
 }
 
+func assertCustomKV(t *testing.T, m *event.Metadata, key, want string) {
+	t.Helper()
+	if m.Custom[event.MetadataKey(key)] != want {
+		t.Errorf("expected %s=%s, got %s", key, want, m.Custom[event.MetadataKey(key)])
+	}
+}
+
 func TestWithCustom_NilCustomMap(t *testing.T) {
 	t.Parallel()
 
@@ -216,9 +223,7 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if evt.Metadata().Custom["key1"] != "value1" {
-		t.Errorf("expected key1=value1, got %s", evt.Metadata().Custom["key1"])
-	}
+	assertCustomKV(t, evt.Metadata(), "key1", "value1")
 }
 
 func TestWithCustom_ExistingCustomMap(t *testing.T) {
@@ -237,13 +242,8 @@ func TestWithCustom_ExistingCustomMap(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if evt.Metadata().Custom["key1"] != "value1" {
-		t.Errorf("expected key1=value1, got %s", evt.Metadata().Custom["key1"])
-	}
-
-	if evt.Metadata().Custom["key2"] != "value2" {
-		t.Errorf("expected key2=value2, got %s", evt.Metadata().Custom["key2"])
-	}
+	assertCustomKV(t, evt.Metadata(), "key1", "value1")
+	assertCustomKV(t, evt.Metadata(), "key2", "value2")
 }
 
 func TestWithClientID(t *testing.T) {

@@ -41,12 +41,15 @@ type Unmarked struct{}
 		t.Fatalf("expected 2 entries, got %d", len(entries))
 	}
 
-	if entries[0].CommandType != "CreateUser" || entries[0].StructName != "CreateUserCmd" {
-		t.Errorf("entry[0] = %+v", entries[0])
-	}
+	assertEntry(t, entries[0], "0", "CreateUser", "CreateUserCmd")
+	assertEntry(t, entries[1], "1", "DeleteUser", "DeleteUserCmd")
+}
 
-	if entries[1].CommandType != "DeleteUser" || entries[1].StructName != "DeleteUserCmd" {
-		t.Errorf("entry[1] = %+v", entries[1])
+func assertEntry(t *testing.T, entry Entry, idx, cmdType, structName string) {
+	t.Helper()
+
+	if entry.CommandType != cmdType || entry.StructName != structName {
+		t.Errorf("entry[%s] = %+v", idx, entry)
 	}
 }
 
@@ -76,9 +79,7 @@ type GetUserQuery struct {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].CommandType != "GetUser" || entries[0].StructName != "GetUserQuery" {
-		t.Errorf("entry = %+v", entries[0])
-	}
+	assertEntry(t, entries[0], "", "GetUser", "GetUserQuery")
 }
 
 func TestGenerate_Command(t *testing.T) {

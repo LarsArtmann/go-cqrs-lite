@@ -238,6 +238,17 @@ func executeWithAggID(
 	return repo.Execute(context.Background(), aggID, "Counter", fn)
 }
 
+func counterCreatedEventFn(
+	t *testing.T,
+	aggID id.AggregateID,
+) func(counterState, event.Version) ([]event.Event, error) {
+	t.Helper()
+
+	return func(_ counterState, ver event.Version) ([]event.Event, error) {
+		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+	}
+}
+
 func makeEvent(
 	t *testing.T,
 	eventType string,

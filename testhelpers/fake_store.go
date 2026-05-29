@@ -121,13 +121,12 @@ func (s *FakeStore) LoadFromVersion(
 	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
-	for i, evt := range all {
-		if evt.Version() > version {
-			return append([]event.Event{}, all[i:]...), nil
-		}
+	result := event.SliceFromVersion(all, version)
+	if len(result) == 0 {
+		return nil, nil
 	}
 
-	return nil, nil
+	return append([]event.Event{}, result...), nil
 }
 
 // LoadToVersion returns events up to and including maxVersion.
@@ -147,9 +146,7 @@ func (s *FakeStore) LoadToVersion(
 	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
-	end := min(maxVersion.Int(), len(all))
-
-	return all[:end], nil
+	return event.SliceToVersion(all, maxVersion), nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime.
@@ -169,15 +166,7 @@ func (s *FakeStore) LoadToTimestamp(
 	key := event.StreamKey(aggregateType, aggregateID)
 	all := s.events[key]
 
-	var filtered []event.Event
-
-	for _, e := range all {
-		if !e.OccurredAt().After(maxTime) {
-			filtered = append(filtered, e)
-		}
-	}
-
-	return filtered, nil
+	return event.FilterByTimestamp(all, maxTime), nil
 }
 
 // ReadAll returns all events across all aggregates.

@@ -11,12 +11,7 @@ func TestRegistry_AddService(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	reg.AddService(catalog.Service{
-		ID:      "user-svc",
-		Name:    "User Service",
-		Version: "1.0.0",
-		Summary: "Manages users",
-	})
+	cattest.AddServiceWithSummary(t, reg, "user-svc", "User Service", "1.0.0", "Manages users")
 
 	cat := reg.Build()
 	if len(cat.Services) != 1 {

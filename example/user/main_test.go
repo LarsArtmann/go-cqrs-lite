@@ -16,6 +16,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
+func subscribeReadModel(bus *memory.MemoryBus, rm *ReadModelStore) {
+	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+		return rm.Handle( //nolint:contextcheck // no parent context in test bus handler
+			context.Background(),
+			evt,
+		)
+	})
+}
+
 func TestDecider_CreateUser(t *testing.T) {
 	t.Parallel()
 
@@ -238,12 +247,7 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		return readModel.Handle( //nolint:contextcheck // no parent context in test bus handler
-			context.Background(),
-			evt,
-		)
-	})
+	subscribeReadModel(bus, readModel)
 
 	userID := id.NewAggregateID()
 

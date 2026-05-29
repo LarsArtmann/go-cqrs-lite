@@ -47,12 +47,7 @@ func TestFullStack_WithSigning(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		return readModel.Handle( //nolint:contextcheck // no parent context in bus handler
-			context.Background(),
-			evt,
-		)
-	})
+	subscribeReadModel(bus, readModel)
 
 	cmdDisp := command.NewDispatcher()
 	cmdDisp.Use(

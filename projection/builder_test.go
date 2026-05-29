@@ -3,7 +3,6 @@ package projection_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -142,14 +141,7 @@ func TestBuilder_On_MultipleEventTypes(t *testing.T) {
 		t.Fatalf("Handle evt2: %v", err)
 	}
 
-	for i := range 2 {
-		select {
-		case h := <-handled:
-			_ = h
-		case <-time.After(time.Second):
-			t.Fatalf("timed out waiting for handler %d", i)
-		}
-	}
+	drainChan(t, handled, 2, "handler")
 }
 
 func TestBuilder_On_NilHandler(t *testing.T) {

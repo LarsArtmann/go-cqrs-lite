@@ -112,17 +112,7 @@ func TestSQLEventStore_Save_InsertError(t *testing.T) {
 
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
-		evt.ID(),
-		"UserCreated",
-		"User",
-		evt.AggregateID(),
-		1,
-		evt.SchemaVersion().Int(),
-		evt.Payload(),
-		sqlmock.AnyArg(),
-		evt.OccurredAt(),
-	).WillReturnError(errors.New("insert failed"))
+	expectInsertExec(mock, evt).WillReturnError(errors.New("insert failed"))
 	mock.ExpectRollback()
 	err := saveEvt(t, store, evt)
 	if err == nil {

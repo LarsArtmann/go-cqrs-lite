@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestGetTodoHandler_Handle(t *testing.T) {
@@ -60,15 +61,7 @@ func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	if result != nil {
-		t.Errorf("result = %v, want nil", result)
-	}
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "failed to get todo") {
-		t.Errorf("error = %q, want containing %q", err.Error(), "failed to get todo")
-	}
+	testhelpers.AssertErrorWithResult(t, result, err, "failed to get todo")
 }
 
 func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
@@ -79,15 +72,7 @@ func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), wrongQuery)
 
-	if result != nil {
-		t.Errorf("result = %v, want nil", result)
-	}
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "invalid query type") {
-		t.Errorf("error = %q, want containing %q", err.Error(), "invalid query type")
-	}
+	testhelpers.AssertErrorWithResult(t, result, err, "invalid query type")
 }
 
 func TestListTodosHandler_Handle(t *testing.T) {
@@ -133,15 +118,7 @@ func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	if result != nil {
-		t.Errorf("result = %v, want nil", result)
-	}
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "failed to list todos") {
-		t.Errorf("error = %q, want containing %q", err.Error(), "failed to list todos")
-	}
+	testhelpers.AssertErrorWithResult(t, result, err, "failed to list todos")
 }
 
 func TestCountTodosHandler_Handle(t *testing.T) {
@@ -179,15 +156,7 @@ func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	if result != nil {
-		t.Errorf("result = %v, want nil", result)
-	}
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "failed to count todos") {
-		t.Errorf("error = %q, want containing %q", err.Error(), "failed to count todos")
-	}
+	testhelpers.AssertErrorWithResult(t, result, err, "failed to count todos")
 }
 
 func TestNewGetTodoQuery(t *testing.T) {

@@ -443,9 +443,9 @@ func TestExporter_Export_Examples(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
-	cattest.AddCommandWithExamples(
-		t, reg, catalog.ServiceID("svc"), catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
-		json.RawMessage(`{"orderId":"abc","amount":42.5}`),
+	cattest.AddCommandWithExample(
+		t, reg, "CreateOrder", "CreateOrder", "1.0.0",
+		`{"orderId":"abc","amount":42.5}`,
 	)
 
 	cat := reg.Build()

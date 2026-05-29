@@ -89,18 +89,12 @@ func TestRoundTrip(t *testing.T) {
 		if received.Metadata.Get("aggregate_id") != aggID.String() {
 			t.Errorf("aggregate_id mismatch")
 		}
-		if received.Metadata.Get("version") != "1" {
-			t.Errorf("version = %q", received.Metadata.Get("version"))
-		}
-		if received.Metadata.Get("schema_version") != "2" {
-			t.Errorf("schema_version = %q", received.Metadata.Get("schema_version"))
-		}
+		assertMetadata(t, received.Metadata, "version", "1")
+		assertMetadata(t, received.Metadata, "schema_version", "2")
 		if received.Metadata.Get("correlation_id") != correlationID.String() {
 			t.Errorf("correlation_id mismatch")
 		}
-		if received.Metadata.Get("custom.tenant") != "acme" {
-			t.Errorf("custom.tenant = %q", received.Metadata.Get("custom.tenant"))
-		}
+		assertMetadata(t, received.Metadata, "custom.tenant", "acme")
 	})
 }
 
@@ -157,5 +151,12 @@ func TestSubscriberAdapter_CloseIdempotent(t *testing.T) {
 
 	if err := subscriber.Close(); err != nil {
 		t.Fatalf("close: %v", err)
+	}
+}
+
+func assertMetadata(t *testing.T, md message.Metadata, key, want string) {
+	t.Helper()
+	if got := md.Get(key); got != want {
+		t.Errorf("%s = %q, want %q", key, got, want)
 	}
 }

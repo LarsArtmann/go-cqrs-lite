@@ -47,16 +47,18 @@ func TestRunner_Register_NilProjection(t *testing.T) {
 	}
 }
 
+func testProjection() *event.Projection {
+	return event.NewProjection("test", func(_ context.Context, _ event.Event) error {
+		return nil
+	}, []event.Type{"UserCreated"})
+}
+
 func TestRunner_Register_ValidProjection(t *testing.T) {
 	t.Parallel()
 
 	runner := newTestRunner(t)
 
-	err := runner.Register(
-		event.NewProjection("test", func(_ context.Context, _ event.Event) error {
-			return nil
-		}, []event.Type{"UserCreated"}),
-	)
+	err := runner.Register(testProjection())
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -67,9 +69,7 @@ func TestRunner_Register_Duplicate(t *testing.T) {
 
 	runner := newTestRunner(t)
 
-	proj := event.NewProjection("test", func(_ context.Context, _ event.Event) error {
-		return nil
-	}, []event.Type{"UserCreated"})
+	proj := testProjection()
 
 	if err := runner.Register(proj); err != nil {
 		t.Fatalf("first Register: %v", err)

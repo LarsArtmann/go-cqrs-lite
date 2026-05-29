@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/saga"
+	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type bddDispatcher struct {
@@ -294,14 +294,7 @@ var _ = Describe("Saga Runner", func() {
 	Describe("As a developer using the saga store", func() {
 		Context("when I save and load a saga state", func() {
 			It("should roundtrip all fields correctly", func() {
-				state := &saga.State{
-					ID:          id.NewAggregateID(),
-					SagaType:    "order",
-					Status:      saga.StatusRunning,
-					CurrentStep: 2,
-					CreatedAt:   time.Now(),
-					UpdatedAt:   time.Now(),
-				}
+				state := testhelpers.NewSagaState("order", saga.StatusRunning, 2)
 				Expect(store.Save(ctx, state)).To(Succeed())
 
 				loaded, err := store.Load(ctx, state.ID)

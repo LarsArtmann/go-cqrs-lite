@@ -22,9 +22,7 @@ func executeCreateEvent(
 
 	return repo.Execute(
 		context.Background(), aggID, "Counter",
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
+		counterCreatedEventFn(t, aggID),
 	)
 }
 
@@ -82,10 +80,7 @@ func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	evtFn := func(_ counterState, ver event.Version) ([]event.Event, error) {
-		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-	}
-	if err := executeWithAggID(t, repo, aggID, evtFn); err != nil {
+	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
@@ -102,10 +97,7 @@ func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
 	_, repo := newEnricherRepo(t, enricher)
 	aggID := id.NewAggregateID()
 
-	evtFn := func(_ counterState, ver event.Version) ([]event.Event, error) {
-		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-	}
-	if err := executeWithAggID(t, repo, aggID, evtFn); err != nil {
+	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }
@@ -153,9 +145,7 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 		t,
 		repo,
 		aggID,
-		func(_ counterState, ver event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
-		},
+		counterCreatedEventFn(t, aggID),
 	); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}

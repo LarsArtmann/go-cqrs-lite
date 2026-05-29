@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"testing"
-	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -95,14 +94,7 @@ func TestSQLBackend_SagaStore_SaveAndLoad(t *testing.T) {
 	backend := newTestSQLBackend(t)
 	ctx := context.Background()
 
-	state := &saga.State{
-		ID:          id.NewAggregateID(),
-		SagaType:    "order",
-		Status:      saga.StatusRunning,
-		CurrentStep: 1,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+	state := testhelpers.NewSagaState("order", saga.StatusRunning, 1)
 
 	if err := backend.SagaStore().Save(ctx, state); err != nil {
 		t.Fatalf("Save: %v", err)

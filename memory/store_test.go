@@ -336,27 +336,15 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-
 	now := time.Now()
-	evt1, _ := event.NewEvent(
-		"Created",
-		aggID,
-		"User",
-		1,
-		nil,
-		event.WithOccurredAt(now.Add(-2*time.Hour)),
-	)
-	evt2, _ := event.NewEvent(
-		"Updated",
-		aggID,
-		"User",
-		1,
-		nil,
-		event.WithOccurredAt(now.Add(-1*time.Hour)),
-	)
-	evt3, _ := event.NewEvent("Deleted", aggID, "User", 2, nil, event.WithOccurredAt(now))
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	events := testhelpers.MakeTimelineEvents(t, "User", aggID, []testhelpers.TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
+		{Type: "Updated", Version: 1, Offset: -1 * time.Hour},
+		{Type: "Deleted", Version: 2, Offset: 0},
+	})
+
+	_ = store.AppendBatch(ctx, "User", aggID, events)
 
 	events, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
 	testhelpers.AssertNoError(t, err, "LoadToTimestamp")
@@ -400,33 +388,25 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	now := time.Now()
-	evt1, _ := event.NewEvent(
-		"Created",
-		aggID1,
-		"User",
-		1,
-		nil,
-		event.WithOccurredAt(now.Add(-2*time.Hour)),
-	)
-	evt2, _ := event.NewEvent(
-		"Created",
-		aggID2,
-		"Order",
-		1,
-		nil,
-		event.WithOccurredAt(now.Add(-1*time.Hour)),
-	)
-	evt3, _ := event.NewEvent("Updated", aggID1, "User", 1, nil, event.WithOccurredAt(now))
+	evt1 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
+	})
+	evt2 := testhelpers.MakeTimelineEvents(t, "Order", aggID2, []testhelpers.TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -1 * time.Hour},
+	})
+	evt3 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
+		{Type: "Updated", Version: 1, Offset: 0},
+	})
 
-	_ = store.AppendBatch(ctx, "User", aggID1, []event.Event{evt1, evt3})
-	_ = store.AppendBatch(ctx, "Order", aggID2, []event.Event{evt2})
+	_ = store.AppendBatch(ctx, "User", aggID1, evt1)
+	_ = store.AppendBatch(ctx, "Order", aggID2, evt2)
+	_ = store.AppendBatch(ctx, "User", aggID1, evt3)
 
 	all, err := store.LoadAll(ctx)
 	testhelpers.AssertNoError(t, err, "LoadAll")
 	testhelpers.AssertLen(t, "all events", all, 3)
 
-	fromPos, err := store.LoadAllFromPosition(ctx, evt1.ID(), 1)
+	fromPos, err := store.LoadAllFromPosition(ctx, evt1[0].ID(), 1)
 	testhelpers.AssertNoError(t, err, "LoadAllFromPosition")
 	testhelpers.AssertLen(t, "from position", fromPos, 1)
 }

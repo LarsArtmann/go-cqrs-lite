@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -85,6 +86,21 @@ func AssertError(t *testing.T, err error, msg string) {
 
 	if err == nil {
 		t.Error(msg)
+	}
+}
+
+// AssertErrorWithResult asserts result is nil, err is not nil, and err.Error() contains substr.
+func AssertErrorWithResult(t *testing.T, result any, err error, substr string) {
+	t.Helper()
+
+	if result != nil && !reflect.ValueOf(result).IsNil() {
+		t.Errorf("result = %v, want nil", result)
+	}
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), substr) {
+		t.Errorf("error = %q, want containing %q", err.Error(), substr)
 	}
 }
 

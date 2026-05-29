@@ -118,14 +118,7 @@ func TestRunner_ExecuteStep_HydrateUnregisteredSagaType(t *testing.T) {
 	runner := saga.NewRunner(store, nopDispatcher{})
 
 	ctx := context.Background()
-	state := &saga.State{
-		ID:          id.NewAggregateID(),
-		SagaType:    "unknown-saga",
-		Status:      saga.StatusRunning,
-		CurrentStep: 0,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+	state := testhelpers.NewSagaState("unknown-saga", saga.StatusRunning, 0)
 	testhelpers.SaveSagaState(t, ctx, store, state)
 
 	err := runner.ExecuteStep(ctx, state.ID)

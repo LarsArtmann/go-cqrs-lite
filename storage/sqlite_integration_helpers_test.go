@@ -52,13 +52,26 @@ func newSQLiteTestStore(t *testing.T) *SQLEventStore {
 	return store
 }
 
-func newTestSnapshot(aggID id.AggregateID, version event.Version, state []byte) event.Snapshot {
+func newTestSnapshot(
+	aggID id.AggregateID,
+	aggregateType event.AggregateType,
+	version event.Version,
+	state []byte,
+) event.Snapshot {
 	return event.Snapshot{
 		AggregateID:   aggID,
-		AggregateType: "Issue",
+		AggregateType: aggregateType,
 		Version:       version,
 		State:         state,
 		CreatedAt:     time.Now().Truncate(time.Microsecond),
+	}
+}
+
+func assertSnapshotVersion(t *testing.T, loaded *event.Snapshot, want event.Version) {
+	t.Helper()
+
+	if loaded.Version.Int() != int(want) {
+		t.Errorf("Version = %d, want %d", loaded.Version.Int(), int(want))
 	}
 }
 

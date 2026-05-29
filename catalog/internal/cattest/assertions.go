@@ -52,6 +52,14 @@ func AssertContentContains(tb testing.TB, content, desc string, substrs ...strin
 	}
 }
 
+func RequireErr(tb testing.TB, err error, msg string) {
+	tb.Helper()
+
+	if err == nil {
+		tb.Error(msg)
+	}
+}
+
 func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) string {
 	tb.Helper()
 

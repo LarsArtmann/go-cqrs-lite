@@ -71,10 +71,7 @@ func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, re
 
 	exp := NewExporter(tmpDir)
 
-	err = exp.Export(cat)
-	if err == nil {
-		t.Error("expected error when dir is read-only")
-	}
+	cattest.RequireErr(t, exp.Export(cat), "expected error when dir is read-only")
 }
 
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
@@ -90,13 +87,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 		Summary: "Create a new order",
-		Schema: &catalog.Schema{
-			Type: "object",
-			Properties: map[string]catalog.Property{
-				"orderId":   {Type: "string"},
-				"timestamp": {Type: "string"},
-			},
-		},
+		Schema:  cattest.StringSchema("orderId", "timestamp"),
 	})
 
 	tmpDir := exportCatalog(t, reg)
@@ -378,9 +369,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
-		ID: "svc", Name: "Service", Version: "2.0.0", Summary: "A test service",
-	})
+	cattest.AddServiceWithSummary(t, reg, "svc", "Service", "2.0.0", "A test service")
 
 	tmpDir := exportCatalog(t, reg)
 
@@ -432,16 +421,8 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("MyCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
-		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
-	})
-	reg.AddCommand("order-svc", catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "CreateOrder",
-		Version: "1.0.0",
-		Summary: "Create a new order",
-	})
+	cattest.AddServiceWithSummary(t, reg, "order-svc", "Order Service", "1.0.0", "Manages orders")
+	cattest.AddCreateOrderCommand(t, reg, "CreateOrder")
 	cattest.AddEventWithSummary(
 		t,
 		reg,
@@ -484,9 +465,9 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
-	cattest.AddCommandWithExamples(
-		t, reg, catalog.ServiceID("svc"), catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
-		json.RawMessage(`{"orderId":"abc-123","amount":42.5}`),
+	cattest.AddCommandWithExample(
+		t, reg, "CreateOrder", "CreateOrder", "1.0.0",
+		`{"orderId":"abc-123","amount":42.5}`,
 	)
 
 	tmpDir := exportCatalog(t, reg)

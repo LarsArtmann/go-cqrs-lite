@@ -2,10 +2,48 @@ package testhelpers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
+
+// TimelineEvent describes an event in a timeline test.
+type TimelineEvent struct {
+	Type    string
+	Version event.Version
+	Offset  time.Duration
+}
+
+// MakeTimelineEvents creates events with timestamps relative to now.
+// Use negative offsets for past events (e.g., -2*time.Hour for 2 hours ago).
+func MakeTimelineEvents(
+	tb testing.TB,
+	aggType event.AggregateType,
+	aggID id.AggregateID,
+	events []TimelineEvent,
+) []event.Event {
+	tb.Helper()
+
+	now := time.Now()
+	result := make([]event.Event, len(events))
+	for i, e := range events {
+		evt, err := event.NewEvent(
+			event.Type(e.Type),
+			aggID,
+			aggType,
+			e.Version,
+			nil,
+			event.WithOccurredAt(now.Add(e.Offset)),
+		)
+		if err != nil {
+			tb.Fatalf("MakeTimelineEvents: create event %q: %v", e.Type, err)
+		}
+		result[i] = evt
+	}
+
+	return result
+}
 
 // NewTestEvent creates a test event with standard test values.
 func NewTestEvent() (event.Event, error) {
@@ -108,4 +146,19 @@ func QuickEventOpts(
 	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
 
 	return evt
+}
+
+// QuickSnapshot creates a snapshot with the given parameters.
+func QuickSnapshot(
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	version event.Version,
+	state []byte,
+) event.Snapshot {
+	return event.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: aggType,
+		Version:       version,
+		State:         state,
+	}
 }

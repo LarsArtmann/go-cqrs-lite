@@ -91,6 +91,13 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 	}
 }
 
+func expectSnapshotLoadRows(mock sqlmock.Sqlmock, aggID id.AggregateID, name string, createdAt time.Time) {
+	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+		WithArgs("User", aggID).
+		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
+			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
+}
+
 func TestSQLSnapshotStore_Load(t *testing.T) {
 	t.Parallel()
 
@@ -98,10 +105,7 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
-			AddRow(3, []byte(`{"name":"John"}`), createdAt))
+	expectSnapshotLoadRows(mock, aggID, "John", createdAt)
 
 	snap, err := s.Load(context.Background(), "User", aggID)
 	if err != nil {
@@ -164,10 +168,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
-			AddRow(3, []byte(`{"name":"Jane"}`), createdAt))
+	expectSnapshotLoadRows(mock, aggID, "Jane", createdAt)
 
 	snap, err := s.LoadAtVersion(context.Background(), "User", aggID, event.Version(5))
 	if err != nil {

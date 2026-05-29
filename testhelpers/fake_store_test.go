@@ -190,33 +190,21 @@ func TestFakeStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1, _ := event.NewEvent(
-		"Created",
-		aggID,
-		"User",
-		1,
-		nil,
-		event.WithOccurredAt(now.Add(-2*time.Hour)),
-	)
-	evt2, _ := event.NewEvent(
-		"Updated",
-		aggID,
-		"User",
-		2,
-		nil,
-		event.WithOccurredAt(now.Add(-1*time.Hour)),
-	)
-	evt3, _ := event.NewEvent("Deleted", aggID, "User", 3, nil, event.WithOccurredAt(now))
+	events := testhelpers.MakeTimelineEvents(t, "User", aggID, []testhelpers.TimelineEvent{
+		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
+		{Type: "Updated", Version: 2, Offset: -1 * time.Hour},
+		{Type: "Deleted", Version: 3, Offset: 0},
+	})
 
-	_ = store.AppendBatch(ctx, "User", aggID, []event.Event{evt1, evt2, evt3})
+	_ = store.AppendBatch(ctx, "User", aggID, events)
 
-	events, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
+	loaded, err := store.LoadToTimestamp(ctx, "User", aggID, now.Add(-30*time.Minute))
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Fatalf("expected 2 events, got %d", len(events))
+	if len(loaded) != 2 {
+		t.Fatalf("expected 2 events, got %d", len(loaded))
 	}
 }
 

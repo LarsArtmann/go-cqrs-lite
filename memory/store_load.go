@@ -38,11 +38,7 @@ func (s *MemoryStore) LoadFromVersion(
 		return nil, err
 	}
 
-	if version.Int() >= len(events) {
-		return []event.Event{}, nil
-	}
-
-	return copyEvents(events[version.Int():]), nil
+	return copyEvents(event.SliceFromVersion(events, version)), nil
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
@@ -58,9 +54,7 @@ func (s *MemoryStore) LoadToVersion(
 		return nil, err
 	}
 
-	end := min(maxVersion.Int(), len(events))
-
-	return copyEvents(events[:end]), nil
+	return copyEvents(event.SliceToVersion(events, maxVersion)), nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
@@ -76,15 +70,7 @@ func (s *MemoryStore) LoadToTimestamp(
 		return nil, err
 	}
 
-	var filtered []event.Event
-
-	for _, e := range events {
-		if !e.OccurredAt().After(maxTime) {
-			filtered = append(filtered, e)
-		}
-	}
-
-	return copyEvents(filtered), nil
+	return copyEvents(event.FilterByTimestamp(events, maxTime)), nil
 }
 
 func (s *MemoryStore) getEvents(

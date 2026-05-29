@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
@@ -151,6 +152,19 @@ func newTestRunner(t *testing.T) *projection.Runner {
 	r, _, _ := newTestRunnerWithReady(t)
 
 	return r
+}
+
+func drainChan[T any](t *testing.T, ch <-chan T, count int, label string) {
+	t.Helper()
+
+	for i := range count {
+		select {
+		case v := <-ch:
+			_ = v
+		case <-time.After(time.Second):
+			t.Fatalf("timed out waiting for %s %d", label, i)
+		}
+	}
 }
 
 func newTestBusAndCheckpoint(t *testing.T) (*memory.MemoryBus, *memory.MemoryCheckpointStore) {

@@ -85,12 +85,15 @@ func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 	mock.ExpectCommit()
 }
 
-func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
+func expectInsertExec(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) *sqlmock.ExpectedExec {
+	return mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), sqlmock.AnyArg(), evt.OccurredAt(),
-	).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	)
+}
+
+func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
+	expectInsertExec(mock, evt).WillReturnResult(sqlmock.NewResult(1, 1))
 }
 
 func saveEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) error {

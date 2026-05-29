@@ -139,14 +139,7 @@ func TestSQLiteSagaStore_LoadAllRunning(t *testing.T) {
 	store := newSQLiteTestSagaStore(t)
 	ctx := context.Background()
 
-	running := &saga.State{
-		ID:          id.NewAggregateID(),
-		SagaType:    "order",
-		Status:      saga.StatusRunning,
-		CurrentStep: 1,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+	running := testhelpers.NewSagaState("order", saga.StatusRunning, 1)
 	testhelpers.SaveSagaState(t, ctx, store, running)
 
 	completed := &saga.State{

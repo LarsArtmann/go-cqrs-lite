@@ -56,6 +56,13 @@ func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 	}
 }
 
+func errorQueryHandler(errMsg string, callCount *int) query.Handler {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		*callCount++
+		return nil, errors.New(errMsg)
+	}
+}
+
 func TestQueryRetry_NonRetryable(t *testing.T) {
 	t.Parallel()
 
@@ -66,11 +73,7 @@ func TestQueryRetry_NonRetryable(t *testing.T) {
 	mw := QueryRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		callCount++
-
-		return nil, errors.New("non-retryable")
-	})
+	handler := mw(errorQueryHandler("non-retryable", &callCount))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
@@ -90,11 +93,7 @@ func TestQueryRetry_ContextCancellation(t *testing.T) {
 	mw := QueryRetry(config)
 
 	callCount := 0
-	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
-		callCount++
-
-		return nil, errors.New("transient")
-	})
+	handler := mw(errorQueryHandler("transient", &callCount))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()

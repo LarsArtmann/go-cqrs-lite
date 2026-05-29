@@ -41,6 +41,13 @@ func expectNewEventValidationFails(
 	Expect(err.Error()).To(ContainSubstring(expectedMsg))
 }
 
+func subscribeOrderPlaced(bus event.Bus, received *[]event.Event) error {
+	return bus.Subscribe(
+		event.Type("OrderPlaced"),
+		testhelpers.AppendEventsHandler(received),
+	)
+}
+
 var _ = Describe("Event Store", func() {
 	var (
 		ctx     context.Context
@@ -191,12 +198,7 @@ var _ = Describe("Event Bus", func() {
 	Describe("As a developer reacting to domain events", func() {
 		Context("when I subscribe to a specific event type", func() {
 			It("should receive only events of that type", func() {
-				Expect(
-					bus.Subscribe(
-						event.Type("OrderPlaced"),
-						testhelpers.AppendEventsHandler(&received),
-					),
-				).To(Succeed())
+				Expect(subscribeOrderPlaced(bus, &received)).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderPlaced", aggID, 1, nil)
@@ -289,12 +291,7 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when I subscribe to a specific type AND subscribe to all events", func() {
 			It("should deliver the event twice — once per subscription", func() {
-				Expect(
-					bus.Subscribe(
-						event.Type("OrderPlaced"),
-						testhelpers.AppendEventsHandler(&received),
-					),
-				).To(Succeed())
+				Expect(subscribeOrderPlaced(bus, &received)).To(Succeed())
 
 				Expect(bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))).To(Succeed())
 
@@ -310,12 +307,7 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when I subscribe to a specific type but publish a different type", func() {
 			It("should not receive the event", func() {
-				Expect(
-					bus.Subscribe(
-						event.Type("OrderPlaced"),
-						testhelpers.AppendEventsHandler(&received),
-					),
-				).To(Succeed())
+				Expect(subscribeOrderPlaced(bus, &received)).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderCancelled", aggID, 1, nil)

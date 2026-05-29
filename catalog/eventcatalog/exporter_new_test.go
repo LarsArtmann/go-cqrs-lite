@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestExporter_Export_Channel(t *testing.T) {
@@ -346,10 +347,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		WritesTo: []catalog.DataStoreID{"orders-db"},
 		Badges:   []catalog.Badge{{Content: "Production", BackgroundColor: "green"}},
 	})
-	reg.AddCommand("order-svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
-		Version: "1.0.0", Summary: "Create a new order",
-	})
+	cattest.AddCreateOrderCommand(t, reg, "Create Order")
 	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 	reg.AddDomain(catalog.Domain{
 		ID: "orders", Name: "Orders", Version: "1.0.0",
@@ -363,12 +361,13 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
 	})
-	reg.AddFlow(catalog.Flow{
+	createOrderFlow := catalog.Flow{
 		ID: "create-order", Name: "Create Order", Version: "1.0.0",
 		Steps: []catalog.FlowStep{
 			{ID: "1", Title: "Create Order", Message: &catalog.FlowStepRef{ID: "CreateOrder"}},
 		},
-	})
+	}
+	reg.AddFlow(createOrderFlow)
 	reg.AddTeam(catalog.Team{ID: "order-team", Name: "Order Team", Members: []string{"alice"}})
 	reg.AddUser(catalog.User{ID: "alice", Name: "Alice", Role: "Engineer"})
 
@@ -412,18 +411,12 @@ func TestLLMsTxt_AllResourceTypes(t *testing.T) {
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
 		Summary: "Manages orders",
 	})
-	reg.AddCommand("order-svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
-		Version: "1.0.0", Summary: "Create a new order",
-	})
+	cattest.AddCreateOrderCommand(t, reg, "Create Order")
 	reg.AddEvent("order-svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
 		Version: "1.0.0", Direction: catalog.Sends, Summary: "Order was created",
 	})
-	reg.AddChannel(catalog.Channel{
-		ID: "order-events", Name: "Order Events", Version: "1.0.0",
-		Summary: "All order events", Protocols: []string{"kafka"},
-	})
+	cattest.AddChannel(t, reg, "order-events", "Order Events", "1.0.0", "All order events", []string{"kafka"})
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders Database", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",

@@ -205,10 +205,7 @@ func TestRunner_ExecuteStep_RetryExhaustion(t *testing.T) {
 	t.Parallel()
 
 	callCount := 0
-	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
-		callCount++
-		return event.NewTransient("test.transient", "temporary failure")
-	})
+	dispatcher := newFailingDispatcher(&callCount)
 
 	store := saga.NewMemoryStore()
 	runner := saga.NewRunner(store, dispatcher)

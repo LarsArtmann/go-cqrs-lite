@@ -1,7 +1,6 @@
 package eventcatalog
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -173,9 +172,9 @@ func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
-	cattest.AddCommandWithExamples(
-		t, reg, catalog.ServiceID("svc"), catalog.MessageID("Cmd"), "Cmd", "1.0.0",
-		json.RawMessage(`{invalid json !!!`),
+	cattest.AddCommandWithExample(
+		t, reg, "Cmd", "Cmd", "1.0.0",
+		`{invalid json !!!`,
 	)
 
 	cat := reg.Build()

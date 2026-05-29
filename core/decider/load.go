@@ -14,18 +14,6 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
-func (r *Repository[State]) loadState(
-	ctx context.Context,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
-) (State, event.Version, error) {
-	if r.snapshotStore != nil && r.codec != nil {
-		return r.loadFromSnapshot(ctx, aggID, aggType)
-	}
-
-	return r.loadFromStore(ctx, aggID, aggType)
-}
-
 func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
 	aggID id.AggregateID,

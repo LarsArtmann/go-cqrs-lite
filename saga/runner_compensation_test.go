@@ -16,10 +16,7 @@ func TestRunner_WithRetryPolicy(t *testing.T) {
 	t.Parallel()
 
 	callCount := 0
-	dispatcher := dispatchFunc(func(_ context.Context, _ command.Command) error {
-		callCount++
-		return event.NewTransient("test.transient", "temporary failure")
-	})
+	dispatcher := newFailingDispatcher(&callCount)
 
 	runner, instance, _ := setupTestSaga(
 		t, dispatcher,

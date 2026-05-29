@@ -60,4 +60,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
 	github.com/larsartmann/go-cqrs-lite/saga => ../../saga
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
+	github.com/larsartmann/go-cqrs-lite/testhelpers => ../../testhelpers
 )

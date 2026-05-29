@@ -14,13 +14,17 @@ func assertErrorContains(t *testing.T, err error, substr string) {
 	}
 }
 
+func stubOutboxWithEntry(evt Event) *stubOutbox {
+	return &stubOutbox{entries: []OutboxEntry{
+		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
+	}}
+}
+
 func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 	t.Parallel()
 
 	evt := mustNewTestEvent("user.created")
-	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
-	}}
+	outbox := stubOutboxWithEntry(evt)
 	bus := &stubPublisher{}
 
 	p, err := NewOutboxPublisher(outbox, bus, WithPollInterval(10*time.Millisecond))
@@ -85,9 +89,7 @@ func TestOutboxPublisher_PublishNow_SingleEntry(t *testing.T) {
 	t.Parallel()
 
 	evt := mustNewTestEvent("order.placed")
-	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
-	}}
+	outbox := stubOutboxWithEntry(evt)
 	bus := &stubPublisher{}
 
 	p, err := NewOutboxPublisher(outbox, bus)
@@ -185,9 +187,7 @@ func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
 	t.Parallel()
 
 	evt := mustNewTestEvent("user.created")
-	outbox := &stubOutbox{entries: []OutboxEntry{
-		{ID: NewOutboxID("entry-1"), Events: []Event{evt}},
-	}}
+	outbox := stubOutboxWithEntry(evt)
 	wantErr := errors.New("publish failed")
 	bus := &stubPublisher{publishErr: wantErr}
 

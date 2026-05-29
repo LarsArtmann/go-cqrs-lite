@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
 )
 
 func TestRegistry_AddDataStore(t *testing.T) {
@@ -34,12 +35,13 @@ func TestRegistry_AddFlow(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	reg.AddFlow(catalog.Flow{
+	createOrderFlow := catalog.Flow{
 		ID: "create-order", Name: "Create Order", Version: "1.0.0",
 		Steps: []catalog.FlowStep{
 			{ID: "1", Title: "Submit", Message: &catalog.FlowStepRef{ID: "CreateOrder"}},
 		},
-	})
+	}
+	reg.AddFlow(createOrderFlow)
 
 	cat := reg.Build()
 	if len(cat.Flows) != 1 {
@@ -103,18 +105,14 @@ func TestRegistry_Build_Immutability(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	reg.AddDataStore(
-		catalog.DataStore{ID: "db1", Name: "DB1", Version: "1.0.0", ContainerType: "database"},
-	)
+	cattest.AddDataStore(t, reg, "db1", "DB1", "1.0.0", "database")
 	reg.AddFlow(catalog.Flow{ID: "f1", Name: "F1", Version: "1.0.0"})
 	reg.AddTeam(catalog.Team{ID: "t1", Name: "T1"})
 	reg.AddUser(catalog.User{ID: "u1", Name: "U1"})
 
 	cat1 := reg.Build()
 
-	reg.AddDataStore(
-		catalog.DataStore{ID: "db2", Name: "DB2", Version: "1.0.0", ContainerType: "cache"},
-	)
+	cattest.AddDataStore(t, reg, "db2", "DB2", "1.0.0", "cache")
 	reg.AddFlow(catalog.Flow{ID: "f2", Name: "F2", Version: "1.0.0"})
 
 	cat2 := reg.Build()

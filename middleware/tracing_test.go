@@ -78,9 +78,7 @@ func TestCommandTracing_Error(t *testing.T) {
 	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
-	if span.Status().Code != codes.Error {
-		t.Errorf("expected error status, got %v", span.Status().Code)
-	}
+	assertSpanStatusError(t, span)
 }
 
 func TestEventTracing_Success(t *testing.T) {
@@ -151,9 +149,7 @@ func TestEventTracing_Error(t *testing.T) {
 	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
-	if span.Status().Code != codes.Error {
-		t.Errorf("expected error status, got %v", span.Status().Code)
-	}
+	assertSpanStatusError(t, span)
 }
 
 func TestQueryTracing_Success(t *testing.T) {
@@ -206,9 +202,7 @@ func TestQueryTracing_Error(t *testing.T) {
 	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
-	if span.Status().Code != codes.Error {
-		t.Errorf("expected error status, got %v", span.Status().Code)
-	}
+	assertSpanStatusError(t, span)
 }
 
 func TestEventPublishTracing_Success(t *testing.T) {
@@ -254,9 +248,7 @@ func TestEventPublishTracing_Success(t *testing.T) {
 		t.Errorf("expected event.count 2, got %v", attrs[cqrsotel.AttrEventCount])
 	}
 
-	if span.Status().Code != codes.Unset {
-		t.Errorf("expected unset status on success, got %v", span.Status().Code)
-	}
+	assertSpanStatusUnset(t, span)
 }
 
 func TestEventPublishTracing_Error(t *testing.T) {
@@ -280,6 +272,16 @@ func TestEventPublishTracing_Error(t *testing.T) {
 	testhelpers.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
+	assertSpanStatusError(t, span)
+}
+
+func assertSpanStatusUnset(t *testing.T, span sdktrace.ReadOnlySpan) {
+	if span.Status().Code != codes.Unset {
+		t.Errorf("expected unset status on success, got %v", span.Status().Code)
+	}
+}
+
+func assertSpanStatusError(t *testing.T, span sdktrace.ReadOnlySpan) {
 	if span.Status().Code != codes.Error {
 		t.Errorf("expected error status, got %v", span.Status().Code)
 	}
