@@ -153,4 +153,3 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 		}
 	}
 }
-

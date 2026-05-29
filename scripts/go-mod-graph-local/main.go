@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 // go-mod-graph-local is a standalone web server that visualizes
@@ -27,16 +28,16 @@ import (
 )
 
 type Node struct {
-	ID     string `json:"id"`
-	Label  string `json:"label"`
-	Group  string `json:"group"`
-	Level  int    `json:"level"`
-	Title  string `json:"title"`
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Group string `json:"group"`
+	Level int    `json:"level"`
+	Title string `json:"title"`
 }
 
 type Edge struct {
-	From string `json:"from"`
-	To   string `json:"to"`
+	From   string `json:"from"`
+	To     string `json:"to"`
 	Arrows string `json:"arrows"`
 }
 
@@ -138,7 +139,6 @@ func buildGraph(root string) (*GraphData, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func buildGraph(root string) (*GraphData, error) {
 		case mod == "github.com/larsartmann/go-cqrs-lite/core":
 			group = "core"
 		case mod == "github.com/larsartmann/go-cqrs-lite/codec" ||
-			 mod == "github.com/larsartmann/go-cqrs-lite/otel":
+			mod == "github.com/larsartmann/go-cqrs-lite/otel":
 			group = "infra"
 		case mod == "github.com/larsartmann/go-cqrs-lite/testhelpers":
 			group = "test"
