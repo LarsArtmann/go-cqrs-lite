@@ -63,6 +63,10 @@ node_modules/
 example/*/catalog
 example/*/user
 
+# CLI tool binaries
+/api-stability
+/cmd/cqrs-gen/cqrs-gen
+
 # Nix
 result
 result-*
