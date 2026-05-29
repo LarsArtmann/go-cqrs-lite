@@ -17,7 +17,7 @@ func (a *PebbleEventStore) checkVersion(
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
-	existing, err := a.iterateEvents(prefix, upperBound)
+	existing, err := a.iterateEvents(prefix, upperBound, nil)
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.concurrency_check",
 			"concurrency check")

@@ -3,6 +3,7 @@ package middleware_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 
@@ -108,12 +109,13 @@ func TestCommandTraceLogging_Error(t *testing.T) {
 	logger, buf := newTraceLogger()
 	mw := middleware.CommandTraceLogging(logger)
 
+	testErr := errors.New("test error")
 	handler := mw(func(_ context.Context, _ command.Command) error {
-		return errTest
+		return testErr
 	})
 
 	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
-	require.ErrorIs(t, err, errTest)
+	require.ErrorIs(t, err, testErr)
 
 	output := buf.String()
 	require.Contains(t, output, "command failed")

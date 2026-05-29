@@ -98,8 +98,17 @@ func (a *PebbleEventStore) Save(
 	return a.commitAndLog(batch, "events saved", aggregateType, aggregateID, len(events))
 }
 
-// iterateEvents iterates over events in the database using the provided iterator configuration.
-func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event.Event, error) {
+// eventPredicate returns true when iteration should stop BEFORE appending
+// the current event. nil means "never stop early" (collect all events).
+type eventPredicate func(event.Event) bool
+
+// iterateEvents iterates over events in the database using the provided
+// iterator configuration. If shouldStop is non-nil, iteration stops before
+// appending the first event for which shouldStop returns true.
+func (a *PebbleEventStore) iterateEvents(
+	lowerBound, upperBound []byte,
+	shouldStop eventPredicate,
+) ([]event.Event, error) {
 	iter, err := a.db.NewIter(&pebble.IterOptions{
 		LowerBound: lowerBound,
 		UpperBound: upperBound,
@@ -125,6 +134,10 @@ func (a *PebbleEventStore) iterateEvents(lowerBound, upperBound []byte) ([]event
 				"corrupt event at key "+string(iter.Key()))
 		}
 
+		if shouldStop != nil && shouldStop(evt) {
+			break
+		}
+
 		events = append(events, evt)
 	}
 
@@ -140,7 +153,7 @@ func (a *PebbleEventStore) Load(
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
-	return a.iterateEvents(prefix, upperBound)
+	return a.iterateEvents(prefix, upperBound, nil)
 }
 
 // LoadFromVersion implements event.Store.LoadFromVersion.
@@ -154,7 +167,7 @@ func (a *PebbleEventStore) LoadFromVersion(
 	lowerBound := a.eventKey(aggregateType, aggregateID, version+1)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
-	return a.iterateEvents(lowerBound, upperBound)
+	return a.iterateEvents(lowerBound, upperBound, nil)
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
@@ -167,7 +180,7 @@ func (a *PebbleEventStore) LoadToVersion(
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := a.eventKey(aggregateType, aggregateID, maxVersion+1)
 
-	events, err := a.iterateEvents(prefix, upperBound)
+	events, err := a.iterateEvents(prefix, upperBound, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -192,39 +205,10 @@ func (a *PebbleEventStore) LoadToTimestamp(
 	prefix := a.aggregatePrefix(aggregateType, aggregateID)
 	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, aggregateType, aggregateID)
 
-	iter, err := a.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
+	events, err := a.iterateEvents(prefix, upperBound, func(evt event.Event) bool {
+		return evt.OccurredAt().After(maxTime)
 	})
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
-			"failed to create iterator for LoadToTimestamp")
-	}
-
-	defer func() { _ = iter.Close() }()
-
-	var events []event.Event
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		evt, err := a.deserializeEvent(iter.Value())
-		if err != nil {
-			if a.logger != nil {
-				a.logger.Warn("corrupt event in pebble store",
-					"key", string(iter.Key()), "error", err)
-			}
-
-			return nil, event.WrapCorruption(err, "pebble.corrupt_event",
-				"corrupt event at key "+string(iter.Key()))
-		}
-
-		if evt.OccurredAt().After(maxTime) {
-			break
-		}
-
-		events = append(events, evt)
-	}
-
-	if err := checkIteratorError(iter); err != nil {
 		return nil, err
 	}
 

@@ -7,6 +7,7 @@ use (
 	./example/projection
 	./example/saga
 	./example/storage
+	./example/stream
 	./example/todo
 	./example/user
 	./integration

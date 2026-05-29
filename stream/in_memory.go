@@ -27,17 +27,7 @@ func (r *InMemoryAggregateReader) List(
 	ctx context.Context,
 	opts ListOptions,
 ) (*Page[AggregateRef], error) {
-	statusPage, err := r.ListWithStatus(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	refs := make([]AggregateRef, len(statusPage.Items))
-	for i, s := range statusPage.Items {
-		refs[i] = s.Ref
-	}
-
-	return &Page[AggregateRef]{Items: refs, HasMore: statusPage.HasMore}, nil
+	return listRefsFromStatus(r, ctx, opts)
 }
 
 func (r *InMemoryAggregateReader) ListWithStatus(

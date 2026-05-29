@@ -19,12 +19,11 @@ func main() {
 	fmt.Println("=== go-cqrs-lite: Stream Module Demo ===")
 	fmt.Println()
 
-	journal := memory.NewMemoryBus()
 	store := memory.NewMemoryStore()
 
-	populateEvents(ctx, store, journal)
+	populateEvents(ctx, store)
 
-	reader := stream.NewInMemoryAggregateReader(journal)
+	reader := stream.NewInMemoryAggregateReader(store)
 
 	runBasicList(ctx, reader)
 	runTypeFilter(ctx, reader)
@@ -34,7 +33,7 @@ func main() {
 	fmt.Println("=== Demo Complete ===")
 }
 
-func populateEvents(ctx context.Context, store event.Store, bus *memory.MemoryBus) {
+func populateEvents(ctx context.Context, store event.Store) {
 	userIDs := make([]id.AggregateID, 5)
 	orderIDs := make([]id.AggregateID, 3)
 
@@ -49,8 +48,6 @@ func populateEvents(ctx context.Context, store event.Store, bus *memory.MemoryBu
 		if err != nil {
 			log.Fatalf("save event: %v", err)
 		}
-
-		_ = bus.Publish(ctx, evt)
 	}
 
 	for i := range orderIDs {
@@ -64,8 +61,6 @@ func populateEvents(ctx context.Context, store event.Store, bus *memory.MemoryBu
 		if err != nil {
 			log.Fatalf("save event: %v", err)
 		}
-
-		_ = bus.Publish(ctx, evt)
 	}
 
 	deletedID := userIDs[4]
@@ -83,8 +78,6 @@ func populateEvents(ctx context.Context, store event.Store, bus *memory.MemoryBu
 	if err != nil {
 		log.Fatalf("save delete event: %v", err)
 	}
-
-	_ = bus.Publish(ctx, marked)
 
 	fmt.Printf("[setup] Created %d users, %d orders (1 tombstoned user)\n\n", len(userIDs), len(orderIDs))
 }

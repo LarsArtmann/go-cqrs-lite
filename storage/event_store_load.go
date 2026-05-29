@@ -13,24 +13,34 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
 )
 
-// Load retrieves all events for an aggregate, ordered by version.
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
-func (s *SQLEventStore) Load(
+type loadParams struct {
+	spanName   string
+	attrs      []attribute.KeyValue
+	where      string
+	extraArgs  []any
+	requireHit bool
+	errMsg     string
+}
+
+// loadWithSpan starts a traced span, delegates to queryEvents, and records
+// the result count. All Load* methods share this skeleton.
+func (s *SQLEventStore) loadWithSpan(
 	ctx context.Context,
 	aggregateType event.AggregateType,
 	aggregateID id.AggregateID,
+	p loadParams,
 ) ([]event.Event, error) {
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.load",
+		ctx, tracer(), p.spanName,
 		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
+		trace.WithAttributes(p.attrs...),
 	)
 	defer span.End()
 
 	events, err := s.queryEvents(
 		ctx, aggregateType, aggregateID,
-		"ORDER BY version ASC", nil,
-		true, "query events",
+		p.where, p.extraArgs,
+		p.requireHit, p.errMsg,
 	)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
@@ -43,6 +53,22 @@ func (s *SQLEventStore) Load(
 	return events, nil
 }
 
+// Load retrieves all events for an aggregate, ordered by version.
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *SQLEventStore) Load(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName:   "event.store.load",
+		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		where:      "ORDER BY version ASC",
+		requireHit: true,
+		errMsg:     "query events",
+	})
+}
+
 // LoadFromVersion retrieves events starting from a given version.
 func (s *SQLEventStore) LoadFromVersion(
 	ctx context.Context,
@@ -50,30 +76,16 @@ func (s *SQLEventStore) LoadFromVersion(
 	aggregateID id.AggregateID,
 	version event.Version,
 ) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.load_from_version",
-		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrsWithVersion(
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName: "event.store.load_from_version",
+		attrs: aggregateAttrsWithVersion(
 			string(aggregateType), aggregateID.String(), version.Int(),
-		)...),
-	)
-	defer span.End()
-
-	events, err := s.queryEvents(
-		ctx, aggregateType, aggregateID,
-		fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
-		[]any{version.Int()},
-		false, "query events from version",
-	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, err
-	}
-
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
-
-	return events, nil
+		),
+		where:      fmt.Sprintf("AND version > %s ORDER BY version ASC", s.dialect.Placeholder(3)),
+		extraArgs:  []any{version.Int()},
+		requireHit: false,
+		errMsg:     "query events from version",
+	})
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
@@ -84,30 +96,16 @@ func (s *SQLEventStore) LoadToVersion(
 	aggregateID id.AggregateID,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.load_to_version",
-		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrsWithVersion(
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName: "event.store.load_to_version",
+		attrs: aggregateAttrsWithVersion(
 			string(aggregateType), aggregateID.String(), maxVersion.Int(),
-		)...),
-	)
-	defer span.End()
-
-	events, err := s.queryEvents(
-		ctx, aggregateType, aggregateID,
-		fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
-		[]any{maxVersion.Int()},
-		true, "query events to version",
-	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, err
-	}
-
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
-
-	return events, nil
+		),
+		where:      fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
+		extraArgs:  []any{maxVersion.Int()},
+		requireHit: true,
+		errMsg:     "query events to version",
+	})
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -118,28 +116,30 @@ func (s *SQLEventStore) LoadToTimestamp(
 	aggregateID id.AggregateID,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.load_to_timestamp",
-		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
-	)
-	defer span.End()
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName:   "event.store.load_to_timestamp",
+		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		where:      fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
+		extraArgs:  []any{s.dialect.FormatTime(maxTime)},
+		requireHit: true,
+		errMsg:     "query events to timestamp",
+	})
+}
 
-	events, err := s.queryEvents(
-		ctx, aggregateType, aggregateID,
-		fmt.Sprintf("AND occurred_at <= %s ORDER BY version ASC", s.dialect.Placeholder(3)),
-		[]any{s.dialect.FormatTime(maxTime)},
-		true, "query events to timestamp",
-	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, err
-	}
-
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
-
-	return events, nil
+// LoadBackwards returns events in reverse version order (newest first).
+// Returns ErrAggregateNotFound if no events exist for the aggregate.
+func (s *SQLEventStore) LoadBackwards(
+	ctx context.Context,
+	aggregateType event.AggregateType,
+	aggregateID id.AggregateID,
+) ([]event.Event, error) {
+	return s.loadWithSpan(ctx, aggregateType, aggregateID, loadParams{
+		spanName:   "event.store.load_backwards",
+		attrs:      aggregateAttrs(string(aggregateType), aggregateID.String()),
+		where:      "ORDER BY version DESC",
+		requireHit: true,
+		errMsg:     "query events backwards",
+	})
 }
 
 func (s *SQLEventStore) queryEvents(
@@ -185,36 +185,6 @@ func (s *SQLEventStore) queryEvents(
 	if requireNonEmpty && len(events) == 0 {
 		return nil, event.ErrAggregateNotFound
 	}
-
-	return events, nil
-}
-
-// LoadBackwards returns events in reverse version order (newest first).
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
-func (s *SQLEventStore) LoadBackwards(
-	ctx context.Context,
-	aggregateType event.AggregateType,
-	aggregateID id.AggregateID,
-) ([]event.Event, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "event.store.load_backwards",
-		trace.SpanKindClient,
-		trace.WithAttributes(aggregateAttrs(string(aggregateType), aggregateID.String())...),
-	)
-	defer span.End()
-
-	events, err := s.queryEvents(
-		ctx, aggregateType, aggregateID,
-		"ORDER BY version DESC", nil,
-		true, "query events backwards",
-	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, err
-	}
-
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
 
 	return events, nil
 }
