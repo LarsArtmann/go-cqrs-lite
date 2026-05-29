@@ -1,5 +1,8 @@
 package catalog
 
+// Option applies configuration to an exporter.
+type Option func(any)
+
 // Exporter converts a Catalog into an output format.
 // Each exporter sub-package (asyncapi, d2, eventcatalog, openapi)
 // provides a concrete implementation.

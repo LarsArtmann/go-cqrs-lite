@@ -1,5 +1,7 @@
 package d2
 
+import "github.com/larsartmann/go-cqrs-lite/catalog"
+
 const (
 	shapeRectangle = "rectangle"
 	shapeQueue     = "queue"
@@ -14,7 +16,7 @@ type Exporter struct {
 }
 
 // Option configures an Exporter.
-type Option func(*Exporter)
+type Option = catalog.Option
 
 // WithDescription sets the diagram description.
 func WithDescription(desc string) Option {

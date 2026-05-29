@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -164,4 +165,23 @@ func (s *SQLEventStore) loadAllFromStart(
 	}()
 
 	return s.scanEvents(rows)
+}
+
+// queryContextWithError executes a db.QueryContext and wraps the error with
+// otel recording and infrastructure classification.
+func queryContextWithError(
+	ctx context.Context,
+	span trace.Span,
+	db *sql.DB,
+	query string,
+	op string,
+	msg string,
+	queryArgs ...any,
+) (*sql.Rows, error) {
+	rows, err := db.QueryContext(ctx, query, queryArgs...)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+		return nil, event.WrapInfrastructure(err, op, msg)
+	}
+	return rows, nil
 }

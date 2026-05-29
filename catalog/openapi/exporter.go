@@ -22,7 +22,7 @@ type Exporter struct {
 }
 
 // Option configures an Exporter.
-type Option func(*Exporter)
+type Option = catalog.Option
 
 // WithDescription sets the description for the OpenAPI document.
 func WithDescription(desc string) Option {

@@ -128,12 +128,12 @@ func (o *SQLOutbox) PollPending(ctx context.Context, limit int) ([]event.OutboxE
 		ORDER BY created_at ASC
 		LIMIT %s`, p1, p2)
 
-	rows, err := o.db.QueryContext(ctx, query, string(OutboxStatusPending), limit)
+	rows, err := queryContextWithError(ctx, span, o.db, query,
+		"storage.poll_pending_outbox",
+		fmt.Sprintf("poll pending outbox (limit %d)", limit),
+		string(OutboxStatusPending), limit)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, event.WrapInfrastructure(err, "storage.poll_pending_outbox",
-			fmt.Sprintf("poll pending outbox (limit %d)", limit))
+		return nil, err
 	}
 
 	defer func() {

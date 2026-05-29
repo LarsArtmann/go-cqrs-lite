@@ -12,6 +12,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+func mockEventRows(aggID id.AggregateID, now time.Time, payload, metaJSON []byte) *sqlmock.Rows {
+	return sqlmock.NewRows(eventColumns()).
+		AddRow(
+			id.NewEventID().String(), "user.created", "User",
+			aggID.String(), 1, 1, payload, metaJSON, now,
+		)
+}
+
 func benchTestEvent(b *testing.B) (*event.ImmutableEvent, id.AggregateID) {
 	b.Helper()
 	aggID := id.NewAggregateID()
@@ -50,17 +58,8 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 	if err != nil {
 		b.Fatalf("marshal meta: %v", err)
 	}
-	columns := []string{
-		"id", "event_type", "aggregate_type", "aggregate_id",
-		"version", "schema_version", "payload", "metadata", "occurred_at",
-	}
-
 	for b.Loop() {
-		rows := sqlmock.NewRows(columns).
-			AddRow(
-				id.NewEventID().String(), "user.created", "User",
-				aggID.String(), 1, 1, payload, metaJSON, now,
-			)
+		rows := mockEventRows(aggID, now, payload, metaJSON)
 
 		mock.ExpectQuery("SELECT (.+) FROM events WHERE aggregate_type").
 			WithArgs("User", aggID.String()).

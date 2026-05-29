@@ -22,6 +22,16 @@ func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) 
 	}
 }
 
+func assertEventsMatch(t *testing.T, events []event.Event, expected event.Event, desc string) {
+	t.Helper()
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event %s, got %d", desc, len(events))
+	}
+	if events[0].ID() != expected.ID() {
+		t.Fatalf("expected event %s, got event with version %d", desc, events[0].Version())
+	}
+}
+
 func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 	t.Parallel()
 
@@ -127,13 +137,7 @@ func TestSQLiteEventStore_LoadAllFromPosition(t *testing.T) {
 		t.Fatalf("LoadAllFromPosition: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("expected 1 event after position, got %d", len(events))
-	}
-
-	if events[0].ID() != evt2.ID() {
-		t.Fatalf("expected evt2 (version 2), got event with version %d", events[0].Version())
-	}
+	assertEventsMatch(t, events, evt2, "(version 2)")
 
 	all, err := store.LoadAllFromPosition(ctx, evt1.ID(), 0)
 	if err != nil {
@@ -171,13 +175,7 @@ func TestSQLiteEventStore_ReadFrom(t *testing.T) {
 		t.Fatalf("ReadFrom: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("expected 1 event after position, got %d", len(events))
-	}
-
-	if events[0].ID() != evt2.ID() {
-		t.Fatalf("expected evt2 (version 2), got event with version %d", events[0].Version())
-	}
+	assertEventsMatch(t, events, evt2, "(version 2)")
 
 	all, err := store.ReadFrom(ctx, evt1.ID(), 0)
 	if err != nil {

@@ -1,5 +1,7 @@
 package asyncapi
 
+import "github.com/larsartmann/go-cqrs-lite/catalog"
+
 const (
 	asyncAPIVersion = "3.0.0"
 	contentType     = "application/json"
@@ -27,7 +29,7 @@ type Exporter struct {
 }
 
 // Option configures an Exporter.
-type Option func(*Exporter)
+type Option = catalog.Option
 
 // WithServer sets the server name, host, and protocol for the AsyncAPI document.
 func WithServer(name, host, protocol string) Option {
