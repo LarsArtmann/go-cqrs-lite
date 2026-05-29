@@ -57,9 +57,7 @@ func TestCommandTracing_Success(t *testing.T) {
 		t.Error("expected aggregate.id attribute to be set")
 	}
 
-	if span.Status().Code != codes.Unset {
-		t.Errorf("expected unset status on success, got %v", span.Status().Code)
-	}
+	assertSpanStatusUnset(t, span)
 }
 
 func TestCommandTracing_Error(t *testing.T) {

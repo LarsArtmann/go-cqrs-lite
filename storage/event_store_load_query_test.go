@@ -107,9 +107,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	if events[0].Version() != 3 {
-		t.Errorf("Version = %d, want 3", events[0].Version())
-	}
+	testhelpers.AssertEventVersion(t, events, 0, 3)
 }
 
 func TestSQLEventStore_Load_QueryError(t *testing.T) {

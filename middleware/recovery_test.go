@@ -10,6 +10,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
+func assertErrorContains(t *testing.T, err error, substr string) {
+	if !strings.Contains(err.Error(), substr) {
+		t.Fatalf("error = %q, want containing %q", err.Error(), substr)
+	}
+}
+
 func TestCommandRecovery_NoPanic(t *testing.T) {
 	t.Parallel()
 
@@ -37,9 +43,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 		t.Fatal("expected error from recovered panic")
 	}
 
-	if !strings.Contains(err.Error(), "panic recovered in command test.cmd: boom") {
-		t.Errorf("unexpected error message: %s", err.Error())
-	}
+	assertErrorContains(t, err, "panic recovered in command test.cmd: boom")
 }
 
 func TestEventRecovery_NoPanic(t *testing.T) {
@@ -75,9 +79,7 @@ func TestEventRecovery_Panic(t *testing.T) {
 		t.Fatal("expected error from recovered panic")
 	}
 
-	if !strings.Contains(err.Error(), "panic recovered in event test.evt: event boom") {
-		t.Errorf("unexpected error message: %s", err.Error())
-	}
+	assertErrorContains(t, err, "panic recovered in event test.evt: event boom")
 }
 
 func TestQueryRecovery_NoPanic(t *testing.T) {
@@ -107,9 +109,7 @@ func TestQueryRecovery_Panic(t *testing.T) {
 		t.Fatal("expected error from recovered panic")
 	}
 
-	if !strings.Contains(err.Error(), "panic recovered in query test.query: query boom") {
-		t.Errorf("unexpected error message: %s", err.Error())
-	}
+	assertErrorContains(t, err, "panic recovered in query test.query: query boom")
 }
 
 func TestCommandRecovery_SentinelError(t *testing.T) {

@@ -279,15 +279,9 @@ func TestAutoDerive_ProducersConsumers(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
-		Version: "1.0.0", Direction: catalog.Sends,
-	})
+	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "notif-svc", Name: "Notification Service", Version: "1.0.0"})
-	reg.AddEvent("notif-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
-		Version: "1.0.0", Direction: catalog.Receives,
-	})
+	reg.AddEvent("notif-svc", newEvent("OrderCreated", "Order Created", catalog.Receives))
 
 	cat := reg.Build()
 
@@ -320,10 +314,7 @@ func TestExporter_Export_MessageWithProducersConsumers(t *testing.T) {
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
-		Version: "1.0.0", Direction: catalog.Sends,
-	})
+	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 
 	cat := reg.Build()
 
@@ -359,10 +350,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
 		Version: "1.0.0", Summary: "Create a new order",
 	})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
-		Version: "1.0.0", Direction: catalog.Sends,
-	})
+	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 	reg.AddDomain(catalog.Domain{
 		ID: "orders", Name: "Orders", Version: "1.0.0",
 		Services: []catalog.ServiceID{"order-svc"},

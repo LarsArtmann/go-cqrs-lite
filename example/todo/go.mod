@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.6.0
 	github.com/larsartmann/go-cqrs-lite/memory v1.6.0
 	github.com/larsartmann/go-cqrs-lite/storage v1.6.0
+	github.com/larsartmann/go-cqrs-lite/testhelpers v1.6.0
 	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e
 )
 

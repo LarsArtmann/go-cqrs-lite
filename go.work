@@ -2,8 +2,8 @@ go 1.26.3
 
 use (
 	./catalog
-	./codec
 	./cmd/cqrs-gen
+	./codec
 	./core
 	./example/projection
 	./example/saga

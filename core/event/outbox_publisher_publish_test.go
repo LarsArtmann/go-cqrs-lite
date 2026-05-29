@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+func assertErrorContains(t *testing.T, err error, substr string) {
+	if !strings.Contains(err.Error(), substr) {
+		t.Fatalf("error = %q, want containing %q", err.Error(), substr)
+	}
+}
+
 func TestOutboxPublisher_BackgroundPollingPublishes(t *testing.T) {
 	t.Parallel()
 
@@ -172,9 +178,7 @@ func TestOutboxPublisher_PublishNow_PollError(t *testing.T) {
 		t.Fatal("expected error on poll failure")
 	}
 
-	if !strings.Contains(err.Error(), "poll pending") {
-		t.Fatalf("error = %q, want containing 'poll pending'", err.Error())
-	}
+	assertErrorContains(t, err, "poll pending")
 }
 
 func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
@@ -199,9 +203,7 @@ func TestOutboxPublisher_PublishNow_PublishError(t *testing.T) {
 		t.Fatal("expected error on publish failure")
 	}
 
-	if !strings.Contains(err.Error(), "publish events") {
-		t.Fatalf("error = %q, want containing 'publish events'", err.Error())
-	}
+	assertErrorContains(t, err, "publish events")
 }
 
 func TestOutboxPublisher_PublishNow_PublishError_StopsAtFailure(t *testing.T) {
@@ -267,9 +269,7 @@ func TestOutboxPublisher_PublishNow_AckError(t *testing.T) {
 		t.Fatal("expected error on ack failure")
 	}
 
-	if !strings.Contains(err.Error(), "ack outbox entries") {
-		t.Fatalf("error = %q, want containing 'ack entries'", err.Error())
-	}
+	assertErrorContains(t, err, "ack outbox entries")
 }
 
 func TestOutboxPublisher_PublishNow_RespectsBatchSize(t *testing.T) {
