@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"maps"
 	"sort"
 	"strings"
 	"sync"
@@ -77,14 +78,14 @@ func (b *Backend) Batch(_ context.Context, fn func(store.Transaction) error) err
 	defer b.mu.Unlock()
 
 	snapshot := make(map[string][]byte, len(b.data))
-	for k, v := range b.data {
-		snapshot[k] = v
-	}
+	maps.Copy(snapshot, b.data)
 
 	tx := &memTx{data: b.data}
 
-	if err := fn(tx); err != nil {
+	err := fn(tx)
+	if err != nil {
 		b.data = snapshot
+
 		return err
 	}
 

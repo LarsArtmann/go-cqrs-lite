@@ -16,7 +16,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("PutAndGet", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -39,7 +41,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("GetNotFound", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -51,7 +55,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("PutOverwrites", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -77,7 +83,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -99,18 +107,23 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("DeleteNonexistent", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
-		if err := b.Delete(ctx, []byte("nonexistent")); err != nil {
+		err := b.Delete(ctx, []byte("nonexistent"))
+		if err != nil {
 			t.Fatalf("Delete nonexistent: %v", err)
 		}
 	})
 
 	t.Run("ScanEmpty", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -131,7 +144,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("ScanPrefix", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -171,7 +186,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("BatchAtomic", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -197,7 +214,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("BatchRollback", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -218,7 +237,9 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 
 	t.Run("BatchReadModifyWrite", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
+
 		b := factory(t)
 		defer b.Close()
 
@@ -254,7 +275,8 @@ func RunBackendTests(t *testing.T, factory BackendFactory) {
 		t.Parallel()
 		b := factory(t)
 
-		if err := b.Close(); err != nil {
+		err := b.Close()
+		if err != nil {
 			t.Fatalf("Close: %v", err)
 		}
 	})

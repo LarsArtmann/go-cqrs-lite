@@ -11,6 +11,7 @@ func TestMemoryBackend(t *testing.T) {
 	t.Parallel()
 	store.RunBackendTests(t, func(t *testing.T) store.Backend {
 		t.Helper()
+
 		return memory.NewBackend()
 	})
 }
