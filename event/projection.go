@@ -9,15 +9,6 @@ type Projection interface {
 	EventTypes() []Type
 }
 
-// BatchProjection is an optional interface that projections can implement
-// to process multiple events in a single call for higher throughput.
-// When implemented, the runner will call HandleBatch instead of Handle
-// for each event batch.
-type BatchProjection interface {
-	Projection
-	HandleBatch(ctx context.Context, events []Event) error
-}
-
 type projectionFunc struct {
 	name       string
 	handle     func(ctx context.Context, evt Event) error
