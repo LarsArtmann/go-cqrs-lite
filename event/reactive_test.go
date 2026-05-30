@@ -95,6 +95,96 @@ func TestNewEventBus_MultipleSubscribers(t *testing.T) {
 	}
 }
 
+func TestNewReplayEventBus(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewReplayEventBus(3)
+
+	bus.Next(newTestEvent(t, "user.created"))
+	bus.Next(newTestEvent(t, "user.changed"))
+	bus.Next(newTestEvent(t, "user.deleted"))
+
+	var received []event.Event
+
+	bus.Subscribe(ro.OnNext(func(e event.Event) {
+		received = append(received, e)
+	}))
+	bus.Complete()
+
+	if len(received) != 3 {
+		t.Fatalf("expected 3 replayed events, got %d", len(received))
+	}
+
+	types := make([]event.Type, len(received))
+	for i, e := range received {
+		types[i] = e.Type()
+	}
+
+	expected := []event.Type{"user.created", "user.changed", "user.deleted"}
+	for i, exp := range expected {
+		if types[i] != exp {
+			t.Errorf("event %d: expected %s, got %s", i, exp, types[i])
+		}
+	}
+}
+
+func TestNewReplayEventBus_LateSubscriber(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewReplayEventBus(2)
+
+	bus.Next(newTestEvent(t, "one"))
+	bus.Next(newTestEvent(t, "two"))
+	bus.Next(newTestEvent(t, "three"))
+
+	var received []event.Event
+
+	bus.Subscribe(ro.OnNext(func(e event.Event) {
+		received = append(received, e)
+	}))
+	bus.Complete()
+
+	if len(received) != 2 {
+		t.Fatalf("expected 2 replayed events (buffer=2), got %d", len(received))
+	}
+
+	if received[0].Type() != event.Type("two") {
+		t.Errorf("expected 'two' first, got %s", received[0].Type())
+	}
+
+	if received[1].Type() != event.Type("three") {
+		t.Errorf("expected 'three' second, got %s", received[1].Type())
+	}
+}
+
+func TestNewBehaviorEventBus(t *testing.T) {
+	t.Parallel()
+
+	initial := newTestEvent(t, "initial")
+	bus := event.NewBehaviorEventBus(initial)
+
+	var received event.Event
+
+	bus.Subscribe(ro.OnNext(func(e event.Event) {
+		received = e
+	}))
+
+	if received == nil {
+		t.Fatal("expected immediate replay of initial value")
+	}
+
+	if received.Type() != event.Type("initial") {
+		t.Errorf("expected initial, got %s", received.Type())
+	}
+
+	bus.Next(newTestEvent(t, "updated"))
+	bus.Complete()
+
+	if received.Type() != event.Type("updated") {
+		t.Errorf("expected updated, got %s", received.Type())
+	}
+}
+
 func TestFilterEventType(t *testing.T) {
 	t.Parallel()
 
@@ -173,7 +263,6 @@ func TestHandlerToObserver_Success(t *testing.T) {
 
 	var mu sync.Mutex
 	var received []event.Event
-	var errors []error
 
 	handler := func(ctx context.Context, e event.Event) error {
 		mu.Lock()
@@ -183,11 +272,7 @@ func TestHandlerToObserver_Success(t *testing.T) {
 		return nil
 	}
 
-	observer := event.HandlerToObserver(handler, func(err error) {
-		mu.Lock()
-		errors = append(errors, err)
-		mu.Unlock()
-	})
+	observer := event.HandlerToObserver(handler)
 
 	observer.Next(newTestEvent(t, "user.created"))
 
@@ -198,16 +283,13 @@ func TestHandlerToObserver_Success(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(received))
 	}
 
-	if len(errors) != 0 {
-		t.Fatalf("expected 0 errors, got %d", len(errors))
+	if observer.HasThrown() {
+		t.Fatal("expected observer to not have thrown")
 	}
 }
 
-func TestHandlerToObserver_ErrorPropagation(t *testing.T) {
+func TestHandlerToObserver_ErrorTerminatesObserver(t *testing.T) {
 	t.Parallel()
-
-	var mu sync.Mutex
-	var errors []error
 
 	handlerErr := errTestHandler("handler failed")
 
@@ -215,61 +297,73 @@ func TestHandlerToObserver_ErrorPropagation(t *testing.T) {
 		return handlerErr
 	}
 
-	observer := event.HandlerToObserver(handler, func(err error) {
-		mu.Lock()
-		errors = append(errors, err)
-		mu.Unlock()
-	})
+	observer := event.HandlerToObserver(handler)
 
 	observer.Next(newTestEvent(t, "user.created"))
 
-	mu.Lock()
-	defer mu.Unlock()
-
-	if len(errors) != 1 {
-		t.Fatalf("expected 1 error, got %d", len(errors))
+	if !observer.HasThrown() {
+		t.Fatal("expected observer to have thrown after handler error")
 	}
 
-	if errors[0] != handlerErr {
-		t.Errorf("expected handlerErr, got %v", errors[0])
+	if !observer.IsClosed() {
+		t.Fatal("expected observer to be closed after error")
 	}
 }
 
-func TestHandlerToObserver_StreamError(t *testing.T) {
+func TestHandlerToObserver_SubsequentEventsDroppedAfterError(t *testing.T) {
 	t.Parallel()
 
-	var mu sync.Mutex
-	var errors []error
+	var callCount int
 
 	handler := func(_ context.Context, _ event.Event) error {
+		callCount++
+		if callCount > 1 {
+			return errTestHandler("should not be called")
+		}
+
+		return errTestHandler("first error")
+	}
+
+	observer := event.HandlerToObserver(handler)
+
+	observer.Next(newTestEvent(t, "first"))
+	observer.Next(newTestEvent(t, "second"))
+	observer.Next(newTestEvent(t, "third"))
+
+	if callCount != 1 {
+		t.Fatalf("expected 1 handler call, got %d (subsequent events should be dropped)", callCount)
+	}
+}
+
+func TestHandlerToObserver_UsesStreamContext(t *testing.T) {
+	t.Parallel()
+
+	key := struct{}{}
+	streamCtx := context.WithValue(context.Background(), key, "from-stream")
+
+	var gotCtx context.Context
+
+	handler := func(ctx context.Context, _ event.Event) error {
+		gotCtx = ctx
 		return nil
 	}
 
-	observer := event.HandlerToObserver(handler, func(err error) {
-		mu.Lock()
-		errors = append(errors, err)
-		mu.Unlock()
-	})
+	observer := event.HandlerToObserver(handler)
 
-	streamErr := errTestHandler("stream broken")
-	observer.Error(streamErr)
+	observer.NextWithContext(streamCtx, newTestEvent(t, "ctx.test"))
 
-	mu.Lock()
-	defer mu.Unlock()
-
-	if len(errors) != 1 {
-		t.Fatalf("expected 1 stream error, got %d", len(errors))
+	if gotCtx == nil {
+		t.Fatal("expected context from stream")
 	}
 
-	if errors[0] != streamErr {
-		t.Errorf("expected streamErr, got %v", errors[0])
+	if gotCtx.Value(key) != "from-stream" {
+		t.Error("expected stream context, not event or background context")
 	}
 }
 
 func TestHandlerToObserver_UsesEventContext(t *testing.T) {
 	t.Parallel()
 
-	var mu sync.Mutex
 	var gotDeadline time.Time
 	var hasDeadline bool
 
@@ -278,14 +372,11 @@ func TestHandlerToObserver_UsesEventContext(t *testing.T) {
 	defer cancel()
 
 	handler := func(ctx context.Context, _ event.Event) error {
-		mu.Lock()
 		gotDeadline, hasDeadline = ctx.Deadline()
-		mu.Unlock()
-
 		return nil
 	}
 
-	observer := event.HandlerToObserver(handler, func(_ error) {})
+	observer := event.HandlerToObserver(handler)
 
 	evt, err := event.New(
 		"ctx.test",
@@ -299,58 +390,46 @@ func TestHandlerToObserver_UsesEventContext(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	observer.Next(evt)
-
-	mu.Lock()
-	defer mu.Unlock()
+	observer.NextWithContext(ctx, evt)
 
 	if !hasDeadline {
-		t.Fatal("expected deadline from event context, got none")
+		t.Fatal("expected deadline from event context")
 	}
 
 	if !gotDeadline.Equal(deadline) {
-		t.Errorf("expected deadline %v from event.Context(), got %v", deadline, gotDeadline)
+		t.Errorf("expected deadline %v, got %v", deadline, gotDeadline)
 	}
 }
 
-func TestHandlerToObserverWithContext_OverridesContext(t *testing.T) {
+func TestHandlerToObserverWithContext_OverridesStreamContext(t *testing.T) {
 	t.Parallel()
 
-	var mu sync.Mutex
+	key := struct{}{}
+	overrideCtx := context.WithValue(context.Background(), key, "override")
+
 	var gotCtx context.Context
 
-	overrideKey := struct{}{}
-	overrideCtx := context.WithValue(context.Background(), overrideKey, "override")
-
 	handler := func(ctx context.Context, _ event.Event) error {
-		mu.Lock()
 		gotCtx = ctx
-		mu.Unlock()
-
 		return nil
 	}
 
-	observer := event.HandlerToObserverWithContext(overrideCtx, handler, func(_ error) {})
+	observer := event.HandlerToObserverWithContext(overrideCtx, handler)
 
-	observer.Next(newTestEvent(t, "ctx.test"))
-
-	mu.Lock()
-	defer mu.Unlock()
+	streamCtx := context.WithValue(context.Background(), key, "stream")
+	observer.NextWithContext(streamCtx, newTestEvent(t, "ctx.test"))
 
 	if gotCtx == nil {
-		t.Fatal("expected context, got nil")
+		t.Fatal("expected context")
 	}
 
-	if gotCtx.Value(overrideKey) != "override" {
-		t.Error("expected override context, not event context")
+	if gotCtx.Value(key) != "override" {
+		t.Error("expected override context, not stream context")
 	}
 }
 
-func TestHandlerToObserverWithContext_ErrorPropagation(t *testing.T) {
+func TestHandlerToObserverWithContext_ErrorTerminatesObserver(t *testing.T) {
 	t.Parallel()
-
-	var mu sync.Mutex
-	var errors []error
 
 	handlerErr := errTestHandler("ctx handler failed")
 
@@ -358,23 +437,150 @@ func TestHandlerToObserverWithContext_ErrorPropagation(t *testing.T) {
 		return handlerErr
 	}
 
-	observer := event.HandlerToObserverWithContext(context.Background(), handler, func(err error) {
-		mu.Lock()
-		errors = append(errors, err)
-		mu.Unlock()
-	})
+	observer := event.HandlerToObserverWithContext(context.Background(), handler)
 
 	observer.Next(newTestEvent(t, "user.created"))
 
-	mu.Lock()
-	defer mu.Unlock()
+	if !observer.HasThrown() {
+		t.Fatal("expected observer to have thrown after handler error")
+	}
+}
 
-	if len(errors) != 1 {
-		t.Fatalf("expected 1 error, got %d", len(errors))
+func TestMap(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewEventBus()
+
+	mapped := ro.Pipe1(bus, event.Map(func(e event.Event) event.Event {
+		return e
+	}))
+
+	var received event.Event
+
+	mapped.Subscribe(ro.OnNext(func(e event.Event) {
+		received = e
+	}))
+
+	evt := newTestEvent(t, "original")
+	bus.Next(evt)
+	bus.Complete()
+
+	if received == nil {
+		t.Fatal("expected to receive mapped event")
+	}
+}
+
+func TestTap(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewEventBus()
+
+	var sideEffectCount int
+
+	tapped := ro.Pipe1(bus, event.Tap(func(e event.Event) {
+		sideEffectCount++
+	}))
+
+	var received event.Event
+
+	tapped.Subscribe(ro.OnNext(func(e event.Event) {
+		received = e
+	}))
+
+	bus.Next(newTestEvent(t, "tapped"))
+	bus.Complete()
+
+	if received == nil {
+		t.Fatal("expected to receive event after tap")
 	}
 
-	if errors[0] != handlerErr {
-		t.Errorf("expected handlerErr, got %v", errors[0])
+	if sideEffectCount != 1 {
+		t.Fatalf("expected 1 side effect, got %d", sideEffectCount)
+	}
+}
+
+func TestReplayFilter(t *testing.T) {
+	t.Parallel()
+
+	events := []event.Event{
+		newTestEvent(t, "before1"),
+		newTestEvent(t, "before2"),
+		newTestEvent(t, "checkpoint"),
+		newTestEvent(t, "after1"),
+		newTestEvent(t, "after2"),
+	}
+
+	checkpoint := event.Checkpoint{EventID: events[2].ID()}
+
+	obs := ro.FromSlice(events)
+	filtered := ro.Pipe1(obs, event.ReplayFilter(nil, checkpoint))
+
+	values, err := ro.Collect(filtered)
+	if err != nil {
+		t.Fatalf("collect failed: %v", err)
+	}
+
+	if len(values) != 2 {
+		t.Fatalf("expected 2 events after checkpoint, got %d", len(values))
+	}
+
+	if values[0].Type() != event.Type("after1") {
+		t.Errorf("expected after1, got %s", values[0].Type())
+	}
+
+	if values[1].Type() != event.Type("after2") {
+		t.Errorf("expected after2, got %s", values[1].Type())
+	}
+}
+
+func TestReplayFilter_WithTypeFilter(t *testing.T) {
+	t.Parallel()
+
+	events := []event.Event{
+		newTestEvent(t, "before"),
+		newTestEvent(t, "target"),
+		newTestEvent(t, "other"),
+	}
+
+	checkpoint := event.Checkpoint{EventID: events[0].ID()}
+
+	obs := ro.FromSlice(events)
+	filtered := ro.Pipe1(obs, event.ReplayFilter([]event.Type{"target"}, checkpoint))
+
+	values, err := ro.Collect(filtered)
+	if err != nil {
+		t.Fatalf("collect failed: %v", err)
+	}
+
+	if len(values) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(values))
+	}
+
+	if values[0].Type() != event.Type("target") {
+		t.Errorf("expected target, got %s", values[0].Type())
+	}
+}
+
+func TestReplayFilter_ZeroCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	events := []event.Event{
+		newTestEvent(t, "one"),
+		newTestEvent(t, "two"),
+	}
+
+	checkpoint := event.Checkpoint{}
+
+	obs := ro.FromSlice(events)
+	filtered := ro.Pipe1(obs, event.ReplayFilter(nil, checkpoint))
+
+	values, err := ro.Collect(filtered)
+	if err != nil {
+		t.Fatalf("collect failed: %v", err)
+	}
+
+	if len(values) != 2 {
+		t.Fatalf("expected 2 events (zero checkpoint = all events), got %d", len(values))
 	}
 }
 
