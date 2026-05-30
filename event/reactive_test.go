@@ -623,27 +623,6 @@ func TestScanState(t *testing.T) {
 	}
 }
 
-func TestDistinctByAggregateID(t *testing.T) {
-	t.Parallel()
-
-	events := []event.Event{
-		newTestEvent(t, "first"),
-		newTestEvent(t, "second"),
-		newTestEvent(t, "duplicate-of-first"),
-	}
-
-	obs := ro.Pipe1(ro.FromSlice(events), event.DistinctByAggregateID())
-
-	values, err := ro.Collect(obs)
-	if err != nil {
-		t.Fatalf("collect failed: %v", err)
-	}
-
-	if len(values) != 3 {
-		t.Fatalf("expected 3 events (different AggregateIDs), got %d", len(values))
-	}
-}
-
 type errTestHandler string
 
 func (e errTestHandler) Error() string { return string(e) }

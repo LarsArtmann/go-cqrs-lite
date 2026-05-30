@@ -48,6 +48,9 @@ func FilterEventTypes(eventTypes ...Type) func(ro.Observable[Event]) ro.Observab
 
 // ReplayFilter returns an operator that filters an Observable[Event] to only events after the given checkpoint
 // and matching the given event types. Used by projection replay.
+//
+// Not goroutine-safe: the returned operator captures mutable state (checkpoint position) in a closure.
+// Each subscription must use its own ReplayFilter instance. For concurrent use, wrap with ro.Serialize.
 func ReplayFilter(types []Type, checkpoint Checkpoint) func(ro.Observable[Event]) ro.Observable[Event] {
 	typeSet := newTypeSet(types)
 	pastCheckpoint := checkpoint.IsZero()
@@ -116,23 +119,6 @@ func Map(transform func(Event) Event) func(ro.Observable[Event]) ro.Observable[E
 // and accumulator folds each event into the current state, producing a new state.
 func ScanState[S any](initial S, accumulator func(S, Event) S) func(ro.Observable[Event]) ro.Observable[S] {
 	return ro.Scan(accumulator, initial)
-}
-
-// DistinctByAggregateID deduplicates events by AggregateID — only the first event
-// for each aggregate passes through.
-func DistinctByAggregateID() func(ro.Observable[Event]) ro.Observable[Event] {
-	seen := make(map[string]struct{})
-
-	return ro.Filter(func(e Event) bool {
-		key := e.AggregateID().String()
-		if _, ok := seen[key]; ok {
-			return false
-		}
-
-		seen[key] = struct{}{}
-
-		return true
-	})
 }
 
 // Tap performs a side effect for each event without changing the stream.
