@@ -26,7 +26,7 @@ func CommandValidation(validate CommandValidator, opts ...Option) command.Middle
 				}
 
 				return event.Wrapf(
-					ErrValidationFailed, event.Rejection,
+					err, event.Rejection,
 					"middleware.command_validation",
 					"validation failed for command %s",
 					cmd.Type(),
@@ -56,7 +56,7 @@ func EventValidation(validate EventValidator, opts ...Option) event.Middleware {
 				}
 
 				return event.Wrapf(
-					ErrValidationFailed, event.Rejection,
+					err, event.Rejection,
 					"middleware.event_validation",
 					"validation failed for event %s",
 					evt.Type(),
@@ -86,7 +86,7 @@ func QueryValidation(validate QueryValidator, opts ...Option) query.Middleware {
 				}
 
 				return nil, event.Wrapf(
-					ErrValidationFailed, event.Rejection,
+					err, event.Rejection,
 					"middleware.query_validation",
 					"validation failed for query %s",
 					q.Type(),

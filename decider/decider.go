@@ -153,8 +153,8 @@ func (r *Repository[State]) Execute(
 }
 
 // saveSnapshotAfterEvents folds new events onto state to get the final state,
-// then attempts to save a snapshot. Errors are logged and swallowed — snapshots
-// are best-effort and must not block the write path.
+// then attempts to save a snapshot. Errors are recorded on the active span and
+// swallowed — snapshots are best-effort and must not block the write path.
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
 	ref event.AggregateRef,
@@ -173,7 +173,10 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
-			_ = opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+			cqrsotel.RecordError(
+				trace.SpanFromContext(ctx),
+				opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr),
+			)
 
 			return
 		}
@@ -181,12 +184,18 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 	encoded, encErr := r.codec.Encode(finalState)
 	if encErr != nil {
-		_ = opError(ref, "encode snapshot: %w", encErr)
+		cqrsotel.RecordError(
+			trace.SpanFromContext(ctx),
+			opError(ref, "encode snapshot: %w", encErr),
+		)
 
 		return
 	}
 
-	_ = snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
+	saveErr := snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
+	if saveErr != nil {
+		cqrsotel.RecordError(trace.SpanFromContext(ctx), saveErr)
+	}
 }
 
 // Load reconstructs state from the aggregate's event history without any

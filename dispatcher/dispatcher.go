@@ -192,7 +192,7 @@ func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 // KT is the type key (e.g., command.Type or query.Type).
 // VT is the catalog metadata type (e.g., dispatcher.HandlerMeta).
 type CatalogDispatcher[KT comparable, VT any] struct {
-	catalogMu     sync.RWMutex
+	catalogMu      sync.RWMutex
 	catalogEntries map[KT]VT
 }
 

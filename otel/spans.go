@@ -43,12 +43,6 @@ func EndWithError(span trace.Span, err error) {
 	span.End()
 }
 
-// SpanFromContext returns the current span from the context.
-// This is a convenience wrapper around trace.SpanFromContext.
-func SpanFromContext(ctx context.Context) trace.Span {
-	return trace.SpanFromContext(ctx)
-}
-
 // ComponentTracer returns a tracer name for a go-cqrs-lite component.
 // Example: ComponentTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage".
 func ComponentTracer(component string) string {

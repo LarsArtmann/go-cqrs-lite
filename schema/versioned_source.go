@@ -16,8 +16,11 @@ type VersionedStore struct {
 
 func NewVersionedStore(store event.Store, upcasters ...Upcaster) *VersionedStore {
 	reg := newUpcasterRegistry()
+
 	for _, u := range upcasters {
-		reg.register(u)
+		if u != nil {
+			reg.register(u)
+		}
 	}
 
 	return &VersionedStore{Store: store, registry: reg}

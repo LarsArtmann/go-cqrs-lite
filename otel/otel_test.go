@@ -205,7 +205,7 @@ func TestSpanFromContext_ReturnsSpan(t *testing.T) {
 	ctx, span := tracer.Start(context.Background(), "test")
 	defer span.End()
 
-	got := SpanFromContext(ctx)
+	got := trace.SpanFromContext(ctx)
 	require.Equal(t, span.SpanContext(), got.SpanContext())
 }
 

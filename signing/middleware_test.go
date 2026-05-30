@@ -250,15 +250,18 @@ func TestMiddlewareNilGuards(t *testing.T) {
 		}
 	})
 
-	t.Run("RequireSignatureMiddleware returns error middleware on nil verifier", func(t *testing.T) {
-		t.Parallel()
+	t.Run(
+		"RequireSignatureMiddleware returns error middleware on nil verifier",
+		func(t *testing.T) {
+			t.Parallel()
 
-		mw := signing.RequireSignatureMiddleware(nil)
-		handler := mw(func(_ context.Context, _ event.Event) error { return nil })
-		evt := makeTestEvent(t)
-		err := handler(context.Background(), evt)
-		if err == nil {
-			t.Fatal("expected error from nil verifier middleware")
-		}
-	})
+			mw := signing.RequireSignatureMiddleware(nil)
+			handler := mw(func(_ context.Context, _ event.Event) error { return nil })
+			evt := makeTestEvent(t)
+			err := handler(context.Background(), evt)
+			if err == nil {
+				t.Fatal("expected error from nil verifier middleware")
+			}
+		},
+	)
 }

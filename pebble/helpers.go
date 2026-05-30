@@ -62,6 +62,10 @@ func (a *PebbleEventStore) logEventOperation(
 	ref event.AggregateRef,
 	count int,
 ) {
+	if a.logger == nil {
+		return
+	}
+
 	a.logger.Debug(
 		msg,
 		slog.String("aggregate_type", string(ref.Type)),

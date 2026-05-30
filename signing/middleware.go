@@ -38,7 +38,10 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
 		return func(next event.Publisher) event.Publisher {
 			return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-				return event.NewRejection("signing.nil_signer", "SignMiddleware called with nil signer")
+				return event.NewRejection(
+					"signing.nil_signer",
+					"SignMiddleware called with nil signer",
+				)
 			})
 		}
 	}
@@ -85,7 +88,10 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
 		return func(next event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
-				return event.NewRejection("signing.nil_verifier", "VerifyMiddleware called with nil verifier")
+				return event.NewRejection(
+					"signing.nil_verifier",
+					"VerifyMiddleware called with nil verifier",
+				)
 			}
 		}
 	}
@@ -120,7 +126,10 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
 		return func(next event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
-				return event.NewRejection("signing.nil_verifier", "RequireSignatureMiddleware called with nil verifier")
+				return event.NewRejection(
+					"signing.nil_verifier",
+					"RequireSignatureMiddleware called with nil verifier",
+				)
 			}
 		}
 	}

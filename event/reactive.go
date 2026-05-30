@@ -51,7 +51,10 @@ func FilterEventTypes(eventTypes ...Type) func(ro.Observable[Event]) ro.Observab
 //
 // Not goroutine-safe: the returned operator captures mutable state (checkpoint position) in a closure.
 // Each subscription must use its own ReplayFilter instance. For concurrent use, wrap with ro.Serialize.
-func ReplayFilter(types []Type, checkpoint Checkpoint) func(ro.Observable[Event]) ro.Observable[Event] {
+func ReplayFilter(
+	types []Type,
+	checkpoint Checkpoint,
+) func(ro.Observable[Event]) ro.Observable[Event] {
 	typeSet := newTypeSet(types)
 	pastCheckpoint := checkpoint.IsZero()
 
@@ -117,7 +120,10 @@ func Map(transform func(Event) Event) func(ro.Observable[Event]) ro.Observable[E
 
 // ScanState accumulates state over an event stream. Initial is the starting state,
 // and accumulator folds each event into the current state, producing a new state.
-func ScanState[S any](initial S, accumulator func(S, Event) S) func(ro.Observable[Event]) ro.Observable[S] {
+func ScanState[S any](
+	initial S,
+	accumulator func(S, Event) S,
+) func(ro.Observable[Event]) ro.Observable[S] {
 	return ro.Scan(accumulator, initial)
 }
 

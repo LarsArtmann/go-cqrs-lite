@@ -118,7 +118,7 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 
 	err = publisher.Publish(ctx, events...)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.publish_failed", "memory bus publish")
+		return err //nolint:wrapcheck // already wrapped by inner PublisherFunc
 	}
 
 	return nil

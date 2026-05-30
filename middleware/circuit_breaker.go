@@ -219,7 +219,8 @@ func (cb *circuitBreaker) execute(
 				"operation", opName, "error", err)
 		}
 
-		return fmt.Errorf("circuit breaker open for %s: %w", opName, err)
+		return event.WrapTransient(err, "middleware.circuit_open",
+			"circuit breaker rejected "+opName)
 	}
 
 	err = fn()
@@ -235,7 +236,7 @@ func (cb *circuitBreaker) execute(
 		cb.recordSuccess()
 	}
 
-	return fmt.Errorf("%s: %w", opName, err)
+	return event.Wrap(err, event.Classify(err), opName, err.Error())
 }
 
 // ErrCircuitBreakerOpen is returned when the circuit breaker is open.

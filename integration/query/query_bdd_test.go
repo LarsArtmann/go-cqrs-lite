@@ -66,10 +66,10 @@ var _ = Describe("Query Dispatcher", func() {
 		})
 
 		Context("when I dispatch an unregistered query", func() {
-			It("should return a query not supported error", func() {
+			It("should return a handler not found error", func() {
 				_, err := dispatcher.Dispatch(ctx, &getUserName{})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("not supported"))
+				Expect(err.Error()).To(ContainSubstring("no handler registered"))
 			})
 		})
 

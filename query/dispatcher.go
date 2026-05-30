@@ -99,9 +99,9 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return nil, errorfamily.WrapRejection(
-				ErrQueryNotSupported,
-				"query.not_supported",
-				"query not supported: "+string(query.Type()),
+				ErrHandlerNotFound,
+				"query.handler_not_found",
+				"no handler registered for query: "+string(query.Type()),
 			)
 		}
 

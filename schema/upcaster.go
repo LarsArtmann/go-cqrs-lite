@@ -33,6 +33,10 @@ func (u *upcasterFunc) SourceType() event.Type { return u.sourceType }
 func (u *upcasterFunc) SourceVersion() event.SchemaVersion { return u.sourceVersion }
 
 func (u *upcasterFunc) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
+	if u.upcast == nil {
+		return nil, event.NewRejection("schema.nil_upcaster", "upcaster function is nil")
+	}
+
 	return u.upcast(evt)
 }
 

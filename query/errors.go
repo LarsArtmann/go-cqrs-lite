@@ -2,11 +2,15 @@ package query
 
 import errorfamily "github.com/larsartmann/go-error-family"
 
-// ErrQueryNotSupported is returned when a query type is not supported.
-var ErrQueryNotSupported = errorfamily.NewRejection(
-	"query.not_supported",
-	"query not supported",
+// ErrHandlerNotFound is returned when no handler is registered for a query type.
+var ErrHandlerNotFound = errorfamily.NewRejection(
+	"query.handler_not_found",
+	"no handler registered for query",
 )
+
+// ErrQueryNotSupported is an alias for ErrHandlerNotFound.
+// Deprecated: Use ErrHandlerNotFound for consistency with command.Dispatcher.
+var ErrQueryNotSupported = ErrHandlerNotFound
 
 // ErrDispatcherClosed is returned when the dispatcher is closed.
 var ErrDispatcherClosed = errorfamily.NewInfrastructure(

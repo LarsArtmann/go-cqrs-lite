@@ -134,22 +134,24 @@ func TestQueryValidation_Fail(t *testing.T) {
 func TestCommandValidation_SentinelError(t *testing.T) {
 	t.Parallel()
 
+	validatorErr := errors.New("invalid")
 	mw := CommandValidation(func(_ command.Command) error {
-		return errors.New("invalid")
+		return validatorErr
 	})
 	handler := mw(NoopCommandHandler())
 
 	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
-	if !errors.Is(err, ErrValidationFailed) {
-		t.Errorf("expected errors.Is(err, ErrValidationFailed), got %v", err)
+	if !errors.Is(err, validatorErr) {
+		t.Errorf("expected errors.Is(err, validatorErr), got %v", err)
 	}
 }
 
 func TestEventValidation_SentinelError(t *testing.T) {
 	t.Parallel()
 
+	validatorErr := errors.New("invalid")
 	mw := EventValidation(func(_ event.Event) error {
-		return errors.New("invalid")
+		return validatorErr
 	})
 	handler := mw(eventtest.NoopEventHandler())
 
@@ -159,7 +161,7 @@ func TestEventValidation_SentinelError(t *testing.T) {
 	}
 
 	err := handler(context.Background(), evt)
-	if !errors.Is(err, ErrValidationFailed) {
-		t.Errorf("expected errors.Is(err, ErrValidationFailed), got %v", err)
+	if !errors.Is(err, validatorErr) {
+		t.Errorf("expected errors.Is(err, validatorErr), got %v", err)
 	}
 }
