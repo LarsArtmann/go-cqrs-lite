@@ -21,26 +21,26 @@ func TraceIDLogger(logger *slog.Logger) *slog.Logger {
 // if no span is active.
 func TraceIDFromContext(ctx context.Context) string {
 	span := trace.SpanFromContext(ctx)
-	sc := span.SpanContext()
+	spanCtx := span.SpanContext()
 
-	if !sc.IsValid() {
+	if !spanCtx.IsValid() {
 		return "none"
 	}
 
-	return sc.TraceID().String()
+	return spanCtx.TraceID().String()
 }
 
 // SpanIDFromContext extracts the span ID from the context. Returns "none"
 // if no span is active.
 func SpanIDFromContext(ctx context.Context) string {
 	span := trace.SpanFromContext(ctx)
-	sc := span.SpanContext()
+	spanCtx := span.SpanContext()
 
-	if !sc.IsValid() {
+	if !spanCtx.IsValid() {
 		return "none"
 	}
 
-	return sc.SpanID().String()
+	return spanCtx.SpanID().String()
 }
 
 // ContextLogger returns an *slog.Logger that includes trace_id and span_id

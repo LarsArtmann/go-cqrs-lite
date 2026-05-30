@@ -9,34 +9,34 @@ import (
 // Semantic attribute keys for CQRS telemetry.
 // Follows OpenTelemetry messaging semantic conventions where applicable.
 const (
-	// MessageKind identifies the CQRS message kind: "command", "event", or "query".
+	// AttrMessageKind identifies the CQRS message kind: "command", "event", or "query".
 	AttrMessageKind = "cqrs.message.kind"
 
-	// CommandType is the command type identifier.
+	// AttrCommandType is the command type identifier.
 	AttrCommandType = "cqrs.command.type"
 
-	// EventType is the event type identifier.
+	// AttrEventType is the event type identifier.
 	AttrEventType = "cqrs.event.type"
 
-	// QueryType is the query type identifier.
+	// AttrQueryType is the query type identifier.
 	AttrQueryType = "cqrs.query.type"
 
-	// AggregateType is the aggregate root type.
+	// AttrAggregateType is the aggregate root type.
 	AttrAggregateType = "cqrs.aggregate.type"
 
-	// AggregateID is the aggregate instance identifier.
+	// AttrAggregateID is the aggregate instance identifier.
 	AttrAggregateID = "cqrs.aggregate.id"
 
-	// AggregateVersion is the aggregate stream version.
+	// AttrAggregateVersion is the aggregate stream version.
 	AttrAggregateVersion = "cqrs.aggregate.version"
 
-	// EventCount is the number of events in a batch.
+	// AttrEventCount is the number of events in a batch.
 	AttrEventCount = "cqrs.event.count"
 
-	// ProjectionName is the name of a projection.
+	// AttrProjectionName is the name of a projection.
 	AttrProjectionName = "cqrs.projection.name"
 
-	// Status indicates operation result: "success" or "error".
+	// AttrStatus indicates operation result: "success" or "error".
 	AttrStatus = "cqrs.status"
 
 	// StatusSuccess is the value for successful operations.

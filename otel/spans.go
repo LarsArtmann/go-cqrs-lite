@@ -21,7 +21,11 @@ func StartSpan(
 	allOpts = append(allOpts, trace.WithSpanKind(kind))
 	allOpts = append(allOpts, opts...)
 
-	return tracer.Start(ctx, name, allOpts...)
+	return tracer.Start( //nolint:spancheck // span is returned to caller who owns End()
+		ctx,
+		name,
+		allOpts...,
+	)
 }
 
 // RecordError records an error on the span and sets the span status to Error.

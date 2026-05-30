@@ -88,7 +88,7 @@ func mergeMetadata(base map[string]string, key, value string) map[string]string 
 func TestMessageToEvent_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
+	tests := []struct { //nolint:prealloc // appended below with additional cases
 		name     string
 		metadata map[string]string
 	}{

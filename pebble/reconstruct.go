@@ -34,7 +34,9 @@ func reconstructEvent(
 		)
 	}
 
-	opts := make([]event.Option, 0, 3+len(metaOpts))
+	const reconstructOptionCapacity = 3 // event ID + occurred-at + schema-version
+
+	opts := make([]event.Option, 0, reconstructOptionCapacity+len(metaOpts))
 
 	opts = append(opts, event.WithEventID(eventID), event.WithOccurredAt(occurredAt))
 	if schemaVersion > 0 {

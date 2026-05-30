@@ -15,7 +15,7 @@ func newPebbleTestStore(t *testing.T) *PebbleEventStore {
 	t.Helper()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestPebbleConfig_BackendPebble(t *testing.T) {
 
 func TestPebbleConfig_WithProvider(t *testing.T) {
 	provider := func(logger *slog.Logger) (event.Store, error) {
-		return nil, nil
+		return nil, nil //nolint:nilnil // test: successful provider returning nil store
 	}
 
 	cfg := NewPebbleConfig(WithPebbleProvider(provider))
@@ -263,7 +263,7 @@ func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -297,7 +297,7 @@ func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
 
 func TestPebbleEventStore_DefaultSyncWrites(t *testing.T) {
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}

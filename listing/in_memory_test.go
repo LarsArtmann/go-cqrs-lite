@@ -10,7 +10,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory"
 )
 
-func TestInMemoryAggregateReader_List(t *testing.T) {
+func TestInMemoryAggregateReader_List( //nolint:gocognit // table-driven test with 4 sub-cases
+	t *testing.T,
+) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()

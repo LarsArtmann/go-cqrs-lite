@@ -44,7 +44,9 @@ func WithPebbleProvider(p PebbleEventStoreProvider) PebbleOption {
 
 // NewPebbleConfig builds a PebbleConfig from options.
 func NewPebbleConfig(opts ...PebbleOption) PebbleConfig {
-	cfg := PebbleConfig{Backend: PebbleBackendPebble}
+	cfg := PebbleConfig{ //nolint:exhaustruct // Provider set via options below
+		Backend: PebbleBackendPebble,
+	}
 
 	for _, opt := range opts {
 		opt(&cfg)

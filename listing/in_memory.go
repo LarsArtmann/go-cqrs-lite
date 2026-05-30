@@ -82,8 +82,8 @@ func buildRefs(events []event.Event) []AggregateStatus {
 
 		b, ok := builders[key]
 		if !ok {
-			b = &streamBuilder{
-				ref: AggregateRef{
+			b = &streamBuilder{ //nolint:exhaustruct // fields populated incrementally below
+				ref: AggregateRef{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
 					ID:   evt.AggregateID(),
 					Type: evt.AggregateType(),
 				},
@@ -134,6 +134,8 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 			if !r.Status.IsTombstoned() {
 				filtered = append(filtered, r)
 			}
+		case TombstoneInclude:
+			filtered = append(filtered, r)
 		case TombstoneOnly:
 			if r.Status.IsTombstoned() {
 				filtered = append(filtered, r)

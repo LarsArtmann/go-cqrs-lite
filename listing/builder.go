@@ -22,7 +22,7 @@ type ListBuilder struct {
 func NewListBuilder(reader AggregateReader) *ListBuilder {
 	return &ListBuilder{
 		reader: reader,
-		opts: ListOptions{
+		opts: ListOptions{ //nolint:exhaustruct // builder pattern: Type and After set via methods
 			Limit:     defaultPageSize,
 			Tombstone: TombstoneExclude,
 		},
@@ -74,10 +74,10 @@ func (b *ListBuilder) OnlyDeleted() *ListBuilder {
 
 // List executes the query and returns a page of aggregate references.
 func (b *ListBuilder) List(ctx context.Context) (*Page[AggregateRef], error) {
-	return b.reader.List(ctx, b.opts)
+	return b.reader.List(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }
 
 // ListWithStatus executes the query and returns aggregates with tombstone status.
 func (b *ListBuilder) ListWithStatus(ctx context.Context) (*Page[AggregateStatus], error) {
-	return b.reader.ListWithStatus(ctx, b.opts)
+	return b.reader.ListWithStatus(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }

@@ -1,6 +1,9 @@
 package listing
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // AggregateReader queries aggregate streams.
 // Implementations may query projected tables, the events table,
@@ -25,7 +28,7 @@ func listRefsFromStatus(
 ) (*Page[AggregateRef], error) {
 	statusPage, err := r.ListWithStatus(ctx, opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list with status: %w", err)
 	}
 
 	refs := make([]AggregateRef, len(statusPage.Items))

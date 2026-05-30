@@ -36,23 +36,26 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 		)
 	}
 
-	syncDb, err := turso.NewTursoSyncDb(ctx, turso.TursoSyncDbConfig{
-		Path:      dbPath,
-		RemoteUrl: remoteURL,
-		AuthToken: authToken,
-	})
+	syncDb, err := turso.NewTursoSyncDb(
+		ctx,
+		turso.TursoSyncDbConfig{ //nolint:exhaustruct // only required fields; others use library defaults
+			Path:      dbPath,
+			RemoteUrl: remoteURL,
+			AuthToken: authToken,
+		},
+	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.create_turso_sync",
 			"create turso sync db for "+remoteURL)
 	}
 
-	db, err := syncDb.Connect(ctx)
+	database, err := syncDb.Connect(ctx)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.connect_turso_sync",
 			"connect turso sync db for "+remoteURL)
 	}
 
-	return &TursoSyncDB{DB: db, syncDb: syncDb}, nil
+	return &TursoSyncDB{DB: database, syncDb: syncDb}, nil
 }
 
 // Push sends local writes to the remote Turso server.
@@ -92,7 +95,7 @@ func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
 // Close closes the underlying SQL database connection.
 // Does not disconnect from remote sync — Push/Pull will fail after Close.
 func (t *TursoSyncDB) Close() error {
-	return t.DB.Close()
+	return t.DB.Close() //nolint:wrapcheck // sql.DB.Close is self-descriptive
 }
 
 // Stats returns sync statistics (WAL size, bytes sent/received).

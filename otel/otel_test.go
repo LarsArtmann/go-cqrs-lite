@@ -70,13 +70,13 @@ func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
 	require.NoError(t, err)
 	counter.Add(context.Background(), 1)
 
-	var rm metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &rm))
-	require.Len(t, rm.ScopeMetrics, 1)
+	var resourceMetrics metricdata.ResourceMetrics
+	require.NoError(t, reader.Collect(context.Background(), &resourceMetrics))
+	require.Len(t, resourceMetrics.ScopeMetrics, 1)
 	require.Equal(
 		t,
 		"github.com/larsartmann/go-cqrs-lite/metrics-test",
-		rm.ScopeMetrics[0].Scope.Name,
+		resourceMetrics.ScopeMetrics[0].Scope.Name,
 	)
 }
 
@@ -130,6 +130,7 @@ func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
+	defer span.End()
 	EndWithError(span, nil)
 
 	spans := recorder.Ended()
@@ -144,6 +145,7 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	tracer := NewTracer("test")
 
 	_, span := tracer.Start(context.Background(), "test")
+	defer span.End()
 	EndWithError(span, errors.New("fail"))
 
 	spans := recorder.Ended()

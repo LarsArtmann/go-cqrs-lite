@@ -13,13 +13,13 @@ import (
 //
 // The caller is responsible for closing the returned *sql.DB.
 func OpenTurso(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("turso", dbPath)
+	database, err := sql.Open("turso", dbPath)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "turso.open",
 			"open turso database at "+dbPath)
 	}
 
-	return db, nil
+	return database, nil
 }
 
 // OpenTursoInMemory opens an in-memory Turso database and returns a *sql.DB.
@@ -31,26 +31,30 @@ func OpenTursoInMemory() (*sql.DB, error) {
 // TursoInitSchema creates all required tables in a Turso database.
 // Turso uses the same DDL as SQLite.
 func TursoInitSchema(ctx context.Context, db *sql.DB) error {
-	return storage.SQLiteInitSchema(ctx, db)
+	return storage.SQLiteInitSchema(ctx, db) //nolint:wrapcheck // transparent delegation to storage
 }
 
 // NewTursoEventStore creates an event store backed by a Turso database.
 // Delegates to NewSQLiteEventStore — Turso uses the same SQL dialect as SQLite.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewTursoEventStore(db *sql.DB) (*storage.SQLEventStore, error) {
-	return storage.NewSQLiteEventStore(db)
+	return storage.NewSQLiteEventStore(db) //nolint:wrapcheck // transparent delegation to storage
 }
 
 // NewTursoSnapshotStore creates a snapshot store backed by a Turso database.
 // Delegates to NewSQLiteSnapshotStore — Turso uses the same SQL dialect as SQLite.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewTursoSnapshotStore(db *sql.DB) (*storage.SQLSnapshotStore, error) {
-	return storage.NewSQLiteSnapshotStore(db)
+	return storage.NewSQLiteSnapshotStore( //nolint:wrapcheck // transparent delegation to storage
+		db,
+	)
 }
 
 // NewTursoCheckpointStore creates a checkpoint store backed by a Turso database.
 // Delegates to NewSQLiteCheckpointStore — Turso uses the same SQL dialect as SQLite.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 func NewTursoCheckpointStore(db *sql.DB) (*storage.SQLCheckpointStore, error) {
-	return storage.NewSQLiteCheckpointStore(db)
+	return storage.NewSQLiteCheckpointStore( //nolint:wrapcheck // transparent delegation to storage
+		db,
+	)
 }

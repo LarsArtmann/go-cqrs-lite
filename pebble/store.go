@@ -39,7 +39,7 @@ func WithAsyncWrites() StoreOption {
 
 // NewPebbleStore creates a new store using an existing Pebble DB.
 func NewPebbleStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *PebbleEventStore {
-	s := &PebbleEventStore{
+	s := &PebbleEventStore{ //nolint:exhaustruct // locks initialized lazily
 		db:         db,
 		logger:     logger,
 		prefix:     "cqrs_event:",
@@ -123,10 +123,12 @@ func (a *PebbleEventStore) iterateEvents(
 	lowerBound, upperBound []byte,
 	shouldStop eventPredicate,
 ) ([]event.Event, error) {
-	iter, err := a.db.NewIter(&pebble.IterOptions{
-		LowerBound: lowerBound,
-		UpperBound: upperBound,
-	})
+	iter, err := a.db.NewIter(
+		&pebble.IterOptions{ //nolint:exhaustruct // only Lower/Upper bound needed
+			LowerBound: lowerBound,
+			UpperBound: upperBound,
+		},
+	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
 			"failed to create iterator")
@@ -246,7 +248,7 @@ func (a *PebbleEventStore) lockAggregate(
 
 	actual, loaded := a.locks.LoadOrStore(key, m)
 	if loaded {
-		m = actual.(*sync.Mutex)
+		m = actual.(*sync.Mutex) //nolint:forcetypeassert // guaranteed by LoadOrStore above
 	}
 
 	m.Lock()
@@ -258,5 +260,5 @@ func (a *PebbleEventStore) unlockAggregate(
 	key := a.aggregateLockKey(ref)
 
 	val, _ := a.locks.Load(key)
-	val.(*sync.Mutex).Unlock()
+	val.(*sync.Mutex).Unlock() //nolint:forcetypeassert // key only stored with *sync.Mutex via lockAggregate
 }

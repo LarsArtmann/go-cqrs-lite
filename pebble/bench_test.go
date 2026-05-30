@@ -20,7 +20,7 @@ func seedPebbleBenchEvents(
 	b.Helper()
 
 	dir := b.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		b.Fatalf("open pebble: %v", err)
 	}

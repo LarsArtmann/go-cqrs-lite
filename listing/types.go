@@ -3,27 +3,11 @@ package listing
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
-
-// validTablePrefix enforces safe SQL identifier names for table prefix parameters.
-var validTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
-
-// validateTablePrefix checks that the prefix is a safe SQL identifier.
-func validateTablePrefix(prefix string) error {
-	if !validTablePrefix.MatchString(prefix) {
-		return event.NewRejection(
-			"stream.invalid_table_prefix",
-			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
-		)
-	}
-
-	return nil
-}
 
 // AggregateRef is a lightweight identity reference to an aggregate stream.
 // No derived state. Status is computed separately by the reader.
@@ -74,23 +58,25 @@ func (p TombstonePolicy) String() string {
 }
 
 type aggregateStatusJSON struct {
-	ID          string `json:"id"`
-	Type        string `json:"type"`
-	Version     int    `json:"version"`
-	EventCount  uint   `json:"event_count"`
-	LastEventAt string `json:"last_event_at"`
-	Status      string `json:"status"`
+	ID         string `json:"id"`
+	Type       string `json:"type"`
+	Version    int    `json:"version"`
+	EventCount uint   `json:"event_count"`   //nolint:tagliatelle
+	LastEvent  string `json:"last_event_at"` //nolint:tagliatelle
+	Status     string `json:"status"`
 }
 
 func (s AggregateStatus) MarshalJSON() ([]byte, error) {
-	return json.Marshal(aggregateStatusJSON{
-		ID:          s.Ref.ID.String(),
-		Type:        string(s.Ref.Type),
-		Version:     s.Ref.Version.Int(),
-		EventCount:  s.Ref.EventCount,
-		LastEventAt: s.Ref.LastEventAt.Format(time.RFC3339),
-		Status:      s.Status.String(),
-	})
+	return json.Marshal( //nolint:wrapcheck // JSON serialization, not domain error
+		aggregateStatusJSON{
+			ID:         s.Ref.ID.String(),
+			Type:       string(s.Ref.Type),
+			Version:    s.Ref.Version.Int(),
+			EventCount: s.Ref.EventCount,
+			LastEvent:  s.Ref.LastEventAt.Format(time.RFC3339),
+			Status:     s.Status.String(),
+		},
+	)
 }
 
 // ListOptions controls aggregate listing queries.

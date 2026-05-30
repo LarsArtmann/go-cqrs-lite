@@ -26,7 +26,9 @@ func seedBenchAggregates(
 
 	for range n {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{payloadKey: payloadVal})
+		payload, _ := json.Marshal( //nolint:errchkjson
+			map[string]string{payloadKey: payloadVal},
+		)
 		evt, _ := event.NewEvent(
 			event.Type(evtType),
 			aggID,
@@ -92,7 +94,9 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 
 	for range 500 {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"name": "doc"})
+		payload, _ := json.Marshal( //nolint:errchkjson
+			map[string]string{"name": "doc"},
+		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
@@ -103,7 +107,9 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 
 	for range 200 {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"name": "deleted"})
+		payload, _ := json.Marshal( //nolint:errchkjson
+			map[string]string{"name": "deleted"},
+		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
