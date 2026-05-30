@@ -20,8 +20,6 @@ github.com/larsartmann/go-cqrs-lite/query v1.7.1 h1:0J3JNX0okuqrwnTC5Rvwq3Tik6Jz
 github.com/larsartmann/go-cqrs-lite/query v1.7.1/go.mod h1:BgDDbHY021otQ6cD7Ha6CoouhoeQBGqdpsYZyNxz1nQ=
 github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1 h1:8qyr7p1kChjwtCxlLAKUToavM+/gU2QdpBJqr9f9r0k=
 github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1/go.mod h1:N6xCOOK6mNHWBuyGnHo7LbMJbffRnD1KgON+jPztEJs=
-github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1 h1:Fo3dPr5tZkNGQrCvXyKHYA+3iPevzejeqlTQ5oMo5OQ=
-github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1/go.mod h1:cj9+dMiyQvZIZGgDeDvXtTLT/tploiau1vzVy8gIk+U=
 github.com/larsartmann/go-error-family v0.2.0 h1:DIAWwgf04yufN1vYdp+tKAXVS2kb0DTWavTFQyNa1EU=
 github.com/larsartmann/go-error-family v0.2.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=

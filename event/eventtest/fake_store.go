@@ -1,4 +1,4 @@
-package testhelpers
+package eventtest
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-// FakeStore implements event.Store for testing.
-// All methods are safe for concurrent use.
 type FakeStore struct {
 	mu                sync.RWMutex
 	events            map[string][]event.Event
@@ -26,21 +24,8 @@ type FakeStore struct {
 	readFromFn        func(afterEventID id.EventID, limit int) ([]event.Event, error)
 }
 
-// NewFakeStore creates a FakeStore with empty state.
 func NewFakeStore() *FakeStore {
 	return &FakeStore{events: make(map[string][]event.Event)}
-}
-
-// VersionQueryFn returns an override function for LoadFromVersionFn/LoadToVersionFn
-// that sets *called to true and returns nil results.
-func VersionQueryFn(
-	called *bool,
-) func(event.AggregateRef, event.Version) ([]event.Event, error) {
-	return func(_ event.AggregateRef, _ event.Version) ([]event.Event, error) {
-		*called = true
-
-		return nil, nil
-	}
 }
 
 func getOverride[T any](s *FakeStore, fn *T) T {
@@ -50,8 +35,6 @@ func getOverride[T any](s *FakeStore, fn *T) T {
 	return *fn
 }
 
-// Save appends events to the aggregate's stream.
-// SaveFn sets an optional override for Save calls.
 func (s *FakeStore) Save(
 	ctx context.Context,
 	ref event.AggregateRef,
@@ -71,7 +54,6 @@ func (s *FakeStore) Save(
 	return nil
 }
 
-// AppendBatch appends events without concurrency checks.
 func (s *FakeStore) AppendBatch(
 	_ context.Context,
 	ref event.AggregateRef,
@@ -90,7 +72,6 @@ func (s *FakeStore) AppendBatch(
 	return nil
 }
 
-// Load returns all events for an aggregate.
 func (s *FakeStore) Load(
 	_ context.Context,
 	ref event.AggregateRef,
@@ -107,7 +88,6 @@ func (s *FakeStore) Load(
 	return append([]event.Event{}, s.events[key]...), nil
 }
 
-// loadEventsHelper retrieves events for an aggregate under the read lock.
 func (s *FakeStore) loadEventsHelper(
 	ref event.AggregateRef,
 ) []event.Event {
@@ -119,7 +99,6 @@ func (s *FakeStore) loadEventsHelper(
 	return s.events[key]
 }
 
-// LoadFromVersion returns events starting after the given version.
 func (s *FakeStore) LoadFromVersion(
 	_ context.Context,
 	ref event.AggregateRef,
@@ -137,7 +116,6 @@ func (s *FakeStore) LoadFromVersion(
 	return append([]event.Event{}, result...), nil
 }
 
-// LoadToVersion returns events up to and including maxVersion.
 func (s *FakeStore) LoadToVersion(
 	_ context.Context,
 	ref event.AggregateRef,
@@ -150,7 +128,6 @@ func (s *FakeStore) LoadToVersion(
 	return event.SliceToVersion(s.loadEventsHelper(ref), maxVersion), nil
 }
 
-// LoadToTimestamp returns events where OccurredAt <= maxTime.
 func (s *FakeStore) LoadToTimestamp(
 	_ context.Context,
 	ref event.AggregateRef,
@@ -163,7 +140,6 @@ func (s *FakeStore) LoadToTimestamp(
 	return event.FilterByTimestamp(s.loadEventsHelper(ref), maxTime), nil
 }
 
-// ReadAll returns all events across all aggregates.
 func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	if fn := getOverride(s, &s.readAllFn); fn != nil {
 		return fn()
@@ -181,7 +157,6 @@ func (s *FakeStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	return all, nil
 }
 
-// ReadFrom returns events starting after the given event ID.
 func (s *FakeStore) ReadFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
@@ -221,7 +196,6 @@ func (s *FakeStore) ReadFrom(
 	return filtered, nil
 }
 
-// Close is a no-op for testing.
 func (s *FakeStore) Close() error {
 	if fn := getOverride(s, &s.closeFn); fn != nil {
 		return fn()
@@ -230,11 +204,67 @@ func (s *FakeStore) Close() error {
 	return nil
 }
 
-// LoadFn sets an optional override for Load calls.
-// Return an error to simulate load failures.
+func (s *FakeStore) SaveFn(fn event.SaveFunc) *FakeStore {
+	s.saveFn = fn
 
-// LoadFromVersionFn sets an optional override for LoadFromVersion calls.
-// Return an error to simulate load-from-version failures.
+	return s
+}
+
+func (s *FakeStore) LoadFn(
+	fn func(ref event.AggregateRef) ([]event.Event, error),
+) *FakeStore {
+	s.loadFn = fn
+
+	return s
+}
+
+func (s *FakeStore) LoadFromVersionFn(
+	fn func(ref event.AggregateRef, version event.Version) ([]event.Event, error),
+) *FakeStore {
+	s.loadFromVersionFn = fn
+
+	return s
+}
+
+func (s *FakeStore) LoadToVersionFn(
+	fn func(ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error),
+) *FakeStore {
+	s.loadToVersionFn = fn
+
+	return s
+}
+
+func (s *FakeStore) LoadToTimestampFn(
+	fn func(ref event.AggregateRef, maxTime time.Time) ([]event.Event, error),
+) *FakeStore {
+	s.loadToTimestampFn = fn
+
+	return s
+}
+
+func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
+	s.closeFn = fn
+
+	return s
+}
+
+func (s *FakeStore) AppendBatchFn(
+	fn func(ref event.AggregateRef, events []event.Event) error,
+) *FakeStore {
+	s.appendBatchFn = fn
+
+	return s
+}
+
+func VersionQueryFn(
+	called *bool,
+) func(event.AggregateRef, event.Version) ([]event.Event, error) {
+	return func(_ event.AggregateRef, _ event.Version) ([]event.Event, error) {
+		*called = true
+
+		return nil, nil
+	}
+}
 
 var (
 	_ event.Store           = (*FakeStore)(nil)

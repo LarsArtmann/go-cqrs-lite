@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestCommandLogging_Success(t *testing.T) {
@@ -14,7 +14,7 @@ func TestCommandLogging_Success(t *testing.T) {
 	logger, h := newTestLogger()
 	mw := CommandLogging(logger)
 
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -34,7 +34,7 @@ func TestCommandLogging_Error(t *testing.T) {
 	logger, h := newTestLogger()
 	cmdMw := CommandLogging(logger)
 
-	handler := cmdMw(testhelpers.FailingCommandHandler("boom"))
+	handler := cmdMw(failingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -54,7 +54,7 @@ func TestQueryLogging_Success(t *testing.T) {
 	logger, h := newTestLogger()
 	mw := QueryLogging(logger)
 
-	handler := mw(testhelpers.NoopQueryHandler())
+	handler := mw(noopQueryHandler())
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -72,7 +72,7 @@ func TestQueryLogging_Error(t *testing.T) {
 	logger, h := newTestLogger()
 	mw := QueryLogging(logger)
 
-	handler := mw(testhelpers.FailingQueryHandler("boom"))
+	handler := mw(failingQueryHandler("boom"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
@@ -90,9 +90,9 @@ func TestEventLogging_Success(t *testing.T) {
 	logger, h := newTestLogger()
 	mw := EventLogging(logger)
 
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -113,9 +113,9 @@ func TestEventLogging_Error(t *testing.T) {
 	logger, h := newTestLogger()
 	mw := EventLogging(logger)
 
-	handler := mw(testhelpers.FailingEventHandler("boom"))
+	handler := mw(eventtest.FailingEventHandler("boom"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

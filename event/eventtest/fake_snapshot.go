@@ -1,4 +1,4 @@
-package testhelpers
+package eventtest
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
-// FakeSnapshotStore implements snapshot.SnapshotStore for testing.
 type FakeSnapshotStore struct {
 	mu       sync.RWMutex
 	snapshot *snapshot.Snapshot
@@ -17,12 +16,10 @@ type FakeSnapshotStore struct {
 	saveErr  error
 }
 
-// NewFakeSnapshotStore creates a FakeSnapshotStore with no snapshot.
 func NewFakeSnapshotStore() *FakeSnapshotStore {
 	return &FakeSnapshotStore{}
 }
 
-// SetSnapshot configures the snapshot returned by Load.
 func (s *FakeSnapshotStore) SetSnapshot(snap *snapshot.Snapshot) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -30,7 +27,6 @@ func (s *FakeSnapshotStore) SetSnapshot(snap *snapshot.Snapshot) {
 	s.snapshot = snap
 }
 
-// SetLoadError configures an error returned by Load.
 func (s *FakeSnapshotStore) SetLoadError(err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -38,7 +34,6 @@ func (s *FakeSnapshotStore) SetLoadError(err error) {
 	s.loadErr = err
 }
 
-// SetSaveError configures an error returned by Save.
 func (s *FakeSnapshotStore) SetSaveError(err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -46,7 +41,6 @@ func (s *FakeSnapshotStore) SetSaveError(err error) {
 	s.saveErr = err
 }
 
-// Saved returns a copy of all snapshots saved via Save.
 func (s *FakeSnapshotStore) Saved() []snapshot.Snapshot {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -54,7 +48,6 @@ func (s *FakeSnapshotStore) Saved() []snapshot.Snapshot {
 	return append([]snapshot.Snapshot{}, s.saved...)
 }
 
-// Save records the snapshot for later verification.
 func (s *FakeSnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -68,7 +61,6 @@ func (s *FakeSnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) erro
 	return nil
 }
 
-// Load returns the configured snapshot or error.
 func (s *FakeSnapshotStore) Load(
 	_ context.Context,
 	_ event.AggregateRef,
@@ -76,7 +68,6 @@ func (s *FakeSnapshotStore) Load(
 	return s.loadSnapshot()
 }
 
-// LoadAtVersion returns the configured snapshot or error.
 func (s *FakeSnapshotStore) LoadAtVersion(
 	_ context.Context,
 	_ event.AggregateRef,
@@ -92,7 +83,6 @@ func (s *FakeSnapshotStore) loadSnapshot() (*snapshot.Snapshot, error) {
 	return s.snapshot, s.loadErr
 }
 
-// Delete is a no-op for testing.
 func (s *FakeSnapshotStore) Delete(
 	_ context.Context,
 	_ event.AggregateRef,
@@ -100,7 +90,6 @@ func (s *FakeSnapshotStore) Delete(
 	return nil
 }
 
-// Close is a no-op for testing.
 func (s *FakeSnapshotStore) Close() error { return nil }
 
 var (

@@ -9,9 +9,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func executeCreateEvent(
@@ -150,9 +150,9 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	bus := eventtest.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	snapshotStore := eventtest.NewFakeSnapshotStore()
 	codec := &failingCodec{err: errors.New("encode failed")}
 
 	repo, err := decider.NewRepository(
@@ -176,9 +176,9 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
-	store := testhelpers.NewFakeStore()
-	snapshotStore := testhelpers.NewFakeSnapshotStore()
+	bus := eventtest.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	snapshotStore := eventtest.NewFakeSnapshotStore()
 	codec := codec.JSONCodec{}
 
 	d := decider.Decider[counterState]{

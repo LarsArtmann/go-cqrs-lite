@@ -9,16 +9,16 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill"
 )
 
 func TestPublisherAdapter_PublishFails(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 	bus.PublishErr = errors.New("publish failed")
 	publisher := wm.NewPublisherAdapter(bus)
 
@@ -174,7 +174,7 @@ func receiveMessageWithTimeout(
 func TestPublisherAdapter_CloseNonClosable(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 	publisher := wm.NewPublisherAdapter(bus)
 
 	if err := publisher.Close(); err != nil {

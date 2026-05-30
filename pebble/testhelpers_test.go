@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type storeTestConfig struct {
@@ -158,8 +158,8 @@ func testEventStore_AppendBatch(t *testing.T, store event.Store, cfg storeTestCo
 		t.Fatalf("expected 2 events, got %d", len(loaded))
 	}
 
-	testhelpers.AssertEventVersion(t, loaded, 0, 1)
-	testhelpers.AssertEventVersion(t, loaded, 1, 2)
+	eventtest.AssertEventVersion(t, loaded, 0, 1)
+	eventtest.AssertEventVersion(t, loaded, 1, 2)
 }
 
 func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTestConfig) {
@@ -192,7 +192,7 @@ func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTe
 		t.Fatalf("expected 2 events after version 1, got %d", len(loaded))
 	}
 
-	testhelpers.AssertEventVersion(t, loaded, 0, 2)
+	eventtest.AssertEventVersion(t, loaded, 0, 2)
 }
 
 func testEventStore_MetadataRoundtrip(

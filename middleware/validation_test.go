@@ -7,9 +7,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestCommandValidation_Pass(t *testing.T) {
@@ -19,7 +19,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 	mw := CommandValidation(validate)
 
 	called := false
-	handler := mw(testhelpers.CallbackCommandHandler(&called))
+	handler := mw(callbackCommandHandler(&called))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -41,7 +41,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 	}
 	mw := CommandValidation(validate)
 
-	handler := mw(testhelpers.FailingCommandHandler("should not be called"))
+	handler := mw(failingCommandHandler("should not be called"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -58,9 +58,9 @@ func TestEventValidation_Pass(t *testing.T) {
 	mw := EventValidation(validate)
 
 	called := false
-	handler := mw(testhelpers.CallbackEventHandler(&called))
+	handler := mw(eventtest.CallbackEventHandler(&called))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -83,9 +83,9 @@ func TestEventValidation_Fail(t *testing.T) {
 	}
 	mw := EventValidation(validate)
 
-	handler := mw(testhelpers.FailingEventHandler("should not be called"))
+	handler := mw(eventtest.FailingEventHandler("should not be called"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -103,7 +103,7 @@ func TestQueryValidation_Pass(t *testing.T) {
 	mw := QueryValidation(validate)
 
 	called := false
-	handler := mw(testhelpers.CallbackQueryHandler(&called))
+	handler := mw(callbackQueryHandler(&called))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -123,7 +123,7 @@ func TestQueryValidation_Fail(t *testing.T) {
 	}
 	mw := QueryValidation(validate)
 
-	handler := mw(testhelpers.FailingQueryHandler("should not be called"))
+	handler := mw(failingQueryHandler("should not be called"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
@@ -137,7 +137,7 @@ func TestCommandValidation_SentinelError(t *testing.T) {
 	mw := CommandValidation(func(_ command.Command) error {
 		return errors.New("invalid")
 	})
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
 	if !errors.Is(err, ErrValidationFailed) {
@@ -151,9 +151,9 @@ func TestEventValidation_SentinelError(t *testing.T) {
 	mw := EventValidation(func(_ event.Event) error {
 		return errors.New("invalid")
 	})
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, evtErr := testhelpers.NewTestEvent()
+	evt, evtErr := eventtest.NewTestEvent()
 	if evtErr != nil {
 		t.Fatalf("NewTestEvent: %v", evtErr)
 	}

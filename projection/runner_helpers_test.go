@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func startRunner(
@@ -41,7 +41,7 @@ func registerNoopProjection(
 
 	err := runner.Register(event.NewProjection(
 		name,
-		testhelpers.NoopEventHandler(),
+		eventtest.NoopEventHandler(),
 		eventTypes,
 	))
 	if err != nil {

@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func assertRetryCanceled(t *testing.T, err error) {
@@ -57,7 +57,7 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 
 	cmdMw := CommandRetry(config)
 
-	handler := cmdMw(testhelpers.FailingCommandHandler("always fail"))
+	handler := cmdMw(failingCommandHandler("always fail"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -141,7 +141,7 @@ func TestRetryExhausted_SentinelError(t *testing.T) {
 	config.IsRetryable = func(_ error) bool { return true }
 
 	mw := CommandRetry(config)
-	handler := mw(testhelpers.FailingCommandHandler("always fail"))
+	handler := mw(failingCommandHandler("always fail"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -161,7 +161,7 @@ func TestRetryCanceled_SentinelError(t *testing.T) {
 	config := retryConfigSlow()
 
 	mw := CommandRetry(config)
-	handler := mw(testhelpers.FailingCommandHandler("transient"))
+	handler := mw(failingCommandHandler("transient"))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -228,7 +228,7 @@ func TestCommandRetry_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
 	mw := CommandRetry(RetryConfig{})
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
 	if err == nil {
@@ -244,9 +244,9 @@ func TestEventRetry_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
 	mw := EventRetry(RetryConfig{})
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, evtErr := testhelpers.NewTestEvent()
+	evt, evtErr := eventtest.NewTestEvent()
 	if evtErr != nil {
 		t.Fatalf("unexpected error: %v", evtErr)
 	}
@@ -265,7 +265,7 @@ func TestQueryRetry_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
 	mw := QueryRetry(RetryConfig{})
-	handler := mw(testhelpers.NoopQueryHandler())
+	handler := mw(noopQueryHandler())
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {

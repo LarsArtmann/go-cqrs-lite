@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func testCBConfig(failureThreshold, successThreshold int) CircuitBreakerConfig {
@@ -27,7 +27,7 @@ func TestCommandCircuitBreaker_OpensAfterFailures(t *testing.T) {
 
 	config := testCBConfig(3, 1)
 
-	handler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
+	handler := CommandCircuitBreaker(config)(failingCommandHandler("fail"))
 
 	for i := range 3 {
 		if err := handler(t.Context(), &testCommand{}); err == nil {
@@ -46,7 +46,7 @@ func TestCommandCircuitBreaker_HalfOpenAfterTimeout(t *testing.T) {
 
 	config := testCBConfig(2, 1)
 
-	failingHandler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
+	failingHandler := CommandCircuitBreaker(config)(failingCommandHandler("fail"))
 
 	for range 2 {
 		_ = failingHandler(t.Context(), &testCommand{})
@@ -91,7 +91,7 @@ func TestEventCircuitBreaker(t *testing.T) {
 
 	config := testCBConfig(2, 1)
 
-	handler := EventCircuitBreaker(config)(testhelpers.FailingEventHandler("fail"))
+	handler := EventCircuitBreaker(config)(eventtest.FailingEventHandler("fail"))
 	evt := mustCBTestEvent(t)
 
 	for range 2 {
@@ -109,7 +109,7 @@ func TestQueryCircuitBreaker(t *testing.T) {
 
 	config := testCBConfig(2, 1)
 
-	handler := QueryCircuitBreaker(config)(testhelpers.FailingQueryHandler("fail"))
+	handler := QueryCircuitBreaker(config)(failingQueryHandler("fail"))
 
 	for range 2 {
 		_, _ = handler(t.Context(), &testQuery{})
@@ -165,7 +165,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 	config := testCBConfig(2, 3)
 
 	circuitBreakerMW := CommandCircuitBreaker(config)
-	failingHandler := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
+	failingHandler := circuitBreakerMW(failingCommandHandler("fail"))
 
 	for range 2 {
 		_ = failingHandler(t.Context(), &testCommand{})
@@ -182,7 +182,7 @@ func TestCommandCircuitBreaker_HalfOpenToClosedViaSuccesses(t *testing.T) {
 		}
 	}
 
-	failAgain := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
+	failAgain := circuitBreakerMW(failingCommandHandler("fail"))
 	for range 2 {
 		_ = failAgain(t.Context(), &testCommand{})
 	}
@@ -199,7 +199,7 @@ func TestCommandCircuitBreaker_HalfOpenReopensOnFailure(t *testing.T) {
 	config := testCBConfig(1, 2)
 
 	circuitBreakerMW := CommandCircuitBreaker(config)
-	handler := circuitBreakerMW(testhelpers.FailingCommandHandler("fail"))
+	handler := circuitBreakerMW(failingCommandHandler("fail"))
 
 	_ = handler(t.Context(), &testCommand{})
 	_ = handler(t.Context(), &testCommand{})
@@ -226,7 +226,7 @@ func TestCommandCircuitBreaker_NonFailureErrorRecordsSuccess(t *testing.T) {
 		IsFailure:        func(err error) bool { return false },
 	}
 
-	handler := CommandCircuitBreaker(config)(testhelpers.FailingCommandHandler("fail"))
+	handler := CommandCircuitBreaker(config)(failingCommandHandler("fail"))
 
 	for i := range 10 {
 		err := handler(t.Context(), &testCommand{})
@@ -250,7 +250,7 @@ func TestCommandCircuitBreaker_WithLogger(t *testing.T) {
 		config,
 		WithLogger(slog.Default()),
 	)(
-		testhelpers.FailingCommandHandler("fail"),
+		failingCommandHandler("fail"),
 	)
 
 	_ = handler(t.Context(), &testCommand{})

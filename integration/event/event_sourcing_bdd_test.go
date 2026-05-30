@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 // createTestEvent creates a test event with the given type and version.
@@ -44,7 +44,7 @@ func expectNewEventValidationFails(
 func subscribeOrderPlaced(bus event.Bus, received *[]event.Event) error {
 	return bus.Subscribe(
 		event.Type("OrderPlaced"),
-		testhelpers.AppendEventsHandler(received),
+		eventtest.AppendEventsHandler(received),
 	)
 }
 
@@ -260,7 +260,7 @@ var _ = Describe("Event Bus", func() {
 
 		Context("when I subscribe to all events", func() {
 			It("should receive every published event regardless of type", func() {
-				Expect(bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))).To(Succeed())
+				Expect(bus.SubscribeAll(eventtest.AppendEventsHandler(&received))).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt1 := createTestEvent("UserCreated", aggID, 1, nil)
@@ -275,10 +275,10 @@ var _ = Describe("Event Bus", func() {
 				var callOrder []string
 
 				Expect(
-					bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware1")),
+					bus.Use(eventtest.EventMiddleware(&callOrder, "middleware1")),
 				).To(Succeed())
 				Expect(
-					bus.Use(testhelpers.EventMiddleware(&callOrder, "middleware2")),
+					bus.Use(eventtest.EventMiddleware(&callOrder, "middleware2")),
 				).To(Succeed())
 
 				Expect(bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
@@ -332,7 +332,7 @@ var _ = Describe("Event Bus", func() {
 
 				err := bus.Subscribe(
 					event.Type("Test"),
-					testhelpers.NoopEventHandler(),
+					eventtest.NoopEventHandler(),
 				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bus is closed"))
@@ -343,7 +343,7 @@ var _ = Describe("Event Bus", func() {
 			It("should deliver the event twice — once per subscription", func() {
 				Expect(subscribeOrderPlaced(bus, &received)).To(Succeed())
 
-				Expect(bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))).To(Succeed())
+				Expect(bus.SubscribeAll(eventtest.AppendEventsHandler(&received))).To(Succeed())
 
 				aggID := id.NewAggregateID()
 				evt := createTestEvent("OrderPlaced", aggID, 1, nil)

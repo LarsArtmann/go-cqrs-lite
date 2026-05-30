@@ -3,7 +3,7 @@ package projection
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 )
 
 func TestHandlerRegistry_On(t *testing.T) {
@@ -11,7 +11,7 @@ func TestHandlerRegistry_On(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	err := r.On("UserCreated", testhelpers.NoopEventHandler())
+	err := r.On("UserCreated", eventtest.NoopEventHandler())
 	if err != nil {
 		t.Fatalf("On: %v", err)
 	}
@@ -22,7 +22,7 @@ func TestHandlerRegistry_On(t *testing.T) {
 	}
 
 	handlers := r.Lookup("UserCreated")
-	testhelpers.AssertLen(t, "handlers", handlers, 1)
+	eventtest.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_On_NilHandler(t *testing.T) {
@@ -41,13 +41,13 @@ func TestHandlerRegistry_OnAll(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	err := r.OnAll(testhelpers.NoopEventHandler())
+	err := r.OnAll(eventtest.NoopEventHandler())
 	if err != nil {
 		t.Fatalf("OnAll: %v", err)
 	}
 
 	handlers := r.Lookup("anything")
-	testhelpers.AssertLen(t, "handlers", handlers, 1)
+	eventtest.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_Lookup_CombinesSpecificAndWildcard(t *testing.T) {
@@ -55,14 +55,14 @@ func TestHandlerRegistry_Lookup_CombinesSpecificAndWildcard(t *testing.T) {
 
 	r := NewHandlerRegistry()
 
-	_ = r.On("UserCreated", testhelpers.NoopEventHandler())
-	_ = r.OnAll(testhelpers.NoopEventHandler())
+	_ = r.On("UserCreated", eventtest.NoopEventHandler())
+	_ = r.OnAll(eventtest.NoopEventHandler())
 
 	handlers := r.Lookup("UserCreated")
-	testhelpers.AssertLen(t, "handlers", handlers, 2)
+	eventtest.AssertLen(t, "handlers", handlers, 2)
 
 	handlers = r.Lookup("OtherEvent")
-	testhelpers.AssertLen(t, "handlers", handlers, 1)
+	eventtest.AssertLen(t, "handlers", handlers, 1)
 }
 
 func TestHandlerRegistry_HasHandlers(t *testing.T) {
@@ -73,7 +73,7 @@ func TestHandlerRegistry_HasHandlers(t *testing.T) {
 		t.Error("empty registry should not have handlers")
 	}
 
-	_ = r.On("Test", testhelpers.NoopEventHandler())
+	_ = r.On("Test", eventtest.NoopEventHandler())
 	if !r.HasHandlers() {
 		t.Error("registry with On handler should have handlers")
 	}

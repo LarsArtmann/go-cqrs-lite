@@ -10,9 +10,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func testTracerWithRecorder() (trace.Tracer, *tracetest.SpanRecorder) {
@@ -27,7 +27,7 @@ func TestCommandTracing_Success(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := CommandTracing(tracer)
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -37,7 +37,7 @@ func TestCommandTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "command.handle" {
@@ -65,7 +65,7 @@ func TestCommandTracing_Error(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := CommandTracing(tracer)
-	handler := mw(testhelpers.FailingCommandHandler("boom"))
+	handler := mw(failingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -75,7 +75,7 @@ func TestCommandTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	assertSpanStatusError(t, span)
@@ -86,9 +86,9 @@ func TestEventTracing_Success(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := EventTracing(tracer)
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestEventTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "event.handle" {
@@ -133,9 +133,9 @@ func TestEventTracing_Error(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := EventTracing(tracer)
-	handler := mw(testhelpers.FailingEventHandler("boom"))
+	handler := mw(eventtest.FailingEventHandler("boom"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -146,7 +146,7 @@ func TestEventTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	assertSpanStatusError(t, span)
@@ -157,7 +157,7 @@ func TestQueryTracing_Success(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := QueryTracing(tracer)
-	handler := mw(testhelpers.NoopQueryHandler())
+	handler := mw(noopQueryHandler())
 
 	result, err := handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -169,7 +169,7 @@ func TestQueryTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "query.handle" {
@@ -191,7 +191,7 @@ func TestQueryTracing_Error(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := QueryTracing(tracer)
-	handler := mw(testhelpers.FailingQueryHandler("boom"))
+	handler := mw(failingQueryHandler("boom"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
@@ -199,7 +199,7 @@ func TestQueryTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	assertSpanStatusError(t, span)
@@ -210,14 +210,14 @@ func TestEventPublishTracing_Success(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := EventPublishTracing(tracer)
-	publisher := mw(testhelpers.NoopEventPublisher())
+	publisher := mw(eventtest.NoopEventPublisher())
 
-	evt1, err := testhelpers.NewTestEvent()
+	evt1, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	evt2, err := testhelpers.NewTestEvent()
+	evt2, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -228,7 +228,7 @@ func TestEventPublishTracing_Success(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	if span.Name() != "event.publish" {
@@ -256,9 +256,9 @@ func TestEventPublishTracing_Error(t *testing.T) {
 
 	tracer, recorder := testTracerWithRecorder()
 	mw := EventPublishTracing(tracer)
-	publisher := mw(testhelpers.FailingEventPublisher("publish failed"))
+	publisher := mw(eventtest.FailingEventPublisher("publish failed"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -269,7 +269,7 @@ func TestEventPublishTracing_Error(t *testing.T) {
 	}
 
 	spans := recorder.Ended()
-	testhelpers.AssertLenFatal(t, "spans", spans, 1)
+	eventtest.AssertLenFatal(t, "spans", spans, 1)
 
 	span := spans[0]
 	assertSpanStatusError(t, span)

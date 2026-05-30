@@ -8,7 +8,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id v1.7.1
 	github.com/larsartmann/go-cqrs-lite/otel v1.7.1
 	github.com/larsartmann/go-cqrs-lite/query v1.7.1
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/stretchr/testify v1.11.1
@@ -53,5 +52,4 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id => ../id
 	github.com/larsartmann/go-cqrs-lite/otel => ../otel
 	github.com/larsartmann/go-cqrs-lite/query => ../query
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

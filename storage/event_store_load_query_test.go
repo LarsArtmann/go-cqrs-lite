@@ -10,9 +10,9 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestSQLEventStore_Load_Success(t *testing.T) {
@@ -50,7 +50,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	testhelpers.AssertEventType(t, events, 0, "UserCreated")
+	eventtest.AssertEventType(t, events, 0, "UserCreated")
 
 	if events[0].ID() != eventID {
 		t.Errorf("ID = %v, want %v", events[0].ID(), eventID)
@@ -119,7 +119,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	testhelpers.AssertEventVersion(t, events, 0, 3)
+	eventtest.AssertEventVersion(t, events, 0, 3)
 }
 
 func TestSQLEventStore_Load_QueryError(t *testing.T) {
@@ -224,9 +224,10 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, time.Now(),
-		),
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).AddRow(
+				"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, time.Now(),
+			),
 		)
 
 	_, err := store.Load(
@@ -264,11 +265,12 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).
-			AddRow(
-				eventID.String(),
-				"UserCreated", "User", aggID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
-			),
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).
+				AddRow(
+					eventID.String(),
+					"UserCreated", "User", aggID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
+				),
 		)
 
 	_, err := store.Load(

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
@@ -27,17 +27,17 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	now := time.Now()
 
-	evt1 := testhelpers.QuickEventOpts(
+	evt1 := eventtest.QuickEventOpts(
 		"CounterCreated", aggID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
-	evt2 := testhelpers.QuickEventOpts(
+	evt2 := eventtest.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-1*time.Hour)),
 	)
-	evt3 := testhelpers.QuickEventOpts(
+	evt3 := eventtest.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),
@@ -65,8 +65,8 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	testhelpers.AssertEventVersion(t, events, 0, 1)
-	testhelpers.AssertEventVersion(t, events, 1, 2)
+	eventtest.AssertEventVersion(t, events, 0, 1)
+	eventtest.AssertEventVersion(t, events, 1, 2)
 }
 
 func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
@@ -81,17 +81,17 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	now := time.Now()
 
-	evt1 := testhelpers.QuickEventOpts(
+	evt1 := eventtest.QuickEventOpts(
 		"CounterCreated", aggID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
-	evt2 := testhelpers.QuickEventOpts(
+	evt2 := eventtest.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-30*time.Minute)),
 	)
-	evt3 := testhelpers.QuickEventOpts(
+	evt3 := eventtest.QuickEventOpts(
 		"CounterIncremented", aggID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),

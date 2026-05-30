@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func makeMemEvent(eventType event.Type, aggID id.AggregateID, version event.Version) event.Event {
@@ -302,11 +302,11 @@ var _ = Describe("MemorySnapshotStore", func() {
 
 		Context("when I save a newer snapshot for the same aggregate", func() {
 			It("should replace the old one so I always get the latest state", func() {
-				Expect(snapStore.Save(ctx, testhelpers.QuickSnapshot(
+				Expect(snapStore.Save(ctx, eventtest.QuickSnapshot(
 					aggID, aggType, event.Version(3), []byte(`{"status":"old"}`),
 				))).To(Succeed())
 
-				Expect(snapStore.Save(ctx, testhelpers.QuickSnapshot(
+				Expect(snapStore.Save(ctx, eventtest.QuickSnapshot(
 					aggID, aggType, event.Version(7), []byte(`{"status":"new"}`),
 				))).To(Succeed())
 

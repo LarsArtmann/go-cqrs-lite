@@ -6,7 +6,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
@@ -49,7 +48,7 @@ func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 }
 
 func registerBenchCmd(b *testing.B, dispatcher *command.Dispatcher) {
-	err := dispatcher.Register("bench.cmd", testhelpers.NoopCommandHandler())
+	err := dispatcher.Register("bench.cmd", noopCommandHandler())
 	if err != nil {
 		b.Fatalf("register: %v", err)
 	}

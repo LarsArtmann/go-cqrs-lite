@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
@@ -20,8 +20,8 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
@@ -48,7 +48,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events", events, 2)
+	eventtest.AssertLen(t, "events", events, 2)
 }
 
 func TestMemoryStore_VersionConflict(t *testing.T) {
@@ -58,7 +58,7 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
@@ -96,9 +96,9 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK154ME034FVHK95R554AKSE")
-	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
-	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
 	_ = store.Save(
 		ctx,
@@ -116,7 +116,7 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events from version", events, 2)
+	eventtest.AssertLen(t, "events from version", events, 2)
 }
 
 func TestMemoryStore_Closed(t *testing.T) {
@@ -128,7 +128,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 	_ = store.Close()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
@@ -204,7 +204,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK154PCGXJ80RFXRASTMSSK0")
-	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
 		event.NewAggregateRef(event.AggregateType("User"), aggID),
@@ -221,7 +221,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events past end", events, 0)
+	eventtest.AssertLen(t, "events past end", events, 0)
 }
 
 func TestMemoryStore_AppendBatch(t *testing.T) {
@@ -231,9 +231,9 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK154QBR6CK7JX737HQB4V58")
-	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
-	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
 	err := store.AppendBatch(
 		ctx,
@@ -249,7 +249,7 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events", events, 3)
+	eventtest.AssertLen(t, "events", events, 3)
 }
 
 func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
@@ -259,7 +259,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK154RB0WD5V767Z27XMXRX0")
-	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
 		event.NewAggregateRef(event.AggregateType("User"), aggID),
@@ -267,8 +267,8 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 		0,
 	)
 
-	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 1, nil)
-	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 2, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
 
 	err := store.AppendBatch(
 		ctx,
@@ -284,7 +284,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events total", events, 3)
+	eventtest.AssertLen(t, "events total", events, 3)
 }
 
 func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
@@ -294,7 +294,7 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 	_ = store.Close()
 
 	aggID := id.MustParseAggregateID("01HK154SA8Y7AMZCYV919GE46K")
-	evt := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.AppendBatch(
 		context.Background(),
@@ -325,7 +325,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for idx := range eventsPerGoroutine {
-				evt := testhelpers.QuickEvent(
+				evt := eventtest.QuickEvent(
 					"UserCreated",
 					aggID,
 					"User",
@@ -362,9 +362,9 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("Updated", aggID, "User", 1, nil)
-	evt3 := testhelpers.QuickEvent("Deleted", aggID, "User", 2, nil)
+	evt1 := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("Updated", aggID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("Deleted", aggID, "User", 2, nil)
 
 	_ = store.AppendBatch(
 		ctx,
@@ -377,8 +377,8 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 		event.NewAggregateRef(event.AggregateType("User"), aggID),
 		2,
 	)
-	testhelpers.AssertNoError(t, err, "LoadToVersion")
-	testhelpers.AssertLen(t, "events", events, 2)
+	eventtest.AssertNoError(t, err, "LoadToVersion")
+	eventtest.AssertLen(t, "events", events, 2)
 }
 
 func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
@@ -388,7 +388,7 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 
 	_ = store.AppendBatch(
 		ctx,
@@ -401,8 +401,8 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 		event.NewAggregateRef(event.AggregateType("User"), aggID),
 		100,
 	)
-	testhelpers.AssertNoError(t, err, "LoadToVersion")
-	testhelpers.AssertLen(t, "events", events, 1)
+	eventtest.AssertNoError(t, err, "LoadToVersion")
+	eventtest.AssertLen(t, "events", events, 1)
 }
 
 func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
@@ -443,7 +443,7 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	now, aggID := testhelpers.MakeLoadToTimestampFixtures(
+	now, aggID := eventtest.MakeLoadToTimestampFixtures(
 		t,
 		store,
 		ctx,
@@ -457,8 +457,8 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 		event.NewAggregateRef(event.AggregateType("User"), aggID),
 		now.Add(-30*time.Minute),
 	)
-	testhelpers.AssertNoError(t, err, "LoadToTimestamp")
-	testhelpers.AssertLen(t, "loaded", loaded, 2)
+	eventtest.AssertNoError(t, err, "LoadToTimestamp")
+	eventtest.AssertLen(t, "loaded", loaded, 2)
 }
 
 func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
@@ -501,13 +501,13 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	evt1 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
+	evt1 := eventtest.MakeTimelineEvents(t, "User", aggID1, []eventtest.TimelineEvent{
 		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
 	})
-	evt2 := testhelpers.MakeTimelineEvents(t, "Order", aggID2, []testhelpers.TimelineEvent{
+	evt2 := eventtest.MakeTimelineEvents(t, "Order", aggID2, []eventtest.TimelineEvent{
 		{Type: "Created", Version: 1, Offset: -1 * time.Hour},
 	})
-	evt3 := testhelpers.MakeTimelineEvents(t, "User", aggID1, []testhelpers.TimelineEvent{
+	evt3 := eventtest.MakeTimelineEvents(t, "User", aggID1, []eventtest.TimelineEvent{
 		{Type: "Updated", Version: 1, Offset: 0},
 	})
 
@@ -516,12 +516,12 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt3)
 
 	all, err := store.ReadAll(ctx)
-	testhelpers.AssertNoError(t, err, "ReadAll")
-	testhelpers.AssertLen(t, "all events", all, 3)
+	eventtest.AssertNoError(t, err, "ReadAll")
+	eventtest.AssertLen(t, "all events", all, 3)
 
 	fromPos, err := store.ReadFrom(ctx, evt1[0].ID(), 1)
-	testhelpers.AssertNoError(t, err, "ReadFrom")
-	testhelpers.AssertLen(t, "from position", fromPos, 1)
+	eventtest.AssertNoError(t, err, "ReadFrom")
+	eventtest.AssertLen(t, "from position", fromPos, 1)
 }
 
 func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
@@ -531,7 +531,7 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt := testhelpers.QuickEvent("Created", aggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 
 	_ = store.AppendBatch(
 		ctx,
@@ -540,8 +540,8 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	)
 
 	events, err := store.ReadFrom(ctx, id.EventID{}, 10)
-	testhelpers.AssertNoError(t, err, "ReadFrom with zero ID")
-	testhelpers.AssertLen(t, "events", events, 1)
+	eventtest.AssertNoError(t, err, "ReadFrom with zero ID")
+	eventtest.AssertLen(t, "events", events, 1)
 }
 
 func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
@@ -554,8 +554,8 @@ func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	seedTestEvents(t, store, ctx, aggID, 5)
 
 	events, err := store.ReadFrom(ctx, id.EventID{}, 3)
-	testhelpers.AssertNoError(t, err, "ReadFrom with limit")
-	testhelpers.AssertLen(t, "events", events, 3)
+	eventtest.AssertNoError(t, err, "ReadFrom with limit")
+	eventtest.AssertLen(t, "events", events, 3)
 }
 
 func TestMemoryStore_ReadFrom_Closed(t *testing.T) {
@@ -577,9 +577,9 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := testhelpers.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("UserUpdated", aggID, "User", 2, nil)
-	evt3 := testhelpers.QuickEvent("UserDeleted", aggID, "User", 3, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 2, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 3, nil)
 
 	err := store.AppendBatch(
 		ctx,
@@ -603,9 +603,9 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 		t.Fatalf("expected 3 events, got %d", len(events))
 	}
 
-	testhelpers.AssertEventType(t, events, 0, "UserDeleted")
-	testhelpers.AssertEventType(t, events, 1, "UserUpdated")
-	testhelpers.AssertEventType(t, events, 2, "UserCreated")
+	eventtest.AssertEventType(t, events, 0, "UserDeleted")
+	eventtest.AssertEventType(t, events, 1, "UserUpdated")
+	eventtest.AssertEventType(t, events, 2, "UserCreated")
 }
 
 func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
@@ -649,7 +649,7 @@ func seedTestEvents(
 	t.Helper()
 
 	for i := range n {
-		evt := testhelpers.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
+		evt := eventtest.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
 		_ = store.AppendBatch(
 			ctx,
 			event.NewAggregateRef(event.AggregateType("User"), aggID),

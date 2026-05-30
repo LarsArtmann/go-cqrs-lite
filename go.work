@@ -27,7 +27,6 @@ use (
 	./signing
 	./snapshot
 	./storage
-	./testhelpers
 	./turso
 	./watermill
 )

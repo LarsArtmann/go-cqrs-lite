@@ -9,7 +9,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func labelMiddleware(callOrder *[]string, label string) func(next command.Handler) command.Handler {
@@ -147,7 +146,7 @@ var _ = Describe("Command Dispatcher", func() {
 					Expect(
 						dispatcher.Register(
 							"TestCommand",
-							testhelpers.AppendCommandHandler(&callOrder),
+							appendCommandHandler(&callOrder),
 						),
 					).To(Succeed())
 

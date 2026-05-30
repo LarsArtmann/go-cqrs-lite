@@ -6,8 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	catdispatcher "github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestNewCommand(t *testing.T) {
@@ -35,7 +35,7 @@ func TestDispatcher_Register(t *testing.T) {
 
 	dispatcher := command.NewDispatcher()
 
-	err := dispatcher.Register("CreateUser", testhelpers.NoopCommandHandler())
+	err := dispatcher.Register("CreateUser", noopCommandHandler())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	ctx := context.Background()
 
 	executed := false
-	handler := testhelpers.CallbackCommandHandler(&executed)
+	handler := callbackCommandHandler(&executed)
 
 	_ = dispatcher.Register("CreateUser", handler)
 
@@ -87,16 +87,16 @@ func TestDispatcher_Middleware(t *testing.T) {
 	var callOrder []string
 
 	dispatcher.Use(
-		testhelpers.CommandMiddleware(&callOrder, "middleware1"),
-		testhelpers.CommandMiddleware(&callOrder, "middleware2"),
+		commandMiddleware(&callOrder, "middleware1"),
+		commandMiddleware(&callOrder, "middleware2"),
 	)
 
-	_ = dispatcher.Register("TestCommand", testhelpers.AppendCommandHandler(&callOrder))
+	_ = dispatcher.Register("TestCommand", appendCommandHandler(&callOrder))
 
 	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 	_ = dispatcher.Dispatch(ctx, cmd)
 
-	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
+	eventtest.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
 }
 
 func TestDispatcher_Closed(t *testing.T) {
@@ -105,7 +105,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	_ = dispatcher.Close()
 
-	err := dispatcher.Register("TestCommand", testhelpers.NoopCommandHandler())
+	err := dispatcher.Register("TestCommand", noopCommandHandler())
 	if err == nil {
 		t.Error("expected dispatcher closed error on Register")
 	}

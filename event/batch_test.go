@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestNewEvents(t *testing.T) {
@@ -31,9 +31,9 @@ func TestNewEvents(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	testhelpers.AssertEventType(t, events, 0, "user.created")
-	testhelpers.AssertEventVersion(t, events, 0, 1)
-	testhelpers.AssertEventVersion(t, events, 1, 2)
+	eventtest.AssertEventType(t, events, 0, "user.created")
+	eventtest.AssertEventVersion(t, events, 0, 1)
+	eventtest.AssertEventVersion(t, events, 1, 2)
 }
 
 func TestNewEvents_MismatchedCount(t *testing.T) {

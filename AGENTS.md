@@ -23,9 +23,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                            |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                        |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`   |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`   |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./testhelpers/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                 |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                        |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                    |
@@ -33,12 +33,13 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 29 modules (22 library + 6 examples + 1 integration):
+Multi-module Go workspace (`go.work`) with 28 modules (21 library + 6 examples + 1 integration):
 
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
 │                        # Reactive: EventBus (= ro.Subject[Event]), FilterEventType, HandlerToObserver
+│   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions (event/eventtest)
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
@@ -51,7 +52,6 @@ go-cqrs-lite/
 │   └── schema/          # JSON Schema types, reflection engine, YAML serialization
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
-├── testhelpers/         # Noop/Failing/Panic handlers, FakeMetrics, FakeSnapshotStore, AppendEventsHandler
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
@@ -160,7 +160,7 @@ Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
-Layer 4: memory/, testhelpers/, signing/, otel/
+Layer 4: memory/, signing/, otel/
 Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen
 ```

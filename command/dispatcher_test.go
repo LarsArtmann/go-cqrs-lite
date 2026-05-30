@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestNew_EmptyType(t *testing.T) {
@@ -42,13 +42,13 @@ func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	testhelpers.AssertPanics(t, func() { _ = command.MustNew("", aggID) })
+	eventtest.AssertPanics(t, func() { _ = command.MustNew("", aggID) })
 }
 
 func TestMustNew_PanicsOnZeroAggregateID(t *testing.T) {
 	t.Parallel()
 
-	testhelpers.AssertPanics(t, func() { _ = command.MustNew("CreateUser", id.AggregateID{}) })
+	eventtest.AssertPanics(t, func() { _ = command.MustNew("CreateUser", id.AggregateID{}) })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
@@ -97,12 +97,12 @@ func TestDispatcher_Register_Duplicate(t *testing.T) {
 
 	d := command.NewDispatcher()
 
-	err := d.Register("CreateUser", testhelpers.NoopCommandHandler())
+	err := d.Register("CreateUser", noopCommandHandler())
 	if err != nil {
 		t.Fatalf("first Register() error = %v", err)
 	}
 
-	err = d.Register("CreateUser", testhelpers.NoopCommandHandler())
+	err = d.Register("CreateUser", noopCommandHandler())
 	if err == nil {
 		t.Fatal("expected error for duplicate registration")
 	}
@@ -132,7 +132,7 @@ func TestDispatcher_Closed_RegisterErrorChain(t *testing.T) {
 	d := command.NewDispatcher()
 	_ = d.Close()
 
-	err := d.Register("TestCmd", testhelpers.NoopCommandHandler())
+	err := d.Register("TestCmd", noopCommandHandler())
 	if err == nil {
 		t.Fatal("expected error on closed dispatcher")
 	}
@@ -156,7 +156,7 @@ func TestDispatcher_Use(t *testing.T) {
 		}
 	})
 
-	_ = d.Register("TestCmd", testhelpers.NoopCommandHandler())
+	_ = d.Register("TestCmd", noopCommandHandler())
 
 	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
@@ -176,7 +176,7 @@ func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
 	d := command.NewDispatcher()
 	_ = d.Close()
 
-	err := d.Register("Cmd", testhelpers.NoopCommandHandler())
+	err := d.Register("Cmd", noopCommandHandler())
 	if err == nil {
 		t.Fatal("expected error registering on closed dispatcher")
 	}
@@ -188,7 +188,7 @@ func TestDispatcher_Dispatch_Success(t *testing.T) {
 	d := command.NewDispatcher()
 	called := false
 
-	_ = d.Register("TestCmd", testhelpers.CallbackCommandHandler(&called))
+	_ = d.Register("TestCmd", callbackCommandHandler(&called))
 
 	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
@@ -206,7 +206,7 @@ func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
 	t.Parallel()
 
 	d := command.NewDispatcher()
-	_ = d.Register("TestCmd", testhelpers.NoopCommandHandler())
+	_ = d.Register("TestCmd", noopCommandHandler())
 	_ = d.Close()
 
 	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))

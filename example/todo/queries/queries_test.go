@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestGetTodoHandler_Handle(t *testing.T) {
@@ -61,7 +61,7 @@ func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	testhelpers.AssertErrorWithResult(t, result, err, "failed to get todo")
+	eventtest.AssertErrorWithResult(t, result, err, "failed to get todo")
 }
 
 func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
@@ -72,7 +72,7 @@ func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), wrongQuery)
 
-	testhelpers.AssertErrorWithResult(t, result, err, "invalid query type")
+	eventtest.AssertErrorWithResult(t, result, err, "invalid query type")
 }
 
 func TestListTodosHandler_Handle(t *testing.T) {
@@ -118,7 +118,7 @@ func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	testhelpers.AssertErrorWithResult(t, result, err, "failed to list todos")
+	eventtest.AssertErrorWithResult(t, result, err, "failed to list todos")
 }
 
 func TestCountTodosHandler_Handle(t *testing.T) {
@@ -156,7 +156,7 @@ func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 
 	result, err := h.Handle(context.Background(), q)
 
-	testhelpers.AssertErrorWithResult(t, result, err, "failed to count todos")
+	eventtest.AssertErrorWithResult(t, result, err, "failed to count todos")
 }
 
 func TestNewGetTodoQuery(t *testing.T) {

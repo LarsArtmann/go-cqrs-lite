@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func collectingPublisher() (event.PublisherFunc, *[]event.Event) {
@@ -38,7 +38,7 @@ func makeTestEvent(t *testing.T) event.Event {
 
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
-	return testhelpers.NewEvent(t, "test.created", aggID, "Test", 1, []byte(`{"key":"value"}`))
+	return eventtest.NewEvent(t, "test.created", aggID, "Test", 1, []byte(`{"key":"value"}`))
 }
 
 func tamperEvent(tb testing.TB, evt event.Event) event.Event {

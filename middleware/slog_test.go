@@ -9,7 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type slogTestCommand struct {
@@ -27,7 +26,7 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 	))
 
 	mw := middleware.CommandLogging(logger)
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(noopCommandHandler())
 
 	core, err := command.New("test.cmd", id.NewAggregateID())
 	if err != nil {
@@ -85,5 +84,11 @@ func TestSlogAdapter_CommandLogging_Error(t *testing.T) {
 	output := buf.String()
 	if !bytes.Contains(buf.Bytes(), []byte(`"msg":"command failed"`)) {
 		t.Errorf("expected 'command failed' log, got: %s", output)
+	}
+}
+
+func noopCommandHandler() func(context.Context, command.Command) error {
+	return func(_ context.Context, _ command.Command) error {
+		return nil
 	}
 }

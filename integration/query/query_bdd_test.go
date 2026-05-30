@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestQueryBDD(t *testing.T) {
@@ -96,7 +95,7 @@ var _ = Describe("Query Dispatcher", func() {
 				var callOrder []string
 
 				dispatcher.Use(
-					testhelpers.QueryMiddleware(&callOrder, "log"),
+					queryMiddleware(&callOrder, "log"),
 				)
 
 				registerCallOrderHandler(dispatcher, "query.user.name", &callOrder, "Bob")

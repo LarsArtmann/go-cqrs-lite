@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func registerHandler(d *query.Dispatcher, name query.Type, result any) {
@@ -37,7 +37,7 @@ func TestNew_EmptyType(t *testing.T) {
 func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
-	testhelpers.AssertPanics(t, func() { _ = query.MustNew("") })
+	eventtest.AssertPanics(t, func() { _ = query.MustNew("") })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
@@ -218,7 +218,7 @@ func TestDispatcher_Register_ClosedDispatcher(t *testing.T) {
 	d := query.NewDispatcher()
 	_ = d.Close()
 
-	err := d.Register("Q", testhelpers.FailingQueryHandler("unreachable"))
+	err := d.Register("Q", failingQueryHandler("unreachable"))
 	if err == nil {
 		t.Fatal("expected error registering on closed dispatcher")
 	}

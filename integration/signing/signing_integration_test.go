@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func subscribeTo(t *testing.T, bus *memory.MemoryBus, topic string, received *[]event.Event) {
@@ -152,7 +152,7 @@ func TestSigningTamperDetection(t *testing.T) {
 	deviceSigned, _ := deviceMulti.Sign(evt)
 	serverSigned, _ := serverMulti.Sign(deviceSigned)
 
-	tampered := testhelpers.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
+	tampered := eventtest.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
 
 	if err := bus.Publish(ctx, tampered); err == nil {
 		t.Fatal("expected error for tampered event, got nil")

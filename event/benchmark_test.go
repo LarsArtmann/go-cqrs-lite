@@ -6,8 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func BenchmarkNewEvent(b *testing.B) {
@@ -63,7 +63,7 @@ func BenchmarkIsRetryable(b *testing.B) {
 }
 
 func BenchmarkBusPublish(b *testing.B) {
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	aggID := id.NewAggregateID()
 	events := make([]event.Event, 10)

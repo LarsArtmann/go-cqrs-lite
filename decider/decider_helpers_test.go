@@ -9,9 +9,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 type counterState struct {
@@ -46,11 +46,11 @@ func foldCounter(state counterState, evt event.Event) (counterState, error) {
 
 func newTestRepo(
 	t *testing.T,
-) (*decider.Repository[counterState], *testhelpers.FakeStore, *testhelpers.FakeBus) {
+) (*decider.Repository[counterState], *eventtest.FakeStore, *eventtest.FakeBus) {
 	t.Helper()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
@@ -70,8 +70,8 @@ func newBenchRepo(
 ) (*decider.Repository[counterState], context.Context) {
 	b.Helper()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
 
 	d := counterDecider()
 	repo, err := decider.NewRepository(store, bus, d)
@@ -85,8 +85,8 @@ func newBenchRepo(
 func newCounterSnapshotRepo(
 	t *testing.T,
 	store event.Store,
-	bus *testhelpers.FakeBus,
-	snapshotStore *testhelpers.FakeSnapshotStore,
+	bus *eventtest.FakeBus,
+	snapshotStore *eventtest.FakeSnapshotStore,
 	c codec.Codec,
 	opts ...decider.RepositoryOption[counterState],
 ) *decider.Repository[counterState] {
@@ -108,11 +108,11 @@ func newCounterSnapshotRepo(
 
 func newSnapshotSetup(
 	t *testing.T,
-) (*testhelpers.FakeStore, *testhelpers.FakeBus, *testhelpers.FakeSnapshotStore, codec.Codec) {
+) (*eventtest.FakeStore, *eventtest.FakeBus, *eventtest.FakeSnapshotStore, codec.Codec) {
 	t.Helper()
 
-	return testhelpers.NewFakeStore(), testhelpers.NewFakeBus(),
-		testhelpers.NewFakeSnapshotStore(), codec.JSONCodec{}
+	return eventtest.NewFakeStore(), eventtest.NewFakeBus(),
+		eventtest.NewFakeSnapshotStore(), codec.JSONCodec{}
 }
 
 func requireLoadState(
@@ -157,11 +157,11 @@ func failingDecider() decider.Decider[counterState] {
 
 func newFailingRepo(
 	t *testing.T,
-) (*decider.Repository[counterState], *testhelpers.FakeStore) {
+) (*decider.Repository[counterState], *eventtest.FakeStore) {
 	t.Helper()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
 
 	repo, err := decider.NewRepository(store, bus, failingDecider())
 	if err != nil {
@@ -193,7 +193,7 @@ func makeSnapshot(
 
 func saveSnapshot(
 	t *testing.T,
-	snapshotStore *testhelpers.FakeSnapshotStore,
+	snapshotStore *eventtest.FakeSnapshotStore,
 	c codec.Codec,
 	aggID id.AggregateID,
 	value int,
@@ -206,7 +206,7 @@ func saveSnapshot(
 
 func setSnapshot(
 	t *testing.T,
-	snapshotStore *testhelpers.FakeSnapshotStore,
+	snapshotStore *eventtest.FakeSnapshotStore,
 	c codec.Codec,
 	aggID id.AggregateID,
 	value int,
@@ -222,11 +222,11 @@ func newEnricherRepo(
 	t *testing.T,
 	enricher func(context.Context) []event.Option,
 	opts ...decider.RepositoryOption[counterState],
-) (*testhelpers.FakeBus, *decider.Repository[counterState]) {
+) (*eventtest.FakeBus, *decider.Repository[counterState]) {
 	t.Helper()
 
-	store := testhelpers.NewFakeStore()
-	bus := testhelpers.NewFakeBus()
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
 
 	d := counterDecider()
 	allOpts := append([]decider.RepositoryOption[counterState]{

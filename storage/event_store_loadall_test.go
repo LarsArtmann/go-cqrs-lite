@@ -10,9 +10,9 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func testLoadAllSuccess(
@@ -140,8 +140,8 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 		t.Fatalf("expected 2 events, got %d", len(events))
 	}
 
-	testhelpers.AssertEventType(t, events, 0, "UserUpdated")
-	testhelpers.AssertEventType(t, events, 1, "UserCreated")
+	eventtest.AssertEventType(t, events, 0, "UserUpdated")
+	eventtest.AssertEventType(t, events, 1, "UserCreated")
 }
 
 func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {

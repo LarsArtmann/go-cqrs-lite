@@ -8,8 +8,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func alwaysRetryable() func(_ error) bool {
@@ -60,7 +60,7 @@ func setupEventNonRetryableTest(
 
 	handler := wrapMW(newEventNonRetryableHandler(callCount, errMsg))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

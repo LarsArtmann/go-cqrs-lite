@@ -8,9 +8,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestOTelMetricsRecorder(t *testing.T) {
@@ -39,7 +39,7 @@ func TestCommandOTelMetrics(t *testing.T) {
 	}
 
 	mw := CommandOTelMetrics(h)
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -61,9 +61,9 @@ func TestEventOTelMetrics(t *testing.T) {
 	}
 
 	mw := EventOTelMetrics(h)
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestQueryOTelMetrics(t *testing.T) {
 	}
 
 	mw := QueryOTelMetrics(h)
-	handler := mw(testhelpers.NoopQueryHandler())
+	handler := mw(noopQueryHandler())
 
 	_, err = handler(context.Background(), &testQuery{})
 	if err != nil {
@@ -106,7 +106,7 @@ func TestCommandOTelMetrics_RecordsError(t *testing.T) {
 	}
 
 	mw := CommandOTelMetrics(h)
-	handler := mw(testhelpers.FailingCommandHandler("boom"))
+	handler := mw(failingCommandHandler("boom"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -147,7 +147,7 @@ func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 	}
 
 	mw := CommandOTelMetrics(h)
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 

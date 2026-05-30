@@ -8,8 +8,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestLoad_NoEvents(t *testing.T) {
@@ -58,12 +58,12 @@ func TestLoad_FoldError(t *testing.T) {
 func TestLoad_StoreLoadError(t *testing.T) {
 	t.Parallel()
 
-	store := testhelpers.NewFakeStore().LoadFn(
+	store := eventtest.NewFakeStore().LoadFn(
 		func(_ event.AggregateRef) ([]event.Event, error) {
 			return nil, errors.New("db unavailable")
 		},
 	)
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
@@ -140,11 +140,11 @@ func TestRepository_LoadAtTime(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1 := testhelpers.QuickEventOpts("CounterCreated", aggID, "Counter", 1, []byte("{}"),
+	evt1 := eventtest.QuickEventOpts("CounterCreated", aggID, "Counter", 1, []byte("{}"),
 		event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2 := testhelpers.QuickEventOpts("CounterIncremented", aggID, "Counter", 2, []byte("{}"),
+	evt2 := eventtest.QuickEventOpts("CounterIncremented", aggID, "Counter", 2, []byte("{}"),
 		event.WithOccurredAt(now.Add(-1*time.Hour)))
-	evt3 := testhelpers.QuickEventOpts("CounterIncremented", aggID, "Counter", 3, []byte("{}"),
+	evt3 := eventtest.QuickEventOpts("CounterIncremented", aggID, "Counter", 3, []byte("{}"),
 		event.WithOccurredAt(now))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2, evt3})
@@ -188,12 +188,12 @@ func TestRepository_LoadAtTime_NotFound(t *testing.T) {
 func TestRepository_LoadAtVersion_StoreError(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
 
 	store := &errStore{
-		Store:            testhelpers.NewFakeStore(),
+		Store:            eventtest.NewFakeStore(),
 		loadToVersionErr: errors.New("db connection lost"),
 	}
 
@@ -211,12 +211,12 @@ func TestRepository_LoadAtVersion_StoreError(t *testing.T) {
 func TestRepository_LoadAtTime_StoreError(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
 
 	store := &errStore{
-		Store:              testhelpers.NewFakeStore(),
+		Store:              eventtest.NewFakeStore(),
 		loadToTimestampErr: errors.New("db connection lost"),
 	}
 

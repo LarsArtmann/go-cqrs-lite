@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestMemoryStore_LoadStream(t *testing.T) {
@@ -26,7 +26,7 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	wantEvents := make([]event.Event, 0, 3)
 	for i, typ := range []string{"order.placed", "order.paid", "order.shipped"} {
 		wantEvents = append(wantEvents,
-			testhelpers.NewEventOpts(t, event.Type(typ), aggID, "Test",
+			eventtest.NewEventOpts(t, event.Type(typ), aggID, "Test",
 				event.Version(i+1), nil, event.WithClock(clock)))
 	}
 

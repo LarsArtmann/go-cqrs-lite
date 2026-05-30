@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 )
 
 func TestEventRetry_Success(t *testing.T) {
@@ -26,7 +26,7 @@ func TestEventRetry_Success(t *testing.T) {
 		return nil
 	})
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -48,9 +48,9 @@ func TestEventRetry_AllAttemptsFail(t *testing.T) {
 
 	mw := EventRetry(config)
 
-	handler := mw(testhelpers.FailingEventHandler("always fail"))
+	handler := mw(eventtest.FailingEventHandler("always fail"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

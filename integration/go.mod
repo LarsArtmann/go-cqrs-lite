@@ -15,7 +15,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query v1.7.1
 	github.com/larsartmann/go-cqrs-lite/signing v1.7.1
 	github.com/larsartmann/go-cqrs-lite/storage v1.7.1
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/stretchr/testify v1.11.1
@@ -66,5 +65,4 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/query => ../query
 	github.com/larsartmann/go-cqrs-lite/signing => ../signing
 	github.com/larsartmann/go-cqrs-lite/storage => ../storage
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

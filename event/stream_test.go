@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestSliceStream_Next(t *testing.T) {
@@ -20,7 +20,7 @@ func TestSliceStream_Next(t *testing.T) {
 
 	events := make([]event.Event, 3)
 	for i, typ := range []string{"user.created", "user.updated", "user.deleted"} {
-		events[i] = testhelpers.NewEventOpts(t, event.Type(typ), aggID, "Test",
+		events[i] = eventtest.NewEventOpts(t, event.Type(typ), aggID, "Test",
 			event.Version(i+1), nil, event.WithClock(clock))
 	}
 
@@ -82,7 +82,7 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 	ctx := context.Background()
 
 	wantEvents := []event.Event{
-		testhelpers.NewEventOpts(
+		eventtest.NewEventOpts(
 			t,
 			"order.placed",
 			aggID,
@@ -91,7 +91,7 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 			[]byte(`{}`),
 			event.WithClock(clock),
 		),
-		testhelpers.NewEventOpts(
+		eventtest.NewEventOpts(
 			t,
 			"order.paid",
 			aggID,

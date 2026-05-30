@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestRunner_RetryOnTransientError(t *testing.T) {
@@ -247,7 +247,7 @@ func TestRunner_CloseStopsRun(t *testing.T) {
 func TestRunner_SubscribeError(t *testing.T) {
 	t.Parallel()
 
-	bus := testhelpers.NewFakeBus().SubscribeAllFn(
+	bus := eventtest.NewFakeBus().SubscribeAllFn(
 		func(_ event.Handler) error { return errors.New("subscribe all failed") },
 	)
 

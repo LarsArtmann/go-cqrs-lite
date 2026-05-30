@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	dispatcher := query.NewDispatcher()
 
-	err := dispatcher.Register("bench.query", testhelpers.NoopQueryHandler())
+	err := dispatcher.Register("bench.query", noopQueryHandler())
 	if err != nil {
 		b.Fatalf("register: %v", err)
 	}
@@ -30,11 +29,11 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 	dispatcher := query.NewDispatcher()
 
-	middleware := testhelpers.QueryMiddleware(nil, "middleware")
+	middleware := queryMiddleware(nil, "middleware")
 
 	dispatcher.Use(middleware, middleware)
 
-	err := dispatcher.Register("bench.query", testhelpers.NoopQueryHandler())
+	err := dispatcher.Register("bench.query", noopQueryHandler())
 	if err != nil {
 		b.Fatalf("register: %v", err)
 	}

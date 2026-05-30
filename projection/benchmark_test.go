@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/projection"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func BenchmarkRunner_Register(b *testing.B) {
@@ -30,7 +30,7 @@ func BenchmarkRunner_Register(b *testing.B) {
 	for b.Loop() {
 		err = runner.Register(event.NewProjection(
 			fmt.Sprintf("noop-%d", i),
-			testhelpers.NoopEventHandler(),
+			eventtest.NoopEventHandler(),
 			[]event.Type{"UserCreated"},
 		))
 		if err != nil {

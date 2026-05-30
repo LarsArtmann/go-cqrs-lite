@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/projection"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestRunner_HealthCheck_Healthy(t *testing.T) {
@@ -31,7 +31,7 @@ func TestRunner_HealthCheck_DetailedHealth(t *testing.T) {
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)
 
-	err = runner.Register(event.NewProjection("test-proj", testhelpers.NoopEventHandler(), nil))
+	err = runner.Register(event.NewProjection("test-proj", eventtest.NoopEventHandler(), nil))
 	require.NoError(t, err)
 
 	status := runner.DetailedHealthCheck(context.Background())
@@ -49,10 +49,10 @@ func TestRunner_RegisteredProjections(t *testing.T) {
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
 	require.NoError(t, err)
 
-	err = runner.Register(event.NewProjection("proj-a", testhelpers.NoopEventHandler(), nil))
+	err = runner.Register(event.NewProjection("proj-a", eventtest.NoopEventHandler(), nil))
 	require.NoError(t, err)
 
-	err = runner.Register(event.NewProjection("proj-b", testhelpers.NoopEventHandler(), nil))
+	err = runner.Register(event.NewProjection("proj-b", eventtest.NoopEventHandler(), nil))
 	require.NoError(t, err)
 
 	names := runner.RegisteredProjections()

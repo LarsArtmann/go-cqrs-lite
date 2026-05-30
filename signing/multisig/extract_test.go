@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestExtractMultiSignature(t *testing.T) {
@@ -201,7 +201,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("verify all: %v", verifyErr)
 	}
 
-	tampered := testhelpers.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
+	tampered := eventtest.TamperEvent(serverSigned, []byte(`{"name":"Bob"}`))
 
 	if verifyErr := deviceMulti.Verify(tampered); verifyErr == nil {
 		t.Fatal("expected verification to fail for tampered event")

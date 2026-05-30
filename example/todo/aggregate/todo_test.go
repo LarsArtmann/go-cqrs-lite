@@ -7,10 +7,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func testAggID() id.AggregateID { return id.NewAggregateID() }
@@ -32,7 +32,7 @@ func TestFold_Created(t *testing.T) {
 	if state.Description != "desc" {
 		t.Errorf("Description = %q, want %q", state.Description, "desc")
 	}
-	testhelpers.AssertEqual(t, state.Status, domain.StatusPending, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusPending, "Status")
 	if state.Priority != 1 {
 		t.Errorf("Priority = %d, want 1", state.Priority)
 	}
@@ -63,7 +63,7 @@ func TestFold_Updated(t *testing.T) {
 	if state.Description != "new desc" {
 		t.Errorf("Description = %q, want %q", state.Description, "new desc")
 	}
-	testhelpers.AssertEqual(t, state.Status, domain.StatusPending, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusPending, "Status")
 	if state.Deleted {
 		t.Error("Deleted = true, want false")
 	}
@@ -80,7 +80,7 @@ func TestFold_StatusChanged(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	testhelpers.AssertEqual(t, state.Status, domain.StatusInProgress, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusInProgress, "Status")
 }
 
 func TestFold_Completed(t *testing.T) {
@@ -94,7 +94,7 @@ func TestFold_Completed(t *testing.T) {
 
 	state := foldAll(t, events)
 
-	testhelpers.AssertEqual(t, state.Status, domain.StatusCompleted, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusCompleted, "Status")
 	if state.CompletedAt == nil {
 		t.Fatal("CompletedAt is nil, want non-nil")
 	}
@@ -362,7 +362,7 @@ func TestFullLifecycle(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusInProgress),
 	)
 	state = foldAllFrom(t, state, statusChanged)
-	testhelpers.AssertEqual(t, state.Status, domain.StatusInProgress, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusInProgress, "Status")
 
 	completed := mustDecideFrom(
 		t,
@@ -371,7 +371,7 @@ func TestFullLifecycle(t *testing.T) {
 		aggregate.DecideChangeStatus(aggID, domain.StatusCompleted),
 	)
 	state = foldAllFrom(t, state, completed)
-	testhelpers.AssertEqual(t, state.Status, domain.StatusCompleted, "Status")
+	eventtest.AssertEqual(t, state.Status, domain.StatusCompleted, "Status")
 	if state.CompletedAt == nil {
 		t.Error("CompletedAt is nil, want non-nil")
 	}

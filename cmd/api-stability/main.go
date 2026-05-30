@@ -26,7 +26,7 @@ var modules = []string{
 	"listing",
 	"otel",
 	"storage",
-	"testhelpers",
+	"event/eventtest",
 	"watermill",
 }
 

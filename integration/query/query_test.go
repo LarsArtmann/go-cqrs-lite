@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	catdispatcher "github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
@@ -136,8 +136,8 @@ func TestDispatcher_Middleware(t *testing.T) {
 	var callOrder []string
 
 	dispatcher.Use(
-		testhelpers.QueryMiddleware(&callOrder, "middleware1"),
-		testhelpers.QueryMiddleware(&callOrder, "middleware2"),
+		queryMiddleware(&callOrder, "middleware1"),
+		queryMiddleware(&callOrder, "middleware2"),
 	)
 
 	registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result")
@@ -145,7 +145,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 	q := query.MustNew("TestQuery")
 	_, _ = dispatcher.Dispatch(context.Background(), q)
 
-	testhelpers.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
+	eventtest.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
 }
 
 func TestDispatcher_Closed(t *testing.T) {

@@ -4,7 +4,6 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/larsartmann/go-error-family v0.2.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
@@ -34,5 +33,4 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../testhelpers
 )

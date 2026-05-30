@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 var testBusAggID = id.MustParseAggregateID("01HK154JFGAXYZMTS0FYGXF6RC")
@@ -29,19 +29,19 @@ func TestMemoryBus_Publish(t *testing.T) {
 
 	var received []event.Event
 
-	err := bus.Subscribe("UserCreated", testhelpers.AppendEventsHandler(&received))
+	err := bus.Subscribe("UserCreated", eventtest.AppendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	evt := testhelpers.QuickEvent("UserCreated", testBusUserAggID, "User", 1, nil)
+	evt := eventtest.QuickEvent("UserCreated", testBusUserAggID, "User", 1, nil)
 
 	err = bus.Publish(ctx, evt)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events", received, 1)
+	eventtest.AssertLen(t, "events", received, 1)
 }
 
 func TestMemoryBus_SubscribeAll(t *testing.T) {
@@ -52,20 +52,20 @@ func TestMemoryBus_SubscribeAll(t *testing.T) {
 
 	var received []event.Event
 
-	err := bus.SubscribeAll(testhelpers.AppendEventsHandler(&received))
+	err := bus.SubscribeAll(eventtest.AppendEventsHandler(&received))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	evt1 := testhelpers.QuickEvent("UserCreated", testBusUserAggID, "User", 1, nil)
-	evt2 := testhelpers.QuickEvent("OrderPlaced", testBusOrderAggID, "Order", 1, nil)
+	evt1 := eventtest.QuickEvent("UserCreated", testBusUserAggID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("OrderPlaced", testBusOrderAggID, "Order", 1, nil)
 
 	err = bus.Publish(ctx, evt1, evt2)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLen(t, "events", received, 2)
+	eventtest.AssertLen(t, "events", received, 2)
 }
 
 func TestMemoryBus_Middleware(t *testing.T) {
@@ -77,8 +77,8 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	var callOrder []string
 
 	err := bus.Use(
-		testhelpers.EventMiddleware(&callOrder, "middleware1"),
-		testhelpers.EventMiddleware(&callOrder, "middleware2"),
+		eventtest.EventMiddleware(&callOrder, "middleware1"),
+		eventtest.EventMiddleware(&callOrder, "middleware2"),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -90,7 +90,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		return nil
 	})
 
-	evt := testhelpers.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
+	evt := eventtest.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
 	_ = bus.Publish(ctx, evt)
 
 	expected := []string{"middleware1", "middleware2", "handler"}
@@ -111,7 +111,7 @@ func TestMemoryBus_Closed(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	_ = bus.Close()
 
-	handler := testhelpers.NoopEventHandler()
+	handler := eventtest.NoopEventHandler()
 
 	err := bus.Subscribe("TestEvent", handler)
 	if err == nil {
@@ -123,7 +123,7 @@ func TestMemoryBus_Closed(t *testing.T) {
 		t.Error("expected bus closed error")
 	}
 
-	evt := testhelpers.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
+	evt := eventtest.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
 
 	err = bus.Publish(context.Background(), evt)
 	if err == nil {
@@ -137,9 +137,9 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	ctx := context.Background()
 
-	_ = bus.Subscribe("TestEvent", testhelpers.FailingEventHandler("handler failed"))
+	_ = bus.Subscribe("TestEvent", eventtest.FailingEventHandler("handler failed"))
 
-	evt := testhelpers.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
+	evt := eventtest.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
 
 	err := bus.Publish(ctx, evt)
 	if err == nil {
@@ -153,9 +153,9 @@ func TestMemoryBus_SubscribeAllHandlerError(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	ctx := context.Background()
 
-	_ = bus.SubscribeAll(testhelpers.FailingEventHandler("all-handler failed"))
+	_ = bus.SubscribeAll(eventtest.FailingEventHandler("all-handler failed"))
 
-	evt := testhelpers.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
+	evt := eventtest.QuickEvent("TestEvent", testBusAggID, "Test", 1, nil)
 
 	err := bus.Publish(ctx, evt)
 	if err == nil {
@@ -203,10 +203,10 @@ func TestMemoryBus_PublishMultipleEvents_SecondFails(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	ctx := context.Background()
 
-	_ = bus.Subscribe("FailEvent", testhelpers.FailingEventHandler("subscriber failure"))
+	_ = bus.Subscribe("FailEvent", eventtest.FailingEventHandler("subscriber failure"))
 
-	evt1 := testhelpers.QuickEvent("OKEvent", testBusAggID, "Test", 1, nil)
-	evt2 := testhelpers.QuickEvent("FailEvent", testBusAggID, "Test", 2, nil)
+	evt1 := eventtest.QuickEvent("OKEvent", testBusAggID, "Test", 1, nil)
+	evt2 := eventtest.QuickEvent("FailEvent", testBusAggID, "Test", 2, nil)
 
 	err := bus.Publish(ctx, evt1, evt2)
 	if err == nil {
@@ -249,7 +249,7 @@ func TestMemoryBus_ConcurrentPublishAndSubscribe(t *testing.T) {
 
 			for evtIdx := range eventsPerPublisher {
 				aggID := id.NewAggregateID()
-				evt := testhelpers.QuickEvent(
+				evt := eventtest.QuickEvent(
 					"ConcurrentEvent",
 					aggID,
 					"Test",

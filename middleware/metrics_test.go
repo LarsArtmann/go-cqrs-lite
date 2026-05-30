@@ -4,17 +4,17 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 func TestCommandMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := CommandMetrics(metrics)
 
-	handler := mw(testhelpers.NoopCommandHandler())
+	handler := mw(NoopCommandHandler())
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -23,7 +23,7 @@ func TestCommandMetrics_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "command_success" {
 		t.Errorf("expected command_success, got %s", metrics.Records[0])
@@ -33,10 +33,10 @@ func TestCommandMetrics_Success(t *testing.T) {
 func TestCommandMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := CommandMetrics(metrics)
 
-	handler := mw(testhelpers.FailingCommandHandler("middleware failure"))
+	handler := mw(failingCommandHandler("middleware failure"))
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
@@ -45,7 +45,7 @@ func TestCommandMetrics_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "command_error" {
 		t.Errorf("expected command_error, got %s", metrics.Records[0])
@@ -55,12 +55,12 @@ func TestCommandMetrics_Error(t *testing.T) {
 func TestEventMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := EventMetrics(metrics)
 
-	handler := mw(testhelpers.NoopEventHandler())
+	handler := mw(eventtest.NoopEventHandler())
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestEventMetrics_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "event_success" {
 		t.Errorf("expected event_success, got %s", metrics.Records[0])
@@ -80,12 +80,12 @@ func TestEventMetrics_Success(t *testing.T) {
 func TestEventMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := EventMetrics(metrics)
 
-	handler := mw(testhelpers.FailingEventHandler("middleware failure"))
+	handler := mw(eventtest.FailingEventHandler("middleware failure"))
 
-	evt, err := testhelpers.NewTestEvent()
+	evt, err := eventtest.NewTestEvent()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestEventMetrics_Error(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "event_error" {
 		t.Errorf("expected event_error, got %s", metrics.Records[0])
@@ -105,17 +105,17 @@ func TestEventMetrics_Error(t *testing.T) {
 func TestQueryMetrics_Success(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := QueryMetrics(metrics)
 
-	handler := mw(testhelpers.NoopQueryHandler())
+	handler := mw(noopQueryHandler())
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "query_success" {
 		t.Errorf("expected query_success, got %s", metrics.Records[0])
@@ -125,17 +125,17 @@ func TestQueryMetrics_Success(t *testing.T) {
 func TestQueryMetrics_Error(t *testing.T) {
 	t.Parallel()
 
-	metrics := &testhelpers.FakeMetrics{}
+	metrics := &eventtest.FakeMetrics{}
 	mw := QueryMetrics(metrics)
 
-	handler := mw(testhelpers.FailingQueryHandler("fail"))
+	handler := mw(failingQueryHandler("fail"))
 
 	_, err := handler(context.Background(), &testQuery{})
 	if err == nil {
 		t.Fatal("expected error")
 	}
 
-	testhelpers.AssertLenFatal(t, "metric records", metrics.Records, 1)
+	eventtest.AssertLenFatal(t, "metric records", metrics.Records, 1)
 
 	if metrics.Records[0] != "query_error" {
 		t.Errorf("expected query_error, got %s", metrics.Records[0])

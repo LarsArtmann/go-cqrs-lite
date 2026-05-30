@@ -175,7 +175,6 @@ func buildGraph(root string) (*GraphData, error) {
 		case mod == "github.com/larsartmann/go-cqrs-lite/codec" ||
 			mod == "github.com/larsartmann/go-cqrs-lite/otel":
 			group = "infra"
-		case mod == "github.com/larsartmann/go-cqrs-lite/testhelpers":
 			group = "test"
 		case strings.HasPrefix(mod, "github.com/larsartmann/go-cqrs-lite/cmd/"):
 			group = "cmd"

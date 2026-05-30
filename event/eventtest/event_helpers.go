@@ -1,4 +1,4 @@
-package testhelpers
+package eventtest
 
 import (
 	"context"
@@ -10,18 +10,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
-// createdEventType is the event type for entity creation in test helpers.
 const createdEventType = "Created"
 
-// TimelineEvent describes an event in a timeline test.
 type TimelineEvent struct {
 	Type    string
 	Version event.Version
 	Offset  time.Duration
 }
 
-// MakeTimelineEvents creates events with timestamps relative to now.
-// Use negative offsets for past events (e.g., -2*time.Hour for 2 hours ago).
 func MakeTimelineEvents(
 	tb testing.TB,
 	aggType event.AggregateType,
@@ -52,12 +48,10 @@ func MakeTimelineEvents(
 	return result
 }
 
-// NewTestEvent creates a test event with standard test values.
 func NewTestEvent() (event.Event, error) {
 	return MakeEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
 }
 
-// NewEventOpts creates an event with the given parameters and options, fataling on error.
 func NewEventOpts(
 	tb testing.TB,
 	typ event.Type,
@@ -77,7 +71,6 @@ func NewEventOpts(
 	return evt
 }
 
-// NewEvent creates an event with the given parameters, fataling on error.
 func NewEvent(
 	t *testing.T,
 	eventType event.Type,
@@ -96,7 +89,6 @@ func NewEvent(
 	return evt
 }
 
-// MakeEvent creates an event with the given parameters, returning an error.
 func MakeEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
@@ -109,7 +101,6 @@ func MakeEvent(
 	return evt, err //nolint:wrapcheck // thin wrapper, caller adds context if needed
 }
 
-// QuickEvent creates an event with the given parameters, discarding errors.
 func QuickEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
@@ -122,9 +113,19 @@ func QuickEvent(
 	return evt
 }
 
-// TamperEvent creates a copy of the original event with a different payload but
-// the same ID, timestamp, schema version, and metadata — useful for testing
-// tamper detection in signing middleware.
+func QuickEventOpts(
+	eventType event.Type,
+	aggID id.AggregateID,
+	aggType event.AggregateType,
+	version event.Version,
+	payload []byte,
+	opts ...event.Option,
+) event.Event {
+	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
+
+	return evt
+}
+
 func TamperEvent(original event.Event, newPayload []byte) event.Event {
 	tampered, _ := event.NewEvent(
 		original.Type(),
@@ -141,21 +142,6 @@ func TamperEvent(original event.Event, newPayload []byte) event.Event {
 	return tampered
 }
 
-// QuickEventOpts creates an event with the given parameters and options, discarding errors.
-func QuickEventOpts(
-	eventType event.Type,
-	aggID id.AggregateID,
-	aggType event.AggregateType,
-	version event.Version,
-	payload []byte,
-	opts ...event.Option,
-) event.Event {
-	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
-
-	return evt
-}
-
-// AppendBatcher is the minimal interface needed for MakeLoadToTimestampFixtures.
 type AppendBatcher interface {
 	AppendBatch(
 		ctx context.Context,
@@ -164,8 +150,6 @@ type AppendBatcher interface {
 	) error
 }
 
-// MakeLoadToTimestampFixtures creates a standard 3-event timeline (Created, Updated, Deleted)
-// and appends them to the store. Returns the current time and the aggID used.
 func MakeLoadToTimestampFixtures(
 	tb testing.TB,
 	store AppendBatcher,
@@ -192,10 +176,6 @@ func MakeLoadToTimestampFixtures(
 	return now, aggID
 }
 
-// MakeThreeTimelineEvents creates three events across two aggregates:
-//   - evt1: aggType1/aggID1 Created at -2h
-//   - evt2: aggType2/aggID2 Created at -1h
-//   - evt3: aggType1/aggID1 Updated at 0
 func MakeThreeTimelineEvents(
 	tb testing.TB,
 	aggType1 event.AggregateType,
@@ -218,7 +198,6 @@ func MakeThreeTimelineEvents(
 	return evt1, evt2, evt3
 }
 
-// QuickSnapshot creates a snapshot with the given parameters.
 func QuickSnapshot(
 	aggID id.AggregateID,
 	aggType event.AggregateType,

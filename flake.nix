@@ -64,7 +64,6 @@
             "projection"
             "signing"
             "storage"
-            "testhelpers"
             "watermill"
             "listing"
             "otel"

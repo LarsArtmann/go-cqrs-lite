@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
 	github.com/larsartmann/go-cqrs-lite/pebble v1.7.1
 	github.com/larsartmann/go-cqrs-lite/query v1.7.1
-	github.com/larsartmann/go-cqrs-lite/testhelpers v1.7.1
 	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e
 )
 
@@ -67,5 +66,4 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
 	github.com/larsartmann/go-cqrs-lite/pebble => ../../pebble
 	github.com/larsartmann/go-cqrs-lite/query => ../../query
-	github.com/larsartmann/go-cqrs-lite/testhelpers => ../../testhelpers
 )

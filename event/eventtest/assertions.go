@@ -1,4 +1,4 @@
-package testhelpers
+package eventtest
 
 import (
 	"reflect"
@@ -10,14 +10,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-// FakeMetrics is a metrics collector for testing.
 type FakeMetrics struct {
 	mu        sync.Mutex
 	Records   []string
 	Durations []time.Duration
 }
 
-// Observe records a metric observation.
 func (m *FakeMetrics) Observe(name string, duration time.Duration, _ ...string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -26,7 +24,6 @@ func (m *FakeMetrics) Observe(name string, duration time.Duration, _ ...string) 
 	m.Durations = append(m.Durations, duration)
 }
 
-// AssertCallOrder asserts the call order matches expected.
 func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 	t.Helper()
 
@@ -39,7 +36,6 @@ func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 	}
 }
 
-// AssertMetricRecord asserts the metrics recorder has exactly one record with the given name.
 func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
 	t.Helper()
 
@@ -52,7 +48,6 @@ func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
 	}
 }
 
-// assertSliceLen is a shared helper for AssertLen and AssertLenFatal.
 func assertSliceLen[T any](
 	t *testing.T,
 	name string,
@@ -67,19 +62,16 @@ func assertSliceLen[T any](
 	}
 }
 
-// AssertLen asserts that the slice has the expected length.
 func AssertLen[T any](t *testing.T, name string, slice []T, want int) {
 	t.Helper()
 	assertSliceLen(t, name, slice, want, t.Errorf)
 }
 
-// AssertLenFatal asserts that the slice has the expected length, fataling on mismatch.
 func AssertLenFatal[T any](t *testing.T, name string, slice []T, want int) {
 	t.Helper()
 	assertSliceLen(t, name, slice, want, t.Fatalf)
 }
 
-// AssertNoError fails if err is not nil.
 func AssertNoError(t *testing.T, err error, msg string) {
 	t.Helper()
 
@@ -88,7 +80,6 @@ func AssertNoError(t *testing.T, err error, msg string) {
 	}
 }
 
-// AssertError fails if err is nil.
 func AssertError(t *testing.T, err error, msg string) {
 	t.Helper()
 
@@ -97,7 +88,6 @@ func AssertError(t *testing.T, err error, msg string) {
 	}
 }
 
-// AssertErrorWithResult asserts result is nil, err is not nil, and err.Error() contains substr.
 func AssertErrorWithResult(t *testing.T, result any, err error, substr string) {
 	t.Helper()
 
@@ -114,7 +104,6 @@ func AssertErrorWithResult(t *testing.T, result any, err error, substr string) {
 	}
 }
 
-// AssertEqual fails if got != want.
 func AssertEqual[T comparable](t *testing.T, got, want T, msg string) {
 	t.Helper()
 
@@ -123,7 +112,6 @@ func AssertEqual[T comparable](t *testing.T, got, want T, msg string) {
 	}
 }
 
-// AssertContains fails if s does not contain substr.
 func AssertContains(t *testing.T, s, substr, msg string) {
 	t.Helper()
 
@@ -132,7 +120,6 @@ func AssertContains(t *testing.T, s, substr, msg string) {
 	}
 }
 
-// AssertPanics asserts that fn panics.
 func AssertPanics(t *testing.T, fn func()) {
 	t.Helper()
 
@@ -145,7 +132,6 @@ func AssertPanics(t *testing.T, fn func()) {
 	fn()
 }
 
-// AssertNotContains fails if s contains substr.
 func AssertNotContains(t *testing.T, s, substr, msg string) {
 	t.Helper()
 
@@ -154,7 +140,6 @@ func AssertNotContains(t *testing.T, s, substr, msg string) {
 	}
 }
 
-// AssertErrorContains fails if err.Error() does not contain substr.
 func AssertErrorContains(t *testing.T, err error, substr string) {
 	t.Helper()
 
@@ -163,7 +148,6 @@ func AssertErrorContains(t *testing.T, err error, substr string) {
 	}
 }
 
-// AssertEventType asserts that events[index].Type() equals want.
 func AssertEventType(t *testing.T, events []event.Event, index int, want string) {
 	t.Helper()
 
@@ -172,7 +156,6 @@ func AssertEventType(t *testing.T, events []event.Event, index int, want string)
 	}
 }
 
-// AssertEventVersion asserts that events[index].Version() equals want.
 func AssertEventVersion(t *testing.T, events []event.Event, index, want int) {
 	t.Helper()
 

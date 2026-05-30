@@ -8,12 +8,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/decider"
 	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 	"github.com/larsartmann/go-cqrs-lite/memory"
 	"github.com/larsartmann/go-cqrs-lite/middleware"
 	"github.com/larsartmann/go-cqrs-lite/projection"
 	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/testhelpers"
 )
 
 // FullFlow tests a complete CQRS pipeline:
@@ -181,7 +181,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	testhelpers.AssertEventType(t, events, 0, "UserCreated")
+	eventtest.AssertEventType(t, events, 0, "UserCreated")
 
 	// --- Verify projection received live event ---
 	if len(projectedNames) != 1 {

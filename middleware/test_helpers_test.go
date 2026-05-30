@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 
@@ -74,4 +75,56 @@ func newTestLogger() (*slog.Logger, *countingHandler) {
 	h := newCountingHandler()
 
 	return slog.New(h), h
+}
+
+func NoopCommandHandler() func(context.Context, command.Command) error {
+	return func(_ context.Context, _ command.Command) error {
+		return nil
+	}
+}
+
+func failingCommandHandler(msg string) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		return errors.New(msg)
+	}
+}
+
+func panicCommandHandler(msg string) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		panic(msg)
+	}
+}
+
+func callbackCommandHandler(called *bool) command.Handler {
+	return func(_ context.Context, _ command.Command) error {
+		*called = true
+
+		return nil
+	}
+}
+
+func noopQueryHandler() func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		return nil, nil
+	}
+}
+
+func failingQueryHandler(msg string) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		return nil, errors.New(msg)
+	}
+}
+
+func panicQueryHandler(msg string) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		panic(msg)
+	}
+}
+
+func callbackQueryHandler(called *bool) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		*called = true
+
+		return nil, nil
+	}
 }
