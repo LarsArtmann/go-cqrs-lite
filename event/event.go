@@ -181,9 +181,7 @@ func (e *ImmutableEvent) Context() context.Context {
 		return context.Background()
 	}
 
-	ctx, _ := context.WithDeadline(context.Background(), e.deadline)
-
-	return ctx
+	return &deadlineCtx{deadline: e.deadline}
 }
 
 // Deadline returns the event's deadline (if any).
