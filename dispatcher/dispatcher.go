@@ -192,6 +192,7 @@ func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
 // KT is the type key (e.g., command.Type or query.Type).
 // VT is the catalog metadata type (e.g., dispatcher.HandlerMeta).
 type CatalogDispatcher[KT comparable, VT any] struct {
+	catalogMu     sync.RWMutex
 	catalogEntries map[KT]VT
 }
 
@@ -208,11 +209,10 @@ func (c *CatalogDispatcher[KT, VT]) Init() *CatalogDispatcher[KT, VT] {
 }
 
 // newCatalogDispatcher creates a new initialized CatalogDispatcher.
-func newCatalogDispatcher[KT comparable, VT any]() CatalogDispatcher[KT, VT] {
-	c := CatalogDispatcher[KT, VT]{} //nolint:exhaustruct // unexported field requires Init method
-	c.InitCatalogDispatcher()
-
-	return c
+func newCatalogDispatcher[KT comparable, VT any]() *CatalogDispatcher[KT, VT] {
+	return &CatalogDispatcher[KT, VT]{ //nolint:exhaustruct // unexported field requires Init method
+		catalogEntries: make(map[KT]VT),
+	}
 }
 
 // DispatcherWithCatalog combines CatalogDispatcher with an inner Dispatcher.
@@ -238,10 +238,16 @@ func (d *DispatcherWithCatalog[KT, VT, H, M]) Inner() *Dispatcher[H, M] {
 // RegisterHandlerMeta stores catalog metadata for a type.
 // This is a side channel that doesn't affect dispatch behavior.
 func (c *CatalogDispatcher[KT, VT]) RegisterHandlerMeta(key KT, meta VT) {
+	c.catalogMu.Lock()
+	defer c.catalogMu.Unlock()
+
 	c.catalogEntries[key] = meta
 }
 
 // CatalogEntries returns a copy of all registered catalog entries.
 func (c *CatalogDispatcher[KT, VT]) CatalogEntries() map[KT]VT {
+	c.catalogMu.RLock()
+	defer c.catalogMu.RUnlock()
+
 	return copyCatalogEntries(nil, c.catalogEntries)
 }

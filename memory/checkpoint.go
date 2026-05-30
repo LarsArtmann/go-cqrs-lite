@@ -30,6 +30,10 @@ func (s *MemoryCheckpointStore) Load(
 	_ context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
+	if err := s.CheckClosed(dispatcher.ErrDispatcherClosed); err != nil {
+		return event.Checkpoint{}, err
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -42,6 +46,10 @@ func (s *MemoryCheckpointStore) Save(
 	projectionName string,
 	cp event.Checkpoint,
 ) error {
+	if err := s.CheckClosed(dispatcher.ErrDispatcherClosed); err != nil {
+		return err
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

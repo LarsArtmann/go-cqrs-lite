@@ -63,9 +63,13 @@ func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) 
 
 	switch v := payload.(type) {
 	case []byte:
-		return v, nil
+		cloned := make([]byte, len(v))
+		copy(cloned, v)
+		return cloned, nil
 	case json.RawMessage:
-		return v, nil
+		cloned := make([]byte, len(v))
+		copy(cloned, v)
+		return cloned, nil
 	default:
 		data, err := c.Encode(payload)
 		if err != nil {

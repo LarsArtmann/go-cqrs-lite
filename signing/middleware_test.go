@@ -240,21 +240,40 @@ func FuzzSignature_Roundtrip(f *testing.F) {
 func TestMiddlewareNilGuards(t *testing.T) {
 	t.Parallel()
 
-	t.Run("SignMiddleware panics on nil signer", func(t *testing.T) {
+	t.Run("SignMiddleware returns error middleware on nil signer", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { signing.SignMiddleware(nil) },
-			"signing: SignMiddleware called with nil signer")
+
+		mw := signing.SignMiddleware(nil)
+		pub := mw(event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+			return nil
+		}))
+		err := pub.Publish(context.Background())
+		if err == nil {
+			t.Fatal("expected error from nil signer middleware")
+		}
 	})
 
-	t.Run("VerifyMiddleware panics on nil verifier", func(t *testing.T) {
+	t.Run("VerifyMiddleware returns error middleware on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { signing.VerifyMiddleware(nil) },
-			"signing: VerifyMiddleware called with nil verifier")
+
+		mw := signing.VerifyMiddleware(nil)
+		handler := mw(func(_ context.Context, _ event.Event) error { return nil })
+		evt := makeTestEvent(t)
+		err := handler(context.Background(), evt)
+		if err == nil {
+			t.Fatal("expected error from nil verifier middleware")
+		}
 	})
 
-	t.Run("RequireSignatureMiddleware panics on nil verifier", func(t *testing.T) {
+	t.Run("RequireSignatureMiddleware returns error middleware on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { signing.RequireSignatureMiddleware(nil) },
-			"signing: RequireSignatureMiddleware called with nil verifier")
+
+		mw := signing.RequireSignatureMiddleware(nil)
+		handler := mw(func(_ context.Context, _ event.Event) error { return nil })
+		evt := makeTestEvent(t)
+		err := handler(context.Background(), evt)
+		if err == nil {
+			t.Fatal("expected error from nil verifier middleware")
+		}
 	})
 }

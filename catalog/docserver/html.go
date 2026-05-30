@@ -1,8 +1,13 @@
 package docserver
 
-import "fmt"
+import (
+	"fmt"
+	"html"
+)
 
 func scalarHTML(specURL, title string) string {
+	escaped := html.EscapeString(title)
+
 	return fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -22,10 +27,12 @@ func scalarHTML(specURL, title string) string {
     });
   </script>
 </body>
-</html>`, title, specURL)
+</html>`, escaped, specURL)
 }
 
 func asyncAPIHTML(specURL, title string) string {
+	escaped := html.EscapeString(title)
+
 	return fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -55,5 +62,5 @@ func asyncAPIHTML(specURL, title string) string {
     }, document.getElementById('asyncapi'));
   </script>
 </body>
-</html>`, title, specURL)
+</html>`, escaped, specURL)
 }

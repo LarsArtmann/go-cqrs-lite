@@ -3,6 +3,7 @@ package watermill
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -15,6 +16,7 @@ type SubscriberAdapter struct {
 	handlers map[string]event.Handler
 	outputCh chan *message.Message
 	closeCh  chan struct{}
+	closeMu  sync.Once
 }
 
 // NewSubscriberAdapter creates a Watermill subscriber backed by a go-cqrs-lite event.Bus.
@@ -60,8 +62,10 @@ func (a *SubscriberAdapter) Subscribe(
 
 // Close closes the subscriber and unsubscribes all handlers.
 func (a *SubscriberAdapter) Close() error {
-	close(a.closeCh)
-	close(a.outputCh)
+	a.closeMu.Do(func() {
+		close(a.closeCh)
+		close(a.outputCh)
+	})
 
 	if closer, ok := a.bus.(interface{ Close() error }); ok {
 		return closer.Close()

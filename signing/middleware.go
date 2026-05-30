@@ -36,7 +36,11 @@ func extractOrPassThrough[T any](
 
 func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
-		panic("signing: SignMiddleware called with nil signer")
+		return func(next event.Publisher) event.Publisher {
+			return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+				return event.NewRejection("signing.nil_signer", "SignMiddleware called with nil signer")
+			})
+		}
 	}
 
 	return func(next event.Publisher) event.Publisher {
@@ -79,7 +83,11 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 //	bus.Use(signing.VerifyMiddleware(signer))
 func VerifyMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		panic("signing: VerifyMiddleware called with nil verifier")
+		return func(next event.Handler) event.Handler {
+			return func(_ context.Context, _ event.Event) error {
+				return event.NewRejection("signing.nil_verifier", "VerifyMiddleware called with nil verifier")
+			}
+		}
 	}
 
 	return func(next event.Handler) event.Handler {
@@ -110,7 +118,11 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 // without signatures. Use when all events in a stream must be signed.
 func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		panic("signing: RequireSignatureMiddleware called with nil verifier")
+		return func(next event.Handler) event.Handler {
+			return func(_ context.Context, _ event.Event) error {
+				return event.NewRejection("signing.nil_verifier", "RequireSignatureMiddleware called with nil verifier")
+			}
+		}
 	}
 
 	return func(next event.Handler) event.Handler {
