@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-28 · **Module count:** 16 · **Go version:** 1.26.3
+**Last audited:** 2026-05-30 · **Module count:** 25 · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -12,8 +12,10 @@
 || ⚠️ PARTIALLY_FUNCTIONAL | Works for happy paths but has gaps or known bugs |
 || 🔴 BROKEN | Compiles but has correctness issues |
 || 🧪 TESTING_ONLY | Works but is explicitly designed for tests, not production |
+|| 🧪 EXPERIMENTAL | New/reactive features, API may change |
 || 📐 PLANNED | Mentioned in docs/planning but no code exists |
 || 💡 DEMO | Example code, not a reusable module |
+|| 🔧 TOOL | Code generation or developer tooling |
 
 ---
 
@@ -67,7 +69,7 @@
 || Event creation | `NewEvent()` with auto-generated `EventID` (ULID) and `time.Now()` timestamp | ✅ |
 || Auto-marshal creation | `New()` — creates event from `any` payload (auto-json for structs/maps) | ✅ |
 || Batch creation | `NewEvents()` / `MustNewEvents()` — batch event creation with auto-incrementing versions | ✅ |
-|| 15 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithClock`, `WithClientID`, `WithClientOccurredAt` | ✅ |
+|| 19 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithEncoding`, `WithNewCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext` | ✅ |
 || Metadata | `Metadata` struct: `CorrelationID`, `CausationID`, `UserID`, `RequestID`, `Source`, `IPAddress`, `UserAgent`, `Custom` | ✅ |
 || Context enricher | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple | ✅ |
 || Defensive copies | `Payload()` and `Metadata()` return copies — callers can't mutate internals | ✅ |
@@ -143,7 +145,7 @@
 || -------------------- | ------------------------------------------------------------------------------------------- | ------ |
 || Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety | ✅ |
 || ULID-backed | Binary-sortable, time-ordered, 16-byte binary form | ✅ |
-|| 7 built-in types | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID` | ✅ |
+|| 8 built-in types | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID` | ✅ |
 || Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own | ✅ |
 || All serialization | JSON (incl. `null`), binary, text, SQL `Scan`/`Value` | ✅ |
 || Convenience funcs | `New[T]()`, `Parse[T]()`, `MustParse[T]()`, `Ptr()`, `FromPtr()` | ✅ |

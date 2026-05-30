@@ -282,3 +282,95 @@
 - [ ] Add stream SQL reader tests (source: stream module)
 - [ ] Enforce 350-line limit on test files via pre-commit hook (source: SESSION_73)
 - [ ] Split large test files: decider_test.go (~1200L), runner_test.go (~1057L) (source: multiple sessions)
+
+---
+
+## V2.0.0 Release Blockers
+
+**Generated:** 2026-05-30 — Full code review + architecture audit session
+
+### 🔴 P0 — Correctness & Safety (must fix before v2.0.0)
+
+- [ ] **event/event_new.go:66,68** — `New()` doesn't clone `[]byte`/`json.RawMessage` payload — caller can mutate event internals (immutability violation)
+- [ ] **dispatcher/dispatcher.go:240-241** — Data race: `CatalogDispatcher.RegisterHandlerMeta` has no mutex protection
+- [ ] **catalog/docserver/html.go:5,28** — XSS vulnerability: unescaped title in HTML templates; use `html/template`
+- [ ] **watermill/subscriber.go:63** — Double-close panic: no `sync.Once` on `Close()`
+- [ ] **watermill/protocol.go:166-176** — `MustParse*` panics on untrusted metadata input; replace with `Parse*` + error return
+- [ ] **memory/checkpoint.go:29,40** — Missing `CheckClosed(...)` on both `Load` and `Save`
+- [ ] **signing/middleware.go:39,82,113** — Panics on nil signer/verifier; should return error middleware
+- [ ] **signing/multisig/middleware.go:47,78,159** — Same panic-on-nil issue as signing
+- [ ] **cmd/api-stability/main.go:14-19** — Wrong module paths (`core/` prefix) — tool is non-functional
+- [ ] **cmd/cqrs-gen/main.go:237** — Generated query handler signature won't compile (returns `error` not `(R, error)`)
+- [ ] **example/storage/go.mod:20** — Missing `replace` directive for `listing` module
+- [ ] **example/projection/main.go:137** — Uses `ItemAdded` struct instead of `ItemRemoved` for removal event
+
+### 🟠 P1 — Type Safety & Design (should fix before v2.0.0)
+
+- [ ] **event/event.go:275** — Exceeds 250-line rule; split constructor into `event_construct.go`
+- [ ] **projection/runner.go:280** — Exceeds 250-line rule; split replay into `runner_replay.go`
+- [ ] **pebble/store.go:265** — Exceeds 250-line rule; extract iteration to `iteration.go`
+- [ ] **middleware/metrics_otel.go:60** — `Observe()` uses `context.Background()` — loses trace correlation
+- [ ] **middleware/validation.go:28-33** — Swallows original validator error — loses failure reason
+- [ ] **middleware/circuit_breaker.go:222,238** — `fmt.Errorf` overwraps structured errors — destroys error taxonomy
+- [ ] **pebble/helpers.go:65** — `logEventOperation` nil-logger panic; add nil check
+- [ ] **memory/bus.go:119-122** — Double error wrapping in `Publish`; remove outer `WrapInfrastructure`
+- [ ] **decider/decider.go:176,184** — Snapshot errors silently discarded with `_ = opError(...)`; log or trace
+- [ ] **decider/decider.go:48-77** — No validation: snapshot store without codec silently skips
+- [ ] **schema/versioned_source.go:17** — `NewVersionedStore(nil)` causes nil-pointer panic; add nil check
+- [ ] **schema/upcaster.go:13** — `NewUpcaster(nil)` causes nil-pointer panic; add nil check
+- [ ] **otel/spans.go:48-56** — `SpanFromContext` and `ComponentTracer` are dead code; remove
+- [ ] **middleware/metrics_otel.go:16-20** — Unused `metricName*` constants; remove
+
+### 🟡 P2 — Duplication & Naming (nice to fix before v2.0.0)
+
+- [ ] **event/tombstone.go** — `MarkTombstone`/`MarkRebirth` nearly identical; extract shared helper
+- [ ] **signing/middleware.go vs multisig/middleware.go** — `extractOrPassThrough` duplicated identically; share
+- [ ] **middleware/recovery.go** — Three near-identical recovery functions; extract parameterized helper
+- [ ] **command/dispatcher.go + query/dispatcher.go** — Identical closed-check+wrap boilerplate; extract
+- [ ] **catalog/registry_build.go** — Same sorted-build pattern 7×; extract generic `buildSortedList`
+- [ ] **catalog/registry_copy.go** — Same copyPtr pattern 7×; extract generic `copyPtr[T]`
+- [ ] **id/id.go:70** — `ULID()` uses misleading `struct{}` phantom type; make generic
+- [ ] **id/command_id.go** — Missing doc comments
+- [ ] **query/errors.go** — `ErrQueryNotSupported` vs command's `ErrHandlerNotFound`; inconsistent naming
+- [ ] **command/errors.go:30** — `ErrTypeAssertion` as `Corruption` should be `Rejection`
+- [ ] **pebble/config types** — Stuttering `Pebble` prefix on types in `pebble` package
+- [ ] **turso/function names** — Stuttering `Turso` prefix in `turso` package
+- [ ] **event/types.go:80** — `ParseUserAgent` doesn't actually parse; rename
+
+### 🟢 P3 — Missing Tests (post-v2.0.0 OK)
+
+- [ ] **event/slice.go** — Zero tests for `SliceFromVersion`, `SliceToVersion`, `FilterByTimestamp`
+- [ ] **event/context.go** — `deadlineCtx` untested
+- [ ] **dispatcher** — No test for `DispatcherWithCatalog`, no concurrent dispatch test
+- [ ] **watermill** — Zero subscriber tests
+- [ ] **turso** — Zero test coverage (entire module)
+- [ ] **schema** — No test for nil store/upcaster, no `LoadToTimestamp` test
+- [ ] **listing** — No test for `TombstonePolicy.String()`, `AggregateStatus.MarshalJSON()`
+- [ ] **memory** — No test for closed-store behavior on checkpoint/snapshot
+- [ ] **integration/event** — `event_sourcing_bdd_test.go` is 477 lines; split by topic
+
+### 🔵 P4 — Example & Tool Fixes
+
+- [ ] **example/user/projection.go:48** — Missing handlers for `UserDeleted`/`UserReborn` events
+- [ ] **example/user/catalog.go:20** — Uses event payload type for command (semantic misuse)
+- [ ] **example/todo/commands/mixin.go:40** — Dead `CommandTypeError` type; remove
+- [ ] **example/todo/README.md:119,123** — Stale references to `core/` and `cqrs-htmx`
+- [ ] **example/saga-pattern** — No test file
+- [ ] **example/listing** — No test file
+- [ ] **example/user/main.go:235** — Writes eventcatalog to working directory; use temp dir
+
+### 🟣 P5 — Architecture Polish (post-v2.0.0)
+
+- [ ] **catalog** — Generic `buildSortedList`/`copyPtr` helpers to eliminate 14× duplication
+- [ ] **memory** — Extract `withRLock`/`withLock` helper to reduce repetitive lock patterns
+- [ ] **projection/runner_live.go:110** — `time.After` leaks timers; use `time.NewTimer`
+- [ ] **projection/health.go:47** — `IsRunning` blocks with `context.Background()`; accept ctx param
+- [ ] **projection/runner_live.go:107** — Uncapped exponential backoff can overflow; cap at max delay
+- [ ] **storage** — SQL SELECT column list duplicated across 5+ queries; extract constant
+- [ ] **pebble/save.go:18** — `checkVersion` is O(n) for every Save; use metadata CF
+- [ ] **listing/in_memory.go:97** — Stores ALL events per aggregate for tombstone; optimize
+- [ ] **pebble/config.go:64-76** — Redundant backend switch (both cases identical); remove or implement
+- [ ] **turso/doc.go:10** — `func _()` import hack; remove
+- [ ] **event/ module cycles** — Move cross-module test assertions to integration/ (event↔command, event↔memory, event↔schema)
+- [ ] **decider/ → memory/ dependency** — Accept store as interface; remove memory import
+- [ ] **storage/ → listing/ coupling** — Move AggregateReader interface to shared contract
