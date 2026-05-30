@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/query"
@@ -272,7 +274,7 @@ func TestWithContext(t *testing.T) {
 	t.Parallel()
 
 	err := event.NewRejection("test.ctx", "msg")
-	result := event.WithContext(err, "key", "value")
+	result := err.WithContext("key", "value")
 	if result.ContextValue("key") != "value" {
 		t.Errorf("ContextValue(key) = %q, want %q", result.ContextValue("key"), "value")
 	}
@@ -295,12 +297,12 @@ func TestExitCode(t *testing.T) {
 func TestHandleErrorDetailed(t *testing.T) {
 	t.Parallel()
 
-	result := event.HandleErrorDetailed(nil)
+	result := errorfamily.HandleErrorDetailed(nil)
 	if result.ExitCode != 0 {
 		t.Errorf("HandleErrorDetailed(nil).ExitCode = %d, want 0", result.ExitCode)
 	}
 
-	result = event.HandleErrorDetailed(event.NewRejection("test.input", "bad input"))
+	result = errorfamily.HandleErrorDetailed(event.NewRejection("test.input", "bad input"))
 	if result.ExitCode != 1 {
 		t.Errorf("HandleErrorDetailed(Rejection).ExitCode = %d, want 1", result.ExitCode)
 	}
