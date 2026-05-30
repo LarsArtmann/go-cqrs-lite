@@ -5,12 +5,12 @@
 > Consumers import modules (`core`, `storage`, `memory`, `catalog`, etc.) into THEIR projects.
 > There is no "main app." Every module is independently importable.
 >
-> | Application Lens (WRONG)              | Library/SDK Lens (CORRECT)                                  |
-> | ------------------------------------- | ----------------------------------------------------------- |
-> | "Zero internal consumers = dead code" | "Zero internal consumers = correct isolation"               |
-> | "Module needs a service that uses it" | "Module needs tests + stable API, not an internal consumer" |
-> | "example/ should drive real traffic"  | "example/ is a usage demo, not a deployment"                |
-> | "Unused exports are waste"            | "Public API surface IS the product"                         |
+> | If you catch yourself thinking…                  | STOP — this is a LIBRARY, not an app                          |
+> | ------------------------------------------------- | ------------------------------------------------------------- |
+> | "Nothing in this repo uses it, so delete it"     | **DELETING EXTERNAL-FACING API IS BREAKING THE PRODUCT.** Consumers live outside this repo. Zero internal consumers is the EXPECTED state. |
+> | "Module needs a service that uses it"             | Module needs tests + stable API, not an internal consumer     |
+> | "example/ should drive real traffic"              | example/ is a usage demo, not a deployment                    |
+> | "Unused exports are waste"                        | Public API surface IS the product                             |
 >
 > **The quality gate for every module: "Would a consumer trust this enough to import it?"**
 
@@ -38,8 +38,7 @@ Multi-module Go workspace (`go.work`) with 28 modules (21 library + 6 examples +
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
-│                        # Reactive: EventBus (= ro.Subject[Event]), FilterEventType, HandlerToObserver
-│   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions (event/eventtest)
+│   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
@@ -69,7 +68,7 @@ go-cqrs-lite/
 
 1. **Library, not framework** — Consumers import what they need. No opinionated transport, broker, or SQL driver.
 2. **Trustworthy modules** — Quality gate: "Would a consumer trust this enough to import it?"
-3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`, `samber/ro`.
+3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
 4. **Composition over inheritance** — Per Go best practices.
 5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
 6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
@@ -149,7 +148,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family (event, command); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                            |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
@@ -157,7 +156,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 **Module Graph**:
 ```
 Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher)
+Layer 1: event/ (→id, codec), command/ (→id, dispatcher), query/ (→dispatcher)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: memory/, signing/, otel/

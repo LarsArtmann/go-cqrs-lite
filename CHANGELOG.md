@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 - `command/reactive.go` — dead code with zero consumers (ro dependency removed from command)
+- `event/reactive.go` — samber/ro fully removed (impedance mismatch: ro.Observer drops context+error; zero production consumers)
 - `core/` directory — all sub-packages promoted to workspace root
 
 ### Fixed
