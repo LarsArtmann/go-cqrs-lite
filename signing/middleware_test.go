@@ -9,21 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
 
-func assertPanicMessage(t *testing.T, fn func(), expectedMsg string) {
-	t.Helper()
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-		if msg, ok := r.(string); !ok ||
-			msg != expectedMsg {
-			t.Fatalf("unexpected panic: %v", r)
-		}
-	}()
-	fn()
-}
-
 func TestSignMiddleware(t *testing.T) {
 	t.Parallel()
 

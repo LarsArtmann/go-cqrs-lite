@@ -43,6 +43,8 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
 	github.com/larsartmann/go-cqrs-lite/event => ../../event
 	github.com/larsartmann/go-cqrs-lite/id => ../../id
+	github.com/larsartmann/go-cqrs-lite/listing => ../../listing
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
+	github.com/larsartmann/go-cqrs-lite/snapshot => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage => ../../storage
 )

@@ -134,7 +134,12 @@ func run() error {
 	}
 
 	for i, evt := range events {
-		payload := ItemAdded{Name: evt.name, Quantity: evt.quantity}
+		var payload any
+		if evt.eventType == "item.removed" {
+			payload = ItemRemoved{Name: evt.name, Quantity: evt.quantity}
+		} else {
+			payload = ItemAdded{Name: evt.name, Quantity: evt.quantity}
+		}
 
 		payloadBytes, marshalErr := json.Marshal(payload)
 		if marshalErr != nil {

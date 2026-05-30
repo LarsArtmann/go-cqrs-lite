@@ -163,16 +163,28 @@ func buildMetadata(md message.Metadata) event.Metadata {
 	m := event.NewMetadata()
 
 	if v := md.Get(metaCorrelationID); v != "" {
-		m.CorrelationID = id.MustParseCorrelationID(v)
+		parsed, err := id.ParseCorrelationID(v)
+		if err == nil {
+			m.CorrelationID = parsed
+		}
 	}
 	if v := md.Get(metaCausationID); v != "" {
-		m.CausationID = id.MustParseCausationID(v)
+		parsed, err := id.ParseCausationID(v)
+		if err == nil {
+			m.CausationID = parsed
+		}
 	}
 	if v := md.Get(metaUserID); v != "" {
-		m.UserID = id.MustParseUserID(v)
+		parsed, err := id.ParseUserID(v)
+		if err == nil {
+			m.UserID = parsed
+		}
 	}
 	if v := md.Get(metaRequestID); v != "" {
-		m.RequestID = id.MustParseRequestID(v)
+		parsed, err := id.ParseRequestID(v)
+		if err == nil {
+			m.RequestID = parsed
+		}
 	}
 	if v := md.Get(metaSource); v != "" {
 		m.Source = event.Source(v)

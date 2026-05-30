@@ -12,10 +12,10 @@ import (
 )
 
 var modules = []string{
-	"core/command",
-	"core/event",
-	"core/query",
-	"core/decider",
+	"command",
+	"event",
+	"query",
+	"decider",
 	"id",
 	"dispatcher",
 	"memory",

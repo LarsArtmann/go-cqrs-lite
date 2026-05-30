@@ -234,7 +234,7 @@ func generate(pkg, genType string, entries []Entry) string {
 			)
 			fmt.Fprintf(
 				&b,
-				"func Register%sHandler(d *query.Dispatcher, handler func(context.Context, *%s) error) error {\n",
+				"func Register%sHandler(d *query.Dispatcher, handler func(context.Context, *%s) (any, error)) error {\n",
 				e.StructName,
 				e.StructName,
 			)
