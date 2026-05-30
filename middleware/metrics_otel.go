@@ -42,12 +42,14 @@ func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
 // Observe records a metric observation with the given name, duration, and labels.
 // Labels are passed as alternating key-value string pairs.
 func (r *OTelMetricsRecorder) Observe(name string, duration time.Duration, labels ...string) {
+	const keyValuePairs = 2 // labels come in alternating key-value pairs
+
 	opts := make([]metric.RecordOption, 0, 1)
 	attrs := make(
 		[]attribute.KeyValue,
 		0,
-		(len(labels)/2)+1,
-	) //nolint:mnd // key-value pairs = half input + operation
+		(len(labels)/keyValuePairs)+1,
+	)
 	attrs = append(attrs, attribute.String("operation", name))
 
 	for i := 0; i+1 < len(labels); i += 2 {
