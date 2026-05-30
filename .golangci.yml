@@ -149,6 +149,8 @@ linters:
                         - modernc.org/sqlite
                         - turso.tech/database/tursogo
                         - github.com/ThreeDotsLabs/watermill
+                        - github.com/samber/ro
+                        - github.com/samber/lo
                         - go/ast
                         - go/parser
                         - go/token

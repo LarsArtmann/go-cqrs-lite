@@ -13,6 +13,7 @@ require (
 	github.com/larsartmann/go-error-family v0.2.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
+	github.com/samber/ro v0.3.0
 )
 
 require (
@@ -24,7 +25,9 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/samber/lo v1.52.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7 // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect

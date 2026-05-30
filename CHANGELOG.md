@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `schema/` module — Upcaster, UpcasterRegistry, VersionedSource for schema evolution (extracted from event/)
 - `snapshot/` module — Snapshot, SnapshotStore, SnapshotStrategy, helpers, error sentinels (extracted from event/)
 - `samber/ro` integration in `event/reactive.go` — EventBus (ro.PublishSubject-backed), FilterEventType, FilterEventTypes, HandlerToObserver
+- `samber/ro` integration in `command/reactive.go` — CommandBus, FilterCommandType
+- `samber/ro` integration in `query/reactive.go` — QueryBus, FilterQueryType
+- `HandlerToObserver` now uses `e.Context()` (not context.Background()) and forwards handler errors to `onError` callback
+- `HandlerToObserverWithContext` now forwards handler errors to `onError` callback
 - `listing/` module added to flake.nix testModules
 - `otel/`, `pebble/`, `turso/`, `codec/` modules added to flake.nix testModules
 
@@ -27,7 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 - `command/reactive.go` — dead code with zero consumers (ro dependency removed from command)
-- `event/reactive.go` — samber/ro fully removed (impedance mismatch: ro.Observer drops context+error; zero production consumers)
+- `event/reactive.go` — restored with fixes: HandlerToObserver uses e.Context() + explicit onError callback
 - `core/` directory — all sub-packages promoted to workspace root
 
 ### Fixed

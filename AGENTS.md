@@ -38,9 +38,12 @@ Multi-module Go workspace (`go.work`) with 28 modules (21 library + 6 examples +
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
+│                        # Reactive: EventBus (= ro.Subject[Event]), FilterEventType, HandlerToObserver
 │   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
+│                        # Reactive: CommandBus (= ro.Subject[Command]), FilterCommandType
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
+│                        # Reactive: QueryBus (= ro.Subject[Query]), FilterQueryType
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
@@ -68,7 +71,7 @@ go-cqrs-lite/
 
 1. **Library, not framework** — Consumers import what they need. No opinionated transport, broker, or SQL driver.
 2. **Trustworthy modules** — Quality gate: "Would a consumer trust this enough to import it?"
-3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
+3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`, `samber/ro`.
 4. **Composition over inheritance** — Per Go best practices.
 5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
 6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
@@ -113,6 +116,20 @@ var seekable event.SeekableJournal = store // ReadFrom (position-based)
 status := event.DetectTombstone(events) // Active, Tombstoned, or Undetermined
 marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
+// Reactive event streams (samber/ro)
+//   bus := event.NewEventBus()
+//   bus.Subscribe(ro.OnNext(func(e event.Event) { ... }))
+//   filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
+//   observer := event.HandlerToObserver(myHandler, func(err error) { log.Error(err) })
+//   bus.Next(evt)
+//   bus.Complete()
+//
+//   cmdBus := command.NewCommandBus()
+//   cmdBus.Subscribe(ro.OnNext(func(c command.Command) { ... }))
+//
+//   queryBus := query.NewQueryBus()
+//   queryBus.Subscribe(ro.OnNext(func(q query.Query) { ... }))
+
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
 //       return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
@@ -148,7 +165,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family (event, command); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                            |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
@@ -156,7 +173,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 **Module Graph**:
 ```
 Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec), command/ (→id, dispatcher), query/ (→dispatcher)
+Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: memory/, signing/, otel/
