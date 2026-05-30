@@ -14,9 +14,9 @@ layer0: {
   style.fill: "#f0fdf4"
   style.stroke: "#86efac"
 
-  id: { label: "id/\nBranded IDs" ; shape: rectangle }
-  dispatcher: { label: "dispatcher/\nGeneric Dispatcher[H,M]" ; shape: rectangle }
-  codec: { label: "codec/\nJSON + Raw" ; shape: rectangle }
+  id: {label: "id/\nBranded IDs"; shape: rectangle}
+  dispatcher: {label: "dispatcher/\nGeneric Dispatcher[H,M]"; shape: rectangle}
+  codec: {label: "codec/\nJSON + Raw"; shape: rectangle}
 }
 
 # Layer 1 — Core CQRS (no cycles!)
@@ -26,9 +26,9 @@ layer1: {
   style.fill: "#eff6ff"
   style.stroke: "#93c5fd"
 
-  event: { label: "event/\nStore, Bus, ImmutableEvent\nJournal, Tombstone\nReactive (ro)" ; shape: rectangle  }
-  command: { label: "command/\nDispatcher, Handler\nCommandStore" ; shape: rectangle }
-  query: { label: "query/\nDispatcher, Handler\nPagination" ; shape: rectangle }
+  event: {label: "event/\nStore, Bus, ImmutableEvent\nJournal, Tombstone\nReactive (ro)"; shape: rectangle}
+  command: {label: "command/\nDispatcher, Handler\nCommandStore"; shape: rectangle}
+  query: {label: "query/\nDispatcher, Handler\nPagination"; shape: rectangle}
 }
 
 # Layer 2 — Schema & Snapshot
@@ -38,8 +38,8 @@ layer2: {
   style.fill: "#fefce8"
   style.stroke: "#fde047"
 
-  schema: { label: "schema/\nUpcaster, VersionedStore" ; shape: rectangle }
-  snapshot: { label: "snapshot/\nSnapshot, Strategy\nsnapshottest (FakeStore)" ; shape: rectangle }
+  schema: {label: "schema/\nUpcaster, VersionedStore"; shape: rectangle}
+  snapshot: {label: "snapshot/\nSnapshot, Strategy\nsnapshottest (FakeStore)"; shape: rectangle}
 }
 
 # Layer 3 — Aggregate Pattern (no memory dependency!)
@@ -49,7 +49,7 @@ layer3: {
   style.fill: "#fdf2f8"
   style.stroke: "#f9a8d4"
 
-  decider: { label: "decider/\nDecider[State], Repository\nExecute, Load\n(no memory dep!)" ; shape: rectangle ; style.stroke: "#22c55e" ; style.stroke-width: 3 }
+  decider: {label: "decider/\nDecider[State], Repository\nExecute, Load\n(no memory dep!)"; shape: rectangle; style.stroke: "#22c55e"; style.stroke-width: 3}
 }
 
 # Layer 4 — In-Memory & Utilities
@@ -59,9 +59,9 @@ layer4: {
   style.fill: "#f5f3ff"
   style.stroke: "#c4b5fd"
 
-  memory: { label: "memory/\nMemoryStore, Bus\nSnapshotStore, Checkpoint" ; shape: rectangle }
-  signing: { label: "signing/\nHMAC, Ed25519\nMultisig (shared extract)" ; shape: rectangle }
-  otel: { label: "otel/\nTracer, Meter\nSpans, Attributes\n(no dead code)" ; shape: rectangle }
+  memory: {label: "memory/\nMemoryStore, Bus\nSnapshotStore, Checkpoint"; shape: rectangle}
+  signing: {label: "signing/\nHMAC, Ed25519\nMultisig (shared extract)"; shape: rectangle}
+  otel: {label: "otel/\nTracer, Meter\nSpans, Attributes\n(no dead code)"; shape: rectangle}
 }
 
 # Layer 5 — Infrastructure (decoupled!)
@@ -71,13 +71,13 @@ layer5: {
   style.fill: "#fff7ed"
   style.stroke: "#fdba74"
 
-  middleware: { label: "middleware/\nParameterised recovery/trace\nCircuit breaker (fixed errors)\nValidation (preserve cause)" ; shape: rectangle }
-  storage: { label: "storage/\nSQLEventStore\nSQLSnapshotStore\nSQLCheckpointStore\n(no listing dep!)" ; shape: rectangle ; style.stroke: "#22c55e" ; style.stroke-width: 3 }
-  projection: { label: "projection/\nRunner (split replay.go)\nCapped backoff, timer cleanup" ; shape: rectangle }
-  listing: { label: "listing/\nAggregate listing\nTombstone filtering" ; shape: rectangle }
-  watermill: { label: "watermill/\nProtocol adapter\n(sync.Once, no MustParse)" ; shape: rectangle }
-  pebble: { label: "pebble/\nPebbleDB store\n(no stutter naming)" ; shape: rectangle }
-  turso: { label: "turso/\nTurso connector\n(with tests!)" ; shape: rectangle }
+  middleware: {label: "middleware/\nParameterised recovery/trace\nCircuit breaker (fixed errors)\nValidation (preserve cause)"; shape: rectangle}
+  storage: {label: "storage/\nSQLEventStore\nSQLSnapshotStore\nSQLCheckpointStore\n(no listing dep!)"; shape: rectangle; style.stroke: "#22c55e"; style.stroke-width: 3}
+  projection: {label: "projection/\nRunner (split replay.go)\nCapped backoff, timer cleanup"; shape: rectangle}
+  listing: {label: "listing/\nAggregate listing\nTombstone filtering"; shape: rectangle}
+  watermill: {label: "watermill/\nProtocol adapter\n(sync.Once, no MustParse)"; shape: rectangle}
+  pebble: {label: "pebble/\nPebbleDB store\n(no stutter naming)"; shape: rectangle}
+  turso: {label: "turso/\nTurso connector\n(with tests!)"; shape: rectangle}
 }
 
 # Layer 6 — Integration & Tools
@@ -87,9 +87,9 @@ layer6: {
   style.fill: "#f9fafb"
   style.stroke: "#d1d5db"
 
-  catalog: { label: "catalog/\nRegistry (generic helpers)\nAsyncAPI, D2, OpenAPI\nEventCatalog (XSS fixed)" ; shape: rectangle }
-  integration: { label: "integration/\nCross-module tests\n(all errors taxonomy here)" ; shape: rectangle }
-  cqrs_gen: { label: "cmd/cqrs-gen/\nCode generator (fixed query sig)" ; shape: rectangle }
+  catalog: {label: "catalog/\nRegistry (generic helpers)\nAsyncAPI, D2, OpenAPI\nEventCatalog (XSS fixed)"; shape: rectangle}
+  integration: {label: "integration/\nCross-module tests\n(all errors taxonomy here)"; shape: rectangle}
+  cqrs_gen: {label: "cmd/cqrs-gen/\nCode generator (fixed query sig)"; shape: rectangle}
 }
 
 # Clean dependency edges
