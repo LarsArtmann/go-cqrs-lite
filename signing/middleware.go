@@ -36,7 +36,7 @@ func extractOrPassThrough[T any](
 
 func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
-		return func(next event.Publisher) event.Publisher {
+		return func(_ event.Publisher) event.Publisher {
 			return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
 				return event.NewRejection(
 					"signing.nil_signer",
@@ -86,7 +86,7 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 //	bus.Use(signing.VerifyMiddleware(signer))
 func VerifyMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		return func(next event.Handler) event.Handler {
+		return func(_ event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
 				return event.NewRejection(
 					"signing.nil_verifier",
@@ -124,7 +124,7 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 // without signatures. Use when all events in a stream must be signed.
 func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		return func(next event.Handler) event.Handler {
+		return func(_ event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
 				return event.NewRejection(
 					"signing.nil_verifier",

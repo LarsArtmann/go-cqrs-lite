@@ -41,11 +41,14 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
 	github.com/larsartmann/go-cqrs-lite/command => ../../command
 	github.com/larsartmann/go-cqrs-lite/decider => ../../decider
+	github.com/larsartmann/go-cqrs-lite/dispatcher => ../../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event => ../../event
 	github.com/larsartmann/go-cqrs-lite/id => ../../id
 	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
 	github.com/larsartmann/go-cqrs-lite/middleware => ../../middleware
 	github.com/larsartmann/go-cqrs-lite/otel => ../../otel
+	github.com/larsartmann/go-cqrs-lite/projection => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query => ../../query
 	github.com/larsartmann/go-cqrs-lite/signing => ../../signing
+	github.com/larsartmann/go-cqrs-lite/snapshot => ../../snapshot
 )

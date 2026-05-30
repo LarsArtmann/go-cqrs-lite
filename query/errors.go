@@ -9,6 +9,7 @@ var ErrHandlerNotFound = errorfamily.NewRejection(
 )
 
 // ErrQueryNotSupported is an alias for ErrHandlerNotFound.
+//
 // Deprecated: Use ErrHandlerNotFound for consistency with command.Dispatcher.
 var ErrQueryNotSupported = ErrHandlerNotFound
 

@@ -70,6 +70,15 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 			existing.Name = p.Name
 			s.users[aggID] = existing
 		}
+	case eventUserDeleted:
+		delete(s.users, aggID)
+	case eventUserReborn:
+		p, err := event.DecodePayload[UserRebornPayload](evt, c)
+		if err != nil {
+			return fmt.Errorf("decode UserReborn in projection: %w", err)
+		}
+
+		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
 	}
 
 	return nil

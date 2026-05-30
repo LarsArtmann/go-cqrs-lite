@@ -96,7 +96,7 @@ example/todo/
 ├── storage/
 │   ├── pebble_store.go      # Pebble-backed read model store
 │   ├── memory_store.go      # In-memory read model store (for testing)
-│   └── iterator_helpers.go  # Pebble iterator utilities
+│   └── filter.go           # Pebble iterator utilities
 └── go.mod                   # Own module with go-cqrs-lite deps
 ```
 
@@ -115,15 +115,18 @@ GOPRIVATE='github.com/larsartmann/*' GONOSUMCHECK='*' go run ./cmd/api
 
 ## Dependencies
 
-| Package                | Purpose                                             |
-| ---------------------- | --------------------------------------------------- |
-| `go-cqrs-lite/core`    | CQRS framework (decider, commands, queries, events) |
-| `go-cqrs-lite/memory`  | In-memory event bus                                 |
-| `go-cqrs-lite/storage` | Pebble event store adapter                          |
-| `cqrs-htmx`            | HTTP middleware composition                         |
-| `cockroachdb/pebble`   | Embedded key-value storage                          |
+| Package                         | Purpose                                             |
+| ------------------------------- | --------------------------------------------------- |
+| `go-cqrs-lite/event`            | Event types, store, bus interfaces                  |
+| `go-cqrs-lite/command`          | Command dispatcher and handler types                |
+| `go-cqrs-lite/query`            | Query dispatcher and handler types                  |
+| `go-cqrs-lite/decider`          | Pure-function aggregate (Fold + Decide)             |
+| `go-cqrs-lite/memory`           | In-memory event bus and store                       |
+| `go-cqrs-lite/pebble`           | Embedded Pebble key-value event store               |
+| `go-cqrs-lite/projection`       | Projection runner (replay + live subscription)      |
+| `github.com/larsartmann/httputil` | HTTP middleware composition                       |
+| `cockroachdb/pebble`            | Embedded key-value storage                          |
 
 ## Related
 
 - [go-cqrs-lite/example/user](../user/) — Minimal CLI demo of the aggregate lifecycle
-- [cqrs-htmx](../../../cqrs-htmx/) — HTMX-aware HTTP integration for go-cqrs-lite

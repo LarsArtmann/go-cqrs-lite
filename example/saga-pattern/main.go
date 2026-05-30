@@ -218,7 +218,7 @@ func run() error {
 					InventoryReleased{OrderID: p.OrderID})
 			}
 
-			if p.Step == "confirm-payment" && state.CurrentStep >= 2 {
+			if p.Step == "confirm-order" && state.CurrentStep >= 2 {
 				_ = dispatcher.dispatch(ctx, "refund-payment", orderID,
 					PaymentRefunded{OrderID: p.OrderID})
 				_ = dispatcher.dispatch(ctx, "release-inventory", orderID,
