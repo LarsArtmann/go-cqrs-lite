@@ -38,7 +38,7 @@ Multi-module Go workspace (`go.work`) with 28 modules (21 library + 6 examples +
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
-│                        # Reactive: EventBus (= ro.Subject[Event]), FilterEventType, HandlerToObserver
+│                        # Reactive: EventBus, NewReplayEventBus, NewBehaviorEventBus, FilterEventType/Types, ReplayFilter, HandlerToObserver, Map, ScanState, DistinctByAggregateID, Tap
 │   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
 │                        # Reactive: CommandBus (= ro.Subject[Command]), FilterCommandType

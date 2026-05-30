@@ -112,10 +112,37 @@ func Map(transform func(Event) Event) func(ro.Observable[Event]) ro.Observable[E
 	return ro.Map(transform)
 }
 
+// ScanState accumulates state over an event stream. Initial is the starting state,
+// and accumulator folds each event into the current state, producing a new state.
+func ScanState[S any](initial S, accumulator func(S, Event) S) func(ro.Observable[Event]) ro.Observable[S] {
+	return ro.Scan(accumulator, initial)
+}
+
+// DistinctByAggregateID deduplicates events by AggregateID — only the first event
+// for each aggregate passes through.
+func DistinctByAggregateID() func(ro.Observable[Event]) ro.Observable[Event] {
+	seen := make(map[string]struct{})
+
+	return ro.Filter(func(e Event) bool {
+		key := e.AggregateID().String()
+		if _, ok := seen[key]; ok {
+			return false
+		}
+
+		seen[key] = struct{}{}
+
+		return true
+	})
+}
+
 // Tap performs a side effect for each event without changing the stream.
 func Tap(fn func(Event)) func(ro.Observable[Event]) ro.Observable[Event] {
 	return ro.TapOnNext(fn)
 }
+
+// Observable is a named type for event observables, improving discoverability
+// over the raw ro.Observable[Event].
+type Observable = ro.Observable[Event]
 
 type typeSet map[Type]struct{}
 

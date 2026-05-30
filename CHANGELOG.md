@@ -10,11 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `schema/` module — Upcaster, UpcasterRegistry, VersionedSource for schema evolution (extracted from event/)
 - `snapshot/` module — Snapshot, SnapshotStore, SnapshotStrategy, helpers, error sentinels (extracted from event/)
-- `samber/ro` integration in `event/reactive.go` — EventBus (ro.PublishSubject-backed), FilterEventType, FilterEventTypes, HandlerToObserver
-- `samber/ro` integration in `command/reactive.go` — CommandBus, FilterCommandType
-- `samber/ro` integration in `query/reactive.go` — QueryBus, FilterQueryType
-- `HandlerToObserver` now uses `e.Context()` (not context.Background()) and forwards handler errors to `onError` callback
-- `HandlerToObserverWithContext` now forwards handler errors to `onError` callback
+- `samber/ro` integration in `event/reactive.go` — EventBus, NewReplayEventBus, NewBehaviorEventBus, FilterEventType, FilterEventTypes, ReplayFilter, HandlerToObserver, HandlerToObserverWithContext, Map, ScanState, DistinctByAggregateID, Tap, Observable type alias
+- `samber/ro` integration in `command/reactive.go` — CommandBus, FilterCommandType, Observable type alias
+- `samber/ro` integration in `query/reactive.go` — QueryBus, FilterQueryType, Observable type alias
+- `event/reactive.go` uses context-aware `ro.NewObserverWithContext` API — handler errors terminate the observer via `ErrorWithContext`
+- `projection/runner.go` replay path refactored to use `ro.FromSlice` + `ro.Pipe1` + `ro.Collect` with `event.ReplayFilter`/`event.FilterEventTypes` (replaces inline `filterByTypes`/`filterEvents` functions)
 - `listing/` module added to flake.nix testModules
 - `otel/`, `pebble/`, `turso/`, `codec/` modules added to flake.nix testModules
 
@@ -30,8 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
-- `command/reactive.go` — dead code with zero consumers (ro dependency removed from command)
-- `event/reactive.go` — restored with fixes: HandlerToObserver uses e.Context() + explicit onError callback
+- `command/reactive.go` — temporarily deleted (restored in this release)
+- `event/reactive.go` — restored with context-aware ro API (NewObserverWithContext + ErrorWithContext)
 - `core/` directory — all sub-packages promoted to workspace root
 
 ### Fixed

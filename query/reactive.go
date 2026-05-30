@@ -15,7 +15,10 @@ func NewQueryBus() ro.Subject[Query] {
 
 // FilterQueryType returns an operator that filters an Observable[Query] to only queries of the given type.
 func FilterQueryType(queryType Type) func(ro.Observable[Query]) ro.Observable[Query] {
-	return ro.Filter[Query](func(q Query) bool {
+	return ro.Filter(func(q Query) bool {
 		return q.Type() == queryType
 	})
 }
+
+// Observable is a named type for query observables.
+type Observable = ro.Observable[Query]

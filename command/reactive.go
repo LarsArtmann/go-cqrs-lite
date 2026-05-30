@@ -15,7 +15,10 @@ func NewCommandBus() ro.Subject[Command] {
 
 // FilterCommandType returns an operator that filters an Observable[Command] to only commands of the given type.
 func FilterCommandType(cmdType Type) func(ro.Observable[Command]) ro.Observable[Command] {
-	return ro.Filter[Command](func(c Command) bool {
+	return ro.Filter(func(c Command) bool {
 		return c.Type() == cmdType
 	})
 }
+
+// Observable is a named type for command observables.
+type Observable = ro.Observable[Command]

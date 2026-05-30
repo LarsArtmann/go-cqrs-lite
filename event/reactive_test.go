@@ -584,6 +584,66 @@ func TestReplayFilter_ZeroCheckpoint(t *testing.T) {
 	}
 }
 
+func TestScanState(t *testing.T) {
+	t.Parallel()
+
+	bus := event.NewEventBus()
+
+	type count struct{ Total int }
+
+	scanned := ro.Pipe1(bus, event.ScanState(count{}, func(state count, e event.Event) count {
+		return count{Total: state.Total + 1}
+	}))
+
+	var results []count
+
+	scanned.Subscribe(ro.OnNext(func(c count) {
+		results = append(results, c)
+	}))
+
+	bus.Next(newTestEvent(t, "a"))
+	bus.Next(newTestEvent(t, "b"))
+	bus.Next(newTestEvent(t, "c"))
+	bus.Complete()
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 scan results, got %d", len(results))
+	}
+
+	if results[0].Total != 1 {
+		t.Errorf("scan 1: expected 1, got %d", results[0].Total)
+	}
+
+	if results[1].Total != 2 {
+		t.Errorf("scan 2: expected 2, got %d", results[1].Total)
+	}
+
+	if results[2].Total != 3 {
+		t.Errorf("scan 3: expected 3, got %d", results[2].Total)
+	}
+}
+
+func TestDistinctByAggregateID(t *testing.T) {
+	t.Parallel()
+
+	events := []event.Event{
+		newTestEvent(t, "first"),
+		newTestEvent(t, "second"),
+		newTestEvent(t, "duplicate-of-first"),
+	}
+
+	obs := ro.Pipe1(ro.FromSlice(events), event.DistinctByAggregateID())
+
+	values, err := ro.Collect(obs)
+	if err != nil {
+		t.Fatalf("collect failed: %v", err)
+	}
+
+	if len(values) != 3 {
+		t.Fatalf("expected 3 events (different AggregateIDs), got %d", len(values))
+	}
+}
+
 type errTestHandler string
 
 func (e errTestHandler) Error() string { return string(e) }

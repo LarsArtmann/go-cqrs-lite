@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	ro "github.com/samber/ro"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -143,7 +144,10 @@ func (r *Runner) replay(ctx context.Context) error {
 					"load events from position for "+p.Name())
 			}
 
-			events = filterByTypes(loaded, p.EventTypes())
+			events, _ = ro.Collect(ro.Pipe1(
+				ro.FromSlice(loaded),
+				event.FilterEventTypes(p.EventTypes()...),
+			))
 		} else {
 			allEvents, lErr := r.journal.ReadAll(ctx)
 			if lErr != nil {
@@ -154,7 +158,10 @@ func (r *Runner) replay(ctx context.Context) error {
 					"load all events")
 			}
 
-			events = filterEvents(allEvents, p.EventTypes(), checkpoint)
+			events, _ = ro.Collect(ro.Pipe1(
+				ro.FromSlice(allEvents),
+				event.ReplayFilter(p.EventTypes(), checkpoint),
+			))
 		}
 
 		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
@@ -176,23 +183,6 @@ func (r *Runner) replay(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func filterByTypes(events []event.Event, types []event.Type) []event.Event {
-	if len(types) == 0 {
-		return events
-	}
-
-	typeSet := newTypeSet(types)
-	result := make([]event.Event, 0, len(events))
-
-	for _, evt := range events {
-		if typeSet.has(evt.Type()) {
-			result = append(result, evt)
-		}
-	}
-
-	return result
 }
 
 func (r *Runner) handleAndCheckpoint(
@@ -249,54 +239,4 @@ func subscribesTo(p event.Projection, eventType event.Type) bool {
 	types := p.EventTypes()
 
 	return len(types) == 0 || slices.Contains(types, eventType)
-}
-
-func filterEvents(
-	all []event.Event,
-	types []event.Type,
-	checkpoint event.Checkpoint,
-) []event.Event {
-	result := make([]event.Event, 0, len(all))
-
-	pastCheckpoint := checkpoint.IsZero()
-	typeSet := newTypeSet(types)
-
-	for _, evt := range all {
-		if !pastCheckpoint {
-			if evt.ID() == checkpoint.EventID {
-				pastCheckpoint = true
-			}
-
-			continue
-		}
-
-		if len(types) > 0 && !typeSet.has(evt.Type()) {
-			continue
-		}
-
-		result = append(result, evt)
-	}
-
-	return result
-}
-
-type typeSet map[event.Type]struct{}
-
-func newTypeSet(types []event.Type) typeSet {
-	if len(types) == 0 {
-		return nil
-	}
-
-	s := make(typeSet, len(types))
-
-	for _, t := range types {
-		s[t] = struct{}{}
-	}
-
-	return s
-}
-
-func (s typeSet) has(t event.Type) bool {
-	_, ok := s[t]
-	return ok
 }
