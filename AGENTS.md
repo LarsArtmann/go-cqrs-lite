@@ -120,7 +120,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 //   bus := event.NewEventBus()
 //   bus.Subscribe(ro.OnNext(func(e event.Event) { ... }))
 //   filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
-//   observer := event.HandlerToObserver(myHandler, func(err error) { log.Error(err) })
+//   observer := event.HandlerToObserver(myHandler)
 //   bus.Next(evt)
 //   bus.Complete()
 //
