@@ -85,7 +85,7 @@ func TestSQLiteEventStore_ReadAll(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	_, _, _, _ = setupTwoTestEvents(t, store)
+	setupTwoTestEvents(t, store)
 
 	all, err := store.ReadAll(context.Background())
 	if err != nil {

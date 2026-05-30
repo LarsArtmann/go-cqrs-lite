@@ -69,11 +69,13 @@ func assertSliceLen[T any](
 
 // AssertLen asserts that the slice has the expected length.
 func AssertLen[T any](t *testing.T, name string, slice []T, want int) {
+	t.Helper()
 	assertSliceLen(t, name, slice, want, t.Errorf)
 }
 
 // AssertLenFatal asserts that the slice has the expected length, fataling on mismatch.
 func AssertLenFatal[T any](t *testing.T, name string, slice []T, want int) {
+	t.Helper()
 	assertSliceLen(t, name, slice, want, t.Fatalf)
 }
 

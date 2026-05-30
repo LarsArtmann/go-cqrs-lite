@@ -34,7 +34,9 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -54,6 +56,7 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
 	github.com/larsartmann/go-cqrs-lite/command => ../../command

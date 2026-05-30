@@ -10,6 +10,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
+// createdEventType is the event type for entity creation in test helpers.
+const createdEventType = "Created"
+
 // TimelineEvent describes an event in a timeline test.
 type TimelineEvent struct {
 	Type    string
@@ -174,8 +177,9 @@ func MakeLoadToTimestampFixtures(
 	tb.Helper()
 
 	now := time.Now()
+	eventTypeCreated := createdEventType
 	events := MakeTimelineEvents(tb, aggType, aggID, []TimelineEvent{
-		{Type: "Created", Version: versions[0], Offset: -2 * time.Hour},
+		{Type: eventTypeCreated, Version: versions[0], Offset: -2 * time.Hour},
 		{Type: "Updated", Version: versions[1], Offset: -1 * time.Hour},
 		{Type: "Deleted", Version: versions[2], Offset: 0},
 	})
@@ -202,10 +206,10 @@ func MakeThreeTimelineEvents(
 	tb.Helper()
 
 	evt1 := MakeTimelineEvents(tb, aggType1, aggID1, []TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
+		{Type: createdEventType, Version: 1, Offset: -2 * time.Hour},
 	})
 	evt2 := MakeTimelineEvents(tb, aggType2, aggID2, []TimelineEvent{
-		{Type: "Created", Version: 1, Offset: -1 * time.Hour},
+		{Type: createdEventType, Version: 1, Offset: -1 * time.Hour},
 	})
 	evt3 := MakeTimelineEvents(tb, aggType1, aggID1, []TimelineEvent{
 		{Type: "Updated", Version: 1, Offset: 0},
@@ -226,5 +230,6 @@ func QuickSnapshot(
 		AggregateType: aggType,
 		Version:       version,
 		State:         state,
+		CreatedAt:     time.Now(),
 	}
 }
