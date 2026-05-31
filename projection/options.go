@@ -9,11 +9,12 @@ import (
 )
 
 type runnerOptions struct {
-	retryCount  int
-	retryDelay  time.Duration
-	logger      *slog.Logger
-	deadLetter  DeadLetterHandler
-	parallelism int
+	retryCount    int
+	retryDelay    time.Duration
+	retryMaxDelay time.Duration
+	logger        *slog.Logger
+	deadLetter    DeadLetterHandler
+	parallelism   int
 }
 
 // DeadLetterHandler is called when a projection handler fails after all retries are exhausted.
@@ -29,6 +30,15 @@ func WithRetry(count int, delay time.Duration) RunnerOption {
 	return func(o *runnerOptions) {
 		o.retryCount = count
 		o.retryDelay = delay
+		o.retryMaxDelay = 30 * time.Second
+	}
+}
+
+// WithRetryMaxDelay caps the exponential backoff at the given maximum.
+// Must be called after WithRetry to take effect.
+func WithRetryMaxDelay(max time.Duration) RunnerOption {
+	return func(o *runnerOptions) {
+		o.retryMaxDelay = max
 	}
 }
 

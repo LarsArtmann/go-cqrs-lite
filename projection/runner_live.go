@@ -106,12 +106,17 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 
 	for attempt := 1; attempt <= r.opts.retryCount; attempt++ {
 		delay := r.opts.retryDelay * time.Duration(1<<(attempt-1))
+		if r.opts.retryMaxDelay > 0 && delay > r.opts.retryMaxDelay {
+			delay = r.opts.retryMaxDelay
+		}
 
+		timer := time.NewTimer(delay)
 		select {
 		case <-ctx.Done():
+			timer.Stop()
 			return event.WrapInfrastructure(ctx.Err(), "projection.retry_cancelled",
 				"retry cancelled")
-		case <-time.After(delay):
+		case <-timer.C:
 		}
 
 		err = r.handleAndCheckpoint(ctx, p, evt)
