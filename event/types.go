@@ -81,11 +81,6 @@ func NewUserAgent(s string) UserAgent {
 	return UserAgent(strings.TrimSpace(s))
 }
 
-// ParseUserAgent creates a UserAgent from a string.
-//
-// Deprecated: use NewUserAgent instead.
-func ParseUserAgent(s string) UserAgent { return NewUserAgent(s) }
-
 // String returns the underlying string value.
 func (ua UserAgent) String() string { return string(ua) }
 
