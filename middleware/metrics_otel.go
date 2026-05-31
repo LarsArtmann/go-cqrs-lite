@@ -41,7 +41,7 @@ func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
 
 // Observe records a metric observation with the given name, duration, and labels.
 // Labels are passed as alternating key-value string pairs.
-func (r *OTelMetricsRecorder) Observe(name string, duration time.Duration, labels ...string) {
+func (r *OTelMetricsRecorder) Observe(ctx context.Context, name string, duration time.Duration, labels ...string) {
 	const keyValuePairs = 2 // labels come in alternating key-value pairs
 
 	opts := make([]metric.RecordOption, 0, 1)
@@ -57,7 +57,7 @@ func (r *OTelMetricsRecorder) Observe(name string, duration time.Duration, label
 	}
 
 	opts = append(opts, metric.WithAttributes(attrs...))
-	r.histogram.Record(context.Background(), float64(duration.Milliseconds()), opts...)
+	r.histogram.Record(ctx, float64(duration.Milliseconds()), opts...)
 }
 
 // CommandOTelMetrics returns a command middleware that records duration using an OTel histogram.

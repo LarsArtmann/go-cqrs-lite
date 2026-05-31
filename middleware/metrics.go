@@ -10,6 +10,7 @@ import (
 )
 
 func recordMetrics(
+	ctx context.Context,
 	rec MetricsRecorder,
 	operation string,
 	err error,
@@ -17,9 +18,9 @@ func recordMetrics(
 	elapsed time.Duration,
 ) {
 	if err != nil {
-		rec.Observe(operation+"_error", elapsed, "type", label)
+		rec.Observe(ctx, operation+"_error", elapsed, "type", label)
 	} else {
-		rec.Observe(operation+"_success", elapsed, "type", label)
+		rec.Observe(ctx, operation+"_success", elapsed, "type", label)
 	}
 }
 
@@ -29,7 +30,7 @@ func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 		return func(ctx context.Context, cmd command.Command) error {
 			start := time.Now()
 			err := next(ctx, cmd)
-			recordMetrics(recorder, "command", err, string(cmd.Type()), time.Since(start))
+			recordMetrics(ctx, recorder, "command", err, string(cmd.Type()), time.Since(start))
 
 			return err
 		}
@@ -42,7 +43,7 @@ func EventMetrics(recorder MetricsRecorder) event.Middleware {
 		return func(ctx context.Context, evt event.Event) error {
 			start := time.Now()
 			err := next(ctx, evt)
-			recordMetrics(recorder, "event", err, string(evt.Type()), time.Since(start))
+			recordMetrics(ctx, recorder, "event", err, string(evt.Type()), time.Since(start))
 
 			return err
 		}
@@ -55,7 +56,7 @@ func QueryMetrics(recorder MetricsRecorder) query.Middleware {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			start := time.Now()
 			result, err := next(ctx, q)
-			recordMetrics(recorder, "query", err, string(q.Type()), time.Since(start))
+			recordMetrics(ctx, recorder, "query", err, string(q.Type()), time.Since(start))
 
 			return result, err
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -17,7 +18,7 @@ func newLogger() *slog.Logger {
 
 type printMetricsRecorder struct{}
 
-func (p *printMetricsRecorder) Observe(name string, duration time.Duration, _ ...string) {
+func (p *printMetricsRecorder) Observe(_ context.Context, name string, duration time.Duration, _ ...string) {
 	fmt.Printf("  [metrics] %s → %s\n", name, duration.Round(time.Microsecond))
 }
 

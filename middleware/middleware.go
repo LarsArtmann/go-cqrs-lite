@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 // MetricsRecorder records handler execution metrics.
 type MetricsRecorder interface {
-	Observe(name string, duration time.Duration, labels ...string)
+	Observe(ctx context.Context, name string, duration time.Duration, labels ...string)
 }
 
 // RetryConfig configures retry behavior for transient failures.

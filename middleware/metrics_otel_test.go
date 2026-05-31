@@ -24,7 +24,7 @@ func TestOTelMetricsRecorder(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	recorder.Observe("test_op", 100, "type", "test", "status", "success")
+	recorder.Observe(context.Background(), "test_op", 100, "type", "test", "status", "success")
 }
 
 func TestCommandOTelMetrics(t *testing.T) {
@@ -131,7 +131,7 @@ func TestOTelMetricsRecorder_ImplementsInterface(t *testing.T) {
 
 	var iface MetricsRecorder = recorder
 
-	iface.Observe("test", 100, "key", "value")
+	iface.Observe(context.Background(), "test", 100, "key", "value")
 }
 
 func TestCommandOTelMetrics_CollectsData(t *testing.T) {

@@ -37,10 +37,6 @@ func (m *CommandHandler) execute(
 	return m.repo.Execute(ctx, aggID, todoaggregate.AggregateType, decide)
 }
 
-type CommandTypeError struct{ Expected string }
-
-func (e *CommandTypeError) Error() string { return "invalid command type: expected " + e.Expected }
-
 func requireCommandType[T any](cmd command.Command, expected string) (T, error) {
 	var zero T
 	if cmd == nil {

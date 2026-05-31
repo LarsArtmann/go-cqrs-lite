@@ -1,6 +1,7 @@
 package eventtest
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"sync"
@@ -16,7 +17,7 @@ type FakeMetrics struct {
 	Durations []time.Duration
 }
 
-func (m *FakeMetrics) Observe(name string, duration time.Duration, _ ...string) {
+func (m *FakeMetrics) Observe(_ context.Context, name string, duration time.Duration, _ ...string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
