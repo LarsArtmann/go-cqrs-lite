@@ -23,7 +23,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                            |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                        |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`   |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`, `api-stability`   |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                |
 | Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                 |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 28 modules (21 library + 6 examples + 1 integration):
+Multi-module Go workspace (`go.work`) with 30 modules (22 library + 6 examples + 1 integration + 1 cmd):
 
 ```
 go-cqrs-lite/
@@ -63,6 +63,7 @@ go-cqrs-lite/
 ├── codec/               # Payload encoding: JSON, Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
+├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
 ├── integration/         # Cross-module tests (command, event, query, signing)
 └── docs/                # Status reports, ADRs, architecture patterns, storage guide
 ```
@@ -178,7 +179,7 @@ Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: memory/, signing/, otel/
 Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
-Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen
+Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 ```
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
