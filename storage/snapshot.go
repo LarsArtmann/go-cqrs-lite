@@ -15,18 +15,22 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
 )
 
+// SQLSnapshotStore implements snapshot.SnapshotStore backed by a SQL database.
 type SQLSnapshotStore struct {
 	sqlpkg.Base
 }
 
+// NewSQLSnapshotStore creates a new SQLSnapshotStore using the PostgreSQL dialect.
 func NewSQLSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, sqlpkg.PostgresDialect{})
 }
 
+// NewSQLiteSnapshotStore creates a new SQLSnapshotStore using the SQLite dialect.
 func NewSQLiteSnapshotStore(db *sql.DB) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, sqlpkg.SQLiteDialect{})
 }
 
+// NewSQLSnapshotStoreWithDialect creates a new SQLSnapshotStore with the given SQL dialect.
 func NewSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
 	return newSQLSnapshotStoreWithDialect(db, d)
 }
@@ -39,7 +43,10 @@ func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotS
 	return &SQLSnapshotStore{Base: base}, nil
 }
 
+// SnapshotSchema returns the PostgreSQL DDL for the snapshots table.
 func SnapshotSchema() string       { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
+
+// SQLiteSnapshotSchema returns the SQLite DDL for the snapshots table.
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
