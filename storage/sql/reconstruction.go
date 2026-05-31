@@ -2,7 +2,6 @@ package sql
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -101,30 +100,12 @@ func ReconstructEvent(
 
 // UnmarshalEventMetadata parses metadata JSON into event options.
 func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
-	if len(data) == 0 {
-		return nil, nil
-	}
-
-	var meta event.Metadata
-
-	err := json.Unmarshal(data, &meta)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.unmarshal_metadata",
-			"unmarshal metadata for event "+eventType)
-	}
-
-	return []event.Option{event.WithMetadata(meta)}, nil
+	return event.UnmarshalMetadataJSON(data, "storage.unmarshal_metadata", eventType)
 }
 
 // MarshalMetadata serializes event metadata to JSON.
 func MarshalMetadata(m event.Metadata) ([]byte, error) {
-	data, err := json.Marshal(m)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.marshal_metadata",
-			"marshal metadata")
-	}
-
-	return data, nil
+	return event.MarshalMetadataJSON(m, "storage.marshal_metadata")
 }
 
 // CommitTx commits a transaction, wrapping errors with infrastructure context.

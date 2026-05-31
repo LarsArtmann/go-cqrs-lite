@@ -113,7 +113,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 	store := NewPebbleStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 
-	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
 
 	err = store.Save(
 		context.Background(),
@@ -190,7 +190,7 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 			t.Parallel()
 
 			store := newPebbleTestStore(t)
-			evt := issueStoreConfig().newTestEvent(t, tt.eventAggID, tt.eventVersion)
+			evt := issueStoreConfig().NewTestEvent(t, tt.eventAggID, tt.eventVersion)
 
 			err := store.Save(
 				context.Background(),
@@ -278,7 +278,7 @@ func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Issue", aggID)
-	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
 
 	err = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 	if err != nil {

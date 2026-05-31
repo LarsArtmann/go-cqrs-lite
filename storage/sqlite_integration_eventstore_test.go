@@ -18,13 +18,13 @@ func setupTwoTestEvents(
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()
 
-	evt1 := issueStoreConfig().newTestEvent(
+	evt1 := issueStoreConfig().NewTestEvent(
 		t,
 		aggID1,
 		1,
 		event.WithOccurredAt(time.Now().Truncate(time.Microsecond)),
 	)
-	evt2 := issueStoreConfig().newTestEvent(
+	evt2 := issueStoreConfig().NewTestEvent(
 		t,
 		aggID2,
 		1,

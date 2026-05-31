@@ -15,7 +15,7 @@ func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) 
 	ctx := context.Background()
 
 	for i := range 5 {
-		evt := issueStoreConfig().newTestEvent(t, aggID, event.Version(i+1))
+		evt := issueStoreConfig().NewTestEvent(t, aggID, event.Version(i+1))
 		if err := store.AppendBatch(
 			ctx,
 			event.NewAggregateRef(event.AggregateType("Issue"), aggID),
@@ -43,9 +43,9 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
-	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
-	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
+	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1)
+	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2)
+	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3)
 
 	err := store.AppendBatch(
 		ctx,
@@ -94,9 +94,9 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	now := time.Now()
 
-	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
-	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3, event.WithOccurredAt(now))
+	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3, event.WithOccurredAt(now))
 
 	err := store.AppendBatch(
 		ctx,
@@ -143,13 +143,13 @@ func TestSQLiteEventStore_ReadFrom(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	evt1 := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1)
 
 	time.Sleep(2 * time.Millisecond)
-	evt2 := issueStoreConfig().newTestEvent(t, aggID, 2)
+	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2)
 
 	time.Sleep(2 * time.Millisecond)
-	evt3 := issueStoreConfig().newTestEvent(t, aggID, 3)
+	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3)
 
 	err := store.AppendBatch(
 		ctx,
@@ -184,7 +184,7 @@ func TestSQLiteEventStore_ReadFrom_ZeroID(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	evt := issueStoreConfig().newTestEvent(t, aggID, 1)
+	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
 
 	err := store.AppendBatch(
 		ctx,

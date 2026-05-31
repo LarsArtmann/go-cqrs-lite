@@ -1,7 +1,6 @@
 package pebble
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -66,27 +65,9 @@ func reconstructEvent(
 }
 
 func unmarshalEventMetadata(data []byte, eventType string) ([]event.Option, error) {
-	if len(data) == 0 {
-		return nil, nil
-	}
-
-	var meta event.Metadata
-
-	err := json.Unmarshal(data, &meta)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.unmarshal_metadata",
-			"unmarshal metadata for event "+eventType)
-	}
-
-	return []event.Option{event.WithMetadata(meta)}, nil
+	return event.UnmarshalMetadataJSON(data, "pebble.unmarshal_metadata", eventType)
 }
 
 func marshalMetadata(m event.Metadata) ([]byte, error) {
-	data, err := json.Marshal(m)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.marshal_metadata",
-			"marshal metadata")
-	}
-
-	return data, nil
+	return event.MarshalMetadataJSON(m, "pebble.marshal_metadata")
 }
