@@ -2,7 +2,6 @@ package sql
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec"
@@ -54,48 +53,11 @@ func ReconstructEvent(
 	occurredAt time.Time,
 	encoding codec.Encoding,
 ) (event.Event, error) {
-	metaOpts, err := UnmarshalEventMetadata(metadataJSON, eventType)
-	if err != nil {
-		return nil, event.WrapCorruption(
-			err,
-			"storage.metadata_unmarshal",
-			fmt.Sprintf(
-				"metadata for %s/%s v%d (schema v%d)",
-				aggType,
-				eventType,
-				version,
-				schemaVersion,
-			),
-		)
-	}
-
-	opts := make([]event.Option, 0, 3+len(metaOpts))
-
-	opts = append(opts, event.WithEventID(eventID), event.WithOccurredAt(occurredAt))
-	if schemaVersion > 0 {
-		opts = append(opts, event.WithSchemaVersion(event.SchemaVersion(schemaVersion)))
-	}
-
-	opts = append(opts, metaOpts...)
-
-	if encoding != "" {
-		opts = append(opts, event.WithEncoding(encoding))
-	}
-
-	evt, err := event.NewEvent(
-		event.Type(eventType),
-		aggID,
-		event.AggregateType(aggType),
-		event.Version(version),
-		payload,
-		opts...,
+	return event.ReconstructEventFromFields(
+		eventID, eventType, aggType, aggID,
+		version, schemaVersion, payload, metadataJSON,
+		occurredAt, encoding, "storage",
 	)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.reconstruct_event",
-			"reconstruct event "+eventType)
-	}
-
-	return evt, nil
 }
 
 // UnmarshalEventMetadata parses metadata JSON into event options.

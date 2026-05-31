@@ -74,8 +74,7 @@ func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) (*snapshot.Snapshot, error) {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.load", trace.SpanKindClient,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...))
+	ctx, span := sqlpkg.StartAggregateSpan(ctx, "snapshot.load", ref)
 	defer span.End()
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {

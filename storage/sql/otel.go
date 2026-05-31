@@ -17,6 +17,20 @@ func Tracer() trace.Tracer {
 	return cqrsotel.NewTracer(storageComponent)
 }
 
+// StartAggregateSpan creates a span for an aggregate operation with aggregate attributes.
+func StartAggregateSpan(
+	ctx context.Context,
+	spanName string,
+	ref event.AggregateRef,
+	extraAttrs ...attribute.KeyValue,
+) (context.Context, trace.Span) {
+	return cqrsotel.StartSpan(
+		ctx, Tracer(), spanName,
+		trace.SpanKindClient,
+		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
+	)
+}
+
 // StartSaveSpan creates a span for a save operation with aggregate attributes.
 func StartSaveSpan(
 	ctx context.Context,

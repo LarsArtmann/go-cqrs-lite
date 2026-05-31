@@ -39,12 +39,13 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 	metadataJSON, _ := marshalMetadata(s.Metadata)
 
-	return reconstructEvent(
+	return event.ReconstructEventFromFields(
 		s.ID, s.Type, s.AggregateType, s.AggregateID,
 		s.Version, s.SchemaVersion,
 		s.Payload, metadataJSON,
 		time.Unix(0, s.OccurredAt),
 		codec.Encoding(s.Encoding),
+		"pebble",
 	)
 }
 
