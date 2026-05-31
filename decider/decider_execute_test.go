@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/snapshot"
 )
 
 func TestNewRepository_NilChecks(t *testing.T) {
@@ -31,6 +32,26 @@ func TestNewRepository_NilChecks(t *testing.T) {
 		decider.Decider[counterState]{Initial: counterState{}, Fold: nil})
 	if !errors.Is(err, decider.ErrNilFold) {
 		t.Fatalf("expected ErrNilFold, got %v", err)
+	}
+}
+
+func TestNewRepository_IncompleteSnapshotConfig(t *testing.T) {
+	t.Parallel()
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+
+	strategy, strategyErr := snapshot.EveryNEvents(5)
+	if strategyErr != nil {
+		t.Fatal(strategyErr)
+	}
+
+	_, err := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStrategy[counterState](strategy),
+	)
+	if !errors.Is(err, decider.ErrIncompleteSnapshotConfig) {
+		t.Fatalf("expected ErrIncompleteSnapshotConfig, got %v", err)
 	}
 }
 
