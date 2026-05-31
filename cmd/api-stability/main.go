@@ -45,6 +45,7 @@ func main() {
 		exps, err := collectExports(modPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "skip %s: %v\n", mod, err)
+
 			continue
 		}
 
@@ -82,6 +83,7 @@ func main() {
 			)
 			os.Exit(1)
 		}
+
 		fmt.Fprintf(os.Stderr, "read: %v\n", err)
 		os.Exit(1)
 	}
@@ -120,6 +122,7 @@ func main() {
 
 func collectExports(dir string) ([]string, error) {
 	fset := token.NewFileSet()
+
 	pkgs, err := parser.ParseDir(fset, dir, nonTestFilter, 0)
 	if err != nil {
 		return nil, fmt.Errorf("parse dir %s: %w", dir, err)
@@ -158,6 +161,7 @@ func collectExports(dir string) ([]string, error) {
 						if !ok {
 							continue
 						}
+
 						for _, name := range vs.Names {
 							if name.IsExported() {
 								exports = append(exports, prefix+" "+name.Name)
@@ -183,6 +187,7 @@ func collectExports(dir string) ([]string, error) {
 	}
 
 	sort.Strings(exports)
+
 	return exports, nil
 }
 

@@ -78,7 +78,7 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 			return fmt.Errorf("decode UserReborn in projection: %w", err)
 		}
 
-		s.users[aggID] = ReadModel{Email: p.Email, Name: p.Name}
+		s.users[aggID] = ReadModel(p)
 	}
 
 	return nil
