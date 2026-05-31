@@ -7,13 +7,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-// SignMiddleware returns event.PublishMiddleware that signs every published event.
-// The signer must not be nil. Errors during signing are returned as publish errors.
-//
-// Usage:
-//
-//	bus.UsePublish(signing.SignMiddleware(signer))
-func extractOrPassThrough[T any](
+// ExtractOrPassThrough extracts a value from an event, passing through to the next handler
+// if no signature is present (ErrNilSignature). Returns the extracted value, whether the
+// event was already handled, and any error.
+func ExtractOrPassThrough[T any](
 	ctx context.Context,
 	evt event.Event,
 	next event.Handler,
@@ -34,6 +31,12 @@ func extractOrPassThrough[T any](
 	return result, false, nil
 }
 
+// SignMiddleware returns event.PublishMiddleware that signs every published event.
+// The signer must not be nil. Errors during signing are returned as publish errors.
+//
+// Usage:
+//
+//	bus.UsePublish(signing.SignMiddleware(signer))
 func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
 		return func(_ event.Publisher) event.Publisher {
@@ -98,7 +101,7 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			sig, handled, err := extractOrPassThrough(
+			sig, handled, err := ExtractOrPassThrough(
 				ctx, evt, next, ExtractSignature,
 				"signing.corrupt_signature", "corrupt signature on event "+string(evt.Type()),
 			)

@@ -14,7 +14,11 @@ type VersionedStore struct {
 	registry *upcasterRegistry
 }
 
-func NewVersionedStore(store event.Store, upcasters ...Upcaster) *VersionedStore {
+func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStore, error) {
+	if store == nil {
+		return nil, event.NewRejection("schema.nil_store", "store is required")
+	}
+
 	reg := newUpcasterRegistry()
 
 	for _, u := range upcasters {
@@ -23,7 +27,7 @@ func NewVersionedStore(store event.Store, upcasters ...Upcaster) *VersionedStore
 		}
 	}
 
-	return &VersionedStore{Store: store, registry: reg}
+	return &VersionedStore{Store: store, registry: reg}, nil
 }
 
 func (s *VersionedStore) Load(

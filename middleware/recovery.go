@@ -20,6 +20,21 @@ func panicError(msgKind, typeName string, r any) error {
 	)
 }
 
+func handleRecovery(cfg middlewareConfig, msgKind, typeName string, r any) error {
+	err := panicError(msgKind, typeName, r)
+
+	if cfg.logger != nil {
+		cfg.logger.Error(
+			"panic recovered",
+			"kind", msgKind,
+			"type", typeName,
+			"panic", r,
+		)
+	}
+
+	return err
+}
+
 // CommandRecovery returns a command middleware that recovers from panics.
 func CommandRecovery(opts ...Option) command.Middleware {
 	cfg := applyOptions(opts)
@@ -28,16 +43,7 @@ func CommandRecovery(opts ...Option) command.Middleware {
 		return func(ctx context.Context, cmd command.Command) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					err = panicError("command", string(cmd.Type()), r)
-
-					if cfg.logger != nil {
-						cfg.logger.Error(
-							"panic recovered",
-							"kind", "command",
-							"type", cmd.Type(),
-							"panic", r,
-						)
-					}
+					err = handleRecovery(cfg, "command", string(cmd.Type()), r)
 				}
 			}()
 
@@ -54,16 +60,7 @@ func EventRecovery(opts ...Option) event.Middleware {
 		return func(ctx context.Context, evt event.Event) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					err = panicError("event", string(evt.Type()), r)
-
-					if cfg.logger != nil {
-						cfg.logger.Error(
-							"panic recovered",
-							"kind", "event",
-							"type", evt.Type(),
-							"panic", r,
-						)
-					}
+					err = handleRecovery(cfg, "event", string(evt.Type()), r)
 				}
 			}()
 
@@ -80,16 +77,7 @@ func QueryRecovery(opts ...Option) query.Middleware {
 		return func(ctx context.Context, q query.Query) (result any, err error) { //nolint:nonamedreturns
 			defer func() {
 				if r := recover(); r != nil {
-					err = panicError("query", string(q.Type()), r)
-
-					if cfg.logger != nil {
-						cfg.logger.Error(
-							"panic recovered",
-							"kind", "query",
-							"type", q.Type(),
-							"panic", r,
-						)
-					}
+					err = handleRecovery(cfg, "query", string(q.Type()), r)
 				}
 			}()
 

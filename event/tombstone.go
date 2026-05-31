@@ -78,29 +78,18 @@ func DetectTombstone(events []Event) TombstoneStatus {
 // MarkTombstone copies an event and sets the tombstone metadata key.
 // Returns a new event; the original is unmodified.
 func MarkTombstone(evt Event) (*ImmutableEvent, error) {
-	if evt == nil {
-		return nil, NewRejection("event.nil_event", "mark tombstone: event is required")
-	}
-
-	return NewEvent(
-		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
-		evt.Version(),
-		evt.Payload(),
-		WithEventID(evt.ID()),
-		WithOccurredAt(evt.OccurredAt()),
-		WithSchemaVersion(evt.SchemaVersion()),
-		WithMetadata(evt.Metadata()),
-		WithCustom(MetadataKeyTombstone, "true"),
-	)
+	return copyWithMetadata(evt, MetadataKeyTombstone, "mark tombstone")
 }
 
 // MarkRebirth copies an event and sets the rebirth metadata key.
 // Returns a new event; the original is unmodified.
 func MarkRebirth(evt Event) (*ImmutableEvent, error) {
+	return copyWithMetadata(evt, MetadataKeyRebirth, "mark rebirth")
+}
+
+func copyWithMetadata(evt Event, key MetadataKey, label string) (*ImmutableEvent, error) {
 	if evt == nil {
-		return nil, NewRejection("event.nil_event", "mark rebirth: event is required")
+		return nil, NewRejection("event.nil_event", label+": event is required")
 	}
 
 	return NewEvent(
@@ -113,6 +102,6 @@ func MarkRebirth(evt Event) (*ImmutableEvent, error) {
 		WithOccurredAt(evt.OccurredAt()),
 		WithSchemaVersion(evt.SchemaVersion()),
 		WithMetadata(evt.Metadata()),
-		WithCustom(MetadataKeyRebirth, "true"),
+		WithCustom(key, "true"),
 	)
 }

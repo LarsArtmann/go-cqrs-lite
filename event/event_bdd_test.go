@@ -262,7 +262,8 @@ var _ = Describe("Schema Evolution", func() {
 				).To(Succeed())
 
 				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
-				versioned := schema.NewVersionedStore(store, upcaster)
+				versioned, err := schema.NewVersionedStore(store, upcaster)
+				Expect(err).ToNot(HaveOccurred())
 
 				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
@@ -292,7 +293,8 @@ var _ = Describe("Schema Evolution", func() {
 					).To(Succeed())
 
 					upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
-					versioned := schema.NewVersionedStore(store, upcaster)
+					versioned, err := schema.NewVersionedStore(store, upcaster)
+					Expect(err).ToNot(HaveOccurred())
 
 					loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 					Expect(err).ToNot(HaveOccurred())
@@ -329,7 +331,8 @@ var _ = Describe("Schema Evolution", func() {
 					2,
 					[]byte(`{"fullName":"Alice","email":"","verified":false}`),
 				)
-				versioned := schema.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
+				versioned, err := schema.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
+				Expect(err).ToNot(HaveOccurred())
 
 				loaded, err := versioned.Load(ctx, event.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())

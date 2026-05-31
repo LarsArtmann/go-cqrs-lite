@@ -150,13 +150,13 @@ func TestIPAddressIsZero(t *testing.T) {
 	}
 }
 
-func TestParseUserAgent(t *testing.T) {
+func TestNewUserAgent(t *testing.T) {
 	t.Parallel()
 
 	t.Run("parses valid user agent", func(t *testing.T) {
 		t.Parallel()
 
-		ua := event.ParseUserAgent("Mozilla/5.0")
+		ua := event.NewUserAgent("Mozilla/5.0")
 		if ua.String() != "Mozilla/5.0" {
 			t.Errorf("expected Mozilla/5.0, got %s", ua)
 		}
@@ -169,7 +169,7 @@ func TestParseUserAgent(t *testing.T) {
 	t.Run("trims whitespace", func(t *testing.T) {
 		t.Parallel()
 
-		ua := event.ParseUserAgent("  test-agent  ")
+		ua := event.NewUserAgent("  test-agent  ")
 		if ua.String() != "test-agent" {
 			t.Errorf("expected test-agent, got %s", ua)
 		}
@@ -190,7 +190,7 @@ func TestParseUserAgent(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				ua := event.ParseUserAgent(tt.uaString)
+				ua := event.NewUserAgent(tt.uaString)
 				if !ua.IsZero() {
 					t.Errorf("%s user agent should be empty", tt.name)
 				}

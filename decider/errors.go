@@ -37,3 +37,9 @@ var ErrSaveFailed = event.NewTransient(
 	"decider.save_failed",
 	"failed to save events",
 )
+
+// ErrIncompleteSnapshotConfig is returned when snapshot strategy is set without snapshot store or codec.
+var ErrIncompleteSnapshotConfig = event.NewInfrastructure(
+	"decider.incomplete_snapshot_config",
+	"snapshot strategy requires both snapshot store and codec",
+)

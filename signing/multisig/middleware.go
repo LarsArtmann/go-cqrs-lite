@@ -2,35 +2,11 @@ package multisig
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/signing"
 )
-
-// extractOrPassThrough extracts a value from an event, passing through to the next handler
-// if no signature is present (ErrNilSignature). Returns the extracted value, whether the
-// event was already handled, and any error.
-func extractOrPassThrough[T any](
-	ctx context.Context,
-	evt event.Event,
-	next event.Handler,
-	extract func(event.Event) (T, error),
-	code, msg string,
-) (T, bool, error) {
-	var zero T
-
-	result, err := extract(evt)
-	if err != nil {
-		if errors.Is(err, signing.ErrNilSignature) {
-			return zero, true, next(ctx, evt)
-		}
-
-		return zero, true, event.WrapInfrastructure(err, code, msg)
-	}
-
-	return result, false, nil
-}
 
 // MultiSignMiddleware returns event.PublishMiddleware that signs every published event
 // on behalf of the given actor, appending to any existing multi-signature entries.
@@ -94,12 +70,16 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			_, handled, err := extractOrPassThrough(
+			_, handled, err := signing.ExtractOrPassThrough(
 				ctx, evt, next, ExtractMultiSignature,
 				"signing.corrupt_multi_sig", "corrupt multi-sig on event "+string(evt.Type()),
 			)
 			if handled {
-				return err
+				if err != nil {
+					return fmt.Errorf("multi-verify extract: %w", err)
+				}
+
+				return nil
 			}
 
 			verifyErr := signer.Verify(evt)
@@ -138,12 +118,16 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			multiSig, handled, err := extractOrPassThrough(
+			multiSig, handled, err := signing.ExtractOrPassThrough(
 				ctx, evt, next, ExtractMultiSignature,
 				"signing.corrupt_multi_sig", "corrupt multi-sig on event "+string(evt.Type()),
 			)
 			if handled {
-				return err
+				if err != nil {
+					return fmt.Errorf("multi-verify-for extract: %w", err)
+				}
+
+				return nil
 			}
 
 			entry := multiSig.Get(actor)

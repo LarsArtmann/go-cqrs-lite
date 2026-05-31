@@ -73,6 +73,10 @@ func NewRepository[State any](
 		opt(r)
 	}
 
+	if r.snapshotStrategy != nil && (r.snapshotStore == nil || r.codec == nil) {
+		return nil, ErrIncompleteSnapshotConfig
+	}
+
 	return r, nil
 }
 

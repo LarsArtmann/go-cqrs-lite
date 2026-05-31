@@ -31,7 +31,10 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	versioned := schema.NewVersionedStore(store)
+	versioned, err := schema.NewVersionedStore(store)
+	if err != nil {
+		t.Fatalf("new versioned store: %v", err)
+	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -56,11 +59,27 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	}
 }
 
+func TestVersionedStore_NewVersionedStore_NilStore(t *testing.T) {
+	t.Parallel()
+
+	versioned, err := schema.NewVersionedStore(nil)
+	if versioned != nil {
+		t.Fatal("expected nil VersionedStore")
+	}
+
+	if err == nil {
+		t.Fatal("expected error for nil store")
+	}
+}
+
 func TestVersionedStore_NewVersionedStore_NilUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	versioned := schema.NewVersionedStore(store)
+	versioned, err := schema.NewVersionedStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if versioned == nil {
 		t.Fatal("expected non-nil VersionedStore")
 	}
@@ -109,7 +128,10 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	versioned := schema.NewVersionedStore(store, versionUpcaster{})
+	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	loaded, err := versioned.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
@@ -162,7 +184,10 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	versioned := schema.NewVersionedStore(store, versionUpcaster{})
+	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	loaded, err := versioned.LoadFromVersion(
 		ctx,
 		event.NewAggregateRef(event.AggregateType("Test"), aggID),

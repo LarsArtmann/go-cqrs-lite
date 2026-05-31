@@ -27,7 +27,7 @@ var ErrNilAggregateID = errorfamily.NewRejection(
 )
 
 // ErrTypeAssertion is returned when a command cannot be type-asserted to the expected type.
-var ErrTypeAssertion = errorfamily.NewCorruption(
+var ErrTypeAssertion = errorfamily.NewRejection(
 	"command.type_assertion",
 	"command type assertion failed",
 )

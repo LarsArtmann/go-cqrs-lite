@@ -75,11 +75,16 @@ func (ip IPAddress) IsZero() bool { return ip == "" }
 // Using a phantom type prevents accidental mixing with other string fields.
 type UserAgent string
 
-// ParseUserAgent creates a UserAgent from a string.
+// NewUserAgent creates a UserAgent from a string.
 // Empty user agents are allowed (optional field).
-func ParseUserAgent(s string) UserAgent {
+func NewUserAgent(s string) UserAgent {
 	return UserAgent(strings.TrimSpace(s))
 }
+
+// ParseUserAgent creates a UserAgent from a string.
+//
+// Deprecated: use NewUserAgent instead.
+func ParseUserAgent(s string) UserAgent { return NewUserAgent(s) }
 
 // String returns the underlying string value.
 func (ua UserAgent) String() string { return string(ua) }

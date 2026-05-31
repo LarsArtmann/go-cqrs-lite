@@ -61,7 +61,12 @@ func ExampleNewVersionedStore() {
 		[]byte(`{"name":"Alice","fullname":"Alice Wonderland"}`),
 	)
 
-	versioned := schema.NewVersionedStore(store, upcaster)
+	versioned, err := schema.NewVersionedStore(store, upcaster)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
 
 	events, err := versioned.Load(
 		context.Background(),
