@@ -21,7 +21,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		trace.SpanKindClient,
 	)
 	defer span.End()
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
+	query := `SELECT ` + sqlpkg.EventColumns + `
 		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC`
 	rows, err := s.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -62,7 +62,7 @@ func (s *SQLEventStore) ReadFrom(
 	p1 := s.Dialect.Placeholder(1)
 	p2 := s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(
-		`SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
+		`SELECT ` + sqlpkg.EventColumns + `
 		FROM `+sqlpkg.TableEvents+` WHERE id > %s ORDER BY occurred_at ASC`,
 		p1,
 	)
@@ -94,7 +94,7 @@ func (s *SQLEventStore) loadAllFromStart(ctx context.Context, limit int) ([]even
 		return s.ReadAll(ctx)
 	}
 	p1 := s.Dialect.Placeholder(1)
-	query := `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
+	query := `SELECT ` + sqlpkg.EventColumns + `
 		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC LIMIT ` + p1
 	rows, err := s.DB.QueryContext(ctx, query, limit)
 	if err != nil {
