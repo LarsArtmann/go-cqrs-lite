@@ -75,8 +75,8 @@ func TestDispatcher_Dispatch_QueryNotSupported_ErrorChain(t *testing.T) {
 		t.Fatal("expected error for unregistered query")
 	}
 
-	if !errors.Is(err, query.ErrQueryNotSupported) {
-		t.Errorf("error should be ErrQueryNotSupported, got: %v", err)
+	if !errors.Is(err, query.ErrHandlerNotFound) {
+		t.Errorf("error should be ErrHandlerNotFound, got: %v", err)
 	}
 }
 

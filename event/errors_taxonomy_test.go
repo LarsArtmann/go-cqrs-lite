@@ -358,8 +358,8 @@ func TestClassify_CommandQuerySentinels(t *testing.T) {
 		t.Error("command.ErrDispatcherClosed should be Infrastructure")
 	}
 
-	if event.Classify(query.ErrQueryNotSupported) != event.Rejection {
-		t.Error("ErrQueryNotSupported should be Rejection")
+	if event.Classify(query.ErrHandlerNotFound) != event.Rejection {
+		t.Error("ErrHandlerNotFound should be Rejection")
 	}
 
 	if event.Classify(query.ErrDispatcherClosed) != event.Infrastructure {

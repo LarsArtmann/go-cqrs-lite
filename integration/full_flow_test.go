@@ -88,7 +88,7 @@ func TestFullFlow(t *testing.T) {
 		func(_ context.Context, q query.Query) (UserState, error) {
 			getUser, ok := q.(*GetUser)
 			if !ok {
-				return UserState{}, query.ErrQueryNotSupported
+				return UserState{}, query.ErrHandlerNotFound
 			}
 
 			events, err := store.Load(
