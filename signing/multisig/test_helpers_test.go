@@ -58,25 +58,3 @@ func tamperEvent(tb testing.TB, evt event.Event) event.Event {
 
 	return tampered
 }
-
-func assertPanicMessage(t *testing.T, fn func(), expectedMsg string) {
-	t.Helper()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatalf("expected panic with message %q, got no panic", expectedMsg)
-		}
-
-		msg, ok := r.(string)
-		if !ok {
-			t.Fatalf("expected string panic, got %T: %v", r, r)
-		}
-
-		if msg != expectedMsg {
-			t.Fatalf("expected panic message %q, got %q", expectedMsg, msg)
-		}
-	}()
-
-	fn()
-}

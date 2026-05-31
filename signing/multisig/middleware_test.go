@@ -255,34 +255,52 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 	t.Parallel()
 
-	t.Run("MultiSignMiddleware panics on nil signer", func(t *testing.T) {
+	t.Run("MultiSignMiddleware returns error on nil signer", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { multisig.MultiSignMiddleware(nil) },
-			"multisig: MultiSignMiddleware called with nil signer")
+
+		mw := multisig.MultiSignMiddleware(nil)
+		pub := mw(event.PublisherFunc(func(_ context.Context, _ ...event.Event) error { return nil }))
+
+		err := pub.Publish(context.Background())
+		if err == nil {
+			t.Fatal("expected rejection error for nil signer")
+		}
 	})
 
-	t.Run("MultiVerifyMiddleware panics on nil signer", func(t *testing.T) {
+	t.Run("MultiVerifyMiddleware returns error on nil signer", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(t, func() { multisig.MultiVerifyMiddleware(nil) },
-			"multisig: MultiVerifyMiddleware called with nil signer")
+
+		mw := multisig.MultiVerifyMiddleware(nil)
+		handler := mw(noopHandler)
+
+		err := handler(context.Background(), makeTestEvent(t))
+		if err == nil {
+			t.Fatal("expected rejection error for nil signer")
+		}
 	})
 
-	t.Run("MultiVerifyMiddlewareFor panics on nil verifier", func(t *testing.T) {
+	t.Run("MultiVerifyMiddlewareFor returns error on nil verifier", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(
-			t,
-			func() { multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), nil) },
-			"multisig: MultiVerifyMiddlewareFor called with nil verifier",
-		)
+
+		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), nil)
+		handler := mw(noopHandler)
+
+		err := handler(context.Background(), makeTestEvent(t))
+		if err == nil {
+			t.Fatal("expected rejection error for nil verifier")
+		}
 	})
 
-	t.Run("RequireMultiSigMiddleware panics on empty map", func(t *testing.T) {
+	t.Run("RequireMultiSigMiddleware returns error on empty map", func(t *testing.T) {
 		t.Parallel()
-		assertPanicMessage(
-			t,
-			func() { multisig.RequireMultiSigMiddleware(map[multisig.Actor]signing.Verifier{}) },
-			"multisig: RequireMultiSigMiddleware called with empty verifiers map",
-		)
+
+		mw := multisig.RequireMultiSigMiddleware(map[multisig.Actor]signing.Verifier{})
+		handler := mw(noopHandler)
+
+		err := handler(context.Background(), makeTestEvent(t))
+		if err == nil {
+			t.Fatal("expected rejection error for empty verifiers map")
+		}
 	})
 }
 

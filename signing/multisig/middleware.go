@@ -44,7 +44,14 @@ func extractOrPassThrough[T any](
 //	bus.UsePublish(multisig.MultiSignMiddleware(serverSigner))
 func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 	if signer == nil {
-		panic("multisig: MultiSignMiddleware called with nil signer")
+		return func(_ event.Publisher) event.Publisher {
+			return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+				return event.NewRejection(
+					"signing.nil_signer",
+					"MultiSignMiddleware called with nil signer",
+				)
+			})
+		}
 	}
 
 	return func(next event.Publisher) event.Publisher {
@@ -75,7 +82,14 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 // (to support mixed streams). Use RequireMultiSigMiddleware to enforce presence.
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	if signer == nil {
-		panic("multisig: MultiVerifyMiddleware called with nil signer")
+		return func(_ event.Handler) event.Handler {
+			return func(_ context.Context, _ event.Event) error {
+				return event.NewRejection(
+					"signing.nil_verifier",
+					"MultiVerifyMiddleware called with nil signer",
+				)
+			}
+		}
 	}
 
 	return func(next event.Handler) event.Handler {
@@ -112,7 +126,14 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // a Verifier and just want to check one actor's signature.
 func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Middleware {
 	if verifier == nil {
-		panic("multisig: MultiVerifyMiddlewareFor called with nil verifier")
+		return func(_ event.Handler) event.Handler {
+			return func(_ context.Context, _ event.Event) error {
+				return event.NewRejection(
+					"signing.nil_verifier",
+					"MultiVerifyMiddlewareFor called with nil verifier",
+				)
+			}
+		}
 	}
 
 	return func(next event.Handler) event.Handler {
@@ -156,7 +177,14 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 // in the verifier map has a corresponding valid signature.
 func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middleware {
 	if len(verifiers) == 0 {
-		panic("multisig: RequireMultiSigMiddleware called with empty verifiers map")
+		return func(_ event.Handler) event.Handler {
+			return func(_ context.Context, _ event.Event) error {
+				return event.NewRejection(
+					"signing.empty_verifiers",
+					"RequireMultiSigMiddleware called with empty verifiers map",
+				)
+			}
+		}
 	}
 
 	return func(next event.Handler) event.Handler {
