@@ -48,16 +48,11 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"query.register_failed",
-			"registering query type "+string(queryType),
-		)
+	if err := d.checkClosed("query.register_failed", "registering query type "+string(queryType)); err != nil {
+		return err
 	}
 
-	err = d.Inner().Register(
+	err := d.Inner().Register(
 		string(queryType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -86,13 +81,8 @@ func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"query.dispatch_failed",
-			"dispatching query type "+string(query.Type()),
-		)
+	if err := d.checkClosed("query.dispatch_failed", "dispatching query type "+string(query.Type())); err != nil {
+		return nil, err
 	}
 
 	wrapped, err := d.Inner().Dispatch(string(query.Type()))
@@ -114,6 +104,15 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	}
 
 	return wrapped(ctx, query)
+}
+
+func (d *Dispatcher) checkClosed(code, msg string) error {
+	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(err, code, msg)
+	}
+
+	return nil
 }
 
 // DispatchTyped sends a query and returns a typed result.

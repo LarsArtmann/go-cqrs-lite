@@ -18,33 +18,33 @@ func (r *Registry) AddChannel(ch Channel) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.channels[ch.ID] = copyChannelPtr(ch)
+	r.channels[ch.ID] = copyPtr(copyChannel, ch)
 }
 
 func (r *Registry) AddDataStore(ds DataStore) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.stores[ds.ID] = copyDataStorePtr(ds)
+	r.stores[ds.ID] = copyPtr(copyDataStore, ds)
 }
 
 func (r *Registry) AddFlow(f Flow) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.flows[f.ID] = copyFlowPtr(f)
+	r.flows[f.ID] = copyPtr(copyFlow, f)
 }
 
 func (r *Registry) AddTeam(team Team) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.teams[team.ID] = copyTeamPtr(team)
+	r.teams[team.ID] = copyPtr(copyTeam, team)
 }
 
 func (r *Registry) AddUser(user User) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.users[user.ID] = copyUserPtr(user)
+	r.users[user.ID] = copyPtr(copyUser, user)
 }

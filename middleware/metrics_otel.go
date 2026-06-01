@@ -13,12 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
-const (
-	metricNameCommandDuration = "cqrs.command.duration"
-	metricNameEventDuration   = "cqrs.event.duration"
-	metricNameQueryDuration   = "cqrs.query.duration"
-)
-
 // OTelMetricsRecorder implements MetricsRecorder using OpenTelemetry histograms.
 type OTelMetricsRecorder struct {
 	histogram metric.Float64Histogram

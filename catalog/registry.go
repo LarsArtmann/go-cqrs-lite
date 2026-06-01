@@ -91,7 +91,7 @@ func (r *Registry) AddService(svc Service) {
 		return
 	}
 
-	r.services[svc.ID] = copyServicePtr(svc)
+	r.services[svc.ID] = copyPtr(copyService, svc)
 }
 
 // ensureServiceEntry returns a service entry for the given ID, creating it if needed.
@@ -183,7 +183,7 @@ func (r *Registry) AddDomain(domain Domain) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.domains[domain.ID] = copyDomainPtr(domain)
+	r.domains[domain.ID] = copyPtr(copyDomain, domain)
 }
 
 // AddServiceToDomain associates an existing service with an existing domain.

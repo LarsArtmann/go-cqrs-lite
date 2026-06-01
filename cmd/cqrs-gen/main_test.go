@@ -120,6 +120,18 @@ func TestGenerate_Query(t *testing.T) {
 	if !strings.Contains(code, "func RegisterGetUserQueryHandler") {
 		t.Error("missing handler function")
 	}
+
+	if !strings.Contains(code, "[R any]") {
+		t.Error("missing type parameter [R any]")
+	}
+
+	if !strings.Contains(code, "query.Query") {
+		t.Error("handler should accept query.Query, not *struct")
+	}
+
+	if !strings.Contains(code, "query.RegisterTyped[R]") {
+		t.Error("should call query.RegisterTyped[R]")
+	}
 }
 
 func TestExtractMarker(t *testing.T) {

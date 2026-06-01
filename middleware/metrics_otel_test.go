@@ -33,7 +33,7 @@ func TestCommandOTelMetrics(t *testing.T) {
 	provider := metric.NewMeterProvider()
 	meter := provider.Meter("test")
 
-	h, err := meter.Float64Histogram(metricNameCommandDuration)
+	h, err := meter.Float64Histogram("cqrs.command.duration")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestEventOTelMetrics(t *testing.T) {
 	provider := metric.NewMeterProvider()
 	meter := provider.Meter("test")
 
-	h, err := meter.Float64Histogram(metricNameEventDuration)
+	h, err := meter.Float64Histogram("cqrs.event.duration")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestQueryOTelMetrics(t *testing.T) {
 	provider := metric.NewMeterProvider()
 	meter := provider.Meter("test")
 
-	h, err := meter.Float64Histogram(metricNameQueryDuration)
+	h, err := meter.Float64Histogram("cqrs.query.duration")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestCommandOTelMetrics_RecordsError(t *testing.T) {
 	provider := metric.NewMeterProvider()
 	meter := provider.Meter("test")
 
-	h, err := meter.Float64Histogram(metricNameCommandDuration)
+	h, err := meter.Float64Histogram("cqrs.command.duration")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

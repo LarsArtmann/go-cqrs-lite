@@ -33,16 +33,11 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 
 // Register binds a handler to a command type.
 func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"command.register_failed",
-			"registering command type "+string(cmdType),
-		)
+	if err := d.checkClosed("command.register_failed", "registering command type "+string(cmdType)); err != nil {
+		return err
 	}
 
-	err = d.Inner().Register(
+	err := d.Inner().Register(
 		string(cmdType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -62,13 +57,8 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 
 // Dispatch sends a command to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"command.dispatch_failed",
-			"dispatching command type "+string(cmd.Type()),
-		)
+	if err := d.checkClosed("command.dispatch_failed", "dispatching command type "+string(cmd.Type())); err != nil {
+		return err
 	}
 
 	wrapped, err := d.Inner().Dispatch(string(cmd.Type()))
@@ -90,6 +80,15 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 	}
 
 	return wrapped(ctx, cmd)
+}
+
+func (d *Dispatcher) checkClosed(code, msg string) error {
+	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(err, code, msg)
+	}
+
+	return nil
 }
 
 // Close marks the dispatcher as closed.
