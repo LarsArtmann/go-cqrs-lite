@@ -36,10 +36,6 @@ func testEventStore_AppendBatch(t *testing.T, store event.Store, cfg storeTestCo
 	eventtest.TestStoreAppendBatch(t, store, cfg)
 }
 
-func testEventStore_LoadFromVersion(t *testing.T, store event.Store, cfg storeTestConfig) {
-	eventtest.TestStoreLoadFromVersion(t, store, cfg)
-}
-
 func testEventStore_MetadataRoundtrip(
 	t *testing.T,
 	store event.Store,

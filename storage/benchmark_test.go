@@ -20,22 +20,6 @@ func mockEventRows(aggID id.AggregateID, now time.Time, payload, metaJSON []byte
 		)
 }
 
-func benchTestEvent(b *testing.B) (*event.ImmutableEvent, id.AggregateID) {
-	b.Helper()
-	aggID := id.NewAggregateID()
-	evt, err := event.NewEvent(
-		event.Type("user.created"), aggID, event.AggregateType("User"),
-		event.Version(1),
-		[]byte(`{"name":"test","email":"test@example.com"}`),
-		event.WithEventID(id.NewEventID()),
-		event.WithCorrelationID(id.NewCorrelationID()),
-	)
-	if err != nil {
-		b.Fatalf("NewEvent: %v", err)
-	}
-	return evt, aggID
-}
-
 func BenchmarkSQLEventStore_Load(b *testing.B) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

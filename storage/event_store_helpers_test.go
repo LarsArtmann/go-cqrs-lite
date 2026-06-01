@@ -5,7 +5,6 @@ import (
 	"database/sql/driver"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 
@@ -144,16 +143,4 @@ func testEventWithAggID(
 	}
 
 	return evt
-}
-
-func testEventWithTimestamp(
-	t *testing.T,
-	eventType event.Type,
-	aggID id.AggregateID,
-	version event.Version,
-	ts time.Time,
-) *event.ImmutableEvent {
-	t.Helper()
-
-	return testEventWithAggID(t, eventType, aggID, version, event.WithOccurredAt(ts))
 }

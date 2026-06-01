@@ -17,7 +17,7 @@ import (
 
 func testLoadAllSuccess(
 	t *testing.T,
-	store *SQLEventStore,
+	_ *SQLEventStore,
 	mock sqlmock.Sqlmock,
 	fn func() ([]event.Event, error),
 	eventID1, eventID2 id.EventID,
@@ -47,7 +47,7 @@ func testLoadAllSuccess(
 
 func setupLoadAllSuccess(
 	t *testing.T,
-	store *SQLEventStore,
+	_ *SQLEventStore,
 	mock sqlmock.Sqlmock,
 ) (id.EventID, id.EventID) {
 	t.Helper()

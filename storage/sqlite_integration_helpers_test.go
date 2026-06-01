@@ -77,30 +77,6 @@ func assertSnapshotVersion(t *testing.T, loaded *snapshot.Snapshot, want event.V
 	}
 }
 
-func saveAndLoadSnapshot(
-	t *testing.T,
-	store snapshot.SnapshotStore,
-	ctx context.Context,
-	snap snapshot.Snapshot,
-	want event.Version,
-) *snapshot.Snapshot {
-	t.Helper()
-
-	err := store.Save(ctx, snap)
-	if err != nil {
-		t.Fatalf("Save snapshot: %v", err)
-	}
-
-	loaded, err := store.Load(ctx, event.NewAggregateRef(snap.AggregateType, snap.AggregateID))
-	if err != nil {
-		t.Fatalf("Load snapshot: %v", err)
-	}
-
-	assertSnapshotVersion(t, loaded, want)
-
-	return loaded
-}
-
 func TestNewSQLiteEventStore_NilDB(t *testing.T) {
 	_, err := NewSQLiteEventStore(nil)
 	if err == nil {

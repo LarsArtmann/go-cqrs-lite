@@ -30,8 +30,7 @@ func (m Metadata) Clone() Metadata {
 	cp := m
 
 	if m.Custom != nil {
-		cp.Custom = make(map[MetadataKey]string, len(m.Custom))
-		maps.Copy(cp.Custom, m.Custom)
+		cp.Custom = maps.Clone(m.Custom)
 	}
 
 	return cp
