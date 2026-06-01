@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture Review — go-cqrs-lite Modularity & Service Orientation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .grade-a { color: #059669; }
+      .grade-b { color: #d97706; }
+      .grade-c { color: #dc2626; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-10">
+      <header>
+        <h1 class="text-3xl font-serif font-bold text-slate-800">go-cqrs-lite — Modularity & Service Orientation Review</h1>
+        <p class="text-sm text-slate-500 mt-2">2026-06-01 · 22 library modules + 2 cmd modules + 6 examples</p>
+      </header>
+
+      <!-- Module Dependency Graph -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Module Dependency Graph</h2>
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <pre class="mermaid">
+            flowchart TD
+              subgraph L0["Layer 0 — Leaf modules"]
+                id["id"]
+                dispatcher["dispatcher"]
+                codec["codec"]
+              end
+              subgraph L1["Layer 1 — Core domain"]
+                event["event"]
+                command["command"]
+                query["query"]
+              end
+              subgraph L2["Layer 2 — Infrastructure abstractions"]
+                schema["schema"]
+                snapshot["snapshot"]
+              end
+              subgraph L3["Layer 3 — Domain patterns"]
+                decider["decider"]
+              end
+              subgraph L4["Layer 4 — Test/Dev infra"]
+                memory["memory"]
+                signing["signing"]
+                otel["otel"]
+              end
+              subgraph L5["Layer 5 — Storage & cross-cutting"]
+                middleware["middleware"]
+                storage["storage"]
+                projection["projection"]
+                listing["listing"]
+                watermill["watermill"]
+                pebble["pebble"]
+                turso["turso"]
+              end
+              subgraph L6["Layer 6 — Integration & tooling"]
+                integration["integration"]
+                catalog["catalog"]
+                cqrs_gen["cmd/cqrs-gen"]
+                api_stability["cmd/api-stability"]
+              end
+
+              event --> id & codec & dispatcher
+              command --> dispatcher & event & id & codec
+              query --> dispatcher
+              schema --> event & id & memory & codec
+              snapshot --> codec & event & id
+              decider --> codec & event & id & memory & otel & snapshot
+              memory --> dispatcher & event & id & snapshot & codec
+              signing --> event & id & codec & snapshot
+              middleware --> command & event & id & otel & query & codec & snapshot
+              storage --> codec & event & id & listing & otel & snapshot
+              projection --> codec & event & id & memory & otel & snapshot
+              listing --> event & id & memory & codec & snapshot
+              watermill --> event & id & memory & codec & snapshot
+              pebble --> codec & event & id & snapshot
+              turso --> event & storage & codec & id & listing & otel & snapshot
+              integration --> command & decider & event & id & memory & middleware & otel & projection & query & signing & storage & codec & listing & snapshot
+
+              style L0 fill:#ecfdf5,stroke:#059669
+              style L1 fill:#eff6ff,stroke:#3b82f6
+              style L2 fill:#fef3c7,stroke:#d97706
+              style L3 fill:#f0f9ff,stroke:#0ea5e9
+              style L4 fill:#faf5ff,stroke:#8b5cf6
+              style L5 fill:#fff7ed,stroke:#f97316
+              style L6 fill:#fef2f2,stroke:#ef4444
+          </pre>
+        </div>
+      </section>
+
+      <!-- Scoring Matrix -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Architecture Quality Matrix</h2>
+        <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100 text-left">
+              <tr>
+                <th class="px-4 py-3 font-semibold">Dimension</th>
+                <th class="px-4 py-3 font-semibold">Grade</th>
+                <th class="px-4 py-3 font-semibold">Assessment</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="px-4 py-3 font-medium">Module Isolation</td>
+                <td class="px-4 py-3 grade-a font-bold">A</td>
+                <td class="px-4 py-3">Each module has its own go.mod. 3 leaf modules (id, dispatcher, codec) have zero internal deps. Layer dependencies flow strictly downward. No circular deps.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Interface Segregation</td>
+                <td class="px-4 py-3 grade-a font-bold">A</td>
+                <td class="px-4 py-3">EventSink/EventSource/Journal/SeekableJournal is textbook ISP. CommandSink/CommandSource mirrors it. Each interface is 1-4 methods max.</td>
+              </tr>
+              <tr>
+                <tr>
+                  <td class="px-4 py-3 font-medium">Composability</td>
+                  <td class="px-4 py-3 grade-a font-bold">A-</td>
+                  <td class="px-4 py-3">Consumers import what they need. No opinionated transport or message broker. Middleware chains compose. Branded IDs prevent mixing. Only gap: middleware 3x duplication reduces composability of new middleware.</td>
+                </tr>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Testability</td>
+                <td class="px-4 py-3 grade-a font-bold">A-</td>
+                <td class="px-4 py-3">eventtest provides shared fakes and store suite. 84-100% coverage. BDD tests for critical paths. Gap: store suite doesn't cover all backends for edge cases. FakeStore duplicates MemoryStore.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Service Orientation</td>
+                <td class="px-4 py-3 grade-b font-bold">B+</td>
+                <td class="px-4 py-3">Library, not framework — correct choice. But some modules cross boundaries: command re-exports event types, storage errors duplicate pebble errors, middleware couples to all three domains. ADR-0003 (multi-module) is well-motivated.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Scalability</td>
+                <td class="px-4 py-3 grade-a font-bold">A-</td>
+                <td class="px-4 py-3">Three store backends (Memory, SQL, Pebble) with consistent interfaces. Projection runner handles replay+live. Turso adds edge sync. Pebble adds embedded KV. Missing: no outbox pattern implementation yet (documented in CONTEXT.md but not built).</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Dependency Hygiene</td>
+                <td class="px-4 py-3 grade-a font-bold">A</td>
+                <td class="px-4 py-3">Minimal production deps: oklog/ulid, go-branded-id, go-error-family, samber/ro, go-faster/yaml (catalog only), otel (opt-in). No ORMs, no web frameworks, no database drivers in library modules.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Error Architecture</td>
+                <td class="px-4 py-3 grade-b font-bold">B+</td>
+                <td class="px-4 py-3">5-family taxonomy (Rejection/Conflict/Transient/Infrastructure/Corruption) is excellent. Gap: decider uses unclassified fmt.Errorf, some modules bypass the taxonomy, three separate ErrHandlerNotFound sentinels.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Coupling Hotspots -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Coupling Hotspots</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div class="rounded-xl border border-red-200 bg-red-50 p-5">
+            <h3 class="font-bold text-red-800 mb-2">command → event (tight coupling)</h3>
+            <p class="text-sm text-red-700 mb-2">command/aggregate_ref.go re-exports event.AggregateType, event.AggregateRef, event.ParseAggregateType, event.NewAggregateRef. command.Metadata mirrors event.Metadata fields. These create a module boundary violation: command depends on event's type system.</p>
+            <p class="text-xs text-red-600"><strong>Impact:</strong> Adding metadata fields requires updating both packages. errors.Is across module boundaries breaks.</p>
+          </div>
+
+          <div class="rounded-xl border border-red-200 bg-red-50 p-5">
+            <h3 class="font-bold text-red-800 mb-2">middleware → command+event+query (3x coupling)</h3>
+            <p class="text-sm text-red-700 mb-2">Every middleware function is triplicated for command/event/query. The module depends on all three domain modules simultaneously. Adding a new domain (e.g., "saga") requires updating every middleware file.</p>
+            <p class="text-xs text-red-600"><strong>Impact:</strong> ~500 lines of duplication. Bug fixes must be applied 3 times. O(N×M) growth where N=concerns, M=domains.</p>
+          </div>
+
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <h3 class="font-bold text-amber-800 mb-2">storage ↔ pebble (error duplication)</h3>
+            <p class="text-sm text-amber-700 mb-2">pebble/errors.go and storage/sql/errors.go define semantically identical sentinels (ErrAggregateTypeMismatch, ErrAggregateIDMismatch, ErrVersionMismatch) with different error codes. Consumers must know which backend produced the error.</p>
+            <p class="text-xs text-amber-600"><strong>Impact:</strong> Cross-backend error checking is fragile. Migration from one backend to another may break error handling.</p>
+          </div>
+
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <h3 class="font-bold text-amber-800 mb-2">signing → signing/multisig (pattern duplication)</h3>
+            <p class="text-sm text-amber-700 mb-2">signing/middleware.go and signing/multisig/middleware.go implement the same extract→verify→next pattern. Error code strings duplicated as raw literals across both packages.</p>
+            <p class="text-xs text-amber-600"><strong>Impact:</strong> Adding a new signing scheme (e.g., threshold signatures) means duplicating the middleware again.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Service Orientation Analysis -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Service Orientation Assessment</h2>
+        <div class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="text-center p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+              <p class="text-2xl font-bold text-emerald-700">22</p>
+              <p class="text-xs text-emerald-600">Library modules</p>
+            </div>
+            <div class="text-center p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+              <p class="text-2xl font-bold text-emerald-700">3</p>
+              <p class="text-xs text-emerald-600">Leaf modules (0 internal deps)</p>
+            </div>
+            <div class="text-center p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <p class="text-2xl font-bold text-blue-700">7</p>
+              <p class="text-xs text-blue-600">Layer depth (L0→L6)</p>
+p            </div>
+          </div>
+
+          <h3 class="font-bold text-slate-800 mt-4">What works well</h3>
+          <ul class="text-sm text-slate-700 space-y-1 list-disc pl-5">
+            <li>Consumers compose their own stack — no framework lock-in</li>
+            <li>Each module is independently importable and versionable</li>
+            <li>Interface-first design enables adapter substitution (MemoryStore in tests, SQLEventStore in prod)</li>
+            <li>Clean layering: domain modules (L0-L1) have no knowledge of infrastructure (L4-L5)</li>
+            <li>Replace directives allow local development while preserving GOWORK=off CI isolation</li>
+          </ul>
+
+          <h3 class="font-bold text-slate-800 mt-4">What could improve</h3>
+          <ul class="text-sm text-slate-700 space-y-1 list-disc pl-5">
+            <li><strong>Shared types package:</strong> AggregateRef, AggregateType, and Metadata live in event/ but are re-exported by command/. A shared types module (or accepting that consumers import event/ directly) would eliminate the re-export pattern.</li>
+            <li><strong>Generic middleware:</strong> The 3x fan-out in middleware/ is the biggest architectural smell. Generic middleware[H] would collapse this to 1x and make new domains O(1) instead of O(N).</li>
+            <li><strong>Unified store errors:</strong> Backend-specific sentinels should share a common base (e.g., event.ErrVersionConflict) with backend-specific wrapping for context.</li>
+            <li><strong>Missing outbox:</strong> CONTEXT.md documents the Outbox pattern but no module implements it. This is the main gap for production-grade event publishing.</li>
+            <li><strong>Schema/codec as optional:</strong> schema/ and codec/ are always imported transitively. Making them truly opt-in (behind build tags or interfaces) would reduce the minimum import surface for consumers who don't need schema evolution.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Composability Analysis -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Composability Patterns</h2>
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <pre class="mermaid">
+            flowchart LR
+              subgraph "Consumer composes"
+                C["Consumer App"]
+              end
+
+              subgraph "Pick a store"
+                MS["MemoryStore"]
+                SS["SQLEventStore"]
+                PS["PebbleStore"]
+              end
+
+              subgraph "Pick middleware"
+                ML["Logging"]
+                MR["Retry"]
+                MT["Tracing"]
+                MC["Circuit Breaker"]
+              end
+
+              subgraph "Pick exporters"
+                EA["AsyncAPI"]
+                ED["D2 Diagrams"]
+                EC["EventCatalog"]
+                EO["OpenAPI"]
+              end
+
+              C --> MS
+              C --> ML
+              C --> EA
+          </pre>
+          <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div class="p-3 rounded-lg bg-emerald-50">
+              <p class="font-semibold text-emerald-800">Composable ✅</p>
+              <ul class="text-emerald-700 space-y-1 mt-1">
+                <li>• Store → any EventSink/EventSource implementation</li>
+                <li>• Middleware → chains compose via Use()</li>
+                <li>• Catalog → registry + N exporters</li>
+                <li>• Decider → pure functions, any State type</li>
+                <li>• Projection → builder pattern, On[T]() registration</li>
+              </ul>
+            </div>
+            <div class="p-3 rounded-lg bg-amber-50">
+              <p class="font-semibold text-amber-800">Less Composable ⚠️</p>
+              <ul class="text-amber-700 space-y-1 mt-1">
+                <li>• Middleware → can't write once for command+event+query</li>
+                <li>• Storage backends → error types differ</li>
+                <li>• Dispatcher → 4 generic params, hard to extend</li>
+                <li>• Reactive → not wired into dispatchers</li>
+                <li>• Signing → single-sig/multi-sig middleware diverge</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommendations -->
+      <section>
+        <h2 class="text-xl font-serif font-bold mb-4">Recommendations</h2>
+        <div class="space-y-3">
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 h-fit">P0</span>
+            <div>
+              <p class="font-semibold">Generic middleware[H] — eliminate 3x duplication</p>
+              <p class="text-sm text-slate-600">Write each concern once. Thin adapters for command/event/query backward compat. Reduces O(N×M) to O(N+M).</p>
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 h-fit">P0</span>
+            <div>
+              <p class="font-semibold">Consolidate sentinel errors across modules</p>
+              <p class="text-sm text-slate-600">Single ErrHandlerNotFound in dispatcher/ (re-exported by command/query). Single ErrVersionConflict in event/ (used by all backends). Cross-module errors.Is works again.</p>
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 h-fit">P1</span>
+            <div>
+              <p class="font-semibold">Remove command/ type re-exports</p>
+              <p class="text-sm text-slate-600">Consumers import event.AggregateRef directly. Eliminates the module boundary violation and reduces maintenance burden.</p>
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 h-fit">P1</span>
+            <div>
+              <p class="font-semibold">Build outbox pattern implementation</p>
+              <p class="text-sm text-slate-600">Currently documented in CONTEXT.md but not implemented. Critical for production-grade at-least-once event publishing.</p>
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 h-fit">P2</span>
+            <div>
+              <p class="font-semibold">Unify signing middleware pattern</p>
+              <p class="text-sm text-slate-600">VerifyFunc abstraction in signing/ — single-sig and multi-sig become configurations, not parallel hierarchies.</p>
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4 flex gap-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 h-fit">P2</span>
+            <div>
+              <p class="font-semibold">Expand store test suite for all backends</p>
+              <p class="text-sm text-slate-600">Edge cases (concurrent writes, time-travel, identical timestamps, empty streams) tested once, run against Memory, SQL, and Pebble.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary -->
+      <section class="rounded-xl border-2 border-slate-300 bg-slate-50 p-6">
+        <h2 class="text-xl font-serif font-bold mb-2">Overall Assessment</h2>
+        <p class="text-lg text-slate-700">
+          <strong class="grade-a">Grade: A-</strong> — A well-architected library with strong module isolation, clean ISP, and excellent composability.
+          The main drag on quality is middleware duplication (P0 fix). Secondary concerns are cross-module error sentinel fragmentation (P0) and
+          command/ type re-exports (P1). The architecture is fundamentally sound — these are fixable refinements, not structural problems.
+        </p>
+      </section>
+
+    </main>
+  </body>
+</html>
