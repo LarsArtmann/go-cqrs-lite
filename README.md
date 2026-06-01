@@ -18,12 +18,12 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 - **Event Bus** - Publish/subscribe pattern for domain events
 - **Decider Pattern** - Functional aggregate approach with pure functions (recommended)
 - **Projections** - Build read models from events with replay support
-- **Saga / Process Manager** - Coordinate long-running business processes with compensation
-- **Stream Loading** - Memory-efficient event iteration for large aggregates
-- **Event Versioning** - Upcast legacy events transparently via VersionedStore
+- **Event Signing** - HMAC-SHA256 and Ed25519 event authentication
+- **Schema Evolution** - Upcast legacy events transparently via VersionedStore
+- **Aggregate Listing** - Read model for listing/querying aggregates with tombstone support
 - **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs
 - **Error Classification** - Structured errors with retry semantics
-- **Auto-documentation** - Generate AsyncAPI 3.0 specs and EventCatalog from code
+- **Auto-documentation** - Generate AsyncAPI 3.0, OpenAPI, D2, and EventCatalog from code
 - **Watermill Integration** - Adapter for the Watermill message router ecosystem
 
 ## Quick Start
@@ -32,7 +32,11 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 
 ```bash
 # Core CQRS types (commands, queries, events, IDs, decider)
-go get github.com/larsartmann/go-cqrs-lite/core
+go get github.com/larsartmann/go-cqrs-lite/event
+go get github.com/larsartmann/go-cqrs-lite/command
+go get github.com/larsartmann/go-cqrs-lite/query
+go get github.com/larsartmann/go-cqrs-lite/decider
+go get github.com/larsartmann/go-cqrs-lite/id
 
 # In-memory implementations (testing)
 go get github.com/larsartmann/go-cqrs-lite/memory
@@ -69,9 +73,9 @@ import (
     "fmt"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/command"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/id"
     "github.com/larsartmann/go-cqrs-lite/memory"
 )
 
@@ -123,7 +127,7 @@ See `example/user/` for a complete example with the Decider pattern, middleware,
 For real applications, use the Decider — pure functions with load→fold→decide→save→publish semantics:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/core/decider"
+import "github.com/larsartmann/go-cqrs-lite/decider"
 
 type UserState struct{ Name string }
 
@@ -148,15 +152,15 @@ repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Eve
 state, version, _ := repo.Load(ctx, aggID, "User")
 ```
 
-See [`core/README.md`](core/README.md) for the full Decider guide.
+See [decider/README.md](decider/README.md) for the full Decider guide.
 
 ### Core Dependencies
 
 | Dependency        | Purpose                                         | Module       |
 | ----------------- | ----------------------------------------------- | ------------ |
-| `oklog/ulid/v2`   | ULID generation (binary-sortable, time-ordered) | core         |
-| `go-branded-id`   | Branded ID type backing                         | core         |
-| `go-error-family` | Error classification taxonomy                   | core         |
+| `oklog/ulid/v2`   | ULID generation (binary-sortable, time-ordered) | event, id    |
+| `go-branded-id`   | Branded ID type backing                         | id           |
+| `go-error-family` | Error classification taxonomy                   | event        |
 | `go-faster/yaml`  | YAML marshaling                                 | catalog only |
 
 ## Core Concepts
@@ -200,7 +204,7 @@ event, err := event.NewEvent(
 Prevents mixing up different ID types:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+import "github.com/larsartmann/go-cqrs-lite/id"
 
 // Instead of string IDs
 userID := id.NewAggregateID()
@@ -219,17 +223,24 @@ All IDs are branded types backed by ULID strings:
 
 | Module           | Import Path                           | Purpose                                          | Dependencies                      | Docs                        |
 | ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- | --------------------------- |
-| **core**         | `.../core/command`, `.../core/event`  | CQRS types, dispatchers, event sourcing          | ulid, branded-id, go-error-family | [README](core/README.md)    |
-| **core/decider** | `.../core/decider`                    | Functional aggregate pattern (recommended)       | core                              |                             |
-| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | core                              |                             |
-| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog generation               | core, yaml                        | [README](catalog/README.md) |
-| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | core                              |                             |
-| **projection**   | `.../projection`                      | Projection runner with replay and live subscribe | core, memory                      |                             |
-| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL/Pebble event store       | core                              | [README](storage/README.md) |
-| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | core, watermill                   |                             |
-| **testhelpers**  | `.../testhelpers`                     | Shared test utilities (fakes, handlers, mocks)   | core                              |                             |
-| **integration**  | `.../integration`                     | Cross-module integration tests                   | core, memory, helpers             |                             |
-| **example/user** | `.../example/user`                    | Complete demo: CQRS + Decider + projections      | core, memory, catalog, middleware |                             |
+| **event**        | `.../event`                           | Event model, store interfaces, bus, tombstone    | ulid, branded-id, go-error-family |                             |
+| **command**      | `.../command`                         | Command dispatcher with typed handlers           | id, dispatcher                    |                             |
+| **query**        | `.../query`                           | Query dispatcher with pagination                 | dispatcher                        |                             |
+| **decider**      | `.../decider`                         | Functional aggregate pattern (recommended)       | event, snapshot                   |                             |
+| **id**           | `.../id`                              | Branded IDs: AggregateID, EventID, etc.          | ulid, branded-id                  |                             |
+| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | event                             |                             |
+| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog + OpenAPI + D2 generation| event, yaml                       | [README](catalog/README.md) |
+| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | event, otel                       |                             |
+| **projection**   | `.../projection`                      | Runner with replay and live subscribe             | event, memory, otel               |                             |
+| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL event store              | event, otel                       | [README](storage/README.md) |
+| **pebble**       | `.../pebble`                          | Embedded key-value event store (PebbleDB)        | event, codec, otel                |                             |
+| **signing**      | `.../signing`                         | Event signing/verification (HMAC, Ed25519)       | event                             |                             |
+| **schema**       | `.../schema`                          | Schema evolution via upcasters                   | event                             |                             |
+| **snapshot**     | `.../snapshot`                        | Snapshot types and strategies                    | event                             |                             |
+| **listing**      | `.../listing`                         | Aggregate listing read model                     | event, id                         |                             |
+| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | event                             |                             |
+| **otel**         | `.../otel`                            | Shared OpenTelemetry helpers                     | otel                              |                             |
+| **codec**        | `.../codec`                           | Payload encoding (JSON, Raw)                     | none                              |                             |
 
 ## Design Principles
 
@@ -280,8 +291,8 @@ import (
     "context"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/id"
     "github.com/larsartmann/go-cqrs-lite/memory"
     "github.com/larsartmann/go-cqrs-lite/storage"
 )
@@ -329,7 +340,7 @@ store, _ := storage.NewTursoEventStore(syncDB.DB())
 ### Deterministic Testing with Clock
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/core/event"
+import "github.com/larsartmann/go-cqrs-lite/event"
 
 fixedTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
 clock := func() time.Time { return fixedTime }
@@ -514,8 +525,8 @@ Fluent builder for events with compile-time type safety:
 import (
     "encoding/json"
 
-    "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/id"
 )
 
 aggregateID := id.NewAggregateID()
@@ -546,8 +557,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/id"
     "github.com/larsartmann/go-cqrs-lite/storage"
 )
 
@@ -597,7 +608,7 @@ import (
     "log"
 
     "github.com/ThreeDotsLabs/watermill/message"
-    "github.com/larsartmann/go-cqrs-lite/core/event"
+    "github.com/larsartmann/go-cqrs-lite/event"
     "github.com/larsartmann/go-cqrs-lite/watermill"
 )
 
@@ -645,31 +656,31 @@ func main() {
 | Context support    | ✅           | ❌      | ✅      |
 | Auto-docs          | ✅           | ❌      | ❌      |
 | Middleware         | ✅           | ❌      | ❌      |
-| Benchmarks         | ✅           | ❌      | ❌      |
+| Strong IDs         | ✅           | ❌      | ❌      |
+| Event Signing      | ✅           | ❌      | ❌      |
+| Schema Evolution   | ✅           | ❌      | ❌      |
+| Aggregate Listing  | ✅           | ❌      | ❌      |
 | Saga / Process Mgr | ✅           | ❌      | ❌      |
 | Stream Loading     | ✅           | ❌      | ❌      |
 | Watermill Adapter  | ✅           | ❌      | ❌      |
 
 ## Project Status
 
-**Phase:** Active Development (core stable, storage module complete for SQLite/Turso)
+**Phase:** Active Development (v2.0.0 pre-release)
 
 | Phase          | Status      | Description                                       |
 | -------------- | ----------- | ------------------------------------------------- |
-| Foundation     | ✅ Complete | Core types, events, commands, queries, aggregates |
+| Foundation     | ✅ Complete | Core types, events, commands, queries, decider    |
 | Event Layer    | ✅ Complete | Event store, event bus, in-memory implementations |
 | Command Layer  | ✅ Complete | Command dispatcher with middleware support        |
 | Query Layer    | ✅ Complete | Query dispatcher with typed results               |
-| Middleware     | ✅ Complete | Logging, metrics, retry, validation, recovery     |
+| Middleware     | ✅ Complete | Logging, metrics, retry, validation, recovery, CB |
 | Decider        | ✅ Complete | Functional aggregate pattern (recommended)        |
-| Projections    | ✅ Complete | Projection runner with replay and live subscribe  |
+| Projections    | ✅ Complete | Runner with replay, live, retry, DLQ              |
 | Storage        | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
-| Tests          | ✅ Complete | Unit + integration + benchmarks + fuzzing         |
+| Signing        | ✅ Complete | HMAC-SHA256 + Ed25519 + Multi-sig                 |
+| Catalog        | ✅ Complete | AsyncAPI, EventCatalog, OpenAPI, D2               |
 | CI/CD          | ✅ Complete | GitHub Actions, Nix flake, linting                |
-| Saga           | ✅ Complete | Saga / Process Manager with compensation          |
-| Watermill      | ✅ Complete | Watermill message bus adapter                     |
-| Stream Loading | ✅ Complete | Memory-efficient event stream iteration           |
-| Documentation  | ✅ Complete | README, TODO_LIST, CONTRIBUTING, CODE_OF_CONDUCT  |
 
 See [FEATURES.md](FEATURES.md) for detailed feature inventory and maturity ratings.
 
