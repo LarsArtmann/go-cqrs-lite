@@ -551,13 +551,33 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ---
 
+## Known Code Quality Issues
+
+Found during 2026-06-01 full code review. See `docs/planning/2026-06-01_CODE-QUALITY-FULL-REVIEW.md` for details.
+
+| Issue | Severity | Module |
+| ----------------------------------------------------- | --------- | --------------------- |
+| Middleware 3x duplication (~500 lines) | HIGH | middleware |
+| Three separate ErrHandlerNotFound sentinels | HIGH | dispatcher/command/query |
+| VersionedStore exposes embedded Store (bypass upcasting) | HIGH | schema |
+| command.Metadata duplicates event.Metadata (split brain) | HIGH | command |
+| command re-exports event types (module boundary violation) | HIGH | command |
+| decider/load.go uses unclassified fmt.Errorf errors | MEDIUM | decider |
+| storage/pebble error sentinels duplicated | MEDIUM | storage, pebble |
+| catalog/ToAny silently swallows marshal errors | MEDIUM | catalog |
+| watermill silently drops malformed ID parse errors | MEDIUM | watermill |
+| Reactive extensions not wired into dispatchers | LOW | event/command/query |
+
+---
+
 ## Not Yet Implemented 📐 PLANNED
 
 Features mentioned in project docs/planning but with **no production code**:
 
 || Feature | Description | Notes |
 || --------------- | ------------------------------------------- | -------------------------------------------- |
-|| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
+|| Outbox pattern | Reliable at-least-once event publishing | Documented in CONTEXT.md but no implementation |
+| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
 
 ---
 
@@ -589,7 +609,10 @@ Features mentioned in project docs/planning but with **no production code**:
 || `listing` | `…/listing` | ~90% | ✅ Production |
 || `otel` | `…/otel` | N/A | ✅ Production |
 || `cmd/cqrs-gen` | `…/cmd/cqrs-gen` | 70.8% | ⚠️ Partial |
-|| `example/user` | `…/example/user` | N/A | 💡 Demo |
+|| `pebble` | `…/pebble` | ~90% | ✅ Production |
+| `turso` | `…/turso` | ~85% | ✅ Production |
+| `cmd/api-stability` | `…/cmd/api-stability` | N/A | 🔧 Tool |
+| `example/user` | `…/example/user` | N/A | 💡 Demo |
 
 ---
 

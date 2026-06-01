@@ -9,31 +9,31 @@
 
 ## Module Quality Scores
 
-| Module | Cohesion (1-5) | Coupling (1-5) | Independent? | Action |
-|--------|:-:|:-:|:-:|--------|
-| id | 5 | 5 | ✅ | **Keep** |
-| dispatcher | 5 | 5 | ✅ | **Keep** |
-| codec | 5 | 5 | ✅ | **Keep** |
-| otel | 5 | 5 | ✅ | **Keep** |
-| event | 4 | 3 | ✅ | **Keep** — investigate test deps |
-| command | 3 | 3 | ✅ | **Reorganize** — remove event re-exports |
-| query | 4 | 4 | ✅ | **Keep** |
-| schema | 4 | 3 | ✅ | **Keep** |
-| snapshot | 5 | 4 | ✅ | **Keep** |
-| decider | 5 | 3 | ✅ | **Keep** |
-| memory | 5 | 3 | ✅ | **Keep** |
-| signing | 4 | 4 | ✅ | **Keep** |
-| middleware | 3 | 2 | ⚠️ | **Reorganize** — reduce to generic[H] |
-| storage | 4 | 3 | ✅ | **Keep** — unify errors |
-| pebble | 4 | 4 | ✅ | **Keep** — unify errors |
-| turso | 4 | 3 | ✅ | **Keep** |
-| projection | 5 | 3 | ✅ | **Keep** |
-| listing | 5 | 4 | ✅ | **Keep** |
-| watermill | 5 | 4 | ✅ | **Keep** |
-| catalog | 5 | 5 | ✅ | **Keep** |
-| integration | 5 | 1 | ✅ | **Keep** (integration tests, high coupling expected) |
-| cmd/cqrs-gen | 5 | 5 | ✅ | **Keep** |
-| cmd/api-stability | 5 | 5 | ✅ | **Keep** |
+| Module            | Cohesion (1-5) | Coupling (1-5) | Independent? | Action                                               |
+| ----------------- | :------------: | :------------: | :----------: | ---------------------------------------------------- |
+| id                |       5        |       5        |      ✅      | **Keep**                                             |
+| dispatcher        |       5        |       5        |      ✅      | **Keep**                                             |
+| codec             |       5        |       5        |      ✅      | **Keep**                                             |
+| otel              |       5        |       5        |      ✅      | **Keep**                                             |
+| event             |       4        |       3        |      ✅      | **Keep** — investigate test deps                     |
+| command           |       3        |       3        |      ✅      | **Reorganize** — remove event re-exports             |
+| query             |       4        |       4        |      ✅      | **Keep**                                             |
+| schema            |       4        |       3        |      ✅      | **Keep**                                             |
+| snapshot          |       5        |       4        |      ✅      | **Keep**                                             |
+| decider           |       5        |       3        |      ✅      | **Keep**                                             |
+| memory            |       5        |       3        |      ✅      | **Keep**                                             |
+| signing           |       4        |       4        |      ✅      | **Keep**                                             |
+| middleware        |       3        |       2        |      ⚠️      | **Reorganize** — reduce to generic[H]                |
+| storage           |       4        |       3        |      ✅      | **Keep** — unify errors                              |
+| pebble            |       4        |       4        |      ✅      | **Keep** — unify errors                              |
+| turso             |       4        |       3        |      ✅      | **Keep**                                             |
+| projection        |       5        |       3        |      ✅      | **Keep**                                             |
+| listing           |       5        |       4        |      ✅      | **Keep**                                             |
+| watermill         |       5        |       4        |      ✅      | **Keep**                                             |
+| catalog           |       5        |       5        |      ✅      | **Keep**                                             |
+| integration       |       5        |       1        |      ✅      | **Keep** (integration tests, high coupling expected) |
+| cmd/cqrs-gen      |       5        |       5        |      ✅      | **Keep**                                             |
+| cmd/api-stability |       5        |       5        |      ✅      | **Keep**                                             |
 
 ---
 
@@ -47,6 +47,7 @@
 - `command.Metadata` mirrors `event.Metadata` fields (CorrelationID, CausationID, UserID, RequestID)
 
 **Problem:** command/ depends on event/ not just for domain types but for re-exported symbols. This creates:
+
 - Module boundary violation: command is not a standalone module
 - Maintenance drift: adding a metadata field requires updating both packages
 
@@ -110,10 +111,10 @@ Only `query/` has a single replace directive (for event/eventtest test dependenc
 
 ## `internal/` Package Audit
 
-| Module | internal/ packages | Cross-module access? |
-|--------|-------------------|---------------------|
+| Module  | internal/ packages                      | Cross-module access?       |
+| ------- | --------------------------------------- | -------------------------- |
 | catalog | `internal/cattest`, `internal/caseutil` | ❌ No cross-module imports |
-| signing | `internal/testutil` | ❌ No cross-module imports |
+| signing | `internal/testutil`                     | ❌ No cross-module imports |
 
 **Status:** Clean. ✅
 
@@ -121,14 +122,14 @@ Only `query/` has a single replace directive (for event/eventtest test dependenc
 
 ## Error Type Placement Analysis
 
-| Error | Location | Used by | Accessible? | Issue |
-|-------|----------|---------|:------------|-------|
-| ErrVersionConflict | event/ | storage, pebble, decider | ✅ | Correct placement |
-| ErrHandlerNotFound | dispatcher/, command/, query/ | cross-module | ⚠️ | Three separate sentinels |
-| ErrDispatcherClosed | dispatcher/, command/, query/ | cross-module | ⚠️ | Three separate sentinels |
-| ErrAggregateTypeMismatch | pebble/, storage/sql/ | backend-specific | ⚠️ | Duplicate across backends |
-| ErrCircuitBreakerOpen | middleware/ | consumers | ⚠️ | Bypasses error taxonomy |
-| ErrAggregateNotFound | event/ | all backends | ✅ | Correct placement |
+| Error                    | Location                      | Used by                  | Accessible? | Issue                     |
+| ------------------------ | ----------------------------- | ------------------------ | :---------- | ------------------------- |
+| ErrVersionConflict       | event/                        | storage, pebble, decider | ✅          | Correct placement         |
+| ErrHandlerNotFound       | dispatcher/, command/, query/ | cross-module             | ⚠️          | Three separate sentinels  |
+| ErrDispatcherClosed      | dispatcher/, command/, query/ | cross-module             | ⚠️          | Three separate sentinels  |
+| ErrAggregateTypeMismatch | pebble/, storage/sql/         | backend-specific         | ⚠️          | Duplicate across backends |
+| ErrCircuitBreakerOpen    | middleware/                   | consumers                | ⚠️          | Bypasses error taxonomy   |
+| ErrAggregateNotFound     | event/                        | all backends             | ✅          | Correct placement         |
 
 **Key issues:** Sentinel error fragmentation (3× ErrHandlerNotFound, 2× ErrVersionMismatch). These should be consolidated.
 
@@ -136,30 +137,32 @@ Only `query/` has a single replace directive (for event/eventtest test dependenc
 
 ## Granularity Assessment
 
-| Signal | Value | Assessment |
-|--------|-------|------------|
-| Total library modules | 22 | Appropriate for the scope |
-| Largest module (pkgs) | catalog (9) | Contains 5 sub-packages (asyncapi, d2, eventcatalog, openapi, schema) — reasonable |
-| Smallest modules | id, codec, otel, dispatcher (1 pkg each) | Worth keeping — they provide fundamental abstractions |
-| Modules always changed together | command + event (in practice) | Not due to coupling, but due to feature development patterns |
-| Over-modularized? | No | Each module has a clear, distinct purpose |
+| Signal                          | Value                                    | Assessment                                                                         |
+| ------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| Total library modules           | 22                                       | Appropriate for the scope                                                          |
+| Largest module (pkgs)           | catalog (9)                              | Contains 5 sub-packages (asyncapi, d2, eventcatalog, openapi, schema) — reasonable |
+| Smallest modules                | id, codec, otel, dispatcher (1 pkg each) | Worth keeping — they provide fundamental abstractions                              |
+| Modules always changed together | command + event (in practice)            | Not due to coupling, but due to feature development patterns                       |
+| Over-modularized?               | No                                       | Each module has a clear, distinct purpose                                          |
 
 ---
 
 ## Recommendations
 
 ### Keep (20 modules)
+
 All existing module boundaries are correct. No merges needed.
 
 ### Reorganize (3 modules)
 
-| Module | Issue | Fix |
-|--------|-------|-----|
-| command | Re-exports event types | Remove `aggregate_ref.go` re-exports; consumers import event/ directly |
-| middleware | 3× duplication | Generic `Middleware[H]` per concern (internal change, no module split) |
-| pebble + storage/sql | Duplicate error sentinels | Consolidate to event/ errors, backend adds context via wrapping |
+| Module               | Issue                     | Fix                                                                    |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------- |
+| command              | Re-exports event types    | Remove `aggregate_ref.go` re-exports; consumers import event/ directly |
+| middleware           | 3× duplication            | Generic `Middleware[H]` per concern (internal change, no module split) |
+| pebble + storage/sql | Duplicate error sentinels | Consolidate to event/ errors, backend adds context via wrapping        |
 
 ### No Splits Needed
+
 No module is large enough or unfocused enough to warrant splitting.
 
 ---
@@ -169,6 +172,7 @@ No module is large enough or unfocused enough to warrant splitting.
 **Current:** `go.work` for local development, `replace` directives in go.mod for GOWORK=off CI per-module isolation.
 
 **Assessment:** This is the correct strategy per ADR-0003. Both are needed:
+
 - `go.work` for developer convenience
 - `replace` for per-module CI (GOWORK=off builds)
 
@@ -190,10 +194,10 @@ The module structure is **fundamentally sound** — a well-executed multi-module
 
 **Overall grade: A-**
 
-| What's great | What needs work |
-|---|---|
-| Clean 7-layer DAG | command/ re-exports event/ types |
-| 3 leaf modules with zero deps | middleware/ 3× duplication |
-| go.work + replace strategy works | Error sentinel fragmentation |
-| Each module independently buildable | FakeStore duplicates MemoryStore |
-| No circular dependencies | decider/ uses unclassified errors |
+| What's great                        | What needs work                   |
+| ----------------------------------- | --------------------------------- |
+| Clean 7-layer DAG                   | command/ re-exports event/ types  |
+| 3 leaf modules with zero deps       | middleware/ 3× duplication        |
+| go.work + replace strategy works    | Error sentinel fragmentation      |
+| Each module independently buildable | FakeStore duplicates MemoryStore  |
+| No circular dependencies            | decider/ uses unclassified errors |

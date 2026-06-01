@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-05-29 — Session 139
+**Reconciled:** 2026-06-01 — Session 140 (full code quality + architecture review)
 **Files Processed:** 252
 
 ## Legend
@@ -373,3 +373,51 @@
 - [ ] **event/ module cycles** — Move cross-module test assertions to integration/ (event↔command, event↔memory, event↔schema)
 - [x] **decider/ → memory/ dependency** — VERIFIED: memory is test-only import (standard Go module behavior; all test deps share one require block)
 - [x] **storage/ → listing/ coupling** — VERIFIED: correct dependency direction (storage provides SQL impl of listing.AggregateReader interface; same as memory providing InMemoryAggregateReader)
+
+---
+
+## Session 140 — Full Code Quality + Architecture Review (2026-06-01)
+
+**Source:** `docs/planning/2026-06-01_CODE-QUALITY-FULL-REVIEW.md`
+
+### 🔴 HIGH — Found by Full Code Review
+
+- [ ] **middleware/** — 3× duplication across command/event/query: ~500 lines, 24 functions that should be 8 generics (source: dupl + manual review)
+- [ ] **dispatcher/ + command/ + query/** — Three separate `ErrHandlerNotFound` and `ErrDispatcherClosed` sentinels; cross-module `errors.Is` is broken
+- [ ] **schema/versioned_source.go:12** — `VersionedStore` exposes embedded `event.Store` publicly; callers can bypass upcasting via `s.Store.Load()`
+- [ ] **command/aggregate_ref.go** — Re-exports `event.AggregateType`, `event.AggregateRef`, `event.ParseAggregateType`; module boundary violation
+- [ ] **command/metadata.go** — `command.Metadata` duplicates `event.Metadata` fields (CorrelationID, CausationID, UserID, RequestID); split brain
+
+### 🟠 MEDIUM — Found by Full Code Review
+
+- [ ] **decider/load.go:56-64** — `opError` uses `fmt.Errorf` instead of `event.Wrap*` error family taxonomy
+- [ ] **pebble/errors.go** vs **storage/sql/errors.go** — Duplicate `ErrAggregateTypeMismatch`, `ErrVersionMismatch` sentinels with different codes
+- [ ] **middleware/circuit_breaker.go:222** — Double-wrapped error: `allow()` already wraps, `execute()` wraps again
+- [ ] **middleware/circuit_breaker.go:243** — `ErrCircuitBreakerOpen` uses bare `errors.New` instead of error taxonomy
+- [ ] **catalog/schema/reflect.go:44-57** — `ToAny` silently swallows marshal errors; returns synthetic fallback
+- [ ] **signing/event.go:88** — `HasSignature` swallows corruption errors from `ExtractSignature`
+- [ ] **watermill/protocol.go:162-205** — Silently drops malformed ID parse errors (4 locations)
+- [ ] **watermill/protocol.go:79-160** — `messageToEvent` is 81 lines; should be decomposed
+- [ ] **projection/runner.go:119-183** — `replay` is 64 lines; should be decomposed
+- [ ] **storage/sql_aggregate_reader.go:47** — `ListWithStatus` is ~112 lines
+- [ ] **catalog/eventcatalog/exporter.go:28-91** — `Export` is 63 lines of copy-paste entity iteration; should use `writeEntities[T]`
+- [ ] **catalog/registry_helpers.go:138-152** — `NewTestCreateOrderFlow` is a test helper in production code
+- [ ] **event/batch.go:40-68** vs **event/event_new.go:18-38** — Marshal+create pattern duplicated; `NewEvents` should call `New`
+- [ ] **schema/versioned_source.go:33-87** — 4 near-identical load methods (Load/LoadFromVersion/LoadToVersion/LoadToTimestamp)
+- [ ] **signing/middleware.go** vs **signing/multisig/middleware.go** — Parallel extract→verify→next hierarchies; should be `VerifyFunc` pattern
+
+### 🟡 LOW — Found by Full Code Review
+
+- [ ] **event/reactive.go** — `FilterEventTypes` duplicates `newTypeSet` internally (DRY violation)
+- [ ] **event/types.go:136** — `Version.Sub` can produce negative versions; inconsistent with `Decrement` which panics
+- [ ] **catalog/types.go:153** — `GetID` returns Name as fallback when ID is empty; dishonest behavior
+- [ ] **catalog/eventcatalog/writer_frontmatter.go:63** — `writeIDListField` is a clone of `addObjectIDsListField`
+- [ ] **pebble/errors.go:12-15** — `ErrUnknownBackend` declared but never returned (dead code)
+- [ ] **pebble/config.go:59-69** — 20 lines of backward-compat aliases
+- [ ] **listing/in_memory.go:124-147** — `TombstoneInclude` case in switch is unreachable dead code
+- [ ] **middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch (dead code)
+- [ ] **query/query.go:54** — `TypedHandler[T]` takes `Query` not `T` — less type-safe than command equivalent
+- [ ] **storage/sql_aggregate_reader.go:63** — Hardcoded `?` placeholders; SQLite-only, incompatible with PostgreSQL
+- [ ] **event/eventtest/fake_store.go** — 273 lines of untested mock code that duplicates MemoryStore functionality
+- [ ] **otel/logging.go:16** — `TraceIDLogger` name/doc don't match behavior (doesn't inject trace/span IDs)
+- [ ] **codec/raw.go:6,13** — Comment claims `json.RawMessage` support but type switch only matches `[]byte`

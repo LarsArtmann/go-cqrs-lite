@@ -221,26 +221,26 @@ All IDs are branded types backed by ULID strings:
 
 ## Module Structure
 
-| Module           | Import Path                           | Purpose                                          | Dependencies                      | Docs                        |
-| ---------------- | ------------------------------------- | ------------------------------------------------ | --------------------------------- | --------------------------- |
-| **event**        | `.../event`                           | Event model, store interfaces, bus, tombstone    | ulid, branded-id, go-error-family |                             |
-| **command**      | `.../command`                         | Command dispatcher with typed handlers           | id, dispatcher                    |                             |
-| **query**        | `.../query`                           | Query dispatcher with pagination                 | dispatcher                        |                             |
-| **decider**      | `.../decider`                         | Functional aggregate pattern (recommended)       | event, snapshot                   |                             |
-| **id**           | `.../id`                              | Branded IDs: AggregateID, EventID, etc.          | ulid, branded-id                  |                             |
-| **memory**       | `.../memory`                          | In-memory store/bus/snapshot (testing)           | event                             |                             |
-| **catalog**      | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog + OpenAPI + D2 generation| event, yaml                       | [README](catalog/README.md) |
-| **middleware**   | `.../middleware`                      | Logging, retry, validation, recovery, metrics    | event, otel                       |                             |
-| **projection**   | `.../projection`                      | Runner with replay and live subscribe             | event, memory, otel               |                             |
-| **storage**      | `.../storage`                         | SQLite/Turso/PostgreSQL event store              | event, otel                       | [README](storage/README.md) |
-| **pebble**       | `.../pebble`                          | Embedded key-value event store (PebbleDB)        | event, codec, otel                |                             |
-| **signing**      | `.../signing`                         | Event signing/verification (HMAC, Ed25519)       | event                             |                             |
-| **schema**       | `.../schema`                          | Schema evolution via upcasters                   | event                             |                             |
-| **snapshot**     | `.../snapshot`                        | Snapshot types and strategies                    | event                             |                             |
-| **listing**      | `.../listing`                         | Aggregate listing read model                     | event, id                         |                             |
-| **watermill**    | `.../watermill`                       | Watermill message bus adapter                    | event                             |                             |
-| **otel**         | `.../otel`                            | Shared OpenTelemetry helpers                     | otel                              |                             |
-| **codec**        | `.../codec`                           | Payload encoding (JSON, Raw)                     | none                              |                             |
+| Module         | Import Path                           | Purpose                                           | Dependencies                      | Docs                        |
+| -------------- | ------------------------------------- | ------------------------------------------------- | --------------------------------- | --------------------------- |
+| **event**      | `.../event`                           | Event model, store interfaces, bus, tombstone     | ulid, branded-id, go-error-family |                             |
+| **command**    | `.../command`                         | Command dispatcher with typed handlers            | id, dispatcher                    |                             |
+| **query**      | `.../query`                           | Query dispatcher with pagination                  | dispatcher                        |                             |
+| **decider**    | `.../decider`                         | Functional aggregate pattern (recommended)        | event, snapshot                   |                             |
+| **id**         | `.../id`                              | Branded IDs: AggregateID, EventID, etc.           | ulid, branded-id                  |                             |
+| **memory**     | `.../memory`                          | In-memory store/bus/snapshot (testing)            | event                             |                             |
+| **catalog**    | `.../catalog`, `.../catalog/asyncapi` | AsyncAPI + EventCatalog + OpenAPI + D2 generation | event, yaml                       | [README](catalog/README.md) |
+| **middleware** | `.../middleware`                      | Logging, retry, validation, recovery, metrics     | event, otel                       |                             |
+| **projection** | `.../projection`                      | Runner with replay and live subscribe             | event, memory, otel               |                             |
+| **storage**    | `.../storage`                         | SQLite/Turso/PostgreSQL event store               | event, otel                       | [README](storage/README.md) |
+| **pebble**     | `.../pebble`                          | Embedded key-value event store (PebbleDB)         | event, codec, otel                |                             |
+| **signing**    | `.../signing`                         | Event signing/verification (HMAC, Ed25519)        | event                             |                             |
+| **schema**     | `.../schema`                          | Schema evolution via upcasters                    | event                             |                             |
+| **snapshot**   | `.../snapshot`                        | Snapshot types and strategies                     | event                             |                             |
+| **listing**    | `.../listing`                         | Aggregate listing read model                      | event, id                         |                             |
+| **watermill**  | `.../watermill`                       | Watermill message bus adapter                     | event                             |                             |
+| **otel**       | `.../otel`                            | Shared OpenTelemetry helpers                      | otel                              |                             |
+| **codec**      | `.../codec`                           | Payload encoding (JSON, Raw)                      | none                              |                             |
 
 ## Design Principles
 
@@ -668,19 +668,19 @@ func main() {
 
 **Phase:** Active Development (v2.0.0 pre-release)
 
-| Phase          | Status      | Description                                       |
-| -------------- | ----------- | ------------------------------------------------- |
-| Foundation     | ✅ Complete | Core types, events, commands, queries, decider    |
-| Event Layer    | ✅ Complete | Event store, event bus, in-memory implementations |
-| Command Layer  | ✅ Complete | Command dispatcher with middleware support        |
-| Query Layer    | ✅ Complete | Query dispatcher with typed results               |
-| Middleware     | ✅ Complete | Logging, metrics, retry, validation, recovery, CB |
-| Decider        | ✅ Complete | Functional aggregate pattern (recommended)        |
-| Projections    | ✅ Complete | Runner with replay, live, retry, DLQ              |
-| Storage        | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
-| Signing        | ✅ Complete | HMAC-SHA256 + Ed25519 + Multi-sig                 |
-| Catalog        | ✅ Complete | AsyncAPI, EventCatalog, OpenAPI, D2               |
-| CI/CD          | ✅ Complete | GitHub Actions, Nix flake, linting                |
+| Phase         | Status      | Description                                       |
+| ------------- | ----------- | ------------------------------------------------- |
+| Foundation    | ✅ Complete | Core types, events, commands, queries, decider    |
+| Event Layer   | ✅ Complete | Event store, event bus, in-memory implementations |
+| Command Layer | ✅ Complete | Command dispatcher with middleware support        |
+| Query Layer   | ✅ Complete | Query dispatcher with typed results               |
+| Middleware    | ✅ Complete | Logging, metrics, retry, validation, recovery, CB |
+| Decider       | ✅ Complete | Functional aggregate pattern (recommended)        |
+| Projections   | ✅ Complete | Runner with replay, live, retry, DLQ              |
+| Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
+| Signing       | ✅ Complete | HMAC-SHA256 + Ed25519 + Multi-sig                 |
+| Catalog       | ✅ Complete | AsyncAPI, EventCatalog, OpenAPI, D2               |
+| CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 
 See [FEATURES.md](FEATURES.md) for detailed feature inventory and maturity ratings.
 
