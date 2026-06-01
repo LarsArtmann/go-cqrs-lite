@@ -135,7 +135,7 @@ func WithClientOccurredAt(t time.Time) Option {
 }
 
 // WithDeadline sets the event's deadline for cancellation propagation.
-// Handlers can use Event.Context() to check if the deadline has passed.
+// Handlers can use Event.Deadline() to retrieve it.
 func WithDeadline(t time.Time) Option {
 	return func(e *ImmutableEvent) { e.deadline = t }
 }

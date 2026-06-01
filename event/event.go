@@ -22,7 +22,6 @@
 package event
 
 import (
-	"context"
 	"fmt"
 	"slices"
 	"time"
@@ -100,10 +99,7 @@ type Event interface {
 	Payload() []byte
 	Metadata() Metadata
 	OccurredAt() time.Time
-	// Context returns a context with the event's deadline (if any).
-	// Handlers can use this to check if the original operation's
-	// deadline has passed or was cancelled.
-	Context() context.Context
+	Deadline() (time.Time, bool)
 }
 
 // ImmutableEvent provides a default implementation of Event interface.
@@ -127,7 +123,6 @@ var _ Event = (*ImmutableEvent)(nil)
 
 // ID returns the event ID.
 func (e *ImmutableEvent) ID() id.EventID { return e.id }
-
 // Type returns the event type.
 func (e *ImmutableEvent) Type() Type { return e.eventType }
 
@@ -173,16 +168,6 @@ func (e *ImmutableEvent) Metadata() Metadata {
 
 // OccurredAt returns when the event occurred.
 func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
-
-// Context returns a context with the event's deadline (if any).
-// Returns context.Background() if no deadline was set.
-func (e *ImmutableEvent) Context() context.Context {
-	if e.deadline.IsZero() {
-		return context.Background()
-	}
-
-	return &deadlineCtx{deadline: e.deadline}
-}
 
 // Deadline returns the event's deadline (if any).
 func (e *ImmutableEvent) Deadline() (time.Time, bool) {
