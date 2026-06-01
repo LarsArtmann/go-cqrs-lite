@@ -50,7 +50,8 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 		count++
 	}
 
-	if err := iter.Error(); err != nil {
+	err = iter.Error()
+	if err != nil {
 		return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
 			"count iterator error")
 	}

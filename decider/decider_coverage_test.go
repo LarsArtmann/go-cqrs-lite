@@ -47,10 +47,10 @@ func (nonImmutableEvent) SchemaVersion() event.SchemaVersion {
 
 	return sv
 }
-func (nonImmutableEvent) Payload() []byte          { return nil }
-func (nonImmutableEvent) Metadata() event.Metadata { return event.Metadata{} }
-func (nonImmutableEvent) OccurredAt() time.Time    { return time.Now() }
-func (nonImmutableEvent) Encoding() codec.Encoding { return codec.EncodingJSON }
+func (nonImmutableEvent) Payload() []byte             { return nil }
+func (nonImmutableEvent) Metadata() event.Metadata    { return event.Metadata{} }
+func (nonImmutableEvent) OccurredAt() time.Time       { return time.Now() }
+func (nonImmutableEvent) Encoding() codec.Encoding    { return codec.EncodingJSON }
 func (nonImmutableEvent) Deadline() (time.Time, bool) { return time.Time{}, false }
 
 func TestExecute_EnricherAppliesOptions(t *testing.T) {

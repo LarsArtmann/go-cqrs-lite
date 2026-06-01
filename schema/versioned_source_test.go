@@ -2,6 +2,7 @@ package schema_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -431,5 +432,5 @@ type failingUpcaster struct{}
 func (*failingUpcaster) SourceType() event.Type             { return "test.upcast" }
 func (*failingUpcaster) SourceVersion() event.SchemaVersion { return 1 }
 func (*failingUpcaster) Upcast(_ event.Event) (*event.ImmutableEvent, error) {
-	return nil, fmt.Errorf("upcast intentionally failed")
+	return nil, errors.New("upcast intentionally failed")
 }
