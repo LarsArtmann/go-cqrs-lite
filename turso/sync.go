@@ -6,28 +6,28 @@ import (
 	"fmt"
 	"strings"
 
-	turso "turso.tech/database/tursogo"
+	tursoclient "turso.tech/database/tursogo"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-// TursoSyncDB wraps a Turso database with remote sync capabilities.
+// SyncDB wraps a Turso database with remote sync capabilities.
 // It provides the *sql.DB for queries and exposes Push/Pull/Checkpoint/Stats
 // for sync control.
-type TursoSyncDB struct {
+type SyncDB struct {
 	*sql.DB
 
-	syncDb *turso.TursoSyncDb
+	syncDb *tursoclient.TursoSyncDb
 }
 
-// OpenTursoSync opens a Turso database that syncs with a remote server.
+// OpenSync opens a Turso database that syncs with a remote server.
 // Local writes work offline. Call Push to send changes, Pull to receive.
 //
-// The caller is responsible for closing the returned TursoSyncDB.
-func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*TursoSyncDB, error) {
+// The caller is responsible for closing the returned SyncDB.
+func OpenSync(ctx context.Context, dbPath, remoteURL, authToken string) (*SyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
 		return nil, event.WrapRejection(
-			ErrTursoMemorySync,
+			ErrMemorySync,
 			"storage.turso_memory_sync",
 			fmt.Sprintf(
 				"in-memory databases lose data on restart when using remote sync: got %q",
@@ -36,9 +36,9 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 		)
 	}
 
-	syncDb, err := turso.NewTursoSyncDb(
+	syncDb, err := tursoclient.NewTursoSyncDb(
 		ctx,
-		turso.TursoSyncDbConfig{ //nolint:exhaustruct // only required fields; others use library defaults
+		tursoclient.TursoSyncDbConfig{ //nolint:exhaustruct // only required fields; others use library defaults
 			Path:      dbPath,
 			RemoteUrl: remoteURL,
 			AuthToken: authToken,
@@ -55,11 +55,11 @@ func OpenTursoSync(ctx context.Context, dbPath, remoteURL, authToken string) (*T
 			"connect turso sync db for "+remoteURL)
 	}
 
-	return &TursoSyncDB{DB: database, syncDb: syncDb}, nil
+	return &SyncDB{DB: database, syncDb: syncDb}, nil
 }
 
 // Push sends local writes to the remote Turso server.
-func (t *TursoSyncDB) Push(ctx context.Context) error {
+func (t *SyncDB) Push(ctx context.Context) error {
 	err := t.syncDb.Push(ctx)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.turso_push",
@@ -71,7 +71,7 @@ func (t *TursoSyncDB) Push(ctx context.Context) error {
 
 // Pull fetches remote changes into the local database.
 // Returns true if any changes were received.
-func (t *TursoSyncDB) Pull(ctx context.Context) (bool, error) {
+func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
 	changed, err := t.syncDb.Pull(ctx)
 	if err != nil {
 		return changed, event.WrapInfrastructure(err, "storage.turso_pull",
@@ -82,7 +82,7 @@ func (t *TursoSyncDB) Pull(ctx context.Context) (bool, error) {
 }
 
 // Checkpoint writes the WAL into the main database file.
-func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
+func (t *SyncDB) Checkpoint(ctx context.Context) error {
 	err := t.syncDb.Checkpoint(ctx)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.turso_checkpoint",
@@ -94,12 +94,12 @@ func (t *TursoSyncDB) Checkpoint(ctx context.Context) error {
 
 // Close closes the underlying SQL database connection.
 // Does not disconnect from remote sync — Push/Pull will fail after Close.
-func (t *TursoSyncDB) Close() error {
+func (t *SyncDB) Close() error {
 	return t.DB.Close() //nolint:wrapcheck // sql.DB.Close is self-descriptive
 }
 
 // Stats returns sync statistics (WAL size, bytes sent/received).
-func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error) {
+func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error) {
 	stats, err := t.syncDb.Stats(ctx)
 	if err != nil {
 		return stats, event.WrapInfrastructure(err, "storage.turso_stats",
@@ -108,3 +108,11 @@ func (t *TursoSyncDB) Stats(ctx context.Context) (turso.TursoSyncDbStats, error)
 
 	return stats, nil
 }
+
+// Backward-compatible aliases.
+var (
+	OpenTursoSync = OpenSync
+)
+
+// TursoSyncDB is a backward-compatible alias for SyncDB.
+type TursoSyncDB = SyncDB
