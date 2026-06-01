@@ -82,8 +82,8 @@ const (
 )
 
 var (
-	WithPebbleBackend  = WithBackend
-	WithPebbleProvider = WithProvider
-	NewPebbleConfig    = NewConfig
+	WithPebbleBackend   = WithBackend
+	WithPebbleProvider  = WithProvider
+	NewPebbleConfig     = NewConfig
 	NewPebbleEventStore = NewEventStore
 )

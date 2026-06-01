@@ -37,7 +37,7 @@ func main() {
 	}
 	defer readModelStore.Close()
 
-	eventStore := cqrsPebble.NewPebbleStore(readModelStore.DB(), logger)
+	eventStore := cqrsPebble.NewStore(readModelStore.DB(), logger)
 	eventBus := memory.NewMemoryBus()
 
 	todoProjection := projections.NewTodoProjection(readModelStore)

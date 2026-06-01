@@ -61,10 +61,10 @@ func NewCheckpointStore(db *sql.DB) (*storage.SQLCheckpointStore, error) {
 
 // Backward-compatible aliases.
 var (
-	OpenTurso             = Open
-	OpenTursoInMemory     = OpenInMemory
-	TursoInitSchema       = InitSchema
-	NewTursoEventStore    = NewEventStore
-	NewTursoSnapshotStore = NewSnapshotStore
+	OpenTurso               = Open
+	OpenTursoInMemory       = OpenInMemory
+	TursoInitSchema         = InitSchema
+	NewTursoEventStore      = NewEventStore
+	NewTursoSnapshotStore   = NewSnapshotStore
 	NewTursoCheckpointStore = NewCheckpointStore
 )
