@@ -17,12 +17,12 @@ func generateEventCatalog(outputDir string) error {
 	builder := catalog.NewBuilder("User Service", "1.0.0")
 	builder.AddService(
 		"user-svc", "User Service", "1.0.0", "Manages user accounts",
-		catalog.Command[UserCreatedPayload](
+		catalog.Command[CreateUserPayload](
 			catalog.MessageID(cmdCreateUser),
 			catalog.Name("Create User"),
 			catalog.Summary("Creates a new user account"),
 		),
-		catalog.Command[UserNameChangedPayload](
+		catalog.Command[ChangeUserNamePayload](
 			catalog.MessageID(cmdChangeUserName),
 			catalog.Name("Change User Name"),
 			catalog.Summary("Changes a user's display name"),

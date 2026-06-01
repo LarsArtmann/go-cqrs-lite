@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -24,6 +25,7 @@ type Runner struct {
 	logger      *slog.Logger
 	projections []event.Projection
 	cancel      context.CancelFunc
+	running     atomic.Bool
 }
 
 var _ io.Closer = (*Runner)(nil)
@@ -97,6 +99,9 @@ func (r *Runner) Run(ctx context.Context) error {
 	if len(r.projections) == 0 {
 		return ErrNoProjections
 	}
+
+	r.running.Store(true)
+	defer r.running.Store(false)
 
 	ctx, r.cancel = context.WithCancel(ctx)
 

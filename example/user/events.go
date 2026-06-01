@@ -28,3 +28,12 @@ func mustMarshal(v any) []byte {
 
 	return b
 }
+
+type CreateUserPayload struct {
+	Email string `description:"The user's email address" json:"email"`
+	Name  string `description:"The user's display name"  json:"name"`
+}
+
+type ChangeUserNamePayload struct {
+	Name string `description:"The new display name" json:"name"`
+}

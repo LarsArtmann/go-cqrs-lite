@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/command"
@@ -235,7 +236,7 @@ func runErrorDemo(ctx context.Context, cmdDisp *command.Dispatcher) {
 func runEventCatalog() {
 	fmt.Println("--- Step 7: EventCatalog ---")
 
-	outputDir := filepath.Join(".", "eventcatalog-output")
+	outputDir := filepath.Join(os.TempDir(), "eventcatalog-output")
 
 	if err := generateEventCatalog(outputDir); err != nil {
 		log.Fatalf("generate event catalog: %v", err)

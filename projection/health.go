@@ -39,22 +39,7 @@ func (r *Runner) RegisteredProjections() []string {
 
 // IsRunning returns true if the runner has an active subscription (Run was called).
 func (r *Runner) IsRunning() bool {
-	if r.projections == nil {
-		return false
-	}
-
-	for _, p := range r.projections {
-		checkpoint, err := r.checkpoint.Load(context.Background(), p.Name())
-		if err != nil {
-			return false
-		}
-
-		if !checkpoint.IsZero() {
-			return true
-		}
-	}
-
-	return false
+	return r.running.Load()
 }
 
 // HealthStatus contains the health check result for a runner.
