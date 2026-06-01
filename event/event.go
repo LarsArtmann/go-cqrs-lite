@@ -123,6 +123,7 @@ var _ Event = (*ImmutableEvent)(nil)
 
 // ID returns the event ID.
 func (e *ImmutableEvent) ID() id.EventID { return e.id }
+
 // Type returns the event type.
 func (e *ImmutableEvent) Type() Type { return e.eventType }
 
