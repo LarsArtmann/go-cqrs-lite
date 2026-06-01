@@ -12,22 +12,50 @@ func (a *EventStore) checkVersion(
 	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
-	prefix := a.aggregatePrefix(ref)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
-
-	existing, err := a.iterateEvents(prefix, upperBound, nil)
+	count, err := a.countEvents(ref)
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.concurrency_check",
 			"concurrency check")
 	}
 
-	err = event.CheckVersionConflict(len(existing), expectedVersion)
+	err = event.CheckVersionConflict(count, expectedVersion)
 	if err != nil {
 		return event.WrapConflict(err, "pebble.version_conflict",
 			"concurrency check")
 	}
 
 	return nil
+}
+
+func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
+	prefix := a.aggregatePrefix(ref)
+	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+
+	iter, err := a.db.NewIter(
+		&pebble.IterOptions{ //nolint:exhaustruct // only Lower/Upper bound needed
+			LowerBound: prefix,
+			UpperBound: upperBound,
+		},
+	)
+	if err != nil {
+		return 0, event.WrapInfrastructure(err, "pebble.create_iterator",
+			"failed to create count iterator")
+	}
+
+	defer func() { _ = iter.Close() }()
+
+	count := 0
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		count++
+	}
+
+	if err := iter.Error(); err != nil {
+		return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
+			"count iterator error")
+	}
+
+	return count, nil
 }
 
 func (a *EventStore) writeEventsToBatch(

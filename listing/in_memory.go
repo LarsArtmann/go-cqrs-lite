@@ -71,8 +71,8 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	}
 
 	type streamBuilder struct {
-		ref        AggregateRef
-		lastEvents []event.Event
+		ref       AggregateRef
+		lastEvent event.Event
 	}
 
 	builders := make(map[streamKey]*streamBuilder)
@@ -94,7 +94,7 @@ func buildRefs(events []event.Event) []AggregateStatus {
 		b.ref.Version = evt.Version()
 		b.ref.EventCount++
 		b.ref.LastEventAt = evt.OccurredAt()
-		b.lastEvents = append(b.lastEvents, evt)
+		b.lastEvent = evt
 	}
 
 	result := make([]AggregateStatus, 0, len(builders))
@@ -102,7 +102,7 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	for _, b := range builders {
 		result = append(result, AggregateStatus{
 			Ref:    b.ref,
-			Status: event.DetectTombstone(b.lastEvents),
+			Status: event.DetectTombstone([]event.Event{b.lastEvent}),
 		})
 	}
 
@@ -134,8 +134,6 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 			if !r.Status.IsTombstoned() {
 				filtered = append(filtered, r)
 			}
-		case TombstoneInclude:
-			filtered = append(filtered, r)
 		case TombstoneOnly:
 			if r.Status.IsTombstoned() {
 				filtered = append(filtered, r)
