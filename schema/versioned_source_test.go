@@ -121,14 +121,7 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 		"test.upcast", aggID, "Test", 1, []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -177,14 +170,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt1, evt2},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -241,14 +227,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt1, evt2, evt3},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt1, evt2, evt3)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -306,14 +285,7 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 		event.WithSchemaVersion(2),
 		event.WithOccurredAt(ts.Add(time.Second)),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt1, evt2},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -359,14 +331,7 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 		[]byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt)
 
 	failingUpcaster := &failingUpcaster{}
 	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
@@ -402,14 +367,7 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 		event.WithSchemaVersion(1),
 		event.WithOccurredAt(time.Now()),
 	)
-	if err := store.Save(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Test"), aggID),
-		[]event.Event{evt},
-		0,
-	); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	saveTestEvents(t, ctx, store, aggID, evt)
 
 	failingUpcaster := &failingUpcaster{}
 	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
@@ -433,4 +391,23 @@ func (*failingUpcaster) SourceType() event.Type             { return "test.upcas
 func (*failingUpcaster) SourceVersion() event.SchemaVersion { return 1 }
 func (*failingUpcaster) Upcast(_ event.Event) (*event.ImmutableEvent, error) {
 	return nil, errors.New("upcast intentionally failed")
+}
+
+func saveTestEvents(
+	t *testing.T,
+	ctx context.Context,
+	store *memory.MemoryStore,
+	aggID id.AggregateID,
+	events ...event.Event,
+) {
+	t.Helper()
+
+	if err := store.Save(
+		ctx,
+		event.NewAggregateRef(event.AggregateType("Test"), aggID),
+		events,
+		0,
+	); err != nil {
+		t.Fatalf("save: %v", err)
+	}
 }
