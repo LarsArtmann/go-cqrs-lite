@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/catalog
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-error-family v0.2.0
+	github.com/larsartmann/go-error-family v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
