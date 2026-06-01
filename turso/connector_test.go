@@ -37,16 +37,16 @@ func TestOpenSync_FilePathWithoutRemote(t *testing.T) {
 
 	dbPath := t.TempDir() + "/test.db"
 
-	db, err := turso.Open(dbPath)
+	database, err := turso.Open(dbPath)
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
 
-	if db == nil {
+	if database == nil {
 		t.Fatal("expected non-nil db")
 	}
 
-	if err := db.Close(); err != nil {
+	if err := database.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
 }
@@ -54,16 +54,16 @@ func TestOpenSync_FilePathWithoutRemote(t *testing.T) {
 func TestOpenInMemory(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	database, err := turso.OpenInMemory()
 	if err != nil {
 		t.Fatalf("OpenInMemory: %v", err)
 	}
 
-	if db == nil {
+	if database == nil {
 		t.Fatal("expected non-nil db")
 	}
 
-	if err := db.Close(); err != nil {
+	if err := database.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
 }
@@ -71,13 +71,13 @@ func TestOpenInMemory(t *testing.T) {
 func TestInitSchema(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	database, err := turso.OpenInMemory()
 	if err != nil {
 		t.Fatalf("OpenInMemory: %v", err)
 	}
-	defer db.Close() //nolint:errcheck // test helper
+	defer database.Close() //nolint:errcheck // test helper
 
-	if err := turso.InitSchema(context.Background(), db); err != nil {
+	if err := turso.InitSchema(context.Background(), database); err != nil {
 		t.Fatalf("InitSchema: %v", err)
 	}
 }
@@ -85,13 +85,13 @@ func TestInitSchema(t *testing.T) {
 func TestNewEventStore(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	database, err := turso.OpenInMemory()
 	if err != nil {
 		t.Fatalf("OpenInMemory: %v", err)
 	}
-	defer db.Close() //nolint:errcheck // test helper
+	defer database.Close() //nolint:errcheck // test helper
 
-	store, err := turso.NewEventStore(db)
+	store, err := turso.NewEventStore(database)
 	if err != nil {
 		t.Fatalf("NewEventStore: %v", err)
 	}
@@ -104,13 +104,13 @@ func TestNewEventStore(t *testing.T) {
 func TestNewSnapshotStore(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	database, err := turso.OpenInMemory()
 	if err != nil {
 		t.Fatalf("OpenInMemory: %v", err)
 	}
-	defer db.Close() //nolint:errcheck // test helper
+	defer database.Close() //nolint:errcheck // test helper
 
-	store, err := turso.NewSnapshotStore(db)
+	store, err := turso.NewSnapshotStore(database)
 	if err != nil {
 		t.Fatalf("NewSnapshotStore: %v", err)
 	}
@@ -123,13 +123,13 @@ func TestNewSnapshotStore(t *testing.T) {
 func TestNewCheckpointStore(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	database, err := turso.OpenInMemory()
 	if err != nil {
 		t.Fatalf("OpenInMemory: %v", err)
 	}
-	defer db.Close() //nolint:errcheck // test helper
+	defer database.Close() //nolint:errcheck // test helper
 
-	store, err := turso.NewCheckpointStore(db)
+	store, err := turso.NewCheckpointStore(database)
 	if err != nil {
 		t.Fatalf("NewCheckpointStore: %v", err)
 	}
