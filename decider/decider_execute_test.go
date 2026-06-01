@@ -47,7 +47,8 @@ func TestNewRepository_IncompleteSnapshotConfig(t *testing.T) {
 		t.Fatal(strategyErr)
 	}
 
-	_, err := decider.NewRepository(store, bus, d,
+	_, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStrategy[counterState](strategy),
 	)
 	if !errors.Is(err, decider.ErrIncompleteSnapshotConfig) {

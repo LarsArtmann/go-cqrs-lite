@@ -259,7 +259,9 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 		t.Parallel()
 
 		mw := multisig.MultiSignMiddleware(nil)
-		pub := mw(event.PublisherFunc(func(_ context.Context, _ ...event.Event) error { return nil }))
+		pub := mw(
+			event.PublisherFunc(func(_ context.Context, _ ...event.Event) error { return nil }),
+		)
 
 		err := pub.Publish(context.Background())
 		if err == nil {

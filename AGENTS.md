@@ -5,12 +5,12 @@
 > Consumers import modules (`core`, `storage`, `memory`, `catalog`, etc.) into THEIR projects.
 > There is no "main app." Every module is independently importable.
 >
-> | If you catch yourself thinking…                  | STOP — this is a LIBRARY, not an app                          |
-> | ------------------------------------------------- | ------------------------------------------------------------- |
-> | "Nothing in this repo uses it, so delete it"     | **DELETING EXTERNAL-FACING API IS BREAKING THE PRODUCT.** Consumers live outside this repo. Zero internal consumers is the EXPECTED state. |
-> | "Module needs a service that uses it"             | Module needs tests + stable API, not an internal consumer     |
-> | "example/ should drive real traffic"              | example/ is a usage demo, not a deployment                    |
-> | "Unused exports are waste"                        | Public API surface IS the product                             |
+> | If you catch yourself thinking…              | STOP — this is a LIBRARY, not an app                                                                                                       |
+> | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+> | "Nothing in this repo uses it, so delete it" | **DELETING EXTERNAL-FACING API IS BREAKING THE PRODUCT.** Consumers live outside this repo. Zero internal consumers is the EXPECTED state. |
+> | "Module needs a service that uses it"        | Module needs tests + stable API, not an internal consumer                                                                                  |
+> | "example/ should drive real traffic"         | example/ is a usage demo, not a deployment                                                                                                 |
+> | "Unused exports are waste"                   | Public API surface IS the product                                                                                                          |
 >
 > **The quality gate for every module: "Would a consumer trust this enough to import it?"**
 
@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                                                                                                                                                            |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language  | Go 1.26.3                                                                                                                                                                                                                                                        |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`, `api-stability`   |
-| Build     | `nix run .#build`                                                                                                                                                                                                                                                |
+| Item      | Value                                                                                                                                                                                                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                             |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`, `api-stability`                                                                       |
+| Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                     |
 | Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                 |
-| Format    | `nix fmt`                                                                                                                                                                                                                                                        |
-| Dev shell | `nix develop`                                                                                                                                                                                                                                                    |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                    |
+| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                      |
+| Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                             |
+| Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                         |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                         |
 
 ## Monorepo Structure
 
@@ -164,14 +164,15 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 ## Dependencies
 
-| Category   | Packages                                                                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Category   | Packages                                                                                                                                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                            |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                                                         |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
 
 **Module Graph**:
+
 ```
 Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)

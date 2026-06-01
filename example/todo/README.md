@@ -115,17 +115,17 @@ GOPRIVATE='github.com/larsartmann/*' GONOSUMCHECK='*' go run ./cmd/api
 
 ## Dependencies
 
-| Package                         | Purpose                                             |
-| ------------------------------- | --------------------------------------------------- |
-| `go-cqrs-lite/event`            | Event types, store, bus interfaces                  |
-| `go-cqrs-lite/command`          | Command dispatcher and handler types                |
-| `go-cqrs-lite/query`            | Query dispatcher and handler types                  |
-| `go-cqrs-lite/decider`          | Pure-function aggregate (Fold + Decide)             |
-| `go-cqrs-lite/memory`           | In-memory event bus and store                       |
-| `go-cqrs-lite/pebble`           | Embedded Pebble key-value event store               |
-| `go-cqrs-lite/projection`       | Projection runner (replay + live subscription)      |
-| `github.com/larsartmann/httputil` | HTTP middleware composition                       |
-| `cockroachdb/pebble`            | Embedded key-value storage                          |
+| Package                           | Purpose                                        |
+| --------------------------------- | ---------------------------------------------- |
+| `go-cqrs-lite/event`              | Event types, store, bus interfaces             |
+| `go-cqrs-lite/command`            | Command dispatcher and handler types           |
+| `go-cqrs-lite/query`              | Query dispatcher and handler types             |
+| `go-cqrs-lite/decider`            | Pure-function aggregate (Fold + Decide)        |
+| `go-cqrs-lite/memory`             | In-memory event bus and store                  |
+| `go-cqrs-lite/pebble`             | Embedded Pebble key-value event store          |
+| `go-cqrs-lite/projection`         | Projection runner (replay + live subscription) |
+| `github.com/larsartmann/httputil` | HTTP middleware composition                    |
+| `cockroachdb/pebble`              | Embedded key-value storage                     |
 
 ## Related
 

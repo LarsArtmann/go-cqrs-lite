@@ -39,7 +39,7 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 	metadataJSON, _ := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")
 
-	return event.ReconstructEventFromFields(
+	evt, err := event.ReconstructEventFromFields(
 		s.ID, s.Type, s.AggregateType, s.AggregateID,
 		s.Version, s.SchemaVersion,
 		s.Payload, metadataJSON,
@@ -47,6 +47,12 @@ func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
 		codec.Encoding(s.Encoding),
 		"pebble",
 	)
+	if err != nil {
+		return nil, event.WrapCorruption(err, "pebble.reconstruct_event",
+			"failed to reconstruct event from fields")
+	}
+
+	return evt, nil
 }
 
 // serializableEvent represents the JSON storage format for events.

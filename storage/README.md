@@ -151,5 +151,5 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 | Dependency           | Purpose                     |
 | -------------------- | --------------------------- |
 | `event`              | Event/ID interfaces         |
-| `snapshot`           | Snapshot persistence         |
+| `snapshot`           | Snapshot persistence        |
 | `cockroachdb/pebble` | PebbleEventStore (optional) |

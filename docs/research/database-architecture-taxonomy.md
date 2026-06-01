@@ -25,16 +25,17 @@ Put(key, value)
 Delete(key)
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Get, Put, Delete, Exists, Increment |
-| **Query model** | Exact key match only. No range, no filtering, no joins |
-| **Ordering** | None (hash) or lexicographic (ordered KV like Pebble/LevelDB) |
-| **Schema** | None — opaque byte values |
-| **Transactions** | Optional — single-key atomic or multi-key batch |
-| **Notable** | Redis, etcd, DynamoDB, LevelDB, RocksDB, Pebble, Consul |
+| Dimension        | Detail                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| **Operations**   | Get, Put, Delete, Exists, Increment                           |
+| **Query model**  | Exact key match only. No range, no filtering, no joins        |
+| **Ordering**     | None (hash) or lexicographic (ordered KV like Pebble/LevelDB) |
+| **Schema**       | None — opaque byte values                                     |
+| **Transactions** | Optional — single-key atomic or multi-key batch               |
+| **Notable**      | Redis, etcd, DynamoDB, LevelDB, RocksDB, Pebble, Consul       |
 
 **Variants:**
+
 - **Hash KV** — O(1) point lookup, no range scan (Redis hash, Memcached)
 - **Ordered KV** — O(log n) lookup, range scan via iterator (Pebble, LevelDB, RocksDB, BadgerDB)
 - **Distributed KV** — Consensus-based, replicated (etcd, TiKV, FoundationDB)
@@ -51,14 +52,14 @@ Delete(collection, query)
 Aggregate(collection, pipeline) → []Document
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | CRUD + rich query + aggregation pipeline |
-| **Query model** | Field matching, nested path queries, range, regex, geospatial |
-| **Ordering** | By indexed fields, by insertion order |
-| **Schema** | Optional / flexible — documents can vary within a collection |
-| **Transactions** | Optional — MongoDB supports multi-document ACID |
-| **Notable** | MongoDB, CouchDB, Couchbase, Firestore, RethinkDB |
+| Dimension        | Detail                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| **Operations**   | CRUD + rich query + aggregation pipeline                      |
+| **Query model**  | Field matching, nested path queries, range, regex, geospatial |
+| **Ordering**     | By indexed fields, by insertion order                         |
+| **Schema**       | Optional / flexible — documents can vary within a collection  |
+| **Transactions** | Optional — MongoDB supports multi-document ACID               |
+| **Notable**      | MongoDB, CouchDB, Couchbase, Firestore, RethinkDB             |
 
 **Key property:** A document is a self-contained unit (JSON/BSON). Queries address fields within documents. Indexes are on fields, not the whole document.
 
@@ -74,14 +75,14 @@ DELETE FROM table WHERE ...
 BEGIN / COMMIT / ROLLBACK
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Full relational algebra: select, project, join, aggregate, sort |
-| **Query model** | Declarative (SQL). Optimizer chooses execution plan |
-| **Ordering** | By any indexed column, by expression |
-| **Schema** | Strict — typed columns, constraints, foreign keys, normalization |
-| **Transactions** | Full ACID — BEGIN/COMMIT/ROLLBACK, isolation levels |
-| **Notable** | PostgreSQL, MySQL, SQLite, Oracle, SQL Server, CockroachDB |
+| Dimension        | Detail                                                           |
+| ---------------- | ---------------------------------------------------------------- |
+| **Operations**   | Full relational algebra: select, project, join, aggregate, sort  |
+| **Query model**  | Declarative (SQL). Optimizer chooses execution plan              |
+| **Ordering**     | By any indexed column, by expression                             |
+| **Schema**       | Strict — typed columns, constraints, foreign keys, normalization |
+| **Transactions** | Full ACID — BEGIN/COMMIT/ROLLBACK, isolation levels              |
+| **Notable**      | PostgreSQL, MySQL, SQLite, Oracle, SQL Server, CockroachDB       |
 
 **Key property:** Data is normalized across tables. Joins reconstruct relationships. The optimizer is the magic — consumers say WHAT they want, not HOW to get it.
 
@@ -97,14 +98,14 @@ Query(cypher) → Result  // Cypher, Gremlin, SPARQL
 ShortestPath(a, b) → Path
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Node/edge CRUD + traversal + pattern matching + path algorithms |
-| **Query model** | Graph traversal (Cypher, Gremlin, GQL). Pattern matching on topology |
-| **Ordering** | By traversal order, by property index |
-| **Schema** | Optional — labels/types with optional property constraints |
-| **Transactions** | Varies — Neo4j supports ACID, others are eventual |
-| **Notable** | Neo4j, Neptune, JanusGraph, ArangoDB (multi-model), TigerGraph |
+| Dimension        | Detail                                                               |
+| ---------------- | -------------------------------------------------------------------- |
+| **Operations**   | Node/edge CRUD + traversal + pattern matching + path algorithms      |
+| **Query model**  | Graph traversal (Cypher, Gremlin, GQL). Pattern matching on topology |
+| **Ordering**     | By traversal order, by property index                                |
+| **Schema**       | Optional — labels/types with optional property constraints           |
+| **Transactions** | Varies — Neo4j supports ACID, others are eventual                    |
+| **Notable**      | Neo4j, Neptune, JanusGraph, ArangoDB (multi-model), TigerGraph       |
 
 **Key property:** Relationships are first-class citizens, not reconstructed via joins. Multi-hop traversal is O(k) where k = path length, not O(n²) like SQL joins.
 
@@ -119,14 +120,14 @@ Aggregate(metric, tags, window, fn) → []Bucket
 Downsample(metric, targetResolution)
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Write (high-throughput ingest), Query (time range + aggregation) |
-| **Query model** | Time-bounded, tag-filtered, with windowed aggregation functions |
-| **Ordering** | Strictly by timestamp |
-| **Schema** | Metric name + tag set + field set. Often schemaless or lightweight |
-| **Transactions** | Rarely supported — append-only semantics |
-| **Notable** | InfluxDB, Prometheus, TimescaleDB, TDengine, QuestDB, ClickHouse |
+| Dimension        | Detail                                                             |
+| ---------------- | ------------------------------------------------------------------ |
+| **Operations**   | Write (high-throughput ingest), Query (time range + aggregation)   |
+| **Query model**  | Time-bounded, tag-filtered, with windowed aggregation functions    |
+| **Ordering**     | Strictly by timestamp                                              |
+| **Schema**       | Metric name + tag set + field set. Often schemaless or lightweight |
+| **Transactions** | Rarely supported — append-only semantics                           |
+| **Notable**      | InfluxDB, Prometheus, TimescaleDB, TDengine, QuestDB, ClickHouse   |
 
 **Key property:** Optimized for append-heavy time-ordered data. Reads are almost always range scans over time windows. Compression exploits temporal locality (delta encoding, run-length).
 
@@ -141,14 +142,14 @@ Suggest(prefix) → []Suggestion
 Aggregate(query, facets) → FacetResults
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Index, Search (with relevance scoring), Facet, Autocomplete |
-| **Query model** | Full-text query DSL (boolean, phrase, fuzzy, proximity) |
-| **Ordering** | By relevance score (TF-IDF, BM25), by field, by geo distance |
-| **Schema** | Mapping definition (field types, analyzers) |
-| **Transactions** | Rarely — eventually consistent indexing |
-| **Notable** | Elasticsearch, Solr, OpenSearch, Meilisearch, Typesense |
+| Dimension        | Detail                                                       |
+| ---------------- | ------------------------------------------------------------ |
+| **Operations**   | Index, Search (with relevance scoring), Facet, Autocomplete  |
+| **Query model**  | Full-text query DSL (boolean, phrase, fuzzy, proximity)      |
+| **Ordering**     | By relevance score (TF-IDF, BM25), by field, by geo distance |
+| **Schema**       | Mapping definition (field types, analyzers)                  |
+| **Transactions** | Rarely — eventually consistent indexing                      |
+| **Notable**      | Elasticsearch, Solr, OpenSearch, Meilisearch, Typesense      |
 
 **Key property:** Inverted index maps terms → documents. Relevance scoring is the differentiator. Not a primary store — usually sits alongside a source-of-truth database.
 
@@ -162,14 +163,14 @@ Get(rowKey, columnFamily, column) → value
 Scan(rowKeyRange, columnFamily, columns) → []Row
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Put, Get, Scan (range over row keys), Multi-Get |
-| **Query model** | Row-key based + column-family/column projection. Secondary indexes optional |
-| **Ordering** | By row key (token-range partitioned in distributed systems) |
-| **Schema** | Column families defined at creation; columns within a family are flexible |
-| **Transactions** | Lightweight (LWT in Cassandra) or none (eventual consistency) |
-| **Notable** | Cassandra, ScyllaDB, HBase, Bigtable, DynamoDB |
+| Dimension        | Detail                                                                      |
+| ---------------- | --------------------------------------------------------------------------- |
+| **Operations**   | Put, Get, Scan (range over row keys), Multi-Get                             |
+| **Query model**  | Row-key based + column-family/column projection. Secondary indexes optional |
+| **Ordering**     | By row key (token-range partitioned in distributed systems)                 |
+| **Schema**       | Column families defined at creation; columns within a family are flexible   |
+| **Transactions** | Lightweight (LWT in Cassandra) or none (eventual consistency)               |
+| **Notable**      | Cassandra, ScyllaDB, HBase, Bigtable, DynamoDB                              |
 
 **Key property:** A two-level map: `RowKey → (ColumnFamily → (Column → Value))`. Each row can have different columns. Optimized for write-heavy, wide-row access patterns.
 
@@ -184,14 +185,14 @@ DELETE(bucket, key)
 LIST(bucket, prefix) → []ObjectInfo
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | PUT, GET, DELETE, LIST, COPY. Versioning. Lifecycle rules |
-| **Query model** | Prefix-based listing only. No content query. Metadata filtering via tags |
-| **Ordering** | Lexicographic by key within a bucket |
-| **Schema** | None — opaque binary blobs with user-defined metadata |
-| **Transactions** | None — single-object atomicity only |
-| **Notable** | S3, GCS, Azure Blob, MinIO, Cloudflare R2 |
+| Dimension        | Detail                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| **Operations**   | PUT, GET, DELETE, LIST, COPY. Versioning. Lifecycle rules                |
+| **Query model**  | Prefix-based listing only. No content query. Metadata filtering via tags |
+| **Ordering**     | Lexicographic by key within a bucket                                     |
+| **Schema**       | None — opaque binary blobs with user-defined metadata                    |
+| **Transactions** | None — single-object atomicity only                                      |
+| **Notable**      | S3, GCS, Azure Blob, MinIO, Cloudflare R2                                |
 
 **Key property:** Infinite scale, eventual consistency, very high latency (100ms+). Not a database — a content-addressable file system. Used as a storage tier in many database architectures (S3 as cold storage).
 
@@ -205,14 +206,14 @@ Retract(subject, predicate, object)        // Remove triple
 Query(sparql) → Result                     // Pattern matching
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Assert/Retract triples, SPARQL queries, ontology reasoning |
-| **Query model** | Graph pattern matching via SPARQL. Logical inference over ontologies |
-| **Ordering** | By subject, predicate, or object (multiple indexes) |
-| **Schema** | OWL ontologies / RDFS — formal semantic schema |
-| **Transactions** | Limited — quad-store support |
-| **Notable** | Virtuoso, Stardog, AllegroGraph, Jena, Neptune (RDF mode) |
+| Dimension        | Detail                                                               |
+| ---------------- | -------------------------------------------------------------------- |
+| **Operations**   | Assert/Retract triples, SPARQL queries, ontology reasoning           |
+| **Query model**  | Graph pattern matching via SPARQL. Logical inference over ontologies |
+| **Ordering**     | By subject, predicate, or object (multiple indexes)                  |
+| **Schema**       | OWL ontologies / RDFS — formal semantic schema                       |
+| **Transactions** | Limited — quad-store support                                         |
+| **Notable**      | Virtuoso, Stardog, AllegroGraph, Jena, Neptune (RDF mode)            |
 
 **Key property:** Every fact is a (subject, predicate, object) triple. Reasoning engine can derive new facts from rules. Used in knowledge graphs and semantic web.
 
@@ -226,14 +227,14 @@ Rule(head ← body)      // Define derivation rule
 Query(goal) → Result   // Derive answers via rules
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Fact assertion, rule definition, recursive query |
-| **Query model** | Declarative logic programming. Recursive rules. Bottom-up or top-down evaluation |
-| **Ordering** | None intrinsic — results are sets |
-| **Schema** | Implicit — defined by fact structure and rules |
-| **Transactions** | Varies — Datomic provides ACID |
-| **Notable** | Datomic, Datahike, XTDB, Soufflé |
+| Dimension        | Detail                                                                           |
+| ---------------- | -------------------------------------------------------------------------------- |
+| **Operations**   | Fact assertion, rule definition, recursive query                                 |
+| **Query model**  | Declarative logic programming. Recursive rules. Bottom-up or top-down evaluation |
+| **Ordering**     | None intrinsic — results are sets                                                |
+| **Schema**       | Implicit — defined by fact structure and rules                                   |
+| **Transactions** | Varies — Datomic provides ACID                                                   |
+| **Notable**      | Datomic, Datahike, XTDB, Soufflé                                                 |
 
 **Key property:** Queries are logical deductions. Rules can be recursive (unlike SQL CTEs, recursion is native). Datomic's "database as a value" — every query runs against an immutable snapshot. Natural fit for event sourcing (facts are events, rules are projections).
 
@@ -249,14 +250,14 @@ Window(stream, duration) → []Batch
 Join(streamA, streamB) → streamC
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Publish, Subscribe, Transform, Window, Join, Aggregate |
-| **Query model** | Continuous queries over unbounded streams. Event-time processing |
-| **Ordering** | By offset/partition, by event time, by processing time |
-| **Schema** | Schema registry (Avro, Protobuf, JSON Schema) |
-| **Transactions** | Exactly-once semantics via transactional producers |
-| **Notable** | Kafka, Flink, Pulsar, NATS JetStream, Redpanda |
+| Dimension        | Detail                                                           |
+| ---------------- | ---------------------------------------------------------------- |
+| **Operations**   | Publish, Subscribe, Transform, Window, Join, Aggregate           |
+| **Query model**  | Continuous queries over unbounded streams. Event-time processing |
+| **Ordering**     | By offset/partition, by event time, by processing time           |
+| **Schema**       | Schema registry (Avro, Protobuf, JSON Schema)                    |
+| **Transactions** | Exactly-once semantics via transactional producers               |
+| **Notable**      | Kafka, Flink, Pulsar, NATS JetStream, Redpanda                   |
 
 **Key property:** Data flows continuously. No "load then query" — queries are always running. Used as the backbone of event-driven architectures. Kafka is the database (log) and the transport.
 
@@ -270,14 +271,14 @@ Search(queryVector, k) → []Neighbor   // k-nearest neighbors
 Query(filter) → []Vector
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Insert, Search (k-NN), Filter, Hybrid search (vector + keyword) |
-| **Query model** | Approximate nearest neighbor (ANN) search. Cosine, L2, inner-product distance |
-| **Ordering** | By similarity score (distance metric) |
-| **Schema** | Vector dimension + metadata schema |
-| **Transactions** | Rarely — eventually consistent indexing |
-| **Notable** | Pinecone, Weaviate, Qdrant, Milvus, Chroma, pgvector |
+| Dimension        | Detail                                                                        |
+| ---------------- | ----------------------------------------------------------------------------- |
+| **Operations**   | Insert, Search (k-NN), Filter, Hybrid search (vector + keyword)               |
+| **Query model**  | Approximate nearest neighbor (ANN) search. Cosine, L2, inner-product distance |
+| **Ordering**     | By similarity score (distance metric)                                         |
+| **Schema**       | Vector dimension + metadata schema                                            |
+| **Transactions** | Rarely — eventually consistent indexing                                       |
+| **Notable**      | Pinecone, Weaviate, Qdrant, Milvus, Chroma, pgvector                          |
 
 **Key property:** Queries find "things like this" rather than "things matching this exact key." HNSW and IVF are the dominant index structures. The interface is fundamentally different from every other model — similarity replaces equality.
 
@@ -293,11 +294,11 @@ Search(query)                  // Full-text
 Vector.Search(embedding, k)    // Similarity
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Operations** | Union of multiple interface models |
-| **Query model** | Unified query language (SurrealQL, AQL) or polyglot |
-| **Notable** | ArangoDB, SurrealDB, Fauna, Oracle, PostgreSQL (with extensions) |
+| Dimension       | Detail                                                           |
+| --------------- | ---------------------------------------------------------------- |
+| **Operations**  | Union of multiple interface models                               |
+| **Query model** | Unified query language (SurrealQL, AQL) or polyglot              |
+| **Notable**     | ArangoDB, SurrealDB, Fauna, Oracle, PostgreSQL (with extensions) |
 
 **Key property:** One database, multiple access patterns. Reduces operational complexity but may not excel at any single model.
 
@@ -314,17 +315,17 @@ Vector.Search(embedding, k)    // Similarity
        ↔ linked list for range scans ↔
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | Balanced tree. Internal nodes: keys only. Leaves: key+value, linked for sequential scan |
-| **Read** | O(log n) point lookup. O(k) range scan via leaf links |
-| **Write** | O(log n) + possible node split/merge. Random I/O |
-| **Write amplification** | Medium — page splits touch O(log n) pages |
-| **Read amplification** | Low — single tree traversal |
-| **Space amplification** | Medium — ~50-70% page fill factor |
-| **Best for** | Mixed read/write OLTP. Point lookups + range scans |
-| **Used by** | PostgreSQL (default), MySQL InnoDB, SQLite, LMDB, bbolt |
-| **Concurrency** | Page-level locking or latch-coupling. MVCC for readers |
+| Dimension               | Detail                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| **Structure**           | Balanced tree. Internal nodes: keys only. Leaves: key+value, linked for sequential scan |
+| **Read**                | O(log n) point lookup. O(k) range scan via leaf links                                   |
+| **Write**               | O(log n) + possible node split/merge. Random I/O                                        |
+| **Write amplification** | Medium — page splits touch O(log n) pages                                               |
+| **Read amplification**  | Low — single tree traversal                                                             |
+| **Space amplification** | Medium — ~50-70% page fill factor                                                       |
+| **Best for**            | Mixed read/write OLTP. Point lookups + range scans                                      |
+| **Used by**             | PostgreSQL (default), MySQL InnoDB, SQLite, LMDB, bbolt                                 |
+| **Concurrency**         | Page-level locking or latch-coupling. MVCC for readers                                  |
 
 **B-Tree vs B+Tree:** B-Tree stores values in internal nodes (shorter tree, but larger nodes). B+Tree stores values only in leaves (denser internal nodes = shallower tree + leaf links for range scan). Most production databases use B+Tree.
 
@@ -340,25 +341,25 @@ Writes → [MemTable (sorted, in-memory)]
 [WAL] → sequential log for crash recovery
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | In-memory sorted table (memtable) + immutable sorted files on disk (SSTables) in levels |
-| **Read** | O(log n × L) where L = number of levels. Bloom filters skip empty SSTables |
-| **Write** | O(1) amortized — sequential append to WAL + memtable insert |
-| **Write amplification** | High — data rewritten during compaction (10-30× for leveled) |
-| **Read amplification** | Medium-High — must check multiple SSTables |
-| **Space amplification** | Medium — temporary duplication during compaction |
-| **Best for** | Write-heavy workloads. Time-series. Event logs. Large datasets |
-| **Used by** | RocksDB, LevelDB, Pebble, Cassandra, ScyllaDB, InfluxDB TSM |
+| Dimension               | Detail                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| **Structure**           | In-memory sorted table (memtable) + immutable sorted files on disk (SSTables) in levels |
+| **Read**                | O(log n × L) where L = number of levels. Bloom filters skip empty SSTables              |
+| **Write**               | O(1) amortized — sequential append to WAL + memtable insert                             |
+| **Write amplification** | High — data rewritten during compaction (10-30× for leveled)                            |
+| **Read amplification**  | Medium-High — must check multiple SSTables                                              |
+| **Space amplification** | Medium — temporary duplication during compaction                                        |
+| **Best for**            | Write-heavy workloads. Time-series. Event logs. Large datasets                          |
+| **Used by**             | RocksDB, LevelDB, Pebble, Cassandra, ScyllaDB, InfluxDB TSM                             |
 
 **Compaction strategies:**
 
-| Strategy | Write Amp | Read Amp | Space Amp | Best For |
-|---|---|---|---|---|
-| **Size-tiered** | Low | High | High | Write-heavy, bulk ingest |
-| **Leveled** | High | Low | Low | Read-heavy, predictable latency |
-| **FIFO** | Lowest | Medium | Lowest | Time-series, cache, TTL data |
-| **Hybrid (Tiered+Leveled)** | Medium | Medium | Medium | Mixed workloads |
+| Strategy                    | Write Amp | Read Amp | Space Amp | Best For                        |
+| --------------------------- | --------- | -------- | --------- | ------------------------------- |
+| **Size-tiered**             | Low       | High     | High      | Write-heavy, bulk ingest        |
+| **Leveled**                 | High      | Low      | Low       | Read-heavy, predictable latency |
+| **FIFO**                    | Lowest    | Medium   | Lowest    | Time-series, cache, TTL data    |
+| **Hybrid (Tiered+Leveled)** | Medium    | Medium   | Medium    | Mixed workloads                 |
 
 ---
 
@@ -370,17 +371,17 @@ hash("user:123") → bucket 7 → [offset → disk position]
                               [Log file: key, value, ...]
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | In-memory hash map: key → disk offset. Data stored in append-only log |
-| **Read** | O(1) — hash lookup + single disk seek |
-| **Write** | O(1) — append to log + update hash map |
-| **Write amplification** | Very low — sequential append |
-| **Read amplification** | Very low — single lookup |
-| **Space amplification** | High without compaction — stale values accumulate in log |
-| **Range scan** | ❌ Not possible — hash destroys ordering |
-| **Best for** | Pure key-value with no range queries. Caching. Session storage |
-| **Used by** | Bitcask (Riak), In-memory stores (Redis hash tables) |
+| Dimension               | Detail                                                                |
+| ----------------------- | --------------------------------------------------------------------- |
+| **Structure**           | In-memory hash map: key → disk offset. Data stored in append-only log |
+| **Read**                | O(1) — hash lookup + single disk seek                                 |
+| **Write**               | O(1) — append to log + update hash map                                |
+| **Write amplification** | Very low — sequential append                                          |
+| **Read amplification**  | Very low — single lookup                                              |
+| **Space amplification** | High without compaction — stale values accumulate in log              |
+| **Range scan**          | ❌ Not possible — hash destroys ordering                              |
+| **Best for**            | Pure key-value with no range queries. Caching. Session storage        |
+| **Used by**             | Bitcask (Riak), In-memory stores (Redis hash tables)                  |
 
 ---
 
@@ -393,16 +394,16 @@ Columnar:      id: [1, 2, 3, ...]
                age: [30, 25, ...]
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | Each column stored separately. Values compressed per-column (RLE, dictionary, delta) |
-| **Read** | Only needed columns loaded. Vectorized processing (SIMD). Very fast aggregates |
-| **Write** | Slow — must update multiple column files. Batch writes mitigate this |
-| **Write amplification** | High for single-row writes. Low for bulk loads |
-| **Read amplification** | Very low for analytical queries — only relevant columns touched |
-| **Space amplification** | Very low — per-column compression is extremely effective |
-| **Best for** | OLAP. Analytics. Aggregation over many rows, few columns |
-| **Used by** | ClickHouse, DuckDB, Vertica, Parquet files, Redshift, Snowflake |
+| Dimension               | Detail                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| **Structure**           | Each column stored separately. Values compressed per-column (RLE, dictionary, delta) |
+| **Read**                | Only needed columns loaded. Vectorized processing (SIMD). Very fast aggregates       |
+| **Write**               | Slow — must update multiple column files. Batch writes mitigate this                 |
+| **Write amplification** | High for single-row writes. Low for bulk loads                                       |
+| **Read amplification**  | Very low for analytical queries — only relevant columns touched                      |
+| **Space amplification** | Very low — per-column compression is extremely effective                             |
+| **Best for**            | OLAP. Analytics. Aggregation over many rows, few columns                             |
+| **Used by**             | ClickHouse, DuckDB, Vertica, Parquet files, Redshift, Snowflake                      |
 
 ---
 
@@ -413,16 +414,16 @@ Columnar:      id: [1, 2, 3, ...]
   ↑ immutable, never modified, only appended ↑
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | Sequential, immutable records. Each record has a position/offset |
-| **Read** | O(n) scan, O(log n) with index. Can replay from any position |
-| **Write** | O(1) — append to end. Fastest possible write pattern |
-| **Write amplification** | Zero — no in-place updates, no compaction (unless space reclamation) |
-| **Read amplification** | High for point lookup without secondary index |
-| **Space amplification** | Grows unbounded without compaction. Compaction is optional |
-| **Best for** | Event sourcing. Audit logs. CDC. Message queues. Kafka topics |
-| **Used by** | Kafka, EventStoreDB, go-cqrs-lite `events` table, Datomic transaction log |
+| Dimension               | Detail                                                                    |
+| ----------------------- | ------------------------------------------------------------------------- |
+| **Structure**           | Sequential, immutable records. Each record has a position/offset          |
+| **Read**                | O(n) scan, O(log n) with index. Can replay from any position              |
+| **Write**               | O(1) — append to end. Fastest possible write pattern                      |
+| **Write amplification** | Zero — no in-place updates, no compaction (unless space reclamation)      |
+| **Read amplification**  | High for point lookup without secondary index                             |
+| **Space amplification** | Grows unbounded without compaction. Compaction is optional                |
+| **Best for**            | Event sourcing. Audit logs. CDC. Message queues. Kafka topics             |
+| **Used by**             | Kafka, EventStoreDB, go-cqrs-lite `events` table, Datomic transaction log |
 
 **This is our model.** go-cqrs-lite's event store is an append-only log per aggregate, with version as the sequence number.
 
@@ -436,14 +437,14 @@ Process Virtual Memory:
      ↑ OS handles page faults ←→ Disk automatically ↑
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | Entire database file mapped into virtual address space. OS manages paging |
-| **Read** | Direct memory access — no system calls. OS handles caching via page cache |
-| **Write** | Copy-on-write (LMDB) or in-place with write barriers |
-| **Concurrency** | Multiple processes can map the same file. Lock-free reads |
-| **Best for** | Read-heavy embedded databases. Single-writer with many concurrent readers |
-| **Used by** | LMDB, bbolt (via mmap), SQLite (WAL mode) |
+| Dimension       | Detail                                                                    |
+| --------------- | ------------------------------------------------------------------------- |
+| **Structure**   | Entire database file mapped into virtual address space. OS manages paging |
+| **Read**        | Direct memory access — no system calls. OS handles caching via page cache |
+| **Write**       | Copy-on-write (LMDB) or in-place with write barriers                      |
+| **Concurrency** | Multiple processes can map the same file. Lock-free reads                 |
+| **Best for**    | Read-heavy embedded databases. Single-writer with many concurrent readers |
+| **Used by**     | LMDB, bbolt (via mmap), SQLite (WAL mode)                                 |
 
 **Key property:** No buffer pool to manage — the OS IS the buffer pool. Reads are just memory dereferences. Writes are copy-on-write for crash safety.
 
@@ -458,14 +459,14 @@ Process Virtual Memory:
   and flushed to children in batches
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | B-Tree where internal nodes contain message buffers. Inserts are messages that cascade down |
-| **Read** | O(log_B N) — must check buffers along the path |
-| **Write** | O(log_B N / B) — amortized, because messages are batched in buffers |
-| **Write amplification** | Very low — messages are flushed in bulk |
-| **Best for** | Write-heavy workloads that also need range scans |
-| **Used by** | TokuDB (acquired by Percona, now EOL) |
+| Dimension               | Detail                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| **Structure**           | B-Tree where internal nodes contain message buffers. Inserts are messages that cascade down |
+| **Read**                | O(log_B N) — must check buffers along the path                                              |
+| **Write**               | O(log_B N / B) — amortized, because messages are batched in buffers                         |
+| **Write amplification** | Very low — messages are flushed in bulk                                                     |
+| **Best for**            | Write-heavy workloads that also need range scans                                            |
+| **Used by**             | TokuDB (acquired by Percona, now EOL)                                                       |
 
 **Key property:** Combines LSM's write throughput with B-Tree's read performance. The buffer-in-node pattern means writes don't immediately trigger I/O — they accumulate and flush in batches.
 
@@ -479,14 +480,14 @@ Node4:  [≤4 children, compact]   → Node16: [≤16 children]
                                          → Node256: [256 children, direct index]
 ```
 
-| Dimension | Detail |
-|---|---|
+| Dimension     | Detail                                                                               |
+| ------------- | ------------------------------------------------------------------------------------ |
 | **Structure** | Trie that adapts node size to occupancy. Each node type optimized for its fill level |
-| **Read** | O(k) where k = key length. Cache-friendly due to compact nodes |
-| **Write** | O(k) — node type promotion/demotion as needed |
-| **Space** | Very compact — empty slots not allocated |
-| **Best for** | In-memory indexes. Prefix-heavy workloads. String keys |
-| **Used by** | HyperLevelDB (index), Hyrise (in-memory DB), some in-memory stores |
+| **Read**      | O(k) where k = key length. Cache-friendly due to compact nodes                       |
+| **Write**     | O(k) — node type promotion/demotion as needed                                        |
+| **Space**     | Very compact — empty slots not allocated                                             |
+| **Best for**  | In-memory indexes. Prefix-heavy workloads. String keys                               |
+| **Used by**   | HyperLevelDB (index), Hyrise (in-memory DB), some in-memory stores                   |
 
 ---
 
@@ -497,14 +498,14 @@ Page A → [delta record 3] → [delta record 2] → [delta record 1] → [base 
               ↑ CAS chain — updates without latches ↑
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | B-Tree with latch-free updates via compare-and-swap delta chains |
-| **Read** | O(log n) — follow delta chain to base page |
-| **Write** | O(log n) — prepend delta record via CAS. No latches, no lock contention |
-| **Concurrency** | Excellent — latch-free means no lock contention on multi-core |
-| **Best for** | High-concurrency OLTP on many-core machines |
-| **Used by** | Microsoft Hekaton (SQL Server in-memory OLTP), research prototype |
+| Dimension       | Detail                                                                  |
+| --------------- | ----------------------------------------------------------------------- |
+| **Structure**   | B-Tree with latch-free updates via compare-and-swap delta chains        |
+| **Read**        | O(log n) — follow delta chain to base page                              |
+| **Write**       | O(log n) — prepend delta record via CAS. No latches, no lock contention |
+| **Concurrency** | Excellent — latch-free means no lock contention on multi-core           |
+| **Best for**    | High-concurrency OLTP on many-core machines                             |
+| **Used by**     | Microsoft Hekaton (SQL Server in-memory OLTP), research prototype       |
 
 ---
 
@@ -516,14 +517,14 @@ Page A → [delta record 3] → [delta record 2] → [delta record 1] → [base 
                             ↓ further compaction → [Even larger TSM File]
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | LSM variant optimized for time-series: shard by time range, compress per-field |
-| **Read** | Time-range scan. Delta-of-delta timestamp compression. Gorilla float compression |
-| **Write** | O(1) — same as LSM. Points ordered by time |
-| **Compression** | Exceptional — 10-20× compression on time-series data |
-| **Best for** | Time-series data exclusively |
-| **Used by** | InfluxDB |
+| Dimension       | Detail                                                                           |
+| --------------- | -------------------------------------------------------------------------------- |
+| **Structure**   | LSM variant optimized for time-series: shard by time range, compress per-field   |
+| **Read**        | Time-range scan. Delta-of-delta timestamp compression. Gorilla float compression |
+| **Write**       | O(1) — same as LSM. Points ordered by time                                       |
+| **Compression** | Exceptional — 10-20× compression on time-series data                             |
+| **Best for**    | Time-series data exclusively                                                     |
+| **Used by**     | InfluxDB                                                                         |
 
 ---
 
@@ -536,14 +537,14 @@ HNSW:                    IVF:
   Layer 0: [dense]         [Centroid N] → [vectors near centroid N]
 ```
 
-| Dimension | Detail |
-|---|---|
-| **HNSW** | Hierarchical navigable small world graph. Multi-layer skip-list-like graph for ANN |
-| **IVF** | Inverted file index. Partition space via centroids, search nearby partitions |
-| **Read** | O(log n) approximate. Recall vs speed tradeoff |
-| **Write** | O(log n) for insertion. Index rebuild for large batches |
-| **Best for** | Similarity search on high-dimensional vectors (embeddings) |
-| **Used by** | Pinecone, Weaviate, Qdrant, Milvus, pgvector |
+| Dimension    | Detail                                                                             |
+| ------------ | ---------------------------------------------------------------------------------- |
+| **HNSW**     | Hierarchical navigable small world graph. Multi-layer skip-list-like graph for ANN |
+| **IVF**      | Inverted file index. Partition space via centroids, search nearby partitions       |
+| **Read**     | O(log n) approximate. Recall vs speed tradeoff                                     |
+| **Write**    | O(log n) for insertion. Index rebuild for large batches                            |
+| **Best for** | Similarity search on high-dimensional vectors (embeddings)                         |
+| **Used by**  | Pinecone, Weaviate, Qdrant, Milvus, pgvector                                       |
 
 ---
 
@@ -554,15 +555,15 @@ Write: Modify leaf → copy path to root → atomically swap root pointer
 Old root still valid → readers see consistent snapshot
 ```
 
-| Dimension | Detail |
-|---|---|
-| **Structure** | B-Tree where every write creates new node copies up to root |
-| **Read** | O(log n) — no latches needed, readers see consistent snapshot |
-| **Write** | O(log n) — copies O(log n) nodes per write |
-| **Concurrency** | Excellent — readers never block, single writer |
-| **Space** | Higher — old versions kept until no readers reference them |
-| **Best for** | Single-writer, multi-reader embedded databases |
-| **Used by** | LMDB, ZFS (filesystem), bbolt |
+| Dimension       | Detail                                                        |
+| --------------- | ------------------------------------------------------------- |
+| **Structure**   | B-Tree where every write creates new node copies up to root   |
+| **Read**        | O(log n) — no latches needed, readers see consistent snapshot |
+| **Write**       | O(log n) — copies O(log n) nodes per write                    |
+| **Concurrency** | Excellent — readers never block, single writer                |
+| **Space**       | Higher — old versions kept until no readers reference them    |
+| **Best for**    | Single-writer, multi-reader embedded databases                |
+| **Used by**     | LMDB, ZFS (filesystem), bbolt                                 |
 
 ---
 
@@ -570,20 +571,20 @@ Old root still valid → readers see consistent snapshot
 
 ### Interface × Storage Engine Combinations in the Wild
 
-| | B+Tree | LSM-Tree | Hash | Columnar | Append-Only | mmap | ART | Fractal |
-|---|---|---|---|---|---|---|---|---|
-| **Key-Value** | bbolt, LMDB | RocksDB, Pebble, LevelDB | Bitcask, Redis | — | — | LMDB | HyperLevelDB | — |
-| **Document** | MongoDB (WiredTiger) | MongoDB (WiredTiger) | — | MongoDB (column store) | — | — | — | — |
-| **Relational** | PostgreSQL, MySQL, SQLite | MyRocks | — | ClickHouse, DuckDB | Datomic | SQLite | — | TokuDB |
-| **Graph** | Neo4j (native) | JanusGraph (Cassandra) | — | — | — | — | — | — |
-| **Time-Series** | TimescaleDB (PG) | InfluxDB TSM, Cassandra | — | ClickHouse, QuestDB | — | — | — | — |
-| **Search** | — | — | — | Elasticsearch (inverted+col) | — | — | — | — |
-| **Wide-Column** | — | Cassandra, ScyllaDB | — | — | — | — | — | — |
-| **Triple Store** | Virtuoso | — | — | — | — | — | — | — |
-| **Datalog** | — | — | — | — | Datomic | Datahike | — | — |
-| **Streaming** | — | Kafka (log segments) | — | — | Kafka, Pulsar | — | — | — |
-| **Vector** | — | Qdrant (rocksdb) | — | Milvus | — | — | — | — |
-| **Object** | — | — | — | — | S3 internals | — | — | — |
+|                  | B+Tree                    | LSM-Tree                 | Hash           | Columnar                     | Append-Only   | mmap     | ART          | Fractal |
+| ---------------- | ------------------------- | ------------------------ | -------------- | ---------------------------- | ------------- | -------- | ------------ | ------- |
+| **Key-Value**    | bbolt, LMDB               | RocksDB, Pebble, LevelDB | Bitcask, Redis | —                            | —             | LMDB     | HyperLevelDB | —       |
+| **Document**     | MongoDB (WiredTiger)      | MongoDB (WiredTiger)     | —              | MongoDB (column store)       | —             | —        | —            | —       |
+| **Relational**   | PostgreSQL, MySQL, SQLite | MyRocks                  | —              | ClickHouse, DuckDB           | Datomic       | SQLite   | —            | TokuDB  |
+| **Graph**        | Neo4j (native)            | JanusGraph (Cassandra)   | —              | —                            | —             | —        | —            | —       |
+| **Time-Series**  | TimescaleDB (PG)          | InfluxDB TSM, Cassandra  | —              | ClickHouse, QuestDB          | —             | —        | —            | —       |
+| **Search**       | —                         | —                        | —              | Elasticsearch (inverted+col) | —             | —        | —            | —       |
+| **Wide-Column**  | —                         | Cassandra, ScyllaDB      | —              | —                            | —             | —        | —            | —       |
+| **Triple Store** | Virtuoso                  | —                        | —              | —                            | —             | —        | —            | —       |
+| **Datalog**      | —                         | —                        | —              | —                            | Datomic       | Datahike | —            | —       |
+| **Streaming**    | —                         | Kafka (log segments)     | —              | —                            | Kafka, Pulsar | —        | —            | —       |
+| **Vector**       | —                         | Qdrant (rocksdb)         | —              | Milvus                       | —             | —        | —            | —       |
+| **Object**       | —                         | —                        | —              | —                            | S3 internals  | —        | —            | —       |
 
 ---
 
@@ -616,13 +617,13 @@ Old root still valid → readers see consistent snapshot
 
 ### What We Use Today
 
-| Component | Interface Model | Storage Engine | Backend |
-|---|---|---|---|
-| `SQLEventStore` | Ordered KV (keyed by aggregate+version) | B+Tree (via PostgreSQL/SQLite) | PG, SQLite, Turso |
-| `PebbleEventStore` | Ordered KV (keyed by aggregate+version) | LSM-Tree | Pebble |
-| `SQLSnapshotStore` | Key-Value (keyed by aggregate) | B+Tree | PG, SQLite, Turso |
-| `SQLCheckpointStore` | Key-Value (keyed by projection name) | B+Tree | PG, SQLite, Turso |
-| `SQLOutbox` | Queue (FIFO, status-filtered) | B+Tree | PG, SQLite, Turso |
+| Component            | Interface Model                         | Storage Engine                 | Backend           |
+| -------------------- | --------------------------------------- | ------------------------------ | ----------------- |
+| `SQLEventStore`      | Ordered KV (keyed by aggregate+version) | B+Tree (via PostgreSQL/SQLite) | PG, SQLite, Turso |
+| `PebbleEventStore`   | Ordered KV (keyed by aggregate+version) | LSM-Tree                       | Pebble            |
+| `SQLSnapshotStore`   | Key-Value (keyed by aggregate)          | B+Tree                         | PG, SQLite, Turso |
+| `SQLCheckpointStore` | Key-Value (keyed by projection name)    | B+Tree                         | PG, SQLite, Turso |
+| `SQLOutbox`          | Queue (FIFO, status-filtered)           | B+Tree                         | PG, SQLite, Turso |
 
 ### What Our Interface Model Actually Is
 
@@ -637,23 +638,23 @@ This confirms that a `kv.Store` interface (Get/Set/Delete/Iterator/Batch) covers
 
 ### Storage Engines That Would Fit Our Access Patterns
 
-| Engine | Why It Fits | Trade-off |
-|---|---|---|
-| **LSM-Tree** (Pebble, BadgerDB) | Append-heavy (events are append-only), prefix scan for aggregate loading | Read amplification for large histories — mitigated by snapshots |
-| **B+Tree** (PostgreSQL, SQLite) | Point lookup for snapshots/checkpoints, range scan for events | Write amplification on high-ingest — acceptable for most workloads |
-| **Append-Only Log** (Kafka-style) | Natural fit for event sourcing — events ARE append-only | No per-aggregate random access without secondary index |
-| **CoW B+Tree** (LMDB) | Snapshot reads for free (time-travel), lock-free readers | Single writer bottleneck — acceptable for embedded use |
-| **Hash + Log** (Bitcask-style) | O(1) lookups for snapshots/checkpoints | No range scan — can't load events by aggregate prefix |
+| Engine                            | Why It Fits                                                              | Trade-off                                                          |
+| --------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **LSM-Tree** (Pebble, BadgerDB)   | Append-heavy (events are append-only), prefix scan for aggregate loading | Read amplification for large histories — mitigated by snapshots    |
+| **B+Tree** (PostgreSQL, SQLite)   | Point lookup for snapshots/checkpoints, range scan for events            | Write amplification on high-ingest — acceptable for most workloads |
+| **Append-Only Log** (Kafka-style) | Natural fit for event sourcing — events ARE append-only                  | No per-aggregate random access without secondary index             |
+| **CoW B+Tree** (LMDB)             | Snapshot reads for free (time-travel), lock-free readers                 | Single writer bottleneck — acceptable for embedded use             |
+| **Hash + Log** (Bitcask-style)    | O(1) lookups for snapshots/checkpoints                                   | No range scan — can't load events by aggregate prefix              |
 
 ### Storage Engines That Would NOT Fit
 
-| Engine | Why Not |
-|---|---|
-| **Columnar** | We need row-level access (load one aggregate), not column aggregates |
-| **Vector Index** | No similarity search in event sourcing |
-| **Fractal Tree** | EOL (TokuDB), no maintained Go implementation |
-| **ART** | In-memory only, no persistence |
-| **BW-Tree** | Research prototype, no Go implementation |
+| Engine           | Why Not                                                              |
+| ---------------- | -------------------------------------------------------------------- |
+| **Columnar**     | We need row-level access (load one aggregate), not column aggregates |
+| **Vector Index** | No similarity search in event sourcing                               |
+| **Fractal Tree** | EOL (TokuDB), no maintained Go implementation                        |
+| **ART**          | In-memory only, no persistence                                       |
+| **BW-Tree**      | Research prototype, no Go implementation                             |
 
 ---
 

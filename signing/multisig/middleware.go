@@ -20,7 +20,10 @@ import (
 //	bus.UsePublish(multisig.MultiSignMiddleware(serverSigner))
 func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 	if signer == nil {
-		return signing.RejectingPublishMiddleware("signing.nil_signer", "MultiSignMiddleware called with nil signer")
+		return signing.RejectingPublishMiddleware(
+			"signing.nil_signer",
+			"MultiSignMiddleware called with nil signer",
+		)
 	}
 
 	return func(next event.Publisher) event.Publisher {

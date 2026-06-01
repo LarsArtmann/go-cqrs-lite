@@ -25,68 +25,68 @@ The session eliminated 3 direct dependencies and 3 transitive dependencies from 
 
 ### Critical: Root Cause Fix (core v1.6.0 phantom dep — FINALLY solved)
 
-| # | What | Root Cause | Fix | Commit |
-|---|------|-----------|-----|--------|
-| 1 | core v1.6.0 kept re-appearing in command/decider/query go.mod | These modules require `testhelpers v1.6.0` (published when core/ existed) but **lacked local replace directives**. `go work sync` resolved the published module graph, pulling core as indirect. The buildflow pre-commit hook then auto-committed it. | Added missing replace directives: command/+testhelpers, decider/+memory, query/+testhelpers | `99d6f6a` |
+| #   | What                                                          | Root Cause                                                                                                                                                                                                                                             | Fix                                                                                         | Commit    |
+| --- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | --------- |
+| 1   | core v1.6.0 kept re-appearing in command/decider/query go.mod | These modules require `testhelpers v1.6.0` (published when core/ existed) but **lacked local replace directives**. `go work sync` resolved the published module graph, pulling core as indirect. The buildflow pre-commit hook then auto-committed it. | Added missing replace directives: command/+testhelpers, decider/+memory, query/+testhelpers | `99d6f6a` |
 
 **Key insight:** Session 155 treated the symptom (removing the core line) but not the cause (missing replaces). The buildflow hook re-added it every commit. The real fix was ensuring all local modules have replace directives so `go work sync` never needs to resolve published versions.
 
 ### Dependency Purge
 
-| # | What | Impact | Commit |
-|---|------|--------|--------|
-| 2 | **Deleted `event/reactive.go`** — zero production consumers of EventBus, FilterEventType, HandlerToObserver | Removed `samber/ro` (direct) + `samber/lo` + `golang.org/x/exp` (indirect) from `event/` and all downstream modules | `2f9caf9` |
-| 3 | **Buildflow cascade tidy** — ro removal propagated to 47 files | memory, decider, projection, listing, storage, otel, pebble, etc. all lost samber/lo + samber/ro + golang.org/x/exp. Net -199 lines removed from go.mod/go.sum files | `7d3f89e` |
+| #   | What                                                                                                        | Impact                                                                                                                                                               | Commit    |
+| --- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 2   | **Deleted `event/reactive.go`** — zero production consumers of EventBus, FilterEventType, HandlerToObserver | Removed `samber/ro` (direct) + `samber/lo` + `golang.org/x/exp` (indirect) from `event/` and all downstream modules                                                  | `2f9caf9` |
+| 3   | **Buildflow cascade tidy** — ro removal propagated to 47 files                                              | memory, decider, projection, listing, storage, otel, pebble, etc. all lost samber/lo + samber/ro + golang.org/x/exp. Net -199 lines removed from go.mod/go.sum files | `7d3f89e` |
 
 **Before:** `event/` had 3 direct + 3 transitive deps from ro.
 **After:** `event/` has zero samber deps. The entire workspace lost ~6 dependency entries.
 
 ### Type Deduplication
 
-| # | What | How | Commit |
-|---|------|-----|--------|
-| 4 | `command.AggregateType` = `event.AggregateType` | Changed from duplicate `type AggregateType string` to type alias `type AggregateType = event.AggregateType` | `d8aa825` |
-| 5 | `command.AggregateRef` = `event.AggregateRef` | Changed from duplicate struct to type alias `type AggregateRef = event.AggregateRef` | `d8aa825` |
-| 6 | `command.ParseAggregateType` delegates to `event.ParseAggregateType` | Wrapper with `%w` error wrapping for lint compliance | `d8aa825` + pending lint fix |
+| #   | What                                                                 | How                                                                                                         | Commit                       |
+| --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 4   | `command.AggregateType` = `event.AggregateType`                      | Changed from duplicate `type AggregateType string` to type alias `type AggregateType = event.AggregateType` | `d8aa825`                    |
+| 5   | `command.AggregateRef` = `event.AggregateRef`                        | Changed from duplicate struct to type alias `type AggregateRef = event.AggregateRef`                        | `d8aa825`                    |
+| 6   | `command.ParseAggregateType` delegates to `event.ParseAggregateType` | Wrapper with `%w` error wrapping for lint compliance                                                        | `d8aa825` + pending lint fix |
 
 ### Other Fixes
 
-| # | What | Commit |
-|---|------|--------|
-| 7 | Fixed misleading `otel.TraceIDLogger` docstring — claimed trace ID injection but only added `component=cqrs` | `3e9f88e` |
-| 8 | Fixed `snapshot.EveryNEvents` — bare `fmt.Errorf` → `event.NewRejection` for error-family consistency | `6a633ba` |
-| 9 | Added `SchemaVersion.Increment()` — type-safe version arithmetic, used in `schema/registry.go` | `6ccc2f5` |
+| #   | What                                                                                                         | Commit    |
+| --- | ------------------------------------------------------------------------------------------------------------ | --------- |
+| 7   | Fixed misleading `otel.TraceIDLogger` docstring — claimed trace ID injection but only added `component=cqrs` | `3e9f88e` |
+| 8   | Fixed `snapshot.EveryNEvents` — bare `fmt.Errorf` → `event.NewRejection` for error-family consistency        | `6a633ba` |
+| 9   | Added `SchemaVersion.Increment()` — type-safe version arithmetic, used in `schema/registry.go`               | `6ccc2f5` |
 
 ---
 
 ## B. PARTIALLY DONE
 
-| Item | Status | What's Left |
-|------|--------|-------------|
+| Item                        | Status                                                                                                                                                                                                                                   | What's Left               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
 | **core v1.6.0 elimination** | Fixed in 3 modules (command, decider, query). Buildflow may re-add to decider on next commit (testhelpers v1.6.0 published with core dep). **Permanent fix requires publishing new testhelpers version or adding `// indirect` ignore.** | Monitor for re-regression |
-| **Lint cleanup** | event/ = 0 issues. command/ has 1 pre-existing exhaustruct + 1 wrapcheck fix pending commit. | Commit the wrapcheck fix |
+| **Lint cleanup**            | event/ = 0 issues. command/ has 1 pre-existing exhaustruct + 1 wrapcheck fix pending commit.                                                                                                                                             | Commit the wrapcheck fix  |
 
 ---
 
 ## C. NOT STARTED
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **Add `AggregateType()` to `Command` interface** — enables simplified `decider.Execute(ctx, cmd, decide)` | High (ergonomics) | Medium (breaking for external impls) |
-| 2 | **Add `ID()` to `Command` interface** — traceability | Medium | Medium (breaking) |
-| 3 | **`Snapshot.Encoding` field** — future-proof against codec changes | High | Medium (20+ call sites) |
-| 4 | **Fix `query.DispatchTyped` double-wrapping errors** | Low | Tiny |
-| 5 | **Remove `io.Closer` from `EventSink`/`EventSource`** | Low | Large |
-| 6 | **Add `Unsubscribe` to `event.Bus`** | Medium | Medium |
-| 7 | **Paginated `Load` on `EventSource`** | High | Large |
-| 8 | **`listing.AggregateRef` — embed `event.AggregateRef`** | Low | Small |
-| 9 | **Consolidate OTel helpers** (`StartSpan`, `SpanFromContext` are trivial wrappers) | Low | Small |
-| 10 | **Simplify metrics middleware** — remove `MetricsRecorder` interface, keep only OTel-specific | Low | Medium |
-| 11 | **Fix `Metadata` struct `omitempty` on nested structs** | Low | Tiny |
-| 12 | **`CheckVersionConflict` should take `Version` not `int`** | Low | Tiny |
-| 13 | **Standardize example/ placeholder versions** | Low | Tiny |
-| 14 | **Remove `StreamKey()` from `AggregateRef`** (duplicates `String()`) | Low | Tiny |
-| 15 | **Publish v1.0.0 tags** to eliminate all replace directives | High | Medium |
+| #   | Item                                                                                                      | Impact            | Effort                               |
+| --- | --------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------ |
+| 1   | **Add `AggregateType()` to `Command` interface** — enables simplified `decider.Execute(ctx, cmd, decide)` | High (ergonomics) | Medium (breaking for external impls) |
+| 2   | **Add `ID()` to `Command` interface** — traceability                                                      | Medium            | Medium (breaking)                    |
+| 3   | **`Snapshot.Encoding` field** — future-proof against codec changes                                        | High              | Medium (20+ call sites)              |
+| 4   | **Fix `query.DispatchTyped` double-wrapping errors**                                                      | Low               | Tiny                                 |
+| 5   | **Remove `io.Closer` from `EventSink`/`EventSource`**                                                     | Low               | Large                                |
+| 6   | **Add `Unsubscribe` to `event.Bus`**                                                                      | Medium            | Medium                               |
+| 7   | **Paginated `Load` on `EventSource`**                                                                     | High              | Large                                |
+| 8   | **`listing.AggregateRef` — embed `event.AggregateRef`**                                                   | Low               | Small                                |
+| 9   | **Consolidate OTel helpers** (`StartSpan`, `SpanFromContext` are trivial wrappers)                        | Low               | Small                                |
+| 10  | **Simplify metrics middleware** — remove `MetricsRecorder` interface, keep only OTel-specific             | Low               | Medium                               |
+| 11  | **Fix `Metadata` struct `omitempty` on nested structs**                                                   | Low               | Tiny                                 |
+| 12  | **`CheckVersionConflict` should take `Version` not `int`**                                                | Low               | Tiny                                 |
+| 13  | **Standardize example/ placeholder versions**                                                             | Low               | Tiny                                 |
+| 14  | **Remove `StreamKey()` from `AggregateRef`** (duplicates `String()`)                                      | Low               | Tiny                                 |
+| 15  | **Publish v1.0.0 tags** to eliminate all replace directives                                               | High              | Medium                               |
 
 ---
 
@@ -107,6 +107,7 @@ This is the biggest fuck-up of the session. The core v1.6.0 phantom dependency w
 ### samber/ro Integration — Never Should Have Happened
 
 The samber/ro integration (session 154, commit `cc4ceb1`) was premature:
+
 - Created `EventBus` type alias with zero consumers
 - Created `command/reactive.go` dead-on-arrival
 - Dragged `samber/lo` + `golang.org/x/exp` into every module
@@ -119,16 +120,19 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 ## E. WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 1. **Command routing needs `AggregateType()`** — the biggest ergonomic gap. `decider.Execute()` takes aggregateType separately, which is redundant if the command already knows its target.
 2. **Replace directives are fragile** — every new inter-module dependency requires a replace directive. Publishing v1.0.0 tags would eliminate this entirely.
 3. **Buildflow pre-commit hook fights manual go.mod edits** — the hook auto-tidies and commits, sometimes re-introducing deps we just removed. Need either: (a) configure buildflow to ignore core, or (b) ensure all local replaces are present BEFORE committing.
 
 ### Code Quality
+
 4. **`command/store.go:102` exhaustruct** — the only remaining lint issue. `Metadata{}` literal is missing 4 fields. Should use `NewMetadata()` constructor.
 5. **`listing.AggregateRef` doesn't embed `event.AggregateRef`** — field duplication, but the `Ref.` accessor pattern is used everywhere so the refactor is disproportionate.
 6. **`snapshot.Snapshot.State` is mutable** — no defensive copy, but this is consistent with Go stdlib patterns.
 
 ### Dependencies
+
 7. **`samber/lo` is completely gone now** — removed as transitive of ro. Verify no other module still pulls it.
 8. **`go-faster/yaml` → `gopkg.in/yaml.v3`** already done (session 155). Verify the cascade is complete.
 9. **Consider removing `stretchr/testify`** — some modules use both ginkgo+gomega AND testify. Pick one.
@@ -138,6 +142,7 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 ## F. Top #25 Things We Should Get Done Next
 
 ### P0 — Do Next (High Impact, Low Effort)
+
 1. **Commit the pending wrapcheck fix** in `command/aggregate_ref.go`
 2. **Fix the 1 remaining lint issue** (`command/store.go:102` exhaustruct — use `NewMetadata()` constructor)
 3. **Add `AggregateType()` to `Command` interface** — biggest ergonomic win
@@ -145,6 +150,7 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 5. **Publish v1.0.0 tags** for all modules — eliminates ALL replace directives permanently
 
 ### P1 — Do Soon (High Impact, Medium Effort)
+
 6. **Add `Encoding` field to `snapshot.Snapshot`** — codec migration safety
 7. **Add `Unsubscribe` to `event.Bus`** interface
 8. **Write tests for `turso/`** — zero coverage on a database connector
@@ -153,6 +159,7 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 11. **Simplify `decider.Execute()` to take `Command` directly** (depends on #3)
 
 ### P2 — Do Eventually (Medium Impact, Low Effort)
+
 12. **Remove `StreamKey()` from `AggregateRef`** — duplicates `String()`
 13. **Fix `Metadata` struct `omitempty`** on nested struct fields
 14. **`CheckVersionConflict` should take `Version` not `int`**
@@ -163,6 +170,7 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 19. **Add `Version.Decrement()`** for symmetry with `Increment()`
 
 ### P3 — Nice to Have (Low Impact)
+
 20. **Remove `stretchr/testify` where gomega suffices**
 21. **`listing.AggregateRef` embed `event.AggregateRef`**
 22. **Simplify metrics middleware** — remove `MetricsRecorder` interface
@@ -179,6 +187,7 @@ The impedance mismatch between Go's `func(ctx, T) error` and ro's `Observer.OnNe
 Every commit, the buildflow pre-commit hook runs `go mod tidy`, which resolves `testhelpers v1.6.0` from the network, sees it transitively depends on `core v1.6.0`, and adds core as indirect to modules that depend on testhelpers. The local replace directive should override this, but the indirect line still appears.
 
 Options:
+
 1. **Publish new testhelpers version** (e.g., v1.7.0) that doesn't reference core — cleanest but requires a release
 2. **Configure buildflow to ignore core** in its tidy step — requires buildflow config change
 3. **Always commit with `git -c core.hooksPath=/dev/null`** — works but fragile (easy to forget)
@@ -190,15 +199,15 @@ Which approach do you prefer?
 
 ## Workspace Metrics
 
-| Metric | Value |
-|--------|-------|
-| Go version | 1.26.3 |
-| Workspace modules | 29 (22 library + 6 examples + 1 integration) |
-| Test packages | 36 (all green) |
-| No-test packages | 3 (`storage/sql`, `turso`, `catalog/internal/cattest`) |
-| Lint issues | 1 pre-existing + 1 fix pending |
+| Metric                            | Value                                                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Go version                        | 1.26.3                                                                                                    |
+| Workspace modules                 | 29 (22 library + 6 examples + 1 integration)                                                              |
+| Test packages                     | 36 (all green)                                                                                            |
+| No-test packages                  | 3 (`storage/sql`, `turso`, `catalog/internal/cattest`)                                                    |
+| Lint issues                       | 1 pre-existing + 1 fix pending                                                                            |
 | Dependencies removed this session | 3 direct (samber/ro) + 3 transitive (samber/lo, golang.org/x/exp) from event/ and cascaded to 15+ modules |
-| Net lines removed | -199 from go.mod/go.sum files alone |
+| Net lines removed                 | -199 from go.mod/go.sum files alone                                                                       |
 
 ## Dependency Graph (after ro removal)
 

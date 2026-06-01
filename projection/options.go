@@ -23,6 +23,8 @@ type DeadLetterHandler func(ctx context.Context, projectionName string, evt even
 // RunnerOption configures a projection Runner.
 type RunnerOption func(*runnerOptions)
 
+const defaultRetryMaxDelay = 30 * time.Second
+
 // WithRetry enables automatic retry on handler errors.
 // count is the maximum number of retry attempts.
 // delay is the initial backoff delay between retries.
@@ -30,15 +32,15 @@ func WithRetry(count int, delay time.Duration) RunnerOption {
 	return func(o *runnerOptions) {
 		o.retryCount = count
 		o.retryDelay = delay
-		o.retryMaxDelay = 30 * time.Second
+		o.retryMaxDelay = defaultRetryMaxDelay
 	}
 }
 
 // WithRetryMaxDelay caps the exponential backoff at the given maximum.
 // Must be called after WithRetry to take effect.
-func WithRetryMaxDelay(max time.Duration) RunnerOption {
+func WithRetryMaxDelay(maxDelay time.Duration) RunnerOption {
 	return func(o *runnerOptions) {
-		o.retryMaxDelay = max
+		o.retryMaxDelay = maxDelay
 	}
 }
 

@@ -18,19 +18,20 @@ Migrated `event.Metadata` and `command.Metadata` from pointer (`*Metadata`) to v
 
 ### Metadata value-type migration (this session)
 
-| Tier | What | Files | Status |
-|------|------|-------|--------|
-| 1 | Core types: `metadata.go`, `event.go`, `options.go`, `tombstone.go` | 4 production + 5 test | DONE |
-| 2 | Command types: `PersistedCommand.metadata` value | 1 production + 1 test | DONE |
-| 3 | Storage layer: `MarshalMetadata`, `UnmarshalEventMetadata`, `aggregate_projection` | 3 production + 2 test | DONE |
-| 4 | Pebble: `serializableEvent`, `marshalMetadata` | 2 production + 1 test | DONE |
-| 5 | Integrations: Watermill `buildMetadata`, signing nil-checks | 3 production + 2 test | DONE |
-| 6 | Test assertions: nil-checks removed, `assertCustomKV` updated, clone test fixed | — | DONE |
-| 7 | Full verification: build, vet, race, all 32 packages | — | DONE |
+| Tier | What                                                                               | Files                 | Status |
+| ---- | ---------------------------------------------------------------------------------- | --------------------- | ------ |
+| 1    | Core types: `metadata.go`, `event.go`, `options.go`, `tombstone.go`                | 4 production + 5 test | DONE   |
+| 2    | Command types: `PersistedCommand.metadata` value                                   | 1 production + 1 test | DONE   |
+| 3    | Storage layer: `MarshalMetadata`, `UnmarshalEventMetadata`, `aggregate_projection` | 3 production + 2 test | DONE   |
+| 4    | Pebble: `serializableEvent`, `marshalMetadata`                                     | 2 production + 1 test | DONE   |
+| 5    | Integrations: Watermill `buildMetadata`, signing nil-checks                        | 3 production + 2 test | DONE   |
+| 6    | Test assertions: nil-checks removed, `assertCustomKV` updated, clone test fixed    | —                     | DONE   |
+| 7    | Full verification: build, vet, race, all 32 packages                               | —                     | DONE   |
 
 ### Specific changes per file
 
 **Production (12 files):**
+
 - `core/event/metadata.go` — Added `omitempty` to 4 ID JSON tags; `NewMetadata()` returns value; added `Clone() Metadata` and `Merge(other Metadata) Metadata`; changed `mergeFrom` (pointer mutation) to `Merge` (pure function returning new value)
 - `core/event/event.go` — `metadata *Metadata` → `Metadata`; interface `Metadata()` returns `Metadata` (value); simplified getter from 15 lines of defensive copy to `return e.metadata.Clone()`; removed `maps` import
 - `core/event/options.go` — Removed 4 nil-check guards (`if e.metadata == nil { e.metadata = NewMetadata() }`); `WithMetadata` takes `Metadata` (value) instead of `*Metadata`; uses `Merge` instead of `mergeFrom`
@@ -45,6 +46,7 @@ Migrated `event.Metadata` and `command.Metadata` from pointer (`*Metadata`) to v
 - `signing/multisig/extract.go` — `md == nil || md.Custom == nil` → `md.Custom == nil`
 
 **Tests (11 files):**
+
 - `core/event/event_core_test.go` — `Metadata() == nil` → `Metadata().Custom == nil`
 - `core/event/event_metadata_test.go` — `NewMetadata()` nil check removed; `&event.Metadata{}` → `event.Metadata{}` in 3 places; `assertCustomKV` takes value; renamed `TestCore_MetadataNil` → `TestCore_MetadataDefaultValue`; removed nil assertion in `TestEnsureMetadata_WhenNil`
 - `core/event/builder_test.go` — Removed 2 `meta == nil` guards
@@ -58,6 +60,7 @@ Migrated `event.Metadata` and `command.Metadata` from pointer (`*Metadata`) to v
 - `signing/multisig/signer_test.go` — Fixed unassignable field on value return
 
 ### From previous sessions (still accurate)
+
 - Codec migration (session 151) — COMPLETE
 - Outbox removal (sessions 152-153) — COMPLETE (production code done, but leaves pre-existing compilation errors in decider/storage/examples — see section D)
 
@@ -72,6 +75,7 @@ Nothing is partially done from this session's work.
 ## C) NOT STARTED
 
 ### From the research docs (not yet attempted):
+
 1. **CommandBus/CommandPublisher** — No async command dispatch exists yet. Only in-process `Dispatcher`. Research doc identifies this as an architectural gap.
 2. **CommandOutbox** — Commands need an outbox for the dual-write problem (same as events). Requires CommandBus first.
 3. **CommandJournal** — Permanent source-of-truth for commands (analogous to event Journal). Research decided: concrete `CommandJournal`, not generic `Journal[T, ID]`.
@@ -85,16 +89,19 @@ Nothing is partially done from this session's work.
 ## D) TOTALLY FUCKED UP (Pre-existing issues)
 
 ### 1. SaveSnapshot duplicate declaration
+
 - `core/event/publish_helper.go:29` and `core/event/snapshot_helper.go:28` both declare `SaveSnapshot`
 - From outbox removal (session 152-153): function was moved but the original wasn't deleted
 - **Blocks:** Clean LSP, but doesn't block tests (both files compile individually, workspace resolves correctly)
 
 ### 2. go.mod tidy needed across 8+ modules
+
 - `core/decider`, `example/projection`, `example/saga-pattern`, `example/todo`, `storage`, `turso`, `signing/multisig`, `watermill` all need `go mod tidy`
 - Missing `codec` dependency in go.mod files (from codec migration session 151)
 - **Blocks:** Per-module `GOWORK=off go test` in these modules; workspace tests work fine via `go.work`
 
 ### 3. Pre-existing test compilation errors (outbox removal remnants)
+
 - `core/decider/decider_execute_test.go` — references `testhelpers.NewFakeOutbox`, `decider.WithOutbox` (deleted)
 - `core/event/batch_test.go` — references `event.NewOutboxID`, `event.OutboxID` (deleted)
 - `core/event/benchmark_test.go` — wrong arg count to `event.PublishChanges` (signature changed)
@@ -108,16 +115,19 @@ Nothing is partially done from this session's work.
 ## E) WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 1. **Eliminate remaining `*Metadata` in internal helpers** — `metadataOption[T any] func(*Metadata, T)` still uses pointer for in-place mutation. Could be refactored to pure functional style, but low priority since it's internal.
 2. **Wire format test** — No explicit test verifying that zero-value `Metadata{}` serializes to `{"metadata":{}}` in JSON. Should add a roundtrip test for the wire format change.
 3. **Custom map nil-checks remain** — `md.Custom == nil` checks still exist in 6 production files (tombstone, signing, aggregate_projection, options, metadata.Merge). These are correct — the Custom map can be nil on zero-value Metadata. But could be eliminated by always initializing Custom in Metadata zero-value (add `Custom: make(map[MetadataKey]string)` to struct tag default or use a constructor everywhere).
 
 ### Process
+
 4. **Session 152-153 cleanup incomplete** — The outbox removal left broken test files. These should be fixed before adding more features.
 5. **go.mod tidy cascade** — Every module that depends on `core` needs tidy after the codec migration. This is a one-time fix that should be batched.
 6. **SaveSnapshot duplication** — Simple deletion fix, should be done immediately.
 
 ### Code Quality
+
 7. **No benchmarks for Metadata.Clone()** — The new `Clone()` method is called on every `Metadata()` access. Should benchmark to ensure no regression.
 8. **Watermill `buildMetadata` always allocates** — Now always calls `event.NewMetadata()` which allocates a Custom map, even when no Watermill metadata keys exist. Could be optimized with a "has any" check.
 9. **Integration test coverage** — `integration/event/metadata_roundtrip_test.go` exists but wasn't changed. Verify it still passes with value semantics.
@@ -127,12 +137,14 @@ Nothing is partially done from this session's work.
 ## F) Top 25 Things We Should Get Done Next
 
 ### Critical (blocks clean CI)
+
 1. **Fix SaveSnapshot duplicate declaration** — Delete one of the two declarations
 2. **Run `go mod tidy` on all 8+ modules** — Fix codec dependency cascade
 3. **Fix broken outbox-removal test files** — `decider_execute_test.go`, `batch_test.go`, `benchmark_test.go`, `publish_helper_test.go`, `snapshot_helper_test.go`, `constructor_test.go`
 4. **Verify CI passes** — Run `nix run .#test` and `nix run .#lint`
 
 ### High Priority (architectural)
+
 5. **Add CommandBus interface** — `CommandPublisher` + `CommandSubscriber` for async command dispatch
 6. **Add CommandOutbox** — Ephemeral reliability mechanism for commands (dual-write solution)
 7. **Add CommandJournal** — Permanent source-of-truth for commands (concrete, not generic)
@@ -140,6 +152,7 @@ Nothing is partially done from this session's work.
 9. **Add ClientID as first-class Metadata field** — Promote from `Custom` map to named field
 
 ### Medium Priority (quality)
+
 10. **Add wire-format roundtrip test** — Verify `Metadata{}` JSON serialization behavior
 11. **Benchmark Metadata.Clone()** — Ensure no performance regression on hot path
 12. **Optimize watermill buildMetadata** — Skip allocation when no metadata keys present
@@ -149,6 +162,7 @@ Nothing is partially done from this session's work.
 16. **Add versioned store tests** — Verify event upcasting works with value Metadata
 
 ### Lower Priority (nice-to-have)
+
 17. **Consolidate test helpers** — `tamperEvent` exists in both `signing/` and `signing/multisig/`
 18. **Add `Metadata.IsZero()` method** — Check if all fields are zero values
 19. **Add `Metadata.Equal(other Metadata) bool`** — Structural equality for testing
@@ -166,11 +180,13 @@ Nothing is partially done from this session's work.
 **Should the `Custom` map in `Metadata` be always-initialized (never nil) or remain nil-able?**
 
 Arguments for always-initialized:
+
 - Eliminates all 6 remaining `Custom == nil` checks
 - Matches the behavior of `NewMetadata()` which already initializes it
 - Makes `m.Custom["key"]` safe without nil checks
 
 Arguments against:
+
 - Zero-value `Metadata{}` would no longer be truly zero — `reflect.DeepEqual(Metadata{}, Metadata{Custom: map[MetadataKey]string{}})` is false
 - JSON serialization of `Metadata{Custom: map[MetadataKey]string{}}` produces `{"custom":{}}` even when empty, vs omitting with nil + omitempty
 - Small allocation overhead for every Metadata even when unused

@@ -9,16 +9,16 @@
 
 ## 1. Executive Summary
 
-| Category | Status | Notes |
-|----------|--------|-------|
-| **Build** | ✅ PASS | All modules compile clean |
-| **Tests** | ✅ PASS | 37/37 packages pass |
-| **Dedup (t=30)** | ✅ PASS | 0 production clone groups |
-| **Dedup (t=15)** | ⚠️ 83 groups | All verified non-actionable (see §5) |
-| **TODO_LIST.md** | 🔶 83% | 235 done / 48 pending / 327 total |
-| **P0 bugs** | 🔴 1 active | cmd/cqrs-gen query signature mismatch |
-| **P1 issues** | 🟡 1 incorrect | metricName* constants ARE used in tests |
-| **LSP diagnostics** | ⚠️ Stale | Pre-existing pebble test errors (38 issues, all in `_test.go`) |
+| Category            | Status         | Notes                                                          |
+| ------------------- | -------------- | -------------------------------------------------------------- |
+| **Build**           | ✅ PASS        | All modules compile clean                                      |
+| **Tests**           | ✅ PASS        | 37/37 packages pass                                            |
+| **Dedup (t=30)**    | ✅ PASS        | 0 production clone groups                                      |
+| **Dedup (t=15)**    | ⚠️ 83 groups   | All verified non-actionable (see §5)                           |
+| **TODO_LIST.md**    | 🔶 83%         | 235 done / 48 pending / 327 total                              |
+| **P0 bugs**         | 🔴 1 active    | cmd/cqrs-gen query signature mismatch                          |
+| **P1 issues**       | 🟡 1 incorrect | metricName\* constants ARE used in tests                       |
+| **LSP diagnostics** | ⚠️ Stale       | Pre-existing pebble test errors (38 issues, all in `_test.go`) |
 
 ---
 
@@ -30,42 +30,45 @@ Run time: ~1.5s total
 Modules with tests: 30/32 (eventtest + cattest + storage/sql have no test files)
 ```
 
-| Module | Status | Time |
-|--------|--------|------|
-| event | ✅ | 0.013s |
-| command | ✅ | 0.006s |
-| query | ✅ | 0.007s |
-| decider | ✅ | 0.009s |
-| id | ✅ | 0.004s |
-| dispatcher | ✅ | 0.003s |
-| schema | ✅ | 0.003s |
-| snapshot | ✅ | 0.003s |
-| memory | ✅ | 0.011s |
-| catalog (+6 sub) | ✅ | 0.008–0.040s |
-| middleware | ✅ | 0.151s |
-| integration (+4 sub) | ✅ | 0.003–0.067s |
-| projection | ✅ | 0.261s |
-| signing (+1 sub) | ✅ | 0.009–0.013s |
-| storage | ✅ | 0.032s |
-| watermill | ✅ | 0.003s |
-| pebble | ✅ | 0.029s |
-| codec | ✅ | 0.003s |
-| listing | ✅ | 0.005s |
-| cmd/cqrs-gen | ✅ | 0.003s |
+| Module               | Status | Time         |
+| -------------------- | ------ | ------------ |
+| event                | ✅     | 0.013s       |
+| command              | ✅     | 0.006s       |
+| query                | ✅     | 0.007s       |
+| decider              | ✅     | 0.009s       |
+| id                   | ✅     | 0.004s       |
+| dispatcher           | ✅     | 0.003s       |
+| schema               | ✅     | 0.003s       |
+| snapshot             | ✅     | 0.003s       |
+| memory               | ✅     | 0.011s       |
+| catalog (+6 sub)     | ✅     | 0.008–0.040s |
+| middleware           | ✅     | 0.151s       |
+| integration (+4 sub) | ✅     | 0.003–0.067s |
+| projection           | ✅     | 0.261s       |
+| signing (+1 sub)     | ✅     | 0.009–0.013s |
+| storage              | ✅     | 0.032s       |
+| watermill            | ✅     | 0.003s       |
+| pebble               | ✅     | 0.029s       |
+| codec                | ✅     | 0.003s       |
+| listing              | ✅     | 0.005s       |
+| cmd/cqrs-gen         | ✅     | 0.003s       |
 
 ---
 
 ## 3. Dedup Status — Three Thresholds
 
 ### t=45 (Phase 1 — COMPLETE ✅)
+
 - **Result:** 0 clone groups
 - **Action:** Eliminated all 9 production clone groups by extracting shared helpers
 
 ### t=30 (Phase 2 — COMPLETE ✅)
+
 - **Result:** 0 clone groups
 - **Action:** Eliminated all 12 production clone groups; extracted `ReconstructEventFromFields`, `StartAggregateSpan`, inlined pebble wrapper
 
 ### t=15 (Phase 3 audit — COMPLETE, 83 groups non-actionable)
+
 - **Result:** 83 clone groups
 - **Triage:** Every group was verified non-actionable (see §5)
 - **Bonus fix:** Found and removed `pebble/reconstruct.go` (unused `unmarshalEventMetadata`)
@@ -74,18 +77,18 @@ Modules with tests: 30/32 (eventtest + cattest + storage/sql have no test files)
 
 ## 4. Commits This Session (Multi-phase pass)
 
-| Hash | Description |
-|------|-------------|
-| `9e95845` | fix(turso): remove unnecessary context import hack from doc.go |
-| `bdeee73` | refactor(storage): extract SQL event column list to sql.EventColumns constant |
-| `bfe13c7` | fix(projection): use time.NewTimer instead of time.After, add backoff cap |
-| `3857334` | chore(event): remove unused deprecated ParseUserAgent alias |
-| `1fed19d` | refactor(query): migrate all ErrQueryNotSupported usages to ErrHandlerNotFound |
-| `4d67aa2` | docs(storage): add godoc comments to SQLSnapshotStore and constructors |
-| `f0ec55d` | chore(pebble): delete unused reconstruct.go, inline marshalMetadata |
+| Hash      | Description                                                                     |
+| --------- | ------------------------------------------------------------------------------- |
+| `9e95845` | fix(turso): remove unnecessary context import hack from doc.go                  |
+| `bdeee73` | refactor(storage): extract SQL event column list to sql.EventColumns constant   |
+| `bfe13c7` | fix(projection): use time.NewTimer instead of time.After, add backoff cap       |
+| `3857334` | chore(event): remove unused deprecated ParseUserAgent alias                     |
+| `1fed19d` | refactor(query): migrate all ErrQueryNotSupported usages to ErrHandlerNotFound  |
+| `4d67aa2` | docs(storage): add godoc comments to SQLSnapshotStore and constructors          |
+| `f0ec55d` | chore(pebble): delete unused reconstruct.go, inline marshalMetadata             |
 | `d9e52c0` | chore(style): apply consistent formatting across storage and projection modules |
-| `ad13813` | chore(deps): update flake.lock with treefmt-nix pin refresh |
-| `7732d9a` | chore(catalog): upgrade go-error-family dependency from v0.2.0 to v0.3.0 |
+| `ad13813` | chore(deps): update flake.lock with treefmt-nix pin refresh                     |
+| `7732d9a` | chore(catalog): upgrade go-error-family dependency from v0.2.0 to v0.3.0        |
 
 ---
 
@@ -93,15 +96,15 @@ Modules with tests: 30/32 (eventtest + cattest + storage/sql have no test files)
 
 All 83 clone groups were individually verified. Every group falls into one of these categories:
 
-| Category | Count | Why Non-Actionable |
-|----------|-------|-------------------|
-| **Trivial 1-line formatters** | ~47 | `metricName := fmt.Sprintf(...)` in middleware — each is a single metric name constant, extraction would add indirection for zero reuse |
-| **Standard Go idiom** | ~11 | `var _ T = (*X)(nil)` interface compile checks — required pattern, cannot be "shared" |
-| **Test infrastructure** | ~35 | `fake_store`, `store_suite`, `eventtest` — already consolidated in Phase 1-2; remaining groups are thin delegation wrappers |
-| **Same syntax, different domains** | ~15 | `LoadFromVersion` implementations in memory/pebble/schema/storage — fundamentally different algorithms despite similar shape |
-| **Example business logic** | 8 | `example/todo/` and `example/user/` decide functions — different domain rules, coincidental structure |
-| **Coincidental patterns** | ~10 | `Placeholder(1), Placeholder(2)` variable declarations, `event.WrapInfrastructure` error blocks — same syntax, different SQL contexts, no shared logic |
-| **Real dead code removed** | 1 | `pebble/reconstruct.go` — `unmarshalEventMetadata` had 0 callers; `marshalMetadata` was 2-line wrapper → inlined |
+| Category                           | Count | Why Non-Actionable                                                                                                                                     |
+| ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Trivial 1-line formatters**      | ~47   | `metricName := fmt.Sprintf(...)` in middleware — each is a single metric name constant, extraction would add indirection for zero reuse                |
+| **Standard Go idiom**              | ~11   | `var _ T = (*X)(nil)` interface compile checks — required pattern, cannot be "shared"                                                                  |
+| **Test infrastructure**            | ~35   | `fake_store`, `store_suite`, `eventtest` — already consolidated in Phase 1-2; remaining groups are thin delegation wrappers                            |
+| **Same syntax, different domains** | ~15   | `LoadFromVersion` implementations in memory/pebble/schema/storage — fundamentally different algorithms despite similar shape                           |
+| **Example business logic**         | 8     | `example/todo/` and `example/user/` decide functions — different domain rules, coincidental structure                                                  |
+| **Coincidental patterns**          | ~10   | `Placeholder(1), Placeholder(2)` variable declarations, `event.WrapInfrastructure` error blocks — same syntax, different SQL contexts, no shared logic |
+| **Real dead code removed**         | 1     | `pebble/reconstruct.go` — `unmarshalEventMetadata` had 0 callers; `marshalMetadata` was 2-line wrapper → inlined                                       |
 
 **Conclusion:** No production code duplication at t=30. At t=15, all remaining clones are either trivial, idiomatic, or coincidental. Zero action items.
 
@@ -121,40 +124,40 @@ Coverage: 83%
 
 ### By Priority
 
-| Priority | Total | Done | Pending | % Done |
-|----------|-------|------|---------|--------|
-| 🔴 P0 (Correctness) | 1 | 0 | 1 | 0% |
-| 🟠 P1 (Type Safety) | 6 | 3 | 3 | 50% |
-| 🟡 P2 (Duplication) | 11 | 5 | 6 | 45% |
-| 🟢 P3 (Tests) | 12 | 6 | 6 | 50% |
-| 🟣 P5 (Architecture) | 6 | 2 | 4 | 33% |
-| v2 (Breaking) | 7 | 0 | 7 | 0% |
+| Priority             | Total | Done | Pending | % Done |
+| -------------------- | ----- | ---- | ------- | ------ |
+| 🔴 P0 (Correctness)  | 1     | 0    | 1       | 0%     |
+| 🟠 P1 (Type Safety)  | 6     | 3    | 3       | 50%    |
+| 🟡 P2 (Duplication)  | 11    | 5    | 6       | 45%    |
+| 🟢 P3 (Tests)        | 12    | 6    | 6       | 50%    |
+| 🟣 P5 (Architecture) | 6     | 2    | 4       | 33%    |
+| v2 (Breaking)        | 7     | 0    | 7       | 0%     |
 
 ### Remaining P0 (1 item — MUST FIX)
 
-| Item | File | Issue |
-|------|------|-------|
+| Item                                | File                       | Issue                                                                                                           |
+| ----------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | 🔴 **cmd/cqrs-gen query signature** | `cmd/cqrs-gen/main.go:237` | Generated query handler returns `(any, error)` but should return `(R, error)` generic — won't compile correctly |
 
 ### Remaining P1 (3 items, 1 INCORRECT)
 
-| Item | Status | Notes |
-|------|--------|-------|
-| 🟠 query.Handler returns `any` → generic `TypedHandler[T]` | Pending v2 | Large breaking change, deferred |
-| 🟠 `metricName*` constants unused — remove | ❌ **INCORRECT** | Constants ARE used in `metrics_otel_test.go` — the TODO item is a false positive. Should be checked off. |
-| 🟠 TransactionID branded type | Pending v2 | Breaking change |
-| 🟠 io.Closer removal from core interfaces | Pending v2 | Breaking change |
+| Item                                                       | Status           | Notes                                                                                                    |
+| ---------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| 🟠 query.Handler returns `any` → generic `TypedHandler[T]` | Pending v2       | Large breaking change, deferred                                                                          |
+| 🟠 `metricName*` constants unused — remove                 | ❌ **INCORRECT** | Constants ARE used in `metrics_otel_test.go` — the TODO item is a false positive. Should be checked off. |
+| 🟠 TransactionID branded type                              | Pending v2       | Breaking change                                                                                          |
+| 🟠 io.Closer removal from core interfaces                  | Pending v2       | Breaking change                                                                                          |
 
 ### Remaining P2 (6 items)
 
-| Item | Module | Notes |
-|------|--------|-------|
-| 🟡 Closed-check+wrap boilerplate | command/query dispatcher | Could extract but requires refactoring Dispatch signature |
-| 🟡 `buildSortedList` 7× duplication | catalog/registry_build.go | Extractable, moderate effort |
-| 🟡 `copyPtr[T]` 7× duplication | catalog/registry_copy.go | Extractable, moderate effort |
-| 🟡 `ULID()` misleading `struct{}` phantom | id/id.go:70 | Breaking change |
-| 🟡 `Pebble` prefix stuttering | pebble/config types | Minor naming fix |
-| 🟡 `Turso` prefix stuttering | turso/ function names | Minor naming fix |
+| Item                                      | Module                    | Notes                                                     |
+| ----------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| 🟡 Closed-check+wrap boilerplate          | command/query dispatcher  | Could extract but requires refactoring Dispatch signature |
+| 🟡 `buildSortedList` 7× duplication       | catalog/registry_build.go | Extractable, moderate effort                              |
+| 🟡 `copyPtr[T]` 7× duplication            | catalog/registry_copy.go  | Extractable, moderate effort                              |
+| 🟡 `ULID()` misleading `struct{}` phantom | id/id.go:70               | Breaking change                                           |
+| 🟡 `Pebble` prefix stuttering             | pebble/config types       | Minor naming fix                                          |
+| 🟡 `Turso` prefix stuttering              | turso/ function names     | Minor naming fix                                          |
 
 ### Remaining P3 (6 items)
 
@@ -180,12 +183,15 @@ Coverage: 83%
 ## 7. Pre-existing Issues
 
 ### LSP Diagnostics (38 stale errors in pebble tests)
+
 **Status:** Pre-existing, unrelated to our changes. Build passes clean.
 
 All 38 errors are `MissingFieldOrMethod` in `pebble/store_test.go` and `pebble/time_travel_test.go` referring to `issueStoreConfig().newTestEvent` and `cfg.aggType` with lowercase — but the actual code uses `NewTestEvent` (uppercase) and `AggType`. LSP is stale/incorrect. Build succeeds.
 
 ### buildflow Pre-commit Failures
+
 `buildflow --build-mode pre-commit` has pre-existing failures in:
+
 - `library-policy`
 - `go-structure-linter`
 - `golangci-lint` (root/scripts directories)
@@ -196,17 +202,17 @@ These are unrelated to our changes. CI (GitHub Actions) passes clean.
 
 ## 8. Project Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Modules** | 32 (26 library + 6 examples) |
-| **Go source files** | 419 (production) |
-| **Test files** | 200 |
-| **Lines of code** | ~35,000 (est.) |
-| **Test coverage** | 84–100% across 32 packages |
-| **Dependencies (production)** | ~15 unique packages |
-| **Dependencies (test-only)** | ginkgo v2, gomega |
-| **Largest production file** | `memory/store_test.go` (659 lines — test only) |
-| **Largest production file** | `storage/event_store.go` (~300 lines) |
+| Metric                        | Value                                          |
+| ----------------------------- | ---------------------------------------------- |
+| **Modules**                   | 32 (26 library + 6 examples)                   |
+| **Go source files**           | 419 (production)                               |
+| **Test files**                | 200                                            |
+| **Lines of code**             | ~35,000 (est.)                                 |
+| **Test coverage**             | 84–100% across 32 packages                     |
+| **Dependencies (production)** | ~15 unique packages                            |
+| **Dependencies (test-only)**  | ginkgo v2, gomega                              |
+| **Largest production file**   | `memory/store_test.go` (659 lines — test only) |
+| **Largest production file**   | `storage/event_store.go` (~300 lines)          |
 
 ---
 
@@ -282,7 +288,7 @@ These are unrelated to our changes. CI (GitHub Actions) passes clean.
 8. **Add concurrency test for dispatcher** — `DispatcherWithCatalog` + concurrent dispatch
 9. **Add `TombstonePolicy.String()` and `AggregateStatus.MarshalJSON()` tests** in listing
 10. **Add `deadlineCtx` test in event/context.go**
-11. **Check off P1: metricName* constants** — False positive in TODO_LIST.md
+11. **Check off P1: metricName\* constants** — False positive in TODO_LIST.md
 12. **Add memory checkpoint/snapshot closed-store tests**
 13. **Add missing event handlers** in `example/user/projection.go` — `UserDeleted`/`UserReborn`
 14. **Fix example/user/catalog.go:20** — Uses event payload type for command (semantic misuse)
