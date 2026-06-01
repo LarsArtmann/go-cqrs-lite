@@ -10,7 +10,7 @@ import (
 )
 
 // serializeEvent converts a CQRS event to JSON.
-func (a *PebbleEventStore) serializeEvent(evt event.Event) ([]byte, error) {
+func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 	s := serializableEvent{
 		ID:            evt.ID(),
 		Type:          string(evt.Type()),
@@ -28,7 +28,7 @@ func (a *PebbleEventStore) serializeEvent(evt event.Event) ([]byte, error) {
 }
 
 // deserializeEvent converts JSON to a CQRS-compatible event.
-func (a *PebbleEventStore) deserializeEvent(data []byte) (event.Event, error) {
+func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	var s serializableEvent
 
 	err := json.Unmarshal(data, &s)

@@ -7,45 +7,45 @@ import (
 	cqrsEvent "github.com/larsartmann/go-cqrs-lite/event"
 )
 
-// PebbleBackend identifies an event store backend.
-type PebbleBackend string
+// Backend identifies an event store backend.
+type Backend string
 
 // String returns the underlying string value.
-func (b PebbleBackend) String() string { return string(b) }
+func (b Backend) String() string { return string(b) }
 
 const (
-	// PebbleBackendPebble uses the embedded Pebble key-value store (default).
-	PebbleBackendPebble PebbleBackend = "pebble"
-	// PebbleBackendMemory uses an in-memory store (testing, development).
-	PebbleBackendMemory PebbleBackend = "memory"
+	// BackendPebble uses the embedded Pebble key-value store (default).
+	BackendPebble Backend = "pebble"
+	// BackendMemory uses an in-memory store (testing, development).
+	BackendMemory Backend = "memory"
 )
 
-// PebbleEventStoreProvider creates an event store given a logger.
-type PebbleEventStoreProvider func(logger *slog.Logger) (cqrsEvent.Store, error)
+// EventStoreProvider creates an event store given a logger.
+type EventStoreProvider func(logger *slog.Logger) (cqrsEvent.Store, error)
 
-// PebbleConfig holds configuration for constructing event store backends.
-type PebbleConfig struct {
-	Backend  PebbleBackend
-	Provider PebbleEventStoreProvider
+// Config holds configuration for constructing event store backends.
+type Config struct {
+	Backend  Backend
+	Provider EventStoreProvider
 }
 
-// PebbleOption configures a PebbleConfig.
-type PebbleOption func(*PebbleConfig)
+// Option configures a Config.
+type Option func(*Config)
 
-// WithPebbleBackend sets the event store backend.
-func WithPebbleBackend(b PebbleBackend) PebbleOption {
-	return func(c *PebbleConfig) { c.Backend = b }
+// WithBackend sets the event store backend.
+func WithBackend(b Backend) Option {
+	return func(c *Config) { c.Backend = b }
 }
 
-// WithPebbleProvider sets a custom event store provider, overriding the backend.
-func WithPebbleProvider(p PebbleEventStoreProvider) PebbleOption {
-	return func(c *PebbleConfig) { c.Provider = p }
+// WithProvider sets a custom event store provider, overriding the backend.
+func WithProvider(p EventStoreProvider) Option {
+	return func(c *Config) { c.Provider = p }
 }
 
-// NewPebbleConfig builds a PebbleConfig from options.
-func NewPebbleConfig(opts ...PebbleOption) PebbleConfig {
-	cfg := PebbleConfig{ //nolint:exhaustruct // Provider set via options below
-		Backend: PebbleBackendPebble,
+// NewConfig builds a Config from options.
+func NewConfig(opts ...Option) Config {
+	cfg := Config{ //nolint:exhaustruct // Provider set via options below
+		Backend: BackendPebble,
 	}
 
 	for _, opt := range opts {
@@ -55,27 +55,35 @@ func NewPebbleConfig(opts ...PebbleOption) PebbleConfig {
 	return cfg
 }
 
-// NewPebbleEventStore creates an event store based on the configuration.
-func NewPebbleEventStore(cfg PebbleConfig, logger *slog.Logger) (cqrsEvent.Store, error) {
+// NewEventStore creates an event store based on the configuration.
+func NewEventStore(cfg Config, logger *slog.Logger) (cqrsEvent.Store, error) {
 	if cfg.Provider != nil {
 		return cfg.Provider(logger)
 	}
 
-	switch cfg.Backend {
-	case PebbleBackendPebble:
-		return nil, cqrsEvent.WrapInfrastructure(
-			ErrPebbleProviderRequired,
-			"storage.pebble_provider_required",
-			"use WithPebbleProvider",
-		)
-	case PebbleBackendMemory:
-		return nil, cqrsEvent.WrapInfrastructure(
-			ErrPebbleProviderRequired,
-			"storage.pebble_provider_required",
-			"use WithPebbleProvider",
-		)
-	default:
-		return nil, cqrsEvent.WrapInfrastructure(ErrUnknownBackend, "storage.unknown_backend",
-			fmt.Sprintf("%q: use WithPebbleBackend or WithPebbleProvider", cfg.Backend))
-	}
+	return nil, cqrsEvent.WrapInfrastructure(
+		ErrPebbleProviderRequired,
+		"storage.pebble_provider_required",
+		fmt.Sprintf("backend %q requires a provider: use WithProvider", cfg.Backend),
+	)
 }
+
+// Backward-compatible aliases.
+type (
+	PebbleBackend            = Backend
+	PebbleEventStoreProvider = EventStoreProvider
+	PebbleConfig             = Config
+	PebbleOption             = Option
+)
+
+const (
+	PebbleBackendPebble = BackendPebble
+	PebbleBackendMemory = BackendMemory
+)
+
+var (
+	WithPebbleBackend  = WithBackend
+	WithPebbleProvider = WithProvider
+	NewPebbleConfig    = NewConfig
+	NewPebbleEventStore = NewEventStore
+)

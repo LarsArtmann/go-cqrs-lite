@@ -17,7 +17,7 @@ type eventPredicate func(event.Event) bool
 // iterateEvents iterates over events in the database using the provided
 // iterator configuration. If shouldStop is non-nil, iteration stops before
 // appending the first event for which shouldStop returns true.
-func (a *PebbleEventStore) iterateEvents(
+func (a *EventStore) iterateEvents(
 	lowerBound, upperBound []byte,
 	shouldStop eventPredicate,
 ) ([]event.Event, error) {
@@ -59,7 +59,7 @@ func (a *PebbleEventStore) iterateEvents(
 }
 
 // Load implements event.Store.Load.
-func (a *PebbleEventStore) Load(
+func (a *EventStore) Load(
 	_ context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
@@ -71,7 +71,7 @@ func (a *PebbleEventStore) Load(
 
 // LoadFromVersion implements event.Store.LoadFromVersion.
 // Returns events with version strictly greater than the given version.
-func (a *PebbleEventStore) LoadFromVersion(
+func (a *EventStore) LoadFromVersion(
 	_ context.Context,
 	ref event.AggregateRef,
 	version event.Version,
@@ -84,7 +84,7 @@ func (a *PebbleEventStore) LoadFromVersion(
 
 // loadFiltered iterates events and returns them filtered by predicate.
 // Returns ErrAggregateNotFound if no events match the filter.
-func (a *PebbleEventStore) loadFiltered(
+func (a *EventStore) loadFiltered(
 	ref event.AggregateRef,
 	upperBound []byte,
 	predicate eventPredicate,
@@ -104,7 +104,7 @@ func (a *PebbleEventStore) loadFiltered(
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
-func (a *PebbleEventStore) LoadToVersion(
+func (a *EventStore) LoadToVersion(
 	_ context.Context,
 	ref event.AggregateRef,
 	maxVersion event.Version,
@@ -118,7 +118,7 @@ func (a *PebbleEventStore) LoadToVersion(
 // Uses early termination: since events are stored in version order and
 // OccurredAt is monotonically increasing, the iterator stops as soon as it
 // encounters an event past maxTime — avoiding a full aggregate scan.
-func (a *PebbleEventStore) LoadToTimestamp(
+func (a *EventStore) LoadToTimestamp(
 	_ context.Context,
 	ref event.AggregateRef,
 	maxTime time.Time,

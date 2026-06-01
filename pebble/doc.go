@@ -2,5 +2,5 @@
 // using CockroachDB Pebble. It implements event.Store with optimistic
 // concurrency control via per-aggregate locking.
 //
-// Use NewPebbleStore to create a store from an existing *pebble.DB.
+// Use NewStore to create a store from an existing *pebble.DB.
 package pebble

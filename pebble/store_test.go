@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-func newPebbleTestStore(t *testing.T) *PebbleEventStore {
+func newPebbleTestStore(t *testing.T) *EventStore {
 	t.Helper()
 
 	dir := t.TempDir()
@@ -22,37 +22,37 @@ func newPebbleTestStore(t *testing.T) *PebbleEventStore {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	return NewPebbleStore(db, slog.Default())
+	return NewStore(db, slog.Default())
 }
 
-func TestPebbleEventStore_SaveAndLoad(t *testing.T) {
+func TestEventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 	testEventStore_SaveAndLoad(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
-func TestPebbleEventStore_Save_ConcurrencyConflict(t *testing.T) {
+func TestEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	t.Parallel()
 	testEventStore_ConcurrencyConflict(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
-func TestPebbleEventStore_AppendBatch(t *testing.T) {
+func TestEventStore_AppendBatch(t *testing.T) {
 	t.Parallel()
 	testEventStore_AppendBatch(t, newPebbleTestStore(t), issueStoreConfig())
 }
 
-func TestPebbleEventStore_MetadataRoundtrip(t *testing.T) {
+func TestEventStore_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
 	testEventStore_MetadataRoundtrip(t, newPebbleTestStore(t), issueStoreConfig(), "test")
 }
 
-func TestPebbleEventStore_Close(t *testing.T) {
+func TestEventStore_Close(t *testing.T) {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewPebbleStore(db, slog.Default())
+	store := NewStore(db, slog.Default())
 
 	err = store.Close()
 	if err != nil {
@@ -80,7 +80,7 @@ func TestPebbleConfig_WithProvider(t *testing.T) {
 
 func TestPebbleConfig_NewEventStore_MemoryBackend_RequiresProvider(t *testing.T) {
 	cfg := NewPebbleConfig(WithPebbleBackend(PebbleBackendMemory))
-	_, err := NewPebbleEventStore(cfg, slog.Default())
+	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for memory backend without provider")
 	}
@@ -88,7 +88,7 @@ func TestPebbleConfig_NewEventStore_MemoryBackend_RequiresProvider(t *testing.T)
 
 func TestPebbleConfig_NewEventStore_PebbleWithoutProvider(t *testing.T) {
 	cfg := NewPebbleConfig()
-	_, err := NewPebbleEventStore(cfg, slog.Default())
+	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for pebble backend without provider")
 	}
@@ -96,13 +96,13 @@ func TestPebbleConfig_NewEventStore_PebbleWithoutProvider(t *testing.T) {
 
 func TestPebbleConfig_NewEventStore_UnknownBackend(t *testing.T) {
 	cfg := NewPebbleConfig(WithPebbleBackend("unknown"))
-	_, err := NewPebbleEventStore(cfg, slog.Default())
+	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for unknown backend")
 	}
 }
 
-func TestPebbleEventStore_Persistence(t *testing.T) {
+func TestEventStore_Persistence(t *testing.T) {
 	dir := t.TempDir()
 
 	db, err := pebble.Open(dir, &pebble.Options{})
@@ -110,7 +110,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewPebbleStore(db, slog.Default())
+	store := NewStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 
 	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
@@ -137,7 +137,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 
 	t.Cleanup(func() { _ = db2.Close() })
 
-	store2 := NewPebbleStore(db2, slog.Default())
+	store2 := NewStore(db2, slog.Default())
 	loaded, err := store2.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load after reopen: %v", err)
@@ -152,7 +152,7 @@ func TestPebbleEventStore_Persistence(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
+func TestEventStore_Save_Mismatches(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -205,8 +205,8 @@ func TestPebbleEventStore_Save_Mismatches(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_Close_NilDB(t *testing.T) {
-	store := NewPebbleStore(nil, slog.Default())
+func TestEventStore_Close_NilDB(t *testing.T) {
+	store := NewStore(nil, slog.Default())
 
 	err := store.Close()
 	if err != nil {
@@ -214,7 +214,7 @@ func TestPebbleEventStore_Close_NilDB(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_Save_EmptyEvents(t *testing.T) {
+func TestEventStore_Save_EmptyEvents(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -231,7 +231,7 @@ func TestPebbleEventStore_Save_EmptyEvents(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_AppendBatch_EmptyEvents(t *testing.T) {
+func TestEventStore_AppendBatch_EmptyEvents(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -243,7 +243,7 @@ func TestPebbleEventStore_AppendBatch_EmptyEvents(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_Load_Empty(t *testing.T) {
+func TestEventStore_Load_Empty(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -259,7 +259,7 @@ func TestPebbleEventStore_Load_Empty(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
+func TestEventStore_WithAsyncWrites(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -270,7 +270,7 @@ func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	store := NewPebbleStore(db, slog.Default(), WithAsyncWrites())
+	store := NewStore(db, slog.Default(), WithAsyncWrites())
 
 	if store.syncWrites {
 		t.Fatal("syncWrites should be false with WithAsyncWrites")
@@ -295,7 +295,7 @@ func TestPebbleEventStore_WithAsyncWrites(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_DefaultSyncWrites(t *testing.T) {
+func TestEventStore_DefaultSyncWrites(t *testing.T) {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
@@ -304,7 +304,7 @@ func TestPebbleEventStore_DefaultSyncWrites(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	store := NewPebbleStore(db, slog.Default())
+	store := NewStore(db, slog.Default())
 
 	if !store.syncWrites {
 		t.Fatal("syncWrites should be true by default")

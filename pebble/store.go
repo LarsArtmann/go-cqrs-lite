@@ -11,14 +11,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-// PebbleEventStore implements go-cqrs-lite/event.Store using Pebble.
+// EventStore implements go-cqrs-lite/event.Store using Pebble.
 //
 // Save uses per-aggregate locking to prevent concurrent writes from silently
 // overwriting each other (Pebble batch commits are atomic, but two goroutines
 // can both pass checkVersion before either commits). The lock map grows with
 // the number of unique aggregates — bounded by actual data volume for an
 // embedded single-process store.
-type PebbleEventStore struct {
+type EventStore struct {
 	db         *pebble.DB
 	logger     *slog.Logger
 	prefix     string
@@ -26,19 +26,19 @@ type PebbleEventStore struct {
 	syncWrites bool
 }
 
-// StoreOption configures a PebbleEventStore.
-type StoreOption func(*PebbleEventStore)
+// StoreOption configures a EventStore.
+type StoreOption func(*EventStore)
 
 // WithAsyncWrites disables sync writes for higher throughput at the cost of
 // durability guarantees. Use only when data loss on crash is acceptable
 // (e.g., caches, replay-able projections).
 func WithAsyncWrites() StoreOption {
-	return func(s *PebbleEventStore) { s.syncWrites = false }
+	return func(s *EventStore) { s.syncWrites = false }
 }
 
-// NewPebbleStore creates a new store using an existing Pebble DB.
-func NewPebbleStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *PebbleEventStore {
-	s := &PebbleEventStore{ //nolint:exhaustruct // locks initialized lazily
+// NewStore creates a new store using an existing Pebble DB.
+func NewStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *EventStore {
+	s := &EventStore{ //nolint:exhaustruct // locks initialized lazily
 		db:         db,
 		logger:     logger,
 		prefix:     "cqrs_event:",
@@ -54,7 +54,7 @@ func NewPebbleStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *Pe
 
 // eventKey generates a storage key for an event.
 // Pattern: cqrs_event:{ref.Type}:{ref.ID}:{version}.
-func (a *PebbleEventStore) eventKey(
+func (a *EventStore) eventKey(
 	ref event.AggregateRef,
 	version event.Version,
 ) []byte {
@@ -62,14 +62,14 @@ func (a *PebbleEventStore) eventKey(
 }
 
 // aggregatePrefix returns the prefix for all events of an aggregate.
-func (a *PebbleEventStore) aggregatePrefix(
+func (a *EventStore) aggregatePrefix(
 	ref event.AggregateRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, ref.Type, ref.ID)
 }
 
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
-func (a *PebbleEventStore) Save(
+func (a *EventStore) Save(
 	_ context.Context,
 	ref event.AggregateRef,
 	events []event.Event,
@@ -111,13 +111,13 @@ func (a *PebbleEventStore) Save(
 	return a.commitAndLog(batch, "events saved", ref, len(events))
 }
 
-func (a *PebbleEventStore) aggregateLockKey(
+func (a *EventStore) aggregateLockKey(
 	ref event.AggregateRef,
 ) string {
 	return string(ref.Type) + ":" + ref.ID.String()
 }
 
-func (a *PebbleEventStore) lockAggregate(
+func (a *EventStore) lockAggregate(
 	ref event.AggregateRef,
 ) {
 	key := a.aggregateLockKey(ref)
@@ -132,7 +132,7 @@ func (a *PebbleEventStore) lockAggregate(
 	m.Lock()
 }
 
-func (a *PebbleEventStore) unlockAggregate(
+func (a *EventStore) unlockAggregate(
 	ref event.AggregateRef,
 ) {
 	key := a.aggregateLockKey(ref)

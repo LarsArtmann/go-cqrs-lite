@@ -12,7 +12,7 @@ import (
 
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
-func (a *PebbleEventStore) AppendBatch(
+func (a *EventStore) AppendBatch(
 	_ context.Context,
 	ref event.AggregateRef,
 	events []event.Event,
@@ -44,7 +44,7 @@ func (a *PebbleEventStore) AppendBatch(
 }
 
 // Close releases the Pebble database.
-func (a *PebbleEventStore) Close() error {
+func (a *EventStore) Close() error {
 	if a.db != nil {
 		err := a.db.Close()
 		if err != nil {
@@ -57,7 +57,7 @@ func (a *PebbleEventStore) Close() error {
 }
 
 // logEventOperation logs a debug message for event operations.
-func (a *PebbleEventStore) logEventOperation(
+func (a *EventStore) logEventOperation(
 	msg string,
 	ref event.AggregateRef,
 	count int,
@@ -75,7 +75,7 @@ func (a *PebbleEventStore) logEventOperation(
 }
 
 // serializeAndAddToBatch serializes an event and adds it to the batch.
-func (a *PebbleEventStore) serializeAndAddToBatch(
+func (a *EventStore) serializeAndAddToBatch(
 	batch *pebble.Batch,
 	key []byte,
 	evt event.Event,
@@ -90,7 +90,7 @@ func (a *PebbleEventStore) serializeAndAddToBatch(
 }
 
 // addToBatch is a helper that adds a key-value pair to a batch with error handling.
-func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
+func (a *EventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 	err := batch.Set(key, data, nil)
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.add_to_batch",
@@ -100,7 +100,7 @@ func (a *PebbleEventStore) addToBatch(batch *pebble.Batch, key, data []byte) err
 	return nil
 }
 
-func (a *PebbleEventStore) writeOptions() *pebble.WriteOptions {
+func (a *EventStore) writeOptions() *pebble.WriteOptions {
 	if a.syncWrites {
 		return pebble.Sync
 	}
@@ -109,7 +109,7 @@ func (a *PebbleEventStore) writeOptions() *pebble.WriteOptions {
 }
 
 // commitAndLog commits the batch and logs the operation.
-func (a *PebbleEventStore) commitAndLog(
+func (a *EventStore) commitAndLog(
 	batch *pebble.Batch,
 	logMsg string,
 	ref event.AggregateRef,
@@ -137,5 +137,5 @@ func checkIteratorError(iter *pebble.Iterator) error {
 	return nil
 }
 
-// Ensure PebbleEventStore implements event.Store.
-var _ event.Store = (*PebbleEventStore)(nil)
+// Ensure EventStore implements event.Store.
+var _ event.Store = (*EventStore)(nil)

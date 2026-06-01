@@ -16,7 +16,7 @@ import (
 func seedPebbleBenchEvents(
 	b *testing.B,
 	totalEvents int,
-) (*PebbleEventStore, id.AggregateID, time.Time) {
+) (*EventStore, id.AggregateID, time.Time) {
 	b.Helper()
 
 	dir := b.TempDir()
@@ -27,7 +27,7 @@ func seedPebbleBenchEvents(
 
 	b.Cleanup(func() { _ = db.Close() })
 
-	store := NewPebbleStore(db, slog.Default())
+	store := NewStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 	ctx := context.Background()
 	baseTime := time.Now()
@@ -54,7 +54,7 @@ func seedPebbleBenchEvents(
 	return store, aggID, baseTime
 }
 
-func BenchmarkPebbleEventStore_LoadToTimestamp(b *testing.B) {
+func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 	tests := []struct {
 		name     string
 		offset   time.Duration

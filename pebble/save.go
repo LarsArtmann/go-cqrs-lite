@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
-func (a *PebbleEventStore) checkVersion(
+func (a *EventStore) checkVersion(
 	ref event.AggregateRef,
 	expectedVersion event.Version,
 ) error {
@@ -30,7 +30,7 @@ func (a *PebbleEventStore) checkVersion(
 	return nil
 }
 
-func (a *PebbleEventStore) writeEventsToBatch(
+func (a *EventStore) writeEventsToBatch(
 	batch *pebble.Batch,
 	ref event.AggregateRef,
 	events []event.Event,

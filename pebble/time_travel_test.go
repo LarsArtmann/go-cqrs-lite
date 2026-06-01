@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
-func TestPebbleEventStore_LoadFromVersion(t *testing.T) {
+func TestEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -45,7 +45,7 @@ func TestPebbleEventStore_LoadFromVersion(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_LoadFromVersion_Empty(t *testing.T) {
+func TestEventStore_LoadFromVersion_Empty(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -69,7 +69,7 @@ func TestPebbleEventStore_LoadFromVersion_Empty(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_LoadToVersion(t *testing.T) {
+func TestEventStore_LoadToVersion(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -100,7 +100,7 @@ func TestPebbleEventStore_LoadToVersion(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_LoadToVersion_NotFound(t *testing.T) {
+func TestEventStore_LoadToVersion_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -115,7 +115,7 @@ func TestPebbleEventStore_LoadToVersion_NotFound(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_LoadToTimestamp(t *testing.T) {
+func TestEventStore_LoadToTimestamp(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -151,7 +151,7 @@ func TestPebbleEventStore_LoadToTimestamp(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_LoadToTimestamp_NotFound(t *testing.T) {
+func TestEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -166,7 +166,7 @@ func TestPebbleEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 	}
 }
 
-func TestPebbleEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
+func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
