@@ -1,6 +1,6 @@
 # Module Reorganization Proposal
 
-> **Date:** 2026-05-29 | **Status:** Draft
+> **Date:** 2026-05-29 | **Status:** ⚠️ SUPERSEDED — `core/` was dissolved in v2.0.0. All sub-packages promoted to workspace root. This document is retained for historical context only.
 
 ## Executive Summary
 

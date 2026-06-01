@@ -21,16 +21,16 @@ All modules use the `github.com/larsartmann/go-cqrs-lite/<module>` path. No chan
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/event"
-    "github.com/larsartmann/go-cqrs-lite/core/decider"
+    "github.com/larsartmann/go-cqrs-lite/command"
+    "github.com/larsartmann/go-cqrs-lite/event"
+    "github.com/larsartmann/go-cqrs-lite/decider"
     "github.com/larsartmann/go-cqrs-lite/memory"
     "github.com/larsartmann/go-cqrs-lite/storage"
     "github.com/larsartmann/go-cqrs-lite/middleware"
     "github.com/larsartmann/go-cqrs-lite/projection"
     "github.com/larsartmann/go-cqrs-lite/catalog"
     "github.com/larsartmann/go-cqrs-lite/signing"
-    "github.com/larsartmann/go-cqrs-lite/stream"
+    "github.com/larsartmann/go-cqrs-lite/listing"
     "github.com/larsartmann/go-cqrs-lite/otel"
 )
 ```

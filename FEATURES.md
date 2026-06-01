@@ -23,7 +23,7 @@
 
 ### Command Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/command"`
+> `import "github.com/larsartmann/go-cqrs-lite/command"`
 
 || Feature | Detail | Status |
 || -------------------- | ------------------------------------------------------------------------------------ | ------ |
@@ -42,7 +42,7 @@
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/query"`
+> `import "github.com/larsartmann/go-cqrs-lite/query"`
 
 || Feature | Detail | Status |
 || -------------------- | -------------------------------------------------------------------------------- | ------ |
@@ -62,7 +62,7 @@
 
 ### Event System ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/event"`
+> `import "github.com/larsartmann/go-cqrs-lite/event"`
 
 || Feature | Detail | Status |
 || --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
@@ -102,7 +102,7 @@
 
 ### Decider (Pure-Function Aggregate) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/decider"`
+> `import "github.com/larsartmann/go-cqrs-lite/decider"`
 
 || Feature | Detail | Status |
 || ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
@@ -120,7 +120,7 @@
 
 ### Aggregate Root (Traditional) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/aggregate"`
+> `import "github.com/larsartmann/go-cqrs-lite/aggregate"`
 
 || Feature | Detail | Status |
 || ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
@@ -139,7 +139,7 @@
 
 ### Branded IDs ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"`
+> `import "github.com/larsartmann/go-cqrs-lite/id"`
 
 || Feature | Detail | Status |
 || -------------------- | ------------------------------------------------------------------------------------------- | ------ |
@@ -157,7 +157,7 @@
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"`
+> `import "github.com/larsartmann/go-cqrs-lite/dispatcher"`
 
 || Feature | Detail | Status |
 || -------------------- | --------------------------------------------------------------------------------------------- | ------ |
@@ -517,12 +517,12 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ## Stream Read Model ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/stream"`
+> `import "github.com/larsartmann/go-cqrs-lite/listing"`
 
 ||| Feature | Detail | Status |
 ||| --------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------ |
 ||| AggregateReader | `List(ctx, ListOptions) → Page[AggregateStatus]` — cursor-based aggregate listing | ✅ |
-||| ListBuilder | Fluent API: `stream.NewListBuilder(reader).WithType("User").After(cursor).Limit(50).IncludeTombstoned()` | ✅ |
+||| ListBuilder | Fluent API: `listing.NewListBuilder(reader).OfType("User").After(cursor).Limit(50).IncludeDeleted()` | ✅ |
 ||| InMemoryAggregateReader | Reads from `event.Journal.ReadAll()` — single-pass, no persistence | ✅ |
 ||| SQLAggregateReader | Reads from projection tables with prefix validation (`^[a-z_][a-z0-9_]*$`) | ✅ |
 ||| AggregateProjection | Maintains SQL read-model tables from event streams with tombstone detection | ✅ |
@@ -584,7 +584,7 @@ Features mentioned in project docs/planning but with **no production code**:
 || `storage` | `…/storage` | 89.6% | ✅ Production |
 || `projection` | `…/projection` | ~95% | ✅ Production |
 || `watermill` | `…/watermill` | 89.6% | ✅ Production |
-|| `stream` | `…/stream` | ~90% | ✅ Production |
+|| `listing` | `…/listing` | ~90% | ✅ Production |
 || `otel` | `…/otel` | N/A | ✅ Production |
 || `cmd/cqrs-gen` | `…/cmd/cqrs-gen` | 70.8% | ⚠️ Partial |
 || `example/user` | `…/example/user` | N/A | 💡 Demo |

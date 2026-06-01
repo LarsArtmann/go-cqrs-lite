@@ -1,10 +1,10 @@
-# stream
+# listing
 
 CQRS read model for aggregate listing and tombstone (soft-delete) management.
 
 ## Overview
 
-The `stream` module provides:
+The `listing` module provides:
 
 - **Aggregate listing** with cursor-based pagination
 - **Tombstone detection** — tri-state status: Active, Tombstoned, Undetermined
@@ -33,13 +33,13 @@ This module is **read-only**. It never writes events. It queries via `event.Jour
 ```go
 import (
     "github.com/larsartmann/go-cqrs-lite/memory"
-    "github.com/larsartmann/go-cqrs-lite/stream"
+    "github.com/larsartmann/go-cqrs-lite/listing"
 )
 
 store := memory.NewMemoryStore()
-reader := stream.NewInMemoryAggregateReader(store)
+reader := listing.NewInMemoryAggregateReader(store)
 
-page, err := stream.NewListBuilder(reader).
+page, err := listing.NewListBuilder(reader).
     OfType("User").
     PageSize(20).
     List(ctx)
@@ -50,18 +50,18 @@ page, err := stream.NewListBuilder(reader).
 ```go
 import (
     "database/sql"
-    "github.com/larsartmann/go-cqrs-lite/stream"
+    "github.com/larsartmann/go-cqrs-lite/listing"
 )
 
 // Create projection (creates table if not exists)
-proj, err := stream.NewAggregateProjection(db, "cqrs_")
+proj, err := listing.NewAggregateProjection(db, "cqrs_")
 
 // Register with projection runner
 runner.Register(proj)
 
 // Query the projection table
-reader := stream.NewSQLAggregateReader(db, "cqrs_")
-page, err := stream.NewListBuilder(reader).
+reader := listing.NewSQLAggregateReader(db, "cqrs_")
+page, err := listing.NewListBuilder(reader).
     OfType("User").
     PageSize(20).
     List(ctx)
@@ -72,7 +72,7 @@ page, err := stream.NewListBuilder(reader).
 `NewAggregateProjection` auto-creates the table:
 
 ```sql
-CREATE TABLE IF NOT EXISTS {prefix}stream_aggregates (
+CREATE TABLE IF NOT EXISTS {prefix}listing_aggregates (
     aggregate_type   TEXT NOT NULL,
     aggregate_id     TEXT NOT NULL,
     version          INT  NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS {prefix}stream_aggregates (
 Auto-mark tombstone and rebirth events on publish:
 
 ```go
-bus.UsePublish(stream.StatusMiddleware(
+bus.UsePublish(listing.StatusMiddleware(
     []event.Type{"user.deleted", "order.cancelled"},    // tombstone types
     []event.Type{"user.reactivated", "order.restored"},  // rebirth types
 ))
@@ -100,12 +100,12 @@ Unmatched events pass through unchanged.
 
 ```go
 // Active users only (default)
-page, _ := stream.NewListBuilder(reader).
+page, _ := listing.NewListBuilder(reader).
     OfType("User").
     List(ctx)
 
 // Include deleted with status
-statusPage, _ := stream.NewListBuilder(reader).
+statusPage, _ := listing.NewListBuilder(reader).
     OfType("User").
     IncludeDeleted().
     ListWithStatus(ctx)
@@ -117,7 +117,7 @@ for _, item := range statusPage.Items {
 }
 
 // Only deleted
-page, _ := stream.NewListBuilder(reader).
+page, _ := listing.NewListBuilder(reader).
     OfType("User").
     OnlyDeleted().
     List(ctx)
@@ -128,13 +128,13 @@ page, _ := stream.NewListBuilder(reader).
 No offset-based pagination — append-only logs make counts stale and expensive. Use cursor-based pagination instead:
 
 ```go
-page1, _ := stream.NewListBuilder(reader).
+page1, _ := listing.NewListBuilder(reader).
     OfType("User").
     PageSize(20).
     List(ctx)
 
 if page1.HasMore {
-    page2, _ := stream.NewListBuilder(reader).
+    page2, _ := listing.NewListBuilder(reader).
         OfType("User").
         PageSize(20).
         After(page1.Items[len(page1.Items)-1].ID).
@@ -154,10 +154,10 @@ The `event.TombstoneStatus` enum has three states:
 | `TombstoneTombstoned`   | 1     | Aggregate is soft-deleted                    |
 | `TombstoneUndetermined` | 2     | No metadata found (no middleware configured) |
 
-Detection uses the **last event** in the stream. Rebirth takes precedence.
+Detection uses the **last event** in the listing. Rebirth takes precedence.
 
 ```go
-// Detect from event stream
+// Detect from event listing
 status := event.DetectTombstone(events)
 
 // Mark manually (usually done by middleware)
