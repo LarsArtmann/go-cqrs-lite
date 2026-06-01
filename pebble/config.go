@@ -81,6 +81,7 @@ const (
 	PebbleBackendMemory = BackendMemory
 )
 
+//nolint:gochecknoglobals // backward-compatible aliases
 var (
 	WithPebbleBackend   = WithBackend
 	WithPebbleProvider  = WithProvider

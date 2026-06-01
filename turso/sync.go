@@ -110,6 +110,8 @@ func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error
 }
 
 // Backward-compatible aliases.
+//
+//nolint:gochecknoglobals // backward-compatible aliases
 var (
 	OpenTursoSync = OpenSync
 )

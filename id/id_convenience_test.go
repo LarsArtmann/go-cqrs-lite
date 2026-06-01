@@ -175,12 +175,9 @@ func TestParse_InvalidULID(t *testing.T) {
 func TestULID_Function(t *testing.T) {
 	t.Parallel()
 
-	id := New[struct{}]()
+	id := New[AggregateID]()
 
-	ts, err := ULID(id)
-	if err != nil {
-		t.Fatalf("ULID() error = %v", err)
-	}
+	ts := ULID(id)
 
 	if ts.IsZero() {
 		t.Error("ULID() should return non-zero time")

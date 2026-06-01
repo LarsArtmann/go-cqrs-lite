@@ -59,7 +59,7 @@ func NewCheckpointStore(db *sql.DB) (*storage.SQLCheckpointStore, error) {
 	)
 }
 
-// Backward-compatible aliases.
+//nolint:gochecknoglobals // backward-compatible aliases
 var (
 	OpenTurso               = Open
 	OpenTursoInMemory       = OpenInMemory

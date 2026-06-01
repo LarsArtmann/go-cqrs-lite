@@ -65,10 +65,9 @@ func MustParse[T any](s string) Of[T] {
 	return parsed
 }
 
-// ULID returns the timestamp encoded in the ID, if it is a valid ULID.
-// Returns an error if the ID is not a valid ULID.
-func ULID(id Of[struct{}]) (time.Time, error) {
-	return ulid.Time(id.Get().Time()), nil
+// ULID returns the timestamp encoded in the ID.
+func ULID[T any](id Of[T]) time.Time {
+	return ulid.Time(id.Get().Time())
 }
 
 // CompareIDs compares two branded IDs by their ULID values.

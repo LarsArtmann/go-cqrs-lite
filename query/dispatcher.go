@@ -48,11 +48,12 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	if err := d.checkClosed("query.register_failed", "registering query type "+string(queryType)); err != nil {
+	err := d.checkClosed("query.register_failed", "registering query type "+string(queryType))
+	if err != nil {
 		return err
 	}
 
-	err := d.Inner().Register(
+	err = d.Inner().Register(
 		string(queryType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -81,7 +82,8 @@ func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	if err := d.checkClosed("query.dispatch_failed", "dispatching query type "+string(query.Type())); err != nil {
+	err := d.checkClosed("query.dispatch_failed", "dispatching query type "+string(query.Type()))
+	if err != nil {
 		return nil, err
 	}
 
