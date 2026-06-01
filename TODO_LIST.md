@@ -367,8 +367,8 @@
 - [x] **projection/health.go:47** — `IsRunning` now uses `atomic.Bool` (set by `Run`), no I/O needed
 - [x] **projection/runner_live.go:107** — Backoff already capped at 30s via `retryMaxDelay` default
 - [x] **storage** — SQL SELECT column list extracted to `storage/sql/tables.go` constant
-- [ ] **pebble/save.go:18** — `checkVersion` is O(n) for every Save; use metadata CF
-- [ ] **listing/in_memory.go:97** — Stores ALL events per aggregate for tombstone; optimize
+- [x] **pebble/save.go:18** — Fixed: key-only iteration count (no deserialization) via `countEvents`
+- [x] **listing/in_memory.go:97** — Fixed: only keeps last event per aggregate (not ALL events)
 - [x] **pebble/config.go:64-76** — Redundant backend switch removed
 - [x] **turso/doc.go:10** — `func _()` import hack removed
 - [ ] **event/ module cycles** — Move cross-module test assertions to integration/ (event↔command, event↔memory, event↔schema)
