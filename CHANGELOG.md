@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [2.0.0] - 2026-06-01
 
 ### Added
 
@@ -33,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `command/reactive.go` — temporarily deleted (restored in this release)
 - `event/reactive.go` — restored with context-aware ro API (NewObserverWithContext + ErrorWithContext)
 - `core/` directory — all sub-packages promoted to workspace root
+- `event.Context() context.Context` — Go anti-pattern removed; use `Event.Deadline()` instead
+- `event/context.go` — `deadlineCtx` type deleted (only used by removed `Context()`)
 
 ### Fixed
 
