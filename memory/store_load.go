@@ -109,7 +109,8 @@ func (s *MemoryStore) getEvents(
 	events, exists := s.events[key]
 	if !exists {
 		return nil, fmt.Errorf(
-			"aggregate %s: %w",
+			"memory %s aggregate %s: %w",
+			op,
 			ref,
 			event.ErrAggregateNotFound,
 		)

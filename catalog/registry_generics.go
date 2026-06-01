@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-func sortedCopy[K cmp.Ordered, V any, S any](m map[K]V, copyFn func(V) S) []S {
+func sortedCopy[K cmp.Ordered, V, S any](m map[K]V, copyFn func(V) S) []S {
 	keys := slices.Sorted(maps.Keys(m))
 
 	result := make([]S, 0, len(m))

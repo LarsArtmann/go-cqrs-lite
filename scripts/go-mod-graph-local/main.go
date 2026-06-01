@@ -88,7 +88,7 @@ func buildGraph(root string) (*GraphData, error) {
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk %s: %w", root, err)
 		}
 		if info.IsDir() {
 			name := info.Name()
@@ -104,12 +104,12 @@ func buildGraph(root string) (*GraphData, error) {
 
 		data, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			return fmt.Errorf("read %s: %w", path, err)
 		}
 
 		mf, err := modfile.Parse(path, data, nil)
 		if err != nil {
-			return err
+			return fmt.Errorf("parse %s: %w", path, err)
 		}
 
 		moduleName := mf.Module.Mod.Path
@@ -141,7 +141,7 @@ func buildGraph(root string) (*GraphData, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build graph from %s: %w", root, err)
 	}
 
 	for _, e := range edgeList {
