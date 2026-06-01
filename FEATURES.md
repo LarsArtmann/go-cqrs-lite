@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-05-30 · **Module count:** 25 · **Go version:** 1.26.3
+**Last audited:** 2026-06-01 · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -426,7 +426,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 || Issue | Severity | Detail |
 || ------------------------------- | --------- | ------------------------------------------------------------------ |
-|| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification |
+|| No Journal/SeekableJournal | ⚠️ MEDIUM | Only implements event.Store, not Journal or SeekableJournal (unlike Memory/SQL) |
+| No PostgreSQL integration tests | ⚠️ MEDIUM | Unit tests use go-sqlmock only; no real PostgreSQL verification |
+| Backend field unused at runtime | ⚠️ LOW | Backend type/constants have no runtime effect |
 
 **Coverage:** 89.6%
 
