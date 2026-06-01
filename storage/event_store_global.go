@@ -62,7 +62,7 @@ func (s *SQLEventStore) ReadFrom(
 	p1 := s.Dialect.Placeholder(1)
 	p2 := s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(
-		`SELECT ` + sqlpkg.EventColumns + `
+		`SELECT `+sqlpkg.EventColumns+`
 		FROM `+sqlpkg.TableEvents+` WHERE id > %s ORDER BY occurred_at ASC`,
 		p1,
 	)

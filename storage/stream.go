@@ -20,7 +20,7 @@ func (s *SQLEventStore) LoadStream(
 	defer span.End()
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(
-		`SELECT ` + sqlpkg.EventColumns + `
+		`SELECT `+sqlpkg.EventColumns+`
 		FROM `+sqlpkg.TableEvents+` WHERE aggregate_type = %s AND aggregate_id = %s ORDER BY version ASC`,
 		p1,
 		p2,

@@ -114,6 +114,7 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 		select {
 		case <-ctx.Done():
 			timer.Stop()
+
 			return event.WrapInfrastructure(ctx.Err(), "projection.retry_cancelled",
 				"retry cancelled")
 		case <-timer.C:

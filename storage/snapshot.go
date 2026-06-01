@@ -44,7 +44,7 @@ func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotS
 }
 
 // SnapshotSchema returns the PostgreSQL DDL for the snapshots table.
-func SnapshotSchema() string       { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
+func SnapshotSchema() string { return sqlpkg.PostgresDialect{}.SnapshotSchema() }
 
 // SQLiteSnapshotSchema returns the SQLite DDL for the snapshots table.
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
