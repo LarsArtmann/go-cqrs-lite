@@ -2,23 +2,12 @@
 package dispatcher
 
 import (
-	"maps"
 	"slices"
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// HandlerMeta holds basic metadata for a catalog item.
-// Used by command and query dispatchers for per-type documentation.
-type HandlerMeta struct {
-	Name    string
-	Version string
-	Summary string
-}
-
-// middlewareChain stores and applies middleware in a thread-safe manner.
-// H is the handler type, and M is the middleware type that wraps handlers.
 type middlewareChain[H, M any] struct {
 	mu         sync.RWMutex
 	middleware []M
@@ -139,79 +128,4 @@ func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
 // Close marks the dispatcher as closed.
 func (d *Dispatcher[H, M]) Close() error {
 	return d.Lifecycle.Close()
-}
-
-// copyCatalogEntries copies entries from src to dest and returns dest.
-func copyCatalogEntries[KT comparable, VT any](dest, src map[KT]VT) map[KT]VT {
-	if dest == nil {
-		dest = make(map[KT]VT, len(src))
-	}
-
-	maps.Copy(dest, src)
-
-	return dest
-}
-
-// CatalogDispatcher is a mixin that provides catalog entry management.
-// KT is the type key (e.g., command.Type or query.Type).
-// VT is the catalog metadata type (e.g., dispatcher.HandlerMeta).
-type CatalogDispatcher[KT comparable, VT any] struct {
-	catalogMu      sync.RWMutex
-	catalogEntries map[KT]VT
-}
-
-// InitCatalogDispatcher initializes the catalog entries map.
-func (c *CatalogDispatcher[KT, VT]) InitCatalogDispatcher() {
-	c.catalogEntries = make(map[KT]VT)
-}
-
-// Init initializes the catalog entries map. Returns self for chaining.
-func (c *CatalogDispatcher[KT, VT]) Init() *CatalogDispatcher[KT, VT] {
-	c.catalogEntries = make(map[KT]VT)
-
-	return c
-}
-
-// newCatalogDispatcher creates a new initialized CatalogDispatcher.
-func newCatalogDispatcher[KT comparable, VT any]() *CatalogDispatcher[KT, VT] {
-	return &CatalogDispatcher[KT, VT]{ //nolint:exhaustruct // unexported field requires Init method
-		catalogEntries: make(map[KT]VT),
-	}
-}
-
-// DispatcherWithCatalog combines CatalogDispatcher with an inner Dispatcher.
-// This is a reusable base for command/query dispatchers that need both catalog
-// metadata and handler dispatch.
-type DispatcherWithCatalog[KT comparable, VT any, H any, M any] struct {
-	CatalogDispatcher[KT, VT]
-
-	inner *Dispatcher[H, M]
-}
-
-// Init initializes the embedded CatalogDispatcher and creates the inner dispatcher.
-func (d *DispatcherWithCatalog[KT, VT, H, M]) Init() {
-	d.InitCatalogDispatcher()
-	d.inner = NewDispatcher[H, M]()
-}
-
-// Inner returns the inner dispatcher.
-func (d *DispatcherWithCatalog[KT, VT, H, M]) Inner() *Dispatcher[H, M] {
-	return d.inner
-}
-
-// RegisterHandlerMeta stores catalog metadata for a type.
-// This is a side channel that doesn't affect dispatch behavior.
-func (c *CatalogDispatcher[KT, VT]) RegisterHandlerMeta(key KT, meta VT) {
-	c.catalogMu.Lock()
-	defer c.catalogMu.Unlock()
-
-	c.catalogEntries[key] = meta
-}
-
-// CatalogEntries returns a copy of all registered catalog entries.
-func (c *CatalogDispatcher[KT, VT]) CatalogEntries() map[KT]VT {
-	c.catalogMu.RLock()
-	defer c.catalogMu.RUnlock()
-
-	return copyCatalogEntries(nil, c.catalogEntries)
 }

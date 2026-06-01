@@ -1,9 +1,9 @@
-// Package query provides query dispatching for CQRS.
 package query
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -28,22 +28,21 @@ type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
 type Dispatcher struct {
-	dispatcher.DispatcherWithCatalog[Type, dispatcher.HandlerMeta, Handler, Middleware]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 var _ io.Closer = (*Dispatcher)(nil)
 
 // NewDispatcher creates a new query dispatcher.
 func NewDispatcher() *Dispatcher {
-	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
-	d.Init()
-
-	return d
+	return &Dispatcher{
+		inner: dispatcher.NewDispatcher[Handler, Middleware](),
+	}
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.Inner().Use(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a query type.
@@ -53,7 +52,7 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 		return err
 	}
 
-	err = d.Inner().Register(
+	err = d.inner.Register(
 		string(queryType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -87,7 +86,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 		return nil, err
 	}
 
-	wrapped, err := d.Inner().Dispatch(string(query.Type()))
+	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return nil, errorfamily.WrapRejection(
@@ -109,7 +108,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 }
 
 func (d *Dispatcher) checkClosed(code, msg string) error {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, code, msg)
 	}
@@ -139,6 +138,10 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	//nolint:wrapcheck // Close returns lifecycle error; caller handles it
-	return d.Inner().Close()
+	err := d.inner.Close()
+	if err != nil {
+		return fmt.Errorf("close query dispatcher: %w", err)
+	}
+
+	return nil
 }

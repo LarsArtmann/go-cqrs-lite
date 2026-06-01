@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command"
-	catdispatcher "github.com/larsartmann/go-cqrs-lite/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
@@ -115,46 +114,5 @@ func TestDispatcher_Closed(t *testing.T) {
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {
 		t.Error("expected dispatcher closed error on Dispatch")
-	}
-}
-
-func TestDispatcher_RegisterHandlerMeta(t *testing.T) {
-	t.Parallel()
-
-	dispatcher := command.NewDispatcher()
-	meta := catdispatcher.HandlerMeta{
-		Name:    "CreateUser",
-		Version: "1.0.0",
-		Summary: "Creates a new user",
-	}
-
-	dispatcher.RegisterHandlerMeta("user.create", meta)
-
-	entries := dispatcher.CatalogEntries()
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
-
-	got, ok := entries["user.create"]
-	if !ok {
-		t.Fatal("missing user.create entry")
-	}
-
-	if got.Name != "CreateUser" {
-		t.Errorf("name = %q, want CreateUser", got.Name)
-	}
-}
-
-func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
-	t.Parallel()
-
-	dispatcher := command.NewDispatcher()
-	dispatcher.RegisterHandlerMeta("cmd.a", catdispatcher.HandlerMeta{Name: "A"})
-
-	entries := dispatcher.CatalogEntries()
-	entries["cmd.b"] = catdispatcher.HandlerMeta{Name: "B"}
-
-	if len(dispatcher.CatalogEntries()) != 1 {
-		t.Error("CatalogEntries should return a copy, not a reference")
 	}
 }

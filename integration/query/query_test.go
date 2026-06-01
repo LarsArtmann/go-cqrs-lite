@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	catdispatcher "github.com/larsartmann/go-cqrs-lite/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
@@ -168,46 +167,5 @@ func TestDispatcher_Closed(t *testing.T) {
 	_, err = dispatcher.Dispatch(context.Background(), q)
 	if err == nil {
 		t.Error("expected dispatcher closed error on Dispatch")
-	}
-}
-
-func TestDispatcher_RegisterHandlerMeta(t *testing.T) {
-	t.Parallel()
-
-	dispatcher := query.NewDispatcher()
-	meta := catdispatcher.HandlerMeta{
-		Name:    "GetUser",
-		Version: "1.0.0",
-		Summary: "Gets a user by ID",
-	}
-
-	dispatcher.RegisterHandlerMeta("user.get", meta)
-
-	entries := dispatcher.CatalogEntries()
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
-
-	got, ok := entries["user.get"]
-	if !ok {
-		t.Fatal("missing user.get entry")
-	}
-
-	if got.Name != "GetUser" {
-		t.Errorf("name = %q, want GetUser", got.Name)
-	}
-}
-
-func TestDispatcher_CatalogEntries_ReturnsCopy(t *testing.T) {
-	t.Parallel()
-
-	dispatcher := query.NewDispatcher()
-	dispatcher.RegisterHandlerMeta("q.a", catdispatcher.HandlerMeta{Name: "A"})
-
-	entries := dispatcher.CatalogEntries()
-	entries["q.b"] = catdispatcher.HandlerMeta{Name: "B"}
-
-	if len(dispatcher.CatalogEntries()) != 1 {
-		t.Error("CatalogEntries should return a copy, not a reference")
 	}
 }

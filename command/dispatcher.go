@@ -1,9 +1,9 @@
-// Package command provides command dispatching for CQRS.
 package command
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -13,22 +13,21 @@ import (
 
 // Dispatcher routes commands to their handlers.
 type Dispatcher struct {
-	dispatcher.DispatcherWithCatalog[Type, dispatcher.HandlerMeta, Handler, Middleware]
+	inner *dispatcher.Dispatcher[Handler, Middleware]
 }
 
 var _ io.Closer = (*Dispatcher)(nil)
 
 // NewDispatcher creates a new command dispatcher.
 func NewDispatcher() *Dispatcher {
-	d := &Dispatcher{} //nolint:exhaustruct // embedded generic fields require Init method
-	d.Init()
-
-	return d
+	return &Dispatcher{
+		inner: dispatcher.NewDispatcher[Handler, Middleware](),
+	}
 }
 
 // Use adds middleware to the dispatcher.
 func (d *Dispatcher) Use(middleware ...Middleware) {
-	d.Inner().Use(middleware...)
+	d.inner.Use(middleware...)
 }
 
 // Register binds a handler to a command type.
@@ -38,7 +37,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		return err
 	}
 
-	err = d.Inner().Register(
+	err = d.inner.Register(
 		string(cmdType),
 		handler,
 		func(m Middleware, h Handler) Handler {
@@ -63,7 +62,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 		return err
 	}
 
-	wrapped, err := d.Inner().Dispatch(string(cmd.Type()))
+	wrapped, err := d.inner.Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
 			return errorfamily.WrapRejection(
@@ -85,7 +84,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 }
 
 func (d *Dispatcher) checkClosed(code, msg string) error {
-	err := d.Inner().Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, code, msg)
 	}
@@ -95,5 +94,10 @@ func (d *Dispatcher) checkClosed(code, msg string) error {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	return d.Inner().Close() //nolint:wrapcheck // lifecycle Close is self-descriptive
+	err := d.inner.Close()
+	if err != nil {
+		return fmt.Errorf("close command dispatcher: %w", err)
+	}
+
+	return nil
 }
