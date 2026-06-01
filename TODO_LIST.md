@@ -151,11 +151,11 @@
 - [x] ~~Make time.Now() injectable~~ — DONE (event.Clock + WithClock option exists; non-event modules call time.Now directly which is acceptable for infrastructure code)
 - [x] ~~Add ContextEnricher wiring to repositories~~ — DONE (Session 112c, event.ContextEnricher + WithEnricher on Repository)
 - [x] ~~Add event.Event.Clone()~~ — DONE
-- [x] ~~Add event.Context propagation~~ — DONE (Event.Context() + deadline field + ContextEnricher pattern; commit 0baa0be)
+- [x] ~~Add event.Context propagation~~ — DONE then REMOVED in v2 (Event.Context() removed as Go anti-pattern; use Event.Deadline() instead)
 - [x] ~~Re-export errorfamily.Wrap as event.Wrap~~ — DONE
 - [FUTURE] Add Filter, Predicate types to core/event/ for context queries (source: HYBRID_ARCHITECTURE)
 - [FUTURE] Add ContextQuerier, ContextAppender, QueryResult interfaces (source: HYBRID_ARCHITECTURE)
-- [v2] Split core/event god-package into sub-packages (source: SESSION_85)
+- [x] ~~[v2] Split event god-package into sub-packages~~ — DONE (core/ dissolved, all sub-packages promoted to workspace root)
 - [x] ~~Split core/event/event.go~~ — DONE
 - [x] ~~Extract shared opError helper~~ — MOOT
 - [x] ~~Split core/decider/decider.go~~ — DONE
@@ -278,10 +278,9 @@
 - [x] ~~Add tombstone soft-delete support to core/event~~ — DONE (TombstoneStatus enum, tombstone.go)
 - [x] ~~Split signing_test.go into focused files~~ — DONE (Session 122, renamed to test_helpers_test.go, max 346L)
 - [x] ~~Fix golden test fixture failures~~ — DONE (Session 122, YAML indentation from 569c726)
-- [ ] Add stream module integration tests (source: stream module)
-- [ ] Add stream SQL reader tests (source: stream module)
+- [ ] Add listing SQL reader tests (source: listing module)
 - [ ] Enforce 350-line limit on test files via pre-commit hook (source: SESSION_73)
-- [ ] Split large test files: decider_test.go (~1200L), runner_test.go (~1057L) (source: multiple sessions)
+- [x] ~~Split large test files: decider_test.go (~1200L), runner_test.go (~1057L)~~ — DONE (already split into focused files in sessions 2-3)
 
 ---
 
