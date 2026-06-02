@@ -20,9 +20,7 @@ type Metadata struct {
 
 // NewMetadata creates a Metadata with all fields initialized.
 func NewMetadata() Metadata {
-	return Metadata{
-		Custom: make(map[MetadataKey]string),
-	}
+	return Metadata{}
 }
 
 // Clone returns a deep copy of the metadata.
@@ -34,6 +32,14 @@ func (m Metadata) Clone() Metadata {
 	}
 
 	return cp
+}
+
+// EnsureCustom lazily initializes the Custom map if nil.
+// Call before writing to m.Custom from outside this package.
+func EnsureCustom(m *Metadata) {
+	if m.Custom == nil {
+		m.Custom = make(map[MetadataKey]string)
+	}
 }
 
 // Merge returns a new Metadata with non-zero fields from other overlaid onto m.
@@ -69,10 +75,7 @@ func (m Metadata) Merge(other Metadata) Metadata {
 	}
 
 	for k, v := range other.Custom {
-		if result.Custom == nil {
-			result.Custom = make(map[MetadataKey]string)
-		}
-
+		EnsureCustom(&result)
 		result.Custom[k] = v
 	}
 

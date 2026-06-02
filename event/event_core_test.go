@@ -202,8 +202,8 @@ func TestEventAccessors(t *testing.T) {
 		t.Error("OccurredAt should not be zero")
 	}
 
-	if evt.Metadata().Custom == nil {
-		t.Error("Metadata should have initialized Custom map")
+	if evt.Metadata().Custom != nil {
+		t.Error("Metadata Custom map should be nil until first write (lazy init)")
 	}
 }
 

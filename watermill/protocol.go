@@ -213,8 +213,8 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 
 	for k, v := range md {
 		if after, ok := strings.CutPrefix(k, metaCustomPrefix); ok {
-			customKey := event.MetadataKey(after)
-			m.Custom[customKey] = v
+			event.EnsureCustom(&m)
+			m.Custom[event.MetadataKey(after)] = v
 		}
 	}
 
