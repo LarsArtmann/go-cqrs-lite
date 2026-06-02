@@ -36,13 +36,9 @@ func (s *VersionedStore) Load(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
-	events, err := s.inner.Load(ctx, ref)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "schema.versioned_load",
-			fmt.Sprintf("versioned store load %s", ref))
-	}
-
-	return s.upcastAll(events)
+	return s.loadAndUpcast(func() ([]event.Event, error) {
+		return s.inner.Load(ctx, ref)
+	}, "schema.versioned_load", fmt.Sprintf("versioned store load %s", ref))
 }
 
 func (s *VersionedStore) LoadFromVersion(
@@ -50,13 +46,10 @@ func (s *VersionedStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadFromVersion(ctx, ref, version)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "schema.versioned_load_from_version",
-			fmt.Sprintf("versioned store load from version %s@%s", ref, version))
-	}
-
-	return s.upcastAll(events)
+	return s.loadAndUpcast(func() ([]event.Event, error) {
+		return s.inner.LoadFromVersion(ctx, ref, version)
+	}, "schema.versioned_load_from_version",
+		fmt.Sprintf("versioned store load from version %s@%s", ref, version))
 }
 
 func (s *VersionedStore) LoadToVersion(
@@ -64,13 +57,10 @@ func (s *VersionedStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadToVersion(ctx, ref, maxVersion)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "schema.versioned_load_to_version",
-			fmt.Sprintf("versioned store load to version %s@%s", ref, maxVersion))
-	}
-
-	return s.upcastAll(events)
+	return s.loadAndUpcast(func() ([]event.Event, error) {
+		return s.inner.LoadToVersion(ctx, ref, maxVersion)
+	}, "schema.versioned_load_to_version",
+		fmt.Sprintf("versioned store load to version %s@%s", ref, maxVersion))
 }
 
 func (s *VersionedStore) LoadToTimestamp(
@@ -78,11 +68,20 @@ func (s *VersionedStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadToTimestamp(ctx, ref, maxTime)
+	return s.loadAndUpcast(func() ([]event.Event, error) {
+		return s.inner.LoadToTimestamp(ctx, ref, maxTime)
+	}, "schema.versioned_load_to_timestamp",
+		fmt.Sprintf("versioned store load to timestamp %s@%s", ref,
+			maxTime.Format(time.RFC3339)))
+}
+
+func (s *VersionedStore) loadAndUpcast(
+	load func() ([]event.Event, error),
+	code, msg string,
+) ([]event.Event, error) {
+	events, err := load()
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "schema.versioned_load_to_timestamp",
-			fmt.Sprintf("versioned store load to timestamp %s@%s", ref,
-				maxTime.Format(time.RFC3339)))
+		return nil, event.WrapInfrastructure(err, code, msg)
 	}
 
 	return s.upcastAll(events)
