@@ -23,30 +23,32 @@ func New(
 	payload any,
 	opts ...Option,
 ) (*ImmutableEvent, error) {
-	c := probeCodec(opts)
+	c := findCodecOption(opts)
 
 	data, err := marshalPayload(payload, eventType, c)
 	if err != nil {
 		return nil, err
 	}
 
+	encodingOpt := WithEncoding(c.Encoding())
 	allOpts := make([]Option, 0, len(opts)+1)
-	allOpts = append(allOpts, WithEncoding(c.Encoding()))
+	allOpts = append(allOpts, encodingOpt)
 	allOpts = append(allOpts, opts...)
 
 	return NewEvent(eventType, aggregateID, aggregateType, version, data, allOpts...)
 }
 
-// probeCodec applies options to a zero-value ImmutableEvent to find a codec set
-// via WithNewCodec. Returns JSONCodec if none found.
-func probeCodec(opts []Option) codec.Codec {
+func findCodecOption(opts []Option) codec.Codec {
+	if len(opts) == 0 {
+		return codec.JSONCodec{}
+	}
+
 	probe := &ImmutableEvent{}
 	for _, opt := range opts {
 		opt(probe)
-	}
-
-	if probe.newCodec != nil {
-		return probe.newCodec
+		if probe.newCodec != nil {
+			return probe.newCodec
+		}
 	}
 
 	return codec.JSONCodec{}

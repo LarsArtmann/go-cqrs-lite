@@ -9,23 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-// canonicalFormatVersion identifies the canonical payload format version.
-// If the format changes, this constant must be incremented so that
-// old and new signatures are distinguishable.
 const canonicalFormatVersion = "go-cqrs-lite/signing/v1"
 
-// canonicalPayload builds a deterministic byte representation of an event
-// for signing. It excludes the signature itself and non-deterministic fields
-// like metadata to prevent circular signing issues.
-//
-// Schema version is included because it semantically identifies the payload
-// structure. Changing the schema version without changing payload content is
-// a meaningful event transformation that must be reflected in the signature.
-// The payload itself is SHA-256 hashed to keep the canonical representation
-// bounded regardless of payload size.
-//
-// The output is prefixed with a format version tag so that future format
-// changes produce different signatures, preventing cross-version collisions.
+const lengthPrefixSize = 4
+
 func canonicalPayload(evt event.Event) []byte {
 	if evt == nil {
 		return nil
@@ -35,21 +22,31 @@ func canonicalPayload(evt event.Event) []byte {
 	typ := string(evt.Type())
 	aggID := evt.AggregateID().String()
 	aggType := string(evt.AggregateType())
-	version := evt.Version().Int()
-	schemaVer := evt.SchemaVersion().Int()
+	version := strconv.Itoa(evt.Version().Int())
+	schemaVer := strconv.Itoa(evt.SchemaVersion().Int())
 	occurred := evt.OccurredAt().Format(time.RFC3339Nano)
 	payload := evt.Payload()
 
-	var buf []byte
+	totalLen := 8*lengthPrefixSize +
+		len(canonicalFormatVersion) + len(id) + len(typ) +
+		len(aggID) + len(aggType) + len(version) + len(schemaVer) + len(occurred)
 
-	buf = appendLenPrefixed(buf, canonicalFormatVersion)
-	buf = appendLenPrefixed(buf, id)
-	buf = appendLenPrefixed(buf, typ)
-	buf = appendLenPrefixed(buf, aggID)
-	buf = appendLenPrefixed(buf, aggType)
-	buf = appendLenPrefixed(buf, strconv.Itoa(version))
-	buf = appendLenPrefixed(buf, strconv.Itoa(schemaVer))
-	buf = appendLenPrefixed(buf, occurred)
+	if len(payload) > 0 {
+		totalLen += sha256.Size
+	}
+
+	buf := make([]byte, 0, totalLen)
+
+	var lenBuf [lengthPrefixSize]byte
+
+	buf = appendPrefixed(buf, lenBuf[:], canonicalFormatVersion)
+	buf = appendPrefixed(buf, lenBuf[:], id)
+	buf = appendPrefixed(buf, lenBuf[:], typ)
+	buf = appendPrefixed(buf, lenBuf[:], aggID)
+	buf = appendPrefixed(buf, lenBuf[:], aggType)
+	buf = appendPrefixed(buf, lenBuf[:], version)
+	buf = appendPrefixed(buf, lenBuf[:], schemaVer)
+	buf = appendPrefixed(buf, lenBuf[:], occurred)
 
 	if len(payload) > 0 {
 		h := sha256.Sum256(payload)
@@ -59,18 +56,10 @@ func canonicalPayload(evt event.Event) []byte {
 	return buf
 }
 
-const lengthPrefixSize = 4
-
-func appendLenPrefixed(buf []byte, s string) []byte {
-	b := []byte(s)
-	lenBuf := make([]byte, lengthPrefixSize)
-	binary.BigEndian.PutUint32(
-		lenBuf,
-		uint32(len(b)), //nolint:gosec // length fits in uint32 for any reasonable string
-	)
-
+func appendPrefixed(buf, lenBuf []byte, s string) []byte {
+	binary.BigEndian.PutUint32(lenBuf, uint32(len(s)))
 	buf = append(buf, lenBuf...)
-	buf = append(buf, b...)
+	buf = append(buf, s...)
 
 	return buf
 }
