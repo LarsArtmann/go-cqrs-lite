@@ -24,41 +24,37 @@ func recordMetrics(
 	}
 }
 
-// CommandMetrics returns a middleware that records command handler metrics.
-func CommandMetrics(recorder MetricsRecorder) command.Middleware {
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
+// NewMetrics returns a generic middleware that records handler execution metrics.
+func NewMetrics[M any](adapter MessageAdapter[M], recorder MetricsRecorder) Middleware[M] {
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
 			start := time.Now()
-			err := next(ctx, cmd)
-			recordMetrics(ctx, recorder, "command", err, string(cmd.Type()), time.Since(start))
+			err := next(ctx, msg)
+			recordMetrics(
+				ctx,
+				recorder,
+				adapter.Kind,
+				err,
+				adapter.ExtractType(msg),
+				time.Since(start),
+			)
 
 			return err
 		}
 	}
+}
+
+// CommandMetrics returns a middleware that records command handler metrics.
+func CommandMetrics(recorder MetricsRecorder) command.Middleware {
+	return AsCommand(NewMetrics(CommandAdapter, recorder))
 }
 
 // EventMetrics returns a middleware that records event handler metrics.
 func EventMetrics(recorder MetricsRecorder) event.Middleware {
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			start := time.Now()
-			err := next(ctx, evt)
-			recordMetrics(ctx, recorder, "event", err, string(evt.Type()), time.Since(start))
-
-			return err
-		}
-	}
+	return AsEvent(NewMetrics(EventAdapter, recorder))
 }
 
 // QueryMetrics returns a middleware that records query handler metrics.
 func QueryMetrics(recorder MetricsRecorder) query.Middleware {
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			start := time.Now()
-			result, err := next(ctx, q)
-			recordMetrics(ctx, recorder, "query", err, string(q.Type()), time.Since(start))
-
-			return result, err
-		}
-	}
+	return AsQuery(NewMetrics(QueryAdapter, recorder))
 }

@@ -138,74 +138,6 @@ func newCircuitBreaker(config CircuitBreakerConfig) *circuitBreaker {
 	}
 }
 
-// CommandCircuitBreaker returns a command middleware that implements the circuit breaker pattern.
-// Returns a middleware that always fails if config is invalid.
-func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.Middleware {
-	err := config.Validate()
-	if err != nil {
-		return commandErrMiddleware(err)
-	}
-
-	cfg := applyOptions(opts)
-	breaker := newCircuitBreaker(config)
-
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			return breaker.execute(ctx, cfg.logger, string(cmd.Type()), func() error {
-				return next(ctx, cmd)
-			})
-		}
-	}
-}
-
-// EventCircuitBreaker returns an event subscribe-side middleware that implements the circuit breaker pattern.
-// Returns a middleware that always fails if config is invalid.
-func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Middleware {
-	err := config.Validate()
-	if err != nil {
-		return eventErrMiddleware(err)
-	}
-
-	cfg := applyOptions(opts)
-	breaker := newCircuitBreaker(config)
-
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			return breaker.execute(ctx, cfg.logger, string(evt.Type()), func() error {
-				return next(ctx, evt)
-			})
-		}
-	}
-}
-
-// QueryCircuitBreaker returns a query middleware that implements the circuit breaker pattern.
-// Returns a middleware that always fails if config is invalid.
-func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Middleware {
-	err := config.Validate()
-	if err != nil {
-		return queryErrMiddleware(err)
-	}
-
-	cfg := applyOptions(opts)
-	breaker := newCircuitBreaker(config)
-
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			var result any
-
-			err := breaker.execute(ctx, cfg.logger, string(q.Type()), func() error {
-				var execErr error
-
-				result, execErr = next(ctx, q)
-
-				return execErr
-			})
-
-			return result, err
-		}
-	}
-}
-
 func (cb *circuitBreaker) execute(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -237,6 +169,52 @@ func (cb *circuitBreaker) execute(
 	}
 
 	return event.Wrap(err, event.Classify(err), opName, err.Error())
+}
+
+// NewCircuitBreaker returns a generic middleware that implements the circuit breaker pattern.
+// Returns a middleware that always fails if config is invalid.
+func NewCircuitBreaker[M any](
+	adapter MessageAdapter[M],
+	config CircuitBreakerConfig,
+	opts ...Option,
+) Middleware[M] {
+	err := config.Validate()
+	if err != nil {
+		return func(Handler[M]) Handler[M] {
+			return func(_ context.Context, _ M) error {
+				return err
+			}
+		}
+	}
+
+	cfg := applyOptions(opts)
+	breaker := newCircuitBreaker(config)
+
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
+			return breaker.execute(ctx, cfg.logger, adapter.ExtractType(msg), func() error {
+				return next(ctx, msg)
+			})
+		}
+	}
+}
+
+// CommandCircuitBreaker returns a command middleware that implements the circuit breaker pattern.
+// Returns a middleware that always fails if config is invalid.
+func CommandCircuitBreaker(config CircuitBreakerConfig, opts ...Option) command.Middleware {
+	return AsCommand(NewCircuitBreaker(CommandAdapter, config, opts...))
+}
+
+// EventCircuitBreaker returns an event subscribe-side middleware that implements the circuit breaker pattern.
+// Returns a middleware that always fails if config is invalid.
+func EventCircuitBreaker(config CircuitBreakerConfig, opts ...Option) event.Middleware {
+	return AsEvent(NewCircuitBreaker(EventAdapter, config, opts...))
+}
+
+// QueryCircuitBreaker returns a query middleware that implements the circuit breaker pattern.
+// Returns a middleware that always fails if config is invalid.
+func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Middleware {
+	return AsQuery(NewCircuitBreaker(QueryAdapter, config, opts...))
 }
 
 // ErrCircuitBreakerOpen is returned when the circuit breaker is open.

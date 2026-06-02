@@ -13,69 +13,45 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
-// CommandRetry returns a command middleware that retries on retryable errors.
+// NewRetry returns a generic middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
-func CommandRetry(config RetryConfig, opts ...Option) command.Middleware {
+func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Option) Middleware[M] {
 	err := config.Validate()
 	if err != nil {
-		return commandErrMiddleware(err)
+		return func(Handler[M]) Handler[M] {
+			return func(_ context.Context, _ M) error {
+				return err
+			}
+		}
 	}
 
 	cfg := applyOptions(opts)
 
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			return retry(ctx, config, cfg.logger, string(cmd.Type()), func() error {
-				return next(ctx, cmd)
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
+			return retry(ctx, config, cfg.logger, adapter.ExtractType(msg), func() error {
+				return next(ctx, msg)
 			})
 		}
 	}
+}
+
+// CommandRetry returns a command middleware that retries on retryable errors.
+// Returns a middleware that always fails if config is invalid.
+func CommandRetry(config RetryConfig, opts ...Option) command.Middleware {
+	return AsCommand(NewRetry(CommandAdapter, config, opts...))
 }
 
 // EventRetry returns an event middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func EventRetry(config RetryConfig, opts ...Option) event.Middleware {
-	err := config.Validate()
-	if err != nil {
-		return eventErrMiddleware(err)
-	}
-
-	cfg := applyOptions(opts)
-
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			return retry(ctx, config, cfg.logger, string(evt.Type()), func() error {
-				return next(ctx, evt)
-			})
-		}
-	}
+	return AsEvent(NewRetry(EventAdapter, config, opts...))
 }
 
 // QueryRetry returns a query middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func QueryRetry(config RetryConfig, opts ...Option) query.Middleware {
-	err := config.Validate()
-	if err != nil {
-		return queryErrMiddleware(err)
-	}
-
-	cfg := applyOptions(opts)
-
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			var result any
-
-			err := retry(ctx, config, cfg.logger, string(q.Type()), func() error {
-				var err error
-
-				result, err = next(ctx, q)
-
-				return err
-			})
-
-			return result, err
-		}
-	}
+	return AsQuery(NewRetry(QueryAdapter, config, opts...))
 }
 
 func retry(

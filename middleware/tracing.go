@@ -12,25 +12,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
-// CommandTracing creates an OpenTelemetry span for each command handled.
-// The tracer is typically obtained from a trace.TracerProvider:
-//
-//	tracer := cqrsotel.NewTracer("middleware")
-//	mw := middleware.CommandTracing(tracer)
-func CommandTracing(tracer trace.Tracer) command.Middleware {
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
+// NewTracing creates a generic OpenTelemetry span for each message handled.
+func NewTracing[M any](
+	tracer trace.Tracer,
+	spanName string,
+	kind trace.SpanKind,
+	attrs func(M) []attribute.KeyValue,
+) Middleware[M] {
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
 			ctx, span := tracer.Start(
-				ctx, "command.handle",
-				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(cqrsotel.CommandAttrs(
-					string(cmd.Type()),
-					cmd.AggregateID(),
-				)...),
+				ctx, spanName,
+				trace.WithSpanKind(kind),
+				trace.WithAttributes(attrs(msg)...),
 			)
 			defer span.End()
 
-			err := next(ctx, cmd)
+			err := next(ctx, msg)
 			if err != nil {
 				cqrsotel.RecordError(span, err)
 			}
@@ -38,6 +36,24 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 			return err
 		}
 	}
+}
+
+// CommandTracing creates an OpenTelemetry span for each command handled.
+// The tracer is typically obtained from a trace.TracerProvider:
+//
+//	tracer := cqrsotel.NewTracer("middleware")
+//	mw := middleware.CommandTracing(tracer)
+func CommandTracing(tracer trace.Tracer) command.Middleware {
+	return AsCommand(
+		NewTracing(
+			tracer,
+			"command.handle",
+			trace.SpanKindServer,
+			func(cmd command.Command) []attribute.KeyValue {
+				return cqrsotel.CommandAttrs(string(cmd.Type()), cmd.AggregateID())
+			},
+		),
+	)
 }
 
 // EventTracing creates an OpenTelemetry span for each event handled.
@@ -46,31 +62,25 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 //	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.EventTracing(tracer)
 func EventTracing(tracer trace.Tracer) event.Middleware {
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			ctx, span := tracer.Start(
-				ctx, "event.handle",
-				trace.WithSpanKind(trace.SpanKindConsumer),
-				trace.WithAttributes(cqrsotel.EventAttrs(
+	return AsEvent(
+		NewTracing(
+			tracer,
+			"event.handle",
+			trace.SpanKindConsumer,
+			func(evt event.Event) []attribute.KeyValue {
+				attrs := cqrsotel.EventAttrs(
 					string(evt.Type()),
 					evt.AggregateID(),
 					string(evt.AggregateType()),
-				)...),
-			)
-			defer span.End()
+				)
 
-			span.SetAttributes(
-				attribute.Int(cqrsotel.AttrAggregateVersion, int(evt.Version())),
-			)
-
-			err := next(ctx, evt)
-			if err != nil {
-				cqrsotel.RecordError(span, err)
-			}
-
-			return err
-		}
-	}
+				return append(
+					attrs,
+					attribute.Int(cqrsotel.AttrAggregateVersion, int(evt.Version())),
+				)
+			},
+		),
+	)
 }
 
 // QueryTracing creates an OpenTelemetry span for each query handled.
@@ -79,25 +89,16 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 //	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.QueryTracing(tracer)
 func QueryTracing(tracer trace.Tracer) query.Middleware {
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, qry query.Query) (any, error) {
-			ctx, span := tracer.Start(
-				ctx, "query.handle",
-				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(cqrsotel.QueryAttrs(
-					string(qry.Type()),
-				)...),
-			)
-			defer span.End()
-
-			result, err := next(ctx, qry)
-			if err != nil {
-				cqrsotel.RecordError(span, err)
-			}
-
-			return result, err
-		}
-	}
+	return AsQuery(
+		NewTracing(
+			tracer,
+			"query.handle",
+			trace.SpanKindServer,
+			func(q query.Query) []attribute.KeyValue {
+				return cqrsotel.QueryAttrs(string(q.Type()))
+			},
+		),
+	)
 }
 
 // EventPublishTracing creates an OpenTelemetry span for each event publish operation.

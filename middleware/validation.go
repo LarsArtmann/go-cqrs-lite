@@ -8,92 +8,58 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
-// CommandValidation returns a middleware that validates commands before dispatch.
-func CommandValidation(validate CommandValidator, opts ...Option) command.Middleware {
+// NewValidation returns a generic middleware that validates messages before dispatch.
+func NewValidation[M any](
+	adapter MessageAdapter[M],
+	validate func(M) error,
+	opts ...Option,
+) Middleware[M] {
 	cfg := applyOptions(opts)
 
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			err := validate(cmd)
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
+			err := validate(msg)
 			if err != nil {
 				if cfg.logger != nil {
 					cfg.logger.Warn(
 						"validation failed",
-						"kind", "command",
-						"type", cmd.Type(),
+						"kind", adapter.Kind,
+						"type", adapter.ExtractType(msg),
 						"error", err,
 					)
 				}
 
 				return event.Wrapf(
 					err, event.Rejection,
-					"middleware.command_validation",
-					"validation failed for command %s",
-					cmd.Type(),
+					"middleware."+adapter.Kind+"_validation",
+					"validation failed for %s %s",
+					adapter.Kind,
+					adapter.ExtractType(msg),
 				)
 			}
 
-			return next(ctx, cmd)
+			return next(ctx, msg)
 		}
 	}
+}
+
+// CommandValidation returns a middleware that validates commands before dispatch.
+func CommandValidation(validate CommandValidator, opts ...Option) command.Middleware {
+	return AsCommand(NewValidation(CommandAdapter, func(cmd command.Command) error {
+		return validate(cmd)
+	}, opts...))
 }
 
 // EventValidation returns a middleware that validates events before handling.
 func EventValidation(validate EventValidator, opts ...Option) event.Middleware {
-	cfg := applyOptions(opts)
-
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			err := validate(evt)
-			if err != nil {
-				if cfg.logger != nil {
-					cfg.logger.Warn(
-						"validation failed",
-						"kind", "event",
-						"type", evt.Type(),
-						"error", err,
-					)
-				}
-
-				return event.Wrapf(
-					err, event.Rejection,
-					"middleware.event_validation",
-					"validation failed for event %s",
-					evt.Type(),
-				)
-			}
-
-			return next(ctx, evt)
-		}
-	}
+	return AsEvent(NewValidation(EventAdapter, func(evt event.Event) error {
+		return validate(evt)
+	}, opts...))
 }
 
 // QueryValidation returns a middleware that validates queries before dispatch.
 func QueryValidation(validate QueryValidator, opts ...Option) query.Middleware {
-	cfg := applyOptions(opts)
-
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			err := validate(q)
-			if err != nil {
-				if cfg.logger != nil {
-					cfg.logger.Warn(
-						"validation failed",
-						"kind", "query",
-						"type", q.Type(),
-						"error", err,
-					)
-				}
-
-				return nil, event.Wrapf(
-					err, event.Rejection,
-					"middleware.query_validation",
-					"validation failed for query %s",
-					q.Type(),
-				)
-			}
-
-			return next(ctx, q)
-		}
-	}
+	return AsQuery(NewValidation(QueryAdapter, func(q query.Query) error {
+		return validate(q)
+	}, opts...))
 }

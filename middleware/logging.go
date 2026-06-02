@@ -11,27 +11,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query"
 )
 
-const (
-	commandLogPrefix = "command"
-	eventLogPrefix   = "event"
-	queryLogPrefix   = "query"
-)
-
-// logContext holds common logging context for middleware.
-type logContext struct {
-	prefix      string
-	msgType     string
-	aggregateID id.AggregateID
-}
-
-func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
+func logWithContext(
+	logger *slog.Logger,
+	prefix, msgType string,
+	aggregateID id.AggregateID,
+	fn func() error,
+) error {
 	start := time.Now()
 
-	aggregateIDStr := lc.aggregateID.String()
+	aggregateIDStr := aggregateID.String()
 
 	logger.Info(
-		lc.prefix+" dispatching",
-		"type", lc.msgType,
+		prefix+" dispatching",
+		"type", msgType,
 		"aggregateID", aggregateIDStr,
 	)
 
@@ -40,8 +32,8 @@ func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 
 	if err != nil {
 		logger.Error(
-			lc.prefix+" failed",
-			"type", lc.msgType,
+			prefix+" failed",
+			"type", msgType,
 			"aggregateID", aggregateIDStr,
 			"duration", duration,
 			"error", err,
@@ -51,8 +43,8 @@ func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 	}
 
 	logger.Info(
-		lc.prefix+" succeeded",
-		"type", lc.msgType,
+		prefix+" succeeded",
+		"type", msgType,
 		"aggregateID", aggregateIDStr,
 		"duration", duration,
 	)
@@ -60,60 +52,40 @@ func logWithContext(logger *slog.Logger, lc logContext, fn func() error) error {
 	return nil
 }
 
-// CommandLogging returns a command middleware that logs dispatch details with timing.
-func CommandLogging(logger *slog.Logger) command.Middleware {
-	return func(next command.Handler) command.Handler {
-		return func(ctx context.Context, cmd command.Command) error {
-			lc := logContext{
-				prefix:      commandLogPrefix,
-				msgType:     string(cmd.Type()),
-				aggregateID: cmd.AggregateID(),
+// NewLogging returns a generic middleware that logs dispatch details with timing.
+func NewLogging[M any](adapter MessageAdapter[M], logger *slog.Logger) Middleware[M] {
+	return func(next Handler[M]) Handler[M] {
+		return func(ctx context.Context, msg M) error {
+			var aggID id.AggregateID
+
+			if adapter.ExtractID != nil {
+				aggID = adapter.ExtractID(msg)
 			}
 
-			return logWithContext(logger, lc, func() error {
-				return next(ctx, cmd)
-			})
+			return logWithContext(
+				logger,
+				adapter.Kind,
+				adapter.ExtractType(msg),
+				aggID,
+				func() error {
+					return next(ctx, msg)
+				},
+			)
 		}
 	}
+}
+
+// CommandLogging returns a command middleware that logs dispatch details with timing.
+func CommandLogging(logger *slog.Logger) command.Middleware {
+	return AsCommand(NewLogging(CommandAdapter, logger))
 }
 
 // EventLogging returns an event middleware that logs handler details with timing.
 func EventLogging(logger *slog.Logger) event.Middleware {
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			lc := logContext{
-				prefix:      eventLogPrefix,
-				msgType:     string(evt.Type()),
-				aggregateID: evt.AggregateID(),
-			}
-
-			return logWithContext(logger, lc, func() error {
-				return next(ctx, evt)
-			})
-		}
-	}
+	return AsEvent(NewLogging(EventAdapter, logger))
 }
 
 // QueryLogging returns a query middleware that logs dispatch details with timing.
 func QueryLogging(logger *slog.Logger) query.Middleware {
-	return func(next query.Handler) query.Handler {
-		return func(ctx context.Context, q query.Query) (any, error) {
-			lc := logContext{ //nolint:exhaustruct // queries have no aggregateID
-				prefix:  queryLogPrefix,
-				msgType: string(q.Type()),
-			}
-
-			var result any
-
-			err := logWithContext(logger, lc, func() error {
-				var e error
-
-				result, e = next(ctx, q)
-
-				return e
-			})
-
-			return result, err
-		}
-	}
+	return AsQuery(NewLogging(QueryAdapter, logger))
 }
