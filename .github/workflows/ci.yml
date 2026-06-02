@@ -44,8 +44,34 @@ jobs:
           fail_ci_if_error: false
 
   per-module-test:
-    name: Per-Module Test (GOWORK=off)
+    name: Module ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - event
+          - command
+          - query
+          - decider
+          - id
+          - dispatcher
+          - schema
+          - snapshot
+          - codec
+          - memory
+          - catalog
+          - middleware
+          - integration
+          - projection
+          - signing
+          - storage
+          - watermill
+          - listing
+          - otel
+          - pebble
+          - turso
+          - cmd/cqrs-gen
     steps:
       - uses: actions/checkout@v4
 
@@ -53,13 +79,8 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-      - name: Test each module in isolation
-        run: |
-          for mod in core memory catalog middleware integration projection signing storage saga watermill stream otel cmd/cqrs-gen; do
-            echo "::group::$mod"
-            (cd "$mod" && GOWORK=off go test ./... -count=1 -race)
-            echo "::endgroup::"
-          done
+      - name: Test module in isolation
+        run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
 
   coverage-gate:
     name: Minimum Coverage (80%)
@@ -148,12 +169,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: Run benchmarks
-        run: |
-          echo '=== Core benchmarks ==='
-          go test ./core/... -bench=. -benchmem -count=1 -run=^$ 2>&1 | tee benchmark-results.txt
-          echo ''
-          echo '=== Catalog benchmarks ==='
-          go test ./catalog/... -bench=. -benchmem -count=1 -run=^$ 2>&1 | tee -a benchmark-results.txt
+        run: nix run .#bench 2>&1 | tee benchmark-results.txt
 
       - name: Check for regressions (>2x slowdown vs main)
         run: |
@@ -175,7 +191,6 @@ jobs:
             done
           else
             echo "No baseline found. Skipping comparison."
-            echo "To create a baseline: commit benchmark-baseline.txt to the repo root."
           fi
 
       - name: Upload benchmark results
