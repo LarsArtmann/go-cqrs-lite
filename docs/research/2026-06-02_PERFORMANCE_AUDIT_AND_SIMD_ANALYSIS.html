@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>go-cqrs-lite Performance Audit &amp; SIMD Opportunity Analysis</title>
+<style>
+  :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922; --orange: #db6d28; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.25rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+  h1 small { display: block; font-size: 0.9rem; color: var(--muted); font-weight: normal; margin-top: 0.25rem; }
+  h2 { font-size: 1.4rem; color: var(--accent); margin: 2rem 0 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.1rem; color: var(--text); margin: 1.25rem 0 0.5rem; }
+  p, li { color: var(--text); margin-bottom: 0.5rem; }
+  ul { padding-left: 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.15em 0.4em; font-size: 0.9em; font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 0.75rem 0; font-size: 0.85rem; line-height: 1.5; }
+  pre code { background: none; border: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+  th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: var(--surface); color: var(--accent); font-weight: 600; position: sticky; top: 0; }
+  tr:nth-child(even) { background: rgba(22, 27, 34, 0.5); }
+  tr:hover { background: rgba(88, 166, 255, 0.05); }
+  .tag { display: inline-block; padding: 0.15em 0.5em; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag-green { background: rgba(63, 185, 80, 0.15); color: var(--green); border: 1px solid rgba(63, 185, 80, 0.3); }
+  .tag-red { background: rgba(248, 81, 73, 0.15); color: var(--red); border: 1px solid rgba(248, 81, 73, 0.3); }
+  .tag-yellow { background: rgba(210, 153, 34, 0.15); color: var(--yellow); border: 1px solid rgba(210, 153, 34, 0.3); }
+  .tag-orange { background: rgba(219, 109, 40, 0.15); color: var(--orange); border: 1px solid rgba(219, 109, 40, 0.3); }
+  .tag-blue { background: rgba(88, 166, 255, 0.15); color: var(--accent); border: 1px solid rgba(88, 166, 255, 0.3); }
+  .env-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem; margin: 0.75rem 0; }
+  .env-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .env-card .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .env-card .value { font-size: 1rem; font-weight: 600; margin-top: 0.15rem; }
+  .finding { background: var(--surface); border-left: 4px solid var(--accent); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0 8px 8px 0; }
+  .finding.critical { border-left-color: var(--red); }
+  .finding.good { border-left-color: var(--green); }
+  .finding.warn { border-left-color: var(--yellow); }
+  .verdict { background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(88, 166, 255, 0.02)); border: 1px solid var(--accent); border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+  .verdict strong { color: var(--accent); }
+  .num { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.9em; }
+  .right { text-align: right; }
+  .cpu-flag { display: inline-block; background: rgba(88, 166, 255, 0.1); border: 1px solid rgba(88, 166, 255, 0.2); padding: 0.1em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.85em; margin: 0.1em; }
+</style>
+</head>
+<body>
+
+<h1>
+  go-cqrs-lite Performance Audit &amp; SIMD Opportunity Analysis
+  <small>2026-06-02 — Full benchmark suite, hardware crypto analysis, SIMD roadmap</small>
+</h1>
+
+<h2>Environment</h2>
+<div class="env-grid">
+  <div class="env-card"><div class="label">Go</div><div class="value">1.26.3 linux/amd64</div></div>
+  <div class="env-card"><div class="label">CPU</div><div class="value">AMD RYZEN AI MAX+ 395</div></div>
+  <div class="env-card"><div class="label">RAM</div><div class="value">96 GB DDR5</div></div>
+  <div class="env-card"><div class="label">GOMAXPROCS</div><div class="value">32</div></div>
+</div>
+
+<h3>Crypto-relevant CPU flags</h3>
+<p>
+  <span class="cpu-flag">sha_ni</span>
+  <span class="cpu-flag">aes</span>
+  <span class="cpu-flag">vaes</span>
+  <span class="cpu-flag">pclmulqdq</span>
+  <span class="cpu-flag">vpclmulqdq</span>
+  <span class="cpu-flag">avx512ifma</span>
+  <span class="cpu-flag">avx512_bf16</span>
+  <span class="cpu-flag">avx2</span>
+  <span class="cpu-flag">avx512f</span>
+  <span class="cpu-flag">avx512bw</span>
+  <span class="cpu-flag">avx512vl</span>
+  <span class="cpu-flag">avx512dq</span>
+  <span class="cpu-flag">bmi2</span>
+  <span class="cpu-flag">sse4_1</span>
+  <span class="cpu-flag">ssse3</span>
+</p>
+
+<h2>HMAC &amp; SHA-256 — Hardware Acceleration Status</h2>
+
+<div class="finding good">
+  <strong>YES — SHA-NI is active at runtime.</strong><br>
+  Go 1.26's <code>crypto/sha256</code> dispatches to <code>blockSHANI()</code> on this CPU — a hand-written assembly path using <code>SHA256RNDS2</code>, <code>SHA256MSG1</code>, <code>SHA256MSG2</code> x86 instructions. This is the fastest SHA-256 path available in Go. HMAC-SHA256 calls <code>sha256.Hash</code> twice (inner + outer pad), both benefiting from SHA-NI.
+</div>
+
+<h3>How the dispatch works</h3>
+<pre><code>// crypto/internal/fips140/sha256/sha256block_amd64.go
+var useSHANI = cpu.X86HasAVX &amp;&amp; cpu.X86HasSHA &amp;&amp; cpu.X86HasSSE41 &amp;&amp; cpu.X86HasSSSE3
+
+func block(dig *Digest, p []byte) {
+    if useSHANI {
+        blockSHANI(dig, p)    // &lt;-- WE HIT THIS PATH
+    } else if useAVX2 {
+        blockAVX2(dig, p)
+    } else {
+        blockGeneric(dig, p)
+    }
+}</code></pre>
+
+<h3>What this means for our benchmarks</h3>
+<table>
+  <tr><th>Benchmark</th><th>ns/op</th><th>Behind the curtain</th></tr>
+  <tr><td>HMAC Sign</td><td class="num right">818</td><td>2× SHA-256 via <code>SHA256RNDS2</code> hardware instructions + HMAC key XOR + canonical payload string building (10 allocs)</td></tr>
+  <tr><td>HMAC Verify</td><td class="num right">840</td><td>Same as sign + constant-time comparison</td></tr>
+  <tr><td>Ed25519 Sign</td><td class="num right">13,506</td><td>Pure Go + <code>crypto/ed25519</code> (uses SHA-512, no SHA-NI benefit — SHA-512 has no Intel extension)</td></tr>
+  <tr><td>Ed25519 Verify</td><td class="num right">30,665</td><td>SHA-512 + point multiplication — no hardware acceleration exists for this</td></tr>
+</table>
+
+<div class="verdict">
+  <strong>Verdict:</strong> HMAC-SHA256 is already hardware-accelerated. The 818 ns is near-optimal for the algorithm.
+  The bottleneck is <em>not</em> the SHA-256 computation — it's the 10 allocations in <code>canonicalPayload()</code> (326 ns just to build the string). Ed25519 is 16× slower because SHA-512 lacks hardware support and the elliptic curve math is inherently more expensive. No software optimization can fix this — it's a CPU limitation.
+</div>
+
+<h2>Go 1.26 SIMD — <code>simd/archsimd</code> (Experimental)</h2>
+
+<h3>What's available</h3>
+<p>Go 1.26 introduces <code>simd/archsimd</code> via <code>GOEXPERIMENT=simd</code>. It provides:</p>
+<ul>
+  <li>128-bit vectors: <code>Int8x16</code>, <code>Float64x2</code>, etc.</li>
+  <li>256-bit vectors: <code>Float32x8</code>, <code>Int64x4</code>, etc.</li>
+  <li>512-bit vectors: <code>Float32x16</code>, <code>Int64x8</code>, etc. (AVX-512)</li>
+  <li>Operations: Load, Store, Add, Sub, Mul, And, Or, Xor, Equal, Greater, Permute, Masked, Merge</li>
+  <li>Runtime CPU feature checks via <code>archsimd.X86.HasAVX2()</code>, etc.</li>
+</ul>
+<p><strong>Restrictions:</strong> amd64 only, not portable, not in public APIs, experimental (no Go 1 compatibility promise).</p>
+
+<h3>Why we're NOT using it yet — and whether we should</h3>
+
+<table>
+  <tr><th>Hot Path</th><th>Current ns/op</th><th>SIMD Opportunity</th><th>Verdict</th></tr>
+  <tr>
+    <td><code>signing/</code> HMAC</td>
+    <td class="num right">818</td>
+    <td>Already on <code>SHA256RNDS2</code>. Go's <code>crypto/*</code> uses hand-tuned assembly. SIMD can't beat it.</td>
+    <td><span class="tag tag-green">No Action</span></td>
+  </tr>
+  <tr>
+    <td><code>signing/</code> Ed25519</td>
+    <td class="num right">30,665</td>
+    <td>SHA-512 has no Intel SHA extension. Field arithmetic could use AVX-512 but <code>crypto/ed25519</code> is stdlib — we can't change it.</td>
+    <td><span class="tag tag-green">No Action</span></td>
+  </tr>
+  <tr>
+    <td><code>event.NewEvent</code> payload copy</td>
+    <td class="num right">201</td>
+    <td>Most payloads &lt;128 bytes. <code>make + copy</code> is already near-optimal for small slices. SIMD overhead (load/store setup) would exceed the gain.</td>
+    <td><span class="tag tag-green">No Action</span></td>
+  </tr>
+  <tr>
+    <td><code>signing/canonicalPayload</code></td>
+    <td class="num right">326 (10 allocs)</td>
+    <td>Bottleneck is <em>allocations</em> (string concat), not CPU work. SIMD doesn't reduce allocs. Fix with <code>strings.Builder</code> or <code>sync.Pool</code>.</td>
+    <td><span class="tag tag-orange">Fix Allocs First</span></td>
+  </tr>
+  <tr>
+    <td><code>pebble/LoadToTimestamp</code></td>
+    <td class="num right">5,393,149</td>
+    <td><strong>Highest SIMD ROI.</strong> Linear scan comparing <code>time.Time</code> values across thousands of events. <code>Int64x8</code> compares 8 timestamps per cycle. Could cut scan time 4-6×.</td>
+    <td><span class="tag tag-red">High Value</span></td>
+  </tr>
+  <tr>
+    <td><code>listing/</code> tombstone detection</td>
+    <td class="num right">373,167</td>
+    <td>Bottleneck is map lookups + slice building, not linear scanning. SIMD doesn't help with hash maps.</td>
+    <td><span class="tag tag-yellow">Low Value</span></td>
+  </tr>
+  <tr>
+    <td><code>storage/SQLite</code> ReadAll</td>
+    <td class="num right">403,640</td>
+    <td>Bottleneck is SQLite C library + CGo overhead + SQL parsing. SIMD can't touch the syscall boundary.</td>
+    <td><span class="tag tag-green">No Action</span></td>
+  </tr>
+</table>
+
+<h2>Full Benchmark Results</h2>
+
+<h3>event</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>NewEvent</td><td class="num right">201</td><td class="num right">384</td><td class="num right">3</td></tr>
+  <tr><td>NewEvent+Options</td><td class="num right">201</td><td class="num right">384</td><td class="num right">3</td></tr>
+  <tr><td>Classify</td><td class="num right">9</td><td class="num right">0</td><td class="num right">0</td></tr>
+  <tr><td>IsRetryable</td><td class="num right">9</td><td class="num right">0</td><td class="num right">0</td></tr>
+  <tr><td>BusPublish</td><td class="num right">286</td><td class="num right">946</td><td class="num right">0</td></tr>
+  <tr><td>DecodePayload</td><td class="num right">419</td><td class="num right">560</td><td class="num right">10</td></tr>
+</table>
+
+<h3>id</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>New</td><td class="num right">100</td><td class="num right">16</td><td class="num right">1</td></tr>
+  <tr><td>Parse</td><td class="num right">17</td><td class="num right">0</td><td class="num right">0</td></tr>
+  <tr><td>Parse_Invalid</td><td class="num right">118</td><td class="num right">240</td><td class="num right">3</td></tr>
+  <tr><td>String</td><td class="num right">43</td><td class="num right">80</td><td class="num right">3</td></tr>
+  <tr><td>MarshalJSON</td><td class="num right">96</td><td class="num right">80</td><td class="num right">3</td></tr>
+  <tr><td>MarshalText</td><td class="num right">55</td><td class="num right">112</td><td class="num right">4</td></tr>
+</table>
+
+<h3>decider</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>Execute (cold aggregate)</td><td class="num right">2,258</td><td class="num right">1,972</td><td class="num right">33</td></tr>
+  <tr><td>Execute_Update (100 events loaded)</td><td class="num right">102,118</td><td class="num right">323 KB</td><td class="num right">31</td></tr>
+  <tr><td>Load (100 events)</td><td class="num right">1,069</td><td class="num right">2,380</td><td class="num right">13</td></tr>
+  <tr><td>Fold (100 events, pure function)</td><td class="num right">281</td><td class="num right">0</td><td class="num right">0</td></tr>
+</table>
+
+<h3>signing</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th><th>Notes</th></tr>
+  <tr><td>CanonicalPayload</td><td class="num right">326</td><td class="num right">632</td><td class="num right">10</td><td>String concat — 10 allocs is the bottleneck, not CPU</td></tr>
+  <tr><td>HMAC Sign</td><td class="num right">818</td><td class="num right">1,144</td><td class="num right">16</td><td>SHA-NI hardware accelerated ✓</td></tr>
+  <tr><td>HMAC Verify</td><td class="num right">840</td><td class="num right">1,144</td><td class="num right">16</td><td>SHA-NI hardware accelerated ✓</td></tr>
+  <tr><td>Ed25519 Sign</td><td class="num right">13,506</td><td class="num right">696</td><td class="num right">11</td><td>SHA-512 — no hardware acceleration</td></tr>
+  <tr><td>Ed25519 Verify</td><td class="num right">30,665</td><td class="num right">632</td><td class="num right">10</td><td>SHA-512 + point mult — CPU bound</td></tr>
+</table>
+
+<h3>storage — PostgreSQL (sqlmock)</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th><th>Status</th></tr>
+  <tr><td>SQL Load</td><td class="num right">119,271</td><td class="num right">12,956</td><td class="num right">130</td><td><span class="tag tag-yellow">Mock — not real I/O</span></td></tr>
+  <tr><td>SQL LoadToVersion</td><td class="num right">117,895</td><td class="num right">13,242</td><td class="num right">136</td><td><span class="tag tag-yellow">Mock — not real I/O</span></td></tr>
+  <tr><td>SQL Save</td><td colspan="3" class="right">—</td><td><span class="tag tag-red">FAILS</span></td></tr>
+</table>
+
+<h3>storage — SQLite (real database)</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>Save</td><td class="num right">39,277</td><td class="num right">4,075</td><td class="num right">92</td></tr>
+  <tr><td>Load</td><td class="num right">48,062</td><td class="num right">20,233</td><td class="num right">554</td></tr>
+  <tr><td>ReadAll</td><td class="num right">403,640</td><td class="num right">180 KB</td><td class="num right">5,133</td></tr>
+  <tr><td>LoadToVersion</td><td class="num right">111,132</td><td class="num right">46,793</td><td class="num right">1,325</td></tr>
+</table>
+
+<h3>pebble</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>LoadToTimestamp / EarlyTermination</td><td class="num right">560,390</td><td class="num right">235 KB</td><td class="num right">3,997</td></tr>
+  <tr><td>LoadToTimestamp / FullScan</td><td class="num right">5,393,149</td><td class="num right">2.3 MB</td><td class="num right">39,040</td></tr>
+</table>
+
+<h3>catalog</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>Registry_Build</td><td class="num right">1,111</td><td class="num right">2,688</td><td class="num right">37</td></tr>
+  <tr><td>SchemaFromType</td><td class="num right">572</td><td class="num right">1,200</td><td class="num right">15</td></tr>
+  <tr><td>AsyncAPI_Export</td><td class="num right">2,173</td><td class="num right">5,217</td><td class="num right">46</td></tr>
+  <tr><td>AsyncAPI_MarshalYAML</td><td class="num right">33,635</td><td class="num right">83,698</td><td class="num right">243</td></tr>
+  <tr><td>EventCatalog_Export</td><td class="num right">103,089</td><td class="num right">29,111</td><td class="num right">403</td></tr>
+</table>
+
+<h3>projection</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>Register</td><td class="num right">113,451</td><td class="num right">182</td><td class="num right">3</td></tr>
+  <tr><td>NewRunner</td><td class="num right">183</td><td class="num right">496</td><td class="num right">6</td></tr>
+  <tr><td>CurrentCheckpoint</td><td class="num right">28</td><td class="num right">0</td><td class="num right">0</td></tr>
+</table>
+
+<h3>listing</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>InMemoryList / 1000 Aggregates</td><td class="num right">584,645</td><td class="num right">636 KB</td><td class="num right">2,038</td></tr>
+  <tr><td>InMemoryList / 100 Aggregates</td><td class="num right">34,032</td><td class="num right">56 KB</td><td class="num right">224</td></tr>
+  <tr><td>InMemoryList / SmallPages</td><td class="num right">238,938</td><td class="num right">314 KB</td><td class="num right">1,032</td></tr>
+  <tr><td>TombstoneFilter</td><td class="num right">373,167</td><td class="num right">451 KB</td><td class="num right">1,532</td></tr>
+</table>
+
+<h3>middleware</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>CommandLogging</td><td class="num right">153</td><td class="num right">112</td><td class="num right">6</td></tr>
+  <tr><td>CommandRecovery</td><td class="num right">5</td><td class="num right">0</td><td class="num right">0</td></tr>
+  <tr><td>CommandValidation</td><td class="num right">4</td><td class="num right">0</td><td class="num right">0</td></tr>
+  <tr><td>CommandRetry</td><td class="num right">6</td><td class="num right">0</td><td class="num right">0</td></tr>
+</table>
+
+<h3>integration (command / event / query)</h3>
+<table>
+  <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th></tr>
+  <tr><td>command/Dispatch</td><td class="num right">55</td><td class="num right">48</td><td class="num right">1</td></tr>
+  <tr><td>command/Dispatch+Middleware</td><td class="num right">54</td><td class="num right">48</td><td class="num right">1</td></tr>
+  <tr><td>event/NewEvent</td><td class="num right">210</td><td class="num right">384</td><td class="num right">3</td></tr>
+  <tr><td>event/MemoryBus_Publish</td><td class="num right">69</td><td class="num right">48</td><td class="num right">3</td></tr>
+  <tr><td>event/MemoryStore_Save</td><td class="num right">439</td><td class="num right">736</td><td class="num right">9</td></tr>
+  <tr><td>event/MemoryStore_Load</td><td class="num right">367</td><td class="num right">352</td><td class="num right">9</td></tr>
+  <tr><td>query/Dispatch</td><td class="num right">57</td><td class="num right">48</td><td class="num right">1</td></tr>
+  <tr><td>query/Dispatch+Middleware</td><td class="num right">57</td><td class="num right">48</td><td class="num right">1</td></tr>
+</table>
+
+<h2>Modules Without Benchmarks</h2>
+<table>
+  <tr><th>Module</th><th>Priority</th><th>Why</th></tr>
+  <tr><td><code>command/</code></td><td><span class="tag tag-red">High</span></td><td>Every command request hits <code>New()</code>, <code>Dispatch()</code>, <code>RegisterTyped()</code></td></tr>
+  <tr><td><code>query/</code></td><td><span class="tag tag-red">High</span></td><td>Every query request hits <code>New()</code>, <code>DispatchTyped()</code>, pagination</td></tr>
+  <tr><td><code>schema/</code></td><td><span class="tag tag-red">High</span></td><td>Upcaster runs on <em>every event load</em> with schema evolution</td></tr>
+  <tr><td><code>snapshot/</code></td><td><span class="tag tag-red">High</span></td><td><code>EveryNEvents</code> evaluated on every aggregate save</td></tr>
+  <tr><td><code>memory/</code></td><td><span class="tag tag-yellow">Medium</span></td><td>Baseline for "zero-cost" in-memory — what consumers compare against</td></tr>
+  <tr><td><code>dispatcher/</code></td><td><span class="tag tag-yellow">Medium</span></td><td>Generic foundation for all dispatch — no visibility into overhead</td></tr>
+  <tr><td><code>codec/</code></td><td><span class="tag tag-green">Low</span></td><td>Thin JSON/Raw wrappers</td></tr>
+  <tr><td><code>otel/</code></td><td><span class="tag tag-green">Low</span></td><td>Thin helper wrappers</td></tr>
+  <tr><td><code>watermill/</code></td><td><span class="tag tag-green">Low</span></td><td>External protocol adapter</td></tr>
+  <tr><td><code>turso/</code></td><td><span class="tag tag-green">Low</span></td><td>Thin DB connector wrapper</td></tr>
+</table>
+
+<h2>Code-Level Findings</h2>
+
+<h3>1. Zero <code>sync.Pool</code> usage anywhere</h3>
+<div class="finding critical">
+  <code>event.NewEvent</code> allocates <code>ImmutableEvent</code> + <code>Metadata</code> map + <code>safePayload</code> slice on every call (384 B / 3 allocs). Under sustained load (10k events/s), that's ~4 MB/s of short-lived garbage. A <code>sync.Pool</code> for <code>ImmutableEvent</code> would let the GC recycle these objects instead of allocating fresh ones. Expected impact: 30-50% fewer heap allocations under load.
+</div>
+
+<h3>2. Defensive payload copy on every event</h3>
+<div class="finding warn">
+  <code>event_construct.go:53-55</code> — <code>make([]byte, len(payload)); copy(safePayload, payload)</code> runs on every <code>NewEvent</code>, even when the caller is the sole owner (e.g., payload just marshaled from a struct). For event-loaded-from-DB paths, the defensive copy is pure overhead. An <code>unsafe</code> fast path or <code>WithNoCopy()</code> option for trusted callers would eliminate this.
+</div>
+
+<h3>3. <code>probeCodec</code> allocates a throwaway struct per event</h3>
+<div class="finding warn">
+  <code>event_new.go:43-50</code> — Creates a dummy <code>ImmutableEvent{}</code> just to check if <code>WithNewCodec</code> was passed. Runs on every <code>event.New()</code> call. Should iterate options directly or cache the result.
+</div>
+
+<h3>4. Storage benchmarks test a mock, not a real database</h3>
+<div class="finding critical">
+  <code>storage/benchmark_test.go</code> uses <code>sqlmock</code> — the 119µs "load" is mock overhead, not PostgreSQL. One benchmark (<code>BenchmarkSQLEventStore_Save</code>) outright <strong>fails</strong>. The SQLite benchmarks in <code>sqlite_bench_test.go</code> are real and valid. The PostgreSQL mock benchmarks should be dropped or replaced with real PG (testcontainers).
+</div>
+
+<h3>5. Inconsistent benchmark style</h3>
+<div class="finding warn">
+  <code>signing/</code> uses legacy <code>for i := 0; i &lt; b.N; i++</code> + <code>b.ResetTimer()</code>. Most other files use modern <code>b.Loop()</code> (Go 1.26). No file calls <code>b.ReportAllocs()</code> — relying on the <code>-benchmem</code> flag instead.
+</div>
+
+<h3>6. No statistical rigor</h3>
+<div class="finding warn">
+  <code>benchmark-baseline.txt</code> is a single-run snapshot. No <code>benchstat</code>-based comparison exists. Regression detection is impossible without <code>-count=N</code> runs and statistical analysis.
+</div>
+
+<h3>7. <code>canonicalPayload</code> — 10 allocations for string building</h3>
+<div class="finding critical">
+  326 ns / 10 allocs just to concatenate strings. This is called before every sign/verify. Using <code>strings.Builder</code> (pre-sized) or <code>[]byte</code> with <code>sync.Pool</code> would cut this to 1-2 allocs.
+</div>
+
+<h2>Prioritized Improvement Plan</h2>
+<table>
+  <tr><th>#</th><th>Action</th><th>Expected Impact</th><th>Effort</th></tr>
+  <tr><td>1</td><td>Add <code>sync.Pool</code> for <code>ImmutableEvent</code> in <code>event/</code></td><td>30-50% fewer allocs under sustained load</td><td>Medium</td></tr>
+  <tr><td>2</td><td>Eliminate <code>probeCodec</code> allocation in <code>event.New</code></td><td>1 fewer alloc per event creation</td><td>Low</td></tr>
+  <tr><td>3</td><td>Fix <code>canonicalPayload</code> — use <code>strings.Builder</code> or pooled buffer</td><td>8 fewer allocs per sign/verify</td><td>Low</td></tr>
+  <tr><td>4</td><td>Add <code>unsafe</code> or <code>WithNoCopy</code> fast path for trusted payloads</td><td>Eliminate 1 alloc + copy per event</td><td>Medium</td></tr>
+  <tr><td>5</td><td>Drop sqlmock benchmarks, keep only real SQLite benchmarks</td><td>Honest numbers</td><td>Low</td></tr>
+  <tr><td>6</td><td>Add benchmarks for <code>command/</code>, <code>query/</code>, <code>schema/</code>, <code>snapshot/</code></td><td>Coverage of hot paths</td><td>Low</td></tr>
+  <tr><td>7</td><td>Set up <code>benchstat</code> regression pipeline</td><td>Detect regressions before merge</td><td>Low</td></tr>
+  <tr><td>8</td><td>SIMD-optimize <code>pebble/LoadToTimestamp</code> timestamp scan</td><td>4-6× faster full scan (5.4ms → ~1ms)</td><td>Medium</td></tr>
+  <tr><td>9</td><td>Migrate <code>signing/</code> benchmarks to <code>b.Loop()</code></td><td>Consistency</td><td>Trivial</td></tr>
+  <tr><td>10</td><td>Add <code>b.ReportAllocs()</code> to all benchmark functions</td><td>Self-documenting alloc tracking</td><td>Trivial</td></tr>
+</table>
+
+<h2>Answered Questions</h2>
+
+<h3>How can benchmarks show 0 B/op?</h3>
+<p>Go's escape analyzer proves values never escape the stack frame. When all data is consumed locally — field reads, pure function returns, value-type computations — the compiler allocates on the stack. Zero heap pressure, zero GC cost. Examples:</p>
+<ul>
+  <li><code>Classify</code> / <code>IsRetryable</code> (9 ns, 0 allocs) — reads a field from an interface, no allocation possible</li>
+  <li><code>Fold</code> (281 ns, 0 allocs) — pure function, state is a value type returned on stack</li>
+  <li><code>CommandRecovery</code> / <code>Validation</code> / <code>Retry</code> (5-6 ns, 0 allocs) — closure captures nothing, no escape</li>
+</ul>
+<p>This is <em>correct</em> behavior, not a benchmark bug. It means the compiler is doing its job for these paths.</p>
+
+<h3>Is HMAC hardware-accelerated?</h3>
+<p><strong>Yes.</strong> This CPU has <code>sha_ni</code> support. Go 1.26 dispatches <code>crypto/sha256</code> to the <code>blockSHANI</code> assembly path, which uses <code>SHA256RNDS2</code> / <code>SHA256MSG1</code> / <code>SHA256MSG2</code> x86 instructions. HMAC-SHA256 calls SHA-256 twice (inner + outer pad), both accelerated. The 818 ns result is near-optimal for the algorithm given the HMAC key setup overhead.</p>
+
+<h3>Why not SIMD everywhere?</h3>
+<p>Because most hot paths are <em>allocation-bound</em>, not <em>CPU-bound</em>. SIMD accelerates arithmetic; it doesn't reduce garbage. The highest-leverage improvements are all about reducing allocations (<code>sync.Pool</code>, <code>strings.Builder</code>, eliminating defensive copies). The one path where SIMD would genuinely help — <code>pebble/LoadToTimestamp</code> doing a linear timestamp scan — accounts for a tiny fraction of real-world usage.</p>
+
+<hr>
+<p style="color: var(--muted); font-size: 0.85rem; margin-top: 2rem;">
+  Raw data: <code>benchmarks/2026-06-02_20-18-40_raw.txt</code> &bull;
+  Human-readable: <code>benchmarks/2026-06-02_20-18-40.md</code> &bull;
+  Historical baseline: <code>benchmark-baseline.txt</code>
+</p>
+
+</body>
+</html>
