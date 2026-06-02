@@ -110,7 +110,7 @@ func block(dig *Digest, p []byte) {
 
 <div class="verdict">
   <strong>Verdict:</strong> HMAC-SHA256 is already hardware-accelerated. The 818 ns is near-optimal for the algorithm.
-  The bottleneck is <em>not</em> the SHA-256 computation — it's the 10 allocations in <code>canonicalPayload()</code> (326 ns just to build the string). Ed25519 is 16× slower because SHA-512 lacks hardware support and the elliptic curve math is inherently more expensive. No software optimization can fix this — it's a CPU limitation.
+  The bottleneck is <em>not</em> the SHA-256 computation — it's the 10 allocations in <code>canonicalPayload()</code> (326 ns just to build the canonical byte buffer). Ed25519 is 16× slower because SHA-512 lacks hardware support and the elliptic curve math is inherently more expensive. No software optimization can fix this — it's a CPU limitation.
 </div>
 
 <h2>Go 1.26 SIMD — <code>simd/archsimd</code> (Experimental)</h2>
@@ -151,7 +151,7 @@ func block(dig *Digest, p []byte) {
   <tr>
     <td><code>signing/canonicalPayload</code></td>
     <td class="num right">326 (10 allocs)</td>
-    <td>Bottleneck is <em>allocations</em> (string concat), not CPU work. SIMD doesn't reduce allocs. Fix with <code>strings.Builder</code> or <code>sync.Pool</code>.</td>
+    <td>Bottleneck is <em>allocations</em> (byte-slice building with per-field length-prefix encoding), not CPU work. SIMD doesn't reduce allocs. Fix with pre-sized <code>[]byte</code> buffer or <code>bytes.Buffer</code> via <code>sync.Pool</code>.</td>
     <td><span class="tag tag-orange">Fix Allocs First</span></td>
   </tr>
   <tr>
@@ -210,7 +210,7 @@ func block(dig *Digest, p []byte) {
 <h3>signing</h3>
 <table>
   <tr><th>Benchmark</th><th class="right">ns/op</th><th class="right">B/op</th><th class="right">allocs/op</th><th>Notes</th></tr>
-  <tr><td>CanonicalPayload</td><td class="num right">326</td><td class="num right">632</td><td class="num right">10</td><td>String concat — 10 allocs is the bottleneck, not CPU</td></tr>
+  <tr><td>CanonicalPayload</td><td class="num right">326</td><td class="num right">632</td><td class="num right">10</td><td>Byte-slice building with length-prefix encoding — 10 allocs is the bottleneck, not CPU</td></tr>
   <tr><td>HMAC Sign</td><td class="num right">818</td><td class="num right">1,144</td><td class="num right">16</td><td>SHA-NI hardware accelerated ✓</td></tr>
   <tr><td>HMAC Verify</td><td class="num right">840</td><td class="num right">1,144</td><td class="num right">16</td><td>SHA-NI hardware accelerated ✓</td></tr>
   <tr><td>Ed25519 Sign</td><td class="num right">13,506</td><td class="num right">696</td><td class="num right">11</td><td>SHA-512 — no hardware acceleration</td></tr>
@@ -339,7 +339,7 @@ func block(dig *Digest, p []byte) {
 
 <h3>7. <code>canonicalPayload</code> — 10 allocations for string building</h3>
 <div class="finding critical">
-  326 ns / 10 allocs just to concatenate strings. This is called before every sign/verify. Using <code>strings.Builder</code> (pre-sized) or <code>[]byte</code> with <code>sync.Pool</code> would cut this to 1-2 allocs.
+  326 ns / 10 allocs to build the canonical byte buffer with length-prefix encoding. This is called before every sign/verify. Using a pre-sized <code>[]byte</code> buffer or <code>bytes.Buffer</code> via <code>sync.Pool</code> would cut this to 1-2 allocs.
 </div>
 
 <h2>Prioritized Improvement Plan</h2>
@@ -347,7 +347,7 @@ func block(dig *Digest, p []byte) {
   <tr><th>#</th><th>Action</th><th>Expected Impact</th><th>Effort</th></tr>
   <tr><td>1</td><td>Add <code>sync.Pool</code> for <code>ImmutableEvent</code> in <code>event/</code></td><td>30-50% fewer allocs under sustained load</td><td>Medium</td></tr>
   <tr><td>2</td><td>Eliminate <code>probeCodec</code> allocation in <code>event.New</code></td><td>1 fewer alloc per event creation</td><td>Low</td></tr>
-  <tr><td>3</td><td>Fix <code>canonicalPayload</code> — use <code>strings.Builder</code> or pooled buffer</td><td>8 fewer allocs per sign/verify</td><td>Low</td></tr>
+  <tr><td>3</td><td>Fix <code>canonicalPayload</code> — use pre-sized <code>[]byte</code> buffer or pooled <code>bytes.Buffer</code></td><td>8 fewer allocs per sign/verify</td><td>Low</td></tr>
   <tr><td>4</td><td>Add <code>unsafe</code> or <code>WithNoCopy</code> fast path for trusted payloads</td><td>Eliminate 1 alloc + copy per event</td><td>Medium</td></tr>
   <tr><td>5</td><td>Drop sqlmock benchmarks, keep only real SQLite benchmarks</td><td>Honest numbers</td><td>Low</td></tr>
   <tr><td>6</td><td>Add benchmarks for <code>command/</code>, <code>query/</code>, <code>schema/</code>, <code>snapshot/</code></td><td>Coverage of hot paths</td><td>Low</td></tr>
