@@ -1,6 +1,7 @@
 package watermill
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -141,7 +142,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		opts = append(opts, event.WithOccurredAt(occurredAt))
 	}
 
-	metadata := buildMetadata(md)
+	metadata, metaErr := buildMetadata(md)
 	opts = append(opts, event.WithMetadata(metadata))
 
 	evt, err := event.NewEvent(
@@ -156,33 +157,47 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		return nil, event.WrapCorruption(err, "watermill.create_event_failed", "create event")
 	}
 
+	if metaErr != nil {
+		return evt, event.WrapCorruption(metaErr, "watermill.corrupt_metadata",
+			"event created with corrupt metadata fields")
+	}
+
 	return evt, nil
 }
 
-func buildMetadata(md message.Metadata) event.Metadata {
+func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	m := event.NewMetadata()
+	var errs []error
 
 	if v := md.Get(metaCorrelationID); v != "" {
 		parsed, err := id.ParseCorrelationID(v)
-		if err == nil {
+		if err != nil {
+			errs = append(errs, fmt.Errorf("correlationID: %w", err))
+		} else {
 			m.CorrelationID = parsed
 		}
 	}
 	if v := md.Get(metaCausationID); v != "" {
 		parsed, err := id.ParseCausationID(v)
-		if err == nil {
+		if err != nil {
+			errs = append(errs, fmt.Errorf("causationID: %w", err))
+		} else {
 			m.CausationID = parsed
 		}
 	}
 	if v := md.Get(metaUserID); v != "" {
 		parsed, err := id.ParseUserID(v)
-		if err == nil {
+		if err != nil {
+			errs = append(errs, fmt.Errorf("userID: %w", err))
+		} else {
 			m.UserID = parsed
 		}
 	}
 	if v := md.Get(metaRequestID); v != "" {
 		parsed, err := id.ParseRequestID(v)
-		if err == nil {
+		if err != nil {
+			errs = append(errs, fmt.Errorf("requestID: %w", err))
+		} else {
 			m.RequestID = parsed
 		}
 	}
@@ -203,7 +218,7 @@ func buildMetadata(md message.Metadata) event.Metadata {
 		}
 	}
 
-	return m
+	return m, errors.Join(errs...)
 }
 
 func parseInt(s, field string) (int, error) {
