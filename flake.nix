@@ -152,6 +152,10 @@
               ${goPkg}/bin/go tool cover -func=coverage.out
             '';
 
+            bench = mkApp "bench" goModules ''
+              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -bench=. -benchmem -count=1 -timeout=30m "$@"
+            '';
+
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
