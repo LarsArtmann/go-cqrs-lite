@@ -89,8 +89,7 @@ func (cb *circuitBreaker) allow() error {
 			return nil
 		}
 
-		return event.WrapTransient(ErrCircuitBreakerOpen, "middleware.circuit_open",
-			"circuit breaker is open")
+		return ErrCircuitBreakerOpen
 	case circuitHalfOpen:
 		return nil
 	}
