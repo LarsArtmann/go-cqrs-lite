@@ -30,12 +30,15 @@ func New(
 		return nil, err
 	}
 
-	encodingOpt := WithEncoding(c.Encoding())
+	if err := validateEventParams(eventType, aggregateID, aggregateType, version, data); err != nil {
+		return nil, err
+	}
+
 	allOpts := make([]Option, 0, len(opts)+1)
-	allOpts = append(allOpts, encodingOpt)
+	allOpts = append(allOpts, WithEncoding(c.Encoding()))
 	allOpts = append(allOpts, opts...)
 
-	return NewEvent(eventType, aggregateID, aggregateType, version, data, allOpts...)
+	return buildEvent(eventType, aggregateID, aggregateType, version, data, allOpts), nil
 }
 
 func findCodecOption(opts []Option) codec.Codec {

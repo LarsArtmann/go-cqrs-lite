@@ -57,6 +57,18 @@ func NewEvent(
 		copy(safePayload, payload)
 	}
 
+	return buildEvent(eventType, aggregateID, aggregateType, version, safePayload, opts), nil
+}
+
+// buildEvent constructs an ImmutableEvent from already-validated, already-copied fields.
+func buildEvent(
+	eventType Type,
+	aggregateID id.AggregateID,
+	aggregateType AggregateType,
+	version Version,
+	payload []byte,
+	opts []Option,
+) *ImmutableEvent {
 	schemaV, _ := ParseSchemaVersion(1)
 
 	clk := defaultClock
@@ -68,7 +80,7 @@ func NewEvent(
 		aggregateType: aggregateType,
 		version:       version,
 		schemaVersion: schemaV,
-		payload:       safePayload,
+		payload:       payload,
 		metadata:      NewMetadata(),
 		occurredAt:    time.Time{},
 		clock:         clk,
@@ -82,5 +94,5 @@ func NewEvent(
 		evt.occurredAt = evt.clock()
 	}
 
-	return evt, nil
+	return evt
 }

@@ -48,6 +48,24 @@ func BenchmarkNewEvent_WithOptions(b *testing.B) {
 	}
 }
 
+func BenchmarkNew_TypedPayload(b *testing.B) {
+	b.ReportAllocs()
+	aggID := id.NewAggregateID()
+
+	for b.Loop() {
+		_, err := event.New(
+			event.Type("UserCreated"),
+			aggID,
+			"User",
+			1,
+			map[string]string{"name": "Alice"},
+		)
+		if err != nil {
+			b.Fatalf("New: %v", err)
+		}
+	}
+}
+
 func BenchmarkClassify(b *testing.B) {
 	b.ReportAllocs()
 	err := event.NewTransient("db.timeout", "connection lost")
