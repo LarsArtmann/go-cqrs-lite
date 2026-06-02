@@ -171,10 +171,9 @@ var _ = Describe("SchemaVersion", func() {
 				Expect(err).To(HaveOccurred())
 			})
 
-			It("should accept zero for unversioned legacy events", func() {
-				sv, err := event.ParseSchemaVersion(0)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(sv.IsZero()).To(BeTrue())
+			It("should reject zero — schema versioning starts at 1", func() {
+				_, err := event.ParseSchemaVersion(0)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 

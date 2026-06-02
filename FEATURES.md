@@ -627,3 +627,27 @@ Features mentioned in project docs/planning but with **no production code**:
 || Library, not framework | Import what you need, compose your own stack |
 || Context-aware | All handlers accept `context.Context` |
 || Errors as values | No panics in production code, explicit error returns, sentinel errors + wrapping |
+
+## Performance Benchmarks
+
+> Session 142 (2026-06-02) — AMD RYZEN AI MAX+ 395, 96GB RAM, Go 1.26.3
+
+| Module | Benchmark | ns/op | B/op | allocs/op |
+|--------|-----------|------:|-----:|----------:|
+| event | NewEvent | 201 | 384 | 3 |
+| event | DecodePayload | 419 | 560 | 10 |
+| id | New | 100 | 16 | 1 |
+| id | Parse | 17 | 0 | 0 |
+| command | New | 50 | 208 | 2 |
+| query | New | 0.6 | 0 | 0 |
+| dispatcher | Dispatch | 24 | 0 | 0 |
+| memory | Store Save | 583 | 736 | 9 |
+| memory | Bus Publish | 66 | 48 | 3 |
+| signing | HMAC Sign | 662 | 864 | 12 |
+| signing | HMAC Verify | 666 | 864 | 12 |
+| signing | Ed25519 Sign | 13,486 | 416 | 7 |
+| signing | Ed25519 Verify | 30,369 | 352 | 6 |
+| storage/SQLite | Save | 41,042 | 4,080 | 92 |
+| storage/SQLite | Load | 48,505 | 20,233 | 554 |
+
+Full results: `benchmarks/2026-06-02_20-18-40.md` · Regression pipeline: `scripts/benchstat-compare.sh`
