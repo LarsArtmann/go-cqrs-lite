@@ -11,6 +11,7 @@ import (
 )
 
 func BenchmarkNewEvent(b *testing.B) {
+	b.ReportAllocs()
 	aggregateID := id.NewAggregateID()
 
 	for b.Loop() {
@@ -19,6 +20,7 @@ func BenchmarkNewEvent(b *testing.B) {
 }
 
 func BenchmarkMemoryBus_Publish(b *testing.B) {
+	b.ReportAllocs()
 	bus := memory.NewMemoryBus()
 
 	err := bus.Subscribe("BenchEvent", eventtest.NoopEventHandler())
@@ -44,6 +46,7 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 }
 
 func BenchmarkMemoryStore_Save(b *testing.B) {
+	b.ReportAllocs()
 	store := memory.NewMemoryStore()
 	aggregateID := id.NewAggregateID()
 	ctx := context.Background()
@@ -60,6 +63,7 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 }
 
 func BenchmarkMemoryStore_Load(b *testing.B) {
+	b.ReportAllocs()
 	store := memory.NewMemoryStore()
 	aggregateID := id.NewAggregateID()
 	ctx := context.Background()

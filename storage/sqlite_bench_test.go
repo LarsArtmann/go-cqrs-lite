@@ -14,6 +14,7 @@ import (
 )
 
 func BenchmarkSQLiteEventStore_Save(b *testing.B) {
+	b.ReportAllocs()
 	db, err := openSQLiteBenchDB(b)
 	if err != nil {
 		b.Fatal(err)
@@ -32,6 +33,7 @@ func BenchmarkSQLiteEventStore_Save(b *testing.B) {
 }
 
 func BenchmarkSQLiteEventStore_Load(b *testing.B) {
+	b.ReportAllocs()
 	db, err := openSQLiteBenchDB(b)
 	if err != nil {
 		b.Fatal(err)
@@ -96,6 +98,7 @@ func seedSQLiteBenchEvents(b *testing.B, store *SQLEventStore, n int) {
 }
 
 func BenchmarkSQLiteEventStore_ReadAll(b *testing.B) {
+	b.ReportAllocs()
 	db, err := openSQLiteBenchDB(b)
 	if err != nil {
 		b.Fatal(err)
@@ -123,6 +126,7 @@ func BenchmarkSQLiteEventStore_ReadAll(b *testing.B) {
 }
 
 func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
+	b.ReportAllocs()
 	db, err := openSQLiteBenchDB(b)
 	if err != nil {
 		b.Fatal(err)

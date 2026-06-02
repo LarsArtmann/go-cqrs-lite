@@ -11,6 +11,7 @@ import (
 )
 
 func BenchmarkNewEvent(b *testing.B) {
+	b.ReportAllocs()
 	aggID := id.NewAggregateID()
 
 	for b.Loop() {
@@ -28,6 +29,7 @@ func BenchmarkNewEvent(b *testing.B) {
 }
 
 func BenchmarkNewEvent_WithOptions(b *testing.B) {
+	b.ReportAllocs()
 	aggID := id.NewAggregateID()
 	corrID := id.NewCorrelationID()
 
@@ -47,6 +49,7 @@ func BenchmarkNewEvent_WithOptions(b *testing.B) {
 }
 
 func BenchmarkClassify(b *testing.B) {
+	b.ReportAllocs()
 	err := event.NewTransient("db.timeout", "connection lost")
 
 	for b.Loop() {
@@ -55,6 +58,7 @@ func BenchmarkClassify(b *testing.B) {
 }
 
 func BenchmarkIsRetryable(b *testing.B) {
+	b.ReportAllocs()
 	err := event.NewTransient("db.timeout", "connection lost")
 
 	for b.Loop() {
@@ -63,6 +67,7 @@ func BenchmarkIsRetryable(b *testing.B) {
 }
 
 func BenchmarkBusPublish(b *testing.B) {
+	b.ReportAllocs()
 	bus := eventtest.NewFakeBus()
 
 	aggID := id.NewAggregateID()
@@ -94,6 +99,7 @@ func BenchmarkBusPublish(b *testing.B) {
 }
 
 func BenchmarkDecodePayload(b *testing.B) {
+	b.ReportAllocs()
 	aggID := id.NewAggregateID()
 
 	evt, err := event.NewEvent(

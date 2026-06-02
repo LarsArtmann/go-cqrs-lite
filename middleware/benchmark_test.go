@@ -21,18 +21,22 @@ func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
 }
 
 func BenchmarkCommandLogging(b *testing.B) {
+	b.ReportAllocs()
 	logger := slog.New(slog.DiscardHandler)
 	benchCommandMiddleware(b, CommandLogging(logger))
 }
 
 func BenchmarkCommandRecovery(b *testing.B) {
+	b.ReportAllocs()
 	benchCommandMiddleware(b, CommandRecovery())
 }
 
 func BenchmarkCommandValidation(b *testing.B) {
+	b.ReportAllocs()
 	benchCommandMiddleware(b, CommandValidation(func(_ command.Command) error { return nil }))
 }
 
 func BenchmarkCommandRetry(b *testing.B) {
+	b.ReportAllocs()
 	benchCommandMiddleware(b, CommandRetry(DefaultRetryConfig()))
 }

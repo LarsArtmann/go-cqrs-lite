@@ -14,6 +14,7 @@ import (
 )
 
 func BenchmarkRunner_Register(b *testing.B) {
+	b.ReportAllocs()
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
@@ -42,6 +43,7 @@ func BenchmarkRunner_Register(b *testing.B) {
 }
 
 func BenchmarkRunner_NewRunner(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		bus := memory.NewMemoryBus()
 		checkpoint := memory.NewMemoryCheckpointStore()
@@ -57,6 +59,7 @@ func BenchmarkRunner_NewRunner(b *testing.B) {
 }
 
 func BenchmarkRunner_CurrentCheckpoint(b *testing.B) {
+	b.ReportAllocs()
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = bus.Close() })
 

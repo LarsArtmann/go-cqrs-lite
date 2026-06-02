@@ -32,12 +32,14 @@ func benchmarkRegistryWithCommand(tb testing.TB) *catalog.Catalog {
 }
 
 func BenchmarkRegistry_Build(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		benchmarkRegistryWithCommand(b)
 	}
 }
 
 func BenchmarkSchemaFromType(b *testing.B) {
+	b.ReportAllocs()
 	type Order struct {
 		ID     string `json:"id"`
 		Amount int    `json:"amount"`
@@ -49,6 +51,7 @@ func BenchmarkSchemaFromType(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_Export(b *testing.B) {
+	b.ReportAllocs()
 	cat := benchmarkRegistryWithCommand(b)
 
 	b.ResetTimer()
@@ -59,6 +62,7 @@ func BenchmarkAsyncAPI_Export(b *testing.B) {
 }
 
 func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
+	b.ReportAllocs()
 	cat := benchmarkRegistryWithCommand(b)
 	doc := asyncapi.NewExporter("Bench", "1.0.0").Export(cat)
 
@@ -70,6 +74,7 @@ func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
 }
 
 func BenchmarkEventCatalog_Export(b *testing.B) {
+	b.ReportAllocs()
 	reg := newBenchRegistry()
 
 	for i := range 10 {

@@ -61,6 +61,7 @@ func benchExecute(
 }
 
 func BenchmarkDecider_Execute(b *testing.B) {
+	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
 
 	for b.Loop() {
@@ -70,6 +71,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 }
 
 func BenchmarkDecider_Execute_Update(b *testing.B) {
+	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
 	aggID := id.NewAggregateID()
 
@@ -83,6 +85,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 }
 
 func BenchmarkDecider_Load(b *testing.B) {
+	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
 	aggID := id.NewAggregateID()
 
@@ -99,6 +102,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 }
 
 func BenchmarkDecider_Fold(b *testing.B) {
+	b.ReportAllocs()
 	events := make([]event.Event, 100)
 	aggID := id.NewAggregateID()
 

@@ -8,6 +8,7 @@ import (
 )
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
+	b.ReportAllocs()
 	dispatcher := query.NewDispatcher()
 
 	err := dispatcher.Register("bench.query", noopQueryHandler())
@@ -27,6 +28,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 }
 
 func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
+	b.ReportAllocs()
 	dispatcher := query.NewDispatcher()
 
 	middleware := queryMiddleware(nil, "middleware")

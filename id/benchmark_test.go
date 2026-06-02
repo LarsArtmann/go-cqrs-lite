@@ -5,12 +5,14 @@ import (
 )
 
 func BenchmarkNew(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		New[AggregateID]()
 	}
 }
 
 func BenchmarkParse(b *testing.B) {
+	b.ReportAllocs()
 	validID := "01HK1549P84T9XF8R94E960633"
 
 	for b.Loop() {
@@ -19,12 +21,14 @@ func BenchmarkParse(b *testing.B) {
 }
 
 func BenchmarkParse_Invalid(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		_, _ = Parse[AggregateID]("")
 	}
 }
 
 func BenchmarkString(b *testing.B) {
+	b.ReportAllocs()
 	aggregateID := New[AggregateID]()
 
 	for b.Loop() {
@@ -33,6 +37,7 @@ func BenchmarkString(b *testing.B) {
 }
 
 func BenchmarkMarshalJSON(b *testing.B) {
+	b.ReportAllocs()
 	aggregateID := New[AggregateID]()
 
 	for b.Loop() {
@@ -41,6 +46,7 @@ func BenchmarkMarshalJSON(b *testing.B) {
 }
 
 func BenchmarkMarshalText(b *testing.B) {
+	b.ReportAllocs()
 	aggregateID := New[AggregateID]()
 
 	for b.Loop() {

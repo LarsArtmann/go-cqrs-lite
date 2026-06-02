@@ -55,6 +55,7 @@ func seedPebbleBenchEvents(
 }
 
 func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
+	b.ReportAllocs()
 	tests := []struct {
 		name     string
 		offset   time.Duration

@@ -47,6 +47,7 @@ func seedBenchAggregates(
 }
 
 func BenchmarkInMemoryList(b *testing.B) {
+	b.ReportAllocs()
 	tests := []struct {
 		name     string
 		aggType  event.AggregateType
@@ -89,6 +90,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 }
 
 func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
+	b.ReportAllocs()
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 

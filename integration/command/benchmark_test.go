@@ -29,6 +29,7 @@ func passThroughMiddleware() command.Middleware {
 }
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
+	b.ReportAllocs()
 	dispatcher := command.NewDispatcher()
 
 	registerBenchCmd(b, dispatcher)
@@ -37,6 +38,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 }
 
 func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
+	b.ReportAllocs()
 	dispatcher := command.NewDispatcher()
 
 	dispatcher.Use(passThroughMiddleware())

@@ -21,6 +21,7 @@ func mockEventRows(aggID id.AggregateID, now time.Time, payload, metaJSON []byte
 }
 
 func BenchmarkSQLEventStore_Load(b *testing.B) {
+	b.ReportAllocs()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		b.Fatalf("create sqlmock: %v", err)
@@ -61,6 +62,7 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 }
 
 func BenchmarkSQLEventStore_Save(b *testing.B) {
+	b.ReportAllocs()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		b.Fatalf("create sqlmock: %v", err)
@@ -80,16 +82,21 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 			event.Version(1), payload,
 		)
 
+		mock.ExpectBegin()
+		mock.ExpectQuery("SELECT COALESCE").
+			WithArgs("User", aggID.String()).
+			WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow(0))
 		mock.ExpectExec("INSERT INTO events").
 			WithArgs(
 				sqlmock.AnyArg(), "user.created", "User", aggID.String(),
-				1, 1, payload, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(),
+				1, 1, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(),
 			).
 			WillReturnResult(sqlmock.NewResult(0, 1))
+		mock.ExpectCommit()
 
 		_ = store.Save(
 			context.Background(), event.NewAggregateRef(event.AggregateType("User"), aggID),
-			[]event.Event{evt}, event.Version(1),
+			[]event.Event{evt}, event.Version(0),
 		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -99,6 +106,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 }
 
 func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
+	b.ReportAllocs()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		b.Fatalf("create sqlmock: %v", err)
