@@ -38,7 +38,8 @@ func (s *VersionedStore) Load(
 ) ([]event.Event, error) {
 	events, err := s.inner.Load(ctx, ref)
 	if err != nil {
-		return nil, fmt.Errorf("versioned store load %s: %w", ref, err)
+		return nil, event.WrapInfrastructure(err, "schema.versioned_load",
+			fmt.Sprintf("versioned store load %s", ref))
 	}
 
 	return s.upcastAll(events)
@@ -51,7 +52,8 @@ func (s *VersionedStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadFromVersion(ctx, ref, version)
 	if err != nil {
-		return nil, fmt.Errorf("versioned store load from version %s@%s: %w", ref, version, err)
+		return nil, event.WrapInfrastructure(err, "schema.versioned_load_from_version",
+			fmt.Sprintf("versioned store load from version %s@%s", ref, version))
 	}
 
 	return s.upcastAll(events)
@@ -64,7 +66,8 @@ func (s *VersionedStore) LoadToVersion(
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadToVersion(ctx, ref, maxVersion)
 	if err != nil {
-		return nil, fmt.Errorf("versioned store load to version %s@%s: %w", ref, maxVersion, err)
+		return nil, event.WrapInfrastructure(err, "schema.versioned_load_to_version",
+			fmt.Sprintf("versioned store load to version %s@%s", ref, maxVersion))
 	}
 
 	return s.upcastAll(events)
@@ -77,12 +80,9 @@ func (s *VersionedStore) LoadToTimestamp(
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadToTimestamp(ctx, ref, maxTime)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"versioned store load to timestamp %s@%s: %w",
-			ref,
-			maxTime.Format(time.RFC3339),
-			err,
-		)
+		return nil, event.WrapInfrastructure(err, "schema.versioned_load_to_timestamp",
+			fmt.Sprintf("versioned store load to timestamp %s@%s", ref,
+				maxTime.Format(time.RFC3339)))
 	}
 
 	return s.upcastAll(events)
@@ -91,7 +91,8 @@ func (s *VersionedStore) LoadToTimestamp(
 func (s *VersionedStore) Close() error {
 	err := s.inner.Close()
 	if err != nil {
-		return fmt.Errorf("close versioned store: %w", err)
+		return event.WrapInfrastructure(err, "schema.versioned_close",
+			"close versioned store")
 	}
 
 	return nil

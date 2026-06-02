@@ -2,7 +2,8 @@ package listing
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // AggregateReader queries aggregate streams.
@@ -28,7 +29,8 @@ func listRefsFromStatus(
 ) (*Page[AggregateRef], error) {
 	statusPage, err := r.ListWithStatus(ctx, opts)
 	if err != nil {
-		return nil, fmt.Errorf("list with status: %w", err)
+		return nil, event.WrapInfrastructure(err, "listing.list_with_status",
+			"list with status")
 	}
 
 	refs := make([]AggregateRef, len(statusPage.Items))
