@@ -16,6 +16,10 @@ func (s *SQLEventStore) LoadStream(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) (event.EventStream, error) {
+	if err := s.checkClosed(); err != nil {
+		return nil, err
+	}
+
 	ctx, span := sqlpkg.StartAggregateSpan(ctx, "event.store.load_stream", ref)
 	defer span.End()
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)

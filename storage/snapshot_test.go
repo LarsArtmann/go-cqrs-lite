@@ -174,7 +174,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
-	expectSnapshotLoadRows(mock, aggID, "Jane", createdAt)
+	expectSnapshotLoadAtVersion(t, mock, aggID, 5, "Jane", createdAt)
 
 	snap, err := s.LoadAtVersion(
 		context.Background(),
@@ -190,6 +190,22 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	}
 }
 
+func expectSnapshotLoadAtVersion(
+	t *testing.T,
+	mock sqlmock.Sqlmock,
+	aggID id.AggregateID,
+	maxVersion int,
+	name string,
+	createdAt time.Time,
+) {
+	t.Helper()
+
+	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+		WithArgs("User", aggID, maxVersion).
+		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
+			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
+}
+
 func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	t.Parallel()
 
@@ -197,7 +213,7 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", aggID, 99).
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := s.LoadAtVersion(
@@ -221,9 +237,8 @@ func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
-		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
-			AddRow(10, []byte(`{"name":"Jane"}`), time.Now()))
+		WithArgs("User", aggID, 5).
+		WillReturnError(sql.ErrNoRows)
 
 	_, err := s.LoadAtVersion(
 		context.Background(),
@@ -231,7 +246,11 @@ func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {
 		event.Version(5),
 	)
 	if err == nil {
-		t.Fatal("expected error when stored version exceeds requested")
+		t.Fatal("expected error for not found")
+	}
+
+	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
+		t.Errorf("error = %v, want ErrSnapshotNotFound", err)
 	}
 }
 

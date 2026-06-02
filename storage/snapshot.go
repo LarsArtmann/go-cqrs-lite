@@ -106,22 +106,28 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int()))...),
 	)
 	defer span.End()
-	snap, err := s.querySnapshot(ctx, ref)
+	snap, err := s.querySnapshotAtVersion(ctx, ref, version)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return nil, event.WrapInfrastructure(err, "storage.load_snapshot_version",
 			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 	}
-	if snap.Version.Cmp(version) > 0 {
-		err := event.WrapRejection(
-			snapshot.ErrSnapshotNotFound,
-			"storage.snapshot_version_exceeded",
-			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID),
-		)
-		cqrsotel.RecordError(span, err)
-		return nil, err
-	}
 	return snap, nil
+}
+
+func (s *SQLSnapshotStore) querySnapshotAtVersion(
+	ctx context.Context,
+	ref event.AggregateRef,
+	maxVersion event.Version,
+) (*snapshot.Snapshot, error) {
+	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
+	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
+		WHERE aggregate_type = %s AND aggregate_id = %s AND version <= %s
+		ORDER BY version DESC LIMIT 1`, p1, p2, p3)
+	return s.scanSnapshot(
+		s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID, maxVersion.Int()),
+		ref,
+	)
 }
 
 func (s *SQLSnapshotStore) querySnapshot(

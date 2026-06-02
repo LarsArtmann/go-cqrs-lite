@@ -14,6 +14,10 @@ import (
 )
 
 func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
+	if err := s.checkClosed(); err != nil {
+		return nil, err
+	}
+
 	ctx, span := cqrsotel.StartSpan(
 		ctx,
 		sqlpkg.Tracer(),
@@ -42,6 +46,10 @@ func (s *SQLEventStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
+	if err := s.checkClosed(); err != nil {
+		return nil, err
+	}
+
 	ctx, span := cqrsotel.StartSpan(
 		ctx,
 		sqlpkg.Tracer(),

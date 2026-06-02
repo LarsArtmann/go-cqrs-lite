@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync/atomic"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -17,7 +18,8 @@ import (
 type SQLEventStore struct {
 	sqlpkg.Base
 
-	ownDB bool
+	ownDB  bool
+	closed atomic.Bool
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -53,8 +55,18 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 
 // Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
 func (s *SQLEventStore) Close() error {
+	s.closed.Store(true)
+
 	if s.ownDB {
 		return s.DB.Close()
+	}
+
+	return nil
+}
+
+func (s *SQLEventStore) checkClosed() error {
+	if s.closed.Load() {
+		return event.NewInfrastructure("storage.closed", "store is closed")
 	}
 
 	return nil
@@ -67,6 +79,10 @@ func (s *SQLEventStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
 	aggregateType, aggregateID := ref.Type, ref.ID
 	if len(events) == 0 {
 		return nil
@@ -121,6 +137,10 @@ func (s *SQLEventStore) AppendBatch(
 	ref event.AggregateRef,
 	events []event.Event,
 ) error {
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
 	if len(events) == 0 {
 		return nil
 	}

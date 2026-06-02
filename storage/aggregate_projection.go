@@ -27,7 +27,11 @@ type AggregateProjection struct {
 	tableName string
 }
 
-func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjection, error) {
+func NewAggregateProjection(
+	ctx context.Context,
+	db *sql.DB,
+	tablePrefix string,
+) (*AggregateProjection, error) {
 	err := validateListingTablePrefix(tablePrefix)
 	if err != nil {
 		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
@@ -38,7 +42,7 @@ func NewAggregateProjection(db *sql.DB, tablePrefix string) (*AggregateProjectio
 		tableName: tablePrefix + "listing_aggregates",
 	}
 
-	err = p.createTable()
+	err = p.createTable(ctx)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
@@ -96,8 +100,8 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 	return err
 }
 
-func (p *AggregateProjection) createTable() error {
-	_, err := p.db.ExecContext(context.Background(), fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+func (p *AggregateProjection) createTable(ctx context.Context) error {
+	_, err := p.db.ExecContext(ctx, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 		aggregate_type  TEXT NOT NULL,
 		aggregate_id    TEXT NOT NULL,
 		version         INT  NOT NULL,

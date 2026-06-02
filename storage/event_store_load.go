@@ -27,6 +27,10 @@ func (s *SQLEventStore) loadWithSpan(
 	ref event.AggregateRef,
 	p loadParams,
 ) ([]event.Event, error) {
+	if err := s.checkClosed(); err != nil {
+		return nil, err
+	}
+
 	ctx, span := cqrsotel.StartSpan(
 		ctx,
 		sqlpkg.Tracer(),
