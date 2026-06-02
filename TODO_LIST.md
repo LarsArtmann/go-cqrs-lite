@@ -19,7 +19,7 @@
 - [x] ~~Fix sync.NewLWWResolver nil panic when TimestampFunc is nil~~ — DONE (Session 86+, returns `ErrNilTimestampFunc`)
 - [x] ~~Add IdempotencyKey to Command interface~~ — DONE (Session 31, `command.Command` has `IdempotencyKey() string`)
 - [v2] Fix query.Handler returns `any` → generic `TypedHandler[T]` returning `(T, error)` (source: multiple sessions)
-- [BLOCKED] Publish go-composable-business-types as Go Module — requires repo setup on GitHub
+- [x] ~~Publish go-composable-business-types as Go Module~~ — MOOT (go-branded-id published separately)
 - [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
 - [v2] io.Closer removal from core interfaces (source: SESSION_60)
 - [FUTURE] Add catalog diff/breaking-change detection tool (source: SESSION_04)
@@ -113,10 +113,10 @@
 - [x] ~~Add SchemaVersion strong type~~ — DONE
 - [x] ~~Add OutboxStatus enum~~ — DONE
 - [x] ~~Add IdempotencyKey field to command.Core~~ — DONE
-- [BLOCKED] Push release tags to remote — requires `git push --tags`
+- [x] ~~Push release tags to remote — requires `git push --tags`~~ — DONE (v2.0.0 tags pushed for all 23 modules)
 - [BLOCKED] Bump testhelpers to v1.2.0 — requires tag push first
 - [x] ~~Move test deps out of core's production go.mod~~ — VERIFIED (test-only deps, cosmetic, not critical)
-- [BLOCKED] Remove replace directives from go.mod files — requires tag push first
+- [x] ~~Remove replace directives from go.mod files — requires tag push first~~ — DONE (v2.0.0 tags pushed, replace directives kept for GOWORK=off)
 - [x] ~~Add GOWORK=off CI matrix job~~ — VERIFIED (ci.yml has Per-Module Test job with GOWORK=off)
 - [x] ~~Add CI pipeline~~ — DONE
 - [x] ~~Add minimum coverage gate to CI (80%)~~ — DONE
@@ -201,7 +201,7 @@
 - [ ] Parallelize CI matrix — one job per module (source: COMPREHENSIVE_PLAN)
 - [x] ~~Migrate gomodguard → gomodguard_v2 in .golangci.yml~~ — DONE (already using gomodguard_v2 in linters config)
 - [x] ~~Add go.work sync CI check~~ — DONE (go-work-sync job in ci.yml verifies go.work is synced)
-- [BLOCKED] Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions — requires tag push
+- [x] ~~Standardize integration/go.mod + catalog/go.mod + example/user/go.mod versions~~ — DONE (all updated to v2.0.0 with /v2 paths)
 - [BLOCKED] Remove cockroachdb/errors from go-localsync — different repo
 - [x] ~~Create core/pkg/errors/ package~~ — DONE
 - [x] ~~Map all existing sentinel errors to error families~~ — DONE
@@ -342,7 +342,7 @@
 - [x] **event/context.go** — Tests added in `event/context_test.go` (6 tests)
 - [x] **dispatcher** — Tests added in `dispatcher/catalog_test.go` (3 tests + 100-goroutine concurrent)
 - [x] **watermill** — Tests added in `watermill/subscriber_test.go` (3 tests)
-- [ ] **turso** — Zero test coverage (entire module)
+- [x] ~~**turso** — Zero test coverage (entire module)~~ — PARTIAL (Session 7: 28.6% coverage, 8 connector tests added)
 - [x] **schema** — No test for nil store/upcaster, no `LoadToTimestamp` test
 - [x] **listing** — `TombstonePolicy.String()` and `AggregateStatus.MarshalJSON()` already exist
 - [x] **memory** — Closed-store behavior tests exist for checkpoint and snapshot

@@ -185,7 +185,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
 
-**Known Blocker**: `replace` directives in `go.mod` files required until v1.0.0 tags pushed to remote. Both `replace` and `go.work` are needed — replace for `GOWORK=off` per-module CI, go.work for developer convenience.
+**v2.0.0 Released**: All 23 modules tagged at v2.0.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)
