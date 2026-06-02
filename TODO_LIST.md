@@ -382,21 +382,21 @@
 
 ### 🔴 HIGH — Found by Full Code Review
 
-- [ ] **middleware/** — 3× duplication across command/event/query: ~500 lines, 24 functions that should be 8 generics (source: dupl + manual review)
+- [x] ~~**middleware/** — 3× duplication across command/event/query~~ — DONE (Session 8: generic `NewX[M]` + 27 thin wrappers, `middleware/generic.go`)
 - [ ] **dispatcher/ + command/ + query/** — Three separate `ErrHandlerNotFound` and `ErrDispatcherClosed` sentinels; cross-module `errors.Is` is broken
 - [ ] **schema/versioned_source.go:12** — `VersionedStore` exposes embedded `event.Store` publicly; callers can bypass upcasting via `s.Store.Load()`
 - [ ] **command/aggregate_ref.go** — Re-exports `event.AggregateType`, `event.AggregateRef`, `event.ParseAggregateType`; module boundary violation
-- [ ] **command/metadata.go** — `command.Metadata` duplicates `event.Metadata` fields (CorrelationID, CausationID, UserID, RequestID); split brain
+- [x] ~~**command/metadata.go** — `command.Metadata` duplicates~~ — DONE (Session 8: `type Metadata = event.Metadata` alias)
 
 ### 🟠 MEDIUM — Found by Full Code Review
 
 - [ ] **decider/load.go:56-64** — `opError` uses `fmt.Errorf` instead of `event.Wrap*` error family taxonomy
 - [ ] **pebble/errors.go** vs **storage/sql/errors.go** — Duplicate `ErrAggregateTypeMismatch`, `ErrVersionMismatch` sentinels with different codes
-- [ ] **middleware/circuit_breaker.go:222** — Double-wrapped error: `allow()` already wraps, `execute()` wraps again
-- [ ] **middleware/circuit_breaker.go:243** — `ErrCircuitBreakerOpen` uses bare `errors.New` instead of error taxonomy
+- [x] ~~**middleware/circuit_breaker.go:222** — Double-wrapped error~~ — DONE (Session 8: `allow()` returns bare sentinel, `execute()` wraps once)
+- [x] ~~**middleware/circuit_breaker.go:243** — `ErrCircuitBreakerOpen`~~ — DONE (Session 8: uses bare sentinel, `execute()` applies WrapTransient once)
 - [ ] **catalog/schema/reflect.go:44-57** — `ToAny` silently swallows marshal errors; returns synthetic fallback
 - [ ] **signing/event.go:88** — `HasSignature` swallows corruption errors from `ExtractSignature`
-- [ ] **watermill/protocol.go:162-205** — Silently drops malformed ID parse errors (4 locations)
+- [x] ~~**watermill/protocol.go:162-205** — Silently drops malformed~~ — DONE (Session 8: `buildMetadata` returns `(event.Metadata, error)`, errors surfaced as Corruption-classified)
 - [ ] **watermill/protocol.go:79-160** — `messageToEvent` is 81 lines; should be decomposed
 - [ ] **projection/runner.go:119-183** — `replay` is 64 lines; should be decomposed
 - [ ] **storage/sql_aggregate_reader.go:47** — `ListWithStatus` is ~112 lines
