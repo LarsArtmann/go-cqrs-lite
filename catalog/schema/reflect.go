@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -56,7 +57,24 @@ func ToAny(s *Schema) (any, error) {
 	return result, nil
 }
 
+var schemaCache sync.Map
+
 func fromReflect(t reflect.Type) *Schema {
+	if t == nil {
+		return &Schema{Type: TypeNull}
+	}
+
+	if cached, ok := schemaCache.Load(t); ok {
+		return cached.(*Schema)
+	}
+
+	s := buildSchema(t)
+	schemaCache.Store(t, s)
+
+	return s
+}
+
+func buildSchema(t reflect.Type) *Schema {
 	if t == nil {
 		return &Schema{Type: TypeNull}
 	}
