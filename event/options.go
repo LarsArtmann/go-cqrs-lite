@@ -11,6 +11,10 @@ import (
 // Option configures event creation.
 type Option func(*ImmutableEvent)
 
+func WithNewCodec(c codec.Codec) Option {
+	return func(e *ImmutableEvent) { e.newCodec = c }
+}
+
 // metadataOption sets a single field on Metadata.
 type metadataOption[T any] func(*Metadata, T)
 
@@ -104,13 +108,6 @@ func WithSchemaVersion(v SchemaVersion) Option {
 // or when creating events with a non-JSON codec.
 func WithEncoding(v codec.Encoding) Option {
 	return func(e *ImmutableEvent) { e.encoding = v }
-}
-
-// WithNewCodec sets the codec used by [New] to marshal typed payloads.
-// The codec's encoding is auto-stamped on the resulting event.
-// Has no effect when used with [NewEvent] (which accepts pre-marshaled []byte).
-func WithNewCodec(c codec.Codec) Option {
-	return func(e *ImmutableEvent) { e.newCodec = c }
 }
 
 // WithClock sets the clock function used to determine OccurredAt.
