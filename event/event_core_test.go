@@ -226,24 +226,24 @@ func TestEvent_PayloadNil(t *testing.T) {
 	}
 }
 
-func TestEvent_PayloadDefensiveCopy(t *testing.T) {
+func TestEvent_PayloadConstructionCopy(t *testing.T) {
 	t.Parallel()
 
+	original := []byte("original")
 	evt, err := event.NewEvent(
 		"UserCreated",
 		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
-		[]byte("original"),
+		original,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	payload := evt.Payload()
-	payload[0] = 'X'
+	original[0] = 'X'
 
 	if string(evt.Payload()) != "original" {
-		t.Error("Payload() should return a defensive copy")
+		t.Error("Payload should be independent of caller's original slice")
 	}
 }
