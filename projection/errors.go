@@ -32,4 +32,10 @@ var (
 		"projection.duplicate_projection",
 		"projection: duplicate projection name",
 	)
+
+	// ErrAlreadyRunning is returned when Run is called while the runner is already running.
+	ErrAlreadyRunning = event.NewConflict(
+		"projection.already_running",
+		"projection: runner is already running",
+	)
 )

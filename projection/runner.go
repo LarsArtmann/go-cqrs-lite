@@ -100,7 +100,9 @@ func (r *Runner) Run(ctx context.Context) error {
 		return ErrNoProjections
 	}
 
-	r.running.Store(true)
+	if !r.running.CompareAndSwap(false, true) {
+		return ErrAlreadyRunning
+	}
 	defer r.running.Store(false)
 
 	ctx, r.cancel = context.WithCancel(ctx)
