@@ -34,11 +34,11 @@ func New(
 		return nil, err
 	}
 
-	allOpts := make([]Option, 0, len(opts)+1)
-	allOpts = append(allOpts, WithEncoding(c.Encoding()))
-	allOpts = append(allOpts, opts...)
+	enc := c.Encoding()
+	evt := buildEvent(eventType, aggregateID, aggregateType, version, data, opts)
+	evt.encoding = enc
 
-	return buildEvent(eventType, aggregateID, aggregateType, version, data, allOpts), nil
+	return evt, nil
 }
 
 func findCodecOption(opts []Option) codec.Codec {
