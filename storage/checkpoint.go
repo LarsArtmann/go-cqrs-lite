@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -51,7 +50,7 @@ func (s *SQLCheckpointStore) Load(
 		cqrsotel.RecordError(span, err)
 		return event.Checkpoint{}, event.WrapInfrastructure(err,
 			"storage.load_checkpoint",
-			fmt.Sprintf("load checkpoint for projection %s", projectionName))
+			"load checkpoint for projection "+projectionName)
 	}
 	return cp, nil
 }
@@ -68,7 +67,7 @@ func (s *SQLCheckpointStore) Save(
 		cqrsotel.RecordError(span, err)
 		return event.WrapInfrastructure(err,
 			"storage.save_checkpoint",
-			fmt.Sprintf("save checkpoint for projection %s", projectionName))
+			"save checkpoint for projection "+projectionName)
 	}
 	return nil
 }

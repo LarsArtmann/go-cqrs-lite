@@ -70,7 +70,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 
 	pi := 1
 
-	conditions = append(conditions, fmt.Sprintf("aggregate_type = %s", r.dialect.Placeholder(pi)))
+	conditions = append(conditions, "aggregate_type = "+r.dialect.Placeholder(pi))
 	args = append(args, string(opts.Type))
 	pi++
 
@@ -83,7 +83,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 	}
 
 	if !opts.After.IsZero() {
-		conditions = append(conditions, fmt.Sprintf("aggregate_id > %s", r.dialect.Placeholder(pi)))
+		conditions = append(conditions, "aggregate_id > "+r.dialect.Placeholder(pi))
 		args = append(args, opts.After.String())
 		pi++
 	}

@@ -237,7 +237,8 @@ func BenchmarkScale_DeciderExecute_ManyAggregates(b *testing.B) {
 	b.ResetTimer()
 
 	for i := range aggIDs {
-		err := repo.Execute(ctx, aggIDs[i], "Item",
+		err := repo.Execute(
+			ctx, aggIDs[i], "Item",
 			func(_ benchState, v event.Version) ([]event.Event, error) {
 				return []event.Event{
 					newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
@@ -261,7 +262,8 @@ func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
 	for i := range aggIDs {
 		aggIDs[i] = id.NewAggregateID()
 
-		err := repo.Execute(ctx, aggIDs[i], "Item",
+		err := repo.Execute(
+			ctx, aggIDs[i], "Item",
 			func(_ benchState, v event.Version) ([]event.Event, error) {
 				return []event.Event{
 					newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
@@ -277,7 +279,8 @@ func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
 
 	for b.Loop() {
 		for i := range aggIDs {
-			err := repo.Execute(ctx, aggIDs[i], "Item",
+			err := repo.Execute(
+				ctx, aggIDs[i], "Item",
 				func(_ benchState, v event.Version) ([]event.Event, error) {
 					return []event.Event{
 						newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
@@ -306,7 +309,8 @@ func BenchmarkScale_DeciderLoad_10KAggregates(b *testing.B) {
 		aggIDs[i] = id.NewAggregateID()
 
 		for range eventsPerAgg {
-			err := repo.Execute(ctx, aggIDs[i], "Item",
+			err := repo.Execute(
+				ctx, aggIDs[i], "Item",
 				func(_ benchState, ver event.Version) ([]event.Event, error) {
 					return []event.Event{
 						newBenchEvent(b, "ItemUpdated", aggIDs[i], ver.Increment()),
@@ -501,7 +505,6 @@ func BenchmarkScale_QueryDispatch_PaginatedResults(b *testing.B) {
 	}
 
 	for _, ps := range pageSizes {
-		ps := ps
 		err := dispatcher.Register(
 			query.Type(fmt.Sprintf("list.page%d", ps)),
 			func(_ context.Context, _ query.Query) (any, error) {
@@ -698,7 +701,8 @@ func BenchmarkScale_FullPipeline_1KAggregates(b *testing.B) {
 		projectionEvents.Store(0)
 
 		for _, aggID := range aggIDs {
-			err := repo.Execute(context.Background(), aggID, "Item",
+			err := repo.Execute(
+				context.Background(), aggID, "Item",
 				func(_ benchState, v event.Version) ([]event.Event, error) {
 					return []event.Event{
 						newBenchEvent(b, "ItemCreated", aggID, v.Increment()),
@@ -787,7 +791,8 @@ func BenchmarkScale_Concurrent_DeciderExecute_4Goroutines(b *testing.B) {
 
 				for range opsPerWorker {
 					aggID := id.NewAggregateID()
-					err := repo.Execute(ctx, aggID, "Item",
+					err := repo.Execute(
+						ctx, aggID, "Item",
 						func(_ benchState, v event.Version) ([]event.Event, error) {
 							return []event.Event{
 								newBenchEvent(b, "ItemCreated", aggID, v.Increment()),

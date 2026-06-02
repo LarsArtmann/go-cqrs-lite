@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func (r *Runner) subscribeLive(ctx context.Context) error {
