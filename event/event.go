@@ -156,6 +156,8 @@ func (e *ImmutableEvent) Payload() []byte {
 	return e.payload
 }
 
+// Metadata returns a copy of the event's metadata. The returned value is
+// safe to modify; mutations will not affect the event's internal state.
 func (e *ImmutableEvent) Metadata() Metadata {
 	return e.metadata.Clone()
 }
