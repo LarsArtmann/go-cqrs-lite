@@ -61,15 +61,7 @@ func (f *frontmatterWriter) finishWithGraph(title, summary string) {
 }
 
 func writeIDListField[S ~string](md *frontmatterWriter, key string, ids []S) {
-	if len(ids) == 0 {
-		return
-	}
-
-	_, _ = fmt.Fprintf(md, "%s:\n", key)
-
-	for _, id := range ids {
-		_, _ = fmt.Fprintf(md, "  - id: %s\n", id)
-	}
+	addObjectIDsListField(md, key, ids)
 }
 
 func writeBadges(md *frontmatterWriter, badges []catalog.Badge) {

@@ -1,8 +1,6 @@
 package otel
 
 import (
-	"fmt"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -15,7 +13,5 @@ import (
 // Uses the global TracerProvider, which returns a no-op tracer when
 // no provider is configured.
 func NewTracer(component string) trace.Tracer {
-	return otel.GetTracerProvider().Tracer(
-		fmt.Sprintf("%s/%s", Name, component),
-	)
+	return otel.GetTracerProvider().Tracer(ComponentTracer(component))
 }

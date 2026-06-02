@@ -34,15 +34,10 @@ func FilterEventType(eventType Type) func(ro.Observable[Event]) ro.Observable[Ev
 
 // FilterEventTypes returns an operator that filters an Observable[Event] to only events of the given types.
 func FilterEventTypes(eventTypes ...Type) func(ro.Observable[Event]) ro.Observable[Event] {
-	types := make(map[Type]struct{}, len(eventTypes))
-	for _, t := range eventTypes {
-		types[t] = struct{}{}
-	}
+	types := newTypeSet(eventTypes)
 
 	return ro.Filter(func(e Event) bool {
-		_, ok := types[e.Type()]
-
-		return ok
+		return types.has(e.Type())
 	})
 }
 

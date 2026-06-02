@@ -60,7 +60,11 @@ func opError(
 ) error {
 	prefix := ref.Type.String() + " " + ref.ID.String() + ": "
 
-	return fmt.Errorf(prefix+msg, args...) //nolint:err113
+	return event.WrapInfrastructure(
+		fmt.Errorf(prefix+msg, args...), //nolint:err113
+		"decider.op_error",
+		prefix+"operation error",
+	)
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.

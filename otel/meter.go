@@ -1,8 +1,6 @@
 package otel
 
 import (
-	"fmt"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -15,7 +13,5 @@ import (
 // Uses the global MeterProvider, which returns a no-op meter when
 // no provider is configured.
 func NewMeter(component string) metric.Meter {
-	return otel.GetMeterProvider().Meter(
-		fmt.Sprintf("%s/%s", Name, component),
-	)
+	return otel.GetMeterProvider().Meter(ComponentTracer(component))
 }

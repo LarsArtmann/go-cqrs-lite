@@ -361,7 +361,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
 	})
-	reg.AddFlow(catalog.NewTestCreateOrderFlow("Create Order"))
+	reg.AddFlow(cattest.NewTestCreateOrderFlow("Create Order"))
 	reg.AddTeam(catalog.Team{ID: "order-team", Name: "Order Team", Members: []string{"alice"}})
 	reg.AddUser(catalog.User{ID: "alice", Name: "Alice", Role: "Engineer"})
 

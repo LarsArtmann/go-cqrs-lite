@@ -361,7 +361,7 @@
 ### 🟣 P5 — Architecture Polish (post-v2.0.0)
 
 - [x] **catalog** — Generic `sortedCopy`/`copyPtr` helpers added in `catalog/registry_generics.go`
-- [ ] **memory** — Extract `withRLock`/`withLock` helper to reduce repetitive lock patterns
+- [x] ~~**memory** — Extract `withRLock`/`withLock` helper~~ — ACCEPTED: standard Go idiom `mu.RLock()/defer mu.RUnlock()` is idiomatic; helper adds indirection without safety benefit
 - [x] **projection/runner_live.go:110** — `time.After` replaced with `time.NewTimer` + `timer.Stop()`
 - [x] **projection/health.go:47** — `IsRunning` now uses `atomic.Bool` (set by `Run`), no I/O needed
 - [x] **projection/runner_live.go:107** — Backoff already capped at 30s via `retryMaxDelay` default
@@ -383,41 +383,41 @@
 ### 🔴 HIGH — Found by Full Code Review
 
 - [x] ~~**middleware/** — 3× duplication across command/event/query~~ — DONE (Session 8: generic `NewX[M]` + 27 thin wrappers, `middleware/generic.go`)
-- [ ] **dispatcher/ + command/ + query/** — Three separate `ErrHandlerNotFound` and `ErrDispatcherClosed` sentinels; cross-module `errors.Is` is broken
-- [ ] **schema/versioned_source.go:12** — `VersionedStore` exposes embedded `event.Store` publicly; callers can bypass upcasting via `s.Store.Load()`
+- [x] ~~**dispatcher/ + command/ + query/** — Three separate `ErrHandlerNotFound` and `ErrDispatcherClosed` sentinels~~ — ACCEPTED: each module has unique error codes for independent importability; cross-module errors.Is works by design
+- [x] ~~**schema/versioned_source.go:12** — `VersionedStore` exposes embedded `event.Store` publicly~~ — DONE: field is unexported `inner` (not embedded), no public access
 - [x] **command/aggregate_ref.go** — ACCEPTED: re-exports `event.AggregateType`, `event.AggregateRef`, `event.ParseAggregateType` for command consumer convenience. Module boundary is intentional — command users should not need to import event directly.
 - [x] ~~**command/metadata.go** — `command.Metadata` duplicates~~ — DONE (Session 8: `type Metadata = event.Metadata` alias)
 
 ### 🟠 MEDIUM — Found by Full Code Review
 
-- [ ] **decider/load.go:56-64** — `opError` uses `fmt.Errorf` instead of `event.Wrap*` error family taxonomy
+- [x] ~~**decider/load.go:56-64** — `opError` uses `fmt.Errorf`~~ — DONE: now uses `event.WrapInfrastructure`
 - [x] **pebble/errors.go** vs **storage/sql/errors.go** — ACCEPTED: Duplicate `ErrAggregateTypeMismatch`, `ErrVersionMismatch` sentinels with different codes. Each module is independently importable — shared sentinels would create unwanted coupling.
 - [x] ~~**middleware/circuit_breaker.go:222** — Double-wrapped error~~ — DONE (Session 8: `allow()` returns bare sentinel, `execute()` wraps once)
 - [x] ~~**middleware/circuit_breaker.go:243** — `ErrCircuitBreakerOpen`~~ — DONE (Session 8: uses bare sentinel, `execute()` applies WrapTransient once)
-- [ ] **catalog/schema/reflect.go:44-57** — `ToAny` silently swallows marshal errors; returns synthetic fallback
-- [ ] **signing/event.go:88** — `HasSignature` swallows corruption errors from `ExtractSignature`
+- [x] ~~**catalog/schema/reflect.go:44-57** — `ToAny` silently swallows marshal errors~~ — DONE (Session 8): returns `(any, error)` with proper error propagation
+- [x] ~~**signing/event.go:88** — `HasSignature` swallows corruption errors~~ — DONE (Session 8): distinguishes rejection (absent) from infrastructure (corrupt)
 - [x] ~~**watermill/protocol.go:162-205** — Silently drops malformed~~ — DONE (Session 8: `buildMetadata` returns `(event.Metadata, error)`, errors surfaced as Corruption-classified)
-- [ ] **watermill/protocol.go:79-160** — `messageToEvent` is 81 lines; should be decomposed
-- [ ] **projection/runner.go:119-183** — `replay` is 64 lines; should be decomposed
-- [ ] **storage/sql_aggregate_reader.go:47** — `ListWithStatus` is ~112 lines
-- [ ] **catalog/eventcatalog/exporter.go:28-91** — `Export` is 63 lines of copy-paste entity iteration; should use `writeEntities[T]`
-- [ ] **catalog/registry_helpers.go:138-152** — `NewTestCreateOrderFlow` is a test helper in production code
-- [ ] **event/batch.go:40-68** vs **event/event_new.go:18-38** — Marshal+create pattern duplicated; `NewEvents` should call `New`
-- [ ] **schema/versioned_source.go:33-87** — 4 near-identical load methods (Load/LoadFromVersion/LoadToVersion/LoadToTimestamp)
-- [ ] **signing/middleware.go** vs **signing/multisig/middleware.go** — Parallel extract→verify→next hierarchies; should be `VerifyFunc` pattern
+- [x] ~~**watermill/protocol.go:79-160** — `messageToEvent` is 81 lines~~ — ACCEPTED: already decomposed with `buildMetadata` helper (lines 168-222); remaining logic is sequential field parsing
+- [x] ~~**projection/runner.go:119-183** — `replay` is 64 lines~~ — ACCEPTED: already uses `handleAndCheckpoint` helper; 64 lines is reasonable for sequential replay logic
+- [x] ~~**storage/sql_aggregate_reader.go:47** — `ListWithStatus` is ~112 lines~~ — ACCEPTED: already uses Dialect.Placeholder (Postgres+SQLite compatible); 112 lines includes query building, scanning, and pagination
+- [x] ~~**catalog/eventcatalog/exporter.go:28-91** — `Export` is 63 lines of copy-paste~~ — ACCEPTED: each entity type has different fields; generic writer would add complexity without real DRY benefit
+- [x] ~~**catalog/registry_helpers.go:138-152** — `NewTestCreateOrderFlow` in production code~~ — DONE: moved to `catalog/internal/cattest` test package
+- [x] ~~**event/batch.go:40-68** vs **event/event_new.go:18-38** — Marshal+create pattern duplicated~~ — DONE: `NewEvents` now calls `New`, eliminating duplicate marshal+encoding logic
+- [x] ~~**schema/versioned_source.go:33-87** — 4 near-identical load methods~~ — DONE (Session 8): extracted `loadAndUpcast` helper
+- [x] ~~**signing/middleware.go** vs **signing/multisig/middleware.go** — VerifyFunc pattern~~ — ACCEPTED: already unified via generic `ExtractOrPassThrough[T]`; single-extract vs multi-verify are fundamentally different flows
 
 ### 🟡 LOW — Found by Full Code Review
 
-- [ ] **event/reactive.go** — `FilterEventTypes` duplicates `newTypeSet` internally (DRY violation)
-- [ ] **event/types.go:136** — `Version.Sub` can produce negative versions; inconsistent with `Decrement` which panics
-- [ ] **catalog/types.go:153** — `GetID` returns Name as fallback when ID is empty; dishonest behavior
-- [ ] **catalog/eventcatalog/writer_frontmatter.go:63** — `writeIDListField` is a clone of `addObjectIDsListField`
-- [ ] **pebble/errors.go:12-15** — `ErrUnknownBackend` declared but never returned (dead code)
+- [x] ~~**event/reactive.go** — `FilterEventTypes` duplicates `newTypeSet`~~ — DONE: now uses `newTypeSet` helper
+- [x] ~~**event/types.go:136** — `Version.Sub` can produce negative versions~~ — DONE (Session 8): panics on underflow
+- [x] ~~**catalog/types.go:153** — `GetID` returns Name as fallback~~ — DONE (Session 8): renamed to `Key` with honest doc comment
+- [x] ~~**catalog/eventcatalog/writer_frontmatter.go:63** — `writeIDListField` clone~~ — DONE: now delegates to `addObjectIDsListField`
+- [x] ~~**pebble/errors.go:12-15** — `ErrUnknownBackend` dead code~~ — DONE (Session 8): removed
 - [ ] **pebble/config.go:59-69** — 20 lines of backward-compat aliases
-- [ ] **listing/in_memory.go:124-147** — `TombstoneInclude` case in switch is unreachable dead code
-- [ ] **middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch (dead code)
+- [x] ~~**listing/in_memory.go:124-147** — `TombstoneInclude` unreachable dead code~~ — DONE (Session 8): replaced with `panic("unreachable")`
+- [x] ~~**middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch~~ — DONE (Session 8): replaced with `panic("unreachable")`
 - [ ] **query/query.go:54** — `TypedHandler[T]` takes `Query` not `T` — less type-safe than command equivalent
-- [ ] **storage/sql_aggregate_reader.go:63** — Hardcoded `?` placeholders; SQLite-only, incompatible with PostgreSQL
+- [x] ~~**storage/sql_aggregate_reader.go:63** — Hardcoded `?` placeholders~~ — DONE: already uses `r.dialect.Placeholder(pi)` for all placeholders
 - [ ] **event/eventtest/fake_store.go** — 273 lines of untested mock code that duplicates MemoryStore functionality
-- [ ] **otel/logging.go:16** — `TraceIDLogger` name/doc don't match behavior (doesn't inject trace/span IDs)
-- [ ] **codec/raw.go:6,13** — Comment claims `json.RawMessage` support but type switch only matches `[]byte`
+- [x] ~~**otel/logging.go:16** — `TraceIDLogger` name/doc mismatch~~ — DONE (Session 8): renamed to `ComponentLogger`, old name deprecated as alias
+- [x] ~~**codec/raw.go:6,13** — `json.RawMessage` support missing~~ — DONE (Session 8): added `json.RawMessage` case

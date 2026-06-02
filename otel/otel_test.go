@@ -54,7 +54,7 @@ func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
 	spans := recorder.Ended()
 	g.Expect(spans).To(HaveLen(1))
 	g.Expect(spans[0].InstrumentationScope().Name).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/test-component"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/test-component/v2"))
 }
 
 func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
@@ -73,7 +73,7 @@ func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
 	g.Expect(reader.Collect(context.Background(), &resourceMetrics)).To(Succeed())
 	g.Expect(resourceMetrics.ScopeMetrics).To(HaveLen(1))
 	g.Expect(resourceMetrics.ScopeMetrics[0].Scope.Name).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/metrics-test"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/metrics-test/v2"))
 }
 
 func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {

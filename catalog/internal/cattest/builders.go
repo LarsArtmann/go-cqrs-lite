@@ -182,6 +182,29 @@ func AddCommandWithExamples(
 }
 
 // CreateItemSchema returns a reusable object schema with a required "name" string property.
+func NewTestCreateOrderFlow(title string) catalog.Flow {
+	return catalog.Flow{
+		ID: "create-order", Name: "Create Order", Version: "1.0.0",
+		Summary: "",
+		Steps: []catalog.FlowStep{
+			{
+				ID:        "1",
+				Title:     title,
+				Message:   &catalog.FlowStepRef{ID: "CreateOrder", Version: ""},
+				Summary:   "",
+				Service:   nil,
+				Channel:   nil,
+				Actor:     nil,
+				External:  nil,
+				Custom:    nil,
+				NextStep:  nil,
+				NextSteps: nil,
+			},
+		},
+		Badges: nil,
+	}
+}
+
 func CreateItemSchema() *catalog.Schema {
 	return &catalog.Schema{
 		Type: "object",

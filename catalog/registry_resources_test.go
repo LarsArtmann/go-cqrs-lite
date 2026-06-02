@@ -35,7 +35,7 @@ func TestRegistry_AddFlow(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
-	reg.AddFlow(catalog.NewTestCreateOrderFlow("Submit"))
+	reg.AddFlow(cattest.NewTestCreateOrderFlow("Submit"))
 
 	cat := reg.Build()
 	if len(cat.Flows) != 1 {

@@ -34,26 +34,15 @@ func NewEvents(
 
 	events := make([]Event, len(eventTypes))
 
-	c := probeCodec(opts)
-
 	for i := range eventTypes {
 		evtVersion := version.Add(i + 1)
 
-		payload, err := marshalPayload(payloads[i], eventTypes[i], c)
-		if err != nil {
-			return nil, WrapCorruption(
-				err,
-				"event.marshal_payload_failed",
-				"marshal payload for event "+strconv.Itoa(i),
-			)
-		}
-
-		evt, err := NewEvent(
+		evt, err := New(
 			eventTypes[i],
 			aggregateID,
 			aggregateType,
 			evtVersion,
-			payload,
+			payloads[i],
 			opts...,
 		)
 		if err != nil {
