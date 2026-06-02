@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -43,6 +43,7 @@ func withGlobalProvider(t *testing.T) *tracetest.SpanRecorder {
 
 func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	provider, recorder := testTracerWithRecorder()
 	tracer := provider.Tracer(ComponentTracer("test-component"))
@@ -51,37 +52,33 @@ func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
 	span.End()
 
 	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	require.Equal(
-		t,
-		"github.com/larsartmann/go-cqrs-lite/test-component",
-		spans[0].InstrumentationScope().Name,
-	)
+	g.Expect(spans).To(HaveLen(1))
+	g.Expect(spans[0].InstrumentationScope().Name).
+		To(Equal("github.com/larsartmann/go-cqrs-lite/test-component"))
 }
 
 func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	reader := sdkmetric.NewManualReader()
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	meter := provider.Meter(ComponentTracer("metrics-test"))
 
 	counter, err := meter.Int64Counter("test.counter")
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 	counter.Add(context.Background(), 1)
 
 	var resourceMetrics metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &resourceMetrics))
-	require.Len(t, resourceMetrics.ScopeMetrics, 1)
-	require.Equal(
-		t,
-		"github.com/larsartmann/go-cqrs-lite/metrics-test",
-		resourceMetrics.ScopeMetrics[0].Scope.Name,
-	)
+	g.Expect(reader.Collect(context.Background(), &resourceMetrics)).To(Succeed())
+	g.Expect(resourceMetrics.ScopeMetrics).To(HaveLen(1))
+	g.Expect(resourceMetrics.ScopeMetrics[0].Scope.Name).
+		To(Equal("github.com/larsartmann/go-cqrs-lite/metrics-test"))
 }
 
 func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	provider, recorder := testTracerWithRecorder()
 	tracer := provider.Tracer(ComponentTracer("test"))
@@ -90,9 +87,9 @@ func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {
 	span.End()
 
 	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	require.Equal(t, "test.span", spans[0].Name())
-	require.Equal(t, 2, int(spans[0].SpanKind()))
+	g.Expect(spans).To(HaveLen(1))
+	g.Expect(spans[0].Name()).To(Equal("test.span"))
+	g.Expect(int(spans[0].SpanKind())).To(Equal(2))
 }
 
 func TestStartSpan_NilProvider_NoPanic(t *testing.T) {
@@ -108,6 +105,7 @@ func TestStartSpan_NilProvider_NoPanic(t *testing.T) {
 
 func TestRecordError_SetsErrorStatus(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
@@ -118,13 +116,14 @@ func TestRecordError_SetsErrorStatus(t *testing.T) {
 	span.End()
 
 	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	require.Equal(t, codes.Error, spans[0].Status().Code)
-	require.Equal(t, "something broke", spans[0].Status().Description)
+	g.Expect(spans).To(HaveLen(1))
+	g.Expect(spans[0].Status().Code).To(Equal(codes.Error))
+	g.Expect(spans[0].Status().Description).To(Equal("something broke"))
 }
 
 func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
@@ -134,12 +133,13 @@ func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 	EndWithError(span, nil)
 
 	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	require.Equal(t, codes.Unset, spans[0].Status().Code)
+	g.Expect(spans).To(HaveLen(1))
+	g.Expect(spans[0].Status().Code).To(Equal(codes.Unset))
 }
 
 func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	recorder := withGlobalProvider(t)
 	tracer := NewTracer("test")
@@ -149,55 +149,60 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	EndWithError(span, errors.New("fail"))
 
 	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	require.Equal(t, codes.Error, spans[0].Status().Code)
+	g.Expect(spans).To(HaveLen(1))
+	g.Expect(spans[0].Status().Code).To(Equal(codes.Error))
 }
 
 func TestAggregateAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	attrs := AggregateAttrs(testStringer("Order"), testStringer("order-123"))
-	require.Equal(t, []attribute.KeyValue{
+	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrAggregateType, "Order"),
 		attribute.String(AttrAggregateID, "order-123"),
-	}, attrs)
+	}))
 }
 
 func TestCommandAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	attrs := CommandAttrs("CreateOrder", testStringer("order-123"))
-	require.Equal(t, []attribute.KeyValue{
+	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, "CreateOrder"),
 		attribute.String(AttrAggregateID, "order-123"),
-	}, attrs)
+	}))
 }
 
 func TestEventAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	attrs := EventAttrs("OrderCreated", testStringer("order-123"), "Order")
-	require.Equal(t, []attribute.KeyValue{
+	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, "OrderCreated"),
 		attribute.String(AttrAggregateID, "order-123"),
 		attribute.String(AttrAggregateType, "Order"),
-	}, attrs)
+	}))
 }
 
 func TestQueryAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	attrs := QueryAttrs("GetOrder")
-	require.Equal(t, []attribute.KeyValue{
+	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindQuery),
 		attribute.String(AttrQueryType, "GetOrder"),
-	}, attrs)
+	}))
 }
 
 func TestSpanFromContext_ReturnsSpan(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	provider, _ := testTracerWithRecorder()
 	tracer := provider.Tracer(ComponentTracer("test"))
@@ -206,22 +211,21 @@ func TestSpanFromContext_ReturnsSpan(t *testing.T) {
 	defer span.End()
 
 	got := trace.SpanFromContext(ctx)
-	require.Equal(t, span.SpanContext(), got.SpanContext())
+	g.Expect(got.SpanContext()).To(Equal(span.SpanContext()))
 }
 
 func TestComponentTracer_ReturnsExpectedFormat(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
-	require.Equal(t, "github.com/larsartmann/go-cqrs-lite/storage", ComponentTracer("storage"))
-	require.Equal(
-		t,
-		"github.com/larsartmann/go-cqrs-lite/middleware",
-		ComponentTracer("middleware"),
-	)
+	g.Expect(ComponentTracer("storage")).To(Equal("github.com/larsartmann/go-cqrs-lite/storage"))
+	g.Expect(ComponentTracer("middleware")).
+		To(Equal("github.com/larsartmann/go-cqrs-lite/middleware"))
 }
 
 func TestNameConstant(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
-	require.Equal(t, "github.com/larsartmann/go-cqrs-lite", Name)
+	g.Expect(Name).To(Equal("github.com/larsartmann/go-cqrs-lite"))
 }

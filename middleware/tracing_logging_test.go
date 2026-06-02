@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
@@ -35,6 +35,9 @@ func newTP() *sdktrace.TracerProvider {
 }
 
 func TestCommandTraceLogging_WithSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	tracerProvider := newTP()
 	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
@@ -52,29 +55,35 @@ func TestCommandTraceLogging_WithSpan(t *testing.T) {
 	defer span.End()
 
 	err := handler(ctx, &traceCmd{aggregateID: id.NewAggregateID()})
-	require.NoError(t, err)
-	require.True(t, called)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(called).To(BeTrue())
 
 	output := buf.String()
-	require.NotContains(t, output, "trace_id=none")
-	require.Contains(t, output, "command dispatching")
-	require.Contains(t, output, "command succeeded")
+	g.Expect(output).ToNot(ContainSubstring("trace_id=none"))
+	g.Expect(output).To(ContainSubstring("command dispatching"))
+	g.Expect(output).To(ContainSubstring("command succeeded"))
 }
 
 func TestCommandTraceLogging_NoSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	logger, buf := newTraceLogger()
 	mw := middleware.CommandTraceLogging(logger)
 
 	handler := mw(middleware.NoopCommandHandler())
 
 	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	output := buf.String()
-	require.Contains(t, output, "trace_id=none")
+	g.Expect(output).To(ContainSubstring("trace_id=none"))
 }
 
 func TestEventTraceLogging_WithSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	tracerProvider := newTP()
 	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
 
@@ -93,19 +102,22 @@ func TestEventTraceLogging_WithSpan(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), nil)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = handler(ctx, evt)
-	require.NoError(t, err)
-	require.True(t, called)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(called).To(BeTrue())
 
 	output := buf.String()
-	require.NotContains(t, output, "trace_id=none")
-	require.Contains(t, output, "event handling")
-	require.Contains(t, output, "event handled")
+	g.Expect(output).ToNot(ContainSubstring("trace_id=none"))
+	g.Expect(output).To(ContainSubstring("event handling"))
+	g.Expect(output).To(ContainSubstring("event handled"))
 }
 
 func TestCommandTraceLogging_Error(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	logger, buf := newTraceLogger()
 	mw := middleware.CommandTraceLogging(logger)
 
@@ -115,8 +127,8 @@ func TestCommandTraceLogging_Error(t *testing.T) {
 	})
 
 	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
-	require.ErrorIs(t, err, testErr)
+	g.Expect(err).To(MatchError(testErr))
 
 	output := buf.String()
-	require.Contains(t, output, "command failed")
+	g.Expect(output).To(ContainSubstring("command failed"))
 }

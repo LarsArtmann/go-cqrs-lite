@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
@@ -20,16 +20,23 @@ func newTestTracerProvider() *sdktrace.TracerProvider {
 }
 
 func TestTraceIDFromContext_NoSpan(t *testing.T) {
-	id := otel.TraceIDFromContext(context.Background())
-	require.Equal(t, "none", id)
+	t.Parallel()
+	g := NewWithT(t)
+
+	g.Expect(otel.TraceIDFromContext(context.Background())).To(Equal("none"))
 }
 
 func TestSpanIDFromContext_NoSpan(t *testing.T) {
-	id := otel.SpanIDFromContext(context.Background())
-	require.Equal(t, "none", id)
+	t.Parallel()
+	g := NewWithT(t)
+
+	g.Expect(otel.SpanIDFromContext(context.Background())).To(Equal("none"))
 }
 
 func TestTraceIDFromContext_WithSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	tp := newTestTracerProvider()
 	defer func() { _ = tp.Shutdown(context.Background()) }()
 
@@ -37,11 +44,14 @@ func TestTraceIDFromContext_WithSpan(t *testing.T) {
 	defer span.End()
 
 	id := otel.TraceIDFromContext(ctx)
-	require.NotEqual(t, "none", id)
-	require.Len(t, id, 32)
+	g.Expect(id).ToNot(Equal("none"))
+	g.Expect(id).To(HaveLen(32))
 }
 
 func TestSpanIDFromContext_WithSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	tp := newTestTracerProvider()
 	defer func() { _ = tp.Shutdown(context.Background()) }()
 
@@ -49,11 +59,14 @@ func TestSpanIDFromContext_WithSpan(t *testing.T) {
 	defer span.End()
 
 	id := otel.SpanIDFromContext(ctx)
-	require.NotEqual(t, "none", id)
-	require.Len(t, id, 16)
+	g.Expect(id).ToNot(Equal("none"))
+	g.Expect(id).To(HaveLen(16))
 }
 
 func TestContextLogger_NoSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	var buf strings.Builder
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
 
@@ -61,11 +74,14 @@ func TestContextLogger_NoSpan(t *testing.T) {
 	cl.Info("test message")
 
 	output := buf.String()
-	require.Contains(t, output, "trace_id=none")
-	require.Contains(t, output, "span_id=none")
+	g.Expect(output).To(ContainSubstring("trace_id=none"))
+	g.Expect(output).To(ContainSubstring("span_id=none"))
 }
 
 func TestContextLogger_WithSpan(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	tp := newTestTracerProvider()
 	defer func() { _ = tp.Shutdown(context.Background()) }()
 
@@ -79,16 +95,19 @@ func TestContextLogger_WithSpan(t *testing.T) {
 	cl.Info("test message")
 
 	output := buf.String()
-	require.NotContains(t, output, "trace_id=none")
+	g.Expect(output).ToNot(ContainSubstring("trace_id=none"))
 }
 
 func TestTraceIDLogger(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
 	var buf strings.Builder
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
 
 	wrapped := otel.TraceIDLogger(logger)
-	require.NotNil(t, wrapped)
+	g.Expect(wrapped).ToNot(BeNil())
 
 	wrapped.Info("test message")
-	require.Contains(t, buf.String(), "component=cqrs")
+	g.Expect(buf.String()).To(ContainSubstring("component=cqrs"))
 }

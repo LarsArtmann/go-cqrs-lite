@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
@@ -13,69 +13,74 @@ import (
 
 func TestRunner_HealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = runner.HealthCheck(context.Background())
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestRunner_HealthCheck_DetailedHealth(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = runner.Register(event.NewProjection("test-proj", eventtest.NoopEventHandler(), nil))
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	status := runner.DetailedHealthCheck(context.Background())
-	require.True(t, status.Healthy)
-	require.Len(t, status.Projections, 1)
-	require.Equal(t, "test-proj", status.Projections[0].Name)
-	require.True(t, status.Projections[0].Healthy)
+	g.Expect(status.Healthy).To(BeTrue())
+	g.Expect(status.Projections).To(HaveLen(1))
+	g.Expect(status.Projections[0].Name).To(Equal("test-proj"))
+	g.Expect(status.Projections[0].Healthy).To(BeTrue())
 }
 
 func TestRunner_RegisteredProjections(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = runner.Register(event.NewProjection("proj-a", eventtest.NoopEventHandler(), nil))
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = runner.Register(event.NewProjection("proj-b", eventtest.NoopEventHandler(), nil))
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	names := runner.RegisteredProjections()
-	require.Len(t, names, 2)
-	require.Contains(t, names, "proj-a")
-	require.Contains(t, names, "proj-b")
+	g.Expect(names).To(HaveLen(2))
+	g.Expect(names).To(ContainElement("proj-a"))
+	g.Expect(names).To(ContainElement("proj-b"))
 }
 
 func TestHealthCheckAll_AllHealthy(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus, checkpoint := newTestBusAndCheckpoint(t)
 
 	runner, err := projection.NewRunner(nil, bus, checkpoint)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	err = projection.HealthCheckAll(context.Background(), runner)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestHealthCheckAll_NilChecker(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	err := projection.HealthCheckAll(context.Background())
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 }

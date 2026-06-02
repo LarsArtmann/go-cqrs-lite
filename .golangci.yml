@@ -178,6 +178,7 @@ linters:
       check-receiver: false
       check-return: false
       ignore-names:
+        - g
         - id
         - r
         - t

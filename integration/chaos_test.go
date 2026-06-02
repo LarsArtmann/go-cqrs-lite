@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/command"
 	"github.com/larsartmann/go-cqrs-lite/event"
@@ -27,6 +28,7 @@ func (c *chaosCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 func TestChaos_CommandHandler_Error(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	disp := command.NewDispatcher()
 	disp.Use(middleware.CommandRecovery())
@@ -37,11 +39,12 @@ func TestChaos_CommandHandler_Error(t *testing.T) {
 	})
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
-	require.ErrorIs(t, err, handlerErr)
+	g.Expect(err).To(MatchError(handlerErr))
 }
 
 func TestChaos_CommandHandler_Panic_Recovered(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	disp := command.NewDispatcher()
 	disp.Use(middleware.CommandRecovery())
@@ -51,15 +54,19 @@ func TestChaos_CommandHandler_Panic_Recovered(t *testing.T) {
 	})
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "panic recovered")
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("panic recovered"))
 }
 
 func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 	defer func() {
 		r := recover()
-		require.NotNil(t, r, "expected panic to propagate")
-		require.Contains(t, fmt.Sprintf("%v", r), "chaos: propagated")
+		if r == nil {
+			t.Fatal("expected panic to propagate")
+		}
+		if msg := fmt.Sprintf("%v", r); !strings.Contains(msg, "chaos: propagated") {
+			t.Fatalf("expected panic message to contain 'chaos: propagated', got: %s", msg)
+		}
 	}()
 
 	disp := command.NewDispatcher()
@@ -104,23 +111,25 @@ func newRetryDispatcher(
 
 func TestChaos_CommandRetry_SucceedsAfterFailures(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	var attempts int
 	disp := newRetryDispatcher(5, &attempts, 3, false)
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
-	require.NoError(t, err)
-	require.Equal(t, 3, attempts)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(attempts).To(Equal(3))
 }
 
 func TestChaos_EventHandler_Panic_RecoveryMiddleware(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus := memory.NewMemoryBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	err := bus.Use(middleware.EventRecovery())
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	received := 0
 	err = bus.Subscribe("chaos.event", func(_ context.Context, evt event.Event) error {
@@ -131,17 +140,18 @@ func TestChaos_EventHandler_Panic_RecoveryMiddleware(t *testing.T) {
 
 		return nil
 	})
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	aggID := id.NewAggregateID()
 	evt1, err := event.NewEvent("chaos.event", aggID, "Chaos", event.Version(1), nil)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	_ = bus.Publish(context.Background(), evt1)
 }
 
 func TestChaos_Context_Cancellation(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -152,29 +162,31 @@ func TestChaos_Context_Cancellation(t *testing.T) {
 	})
 
 	err := disp.Dispatch(ctx, &chaosCmd{aggregateID: id.NewAggregateID()})
-	require.ErrorIs(t, err, context.Canceled)
+	g.Expect(err).To(MatchError(context.Canceled))
 }
 
 func TestChaos_CommandRetry_ExhaustsAllAttempts(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	var attempts int
 	disp := newRetryDispatcher(3, &attempts, 0, true)
 
 	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
-	require.Error(t, err)
-	require.Equal(t, 3, attempts)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(attempts).To(Equal(3))
 }
 
 func TestChaos_EventPublish_Fails(t *testing.T) {
 	t.Parallel()
+	g := NewWithT(t)
 
 	bus := memory.NewMemoryBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent("chaos.publish", aggID, "Chaos", event.Version(1), nil)
-	require.NoError(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 
 	_ = bus.Publish(context.Background(), evt)
 }
