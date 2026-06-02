@@ -169,7 +169,7 @@ func block(dig *Digest, p []byte) {
   <tr>
     <td><code>storage/SQLite</code> ReadAll</td>
     <td class="num right">403,640</td>
-    <td>Bottleneck is SQLite C library + CGo overhead + SQL parsing. SIMD can't touch the syscall boundary.</td>
+    <td>Bottleneck is SQLite engine (<code>modernc.org/sqlite</code>, pure Go — no CGo) + SQL parsing overhead. Transpiled C-to-Go is slower than native C but avoids CGo bridge cost entirely.</td>
     <td><span class="tag tag-green">No Action</span></td>
   </tr>
 </table>
