@@ -11,6 +11,10 @@ import (
 
 func (r *Runner) subscribeLive(ctx context.Context) error {
 	handler := func(ctx context.Context, evt event.Event) error {
+		if !r.running.Load() {
+			return nil
+		}
+
 		r.dispatchToProjections(ctx, evt)
 
 		return nil

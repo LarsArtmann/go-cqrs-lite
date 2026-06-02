@@ -20,10 +20,11 @@ const loadToTimestampQuery = `SELECT id, event_type, aggregate_type, aggregate_i
 		FROM events
 		WHERE aggregate_type = $1 AND aggregate_id = $2 AND occurred_at <= $3 ORDER BY version ASC`
 
-const loadAllFromPositionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at
-		FROM events
-		WHERE id > $1
-		ORDER BY occurred_at ASC LIMIT $2`
+const loadAllFromPositionQuery = `SELECT e.id, e.event_type, e.aggregate_type, e.aggregate_id, e.version, e.schema_version, e.payload, e.payload_encoding, e.metadata, e.occurred_at
+		FROM events e
+		JOIN events c ON c.id = $1
+		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > $2)
+		ORDER BY e.occurred_at ASC, e.id ASC LIMIT $3`
 
 func mockEventRowsForTest(evt *event.ImmutableEvent, aggID id.AggregateID) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).AddRow(
@@ -138,7 +139,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 
 func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evt.ID().String(), 10).
+		WithArgs(evt.ID().String(), evt.ID().String(), 10).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			evt.ID(), "UserCreated", "User", evt.AggregateID(),
 			1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
@@ -189,7 +190,7 @@ func TestSQLEventStore_ReadFrom_Mock_QueryError(t *testing.T) {
 	evtID := id.NewEventID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
-		WithArgs(evtID.String(), 10).
+		WithArgs(evtID.String(), evtID.String(), 10).
 		WillReturnError(errors.New("connection lost"))
 
 	_, err := store.ReadFrom(context.Background(), evtID, 10)

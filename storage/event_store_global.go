@@ -54,21 +54,27 @@ func (s *SQLEventStore) ReadFrom(
 		events, err := s.loadAllFromStart(ctx, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			return events, fmt.Errorf("read from start (limit=%d): %w", limit, err)
+			return events, event.WrapInfrastructure(err, "storage.read_from_start",
+				fmt.Sprintf("read from start (limit=%d)", limit))
 		}
 		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
 		return events, nil
 	}
 	p1 := s.Dialect.Placeholder(1)
 	p2 := s.Dialect.Placeholder(2)
+	p3 := s.Dialect.Placeholder(3)
 	query := fmt.Sprintf(
-		`SELECT `+sqlpkg.EventColumns+`
-		FROM `+sqlpkg.TableEvents+` WHERE id > %s ORDER BY occurred_at ASC`,
+		`SELECT e.id, e.event_type, e.aggregate_type, e.aggregate_id, e.version, e.schema_version, e.payload, e.payload_encoding, e.metadata, e.occurred_at
+		FROM `+sqlpkg.TableEvents+` e
+		JOIN `+sqlpkg.TableEvents+` c ON c.id = %s
+		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > %s)
+		ORDER BY e.occurred_at ASC, e.id ASC`,
 		p1,
+		p2,
 	)
-	args := []any{afterEventID.String()}
+	args := []any{afterEventID.String(), afterEventID.String()}
 	if limit > 0 {
-		query += " LIMIT " + p2
+		query += " LIMIT " + p3
 		args = append(args, limit)
 	}
 	rows, err := s.DB.QueryContext(ctx, query, args...)
@@ -81,11 +87,10 @@ func (s *SQLEventStore) ReadFrom(
 	events, scanErr := s.scanEvents(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
+		return events, event.WrapInfrastructure(scanErr, "storage.scan_from_position",
+			fmt.Sprintf("scan events from position (limit=%d)", limit))
 	}
 	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
-	if scanErr != nil {
-		return events, fmt.Errorf("read from position (limit=%d): %w", limit, scanErr)
-	}
 	return events, nil
 }
 
