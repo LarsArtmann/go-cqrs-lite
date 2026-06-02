@@ -8,8 +8,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
+var _ event.EventSource = (*VersionedStore)(nil)
+
 type VersionedStore struct {
-	event.Store
+	inner event.Store
 
 	registry *upcasterRegistry
 }
@@ -27,14 +29,14 @@ func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStor
 		}
 	}
 
-	return &VersionedStore{Store: store, registry: reg}, nil
+	return &VersionedStore{inner: store, registry: reg}, nil
 }
 
 func (s *VersionedStore) Load(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
-	events, err := s.Store.Load(ctx, ref)
+	events, err := s.inner.Load(ctx, ref)
 	if err != nil {
 		return nil, fmt.Errorf("versioned store load %s: %w", ref, err)
 	}
@@ -47,7 +49,7 @@ func (s *VersionedStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	events, err := s.Store.LoadFromVersion(ctx, ref, version)
+	events, err := s.inner.LoadFromVersion(ctx, ref, version)
 	if err != nil {
 		return nil, fmt.Errorf("versioned store load from version %s@%s: %w", ref, version, err)
 	}
@@ -60,7 +62,7 @@ func (s *VersionedStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	events, err := s.Store.LoadToVersion(ctx, ref, maxVersion)
+	events, err := s.inner.LoadToVersion(ctx, ref, maxVersion)
 	if err != nil {
 		return nil, fmt.Errorf("versioned store load to version %s@%s: %w", ref, maxVersion, err)
 	}
@@ -73,7 +75,7 @@ func (s *VersionedStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	events, err := s.Store.LoadToTimestamp(ctx, ref, maxTime)
+	events, err := s.inner.LoadToTimestamp(ctx, ref, maxTime)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"versioned store load to timestamp %s@%s: %w",
@@ -84,6 +86,15 @@ func (s *VersionedStore) LoadToTimestamp(
 	}
 
 	return s.upcastAll(events)
+}
+
+func (s *VersionedStore) Close() error {
+	err := s.inner.Close()
+	if err != nil {
+		return fmt.Errorf("close versioned store: %w", err)
+	}
+
+	return nil
 }
 
 func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) {
