@@ -18,6 +18,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -86,19 +87,19 @@ func buildGraph(root string) (*GraphData, error) {
 	edgesMap := make(map[string]bool)
 	var edgeList []Edge
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk %s: %w", root, err)
 		}
-		if info.IsDir() {
-			name := info.Name()
+		if d.IsDir() {
+			name := d.Name()
 			if name == "vendor" || name == ".git" || name == "node_modules" || name == ".direnv" ||
 				name == "example" {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-		if info.Name() != "go.mod" {
+		if d.Name() != "go.mod" {
 			return nil
 		}
 

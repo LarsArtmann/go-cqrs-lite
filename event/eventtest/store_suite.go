@@ -51,7 +51,7 @@ func NewStoreTestConfig(
 		AggType: aggType,
 		EvtType: evtType,
 		Payload: func(v event.Version) []byte {
-			return []byte(fmt.Sprintf(`{"%s":"%s-%d"}`, jsonField, valuePrefix, v))
+			return fmt.Appendf(nil, `{"%s":"%s-%d"}`, jsonField, valuePrefix, v)
 		},
 	}
 }

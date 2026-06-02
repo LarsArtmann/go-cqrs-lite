@@ -68,7 +68,7 @@ func NewEventStore(cfg Config, logger *slog.Logger) (cqrsEvent.Store, error) {
 	)
 }
 
-// Backward-compatible aliases.
+// Deprecated: Use Backend, EventStoreProvider, Config, Option directly.
 type (
 	PebbleBackend            = Backend
 	PebbleEventStoreProvider = EventStoreProvider
@@ -76,11 +76,14 @@ type (
 	PebbleOption             = Option
 )
 
+// Deprecated: Use BackendPebble, BackendMemory directly.
 const (
 	PebbleBackendPebble = BackendPebble
 	PebbleBackendMemory = BackendMemory
 )
 
+// Deprecated: Use WithBackend, WithProvider, NewConfig, NewEventStore directly.
+//
 //nolint:gochecknoglobals // backward-compatible aliases
 var (
 	WithPebbleBackend   = WithBackend

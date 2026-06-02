@@ -8,11 +8,6 @@ var (
 		"pebble.provider_required",
 		"pebble: requires a Provider: use WithPebbleProvider",
 	)
-	// ErrUnknownBackend is returned when an unknown event store backend is specified.
-	ErrUnknownBackend = event.NewInfrastructure(
-		"pebble.unknown_backend",
-		"pebble: unknown event store backend",
-	)
 	// ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match.
 	ErrAggregateTypeMismatch = event.NewConflict(
 		"pebble.aggregate_type_mismatch",

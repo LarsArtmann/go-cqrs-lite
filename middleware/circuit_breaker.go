@@ -94,7 +94,7 @@ func (cb *circuitBreaker) allow() error {
 		return nil
 	}
 
-	return nil
+	panic("unreachable")
 }
 
 func (cb *circuitBreaker) recordSuccess() {

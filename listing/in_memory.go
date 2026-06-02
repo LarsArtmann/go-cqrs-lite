@@ -130,8 +130,6 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 
 	for _, r := range refs {
 		switch policy {
-		case TombstoneInclude:
-			filtered = append(filtered, r)
 		case TombstoneExclude:
 			if !r.Status.IsTombstoned() {
 				filtered = append(filtered, r)
@@ -140,6 +138,8 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 			if r.Status.IsTombstoned() {
 				filtered = append(filtered, r)
 			}
+		case TombstoneInclude:
+			panic("unreachable")
 		}
 	}
 

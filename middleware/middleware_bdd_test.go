@@ -148,7 +148,7 @@ var _ = Describe("Circuit Breaker Middleware", func() {
 				mw := middleware.CommandCircuitBreaker(config)
 				handler := mw(middleware.NoopCommandHandler())
 
-				for i := 0; i < 10; i++ {
+				for range 10 {
 					err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
 					Expect(err).ToNot(HaveOccurred())
 				}

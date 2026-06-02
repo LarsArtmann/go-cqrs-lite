@@ -7,14 +7,16 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// TraceIDLogger wraps an *slog.Logger to inject the trace_id and span_id
-// from the context into every log entry. Since slog doesn't support
-// per-call middleware, use ContextLogger(logger, ctx) for per-entry
-// trace injection, or use the returned logger with InfoContext.
-//
-// This adds "component"="cqrs" as a static field.
-func TraceIDLogger(logger *slog.Logger) *slog.Logger {
+// ComponentLogger returns an *slog.Logger with "component"="cqrs" as a static
+// field. For per-entry trace_id/span_id injection, use ContextLogger(logger, ctx).
+func ComponentLogger(logger *slog.Logger) *slog.Logger {
 	return logger.With(slog.String("component", "cqrs"))
+}
+
+// TraceIDLogger is an alias for ComponentLogger.
+// Deprecated: Use ComponentLogger for clarity.
+func TraceIDLogger(logger *slog.Logger) *slog.Logger {
+	return ComponentLogger(logger)
 }
 
 // TraceIDFromContext extracts the trace ID from the context. Returns "none"
