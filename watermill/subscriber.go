@@ -12,11 +12,12 @@ import (
 
 // SubscriberAdapter wraps a go-cqrs-lite event.Bus as a Watermill subscriber.
 type SubscriberAdapter struct {
-	bus      event.Bus
-	handlers map[string]event.Handler
-	outputCh chan *message.Message
-	closeCh  chan struct{}
-	closeMu  sync.Once
+	bus        event.Bus
+	handlers   map[string]event.Handler
+	handlersMu sync.Mutex
+	outputCh   chan *message.Message
+	closeCh    chan struct{}
+	closeMu    sync.Once
 }
 
 // NewSubscriberAdapter creates a Watermill subscriber backed by a go-cqrs-lite event.Bus.
@@ -55,7 +56,9 @@ func (a *SubscriberAdapter) Subscribe(
 		)
 	}
 
+	a.handlersMu.Lock()
 	a.handlers[topic] = handler
+	a.handlersMu.Unlock()
 
 	return a.outputCh, nil
 }

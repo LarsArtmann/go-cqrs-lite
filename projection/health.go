@@ -2,9 +2,9 @@ package projection
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // HealthCheck verifies that the runner's downstream dependencies are reachable.
@@ -13,13 +13,15 @@ import (
 func (r *Runner) HealthCheck(ctx context.Context) error {
 	_, err := r.checkpoint.Load(ctx, "__health__")
 	if err != nil {
-		return fmt.Errorf("projection health: checkpoint store: %w", err)
+		return event.WrapInfrastructure(err, "projection.health_check",
+			"checkpoint store unreachable")
 	}
 
-	if r.journal != nil {
-		_, err = r.journal.ReadAll(ctx)
+	if seekable, ok := r.journal.(event.SeekableJournal); ok {
+		_, err = seekable.ReadFrom(ctx, id.EventID{}, 1)
 		if err != nil {
-			return fmt.Errorf("projection health: journal: %w", err)
+			return event.WrapInfrastructure(err, "projection.health_check",
+				"journal unreachable")
 		}
 	}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/listing/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 const (
@@ -19,20 +20,27 @@ const (
 // SQLAggregateReader queries a projection table maintained by AggregateProjection.
 type SQLAggregateReader struct {
 	db        *sql.DB
+	dialect   sqlpkg.Dialect
 	tableName string
 }
 
 var _ listing.AggregateReader = (*SQLAggregateReader)(nil)
 
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
-func NewSQLAggregateReader(db *sql.DB, tablePrefix string) (*SQLAggregateReader, error) {
+func NewSQLAggregateReader(
+	db *sql.DB,
+	tablePrefix string,
+	dialect sqlpkg.Dialect,
+) (*SQLAggregateReader, error) {
 	err := validateListingTablePrefix(tablePrefix)
 	if err != nil {
-		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
+		return nil, event.NewRejection("listing.invalid_prefix",
+			"invalid table prefix")
 	}
 
 	return &SQLAggregateReader{
 		db:        db,
+		dialect:   dialect,
 		tableName: tablePrefix + "listing_aggregates",
 	}, nil
 }
@@ -60,8 +68,11 @@ func (r *SQLAggregateReader) ListWithStatus(
 		args       []any
 	)
 
-	conditions = append(conditions, "aggregate_type = ?")
+	pi := 1
+
+	conditions = append(conditions, fmt.Sprintf("aggregate_type = %s", r.dialect.Placeholder(pi)))
 	args = append(args, string(opts.Type))
+	pi++
 
 	switch opts.Tombstone {
 	case listing.TombstoneExclude:
@@ -69,12 +80,12 @@ func (r *SQLAggregateReader) ListWithStatus(
 	case listing.TombstoneOnly:
 		conditions = append(conditions, "tombstone_status = 1")
 	case listing.TombstoneInclude:
-		// include all regardless of tombstone status
 	}
 
 	if !opts.After.IsZero() {
-		conditions = append(conditions, "aggregate_id > ?")
+		conditions = append(conditions, fmt.Sprintf("aggregate_id > %s", r.dialect.Placeholder(pi)))
 		args = append(args, opts.After.String())
+		pi++
 	}
 
 	limit := opts.Limit
@@ -83,9 +94,10 @@ func (r *SQLAggregateReader) ListWithStatus(
 	}
 
 	query := fmt.Sprintf(
-		"SELECT aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status FROM %s WHERE %s ORDER BY aggregate_id LIMIT ?",
+		"SELECT aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status FROM %s WHERE %s ORDER BY aggregate_id LIMIT %s",
 		r.tableName,
 		strings.Join(conditions, " AND "),
+		r.dialect.Placeholder(pi),
 	)
 
 	args = append(args, limit+1)

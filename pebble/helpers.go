@@ -45,6 +45,8 @@ func (a *EventStore) AppendBatch(
 
 // Close releases the Pebble database.
 func (a *EventStore) Close() error {
+	a.locks.Clear()
+
 	if a.db != nil {
 		err := a.db.Close()
 		if err != nil {
