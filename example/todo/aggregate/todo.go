@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
-	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
+	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 

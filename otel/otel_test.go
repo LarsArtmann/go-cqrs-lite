@@ -218,9 +218,9 @@ func TestComponentTracer_ReturnsExpectedFormat(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	g.Expect(ComponentTracer("storage")).To(Equal("github.com/larsartmann/go-cqrs-lite/storage"))
+	g.Expect(ComponentTracer("storage")).To(Equal("github.com/larsartmann/go-cqrs-lite/storage/v2"))
 	g.Expect(ComponentTracer("middleware")).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/middleware"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/middleware/v2"))
 }
 
 func TestNameConstant(t *testing.T) {

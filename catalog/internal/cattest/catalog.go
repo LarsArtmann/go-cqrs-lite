@@ -3,7 +3,7 @@ package cattest
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {

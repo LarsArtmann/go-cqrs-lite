@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/catalog
+module github.com/larsartmann/go-cqrs-lite/catalog/v2
 
 go 1.26.3
 

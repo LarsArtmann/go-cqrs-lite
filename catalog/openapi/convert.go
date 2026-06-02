@@ -1,6 +1,6 @@
 package openapi
 
-import "github.com/larsartmann/go-cqrs-lite/catalog/internal/caseutil"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/caseutil"
 
 func toKebab(s string) string {
 	return caseutil.ToKebab(s)

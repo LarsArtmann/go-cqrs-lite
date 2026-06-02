@@ -3,7 +3,7 @@ package id_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 type orderMarker struct{}

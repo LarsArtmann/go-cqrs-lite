@@ -3,7 +3,7 @@ package query_test
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 func noopQueryHandler() func(context.Context, query.Query) (any, error) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 )
 
 // DecodePayload decodes an event's payload bytes into a typed value using

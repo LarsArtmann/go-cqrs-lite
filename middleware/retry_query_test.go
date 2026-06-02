@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 func TestQueryRetry_Success(t *testing.T) {

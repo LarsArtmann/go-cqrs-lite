@@ -1,9 +1,9 @@
 package docserver
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/openapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/openapi"
 )
 
 func (ds *DocsServer) buildOpenAPI() *openapi.Document {

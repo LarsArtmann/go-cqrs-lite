@@ -3,7 +3,7 @@ package event
 import (
 	"maps"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Metadata contains tracing and contextual information for events.

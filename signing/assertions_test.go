@@ -1,6 +1,6 @@
 package signing
 
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 // Compile-time interface assertions.
 var (

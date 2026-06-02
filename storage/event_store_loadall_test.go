@@ -9,10 +9,10 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 func testLoadAllSuccess(

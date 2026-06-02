@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/d2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/d2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
 )
 
 const outputFilePerm = 0o600

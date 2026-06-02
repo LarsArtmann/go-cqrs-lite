@@ -3,8 +3,8 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/cattest"
 )
 
 func TestRegistry_AddService(t *testing.T) {

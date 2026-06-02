@@ -6,11 +6,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/decider"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/decider/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 func TestNewRepository_NilChecks(t *testing.T) {

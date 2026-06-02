@@ -6,9 +6,9 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
 func TestRunner_HealthCheck_Healthy(t *testing.T) {

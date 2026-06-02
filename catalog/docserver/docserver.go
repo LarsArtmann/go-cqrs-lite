@@ -14,8 +14,8 @@ import (
 	"io/fs"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 const yamlContentType = "text/yaml; charset=utf-8"

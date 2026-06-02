@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 type UserState struct {

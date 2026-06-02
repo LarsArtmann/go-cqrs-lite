@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func (r *Runner) subscribeLive(ctx context.Context) error {

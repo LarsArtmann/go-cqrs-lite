@@ -8,8 +8,8 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 const loadToVersionQuery = `SELECT id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at

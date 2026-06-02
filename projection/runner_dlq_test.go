@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 func TestRunner_DeadLetterHandler(t *testing.T) {

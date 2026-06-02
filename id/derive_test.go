@@ -3,7 +3,7 @@ package id_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestDeriveAggregateID(t *testing.T) {

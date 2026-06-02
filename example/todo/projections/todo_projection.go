@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	codecpkg "github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )

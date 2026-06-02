@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // HealthCheck verifies that the runner's downstream dependencies are reachable.

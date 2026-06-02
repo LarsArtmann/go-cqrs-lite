@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
 func TestRunner_Parallelism_DispatchesConcurrently(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
 func newDeviceMultiSigner(t *testing.T) (*multisig.MultiSigner, ed25519.PublicKey) {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/storage"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
 // Open opens a local Turso database file and returns a *sql.DB

@@ -6,11 +6,11 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 // Decider defines how to reconstruct state from events.

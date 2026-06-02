@@ -8,10 +8,10 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/query"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 func TestFamily_String(t *testing.T) {

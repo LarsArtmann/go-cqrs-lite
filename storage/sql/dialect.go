@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite).

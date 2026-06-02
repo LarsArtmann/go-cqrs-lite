@@ -1,6 +1,6 @@
 package decider
 
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 // ErrNilStore is returned by NewRepository when the event store is nil.
 var ErrNilStore = event.NewInfrastructure(

@@ -3,7 +3,7 @@ package projection
 import (
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // HandlerRegistry maps event types to handler functions.

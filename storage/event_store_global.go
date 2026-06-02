@@ -7,10 +7,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {

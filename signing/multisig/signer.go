@@ -3,8 +3,8 @@ package multisig
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.

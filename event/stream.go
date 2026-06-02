@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // StreamKey returns the canonical key for an event stream,

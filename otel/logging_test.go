@@ -10,7 +10,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	"github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func newTestTracerProvider() *sdktrace.TracerProvider {

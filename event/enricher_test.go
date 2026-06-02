@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestEnrichEvent(t *testing.T) {

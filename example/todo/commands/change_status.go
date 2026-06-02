@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 type ChangeStatusCommand struct {

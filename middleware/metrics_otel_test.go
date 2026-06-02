@@ -8,9 +8,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func TestOTelMetricsRecorder(t *testing.T) {

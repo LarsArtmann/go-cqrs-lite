@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestSliceFromVersion(t *testing.T) {

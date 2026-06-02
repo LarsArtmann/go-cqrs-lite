@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 func assertPropertyCount(t *testing.T, s *schema.Schema, expected int) {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestSQLEventStore_Save_Success(t *testing.T) {

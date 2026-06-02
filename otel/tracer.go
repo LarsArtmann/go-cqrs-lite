@@ -10,7 +10,7 @@ import (
 // NewTracer creates a tracer scoped to a specific go-cqrs-lite component.
 // The component name is appended to the base instrumentation name:
 //
-//	NewTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage"
+//	NewTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage/v2"
 //
 // Uses the global TracerProvider, which returns a no-op tracer when
 // no provider is configured.

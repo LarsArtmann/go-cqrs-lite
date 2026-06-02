@@ -3,8 +3,8 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 type SQLBackend struct {

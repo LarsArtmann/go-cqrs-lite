@@ -3,8 +3,8 @@ package event
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // New creates a new event with a typed payload.

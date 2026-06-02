@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func ExampleDispatcher() {

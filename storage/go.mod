@@ -1,15 +1,15 @@
-module github.com/larsartmann/go-cqrs-lite/storage
+module github.com/larsartmann/go-cqrs-lite/storage/v2
 
 go 1.26.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec v1.7.1
-	github.com/larsartmann/go-cqrs-lite/event v1.7.1
-	github.com/larsartmann/go-cqrs-lite/id v1.7.1
-	github.com/larsartmann/go-cqrs-lite/listing v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/otel v1.7.1
-	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	modernc.org/sqlite v1.51.0
@@ -22,7 +22,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-error-family v0.2.0 // indirect
+	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -40,10 +40,10 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec => ../codec
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/listing => ../listing
-	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/snapshot => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../listing
+	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../otel
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )

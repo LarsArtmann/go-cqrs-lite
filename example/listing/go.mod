@@ -3,18 +3,18 @@ module github.com/larsartmann/go-cqrs-lite/example/listing
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event v1.7.1
-	github.com/larsartmann/go-cqrs-lite/id v1.7.1
-	github.com/larsartmann/go-cqrs-lite/listing v1.7.1
-	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.0.0
 )
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1 // indirect
-	github.com/larsartmann/go-error-family v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
@@ -23,11 +23,11 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec => ../../codec
-	github.com/larsartmann/go-cqrs-lite/dispatcher => ../../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event => ../../event
-	github.com/larsartmann/go-cqrs-lite/id => ../../id
-	github.com/larsartmann/go-cqrs-lite/listing => ../../listing
-	github.com/larsartmann/go-cqrs-lite/memory => ../../memory
-	github.com/larsartmann/go-cqrs-lite/snapshot => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
+	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../../listing
+	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../../memory
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 )

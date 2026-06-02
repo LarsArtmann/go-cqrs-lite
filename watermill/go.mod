@@ -1,33 +1,36 @@
-module github.com/larsartmann/go-cqrs-lite/watermill
+module github.com/larsartmann/go-cqrs-lite/watermill/v2
 
 go 1.26.3
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
-	github.com/larsartmann/go-cqrs-lite/event v1.7.1
-	github.com/larsartmann/go-cqrs-lite/id v1.7.1
-	github.com/larsartmann/go-cqrs-lite/memory v1.7.1
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.0.0
 )
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1 // indirect
-	github.com/larsartmann/go-error-family v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/samber/lo v1.52.0 // indirect
+	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7 // indirect
+	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
 	golang.org/x/text v0.37.0 // indirect
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/memory => ../memory
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )

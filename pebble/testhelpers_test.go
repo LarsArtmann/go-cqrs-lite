@@ -3,9 +3,9 @@ package pebble
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 type storeTestConfig = eventtest.StoreTestConfig

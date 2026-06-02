@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/decider"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/decider/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 func TestExecute_WithSnapshot(t *testing.T) {

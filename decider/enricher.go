@@ -3,7 +3,7 @@ package decider
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func (r *Repository[State]) applyEnricher(ctx context.Context, events []event.Event) {

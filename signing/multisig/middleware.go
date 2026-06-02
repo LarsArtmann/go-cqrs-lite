@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 // MultiSignMiddleware returns event.PublishMiddleware that signs every published event

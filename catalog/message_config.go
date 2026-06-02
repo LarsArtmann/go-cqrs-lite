@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 // MessageConfig is implemented by message builders produced by Command[T](),

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestNewEvent_Valid(t *testing.T) {

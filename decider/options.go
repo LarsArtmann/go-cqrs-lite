@@ -1,9 +1,9 @@
 package decider
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 // RepositoryOption configures a Repository.

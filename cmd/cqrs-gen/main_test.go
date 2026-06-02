@@ -113,7 +113,7 @@ func TestGenerate_Query(t *testing.T) {
 
 	code := generate("handlers", "query", entries)
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query") {
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query/v2") {
 		t.Error("missing query import")
 	}
 

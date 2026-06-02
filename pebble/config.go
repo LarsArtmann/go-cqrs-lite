@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	cqrsEvent "github.com/larsartmann/go-cqrs-lite/event"
+	cqrsEvent "github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Backend identifies an event store backend.

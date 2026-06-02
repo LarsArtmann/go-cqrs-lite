@@ -11,16 +11,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/memory"
-	cqrsPebble "github.com/larsartmann/go-cqrs-lite/pebble"
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	cqrsPebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 func main() {

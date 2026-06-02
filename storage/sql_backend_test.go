@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 func newTestSQLBackend(t *testing.T) *SQLBackend {

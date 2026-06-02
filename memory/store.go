@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // MemoryStore is an in-memory implementation of event.Store and event.Journal.

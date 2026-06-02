@@ -3,7 +3,7 @@ package command_test
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 )
 
 func noopCommandHandler() command.Handler {

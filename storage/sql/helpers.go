@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // DeleteByAggregate is the shared implementation for Delete methods across event

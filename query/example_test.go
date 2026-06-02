@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 func ExampleDispatcher() {

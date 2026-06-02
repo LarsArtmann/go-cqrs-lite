@@ -4,8 +4,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 // MultiSigMetadataKey is the custom metadata key used to store multi-party signatures.

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func benchCommandMiddleware(b *testing.B, mw command.Middleware) {

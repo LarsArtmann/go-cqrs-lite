@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/turso"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/turso/v2"
 )
 
 func TestOpenSync_MemoryWithRemote(t *testing.T) {

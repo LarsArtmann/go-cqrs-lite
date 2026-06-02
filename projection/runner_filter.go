@@ -3,7 +3,7 @@ package projection
 import (
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func subscribesTo(p event.Projection, eventType event.Type) bool {

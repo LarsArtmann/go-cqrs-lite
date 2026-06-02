@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/projection"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
 func TestRunner_Close(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func TestBuildMessageFrontmatter_FullFields(t *testing.T) {

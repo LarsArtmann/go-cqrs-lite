@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)

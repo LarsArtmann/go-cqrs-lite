@@ -4,7 +4,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func tracer() trace.Tracer {

@@ -8,7 +8,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
 )
 
 // Handler processes a query and returns a result.

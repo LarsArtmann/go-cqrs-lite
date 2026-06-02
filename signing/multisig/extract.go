@@ -3,8 +3,8 @@ package multisig
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 // VerifyAll verifies every signature entry in the multi-sig collection

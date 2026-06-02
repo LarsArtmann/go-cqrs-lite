@@ -3,7 +3,7 @@ package catalog
 import (
 	"reflect"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 func SchemaFromType[T any]() *Schema {

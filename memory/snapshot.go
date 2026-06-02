@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	snappkg "github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	snappkg "github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 type MemorySnapshotStore struct {

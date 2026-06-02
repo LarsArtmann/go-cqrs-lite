@@ -170,10 +170,10 @@ func buildGraph(root string) (*GraphData, error) {
 	for mod := range modules {
 		group := "external"
 		switch {
-		case mod == "github.com/larsartmann/go-cqrs-lite/event":
+		case mod == "github.com/larsartmann/go-cqrs-lite/event/v2":
 			group = "core"
-		case mod == "github.com/larsartmann/go-cqrs-lite/codec" ||
-			mod == "github.com/larsartmann/go-cqrs-lite/otel":
+		case mod == "github.com/larsartmann/go-cqrs-lite/codec/v2" ||
+			mod == "github.com/larsartmann/go-cqrs-lite/otel/v2":
 			group = "infra"
 			group = "test"
 		case strings.HasPrefix(mod, "github.com/larsartmann/go-cqrs-lite/cmd/"):

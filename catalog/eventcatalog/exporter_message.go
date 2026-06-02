@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func (e *Exporter) writeMessage(

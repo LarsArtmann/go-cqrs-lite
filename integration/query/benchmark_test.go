@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {

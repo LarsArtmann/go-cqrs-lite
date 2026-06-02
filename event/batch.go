@@ -3,7 +3,7 @@ package event
 import (
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // NewEvents creates multiple events in batch with typed payloads.

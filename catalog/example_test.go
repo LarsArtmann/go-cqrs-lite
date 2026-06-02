@@ -3,7 +3,7 @@ package catalog_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func ExampleRegistry() {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
 
 func collectingPublisher() (event.PublisherFunc, *[]event.Event) {

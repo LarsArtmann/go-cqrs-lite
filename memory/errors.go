@@ -1,6 +1,6 @@
 package memory
 
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 // ErrHandlerNil is returned when a nil handler is passed to Subscribe or SubscribeAll.
 var ErrHandlerNil = event.NewRejection(

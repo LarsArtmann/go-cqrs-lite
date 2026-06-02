@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/middleware"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 )
 
 func newLogger() *slog.Logger {

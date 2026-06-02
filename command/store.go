@@ -9,7 +9,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 type PersistedCommand struct {

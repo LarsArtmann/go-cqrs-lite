@@ -5,9 +5,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/caseutil"
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/caseutil"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 func SchemaToAny(s *catalog.Schema) any {

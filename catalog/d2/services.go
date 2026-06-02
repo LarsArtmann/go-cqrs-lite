@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func (e *Exporter) writeHeader(buf *strings.Builder) {

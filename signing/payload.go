@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // canonicalFormatVersion identifies the canonical payload format version.

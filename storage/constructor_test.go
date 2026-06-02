@@ -3,7 +3,7 @@ package storage_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage"
+	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
 func TestNewSQLEventStore_NilDB(t *testing.T) {

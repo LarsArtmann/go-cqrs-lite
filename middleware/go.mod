@@ -1,13 +1,13 @@
-module github.com/larsartmann/go-cqrs-lite/middleware
+module github.com/larsartmann/go-cqrs-lite/middleware/v2
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command v1.7.1
-	github.com/larsartmann/go-cqrs-lite/event v1.7.1
-	github.com/larsartmann/go-cqrs-lite/id v1.7.1
-	github.com/larsartmann/go-cqrs-lite/otel v1.7.1
-	github.com/larsartmann/go-cqrs-lite/query v1.7.1
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.0.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	go.opentelemetry.io/otel v1.44.0
@@ -20,7 +20,6 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
@@ -28,12 +27,11 @@ require (
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot v1.7.1 // indirect
-	github.com/larsartmann/go-error-family v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0 // indirect
+	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -45,13 +43,15 @@ require (
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/command => ../command
-	github.com/larsartmann/go-cqrs-lite/event => ../event
-	github.com/larsartmann/go-cqrs-lite/id => ../id
-	github.com/larsartmann/go-cqrs-lite/otel => ../otel
-	github.com/larsartmann/go-cqrs-lite/query => ../query
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../otel
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )

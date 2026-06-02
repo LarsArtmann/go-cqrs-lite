@@ -5,7 +5,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func (a *EventStore) checkVersion(

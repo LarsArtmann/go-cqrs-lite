@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // AggregateRef is a lightweight identity reference to an aggregate stream.

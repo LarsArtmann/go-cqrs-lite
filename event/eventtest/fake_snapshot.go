@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
 type FakeSnapshotStore struct {

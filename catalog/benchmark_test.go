@@ -3,10 +3,10 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/cattest"
 )
 
 func newBenchRegistry() *catalog.Registry {

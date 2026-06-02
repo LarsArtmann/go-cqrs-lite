@@ -3,7 +3,7 @@ package event
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Clone returns a deep copy of the event. The returned event is fully independent —

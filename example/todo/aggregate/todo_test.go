@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/decider"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/decider/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func testAggID() id.AggregateID { return id.NewAggregateID() }

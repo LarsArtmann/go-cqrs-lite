@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 const eventColumnCount = 10

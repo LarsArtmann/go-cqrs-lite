@@ -9,10 +9,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	"github.com/larsartmann/go-cqrs-lite/snapshot"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 // SQLSnapshotStore implements snapshot.SnapshotStore backed by a SQL database.

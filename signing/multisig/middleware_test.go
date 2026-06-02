@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/signing"
-	"github.com/larsartmann/go-cqrs-lite/signing/multisig"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
 func TestMultiSignMiddleware(t *testing.T) {

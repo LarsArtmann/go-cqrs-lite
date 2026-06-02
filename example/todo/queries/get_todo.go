@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 type GetTodoQuery struct {

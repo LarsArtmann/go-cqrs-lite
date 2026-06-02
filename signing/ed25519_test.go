@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/signing"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 func TestEd25519Signer(t *testing.T) {

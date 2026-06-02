@@ -1,6 +1,6 @@
 package d2
 
-import "github.com/larsartmann/go-cqrs-lite/catalog"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v2"
 
 const (
 	shapeRectangle = "rectangle"

@@ -1,6 +1,6 @@
 package sql
 
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
 var ErrNilDB = event.NewInfrastructure(

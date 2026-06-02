@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 var _ event.StreamLoader = (*SQLEventStore)(nil)

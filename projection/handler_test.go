@@ -3,7 +3,7 @@ package projection
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 )
 
 func TestHandlerRegistry_On(t *testing.T) {

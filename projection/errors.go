@@ -1,6 +1,6 @@
 package projection
 
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 var (
 	// ErrNilHandler is returned when a nil projection is registered.

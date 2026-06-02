@@ -8,7 +8,7 @@ import (
 
 	tursoclient "turso.tech/database/tursogo"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // SyncDB wraps a Turso database with remote sync capabilities.

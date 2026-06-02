@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func validRef() command.AggregateRef {
@@ -49,7 +49,8 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 	}
 
 	meta := cmd.Metadata()
-	if !meta.CorrelationID.IsZero() || !meta.CausationID.IsZero() || !meta.UserID.IsZero() || !meta.RequestID.IsZero() {
+	if !meta.CorrelationID.IsZero() || !meta.CausationID.IsZero() || !meta.UserID.IsZero() ||
+		!meta.RequestID.IsZero() {
 		t.Error("Metadata() should return zero tracing fields")
 	}
 

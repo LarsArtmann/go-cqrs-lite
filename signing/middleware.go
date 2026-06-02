@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // ExtractOrPassThrough extracts a value from an event, passing through to the next handler

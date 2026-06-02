@@ -8,12 +8,12 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/memory"
-	"github.com/larsartmann/go-cqrs-lite/middleware"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func TestOTel_CommandDispatch_EmitsSpans(t *testing.T) {

@@ -3,7 +3,7 @@ package catalog
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 type ServiceID string

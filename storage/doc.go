@@ -3,7 +3,7 @@
 package storage
 
 import (
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/sql"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 type (

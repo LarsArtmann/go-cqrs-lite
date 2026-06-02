@@ -6,8 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	cqrsMemory "github.com/larsartmann/go-cqrs-lite/memory"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsMemory "github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 func setupCommandHandlers(

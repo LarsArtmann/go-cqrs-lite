@@ -26,8 +26,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/id"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Type is a type identifier for domain events.

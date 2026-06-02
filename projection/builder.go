@@ -3,8 +3,8 @@ package projection
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/codec"
-	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Builder constructs a Projection with type-safe event handlers.

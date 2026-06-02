@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel"
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 // TraceLogMessages holds the log messages for each trace logging phase.

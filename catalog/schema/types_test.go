@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
 )
 
 func TestFromType_EmbeddedStruct(t *testing.T) {
