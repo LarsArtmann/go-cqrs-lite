@@ -49,11 +49,9 @@ func (s *SQLCheckpointStore) Load(
 	cp, err := sqlpkg.SharedCheckpointLoad(ctx, s.DB, projectionName, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.Checkpoint{}, fmt.Errorf(
-			"load checkpoint for projection %s: %w",
-			projectionName,
-			err,
-		)
+		return event.Checkpoint{}, event.WrapInfrastructure(err,
+			"storage.load_checkpoint",
+			fmt.Sprintf("load checkpoint for projection %s", projectionName))
 	}
 	return cp, nil
 }
@@ -68,7 +66,9 @@ func (s *SQLCheckpointStore) Save(
 	err := sqlpkg.SharedCheckpointSave(ctx, s.DB, projectionName, cp, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return fmt.Errorf("save checkpoint for projection %s: %w", projectionName, err)
+		return event.WrapInfrastructure(err,
+			"storage.save_checkpoint",
+			fmt.Sprintf("save checkpoint for projection %s", projectionName))
 	}
 	return nil
 }

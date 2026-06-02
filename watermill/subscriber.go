@@ -44,7 +44,9 @@ func (a *SubscriberAdapter) Subscribe(
 		case <-a.closeCh:
 			return fmt.Errorf("topic %s: %w", topic, event.ErrBusClosed)
 		case <-ctx.Done():
-			return fmt.Errorf("topic %s: %w", topic, ctx.Err())
+			return event.WrapInfrastructure(ctx.Err(),
+				"watermill.topic_cancelled",
+				fmt.Sprintf("topic %s", topic))
 		}
 	}
 

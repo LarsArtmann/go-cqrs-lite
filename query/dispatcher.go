@@ -3,12 +3,12 @@ package query
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Handler processes a query and returns a result.
@@ -140,7 +140,8 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 func (d *Dispatcher) Close() error {
 	err := d.inner.Close()
 	if err != nil {
-		return fmt.Errorf("close query dispatcher: %w", err)
+		return event.WrapInfrastructure(err, "query.dispatcher_close",
+			"close query dispatcher")
 	}
 
 	return nil

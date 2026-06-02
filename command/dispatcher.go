@@ -3,12 +3,12 @@ package command
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Dispatcher routes commands to their handlers.
@@ -96,7 +96,8 @@ func (d *Dispatcher) checkClosed(code, msg string) error {
 func (d *Dispatcher) Close() error {
 	err := d.inner.Close()
 	if err != nil {
-		return fmt.Errorf("close command dispatcher: %w", err)
+		return event.WrapInfrastructure(err, "command.dispatcher_close",
+			"close command dispatcher")
 	}
 
 	return nil
