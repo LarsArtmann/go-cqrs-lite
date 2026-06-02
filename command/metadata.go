@@ -1,26 +1,18 @@
 package command
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"github.com/larsartmann/go-cqrs-lite/id"
 )
 
 // Metadata contains tracing and contextual information for commands.
-// Mirrors event.Metadata to enable correlation across the CQRS pipeline.
-type Metadata struct {
-	CorrelationID id.CorrelationID `json:"correlationId"`
-	CausationID   id.CausationID   `json:"causationId"`
-	UserID        id.UserID        `json:"userId"`
-	RequestID     id.RequestID     `json:"requestId"`
-}
+// Alias of event.Metadata to enable correlation across the CQRS pipeline
+// without field duplication.
+type Metadata = event.Metadata
 
 // NewMetadata creates a Metadata with all fields initialized to zero values.
 func NewMetadata() Metadata {
-	return Metadata{
-		CorrelationID: id.CorrelationID{},
-		CausationID:   id.CausationID{},
-		UserID:        id.UserID{},
-		RequestID:     id.RequestID{},
-	}
+	return event.NewMetadata()
 }
 
 // Option configures command creation.

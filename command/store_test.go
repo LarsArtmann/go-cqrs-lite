@@ -48,8 +48,9 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 		t.Error("ReceivedAt() should not be zero")
 	}
 
-	if (command.Metadata{}) != cmd.Metadata() {
-		t.Error("Metadata() should return zero value")
+	meta := cmd.Metadata()
+	if !meta.CorrelationID.IsZero() || !meta.CausationID.IsZero() || !meta.UserID.IsZero() || !meta.RequestID.IsZero() {
+		t.Error("Metadata() should return zero tracing fields")
 	}
 
 	gotPayload := cmd.Payload()
