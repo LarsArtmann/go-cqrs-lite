@@ -50,6 +50,19 @@ var _ = Describe("Version", func() {
 			)
 		})
 
+		Context("when I decrement a version", func() {
+			It("should return the previous version", func() {
+				v := event.Version(3)
+				Expect(v.Decrement().Int()).To(Equal(2))
+			})
+
+			It("should not mutate the original", func() {
+				v := event.Version(3)
+				_ = v.Decrement()
+				Expect(v.Int()).To(Equal(3))
+			})
+		})
+
 		Context("when I call IsPositive", func() {
 			It("should be true for positive versions, telling me the aggregate has events", func() {
 				Expect(event.Version(1).IsPositive()).To(BeTrue())
@@ -144,6 +157,38 @@ var _ = Describe("SchemaVersion", func() {
 					Expect(event.SchemaVersion(1).IsZero()).To(BeFalse())
 				},
 			)
+		})
+
+		Context("when I parse a schema version", func() {
+			It("should accept valid positive values", func() {
+				sv, err := event.ParseSchemaVersion(2)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sv.Int()).To(Equal(2))
+			})
+
+			It("should reject negative values", func() {
+				_, err := event.ParseSchemaVersion(-1)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("should accept zero for unversioned legacy events", func() {
+				sv, err := event.ParseSchemaVersion(0)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sv.IsZero()).To(BeTrue())
+			})
+		})
+
+		Context("when I decrement a schema version", func() {
+			It("should return the previous version for rollback handling", func() {
+				sv := event.SchemaVersion(3)
+				Expect(sv.Decrement().Int()).To(Equal(2))
+			})
+
+			It("should not mutate the original value", func() {
+				sv := event.SchemaVersion(3)
+				_ = sv.Decrement()
+				Expect(sv.Int()).To(Equal(3))
+			})
 		})
 	})
 })

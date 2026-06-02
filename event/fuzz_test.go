@@ -1,10 +1,13 @@
 package event_test
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func FuzzParseSource(f *testing.F) {
@@ -78,4 +81,55 @@ func FuzzParseVersion(f *testing.F) {
 
 func trimSpaces(s string) string {
 	return strings.TrimSpace(s)
+}
+
+func FuzzNewEvent(f *testing.F) {
+	f.Add("user.created", "User", int64(1), int64(1), `{"name":"test"}`)
+	f.Add("", "", int64(0), int64(0), "")
+	f.Add("a", "B", int64(1), int64(1), "{}")
+	f.Add(strings.Repeat("x", 256), strings.Repeat("y", 256), int64(999999), int64(1), `{"data":"`+strings.Repeat("A", 10000)+`"}`)
+
+	f.Fuzz(func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
+		aggID := id.NewAggregateID()
+		evt, err := event.NewEvent(
+			event.Type(eventType), aggID, event.AggregateType(aggType),
+			event.Version(int(version)), []byte(payload),
+			event.WithSchemaVersion(event.SchemaVersion(int(schemaVersion))),
+		)
+		if err != nil {
+			return
+		}
+
+		if evt.AggregateID() != aggID {
+			t.Error("aggregate ID mismatch")
+		}
+	})
+}
+
+func FuzzDecodePayload(f *testing.F) {
+	type testPayload struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	f.Add(`{"name":"Alice","email":"alice@example.com"}`)
+	f.Add(`{}`)
+	f.Add(``)
+	f.Add(`not json at all`)
+	f.Add(`{"name":"` + strings.Repeat("A", 10000) + `"}`)
+	f.Add(`{"name":null}`)
+
+	f.Fuzz(func(t *testing.T, payloadJSON string) {
+		aggID := id.NewAggregateID()
+
+		evt, err := event.NewEvent(
+			event.Type("test"), aggID, event.AggregateType("Test"),
+			event.Version(1), json.RawMessage(payloadJSON),
+		)
+		if err != nil {
+			return
+		}
+
+		_, _ = event.DecodePayload[testPayload](evt, codec.JSONCodec{})
+	})
 }
