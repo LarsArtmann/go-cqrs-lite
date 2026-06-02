@@ -262,8 +262,8 @@ func TestGetID_FallbackToName(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{Name: "CreateUser"}
-	if catalog.GetID(msg) != "CreateUser" {
-		t.Errorf("expected CreateUser, got %s", catalog.GetID(msg))
+	if catalog.Key(msg) != "CreateUser" {
+		t.Errorf("expected CreateUser, got %s", catalog.Key(msg))
 	}
 }
 
@@ -271,8 +271,8 @@ func TestGetID_UsesID(t *testing.T) {
 	t.Parallel()
 
 	msg := catalog.Message{ID: "cmd-123", Name: "CreateUser"}
-	if catalog.GetID(msg) != "cmd-123" {
-		t.Errorf("expected cmd-123, got %s", catalog.GetID(msg))
+	if catalog.Key(msg) != "cmd-123" {
+		t.Errorf("expected cmd-123, got %s", catalog.Key(msg))
 	}
 }
 

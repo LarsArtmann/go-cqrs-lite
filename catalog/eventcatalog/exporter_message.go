@@ -14,7 +14,7 @@ func (e *Exporter) writeMessage(
 	kind string,
 	msg catalog.Message,
 ) error {
-	messageID := catalog.GetID(msg)
+	messageID := catalog.Key(msg)
 	dir := filepath.Join(e.outputDir, "services", string(serviceID), kind, string(messageID))
 
 	err := os.MkdirAll(dir, dirPerm)

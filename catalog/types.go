@@ -150,7 +150,9 @@ type Catalog struct {
 	Users      []User      `json:"users,omitempty"`
 }
 
-func GetID(msg Message) MessageID {
+// Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.
+// Callers that require an explicit ID should check msg.ID directly.
+func Key(msg Message) MessageID {
 	if msg.ID != "" {
 		return msg.ID
 	}

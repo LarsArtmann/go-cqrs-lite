@@ -188,21 +188,24 @@ func TestFromType_PrimitiveTypes(t *testing.T) {
 func TestToAny_Nil(t *testing.T) {
 	t.Parallel()
 
-	result := schema.ToAny(nil)
-	m, ok := result.(map[string]string)
-	if !ok {
-		t.Fatalf("expected map, got %T", result)
+	result, err := schema.ToAny(nil)
+	if err == nil {
+		t.Fatal("expected error for nil schema")
 	}
 
-	if m["type"] != "object" {
-		t.Errorf("expected object, got %s", m["type"])
+	if result != nil {
+		t.Fatalf("expected nil result, got %T", result)
 	}
 }
 
 func TestToAny_EmptySchema(t *testing.T) {
 	t.Parallel()
 
-	result := schema.ToAny(&schema.Schema{})
+	result, err := schema.ToAny(&schema.Schema{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	m, ok := result.(map[string]any)
 	if !ok {
 		t.Fatalf("expected map, got %T", result)
@@ -223,7 +226,11 @@ func TestToAny_WithProperties(t *testing.T) {
 		},
 	}
 
-	result := schema.ToAny(s)
+	result, err := schema.ToAny(s)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	m, ok := result.(map[string]any)
 	if !ok {
 		t.Fatalf("expected map, got %T", result)

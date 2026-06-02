@@ -11,7 +11,12 @@ import (
 )
 
 func SchemaToAny(s *catalog.Schema) any {
-	return schema.ToAny(s)
+	result, err := schema.ToAny(s)
+	if err != nil {
+		return map[string]string{"type": string(schema.TypeObject)}
+	}
+
+	return result
 }
 
 func dotSeparated(s string) string {

@@ -18,6 +18,6 @@ func SchemaToJSON(s *Schema) ([]byte, error) {
 	return schema.ToJSON(s) //nolint:wrapcheck // thin delegation to sub-package
 }
 
-func SchemaToAny(s *Schema) any {
+func SchemaToAny(s *Schema) (any, error) {
 	return schema.ToAny(s)
 }

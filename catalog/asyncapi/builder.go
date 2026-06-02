@@ -78,7 +78,7 @@ func (e *Exporter) addMessage(
 		opt(cfg)
 	}
 
-	messageID := catalog.GetID(msg)
+	messageID := catalog.Key(msg)
 	channelKey := string(kind) + "." + string(messageID)
 	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
@@ -101,7 +101,7 @@ func addChannel(
 			"%s.%s.%s",
 			serviceID,
 			kind,
-			dotSeparated(string(catalog.GetID(msg))),
+			dotSeparated(string(catalog.Key(msg))),
 		),
 		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: msg.Summary,
@@ -186,7 +186,7 @@ func buildTags(kind messageKind, serviceID catalog.ServiceID, msg catalog.Messag
 }
 
 func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
-	messageID := catalog.GetID(msg)
+	messageID := catalog.Key(msg)
 	componentKey := string(msg.Kind) + "." + string(messageID)
 
 	doc.Components.Messages[componentKey] = Message{

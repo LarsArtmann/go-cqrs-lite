@@ -10,7 +10,12 @@ func schemaKey(msg catalog.Message) string {
 }
 
 func schemaToAny(s *catalog.Schema) any {
-	return schema.ToAny(s)
+	result, err := schema.ToAny(s)
+	if err != nil {
+		return objectSchema()
+	}
+
+	return result
 }
 
 func objectSchema() map[string]string {

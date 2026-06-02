@@ -3,10 +3,10 @@ package projection
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"golang.org/x/sync/errgroup"
 )
 
 func (r *Runner) subscribeLive(ctx context.Context) error {
@@ -60,24 +60,18 @@ func (r *Runner) dispatchParallel(
 	evt event.Event,
 	projections []event.Projection,
 ) {
-	sem := make(chan struct{}, r.opts.parallelism)
-
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(r.opts.parallelism)
 
 	for _, p := range projections {
-		wg.Add(1)
-
-		go func(p event.Projection) {
-			defer wg.Done()
-
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
+		g.Go(func() error {
 			r.dispatchOne(ctx, p, evt)
-		}(p)
+
+			return nil
+		})
 	}
 
-	wg.Wait()
+	_ = g.Wait()
 }
 
 func (r *Runner) dispatchOne(ctx context.Context, p event.Projection, evt event.Event) {

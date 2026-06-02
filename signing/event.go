@@ -84,9 +84,15 @@ func ExtractSignature(evt event.Event) (Signature, error) {
 	return Signature(decoded), nil
 }
 
-// HasSignature reports whether the event carries a signature in its metadata.
+// HasSignature reports whether the event carries a valid signature in its metadata.
+// Returns true only if ExtractSignature succeeds. Returns false for absent/nil signatures
+// (rejection errors). Infrastructure errors (corrupt base64) indicate a signature IS
+// present but malformed — the caller should attempt ExtractSignature for proper error handling.
 func HasSignature(evt event.Event) bool {
 	_, err := ExtractSignature(evt)
+	if err == nil {
+		return true
+	}
 
-	return err == nil
+	return event.Classify(err) != event.Rejection
 }

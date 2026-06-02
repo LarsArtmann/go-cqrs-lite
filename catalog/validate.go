@@ -98,7 +98,7 @@ func validateMessage(
 		})
 	}
 
-	id := GetID(msg)
+	id := Key(msg)
 
 	if prev, exists := seenMsgIDs[id]; exists {
 		violations = append(violations, Violation{

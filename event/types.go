@@ -133,7 +133,15 @@ func (v Version) IsPositive() bool { return v > 0 }
 func (v Version) Add(n int) Version { return v + Version(n) }
 
 // Sub returns a new Version decremented by n.
-func (v Version) Sub(n int) Version { return v - Version(n) }
+// Panics if the result would be negative.
+func (v Version) Sub(n int) Version {
+	result := v - Version(n)
+	if result < 0 {
+		panic(fmt.Sprintf("version subtraction underflow: %d - %d < 0", v, n))
+	}
+
+	return result
+}
 
 // Mod returns v modulo n.
 func (v Version) Mod(n int) int { return int(v) % n }

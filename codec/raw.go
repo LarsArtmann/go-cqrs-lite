@@ -1,6 +1,9 @@
 package codec
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // RawCodec implements Codec as a passthrough for []byte.
 // Encode accepts only []byte (or json.RawMessage). Decode copies data into a *[]byte target.
@@ -14,6 +17,8 @@ func (RawCodec) Encoding() Encoding { return EncodingRaw }
 func (RawCodec) Encode(v any) ([]byte, error) {
 	switch b := v.(type) {
 	case []byte:
+		return b, nil
+	case json.RawMessage:
 		return b, nil
 	default:
 		return nil, fmt.Errorf("%w: got %T", ErrEncodeRawType, v)

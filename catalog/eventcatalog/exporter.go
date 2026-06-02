@@ -164,7 +164,7 @@ func collectMessageIDs(
 	queries = make([]catalog.MessageID, 0, len(svc.Queries))
 
 	for _, msg := range svc.Events {
-		messageID := catalog.GetID(msg)
+		messageID := catalog.Key(msg)
 
 		if msg.IsSend() {
 			sends = append(sends, messageID)
@@ -174,11 +174,11 @@ func collectMessageIDs(
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, catalog.GetID(cmd))
+		commands = append(commands, catalog.Key(cmd))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, catalog.GetID(q))
+		queries = append(queries, catalog.Key(q))
 	}
 
 	return sends, receives, commands, queries

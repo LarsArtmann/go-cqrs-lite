@@ -10,7 +10,7 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 	for _, svc := range cat.Services {
 		for _, evt := range svc.Events {
-			messageID := catalog.GetID(evt)
+			messageID := catalog.Key(evt)
 			if evt.IsSend() {
 				producerMap[messageID] = append(producerMap[messageID], svc.ID)
 			} else {
@@ -19,12 +19,12 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 		}
 
 		for _, cmd := range svc.Commands {
-			messageID := catalog.GetID(cmd)
+			messageID := catalog.Key(cmd)
 			consumerMap[messageID] = append(consumerMap[messageID], svc.ID)
 		}
 
 		for _, q := range svc.Queries {
-			messageID := catalog.GetID(q)
+			messageID := catalog.Key(q)
 			consumerMap[messageID] = append(consumerMap[messageID], svc.ID)
 		}
 	}
@@ -40,7 +40,7 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, evt := range svc.Events {
 			evtCopy := evt
-			messageID := catalog.GetID(evt)
+			messageID := catalog.Key(evt)
 			if p, ok := producerMap[messageID]; ok && len(evtCopy.Producers) == 0 {
 				evtCopy.Producers = p
 			}
@@ -54,7 +54,7 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, cmd := range svc.Commands {
 			cmdCopy := cmd
-			messageID := catalog.GetID(cmd)
+			messageID := catalog.Key(cmd)
 			if c, ok := consumerMap[messageID]; ok && len(cmdCopy.Consumers) == 0 {
 				cmdCopy.Consumers = c
 			}
@@ -64,7 +64,7 @@ func autoDeriveProducersConsumers(cat *catalog.Catalog) *catalog.Catalog {
 
 		for j, q := range svc.Queries {
 			qCopy := q
-			messageID := catalog.GetID(q)
+			messageID := catalog.Key(q)
 			if c, ok := consumerMap[messageID]; ok && len(qCopy.Consumers) == 0 {
 				qCopy.Consumers = c
 			}

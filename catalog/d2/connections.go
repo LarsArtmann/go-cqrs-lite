@@ -42,7 +42,7 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 
 func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catalog.Service) {
 	for _, cmd := range svc.Commands {
-		commandDisplayID := sanitizeID(string(catalog.GetID(cmd)))
+		commandDisplayID := sanitizeID(string(catalog.Key(cmd)))
 		fmt.Fprintf(
 			buf,
 			"  %s -> %s.%s: \"receives\"\n",
@@ -53,7 +53,7 @@ func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catal
 	}
 
 	for _, evt := range svc.Events {
-		eventDisplayID := sanitizeID(string(catalog.GetID(evt)))
+		eventDisplayID := sanitizeID(string(catalog.Key(evt)))
 		action := eventAction(evt)
 		fmt.Fprintf(
 			buf,
@@ -66,7 +66,7 @@ func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catal
 	}
 
 	for _, q := range svc.Queries {
-		queryDisplayID := sanitizeID(string(catalog.GetID(q)))
+		queryDisplayID := sanitizeID(string(catalog.Key(q)))
 		fmt.Fprintf(
 			buf,
 			"  %s -> %s.%s: \"handles\"\n",
@@ -95,7 +95,7 @@ func buildPublisherReceiverMaps(
 		serviceDisplayID := sanitizeID(string(svc.ID))
 
 		for _, evt := range svc.Events {
-			messageID := catalog.GetID(evt)
+			messageID := catalog.Key(evt)
 			owner := eventOwner{
 				serviceDisplayID: serviceDisplayID,
 				eventDisplayID:   sanitizeID(string(messageID)),

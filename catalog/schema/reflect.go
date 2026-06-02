@@ -5,6 +5,7 @@ package schema
 import (
 	"cmp"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -35,25 +36,24 @@ func ToJSON(s *Schema) ([]byte, error) {
 	return json.MarshalIndent(s, "", "  ")
 }
 
-func ToAny(s *Schema) any {
-	fallback := map[string]string{jsonKeyType: string(TypeObject)}
+func ToAny(s *Schema) (any, error) {
 	if s == nil {
-		return fallback
+		return nil, ErrNilSchema
 	}
 
 	raw, err := json.Marshal(s)
 	if err != nil {
-		return fallback
+		return nil, fmt.Errorf("marshal schema to JSON: %w", err)
 	}
 
 	var result any
 
 	err = json.Unmarshal(raw, &result)
 	if err != nil {
-		return map[string]string{"type": string(TypeObject)}
+		return nil, fmt.Errorf("unmarshal schema to any: %w", err)
 	}
 
-	return result
+	return result, nil
 }
 
 func fromReflect(t reflect.Type) *Schema {

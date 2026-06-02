@@ -90,7 +90,7 @@ func (e *Exporter) writeMessageNode(
 	msg catalog.Message,
 	class, shape string,
 ) {
-	messageDisplayID := sanitizeID(string(catalog.GetID(msg)))
+	messageDisplayID := sanitizeID(string(catalog.Key(msg)))
 
 	fmt.Fprintf(buf, "  %s: {\n", messageDisplayID)
 	fmt.Fprintf(buf, "    class: %s\n", class)
