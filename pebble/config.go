@@ -67,27 +67,3 @@ func NewEventStore(cfg Config, logger *slog.Logger) (cqrsEvent.Store, error) {
 		fmt.Sprintf("backend %q requires a provider: use WithProvider", cfg.Backend),
 	)
 }
-
-// Deprecated: Use Backend, EventStoreProvider, Config, Option directly.
-type (
-	PebbleBackend            = Backend
-	PebbleEventStoreProvider = EventStoreProvider
-	PebbleConfig             = Config
-	PebbleOption             = Option
-)
-
-// Deprecated: Use BackendPebble, BackendMemory directly.
-const (
-	PebbleBackendPebble = BackendPebble
-	PebbleBackendMemory = BackendMemory
-)
-
-// Deprecated: Use WithBackend, WithProvider, NewConfig, NewEventStore directly.
-//
-//nolint:gochecknoglobals // backward-compatible aliases
-var (
-	WithPebbleBackend   = WithBackend
-	WithPebbleProvider  = WithProvider
-	NewPebbleConfig     = NewConfig
-	NewPebbleEventStore = NewEventStore
-)

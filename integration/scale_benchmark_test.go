@@ -357,10 +357,10 @@ func BenchmarkScale_ProjectionRegistration_1000(b *testing.B) {
 
 	b.ResetTimer()
 
-	var i int64
+	var counter atomic.Int64
 
 	for b.Loop() {
-		n := atomic.AddInt64(&i, 1)
+		n := counter.Add(1)
 		p := event.NewProjection(
 			fmt.Sprintf("projection-%d", n),
 			noopEventHandler(),
@@ -509,10 +509,7 @@ func BenchmarkScale_QueryDispatch_PaginatedResults(b *testing.B) {
 			query.Type(fmt.Sprintf("list.page%d", ps)),
 			func(_ context.Context, _ query.Query) (any, error) {
 				p := query.NewPagination(1, ps)
-				end := int(ps)
-				if end > len(resultData) {
-					end = len(resultData)
-				}
+				end := min(int(ps), len(resultData))
 
 				return query.NewPaginatedResult(
 					resultData[:end],

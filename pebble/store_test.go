@@ -60,42 +60,42 @@ func TestEventStore_Close(t *testing.T) {
 	}
 }
 
-func TestPebbleConfig_BackendPebble(t *testing.T) {
-	cfg := NewPebbleConfig()
-	if cfg.Backend != PebbleBackendPebble {
-		t.Errorf("Backend = %q, want %q", cfg.Backend, PebbleBackendPebble)
+func TestConfig_BackendPebble(t *testing.T) {
+	cfg := NewConfig()
+	if cfg.Backend != BackendPebble {
+		t.Errorf("Backend = %q, want %q", cfg.Backend, BackendPebble)
 	}
 }
 
-func TestPebbleConfig_WithProvider(t *testing.T) {
+func TestConfig_WithProvider(t *testing.T) {
 	provider := func(logger *slog.Logger) (event.Store, error) {
 		return nil, nil //nolint:nilnil // test: successful provider returning nil store
 	}
 
-	cfg := NewPebbleConfig(WithPebbleProvider(provider))
+	cfg := NewConfig(WithProvider(provider))
 	if cfg.Provider == nil {
 		t.Fatal("Provider should be set")
 	}
 }
 
-func TestPebbleConfig_NewEventStore_MemoryBackend_RequiresProvider(t *testing.T) {
-	cfg := NewPebbleConfig(WithPebbleBackend(PebbleBackendMemory))
+func TestConfig_NewEventStore_MemoryBackend_RequiresProvider(t *testing.T) {
+	cfg := NewConfig(WithBackend(BackendMemory))
 	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for memory backend without provider")
 	}
 }
 
-func TestPebbleConfig_NewEventStore_PebbleWithoutProvider(t *testing.T) {
-	cfg := NewPebbleConfig()
+func TestConfig_NewEventStore_PebbleWithoutProvider(t *testing.T) {
+	cfg := NewConfig()
 	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for pebble backend without provider")
 	}
 }
 
-func TestPebbleConfig_NewEventStore_UnknownBackend(t *testing.T) {
-	cfg := NewPebbleConfig(WithPebbleBackend("unknown"))
+func TestConfig_NewEventStore_UnknownBackend(t *testing.T) {
+	cfg := NewConfig(WithBackend("unknown"))
 	_, err := NewEventStore(cfg, slog.Default())
 	if err == nil {
 		t.Fatal("expected error for unknown backend")
