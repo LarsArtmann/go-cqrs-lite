@@ -4,16 +4,20 @@ import (
 	"context"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // InMemoryAggregateReader implements AggregateReader using a Journal.
-// Loads ALL events and filters in-memory. Suitable for testing
-// and small datasets.
+// Caches the aggregate index and only rebuilds when the event count changes.
+// Suitable for testing, development, and single-process deployments.
 type InMemoryAggregateReader struct {
 	journal event.Journal
+
+	mu     sync.RWMutex
+	cached []AggregateStatus
 }
 
 var _ AggregateReader = (*InMemoryAggregateReader)(nil)
@@ -34,6 +38,34 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 	ctx context.Context,
 	opts ListOptions,
 ) (*Page[AggregateStatus], error) {
+	refs := r.getRefsUnsorted()
+	if refs == nil {
+		var err error
+		refs, err = r.rebuildCache(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if opts.Type != "" {
+		refs = filterByType(refs, opts.Type)
+	}
+
+	refs = applyTombstonePolicy(refs, opts.Tombstone)
+
+	refs = applyCursor(refs, opts.After)
+
+	return paginateStatus(refs, opts.Limit), nil
+}
+
+func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
+	r.mu.RLock()
+	cached := r.cached
+	r.mu.RUnlock()
+	return cached
+}
+
+func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]AggregateStatus, error) {
 	all, err := r.journal.ReadAll(ctx)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
@@ -45,12 +77,6 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 
 	refs := buildRefs(all)
 
-	if opts.Type != "" {
-		refs = filterByType(refs, opts.Type)
-	}
-
-	refs = applyTombstonePolicy(refs, opts.Tombstone)
-
 	slices.SortFunc(refs, func(a, b AggregateStatus) int {
 		if a.Ref.Type != b.Ref.Type {
 			return strings.Compare(string(a.Ref.Type), string(b.Ref.Type))
@@ -59,9 +85,19 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 		return strings.Compare(a.Ref.ID.String(), b.Ref.ID.String())
 	})
 
-	refs = applyCursor(refs, opts.After)
+	r.mu.Lock()
+	r.cached = refs
+	r.mu.Unlock()
 
-	return paginateStatus(refs, opts.Limit), nil
+	return refs, nil
+}
+
+// InvalidateCache clears the cached aggregate index.
+// Call this after new events are saved to the store.
+func (r *InMemoryAggregateReader) InvalidateCache() {
+	r.mu.Lock()
+	r.cached = nil
+	r.mu.Unlock()
 }
 
 func buildRefs(events []event.Event) []AggregateStatus {
