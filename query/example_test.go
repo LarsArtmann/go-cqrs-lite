@@ -17,7 +17,7 @@ func ExampleDispatcher() {
 	err := query.RegisterTyped(
 		d,
 		"GetUser",
-		func(_ context.Context, _ query.Query) (UserResult, error) {
+		func(_ context.Context, _ *query.BasicQuery) (UserResult, error) {
 			return UserResult{Name: "Alice"}, nil
 		},
 	)

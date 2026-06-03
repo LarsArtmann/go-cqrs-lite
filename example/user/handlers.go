@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -11,8 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
-
-var errUnexpectedQueryType = errors.New("unexpected query type")
 
 func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
@@ -65,21 +62,12 @@ func registerQueryHandlers(
 ) {
 	_ = query.RegisterTyped(
 		dispatcher, queryGetUser,
-		func(_ context.Context, q query.Query) (ReadModel, error) {
-			getUserQuery, ok := q.(*GetUserQuery)
-			if !ok {
-				return ReadModel{}, fmt.Errorf(
-					"unexpected query type %T: %w",
-					q,
-					errUnexpectedQueryType,
-				)
-			}
-
-			readModelResult, ok := readModel.Get(getUserQuery.aggregateID)
+		func(_ context.Context, q *GetUserQuery) (ReadModel, error) {
+			readModelResult, ok := readModel.Get(q.aggregateID)
 			if !ok {
 				return readModelResult, fmt.Errorf(
 					"user %s: %w",
-					getUserQuery.aggregateID,
+					q.aggregateID,
 					event.ErrAggregateNotFound,
 				)
 			}
@@ -90,7 +78,7 @@ func registerQueryHandlers(
 
 	_ = query.RegisterTyped(
 		dispatcher, queryListUsers,
-		func(_ context.Context, _ query.Query) ([]ReadModel, error) {
+		func(_ context.Context, _ *ListUsersQuery) ([]ReadModel, error) {
 			return readModel.List(), nil
 		},
 	)

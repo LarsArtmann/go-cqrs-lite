@@ -53,15 +53,10 @@ func NewGetTodoHandler(readModel domain.TodoReadModel) *GetTodoHandler {
 	return &GetTodoHandler{readModel: readModel}
 }
 
-func (h *GetTodoHandler) Handle(ctx context.Context, q query.Query) (*GetTodoResult, error) {
-	getQuery, err := requireQueryType[*GetTodoQuery](q, "*GetTodoQuery")
+func (h *GetTodoHandler) Handle(ctx context.Context, q *GetTodoQuery) (*GetTodoResult, error) {
+	todo, err := h.readModel.Get(q.TodoID)
 	if err != nil {
-		return nil, err
-	}
-
-	todo, err := h.readModel.Get(getQuery.TodoID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get todo %s: %w", getQuery.TodoID, err)
+		return nil, fmt.Errorf("failed to get todo %s: %w", q.TodoID, err)
 	}
 
 	return FromDomain(todo), nil

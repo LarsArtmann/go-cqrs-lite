@@ -42,17 +42,12 @@ func NewListTodosHandler(readModel domain.TodoReadModel) *ListTodosHandler {
 	return &ListTodosHandler{readModel: readModel}
 }
 
-func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodosResult, error) {
-	listQuery, err := requireQueryType[*ListTodosQuery](q, "*ListTodosQuery")
-	if err != nil {
-		return nil, err
-	}
-
+func (h *ListTodosHandler) Handle(ctx context.Context, q *ListTodosQuery) (*ListTodosResult, error) {
 	filter := domain.TodoFilter{
-		Status: listQuery.Status, Tags: listQuery.Tags,
-		Priority: listQuery.Priority, Search: listQuery.Search,
-		Limit:  int(listQuery.Pagination.PageSize),
-		Offset: listQuery.Pagination.Offset(),
+		Status: q.Status, Tags: q.Tags,
+		Priority: q.Priority, Search: q.Search,
+		Limit:  int(q.Pagination.PageSize),
+		Offset: q.Pagination.Offset(),
 	}
 
 	todos, err := h.readModel.List(filter)
@@ -67,7 +62,7 @@ func (h *ListTodosHandler) Handle(ctx context.Context, q query.Query) (*ListTodo
 
 	return &ListTodosResult{
 		Todos: results,
-		Page:  query.NewPaginatedResult(results, uint(len(todos)), listQuery.Pagination),
+		Page:  query.NewPaginatedResult(results, uint(len(todos)), q.Pagination),
 	}, nil
 }
 

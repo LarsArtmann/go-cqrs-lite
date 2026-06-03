@@ -18,7 +18,7 @@
 - [x] ~~Add panic recovery to OutboxPublisher.run goroutine~~ — DONE (Session 43, `core/event/outbox_publisher.go:154`)
 - [x] ~~Fix sync.NewLWWResolver nil panic when TimestampFunc is nil~~ — DONE (Session 86+, returns `ErrNilTimestampFunc`)
 - [x] ~~Add IdempotencyKey to Command interface~~ — DONE (Session 31, `command.Command` has `IdempotencyKey() string`)
-- [v2] Fix query.Handler returns `any` → generic `TypedHandler[T]` returning `(T, error)` (source: multiple sessions)
+- [x] ~~Fix query.Handler returns `any` → generic `TypedHandler[T]` returning `(T, error)`~~ — DONE (Session 145: `TypedHandler[Q Query, R any]` with type assertion in `RegisterTyped`)
 - [x] ~~Publish go-composable-business-types as Go Module~~ — MOOT (go-branded-id published separately)
 - [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
 - [v2] io.Closer removal from core interfaces (source: SESSION_60)
@@ -416,7 +416,7 @@
 - [ ] **pebble/config.go:59-69** — 20 lines of backward-compat aliases
 - [x] ~~**listing/in_memory.go:124-147** — `TombstoneInclude` unreachable dead code~~ — DONE (Session 8): replaced with `panic("unreachable")`
 - [x] ~~**middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch~~ — DONE (Session 8): replaced with `panic("unreachable")`
-- [ ] **query/query.go:54** — `TypedHandler[T]` takes `Query` not `T` — less type-safe than command equivalent
+- [x] ~~**query/query.go:54** — `TypedHandler[T]` takes `Query` not `T`~~ — DONE (Session 145: `TypedHandler[Q Query, R any]` with type assertion in `RegisterTyped`)
 - [x] ~~**storage/sql_aggregate_reader.go:63** — Hardcoded `?` placeholders~~ — DONE: already uses `r.dialect.Placeholder(pi)` for all placeholders
 - [ ] **event/eventtest/fake_store.go** — 273 lines of untested mock code that duplicates MemoryStore functionality
 - [x] ~~**otel/logging.go:16** — `TraceIDLogger` name/doc mismatch~~ — DONE (Session 8): renamed to `ComponentLogger`, old name deprecated as alias

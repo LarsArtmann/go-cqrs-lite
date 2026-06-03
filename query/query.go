@@ -49,6 +49,8 @@ func MustNew(queryType Type) *BasicQuery {
 // Middleware wraps query handlers for cross-cutting concerns.
 type Middleware func(Handler) Handler
 
-// TypedHandler processes a query and returns a typed result.
-// Use with RegisterTyped for compile-time type safety at registration.
-type TypedHandler[T any] func(ctx context.Context, q Query) (T, error)
+// TypedHandler processes a typed query and returns a typed result.
+// Q is the concrete query type, R is the result type.
+// Use with RegisterTyped for compile-time type safety at registration,
+// eliminating the need for manual type assertions in handlers.
+type TypedHandler[Q Query, R any] func(ctx context.Context, q Q) (R, error)

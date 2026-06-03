@@ -71,11 +71,17 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 }
 
 // RegisterTyped binds a typed handler to a query type.
-// The handler is wrapped to match the Handler signature, providing
-// compile-time type safety for the result type.
-func RegisterTyped[T any](d *Dispatcher, queryType Type, handler TypedHandler[T]) error {
+// Q is the concrete query type, R is the result type.
+// The handler receives the concrete query type Q directly (no manual type assertion needed),
+// and its typed result R is wrapped to match the Handler signature.
+func RegisterTyped[Q Query, R any](d *Dispatcher, queryType Type, handler TypedHandler[Q, R]) error {
 	return d.Register(queryType, func(ctx context.Context, q Query) (any, error) {
-		return handler(ctx, q)
+		typed, ok := q.(Q)
+		if !ok {
+			return nil, ErrTypeAssertion
+		}
+
+		return handler(ctx, typed)
 	})
 }
 

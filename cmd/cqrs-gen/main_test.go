@@ -125,12 +125,12 @@ func TestGenerate_Query(t *testing.T) {
 		t.Error("missing type parameter [R any]")
 	}
 
-	if !strings.Contains(code, "query.Query") {
-		t.Error("handler should accept query.Query, not *struct")
+	if !strings.Contains(code, "*GetUserQuery") {
+		t.Error("handler should accept typed query *GetUserQuery")
 	}
 
-	if !strings.Contains(code, "query.RegisterTyped[R]") {
-		t.Error("should call query.RegisterTyped[R]")
+	if !strings.Contains(code, "query.RegisterTyped[*GetUserQuery, R]") {
+		t.Error("should call query.RegisterTyped[*GetUserQuery, R]")
 	}
 }
 

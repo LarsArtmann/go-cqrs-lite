@@ -64,17 +64,6 @@ func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 	eventtest.AssertErrorWithResult(t, result, err, "failed to get todo")
 }
 
-func TestGetTodoHandler_Handle_WrongQueryType(t *testing.T) {
-	t.Parallel()
-	rm := &fakeReadModel{}
-	h := NewGetTodoHandler(rm)
-	wrongQuery, _ := query.New(query.Type("wrong.type"))
-
-	result, err := h.Handle(context.Background(), wrongQuery)
-
-	eventtest.AssertErrorWithResult(t, result, err, "invalid query type")
-}
-
 func TestListTodosHandler_Handle(t *testing.T) {
 	t.Parallel()
 	priority := 3

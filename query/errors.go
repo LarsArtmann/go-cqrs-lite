@@ -19,3 +19,9 @@ var ErrEmptyQueryType = errorfamily.NewRejection(
 	"query.empty_query_type",
 	"query type is required (got empty)",
 )
+
+// ErrTypeAssertion is returned when a query cannot be type-asserted to the expected type.
+var ErrTypeAssertion = errorfamily.NewRejection(
+	"query.type_assertion",
+	"query type assertion failed",
+)

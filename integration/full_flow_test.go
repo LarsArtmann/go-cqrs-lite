@@ -83,17 +83,12 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Register query handler ---
-	if err := query.RegisterTyped[UserState](
+	if err := query.RegisterTyped[*GetUser, UserState](
 		qryDispatcher, "GetUser",
-		func(_ context.Context, q query.Query) (UserState, error) {
-			getUser, ok := q.(*GetUser)
-			if !ok {
-				return UserState{}, query.ErrHandlerNotFound
-			}
-
+		func(_ context.Context, q *GetUser) (UserState, error) {
 			events, err := store.Load(
 				ctx,
-				event.NewAggregateRef(event.AggregateType("User"), getUser.AggregateID),
+				event.NewAggregateRef(event.AggregateType("User"), q.AggregateID),
 			)
 			if err != nil {
 				return UserState{}, err

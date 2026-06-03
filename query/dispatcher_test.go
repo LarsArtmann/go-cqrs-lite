@@ -265,9 +265,11 @@ func TestRegisterTyped_Success(t *testing.T) {
 
 	type User struct{ Name string }
 
-	err := query.RegisterTyped(d, "GetUser", func(_ context.Context, _ query.Query) (*User, error) {
-		return &User{Name: "Alice"}, nil
-	})
+	err := query.RegisterTyped(d, "GetUser",
+		func(_ context.Context, _ *query.BasicQuery) (*User, error) {
+			return &User{Name: "Alice"}, nil
+		},
+	)
 	if err != nil {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
@@ -294,7 +296,7 @@ func TestRegisterTyped_HandlerError(t *testing.T) {
 	err := query.RegisterTyped(
 		d,
 		"FailQuery",
-		func(_ context.Context, _ query.Query) (string, error) {
+		func(_ context.Context, _ *query.BasicQuery) (string, error) {
 			return "", handlerErr
 		},
 	)
@@ -319,7 +321,7 @@ func TestRegisterTyped_Duplicate(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	handler := func(_ context.Context, _ query.Query) (string, error) { return "", nil }
+	handler := func(_ context.Context, _ *query.BasicQuery) (string, error) { return "", nil }
 
 	err := query.RegisterTyped(d, "DupQuery", handler)
 	if err != nil {
@@ -340,9 +342,11 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 	var called bool
 	useMiddleware(&called, d)
 
-	err := query.RegisterTyped(d, "MWQuery", func(_ context.Context, _ query.Query) (int, error) {
-		return 42, nil
-	})
+	err := query.RegisterTyped(d, "MWQuery",
+		func(_ context.Context, _ *query.BasicQuery) (int, error) {
+			return 42, nil
+		},
+	)
 	if err != nil {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}

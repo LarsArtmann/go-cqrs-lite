@@ -235,10 +235,11 @@ func generate(pkg, genType string, entries []Entry) string {
 			)
 			fmt.Fprintf(
 				&b,
-				"func Register%sHandler[R any](d *query.Dispatcher, handler func(context.Context, query.Query) (R, error)) error {\n",
+				"func Register%sHandler[R any](d *query.Dispatcher, handler func(context.Context, *%s) (R, error)) error {\n",
+				e.StructName,
 				e.StructName,
 			)
-			fmt.Fprintf(&b, "\treturn query.RegisterTyped[R](d, %q, handler)\n", e.CommandType)
+			fmt.Fprintf(&b, "\treturn query.RegisterTyped[*%s, R](d, %q, handler)\n", e.StructName, e.CommandType)
 			b.WriteString("}\n\n")
 		}
 	}
