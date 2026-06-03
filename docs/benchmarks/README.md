@@ -49,10 +49,22 @@ Run with: `go test ./... -bench=. -benchmem -run=^$ -count=1 -timeout=10m`
 
 | Benchmark             |  ns/op |   B/op | allocs/op |
 | --------------------- | -----: | -----: | --------: |
-| `Save`                |    556 |    688 |         8 |
-| `Load` (100 events)   |    224 |  1,792 |         1 |
-| `ReadAll` (1K events) | 92,949 | 51,568 |        12 |
+| `Save`                |    523 |    688 |         8 |
+| `Load` (100 events)   |    272 |  1,792 |         1 |
+| `ReadAll` (1K events) |  3,300 | 16,384 |         1 |
+| `ReadFrom` (1K events)|    250 |    800 |         1 |
 | `Bus.Publish`         |     66 |     48 |         3 |
+
+#### ReadAll Scaling (post-optimization)
+
+| Events | ns/op | B/op | allocs/op |
+| ------ | -----: | -----: | --------: |
+| 100    |   222 |  1,792 |         1 |
+| 1K     | 2,573 | 16,384 |         1 |
+| 10K    |21,322 |163,840 |         1 |
+| 100K   |137,938|1,605,634|        1 |
+
+Confirmed **O(n) linear scaling** — no sort overhead.
 
 ### Catalog
 
@@ -137,13 +149,14 @@ These use realistic JSON payloads (e-commerce order model) and exercise the full
 
 10K aggregates (3 events each), cursor-paginated through 100 pages.
 
-| Metric     | Value             |
-| ---------- | ----------------- |
-| Total time | 840ms             |
-| Throughput | **12K items/sec** |
-| Memory     | 809MB, 1M allocs  |
+| Metric     | Before | After | Change |
+| ---------- | ------ | ----- | ------ |
+| Total time | 840ms  | 33ms  | **-96% (25x faster)** |
+| Throughput | 12K/s  | 303K/s| **+2,425%** |
+| Memory     | 809MB  | 165MB | **-80%** |
+| Allocs     | 1M     | 10,582| **-99%** |
 
-This is the identified bottleneck: `InMemoryAggregateReader` calls `ReadAll()` which sorts all events O(n log n) on every `List()` call. A pre-sorted or indexed reader would bring this into the microsecond range.
+Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List()` builds the cache; subsequent calls only filter/paginate.
 
 ### Snapshot vs Replay Load
 
@@ -154,6 +167,31 @@ This is the identified bottleneck: `InMemoryAggregateReader` calls `ReadAll()` w
 | Replay (500 events)  | 44ms   | **2,292 loads/sec** | 18MB, 401K allocs |
 | Snapshot (every 100) | 0.16ms | **616K loads/sec**  | 99KB, 1.8K allocs |
 | **Speedup**          |        | **269x**            |                   |
+
+### Codec
+
+| Benchmark      | ns/op | B/op | allocs/op |
+| -------------- | ----: | ---: | --------: |
+| JSON Encode    |   249 |  192 |         6 |
+| JSON Decode    |   519 |  592 |        12 |
+| Raw Encode     |    14 |   24 |         1 |
+| Raw Decode     |    23 |   48 |         2 |
+
+### Watermill Adapter
+
+| Benchmark          | ns/op | B/op | allocs/op |
+| ------------------ | ----: | ---: | --------: |
+| eventToMessage     |   442 |  944 |        15 |
+| messageToEvent     |   528 |  568 |         9 |
+| Publisher Publish  |   593 |  616 |        12 |
+| buildMetadata      |   122 |    0 |         0 |
+
+### Turso (Embedded LibSQL)
+
+| Benchmark |  ns/op | B/op | allocs/op |
+| --------- | -----: | ---: | --------: |
+| Save      | 83,244 |23,133|       365 |
+| Load (100)|1,079,546|996,264|    16,450 |
 
 ### Query Dispatch
 
@@ -180,6 +218,14 @@ This is the identified bottleneck: `InMemoryAggregateReader` calls `ReadAll()` w
 | Stamp encoding directly           | 9 allocs, 793B (New typed)       | 8 allocs, 769B             | -1 alloc, -24B                   |
 | canonicalPayload pre-sized buffer | 10 allocs → 6 allocs             | 6→5 allocs, 336B           | -1 alloc (from Payload() change) |
 
+### Session 143–144 (2026-06-03)
+
+|| Change                               | Before                     | After                        | Improvement                    |
+| ------------------------------------ | -------------------------- | ---------------------------- | ------------------------------ |
+|| MemoryStore global log               | 98μs, 52KB, 12 allocs (1K) | 3.3μs, 16KB, 1 alloc (1K)   | **-96% time, -92% allocs**     |
+|| Listing projection cache             | 840ms, 809MB, 1M allocs    | 33ms, 165MB, 10K allocs      | **-96% time, -99% allocs**     |
+|| ImmutableEvent opts pointer          | 336B per event             | 304B per event               | -10% memory per event          |
+
 ### What can't be optimized (accepted costs)
 
 | Constraint                                  | Reason                                                         |
@@ -190,4 +236,4 @@ This is the identified bottleneck: `InMemoryAggregateReader` calls `ReadAll()` w
 | `Metadata()` clone on every access          | Map aliasing risk: `Custom` map shares reference if not cloned |
 | `findCodecOption` probe alloc               | Requires breaking `Option` type from `func` to interface (v3)  |
 | SQLite allocs (554 per load)                | Pure Go SQL engine overhead                                    |
-| `ReadAll` O(n log n) sort                   | Test-only infrastructure; not a production hot path            |
+| MemoryStore event duplication               | Events stored in both `events` map and `globalLog` (2× mem)    |
