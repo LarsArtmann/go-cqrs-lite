@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.0.0
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.0.0
-	github.com/larsartmann/httputil v0.0.0-20260528145236-22c2616f7c39
+	github.com/larsartmann/httputil v0.0.0-20260601113755-7b9a6cbc3d5c
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.68.0 // indirect
+	github.com/prometheus/common v0.68.1 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect

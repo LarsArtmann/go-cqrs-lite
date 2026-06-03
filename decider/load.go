@@ -60,11 +60,15 @@ func opError(
 ) error {
 	prefix := ref.Type.String() + " " + ref.ID.String() + ": "
 
-	return event.WrapInfrastructure(
-		fmt.Errorf(prefix+msg, args...), //nolint:err113
-		"decider.op_error",
-		prefix+"operation error",
-	)
+	inner := fmt.Errorf(prefix+msg, args...) //nolint:err113
+
+	family := event.Classify(inner)
+	if family == event.Rejection || family == event.Conflict ||
+		family == event.Transient || family == event.Corruption {
+		return event.Wrap(inner, family, "decider.op_error", inner.Error())
+	}
+
+	return event.WrapInfrastructure(inner, "decider.op_error", inner.Error())
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.
