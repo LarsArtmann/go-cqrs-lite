@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Sourcing on ZFS/btrfs — Design Brainstorm</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --code-bg: #0d1117;
+    --table-stripe: #161b22;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h1 + p { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem; }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.6rem;
+    color: var(--green);
+  }
+
+  p { margin-bottom: 1rem; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  strong { color: #fff; }
+  em { color: var(--yellow); }
+
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.92rem;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  thead { background: var(--surface); }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) { background: var(--table-stripe); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0.8rem 0 1.2rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.88em;
+  }
+  pre code { font-size: 0.88rem; }
+  :not(pre) > code {
+    background: var(--surface);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ASCII art blocks */
+  .ascii {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  /* Callouts */
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    padding: 0.8rem 1.1rem;
+    margin: 1rem 0 1.5rem;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.warning { border-left-color: var(--yellow); }
+  .callout.danger  { border-left-color: var(--red); }
+  .callout.good    { border-left-color: var(--green); }
+  .callout strong { display: block; margin-bottom: 0.25rem; }
+
+  /* Summary box */
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .summary > div {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+  }
+  .summary h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+  .summary ul { margin-left: 1.2rem; }
+
+  @media (max-width: 640px) {
+    .summary { grid-template-columns: 1fr; }
+    body { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Event Sourcing on ZFS / btrfs</h1>
+<p>Design brainstorm — how much of CQRS can the filesystem <em>be</em>, not just <em>hold</em>?</p>
+
+<!-- ================================================================ -->
+<h2>Core Insight</h2>
+
+<p>
+  ZFS and btrfs <strong>already implement most event-sourcing primitives at the storage layer</strong>.
+  The question isn't "how to store events on ZFS" — it's "how much of CQRS can the filesystem <em>BE</em>?"
+</p>
+
+<table>
+  <thead><tr><th>ES Concept</th><th>ZFS / btrfs Primitive</th></tr></thead>
+  <tbody>
+    <tr><td>Append-only event log</td><td>Copy-on-Write + ZIL (Intent Log)</td></tr>
+    <tr><td>Event immutability</td><td>CoW guarantees old data is <em>never</em> overwritten</td></tr>
+    <tr><td>Projections / Materialized Views</td><td>Snapshots of projection datasets</td></tr>
+    <tr><td>Time-travel queries</td><td><code>zfs send -i @snap1 @snap2</code> / mount snapshot read-only</td></tr>
+    <tr><td>Event replication</td><td><code>zfs send -R</code> / <code>btrfs send</code> (incremental)</td></tr>
+    <tr><td>Data integrity</td><td>Per-block checksumming (edonr / blake3 / sha256)</td></tr>
+    <tr><td>Event compaction</td><td>Clone + flatten = snapshot without history</td></tr>
+    <tr><td>Global ordering</td><td>TXG (Transaction Group) — ~5 s windows</td></tr>
+    <tr><td>Checkpointing</td><td>ZFS bookmarks / btrfs subvolume snapshots</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<h2>Layout: The Filesystem <em>Is</em> the Event Store</h2>
+
+<pre class="ascii">tank/                              # zpool
+├── store/                         # Event store (dataset)
+│   ├── log/                       # Global ordered event stream
+│   │   ├── 00000001.evts          # Segmented, ~64 MB each
+│   │   ├── 00000002.evts
+│   │   └── .cursor                # Current write segment
+│   ├── aggregates/                # Per-aggregate streams
+│   │   ├── user/
+│   │   │   ├── 01JX...            # One append-only file per instance
+│   │   │   └── 01JY...
+│   │   └── order/
+│   │       └── 01JZ...
+│   └── .meta                      # Metadata (schema versions, etc.)
+│
+├── projections/                   # Each projection = its own dataset
+│   ├── user-by-email/             #   → can snapshot independently
+│   │   ├── a/
+│   │   │   ├── alice@             # File content = projected state
+│   │   │   └── arnold@            #   (or symlink → aggregate ID)
+│   │   ├── b/
+│   │   │   └── bob@
+│   │   └── .checkpoint            # Last processed TXG / offset
+│   ├── order-totals/
+│   │   ├── 01JZ...
+│   │   └── .checkpoint
+│   └── dashboard-stats/
+│       └── current                # Single-file projection
+│
+├── snapshots/                     # Named, immutable views
+│   ├── user-by-email@2024-01-01   # Point-in-time materialized view
+│   ├── user-by-email@2024-06-01
+│   └── full-store@v2.0-migration
+│
+└── archive/                       # Compacted / tiered events
+    └── pre-2024/                  # Cold storage via zfs send → tape
+</pre>
+
+<!-- ================================================================ -->
+<h2>The Five Novel Angles</h2>
+
+<!-- 1 -->
+<h3>1. Snapshot = Instant Consistent Projection Checkpoint</h3>
+
+<pre><code># Atomic, consistent snapshot of ALL projections simultaneously
+zfs snapshot -r tank/projections@2024-W26
+
+# Or individual projection — O(1) operation
+zfs snapshot tank/projections/user-by-email@v42
+
+# Time-travel query: mount any past state READ-ONLY
+mkdir /mnt/projection-past
+mount -t zfs tank/projections/user-by-email@v42 /mnt/projection-past
+cat /mnt/projection-past/a/alice@   # State as of v42</code></pre>
+
+<div class="callout good">
+  <strong>Why this matters</strong>
+  Traditional event sourcing replays events to rebuild projections. ZFS snapshots give you O(1)
+  access to any historical projection state — no replay. You get 1 000 time-travel queries
+  for the cost of 1 projection run.
+</div>
+
+<!-- 2 -->
+<h3>2. Send / Receive = Native Event Replication</h3>
+
+<pre><code># Full initial replication
+zfs send tank/store@baseline | zfs receive backup/store
+
+# Incremental — ONLY the new events (differential)
+zfs send -i tank/store@baseline tank/store@v42 | zfs receive backup/store
+
+# To a DIFFERENT machine for disaster recovery
+zfs send -R tank/store@v42 | ssh backup-server zfs receive tank/store</code></pre>
+
+<div class="callout good">
+  <strong>Why this matters</strong>
+  No Kafka, no Debezium, no custom CDC pipeline. The filesystem <em>is</em> your replication
+  engine. Incremental sends are exactly <code>zfs send -i @old @new</code> — the diff between
+  two snapshots. This <em>is</em> event streaming at the block level.
+</div>
+
+<!-- 3 -->
+<h3>3. Clones = Branch the Event Store for Testing / Replay</h3>
+
+<pre><code># Clone the entire event store at a point in time
+zfs clone tank/store@v42 tank/store-test
+
+# Replay projections against a COW fork — zero space for shared blocks
+# The test branch diverges; original is untouched.
+# When done:
+zfs destroy tank/store-test   # Instant cleanup</code></pre>
+
+<div class="callout good">
+  <strong>Why this matters</strong>
+  Want to test a new projection handler against historical data? Clone the store, replay,
+  validate — then destroy. Zero risk, near-zero cost. This is <code>git branch</code> semantics
+  for your entire event store.
+</div>
+
+<!-- 4 -->
+<h3>4. ZFS Properties as Event Store Metadata</h3>
+
+<pre><code># Checkpoint tracking (no external database needed)
+zfs set user:projection:offset=00000001:00456789 tank/projections/user-by-email
+zfs set user:projection:txg=1847293 tank/projections/user-by-email
+
+# Schema version tracking
+zfs set user:aggregate:schema-version=3 tank/store/aggregates/user
+
+# Compression already built-in
+zfs set compression=zstd-3 tank/store   # Events are JSON → 70–85 % compression
+
+# Per-projection retention policy
+zfs set user:snapshot:retain=90d tank/projections/dashboard-stats
+zfs set user:snapshot:retain=365d tank/projections/user-by-email</code></pre>
+
+<!-- 5 -->
+<h3>5. btrfs reflink = Per-File Snapshots Without Full Snapshots</h3>
+
+<pre><code># Before updating a projection entry, reflink it (instant, COW)
+cp --reflink=always projections/user-by-email/a/alice@ \
+                     projections/user-by-email/a/alice@.prev
+
+# Now update the projection atomically
+mv alice@.tmp alice@
+
+# Per-file time travel — no full snapshot needed
+# Unique to btrfs — ZFS snapshots are all-or-nothing per dataset</code></pre>
+
+<div class="callout good">
+  <strong>Why this matters</strong>
+  btrfs reflink gives you per-file COW snapshots. You can do per-key projection history
+  without snapshotting the entire dataset. ZFS can't do this (snapshots are dataset-level).
+</div>
+
+<!-- ================================================================ -->
+<h2>Architecture: The Full Stack</h2>
+
+<pre class="ascii">┌─────────────────────────────────────────────────────────┐
+│  Application (Go / Rust / …)                            │
+│  ┌───────────┐ ┌───────────┐ ┌───────────────────────┐  │
+│  │ Command   │ │ Query     │ │ Projection Runner     │  │
+│  │ Handlers  │ │ Handlers  │ │ (reads log, writes    │  │
+│  └─────┬─────┘ └─────┬─────┘ │  projection dataset)  │  │
+│        │             │       └───────────┬───────────┘  │
+│        ▼             │                   │              │
+│  ┌───────────┐       │                   │              │
+│  │ Event     │       │                   │              │
+│  │ Writer    │       │                   │              │
+│  └─────┬─────┘       │                   │              │
+├────────┼─────────────┼───────────────────┼──────────────┤
+│        │    ZFS / btrfs Native Layer     │              │
+│        ▼             ▼                   ▼              │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  tank/store/log/        # Append-only segments   │   │
+│  │  tank/store/aggregates/ # Per-aggregate streams  │   │
+│  │  tank/projections/*     # Materialized views     │   │
+│  │                                                  │   │
+│  │  ZFS kernel module / btrfs kernel module         │   │
+│  │  ┌──────────┐ ┌───────────┐ ┌────────────────┐  │   │
+│  │  │   ZIL    │ │    DMU    │ │    ARC/L2ARC   │  │   │
+│  │  │  (WAL)   │ │ (obj set) │ │ (read cache)   │  │   │
+│  │  └──────────┘ └───────────┘ └────────────────┘  │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘</pre>
+
+<!-- ================================================================ -->
+<h2>What You Get For Free</h2>
+
+<table>
+  <thead><tr><th>Problem</th><th>Traditional ES Solution</th><th>ZFS / btrfs Native</th></tr></thead>
+  <tbody>
+    <tr><td>Event immutability</td><td>App-level append-only enforcement</td><td>CoW guarantees old blocks are never overwritten</td></tr>
+    <tr><td>Data integrity</td><td>CRC in event headers, periodic validation</td><td>Per-block checksumming on <em>every</em> read</td></tr>
+    <tr><td>Replication</td><td>Kafka / Debezium / custom CDC</td><td><code>zfs send -i</code> / <code>btrfs send</code></td></tr>
+    <tr><td>Projection checkpoints</td><td>External DB table with offsets</td><td>ZFS properties + snapshots</td></tr>
+    <tr><td>Time-travel queries</td><td>Replay events from beginning</td><td>Mount snapshot read-only — O(1)</td></tr>
+    <tr><td>Compression</td><td>App-level gzip / snappy</td><td><code>compression=zstd</code> — transparent</td></tr>
+    <tr><td>Encryption</td><td>App-level</td><td><code>encryption=aes-256-gcm</code> — transparent</td></tr>
+    <tr><td>Compaction / GC</td><td>Custom compaction jobs</td><td><code>zfs destroy</code> old snapshots, space reclaimed</td></tr>
+    <tr><td>Testing against prod data</td><td>DB dump + restore</td><td>Clone — instant, zero-space</td></tr>
+    <tr><td>Backup</td><td>Custom pipeline</td><td><code>zfs send -R</code> — incremental, consistent</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<h2>The Hard Problems (Honest Assessment)</h2>
+
+<h3>1. Global Event Ordering Across Aggregates</h3>
+<p>
+  ZFS TXGs batch writes every ~5 seconds. Events within one TXG have no guaranteed order.
+  You need either:
+</p>
+<ul>
+  <li>A <strong>global log</strong> (<code>store/log/</code>) with monotonic sequence numbers in the application layer</li>
+  <li>Or accept <strong>per-aggregate ordering only</strong> (most CQRS systems are fine with this)</li>
+  <li>Hybrid: global log for ordering, per-aggregate files for fast load</li>
+</ul>
+
+<h3>2. Concurrent Writers</h3>
+<p>
+  ZFS has no record-level locking. For a single aggregate file:
+</p>
+<ul>
+  <li><strong>Single-writer lock</strong> in application layer (<code>flock</code> or distributed lock)</li>
+  <li>Or use the global log + single consumer per aggregate partition</li>
+</ul>
+
+<h3>3. Projection Fan-Out / Notification</h3>
+<p>Filesystems don't have <code>SELECT … FOR UPDATE</code> or pub/sub. Options:</p>
+<ul>
+  <li><code>inotify</code> / <code>FSEvents</code> on the log directory — kernel notifies on new segments</li>
+  <li>Poll the <code>.cursor</code> file (simple, low-tech, works)</li>
+  <li>TXG sync callback (ZFS-specific, requires kernel module)</li>
+</ul>
+
+<h3>4. Querying Projections</h3>
+<p>The filesystem <em>is</em> the index. Lookups are <code>O(depth)</code> directory traversal.</p>
+<ul>
+  <li><strong>Works well:</strong> Key-value lookups (<code>cat path/to/key</code>), prefix scans (<code>ls path/to/prefix*</code>)</li>
+  <li><strong>Doesn't work well:</strong> Range queries over values, full-text search, aggregations — compute at projection time, store result</li>
+</ul>
+
+<h3>5. Billion-Scale Files</h3>
+<p>ZFS handles millions of files well, but practical limits exist:</p>
+<ul>
+  <li>Directory listing gets slow at &gt;100 K entries → use <strong>sharding</strong>: <code>a/al/</code> prefix tree</li>
+  <li>DMU object numbers are 64-bit — no theoretical limit</li>
+  <li>Consider <strong>segmented files</strong> (one file per <em>N</em> events) instead of one file per aggregate</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2>Killer Use Cases</h2>
+
+<ol>
+  <li>
+    <strong>Audit-critical systems</strong> — Every state change is a ZFS snapshot.
+    Regulatory compliance is <code>zfs list -t snapshot -o name,creation</code>.
+    You literally cannot delete history.
+  </li>
+  <li>
+    <strong>Edge / embedded systems</strong> — No Kafka, no Postgres. Just the filesystem.
+    btrfs on a Raspberry Pi running your event-sourced IoT gateway.
+  </li>
+  <li>
+    <strong>Disaster recovery</strong> —
+    <code>zfs send -R tank/store@latest | ssh dr-site zfs receive tank/store</code>.
+    Entire event store + projections replicated incrementally. Sub-second RPO.
+  </li>
+  <li>
+    <strong>Multi-tenant isolation</strong> — One dataset per tenant.
+    <code>tank/tenant-a/store</code>, <code>tank/tenant-b/store</code>.
+    Per-tenant snapshots, quotas (<code>quota=10G</code>), compression, encryption keys.
+  </li>
+  <li>
+    <strong>Event replay debugging</strong> — Clone the store at the failing point.
+    Replay with logging. Destroy. Zero risk to production.
+  </li>
+  <li>
+    <strong>Data locality compliance</strong> — <code>encryption=aes-256-gcm</code> per dataset,
+    different keys per region. Snapshot + send for compliance exports.
+  </li>
+</ol>
+
+<!-- ================================================================ -->
+<h2>ZFS vs btrfs Trade-offs</h2>
+
+<table>
+  <thead><tr><th>Aspect</th><th>ZFS</th><th>btrfs</th></tr></thead>
+  <tbody>
+    <tr><td>Maturity</td><td>Battle-tested (15+ years)</td><td>Improving, still rough edges</td></tr>
+    <tr><td>Snapshots</td><td>Dataset-level only</td><td>Subvolume-level (similar)</td></tr>
+    <tr><td>Per-file COW</td><td>No (all-or-nothing per dataset)</td><td><strong>Yes — reflink</strong> (per-key projection history)</td></tr>
+    <tr><td>Native encryption</td><td>Yes</td><td>No (needs LUKS layer)</td></tr>
+    <tr><td>Send / Receive</td><td>Mature, incremental, recursive</td><td>Works, less battle-tested</td></tr>
+    <tr><td>Channel Programs (Lua)</td><td><strong>Yes — transactions in kernel</strong></td><td>No equivalent</td></tr>
+    <tr><td>Compression</td><td>LZ4, ZSTD, many more</td><td>LZ4, ZSTD</td></tr>
+    <tr><td>RAID</td><td>Native (raidz1/2/3, mirrors)</td><td>Native (raid1/10/5/6)</td></tr>
+    <tr><td>ARC read cache</td><td>Adaptive, tunable, L2ARC SSD</td><td>Less sophisticated page cache</td></tr>
+    <tr><td>ZIL write log</td><td>Dedicated SLOG device possible</td><td>No equivalent</td></tr>
+    <tr><td>License</td><td>CDDL (not GPL-compatible)</td><td>GPL</td></tr>
+    <tr><td>Linux integration</td><td>Out-of-tree (OpenZFS)</td><td>In-kernel</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<h2>The Pipe Dream: ZFS Channel Programs as Projection Handlers</h2>
+
+<p>
+  ZFS Channel Programs (ZCP) let you run Lua scripts <strong>inside ZFS</strong> as atomic
+  transactions. Theoretically:
+</p>
+
+<pre><code>-- This runs INSIDE ZFS, as a single transaction
+-- Read events, compute projection state, write to projection dataset
+-- ALL ATOMIC — no partial state possible
+
+events = zfs.list.children("tank/store/log")
+for _, segment in ipairs(events) do
+    local data = zfs.read(segment)
+    for event in data:gmatch("[^\n]+") do
+        if event:match('"type":"usercreated"') then
+            local email = extract_email(event)
+            local uid   = extract_id(event)
+            zfs.write("tank/projections/user-by-email/" .. path_from_email(email), uid)
+        end
+    end
+end
+zfs.set_property("tank/projections/user-by-email", "user:offset", current_offset)</code></pre>
+
+<p>
+  Kernel-level projection processing — no userspace round-trip. Pure speculation, but
+  technically possible.
+</p>
+
+<!-- ================================================================ -->
+<h2>Should You Actually Build This?</h2>
+
+<div class="summary">
+  <div>
+    <h4 style="color:var(--green)">✓&ensp;Yes, if …</h4>
+    <ul>
+      <li>Maximum infrastructure simplicity (filesystem = database + message bus + backup)</li>
+      <li>Audit / compliance is critical (snapshots = immutable audit trail)</li>
+      <li>Edge / embedded deployment (no external services)</li>
+      <li>Multi-tenant isolation with per-tenant encryption</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="color:var(--red)">✗&ensp;No, if …</h4>
+    <ul>
+      <li>Complex ad-hoc queries over projections (use Postgres)</li>
+      <li>Sub-millisecond fan-out to 1 000s of consumers (use Kafka)</li>
+      <li>Team doesn't know ZFS / btrfs operationally</li>
+      <li>Cloud-portability required (no ZFS on AWS RDS)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout">
+  <strong>The most interesting angle</strong>
+  This isn't about replacing databases. It's about recognizing that modern CoW filesystems
+  already solve 80 % of event sourcing infrastructure. The remaining 20 % (ordering,
+  notification, complex queries) is what you'd actually build.
+</div>
+
+</body>
+</html>
