@@ -35,7 +35,8 @@ func (a *EventStore) AppendBatch(
 		}
 	}
 
-	if err := a.appendToJournal(batch, events); err != nil {
+	err := a.appendToJournal(batch, events)
+	if err != nil {
 		return err
 	}
 

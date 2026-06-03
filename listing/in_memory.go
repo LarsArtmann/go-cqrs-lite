@@ -41,6 +41,7 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 	refs := r.getRefsUnsorted()
 	if refs == nil {
 		var err error
+
 		refs, err = r.rebuildCache(ctx)
 		if err != nil {
 			return nil, err
@@ -62,6 +63,7 @@ func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
 	r.mu.RLock()
 	cached := r.cached
 	r.mu.RUnlock()
+
 	return cached
 }
 
