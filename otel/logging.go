@@ -13,12 +13,6 @@ func ComponentLogger(logger *slog.Logger) *slog.Logger {
 	return logger.With(slog.String("component", "cqrs"))
 }
 
-// TraceIDLogger is an alias for ComponentLogger.
-// Deprecated: Use ComponentLogger for clarity.
-func TraceIDLogger(logger *slog.Logger) *slog.Logger {
-	return ComponentLogger(logger)
-}
-
 // TraceIDFromContext extracts the trace ID from the context. Returns "none"
 // if no span is active.
 func TraceIDFromContext(ctx context.Context) string {

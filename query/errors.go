@@ -8,11 +8,6 @@ var ErrHandlerNotFound = errorfamily.NewRejection(
 	"no handler registered for query",
 )
 
-// ErrQueryNotSupported is an alias for ErrHandlerNotFound.
-//
-// Deprecated: Use ErrHandlerNotFound for consistency with command.Dispatcher.
-var ErrQueryNotSupported = ErrHandlerNotFound
-
 // ErrDispatcherClosed is returned when the dispatcher is closed.
 var ErrDispatcherClosed = errorfamily.NewInfrastructure(
 	"query.dispatcher_closed",

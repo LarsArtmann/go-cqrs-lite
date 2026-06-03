@@ -98,14 +98,14 @@ func TestContextLogger_WithSpan(t *testing.T) {
 	g.Expect(output).ToNot(ContainSubstring("trace_id=none"))
 }
 
-func TestTraceIDLogger(t *testing.T) {
+func TestComponentLogger(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
 	var buf strings.Builder
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
 
-	wrapped := otel.TraceIDLogger(logger)
+	wrapped := otel.ComponentLogger(logger)
 	g.Expect(wrapped).ToNot(BeNil())
 
 	wrapped.Info("test message")
