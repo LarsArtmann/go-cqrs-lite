@@ -1,34 +1,6 @@
 # Contributing to go-cqrs-lite
 
-> **Thank you for contributing!** This guide covers everything you need to know to contribute effectively.
-
-## Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
-- [Quick Start](#quick-start)
-- [Development Setup](#development-setup)
-- [Code Standards](#code-standards)
-- [Testing](#testing)
-- [Architecture](#architecture)
-- [Linting & Quality](#linting--quality)
-- [Security](#security)
-- [Pull Request Process](#pull-request-process)
-- [Commit Messages](#commit-messages)
-
----
-
-## Code of Conduct
-
-We are committed to providing a welcoming and respectful environment. All contributors are expected to:
-
-- **Be respectful** — Treat others with kindness and professionalism
-- **Be inclusive** — Welcome diverse perspectives and experiences
-- **Be constructive** — Provide feedback that helps improve the project
-- **Be collaborative** — Work together to achieve the best outcomes
-
-**Unacceptable behavior** will not be tolerated.
-
----
+> **Thank you for contributing!** This guide covers everything you need to know.
 
 ## Quick Start
 
@@ -37,426 +9,147 @@ We are committed to providing a welcoming and respectful environment. All contri
 git clone https://github.com/LarsArtmann/go-cqrs-lite.git
 cd go-cqrs-lite
 
-# 2. Run the setup script
-./CONTRIBUTING-setup.sh
+# 2. Enter the Nix dev shell
+nix develop
 
-# 3. Install development dependencies
-just install
-
-# 4. Verify everything works
-just lint
-just test
+# 3. Verify everything works
+nix run .#test
+nix run .#lint
 ```
-
----
 
 ## Development Setup
 
 ### Prerequisites
 
-| Tool           | Version | Purpose              |
-| -------------- | ------- | -------------------- |
-| Go             | 1.21+   | Language runtime     |
-| Just           | latest  | Task runner          |
-| golangci-lint  | v2.6.0  | Code linting         |
-| go-arch-lint   | v1.14.0 | Architecture linting |
-| branching-flow | latest  | Semantic analysis    |
-| gofumpt        | latest  | Code formatting      |
-| goimports      | latest  | Import management    |
+| Tool    | Version | Purpose           |
+| ------- | ------- | ----------------- |
+| Go      | 1.26+   | Language runtime  |
+| Nix     | latest  | Build environment |
 
-### Installation
+### Using Nix (Recommended)
 
 ```bash
-# Install all tools via just
-just install
+# Enter dev shell with all tools
+nix develop
 
-# Or install individually
-go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
-go get -tool github.com/fe3dback/go-arch-lint@v1.14.0
+# Build all modules
+nix run .#build
+
+# Run all tests
+nix run .#test
+
+# Run linter
+nix run .#lint
+
+# Run all benchmarks
+nix run .#bench
+
+# Format code
+nix fmt
 ```
 
-### Pre-commit Hooks
+### Without Nix
 
 ```bash
-# Install basic hooks (formatting only - fast)
-just install-hooks
+# Run tests (per module)
+cd event && go test ./... -count=1
 
-# Install comprehensive hooks (includes architecture validation)
-just install-hooks-full
+# Run linter
+golangci-lint run
+
+# Format code
+gofumpt -w .
 ```
 
----
+## Project Structure
 
-## Code Standards
-
-### Mandatory Rules
-
-1. **Centralized Error Management**
-   - All errors MUST be defined in `pkg/errors/`
-   - No direct `errors.New()` or `fmt.Errorf()` outside `pkg/errors`
-   - Use `pkg/errors.Wrap()`, `pkg/errors.New()` for error creation
-   - Use `errors.Is()`, `errors.As()` for error checking
-
-2. **Strong ID Types**
-   - No raw string/numeric IDs — use branded types
-   - Example: `type UserID = brsdt.Type[string, "user_id"]`
-
-3. **Composition Over Inheritance**
-   - Prefer interfaces and struct embedding over class hierarchies
-   - Use dependency injection for testability
-
-4. **Early Returns**
-   - Use guard clauses to reduce nesting
-   - Keep functions small and focused
-
-### File Organization
+Multi-module Go workspace with 30 modules:
 
 ```
-├── cmd/                    # Application entry points
-│   └── go-cqrs-lite/main.go
-├── internal/               # Private application code
-│   ├── domain/             # Domain layer (business logic)
-│   │   ├── entities/       # Business entities
-│   │   ├── values/         # Value objects
-│   │   ├── repositories/   # Repository interfaces
-│   │   └── services/      # Domain services
-│   ├── application/        # Application layer
-│   │   └── handlers/      # HTTP handlers
-│   ├── infrastructure/     # Infrastructure layer
-│   │   └── db/            # SQLC generated code
-│   └── config/            # Configuration
-├── pkg/                    # Public packages
-│   └── errors/            # Centralized error definitions
-└── go-cqrs-lite.go     # Module definition
+event/         # Event system (Event, EventSink, EventSource, Bus)
+command/       # Command dispatcher
+query/         # Query dispatcher
+decider/       # Pure-function aggregate
+id/            # Branded IDs
+dispatcher/    # Generic dispatcher
+schema/        # Schema evolution (upcasters)
+snapshot/      # Snapshot support
+memory/        # In-memory implementations (testing)
+catalog/       # Schema registry + exporters
+middleware/    # Middleware suite (logging, tracing, metrics)
+signing/       # Event signing (HMAC, Ed25519)
+projection/    # Projection runner (replay + live)
+storage/       # SQL event store (PostgreSQL, SQLite, Turso)
+otel/          # OpenTelemetry helpers
+listing/       # Aggregate listing
+watermill/     # Watermill protocol adapter
+pebble/        # PebbleDB event store
+codec/         # Payload encoding (JSON, Raw)
+turso/         # Turso database connector
+cmd/cqrs-gen/  # Code generator
+cmd/api-stability/  # API surface checker
 ```
-
-### Naming Conventions
-
-| Type       | Convention                  | Example                        |
-| ---------- | --------------------------- | ------------------------------ |
-| Packages   | lowercase, single word      | `domain`, `handlers`           |
-| Interfaces | PascalCase with "er" suffix | `Repository`, `Service`        |
-| Functions  | PascalCase                  | `CreateUser`, `GetByID`        |
-| Variables  | camelCase                   | `userID`, `isActive`           |
-| Constants  | PascalCase                  | `MaxRetries`, `DefaultTimeout` |
-| Files      | lowercase, descriptive      | `user_repository.go`           |
-
----
 
 ## Testing
 
-### Test Structure
+### Running Tests
 
-```go
-// Package naming: same package or package_test for black-box
-package domain_test  // Preferred for integration
+```bash
+# All modules
+nix run .#test
 
-// or
+# Single module
+cd event && go test ./... -count=1
 
-package domain  // For white-box testing
-```
+# With race detector
+go test -race ./... -count=1
 
-### Test Organization
-
-```go
-// Use descriptive names with Given-When-Then pattern
-func TestCreateUser_GivenValidInput_WhenUserDoesNotExist_ShouldCreateUser(t *testing.T)
+# With coverage
+go test ./... -count=1 -coverprofile=coverage.out
+go tool cover -html=coverage.out
 ```
 
 ### Coverage Requirements
 
-| Metric          | Minimum | Target |
-| --------------- | ------- | ------ |
-| Line Coverage   | 70%     | 85%    |
-| Branch Coverage | 60%     | 75%    |
-| Critical Paths  | 100%    | 100%   |
-
-```bash
-# Run tests with coverage
-just test
-
-# Check coverage threshold
-just coverage 80
-
-# Detailed coverage analysis
-just coverage-detailed
-```
-
----
-
-## Architecture
-
-### Clean Architecture Layers
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    INFRASTRUCTURE                           │
-│   (External systems: DB, HTTP clients, file system)          │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ implements
-┌─────────────────────────▼───────────────────────────────────┐
-│                    APPLICATION                              │
-│   (Use cases, handlers, orchestration)                      │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ uses
-┌─────────────────────────▼───────────────────────────────────┐
-│                       DOMAIN                                 │
-│   (Entities, value objects, domain services)                 │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Dependency Rules
-
-- **Domain** → Domain only (entities, values, repositories interfaces)
-- **Application** → Domain + Infrastructure interfaces
-- **Infrastructure** → Domain interfaces (implements them)
-- **pkg/errors** → Available everywhere (mandatory)
-
-### Architecture Validation
-
-```bash
-# Check architecture compliance
-just lint-arch
-
-# Generate architecture graph
-just graph
-
-# Verbose architecture checking
-just verbose
-```
-
----
-
-## Linting & Quality
-
-### Quick Commands
-
-```bash
-# Run all linters
-just lint
-
-# Fix issues automatically
-just fix
-
-# Format code
-just format
-
-# Run pre-commit checks
-just check-pre-commit
-just check-pre-commit-fast  # Fast version for hooks
-```
-
-### Detailed Commands
-
-```bash
-# Code quality only
-just lint-code
-
-# Architecture only
-just lint-arch
-
-# Security only
-just lint-security
-
-# Vulnerability scanning
-just lint-vulns
-
-# Nil panic detection
-just lint-nilaway
-
-# Capability analysis
-just lint-capslock
-```
-
-### Branching-Flow Analysis
-
-```bash
-# Semantic context analysis (error handling)
-branching-flow context .
-
-# Find duplicate types
-branching-flow dupe .
-
-# Check for phantom types
-branching-flow phantom .
-
-# Panic condition analysis
-branching-flow panic .
-
-# Strong ID type analysis
-branching-flow strong-id .
-
-# Boolean blindness analysis
-branching-flow boolblind .
-
-# Anti-pattern detection
-branching-flow anti-patterns .
-
-# Run all analyzers
-branching-flow all .
-```
-
-### Quality Gates
-
-Before merging, all checks must pass:
-
-- [ ] `golangci-lint` passes
-- [ ] `go-arch-lint` passes
-- [ ] `branching-flow all .` passes
-- [ ] Tests pass with 80%+ coverage
-- [ ] Code is formatted (`gofumpt`)
-- [ ] Imports are organized (`goimports`)
-- [ ] No security vulnerabilities (`govulncheck`)
-
----
-
-## Security
-
-### Security Scanning
-
-```bash
-# Full security audit
-just security-audit
-
-# Quick security check
-just capslock-quick
-
-# Vulnerability scanning
-just lint-vulns
-
-# Docker security scan
-just docker-security
-```
-
-### Security Best Practices
-
-1. **Input Validation** — Validate all inputs at boundaries
-2. **Parameterized Queries** — Use SQLC for type-safe SQL
-3. **No Secrets in Code** — Use environment variables
-4. **Principle of Least Privilege** — Request only required capabilities
-5. **Error Messages** — Don't leak sensitive information
-
----
-
-## Pull Request Process
-
-### PR Requirements
-
-1. **Branch Naming**
-
-   ```
-   feat/description
-   fix/description
-   docs/description
-   refactor/description
-   test/description
-   ```
-
-2. **PR Description Template**
-
-   ```markdown
-   ## Summary
-
-   Brief description of changes
-
-   ## Type
-
-   - [ ] Feature
-   - [ ] Bug fix
-   - [ ] Refactoring
-   - [ ] Documentation
-
-   ## Test Plan
-
-   - [ ] Unit tests added/updated
-   - [ ] Integration tests added/updated
-   - [ ] Manual testing performed
-
-   ## Checklist
-
-   - [ ] Code follows style guidelines
-   - [ ] Architecture rules pass
-   - [ ] Security scan clean
-   - [ ] Documentation updated
-   ```
-
-### Review Process
-
-1. **Self-review first** — Run `just lint` and `just test` locally
-2. **Small PRs** — Keep changes focused and digestible
-3. **Explain "why"** — Not just "what", but rationale
-4. **Be responsive** — Address feedback promptly
-
----
+| Module Type  | Minimum |
+| ------------ | ------- |
+| Core (event) | 85%     |
+| Other        | 80%     |
+
+## Code Standards
+
+### Key Principles
+
+1. **Library, not framework** — Consumers import what they need
+2. **Interface-first** — All core types are interfaces
+3. **Strong types** — No `any` except for dialect interop
+4. **Composition over inheritance** — No deep hierarchies
+5. **Errors as values** — No panics, explicit error returns
+6. **Context-aware** — All handlers accept `context.Context`
+
+### Style
+
+- Functional programming: immutability, pure functions
+- Early returns over nested conditionals
+- Max 250 lines/file, 30 lines/function
+- Descriptive names over comments
 
 ## Commit Messages
 
-### Format
+Format: `type(scope): description`
 
-```
-<type>(<scope>): <subject>
+Examples:
+- `perf(event): remove Payload() clone`
+- `test(memory): add concurrent stress benchmarks`
+- `docs: update benchmark results`
 
-<body>
+## Pull Request Process
 
-<footer>
-```
+1. Run `nix run .#test` and `nix run .#lint` locally
+2. Ensure tests pass with `-race`
+3. Update docs if behavior changes
+4. Request review from maintainers
 
-### Types
+## Architecture Decisions
 
-| Type     | Description              |
-| -------- | ------------------------ |
-| feat     | New feature              |
-| fix      | Bug fix                  |
-| docs     | Documentation changes    |
-| style    | Formatting, whitespace   |
-| refactor | Code restructuring       |
-| test     | Adding/updating tests    |
-| chore    | Build, tooling, CI       |
-| perf     | Performance improvements |
-| ci       | CI/CD changes            |
-| revert   | Reverting changes        |
-
-### Examples
-
-```bash
-# Good
-feat(auth): add JWT token refresh mechanism
-
-Implements automatic token refresh before expiration
-to improve user experience and reduce authentication
-failures.
-
-Closes #123
-
-# Bad
-fix stuff
-
-# Good
-docs(readme): update installation instructions
-
-Added Go 1.21+ requirement and just installation
-instructions for macOS users.
-
-# Bad
-updated README
-```
-
----
-
-## Getting Help
-
-### Resources
-
-- [Go Documentation](https://go.dev/doc/)
-- [Uber Go Style Guide](https://github.com/uber-go/guide)
-- [Effective Go](https://go.dev/doc/effective_go)
-
-### Getting Unblocked
-
-1. **Read the docs** — Check `docs/` folder first
-2. **Check existing issues** — Someone may have solved it
-3. **Ask questions** — Open a discussion, don't struggle alone
-
----
-
-_Thank you for contributing to go-cqrs-lite!_
+See `docs/adr/` for recorded decisions.
