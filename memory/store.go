@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // MemoryStore is an in-memory implementation of event.Store and event.Journal.
@@ -14,8 +15,10 @@ import (
 type MemoryStore struct {
 	dispatcher.Lifecycle
 
-	mu     sync.RWMutex
-	events map[string][]event.Event
+	mu            sync.RWMutex
+	events        map[string][]event.Event
+	globalLog     []event.Event
+	eventIDIndex  map[id.EventID]int
 }
 
 var (
@@ -30,7 +33,8 @@ var (
 func NewMemoryStore() *MemoryStore {
 	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryStore{
-		events: make(map[string][]event.Event),
+		events:       make(map[string][]event.Event),
+		eventIDIndex: make(map[id.EventID]int),
 	}
 }
 
@@ -59,6 +63,7 @@ func (s *MemoryStore) Save(
 	}
 
 	s.events[key] = append(existing, events...)
+	s.appendToGlobalLog(events)
 
 	return nil
 }
@@ -83,6 +88,7 @@ func (s *MemoryStore) AppendBatch(
 
 	key := ref.StreamKey()
 	s.events[key] = append(s.events[key], events...)
+	s.appendToGlobalLog(events)
 
 	return nil
 }
@@ -90,4 +96,11 @@ func (s *MemoryStore) AppendBatch(
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
+}
+
+func (s *MemoryStore) appendToGlobalLog(events []event.Event) {
+	for _, evt := range events {
+		s.eventIDIndex[evt.ID()] = len(s.globalLog)
+		s.globalLog = append(s.globalLog, evt)
+	}
 }

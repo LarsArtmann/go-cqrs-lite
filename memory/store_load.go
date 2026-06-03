@@ -140,22 +140,6 @@ func copyEvents(events []event.Event) []event.Event {
 	return slices.Clone(events)
 }
 
-func (s *MemoryStore) collectAllSorted() []event.Event {
-	var all []event.Event
-
-	for _, events := range s.events {
-		all = append(all, events...)
-	}
-
-	slices.SortFunc(all, func(a, b event.Event) int {
-		return a.OccurredAt().Compare(b.OccurredAt())
-	})
-
-	return all
-}
-
-// ReadAll returns all events across all aggregates, sorted by OccurredAt.
-// Implements event.Journal for projection replay.
 func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
@@ -165,12 +149,10 @@ func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	all := s.collectAllSorted()
-
-	return copyEvents(all), nil
+	return copyEvents(s.globalLog), nil
 }
 
-// ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
+// ReadFrom retrieves events ordered by insertion order, starting after the given event ID.
 // Implements event.SeekableJournal for efficient projection catch-up.
 func (s *MemoryStore) ReadFrom(
 	_ context.Context,
@@ -191,20 +173,15 @@ func (s *MemoryStore) ReadFrom(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	all := s.collectAllSorted()
-
 	startIdx := 0
 
 	if !afterEventID.IsZero() {
-		if idx := slices.IndexFunc(
-			all,
-			func(e event.Event) bool { return e.ID() == afterEventID },
-		); idx >= 0 {
+		if idx, ok := s.eventIDIndex[afterEventID]; ok {
 			startIdx = idx + 1
 		}
 	}
 
-	filtered := all[startIdx:]
+	filtered := s.globalLog[startIdx:]
 	if limit > 0 && len(filtered) > limit {
 		filtered = filtered[:limit]
 	}
