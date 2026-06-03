@@ -27,9 +27,8 @@
 | P0.1 | **Fix ADR numbering**: renumber `0007-pebble-scope-event-store-only.md` → `0009`, fill or skip `0005`            | ADR audit          | 2min | Correctness — duplicate numbers confuse history               |
 | P0.2 | **Fix CONTRIBUTING.md**: remove all `just` references, replace with `nix run` equivalents                        | Contributing audit | 5min | New contributors can't build without this                     |
 | P0.3 | **Fix integration/go.mod**: run `go mod tidy` to move `codec/v2` + `snapshot/v2` from indirect → direct          | Code quality       | 2min | Wrong dependency graph, gopls warnings                        |
-| P0.4 | **Fix BuildFlow pre-commit hook**: set `build_mode: pre-commit`, add `scripts`/`docs` to exclude, reinstall hook | BuildFlow audit    | 8min | Every commit is bypassed with `--no-verify` — zero safety net |
-
-**P0 subtotal: 4 tasks, ~17min**
+|
+**P0 subtotal: 3 tasks, ~9min**
 
 ---
 
@@ -122,12 +121,12 @@
 
 | Tier                         | Tasks  | Time              | Status                                 |
 | ---------------------------- | ------ | ----------------- | -------------------------------------- |
-| **P0** Fix Now               | 4      | 17min             | Ready to execute                       |
+| **P0** Fix Now               | 3      | 9min              | Ready to execute                       |
 | **P1** Consumer Trust        | 7      | 64min             | Ready to execute                       |
 | **P2** Performance & Quality | 12     | 112min            | Ready to execute                       |
 | **P3** Polish                | 10     | 84min             | Ready to execute                       |
 | **P4** Blocked/Future        | 20     | Blocked           | Waiting on external action or v2 cycle |
-| **Total**                    | **53** | **~277min ready** |                                        |
+| **Total**                    | **52** | **~269min ready** |                                        |
 
 ---
 
@@ -136,7 +135,7 @@
 Recommended execution sequence — P0 first, then P1 → P2 → P3:
 
 ```
-P0.1 → P0.2 → P0.3 → P0.4 →
+P0.1 → P0.2 → P0.3 → 
 P1.1 → P1.2 → P1.3 → P1.4 → P1.5 → P1.6 → P1.7 →
 P2.1 → P2.2 → P2.3 → P2.4 → P2.5 → P2.6 → P2.7 → P2.8 → P2.9 → P2.10 → P2.11 → P2.12 →
 P3.1 → P3.2 → P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 → P3.9 → P3.10
@@ -145,7 +144,7 @@ P3.1 → P3.2 → P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 → P3.9 →
 ### Fastest Impact (Top 5 if time is limited)
 
 1. **P2.1** — Listing cache optimization (269x speedup, 12min)
-2. **P0.4** — Fix BuildFlow hook (restores CI safety net, 8min)
-3. **P1.1** — FakeStore tests (untested public code, 12min)
-4. **P0.2** — Fix CONTRIBUTING.md (unblocks contributors, 5min)
-5. **P1.6** — Pebble Journal implementation (feature completeness, 12min)
+2. **P1.1** — FakeStore tests (untested public code, 12min)
+3. **P0.2** — Fix CONTRIBUTING.md (unblocks contributors, 5min)
+4. **P1.6** — Pebble Journal implementation (feature completeness, 12min)
+5. **P1.2** — api-stability tests (untested API guard tool, 10min)
