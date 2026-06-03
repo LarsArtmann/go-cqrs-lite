@@ -1,0 +1,100 @@
+package watermill
+
+import (
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/ThreeDotsLabs/watermill/message"
+)
+
+func benchEvent(tb testing.TB) event.Event {
+	tb.Helper()
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		"BenchEvent", aggID, "Bench", 1,
+		[]byte(`{"name":"test"}`),
+		event.WithCorrelationID(id.NewCorrelationID()),
+		event.WithOccurredAt(time.Now()),
+	)
+	if err != nil {
+		tb.Fatal(err)
+	}
+
+	return evt
+}
+
+func BenchmarkEventToMessage(b *testing.B) {
+	b.ReportAllocs()
+
+	evt := benchEvent(b)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_ = eventToMessage(evt)
+	}
+}
+
+func BenchmarkMessageToEvent(b *testing.B) {
+	b.ReportAllocs()
+
+	evt := benchEvent(b)
+	msg := eventToMessage(evt)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := messageToEvent("Bench", msg)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkPublisherAdapter_Publish(b *testing.B) {
+	b.ReportAllocs()
+
+	bus := memory.NewMemoryBus()
+	adapter := NewPublisherAdapter(bus)
+	b.Cleanup(func() { _ = adapter.Close(); _ = bus.Close() })
+
+	msg := eventToMessage(benchEvent(b))
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		err := adapter.Publish("Bench", msg)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkBuildMetadata(b *testing.B) {
+	b.ReportAllocs()
+
+	md := message.Metadata{
+		"event_id":       id.NewEventID().String(),
+		"event_type":     "BenchEvent",
+		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_type": "Bench",
+		"version":        "1",
+		"schema_version": "1",
+		"encoding":       "json",
+		"occurred_at":    time.Now().Format(time.RFC3339Nano),
+		"correlation_id": id.NewCorrelationID().String(),
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := buildMetadata(md)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
