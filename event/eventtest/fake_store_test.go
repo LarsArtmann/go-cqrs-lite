@@ -247,15 +247,12 @@ func TestFakeStore_ReadFrom_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 
-	var lastID id.EventID
-	for range 5 {
-		aggID := id.NewAggregateID()
-		evt := newTestEvent(t, aggID, 1)
-		lastID = evt.ID()
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Test", aggID), []event.Event{evt})
-	}
+	aggID := id.NewAggregateID()
+	evt := newTestEvent(t, aggID, 1)
+	_ = store.AppendBatch(ctx, event.NewAggregateRef("Test", aggID), []event.Event{evt})
 
-	from, err := store.ReadFrom(ctx, lastID, 0)
+	// ReadFrom after the only event should return 0
+	from, err := store.ReadFrom(ctx, evt.ID(), 0)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
