@@ -49,8 +49,8 @@ func findCodecOption(opts []Option) codec.Codec {
 	probe := &ImmutableEvent{}
 	for _, opt := range opts {
 		opt(probe)
-		if probe.newCodec != nil {
-			return probe.newCodec
+		if probe.opts != nil && probe.opts.newCodec != nil {
+			return probe.opts.newCodec
 		}
 	}
 

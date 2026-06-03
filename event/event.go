@@ -113,9 +113,13 @@ type ImmutableEvent struct {
 	payload       []byte
 	metadata      Metadata
 	occurredAt    time.Time
-	clock         Clock
-	newCodec      codec.Codec
-	deadline      time.Time
+	opts          *eventOptions
+}
+
+type eventOptions struct {
+	clock    Clock
+	newCodec codec.Codec
+	deadline time.Time
 }
 
 var _ Event = (*ImmutableEvent)(nil)
@@ -167,7 +171,11 @@ func (e *ImmutableEvent) OccurredAt() time.Time { return e.occurredAt }
 
 // Deadline returns the event's deadline (if any).
 func (e *ImmutableEvent) Deadline() (time.Time, bool) {
-	return e.deadline, !e.deadline.IsZero()
+	if e.opts == nil {
+		return time.Time{}, false
+	}
+
+	return e.opts.deadline, !e.opts.deadline.IsZero()
 }
 
 // String returns a human-readable representation of the event for logging and debugging.

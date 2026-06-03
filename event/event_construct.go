@@ -1,8 +1,6 @@
 package event
 
 import (
-	"time"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -26,8 +24,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 		payload:       payloadCopy,
 		metadata:      e.Metadata(),
 		occurredAt:    e.occurredAt,
-		clock:         e.clock,
-		deadline:      e.deadline,
+		opts:          e.opts,
 	}
 }
 
@@ -71,8 +68,6 @@ func buildEvent(
 ) *ImmutableEvent {
 	schemaV, _ := ParseSchemaVersion(1)
 
-	clk := defaultClock
-
 	evt := &ImmutableEvent{
 		id:            id.NewEventID(),
 		eventType:     eventType,
@@ -82,8 +77,6 @@ func buildEvent(
 		schemaVersion: schemaV,
 		payload:       payload,
 		metadata:      NewMetadata(),
-		occurredAt:    time.Time{},
-		clock:         clk,
 	}
 
 	for _, opt := range opts {
@@ -91,7 +84,11 @@ func buildEvent(
 	}
 
 	if evt.occurredAt.IsZero() {
-		evt.occurredAt = evt.clock()
+		clk := defaultClock
+		if evt.opts != nil && evt.opts.clock != nil {
+			clk = evt.opts.clock
+		}
+		evt.occurredAt = clk()
 	}
 
 	return evt

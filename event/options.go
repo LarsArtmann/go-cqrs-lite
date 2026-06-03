@@ -12,7 +12,12 @@ import (
 type Option func(*ImmutableEvent)
 
 func WithNewCodec(c codec.Codec) Option {
-	return func(e *ImmutableEvent) { e.newCodec = c }
+	return func(e *ImmutableEvent) {
+		if e.opts == nil {
+			e.opts = &eventOptions{}
+		}
+		e.opts.newCodec = c
+	}
 }
 
 // metadataOption sets a single field on Metadata.
@@ -113,7 +118,12 @@ func WithEncoding(v codec.Encoding) Option {
 // WithClock sets the clock function used to determine OccurredAt.
 // Override for deterministic testing. Without this option, events use time.Now.
 func WithClock(clock Clock) Option {
-	return func(e *ImmutableEvent) { e.clock = clock }
+	return func(e *ImmutableEvent) {
+		if e.opts == nil {
+			e.opts = &eventOptions{}
+		}
+		e.opts.clock = clock
+	}
 }
 
 // WithClientID sets the client device ID in event metadata.
@@ -131,7 +141,12 @@ func WithClientOccurredAt(t time.Time) Option {
 // WithDeadline sets the event's deadline for cancellation propagation.
 // Handlers can use Event.Deadline() to retrieve it.
 func WithDeadline(t time.Time) Option {
-	return func(e *ImmutableEvent) { e.deadline = t }
+	return func(e *ImmutableEvent) {
+		if e.opts == nil {
+			e.opts = &eventOptions{}
+		}
+		e.opts.deadline = t
+	}
 }
 
 // FromContext extracts the deadline from the given context and sets it on the event.
