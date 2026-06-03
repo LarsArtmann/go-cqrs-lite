@@ -44,7 +44,8 @@ func BenchmarkNew_WithMetadata(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := command.New("bench.cmd", aggID,
+		_, err := command.New(
+			"bench.cmd", aggID,
 			command.WithCorrelationID(corrID),
 		)
 		if err != nil {
@@ -76,7 +77,8 @@ func BenchmarkDispatcher_RegisterTyped(b *testing.B) {
 
 	for b.Loop() {
 		d := command.NewDispatcher()
-		err := command.RegisterTyped(d, "bench.cmd",
+		err := command.RegisterTyped(
+			d, "bench.cmd",
 			func(_ context.Context, _ *benchCmd) error { return nil },
 		)
 		if err != nil {

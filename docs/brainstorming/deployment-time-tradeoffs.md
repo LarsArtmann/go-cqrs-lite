@@ -34,13 +34,13 @@ Not 5 binaries. Not a tuning matrix. Opinionated software that makes reasonable 
 
 ## Projects That DO Ship Multiple Builds
 
-| Project | Strategy | Tradeoffs |
-|---|---|---|
-| Go | `GOAMD64=v1,v2,v3,v4` | CPU instruction sets |
-| TensorFlow | CPU-only vs GPU builds | Compute backend |
-| SQLite | 100+ compile-time flags | Threading, memory model, extensions |
-| Alpine Linux | musl vs glibc images | Binary size vs compatibility |
-| Nix | Rebuild everything with different flags | Every dependency swappable |
+| Project      | Strategy                                | Tradeoffs                           |
+| ------------ | --------------------------------------- | ----------------------------------- |
+| Go           | `GOAMD64=v1,v2,v3,v4`                   | CPU instruction sets                |
+| TensorFlow   | CPU-only vs GPU builds                  | Compute backend                     |
+| SQLite       | 100+ compile-time flags                 | Threading, memory model, extensions |
+| Alpine Linux | musl vs glibc images                    | Binary size vs compatibility        |
+| Nix          | Rebuild everything with different flags | Every dependency swappable          |
 
 ## The Spectrum
 
@@ -54,12 +54,12 @@ Separate binary ◄── 1% (fundamentally different environments)
 
 Go's `GOAMD64` controls which CPU instructions the compiler is allowed to emit for AMD64 (x86-64) binaries.
 
-| Level | Baseline | What you gain | Who can't run it |
-|---|---|---|---|
-| `v1` | Original x86-64 (2003) | Maximum compatibility | Nobody (all x86-64 CPUs) |
-| `v2` | CMPXCHG16B, LAHF/SAHF, SSE4 | Better atomics, SIMD | Very old pre-2006 CPUs |
-| `v3` | AVX, AVX2, BMI1/2, FMA | 256-bit SIMD, faster math | Anything before ~2013 |
-| `v4` | AVX512 | 512-bit SIMD | Anything before ~2017, some AMD chips |
+| Level | Baseline                    | What you gain             | Who can't run it                      |
+| ----- | --------------------------- | ------------------------- | ------------------------------------- |
+| `v1`  | Original x86-64 (2003)      | Maximum compatibility     | Nobody (all x86-64 CPUs)              |
+| `v2`  | CMPXCHG16B, LAHF/SAHF, SSE4 | Better atomics, SIMD      | Very old pre-2006 CPUs                |
+| `v3`  | AVX, AVX2, BMI1/2, FMA      | 256-bit SIMD, faster math | Anything before ~2013                 |
+| `v4`  | AVX512                      | 512-bit SIMD              | Anything before ~2017, some AMD chips |
 
 ```bash
 GOAMD64=v1 go build -o app-v1 .   # runs everywhere
@@ -78,7 +78,7 @@ This exists as a build flag because CPU instructions are baked into machine code
 
 You already make decisions for your users. You chose Go. You chose a GC. You chose your memory model. You chose your dependencies. Every library you imported baked in tradeoffs your user never got to vote on.
 
-You don't ship "one binary" — you ship **one set of tradeoffs**. That's what software *is*.
+You don't ship "one binary" — you ship **one set of tradeoffs**. That's what software _is_.
 
 ### Different algos for different environments
 

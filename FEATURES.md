@@ -555,18 +555,18 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 Found during 2026-06-01 full code review. See `docs/planning/2026-06-01_CODE-QUALITY-FULL-REVIEW.md` for details.
 
-| Issue | Severity | Module |
-| ----------------------------------------------------- | --------- | --------------------- |
-| Middleware 3x duplication (~500 lines) | HIGH | middleware |
-| Three separate ErrHandlerNotFound sentinels | HIGH | dispatcher/command/query |
-| VersionedStore exposes embedded Store (bypass upcasting) | HIGH | schema |
-| command.Metadata duplicates event.Metadata (split brain) | HIGH | command |
-| command re-exports event types (module boundary violation) | HIGH | command |
-| decider/load.go uses unclassified fmt.Errorf errors | MEDIUM | decider |
-| storage/pebble error sentinels duplicated | MEDIUM | storage, pebble |
-| catalog/ToAny silently swallows marshal errors | MEDIUM | catalog |
-| watermill silently drops malformed ID parse errors | MEDIUM | watermill |
-| Reactive extensions not wired into dispatchers | LOW | event/command/query |
+| Issue                                                      | Severity | Module                   |
+| ---------------------------------------------------------- | -------- | ------------------------ |
+| Middleware 3x duplication (~500 lines)                     | HIGH     | middleware               |
+| Three separate ErrHandlerNotFound sentinels                | HIGH     | dispatcher/command/query |
+| VersionedStore exposes embedded Store (bypass upcasting)   | HIGH     | schema                   |
+| command.Metadata duplicates event.Metadata (split brain)   | HIGH     | command                  |
+| command re-exports event types (module boundary violation) | HIGH     | command                  |
+| decider/load.go uses unclassified fmt.Errorf errors        | MEDIUM   | decider                  |
+| storage/pebble error sentinels duplicated                  | MEDIUM   | storage, pebble          |
+| catalog/ToAny silently swallows marshal errors             | MEDIUM   | catalog                  |
+| watermill silently drops malformed ID parse errors         | MEDIUM   | watermill                |
+| Reactive extensions not wired into dispatchers             | LOW      | event/command/query      |
 
 ---
 
@@ -632,22 +632,22 @@ Features mentioned in project docs/planning but with **no production code**:
 
 > Session 142 (2026-06-02) — AMD RYZEN AI MAX+ 395, 96GB RAM, Go 1.26.3
 
-| Module | Benchmark | ns/op | B/op | allocs/op |
-|--------|-----------|------:|-----:|----------:|
-| event | NewEvent | 201 | 384 | 3 |
-| event | DecodePayload | 419 | 560 | 10 |
-| id | New | 100 | 16 | 1 |
-| id | Parse | 17 | 0 | 0 |
-| command | New | 50 | 208 | 2 |
-| query | New | 0.6 | 0 | 0 |
-| dispatcher | Dispatch | 24 | 0 | 0 |
-| memory | Store Save | 583 | 736 | 9 |
-| memory | Bus Publish | 66 | 48 | 3 |
-| signing | HMAC Sign | 662 | 864 | 12 |
-| signing | HMAC Verify | 666 | 864 | 12 |
-| signing | Ed25519 Sign | 13,486 | 416 | 7 |
-| signing | Ed25519 Verify | 30,369 | 352 | 6 |
-| storage/SQLite | Save | 41,042 | 4,080 | 92 |
-| storage/SQLite | Load | 48,505 | 20,233 | 554 |
+| Module         | Benchmark      |  ns/op |   B/op | allocs/op |
+| -------------- | -------------- | -----: | -----: | --------: |
+| event          | NewEvent       |    201 |    384 |         3 |
+| event          | DecodePayload  |    419 |    560 |        10 |
+| id             | New            |    100 |     16 |         1 |
+| id             | Parse          |     17 |      0 |         0 |
+| command        | New            |     50 |    208 |         2 |
+| query          | New            |    0.6 |      0 |         0 |
+| dispatcher     | Dispatch       |     24 |      0 |         0 |
+| memory         | Store Save     |    583 |    736 |         9 |
+| memory         | Bus Publish    |     66 |     48 |         3 |
+| signing        | HMAC Sign      |    662 |    864 |        12 |
+| signing        | HMAC Verify    |    666 |    864 |        12 |
+| signing        | Ed25519 Sign   | 13,486 |    416 |         7 |
+| signing        | Ed25519 Verify | 30,369 |    352 |         6 |
+| storage/SQLite | Save           | 41,042 |  4,080 |        92 |
+| storage/SQLite | Load           | 48,505 | 20,233 |       554 |
 
 Full results: `benchmarks/2026-06-02_20-18-40.md` · Regression pipeline: `scripts/benchstat-compare.sh`

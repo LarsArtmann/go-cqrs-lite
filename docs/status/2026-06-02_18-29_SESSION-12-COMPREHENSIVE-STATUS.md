@@ -19,8 +19,8 @@
 
 ### Commits This Session (Session 12)
 
-| Commit | Description |
-|--------|-------------|
+| Commit     | Description                                                                         |
+| ---------- | ----------------------------------------------------------------------------------- |
 | `5e3e3027` | fix: 7 code quality improvements — otel /v2 paths, error taxonomy, dedup, dead code |
 
 ### Changes in `5e3e3027`
@@ -35,75 +35,75 @@
 
 ### All Session Commits Since v2.0.0 (Sessions 1-12)
 
-| # | Commit | Description |
-|---|--------|-------------|
-| 1 | `8ca95873` | Fix 4 production bugs — HealthCheck OOM, SQLAggregateReader Postgres, SubscriberAdapter race, Pebble Close |
-| 2 | `6e42a42c` | Fix ReadFrom cursor-based pagination + subscribeLive handler guard |
-| 3 | `f7e40bb4` | Fix(projection): add ErrAlreadyRunning guard + 5 concurrency tests |
-| 4 | `834c0122` | Fix(storage): closed state tracking, snapshot SQL filter, createTable ctx |
-| 5 | `d0536fcb` | Refactor: migrate fmt.Errorf to event.Wrap* taxonomy in schema + listing |
-| 6 | `2e050ef4` | Refactor: migrate fmt.Errorf to event.Wrap* in storage, watermill, command, query |
-| 7 | `62041411` | Fix: 6 quality bugs — Version.Sub panic, codec raw, GetID rename, ToAny errors, HasSignature, errgroup |
-| 8 | `57ed8dfc` | Refactor: remove dead code + modernize Go idioms |
-| 9 | `ee3f4e9d` | Refactor(schema): deduplicate 4 load methods → loadAndUpcast helper |
-| 10 | `fa6cded1` | Test(turso): add CRUD integration tests for event/snapshot/checkpoint stores |
-| 11 | `ddad059f` | Docs: close 3 accepted design decisions in TODO_LIST.md |
-| 12 | `5e3e3027` | Fix: 7 code quality improvements — otel /v2 paths, error taxonomy, dedup, dead code |
-| — | `bc246664` | Refactor(test): replace testify with gomega in 5 test files (pre-audit) |
-| — | `9cbf4598` | Fix(schema): hide VersionedStore inner event.Store (pre-audit) |
-| — | `cfb3a94b` | Docs(status): V2.0.0 session 7 comprehensive status report (pre-audit) |
+| #   | Commit     | Description                                                                                                |
+| --- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | `8ca95873` | Fix 4 production bugs — HealthCheck OOM, SQLAggregateReader Postgres, SubscriberAdapter race, Pebble Close |
+| 2   | `6e42a42c` | Fix ReadFrom cursor-based pagination + subscribeLive handler guard                                         |
+| 3   | `f7e40bb4` | Fix(projection): add ErrAlreadyRunning guard + 5 concurrency tests                                         |
+| 4   | `834c0122` | Fix(storage): closed state tracking, snapshot SQL filter, createTable ctx                                  |
+| 5   | `d0536fcb` | Refactor: migrate fmt.Errorf to event.Wrap\* taxonomy in schema + listing                                  |
+| 6   | `2e050ef4` | Refactor: migrate fmt.Errorf to event.Wrap\* in storage, watermill, command, query                         |
+| 7   | `62041411` | Fix: 6 quality bugs — Version.Sub panic, codec raw, GetID rename, ToAny errors, HasSignature, errgroup     |
+| 8   | `57ed8dfc` | Refactor: remove dead code + modernize Go idioms                                                           |
+| 9   | `ee3f4e9d` | Refactor(schema): deduplicate 4 load methods → loadAndUpcast helper                                        |
+| 10  | `fa6cded1` | Test(turso): add CRUD integration tests for event/snapshot/checkpoint stores                               |
+| 11  | `ddad059f` | Docs: close 3 accepted design decisions in TODO_LIST.md                                                    |
+| 12  | `5e3e3027` | Fix: 7 code quality improvements — otel /v2 paths, error taxonomy, dedup, dead code                        |
+| —   | `bc246664` | Refactor(test): replace testify with gomega in 5 test files (pre-audit)                                    |
+| —   | `9cbf4598` | Fix(schema): hide VersionedStore inner event.Store (pre-audit)                                             |
+| —   | `cfb3a94b` | Docs(status): V2.0.0 session 7 comprehensive status report (pre-audit)                                     |
 
 ### Pareto Execution Plan Completion
 
-| Phase | Focus | Items | Status |
-|-------|-------|-------|--------|
-| P0 | Critical production bugs | 4 | ✅ Done (Session 8) |
-| P1 | ReadFrom, subscribeLive, Runner concurrency | 3 | ✅ Done (Session 8) |
-| P2 | Closed state, snapshot SQL, createTable ctx, error taxonomy | 8 | ✅ Done (Sessions 8-10) |
-| P3 | Quality bugs (6) | 6 | ✅ Done (Session 10) |
-| P3 | Dead code + modernization | 6 | ✅ Done (Session 10) |
-| P3 | Decomposition + dedup | 7 | ✅ Done (Sessions 10-12) |
-| P3 | Architecture (sentinels, VersionedStore, signing) | 3 | ✅ Done/ACCEPTED (Session 12) |
-| P4 | Test coverage (turso, storage errors, projection) | 3 | ⬜ Partial |
-| P5 | otel test fix | 1 | ✅ Done (Session 12) |
+| Phase | Focus                                                       | Items | Status                        |
+| ----- | ----------------------------------------------------------- | ----- | ----------------------------- |
+| P0    | Critical production bugs                                    | 4     | ✅ Done (Session 8)           |
+| P1    | ReadFrom, subscribeLive, Runner concurrency                 | 3     | ✅ Done (Session 8)           |
+| P2    | Closed state, snapshot SQL, createTable ctx, error taxonomy | 8     | ✅ Done (Sessions 8-10)       |
+| P3    | Quality bugs (6)                                            | 6     | ✅ Done (Session 10)          |
+| P3    | Dead code + modernization                                   | 6     | ✅ Done (Session 10)          |
+| P3    | Decomposition + dedup                                       | 7     | ✅ Done (Sessions 10-12)      |
+| P3    | Architecture (sentinels, VersionedStore, signing)           | 3     | ✅ Done/ACCEPTED (Session 12) |
+| P4    | Test coverage (turso, storage errors, projection)           | 3     | ⬜ Partial                    |
+| P5    | otel test fix                                               | 1     | ✅ Done (Session 12)          |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Projection coverage 95%+ | 90.9% | Need BDD tests for Version/SchemaVersion/Pagination edge cases |
+| Item                     | Status         | Notes                                                                 |
+| ------------------------ | -------------- | --------------------------------------------------------------------- |
+| Projection coverage 95%+ | 90.9%          | Need BDD tests for Version/SchemaVersion/Pagination edge cases        |
 | Storage error path tests | 71.4% coverage | SQL error paths (connection failures, constraint violations) untested |
-| Turso test coverage | 28.6% | sync.go Push/Pull/Checkpoint/Stats require external Turso server |
+| Turso test coverage      | 28.6%          | sync.go Push/Pull/Checkpoint/Stats require external Turso server      |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | Priority | Est |
-|------|----------|-----|
-| Parallelize CI matrix — one job per module | P3 | 2h |
-| Benchmark storage backends (PG vs SQLite vs Pebble) | P3 | 2h |
-| Rewrite example/user/ full CQRS demo | P3 | 3h |
-| Performance regression CI | P3 | 2h |
-| Add gofumpt/goimports to pre-commit | P3 | 30m |
-| BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | P4 | 1h |
-| Fuzz tests for event creation, ID parsing, schema reflection | P4 | 2h |
-| E2E throughput benchmarks | P4 | 2h |
-| Listing SQL reader tests | P4 | 1h |
-| 350-line test file limit enforcement | P4 | 30m |
+| Item                                                           | Priority | Est |
+| -------------------------------------------------------------- | -------- | --- |
+| Parallelize CI matrix — one job per module                     | P3       | 2h  |
+| Benchmark storage backends (PG vs SQLite vs Pebble)            | P3       | 2h  |
+| Rewrite example/user/ full CQRS demo                           | P3       | 3h  |
+| Performance regression CI                                      | P3       | 2h  |
+| Add gofumpt/goimports to pre-commit                            | P3       | 30m |
+| BDD tests for Version, SchemaVersion, OutboxStatus, Pagination | P4       | 1h  |
+| Fuzz tests for event creation, ID parsing, schema reflection   | P4       | 2h  |
+| E2E throughput benchmarks                                      | P4       | 2h  |
+| Listing SQL reader tests                                       | P4       | 1h  |
+| 350-line test file limit enforcement                           | P4       | 30m |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| Item | Severity | Description |
-|------|----------|-------------|
-| `example/listing` test failure | Low | `go build` collides with directory named `listing` — trivial rename fix |
-| `event/eventtest/fake_store.go` | Low | 273 lines of untested mock code duplicating MemoryStore — should be deleted or redirected |
-| `pebble/config.go:59-69` | Cosmetic | 20 lines of backward-compat aliases with `Deprecated:` comments — intentional, harmless |
-| `query/query.go:54` | Design debt | `TypedHandler[T]` takes `Query` not `T` — Go generic method limitation, documented |
+| Item                            | Severity    | Description                                                                               |
+| ------------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `example/listing` test failure  | Low         | `go build` collides with directory named `listing` — trivial rename fix                   |
+| `event/eventtest/fake_store.go` | Low         | 273 lines of untested mock code duplicating MemoryStore — should be deleted or redirected |
+| `pebble/config.go:59-69`        | Cosmetic    | 20 lines of backward-compat aliases with `Deprecated:` comments — intentional, harmless   |
+| `query/query.go:54`             | Design debt | `TypedHandler[T]` takes `Query` not `T` — Go generic method limitation, documented        |
 
 **Nothing is seriously broken.** All production code compiles and passes tests.
 
@@ -135,53 +135,53 @@
 
 ### Tier 1: Immediate (This Week)
 
-| # | Task | Impact | Est |
-|---|------|--------|-----|
-| 1 | **Push all 18 commits to remote** | Critical — data safety | 5m |
-| 2 | Fix `example/listing` build collision | Low — unblocks example | 15m |
-| 3 | Delete `event/eventtest/fake_store.go` or write tests | Medium — removes dead mock | 1h |
-| 4 | Add listing SQL reader tests | Medium — covers SQL reader | 1h |
-| 5 | Projection BDD tests for Version/SchemaVersion/Pagination | Medium — 90.9% → 95% | 1h |
+| #   | Task                                                      | Impact                     | Est |
+| --- | --------------------------------------------------------- | -------------------------- | --- |
+| 1   | **Push all 18 commits to remote**                         | Critical — data safety     | 5m  |
+| 2   | Fix `example/listing` build collision                     | Low — unblocks example     | 15m |
+| 3   | Delete `event/eventtest/fake_store.go` or write tests     | Medium — removes dead mock | 1h  |
+| 4   | Add listing SQL reader tests                              | Medium — covers SQL reader | 1h  |
+| 5   | Projection BDD tests for Version/SchemaVersion/Pagination | Medium — 90.9% → 95%       | 1h  |
 
 ### Tier 2: This Sprint
 
-| # | Task | Impact | Est |
-|---|------|--------|-----|
-| 6 | Storage error path tests (go-sqlmock) | High — 71.4% → 85% | 2h |
-| 7 | BDD tests for OutboxStatus, Pagination types | Medium — type safety | 1h |
-| 8 | Add gofumpt/goimports to pre-commit | Medium — code quality | 30m |
-| 9 | Parallelize CI matrix (one job per module) | High — faster CI | 2h |
-| 10 | Fuzz tests for event creation + ID parsing | Medium — robustness | 2h |
+| #   | Task                                         | Impact                | Est |
+| --- | -------------------------------------------- | --------------------- | --- |
+| 6   | Storage error path tests (go-sqlmock)        | High — 71.4% → 85%    | 2h  |
+| 7   | BDD tests for OutboxStatus, Pagination types | Medium — type safety  | 1h  |
+| 8   | Add gofumpt/goimports to pre-commit          | Medium — code quality | 30m |
+| 9   | Parallelize CI matrix (one job per module)   | High — faster CI      | 2h  |
+| 10  | Fuzz tests for event creation + ID parsing   | Medium — robustness   | 2h  |
 
 ### Tier 3: Soon
 
-| # | Task | Impact | Est |
-|---|------|--------|-----|
-| 11 | Benchmark storage backends (PG vs SQLite vs Pebble) | High — perf data | 2h |
-| 12 | Performance regression CI (benchmark comparison per PR) | High — prevents degradation | 2h |
-| 13 | Rewrite example/user/ to demonstrate full CQRS stack | Medium — documentation | 3h |
-| 14 | E2E throughput benchmarks | Medium — perf baselines | 2h |
-| 15 | 350-line test file limit enforcement | Low — code quality | 30m |
+| #   | Task                                                    | Impact                      | Est |
+| --- | ------------------------------------------------------- | --------------------------- | --- |
+| 11  | Benchmark storage backends (PG vs SQLite vs Pebble)     | High — perf data            | 2h  |
+| 12  | Performance regression CI (benchmark comparison per PR) | High — prevents degradation | 2h  |
+| 13  | Rewrite example/user/ to demonstrate full CQRS stack    | Medium — documentation      | 3h  |
+| 14  | E2E throughput benchmarks                               | Medium — perf baselines     | 2h  |
+| 15  | 350-line test file limit enforcement                    | Low — code quality          | 30m |
 
 ### Tier 4: Nice to Have
 
-| # | Task | Impact | Est |
-|---|------|--------|-----|
-| 16 | Turso sync.go coverage (requires external server) | Low — 28.6% → 60% | 2h |
-| 17 | Fix query TypedHandler generic limitation | Low — Go language limit | — |
-| 18 | Remove pebble backward-compat aliases | Cosmetic | 15m |
-| 19 | Create documentation site (Docusaurus/MkDocs) | Medium — discoverability | 4h |
-| 20 | Set up pkg.go.dev hosting | Medium — API docs | 1h |
+| #   | Task                                              | Impact                   | Est |
+| --- | ------------------------------------------------- | ------------------------ | --- |
+| 16  | Turso sync.go coverage (requires external server) | Low — 28.6% → 60%        | 2h  |
+| 17  | Fix query TypedHandler generic limitation         | Low — Go language limit  | —   |
+| 18  | Remove pebble backward-compat aliases             | Cosmetic                 | 15m |
+| 19  | Create documentation site (Docusaurus/MkDocs)     | Medium — discoverability | 4h  |
+| 20  | Set up pkg.go.dev hosting                         | Medium — API docs        | 1h  |
 
 ### Tier 5: Future / Blocked
 
-| # | Task | Impact | Est |
-|---|------|--------|-----|
-| 21 | PostgreSQL integration tests with testcontainers | High — real DB testing | 3h |
-| 22 | Change LICENSE from proprietary to MIT/Apache-2.0 | Medium — blocked on owner | — |
-| 23 | Bi-temporal support (ValidAt, WithValidAt, LoadToValidTime) | Future — feature | 4h |
-| 24 | Distributed consensus (Raft/CRDT overlay) | Future — feature | — |
-| 25 | Time-series event query language | Future — feature | — |
+| #   | Task                                                        | Impact                    | Est |
+| --- | ----------------------------------------------------------- | ------------------------- | --- |
+| 21  | PostgreSQL integration tests with testcontainers            | High — real DB testing    | 3h  |
+| 22  | Change LICENSE from proprietary to MIT/Apache-2.0           | Medium — blocked on owner | —   |
+| 23  | Bi-temporal support (ValidAt, WithValidAt, LoadToValidTime) | Future — feature          | 4h  |
+| 24  | Distributed consensus (Raft/CRDT overlay)                   | Future — feature          | —   |
+| 25  | Time-series event query language                            | Future — feature          | —   |
 
 ---
 
@@ -257,21 +257,21 @@ ok  cmd/cqrs-gen/v2      0.002s
 
 ## Codebase Metrics
 
-| Metric | Value |
-|--------|-------|
-| Go modules (go.work) | 30 |
-| Production Go files | 482 |
-| Test Go files | 223 |
-| Production lines | 23,470 |
-| Test lines | 39,811 |
-| Test/Production ratio | 1.70x |
-| Test packages passing | 42/42 (library) |
-| Test packages total | 47/48 (incl. examples/cmds) |
-| TODO items done | 306 |
-| TODO items remaining | 14 |
-| TODO items blocked | 12 |
-| TODO items future | 22 |
-| TODO items v2-deferred | 5 |
+| Metric                 | Value                       |
+| ---------------------- | --------------------------- |
+| Go modules (go.work)   | 30                          |
+| Production Go files    | 482                         |
+| Test Go files          | 223                         |
+| Production lines       | 23,470                      |
+| Test lines             | 39,811                      |
+| Test/Production ratio  | 1.70x                       |
+| Test packages passing  | 42/42 (library)             |
+| Test packages total    | 47/48 (incl. examples/cmds) |
+| TODO items done        | 306                         |
+| TODO items remaining   | 14                          |
+| TODO items blocked     | 12                          |
+| TODO items future      | 22                          |
+| TODO items v2-deferred | 5                           |
 
 ---
 

@@ -14,31 +14,31 @@ Collapsed 27 duplicated middleware implementations into 9 generic concern functi
 
 ## a) FULLY DONE
 
-| Item | Status | Details |
-|------|--------|---------|
-| Generic `Handler[M]` / `Middleware[M]` types | ✅ | `generic.go` — core abstraction |
-| `MessageAdapter[M]` with pre-built adapters | ✅ | `CommandAdapter`, `EventAdapter`, `QueryAdapter` |
-| `AsCommand` / `AsEvent` / `AsQuery` adapters | ✅ | Type-safe conversion from generic → domain middleware |
-| `NewRecovery[M]` | ✅ | Replaces 3 functions |
-| `NewLogging[M]` | ✅ | Replaces 3 functions |
-| `NewRetry[M]` | ✅ | Replaces 3 functions |
-| `NewValidation[M]` | ✅ | Replaces 3 functions |
-| `NewMetrics[M]` | ✅ | Replaces 3 functions |
-| `NewOTelMetrics[M]` | ✅ | Replaces 3 functions |
-| `NewTracing[M]` | ✅ | Replaces 3 functions |
-| `NewTraceLogging[M]` | ✅ | Replaces 3 functions |
-| `NewCircuitBreaker[M]` | ✅ | Replaces 3 functions |
-| Deleted `common.go` | ✅ | Unused `*ErrMiddleware` functions removed |
-| Backward compatibility | ✅ | All 27 typed wrappers preserved as thin delegates |
-| Query result propagation tests | ✅ | 6 tests covering all middleware variants + stacked chains |
-| Lint: 0 issues | ✅ | `gochecknoglobals`, `exhaustruct`, `goconst`, `varnamelen` all resolved |
-| Example builds | ✅ | `example/user/` compiles and works |
-| Integration tests pass | ✅ | All 5 integration suites green |
+| Item                                         | Status | Details                                                                 |
+| -------------------------------------------- | ------ | ----------------------------------------------------------------------- |
+| Generic `Handler[M]` / `Middleware[M]` types | ✅     | `generic.go` — core abstraction                                         |
+| `MessageAdapter[M]` with pre-built adapters  | ✅     | `CommandAdapter`, `EventAdapter`, `QueryAdapter`                        |
+| `AsCommand` / `AsEvent` / `AsQuery` adapters | ✅     | Type-safe conversion from generic → domain middleware                   |
+| `NewRecovery[M]`                             | ✅     | Replaces 3 functions                                                    |
+| `NewLogging[M]`                              | ✅     | Replaces 3 functions                                                    |
+| `NewRetry[M]`                                | ✅     | Replaces 3 functions                                                    |
+| `NewValidation[M]`                           | ✅     | Replaces 3 functions                                                    |
+| `NewMetrics[M]`                              | ✅     | Replaces 3 functions                                                    |
+| `NewOTelMetrics[M]`                          | ✅     | Replaces 3 functions                                                    |
+| `NewTracing[M]`                              | ✅     | Replaces 3 functions                                                    |
+| `NewTraceLogging[M]`                         | ✅     | Replaces 3 functions                                                    |
+| `NewCircuitBreaker[M]`                       | ✅     | Replaces 3 functions                                                    |
+| Deleted `common.go`                          | ✅     | Unused `*ErrMiddleware` functions removed                               |
+| Backward compatibility                       | ✅     | All 27 typed wrappers preserved as thin delegates                       |
+| Query result propagation tests               | ✅     | 6 tests covering all middleware variants + stacked chains               |
+| Lint: 0 issues                               | ✅     | `gochecknoglobals`, `exhaustruct`, `goconst`, `varnamelen` all resolved |
+| Example builds                               | ✅     | `example/user/` compiles and works                                      |
+| Integration tests pass                       | ✅     | All 5 integration suites green                                          |
 
 ## b) PARTIALLY DONE
 
-| Item | Status | What remains |
-|------|--------|-------------|
+| Item                         | Status  | What remains                                                                                                                                                                                     |
+| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Validator type consolidation | Partial | `CommandValidator`, `EventValidator`, `QueryValidator` are 3 identical `func(X) error` types. Could be `func(M) error` with the generic pattern, but the public API uses them as separate types. |
 
 ## c) NOT STARTED
@@ -47,8 +47,8 @@ See section e) — Top 25 improvements below.
 
 ## d) TOTALLY FUCKED UP
 
-| Item | What happened | Resolution |
-|------|--------------|------------|
+| Item                           | What happened                                                                                                                                                                                                                                | Resolution                                                                                                          |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | AsQuery evaluation order scare | Agent analysis claimed `return result, h(ctx, q)` had a bug where `result` was read before `h` set it. Empirically tested: **Go evaluates function calls in return expressions before assigning results**, so the original code was correct. | Refactored to explicit `err := wrapped(ctx, q); return result, err` anyway for clarity. Not a bug, but improvement. |
 
 ---
@@ -83,33 +83,33 @@ See section e) — Top 25 improvements below.
 
 Sorted by **impact × effort** (1 = highest priority):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Add `Message` interface to `command`/`event`/`query` with `Type() string` — enables compile-time middleware safety | HIGH | MED | Architecture |
-| 2 | Write status report to `AGENTS.md` about generic middleware pattern for future sessions | HIGH | LOW | Docs |
-| 3 | Add event + query benchmark tests | MED | LOW | Testing |
-| 4 | Verify existing query tests check result values, not just errors | MED | LOW | Testing |
-| 5 | Remove `CommandValidator`/`EventValidator`/`QueryValidator` — use generic `func(M) error` in public API | MED | LOW | Cleanup |
-| 6 | Update package doc comment in `middleware.go` to describe generic pattern | MED | LOW | Docs |
-| 7 | Consider `middleware` example in `example/` showing both old API and new generic API | MED | MED | Docs |
-| 8 | Investigate `AsQuery` per-call allocation — can we restructure to apply once? | MED | MED | Perf |
-| 9 | Remove explicit type args where LSP suggests (infertypeargs) | LOW | LOW | Cleanup |
-| 10 | Consider shared `Type` type across command/event/query (DRY the `type Type string` definitions) | HIGH | HIGH | Architecture |
-| 11 | Add `NewPublishTracing` generic for event publish middleware (currently special-cased) | LOW | LOW | Feature |
-| 12 | Add `NewPublishMetrics` / `NewPublishLogging` for event publish path | LOW | MED | Feature |
-| 13 | Rate limiter middleware (generic) | MED | MED | Feature |
-| 14 | Timeout middleware (generic) — `context.WithTimeout` per handler | MED | LOW | Feature |
-| 15 | Deduplication middleware (idempotency key check) | MED | HIGH | Feature |
-| 16 | Bulkhead middleware (concurrency limiter per type) | MED | MED | Feature |
-| 17 | Health check middleware | LOW | LOW | Feature |
-| 18 | Propagate context through `logWithContext` — currently uses `logger.Info` not `logger.InfoContext` | MED | LOW | Bug |
-| 19 | Consider structured logging fields standardization (consistent key names across all middleware) | LOW | MED | Consistency |
-| 20 | Add `middleware.Handler[M]` to `AGENTS.md` Key Patterns section | MED | LOW | Docs |
-| 21 | Consider `Middleware[M]` composition helper — `Chain[M](...Middleware[M]) Middleware[M]` | MED | LOW | Feature |
-| 22 | Explore if Go 1.26+ type inference improvements make `AsCommand`/`AsEvent` unnecessary | LOW | LOW | Research |
-| 23 | API stability test for middleware — verify exported symbols haven't changed | MED | LOW | CI |
-| 24 | Consider moving `OTelMetricsRecorder` to `otel/` module (separation of concerns) | LOW | MED | Architecture |
-| 25 | Add circuit breaker state change hooks/callbacks for observability | LOW | MED | Feature |
+| #   | Task                                                                                                               | Impact | Effort | Category     |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------ |
+| 1   | Add `Message` interface to `command`/`event`/`query` with `Type() string` — enables compile-time middleware safety | HIGH   | MED    | Architecture |
+| 2   | Write status report to `AGENTS.md` about generic middleware pattern for future sessions                            | HIGH   | LOW    | Docs         |
+| 3   | Add event + query benchmark tests                                                                                  | MED    | LOW    | Testing      |
+| 4   | Verify existing query tests check result values, not just errors                                                   | MED    | LOW    | Testing      |
+| 5   | Remove `CommandValidator`/`EventValidator`/`QueryValidator` — use generic `func(M) error` in public API            | MED    | LOW    | Cleanup      |
+| 6   | Update package doc comment in `middleware.go` to describe generic pattern                                          | MED    | LOW    | Docs         |
+| 7   | Consider `middleware` example in `example/` showing both old API and new generic API                               | MED    | MED    | Docs         |
+| 8   | Investigate `AsQuery` per-call allocation — can we restructure to apply once?                                      | MED    | MED    | Perf         |
+| 9   | Remove explicit type args where LSP suggests (infertypeargs)                                                       | LOW    | LOW    | Cleanup      |
+| 10  | Consider shared `Type` type across command/event/query (DRY the `type Type string` definitions)                    | HIGH   | HIGH   | Architecture |
+| 11  | Add `NewPublishTracing` generic for event publish middleware (currently special-cased)                             | LOW    | LOW    | Feature      |
+| 12  | Add `NewPublishMetrics` / `NewPublishLogging` for event publish path                                               | LOW    | MED    | Feature      |
+| 13  | Rate limiter middleware (generic)                                                                                  | MED    | MED    | Feature      |
+| 14  | Timeout middleware (generic) — `context.WithTimeout` per handler                                                   | MED    | LOW    | Feature      |
+| 15  | Deduplication middleware (idempotency key check)                                                                   | MED    | HIGH   | Feature      |
+| 16  | Bulkhead middleware (concurrency limiter per type)                                                                 | MED    | MED    | Feature      |
+| 17  | Health check middleware                                                                                            | LOW    | LOW    | Feature      |
+| 18  | Propagate context through `logWithContext` — currently uses `logger.Info` not `logger.InfoContext`                 | MED    | LOW    | Bug          |
+| 19  | Consider structured logging fields standardization (consistent key names across all middleware)                    | LOW    | MED    | Consistency  |
+| 20  | Add `middleware.Handler[M]` to `AGENTS.md` Key Patterns section                                                    | MED    | LOW    | Docs         |
+| 21  | Consider `Middleware[M]` composition helper — `Chain[M](...Middleware[M]) Middleware[M]`                           | MED    | LOW    | Feature      |
+| 22  | Explore if Go 1.26+ type inference improvements make `AsCommand`/`AsEvent` unnecessary                             | LOW    | LOW    | Research     |
+| 23  | API stability test for middleware — verify exported symbols haven't changed                                        | MED    | LOW    | CI           |
+| 24  | Consider moving `OTelMetricsRecorder` to `otel/` module (separation of concerns)                                   | LOW    | MED    | Architecture |
+| 25  | Add circuit breaker state change hooks/callbacks for observability                                                 | LOW    | MED    | Feature      |
 
 ---
 
@@ -139,12 +139,12 @@ This is a design decision that affects the entire library's type model and needs
 
 ## Stats
 
-| Metric | Value |
-|--------|-------|
-| Files changed | 11 (9 modified, 1 new, 1 deleted) |
-| Net lines | -398 (498 removed, 100 added + 91 generic.go + 133 test + 8 fix) |
-| Generic functions | 9 |
-| Backward-compat wrappers | 27 |
-| Tests | 80+ pass, 0 fail |
-| Lint issues | 0 |
-| Breaking changes | 0 |
+| Metric                   | Value                                                            |
+| ------------------------ | ---------------------------------------------------------------- |
+| Files changed            | 11 (9 modified, 1 new, 1 deleted)                                |
+| Net lines                | -398 (498 removed, 100 added + 91 generic.go + 133 test + 8 fix) |
+| Generic functions        | 9                                                                |
+| Backward-compat wrappers | 27                                                               |
+| Tests                    | 80+ pass, 0 fail                                                 |
+| Lint issues              | 0                                                                |
+| Breaking changes         | 0                                                                |

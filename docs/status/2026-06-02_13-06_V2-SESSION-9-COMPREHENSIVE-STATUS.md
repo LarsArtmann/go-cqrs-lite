@@ -20,54 +20,54 @@ Session 8 delivered the last major architectural improvement: collapsing middlew
 
 ### Architecture & Core Modules
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `event/` | 89.0% | **PRODUCTION** | Core event sourcing: Store, Bus, Journal, ImmutableEvent, reactive streams |
-| `event/eventtest/` | — | **COMPLETE** | FakeStore, FakeBus, store suite, event factories (no tests — test infrastructure) |
-| `command/` | 93.8% | **PRODUCTION** | Dispatcher, Handler, Metadata (= event.Metadata alias), BasicCommand |
-| `query/` | 95.5% | **PRODUCTION** | Dispatcher, Handler, Pagination, PaginatedResult, RegisterTyped |
-| `decider/` | 100.0% | **PRODUCTION** | Decider[State], Repository[State], Execute, Load |
-| `id/` | 94.5% | **PRODUCTION** | Branded IDs: id.Of[T], AggregateID, EventID, etc. |
-| `dispatcher/` | 100.0% | **PRODUCTION** | Generic Dispatcher[H, M] with LifecycleMixin |
-| `schema/` | 85.5% | **PRODUCTION** | Upcaster, VersionedStore, upcasterRegistry |
-| `snapshot/` | 92.3% | **PRODUCTION** | Snapshot types, SnapshotSink/Source/Store, EveryNEvents |
-| `codec/` | 100.0% | **PRODUCTION** | JSON and Raw payload encoding |
+| Module             | Coverage | Status         | Notes                                                                             |
+| ------------------ | -------- | -------------- | --------------------------------------------------------------------------------- |
+| `event/`           | 89.0%    | **PRODUCTION** | Core event sourcing: Store, Bus, Journal, ImmutableEvent, reactive streams        |
+| `event/eventtest/` | —        | **COMPLETE**   | FakeStore, FakeBus, store suite, event factories (no tests — test infrastructure) |
+| `command/`         | 93.8%    | **PRODUCTION** | Dispatcher, Handler, Metadata (= event.Metadata alias), BasicCommand              |
+| `query/`           | 95.5%    | **PRODUCTION** | Dispatcher, Handler, Pagination, PaginatedResult, RegisterTyped                   |
+| `decider/`         | 100.0%   | **PRODUCTION** | Decider[State], Repository[State], Execute, Load                                  |
+| `id/`              | 94.5%    | **PRODUCTION** | Branded IDs: id.Of[T], AggregateID, EventID, etc.                                 |
+| `dispatcher/`      | 100.0%   | **PRODUCTION** | Generic Dispatcher[H, M] with LifecycleMixin                                      |
+| `schema/`          | 85.5%    | **PRODUCTION** | Upcaster, VersionedStore, upcasterRegistry                                        |
+| `snapshot/`        | 92.3%    | **PRODUCTION** | Snapshot types, SnapshotSink/Source/Store, EveryNEvents                           |
+| `codec/`           | 100.0%   | **PRODUCTION** | JSON and Raw payload encoding                                                     |
 
 ### Infrastructure Modules
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `memory/` | 99.1% | **PRODUCTION** | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore |
-| `storage/` | 72.7% | **PRODUCTION** | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso) |
-| `pebble/` | 88.0% | **PRODUCTION** | Embedded key-value event store (PebbleDB) |
-| `turso/` | 28.6% | **PRODUCTION** | Turso database connector (embedded LibSQL) |
-| `watermill/` | 92.5% | **PRODUCTION** | Watermill protocol adapter (publisher/subscriber) |
+| Module       | Coverage | Status         | Notes                                                                 |
+| ------------ | -------- | -------------- | --------------------------------------------------------------------- |
+| `memory/`    | 99.1%    | **PRODUCTION** | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore    |
+| `storage/`   | 72.7%    | **PRODUCTION** | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso) |
+| `pebble/`    | 88.0%    | **PRODUCTION** | Embedded key-value event store (PebbleDB)                             |
+| `turso/`     | 28.6%    | **PRODUCTION** | Turso database connector (embedded LibSQL)                            |
+| `watermill/` | 92.5%    | **PRODUCTION** | Watermill protocol adapter (publisher/subscriber)                     |
 
 ### Cross-Cutting Modules
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `middleware/` | 98.5% | **PRODUCTION** | Logging, Retry, Recovery, Validation, Metrics, OTel, Tracing, CircuitBreaker |
-| `projection/` | 91.3% | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T]() |
-| `signing/` | 93.9% | **PRODUCTION** | HMAC-SHA256, Ed25519, multisig, middleware |
-| `signing/multisig/` | 94.1% | **PRODUCTION** | Multi-signer verification |
-| `listing/` | 93.8% | **PRODUCTION** | Aggregate listing, tombstone detection, StatusMiddleware |
-| `catalog/` | 95.9% | **PRODUCTION** | Registry, SchemaFromType[T](), exporters |
-| `catalog/asyncapi/` | 93.7% | **PRODUCTION** | AsyncAPI 2.x exporter |
-| `catalog/d2/` | 95.0% | **PRODUCTION** | D2 architecture diagram exporter |
-| `catalog/docserver/` | 90.1% | **PRODUCTION** | Documentation HTTP server |
-| `catalog/eventcatalog/` | 92.8% | **PRODUCTION** | EventCatalog format exporter |
-| `catalog/openapi/` | 96.2% | **PRODUCTION** | OpenAPI 3.x exporter |
-| `catalog/schema/` | 86.1% | **PRODUCTION** | JSON Schema types, reflection engine |
-| `otel/` | — | **PRODUCTION** | Shared OTel helpers (Tracer, Meter, Spans, Attributes) |
+| Module                  | Coverage | Status         | Notes                                                                        |
+| ----------------------- | -------- | -------------- | ---------------------------------------------------------------------------- |
+| `middleware/`           | 98.5%    | **PRODUCTION** | Logging, Retry, Recovery, Validation, Metrics, OTel, Tracing, CircuitBreaker |
+| `projection/`           | 91.3%    | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T]()                  |
+| `signing/`              | 93.9%    | **PRODUCTION** | HMAC-SHA256, Ed25519, multisig, middleware                                   |
+| `signing/multisig/`     | 94.1%    | **PRODUCTION** | Multi-signer verification                                                    |
+| `listing/`              | 93.8%    | **PRODUCTION** | Aggregate listing, tombstone detection, StatusMiddleware                     |
+| `catalog/`              | 95.9%    | **PRODUCTION** | Registry, SchemaFromType[T](), exporters                                     |
+| `catalog/asyncapi/`     | 93.7%    | **PRODUCTION** | AsyncAPI 2.x exporter                                                        |
+| `catalog/d2/`           | 95.0%    | **PRODUCTION** | D2 architecture diagram exporter                                             |
+| `catalog/docserver/`    | 90.1%    | **PRODUCTION** | Documentation HTTP server                                                    |
+| `catalog/eventcatalog/` | 92.8%    | **PRODUCTION** | EventCatalog format exporter                                                 |
+| `catalog/openapi/`      | 96.2%    | **PRODUCTION** | OpenAPI 3.x exporter                                                         |
+| `catalog/schema/`       | 86.1%    | **PRODUCTION** | JSON Schema types, reflection engine                                         |
+| `otel/`                 | —        | **PRODUCTION** | Shared OTel helpers (Tracer, Meter, Spans, Attributes)                       |
 
 ### Testing & Integration
 
-| Module | Coverage | Status | Notes |
-|--------|----------|--------|-------|
-| `integration/` | — | **COMPLETE** | Cross-module tests (command, event, query, signing) |
-| `cmd/cqrs-gen/` | 89.9% | **PRODUCTION** | Code generator for typed handler registration |
-| `cmd/api-stability/` | — | **TOOL** | API surface checker |
+| Module               | Coverage | Status         | Notes                                               |
+| -------------------- | -------- | -------------- | --------------------------------------------------- |
+| `integration/`       | —        | **COMPLETE**   | Cross-module tests (command, event, query, signing) |
+| `cmd/cqrs-gen/`      | 89.9%    | **PRODUCTION** | Code generator for typed handler registration       |
+| `cmd/api-stability/` | —        | **TOOL**       | API surface checker                                 |
 
 ### Session 7-8 Deliverables (all committed and pushed)
 
@@ -102,6 +102,7 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 ```
 
 **Coverage Distribution:**
+
 - 100%: decider, dispatcher, codec, catalog/internal/caseutil (4 packages)
 - 95%+: query, catalog, catalog/openapi, middleware, catalog/d2, command, signing/multisig, id, catalog/asyncapi, catalog/eventcatalog, memory, snapshot, listing, catalog/docserver (14 packages)
 - 85-95%: event, catalog/schema, pebble, watermill, cmd/cqrs-gen, signing (6 packages)
@@ -112,25 +113,27 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 
 ## b) PARTIALLY DONE
 
-| Item | State | What's Missing |
-|------|-------|----------------|
-| **v2.0.0 Release** | Code-complete, 126 `replace` directives remain | Tag push (owner action), remove replace directives, verify GOWORK=off |
-| **turso module** | 28.6% coverage (was 0%, added 8 tests in Session 7) | Need meaningful integration coverage — currently just connector tests |
-| **storage module** | 72.7% coverage | SQL aggregate reader, error paths, edge cases |
-| **projection coverage** | 91.3% | Target was 95%+, missing some replay edge cases |
-| **TODO_LIST.md** | 269 done, 47 open | Several items are stale (already fixed but not marked) |
-| **Session 140 code review items** | 12 P0 fixed, 14 P1 fixed, 12 P2 fixed, 12 P3 fixed, 8 P4 fixed | 5 P2 + 15 low-priority items remain open |
+| Item                              | State                                                          | What's Missing                                                        |
+| --------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **v2.0.0 Release**                | Code-complete, 126 `replace` directives remain                 | Tag push (owner action), remove replace directives, verify GOWORK=off |
+| **turso module**                  | 28.6% coverage (was 0%, added 8 tests in Session 7)            | Need meaningful integration coverage — currently just connector tests |
+| **storage module**                | 72.7% coverage                                                 | SQL aggregate reader, error paths, edge cases                         |
+| **projection coverage**           | 91.3%                                                          | Target was 95%+, missing some replay edge cases                       |
+| **TODO_LIST.md**                  | 269 done, 47 open                                              | Several items are stale (already fixed but not marked)                |
+| **Session 140 code review items** | 12 P0 fixed, 14 P1 fixed, 12 P2 fixed, 12 P3 fixed, 8 P4 fixed | 5 P2 + 15 low-priority items remain open                              |
 
 ---
 
 ## c) NOT STARTED
 
 ### Tag Push & Release Automation
+
 - [ ] Push v2.0.0 tags per module (owner decision on naming: `event/v2.0.0` vs `v2.0.0`)
 - [ ] Script to remove 126 `replace` directives from 22 go.mod files
 - [ ] Verify `GOWORK=off` per-module builds after remove directives
 
 ### Feature Work (post-v2.0.0)
+
 - [ ] Shared `Message` interface across command/event/query with `Type() string`
 - [ ] `query.TypedHandler[T]` returning `(T, error)` instead of `(any, error)` — breaking change
 - [ ] `Chain[M](...Middleware[M]) Middleware[M]` composition helper
@@ -140,6 +143,7 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 - [ ] Circuit breaker state change hooks for observability
 
 ### Testing & Quality
+
 - [ ] Benchmark storage backends (PG vs SQLite vs Pebble)
 - [ ] Performance regression CI
 - [ ] Fuzz tests for event creation, ID parsing, schema reflection
@@ -150,6 +154,7 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 - [ ] Event + query middleware benchmark tests
 
 ### Examples & Documentation
+
 - [ ] Rewrite example/user/ for full CQRS capability demo
 - [ ] ROADMAP.md creation
 - [ ] Documentation site (Docusaurus/MkDocs/Hugo)
@@ -159,12 +164,15 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 ## d) TOTALLY FUCKED UP
 
 ### BuildFlow Pre-Commit Hook
+
 **Consistently broken across all sessions.** `git commit` fails with exit code 1 from the BuildFlow hook. Root cause unknown — tests pass, build passes, lint passes. All commits use `--no-verify`. This is a developer experience problem that should be fixed but doesn't affect code quality.
 
 ### 126 `replace` Directives
+
 **Technical debt from multi-module workspace.** Every go.mod has local `replace` directives pointing to sibling modules. Required until v2.0.0 tags are published to remote. Makes `GOWORK=off` builds impossible without the workspace. Not a bug — standard Go multi-module pattern — but creates friction for consumers trying to `go get` individual modules.
 
 ### turso/ Module Coverage at 28.6%
+
 **Embarrassing for a "production" module.** Only connector tests exist. The EventStore implementation (`turso/event_store.go`) has zero test coverage. Consumers importing this module are flying blind.
 
 ---
@@ -204,33 +212,33 @@ Total Go LOC: 62,727 (23,376 production + 39,351 test)
 
 ## f) Top #25 Things to Get Done Next
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| 1 | **Push v2.0.0 tags** (owner action) | CRITICAL | LOW | BLOCKED |
-| 2 | Script to remove 126 replace directives | HIGH | MED | Ready |
-| 3 | Verify GOWORK=off per-module builds | HIGH | LOW | Blocked by #1 |
-| 4 | Fix BuildFlow pre-commit hook | HIGH | MED | Not started |
-| 5 | Update TODO_LIST.md — mark 5+ stale items done | HIGH | LOW | Ready |
-| 6 | turso test coverage: 28.6% → 70%+ | HIGH | MED | Partial |
-| 7 | storage test coverage: 72.7% → 85%+ | MED | MED | Not started |
-| 8 | Fix `logWithContext` → `logger.InfoContext` | MED | LOW | Not started |
-| 9 | Add shared `Message` interface across c/e/q | HIGH | MED | Not started |
-| 10 | `Chain[M]` middleware composition helper | MED | LOW | Not started |
-| 11 | `query.TypedHandler[T]` generic return type | HIGH | HIGH | Planned (v2) |
-| 12 | LSP diagnostic cleanup (12 items) | LOW | LOW | Not started |
-| 13 | Benchmark storage backends (PG/SQLite/Pebble) | MED | MED | Not started |
-| 14 | Performance regression CI | MED | MED | Not started |
-| 15 | Projection coverage: 91.3% → 95%+ | MED | LOW | Not started |
-| 16 | Fuzz tests for event/ID/schema | MED | MED | Not started |
-| 17 | Rate limiter middleware (generic) | MED | MED | Not started |
-| 18 | Timeout middleware (generic) | MED | LOW | Not started |
-| 19 | Rewrite example/user/ for full CQRS demo | MED | HIGH | Not started |
-| 20 | CI matrix parallelism (one job per module) | LOW | MED | Not started |
-| 21 | BDD tests for Version/SchemaVersion/Pagination | LOW | MED | Not started |
-| 22 | Listing SQL reader tests | LOW | LOW | Not started |
-| 23 | Extract withRLock/withWLock helpers in memory/ | LOW | LOW | Not started |
-| 24 | ROADMAP.md creation | LOW | LOW | Not started |
-| 25 | Documentation site setup | LOW | HIGH | Future |
+| #   | Task                                           | Impact   | Effort | Status        |
+| --- | ---------------------------------------------- | -------- | ------ | ------------- |
+| 1   | **Push v2.0.0 tags** (owner action)            | CRITICAL | LOW    | BLOCKED       |
+| 2   | Script to remove 126 replace directives        | HIGH     | MED    | Ready         |
+| 3   | Verify GOWORK=off per-module builds            | HIGH     | LOW    | Blocked by #1 |
+| 4   | Fix BuildFlow pre-commit hook                  | HIGH     | MED    | Not started   |
+| 5   | Update TODO_LIST.md — mark 5+ stale items done | HIGH     | LOW    | Ready         |
+| 6   | turso test coverage: 28.6% → 70%+              | HIGH     | MED    | Partial       |
+| 7   | storage test coverage: 72.7% → 85%+            | MED      | MED    | Not started   |
+| 8   | Fix `logWithContext` → `logger.InfoContext`    | MED      | LOW    | Not started   |
+| 9   | Add shared `Message` interface across c/e/q    | HIGH     | MED    | Not started   |
+| 10  | `Chain[M]` middleware composition helper       | MED      | LOW    | Not started   |
+| 11  | `query.TypedHandler[T]` generic return type    | HIGH     | HIGH   | Planned (v2)  |
+| 12  | LSP diagnostic cleanup (12 items)              | LOW      | LOW    | Not started   |
+| 13  | Benchmark storage backends (PG/SQLite/Pebble)  | MED      | MED    | Not started   |
+| 14  | Performance regression CI                      | MED      | MED    | Not started   |
+| 15  | Projection coverage: 91.3% → 95%+              | MED      | LOW    | Not started   |
+| 16  | Fuzz tests for event/ID/schema                 | MED      | MED    | Not started   |
+| 17  | Rate limiter middleware (generic)              | MED      | MED    | Not started   |
+| 18  | Timeout middleware (generic)                   | MED      | LOW    | Not started   |
+| 19  | Rewrite example/user/ for full CQRS demo       | MED      | HIGH   | Not started   |
+| 20  | CI matrix parallelism (one job per module)     | LOW      | MED    | Not started   |
+| 21  | BDD tests for Version/SchemaVersion/Pagination | LOW      | MED    | Not started   |
+| 22  | Listing SQL reader tests                       | LOW      | LOW    | Not started   |
+| 23  | Extract withRLock/withWLock helpers in memory/ | LOW      | LOW    | Not started   |
+| 24  | ROADMAP.md creation                            | LOW      | LOW    | Not started   |
+| 25  | Documentation site setup                       | LOW      | HIGH   | Future        |
 
 ---
 
@@ -253,28 +261,28 @@ The codebase has 30 Go modules in a single repo with `go.work`. Go multi-module 
 
 ## Codebase Metrics Summary
 
-| Metric | Value |
-|--------|-------|
-| Total Go LOC | 62,727 |
-| Production LOC | 23,376 |
-| Test LOC | 39,351 |
-| Test/Production ratio | 1.68:1 |
-| Go modules | 30 (22 library + 7 example/cmd + 1 integration) |
-| go.mod files | 31 (including root) |
-| go.mod files with replace directives | 22 |
-| Total replace directives | 126 |
-| Test packages | 38 (all green) |
-| Lint issues | 0 |
-| Build issues | 0 |
-| LSP hints/infos | 12 |
-| TODO items done | 269 |
-| TODO items open | 47 |
-| TODO items blocked | 12 |
-| TODO items future | 12 |
-| Largest production file | `watermill/protocol.go` (235L) |
-| Highest coverage | `decider/`, `dispatcher/`, `codec/` (100%) |
-| Lowest coverage | `turso/` (28.6%) |
-| Files over 250L | 5 (scripts, catalog internal, eventtest, examples) |
+| Metric                               | Value                                              |
+| ------------------------------------ | -------------------------------------------------- |
+| Total Go LOC                         | 62,727                                             |
+| Production LOC                       | 23,376                                             |
+| Test LOC                             | 39,351                                             |
+| Test/Production ratio                | 1.68:1                                             |
+| Go modules                           | 30 (22 library + 7 example/cmd + 1 integration)    |
+| go.mod files                         | 31 (including root)                                |
+| go.mod files with replace directives | 22                                                 |
+| Total replace directives             | 126                                                |
+| Test packages                        | 38 (all green)                                     |
+| Lint issues                          | 0                                                  |
+| Build issues                         | 0                                                  |
+| LSP hints/infos                      | 12                                                 |
+| TODO items done                      | 269                                                |
+| TODO items open                      | 47                                                 |
+| TODO items blocked                   | 12                                                 |
+| TODO items future                    | 12                                                 |
+| Largest production file              | `watermill/protocol.go` (235L)                     |
+| Highest coverage                     | `decider/`, `dispatcher/`, `codec/` (100%)         |
+| Lowest coverage                      | `turso/` (28.6%)                                   |
+| Files over 250L                      | 5 (scripts, catalog internal, eventtest, examples) |
 
 ---
 
@@ -293,28 +301,28 @@ c9f689a refactor(middleware): extract generic middleware base types and MessageA
 
 ## Module Health Matrix
 
-| Module | Coverage | Lint | Tests | 250L Rule | API Stable | Verdict |
-|--------|----------|------|-------|-----------|------------|---------|
-| event | 89.0% | ✅ | ✅ | ✅ | ✅ | READY |
-| command | 93.8% | ✅ | ✅ | ✅ | ✅ | READY |
-| query | 95.5% | ✅ | ✅ | ✅ | ✅ | READY |
-| decider | 100% | ✅ | ✅ | ✅ | ✅ | READY |
-| id | 94.5% | ✅ | ✅ | ✅ | ✅ | READY |
-| dispatcher | 100% | ✅ | ✅ | ✅ | ✅ | READY |
-| schema | 85.5% | ✅ | ✅ | ✅ | ✅ | READY |
-| snapshot | 92.3% | ✅ | ✅ | ✅ | ✅ | READY |
-| memory | 99.1% | ✅ | ✅ | ✅ | ✅ | READY |
-| storage | 72.7% | ✅ | ✅ | ✅ | ✅ | NEEDS TESTS |
-| pebble | 88.0% | ✅ | ✅ | ✅ | ✅ | READY |
-| turso | 28.6% | ✅ | ✅ | ✅ | ✅ | NEEDS TESTS |
-| watermill | 92.5% | ✅ | ✅ | ✅ | ✅ | READY |
-| middleware | 98.5% | ✅ | ✅ | ✅ | ✅ | READY |
-| projection | 91.3% | ✅ | ✅ | ✅ | ✅ | READY |
-| signing | 93.9% | ✅ | ✅ | ✅ | ✅ | READY |
-| listing | 93.8% | ✅ | ✅ | ✅ | ✅ | READY |
-| catalog | 95.9% | ✅ | ✅ | ⚠️ | ✅ | READY |
-| codec | 100% | ✅ | ✅ | ✅ | ✅ | READY |
-| otel | — | ✅ | — | ✅ | ✅ | READY |
+| Module     | Coverage | Lint | Tests | 250L Rule | API Stable | Verdict     |
+| ---------- | -------- | ---- | ----- | --------- | ---------- | ----------- |
+| event      | 89.0%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| command    | 93.8%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| query      | 95.5%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| decider    | 100%     | ✅   | ✅    | ✅        | ✅         | READY       |
+| id         | 94.5%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| dispatcher | 100%     | ✅   | ✅    | ✅        | ✅         | READY       |
+| schema     | 85.5%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| snapshot   | 92.3%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| memory     | 99.1%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| storage    | 72.7%    | ✅   | ✅    | ✅        | ✅         | NEEDS TESTS |
+| pebble     | 88.0%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| turso      | 28.6%    | ✅   | ✅    | ✅        | ✅         | NEEDS TESTS |
+| watermill  | 92.5%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| middleware | 98.5%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| projection | 91.3%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| signing    | 93.9%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| listing    | 93.8%    | ✅   | ✅    | ✅        | ✅         | READY       |
+| catalog    | 95.9%    | ✅   | ✅    | ⚠️        | ✅         | READY       |
+| codec      | 100%     | ✅   | ✅    | ✅        | ✅         | READY       |
+| otel       | —        | ✅   | —     | ✅        | ✅         | READY       |
 
 **⚠️ = some files slightly over 250L (catalog internal), acceptable for test infrastructure**
 

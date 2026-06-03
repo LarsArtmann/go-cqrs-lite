@@ -27,7 +27,12 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
 	return db, proj
 }
 
-func seedListingAggregates(t *testing.T, proj *AggregateProjection, aggType event.AggregateType, count int) []id.AggregateID {
+func seedListingAggregates(
+	t *testing.T,
+	proj *AggregateProjection,
+	aggType event.AggregateType,
+	count int,
+) []id.AggregateID {
 	t.Helper()
 	ctx := context.Background()
 	ids := make([]id.AggregateID, count)

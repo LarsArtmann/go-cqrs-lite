@@ -11,26 +11,26 @@ Pebble benchmarks use real embedded key-value store.
 
 ## Save (single event, new aggregate)
 
-| Backend | ns/op | B/op | allocs/op | Notes |
-|---------|------:|-----:|----------:|-------|
-| SQLite (real) | 41,042 | 4,080 | 92 | Full transaction: BEGIN + checkVersion + INSERT + COMMIT |
-| PostgreSQL (mock) | 1,040,194 | 12,897 | 177 | Mock overhead dominates — not real I/O |
-| MemoryStore | 582 | 736 | 9 | In-memory baseline |
-| Pebble | N/A | N/A | N/A | Uses AppendBatch, no Save with version check |
+| Backend           |     ns/op |   B/op | allocs/op | Notes                                                    |
+| ----------------- | --------: | -----: | --------: | -------------------------------------------------------- |
+| SQLite (real)     |    41,042 |  4,080 |        92 | Full transaction: BEGIN + checkVersion + INSERT + COMMIT |
+| PostgreSQL (mock) | 1,040,194 | 12,897 |       177 | Mock overhead dominates — not real I/O                   |
+| MemoryStore       |       582 |    736 |         9 | In-memory baseline                                       |
+| Pebble            |       N/A |    N/A |       N/A | Uses AppendBatch, no Save with version check             |
 
 ## Load (single aggregate, 1 event)
 
-| Backend | ns/op | B/op | allocs/op | Notes |
-|---------|------:|-----:|----------:|-------|
-| SQLite (real) | 48,505 | 20,233 | 554 | SQL engine + row scanning |
-| PostgreSQL (mock) | 118,443 | 12,958 | 130 | Mock overhead |
-| MemoryStore | 216 | 1,792 | 1 | In-memory baseline |
+| Backend           |   ns/op |   B/op | allocs/op | Notes                     |
+| ----------------- | ------: | -----: | --------: | ------------------------- |
+| SQLite (real)     |  48,505 | 20,233 |       554 | SQL engine + row scanning |
+| PostgreSQL (mock) | 118,443 | 12,958 |       130 | Mock overhead             |
+| MemoryStore       |     216 |  1,792 |         1 | In-memory baseline        |
 
 ## ReadAll (100 events cross-aggregate)
 
-| Backend | ns/op | B/op | allocs/op |
-|---------|------:|-----:|----------:|
-| SQLite (real) | 388,482 | 180,010 | 5,133 |
+| Backend       |   ns/op |    B/op | allocs/op |
+| ------------- | ------: | ------: | --------: |
+| SQLite (real) | 388,482 | 180,010 |     5,133 |
 
 ## Recommendations
 

@@ -100,7 +100,13 @@ func foldOrder(_ OrderState, evt event.Event) (OrderState, error) {
 // Shared infrastructure
 // ---------------------------------------------------------------------------
 
-func newRealisticEvent(tb testing.TB, eventType string, aggID id.AggregateID, v event.Version, payload any) event.Event {
+func newRealisticEvent(
+	tb testing.TB,
+	eventType string,
+	aggID id.AggregateID,
+	v event.Version,
+	payload any,
+) event.Event {
 	tb.Helper()
 
 	data, err := json.Marshal(payload)
@@ -130,17 +136,57 @@ func seedOrders(b *testing.B, store *memory.MemoryStore, aggCount, eventsPerAgg 
 		for v := range eventsPerAgg {
 			switch v % 4 {
 			case 0:
-				events[v] = newRealisticEvent(b, "OrderCreated", aggIDs[i], event.Version(v+1),
-					OrderCreated{OrderID: aggIDs[i].String(), Customer: fmt.Sprintf("customer-%d", i), Total: 99.99, Items: 3, Timestamp: time.Now().Format(time.RFC3339)})
+				events[v] = newRealisticEvent(
+					b,
+					"OrderCreated",
+					aggIDs[i],
+					event.Version(v+1),
+					OrderCreated{
+						OrderID:   aggIDs[i].String(),
+						Customer:  fmt.Sprintf("customer-%d", i),
+						Total:     99.99,
+						Items:     3,
+						Timestamp: time.Now().Format(time.RFC3339),
+					},
+				)
 			case 1:
-				events[v] = newRealisticEvent(b, "ItemAdded", aggIDs[i], event.Version(v+1),
-					ItemAdded{SKU: fmt.Sprintf("SKU-%04d", i), Name: fmt.Sprintf("Widget %d", i), Price: 19.99, Quantity: 2})
+				events[v] = newRealisticEvent(
+					b,
+					"ItemAdded",
+					aggIDs[i],
+					event.Version(v+1),
+					ItemAdded{
+						SKU:      fmt.Sprintf("SKU-%04d", i),
+						Name:     fmt.Sprintf("Widget %d", i),
+						Price:    19.99,
+						Quantity: 2,
+					},
+				)
 			case 2:
-				events[v] = newRealisticEvent(b, "OrderShipped", aggIDs[i], event.Version(v+1),
-					OrderShipped{Carrier: "FedEx", TrackingID: fmt.Sprintf("TRACK-%d-%d", i, v), ShippedAt: time.Now().Format(time.RFC3339)})
+				events[v] = newRealisticEvent(
+					b,
+					"OrderShipped",
+					aggIDs[i],
+					event.Version(v+1),
+					OrderShipped{
+						Carrier:    "FedEx",
+						TrackingID: fmt.Sprintf("TRACK-%d-%d", i, v),
+						ShippedAt:  time.Now().Format(time.RFC3339),
+					},
+				)
 			case 3:
-				events[v] = newRealisticEvent(b, "ItemAdded", aggIDs[i], event.Version(v+1),
-					ItemAdded{SKU: fmt.Sprintf("SKU-%04d-extra", i), Name: fmt.Sprintf("Extra %d", v), Price: 5.99, Quantity: 1})
+				events[v] = newRealisticEvent(
+					b,
+					"ItemAdded",
+					aggIDs[i],
+					event.Version(v+1),
+					ItemAdded{
+						SKU:      fmt.Sprintf("SKU-%04d-extra", i),
+						Name:     fmt.Sprintf("Extra %d", v),
+						Price:    5.99,
+						Quantity: 1,
+					},
+				)
 			}
 		}
 
@@ -223,8 +269,19 @@ func BenchmarkRealistic_FullPipeline(b *testing.B) {
 		return repo.Execute(ctx, cmd.AggregateID(), "Order",
 			func(_ OrderState, v event.Version) ([]event.Event, error) {
 				return []event.Event{
-					newRealisticEvent(b, "OrderCreated", cmd.AggregateID(), v.Increment(),
-						OrderCreated{OrderID: cmd.AggregateID().String(), Customer: "test-customer", Total: 149.99, Items: 5, Timestamp: time.Now().Format(time.RFC3339)}),
+					newRealisticEvent(
+						b,
+						"OrderCreated",
+						cmd.AggregateID(),
+						v.Increment(),
+						OrderCreated{
+							OrderID:   cmd.AggregateID().String(),
+							Customer:  "test-customer",
+							Total:     149.99,
+							Items:     5,
+							Timestamp: time.Now().Format(time.RFC3339),
+						},
+					),
 				}, nil
 			})
 	})
@@ -352,7 +409,8 @@ func BenchmarkRealistic_ConcurrentDecider(b *testing.B) {
 	b.Cleanup(func() { _ = memSnap.Close() })
 
 	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[OrderState](memSnap),
 		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(50)),
 		decider.WithCodec[OrderState](codec.JSONCodec{}),
@@ -381,8 +439,19 @@ func BenchmarkRealistic_ConcurrentDecider(b *testing.B) {
 					err := repo.Execute(ctx, aggID, "Order",
 						func(_ OrderState, ver event.Version) ([]event.Event, error) {
 							return []event.Event{
-								newRealisticEvent(b, "OrderCreated", aggID, ver.Increment(),
-									OrderCreated{OrderID: aggID.String(), Customer: fmt.Sprintf("w%d-op%d", workerID, j), Total: 99.99, Items: 1, Timestamp: time.Now().Format(time.RFC3339)}),
+								newRealisticEvent(
+									b,
+									"OrderCreated",
+									aggID,
+									ver.Increment(),
+									OrderCreated{
+										OrderID:   aggID.String(),
+										Customer:  fmt.Sprintf("w%d-op%d", workerID, j),
+										Total:     99.99,
+										Items:     1,
+										Timestamp: time.Now().Format(time.RFC3339),
+									},
+								),
 							}, nil
 						})
 					if err != nil {
@@ -421,8 +490,19 @@ func BenchmarkRealistic_Signing(b *testing.B) {
 	events := make([]event.Event, eventCount)
 	for i := range events {
 		aggID := id.NewAggregateID()
-		events[i] = newRealisticEvent(b, "OrderCreated", aggID, 1,
-			OrderCreated{OrderID: aggID.String(), Customer: "alice", Total: 199.99, Items: 10, Timestamp: time.Now().Format(time.RFC3339)})
+		events[i] = newRealisticEvent(
+			b,
+			"OrderCreated",
+			aggID,
+			1,
+			OrderCreated{
+				OrderID:   aggID.String(),
+				Customer:  "alice",
+				Total:     199.99,
+				Items:     10,
+				Timestamp: time.Now().Format(time.RFC3339),
+			},
+		)
 	}
 
 	sigs := make([]signing.Signature, eventCount)
@@ -530,7 +610,8 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 
 	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
 
-	snapRepo, err := decider.NewRepository(store, bus, d,
+	snapRepo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithSnapshotStore[OrderState](memSnap),
 		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(100)),
 		decider.WithCodec[OrderState](codec.JSONCodec{}),
@@ -549,8 +630,19 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 			if err := snapRepo.Execute(ctx, aggIDs[i], "Order",
 				func(_ OrderState, ver event.Version) ([]event.Event, error) {
 					return []event.Event{
-						newRealisticEvent(b, "OrderCreated", aggIDs[i], ver.Increment(),
-							OrderCreated{OrderID: aggIDs[i].String(), Customer: "test", Total: 10.0, Items: 1, Timestamp: time.Now().Format(time.RFC3339)}),
+						newRealisticEvent(
+							b,
+							"OrderCreated",
+							aggIDs[i],
+							ver.Increment(),
+							OrderCreated{
+								OrderID:   aggIDs[i].String(),
+								Customer:  "test",
+								Total:     10.0,
+								Items:     1,
+								Timestamp: time.Now().Format(time.RFC3339),
+							},
+						),
 					}, nil
 				}); err != nil {
 				b.Fatalf("seed: %v", err)
@@ -607,7 +699,13 @@ func BenchmarkRealistic_QueryDispatch(b *testing.B) {
 
 	items := make([]OrderCreated, 1000)
 	for i := range items {
-		items[i] = OrderCreated{OrderID: fmt.Sprintf("ORD-%04d", i), Customer: fmt.Sprintf("customer-%d", i), Total: float64(i) * 10.0, Items: i % 20, Timestamp: time.Now().Format(time.RFC3339)}
+		items[i] = OrderCreated{
+			OrderID:   fmt.Sprintf("ORD-%04d", i),
+			Customer:  fmt.Sprintf("customer-%d", i),
+			Total:     float64(i) * 10.0,
+			Items:     i % 20,
+			Timestamp: time.Now().Format(time.RFC3339),
+		}
 	}
 
 	if err := dispatcher.Register("list.orders", func(_ context.Context, _ query.Query) (any, error) {

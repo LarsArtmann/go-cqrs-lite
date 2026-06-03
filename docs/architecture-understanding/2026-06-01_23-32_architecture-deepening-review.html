@@ -344,7 +344,9 @@
                       style D fill:#fef2f2,stroke:#dc2626
                   </pre>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">4 type params, dead catalog bridge, ~80 lines overhead</p>
+                <p class="text-xs text-slate-500 mt-1">
+                  4 type params, dead catalog bridge, ~80 lines overhead
+                </p>
               </div>
               <div>
                 <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After</p>
@@ -359,15 +361,20 @@
                       style D fill:#0f172a,color:white,stroke:#475569
                   </pre>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">2 type params, direct embed, catalog bridge deleted</p>
+                <p class="text-xs text-slate-500 mt-1">
+                  2 type params, direct embed, catalog bridge deleted
+                </p>
               </div>
             </div>
 
             <p class="text-slate-700 mb-2">
-              <strong class="text-red-700">Problem:</strong> <code class="bg-slate-100 px-1">DispatcherWithCatalog</code>
-              had 4 type params to share ~30 lines of map+mutex code. Zero non-test paths used the catalog.
-              <code class="bg-slate-100 px-1">catalog/</code> has its own independent registration via
-              <code class="bg-slate-100 px-1">catalog.Command[T]()</code>. The bridge was planned but never connected.
+              <strong class="text-red-700">Problem:</strong>
+              <code class="bg-slate-100 px-1">DispatcherWithCatalog</code>
+              had 4 type params to share ~30 lines of map+mutex code. Zero non-test paths used the
+              catalog.
+              <code class="bg-slate-100 px-1">catalog/</code> has its own independent registration
+              via <code class="bg-slate-100 px-1">catalog.Command[T]()</code>. The bridge was
+              planned but never connected.
             </p>
             <p class="text-slate-700 mb-3">
               <strong class="text-emerald-700">Done:</strong> Removed
@@ -376,8 +383,8 @@
               <code class="bg-slate-100 px-1">DispatcherWithCatalog</code>,
               <code class="bg-slate-100 px-1">copyCatalogEntries</code>,
               <code class="bg-slate-100 px-1">RegisterHandlerMeta</code>,
-              <code class="bg-slate-100 px-1">CatalogEntries</code>.
-              command/query now embed <code class="bg-slate-100 px-1">*Dispatcher[H,M]</code> directly (2 type params).
+              <code class="bg-slate-100 px-1">CatalogEntries</code>. command/query now embed
+              <code class="bg-slate-100 px-1">*Dispatcher[H,M]</code> directly (2 type params).
               <code class="bg-slate-100 px-1">dispatcher.go</code> reduced from 218 → 139 lines.
             </p>
             <ul class="text-sm text-slate-600 space-y-1">
@@ -530,7 +537,9 @@
         <article class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div class="p-6">
             <div class="flex items-center gap-3 mb-4">
-              <h2 class="text-xl font-serif font-bold">Integrate Reactive Streams into Dispatchers</h2>
+              <h2 class="text-xl font-serif font-bold">
+                Integrate Reactive Streams into Dispatchers
+              </h2>
               <span
                 class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800"
                 >Strong</span
@@ -574,21 +583,31 @@
 
             <p class="text-slate-700 mb-2">
               <strong class="text-red-700">Problem:</strong> Reactive extensions define type aliases
-              (<code class="bg-slate-100 px-1">CommandBus = ro.Subject[Command]</code>, etc.) but don't
-              integrate with dispatchers. The problem is <em>non-use</em>, not the library —
-              <code class="bg-slate-100 px-1">samber/ro</code> is already a dependency. Consumers must
-              wire two parallel message paths manually.
+              (<code class="bg-slate-100 px-1">CommandBus = ro.Subject[Command]</code>, etc.) but
+              don't integrate with dispatchers. The problem is <em>non-use</em>, not the library —
+              <code class="bg-slate-100 px-1">samber/ro</code> is already a dependency. Consumers
+              must wire two parallel message paths manually.
             </p>
             <p class="text-slate-700 mb-3">
               <strong class="text-emerald-700">Solution:</strong> Embed
               <code class="bg-slate-100 px-1">ro.Subject[M]</code> directly into
-              <code class="bg-slate-100 px-1">Dispatcher[H,M]</code>. Every dispatch automatically emits
-              to subscribers. Consumers opt into reactive by subscribing; no behavior change if ignored.
+              <code class="bg-slate-100 px-1">Dispatcher[H,M]</code>. Every dispatch automatically
+              emits to subscribers. Consumers opt into reactive by subscribing; no behavior change
+              if ignored.
             </p>
             <ul class="text-sm text-slate-600 space-y-1">
               <li>• Dispatcher becomes Observable — single unified message path</li>
-              <li>• <code class="bg-slate-100 px-1">ro.Subject</code> already a dependency — zero new deps</li>
-              <li>• Eliminates separate <code class="bg-slate-100 px-1">CommandBus</code>/<code class="bg-slate-100 px-1">EventBus</code> type aliases</li>
+              <li>
+                • <code class="bg-slate-100 px-1">ro.Subject</code> already a dependency — zero new
+                deps
+              </li>
+              <li>
+                • Eliminates separate <code class="bg-slate-100 px-1">CommandBus</code>/<code
+                  class="bg-slate-100 px-1"
+                  >EventBus</code
+                >
+                type aliases
+              </li>
               <li>• Clear intent: reactive is first-class, not a side channel</li>
             </ul>
           </div>
