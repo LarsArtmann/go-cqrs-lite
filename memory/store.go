@@ -15,10 +15,10 @@ import (
 type MemoryStore struct {
 	dispatcher.Lifecycle
 
-	mu            sync.RWMutex
-	events        map[string][]event.Event
-	globalLog     []event.Event
-	eventIDIndex  map[id.EventID]int
+	mu           sync.RWMutex
+	globalLog    []event.Event          // canonical event storage (single copy)
+	streamIndex  map[string][]int        // streamKey → indices into globalLog
+	eventIDIndex map[id.EventID]int      // index into globalLog for SeekableJournal
 }
 
 var (
@@ -33,7 +33,7 @@ var (
 func NewMemoryStore() *MemoryStore {
 	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryStore{
-		events:       make(map[string][]event.Event),
+		streamIndex:  make(map[string][]int),
 		eventIDIndex: make(map[id.EventID]int),
 	}
 }
@@ -55,15 +55,14 @@ func (s *MemoryStore) Save(
 	defer s.mu.Unlock()
 
 	key := ref.StreamKey()
-	existing := s.events[key]
+	streamLen := len(s.streamIndex[key])
 
-	err = event.CheckVersionConflict(len(existing), expectedVersion)
+	err = event.CheckVersionConflict(streamLen, expectedVersion)
 	if err != nil {
 		return event.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
 
-	s.events[key] = append(existing, events...)
-	s.appendToGlobalLog(events)
+	s.appendToGlobalLog(key, events)
 
 	return nil
 }
@@ -87,8 +86,7 @@ func (s *MemoryStore) AppendBatch(
 	defer s.mu.Unlock()
 
 	key := ref.StreamKey()
-	s.events[key] = append(s.events[key], events...)
-	s.appendToGlobalLog(events)
+	s.appendToGlobalLog(key, events)
 
 	return nil
 }
@@ -98,9 +96,11 @@ func (s *MemoryStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
 }
 
-func (s *MemoryStore) appendToGlobalLog(events []event.Event) {
+func (s *MemoryStore) appendToGlobalLog(streamKey string, events []event.Event) {
 	for _, evt := range events {
-		s.eventIDIndex[evt.ID()] = len(s.globalLog)
+		idx := len(s.globalLog)
+		s.eventIDIndex[evt.ID()] = idx
 		s.globalLog = append(s.globalLog, evt)
+		s.streamIndex[streamKey] = append(s.streamIndex[streamKey], idx)
 	}
 }

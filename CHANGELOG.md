@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.1.0] - 2026-06-03
+
+### Added
+
+- `query.TypedHandler[Q Query, R any]` — typed query parameter + typed result via `RegisterTyped[Q, R]`
+- `listing.CacheInvalidationMiddleware(reader)` — auto-invalidates `InMemoryAggregateReader` cache after publish
+- `listing.CacheInvalidator` interface — decouples middleware from concrete reader type
+
+### Changed
+
+- `MemoryStore` deduplicated event storage — single `globalLog` + `streamIndex` map of indices replaces per-stream event copies (2× memory reduction)
+- `event.New()` inlined codec extraction — removed `findCodecOption` helper, fast path for empty opts avoids probe allocation
+- ADR-0008 updated for `TypedHandler[Q Query, R any]` dual type parameter signature
+
+### Fixed
+
+- `eventtest.FakeStore` ReadFrom test for sorted ReadAll output
+
 ## [2.0.0] - 2026-06-01
 
 ### Added

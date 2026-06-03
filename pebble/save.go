@@ -87,7 +87,7 @@ func (a *EventStore) writeEventsToBatch(
 		}
 	}
 
-	return nil
+	return a.appendToJournal(batch, events)
 }
 
 func validateEventOwnership(

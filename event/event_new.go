@@ -23,7 +23,23 @@ func New(
 	payload any,
 	opts ...Option,
 ) (*ImmutableEvent, error) {
-	c := findCodecOption(opts)
+	var c codec.Codec
+
+	if len(opts) > 0 {
+		probe := &ImmutableEvent{} //nolint:exhaustruct // probe: only opts field accessed
+
+		for _, opt := range opts {
+			opt(probe)
+		}
+
+		if probe.opts != nil && probe.opts.newCodec != nil {
+			c = probe.opts.newCodec
+		}
+	}
+
+	if c == nil {
+		c = codec.JSONCodec{}
+	}
 
 	data, err := marshalPayload(payload, eventType, c)
 	if err != nil {
@@ -39,22 +55,6 @@ func New(
 	evt.encoding = enc
 
 	return evt, nil
-}
-
-func findCodecOption(opts []Option) codec.Codec {
-	if len(opts) == 0 {
-		return codec.JSONCodec{}
-	}
-
-	probe := &ImmutableEvent{}
-	for _, opt := range opts {
-		opt(probe)
-		if probe.opts != nil && probe.opts.newCodec != nil {
-			return probe.opts.newCodec
-		}
-	}
-
-	return codec.JSONCodec{}
 }
 
 func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) {

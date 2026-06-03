@@ -1,27 +1,46 @@
-# ADR-0008: TypedHandler[T] receives Query, not T
+# ADR-0008: TypedHandler[Q Query, R any] — dual type parameters
 
 **Status:** Accepted
 
 ## Context
 
-`query.TypedHandler[T]` and `command.TypedHandler[T]` are defined as:
+`query.TypedHandler` is defined with two type parameters:
 
 ```go
-type TypedHandler[T any] func(ctx context.Context, q Query) (T, error)
+type TypedHandler[Q Query, R any] func(ctx context.Context, q Q) (R, error)
 ```
 
-The handler receives the generic `Query` interface, not the concrete type `T`.
+- `Q` — constrained to `Query` (the concrete query type, e.g., `*GetUserQuery`)
+- `R` — constrained to `any` (the result type, e.g., `*GetUserResult`)
+
+The handler receives the **concrete type `Q`**, not the generic `Query` interface.
 
 ## Decision
 
-Keep the signature receiving `Query` (not `T`). This is intentional.
+Use dual type parameters `[Q Query, R any]` so the handler receives a typed query and returns a typed result.
 
 ## Rationale
 
-1. **Dispatcher compatibility**: The underlying `dispatcher.Dispatcher` is generic over message type. It dispatches `Query` values (interface type). The handler must accept the same type the dispatcher provides.
+1. **Typed query parameter**: Unlike the previous `TypedHandler[T any]` design (which received the generic `Query` interface and required `ExtractPayload[T]`), the handler now receives the concrete query type `Q` directly — no downcasting needed inside the handler.
 
-2. **Registration by type name**: Handlers are registered by type name string (e.g., `"GetUserQuery"`). At dispatch time, only the `Query` interface is available. The handler must downcast internally using `query.ExtractPayload[T]()`.
+2. **Typed result**: `R` provides compile-time safety for the return value. Callers use `DispatchTyped[R]()` to get a typed result back without `any` assertion.
 
-3. **Type safety at registration**: `RegisterTyped[T]()` ensures the handler's return type `T` matches the registration. Type safety is enforced at registration time, not dispatch time.
+3. **Registration bridges the gap**: `RegisterTyped[Q, R]` adapts the typed handler to the untyped `Handler = func(ctx, Query) (any, error)` via a type assertion at the boundary:
 
-4. **Alternative rejected**: `func(ctx context.Context, payload T) (T, error)` would require a separate dispatch mechanism per payload type, defeating the purpose of a unified dispatcher.
+```go
+func RegisterTyped[Q Query, R any](d *Dispatcher, queryType Type, handler TypedHandler[Q, R]) error {
+    return d.Register(queryType, func(ctx context.Context, q Query) (any, error) {
+        typed, ok := q.(Q)
+        if !ok {
+            return nil, ErrTypeAssertion
+        }
+        return handler(ctx, typed)
+    })
+}
+```
+
+4. **Dispatcher compatibility**: The underlying `dispatcher.Dispatcher` remains generic over a single message type. `RegisterTyped` bridges the typed handler to the untyped core, keeping the dispatcher simple.
+
+5. **Alternative rejected (single-param)**: `TypedHandler[T any] func(ctx, Query) (T, error)` required the handler to call `ExtractPayload[T]()` internally — shifting boilerplate to every handler. The dual-param design eliminates this.
+
+6. **Alternative rejected (Query-only)**: `TypedHandler[Q Query] func(ctx, Q) (any, error)` would still require callers to assert the result type. The dual-param design provides end-to-end type safety.

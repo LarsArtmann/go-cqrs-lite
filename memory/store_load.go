@@ -106,7 +106,7 @@ func (s *MemoryStore) getEvents(
 
 	key := ref.StreamKey()
 
-	events, exists := s.events[key]
+	indices, exists := s.streamIndex[key]
 	if !exists {
 		return nil, fmt.Errorf(
 			"memory %s aggregate %s: %w",
@@ -114,6 +114,11 @@ func (s *MemoryStore) getEvents(
 			ref,
 			event.ErrAggregateNotFound,
 		)
+	}
+
+	events := make([]event.Event, len(indices))
+	for i, idx := range indices {
+		events[i] = s.globalLog[idx]
 	}
 
 	return events, nil

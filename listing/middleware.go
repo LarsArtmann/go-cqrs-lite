@@ -60,6 +60,35 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 	}
 }
 
+// CacheInvalidator clears the cached aggregate index after successful publish.
+// Implemented by *InMemoryAggregateReader.
+type CacheInvalidator interface {
+	InvalidateCache()
+}
+
+// CacheInvalidationMiddleware returns a PublishMiddleware that invalidates the
+// reader's cache after each successful publish, ensuring subsequent List calls
+// reflect the latest events.
+//
+// Usage:
+//
+//	reader := listing.NewInMemoryAggregateReader(journal)
+//	bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
+func CacheInvalidationMiddleware(reader CacheInvalidator) event.PublishMiddleware {
+	return func(next event.Publisher) event.Publisher {
+		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+			err := next.Publish(ctx, events...)
+			if err != nil {
+				return err
+			}
+
+			reader.InvalidateCache()
+
+			return nil
+		})
+	}
+}
+
 func makeTypeSet(types []event.Type) map[event.Type]struct{} {
 	set := make(map[event.Type]struct{}, len(types))
 

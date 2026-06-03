@@ -19,11 +19,12 @@ import (
 // the number of unique aggregates — bounded by actual data volume for an
 // embedded single-process store.
 type EventStore struct {
-	db         *pebble.DB
-	logger     *slog.Logger
-	prefix     string
-	locks      sync.Map // map[string]*sync.Mutex — one per aggregate
-	syncWrites bool
+	db            *pebble.DB
+	logger        *slog.Logger
+	prefix        string
+	journalPrefix string
+	locks         sync.Map // map[string]*sync.Mutex — one per aggregate
+	syncWrites    bool
 }
 
 // StoreOption configures a EventStore.
@@ -39,10 +40,11 @@ func WithAsyncWrites() StoreOption {
 // NewStore creates a new store using an existing Pebble DB.
 func NewStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *EventStore {
 	s := &EventStore{ //nolint:exhaustruct // locks initialized lazily
-		db:         db,
-		logger:     logger,
-		prefix:     "cqrs_event:",
-		syncWrites: true,
+		db:            db,
+		logger:        logger,
+		prefix:        "cqrs_event:",
+		journalPrefix: "cqrs_journal:",
+		syncWrites:    true,
 	}
 
 	for _, opt := range opts {

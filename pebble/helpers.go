@@ -35,6 +35,10 @@ func (a *EventStore) AppendBatch(
 		}
 	}
 
+	if err := a.appendToJournal(batch, events); err != nil {
+		return err
+	}
+
 	return a.commitAndLog(
 		batch,
 		"events appended in batch",
@@ -141,3 +145,9 @@ func checkIteratorError(iter *pebble.Iterator) error {
 
 // Ensure EventStore implements event.Store.
 var _ event.Store = (*EventStore)(nil)
+
+// Ensure EventStore implements event.Journal and event.SeekableJournal.
+var (
+	_ event.Journal         = (*EventStore)(nil)
+	_ event.SeekableJournal = (*EventStore)(nil)
+)
