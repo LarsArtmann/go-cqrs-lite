@@ -66,7 +66,13 @@ func BenchmarkTursoEventStore_Load(b *testing.B) {
 	ref := event.NewAggregateRef("Bench", aggID)
 
 	for i := range 100 {
-		evt, _ := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(i+1), []byte(`{"i":0}`))
+		evt, _ := event.NewEvent(
+			"BenchEvent",
+			aggID,
+			"Bench",
+			event.Version(i+1),
+			[]byte(`{"i":0}`),
+		)
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 	}
 

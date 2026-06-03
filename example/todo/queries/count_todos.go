@@ -37,7 +37,10 @@ func NewCountTodosHandler(readModel domain.TodoReadModel) *CountTodosHandler {
 	return &CountTodosHandler{readModel: readModel}
 }
 
-func (h *CountTodosHandler) Handle(ctx context.Context, q *CountTodosQuery) (*CountTodosResult, error) {
+func (h *CountTodosHandler) Handle(
+	ctx context.Context,
+	q *CountTodosQuery,
+) (*CountTodosResult, error) {
 	filter := domain.TodoFilter{
 		Status: q.Status, Tags: q.Tags,
 		Priority: q.Priority, Search: q.Search,

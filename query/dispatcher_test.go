@@ -265,7 +265,8 @@ func TestRegisterTyped_Success(t *testing.T) {
 
 	type User struct{ Name string }
 
-	err := query.RegisterTyped(d, "GetUser",
+	err := query.RegisterTyped(
+		d, "GetUser",
 		func(_ context.Context, _ *query.BasicQuery) (*User, error) {
 			return &User{Name: "Alice"}, nil
 		},
@@ -342,7 +343,8 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 	var called bool
 	useMiddleware(&called, d)
 
-	err := query.RegisterTyped(d, "MWQuery",
+	err := query.RegisterTyped(
+		d, "MWQuery",
 		func(_ context.Context, _ *query.BasicQuery) (int, error) {
 			return 42, nil
 		},

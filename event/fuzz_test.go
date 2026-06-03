@@ -87,23 +87,31 @@ func FuzzNewEvent(f *testing.F) {
 	f.Add("user.created", "User", int64(1), int64(1), `{"name":"test"}`)
 	f.Add("", "", int64(0), int64(0), "")
 	f.Add("a", "B", int64(1), int64(1), "{}")
-	f.Add(strings.Repeat("x", 256), strings.Repeat("y", 256), int64(999999), int64(1), `{"data":"`+strings.Repeat("A", 10000)+`"}`)
+	f.Add(
+		strings.Repeat("x", 256),
+		strings.Repeat("y", 256),
+		int64(999999),
+		int64(1),
+		`{"data":"`+strings.Repeat("A", 10000)+`"}`,
+	)
 
-	f.Fuzz(func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
-		aggID := id.NewAggregateID()
-		evt, err := event.NewEvent(
-			event.Type(eventType), aggID, event.AggregateType(aggType),
-			event.Version(int(version)), []byte(payload),
-			event.WithSchemaVersion(event.SchemaVersion(int(schemaVersion))),
-		)
-		if err != nil {
-			return
-		}
+	f.Fuzz(
+		func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
+			aggID := id.NewAggregateID()
+			evt, err := event.NewEvent(
+				event.Type(eventType), aggID, event.AggregateType(aggType),
+				event.Version(int(version)), []byte(payload),
+				event.WithSchemaVersion(event.SchemaVersion(int(schemaVersion))),
+			)
+			if err != nil {
+				return
+			}
 
-		if evt.AggregateID() != aggID {
-			t.Error("aggregate ID mismatch")
-		}
-	})
+			if evt.AggregateID() != aggID {
+				t.Error("aggregate ID mismatch")
+			}
+		},
+	)
 }
 
 func FuzzDecodePayload(f *testing.F) {

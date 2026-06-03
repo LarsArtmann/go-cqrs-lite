@@ -4,12 +4,12 @@ go 1.26.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.1.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	modernc.org/sqlite v1.51.0

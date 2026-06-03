@@ -52,7 +52,13 @@ func TestFakeStore_Save_Override(t *testing.T) {
 	ref := event.NewAggregateRef("Test", aggID)
 	evt := newTestEvent(t, aggID, 1)
 
-	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err == nil || err.Error() != "save override" {
+	if err := store.Save(
+		ctx,
+		ref,
+		[]event.Event{evt},
+		0,
+	); err == nil ||
+		err.Error() != "save override" {
 		t.Fatalf("expected save override error, got: %v", err)
 	}
 }
@@ -237,7 +243,10 @@ func TestFakeStore_ReadAll_Override(t *testing.T) {
 		return nil, errors.New("readall override")
 	}
 
-	if _, err := store.ReadAll(context.Background()); err == nil || err.Error() != "readall override" {
+	if _, err := store.ReadAll(
+		context.Background(),
+	); err == nil ||
+		err.Error() != "readall override" {
 		t.Fatalf("expected override error, got: %v", err)
 	}
 }
@@ -268,7 +277,12 @@ func TestFakeStore_ReadFrom_Override(t *testing.T) {
 		return nil, errors.New("readfrom override")
 	}
 
-	if _, err := store.ReadFrom(context.Background(), id.EventID{}, 0); err == nil || err.Error() != "readfrom override" {
+	if _, err := store.ReadFrom(
+		context.Background(),
+		id.EventID{},
+		0,
+	); err == nil ||
+		err.Error() != "readfrom override" {
 		t.Fatalf("expected override error, got: %v", err)
 	}
 }

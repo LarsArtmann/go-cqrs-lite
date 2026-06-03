@@ -60,7 +60,11 @@ func BenchmarkMemoryStore_ReadFrom_Scale(b *testing.B) {
 				aggID := id.NewAggregateID()
 				evt := benchEvent(b, aggID, 1)
 				lastID = evt.ID()
-				_ = store.AppendBatch(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt})
+				_ = store.AppendBatch(
+					ctx,
+					event.NewAggregateRef("Bench", aggID),
+					[]event.Event{evt},
+				)
 			}
 
 			b.ResetTimer()

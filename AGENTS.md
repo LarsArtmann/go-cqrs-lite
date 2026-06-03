@@ -185,7 +185,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
 
-**v2.0.0 Released**: All 23 modules tagged at v2.0.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
+**v2.1.0 Released**: Performance-focused release with 62 commits since v2.0.0. Major perf improvements (alloc reductions across event/signing/listing/catalog/memory), production bug fixes (HealthCheck OOM, race conditions, closed state tracking), new `query.TypedHandler[Q, R]`, and comprehensive benchmarking infrastructure. All 22 library + 2 cmd modules tagged at v2.1.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)

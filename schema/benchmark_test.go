@@ -58,7 +58,7 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 		},
 	)
 
-	vs, err := schema.NewVersionedStore(store, upcaster)
+	versionedStore, err := schema.NewVersionedStore(store, upcaster)
 	if err != nil {
 		b.Fatalf("NewVersionedStore: %v", err)
 	}
@@ -74,7 +74,7 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := vs.Load(ctx, event.NewAggregateRef("User", aggID))
+		_, err := versionedStore.Load(ctx, event.NewAggregateRef("User", aggID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

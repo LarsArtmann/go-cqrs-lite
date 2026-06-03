@@ -46,7 +46,13 @@ func New(
 		return nil, err
 	}
 
-	if err := validateEventParams(eventType, aggregateID, aggregateType, version, data); err != nil {
+	if err := validateEventParams(
+		eventType,
+		aggregateID,
+		aggregateType,
+		version,
+		data,
+	); err != nil {
 		return nil, err
 	}
 

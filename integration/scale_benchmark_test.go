@@ -55,7 +55,12 @@ func newBenchDeciderRepo(b *testing.B) (*decider.Repository[benchState], context
 	return repo, context.Background()
 }
 
-func newBenchEvent(b *testing.B, eventType string, aggID id.AggregateID, v event.Version) event.Event {
+func newBenchEvent(
+	b *testing.B,
+	eventType string,
+	aggID id.AggregateID,
+	v event.Version,
+) event.Event {
 	b.Helper()
 
 	evt, err := event.NewEvent(event.Type(eventType), aggID, "Item", v, nil)
@@ -447,7 +452,10 @@ func BenchmarkScale_ProjectionProcessing_100Projections_100KEvents(b *testing.B)
 	}
 
 	elapsed := time.Since(start)
-	b.ReportMetric(float64(b.N*eventCount*projectionCount)/elapsed.Seconds(), "projection-events/sec")
+	b.ReportMetric(
+		float64(b.N*eventCount*projectionCount)/elapsed.Seconds(),
+		"projection-events/sec",
+	)
 
 	cancel()
 	_ = runner.Close()

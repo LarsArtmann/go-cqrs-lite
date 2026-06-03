@@ -6,21 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2.1.0] - 2026-06-03
 
+62 commits since v2.0.0. Performance-focused release with production bug fixes, new query types, and comprehensive benchmarking.
+
 ### Added
 
 - `query.TypedHandler[Q Query, R any]` — typed query parameter + typed result via `RegisterTyped[Q, R]`
 - `listing.CacheInvalidationMiddleware(reader)` — auto-invalidates `InMemoryAggregateReader` cache after publish
 - `listing.CacheInvalidator` interface — decouples middleware from concrete reader type
+- 17 scale benchmarks across event, memory, listing, storage, pebble, turso, watermill, and codec modules
+- 6 new benchmark suites with `b.ReportAllocs` for allocation tracking
+- `nix run .#bench` app and `benchstat-compare` script for regression detection
+- Turso CRUD integration tests for event/snapshot/checkpoint stores
+- Realistic scale benchmarks behind `-tags=scale` in integration module
+- ADR-0008 for `TypedHandler[Q Query, R any]` dual type parameter signature
+- `docs/STORAGE_GUIDE.md` — performance comparison across PostgreSQL/SQLite/Pebble/Turso backends
 
 ### Changed
 
 - `MemoryStore` deduplicated event storage — single `globalLog` + `streamIndex` map of indices replaces per-stream event copies (2× memory reduction)
 - `event.New()` inlined codec extraction — removed `findCodecOption` helper, fast path for empty opts avoids probe allocation
-- ADR-0008 updated for `TypedHandler[Q Query, R any]` dual type parameter signature
+- `MemoryStore.ReadFrom` uses cursor-based pagination instead of linear scan
+- `schema.VersionedStore` load methods deduplicated into shared `loadAndUpcast` helper
+- Error wrapping migrated to `event.Wrap*` taxonomy across storage, watermill, command, query, schema, and listing
+- Deprecated backward-compat aliases removed from `pebble/` module
+- Dead code removed + Go idioms modernized across multiple modules
+- `event.Metadata()` documented as returning a defensive copy
+
+### Performance
+
+- `catalog.SchemaFromType` cached by `reflect.Type` — 553ns→8ns, 15→0 allocs
+- `event.New()` lazy-initializes metadata map — 3→2 allocs per event
+- `event.New()` moves clock/newCodec/deadline to `eventOptions` pointer — 48B saved per event
+- `event.Payload()` removes defensive clone — 1 fewer alloc per access
+- `event.New()` skips redundant payload copy — 1 fewer alloc
+- `event.New()` stamps encoding directly — 1 fewer alloc
+- `signing.canonicalPayload()` eliminates alloc overhead
+- `listing` caches sorted aggregate index — 25× faster listing
+- `memory` replaces O(n log n) `collectAllSorted` with append-only global log
 
 ### Fixed
 
+- HealthCheck OOM on large event stores
+- `SQLAggregateReader` Postgres compatibility
+- `SubscriberAdapter` race condition
+- Pebble `Close` not releasing resources
+- `Version.Sub` panic on zero value
+- `codec.Raw` passthrough encoding
+- `GetID` rename consistency
+- `ToAny` error propagation
+- `HasSignature` false negatives
+- `errgroup` error propagation
+- `projection.Runner` missing `ErrAlreadyRunning` guard
+- `storage` closed state tracking, snapshot SQL filter, `createTable` context
+- `subscribeLive` handler guard for nil handlers
 - `eventtest.FakeStore` ReadFrom test for sorted ReadAll output
+
+### Removed
+
+- Deprecated backward-compat aliases from `pebble/` module
+- Dead code and unused APIs across multiple modules
 
 ## [2.0.0] - 2026-06-01
 

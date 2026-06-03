@@ -122,7 +122,11 @@ func newRealisticEvent(
 	return evt
 }
 
-func seedOrders(b *testing.B, store *memory.MemoryStore, aggCount, eventsPerAgg int) []id.AggregateID {
+func seedOrders(
+	b *testing.B,
+	store *memory.MemoryStore,
+	aggCount, eventsPerAgg int,
+) []id.AggregateID {
 	b.Helper()
 
 	ctx := context.Background()
@@ -235,18 +239,28 @@ func BenchmarkRealistic_FullPipeline(b *testing.B) {
 	var projected atomic.Int64
 
 	builder := projection.NewBuilder("order-view")
-	projection.On(builder, "OrderCreated", jsonCodec, func(_ context.Context, _ OrderCreated) error {
-		projected.Add(1)
-		return nil
-	})
+	projection.On(
+		builder,
+		"OrderCreated",
+		jsonCodec,
+		func(_ context.Context, _ OrderCreated) error {
+			projected.Add(1)
+			return nil
+		},
+	)
 	projection.On(builder, "ItemAdded", jsonCodec, func(_ context.Context, _ ItemAdded) error {
 		projected.Add(1)
 		return nil
 	})
-	projection.On(builder, "OrderShipped", jsonCodec, func(_ context.Context, _ OrderShipped) error {
-		projected.Add(1)
-		return nil
-	})
+	projection.On(
+		builder,
+		"OrderShipped",
+		jsonCodec,
+		func(_ context.Context, _ OrderShipped) error {
+			projected.Add(1)
+			return nil
+		},
+	)
 
 	runner, err := projection.NewRunner(store, bus, checkpoint)
 	if err != nil {
@@ -344,18 +358,28 @@ func BenchmarkRealistic_ProjectionReplay(b *testing.B) {
 	var processed atomic.Int64
 
 	builder := projection.NewBuilder("replay-view")
-	projection.On(builder, "OrderCreated", jsonCodec, func(_ context.Context, _ OrderCreated) error {
-		processed.Add(1)
-		return nil
-	})
+	projection.On(
+		builder,
+		"OrderCreated",
+		jsonCodec,
+		func(_ context.Context, _ OrderCreated) error {
+			processed.Add(1)
+			return nil
+		},
+	)
 	projection.On(builder, "ItemAdded", jsonCodec, func(_ context.Context, _ ItemAdded) error {
 		processed.Add(1)
 		return nil
 	})
-	projection.On(builder, "OrderShipped", jsonCodec, func(_ context.Context, _ OrderShipped) error {
-		processed.Add(1)
-		return nil
-	})
+	projection.On(
+		builder,
+		"OrderShipped",
+		jsonCodec,
+		func(_ context.Context, _ OrderShipped) error {
+			processed.Add(1)
+			return nil
+		},
+	)
 
 	b.ResetTimer()
 
@@ -708,9 +732,16 @@ func BenchmarkRealistic_QueryDispatch(b *testing.B) {
 		}
 	}
 
-	if err := dispatcher.Register("list.orders", func(_ context.Context, _ query.Query) (any, error) {
-		return query.NewPaginatedResult(items[:50], uint(len(items)), query.NewPagination(1, 50)), nil
-	}); err != nil {
+	if err := dispatcher.Register(
+		"list.orders",
+		func(_ context.Context, _ query.Query) (any, error) {
+			return query.NewPaginatedResult(
+				items[:50],
+				uint(len(items)),
+				query.NewPagination(1, 50),
+			), nil
+		},
+	); err != nil {
 		b.Fatalf("register: %v", err)
 	}
 

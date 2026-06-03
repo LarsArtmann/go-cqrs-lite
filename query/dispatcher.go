@@ -74,7 +74,11 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 // Q is the concrete query type, R is the result type.
 // The handler receives the concrete query type Q directly (no manual type assertion needed),
 // and its typed result R is wrapped to match the Handler signature.
-func RegisterTyped[Q Query, R any](d *Dispatcher, queryType Type, handler TypedHandler[Q, R]) error {
+func RegisterTyped[Q Query, R any](
+	d *Dispatcher,
+	queryType Type,
+	handler TypedHandler[Q, R],
+) error {
 	return d.Register(queryType, func(ctx context.Context, q Query) (any, error) {
 		typed, ok := q.(Q)
 		if !ok {

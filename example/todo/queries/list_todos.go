@@ -42,7 +42,10 @@ func NewListTodosHandler(readModel domain.TodoReadModel) *ListTodosHandler {
 	return &ListTodosHandler{readModel: readModel}
 }
 
-func (h *ListTodosHandler) Handle(ctx context.Context, q *ListTodosQuery) (*ListTodosResult, error) {
+func (h *ListTodosHandler) Handle(
+	ctx context.Context,
+	q *ListTodosQuery,
+) (*ListTodosResult, error) {
 	filter := domain.TodoFilter{
 		Status: q.Status, Tags: q.Tags,
 		Priority: q.Priority, Search: q.Search,

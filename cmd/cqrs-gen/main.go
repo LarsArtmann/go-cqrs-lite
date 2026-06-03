@@ -239,7 +239,12 @@ func generate(pkg, genType string, entries []Entry) string {
 				e.StructName,
 				e.StructName,
 			)
-			fmt.Fprintf(&b, "\treturn query.RegisterTyped[*%s, R](d, %q, handler)\n", e.StructName, e.CommandType)
+			fmt.Fprintf(
+				&b,
+				"\treturn query.RegisterTyped[*%s, R](d, %q, handler)\n",
+				e.StructName,
+				e.CommandType,
+			)
 			b.WriteString("}\n\n")
 		}
 	}

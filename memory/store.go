@@ -16,9 +16,9 @@ type MemoryStore struct {
 	dispatcher.Lifecycle
 
 	mu           sync.RWMutex
-	globalLog    []event.Event          // canonical event storage (single copy)
-	streamIndex  map[string][]int        // streamKey → indices into globalLog
-	eventIDIndex map[id.EventID]int      // index into globalLog for SeekableJournal
+	globalLog    []event.Event      // canonical event storage (single copy)
+	streamIndex  map[string][]int   // streamKey → indices into globalLog
+	eventIDIndex map[id.EventID]int // index into globalLog for SeekableJournal
 }
 
 var (
