@@ -21,10 +21,10 @@ nix run .#lint
 
 ### Prerequisites
 
-| Tool    | Version | Purpose           |
-| ------- | ------- | ----------------- |
-| Go      | 1.26+   | Language runtime  |
-| Nix     | latest  | Build environment |
+| Tool | Version | Purpose           |
+| ---- | ------- | ----------------- |
+| Go   | 1.26+   | Language runtime  |
+| Nix  | latest  | Build environment |
 
 ### Using Nix (Recommended)
 
@@ -139,6 +139,7 @@ go tool cover -html=coverage.out
 Format: `type(scope): description`
 
 Examples:
+
 - `perf(event): remove Payload() clone`
 - `test(memory): add concurrent stress benchmarks`
 - `docs: update benchmark results`

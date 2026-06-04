@@ -15,6 +15,7 @@
 ## A) FULLY DONE ✅
 
 ### 1. MemoryStore Deduplication (CRITICAL)
+
 - **Files:** `memory/store.go`, `memory/store_load.go`
 - **Before:** Every event stored twice — `events map[string][]Event` (per-stream) + `globalLog []Event` (global)
 - **After:** Single canonical `globalLog []Event` + `streamIndex map[string][]int` (indices into globalLog)
@@ -22,31 +23,37 @@
 - **Risk:** `getEvents()` now builds a slice from indices (tiny alloc). Acceptable for in-memory test store.
 
 ### 2. Listing Cache Auto-Invalidation (HIGH)
+
 - **Files:** `listing/middleware.go`, `listing/middleware_test.go`
 - **Added:** `CacheInvalidator` interface + `CacheInvalidationMiddleware(reader)` — PublishMiddleware that calls `InvalidateCache()` after successful publish
 - **Tests:** 2 new tests — happy path (cache reflects new events) + error path (no invalidation on publish failure)
 - **Pattern:** Follows existing `StatusMiddleware` pattern exactly
 
 ### 3. findCodecOption Elimination (MEDIUM)
+
 - **Files:** `event/event_new.go`
 - **Before:** `findCodecOption()` — separate function that allocates a probe `ImmutableEvent`, applies all opts, checks for codec. Called once.
 - **After:** Inlined into `New()` with fast path for empty opts (`if len(opts) == 0` → skip probe entirely). Function deleted.
 - **Result:** Same behavior, cleaner code, no separate function for a single call site.
 
 ### 4. CHANGELOG.md Updated (LOW)
+
 - **File:** `CHANGELOG.md`
 - **Added:** v2.1.0 section with all 7 items (TypedHandler, CacheInvalidationMiddleware, MemoryStore dedup, findCodecOption inline, Pebble Journal, ADR-0008 update, eventtest fix)
 
 ### 5. TODO_LIST.md — TypedHandler Status (LOW)
+
 - **Already done** — line 21: `[x] ~~Fix query.Handler returns any → generic TypedHandler[T]...~~ — DONE (Session 145)`
 - No change needed. Verified.
 
 ### 6. ADR 0008 Updated (MEDIUM)
+
 - **File:** `docs/adr/0008-typed-handler-signature.md`
 - **Before:** Documented `TypedHandler[T any] func(ctx, Query) (T, error)` — single type param, receives generic Query
 - **After:** Rewritten for `TypedHandler[Q Query, R any] func(ctx, Q) (R, error)` — dual type params, receives concrete Q. Documents rationale for both params, shows `RegisterTyped` adapter code, lists 6 alternatives considered.
 
 ### 7. Pebble Journal Implementation (HIGH)
+
 - **Files:** `pebble/journal.go` (new), `pebble/journal_test.go` (new), `pebble/store.go`, `pebble/save.go`, `pebble/helpers.go`
 - **Implementation:** Dual-write approach — events written to both aggregate-centric keys (`cqrs_event:{type}:{id}:{version}`) AND journal keys (`cqrs_journal:{timestamp_20d}:{eventID}`) in the same atomic batch
 - **Interfaces:** `event.Journal` (ReadAll) + `event.SeekableJournal` (ReadFrom) — both implemented
@@ -87,6 +94,7 @@ From TODO_LIST.md and broader backlog:
 ### Nothing this session — all changes verified with tests before moving on.
 
 ### Known pre-existing issues:
+
 - **Pebble serialization hint:** `pebble/serialization.go:68` — `omitempty` has no effect on nested struct fields (Metadata). Cosmetic, not a bug.
 - **LSP hints in test files:** `scale_benchmark_test.go:88` (WaitGroup.Go), `time_travel_test.go` (range int, fmtappendf). Pre-existing, not introduced by this session.
 
@@ -126,43 +134,43 @@ From TODO_LIST.md and broader backlog:
 
 ### Tier 1: HIGH IMPACT (1-5)
 
-| # | Task | Est. | Impact |
-|---|------|------|--------|
-| 1 | Turso test coverage: 28.6% → 80%+ | 45min | CRITICAL — 2nd storage backend with minimal tests |
-| 2 | SQL Journal (ReadAll + ReadFrom) for storage/ | 45min | HIGH — parity with MemoryStore and Pebble |
-| 3 | Pebble EventStream (LoadStream) implementation | 20min | HIGH — completes Pebble as Store alternative |
-| 4 | STORAGE_GUIDE.md update for Pebble Journal | 10min | HIGH — docs must reflect new capability |
-| 5 | Listing CacheInvalidationMiddleware event type filtering | 15min | MEDIUM — avoid unnecessary cache rebuilds |
+| #   | Task                                                     | Est.  | Impact                                            |
+| --- | -------------------------------------------------------- | ----- | ------------------------------------------------- |
+| 1   | Turso test coverage: 28.6% → 80%+                        | 45min | CRITICAL — 2nd storage backend with minimal tests |
+| 2   | SQL Journal (ReadAll + ReadFrom) for storage/            | 45min | HIGH — parity with MemoryStore and Pebble         |
+| 3   | Pebble EventStream (LoadStream) implementation           | 20min | HIGH — completes Pebble as Store alternative      |
+| 4   | STORAGE_GUIDE.md update for Pebble Journal               | 10min | HIGH — docs must reflect new capability           |
+| 5   | Listing CacheInvalidationMiddleware event type filtering | 15min | MEDIUM — avoid unnecessary cache rebuilds         |
 
 ### Tier 2: MEDIUM IMPACT (6-15)
 
-| # | Task | Est. | Impact |
-|---|------|------|--------|
-| 6 | Pebble LoadBackwards (BackwardsSource) | 20min | MEDIUM — completes interface compliance |
-| 7 | Pebble coverage: 86.5% → 90%+ | 15min | MEDIUM — match other modules |
-| 8 | Listing usage example in example/ | 20min | MEDIUM — discoverability |
-| 9 | Pebble journal key simplification (eventID-only) | 15min | MEDIUM — cleaner design with ULID |
-| 10 | Event New() — eliminate probe allocation entirely | 20min | MEDIUM — per-alloc optimization |
-| 11 | Turso Journal implementation | 30min | MEDIUM — consistent interface across all stores |
-| 12 | Storage SQL tests for Journal | 20min | MEDIUM — verify cross-backend correctness |
-| 13 | MemoryStore Journal tests — cross-aggregate ReadFrom | 10min | MEDIUM — verify global ordering correctness |
-| 14 | Integration test: Pebble as Journal for Projection | 15min | MEDIUM — verify real-world usage |
-| 15 | API stability golden file update for v2.1.0 | 10min | MEDIUM — prevent accidental API breaks |
+| #   | Task                                                 | Est.  | Impact                                          |
+| --- | ---------------------------------------------------- | ----- | ----------------------------------------------- |
+| 6   | Pebble LoadBackwards (BackwardsSource)               | 20min | MEDIUM — completes interface compliance         |
+| 7   | Pebble coverage: 86.5% → 90%+                        | 15min | MEDIUM — match other modules                    |
+| 8   | Listing usage example in example/                    | 20min | MEDIUM — discoverability                        |
+| 9   | Pebble journal key simplification (eventID-only)     | 15min | MEDIUM — cleaner design with ULID               |
+| 10  | Event New() — eliminate probe allocation entirely    | 20min | MEDIUM — per-alloc optimization                 |
+| 11  | Turso Journal implementation                         | 30min | MEDIUM — consistent interface across all stores |
+| 12  | Storage SQL tests for Journal                        | 20min | MEDIUM — verify cross-backend correctness       |
+| 13  | MemoryStore Journal tests — cross-aggregate ReadFrom | 10min | MEDIUM — verify global ordering correctness     |
+| 14  | Integration test: Pebble as Journal for Projection   | 15min | MEDIUM — verify real-world usage                |
+| 15  | API stability golden file update for v2.1.0          | 10min | MEDIUM — prevent accidental API breaks          |
 
 ### Tier 3: LOWER IMPACT (16-25)
 
-| # | Task | Est. | Impact |
-|---|------|------|--------|
-| 16 | TransactionID branded type | 20min | v2 — cross-aggregate consistency |
-| 17 | io.Closer removal from core interfaces | 30min | v2 — cleaner ISP |
-| 18 | Catalog diff tool | 60min | FUTURE — API surface monitoring |
-| 19 | High-level test utilities (AggregateTester) | 45min | FUTURE — DX improvement |
-| 20 | Server-side timestamps | 30min | FUTURE — consistency guarantee |
-| 21 | Transactional projection contract | 45min | FUTURE — read-your-writes |
-| 22 | Pebble compaction/merge operator for snapshots | 30min | FUTURE — performance |
-| 23 | Filter/Predicate types for event/query | 20min | FUTURE — type-safe filtering |
-| 24 | Benchmarks for Pebble Journal ReadAll/ReadFrom | 15min | LOW — performance characterization |
-| 25 | LSP hint cleanup (WaitGroup.Go, fmtappendf, rangeint) | 10min | LOW — code modernization |
+| #   | Task                                                  | Est.  | Impact                             |
+| --- | ----------------------------------------------------- | ----- | ---------------------------------- |
+| 16  | TransactionID branded type                            | 20min | v2 — cross-aggregate consistency   |
+| 17  | io.Closer removal from core interfaces                | 30min | v2 — cleaner ISP                   |
+| 18  | Catalog diff tool                                     | 60min | FUTURE — API surface monitoring    |
+| 19  | High-level test utilities (AggregateTester)           | 45min | FUTURE — DX improvement            |
+| 20  | Server-side timestamps                                | 30min | FUTURE — consistency guarantee     |
+| 21  | Transactional projection contract                     | 45min | FUTURE — read-your-writes          |
+| 22  | Pebble compaction/merge operator for snapshots        | 30min | FUTURE — performance               |
+| 23  | Filter/Predicate types for event/query                | 20min | FUTURE — type-safe filtering       |
+| 24  | Benchmarks for Pebble Journal ReadAll/ReadFrom        | 15min | LOW — performance characterization |
+| 25  | LSP hint cleanup (WaitGroup.Go, fmtappendf, rangeint) | 10min | LOW — code modernization           |
 
 ---
 
@@ -180,47 +188,47 @@ This is a design contract question, not an implementation question — it affect
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Tasks planned | 7 |
-| Tasks completed | 7 |
-| Tasks partially done | 0 |
-| Files modified | 10 |
-| Files created | 2 |
-| Lines added | +268 |
-| Lines removed | -50 |
-| Net change | +218 |
-| Test packages | 35 PASS, 0 FAIL |
-| Coverage range | 28.6%–100% (median ~93%) |
-| Build errors | 0 |
-| Vet issues | 0 |
-| LSP errors | 0 |
-| Time estimate | ~2h |
+| Metric               | Value                    |
+| -------------------- | ------------------------ |
+| Tasks planned        | 7                        |
+| Tasks completed      | 7                        |
+| Tasks partially done | 0                        |
+| Files modified       | 10                       |
+| Files created        | 2                        |
+| Lines added          | +268                     |
+| Lines removed        | -50                      |
+| Net change           | +218                     |
+| Test packages        | 35 PASS, 0 FAIL          |
+| Coverage range       | 28.6%–100% (median ~93%) |
+| Build errors         | 0                        |
+| Vet issues           | 0                        |
+| LSP errors           | 0                        |
+| Time estimate        | ~2h                      |
 
 ## Coverage by Module
 
-| Module | Coverage |
-|--------|----------|
-| dispatcher | 100.0% |
-| decider | 100.0% |
-| memory | 99.1% |
-| middleware | 98.5% |
-| otel | 96.4% |
-| catalog | 95.9% |
-| listing | 94.9% |
-| id | 94.5% |
-| query | 94.3% |
-| signing | 94.1% |
-| command | 93.8% |
-| codec | 93.3% |
-| snapshot | 92.3% |
-| watermill | 92.6% |
-| event | 89.4% |
-| schema | 89.7% |
-| storage | 89.3% |
-| pebble | 86.5% |
-| projection | 90.5% |
-| turso | 28.6% |
+| Module     | Coverage |
+| ---------- | -------- |
+| dispatcher | 100.0%   |
+| decider    | 100.0%   |
+| memory     | 99.1%    |
+| middleware | 98.5%    |
+| otel       | 96.4%    |
+| catalog    | 95.9%    |
+| listing    | 94.9%    |
+| id         | 94.5%    |
+| query      | 94.3%    |
+| signing    | 94.1%    |
+| command    | 93.8%    |
+| codec      | 93.3%    |
+| snapshot   | 92.3%    |
+| watermill  | 92.6%    |
+| event      | 89.4%    |
+| schema     | 89.7%    |
+| storage    | 89.3%    |
+| pebble     | 86.5%    |
+| projection | 90.5%    |
+| turso      | 28.6%    |
 
 ## Module Graph (Layer View)
 
@@ -236,17 +244,17 @@ Layer 6: integration/, catalog/, examples/, cmd/
 
 ## Changed Files Summary
 
-| File | Change |
-|------|--------|
-| `memory/store.go` | Dedup: `events map` → `streamIndex map[string][]int` + single `globalLog` |
-| `memory/store_load.go` | `getEvents()` resolves from indices instead of map lookup |
-| `listing/middleware.go` | Added `CacheInvalidator` interface + `CacheInvalidationMiddleware()` |
-| `listing/middleware_test.go` | 2 new tests for cache invalidation middleware |
-| `event/event_new.go` | Inlined codec extraction, deleted `findCodecOption` |
-| `pebble/store.go` | Added `journalPrefix` field |
-| `pebble/save.go` | `writeEventsToBatch` now also writes journal entries |
-| `pebble/helpers.go` | `AppendBatch` now also writes journal entries; added Journal interface assertions |
-| `pebble/journal.go` | NEW — `ReadAll()`, `ReadFrom()`, `journalKey()`, `appendToJournal()` |
-| `pebble/journal_test.go` | NEW — 8 tests for Journal and SeekableJournal |
-| `CHANGELOG.md` | Added v2.1.0 section |
-| `docs/adr/0008-typed-handler-signature.md` | Rewritten for `[Q Query, R any]` dual type params |
+| File                                       | Change                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------- |
+| `memory/store.go`                          | Dedup: `events map` → `streamIndex map[string][]int` + single `globalLog`         |
+| `memory/store_load.go`                     | `getEvents()` resolves from indices instead of map lookup                         |
+| `listing/middleware.go`                    | Added `CacheInvalidator` interface + `CacheInvalidationMiddleware()`              |
+| `listing/middleware_test.go`               | 2 new tests for cache invalidation middleware                                     |
+| `event/event_new.go`                       | Inlined codec extraction, deleted `findCodecOption`                               |
+| `pebble/store.go`                          | Added `journalPrefix` field                                                       |
+| `pebble/save.go`                           | `writeEventsToBatch` now also writes journal entries                              |
+| `pebble/helpers.go`                        | `AppendBatch` now also writes journal entries; added Journal interface assertions |
+| `pebble/journal.go`                        | NEW — `ReadAll()`, `ReadFrom()`, `journalKey()`, `appendToJournal()`              |
+| `pebble/journal_test.go`                   | NEW — 8 tests for Journal and SeekableJournal                                     |
+| `CHANGELOG.md`                             | Added v2.1.0 section                                                              |
+| `docs/adr/0008-typed-handler-signature.md` | Rewritten for `[Q Query, R any]` dual type params                                 |

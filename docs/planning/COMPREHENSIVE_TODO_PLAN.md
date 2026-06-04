@@ -22,11 +22,12 @@
 
 ### P0 — Fix Now (Blocking / Breaking)
 
-| #    | Task                                                                                                             | Source             | Est. | Impact                                                        |
-| ---- | ---------------------------------------------------------------------------------------------------------------- | ------------------ | ---- | ------------------------------------------------------------- |
-| P0.1 | **Fix ADR numbering**: renumber `0007-pebble-scope-event-store-only.md` → `0009`, fill or skip `0005`            | ADR audit          | 2min | Correctness — duplicate numbers confuse history               |
-| P0.2 | **Fix CONTRIBUTING.md**: remove all `just` references, replace with `nix run` equivalents                        | Contributing audit | 5min | New contributors can't build without this                     |
-| P0.3 | **Fix integration/go.mod**: run `go mod tidy` to move `codec/v2` + `snapshot/v2` from indirect → direct          | Code quality       | 2min | Wrong dependency graph, gopls warnings                        |
+| #    | Task                                                                                                    | Source             | Est. | Impact                                          |
+| ---- | ------------------------------------------------------------------------------------------------------- | ------------------ | ---- | ----------------------------------------------- |
+| P0.1 | **Fix ADR numbering**: renumber `0007-pebble-scope-event-store-only.md` → `0009`, fill or skip `0005`   | ADR audit          | 2min | Correctness — duplicate numbers confuse history |
+| P0.2 | **Fix CONTRIBUTING.md**: remove all `just` references, replace with `nix run` equivalents               | Contributing audit | 5min | New contributors can't build without this       |
+| P0.3 | **Fix integration/go.mod**: run `go mod tidy` to move `codec/v2` + `snapshot/v2` from indirect → direct | Code quality       | 2min | Wrong dependency graph, gopls warnings          |
+
 |
 **P0 subtotal: 3 tasks, ~9min**
 
@@ -135,7 +136,7 @@
 Recommended execution sequence — P0 first, then P1 → P2 → P3:
 
 ```
-P0.1 → P0.2 → P0.3 → 
+P0.1 → P0.2 → P0.3 →
 P1.1 → P1.2 → P1.3 → P1.4 → P1.5 → P1.6 → P1.7 →
 P2.1 → P2.2 → P2.3 → P2.4 → P2.5 → P2.6 → P2.7 → P2.8 → P2.9 → P2.10 → P2.11 → P2.12 →
 P3.1 → P3.2 → P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 → P3.9 → P3.10

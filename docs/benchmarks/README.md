@@ -47,22 +47,22 @@ Run with: `go test ./... -bench=. -benchmem -run=^$ -count=1 -timeout=10m`
 
 ### Memory Store
 
-| Benchmark             |  ns/op |   B/op | allocs/op |
-| --------------------- | -----: | -----: | --------: |
-| `Save`                |    523 |    688 |         8 |
-| `Load` (100 events)   |    272 |  1,792 |         1 |
-| `ReadAll` (1K events) |  3,300 | 16,384 |         1 |
-| `ReadFrom` (1K events)|    250 |    800 |         1 |
-| `Bus.Publish`         |     66 |     48 |         3 |
+| Benchmark              | ns/op |   B/op | allocs/op |
+| ---------------------- | ----: | -----: | --------: |
+| `Save`                 |   523 |    688 |         8 |
+| `Load` (100 events)    |   272 |  1,792 |         1 |
+| `ReadAll` (1K events)  | 3,300 | 16,384 |         1 |
+| `ReadFrom` (1K events) |   250 |    800 |         1 |
+| `Bus.Publish`          |    66 |     48 |         3 |
 
 #### ReadAll Scaling (post-optimization)
 
-| Events | ns/op | B/op | allocs/op |
-| ------ | -----: | -----: | --------: |
-| 100    |   222 |  1,792 |         1 |
-| 1K     | 2,573 | 16,384 |         1 |
-| 10K    |21,322 |163,840 |         1 |
-| 100K   |137,938|1,605,634|        1 |
+| Events |   ns/op |      B/op | allocs/op |
+| ------ | ------: | --------: | --------: |
+| 100    |     222 |     1,792 |         1 |
+| 1K     |   2,573 |    16,384 |         1 |
+| 10K    |  21,322 |   163,840 |         1 |
+| 100K   | 137,938 | 1,605,634 |         1 |
 
 Confirmed **O(n) linear scaling** — no sort overhead.
 
@@ -149,12 +149,12 @@ These use realistic JSON payloads (e-commerce order model) and exercise the full
 
 10K aggregates (3 events each), cursor-paginated through 100 pages.
 
-| Metric     | Before | After | Change |
-| ---------- | ------ | ----- | ------ |
-| Total time | 840ms  | 33ms  | **-96% (25x faster)** |
-| Throughput | 12K/s  | 303K/s| **+2,425%** |
-| Memory     | 809MB  | 165MB | **-80%** |
-| Allocs     | 1M     | 10,582| **-99%** |
+| Metric     | Before | After  | Change                |
+| ---------- | ------ | ------ | --------------------- |
+| Total time | 840ms  | 33ms   | **-96% (25x faster)** |
+| Throughput | 12K/s  | 303K/s | **+2,425%**           |
+| Memory     | 809MB  | 165MB  | **-80%**              |
+| Allocs     | 1M     | 10,582 | **-99%**              |
 
 Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List()` builds the cache; subsequent calls only filter/paginate.
 
@@ -170,28 +170,28 @@ Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List(
 
 ### Codec
 
-| Benchmark      | ns/op | B/op | allocs/op |
-| -------------- | ----: | ---: | --------: |
-| JSON Encode    |   249 |  192 |         6 |
-| JSON Decode    |   519 |  592 |        12 |
-| Raw Encode     |    14 |   24 |         1 |
-| Raw Decode     |    23 |   48 |         2 |
+| Benchmark   | ns/op | B/op | allocs/op |
+| ----------- | ----: | ---: | --------: |
+| JSON Encode |   249 |  192 |         6 |
+| JSON Decode |   519 |  592 |        12 |
+| Raw Encode  |    14 |   24 |         1 |
+| Raw Decode  |    23 |   48 |         2 |
 
 ### Watermill Adapter
 
-| Benchmark          | ns/op | B/op | allocs/op |
-| ------------------ | ----: | ---: | --------: |
-| eventToMessage     |   442 |  944 |        15 |
-| messageToEvent     |   528 |  568 |         9 |
-| Publisher Publish  |   593 |  616 |        12 |
-| buildMetadata      |   122 |    0 |         0 |
+| Benchmark         | ns/op | B/op | allocs/op |
+| ----------------- | ----: | ---: | --------: |
+| eventToMessage    |   442 |  944 |        15 |
+| messageToEvent    |   528 |  568 |         9 |
+| Publisher Publish |   593 |  616 |        12 |
+| buildMetadata     |   122 |    0 |         0 |
 
 ### Turso (Embedded LibSQL)
 
-| Benchmark |  ns/op | B/op | allocs/op |
-| --------- | -----: | ---: | --------: |
-| Save      | 83,244 |23,133|       365 |
-| Load (100)|1,079,546|996,264|    16,450 |
+| Benchmark  |     ns/op |    B/op | allocs/op |
+| ---------- | --------: | ------: | --------: |
+| Save       |    83,244 |  23,133 |       365 |
+| Load (100) | 1,079,546 | 996,264 |    16,450 |
 
 ### Query Dispatch
 
@@ -220,11 +220,11 @@ Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List(
 
 ### Session 143–144 (2026-06-03)
 
-|| Change                               | Before                     | After                        | Improvement                    |
-| ------------------------------------ | -------------------------- | ---------------------------- | ------------------------------ |
-|| MemoryStore global log               | 98μs, 52KB, 12 allocs (1K) | 3.3μs, 16KB, 1 alloc (1K)   | **-96% time, -92% allocs**     |
-|| Listing projection cache             | 840ms, 809MB, 1M allocs    | 33ms, 165MB, 10K allocs      | **-96% time, -99% allocs**     |
-|| ImmutableEvent opts pointer          | 336B per event             | 304B per event               | -10% memory per event          |
+|     | Change                      | Before                     | After                     | Improvement                |
+| --- | --------------------------- | -------------------------- | ------------------------- | -------------------------- |
+|     | MemoryStore global log      | 98μs, 52KB, 12 allocs (1K) | 3.3μs, 16KB, 1 alloc (1K) | **-96% time, -92% allocs** |
+|     | Listing projection cache    | 840ms, 809MB, 1M allocs    | 33ms, 165MB, 10K allocs   | **-96% time, -99% allocs** |
+|     | ImmutableEvent opts pointer | 336B per event             | 304B per event            | -10% memory per event      |
 
 ### What can't be optimized (accepted costs)
 
