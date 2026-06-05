@@ -128,39 +128,12 @@ func (r *Runner) replay(ctx context.Context) error {
 			trace.WithAttributes(projectionAttrs(p.Name())...),
 		)
 
-		checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
-		if cpErr != nil {
-			cqrsotel.RecordError(span, cpErr)
+		events, err := r.loadReplayEvents(ctx, seekable, hasSeekable, p)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
 			span.End()
 
-			return event.WrapInfrastructure(cpErr, "projection.load_checkpoint",
-				"load checkpoint for "+p.Name())
-		}
-
-		var events []event.Event
-
-		if hasSeekable && !checkpoint.IsZero() {
-			loaded, lErr := seekable.ReadFrom(ctx, checkpoint.EventID, 0)
-			if lErr != nil {
-				cqrsotel.RecordError(span, lErr)
-				span.End()
-
-				return event.WrapInfrastructure(lErr, "projection.load_events",
-					"load events from position for "+p.Name())
-			}
-
-			events = filterByEventTypes(loaded, p.EventTypes())
-		} else {
-			allEvents, lErr := r.journal.ReadAll(ctx)
-			if lErr != nil {
-				cqrsotel.RecordError(span, lErr)
-				span.End()
-
-				return event.WrapInfrastructure(lErr, "projection.load_events",
-					"load all events")
-			}
-
-			events = filterFromCheckpoint(allEvents, p.EventTypes(), checkpoint)
+			return err
 		}
 
 		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
@@ -182,6 +155,37 @@ func (r *Runner) replay(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (r *Runner) loadReplayEvents(
+	ctx context.Context,
+	seekable event.SeekableJournal,
+	hasSeekable bool,
+	p event.Projection,
+) ([]event.Event, error) {
+	checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
+	if cpErr != nil {
+		return nil, event.WrapInfrastructure(cpErr, "projection.load_checkpoint",
+			"load checkpoint for "+p.Name())
+	}
+
+	if hasSeekable && !checkpoint.IsZero() {
+		loaded, lErr := seekable.ReadFrom(ctx, checkpoint.EventID, 0)
+		if lErr != nil {
+			return nil, event.WrapInfrastructure(lErr, "projection.load_events",
+				"load events from position for "+p.Name())
+		}
+
+		return filterByEventTypes(loaded, p.EventTypes()), nil
+	}
+
+	allEvents, lErr := r.journal.ReadAll(ctx)
+	if lErr != nil {
+		return nil, event.WrapInfrastructure(lErr, "projection.load_events",
+			"load all events")
+	}
+
+	return filterFromCheckpoint(allEvents, p.EventTypes(), checkpoint), nil
 }
 
 func (r *Runner) handleAndCheckpoint(
