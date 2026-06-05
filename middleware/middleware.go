@@ -1,4 +1,3 @@
-// Package middleware provides cross-cutting concerns for CQRS handlers.
 package middleware
 
 import (

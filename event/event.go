@@ -1,24 +1,3 @@
-// Package event provides the core domain event types for building blocks for
-// CQRS and Event Sourcing patterns.
-//
-// Key design principles:
-//   - Immutable event data with rich metadata
-//   - Type-safe event identification
-//   - Context-aware operations
-//   - No panics, explicit error handling
-//
-// Reference: ChastityAPI event Store, Cyberdom EventBus
-// HOW_TO_GOLANG.md coding standards
-//   - Max 250 lines per file
-//   - Max 30 lines per function
-//   - No unnecessary `any` types (Codec/Query use `any` where dynamically required)
-//   - Context as first parameter
-//   - Sentinels for common error states
-//   - No external dependencies (except oklog/ulid)
-//   - Files under 250 lines
-//   - All exported types have Go doc comments
-//   - Use errors.Is for error comparison (not assertions)
-//   - Use package names that match domain (e.g., "event", not "events")
 package event
 
 import (
