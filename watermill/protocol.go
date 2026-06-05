@@ -87,19 +87,14 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
-		return nil, event.WrapRejection(
-			err,
-			"watermill.parse_aggregate_id_failed",
-			"parse aggregate_id",
-		)
+		return nil, event.WrapRejection(err,
+			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
 	aggregateType := event.AggregateType(md.Get(metaAggregateType))
 	if aggregateType == "" {
-		return nil, event.NewRejection(
-			"watermill.missing_metadata",
-			"missing "+metaAggregateType+" metadata",
-		)
+		return nil, event.NewRejection("watermill.missing_metadata",
+			"missing "+metaAggregateType+" metadata")
 	}
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
@@ -107,51 +102,25 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		return nil, fmt.Errorf("topic %s: parse %s: %w", topic, metaVersion, err)
 	}
 
-	schemaVersion := 1
-	if svStr := md.Get(metaSchemaVersion); svStr != "" {
-		sv, err := parseInt(svStr, metaSchemaVersion)
-		if err != nil {
-			return nil, fmt.Errorf("topic %s: parse %s: %w", topic, metaSchemaVersion, err)
-		}
-		schemaVersion = sv
+	schemaVersion, err := parseSchemaVersion(md, topic)
+	if err != nil {
+		return nil, err
 	}
 
 	opts := []event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}
 
-	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
-		eventID, err := id.ParseEventID(eventIDStr)
-		if err != nil {
-			return nil, event.WrapRejection(
-				err,
-				"watermill.parse_event_id_failed",
-				"parse event_id",
-			)
-		}
-		opts = append(opts, event.WithEventID(eventID))
-	}
-
-	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
-		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
-		if err != nil {
-			return nil, event.WrapRejection(
-				err,
-				"watermill.parse_occurred_at_failed",
-				"parse occurred_at",
-			)
-		}
-		opts = append(opts, event.WithOccurredAt(occurredAt))
+	if eventOpts, err := parseOptionalFields(md); err != nil {
+		return nil, err
+	} else {
+		opts = append(opts, eventOpts...)
 	}
 
 	metadata, metaErr := buildMetadata(md)
 	opts = append(opts, event.WithMetadata(metadata))
 
 	evt, err := event.NewEvent(
-		eventType,
-		aggregateID,
-		aggregateType,
-		event.Version(version),
-		msg.Payload,
-		opts...,
+		eventType, aggregateID, aggregateType, event.Version(version),
+		msg.Payload, opts...,
 	)
 	if err != nil {
 		return nil, event.WrapCorruption(err, "watermill.create_event_failed", "create event")
@@ -165,42 +134,51 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	return evt, nil
 }
 
+func parseSchemaVersion(md message.Metadata, topic string) (int, error) {
+	svStr := md.Get(metaSchemaVersion)
+	if svStr == "" {
+		return 1, nil
+	}
+
+	sv, err := parseInt(svStr, metaSchemaVersion)
+	if err != nil {
+		return 0, fmt.Errorf("topic %s: parse %s: %w", topic, metaSchemaVersion, err)
+	}
+
+	return sv, nil
+}
+
+func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
+	var opts []event.Option
+
+	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
+		eventID, err := id.ParseEventID(eventIDStr)
+		if err != nil {
+			return nil, event.WrapRejection(err, "watermill.parse_event_id_failed", "parse event_id")
+		}
+		opts = append(opts, event.WithEventID(eventID))
+	}
+
+	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
+		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
+		if err != nil {
+			return nil, event.WrapRejection(err, "watermill.parse_occurred_at_failed", "parse occurred_at")
+		}
+		opts = append(opts, event.WithOccurredAt(occurredAt))
+	}
+
+	return opts, nil
+}
+
 func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	m := event.NewMetadata()
 	var errs []error
 
-	if v := md.Get(metaCorrelationID); v != "" {
-		parsed, err := id.ParseCorrelationID(v)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("correlationID: %w", err))
-		} else {
-			m.CorrelationID = parsed
-		}
-	}
-	if v := md.Get(metaCausationID); v != "" {
-		parsed, err := id.ParseCausationID(v)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("causationID: %w", err))
-		} else {
-			m.CausationID = parsed
-		}
-	}
-	if v := md.Get(metaUserID); v != "" {
-		parsed, err := id.ParseUserID(v)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("userID: %w", err))
-		} else {
-			m.UserID = parsed
-		}
-	}
-	if v := md.Get(metaRequestID); v != "" {
-		parsed, err := id.ParseRequestID(v)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("requestID: %w", err))
-		} else {
-			m.RequestID = parsed
-		}
-	}
+	parseIDField(md, metaCorrelationID, id.ParseCorrelationID, func(v id.CorrelationID) { m.CorrelationID = v }, &errs)
+	parseIDField(md, metaCausationID, id.ParseCausationID, func(v id.CausationID) { m.CausationID = v }, &errs)
+	parseIDField(md, metaUserID, id.ParseUserID, func(v id.UserID) { m.UserID = v }, &errs)
+	parseIDField(md, metaRequestID, id.ParseRequestID, func(v id.RequestID) { m.RequestID = v }, &errs)
+
 	if v := md.Get(metaSource); v != "" {
 		m.Source = event.Source(v)
 	}
@@ -219,6 +197,21 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	}
 
 	return m, errors.Join(errs...)
+}
+
+func parseIDField[T any](md message.Metadata, key string, parse func(string) (T, error), set func(T), errs *[]error) {
+	v := md.Get(key)
+	if v == "" {
+		return
+	}
+
+	parsed, err := parse(v)
+	if err != nil {
+		*errs = append(*errs, fmt.Errorf("%s: %w", key, err))
+		return
+	}
+
+	set(parsed)
 }
 
 func parseInt(s, field string) (int, error) {

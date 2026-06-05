@@ -63,6 +63,23 @@ func (r *SQLAggregateReader) ListWithStatus(
 		)
 	}
 
+	query, args, limit := r.buildListQuery(opts)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "listing.sql_list", "listing sql list")
+	}
+	defer func() { _ = rows.Close() }()
+
+	items, err := scanAggregateStatuses(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return paginateStatuses(items, limit), nil
+}
+
+func (r *SQLAggregateReader) buildListQuery(opts listing.ListOptions) (string, []any, uint) {
 	var (
 		conditions []string
 		args       []any
@@ -102,16 +119,10 @@ func (r *SQLAggregateReader) ListWithStatus(
 
 	args = append(args, limit+1)
 
-	rows, err := r.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"listing.sql_list",
-			"listing sql list",
-		)
-	}
-	defer func() { _ = rows.Close() }()
+	return query, args, limit
+}
 
+func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 	var items []listing.AggregateStatus
 
 	for rows.Next() {
@@ -124,22 +135,14 @@ func (r *SQLAggregateReader) ListWithStatus(
 			statusInt int
 		)
 
-		err = rows.Scan(&aggType, &aggID, &version, &count, &lastAt, &statusInt)
+		err := rows.Scan(&aggType, &aggID, &version, &count, &lastAt, &statusInt)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"listing.sql_scan",
-				"listing sql scan",
-			)
+			return nil, event.WrapInfrastructure(err, "listing.sql_scan", "listing sql scan")
 		}
 
 		parsedID, err := id.ParseAggregateID(aggID)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"listing.sql_parse_id",
-				"listing sql parse id",
-			)
+			return nil, event.WrapInfrastructure(err, "listing.sql_parse_id", "listing sql parse id")
 		}
 
 		items = append(items, listing.AggregateStatus{
@@ -153,20 +156,20 @@ func (r *SQLAggregateReader) ListWithStatus(
 		})
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"listing.sql_rows",
-			"listing sql rows",
-		)
+	if err := rows.Err(); err != nil {
+		return nil, event.WrapInfrastructure(err, "listing.sql_rows", "listing sql rows")
 	}
 
+	return items, nil
+}
+
+func paginateStatuses(items []listing.AggregateStatus, limit uint) *listing.Page[listing.AggregateStatus] {
 	hasMore := uint(len(items)) > limit
 	if hasMore {
 		items = items[:limit]
 	}
 
-	return &listing.Page[listing.AggregateStatus]{Items: items, HasMore: hasMore}, nil
+	return &listing.Page[listing.AggregateStatus]{Items: items, HasMore: hasMore}
 }
 
 func listRefsFromStatus(
