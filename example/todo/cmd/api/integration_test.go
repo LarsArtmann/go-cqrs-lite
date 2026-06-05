@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
 	cqrsmemory "github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -27,11 +29,17 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 
 	todoProjection := projections.NewTodoProjection(readModelStore)
 
-	_ = eventBus.Subscribe(aggregate.EventCreated, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventUpdated, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventStatusChanged, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventCompleted, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventDeleted, todoProjection.Handle)
+	checkpointStore := cqrsmemory.NewMemoryCheckpointStore()
+	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
+	if err != nil {
+		t.Fatalf("create runner: %v", err)
+	}
+	if err := runner.Register(todoProjection); err != nil {
+		t.Fatalf("register projection: %v", err)
+	}
+	go func() {
+		_ = runner.Run(context.Background())
+	}()
 
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
@@ -104,6 +112,17 @@ func setupTestServer(t *testing.T) (*http.ServeMux, *httptest.Server) {
 	return mux, srv
 }
 
+func assertStatus(t *testing.T, resp *http.Response, want int, label string) {
+	t.Helper()
+	prefix := "Status"
+	if label != "" {
+		prefix = label + " Status"
+	}
+	if resp.StatusCode != want {
+		t.Fatalf("%s = %d, want %d", prefix, resp.StatusCode, want)
+	}
+}
+
 func TestHealthEndpoint(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
@@ -114,9 +133,7 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Status = %d, want %d", resp.StatusCode, http.StatusOK)
-	}
+	assertStatus(t, resp, http.StatusOK, "")
 
 	var body map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
@@ -138,9 +155,7 @@ func TestCreateTodo_Success(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("Status = %d, want %d", resp.StatusCode, http.StatusCreated)
-	}
+	assertStatus(t, resp, http.StatusCreated, "")
 
 	var result map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -162,9 +177,7 @@ func TestCreateTodo_EmptyTitle(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusInternalServerError {
-		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusInternalServerError)
-	}
+	assertStatus(t, resp, http.StatusInternalServerError, "")
 }
 
 func TestListTodos_Empty(t *testing.T) {
@@ -177,9 +190,7 @@ func TestListTodos_Empty(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusOK)
-	}
+	assertStatus(t, resp, http.StatusOK, "")
 }
 
 func TestGetTodo_NotFound(t *testing.T) {
@@ -192,9 +203,7 @@ func TestGetTodo_NotFound(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusBadRequest)
-	}
+	assertStatus(t, resp, http.StatusBadRequest, "")
 }
 
 func TestFullCommandLifecycle(t *testing.T) {
@@ -209,9 +218,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Post: %v", err)
 	}
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("Create Status = %d, want %d", resp.StatusCode, http.StatusCreated)
-	}
+	assertStatus(t, resp, http.StatusCreated, "Create")
 
 	var createResult map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&createResult); err != nil {
@@ -227,9 +234,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Get Status = %d, want %d", resp.StatusCode, http.StatusOK)
-	}
+	assertStatus(t, resp, http.StatusOK, "Get")
 	resp.Body.Close()
 
 	updateBody := `{"title":"Updated Todo","description":"updated"}`
@@ -243,9 +248,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Put: %v", err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Update Status = %d, want %d", resp.StatusCode, http.StatusOK)
-	}
+	assertStatus(t, resp, http.StatusOK, "Update")
 	resp.Body.Close()
 
 	statusBody := `{"status":"completed"}`
@@ -259,9 +262,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Patch: %v", err)
 	}
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("StatusChange Status = %d, want %d", resp.StatusCode, http.StatusNoContent)
-	}
+	assertStatus(t, resp, http.StatusNoContent, "StatusChange")
 	resp.Body.Close()
 
 	req, _ = http.NewRequest(http.MethodDelete, srv.URL+"/api/v1/todos/"+todoID, nil)
@@ -269,9 +270,7 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("Delete Status = %d, want %d", resp.StatusCode, http.StatusNoContent)
-	}
+	assertStatus(t, resp, http.StatusNoContent, "Delete")
 	resp.Body.Close()
 }
 
@@ -292,7 +291,5 @@ func TestUpdateTodo_InvalidID(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusInternalServerError {
-		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusInternalServerError)
-	}
+	assertStatus(t, resp, http.StatusInternalServerError, "")
 }
