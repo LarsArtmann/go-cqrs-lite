@@ -125,16 +125,16 @@
 
 ### Phase 4: Function Decomposition (8 tasks, ~80 min)
 
-| #   | Task                                                                                                                          | Module    | Est | Why                                |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- | --------- | --- | ---------------------------------- |
-| 28  | Decompose `watermill/protocol.go:messageToEvent` (86L → 4 funcs: parseHeaders, parseTimestamp, buildMetadata, constructEvent) | watermill | 12m | Longest function outside storage   |
-| 29  | Decompose `watermill/protocol.go:buildMetadata` (54L → 2 funcs)                                                               | watermill | 8m  | Second longest in watermill        |
-| 30  | Decompose `storage/event_store.go:Save` (55L → 2 funcs: validateVersion, persistEvents)                                       | storage   | 10m | Core write path, hard to review    |
-| 31  | Decompose `storage/event_store.go:AppendBatch` (46L → 2 funcs)                                                                | storage   | 8m  | Batch write path                   |
-| 32  | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs: buildQuery, scanResults)                                   | storage   | 10m | Projection-critical path           |
-| 33  | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L → 2 funcs)                                          | signing   | 8m  | Complex verification logic         |
-| 34  | Decompose `signing/payload.go:canonicalPayload` (41L → 2 funcs: sortKeys, encodePayload)                                      | signing   | 8m  | Core signing logic                 |
-| 35  | Decompose `catalog/schema/reflect.go` (281L file → split into reflect.go + reflect_struct.go + reflect_primitive.go)          | catalog   | 12m | Largest production file at 281L    |
+| #   | Task                                                                                                                          | Module    | Est | Why                              |
+| --- | ----------------------------------------------------------------------------------------------------------------------------- | --------- | --- | -------------------------------- |
+| 28  | Decompose `watermill/protocol.go:messageToEvent` (86L → 4 funcs: parseHeaders, parseTimestamp, buildMetadata, constructEvent) | watermill | 12m | Longest function outside storage |
+| 29  | Decompose `watermill/protocol.go:buildMetadata` (54L → 2 funcs)                                                               | watermill | 8m  | Second longest in watermill      |
+| 30  | Decompose `storage/event_store.go:Save` (55L → 2 funcs: validateVersion, persistEvents)                                       | storage   | 10m | Core write path, hard to review  |
+| 31  | Decompose `storage/event_store.go:AppendBatch` (46L → 2 funcs)                                                                | storage   | 8m  | Batch write path                 |
+| 32  | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs: buildQuery, scanResults)                                   | storage   | 10m | Projection-critical path         |
+| 33  | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L → 2 funcs)                                          | signing   | 8m  | Complex verification logic       |
+| 34  | Decompose `signing/payload.go:canonicalPayload` (41L → 2 funcs: sortKeys, encodePayload)                                      | signing   | 8m  | Core signing logic               |
+| 35  | Decompose `catalog/schema/reflect.go` (281L file → split into reflect.go + reflect_struct.go + reflect_primitive.go)          | catalog   | 12m | Largest production file at 281L  |
 
 ### Phase 5: Coverage Gaps (6 tasks, ~55 min)
 
@@ -159,18 +159,18 @@
 
 ### Phase 7: Code Quality Polish (10 tasks, ~60 min)
 
-| #   | Task                                                                                                                                      | Module      | Est | Why                                 |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --- | ----------------------------------- |
+| #   | Task                                                                                                          | Module      | Est | Why                                 |
+| --- | ------------------------------------------------------------------------------------------------------------- | ----------- | --- | ----------------------------------- |
 | 45  | Move `catalog/internal/cattest/builders.go` test helpers — split 377L into builders.go + registry_builders.go | catalog     | 5m  | Only test helper >350L              |
-| 46  | Split `scripts/go-mod-graph-local/main.go` (412L → main.go + server.go + graph.go)                          | scripts     | 8m  | Only tool file >350L                |
-| 47  | Add `// Deprecated: Use decider instead` to aggregate package doc.go (if not already)                                                     | aggregate   | 3m  | Formal deprecation trail            |
-| 48  | Add example_test.go to `schema/` — show Upcaster + VersionedStore usage                                                                   | schema      | 10m | No example for schema evolution     |
-| 49  | Add example_test.go to `watermill/` — show basic publisher/subscriber adapter usage                                                       | watermill   | 10m | No example exists                   |
-| 50  | Add example_test.go to `projection/` — show Runner with Builder pattern                                                                   | projection  | 10m | Complex API, example helps adoption |
-| 51  | Add `integration/README.md` — explain what cross-module tests exist and how to run them                                                   | integration | 3m  | No docs for integration module      |
-| 52  | Verify all 21 modules have consistent `go 1.26.3` in go.mod                                                                               | all         | 3m  | Consistency check                   |
-| 53  | Run `go mod tidy` on all 21 modules and verify no changes needed                                                                          | all         | 5m  | Housekeeping                        |
-| 54  | Add `t.Parallel()` to turso tests (currently missing)                                                                                     | turso       | 3m  | Convention compliance               |
+| 46  | Split `scripts/go-mod-graph-local/main.go` (412L → main.go + server.go + graph.go)                            | scripts     | 8m  | Only tool file >350L                |
+| 47  | Add `// Deprecated: Use decider instead` to aggregate package doc.go (if not already)                         | aggregate   | 3m  | Formal deprecation trail            |
+| 48  | Add example_test.go to `schema/` — show Upcaster + VersionedStore usage                                       | schema      | 10m | No example for schema evolution     |
+| 49  | Add example_test.go to `watermill/` — show basic publisher/subscriber adapter usage                           | watermill   | 10m | No example exists                   |
+| 50  | Add example_test.go to `projection/` — show Runner with Builder pattern                                       | projection  | 10m | Complex API, example helps adoption |
+| 51  | Add `integration/README.md` — explain what cross-module tests exist and how to run them                       | integration | 3m  | No docs for integration module      |
+| 52  | Verify all 21 modules have consistent `go 1.26.3` in go.mod                                                   | all         | 3m  | Consistency check                   |
+| 53  | Run `go mod tidy` on all 21 modules and verify no changes needed                                              | all         | 5m  | Housekeeping                        |
+| 54  | Add `t.Parallel()` to turso tests (currently missing)                                                         | turso       | 3m  | Convention compliance               |
 
 ### Phase 8: Consumer Experience (8 tasks, ~45 min)
 
