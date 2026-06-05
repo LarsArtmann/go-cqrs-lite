@@ -1095,7 +1095,6 @@
 
 <span class="hl-kw">type</span> <span class="hl-type">Sink</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Put</span>(ctx <span class="hl-type">context.Context</span>, rec <span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]) <span class="hl-type">error</span>
-    <span class="hl-func">Tombstone</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) <span class="hl-type">error</span>
 }
 
 <span class="hl-kw">type</span> <span class="hl-type">Store</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
