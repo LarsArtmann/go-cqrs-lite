@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toward Perfect — go-cqrs-lite Architectural Roadmap</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --surface-2: #20242c;
+    --border: #2c313a;
+    --text: #e1e3e6;
+    --muted: #9aa0a6;
+    --accent: #60a5fa;
+    --accent-2: #38bdf8;
+    --success: #4ade80;
+    --warn: #facc15;
+    --danger: #f87171;
+    --info: #a78bfa;
+    --max-width: 1100px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(15,17,21,0.85);
+    border-bottom: 1px solid var(--border);
+  }
+  nav {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  nav a:hover { color: var(--text); }
+  nav .brand {
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: auto;
+  }
+  main {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  h1, h2, h3, h4 { margin: 0 0 0.5em; line-height: 1.25; }
+  h1 { font-size: 2.2rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.6rem; margin-top: 2.6rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.2rem; margin-top: 2rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin-top: 1.4rem; color: var(--text); }
+  p { color: var(--text); margin: 0.6em 0; }
+  .lead { color: var(--muted); font-size: 1.15rem; }
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.done { background: rgba(74,222,128,0.12); color: var(--success); border-color: rgba(74,222,128,0.35); }
+  .tag.gap { background: rgba(250,204,21,0.12); color: var(--warn); border-color: rgba(250,204,21,0.35); }
+  .tag.missing { background: rgba(248,113,113,0.12); color: var(--danger); border-color: rgba(248,113,113,0.35); }
+  .tag.idea { background: rgba(167,139,250,0.12); color: var(--info); border-color: rgba(167,139,250,0.35); }
+
+  .hero {
+    padding: 2.5rem 0 1rem;
+  }
+  .hero h1 {
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.6rem 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+  }
+  .card h4 { margin: 0 0 0.35rem; color: var(--text); }
+  .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .card .big {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--accent-2);
+    margin-bottom: 0.2rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.6rem;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+  }
+  code {
+    background: rgba(255,255,255,0.06);
+    padding: 0.15rem 0.35rem;
+    border-radius: 6px;
+    color: #c7d2fe;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+    overflow-x: auto;
+    margin: 0.8rem 0 1.2rem;
+  }
+  pre code { background: transparent; padding: 0; }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 1rem;
+    margin: 1.2rem 0;
+  }
+  .phase-num {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+  }
+  .phase-body { padding-top: 0.1rem; }
+  .phase-body h4 { margin: 0 0 0.3rem; }
+  .phase-body p { margin: 0; color: var(--muted); }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin: 1rem 0;
+  }
+  .check { color: var(--success); margin-right: 0.35rem; }
+  .cross { color: var(--danger); margin-right: 0.35rem; }
+  .tilde { color: var(--warn); margin-right: 0.35rem; }
+
+  ul.plain { padding-left: 1.1rem; margin: 0.6rem 0; }
+  ul.plain li { margin: 0.35rem 0; }
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    padding: 0.9rem 1.1rem;
+    border-radius: 0 10px 10px 0;
+    margin: 1rem 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.danger { border-left-color: var(--danger); }
+  .callout p { margin: 0; color: var(--muted); }
+  .callout strong { color: var(--text); }
+
+  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a class="brand" href="#top">go-cqrs-lite · Brainstorming</a>
+    <a href="#current">Current State</a>
+    <a href="#gaps">Gaps</a>
+    <a href="#vision">Vision</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#modules">New Modules</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <h1>Toward Perfect</h1>
+  <p class="lead">
+    A candid architectural assessment of <code>go-cqrs-lite</code> at v2.1.0 —
+    what is already excellent, what is missing, and a concrete roadmap to get as close to perfect as possible.
+  </p>
+
+  <div class="summary-grid">
+    <div class="card">
+      <div class="big">30</div>
+      <h4>Modules</h4>
+      <p>22 library + 6 examples + 2 cmd tools, all tagged v2.1.0</p>
+    </div>
+    <div class="card">
+      <div class="big">89–100%</div>
+      <h4>Coverage</h4>
+      <p>Core packages above 90%; turso at 29% is the outlier</p>
+    </div>
+    <div class="card">
+      <div class="big">0</div>
+      <h4>Lint Issues</h4>
+      <p>11 of 12 linted modules are clean; catalog has 7 pre-existing</p>
+    </div>
+    <div class="card">
+      <div class="big">67K</div>
+      <h4>Lines of Code</h4>
+      <p>Event-sourcing library with zero framework assumptions</p>
+    </div>
+  </div>
+</section>
+
+<section id="current">
+  <h2>1. What We Have — The Excellent</h2>
+
+  <p>
+    v2.1.0 is a genuinely strong release. The following areas are already at or near production-grade trustworthiness.
+    These should be preserved and used as the quality benchmark for everything else.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Area</th><th>Why It Is Excellent</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>event/</code></td>
+        <td>Immutable events, 19 functional options, strong error taxonomy, lazy allocation, clock injection, defensive copies.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>id/</code></td>
+        <td>Branded ULIDs with compile-time safety, full serialization support, 97.8% coverage.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>command/</code> & <code>query/</code></td>
+        <td>Typed handlers, middleware chains, lifecycle, metadata, catalog introspection. 100% / 94% coverage.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>decider/</code></td>
+        <td>Pure-function aggregates, snapshot/time-travel support, fully deterministic. 100% coverage.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>middleware/</code></td>
+        <td>8 concerns × 3 message types = 24 middleware factories. Circuit breaker, retry, tracing, metrics, logging, validation, recovery.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>signing/</code></td>
+        <td>HMAC + Ed25519 + multisig, canonical encoding, zero external crypto deps.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>catalog/</code></td>
+        <td>Auto-docs: AsyncAPI, OpenAPI, EventCatalog MDX, D2 diagrams, docserver with Scalar + AsyncAPI React.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>projection/</code></td>
+        <td>Replay + live runner, checkpointing, DLQ, replay context markers, graceful close. 95%+ coverage.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>listing/</code></td>
+        <td>Aggregate listing with tombstone detection, cursor pagination, SQL + in-memory readers, cache invalidation.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>storage/</code></td>
+        <td>PostgreSQL + SQLite + Turso, optimistic concurrency, time-travel, snapshots, checkpoints, dialect abstraction.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>memory/</code></td>
+        <td>Reference in-memory implementations for testing. 99.6% coverage.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>otel/</code></td>
+        <td>Shared OpenTelemetry helpers across modules. Clean abstraction over raw OTel SDK.</td>
+        <td><span class="tag done">Done</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p><strong>Core insight:</strong> The hard parts are solved. Event model, identity, dispatch, projections, storage backends, docs generation, and middleware are all credible, tested, and composable. The remaining work is mostly <em>connective tissue</em> and <em>production hardening</em>.</p>
+  </div>
+</section>
+
+<section id="gaps">
+  <h2>2. Where We Are Not Yet Perfect</h2>
+
+  <table>
+    <thead>
+      <tr><th>Gap</th><th>Severity</th><th>What It Means for Consumers</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>No generic read-model store</td>
+        <td><span class="tag missing">High</span></td>
+        <td>Every projection writes its own SQL. No typed CRUD abstraction between <code>projection/</code> and <code>query/</code>.</td>
+      </tr>
+      <tr>
+        <td>SQL storage lacks <code>Journal</code></td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>Cross-aggregate replay from SQL requires table-scan workarounds instead of native <code>ReadAll/ReadFrom</code>.</td>
+      </tr>
+      <tr>
+        <td>Pebble gaps</td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>No <code>BackwardsSource</code> or <code>StreamLoader</code>; limits parity with SQL/memory.</td>
+      </tr>
+      <tr>
+        <td>Turso coverage 29%</td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>Remote sync (Push/Pull/Checkpoint) is effectively untested. Consumers cannot trust it in production.</td>
+      </tr>
+      <tr>
+        <td>Outbox exists but is fragmented</td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>Outbox types are split across <code>storage/</code> and <code>event/</code>. No first-class poller or retry policy API.</td>
+      </tr>
+      <tr>
+        <td>No schema registry middleware</td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>Consumers can upcast on load, but cannot enforce schema compatibility at publish time.</td>
+      </tr>
+      <tr>
+        <td>Test utilities are thin</td>
+        <td><span class="tag gap">Medium</span></td>
+        <td>No fluent <code>AggregateTester</code>, <code>ProjectionTester</code>, or <code>BusTester</code>. Every consumer hand-rolls setup.</td>
+      </tr>
+      <tr>
+        <td>BuildFlow pre-commit hook broken</td>
+        <td><span class="tag gap">Low</span></td>
+        <td>Requires <code>--no-verify</code>. Annoying, not blocking, but erodes contributor trust.</td>
+      </tr>
+      <tr>
+        <td>Catalog lint issues (7)</td>
+        <td><span class="tag gap">Low</span></td>
+        <td>Pre-existing; not correctness issues, but they stain an otherwise zero-lint codebase.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="vision">
+  <h2>3. Vision of the Perfect State</h2>
+
+  <p>
+    A perfect <code>go-cqrs-lite</code> would mean any team can build a production CQRS system by composing modules
+    without writing infrastructure glue. The library would handle the <em>boring, risky</em> parts:
+    persistence, schema evolution, observability, caching, and resilience.
+  </p>
+
+  <div class="two-col">
+    <div class="card">
+      <h4><span class="check">✓</span> Type-safe everything</h4>
+      <p>No <code>any</code> in public APIs. Branded IDs, generic stores, generic projections, generic queries. The compiler prevents mixing IDs and payloads.</p>
+    </div>
+    <div class="card">
+      <h4><span class="check">✓</span> Observable by default</h4>
+      <p>Every store, bus, dispatcher, projection, and query handler emits OTel traces and metrics. Zero config means zero telemetry.</p>
+    </div>
+    <div class="card">
+      <h4><span class="check">✓</span> Resilient by default</h4>
+      <p>Outbox guarantees at-least-once delivery. Retries, circuit breakers, and DLQ are opt-out, not opt-in.</p>
+    </div>
+    <div class="card">
+      <h4><span class="check">✓</span> Schema-aware</h4>
+      <p>Publish-time validation against a registry. Versioned read models. Upcasters migrate both event and projection schemas.</p>
+    </div>
+    <div class="card">
+      <h4><span class="check">✓</span> Testable without mocks</h4>
+      <p>High-level test utilities let consumers write Given-When-Then specs against real in-memory infrastructure.</p>
+    </div>
+    <div class="card">
+      <h4><span class="check">✓</span> Modular acyclic graph</h4>
+      <p>No module depends on more than it needs. Consumers import only what they use. No replace-directive tangles.</p>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <h2>4. Roadmap to Perfect</h2>
+
+  <div class="phase">
+    <div class="phase-num">1</div>
+    <div class="phase-body">
+      <h4>Add a typed <code>data/</code> read-model module</h4>
+      <p>
+        This is the highest-impact missing piece. It sits between <code>projection/</code> (writes read models) and <code>query/</code> (reads them).
+        A generic <code>Store[K,V]</code> with SQL + in-memory implementations, cursor pagination, optimistic concurrency, cache decorator, and OTel.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">2</div>
+    <div class="phase-body">
+      <h4>Complete SQL <code>Journal</code> and Pebble parity</h4>
+      <p>
+        SQL storage should implement <code>event.Journal</code> and <code>event.SeekableJournal</code> natively.
+        Pebble should implement <code>BackwardsSource</code> and <code>StreamLoader</code>. All three backends should pass a shared contract test suite.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">3</div>
+    <div class="phase-body">
+      <h4>Promote outbox to a first-class module</h4>
+      <p>
+        Consolidate outbox types and poller into <code>outbox/</code> with a stable API:
+        <code>Outbox</code>, <code>Poller</code>, <code>RetryPolicy</code>, <code>OutboxEntry</code>, and transactional sink integration.
+        Remove the fragmentation between <code>storage/</code> and <code>event/</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">4</div>
+    <div class="phase-body">
+      <h4>Production-harden Turso</h4>
+      <p>
+        Add integration tests for Push/Pull/Checkpoint against a local libSQL replica or testcontainer.
+        Document sync semantics, conflict resolution, and offline-first guarantees. Target 80%+ coverage.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">5</div>
+    <div class="phase-body">
+      <h4>Add schema registry middleware</h4>
+      <p>
+        A publish-side middleware that validates event payloads against the catalog JSON schema.
+        Prevents incompatible events from ever reaching the bus. Complements the existing load-time upcaster.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">6</div>
+    <div class="phase-body">
+      <h4>Build <code>testing/</code> fluent utilities</h4>
+      <p>
+        <code>AggregateTester</code>, <code>ProjectionTester</code>, <code>BusTester</code>, and <code>StoreContractSuite</code>
+        so consumers write BDD-style tests without boilerplate. This is the missing DX layer.
+      </p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">7</div>
+    <div class="phase-body">
+      <h4>Polish developer experience</h4>
+      <p>
+        Fix BuildFlow pre-commit, eliminate catalog lint issues, add a dedicated "getting started" example that uses
+        command dispatch → decider → event store → projection → query end-to-end. Make onboarding 15 minutes, not 2 hours.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="modules">
+  <h2>5. New Module Proposals</h2>
+
+  <h3><code>data/</code> — Typed Read-Model Store</h3>
+
+  <pre><code>// data/store.go
+type Reader[K comparable, V any] interface {
+    Get(ctx context.Context, key K) (Record[K, V], error)
+    List(ctx context.Context, opts ListOptions[K]) (Page[Record[K, V]], error)
+}
+
+type Writer[K comparable, V any] interface {
+    Put(ctx context.Context, rec Record[K, V]) error
+    Delete(ctx context.Context, key K) error
+}
+
+type Store[K comparable, V any] interface {
+    Reader[K, V]
+    Writer[K, V]
+    io.Closer
+}
+
+type Record[K comparable, V any] struct {
+    Key       K
+    Value     V
+    Version   uint64
+    UpdatedAt time.Time
+    Status    event.TombstoneStatus
+}</code></pre>
+
+  <ul class="plain">
+    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code>, <code>NewInMemoryStore[K,V]</code>, <code>NewCachedReader[K,V]</code> (otter), <code>NewVersionedStore[K,V]</code> (projection schema migration).</li>
+    <li><strong>Integration:</strong> <code>data.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
+    <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
+    <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
+  </ul>
+
+  <h3><code>outbox/</code> — Transactional Outbox</h3>
+
+  <pre><code>// outbox/outbox.go
+type Outbox interface {
+    Append(ctx context.Context, entries []Entry) error
+    PollPending(ctx context.Context, limit int) ([]Entry, error)
+    Ack(ctx context.Context, ids []id.EventID) error
+}
+
+type Poller interface {
+    Run(ctx context.Context) error
+}
+
+type RetryPolicy struct {
+    MaxAttempts  int
+    InitialDelay time.Duration
+    MaxDelay     time.Duration
+}</code></pre>
+
+  <ul class="plain">
+    <li>Consolidate SQL outbox, memory outbox, and poller into one module with a single mental model.</li>
+    <li>Integrate cleanly with <code>storage.NewTransactionalSink(store, outbox)</code>.</li>
+    <li>Add at-least-once delivery semantics, poison-message handling, and observability spans.</li>
+  </ul>
+
+  <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
+
+  <pre><code>// registry/registry.go
+type Registry struct { /* JSON schemas by (eventType, version) */ }
+
+func (r *Registry) Validate(evt event.Event) error
+func ValidationMiddleware(r *Registry) event.PublishMiddleware</code></pre>
+
+  <ul class="plain">
+    <li>Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.</li>
+    <li>Prevents producer/consumer drift. Complements <code>schema.Upcaster</code> (load-time migration).</li>
+  </ul>
+
+  <h3><code>testing/</code> — Fluent Test Utilities</h3>
+
+  <pre><code>// testing/aggregate.go
+tester := cqtesting.NewAggregateTester(t, store, bus).
+    Given(decider.InitialState).
+    When(CreateUser{Name: "Alice"}).
+    Then(func(t *testing.T, state UserState) {
+        assert.Equal(t, "Alice", state.Name)
+    })
+
+// testing/projection.go
+checker := cqtesting.NewProjectionTester(t, runner).
+    ExpectProjection("user-summary").
+    After(UserCreated{Name: "Alice"}).
+    To(func(t *testing.T, rec UserSummary) {
+        assert.Equal(t, "Alice", rec.Name)
+    })</code></pre>
+
+  <ul class="plain">
+    <li>High-level BDD helpers for the three things every consumer tests: aggregates, projections, and commands/events.</li>
+    <li>Works with real <code>memory</code> implementations — no mocks required.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Module Graph Target</h2>
+
+  <pre><code>Layer 0: id/, dispatcher/, codec/
+Layer 1: event/ (id, codec), command/ (id, dispatcher), query/ (dispatcher)
+Layer 2: schema/ (event), snapshot/ (event)
+Layer 3: decider/ (event, snapshot)
+Layer 4: memory/, signing/, otel/, data/
+Layer 5: middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, outbox/
+Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/, registry/</code></pre>
+
+  <p>
+    The key addition is <code>data/</code> at Layer 4 alongside <code>memory/</code>, <code>signing/</code>, and <code>otel/</code>.
+    It becomes the standard read-model persistence contract, allowing <code>projection/</code>, <code>listing/</code>, and consumers
+    to write typed read models without touching SQL.
+  </p>
+</section>
+
+<section>
+  <h2>7. Decision Principles for New Work</h2>
+
+  <table>
+    <thead>
+      <tr><th>Principle</th><th>Application</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Library, not framework</td>
+        <td>Never impose a transport, message broker, or SQL driver. Provide interfaces and reference implementations.</td>
+      </tr>
+      <tr>
+        <td>Zero <code>any</code> in public APIs</td>
+        <td>The only exception is database driver interop. Everything else is generic or strongly typed.</td>
+      </tr>
+      <tr>
+        <td>Composition over inheritance</td>
+        <td>Store decorators (cached, versioned, retrying) wrap inner stores. No base structs.</td>
+      </tr>
+      <tr>
+        <td>Observability built-in</td>
+        <td>Every new module uses <code>otel/</code> for traces and metrics from day one.</td>
+      </tr>
+      <tr>
+        <td>Tombstone over delete</td>
+        <td>Read models use <code>event.TombstoneStatus</code>; deletes are soft and reversible.</td>
+      </tr>
+      <tr>
+        <td>Test like we mean it</td>
+        <td>≥90% coverage, BDD suite, benchmarks, contract tests shared across implementations.</td>
+      </tr>
+      <tr>
+        <td>Acyclic module graph</td>
+        <td>No lower-layer module may depend on a higher layer. Replace directives only for CI isolation.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>8. Summary — What to Do Next</h2>
+
+  <p>If I had one quarter to move this project from "excellent" to "perfect," the order would be:</p>
+
+  <ol>
+    <li><strong>Build <code>data/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
+    <li><strong>Promote <code>outbox/</code></strong> — consolidate fragmented outbox code into a first-class, observable module.</li>
+    <li><strong>Complete storage parity</strong> — SQL Journal, Pebble BackwardsSource/StreamLoader, shared contract tests.</li>
+    <li><strong>Harden Turso</strong> — integration tests for sync semantics; target 80% coverage.</li>
+    <li><strong>Add registry middleware</strong> — publish-time schema validation to complement upcasters.</li>
+    <li><strong>Ship <code>testing/</code></strong> — fluent BDD utilities. This is the DX multiplier.</li>
+    <li><strong>Polish</strong> — fix BuildFlow, zero catalog lint, better onboarding example.</li>
+  </ol>
+
+  <div class="callout">
+    <p><strong>Bottom line:</strong> go-cqrs-lite is already one of the most thoughtfully architected Go CQRS libraries available. The remaining work is not about fixing fundamental mistakes — it is about closing the last gaps so consumers can assemble a complete, production-grade CQRS stack using only library modules, with zero hand-rolled infrastructure glue.</p>
+  </div>
+</section>
+
+<div class="footer">
+  Generated for go-cqrs-lite v2.1.0 · docs/brainstorming/toward-perfect-go-cqrs-lite.html
+</div>
+
+</main>
+</body>
+</html>
