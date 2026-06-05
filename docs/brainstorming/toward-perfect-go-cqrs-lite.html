@@ -1079,7 +1079,7 @@ type Reader[K comparable, V any] interface {
 
 type Writer[K comparable, V any] interface {
     Put(ctx context.Context, rec Record[K, V]) error
-    Delete(ctx context.Context, key K) error
+    Tombstone(ctx context.Context, key K) error
 }
 
 type Store[K comparable, V any] interface {
@@ -1148,7 +1148,9 @@ tester := cqtesting.NewAggregateTester(t, store, bus).
     Given(decider.InitialState).
     When(CreateUser{Name: "Alice"}).
     Then(func(t *testing.T, state UserState) {
-        assert.Equal(t, "Alice", state.Name)
+        if state.Name != "Alice" {
+            t.Errorf("expected name Alice, got %s", state.Name)
+        }
     })
 
 // testing/projection.go
@@ -1156,7 +1158,9 @@ checker := cqtesting.NewProjectionTester(t, runner).
     ExpectProjection("user-summary").
     After(UserCreated{Name: "Alice"}).
     To(func(t *testing.T, rec UserSummary) {
-        assert.Equal(t, "Alice", rec.Name)
+        if rec.Name != "Alice" {
+            t.Errorf("expected name Alice, got %s", rec.Name)
+        }
     })</code></pre>
 
   <ul class="plain">
