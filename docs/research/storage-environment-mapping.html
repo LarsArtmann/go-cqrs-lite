@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storage Environment Mapping — go-cqrs-lite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0e12;
+  --bg-elevated: #13161c;
+  --bg-surface: #1a1d26;
+  --bg-hover: #222633;
+  --border: #2a2f3a;
+  --border-subtle: #1e222c;
+  --text: #e8eaed;
+  --text-muted: #9aa0a6;
+  --text-dim: #5f6368;
+  --accent: #e85d4e;
+  --accent-soft: rgba(232, 93, 78, 0.12);
+  --accent-glow: rgba(232, 93, 78, 0.25);
+  --green: #5bb974;
+  --green-soft: rgba(91, 185, 116, 0.12);
+  --yellow: #e8a23d;
+  --yellow-soft: rgba(232, 162, 61, 0.12);
+  --blue: #5c9cf5;
+  --blue-soft: rgba(92, 156, 245, 0.12);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.12);
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+  --shadow-lg: 0 4px 6px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.3);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7f9;
+    --bg-elevated: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-hover: #f1f3f4;
+    --border: #dadce0;
+    --border-subtle: #e8eaed;
+    --text: #202124;
+    --text-muted: #5f6368;
+    --text-dim: #80868b;
+    --accent: #c0392b;
+    --accent-soft: rgba(192, 57, 43, 0.08);
+    --accent-glow: rgba(192, 57, 43, 0.15);
+    --green: #34a853;
+    --green-soft: rgba(52, 168, 83, 0.08);
+    --yellow: #f9ab00;
+    --yellow-soft: rgba(249, 171, 0, 0.08);
+    --blue: #4285f4;
+    --blue-soft: rgba(66, 133, 244, 0.08);
+    --purple: #7c4dff;
+    --purple-soft: rgba(124, 77, 255, 0.08);
+    --shadow: 0 1px 3px rgba(60,64,67,0.08), 0 4px 12px rgba(60,64,67,0.06);
+    --shadow-lg: 0 4px 6px rgba(60,64,67,0.08), 0 12px 32px rgba(60,64,67,0.1);
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Hero ===== */
+.hero {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 24px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 600px 300px at 10% 20%, var(--accent-glow) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 200px at 90% 80%, var(--blue-soft) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-desc {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 24px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.hero-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-meta-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.hero-meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ===== Layout ===== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+section { margin-bottom: 64px; }
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.section-header h2 {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.section-header .count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-header-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.card-header h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.card-header .subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.card-body {
+  padding: 20px 24px;
+}
+
+/* ===== Grid ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.grid-2 { grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); }
+
+@media (max-width: 640px) {
+  .grid, .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ===== Touchpoint Cards ===== */
+.touchpoint-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.touchpoint-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.touchpoint-card.status-ok::before { background: var(--green); }
+.touchpoint-card.status-warn::before { background: var(--yellow); }
+.touchpoint-card.status-planned::before { background: var(--blue); }
+
+.touchpoint-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.touchpoint-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.touchpoint-header h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.status-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.status-badge.ok { background: var(--green-soft); color: var(--green); }
+.status-badge.warn { background: var(--yellow-soft); color: var(--yellow); }
+.status-badge.planned { background: var(--blue-soft); color: var(--blue); }
+
+.touchpoint-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.touchpoint-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.touchpoint-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ===== Environment Tabs ===== */
+.env-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.env-tab {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.env-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.env-tab.active {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.env-tab .icon { font-size: 15px; }
+
+.env-panel { display: none; }
+.env-panel.active { display: block; }
+
+/* ===== Matrix Table ===== */
+.matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.matrix-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.matrix-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+.matrix-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+.matrix-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.matrix-table tr:hover td {
+  background: var(--bg-hover);
+}
+
+.matrix-table tr:last-child td:first-child { border-radius: 0 0 0 var(--radius-sm); }
+.matrix-table tr:last-child td:last-child { border-radius: 0 0 var(--radius-sm) 0; }
+
+.cell-yes { color: var(--green); font-weight: 600; }
+.cell-no { color: var(--text-dim); }
+.cell-warn { color: var(--yellow); font-weight: 600; }
+.cell-highlight { color: var(--accent); font-weight: 600; }
+
+/* ===== Backend Cards in Panels ===== */
+.backend-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.backend-card-header {
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.backend-card-header:hover {
+  background: var(--bg-hover);
+}
+
+.backend-card-header h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backend-card-header .recommendation {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+.rec-excellent { background: var(--green-soft); color: var(--green); }
+.rec-good { background: var(--blue-soft); color: var(--blue); }
+.rec-moderate { background: var(--yellow-soft); color: var(--yellow); }
+.rec-poor { background: var(--accent-soft); color: var(--accent); }
+
+.backend-card-body {
+  padding: 20px;
+  display: none;
+}
+
+.backend-card.open .backend-card-body {
+  display: block;
+}
+
+.backend-card.open .chevron {
+  transform: rotate(180deg);
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.backend-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.detail-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.backend-verdict {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.verdict-good {
+  background: var(--green-soft);
+  border: 1px solid rgba(91, 185, 116, 0.2);
+  color: var(--green);
+}
+
+.verdict-warn {
+  background: var(--yellow-soft);
+  border: 1px solid rgba(232, 162, 61, 0.2);
+  color: var(--yellow);
+}
+
+.verdict-bad {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  color: var(--accent);
+}
+
+/* ===== Decision Tree ===== */
+.tree {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.tree-node {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 16px;
+}
+
+.tree-node::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: -16px;
+  width: 2px;
+  background: var(--border);
+}
+
+.tree-node:last-child::before {
+  bottom: 0;
+}
+
+.tree-node::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--accent);
+}
+
+.tree-node.leaf::after {
+  border-color: var(--green);
+}
+
+.tree-question {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.tree-answer {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tree-answer .arrow {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ===== Limitation Cards ===== */
+.limitation-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: var(--transition);
+}
+
+.limitation-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.limitation-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.limitation-header .icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  background: var(--accent-soft);
+}
+
+.limitation-header h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.limitation-body {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.limitation-body ol, .limitation-body ul {
+  margin-left: 20px;
+  margin-top: 8px;
+}
+
+.limitation-body li {
+  margin-bottom: 6px;
+}
+
+.limitation-verdict {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* ===== Gap Table ===== */
+.gap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.gap-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 12px 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+.gap-table th:first-child { text-align: left; padding-left: 16px; }
+
+.gap-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.gap-table td:first-child {
+  text-align: left;
+  padding-left: 16px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.gap-check { color: var(--green); font-size: 16px; }
+.gap-cross { color: var(--accent); font-size: 16px; }
+.gap-partial { color: var(--yellow); font-size: 16px; }
+
+/* ===== Takeaway Cards ===== */
+.takeaway-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.takeaway-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.takeaway-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--accent);
+}
+
+.takeaway-card:nth-child(2)::before { background: var(--green); }
+.takeaway-card:nth-child(3)::before { background: var(--blue); }
+.takeaway-card:nth-child(4)::before { background: var(--yellow); }
+.takeaway-card:nth-child(5)::before { background: var(--purple); }
+.takeaway-card:nth-child(6)::before { background: var(--accent); }
+.takeaway-card:nth-child(7)::before { background: var(--green); }
+
+.takeaway-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.takeaway-num {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-dim);
+  opacity: 0.5;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.takeaway-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.takeaway-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* ===== Code / Inline ===== */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg-hover);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ===== Footer ===== */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .hero { padding: 40px 20px 32px; }
+  .container { padding: 32px 20px; }
+  .tree { padding: 20px; }
+  .backend-details { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">Research Document</div>
+    <h1>Storage Environment <em>Mapping</em></h1>
+    <p class="hero-desc">
+      Every storage touchpoint in <code>go-cqrs-lite</code>, mapped to its
+      <strong>native backend per runtime environment</strong>. "Native" means already present,
+      no extra infrastructure to provision, idiomatic for that platform.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Scope</span>
+        <span class="hero-meta-value">All 7 storage touchpoints</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Environments</span>
+        <span class="hero-meta-value">6 runtime targets</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Date</span>
+        <span class="hero-meta-value">2026-06-05</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ===== SECTION 1: TOUCHPOINT INVENTORY ===== -->
+<section>
+  <div class="section-header">
+    <h2>Storage Touchpoints</h2>
+    <span class="count">7 identified</span>
+  </div>
+  <div class="grid">
+
+    <div class="touchpoint-card status-ok">
+      <div class="touchpoint-header">
+        <h3>Event Store</h3>
+        <span class="status-badge ok">Implemented</span>
+      </div>
+      <div class="touchpoint-meta">event.Store · Sink + Source + Journal + Seekable</div>
+      <p class="touchpoint-desc">Append-only log of immutable events. Heavy append, no update/delete. Unbounded growth — the primary data store.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span><span class="tag">Pebble</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-ok">
+      <div class="touchpoint-header">
+        <h3>Snapshot Store</h3>
+        <span class="status-badge ok">Implemented</span>
+      </div>
+      <div class="touchpoint-meta">snapshot.SnapshotStore · Save/Load/LoadAtVersion/Delete</div>
+      <p class="touchpoint-desc">Serialized aggregate state at a specific version. Occasional upsert. Bounded — one per aggregate.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-ok">
+      <div class="touchpoint-header">
+        <h3>Checkpoint Store</h3>
+        <span class="status-badge ok">Implemented</span>
+      </div>
+      <div class="touchpoint-meta">event.CheckpointStore · Save/Load</div>
+      <p class="touchpoint-desc">Projection name → last processed event ID. Frequent overwrites. Must be durable — projections resume from here.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">memory</span><span class="tag">SQL (PG/SQLite)</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-warn">
+      <div class="touchpoint-header">
+        <h3>Command Store</h3>
+        <span class="status-badge warn">Interface Only</span>
+      </div>
+      <div class="touchpoint-meta">command.Store · CommandSink + CommandSource</div>
+      <p class="touchpoint-desc">Command audit log. Append-only, smaller volume than events. <strong>Zero implementations exist anywhere.</strong></p>
+      <div class="touchpoint-tags">
+        <span class="tag">interface defined</span><span class="tag">no backends</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-planned">
+      <div class="touchpoint-header">
+        <h3>Read Model Store</h3>
+        <span class="status-badge planned">Planned</span>
+      </div>
+      <div class="touchpoint-meta">No formal interface · Get/List/Put/Delete</div>
+      <p class="touchpoint-desc">Projected queryable state. Rebuildable from events. Every example reinvents it — highest-impact addition.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">example/todo/storage</span><span class="tag">example/user</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-ok">
+      <div class="touchpoint-header">
+        <h3>Aggregate Listing</h3>
+        <span class="status-badge ok">Implemented</span>
+      </div>
+      <div class="touchpoint-meta">listing.AggregateReader · List/ListWithStatus</div>
+      <p class="touchpoint-desc">Derived index of aggregates + tombstone status. NOT independent storage — derived from events or SQL query.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">memory (journal scan)</span><span class="tag">SQL (query)</span>
+      </div>
+    </div>
+
+    <div class="touchpoint-card status-warn">
+      <div class="touchpoint-header">
+        <h3>Message Bus</h3>
+        <span class="status-badge warn">In-Memory Only</span>
+      </div>
+      <div class="touchpoint-meta">event.Bus / event.Publisher · Publish/Subscribe</div>
+      <p class="touchpoint-desc">Transient message delivery. Single-process only. <code>watermill/</code> provides protocol adapters but no persistent backends — still uses <code>memory.MemoryBus</code> underneath. No NATS, Redis, SQS, or Pub/Sub backends exist.</p>
+      <div class="touchpoint-tags">
+        <span class="tag">memory</span><span class="tag">watermill adapter</span><span class="tag">no persistent backend</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== SECTION 2: ENVIRONMENT SIGNALS ===== -->
+<section>
+  <div class="section-header">
+    <h2>Environment Detection</h2>
+    <span class="count">6 environments</span>
+  </div>
+  <div class="card">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>Environment</th>
+          <th>Primary Signal</th>
+          <th>Secondary Signals</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Kubernetes</strong></td>
+          <td><code>KUBERNETES_SERVICE_HOST</code></td>
+          <td><code>/var/run/secrets/kubernetes.io/</code> exists</td>
+          <td class="cell-yes">High</td>
+        </tr>
+        <tr>
+          <td><strong>AWS Lambda</strong></td>
+          <td><code>AWS_LAMBDA_FUNCTION_NAME</code></td>
+          <td><code>AWS_REGION</code> set, <code>/var/runtime/</code> exists</td>
+          <td class="cell-yes">High</td>
+        </tr>
+        <tr>
+          <td><strong>GCP Cloud Run</strong></td>
+          <td><code>K_SERVICE</code></td>
+          <td><code>GOOGLE_CLOUD_PROJECT</code> set</td>
+          <td class="cell-yes">High</td>
+        </tr>
+        <tr>
+          <td><strong>Azure Functions</strong></td>
+          <td><code>FUNCTIONS_WORKER_RUNTIME</code></td>
+          <td><code>WEBSITE_SITE_NAME</code> set</td>
+          <td class="cell-yes">High</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub Actions / CI</strong></td>
+          <td><code>GITHUB_ACTIONS=true</code></td>
+          <td><code>CI=true</code></td>
+          <td class="cell-yes">High</td>
+        </tr>
+        <tr>
+          <td><strong>Local Dev</strong></td>
+          <td>None of the above</td>
+          <td><code>HOME</code> set, interactive TTY</td>
+          <td class="cell-warn">Low</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== SECTION 3: PER-ENVIRONMENT DEEP DIVE ===== -->
+<section>
+  <div class="section-header">
+    <h2>Per-Environment Mapping</h2>
+    <span class="count">Interactive</span>
+  </div>
+
+  <div class="env-tabs">
+    <button class="env-tab active" data-env="local">
+      <span class="icon">💻</span> Local Dev
+    </button>
+    <button class="env-tab" data-env="k8s">
+      <span class="icon">☸️</span> Kubernetes
+    </button>
+    <button class="env-tab" data-env="aws">
+      <span class="icon">λ</span> AWS Lambda
+    </button>
+    <button class="env-tab" data-env="gcp">
+      <span class="icon">☁️</span> GCP Cloud Run
+    </button>
+    <button class="env-tab" data-env="azure">
+      <span class="icon">🔷</span> Azure Functions
+    </button>
+    <button class="env-tab" data-env="ci">
+      <span class="icon">🧪</span> CI / Tests
+    </button>
+  </div>
+
+  <!-- LOCAL -->
+  <div class="env-panel active" id="panel-local">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>SQLite — the default</h4>
+        <span class="recommendation rec-excellent">Excellent</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Excellent</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Zero ops, WAL mode, file-based. The pragmatic default for everything. Use Pebble if write-heavy.</div>
+      </div>
+    </div>
+    <div class="backend-card">
+      <div class="backend-card-header">
+        <h4>PebbleDB — write-heavy alternative</h4>
+        <span class="recommendation rec-excellent">Excellent</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">❌ Not implemented</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">❌ Not implemented</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">⚠️ Manual only</div></div>
+        </div>
+        <div class="backend-verdict verdict-warn">Better write throughput than SQLite. But snapshots and checkpoints are not yet implemented — you'd need to use SQLite for those.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- K8s -->
+  <div class="env-panel" id="panel-k8s">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>etcd — K8s' hidden superpower</h4>
+        <span class="recommendation rec-excellent">Excellent (KV only)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">❌ Never</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">⚠️ Small only</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Already running in-cluster. Consistent, distributed, no extra infra. Use for snapshots and checkpoints. <strong>Never for events</strong> — 8MB value limit, not designed for append-only logs.</div>
+      </div>
+    </div>
+    <div class="backend-card">
+      <div class="backend-card-header">
+        <h4>PostgreSQL — event store</h4>
+        <span class="recommendation rec-excellent">Excellent</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Good</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Use existing PG if available. Do NOT provision PG just for CQRS. If no PG exists, use SQLite sidecar with PersistentVolume or managed cloud PG.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AWS -->
+  <div class="env-panel" id="panel-aws">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>Aurora Serverless v2 — event store</h4>
+        <span class="recommendation rec-good">Good</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Good</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">PostgreSQL-compatible, serverless scaling. RDS Proxy for connection pooling. The pragmatic choice for the append-only event log on AWS.</div>
+      </div>
+    </div>
+    <div class="backend-card">
+      <div class="backend-card-header">
+        <h4>DynamoDB — snapshots, checkpoints, read models</h4>
+        <span class="recommendation rec-excellent">Excellent (non-event)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">❌ Poor</div></div>
+        </div>
+        <div class="backend-verdict verdict-warn">Serverless-native, IAM auth, pay-per-request. <strong>Do NOT use for event store</strong> — journal reads require full table scans ($$$). Use Aurora PG for events, DynamoDB for everything else.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GCP -->
+  <div class="env-panel" id="panel-gcp">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>Cloud SQL (PostgreSQL) — event store</h4>
+        <span class="recommendation rec-good">Good</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Good</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Managed PostgreSQL with auto-scaling. Use for the event store and complex read models.</div>
+      </div>
+    </div>
+    <div class="backend-card">
+      <div class="backend-card-header">
+        <h4>Firestore — snapshots, checkpoints, read models</h4>
+        <span class="recommendation rec-excellent">Excellent (non-event)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">❌ Poor</div></div>
+        </div>
+        <div class="backend-verdict verdict-warn">Native querying, auto-scaling. <strong>Do NOT use for event store</strong> — no cross-document ordering guarantee. Use Cloud SQL for events, Firestore for everything else.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AZURE -->
+  <div class="env-panel" id="panel-azure">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>Azure SQL / PostgreSQL on Azure — event store</h4>
+        <span class="recommendation rec-good">Good</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Good</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Good</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Azure SQL or PostgreSQL on Azure are the safest choices for the append-only event log. Cosmos can work for small stores but lacks the robustness of SQL for high-volume append.</div>
+      </div>
+    </div>
+    <div class="backend-card">
+      <div class="backend-card-header">
+        <h4>Cosmos DB — snapshots, checkpoints, read models</h4>
+        <span class="recommendation rec-excellent">Excellent (non-event)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Snapshot</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Checkpoint</div><div class="detail-value">✅ Perfect</div></div>
+          <div class="detail-item"><div class="detail-label">Read Model</div><div class="detail-value">✅ Excellent</div></div>
+          <div class="detail-item"><div class="detail-label">Event Store</div><div class="detail-value">⚠️ Small only</div></div>
+        </div>
+        <div class="backend-verdict verdict-warn">Point reads are cheap and fast. SQL API for flexible queries. <strong>Avoid for event store at scale</strong> — use Azure SQL instead.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CI -->
+  <div class="env-panel" id="panel-ci">
+    <div class="backend-card open">
+      <div class="backend-card-header">
+        <h4>memory — tests only</h4>
+        <span class="recommendation rec-excellent">Perfect for CI</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="backend-card-body">
+        <div class="backend-details">
+          <div class="detail-item"><div class="detail-label">Everything</div><div class="detail-value">✅ Fast</div></div>
+          <div class="detail-item"><div class="detail-label">Durability</div><div class="detail-value">❌ None</div></div>
+          <div class="detail-item"><div class="detail-label">Cleanup</div><div class="detail-value">✅ Automatic</div></div>
+          <div class="detail-item"><div class="detail-label">Parallel Tests</div><div class="detail-value">✅ Isolated</div></div>
+        </div>
+        <div class="backend-verdict verdict-good">Fast, ephemeral, no cleanup. Each test gets a fresh <code>memory.NewMemoryStore()</code>. No file I/O, no network calls.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 4: BACKEND CAPABILITY MATRIX ===== -->
+<section>
+  <div class="section-header">
+    <h2>Backend Capability Matrix</h2>
+    <span class="count">11 backends</span>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Backend</th>
+            <th>Event Store</th>
+            <th>Snapshot</th>
+            <th>Checkpoint</th>
+            <th>Read Model</th>
+            <th>Bus</th>
+            <th>K8s Native</th>
+            <th>Serverless</th>
+            <th>Embedded</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SQLite</strong></td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-warn">⚠️ PV</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅</td>
+          </tr>
+          <tr>
+            <td><strong>PostgreSQL</strong></td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌ Deploy</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>PebbleDB</strong></td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-warn">⚠️ PV</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅</td>
+          </tr>
+          <tr>
+            <td><strong>etcd</strong></td>
+            <td class="cell-highlight">❌ Never</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-warn">⚠️ Small</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅ In-cluster</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>DynamoDB</strong></td>
+            <td class="cell-warn">⚠️ Poor</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅ AWS</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>Firestore</strong></td>
+            <td class="cell-warn">⚠️ Poor</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅ GCP</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>Cosmos DB</strong></td>
+            <td class="cell-warn">⚠️ Small</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Perfect</td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅ Azure</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>ScyllaDB</strong></td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-yes">✅</td>
+            <td class="cell-warn">⚠️ GSI lim</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>NATS JetStream</strong></td>
+            <td class="cell-warn">⚠️ Log ok</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅ Helm</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>Redis</strong></td>
+            <td class="cell-highlight">❌ Never</td>
+            <td class="cell-warn">⚠️ Cache</td>
+            <td class="cell-warn">⚠️ Cache</td>
+            <td class="cell-warn">⚠️ Cache</td>
+            <td class="cell-yes">✅ Excellent</td>
+            <td class="cell-yes">✅ Helm</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+          </tr>
+          <tr>
+            <td><strong>memory</strong></td>
+            <td class="cell-yes">✅ Tests</td>
+            <td class="cell-yes">✅ Tests</td>
+            <td class="cell-yes">✅ Tests</td>
+            <td class="cell-yes">✅ Tests</td>
+            <td class="cell-yes">✅ Tests</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-no">❌</td>
+            <td class="cell-yes">✅</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 5: HONEST LIMITATIONS ===== -->
+<section>
+  <div class="section-header">
+    <h2>Honest Limitations</h2>
+    <span class="count">When "native" ≠ "best"</span>
+  </div>
+
+  <div class="limitation-card">
+    <div class="limitation-header">
+      <span class="icon">⚠️</span>
+      <h4>DynamoDB for Event Store</h4>
+    </div>
+    <div class="limitation-body">
+      <p>DynamoDB is the native AWS serverless database, but it is a <strong>bad event store</strong> for two reasons:</p>
+      <ol>
+        <li><strong>No native ordering:</strong> <code>Journal.ReadAll()</code> requires a full table scan (<code>Scan</code> operation) or a GSI scan. At scale, this is prohibitively expensive.</li>
+        <li><strong>No cross-partition ordering:</strong> Events for different aggregates are in different partitions. Time-ordering across all aggregates cannot be guaranteed without application-level sorting.</li>
+      </ol>
+      <div class="limitation-verdict">Use DynamoDB for snapshots, checkpoints, and read models. Use Aurora Serverless PostgreSQL for the event store on AWS.</div>
+    </div>
+  </div>
+
+  <div class="limitation-card">
+    <div class="limitation-header">
+      <span class="icon">⚠️</span>
+      <h4>Firestore for Event Store</h4>
+    </div>
+    <div class="limitation-body">
+      <p>Firestore has no guaranteed ordering across document collections. Event journal reads would require querying all documents and sorting in-memory. Document size limits (1MB) also constrain large event batches.</p>
+      <div class="limitation-verdict">Same as DynamoDB — use for snapshots/checkpoints/read models, use Cloud SQL (PG) for event store.</div>
+    </div>
+  </div>
+
+  <div class="limitation-card">
+    <div class="limitation-header">
+      <span class="icon">🚫</span>
+      <h4>etcd for Event Store</h4>
+    </div>
+    <div class="limitation-body">
+      <p>etcd has a hard 8MB value size limit and a soft 1.5MB recommended limit. It is optimized for configuration, coordination, and small KV — not for unbounded append-only logs. The etcd WAL is an internal implementation detail, not a consumer-facing storage API.</p>
+      <div class="limitation-verdict">Use etcd for checkpoints and snapshots only. Never for events.</div>
+    </div>
+  </div>
+
+  <div class="limitation-card">
+    <div class="limitation-header">
+      <span class="icon">🚫</span>
+      <h4>Redis for Anything Durable</h4>
+    </div>
+    <div class="limitation-body">
+      <p>Redis is an in-memory data structure store. Without AOF + RDB persistence configured, data is lost on restart. Even with persistence, Redis is not designed for the consistency guarantees required by event sourcing (optimistic concurrency, strict ordering).</p>
+      <div class="limitation-verdict">Use Redis as a read-model cache or bus only. Never as the source of truth for events or checkpoints.</div>
+    </div>
+  </div>
+
+  <div class="limitation-card">
+    <div class="limitation-header">
+      <span class="icon">⚠️</span>
+      <h4>Pebble / SQLite on Kubernetes</h4>
+    </div>
+    <div class="limitation-body">
+      <p>Both are embedded, single-writer databases. Running them in Kubernetes requires a <code>ReadWriteOnce</code> PersistentVolume, which ties the pod to a specific node. This prevents horizontal scaling and creates a single point of failure.</p>
+      <div class="limitation-verdict">Pebble and SQLite are excellent for local dev and sidecar patterns. Use PostgreSQL or etcd for shared storage in K8s.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 6: MODULE GAPS ===== -->
+<section>
+  <div class="section-header">
+    <h2>Module Gaps</h2>
+    <span class="count">Implementation status</span>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <table class="gap-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Event</th>
+            <th>Snapshot</th>
+            <th>Checkpoint</th>
+            <th>Command</th>
+            <th>Read Model</th>
+            <th>Listing</th>
+            <th>Bus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>memory/</td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>storage/ (SQL)</td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>pebble/</td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>turso/</td>
+            <td><span class="gap-partial">~</span></td>
+            <td><span class="gap-partial">~</span></td>
+            <td><span class="gap-partial">~</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>listing/</td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-check">✓</span></td>
+            <td><span class="gap-cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>watermill/</td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-cross">✗</span></td>
+            <td><span class="gap-check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <p style="color:var(--text-muted);font-size:14px;line-height:1.6;">
+      <strong style="color:var(--text);">Missing implementations (opportunities):</strong>
+    </p>
+    <ul style="color:var(--text-muted);font-size:14px;line-height:1.7;margin-left:20px;margin-top:8px;">
+      <li><code>pebble.SnapshotStore</code> — trivial to add (single key per aggregate)</li>
+      <li><code>pebble.CheckpointStore</code> — trivial to add (single key per projection)</li>
+      <li><code>command.Store</code> implementations — <strong>no implementations exist anywhere</strong></li>
+      <li><code>readmodel/</code> module — only exists in examples (<code>example/todo/storage/</code>)</li>
+      <li><code>storage.AggregateProjection</code> — hardcoded <code>?</code> placeholders; not dialect-aware</li>
+      <li>Persistent bus implementations (NATS, Redis, SQS, Pub/Sub adapters)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== SECTION 7: DECISION TREE ===== -->
+<section>
+  <div class="section-header">
+    <h2>Decision Tree</h2>
+    <span class="count">Flow chart</span>
+  </div>
+  <div class="tree">
+    <div class="tree-node">
+      <div class="tree-question">What environment are you in?</div>
+    </div>
+    <div class="tree-node">
+      <div class="tree-question">KUBERNETES_SERVICE_HOST set?</div>
+      <div class="tree-answer"><span class="arrow">→</span> Yes — Already have PostgreSQL in-cluster or managed?<br>
+      &nbsp;&nbsp;<span class="arrow">→</span> Yes — Event Store <code>→ PG</code> | Snapshot <code>→ etcd</code> | Checkpoint <code>→ etcd</code> | Read Model <code>→ PG</code><br>
+      &nbsp;&nbsp;<span class="arrow">→</span> No — Event Store <code>→ SQLite (sidecar with PV)</code> or provision PG | Snapshot <code>→ etcd</code> | Checkpoint <code>→ etcd</code></div>
+    </div>
+    <div class="tree-node">
+      <div class="tree-question">AWS_LAMBDA_FUNCTION_NAME set?</div>
+      <div class="tree-answer"><span class="arrow">→</span> Event Store <code>→ Aurora Serverless PG</code> | Snapshot <code>→ DynamoDB</code> | Checkpoint <code>→ DynamoDB</code> | Read Model <code>→ DynamoDB</code></div>
+    </div>
+    <div class="tree-node">
+      <div class="tree-question">K_SERVICE set (GCP)?</div>
+      <div class="tree-answer"><span class="arrow">→</span> Event Store <code>→ Cloud SQL (PG)</code> | Snapshot <code>→ Firestore</code> | Checkpoint <code>→ Firestore</code> | Read Model <code>→ Firestore</code></div>
+    </div>
+    <div class="tree-node">
+      <div class="tree-question">FUNCTIONS_WORKER_RUNTIME set (Azure)?</div>
+      <div class="tree-answer"><span class="arrow">→</span> Event Store <code>→ Azure SQL or PostgreSQL on Azure</code> | Snapshot <code>→ Cosmos DB</code> | Checkpoint <code>→ Cosmos DB</code> | Read Model <code>→ Cosmos DB</code></div>
+    </div>
+    <div class="tree-node">
+      <div class="tree-question">GITHUB_ACTIONS=true or CI=true?</div>
+      <div class="tree-answer"><span class="arrow">→</span> Everything <code>→ memory</code> (fast, ephemeral, no cleanup)</div>
+    </div>
+    <div class="tree-node leaf">
+      <div class="tree-question">None of the above (local dev)</div>
+      <div class="tree-answer"><span class="arrow">→</span> Everything <code>→ SQLite (default)</code> or <code>Pebble (write-heavy)</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 8: KEY TAKEAWAYS ===== -->
+<section>
+  <div class="section-header">
+    <h2>Key Takeaways</h2>
+    <span class="count">7 insights</span>
+  </div>
+  <div class="takeaway-grid">
+    <div class="takeaway-card">
+      <div class="takeaway-num">01</div>
+      <h4>etcd is Kubernetes' hidden superpower</h4>
+      <p>Already running, consistent, distributed. Use it for snapshots and checkpoints. Never for events.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">02</div>
+      <h4>Serverless databases are poor event stores</h4>
+      <p>DynamoDB, Firestore, Cosmos DB excel at everything else. Always pair with SQL for the event log.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">03</div>
+      <h4>Command store has zero implementations</h4>
+      <p>The <code>command.Store</code> interface exists but no backend implements it. This is a real gap.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">04</div>
+      <h4>Read model store has no formal module</h4>
+      <p>Every consumer reinvents it. A <code>readmodel/</code> module would be the highest-impact addition.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">05</div>
+      <h4>Pebble is incomplete</h4>
+      <p>Only event store is implemented. Snapshots and checkpoints are trivial to add and would make Pebble a complete embedded solution.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">06</div>
+      <h4>Aggregate listing on non-SQL needs read model</h4>
+      <p>Derived query approach doesn't translate to DynamoDB/Firestore efficiently. Maintain a separate aggregate index.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">07</div>
+      <h4>No persistent bus exists</h4>
+      <p><code>memory.MemoryBus</code> is single-process only. NATS, Redis, SQS, Pub/Sub adapters would unlock multi-node deployments.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer class="footer">
+  <p>go-cqrs-lite · Storage Environment Mapping · 2026-06-05</p>
+</footer>
+
+<script>
+// Tab switching
+document.querySelectorAll('.env-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.env-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.env-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.env).classList.add('active');
+  });
+});
+
+// Accordion
+document.querySelectorAll('.backend-card-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.closest('.backend-card').classList.toggle('open');
+  });
+});
+</script>
+
+</body>
+</html>
