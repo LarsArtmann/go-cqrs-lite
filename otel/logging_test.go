@@ -19,6 +19,16 @@ func newTestTracerProvider() *sdktrace.TracerProvider {
 	return sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 }
 
+func newTracedContext(t *testing.T) (context.Context, *sdktrace.TracerProvider) {
+	t.Helper()
+	tp := newTestTracerProvider()
+	t.Cleanup(func() { _ = tp.Shutdown(context.Background()) })
+	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
+	t.Cleanup(func() { span.End() })
+
+	return ctx, tp
+}
+
 func TestTraceIDFromContext_NoSpan(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
@@ -37,11 +47,7 @@ func TestTraceIDFromContext_WithSpan(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	tp := newTestTracerProvider()
-	defer func() { _ = tp.Shutdown(context.Background()) }()
-
-	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
-	defer span.End()
+	ctx, _ := newTracedContext(t)
 
 	id := otel.TraceIDFromContext(ctx)
 	g.Expect(id).ToNot(Equal("none"))
@@ -52,11 +58,7 @@ func TestSpanIDFromContext_WithSpan(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	tp := newTestTracerProvider()
-	defer func() { _ = tp.Shutdown(context.Background()) }()
-
-	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
-	defer span.End()
+	ctx, _ := newTracedContext(t)
 
 	id := otel.SpanIDFromContext(ctx)
 	g.Expect(id).ToNot(Equal("none"))
@@ -82,11 +84,7 @@ func TestContextLogger_WithSpan(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	tp := newTestTracerProvider()
-	defer func() { _ = tp.Shutdown(context.Background()) }()
-
-	ctx, span := tp.Tracer("test").Start(context.Background(), "test")
-	defer span.End()
+	ctx, _ := newTracedContext(t)
 
 	var buf strings.Builder
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
