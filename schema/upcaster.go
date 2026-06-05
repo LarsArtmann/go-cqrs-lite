@@ -34,7 +34,7 @@ func (u *upcasterFunc) SourceVersion() event.SchemaVersion { return u.sourceVers
 
 func (u *upcasterFunc) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
 	if u.upcast == nil {
-		return nil, event.NewRejection("schema.nil_upcaster", "upcaster function is nil")
+		return nil, ErrNilUpcaster
 	}
 
 	return u.upcast(evt)

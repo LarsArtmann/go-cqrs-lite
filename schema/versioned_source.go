@@ -18,7 +18,7 @@ type VersionedStore struct {
 
 func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStore, error) {
 	if store == nil {
-		return nil, event.NewRejection("schema.nil_store", "store is required")
+		return nil, ErrNilStore
 	}
 
 	reg := newUpcasterRegistry()
