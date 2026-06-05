@@ -208,6 +208,7 @@ func parseIDField[T any](md message.Metadata, key string, parse func(string) (T,
 	parsed, err := parse(v)
 	if err != nil {
 		*errs = append(*errs, fmt.Errorf("%s: %w", key, err))
+
 		return
 	}
 
