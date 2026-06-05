@@ -143,9 +143,13 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 	ref command.AggregateRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
-	return s.loadFiltered(ref, "load to timestamp", func(cmds []*command.PersistedCommand) []*command.PersistedCommand {
-		return filterByTimestampTo(cmds, maxTime)
-	})
+	return s.loadFiltered(
+		ref,
+		"load to timestamp",
+		func(cmds []*command.PersistedCommand) []*command.PersistedCommand {
+			return filterByTimestampTo(cmds, maxTime)
+		},
+	)
 }
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
@@ -203,7 +207,10 @@ func (s *MemoryCommandStore) loadFiltered(
 	return slices.Clone(cmds), nil
 }
 
-func filterByTimestampAfter(cmds []*command.PersistedCommand, after time.Time) []*command.PersistedCommand {
+func filterByTimestampAfter(
+	cmds []*command.PersistedCommand,
+	after time.Time,
+) []*command.PersistedCommand {
 	var result []*command.PersistedCommand
 
 	for _, cmd := range cmds {
@@ -215,7 +222,10 @@ func filterByTimestampAfter(cmds []*command.PersistedCommand, after time.Time) [
 	return result
 }
 
-func filterByTimestampTo(cmds []*command.PersistedCommand, maxTime time.Time) []*command.PersistedCommand {
+func filterByTimestampTo(
+	cmds []*command.PersistedCommand,
+	maxTime time.Time,
+) []*command.PersistedCommand {
 	var result []*command.PersistedCommand
 
 	for _, cmd := range cmds {

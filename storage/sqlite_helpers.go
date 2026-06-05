@@ -40,6 +40,7 @@ func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{
 		sqlpkg.SQLiteSchema(),
+		sqlpkg.SQLiteDialect{}.CommandSchema(),
 		sqlpkg.SQLiteDialect{}.SnapshotSchema(),
 		sqlpkg.SQLiteDialect{}.CheckpointSchema(),
 	})
@@ -58,5 +59,9 @@ func ConfigureTursoPool(db *sql.DB)  { db.SetMaxOpenConns(1) }
 
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	pg := sqlpkg.PostgresDialect{}
-	return execDDL(ctx, db, []string{pg.EventSchema(), pg.SnapshotSchema(), pg.CheckpointSchema()})
+	return execDDL(
+		ctx,
+		db,
+		[]string{pg.EventSchema(), pg.CommandSchema(), pg.SnapshotSchema(), pg.CheckpointSchema()},
+	)
 }

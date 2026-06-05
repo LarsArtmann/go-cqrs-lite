@@ -2,15 +2,12 @@ package id
 
 import (
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
 	"github.com/oklog/ulid/v2"
 )
-
-var errEmptyString = errors.New("empty string")
 
 // Of is a branded type for strongly-typed identifiers backed by ULID.
 // The type parameter T is a phantom type used only for type differentiation.

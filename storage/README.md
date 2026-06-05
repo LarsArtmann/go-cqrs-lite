@@ -146,6 +146,35 @@ type Dialect interface {
 
 Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
+## sql/ Subpackage
+
+The `storage/sql` subpackage contains shared SQL infrastructure used by all SQL-based stores:
+
+| Component              | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `Base`                 | Shared `*sql.DB` + `Dialect` holder        |
+| `Dialect`              | PostgreSQL/SQLite abstraction interface    |
+| `Placeholders`         | Generate comma-separated placeholder lists |
+| `ParseSQLiteTimestamp` | Multi-format SQLite timestamp parser       |
+| `SharedInsertEvents`   | Shared event insertion logic               |
+| `SharedCheckpointLoad` | Shared checkpoint read logic               |
+| `SharedEventLoad`      | Shared event scanning logic                |
+| `DeleteByAggregate`    | Shared DELETE implementation               |
+
+The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrAggregateTypeMismatch`, `ErrAggregateIDMismatch`, `ErrVersionMismatch`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`.
+
+## Turso
+
+Turso is a separate module. See `github.com/larsartmann/go-cqrs-lite/turso`.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/turso/v2"
+
+db, _ := turso.OpenInMemory()
+turso.InitSchema(ctx, db)
+store, _ := turso.NewEventStore(db)
+```
+
 ## Dependencies
 
 | Dependency           | Purpose                     |

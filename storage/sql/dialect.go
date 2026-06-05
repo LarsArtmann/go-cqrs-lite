@@ -18,6 +18,7 @@ type Dialect interface {
 	ScanTimeDest() any
 	ParseTime(src any) (time.Time, error)
 	EventSchema() string
+	CommandSchema() string
 	SnapshotSchema() string
 	CheckpointSchema() string
 }
@@ -68,6 +69,23 @@ CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggreg
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
 CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
+}
+
+func (PostgresDialect) CommandSchema() string {
+	return `CREATE TABLE IF NOT EXISTS commands (
+    id               TEXT PRIMARY KEY,
+    command_type     VARCHAR(255) NOT NULL,
+    aggregate_type   VARCHAR(255) NOT NULL,
+    aggregate_id     TEXT NOT NULL,
+    payload          BYTEA,
+    metadata         JSONB,
+    received_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_commands_aggregate ON commands(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_commands_type ON commands(command_type);
+CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);`
 }
 
 func (PostgresDialect) SnapshotSchema() string {
@@ -135,6 +153,23 @@ CREATE INDEX IF NOT EXISTS idx_events_aggregate ON events(aggregate_type, aggreg
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_occurred_at ON events(occurred_at);
 CREATE INDEX IF NOT EXISTS idx_events_agg_time ON events(aggregate_type, aggregate_id, occurred_at);`
+}
+
+func (SQLiteDialect) CommandSchema() string {
+	return `CREATE TABLE IF NOT EXISTS commands (
+    id               TEXT PRIMARY KEY,
+    command_type     TEXT NOT NULL,
+    aggregate_type   TEXT NOT NULL,
+    aggregate_id     TEXT NOT NULL,
+    payload          BLOB,
+    metadata         TEXT,
+    received_at      TEXT NOT NULL,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_commands_aggregate ON commands(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_commands_type ON commands(command_type);
+CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);`
 }
 
 func (SQLiteDialect) SnapshotSchema() string {
