@@ -852,9 +852,9 @@
 
   <h3><code>readmodel/</code> — Typed Read-Model Store</h3>
 
-  <p>The core insight: <strong>KV backends are great at <code>Get</code>/<code>Put</code>, terrible at <code>List</code>. SQL backends are great at <code>List</code>, okay at <code>Get</code>/<code>Put</code>.</strong> The interface shouldn't pretend these are equivalent. Every backend exposes its actual capabilities, and the factory warns when you mismatch backend and workload.</p>
+  <p>The core insight: <strong>KV backends are great at <code>Get</code>/<code>Put</code>, terrible at <code>List</code>. SQL backends are great at <code>List</code>, okay at <code>Get</code>/<code>Put</code>.</strong> The interface doesn't pretend these are equivalent. Each backend is a separate package with its own constructor. A detector suggests what's available in your environment — it never forces a choice.</p>
 
-  <pre><code><span class="hl-comment">// readmodel/store.go — common denominator across KV, SQL, and document backends</span>
+  <pre><code><span class="hl-comment">// readmodel/store.go — the interface everything implements</span>
 <span class="hl-kw">type</span> <span class="hl-type">Source</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) (<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>)
     <span class="hl-func">List</span>(ctx <span class="hl-type">context.Context</span>, opts <span class="hl-type">ListOptions</span>[<span class="hl-type">K</span>]) (<span class="hl-type">Page</span>[<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]], <span class="hl-type">error</span>)
@@ -892,9 +892,13 @@
     <span class="hl-func">Capabilities</span>() <span class="hl-type">Capabilities</span>
 }
 
-<span class="hl-comment">// Runtime selection with smart defaults and workload warnings</span>
-<span class="hl-kw">func</span> <span class="hl-func">Open</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>](cfg <span class="hl-type">Config</span>) (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span>
-<span class="hl-kw">func</span> <span class="hl-func">OpenAuto</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>]() (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span> <span class="hl-comment">// auto-detect from env</span></code></pre>
+<span class="hl-comment">// Per-backend packages — explicit constructors, no god factory</span>
+<span class="hl-comment">// readmodel/sqlite.NewStore[K,V](db)      // embedded SQL</span>
+<span class="hl-comment">// readmodel/postgres.NewStore[K,V](db)    // production SQL</span>
+<span class="hl-comment">// readmodel/pebble.NewStore[K,V](db)      // embedded LSM-tree</span>
+<span class="hl-comment">// readmodel/etcd.NewStore[K,V](client)    // in-cluster K8s</span>
+<span class="hl-comment">// readmodel/dynamodb.NewStore[K,V](client) // AWS serverless</span>
+<span class="hl-comment">// readmodel/memory.NewStore[K,V]()        // tests only</span></code></pre>
 
   <h4>Backend Taxonomy</h4>
 
@@ -950,21 +954,79 @@
 
   <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: -1rem;"><sup>*</sup> Scylla <code>List</code> uses <code>token(key)</code> pagination — order is not lexicographic, but deterministic.</p>
 
-  <h4>Smart Defaults and Warnings</h4>
+  <h4>Smart Defaults — Detect What's Already There</h4>
 
-  <pre><code><span class="hl-comment">// OpenAuto: zero-config for common environments</span>
+  <p>The factory doesn't guess — it detects what's <em>already running</em> in the environment and uses it. No extra infrastructure to provision.</p>
+
+  <pre><code><span class="hl-comment">// OpenAuto: detects what's already available, zero config</span>
 store, err := readmodel.<span class="hl-func">OpenAuto</span>[UserID, UserSummary]()
-<span class="hl-comment">// GITHUB_ACTIONS=true          → memory (tests)</span>
-<span class="hl-comment">// DATABASE_URL set             → postgres (production)</span>
-<span class="hl-comment">// None set                     → sqlite:./readmodel.db (dev)</span>
+<span class="hl-comment">// KUBERNETES_SERVICE_HOST set  → etcd (in-cluster, already running)</span>
+<span class="hl-comment">// AWS_LAMBDA_FUNCTION_NAME set → dynamodb (serverless-native)</span>
+<span class="hl-comment">// K_SERVICE set (GCP)          → firestore (serverless-native)</span>
+<span class="hl-comment">// GITHUB_ACTIONS=true          → memory (tests, ephemeral)</span>
+<span class="hl-comment">// DATABASE_URL set             → postgres (explicit, user-managed)</span>
+<span class="hl-comment">// None of the above            → sqlite:./readmodel.db (dev, zero ops)</span>
 
-<span class="hl-comment">// Explicit with warnings</span>
+<span class="hl-comment">// Explicit with structured suggestions</span>
 store, err := readmodel.<span class="hl-func">Open</span>[UserID, UserSummary](readmodel.<span class="hl-type">Config</span>{
     URL: <span class="hl-str">"pebble:./data"</span>,
-    Warn: <span class="hl-kw">true</span>,
+    Suggest: <span class="hl-kw">true</span>,
 })
-<span class="hl-comment">// Output: "pebble: List performance is Slow. Add an index or use</span>
-<span class="hl-comment">//          postgres if you paginate frequently."</span></code></pre>
+<span class="hl-comment">// Output: {Backend: "pebble", IsNative: false, SetupNeeded: false,</span>
+<span class="hl-comment">//          Reason: "Pebble List requires full key-range scan.</span>
+<span class="hl-comment">//                   Consider postgres if you paginate frequently."}</span></code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Environment</th><th>Detected Signal</th><th>Native Backend</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Kubernetes</td>
+          <td><code>KUBERNETES_SERVICE_HOST</code></td>
+          <td><strong>etcd</strong></td>
+          <td>Already running in-cluster, distributed, consistent, no extra infra</td>
+        </tr>
+        <tr>
+          <td>AWS Lambda</td>
+          <td><code>AWS_LAMBDA_FUNCTION_NAME</code></td>
+          <td><strong>DynamoDB</strong></td>
+          <td>Serverless-native, pay-per-request, IAM auth</td>
+        </tr>
+        <tr>
+          <td>GCP Cloud Run</td>
+          <td><code>K_SERVICE</code></td>
+          <td><strong>Firestore</strong></td>
+          <td>Serverless-native, auto-scaling, regional</td>
+        </tr>
+        <tr>
+          <td>Azure Functions</td>
+          <td><code>FUNCTIONS_EXTENSION_VERSION</code></td>
+          <td><strong>Cosmos DB</strong></td>
+          <td>Serverless-native, global distribution</td>
+        </tr>
+        <tr>
+          <td>Docker / local</td>
+          <td><code>/.dockerenv</code>, interactive TTY</td>
+          <td><strong>SQLite</strong> or <strong>Pebble</strong></td>
+          <td>Embedded, zero ops, single file</td>
+        </tr>
+        <tr>
+          <td>CI / GitHub Actions</td>
+          <td><code>GITHUB_ACTIONS</code></td>
+          <td><strong>Memory</strong></td>
+          <td>Ephemeral, fast teardown, no cleanup</td>
+        </tr>
+        <tr>
+          <td>Bare metal / VM</td>
+          <td>None of the above</td>
+          <td><strong>PostgreSQL</strong> or <strong>Scylla</strong></td>
+          <td>Production-grade, operator-managed</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <h4>Mix and Match: Decorators</h4>
 
