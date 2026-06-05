@@ -1,860 +1,1122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Architectural roadmap: go-cqrs-lite v2.1.0 assessment and path to perfection.">
-<title>Toward Perfect — go-cqrs-lite Architectural Roadmap</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-    --bg: #fdfcfa;
-    --bg-elevated: #ffffff;
-    --surface: #f5f4f0;
-    --border: #d4d2cc;
-    --border-strong: #a8a59c;
-    --text: #1a1917;
-    --text-secondary: #4a4946;
-    --text-tertiary: #787671;
-    --accent: #c41e3a;
-    --accent-muted: #e8c4ca;
-    --success: #1a5c3a;
-    --warn: #8c6b1f;
-    --danger: #8c1a1a;
-    --info: #1a3a5c;
-
-    --max-width: 820px;
-    --sidebar-width: 220px;
-    --gutter: 2.5rem;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0d0d0c;
-      --bg-elevated: #161614;
-      --surface: #1e1e1b;
-      --border: #2e2e2a;
-      --border-strong: #4a4a44;
-      --text: #e8e6e1;
-      --text-secondary: #a8a59c;
-      --text-tertiary: #6a6862;
-      --accent: #e85d75;
-      --accent-muted: #5c2a32;
-      --success: #4ade80;
-      --warn: #fbbf24;
-      --danger: #f87171;
-      --info: #60a5fa;
-    }
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 1rem;
-    font-size: 16px;
-  }
-
-  body {
-    font-family: var(--font-sans);
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    font-size: 0.95rem;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  ::selection {
-    background: var(--accent-muted);
-    color: var(--text);
-  }
-
-  /* LAYOUT */
-  .page {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
-    max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
-    margin: 0 auto;
-    min-height: 100vh;
-  }
-
-  @media (max-width: 900px) {
-    .page { grid-template-columns: 1fr; }
-  }
-
-  /* SIDEBAR */
-  .sidebar {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    padding: 2.5rem 1.5rem;
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    overflow-y: auto;
-  }
-
-  @media (max-width: 900px) {
-    .sidebar {
-      position: static;
-      height: auto;
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem;
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1rem;
-    }
-  }
-
-  .sidebar-brand {
-    font-family: var(--font-serif);
-    font-weight: 800;
-    font-size: 1.3rem;
-    line-height: 1.1;
-    color: var(--text);
-    text-decoration: none;
-    letter-spacing: -0.02em;
-  }
-
-  .sidebar-brand span {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--text-tertiary);
-    margin-top: 0.3rem;
-  }
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    list-style: none;
-  }
-
-  @media (max-width: 900px) {
-    .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-  }
-
-  .sidebar-nav a {
-    display: block;
-    padding: 0.35rem 0.6rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.82rem;
-    font-weight: 500;
-    border-radius: 0;
-    border-left: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-  }
-
-  .sidebar-nav a:hover {
-    color: var(--text);
-    border-left-color: var(--border);
-  }
-
-  .sidebar-nav a.active {
-    color: var(--accent);
-    border-left-color: var(--accent);
-    font-weight: 600;
-  }
-
-  @media (max-width: 900px) {
-    .sidebar-nav a { border-left: none; border-bottom: 2px solid transparent; padding: 0.3rem 0.5rem; }
-    .sidebar-nav a:hover { border-bottom-color: var(--border); border-left-color: transparent; }
-    .sidebar-nav a.active { border-bottom-color: var(--accent); border-left-color: transparent; }
-  }
-
-  .sidebar-meta {
-    margin-top: auto;
-    font-size: 0.72rem;
-    color: var(--text-tertiary);
-    line-height: 1.6;
-  }
-
-  @media (max-width: 900px) {
-    .sidebar-meta { display: none; }
-  }
-
-  /* MAIN */
-  .main {
-    padding: 3rem var(--gutter) 5rem;
-    max-width: var(--max-width);
-  }
-
-  @media (max-width: 900px) {
-    .main { padding: 2rem 1.5rem; }
-  }
-
-  /* TYPOGRAPHY */
-  h1 {
-    font-family: var(--font-serif);
-    font-size: clamp(2.8rem, 6vw, 4rem);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    margin-bottom: 1.5rem;
-  }
-
-  h2 {
-    font-family: var(--font-serif);
-    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin-top: 4rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--text);
-    color: var(--text);
-  }
-
-  h3 {
-    font-family: var(--font-serif);
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-
-  h4 {
-    font-family: var(--font-sans);
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  p {
-    color: var(--text-secondary);
-    margin: 0.9em 0;
-    max-width: 65ch;
-  }
-
-  p.lead {
-    font-family: var(--font-serif);
-    font-size: 1.25rem;
-    line-height: 1.55;
-    color: var(--text-secondary);
-    font-style: italic;
-    margin-bottom: 2rem;
-  }
-
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  strong { color: var(--text); font-weight: 600; }
-  em { font-family: var(--font-serif); font-style: italic; }
-
-  /* RULE */
-  hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 3rem 0;
-  }
-
-  /* SECTION NUMBERS */
-  .section-num {
-    font-family: var(--font-serif);
-    font-size: 0.7em;
-    font-weight: 400;
-    color: var(--text-tertiary);
-    margin-right: 0.5rem;
-    vertical-align: super;
-  }
-
-  /* STATS */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin: 2.5rem 0 1.5rem;
-  }
-
-  @media (max-width: 700px) {
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .stat-cell {
-    background: var(--bg);
-    padding: 1.25rem 1.5rem;
-    text-align: center;
-  }
-
-  .stat-value {
-    font-family: var(--font-serif);
-    font-size: 2.2rem;
-    font-weight: 800;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 0.3rem;
-  }
-
-  .stat-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.3rem;
-  }
-
-  .stat-desc {
-    font-size: 0.8rem;
-    color: var(--text-tertiary);
-    line-height: 1.4;
-  }
-
-  /* TABLES */
-  .table-wrap {
-    overflow-x: auto;
-    margin: 1.5rem 0 2rem;
-    border: 1px solid var(--border);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-    min-width: 600px;
-  }
-
-  th {
-    text-align: left;
-    padding: 0.8rem 1rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border-strong);
-    white-space: nowrap;
-  }
-
-  td {
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-secondary);
-    vertical-align: top;
-  }
-
-  tr:last-child td { border-bottom: none; }
-  tbody tr { transition: background 0.12s; }
-  tbody tr:hover { background: var(--surface); }
-
-  /* TAGS */
-  .tag {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 500;
-    padding: 0.2rem 0.5rem;
-    border: 1px solid;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-  }
-
-  .tag-done  { color: var(--success); border-color: var(--success); background: transparent; }
-  .tag-gap   { color: var(--warn);   border-color: var(--warn);   background: transparent; }
-  .tag-missing { color: var(--danger); border-color: var(--danger); background: transparent; }
-  .tag-idea  { color: var(--info);   border-color: var(--info);   background: transparent; }
-
-  /* CODE */
-  code, pre {
-    font-family: var(--font-mono);
-    font-size: 0.85em;
-  }
-
-  code {
-    padding: 0.1em 0.35em;
-    background: var(--surface);
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  pre {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    padding: 1.25rem;
-    overflow-x: auto;
-    margin: 1rem 0 1.5rem;
-    line-height: 1.65;
-  }
-
-  pre code {
-    background: transparent;
-    padding: 0;
-    font-weight: 400;
-    font-size: 0.88em;
-  }
-
-  /* SYNTAX HIGHLIGHTING — restrained */
-  .hl-kw    { color: var(--accent); font-weight: 600; }
-  .hl-type  { color: var(--text); font-weight: 600; }
-  .hl-func  { color: var(--text); font-weight: 600; }
-  .hl-str   { color: var(--success); }
-  .hl-comment { color: var(--text-tertiary); font-style: italic; }
-  .hl-field { color: var(--text-secondary); }
-  .hl-param { color: var(--text-secondary); }
-
-  /* PHASES */
-  .phase {
-    display: grid;
-    grid-template-columns: 2.5rem 1fr;
-    gap: 1rem;
-    margin: 1rem 0;
-    padding: 1.25rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .phase:first-of-type { padding-top: 0; }
-  .phase:last-of-type { border-bottom: none; }
-
-  .phase-num {
-    font-family: var(--font-serif);
-    font-size: 1.6rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--text-tertiary);
-    text-align: right;
-    padding-top: 0.1rem;
-  }
-
-  .phase-body h4 {
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 0.3rem;
-    text-transform: none;
-    letter-spacing: 0;
-  }
-
-  .phase-body p { margin: 0; font-size: 0.92rem; }
-
-  .phase-progress {
-    width: 100%;
-    height: 2px;
-    background: var(--border);
-    margin-top: 0.75rem;
-  }
-
-  .phase-progress > span {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    transition: width 1s ease-out;
-    width: 0;
-  }
-
-  /* GRIDS */
-  .two-col {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin: 1.5rem 0;
-  }
-
-  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
-
-  .feature-card {
-    padding: 1.5rem;
-    background: var(--bg);
-  }
-
-  .feature-card h4 {
-    font-family: var(--font-serif);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: 0;
-    margin-bottom: 0.4rem;
-  }
-
-  .feature-card p { margin: 0; font-size: 0.9rem; }
-
-  /* CALLOUTS */
-  .callout {
-    padding: 1.25rem 1.5rem;
-    background: var(--surface);
-    border-left: 3px solid var(--accent);
-    margin: 1.5rem 0;
-  }
-
-  .callout p { margin: 0; }
-  .callout strong { color: var(--text); }
-
-  /* MODULE GRAPH */
-  .module-graph {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 1.25rem 1.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    line-height: 1.9;
-    color: var(--text-secondary);
-    margin: 1.2rem 0 1.5rem;
-    overflow-x: auto;
-  }
-
-  .module-graph .layer { display: block; }
-  .module-graph .layer-lvl { color: var(--text-tertiary); font-weight: 600; }
-  .module-graph .layer-mod { color: var(--text); }
-
-  /* LISTS */
-  ul.plain, ol { padding-left: 1.3rem; margin: 0.9rem 0; }
-  li { margin: 0.5rem 0; color: var(--text-secondary); }
-  li::marker { color: var(--text-tertiary); }
-
-  /* FOOTER */
-  .footer {
-    margin-top: 4rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    color: var(--text-tertiary);
-    font-size: 0.82rem;
-  }
-
-  /* PRINT */
-  @media print {
-    .sidebar { display: none; }
-    .page { grid-template-columns: 1fr; }
-    .main { padding: 1rem; }
-    body { background: white; color: black; }
-  }
-</style>
-</head>
-<body>
-
-<div class="page">
-
-<aside class="sidebar">
-  <a href="#top" class="sidebar-brand">
-    Toward Perfect
-    <span>go-cqrs-lite v2.1.0</span>
-  </a>
-  <nav>
-    <ul class="sidebar-nav">
-      <li><a href="#current">Current State</a></li>
-      <li><a href="#gaps">Gaps</a></li>
-      <li><a href="#vision">Vision</a></li>
-      <li><a href="#roadmap">Roadmap</a></li>
-      <li><a href="#modules">Proposals</a></li>
-      <li><a href="#principles">Principles</a></li>
-    </ul>
-  </nav>
-  <div class="sidebar-meta">
-    Architectural Roadmap<br>
-    30 modules · 67K LOC<br>
-    Generated 2026-06-05
-  </div>
-</aside>
-
-<main class="main" id="top">
-
-<section class="hero">
-  <h1>Toward Perfect</h1>
-  <p class="lead">
-    A candid architectural assessment of <code>go-cqrs-lite</code> —
-    celebrating what is already excellent, exposing the remaining gaps, and mapping a concrete path to the ideal.
-  </p>
-
-  <div class="summary-grid">
-    <div class="stat-cell">
-      <div class="stat-value">30</div>
-      <div class="stat-label">Modules</div>
-      <div class="stat-desc">22 library + 6 examples + 2 cmd</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-value">89–100%</div>
-      <div class="stat-label">Coverage</div>
-      <div class="stat-desc">Core above 90%; turso at 29%</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-value">0</div>
-      <div class="stat-label">Lint</div>
-      <div class="stat-desc">11/12 modules clean</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-value">67K</div>
-      <div class="stat-label">Lines</div>
-      <div class="stat-desc">Zero framework assumptions</div>
-    </div>
-  </div>
-</section>
-
-<section id="current">
-  <h2><span class="section-num">01</span>What We Have</h2>
-  <p>
-    v2.1.0 is a genuinely strong release. The following areas are already at or near production-grade trustworthiness.
-    These should be preserved and used as the quality benchmark for everything else.
-  </p>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Area</th><th>Why It Is Excellent</th><th>Status</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>event/</code></td>
-          <td>Immutable events, 19 functional options, strong error taxonomy, lazy allocation, clock injection, defensive copies.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>id/</code></td>
-          <td>Branded ULIDs with compile-time safety, full serialization support, 97.8% coverage.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>command/</code> &amp; <code>query/</code></td>
-          <td>Typed handlers, middleware chains, lifecycle, metadata, catalog introspection. 100% / 94% coverage.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>decider/</code></td>
-          <td>Pure-function aggregates, snapshot/time-travel support, fully deterministic. 100% coverage.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>middleware/</code></td>
-          <td>8 concerns × 3 message types = 24 middleware factories. Circuit breaker, retry, tracing, metrics, logging, validation, recovery.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>signing/</code></td>
-          <td>HMAC + Ed25519 + multisig, canonical encoding, zero external crypto deps.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>catalog/</code></td>
-          <td>Auto-docs: AsyncAPI, OpenAPI, EventCatalog MDX, D2 diagrams, docserver with Scalar + AsyncAPI React.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>projection/</code></td>
-          <td>Replay + live runner, checkpointing, DLQ, replay context markers, graceful close. 95%+ coverage.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>listing/</code></td>
-          <td>Aggregate listing with tombstone detection, cursor pagination, SQL + in-memory readers, cache invalidation.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>storage/</code></td>
-          <td>PostgreSQL + SQLite + Turso, optimistic concurrency, time-travel, snapshots, checkpoints, dialect abstraction.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>memory/</code></td>
-          <td>Reference in-memory implementations for testing. 99.6% coverage.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-        <tr>
-          <td><code>otel/</code></td>
-          <td>Shared OpenTelemetry helpers across modules. Clean abstraction over raw OTel SDK.</td>
-          <td><span class="tag tag-done">Done</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="callout">
-    <p><strong>Core insight.</strong> The hard parts are solved. Event model, identity, dispatch, projections, storage backends, docs generation, and middleware are all credible, tested, and composable. The remaining work is mostly <em>connective tissue</em> and <em>production hardening</em>.</p>
-  </div>
-</section>
-
-<section id="gaps">
-  <h2><span class="section-num">02</span>Where We Are Not Yet Perfect</h2>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Gap</th><th>Severity</th><th>What It Means for Consumers</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>No generic read-model store</td>
-          <td><span class="tag tag-missing">High</span></td>
-          <td>Every projection writes its own SQL. No typed read-model store abstraction between <code>projection/</code> and <code>query/</code>.</td>
-        </tr>
-        <tr>
-          <td>SQL storage lacks <code>Journal</code></td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>Cross-aggregate replay from SQL requires table-scan workarounds instead of native <code>ReadAll/ReadFrom</code>.</td>
-        </tr>
-        <tr>
-          <td>Pebble gaps</td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>No <code>BackwardsSource</code> or <code>StreamLoader</code>; limits parity with SQL/memory.</td>
-        </tr>
-        <tr>
-          <td>Turso coverage 29%</td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>Remote sync (Push/Pull/Checkpoint) is effectively untested. Consumers cannot trust it in production.</td>
-        </tr>
-        <tr>
-          <td>No reusable crash-recovery relay</td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>The outbox was removed (YAGNI). Crash recovery uses <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls the tail → publish → checkpoint loop. A <code>Relay</code> component would close this gap without reintroducing an outbox table.</td>
-        </tr>
-        <tr>
-          <td>No schema registry middleware</td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>Consumers can upcast on load, but cannot enforce schema compatibility at publish time.</td>
-        </tr>
-        <tr>
-          <td>Test utilities are thin</td>
-          <td><span class="tag tag-gap">Medium</span></td>
-          <td>No fluent <code>AggregateTester</code>, <code>ProjectionTester</code>, or <code>BusTester</code>. Every consumer hand-rolls setup.</td>
-        </tr>
-        <tr>
-          <td>BuildFlow pre-commit hook broken</td>
-          <td><span class="tag tag-gap">Low</span></td>
-          <td>Requires <code>--no-verify</code>. Annoying, not blocking, but erodes contributor trust.</td>
-        </tr>
-        <tr>
-          <td>Catalog lint issues (7)</td>
-          <td><span class="tag tag-gap">Low</span></td>
-          <td>Pre-existing; not correctness issues, but they stain an otherwise zero-lint codebase.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section id="vision">
-  <h2><span class="section-num">03</span>Vision of the Perfect State</h2>
-  <p>
-    A perfect <code>go-cqrs-lite</code> would mean any team can build a production CQRS system by composing modules
-    without writing infrastructure glue. The library would handle the <em>boring, risky</em> parts:
-    persistence, schema evolution, observability, caching, and resilience.
-  </p>
-
-  <div class="two-col">
-    <div class="feature-card">
-      <h4>Type-safe everything</h4>
-      <p>No <code>any</code> in public APIs. Branded IDs, generic stores, generic projections, generic queries. The compiler prevents mixing IDs and payloads.</p>
-    </div>
-    <div class="feature-card">
-      <h4>Observable by default</h4>
-      <p>Every store, bus, dispatcher, projection, and query handler emits OTel traces and metrics. Zero config means zero telemetry.</p>
-    </div>
-    <div class="feature-card">
-      <h4>Resilient by default</h4>
-      <p>Crash recovery via <code>SeekableJournal + CheckpointStore</code> guarantees at-least-once delivery without an outbox table. Retries, circuit breakers, and DLQ are opt-out, not opt-in.</p>
-    </div>
-    <div class="feature-card">
-      <h4>Schema-aware</h4>
-      <p>Publish-time validation against a registry. Versioned read models. Upcasters migrate both event and projection schemas.</p>
-    </div>
-    <div class="feature-card">
-      <h4>Testable without mocks</h4>
-      <p>High-level test utilities let consumers write Given-When-Then specs against real in-memory infrastructure.</p>
-    </div>
-    <div class="feature-card">
-      <h4>Modular acyclic graph</h4>
-      <p>No module depends on more than it needs. Consumers import only what they use. No replace-directive tangles.</p>
-    </div>
-  </div>
-</section>
-
-<section id="roadmap">
-  <h2><span class="section-num">04</span>Roadmap to Perfect</h2>
-
-  <div class="phase">
-    <div class="phase-num">01</div>
-    <div class="phase-body">
-      <h4>Add a typed <code>readmodel/</code> store module</h4>
-      <p>This is the highest-impact missing piece. It sits between <code>projection/</code> (writes read models) and <code>query/</code> (reads them). A generic <code>Store[K,V]</code> — the common denominator across KV, SQL, and document backends — with cursor pagination, optimistic concurrency, cache decorator, and OTel.</p>
-      <div class="phase-progress"><span data-width="0"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">02</div>
-    <div class="phase-body">
-      <h4>Complete SQL <code>Journal</code> and Pebble parity</h4>
-      <p>SQL storage should implement <code>event.Journal</code> and <code>event.SeekableJournal</code> natively. Pebble should implement <code>BackwardsSource</code> and <code>StreamLoader</code>. All three backends should pass a shared contract test suite.</p>
-      <div class="phase-progress"><span data-width="10"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">03</div>
-    <div class="phase-body">
-      <h4>Add a reusable <code>Relay</code> component</h4>
-      <p>The outbox was removed because <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But consumers still hand-write the "tail journal, publish, save checkpoint" loop. A library-provided <code>Relay</code> would close this gap without reintroducing an outbox table or crossing the library/framework boundary.</p>
-      <div class="phase-progress"><span data-width="10"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">04</div>
-    <div class="phase-body">
-      <h4>Production-harden Turso</h4>
-      <p>Add integration tests for Push/Pull/Checkpoint against a local libSQL replica or testcontainer. Document sync semantics, conflict resolution, and offline-first guarantees. Target 80%+ coverage.</p>
-      <div class="phase-progress"><span data-width="35"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">05</div>
-    <div class="phase-body">
-      <h4>Add schema registry middleware</h4>
-      <p>A publish-side middleware that validates event payloads against the catalog JSON schema. Prevents incompatible events from ever reaching the bus. Complements the existing load-time upcaster.</p>
-      <div class="phase-progress"><span data-width="50"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">06</div>
-    <div class="phase-body">
-      <h4>Build <code>testing/</code> fluent utilities</h4>
-      <p><code>AggregateTester</code>, <code>ProjectionTester</code>, <code>BusTester</code>, and <code>StoreContractSuite</code> so consumers write BDD-style tests without boilerplate. This is the missing DX layer.</p>
-      <div class="phase-progress"><span data-width="60"></span></div>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-num">07</div>
-    <div class="phase-body">
-      <h4>Polish developer experience</h4>
-      <p>Fix BuildFlow pre-commit, eliminate catalog lint issues, add a dedicated "getting started" example that uses command dispatch → decider → event store → projection → query end-to-end. Make onboarding 15 minutes, not 2 hours.</p>
-      <div class="phase-progress"><span data-width="80"></span></div>
-    </div>
-  </div>
-</section>
-
-<section id="modules">
-  <h2><span class="section-num">05</span>New Module Proposals</h2>
-
-  <h3><code>readmodel/</code> — Typed Read-Model Store</h3>
-
-  <p>The core insight: <strong>KV backends are great at <code>Get</code>/<code>Put</code>, terrible at <code>List</code>. SQL backends are great at <code>List</code>, okay at <code>Get</code>/<code>Put</code>.</strong> The interface doesn't pretend these are equivalent. Each backend is a separate package with its own constructor. A detector suggests what's available in your environment — it never forces a choice.</p>
-
-  <pre><code><span class="hl-comment">// readmodel/store.go — the interface everything implements</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Architectural roadmap: go-cqrs-lite v2.1.0 assessment and path to perfection."
+    />
+    <title>Toward Perfect — go-cqrs-lite Architectural Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+        --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+        --bg: #fdfcfa;
+        --bg-elevated: #ffffff;
+        --surface: #f5f4f0;
+        --border: #d4d2cc;
+        --border-strong: #a8a59c;
+        --text: #1a1917;
+        --text-secondary: #4a4946;
+        --text-tertiary: #787671;
+        --accent: #c41e3a;
+        --accent-muted: #e8c4ca;
+        --success: #1a5c3a;
+        --warn: #8c6b1f;
+        --danger: #8c1a1a;
+        --info: #1a3a5c;
+
+        --max-width: 820px;
+        --sidebar-width: 220px;
+        --gutter: 2.5rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0d0c;
+          --bg-elevated: #161614;
+          --surface: #1e1e1b;
+          --border: #2e2e2a;
+          --border-strong: #4a4a44;
+          --text: #e8e6e1;
+          --text-secondary: #a8a59c;
+          --text-tertiary: #6a6862;
+          --accent: #e85d75;
+          --accent-muted: #5c2a32;
+          --success: #4ade80;
+          --warn: #fbbf24;
+          --danger: #f87171;
+          --info: #60a5fa;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1rem;
+        font-size: 16px;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: var(--accent-muted);
+        color: var(--text);
+      }
+
+      /* LAYOUT */
+      .page {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) 1fr;
+        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        margin: 0 auto;
+        min-height: 100vh;
+      }
+
+      @media (max-width: 900px) {
+        .page {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 2.5rem 1.5rem;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 1.5rem;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 1rem;
+        }
+      }
+
+      .sidebar-brand {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 1.3rem;
+        line-height: 1.1;
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: -0.02em;
+      }
+
+      .sidebar-brand span {
+        display: block;
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-tertiary);
+        margin-top: 0.3rem;
+      }
+
+      .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        list-style: none;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+      }
+
+      .sidebar-nav a {
+        display: block;
+        padding: 0.35rem 0.6rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        border-radius: 0;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+
+      .sidebar-nav a:hover {
+        color: var(--text);
+        border-left-color: var(--border);
+      }
+
+      .sidebar-nav a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-nav a {
+          border-left: none;
+          border-bottom: 2px solid transparent;
+          padding: 0.3rem 0.5rem;
+        }
+        .sidebar-nav a:hover {
+          border-bottom-color: var(--border);
+          border-left-color: transparent;
+        }
+        .sidebar-nav a.active {
+          border-bottom-color: var(--accent);
+          border-left-color: transparent;
+        }
+      }
+
+      .sidebar-meta {
+        margin-top: auto;
+        font-size: 0.72rem;
+        color: var(--text-tertiary);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-meta {
+          display: none;
+        }
+      }
+
+      /* MAIN */
+      .main {
+        padding: 3rem var(--gutter) 5rem;
+        max-width: var(--max-width);
+      }
+
+      @media (max-width: 900px) {
+        .main {
+          padding: 2rem 1.5rem;
+        }
+      }
+
+      /* TYPOGRAPHY */
+      h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(2.8rem, 6vw, 4rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-top: 4rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--text);
+        color: var(--text);
+      }
+
+      h3 {
+        font-family: var(--font-serif);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      h4 {
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      p {
+        color: var(--text-secondary);
+        margin: 0.9em 0;
+        max-width: 65ch;
+      }
+
+      p.lead {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-bottom: 2rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      em {
+        font-family: var(--font-serif);
+        font-style: italic;
+      }
+
+      /* RULE */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 3rem 0;
+      }
+
+      /* SECTION NUMBERS */
+      .section-num {
+        font-family: var(--font-serif);
+        font-size: 0.7em;
+        font-weight: 400;
+        color: var(--text-tertiary);
+        margin-right: 0.5rem;
+        vertical-align: super;
+      }
+
+      /* STATS */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 2.5rem 0 1.5rem;
+      }
+
+      @media (max-width: 700px) {
+        .summary-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .stat-cell {
+        background: var(--bg);
+        padding: 1.25rem 1.5rem;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.3rem;
+      }
+
+      .stat-desc {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        line-height: 1.4;
+      }
+
+      /* TABLES */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid var(--border);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 600px;
+      }
+
+      th {
+        text-align: left;
+        padding: 0.8rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-strong);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr {
+        transition: background 0.12s;
+      }
+      tbody tr:hover {
+        background: var(--surface);
+      }
+
+      /* TAGS */
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+      }
+
+      .tag-done {
+        color: var(--success);
+        border-color: var(--success);
+        background: transparent;
+      }
+      .tag-gap {
+        color: var(--warn);
+        border-color: var(--warn);
+        background: transparent;
+      }
+      .tag-missing {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: transparent;
+      }
+      .tag-idea {
+        color: var(--info);
+        border-color: var(--info);
+        background: transparent;
+      }
+
+      /* CODE */
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      pre {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+        line-height: 1.65;
+      }
+
+      pre code {
+        background: transparent;
+        padding: 0;
+        font-weight: 400;
+        font-size: 0.88em;
+      }
+
+      /* SYNTAX HIGHLIGHTING — restrained */
+      .hl-kw {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .hl-type {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-func {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-str {
+        color: var(--success);
+      }
+      .hl-comment {
+        color: var(--text-tertiary);
+        font-style: italic;
+      }
+      .hl-field {
+        color: var(--text-secondary);
+      }
+      .hl-param {
+        color: var(--text-secondary);
+      }
+
+      /* PHASES */
+      .phase {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.25rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .phase:first-of-type {
+        padding-top: 0;
+      }
+      .phase:last-of-type {
+        border-bottom: none;
+      }
+
+      .phase-num {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-tertiary);
+        text-align: right;
+        padding-top: 0.1rem;
+      }
+
+      .phase-body h4 {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 0.3rem;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .phase-body p {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+
+      .phase-progress {
+        width: 100%;
+        height: 2px;
+        background: var(--border);
+        margin-top: 0.75rem;
+      }
+
+      .phase-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        transition: width 1s ease-out;
+        width: 0;
+      }
+
+      /* GRIDS */
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 1.5rem 0;
+      }
+
+      @media (max-width: 640px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .feature-card {
+        padding: 1.5rem;
+        background: var(--bg);
+      }
+
+      .feature-card h4 {
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 0.4rem;
+      }
+
+      .feature-card p {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      /* CALLOUTS */
+      .callout {
+        padding: 1.25rem 1.5rem;
+        background: var(--surface);
+        border-left: 3px solid var(--accent);
+        margin: 1.5rem 0;
+      }
+
+      .callout p {
+        margin: 0;
+      }
+      .callout strong {
+        color: var(--text);
+      }
+
+      /* MODULE GRAPH */
+      .module-graph {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1.25rem 1.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.9;
+        color: var(--text-secondary);
+        margin: 1.2rem 0 1.5rem;
+        overflow-x: auto;
+      }
+
+      .module-graph .layer {
+        display: block;
+      }
+      .module-graph .layer-lvl {
+        color: var(--text-tertiary);
+        font-weight: 600;
+      }
+      .module-graph .layer-mod {
+        color: var(--text);
+      }
+
+      /* LISTS */
+      ul.plain,
+      ol {
+        padding-left: 1.3rem;
+        margin: 0.9rem 0;
+      }
+      li {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+      }
+      li::marker {
+        color: var(--text-tertiary);
+      }
+
+      /* FOOTER */
+      .footer {
+        margin-top: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-tertiary);
+        font-size: 0.82rem;
+      }
+
+      /* PRINT */
+      @media print {
+        .sidebar {
+          display: none;
+        }
+        .page {
+          grid-template-columns: 1fr;
+        }
+        .main {
+          padding: 1rem;
+        }
+        body {
+          background: white;
+          color: black;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside class="sidebar">
+        <a href="#top" class="sidebar-brand">
+          Toward Perfect
+          <span>go-cqrs-lite v2.1.0</span>
+        </a>
+        <nav>
+          <ul class="sidebar-nav">
+            <li><a href="#current">Current State</a></li>
+            <li><a href="#gaps">Gaps</a></li>
+            <li><a href="#vision">Vision</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
+            <li><a href="#modules">Proposals</a></li>
+            <li><a href="#principles">Principles</a></li>
+          </ul>
+        </nav>
+        <div class="sidebar-meta">
+          Architectural Roadmap<br />
+          30 modules · 67K LOC<br />
+          Generated 2026-06-05
+        </div>
+      </aside>
+
+      <main class="main" id="top">
+        <section class="hero">
+          <h1>Toward Perfect</h1>
+          <p class="lead">
+            A candid architectural assessment of <code>go-cqrs-lite</code> — celebrating what is
+            already excellent, exposing the remaining gaps, and mapping a concrete path to the
+            ideal.
+          </p>
+
+          <div class="summary-grid">
+            <div class="stat-cell">
+              <div class="stat-value">30</div>
+              <div class="stat-label">Modules</div>
+              <div class="stat-desc">22 library + 6 examples + 2 cmd</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">89–100%</div>
+              <div class="stat-label">Coverage</div>
+              <div class="stat-desc">Core above 90%; turso at 29%</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Lint</div>
+              <div class="stat-desc">11/12 modules clean</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">67K</div>
+              <div class="stat-label">Lines</div>
+              <div class="stat-desc">Zero framework assumptions</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="current">
+          <h2><span class="section-num">01</span>What We Have</h2>
+          <p>
+            v2.1.0 is a genuinely strong release. The following areas are already at or near
+            production-grade trustworthiness. These should be preserved and used as the quality
+            benchmark for everything else.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Area</th>
+                  <th>Why It Is Excellent</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>event/</code></td>
+                  <td>
+                    Immutable events, 19 functional options, strong error taxonomy, lazy allocation,
+                    clock injection, defensive copies.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>id/</code></td>
+                  <td>
+                    Branded ULIDs with compile-time safety, full serialization support, 97.8%
+                    coverage.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>command/</code> &amp; <code>query/</code></td>
+                  <td>
+                    Typed handlers, middleware chains, lifecycle, metadata, catalog introspection.
+                    100% / 94% coverage.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>decider/</code></td>
+                  <td>
+                    Pure-function aggregates, snapshot/time-travel support, fully deterministic.
+                    100% coverage.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>middleware/</code></td>
+                  <td>
+                    8 concerns × 3 message types = 24 middleware factories. Circuit breaker, retry,
+                    tracing, metrics, logging, validation, recovery.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>signing/</code></td>
+                  <td>HMAC + Ed25519 + multisig, canonical encoding, zero external crypto deps.</td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>catalog/</code></td>
+                  <td>
+                    Auto-docs: AsyncAPI, OpenAPI, EventCatalog MDX, D2 diagrams, docserver with
+                    Scalar + AsyncAPI React.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>projection/</code></td>
+                  <td>
+                    Replay + live runner, checkpointing, DLQ, replay context markers, graceful
+                    close. 95%+ coverage.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>listing/</code></td>
+                  <td>
+                    Aggregate listing with tombstone detection, cursor pagination, SQL + in-memory
+                    readers, cache invalidation.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>storage/</code></td>
+                  <td>
+                    PostgreSQL + SQLite + Turso, optimistic concurrency, time-travel, snapshots,
+                    checkpoints, dialect abstraction.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>memory/</code></td>
+                  <td>Reference in-memory implementations for testing. 99.6% coverage.</td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+                <tr>
+                  <td><code>otel/</code></td>
+                  <td>
+                    Shared OpenTelemetry helpers across modules. Clean abstraction over raw OTel
+                    SDK.
+                  </td>
+                  <td><span class="tag tag-done">Done</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <p>
+              <strong>Core insight.</strong> The hard parts are solved. Event model, identity,
+              dispatch, projections, storage backends, docs generation, and middleware are all
+              credible, tested, and composable. The remaining work is mostly
+              <em>connective tissue</em> and <em>production hardening</em>.
+            </p>
+          </div>
+        </section>
+
+        <section id="gaps">
+          <h2><span class="section-num">02</span>Where We Are Not Yet Perfect</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Gap</th>
+                  <th>Severity</th>
+                  <th>What It Means for Consumers</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>No generic read-model store</td>
+                  <td><span class="tag tag-missing">High</span></td>
+                  <td>
+                    Every projection writes its own SQL. No typed read-model store abstraction
+                    between <code>projection/</code> and <code>query/</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>SQL storage lacks <code>Journal</code></td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    Cross-aggregate replay from SQL requires table-scan workarounds instead of
+                    native <code>ReadAll/ReadFrom</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Pebble gaps</td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    No <code>BackwardsSource</code> or <code>StreamLoader</code>; limits parity with
+                    SQL/memory.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Turso coverage 29%</td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    Remote sync (Push/Pull/Checkpoint) is effectively untested. Consumers cannot
+                    trust it in production.
+                  </td>
+                </tr>
+                <tr>
+                  <td>No reusable crash-recovery relay</td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    The outbox was removed (YAGNI). Crash recovery uses
+                    <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls
+                    the tail → publish → checkpoint loop. A <code>Relay</code> component would close
+                    this gap without reintroducing an outbox table.
+                  </td>
+                </tr>
+                <tr>
+                  <td>No schema registry middleware</td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    Consumers can upcast on load, but cannot enforce schema compatibility at publish
+                    time.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Test utilities are thin</td>
+                  <td><span class="tag tag-gap">Medium</span></td>
+                  <td>
+                    No fluent <code>AggregateTester</code>, <code>ProjectionTester</code>, or
+                    <code>BusTester</code>. Every consumer hand-rolls setup.
+                  </td>
+                </tr>
+                <tr>
+                  <td>BuildFlow pre-commit hook broken</td>
+                  <td><span class="tag tag-gap">Low</span></td>
+                  <td>
+                    Requires <code>--no-verify</code>. Annoying, not blocking, but erodes
+                    contributor trust.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Catalog lint issues (7)</td>
+                  <td><span class="tag tag-gap">Low</span></td>
+                  <td>
+                    Pre-existing; not correctness issues, but they stain an otherwise zero-lint
+                    codebase.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="vision">
+          <h2><span class="section-num">03</span>Vision of the Perfect State</h2>
+          <p>
+            A perfect <code>go-cqrs-lite</code> would mean any team can build a production CQRS
+            system by composing modules without writing infrastructure glue. The library would
+            handle the <em>boring, risky</em> parts: persistence, schema evolution, observability,
+            caching, and resilience.
+          </p>
+
+          <div class="two-col">
+            <div class="feature-card">
+              <h4>Type-safe everything</h4>
+              <p>
+                No <code>any</code> in public APIs. Branded IDs, generic stores, generic
+                projections, generic queries. The compiler prevents mixing IDs and payloads.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>Observable by default</h4>
+              <p>
+                Every store, bus, dispatcher, projection, and query handler emits OTel traces and
+                metrics. Zero config means zero telemetry.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>Resilient by default</h4>
+              <p>
+                Crash recovery via <code>SeekableJournal + CheckpointStore</code> guarantees
+                at-least-once delivery without an outbox table. Retries, circuit breakers, and DLQ
+                are opt-out, not opt-in.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>Schema-aware</h4>
+              <p>
+                Publish-time validation against a registry. Versioned read models. Upcasters migrate
+                both event and projection schemas.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>Testable without mocks</h4>
+              <p>
+                High-level test utilities let consumers write Given-When-Then specs against real
+                in-memory infrastructure.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>Modular acyclic graph</h4>
+              <p>
+                No module depends on more than it needs. Consumers import only what they use. No
+                replace-directive tangles.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="section-num">04</span>Roadmap to Perfect</h2>
+
+          <div class="phase">
+            <div class="phase-num">01</div>
+            <div class="phase-body">
+              <h4>Add a typed <code>readmodel/</code> store module</h4>
+              <p>
+                This is the highest-impact missing piece. It sits between
+                <code>projection/</code> (writes read models) and <code>query/</code> (reads them).
+                A generic <code>Store[K,V]</code> — the common denominator across KV, SQL, and
+                document backends — with cursor pagination, optimistic concurrency, cache decorator,
+                and OTel.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">02</div>
+            <div class="phase-body">
+              <h4>Complete SQL <code>Journal</code> and Pebble parity</h4>
+              <p>
+                SQL storage should implement <code>event.Journal</code> and
+                <code>event.SeekableJournal</code> natively. Pebble should implement
+                <code>BackwardsSource</code> and <code>StreamLoader</code>. All three backends
+                should pass a shared contract test suite.
+              </p>
+              <div class="phase-progress"><span data-width="10"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">03</div>
+            <div class="phase-body">
+              <h4>Add a reusable <code>Relay</code> component</h4>
+              <p>
+                The outbox was removed because
+                <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But
+                consumers still hand-write the "tail journal, publish, save checkpoint" loop. A
+                library-provided <code>Relay</code> would close this gap without reintroducing an
+                outbox table or crossing the library/framework boundary.
+              </p>
+              <div class="phase-progress"><span data-width="10"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">04</div>
+            <div class="phase-body">
+              <h4>Production-harden Turso</h4>
+              <p>
+                Add integration tests for Push/Pull/Checkpoint against a local libSQL replica or
+                testcontainer. Document sync semantics, conflict resolution, and offline-first
+                guarantees. Target 80%+ coverage.
+              </p>
+              <div class="phase-progress"><span data-width="35"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">05</div>
+            <div class="phase-body">
+              <h4>Add schema registry middleware</h4>
+              <p>
+                A publish-side middleware that validates event payloads against the catalog JSON
+                schema. Prevents incompatible events from ever reaching the bus. Complements the
+                existing load-time upcaster.
+              </p>
+              <div class="phase-progress"><span data-width="50"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">06</div>
+            <div class="phase-body">
+              <h4>Build <code>testing/</code> fluent utilities</h4>
+              <p>
+                <code>AggregateTester</code>, <code>ProjectionTester</code>, <code>BusTester</code>,
+                and <code>StoreContractSuite</code> so consumers write BDD-style tests without
+                boilerplate. This is the missing DX layer.
+              </p>
+              <div class="phase-progress"><span data-width="60"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">07</div>
+            <div class="phase-body">
+              <h4>Polish developer experience</h4>
+              <p>
+                Fix BuildFlow pre-commit, eliminate catalog lint issues, add a dedicated "getting
+                started" example that uses command dispatch → decider → event store → projection →
+                query end-to-end. Make onboarding 15 minutes, not 2 hours.
+              </p>
+              <div class="phase-progress"><span data-width="80"></span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="modules">
+          <h2><span class="section-num">05</span>New Module Proposals</h2>
+
+          <h3><code>readmodel/</code> — Typed Read-Model Store</h3>
+
+          <p>
+            The core insight:
+            <strong
+              >KV backends are great at <code>Get</code>/<code>Put</code>, terrible at
+              <code>List</code>. SQL backends are great at <code>List</code>, okay at
+              <code>Get</code>/<code>Put</code>.</strong
+            >
+            The interface doesn't pretend these are equivalent. Each backend is a separate package
+            with its own constructor. A detector suggests what's available in your environment — it
+            never forces a choice.
+          </p>
+
+          <pre><code><span class="hl-comment">// readmodel/store.go — the interface everything implements</span>
 <span class="hl-kw">type</span> <span class="hl-type">Source</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) (<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>)
     <span class="hl-func">List</span>(ctx <span class="hl-type">context.Context</span>, opts <span class="hl-type">ListOptions</span>[<span class="hl-type">K</span>]) (<span class="hl-type">Page</span>[<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]], <span class="hl-type">error</span>)
@@ -900,65 +1162,78 @@
 <span class="hl-comment">// readmodel/dynamodb.NewStore[K,V](client) // AWS serverless</span>
 <span class="hl-comment">// readmodel/memory.NewStore[K,V]()        // tests only</span></code></pre>
 
-  <h4>Backend Taxonomy</h4>
+          <h4>Backend Taxonomy</h4>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Backend</th><th>Type</th><th>Get</th><th>Put</th><th>List</th><th>When to Use</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>memory</code></td>
-          <td>map + sync.RWMutex</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Moderate</td>
-          <td>Tests, CI, ephemeral</td>
-        </tr>
-        <tr>
-          <td><code>sqlite</code></td>
-          <td>Embedded SQL</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Solo projects, CLI tools, demos</td>
-        </tr>
-        <tr>
-          <td><code>pebble</code></td>
-          <td>Embedded LSM-tree</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td><strong>Slow</strong></td>
-          <td>High-write single-node, no SQL overhead</td>
-        </tr>
-        <tr>
-          <td><code>postgres</code></td>
-          <td>Production SQL</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Standard production, ACID, backups</td>
-        </tr>
-        <tr>
-          <td><code>scylla</code></td>
-          <td>Wide-column distributed</td>
-          <td>Fast</td>
-          <td>Fast</td>
-          <td>Moderate<sup>*</sup></td>
-          <td>1M+ users, linear scale-out, multi-DC</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Backend</th>
+                  <th>Type</th>
+                  <th>Get</th>
+                  <th>Put</th>
+                  <th>List</th>
+                  <th>When to Use</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>memory</code></td>
+                  <td>map + sync.RWMutex</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Moderate</td>
+                  <td>Tests, CI, ephemeral</td>
+                </tr>
+                <tr>
+                  <td><code>sqlite</code></td>
+                  <td>Embedded SQL</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Solo projects, CLI tools, demos</td>
+                </tr>
+                <tr>
+                  <td><code>pebble</code></td>
+                  <td>Embedded LSM-tree</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td><strong>Slow</strong></td>
+                  <td>High-write single-node, no SQL overhead</td>
+                </tr>
+                <tr>
+                  <td><code>postgres</code></td>
+                  <td>Production SQL</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Standard production, ACID, backups</td>
+                </tr>
+                <tr>
+                  <td><code>scylla</code></td>
+                  <td>Wide-column distributed</td>
+                  <td>Fast</td>
+                  <td>Fast</td>
+                  <td>Moderate<sup>*</sup></td>
+                  <td>1M+ users, linear scale-out, multi-DC</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: -1rem;"><sup>*</sup> Scylla <code>List</code> uses <code>token(key)</code> pagination — order is not lexicographic, but deterministic.</p>
+          <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: -1rem">
+            <sup>*</sup> Scylla <code>List</code> uses <code>token(key)</code> pagination — order is
+            not lexicographic, but deterministic.
+          </p>
 
-  <h4>Smart Defaults — Detect What's Already There</h4>
+          <h4>Smart Defaults — Detect What's Already There</h4>
 
-  <p>The factory doesn't guess — it detects what's <em>already running</em> in the environment and uses it. No extra infrastructure to provision.</p>
+          <p>
+            The factory doesn't guess — it detects what's <em>already running</em> in the
+            environment and uses it. No extra infrastructure to provision.
+          </p>
 
-  <pre><code><span class="hl-comment">// OpenAuto: detects what's already available, zero config</span>
+          <pre><code><span class="hl-comment">// OpenAuto: detects what's already available, zero config</span>
 store, err := readmodel.<span class="hl-func">OpenAuto</span>[UserID, UserSummary]()
 <span class="hl-comment">// KUBERNETES_SERVICE_HOST set  → etcd (in-cluster, already running)</span>
 <span class="hl-comment">// AWS_LAMBDA_FUNCTION_NAME set → dynamodb (serverless-native)</span>
@@ -976,61 +1251,66 @@ store, err := readmodel.<span class="hl-func">Open</span>[UserID, UserSummary](r
 <span class="hl-comment">//          Reason: "Pebble List requires full key-range scan.</span>
 <span class="hl-comment">//                   Consider postgres if you paginate frequently."}</span></code></pre>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Environment</th><th>Detected Signal</th><th>Native Backend</th><th>Why</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Kubernetes</td>
-          <td><code>KUBERNETES_SERVICE_HOST</code></td>
-          <td><strong>etcd</strong></td>
-          <td>Already running in-cluster, distributed, consistent, no extra infra</td>
-        </tr>
-        <tr>
-          <td>AWS Lambda</td>
-          <td><code>AWS_LAMBDA_FUNCTION_NAME</code></td>
-          <td><strong>DynamoDB</strong></td>
-          <td>Serverless-native, pay-per-request, IAM auth</td>
-        </tr>
-        <tr>
-          <td>GCP Cloud Run</td>
-          <td><code>K_SERVICE</code></td>
-          <td><strong>Firestore</strong></td>
-          <td>Serverless-native, auto-scaling, regional</td>
-        </tr>
-        <tr>
-          <td>Azure Functions</td>
-          <td><code>FUNCTIONS_EXTENSION_VERSION</code></td>
-          <td><strong>Cosmos DB</strong></td>
-          <td>Serverless-native, global distribution</td>
-        </tr>
-        <tr>
-          <td>Docker / local</td>
-          <td><code>/.dockerenv</code>, interactive TTY</td>
-          <td><strong>SQLite</strong> or <strong>Pebble</strong></td>
-          <td>Embedded, zero ops, single file</td>
-        </tr>
-        <tr>
-          <td>CI / GitHub Actions</td>
-          <td><code>GITHUB_ACTIONS</code></td>
-          <td><strong>Memory</strong></td>
-          <td>Ephemeral, fast teardown, no cleanup</td>
-        </tr>
-        <tr>
-          <td>Bare metal / VM</td>
-          <td>None of the above</td>
-          <td><strong>PostgreSQL</strong> or <strong>Scylla</strong></td>
-          <td>Production-grade, operator-managed</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Environment</th>
+                  <th>Detected Signal</th>
+                  <th>Native Backend</th>
+                  <th>Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Kubernetes</td>
+                  <td><code>KUBERNETES_SERVICE_HOST</code></td>
+                  <td><strong>etcd</strong></td>
+                  <td>Already running in-cluster, distributed, consistent, no extra infra</td>
+                </tr>
+                <tr>
+                  <td>AWS Lambda</td>
+                  <td><code>AWS_LAMBDA_FUNCTION_NAME</code></td>
+                  <td><strong>DynamoDB</strong></td>
+                  <td>Serverless-native, pay-per-request, IAM auth</td>
+                </tr>
+                <tr>
+                  <td>GCP Cloud Run</td>
+                  <td><code>K_SERVICE</code></td>
+                  <td><strong>Firestore</strong></td>
+                  <td>Serverless-native, auto-scaling, regional</td>
+                </tr>
+                <tr>
+                  <td>Azure Functions</td>
+                  <td><code>FUNCTIONS_EXTENSION_VERSION</code></td>
+                  <td><strong>Cosmos DB</strong></td>
+                  <td>Serverless-native, global distribution</td>
+                </tr>
+                <tr>
+                  <td>Docker / local</td>
+                  <td><code>/.dockerenv</code>, interactive TTY</td>
+                  <td><strong>SQLite</strong> or <strong>Pebble</strong></td>
+                  <td>Embedded, zero ops, single file</td>
+                </tr>
+                <tr>
+                  <td>CI / GitHub Actions</td>
+                  <td><code>GITHUB_ACTIONS</code></td>
+                  <td><strong>Memory</strong></td>
+                  <td>Ephemeral, fast teardown, no cleanup</td>
+                </tr>
+                <tr>
+                  <td>Bare metal / VM</td>
+                  <td>None of the above</td>
+                  <td><strong>PostgreSQL</strong> or <strong>Scylla</strong></td>
+                  <td>Production-grade, operator-managed</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <h4>Mix and Match: Decorators</h4>
+          <h4>Mix and Match: Decorators</h4>
 
-  <pre><code><span class="hl-comment">// Write-through: hot cache + SQL fallback</span>
+          <pre><code><span class="hl-comment">// Write-through: hot cache + SQL fallback</span>
 hot := readmodel.<span class="hl-func">NewMemoryStore</span>[UserID, UserSummary]()
 cold := readmodel.<span class="hl-func">NewPostgresStore</span>[UserID, UserSummary](db)
 store := readmodel.<span class="hl-func">NewWriteThrough</span>(hot, cold)
@@ -1048,18 +1328,38 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
     readmodel.<span class="hl-func">WithCacheSize</span>(<span class="hl-str">10_000</span>),
 )</code></pre>
 
-  <ul class="plain">
-    <li><strong>Concrete constructors match project convention:</strong> <code>NewMemoryStore</code>, <code>NewSQLiteStore</code>, <code>NewPostgresStore</code>, <code>NewPebbleStore</code>, <code>NewScyllaStore</code>.</li>
-    <li><strong>Honest capabilities:</strong> Every backend exposes <code>Capabilities()</code> — no pretending Pebble <code>List</code> is cheap.</li>
-    <li><strong>Smart defaults:</strong> <code>OpenAuto</code> detects environment. <code>Open</code> warns on workload mismatch.</li>
-    <li><strong>Composable:</strong> Write-through, tiered, and cached decorators wrap any concrete store.</li>
-    <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
-    <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks per backend.</li>
-  </ul>
+          <ul class="plain">
+            <li>
+              <strong>Concrete constructors match project convention:</strong>
+              <code>NewMemoryStore</code>, <code>NewSQLiteStore</code>,
+              <code>NewPostgresStore</code>, <code>NewPebbleStore</code>,
+              <code>NewScyllaStore</code>.
+            </li>
+            <li>
+              <strong>Honest capabilities:</strong> Every backend exposes
+              <code>Capabilities()</code> — no pretending Pebble <code>List</code> is cheap.
+            </li>
+            <li>
+              <strong>Smart defaults:</strong> <code>OpenAuto</code> detects environment.
+              <code>Open</code> warns on workload mismatch.
+            </li>
+            <li>
+              <strong>Composable:</strong> Write-through, tiered, and cached decorators wrap any
+              concrete store.
+            </li>
+            <li>
+              <strong>Dependencies:</strong> <code>event</code>, <code>id</code>,
+              <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or
+              <code>query</code>.
+            </li>
+            <li>
+              <strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks per backend.
+            </li>
+          </ul>
 
-  <h3><code>relay/</code> — Crash-Recovery Event Relay</h3>
+          <h3><code>relay/</code> — Crash-Recovery Event Relay</h3>
 
-  <pre><code><span class="hl-comment">// relay/relay.go</span>
+          <pre><code><span class="hl-comment">// relay/relay.go</span>
 <span class="hl-kw">type</span> <span class="hl-type">Relay</span> <span class="hl-kw">struct</span> {
     <span class="hl-field">journal</span>     <span class="hl-type">event.SeekableJournal</span>
     <span class="hl-field">checkpoint</span>  <span class="hl-type">event.CheckpointStore</span>
@@ -1069,28 +1369,40 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
 <span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Relay</span>) <span class="hl-func">CatchUp</span>(ctx <span class="hl-type">context.Context</span>, projectionName <span class="hl-type">string</span>) <span class="hl-type">error</span>
 <span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Relay</span>) <span class="hl-func">Run</span>(ctx <span class="hl-type">context.Context</span>) <span class="hl-type">error</span> <span class="hl-comment">// tail + publish + checkpoint loop</span></code></pre>
 
-  <ul class="plain">
-    <li>Replaces the outbox pattern without a secondary table. Uses the event store's own journal.</li>
-    <li>Reads from <code>SeekableJournal.ReadFrom(checkpoint)</code>, publishes to bus, saves checkpoint atomically.</li>
-    <li>Composable: consumers opt into it, not forced by the framework. Pure library building block.</li>
-  </ul>
+          <ul class="plain">
+            <li>
+              Replaces the outbox pattern without a secondary table. Uses the event store's own
+              journal.
+            </li>
+            <li>
+              Reads from <code>SeekableJournal.ReadFrom(checkpoint)</code>, publishes to bus, saves
+              checkpoint atomically.
+            </li>
+            <li>
+              Composable: consumers opt into it, not forced by the framework. Pure library building
+              block.
+            </li>
+          </ul>
 
-  <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
+          <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
 
-  <pre><code><span class="hl-comment">// registry/registry.go</span>
+          <pre><code><span class="hl-comment">// registry/registry.go</span>
 <span class="hl-kw">type</span> <span class="hl-type">Registry</span> <span class="hl-kw">struct</span> { <span class="hl-comment">/* JSON schemas by (eventType, version) */</span> }
 
 <span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Registry</span>) <span class="hl-func">Validate</span>(evt <span class="hl-type">event.Event</span>) <span class="hl-type">error</span>
 <span class="hl-kw">func</span> <span class="hl-func">ValidationMiddleware</span>(r *<span class="hl-type">Registry</span>) <span class="hl-type">event.PublishMiddleware</span></code></pre>
 
-  <ul class="plain">
-    <li>Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.</li>
-    <li>Prevents producer/consumer drift. Complements <code>schema.Upcaster</code> (load-time migration).</li>
-  </ul>
+          <ul class="plain">
+            <li>Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.</li>
+            <li>
+              Prevents producer/consumer drift. Complements <code>schema.Upcaster</code> (load-time
+              migration).
+            </li>
+          </ul>
 
-  <h3><code>testing/</code> — Fluent Test Utilities</h3>
+          <h3><code>testing/</code> — Fluent Test Utilities</h3>
 
-  <pre><code><span class="hl-comment">// testing/aggregate.go</span>
+          <pre><code><span class="hl-comment">// testing/aggregate.go</span>
 <span class="hl-param">tester</span> := <span class="hl-type">cqtesting</span>.<span class="hl-func">NewAggregateTester</span>(t, store, bus).
     <span class="hl-func">Given</span>(decider.<span class="hl-field">InitialState</span>).
     <span class="hl-func">When</span>(<span class="hl-type">CreateUser</span>{<span class="hl-field">Name</span>: <span class="hl-str">"Alice"</span>}).
@@ -1110,136 +1422,227 @@ source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSum
         }
     })</code></pre>
 
-  <ul class="plain">
-    <li>High-level BDD helpers for the three things every consumer tests: aggregates, projections, and commands/events.</li>
-    <li>Works with real <code>memory</code> implementations — no mocks required.</li>
-  </ul>
-</section>
+          <ul class="plain">
+            <li>
+              High-level BDD helpers for the three things every consumer tests: aggregates,
+              projections, and commands/events.
+            </li>
+            <li>Works with real <code>memory</code> implementations — no mocks required.</li>
+          </ul>
+        </section>
 
-<section>
-  <h2><span class="section-num">06</span>Module Graph Target</h2>
+        <section>
+          <h2><span class="section-num">06</span>Module Graph Target</h2>
 
-  <div class="module-graph">
-    <span class="layer"><span class="layer-lvl">Layer 0:</span> <span class="layer-mod">id/, dispatcher/, codec/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 1:</span> <span class="layer-mod">event/ (id, codec), command/ (id, dispatcher), query/ (dispatcher)</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 2:</span> <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 3:</span> <span class="layer-mod">decider/ (event, snapshot)</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 4:</span> <span class="layer-mod">memory/, signing/, otel/, readmodel/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+readmodel), listing/ (+readmodel), watermill/, pebble/, turso/, relay/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 6:</span> <span class="layer-mod">integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/, registry/</span></span>
-  </div>
+          <div class="module-graph">
+            <span class="layer"
+              ><span class="layer-lvl">Layer 0:</span>
+              <span class="layer-mod">id/, dispatcher/, codec/</span></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 1:</span>
+              <span class="layer-mod"
+                >event/ (id, codec), command/ (id, dispatcher), query/ (dispatcher)</span
+              ></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 2:</span>
+              <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 3:</span>
+              <span class="layer-mod">decider/ (event, snapshot)</span></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 4:</span>
+              <span class="layer-mod">memory/, signing/, otel/, readmodel/</span></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 5:</span>
+              <span class="layer-mod"
+                >middleware/, storage/, projection/ (+readmodel), listing/ (+readmodel), watermill/,
+                pebble/, turso/, relay/</span
+              ></span
+            >
+            <span class="layer"
+              ><span class="layer-lvl">Layer 6:</span>
+              <span class="layer-mod"
+                >integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/,
+                registry/</span
+              ></span
+            >
+          </div>
 
-  <p>
-    The key addition is <code>readmodel/</code> at Layer 4 alongside <code>memory/</code>, <code>signing/</code>, and <code>otel/</code>.
-    It becomes the standard read-model persistence contract, allowing <code>projection/</code>, <code>listing/</code>, and consumers
-    to write typed read models without touching SQL.
-  </p>
-</section>
+          <p>
+            The key addition is <code>readmodel/</code> at Layer 4 alongside <code>memory/</code>,
+            <code>signing/</code>, and <code>otel/</code>. It becomes the standard read-model
+            persistence contract, allowing <code>projection/</code>, <code>listing/</code>, and
+            consumers to write typed read models without touching SQL.
+          </p>
+        </section>
 
-<section id="principles">
-  <h2><span class="section-num">07</span>Decision Principles for New Work</h2>
+        <section id="principles">
+          <h2><span class="section-num">07</span>Decision Principles for New Work</h2>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Principle</th><th>Application</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Library, not framework</td>
-          <td>Never impose a transport, message broker, or SQL driver. Provide interfaces and reference implementations.</td>
-        </tr>
-        <tr>
-          <td>Zero <code>any</code> in public APIs</td>
-          <td>The only exception is database driver interop. Everything else is generic or strongly typed.</td>
-        </tr>
-        <tr>
-          <td>Composition over inheritance</td>
-          <td>Store decorators (cached, versioned, retrying) wrap inner stores. No base structs.</td>
-        </tr>
-        <tr>
-          <td>Observability built-in</td>
-          <td>Every new module uses <code>otel/</code> for traces and metrics from day one.</td>
-        </tr>
-        <tr>
-          <td>Tombstone over delete</td>
-          <td>Read models use <code>event.TombstoneStatus</code>; deletes are soft and reversible.</td>
-        </tr>
-        <tr>
-          <td>Test like we mean it</td>
-          <td>≥90% coverage, BDD suite, benchmarks, contract tests shared across implementations.</td>
-        </tr>
-        <tr>
-          <td>Acyclic module graph</td>
-          <td>No lower-layer module may depend on a higher layer. Replace directives only for CI isolation.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Principle</th>
+                  <th>Application</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Library, not framework</td>
+                  <td>
+                    Never impose a transport, message broker, or SQL driver. Provide interfaces and
+                    reference implementations.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Zero <code>any</code> in public APIs</td>
+                  <td>
+                    The only exception is database driver interop. Everything else is generic or
+                    strongly typed.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Composition over inheritance</td>
+                  <td>
+                    Store decorators (cached, versioned, retrying) wrap inner stores. No base
+                    structs.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Observability built-in</td>
+                  <td>
+                    Every new module uses <code>otel/</code> for traces and metrics from day one.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Tombstone over delete</td>
+                  <td>
+                    Read models use <code>event.TombstoneStatus</code>; deletes are soft and
+                    reversible.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Test like we mean it</td>
+                  <td>
+                    ≥90% coverage, BDD suite, benchmarks, contract tests shared across
+                    implementations.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Acyclic module graph</td>
+                  <td>
+                    No lower-layer module may depend on a higher layer. Replace directives only for
+                    CI isolation.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-<section>
-  <h2><span class="section-num">08</span>Summary — What to Do Next</h2>
+        <section>
+          <h2><span class="section-num">08</span>Summary — What to Do Next</h2>
 
-  <p>If I had one quarter to move this project from "excellent" to "perfect," the order would be:</p>
+          <p>
+            If I had one quarter to move this project from "excellent" to "perfect," the order would
+            be:
+          </p>
 
-  <ol>
-    <li><strong>Build <code>readmodel/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
-    <li><strong>Add <code>relay/</code></strong> — reusable crash-recovery component using SeekableJournal + CheckpointStore, without an outbox table.</li>
-    <li><strong>Complete storage parity</strong> — SQL Journal, Pebble BackwardsSource/StreamLoader, shared contract tests.</li>
-    <li><strong>Harden Turso</strong> — integration tests for sync semantics; target 80% coverage.</li>
-    <li><strong>Add registry middleware</strong> — publish-time schema validation to complement upcasters.</li>
-    <li><strong>Ship <code>testing/</code></strong> — fluent BDD utilities. This is the DX multiplier.</li>
-    <li><strong>Polish</strong> — fix BuildFlow, zero catalog lint, better onboarding example.</li>
-  </ol>
+          <ol>
+            <li>
+              <strong>Build <code>readmodel/</code></strong> — this is the biggest missing
+              capability and unlocks everything else.
+            </li>
+            <li>
+              <strong>Add <code>relay/</code></strong> — reusable crash-recovery component using
+              SeekableJournal + CheckpointStore, without an outbox table.
+            </li>
+            <li>
+              <strong>Complete storage parity</strong> — SQL Journal, Pebble
+              BackwardsSource/StreamLoader, shared contract tests.
+            </li>
+            <li>
+              <strong>Harden Turso</strong> — integration tests for sync semantics; target 80%
+              coverage.
+            </li>
+            <li>
+              <strong>Add registry middleware</strong> — publish-time schema validation to
+              complement upcasters.
+            </li>
+            <li>
+              <strong>Ship <code>testing/</code></strong> — fluent BDD utilities. This is the DX
+              multiplier.
+            </li>
+            <li>
+              <strong>Polish</strong> — fix BuildFlow, zero catalog lint, better onboarding example.
+            </li>
+          </ol>
 
-  <div class="callout">
-    <p><strong>Bottom line.</strong> go-cqrs-lite is already one of the most thoughtfully architected Go CQRS libraries available. The remaining work is not about fixing fundamental mistakes — it is about closing the last gaps so consumers can assemble a complete, production-grade CQRS stack using only library modules, with zero hand-rolled infrastructure glue.</p>
-  </div>
-</section>
+          <div class="callout">
+            <p>
+              <strong>Bottom line.</strong> go-cqrs-lite is already one of the most thoughtfully
+              architected Go CQRS libraries available. The remaining work is not about fixing
+              fundamental mistakes — it is about closing the last gaps so consumers can assemble a
+              complete, production-grade CQRS stack using only library modules, with zero
+              hand-rolled infrastructure glue.
+            </p>
+          </div>
+        </section>
 
-<div class="footer">
-  Generated for go-cqrs-lite v2.1.0 ·
-  <a href="https://github.com/LarsArtmann/go-cqrs-lite">github.com/LarsArtmann/go-cqrs-lite</a>
-</div>
+        <div class="footer">
+          Generated for go-cqrs-lite v2.1.0 ·
+          <a href="https://github.com/LarsArtmann/go-cqrs-lite"
+            >github.com/LarsArtmann/go-cqrs-lite</a
+          >
+        </div>
+      </main>
+    </div>
 
-</main>
-</div>
+    <script>
+      (function () {
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".sidebar-nav a");
 
-<script>
-  (function() {
-    const sections = document.querySelectorAll('section');
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                entry.target.querySelectorAll(".phase-progress > span").forEach((bar) => {
+                  bar.style.width = bar.getAttribute("data-width") + "%";
+                });
+                navLinks.forEach((link) => {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: "-10% 0px -60% 0px" },
+        );
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          entry.target.querySelectorAll('.phase-progress > span').forEach(bar => {
-            bar.style.width = bar.getAttribute('data-width') + '%';
-          });
-          navLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
-          });
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '-10% 0px -60% 0px' });
+        sections.forEach((s) => observer.observe(s));
 
-    sections.forEach(s => observer.observe(s));
-
-    document.querySelectorAll('[data-count]').forEach(counter => {
-      const target = parseInt(counter.getAttribute('data-count'), 10);
-      const start = performance.now();
-      function step(now) {
-        const progress = Math.min((now - start) / 1000, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        counter.textContent = Math.floor(ease * target);
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    });
-  })();
-</script>
-
-</body>
+        document.querySelectorAll("[data-count]").forEach((counter) => {
+          const target = parseInt(counter.getAttribute("data-count"), 10);
+          const start = performance.now();
+          function step(now) {
+            const progress = Math.min((now - start) / 1000, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            counter.textContent = Math.floor(ease * target);
+            if (progress < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        });
+      })();
+    </script>
+  </body>
 </html>

@@ -157,12 +157,14 @@ The `toward-perfect-go-cqrs-lite.html` proposal implies breaking changes that ha
 ### Open TODO Items (carried forward, no progress)
 
 **`[v2]` Deferred (next major):**
+
 - TransactionID branded type
 - `io.Closer` removal from core interfaces
 - Split `event.Store` into Writer/Reader/Deleter
 - Make event core truly immutable
 
 **`[FUTURE]` Long-term:**
+
 - Outbox pattern implementation
 - Schema registry (JSON Schema middleware)
 - Catalog diff / breaking-change detection tool
@@ -188,6 +190,7 @@ The `toward-perfect-go-cqrs-lite.html` proposal implies breaking changes that ha
 - Schema migration tool
 
 **`[BLOCKED]` External:**
+
 - PostgreSQL integration tests (testcontainers) — needs Docker
 - Move `example/todo` to own repo — manual repo creation
 - Push signing v1.0.0 tag — manual tag + push
@@ -292,35 +295,35 @@ The `toward-perfect-go-cqrs-lite.html` proposal implies breaking changes that ha
 
 ### Tier 1: Immediate (This Session / Today)
 
-| #   | Task                                                | Impact                       | Effort    |
-| --- | --------------------------------------------------- | ---------------------------- | --------- |
-| 1   | Decide on `storage-environment-mapping.html` (tracked `.md` exists; render is untracked) | Tree hygiene             | 30 sec   |
-| 2   | Commit `catalog/docserver/docserver_test.go` dedup | Clean working tree           | 1 minute  |
-| 3   | Push v2.1.0 tags to remote (`git push --follow-tags`) | Prevents data loss        | 1 command |
+| #   | Task                                                                                     | Impact             | Effort    |
+| --- | ---------------------------------------------------------------------------------------- | ------------------ | --------- |
+| 1   | Decide on `storage-environment-mapping.html` (tracked `.md` exists; render is untracked) | Tree hygiene       | 30 sec    |
+| 2   | Commit `catalog/docserver/docserver_test.go` dedup                                       | Clean working tree | 1 minute  |
+| 3   | Push v2.1.0 tags to remote (`git push --follow-tags`)                                    | Prevents data loss | 1 command |
 
 ### Tier 2: This Week
 
-| #   | Task                                                          | Impact                       | Effort    |
-| --- | ------------------------------------------------------------- | ---------------------------- | --------- |
-| 4   | Fix or remove BuildFlow pre-commit hook                       | Unblocks normal git workflow | 15 min    |
-| 5   | Archive 100+ stale status reports to `docs/status/archive/`   | Signal over noise            | 10 min    |
-| 6   | Fill ADR-0005 gap (or renumber 0006-0009)                     | Documentation integrity      | 15 min    |
-| 7   | Fix 7 catalog lint issues                                     | Zero-lint across ALL modules | 30 min    |
-| 8   | Create `ROADMAP.md` with v3.0 vision from brainstorm pieces   | Long-term clarity            | 2 hours   |
-| 9   | Implement SQL Journal (`ReadAll`/`ReadFrom`)                  | Storage parity               | 2–4 hours |
-| 10  | Implement Pebble `BackwardsSource`                           | Interface completeness       | 1 hour    |
+| #   | Task                                                        | Impact                       | Effort    |
+| --- | ----------------------------------------------------------- | ---------------------------- | --------- |
+| 4   | Fix or remove BuildFlow pre-commit hook                     | Unblocks normal git workflow | 15 min    |
+| 5   | Archive 100+ stale status reports to `docs/status/archive/` | Signal over noise            | 10 min    |
+| 6   | Fill ADR-0005 gap (or renumber 0006-0009)                   | Documentation integrity      | 15 min    |
+| 7   | Fix 7 catalog lint issues                                   | Zero-lint across ALL modules | 30 min    |
+| 8   | Create `ROADMAP.md` with v3.0 vision from brainstorm pieces | Long-term clarity            | 2 hours   |
+| 9   | Implement SQL Journal (`ReadAll`/`ReadFrom`)                | Storage parity               | 2–4 hours |
+| 10  | Implement Pebble `BackwardsSource`                          | Interface completeness       | 1 hour    |
 
 ### Tier 3: Next Sprint
 
-| #   | Task                                                                                | Impact                   | Effort  |
-| --- | ----------------------------------------------------------------------------------- | ------------------------ | ------- |
-| 11  | Turso integration tests (testcontainers)                                            | Coverage 29% → 80%+      | 4 hours |
-| 12  | Update all examples to v2.1.0                                                       | Consumer experience      | 30 min  |
-| 13  | `eventtest/fake_store.go` audit — reduce duplication with MemoryStore               | Maintainability          | 1 hour  |
-| 14  | Benchmark baseline update post-v2.1.0 perf work                                     | Regression detection     | 1 hour  |
-| 15  | Integrate `cmd/api-stability` into CI pipeline                                      | API contract enforcement | 2 hours |
-| 16  | Convert `toward-perfect-go-cqrs-lite.html` into GitHub issues / ROADMAP.md sections | Actionable design        | 2 hours |
-| 17  | Apply brainstorm renames in code (`data/`→`readmodel/`, `journalpublisher/`→`relay/`) | v3.0 first cut         | 4 hours |
+| #   | Task                                                                                  | Impact                   | Effort  |
+| --- | ------------------------------------------------------------------------------------- | ------------------------ | ------- |
+| 11  | Turso integration tests (testcontainers)                                              | Coverage 29% → 80%+      | 4 hours |
+| 12  | Update all examples to v2.1.0                                                         | Consumer experience      | 30 min  |
+| 13  | `eventtest/fake_store.go` audit — reduce duplication with MemoryStore                 | Maintainability          | 1 hour  |
+| 14  | Benchmark baseline update post-v2.1.0 perf work                                       | Regression detection     | 1 hour  |
+| 15  | Integrate `cmd/api-stability` into CI pipeline                                        | API contract enforcement | 2 hours |
+| 16  | Convert `toward-perfect-go-cqrs-lite.html` into GitHub issues / ROADMAP.md sections   | Actionable design        | 2 hours |
+| 17  | Apply brainstorm renames in code (`data/`→`readmodel/`, `journalpublisher/`→`relay/`) | v3.0 first cut           | 4 hours |
 
 ### Tier 4: Strategic
 
@@ -349,6 +352,7 @@ Specifically, I see a tension I cannot resolve without you:
 - If we grind v2.x debt first, the v3.0 design crystallizes further in docs but no closer to code.
 
 I cannot decide which is more valuable because:
+
 - **Push-tags-first** is the safe move (prevents data loss, low risk) but freezes v2.1.0 as the public release while we work on v3.0
 - **Brainstorm-first** is the ambitious move (real progress toward the next major) but might leave v2.x debt forever
 - **Parallel** risks half-done work in both directions

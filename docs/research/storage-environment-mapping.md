@@ -12,15 +12,15 @@
 
 These are the only places in go-cqrs-lite that actually store bytes on disk or over the network.
 
-| # | Touchpoint | Interface | Status | Data Shape | Write Pattern | Read Pattern | Size Growth |
-|---|-----------|-----------|--------|-----------|---------------|--------------|-------------|
-| 1 | **Event Store** | `event.Store` (Sink + Source + Journal + Seekable) | ✅ Implemented | Append-only log of immutable events | Heavy append, no update/delete | By aggregate, by time range, global journal scan | Unbounded — primary data store |
-| 2 | **Snapshot Store** | `snapshot.SnapshotStore` | ✅ Implemented | Serialized aggregate state at version | Occasional upsert (every N events) | Point lookup by aggregate | Bounded — one per aggregate |
-| 3 | **Checkpoint Store** | `event.CheckpointStore` | ✅ Implemented | Projection name → last event ID | Frequent overwrite (per batch) | Point lookup by projection name | Bounded — one per projection |
-| 4 | **Command Store** | `command.Store` | ⚠️ Interface only | Persisted command audit log | Append-only | By aggregate, by timestamp | Unbounded — audit trail |
-| 5 | **Read Model Store** | _(no interface yet — examples only)_ | 📝 Planned | Projected queryable state (Get/List/Put/Delete) | Write on projection, read-heavy | Point lookup, filtered list | Bounded — rebuildable from events |
-| 6 | **Aggregate Listing** | `listing.AggregateReader` | ✅ Implemented | Derived index of aggregates + tombstone status | Read-only (derived from events) | Cursor-pagination list | Derived — no independent storage |
-| 7 | **Message Bus** | `event.Bus` / `event.Publisher` | ✅ In-memory only | Transient message delivery | Publish | Subscribe | None — in-memory only |
+| #   | Touchpoint            | Interface                                          | Status            | Data Shape                                      | Write Pattern                      | Read Pattern                                     | Size Growth                       |
+| --- | --------------------- | -------------------------------------------------- | ----------------- | ----------------------------------------------- | ---------------------------------- | ------------------------------------------------ | --------------------------------- |
+| 1   | **Event Store**       | `event.Store` (Sink + Source + Journal + Seekable) | ✅ Implemented    | Append-only log of immutable events             | Heavy append, no update/delete     | By aggregate, by time range, global journal scan | Unbounded — primary data store    |
+| 2   | **Snapshot Store**    | `snapshot.SnapshotStore`                           | ✅ Implemented    | Serialized aggregate state at version           | Occasional upsert (every N events) | Point lookup by aggregate                        | Bounded — one per aggregate       |
+| 3   | **Checkpoint Store**  | `event.CheckpointStore`                            | ✅ Implemented    | Projection name → last event ID                 | Frequent overwrite (per batch)     | Point lookup by projection name                  | Bounded — one per projection      |
+| 4   | **Command Store**     | `command.Store`                                    | ⚠️ Interface only | Persisted command audit log                     | Append-only                        | By aggregate, by timestamp                       | Unbounded — audit trail           |
+| 5   | **Read Model Store**  | _(no interface yet — examples only)_               | 📝 Planned        | Projected queryable state (Get/List/Put/Delete) | Write on projection, read-heavy    | Point lookup, filtered list                      | Bounded — rebuildable from events |
+| 6   | **Aggregate Listing** | `listing.AggregateReader`                          | ✅ Implemented    | Derived index of aggregates + tombstone status  | Read-only (derived from events)    | Cursor-pagination list                           | Derived — no independent storage  |
+| 7   | **Message Bus**       | `event.Bus` / `event.Publisher`                    | ✅ In-memory only | Transient message delivery                      | Publish                            | Subscribe                                        | None — in-memory only             |
 
 `watermill/` provides protocol adapters ( PublisherAdapter / SubscriberAdapter ) to bridge with the Watermill ecosystem, but the underlying bus is still `memory.MemoryBus`. No persistent backends (NATS, Redis, SQS, Pub/Sub) exist.
 
@@ -30,28 +30,28 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 ## 2. Environment Detection Signals
 
-| Environment | Primary Signal | Secondary Signals | Confidence |
-|-------------|---------------|-------------------|------------|
-| **Kubernetes** | `KUBERNETES_SERVICE_HOST` env var | `/var/run/secrets/kubernetes.io/` exists | High |
-| **AWS Lambda** | `AWS_LAMBDA_FUNCTION_NAME` env var | `AWS_REGION` set, `/var/runtime/` exists | High |
-| **GCP Cloud Run** | `K_SERVICE` env var | `GOOGLE_CLOUD_PROJECT` set | High |
-| **Azure Functions** | `FUNCTIONS_WORKER_RUNTIME` env var | `WEBSITE_SITE_NAME` set | High |
-| **GitHub Actions / CI** | `GITHUB_ACTIONS=true` | `CI=true` | High |
-| **Local Dev** | None of the above | `HOME` set, interactive TTY | Low (default fallback) |
+| Environment             | Primary Signal                     | Secondary Signals                        | Confidence             |
+| ----------------------- | ---------------------------------- | ---------------------------------------- | ---------------------- |
+| **Kubernetes**          | `KUBERNETES_SERVICE_HOST` env var  | `/var/run/secrets/kubernetes.io/` exists | High                   |
+| **AWS Lambda**          | `AWS_LAMBDA_FUNCTION_NAME` env var | `AWS_REGION` set, `/var/runtime/` exists | High                   |
+| **GCP Cloud Run**       | `K_SERVICE` env var                | `GOOGLE_CLOUD_PROJECT` set               | High                   |
+| **Azure Functions**     | `FUNCTIONS_WORKER_RUNTIME` env var | `WEBSITE_SITE_NAME` set                  | High                   |
+| **GitHub Actions / CI** | `GITHUB_ACTIONS=true`              | `CI=true`                                | High                   |
+| **Local Dev**           | None of the above                  | `HOME` set, interactive TTY              | Low (default fallback) |
 
 ---
 
 ## 3. Native Backend Matrix
 
-| Storage Need | Local Dev | Kubernetes | AWS Lambda | GCP Cloud Run | Azure Functions | CI/Tests |
-|-------------|-----------|------------|------------|---------------|-----------------|----------|
-| **Event Store** | SQLite / Pebble | PostgreSQL¹ | Aurora / RDS² | Cloud SQL (PG) | Azure SQL / Cosmos³ | memory |
-| **Snapshot Store** | SQLite / Pebble | **etcd**⁴ | DynamoDB | Firestore | Cosmos DB | memory |
-| **Checkpoint Store** | SQLite / Pebble | **etcd**⁴ | DynamoDB | Firestore | Cosmos DB | memory |
-| **Command Store** | SQLite / Pebble | PostgreSQL¹ | DynamoDB | Firestore | Cosmos DB | memory |
-| **Read Model Store** | SQLite / Pebble | PostgreSQL¹ | DynamoDB | Firestore | Cosmos DB | memory |
-| **Aggregate Listing** | SQLite (SQL reader) | PostgreSQL (SQL reader) | DynamoDB (GSI scan) | Firestore (query) | Cosmos DB (query) | memory (journal scan) |
-| **Message Bus** | memory | NATS / Redis⁵ | SNS/SQS | Pub/Sub | Event Grid / SB | memory |
+| Storage Need          | Local Dev           | Kubernetes              | AWS Lambda          | GCP Cloud Run     | Azure Functions     | CI/Tests              |
+| --------------------- | ------------------- | ----------------------- | ------------------- | ----------------- | ------------------- | --------------------- |
+| **Event Store**       | SQLite / Pebble     | PostgreSQL¹             | Aurora / RDS²       | Cloud SQL (PG)    | Azure SQL / Cosmos³ | memory                |
+| **Snapshot Store**    | SQLite / Pebble     | **etcd**⁴               | DynamoDB            | Firestore         | Cosmos DB           | memory                |
+| **Checkpoint Store**  | SQLite / Pebble     | **etcd**⁴               | DynamoDB            | Firestore         | Cosmos DB           | memory                |
+| **Command Store**     | SQLite / Pebble     | PostgreSQL¹             | DynamoDB            | Firestore         | Cosmos DB           | memory                |
+| **Read Model Store**  | SQLite / Pebble     | PostgreSQL¹             | DynamoDB            | Firestore         | Cosmos DB           | memory                |
+| **Aggregate Listing** | SQLite (SQL reader) | PostgreSQL (SQL reader) | DynamoDB (GSI scan) | Firestore (query) | Cosmos DB (query)   | memory (journal scan) |
+| **Message Bus**       | memory              | NATS / Redis⁵           | SNS/SQS             | Pub/Sub           | Event Grid / SB     | memory                |
 
 ¹ **K8s PostgreSQL nuance:** If the cluster already runs a PostgreSQL StatefulSet or uses a managed cloud PG (Cloud SQL, RDS, Azure Database), use that. Do NOT provision PG just for CQRS.
 
@@ -73,13 +73,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite | Excellent. Zero ops, WAL mode, file-based. Pebble also excellent for write-heavy workloads. |
-| K8s | PostgreSQL | Excellent. Use existing PG if available. ScyllaDB is even better for write-heavy but requires provisioning. |
-| AWS Lambda | Aurora Serverless PG | Good. DynamoDB is native but **journal reads (ReadAll, ReadFrom) require full table scans = expensive**. |
-| GCP Cloud Run | Cloud SQL (PG) | Good. Firestore has no cross-document ordering guarantee — event journal is painful. |
-| Azure Functions | Azure SQL / Cosmos | Cosmos with sort key on `occurred_at` works for small scale. Azure SQL is safer. |
+| Environment     | Native               | Honest Assessment                                                                                           |
+| --------------- | -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Local           | SQLite               | Excellent. Zero ops, WAL mode, file-based. Pebble also excellent for write-heavy workloads.                 |
+| K8s             | PostgreSQL           | Excellent. Use existing PG if available. ScyllaDB is even better for write-heavy but requires provisioning. |
+| AWS Lambda      | Aurora Serverless PG | Good. DynamoDB is native but **journal reads (ReadAll, ReadFrom) require full table scans = expensive**.    |
+| GCP Cloud Run   | Cloud SQL (PG)       | Good. Firestore has no cross-document ordering guarantee — event journal is painful.                        |
+| Azure Functions | Azure SQL / Cosmos   | Cosmos with sort key on `occurred_at` works for small scale. Azure SQL is safer.                            |
 
 **Never use for event store:** etcd (8MB limit, not a log), Redis (not durable by default), DynamoDB at high throughput (scan costs).
 
@@ -89,13 +89,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite / Pebble | Excellent. Single-row upsert. |
-| K8s | **etcd** | Excellent. Already running. Aggregate count × snapshot size fits easily in etcd. Use with TTL if desired. |
-| AWS Lambda | DynamoDB | Excellent. Single-row Get/Put. Cheap. |
-| GCP Cloud Run | Firestore | Excellent. Document get/set. |
-| Azure Functions | Cosmos DB | Excellent. Point reads are cheap and fast. |
+| Environment     | Native          | Honest Assessment                                                                                         |
+| --------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| Local           | SQLite / Pebble | Excellent. Single-row upsert.                                                                             |
+| K8s             | **etcd**        | Excellent. Already running. Aggregate count × snapshot size fits easily in etcd. Use with TTL if desired. |
+| AWS Lambda      | DynamoDB        | Excellent. Single-row Get/Put. Cheap.                                                                     |
+| GCP Cloud Run   | Firestore       | Excellent. Document get/set.                                                                              |
+| Azure Functions | Cosmos DB       | Excellent. Point reads are cheap and fast.                                                                |
 
 ### 4.3 Checkpoint Store
 
@@ -103,13 +103,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite / Pebble | Excellent. Single-row table. |
-| K8s | **etcd** | Excellent. Already running. Perfect KV semantics. |
-| AWS Lambda | DynamoDB | Excellent. Single-item Put/Get. Extremely cheap. |
-| GCP Cloud Run | Firestore | Excellent. Single-document write. |
-| Azure Functions | Cosmos DB | Excellent. Point operations. |
+| Environment     | Native          | Honest Assessment                                 |
+| --------------- | --------------- | ------------------------------------------------- |
+| Local           | SQLite / Pebble | Excellent. Single-row table.                      |
+| K8s             | **etcd**        | Excellent. Already running. Perfect KV semantics. |
+| AWS Lambda      | DynamoDB        | Excellent. Single-item Put/Get. Extremely cheap.  |
+| GCP Cloud Run   | Firestore       | Excellent. Single-document write.                 |
+| Azure Functions | Cosmos DB       | Excellent. Point operations.                      |
 
 ### 4.4 Command Store
 
@@ -117,13 +117,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite / Pebble | Excellent. Same schema as events, simpler (no journal needed). |
-| K8s | PostgreSQL | Good. Can share events database, separate table. |
-| AWS Lambda | DynamoDB | Good. Can use same table as snapshots with different prefix. |
-| GCP Cloud Run | Firestore | Good. Can share DB with snapshots. |
-| Azure Functions | Cosmos DB | Good. Can share DB with snapshots. |
+| Environment     | Native          | Honest Assessment                                              |
+| --------------- | --------------- | -------------------------------------------------------------- |
+| Local           | SQLite / Pebble | Excellent. Same schema as events, simpler (no journal needed). |
+| K8s             | PostgreSQL      | Good. Can share events database, separate table.               |
+| AWS Lambda      | DynamoDB        | Good. Can use same table as snapshots with different prefix.   |
+| GCP Cloud Run   | Firestore       | Good. Can share DB with snapshots.                             |
+| Azure Functions | Cosmos DB       | Good. Can share DB with snapshots.                             |
 
 ### 4.5 Read Model Store
 
@@ -131,13 +131,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite / Pebble | Excellent. Flexible queries on SQLite; fast point ops on Pebble. |
-| K8s | PostgreSQL / Redis | PG for complex queries. Redis for pure KV read models (cache layer). |
-| AWS Lambda | DynamoDB | Excellent. Flexible with GSIs. Pay-per-request is cheap for read-heavy. |
-| GCP Cloud Run | Firestore | Excellent. Native querying, auto-scaling. |
-| Azure Functions | Cosmos DB | Excellent. SQL API for flexible queries. |
+| Environment     | Native             | Honest Assessment                                                       |
+| --------------- | ------------------ | ----------------------------------------------------------------------- |
+| Local           | SQLite / Pebble    | Excellent. Flexible queries on SQLite; fast point ops on Pebble.        |
+| K8s             | PostgreSQL / Redis | PG for complex queries. Redis for pure KV read models (cache layer).    |
+| AWS Lambda      | DynamoDB           | Excellent. Flexible with GSIs. Pay-per-request is cheap for read-heavy. |
+| GCP Cloud Run   | Firestore          | Excellent. Native querying, auto-scaling.                               |
+| Azure Functions | Cosmos DB          | Excellent. SQL API for flexible queries.                                |
 
 ### 4.6 Aggregate Listing
 
@@ -145,13 +145,13 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Best backends by environment:**
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | SQLite (query) | Excellent. Indexed query over events table. |
-| K8s | PostgreSQL (query) | Excellent. `SQLAggregateReader` with proper indexes. |
-| AWS Lambda | DynamoDB (GSI) | **Poor.** DynamoDB GSIs on event tables are expensive. Prefer maintaining a separate "aggregates" table as read model. |
-| GCP Cloud Run | Firestore (collection) | Moderate. Better to maintain a read-model collection. |
-| Azure Functions | Cosmos DB (query) | Moderate. Better to maintain a read-model container. |
+| Environment     | Native                 | Honest Assessment                                                                                                      |
+| --------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Local           | SQLite (query)         | Excellent. Indexed query over events table.                                                                            |
+| K8s             | PostgreSQL (query)     | Excellent. `SQLAggregateReader` with proper indexes.                                                                   |
+| AWS Lambda      | DynamoDB (GSI)         | **Poor.** DynamoDB GSIs on event tables are expensive. Prefer maintaining a separate "aggregates" table as read model. |
+| GCP Cloud Run   | Firestore (collection) | Moderate. Better to maintain a read-model collection.                                                                  |
+| Azure Functions | Cosmos DB (query)      | Moderate. Better to maintain a read-model container.                                                                   |
 
 **Key insight:** Aggregate listing on non-SQL backends should be treated as a **read model**, not a derived query. Maintain a separate aggregate index table that projections update.
 
@@ -159,31 +159,31 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 
 **Characteristics:** Transient delivery. go-cqrs-lite only provides in-memory bus. For multi-process or multi-node, external broker required.
 
-| Environment | Native | Honest Assessment |
-|-------------|--------|-----------------|
-| Local | memory | Excellent. Single process only. |
-| K8s | NATS JetStream / Redis Streams | NATS is lightweight, K8s-native via Helm. Redis if already deployed. |
-| AWS Lambda | SNS / SQS / EventBridge | SNS for fan-out, SQS for queue, EventBridge for routing. |
-| GCP Cloud Run | Pub/Sub | Native. Serverless push subscriptions. |
-| Azure Functions | Event Grid / Service Bus | Event Grid for fan-out, Service Bus for queues. |
+| Environment     | Native                         | Honest Assessment                                                    |
+| --------------- | ------------------------------ | -------------------------------------------------------------------- |
+| Local           | memory                         | Excellent. Single process only.                                      |
+| K8s             | NATS JetStream / Redis Streams | NATS is lightweight, K8s-native via Helm. Redis if already deployed. |
+| AWS Lambda      | SNS / SQS / EventBridge        | SNS for fan-out, SQS for queue, EventBridge for routing.             |
+| GCP Cloud Run   | Pub/Sub                        | Native. Serverless push subscriptions.                               |
+| Azure Functions | Event Grid / Service Bus       | Event Grid for fan-out, Service Bus for queues.                      |
 
 ---
 
 ## 5. Backend Capability Summary
 
-| Backend | Event Store | Snapshot | Checkpoint | Read Model | Bus | K8s Native | Serverless | Embedded |
-|---------|:-----------:|:--------:|:----------:|:----------:|:---:|:----------:|:----------:|:--------:|
-| **SQLite** | ✅ Excellent | ✅ | ✅ | ✅ | ❌ | ⚠️ PV needed | ❌ | ✅ |
-| **PostgreSQL** | ✅ Excellent | ✅ | ✅ | ✅ | ❌ | ❌ Deploy | ❌ | ❌ |
-| **PebbleDB** | ✅ Excellent | ✅ | ✅ | ✅ | ❌ | ⚠️ PV needed | ❌ | ✅ |
-| **etcd** | ❌ Never | ✅ Perfect | ✅ Perfect | ⚠️ Small only | ❌ | ✅ Already there | ❌ | ❌ |
-| **DynamoDB** | ⚠️ Poor scan | ✅ Perfect | ✅ Perfect | ✅ Excellent | ❌ | ❌ | ✅ AWS | ❌ |
-| **Firestore** | ⚠️ No ordering | ✅ Perfect | ✅ Perfect | ✅ Excellent | ❌ | ❌ | ✅ GCP | ❌ |
-| **Cosmos DB** | ⚠️ Small only | ✅ Perfect | ✅ Perfect | ✅ Excellent | ❌ | ❌ | ✅ Azure | ❌ |
-| **ScyllaDB** | ✅ Excellent | ✅ | ✅ | ⚠️ GSI limited | ❌ | ❌ | ❌ | ❌ |
-| **NATS JetStream** | ⚠️ Log ok | ❌ | ❌ | ❌ | ✅ Excellent | ✅ Helm | ❌ | ❌ |
-| **Redis** | ❌ Not durable | ✅ Cache | ✅ Cache | ✅ Cache | ✅ Excellent | ✅ Helm | ❌ | ❌ |
-| **memory** | ✅ Tests | ✅ Tests | ✅ Tests | ✅ Tests | ✅ Tests | ❌ | ❌ | ✅ |
+| Backend            |  Event Store   |  Snapshot  | Checkpoint |   Read Model   |     Bus      |    K8s Native    | Serverless | Embedded |
+| ------------------ | :------------: | :--------: | :--------: | :------------: | :----------: | :--------------: | :--------: | :------: |
+| **SQLite**         |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |   ⚠️ PV needed   |     ❌     |    ✅    |
+| **PostgreSQL**     |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |    ❌ Deploy     |     ❌     |    ❌    |
+| **PebbleDB**       |  ✅ Excellent  |     ✅     |     ✅     |       ✅       |      ❌      |   ⚠️ PV needed   |     ❌     |    ✅    |
+| **etcd**           |    ❌ Never    | ✅ Perfect | ✅ Perfect | ⚠️ Small only  |      ❌      | ✅ Already there |     ❌     |    ❌    |
+| **DynamoDB**       |  ⚠️ Poor scan  | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |   ✅ AWS   |    ❌    |
+| **Firestore**      | ⚠️ No ordering | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |   ✅ GCP   |    ❌    |
+| **Cosmos DB**      | ⚠️ Small only  | ✅ Perfect | ✅ Perfect |  ✅ Excellent  |      ❌      |        ❌        |  ✅ Azure  |    ❌    |
+| **ScyllaDB**       |  ✅ Excellent  |     ✅     |     ✅     | ⚠️ GSI limited |      ❌      |        ❌        |     ❌     |    ❌    |
+| **NATS JetStream** |   ⚠️ Log ok    |     ❌     |     ❌     |       ❌       | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
+| **Redis**          | ❌ Not durable |  ✅ Cache  |  ✅ Cache  |    ✅ Cache    | ✅ Excellent |     ✅ Helm      |     ❌     |    ❌    |
+| **memory**         |    ✅ Tests    |  ✅ Tests  |  ✅ Tests  |    ✅ Tests    |   ✅ Tests   |        ❌        |     ❌     |    ✅    |
 
 ---
 
@@ -226,14 +226,14 @@ Both are embedded, single-writer databases. Running them in Kubernetes requires 
 
 ## 7. Module Gaps & Implementation Status
 
-| Module | Event Store | Snapshot | Checkpoint | Command Store | Read Model | Listing | Bus |
-|--------|:-----------:|:--------:|:----------:|:-------------:|:----------:|:-------:|:---:|
-| `memory/` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-| `storage/` (SQL) | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
-| `pebble/` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `turso/` | ✅ (via SQL) | ✅ (via SQL) | ✅ (via SQL) | ❌ | ❌ | ❌ | ❌ |
-| `listing/` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (memory) | ❌ |
-| `watermill/` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (adapter) |
+| Module           | Event Store  |   Snapshot   |  Checkpoint  | Command Store | Read Model |   Listing   |     Bus      |
+| ---------------- | :----------: | :----------: | :----------: | :-----------: | :--------: | :---------: | :----------: |
+| `memory/`        |      ✅      |      ✅      |      ✅      |      ❌       |     ❌     |     ❌      |      ✅      |
+| `storage/` (SQL) |      ✅      |      ✅      |      ✅      |      ❌       |     ❌     |     ✅      |      ❌      |
+| `pebble/`        |      ✅      |      ❌      |      ❌      |      ❌       |     ❌     |     ❌      |      ❌      |
+| `turso/`         | ✅ (via SQL) | ✅ (via SQL) | ✅ (via SQL) |      ❌       |     ❌     |     ❌      |      ❌      |
+| `listing/`       |      ❌      |      ❌      |      ❌      |      ❌       |     ❌     | ✅ (memory) |      ❌      |
+| `watermill/`     |      ❌      |      ❌      |      ❌      |      ❌       |     ❌     |     ❌      | ✅ (adapter) |
 
 **Missing implementations (opportunities):**
 
