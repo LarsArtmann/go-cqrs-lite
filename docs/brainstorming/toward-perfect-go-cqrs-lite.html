@@ -852,6 +852,8 @@
 
   <h3><code>readmodel/</code> — Typed Read-Model Store</h3>
 
+  <p>The core insight: <strong>KV backends are great at <code>Get</code>/<code>Put</code>, terrible at <code>List</code>. SQL backends are great at <code>List</code>, okay at <code>Get</code>/<code>Put</code>.</strong> The interface shouldn't pretend these are equivalent. Every backend exposes its actual capabilities, and the factory warns when you mismatch backend and workload.</p>
+
   <pre><code><span class="hl-comment">// readmodel/store.go — common denominator across KV, SQL, and document backends</span>
 <span class="hl-kw">type</span> <span class="hl-type">Source</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) (<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>)
@@ -876,24 +878,121 @@
     <span class="hl-field">Status</span>    <span class="hl-type">event.TombstoneStatus</span>
 }
 
-<span class="hl-comment">// Backend chosen at runtime — no recompile needed</span>
-<span class="hl-kw">type</span> <span class="hl-type">Backend</span> <span class="hl-type">string</span>
+<span class="hl-comment">// Capabilities exposes what a backend is actually good at</span>
+<span class="hl-kw">type</span> <span class="hl-type">Capabilities</span> <span class="hl-kw">struct</span> {
+    <span class="hl-field">GetCost</span>      <span class="hl-type">Cost</span> <span class="hl-comment">// Fast / Moderate / Slow</span>
+    <span class="hl-field">PutCost</span>      <span class="hl-type">Cost</span>
+    <span class="hl-field">ListCost</span>     <span class="hl-type">Cost</span> <span class="hl-comment">// KV: Slow (full scan). SQL: Fast (indexed).</span>
+    <span class="hl-field">Consistency</span>  <span class="hl-type">string</span> <span class="hl-comment">// "strong", "eventual", "single-writer"</span>
+    <span class="hl-field">Durability</span>   <span class="hl-type">bool</span>   <span class="hl-comment">// survives process restart?</span>
+    <span class="hl-field">Network</span>      <span class="hl-type">bool</span>   <span class="hl-comment">// requires network?</span>
+}
 
-<span class="hl-kw">const</span> (
-    <span class="hl-field">BackendMemory</span>  <span class="hl-type">Backend</span> = <span class="hl-str">"memory"</span>
-    <span class="hl-field">BackendSQLite</span>   <span class="hl-type">Backend</span> = <span class="hl-str">"sqlite"</span>
-    <span class="hl-field">BackendScyllaDB</span> <span class="hl-type">Backend</span> = <span class="hl-str">"scylladb"</span>
+<span class="hl-kw">type</span> <span class="hl-type">Stater</span> <span class="hl-kw">interface</span> {
+    <span class="hl-func">Capabilities</span>() <span class="hl-type">Capabilities</span>
+}
+
+<span class="hl-comment">// Runtime selection with smart defaults and workload warnings</span>
+<span class="hl-kw">func</span> <span class="hl-func">Open</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>](cfg <span class="hl-type">Config</span>) (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span>
+<span class="hl-kw">func</span> <span class="hl-func">OpenAuto</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>]() (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span> <span class="hl-comment">// auto-detect from env</span></code></pre>
+
+  <h4>Backend Taxonomy</h4>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Backend</th><th>Type</th><th>Get</th><th>Put</th><th>List</th><th>When to Use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>memory</code></td>
+          <td>map + sync.RWMutex</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Moderate</td>
+          <td>Tests, CI, ephemeral</td>
+        </tr>
+        <tr>
+          <td><code>sqlite</code></td>
+          <td>Embedded SQL</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Solo projects, CLI tools, demos</td>
+        </tr>
+        <tr>
+          <td><code>pebble</code></td>
+          <td>Embedded LSM-tree</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td><strong>Slow</strong></td>
+          <td>High-write single-node, no SQL overhead</td>
+        </tr>
+        <tr>
+          <td><code>postgres</code></td>
+          <td>Production SQL</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Standard production, ACID, backups</td>
+        </tr>
+        <tr>
+          <td><code>scylla</code></td>
+          <td>Wide-column distributed</td>
+          <td>Fast</td>
+          <td>Fast</td>
+          <td>Moderate<sup>*</sup></td>
+          <td>1M+ users, linear scale-out, multi-DC</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: -1rem;"><sup>*</sup> Scylla <code>List</code> uses <code>token(key)</code> pagination — order is not lexicographic, but deterministic.</p>
+
+  <h4>Smart Defaults and Warnings</h4>
+
+  <pre><code><span class="hl-comment">// OpenAuto: zero-config for common environments</span>
+store, err := readmodel.<span class="hl-func">OpenAuto</span>[UserID, UserSummary]()
+<span class="hl-comment">// GITHUB_ACTIONS=true          → memory (tests)</span>
+<span class="hl-comment">// DATABASE_URL set             → postgres (production)</span>
+<span class="hl-comment">// None set                     → sqlite:./readmodel.db (dev)</span>
+
+<span class="hl-comment">// Explicit with warnings</span>
+store, err := readmodel.<span class="hl-func">Open</span>[UserID, UserSummary](readmodel.<span class="hl-type">Config</span>{
+    URL: <span class="hl-str">"pebble:./data"</span>,
+    Warn: <span class="hl-kw">true</span>,
+})
+<span class="hl-comment">// Output: "pebble: List performance is Slow. Add an index or use</span>
+<span class="hl-comment">//          postgres if you paginate frequently."</span></code></pre>
+
+  <h4>Mix and Match: Decorators</h4>
+
+  <pre><code><span class="hl-comment">// Write-through: hot cache + SQL fallback</span>
+hot := readmodel.<span class="hl-func">NewMemoryStore</span>[UserID, UserSummary]()
+cold := readmodel.<span class="hl-func">NewPostgresStore</span>[UserID, UserSummary](db)
+store := readmodel.<span class="hl-func">NewWriteThrough</span>(hot, cold)
+
+<span class="hl-comment">// Tiered: L1 memory → L2 pebble → L3 postgres</span>
+store := readmodel.<span class="hl-func">NewTiered</span>(
+    readmodel.<span class="hl-func">NewMemoryStore</span>[UserID, UserSummary](),
+    readmodel.<span class="hl-func">NewPebbleStore</span>[UserID, UserSummary](pebbleDB),
+    readmodel.<span class="hl-func">NewPostgresStore</span>[UserID, UserSummary](sqlDB),
 )
 
-<span class="hl-kw">func</span> <span class="hl-func">Open</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>](cfg <span class="hl-type">Config</span>) (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span></code></pre>
+<span class="hl-comment">// Cached source: otter LRU over any inner store</span>
+source := readmodel.<span class="hl-func">NewCachedSource</span>[UserID, UserSummary](
+    inner,
+    readmodel.<span class="hl-func">WithCacheSize</span>(<span class="hl-str">10_000</span>),
+)</code></pre>
 
   <ul class="plain">
-    <li><strong>Backend selection at runtime:</strong> <code>readmodel.Open[K,V](cfg)</code> resolves the concrete backend from config. SQLite for solo projects, ScyllaDB for 1M users — zero code changes.</li>
-    <li><strong>Concrete constructors for power users:</strong> <code>NewSQLStore[K,V]</code> (PostgreSQL/SQLite table), <code>NewInMemoryStore[K,V]</code> (map-backed), <code>NewScyllaStore[K,V]</code> (Cassandra-compatible). Use these when you need the full power of a specific backend.</li>
-    <li><strong>Decorators:</strong> <code>NewCachedSource[K,V]</code> (otter LRU), <code>NewVersionedStore[K,V]</code> (schema migration). Wrap any concrete store.</li>
-    <li><strong>Integration:</strong> <code>readmodel.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
+    <li><strong>Concrete constructors match project convention:</strong> <code>NewMemoryStore</code>, <code>NewSQLiteStore</code>, <code>NewPostgresStore</code>, <code>NewPebbleStore</code>, <code>NewScyllaStore</code>.</li>
+    <li><strong>Honest capabilities:</strong> Every backend exposes <code>Capabilities()</code> — no pretending Pebble <code>List</code> is cheap.</li>
+    <li><strong>Smart defaults:</strong> <code>OpenAuto</code> detects environment. <code>Open</code> warns on workload mismatch.</li>
+    <li><strong>Composable:</strong> Write-through, tiered, and cached decorators wrap any concrete store.</li>
     <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
-    <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
+    <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks per backend.</li>
   </ul>
 
   <h3><code>relay/</code> — Crash-Recovery Event Relay</h3>
