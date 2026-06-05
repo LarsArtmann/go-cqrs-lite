@@ -928,9 +928,9 @@
           <td>Remote sync (Push/Pull/Checkpoint) is effectively untested. Consumers cannot trust it in production.</td>
         </tr>
         <tr>
-          <td>Outbox exists but is fragmented</td>
+          <td>No reusable crash-recovery publisher</td>
           <td><span class="tag tag-gap">Medium</span></td>
-          <td>Outbox types are split across <code>storage/</code> and <code>event/</code>. No first-class poller or retry policy API.</td>
+          <td>The outbox was removed (YAGNI). Crash recovery uses <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls the tail → publish → checkpoint loop. A <code>JournalPublisher</code> component would close this gap without reintroducing an outbox table.</td>
         </tr>
         <tr>
           <td>No schema registry middleware</td>
@@ -979,7 +979,7 @@
     <div class="feature-card warn">
       <div class="icon">⚡</div>
       <h4>Resilient by default</h4>
-      <p>Outbox guarantees at-least-once delivery. Retries, circuit breakers, and DLQ are opt-out, not opt-in.</p>
+      <p>Crash recovery via <code>SeekableJournal + CheckpointStore</code> guarantees at-least-once delivery without an outbox table. Retries, circuit breakers, and DLQ are opt-out, not opt-in.</p>
     </div>
     <div class="feature-card success">
       <div class="icon">❖</div>
@@ -1023,9 +1023,9 @@
   <div class="phase">
     <div class="phase-num">3</div>
     <div class="phase-body">
-      <h4>Promote outbox to a first-class module</h4>
-      <p>Consolidate outbox types and poller into <code>outbox/</code> with a stable API: <code>Outbox</code>, <code>Poller</code>, <code>RetryPolicy</code>, <code>OutboxEntry</code>, and transactional sink integration. Remove the fragmentation between <code>storage/</code> and <code>event/</code>.</p>
-      <div class="phase-progress"><span data-width="25"></span></div>
+      <h4>Add a reusable <code>JournalPublisher</code> component</h4>
+      <p>The outbox was removed because <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But consumers still hand-write the "tail journal, publish, save checkpoint" loop. A library-provided <code>JournalPublisher</code> would close this gap without reintroducing an outbox table or crossing the library/framework boundary.</p>
+      <div class="phase-progress"><span data-width="10"></span></div>
     </div>
   </div>
 
@@ -1103,29 +1103,22 @@ type Record[K comparable, V any] struct {
     <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
   </ul>
 
-  <h3><code>outbox/</code> — Transactional Outbox</h3>
+  <h3><code>journalpublisher/</code> — Reusable Crash-Recovery Publisher</h3>
 
-  <pre><code>// outbox/outbox.go
-type Outbox interface {
-    Append(ctx context.Context, entries []Entry) error
-    PollPending(ctx context.Context, limit int) ([]Entry, error)
-    Ack(ctx context.Context, ids []id.EventID) error
+  <pre><code>// journalpublisher/publisher.go
+type Publisher struct {
+    journal     event.SeekableJournal
+    checkpoint  event.CheckpointStore
+    publisher   event.Publisher
 }
 
-type Poller interface {
-    Run(ctx context.Context) error
-}
-
-type RetryPolicy struct {
-    MaxAttempts  int
-    InitialDelay time.Duration
-    MaxDelay     time.Duration
-}</code></pre>
+func (p *Publisher) CatchUp(ctx context.Context, projectionName string) error
+func (p *Publisher) Run(ctx context.Context) error // tail + publish + checkpoint loop</code></pre>
 
   <ul class="plain">
-    <li>Consolidate SQL outbox, memory outbox, and poller into one module with a single mental model.</li>
-    <li>Integrate cleanly with <code>storage.NewTransactionalSink(store, outbox)</code>.</li>
-    <li>Add at-least-once delivery semantics, poison-message handling, and observability spans.</li>
+    <li>Replaces the outbox pattern without a secondary table. Uses the event store's own journal.</li>
+    <li>Reads from <code>SeekableJournal.ReadFrom(checkpoint)</code>, publishes to bus, saves checkpoint atomically.</li>
+    <li>Composable: consumers opt into it, not forced by the framework. Pure library building block.</li>
   </ul>
 
   <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
@@ -1178,7 +1171,7 @@ checker := cqtesting.NewProjectionTester(t, runner).
     <span class="layer"><span class="layer-lvl">Layer 2:</span> <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 3:</span> <span class="layer-mod">decider/ (event, snapshot)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 4:</span> <span class="layer-mod">memory/, signing/, otel/, data/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, outbox/</span></span>
+    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, journalpublisher/</span></span>
     <span class="layer"><span class="layer-lvl">Layer 6:</span> <span class="layer-mod">integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/, registry/</span></span>
   </div>
 
@@ -1238,7 +1231,7 @@ checker := cqtesting.NewProjectionTester(t, runner).
 
   <ol>
     <li><strong>Build <code>data/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
-    <li><strong>Promote <code>outbox/</code></strong> — consolidate fragmented outbox code into a first-class, observable module.</li>
+    <li><strong>Add <code>journalpublisher/</code></strong> — reusable crash-recovery component using SeekableJournal + CheckpointStore, without an outbox table.</li>
     <li><strong>Complete storage parity</strong> — SQL Journal, Pebble BackwardsSource/StreamLoader, shared contract tests.</li>
     <li><strong>Harden Turso</strong> — integration tests for sync semantics; target 80% coverage.</li>
     <li><strong>Add registry middleware</strong> — publish-time schema validation to complement upcasters.</li>
