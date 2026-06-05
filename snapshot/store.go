@@ -9,14 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-var (
-	ErrSnapshotNotFound    = event.NewRejection("snapshot.not_found", "snapshot not found")
-	ErrSnapshotStoreClosed = event.NewInfrastructure(
-		"snapshot.store_closed",
-		"snapshot store is closed",
-	)
-)
-
 type Snapshot struct {
 	AggregateID   id.AggregateID
 	AggregateType event.AggregateType

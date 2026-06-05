@@ -1,8 +1,6 @@
 package snapshot
 
-import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-)
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 type SnapshotStrategy interface {
 	ShouldSnapshot(aggregateType event.AggregateType, version event.Version) bool
@@ -10,10 +8,7 @@ type SnapshotStrategy interface {
 
 func EveryNEvents(n int) (SnapshotStrategy, error) {
 	if n <= 0 {
-		return nil, event.NewRejection(
-			"snapshot.invalid_interval",
-			"snapshot interval must be positive",
-		)
+		return nil, ErrInvalidInterval
 	}
 
 	return &everyN{interval: n}, nil
