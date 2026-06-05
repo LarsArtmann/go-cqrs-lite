@@ -11,6 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
 	github.com/larsartmann/httputil v0.0.0-20260601113755-7b9a6cbc3d5c
 )
@@ -41,9 +42,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.68.1 // indirect
-	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
@@ -52,6 +51,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
@@ -67,6 +67,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../../memory
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 => ../../pebble
+	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 )

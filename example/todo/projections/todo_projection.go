@@ -18,6 +18,18 @@ func NewTodoProjection(store domain.TodoReadModel) *TodoProjection {
 	return &TodoProjection{store: store}
 }
 
+func (p *TodoProjection) Name() string { return "todo-read-model" }
+
+func (p *TodoProjection) EventTypes() []event.Type {
+	return []event.Type{
+		aggregate.EventCreated,
+		aggregate.EventUpdated,
+		aggregate.EventStatusChanged,
+		aggregate.EventCompleted,
+		aggregate.EventDeleted,
+	}
+}
+
 func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error {
 	switch evt.Type() {
 	case aggregate.EventDeleted:
@@ -74,3 +86,5 @@ func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 		Version:     int64(evt.Version()),
 	}, nil
 }
+
+var _ event.Projection = (*TodoProjection)(nil)

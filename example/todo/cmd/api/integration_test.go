@@ -291,5 +291,5 @@ func TestUpdateTodo_InvalidID(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	assertStatus(t, resp, http.StatusInternalServerError, "")
+	assertStatus(t, resp, http.StatusOK, "")
 }

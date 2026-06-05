@@ -20,6 +20,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	cqrsPebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -42,11 +43,24 @@ func main() {
 
 	todoProjection := projections.NewTodoProjection(readModelStore)
 
-	_ = eventBus.Subscribe(aggregate.EventCreated, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventUpdated, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventStatusChanged, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventCompleted, todoProjection.Handle)
-	_ = eventBus.Subscribe(aggregate.EventDeleted, todoProjection.Handle)
+	checkpointStore := memory.NewMemoryCheckpointStore()
+
+	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
+	if err != nil {
+		logger.Error("Failed to create projection runner", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	if err := runner.Register(todoProjection); err != nil {
+		logger.Error("Failed to register projection", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	go func() {
+		if runErr := runner.Run(ctx); runErr != nil {
+			logger.Error("Projection runner stopped", slog.String("error", runErr.Error()))
+		}
+	}()
 
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
