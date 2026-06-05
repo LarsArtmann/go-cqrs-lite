@@ -19,7 +19,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-func subscribeReadModel(journal event.Journal, bus *memory.MemoryBus, rm *ReadModelStore) *projection.Runner {
+func subscribeReadModel(
+	journal event.Journal,
+	bus *memory.MemoryBus,
+	rm *ReadModelStore,
+) *projection.Runner {
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
 	runner, err := projection.NewRunner(journal, bus, checkpointStore)
