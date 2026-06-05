@@ -10,8 +10,8 @@ go get github.com/larsartmann/go-cqrs-lite/dispatcher/v2
 
 ## Key Types
 
-| Type | Purpose |
-|---|---|
-| `Dispatcher[H, M]` | Generic handler + middleware dispatcher |
-| `LifecycleMixin` | Embedded Close() support — rejects ops after close |
-| `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection |
+| Type                        | Purpose                                            |
+| --------------------------- | -------------------------------------------------- |
+| `Dispatcher[H, M]`          | Generic handler + middleware dispatcher            |
+| `LifecycleMixin`            | Embedded Close() support — rejects ops after close |
+| `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection                   |

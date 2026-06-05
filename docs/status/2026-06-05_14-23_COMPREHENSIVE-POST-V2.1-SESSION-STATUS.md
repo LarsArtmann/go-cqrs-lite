@@ -20,56 +20,56 @@ The only remaining code-quality gap is **7 pre-existing catalog lint issues** (f
 
 ### This Session (2026-06-05, 8 commits on master)
 
-| Commit | Description |
-|---|---|
+| Commit     | Description                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------ |
 | `2d8dcaca` | **docs(doc.go):** Enhance projection, event, dispatcher, codec package docs + 14 READMEs/doc.gos |
-| `0507a7d` | **fix(examples):** Repair broken example_test.go in projection, schema, signing, watermill |
-| `0b967a57` | **docs(readme,examples):** Add watermill README, dispatcher+codec example_test.go |
-| `4df84c48` | **docs(status):** Comprehensive post-session status — 13:29 |
-| `5b962670` | **docs(snapshot,memory,middleware,listing,pebble,turso):** add example_test.go |
-| `e1b6fa8a` | **fix(dispatcher):** Remove duplicate godoc from dispatcher.go |
-| `bf159ae3` | **fix(event,middleware):** Remove duplicate package godoc from non-doc.go files |
-| `992ac696` | **feat(examples):** Add storage and otel example_test.go for pkg.go.dev |
+| `0507a7d`  | **fix(examples):** Repair broken example_test.go in projection, schema, signing, watermill       |
+| `0b967a57` | **docs(readme,examples):** Add watermill README, dispatcher+codec example_test.go                |
+| `4df84c48` | **docs(status):** Comprehensive post-session status — 13:29                                      |
+| `5b962670` | **docs(snapshot,memory,middleware,listing,pebble,turso):** add example_test.go                   |
+| `e1b6fa8a` | **fix(dispatcher):** Remove duplicate godoc from dispatcher.go                                   |
+| `bf159ae3` | **fix(event,middleware):** Remove duplicate package godoc from non-doc.go files                  |
+| `992ac696` | **feat(examples):** Add storage and otel example_test.go for pkg.go.dev                          |
 
 ### Build Fixes (Critical — session start)
 
-| File | Issue | Fix |
-|---|---|---|
-| `projection/example_test.go` | `On` is a generic function, not a method | Rewrote to `projection.On[T](builder, ...)` |
-| `schema/example_test.go` | `NewUpcaster` returns 1 value; payload must be `[]byte` | Fixed return count and payload type |
-| `signing/example_test.go` | Wrong example names; HMAC key 13 bytes (min 32) | Renamed examples; used 43-byte key |
-| `watermill/example_test.go` | `func != nil` always true (vet failure) | Replaced with actual constructor calls |
-| `projection/doc.go` | Showed `b.On()` instead of `On[T](b, ...)` | Corrected API documentation |
+| File                         | Issue                                                   | Fix                                         |
+| ---------------------------- | ------------------------------------------------------- | ------------------------------------------- |
+| `projection/example_test.go` | `On` is a generic function, not a method                | Rewrote to `projection.On[T](builder, ...)` |
+| `schema/example_test.go`     | `NewUpcaster` returns 1 value; payload must be `[]byte` | Fixed return count and payload type         |
+| `signing/example_test.go`    | Wrong example names; HMAC key 13 bytes (min 32)         | Renamed examples; used 43-byte key          |
+| `watermill/example_test.go`  | `func != nil` always true (vet failure)                 | Replaced with actual constructor calls      |
+| `projection/doc.go`          | Showed `b.On()` instead of `On[T](b, ...)`              | Corrected API documentation                 |
 
 ### Documentation Completed
 
-| Asset | Before Session | After Session |
-|---|---|---|
-| `doc.go` | 17/20 | **20/20** ✅ |
-| `README.md` | 7/20 | **20/20** ✅ |
-| `errors.go` | 17/20 (3 not needed) | **20/20** ✅ (3 modules have zero error sites) |
-| `example_test.go` | 8/20 | **18/20** ✅ |
+| Asset             | Before Session       | After Session                                  |
+| ----------------- | -------------------- | ---------------------------------------------- |
+| `doc.go`          | 17/20                | **20/20** ✅                                   |
+| `README.md`       | 7/20                 | **20/20** ✅                                   |
+| `errors.go`       | 17/20 (3 not needed) | **20/20** ✅ (3 modules have zero error sites) |
+| `example_test.go` | 8/20                 | **18/20** ✅                                   |
 
 ### Files Added (16 new files)
 
-| File | Module |
-|---|---|
-| `event/doc.go` | event |
-| `dispatcher/doc.go` | dispatcher |
-| `codec/doc.go` | codec |
+| File                         | Module     |
+| ---------------------------- | ---------- |
+| `event/doc.go`               | event      |
+| `dispatcher/doc.go`          | dispatcher |
+| `codec/doc.go`               | codec      |
 | `dispatcher/example_test.go` | dispatcher |
-| `codec/example_test.go` | codec |
-| `snapshot/example_test.go` | snapshot |
-| `memory/example_test.go` | memory |
+| `codec/example_test.go`      | codec      |
+| `snapshot/example_test.go`   | snapshot   |
+| `memory/example_test.go`     | memory     |
 | `middleware/example_test.go` | middleware |
-| `pebble/example_test.go` | pebble |
-| `turso/example_test.go` | turso |
-| `listing/example_test.go` | listing |
-| `storage/example_test.go` | storage |
-| `otel/example_test.go` | otel |
-| `watermill/README.md` | watermill |
-| `command/README.md` | command |
-| `decider/README.md` | decider |
+| `pebble/example_test.go`     | pebble     |
+| `turso/example_test.go`      | turso      |
+| `listing/example_test.go`    | listing    |
+| `storage/example_test.go`    | storage    |
+| `otel/example_test.go`       | otel       |
+| `watermill/README.md`        | watermill  |
+| `command/README.md`          | command    |
+| `decider/README.md`          | decider    |
 
 ### Formatting Applied
 
@@ -84,28 +84,28 @@ The only remaining code-quality gap is **7 pre-existing catalog lint issues** (f
 
 ### Module Documentation Matrix (Complete)
 
-| Module | doc.go | README | errors.go | example |
-|---|:---:|:---:|:---:|:---:|
-| event | ✅ | ✅ | ✅ | ✅ |
-| command | ✅ | ✅ | ✅ | ✅ |
-| query | ✅ | ✅ | ✅ | ✅ |
-| decider | ✅ | ✅ | ✅ | ✅ |
-| id | ✅ | ✅ | ✅ | ✅ |
-| dispatcher | ✅ | ✅ | ✅ | ✅ |
-| schema | ✅ | ✅ | ✅ | ✅ |
-| snapshot | ✅ | ✅ | — | ✅ |
-| memory | ✅ | ✅ | ✅ | ✅ |
-| catalog | ✅ | ✅ | — | ✅ |
-| middleware | ✅ | ✅ | ✅ | ✅ |
-| signing | ✅ | ✅ | ✅ | ✅ |
-| projection | ✅ | ✅ | ✅ | ✅ |
-| storage | ✅ | ✅ | — | ✅ |
-| otel | ✅ | ✅ | — | ✅ |
-| listing | ✅ | ✅ | — | ✅ |
-| watermill | ✅ | ✅ | ✅ | ✅ |
-| pebble | ✅ | ✅ | ✅ | ✅ |
-| codec | ✅ | ✅ | ✅ | ✅ |
-| turso | ✅ | ✅ | ✅ | ✅ |
+| Module     | doc.go | README | errors.go | example |
+| ---------- | :----: | :----: | :-------: | :-----: |
+| event      |   ✅   |   ✅   |    ✅     |   ✅    |
+| command    |   ✅   |   ✅   |    ✅     |   ✅    |
+| query      |   ✅   |   ✅   |    ✅     |   ✅    |
+| decider    |   ✅   |   ✅   |    ✅     |   ✅    |
+| id         |   ✅   |   ✅   |    ✅     |   ✅    |
+| dispatcher |   ✅   |   ✅   |    ✅     |   ✅    |
+| schema     |   ✅   |   ✅   |    ✅     |   ✅    |
+| snapshot   |   ✅   |   ✅   |     —     |   ✅    |
+| memory     |   ✅   |   ✅   |    ✅     |   ✅    |
+| catalog    |   ✅   |   ✅   |     —     |   ✅    |
+| middleware |   ✅   |   ✅   |    ✅     |   ✅    |
+| signing    |   ✅   |   ✅   |    ✅     |   ✅    |
+| projection |   ✅   |   ✅   |    ✅     |   ✅    |
+| storage    |   ✅   |   ✅   |     —     |   ✅    |
+| otel       |   ✅   |   ✅   |     —     |   ✅    |
+| listing    |   ✅   |   ✅   |     —     |   ✅    |
+| watermill  |   ✅   |   ✅   |    ✅     |   ✅    |
+| pebble     |   ✅   |   ✅   |    ✅     |   ✅    |
+| codec      |   ✅   |   ✅   |    ✅     |   ✅    |
+| turso      |   ✅   |   ✅   |    ✅     |   ✅    |
 
 **`—` = zero error creation sites in module, no errors.go needed.**
 
@@ -115,16 +115,16 @@ The only remaining code-quality gap is **7 pre-existing catalog lint issues** (f
 
 ### 1. Module Improvement Plan — 10/62 tasks verified complete
 
-| Phase | Theme | Tasks Done | Tasks Remaining |
-|---|---|---|---|
-| 1 | Critical Correctness | 0 | 6 (turso tests, sql coverage, ListWithStatus) |
-| 2 | Package Documentation | **13/13** ✅ | 0 |
-| 3 | Error Hygiene | 5/8 | 3 (catalog, storage, watermill consolidation) |
-| 4 | Function Decomposition | 2/8 | 6 (long functions in storage, watermill, signing, catalog) |
-| 5 | Coverage Gaps | 2/6 | 4 (catalog, pebble, storage/sql, integration signing) |
-| 6 | io.Closer / Architecture ADRs | **3/3** ✅ | 0 (ADRs 0010, 0011, 0012 written) |
-| 7 | Code Quality Polish | 2/10 | 8 |
-| 8 | Consumer Experience | **8/8** ✅ | 0 |
+| Phase | Theme                         | Tasks Done   | Tasks Remaining                                            |
+| ----- | ----------------------------- | ------------ | ---------------------------------------------------------- |
+| 1     | Critical Correctness          | 0            | 6 (turso tests, sql coverage, ListWithStatus)              |
+| 2     | Package Documentation         | **13/13** ✅ | 0                                                          |
+| 3     | Error Hygiene                 | 5/8          | 3 (catalog, storage, watermill consolidation)              |
+| 4     | Function Decomposition        | 2/8          | 6 (long functions in storage, watermill, signing, catalog) |
+| 5     | Coverage Gaps                 | 2/6          | 4 (catalog, pebble, storage/sql, integration signing)      |
+| 6     | io.Closer / Architecture ADRs | **3/3** ✅   | 0 (ADRs 0010, 0011, 0012 written)                          |
+| 7     | Code Quality Polish           | 2/10         | 8                                                          |
+| 8     | Consumer Experience           | **8/8** ✅   | 0                                                          |
 
 ### 2. go.mod Drift (42 files unstaged)
 
@@ -133,6 +133,7 @@ All 21 library modules + examples + integration have indirect `golang.org/x/exp`
 ### 3. BuildFlow Pre-commit Hook — BROKEN (carried forward)
 
 Every commit still requires `--no-verify`. Two failures:
+
 - `library-policy` step flags `goyaml_v3`
 - `golangci-lint` fails in `scripts/go-mod-graph-local`
 
@@ -196,6 +197,7 @@ Carried forward. Not investigated this session. Every commit uses `--no-verify`.
 ### 1. Fix the Pre-commit Hook
 
 This is the highest-impact infrastructure fix. Every commit bypassing the hook means no automated quality gate. The two issues are:
+
 - Exclude `scripts/` from lint targeting
 - Resolve the `goyaml_v3` vs `go-faster/yaml` library policy conflict
 
@@ -206,6 +208,7 @@ This is the highest-impact infrastructure fix. Every commit bypassing the hook m
 ### 3. Fix the 7 Catalog Lint Issues
 
 The catalog is the only module with lint issues. Most are quick fixes:
+
 - `unused` (jsonKeyType) — remove the constant
 - `forcetypeassert` — add type switch
 - `goconst` ("CreateOrder" repeated) — extract to test constant
@@ -227,48 +230,48 @@ At ~29% coverage, turso is the only module below 85%. The gap is error paths, co
 
 ### P0 — Critical (Do First)
 
-| # | Task | Module | Est | Impact |
-|---|---|---|---|---|
-| 1 | Fix BuildFlow pre-commit hook — exclude scripts/, resolve library-policy | infra | 30m | Every commit currently requires `--no-verify` |
-| 2 | Commit go.mod/go.sum drift across 42 files | all | 5m | 42 unstaged files accumulating |
-| 3 | Fix catalog unused `jsonKeyType` constant | catalog | 2m | Trivial lint fix |
-| 4 | Fix catalog `forcetypeassert` in schema/reflect.go | catalog | 5m | Lint fix |
-| 5 | Fix catalog `goconst` — extract "CreateOrder" test constant | catalog | 3m | Lint fix |
-| 6 | Fix catalog `wrapcheck` in schema.ToAny | catalog | 5m | Lint fix |
-| 7 | Fix catalog `godoclint` | catalog | 3m | Lint fix |
+| #   | Task                                                                     | Module  | Est | Impact                                        |
+| --- | ------------------------------------------------------------------------ | ------- | --- | --------------------------------------------- |
+| 1   | Fix BuildFlow pre-commit hook — exclude scripts/, resolve library-policy | infra   | 30m | Every commit currently requires `--no-verify` |
+| 2   | Commit go.mod/go.sum drift across 42 files                               | all     | 5m  | 42 unstaged files accumulating                |
+| 3   | Fix catalog unused `jsonKeyType` constant                                | catalog | 2m  | Trivial lint fix                              |
+| 4   | Fix catalog `forcetypeassert` in schema/reflect.go                       | catalog | 5m  | Lint fix                                      |
+| 5   | Fix catalog `goconst` — extract "CreateOrder" test constant              | catalog | 3m  | Lint fix                                      |
+| 6   | Fix catalog `wrapcheck` in schema.ToAny                                  | catalog | 5m  | Lint fix                                      |
+| 7   | Fix catalog `godoclint`                                                  | catalog | 3m  | Lint fix                                      |
 
 ### P1 — High (Do Soon)
 
-| # | Task | Module | Est | Impact |
-|---|---|---|---|---|
-| 8 | Add turso edge-case tests: error paths, concurrent access | turso | 30m | Only module below 85% coverage |
-| 9 | Split `catalog/internal/cattest/builders.go` (377L → 2 files) | catalog | 5m | Only test helper >350L |
-| 10 | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files) | scripts | 8m | Only tool file >350L |
-| 11 | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs) | storage | 10m | Projection-critical path |
-| 12 | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L) | signing | 8m | Complex verification logic |
-| 13 | Add `storage/sql/` helpers tests: error paths | storage | 10m | Shared SQL helpers undertested |
-| 14 | Add event/codec edge-case tests: malformed JSON, nil payload | event | 8m | Codec is critical infrastructure |
+| #   | Task                                                                       | Module  | Est | Impact                           |
+| --- | -------------------------------------------------------------------------- | ------- | --- | -------------------------------- |
+| 8   | Add turso edge-case tests: error paths, concurrent access                  | turso   | 30m | Only module below 85% coverage   |
+| 9   | Split `catalog/internal/cattest/builders.go` (377L → 2 files)              | catalog | 5m  | Only test helper >350L           |
+| 10  | Split `scripts/go-mod-graph-local/main.go` (412L → 3 files)                | scripts | 8m  | Only tool file >350L             |
+| 11  | Decompose `storage/event_store_global.go:ReadFrom` (59L → 2 funcs)         | storage | 10m | Projection-critical path         |
+| 12  | Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware` (55L) | signing | 8m  | Complex verification logic       |
+| 13  | Add `storage/sql/` helpers tests: error paths                              | storage | 10m | Shared SQL helpers undertested   |
+| 14  | Add event/codec edge-case tests: malformed JSON, nil payload               | event   | 8m  | Codec is critical infrastructure |
 
 ### P2 — Medium (Do When Time)
 
-| # | Task | Module | Est | Impact |
-|---|---|---|---|---|
-| 15 | Add CommandStore benchmark tests | memory, storage | 15m | Performance baseline missing |
-| 16 | Add turso `t.Parallel()` to all tests | turso | 3m | Convention compliance |
-| 17 | Create ROADMAP.md — long-term direction | docs | 15m | Referenced in AGENTS.md but never created |
-| 18 | Fill ADR-0005 gap — missing number | docs | 10m | ADR sequence has gap |
-| 19 | Clean up docs/status/ — archive reports older than 2 weeks | docs | 10m | 100+ reports, zero cleanup |
-| 20 | Add catalog/asyncapi edge-case tests | catalog | 10m | Least-tested exporter |
-| 21 | Add catalog/d2 edge-case tests | catalog | 10m | Fewer tests than other exporters |
+| #   | Task                                                       | Module          | Est | Impact                                    |
+| --- | ---------------------------------------------------------- | --------------- | --- | ----------------------------------------- |
+| 15  | Add CommandStore benchmark tests                           | memory, storage | 15m | Performance baseline missing              |
+| 16  | Add turso `t.Parallel()` to all tests                      | turso           | 3m  | Convention compliance                     |
+| 17  | Create ROADMAP.md — long-term direction                    | docs            | 15m | Referenced in AGENTS.md but never created |
+| 18  | Fill ADR-0005 gap — missing number                         | docs            | 10m | ADR sequence has gap                      |
+| 19  | Clean up docs/status/ — archive reports older than 2 weeks | docs            | 10m | 100+ reports, zero cleanup                |
+| 20  | Add catalog/asyncapi edge-case tests                       | catalog         | 10m | Least-tested exporter                     |
+| 21  | Add catalog/d2 edge-case tests                             | catalog         | 10m | Fewer tests than other exporters          |
 
 ### P3 — Low (Nice to Have)
 
-| # | Task | Module | Est | Impact |
-|---|---|---|---|---|
-| 22 | Add `readmodel/` module design doc | docs | 15m | Critical gap but no code yet |
-| 23 | Add PostgreSQL integration tests via testcontainers | storage | 60m | Blocked on Docker |
-| 24 | Add Pebble Journal + SeekableJournal implementations | pebble | 30m | Identified as straightforward |
-| 25 | Add SQL Journal (ReadAll/ReadFrom) implementation | storage | 30m | Missing cross-aggregate replay |
+| #   | Task                                                 | Module  | Est | Impact                         |
+| --- | ---------------------------------------------------- | ------- | --- | ------------------------------ |
+| 22  | Add `readmodel/` module design doc                   | docs    | 15m | Critical gap but no code yet   |
+| 23  | Add PostgreSQL integration tests via testcontainers  | storage | 60m | Blocked on Docker              |
+| 24  | Add Pebble Journal + SeekableJournal implementations | pebble  | 30m | Identified as straightforward  |
+| 25  | Add SQL Journal (ReadAll/ReadFrom) implementation    | storage | 30m | Missing cross-aggregate replay |
 
 ---
 

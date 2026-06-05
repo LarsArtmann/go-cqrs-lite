@@ -10,11 +10,11 @@
 
 All work from the previous session (08:30 UTC) is committed and pushed.
 
-| Commit | Description |
-|---|---|
-| `3105d2fd` | Added `example_test.go` for `projection/` and `watermill/` modules (pkg.go.dev documentation) |
-| `66be4a9f` | Comprehensive post-v2.1.0 status audit (386-line report) |
-| `244bc333` | `go mod tidy` across 15 modules |
+| Commit     | Description                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| `3105d2fd` | Added `example_test.go` for `projection/` and `watermill/` modules (pkg.go.dev documentation)            |
+| `66be4a9f` | Comprehensive post-v2.1.0 status audit (386-line report)                                                 |
+| `244bc333` | `go mod tidy` across 15 modules                                                                          |
 | `78460ced` | Storage environment mapping (MD + interactive HTML) + example/user + example/todo projection refactoring |
 
 Working tree is **100% clean**. No modified files. No staged changes.
@@ -36,6 +36,7 @@ Nothing new. The top-25 priority list from the last status still applies.
 ## d) TOTALLY FUCKED UP!
 
 Nothing new broke. The 2 untracked files remain intentionally unstaged:
+
 - `example/todo/cmd/api/api` — compiled binary (never in git)
 - `projection/example_test.go` — broken, uses non-existent `Builder.On()` method
 

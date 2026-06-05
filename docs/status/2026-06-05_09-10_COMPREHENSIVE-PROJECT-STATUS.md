@@ -15,14 +15,14 @@ go-cqrs-lite is a **healthy, production-quality library** with 30 Go modules, 24
 
 **Build/Test/Lint:**
 
-| Check | Result |
-|-------|--------|
-| `go build ./...` | ✅ PASS (all 30 modules) |
-| `go test ./... -count=1` | ✅ PASS (all 30 modules) |
-| `go vet ./...` | ✅ ZERO issues |
-| `go test -race` | ✅ PASS (core modules, zero data races) |
-| `nix run .#lint` | ✅ ZERO issues (all 21 library modules) |
-| `nix run .#build` | ✅ PASS |
+| Check                    | Result                                  |
+| ------------------------ | --------------------------------------- |
+| `go build ./...`         | ✅ PASS (all 30 modules)                |
+| `go test ./... -count=1` | ✅ PASS (all 30 modules)                |
+| `go vet ./...`           | ✅ ZERO issues                          |
+| `go test -race`          | ✅ PASS (core modules, zero data races) |
+| `nix run .#lint`         | ✅ ZERO issues (all 21 library modules) |
+| `nix run .#build`        | ✅ PASS                                 |
 
 ---
 
@@ -30,110 +30,110 @@ go-cqrs-lite is a **healthy, production-quality library** with 30 Go modules, 24
 
 ### Core CQRS Infrastructure
 
-| Feature | Module | Status | Detail |
-|---------|--------|--------|--------|
-| Event System | `event/` | ✅ | NewEvent, ImmutableEvent, Store (Sink+Source), Journal, SeekableJournal, BackwardsSource, 19 options, metadata, context enricher, defensive copies, Clone, tombstones, time-travel, Projection/BatchProjection interfaces, error taxonomy |
-| Command Dispatch | `command/` | ✅ | Dispatcher, Handler, TypedHandler[T], Middleware, CommandStore (Sink+Source), metadata, catalog introspection |
-| Query Dispatch | `query/` | ✅ | Dispatcher, TypedHandler[T], DispatchTyped[T], Pagination, PaginatedResult[T], catalog introspection |
-| Decider (Aggregates) | `decider/` | ✅ | Decider[State] pure-function pattern, Repository[State], Execute/Load/LoadAtVersion/LoadAtTime, crash recovery |
-| Branded IDs | `id/` | ✅ | id.Of[T] = cbid.ID[T, ulid.ULID], 8 built-in types, JSON/SQL/binary/text, compile-time type safety |
-| Generic Dispatcher | `dispatcher/` | ✅ | Generic Dispatcher[H, M], LifecycleMixin, ErrDispatcherClosed sentinel |
-| Codec | `codec/` | ✅ | JSONCodec, RawCodec, Codec interface |
+| Feature              | Module        | Status | Detail                                                                                                                                                                                                                                    |
+| -------------------- | ------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event System         | `event/`      | ✅     | NewEvent, ImmutableEvent, Store (Sink+Source), Journal, SeekableJournal, BackwardsSource, 19 options, metadata, context enricher, defensive copies, Clone, tombstones, time-travel, Projection/BatchProjection interfaces, error taxonomy |
+| Command Dispatch     | `command/`    | ✅     | Dispatcher, Handler, TypedHandler[T], Middleware, CommandStore (Sink+Source), metadata, catalog introspection                                                                                                                             |
+| Query Dispatch       | `query/`      | ✅     | Dispatcher, TypedHandler[T], DispatchTyped[T], Pagination, PaginatedResult[T], catalog introspection                                                                                                                                      |
+| Decider (Aggregates) | `decider/`    | ✅     | Decider[State] pure-function pattern, Repository[State], Execute/Load/LoadAtVersion/LoadAtTime, crash recovery                                                                                                                            |
+| Branded IDs          | `id/`         | ✅     | id.Of[T] = cbid.ID[T, ulid.ULID], 8 built-in types, JSON/SQL/binary/text, compile-time type safety                                                                                                                                        |
+| Generic Dispatcher   | `dispatcher/` | ✅     | Generic Dispatcher[H, M], LifecycleMixin, ErrDispatcherClosed sentinel                                                                                                                                                                    |
+| Codec                | `codec/`      | ✅     | JSONCodec, RawCodec, Codec interface                                                                                                                                                                                                      |
 
 ### Storage Backends
 
-| Backend | Module | Status | Detail |
-|---------|--------|--------|--------|
-| In-Memory | `memory/` | ✅ | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore — thread-safe, defensive copies |
-| SQL (PG/SQLite) | `storage/` | ✅ | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore — dialect abstraction, optimistic concurrency |
-| Embedded KV | `pebble/` | ✅ | PebbleEventStore — scoped to aggregate, time-travel, version bounds, early termination |
-| Turso (LibSQL) | `turso/` | ✅ | Open/OpenInMemory/OpenSync, event store, snapshot store, checkpoint store |
-| Watermill Protocol | `watermill/` | ✅ | PublisherAdapter, SubscriberAdapter — bidirectional event↔message translation, 15+ metadata keys |
+| Backend            | Module       | Status | Detail                                                                                                                 |
+| ------------------ | ------------ | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| In-Memory          | `memory/`    | ✅     | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore — thread-safe, defensive copies |
+| SQL (PG/SQLite)    | `storage/`   | ✅     | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore — dialect abstraction, optimistic concurrency     |
+| Embedded KV        | `pebble/`    | ✅     | PebbleEventStore — scoped to aggregate, time-travel, version bounds, early termination                                 |
+| Turso (LibSQL)     | `turso/`     | ✅     | Open/OpenInMemory/OpenSync, event store, snapshot store, checkpoint store                                              |
+| Watermill Protocol | `watermill/` | ✅     | PublisherAdapter, SubscriberAdapter — bidirectional event↔message translation, 15+ metadata keys                       |
 
 ### Cross-Cutting Concerns
 
-| Concern | Module | Status | Detail |
-|---------|--------|--------|--------|
-| Projection Runner | `projection/` | ✅ | Replay+live, checkpoint tracking, Builder pattern, On[T] typed handlers, dead letter, retry with backoff |
-| Schema Evolution | `schema/` | ✅ | Upcaster, UpcasterRegistry, VersionedStore, cycle detection |
-| Snapshot Persistence | `snapshot/` | ✅ | SnapshotSink/Source/Store ISP split, EveryNEvents strategy |
-| Event Signing | `signing/` | ✅ | HMAC-SHA256, Ed25519, multisig, sign/verify middleware |
-| Middleware | `middleware/` | ✅ | 24 factories: logging, retry, recovery, validation, metrics, OTel tracing+metrics (command+event+query) |
-| OTel Helpers | `otel/` | ✅ | Tracer, Meter, Spans, Attributes (opt-in, no-op when unconfigured) |
-| Aggregate Listing | `listing/` | ✅ | AggregateReader, ListBuilder, InMemoryAggregateReader, SQLAggregateReader, AggregateProjection, StatusMiddleware, tombstone policies |
-| OpenTelemetry | `middleware/` + `otel/` | ✅ | Tracing and metrics middleware for all three domains |
+| Concern              | Module                  | Status | Detail                                                                                                                               |
+| -------------------- | ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Projection Runner    | `projection/`           | ✅     | Replay+live, checkpoint tracking, Builder pattern, On[T] typed handlers, dead letter, retry with backoff                             |
+| Schema Evolution     | `schema/`               | ✅     | Upcaster, UpcasterRegistry, VersionedStore, cycle detection                                                                          |
+| Snapshot Persistence | `snapshot/`             | ✅     | SnapshotSink/Source/Store ISP split, EveryNEvents strategy                                                                           |
+| Event Signing        | `signing/`              | ✅     | HMAC-SHA256, Ed25519, multisig, sign/verify middleware                                                                               |
+| Middleware           | `middleware/`           | ✅     | 24 factories: logging, retry, recovery, validation, metrics, OTel tracing+metrics (command+event+query)                              |
+| OTel Helpers         | `otel/`                 | ✅     | Tracer, Meter, Spans, Attributes (opt-in, no-op when unconfigured)                                                                   |
+| Aggregate Listing    | `listing/`              | ✅     | AggregateReader, ListBuilder, InMemoryAggregateReader, SQLAggregateReader, AggregateProjection, StatusMiddleware, tombstone policies |
+| OpenTelemetry        | `middleware/` + `otel/` | ✅     | Tracing and metrics middleware for all three domains                                                                                 |
 
 ### Auto-Documentation
 
-| Feature | Module | Status | Detail |
-|---------|--------|--------|--------|
-| Registry | `catalog/` | ✅ | Registry, SchemaFromType[T], Build, Validate |
-| AsyncAPI 3.0 | `catalog/asyncapi` | ✅ | Full spec generation |
-| D2 Diagrams | `catalog/d2` | ✅ | Architecture diagram export |
-| EventCatalog | `catalog/eventcatalog` | ✅ | EventCatalog.com format |
-| OpenAPI | `catalog/openapi` | ✅ | REST API documentation |
-| Doc Server | `catalog/docserver` | ✅ | In-process HTTP server |
-| JSON Schema | `catalog/schema` | ✅ | Reflection engine |
+| Feature      | Module                 | Status | Detail                                       |
+| ------------ | ---------------------- | ------ | -------------------------------------------- |
+| Registry     | `catalog/`             | ✅     | Registry, SchemaFromType[T], Build, Validate |
+| AsyncAPI 3.0 | `catalog/asyncapi`     | ✅     | Full spec generation                         |
+| D2 Diagrams  | `catalog/d2`           | ✅     | Architecture diagram export                  |
+| EventCatalog | `catalog/eventcatalog` | ✅     | EventCatalog.com format                      |
+| OpenAPI      | `catalog/openapi`      | ✅     | REST API documentation                       |
+| Doc Server   | `catalog/docserver`    | ✅     | In-process HTTP server                       |
+| JSON Schema  | `catalog/schema`       | ✅     | Reflection engine                            |
 
 ### Code Generation & Tooling
 
-| Tool | Module | Status | Detail |
-|------|--------|--------|--------|
-| cqrs-gen | `cmd/cqrs-gen` | ✅ | AST-based typed handler generation |
-| API Stability | `cmd/api-stability` | ✅ | Exported symbol comparison against golden file |
+| Tool          | Module              | Status | Detail                                         |
+| ------------- | ------------------- | ------ | ---------------------------------------------- |
+| cqrs-gen      | `cmd/cqrs-gen`      | ✅     | AST-based typed handler generation             |
+| API Stability | `cmd/api-stability` | ✅     | Exported symbol comparison against golden file |
 
 ### Package Documentation (pkg.go.dev)
 
-| Deliverable | Count | Status |
-|-------------|-------|--------|
-| `doc.go` files | 11 of 11 needed | ✅ ALL DONE |
-| `README.md` files (library) | 10 of 10 needed | ✅ ALL DONE |
-| `README.md` files (example) | 6 of 6 needed | ✅ ALL DONE |
-| `example_test.go` | 9 modules | ✅ ALL DONE |
-| `errors.go` sentinel files | 4 new (schema, watermill, id, command) | ✅ DONE |
+| Deliverable                 | Count                                  | Status      |
+| --------------------------- | -------------------------------------- | ----------- |
+| `doc.go` files              | 11 of 11 needed                        | ✅ ALL DONE |
+| `README.md` files (library) | 10 of 10 needed                        | ✅ ALL DONE |
+| `README.md` files (example) | 6 of 6 needed                          | ✅ ALL DONE |
+| `example_test.go`           | 9 modules                              | ✅ ALL DONE |
+| `errors.go` sentinel files  | 4 new (schema, watermill, id, command) | ✅ DONE     |
 
 ### Architecture Decision Records
 
-| ADR | Status |
-|-----|--------|
-| 0001: Decider over Aggregate | ✅ Adopted |
-| 0002: Error Taxonomy | ✅ Adopted |
-| 0003: Multi-Module Monorepo | ✅ Adopted |
-| 0004: Saga Process Manager | ✅ Superseded (projection+command) |
-| 0006: Sink/Source Split | ✅ Adopted |
-| 0007: gopls Workspace Workaround | ✅ Active |
-| 0008: Typed Handler Signature | ✅ Adopted |
-| 0009: Pebble Scope Event Store Only | ✅ Adopted |
-| 0010: Remove io.Closer from Interfaces | 📐 Proposed (v3) |
-| 0011: Unify ErrDispatcherClosed | 📐 Proposed (v3) |
-| 0012: Split Catalog Modules | 📐 Proposed (v3) |
+| ADR                                    | Status                             |
+| -------------------------------------- | ---------------------------------- |
+| 0001: Decider over Aggregate           | ✅ Adopted                         |
+| 0002: Error Taxonomy                   | ✅ Adopted                         |
+| 0003: Multi-Module Monorepo            | ✅ Adopted                         |
+| 0004: Saga Process Manager             | ✅ Superseded (projection+command) |
+| 0006: Sink/Source Split                | ✅ Adopted                         |
+| 0007: gopls Workspace Workaround       | ✅ Active                          |
+| 0008: Typed Handler Signature          | ✅ Adopted                         |
+| 0009: Pebble Scope Event Store Only    | ✅ Adopted                         |
+| 0010: Remove io.Closer from Interfaces | 📐 Proposed (v3)                   |
+| 0011: Unify ErrDispatcherClosed        | 📐 Proposed (v3)                   |
+| 0012: Split Catalog Modules            | 📐 Proposed (v3)                   |
 
 ### Examples
 
-| Example | Status | Uses |
-|---------|--------|------|
-| `example/user` | ✅ | Event sourcing lifecycle with projection.Runner |
-| `example/todo` | ✅ | Full HTTP API with Pebble + MemoryStore, projection.Runner |
-| `example/storage` | ✅ | SQL event store with embedded SQLite |
-| `example/projection` | ✅ | Replay+live projection with checkpoints |
-| `example/saga-pattern` | ✅ | Multi-step saga via projection + command dispatch |
-| `example/listing` | ✅ | Aggregate listing with tombstone detection |
+| Example                | Status | Uses                                                       |
+| ---------------------- | ------ | ---------------------------------------------------------- |
+| `example/user`         | ✅     | Event sourcing lifecycle with projection.Runner            |
+| `example/todo`         | ✅     | Full HTTP API with Pebble + MemoryStore, projection.Runner |
+| `example/storage`      | ✅     | SQL event store with embedded SQLite                       |
+| `example/projection`   | ✅     | Replay+live projection with checkpoints                    |
+| `example/saga-pattern` | ✅     | Multi-step saga via projection + command dispatch          |
+| `example/listing`      | ✅     | Aggregate listing with tombstone detection                 |
 
 ### Performance Benchmarks (Session 142)
 
-| Module | Operation | ns/op | B/op | allocs/op |
-|--------|-----------|------:|-----:|----------:|
-| event | NewEvent | 201 | 384 | 3 |
-| event | DecodePayload | 419 | 560 | 10 |
-| id | New | 100 | 16 | 1 |
-| id | Parse | 17 | 0 | 0 |
-| command | New | 50 | 208 | 2 |
-| memory | Store Save | 583 | 736 | 9 |
-| memory | Bus Publish | 66 | 48 | 3 |
-| signing | HMAC Sign | 662 | 864 | 12 |
-| signing | Ed25519 Sign | 13,486 | 416 | 7 |
-| storage/SQLite | Save | 41,042 | 4,080 | 92 |
-| storage/SQLite | Load | 48,505 | 20,233 | 554 |
+| Module         | Operation     |  ns/op |   B/op | allocs/op |
+| -------------- | ------------- | -----: | -----: | --------: |
+| event          | NewEvent      |    201 |    384 |         3 |
+| event          | DecodePayload |    419 |    560 |        10 |
+| id             | New           |    100 |     16 |         1 |
+| id             | Parse         |     17 |      0 |         0 |
+| command        | New           |     50 |    208 |         2 |
+| memory         | Store Save    |    583 |    736 |         9 |
+| memory         | Bus Publish   |     66 |     48 |         3 |
+| signing        | HMAC Sign     |    662 |    864 |        12 |
+| signing        | Ed25519 Sign  | 13,486 |    416 |         7 |
+| storage/SQLite | Save          | 41,042 |  4,080 |        92 |
+| storage/SQLite | Load          | 48,505 | 20,233 |       554 |
 
 ---
 
@@ -142,6 +142,7 @@ go-cqrs-lite is a **healthy, production-quality library** with 30 Go modules, 24
 ### turso/ Module — 28.6% Coverage (Target: 80%+)
 
 Only basic happy-path tests exist. Missing:
+
 - Error paths: nil DB, closed store, invalid args
 - SnapshotStore: version-aware load, empty result, concurrent access
 - CheckpointStore: overwrite, concurrent reads
@@ -200,6 +201,7 @@ Mentioned in TODO_LIST.md as `[FUTURE]`. No implementation.
 ### v3 Breaking Changes (ADRs 0010-0012)
 
 All three ADRs are "Proposed" status — no implementation:
+
 - Remove `io.Closer` from 9 core interfaces
 - Unify `ErrDispatcherClosed` into single sentinel
 - Split catalog into 5 modules
@@ -219,6 +221,7 @@ AggregateTester, ProjectionTester, BusTester fluent APIs — `[FUTURE]` in TODO_
 ### Untracked Binaries in Working Tree
 
 Two binary files exist in the working tree that should never be committed:
+
 - `saga-pattern` (34KB binary)
 - `example/todo/cmd/api/api` (106KB binary)
 
@@ -241,6 +244,7 @@ These were created in a previous session but never committed. They exist on disk
 ### 5 errors.go Files Still Missing
 
 Modules that create errors inline without centralized `errors.go`:
+
 - `snapshot/errors.go` — 4 `fmt.Errorf` calls scattered
 - `catalog/errors.go` — 31 `fmt.Errorf` calls, largest module
 - `storage/errors.go` — errors in `sql/` subpackage but not storage root
@@ -295,58 +299,58 @@ Modules that create errors inline without centralized `errors.go`:
 
 ### Priority 1: Fix What's Broken (Do Immediately)
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 1 | **Delete or gitignore binary artifacts** (`saga-pattern`, `example/todo/cmd/api/api`) | root | 2m | Prevents accidental binary commits |
-| 2 | **Commit untracked doc.go files** (codec, event, middleware) | 3 modules | 2m | pkg.go.dev docs incomplete without them |
-| 3 | **Run `go mod tidy` workspace-wide** + commit go.work.sum | all | 5m | Dependency hygiene |
-| 4 | **Fix event/README.md stale references** to old `core` package | event | 5m | Consumer-facing docs correctness |
+| #   | Task                                                                                  | Module    | Est | Impact                                  |
+| --- | ------------------------------------------------------------------------------------- | --------- | --- | --------------------------------------- |
+| 1   | **Delete or gitignore binary artifacts** (`saga-pattern`, `example/todo/cmd/api/api`) | root      | 2m  | Prevents accidental binary commits      |
+| 2   | **Commit untracked doc.go files** (codec, event, middleware)                          | 3 modules | 2m  | pkg.go.dev docs incomplete without them |
+| 3   | **Run `go mod tidy` workspace-wide** + commit go.work.sum                             | all       | 5m  | Dependency hygiene                      |
+| 4   | **Fix event/README.md stale references** to old `core` package                        | event     | 5m  | Consumer-facing docs correctness        |
 
 ### Priority 2: Close Coverage Gaps (High Impact)
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 5 | **Turso tests: Save+Load edge cases, AppendBatch, LoadFromVersion, concurrent access** | turso | 12m | 28.6% → 80% |
-| 6 | **Turso tests: error paths (nil DB, closed store, invalid args)** | turso | 10m | Error paths completely untested |
-| 7 | **Turso tests: SnapshotStore + CheckpointStore full coverage** | turso | 10m | Only SaveAndLoad tested |
-| 8 | **Add storage/sql/helpers_test.go** — shared SQL helper coverage | storage | 10m | 0% → meaningful |
-| 9 | **Add pebble edge-case tests** — concurrent Save, Close-then-access | pebble | 10m | 86.6% → 90%+ |
+| #   | Task                                                                                   | Module  | Est | Impact                          |
+| --- | -------------------------------------------------------------------------------------- | ------- | --- | ------------------------------- |
+| 5   | **Turso tests: Save+Load edge cases, AppendBatch, LoadFromVersion, concurrent access** | turso   | 12m | 28.6% → 80%                     |
+| 6   | **Turso tests: error paths (nil DB, closed store, invalid args)**                      | turso   | 10m | Error paths completely untested |
+| 7   | **Turso tests: SnapshotStore + CheckpointStore full coverage**                         | turso   | 10m | Only SaveAndLoad tested         |
+| 8   | **Add storage/sql/helpers_test.go** — shared SQL helper coverage                       | storage | 10m | 0% → meaningful                 |
+| 9   | **Add pebble edge-case tests** — concurrent Save, Close-then-access                    | pebble  | 10m | 86.6% → 90%+                    |
 
 ### Priority 3: Error Hygiene (Consistency)
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 10 | **Create `snapshot/errors.go`** — consolidate 4 fmt.Errorf calls | snapshot | 5m | Consistent error matching |
-| 11 | **Create `catalog/errors.go`** — consolidate 31 fmt.Errorf calls | catalog | 12m | Largest gap |
-| 12 | **Create `listing/errors.go`** — consolidate 4 fmt.Errorf calls | listing | 5m | Quick win |
-| 13 | **Create `storage/errors.go`** — re-export sql/errors.go | storage | 5m | Centralized API surface |
+| #   | Task                                                             | Module   | Est | Impact                    |
+| --- | ---------------------------------------------------------------- | -------- | --- | ------------------------- |
+| 10  | **Create `snapshot/errors.go`** — consolidate 4 fmt.Errorf calls | snapshot | 5m  | Consistent error matching |
+| 11  | **Create `catalog/errors.go`** — consolidate 31 fmt.Errorf calls | catalog  | 12m | Largest gap               |
+| 12  | **Create `listing/errors.go`** — consolidate 4 fmt.Errorf calls  | listing  | 5m  | Quick win                 |
+| 13  | **Create `storage/errors.go`** — re-export sql/errors.go         | storage  | 5m  | Centralized API surface   |
 
 ### Priority 4: Code Health
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 14 | **Decompose `storage/sql_aggregate_reader.go:ListWithStatus`** (115L → 3 funcs) | storage | 12m | Longest function in codebase |
-| 15 | **Decompose `watermill/protocol.go:messageToEvent`** (86L → 4 funcs) | watermill | 12m | Second longest function |
-| 16 | **Decompose `storage/event_store.go:Save`** (55L → 2 funcs) | storage | 10m | Core write path |
-| 17 | **Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware`** (55L → 2 funcs) | signing | 8m | Complex verification |
+| #   | Task                                                                                     | Module    | Est | Impact                       |
+| --- | ---------------------------------------------------------------------------------------- | --------- | --- | ---------------------------- |
+| 14  | **Decompose `storage/sql_aggregate_reader.go:ListWithStatus`** (115L → 3 funcs)          | storage   | 12m | Longest function in codebase |
+| 15  | **Decompose `watermill/protocol.go:messageToEvent`** (86L → 4 funcs)                     | watermill | 12m | Second longest function      |
+| 16  | **Decompose `storage/event_store.go:Save`** (55L → 2 funcs)                              | storage   | 10m | Core write path              |
+| 17  | **Decompose `signing/multisig/middleware.go:RequireMultiSigMiddleware`** (55L → 2 funcs) | signing   | 8m  | Complex verification         |
 
 ### Priority 5: Consumer Experience
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 18 | **Write a unified Getting Started guide** (docs/getting-started.md) showing full CQRS stack composition | docs | 20m | No single entry point for new consumers |
-| 19 | **Add command/example_test.go** — New + Register + Dispatch roundtrip | command | 5m | Most-used pattern has no example |
-| 20 | **Add query/example_test.go** — New + Register + DispatchTyped | query | 5m | Same for queries |
-| 21 | **Add decider/example_test.go** — Decider + Repository + Execute | decider | 8m | Core aggregate pattern |
-| 22 | **Update storage/README.md** — add Turso section, v2 import paths | storage | 5m | Missing backend documentation |
+| #   | Task                                                                                                    | Module  | Est | Impact                                  |
+| --- | ------------------------------------------------------------------------------------------------------- | ------- | --- | --------------------------------------- |
+| 18  | **Write a unified Getting Started guide** (docs/getting-started.md) showing full CQRS stack composition | docs    | 20m | No single entry point for new consumers |
+| 19  | **Add command/example_test.go** — New + Register + Dispatch roundtrip                                   | command | 5m  | Most-used pattern has no example        |
+| 20  | **Add query/example_test.go** — New + Register + DispatchTyped                                          | query   | 5m  | Same for queries                        |
+| 21  | **Add decider/example_test.go** — Decider + Repository + Execute                                        | decider | 8m  | Core aggregate pattern                  |
+| 22  | **Update storage/README.md** — add Turso section, v2 import paths                                       | storage | 5m  | Missing backend documentation           |
 
 ### Priority 6: Architecture (v3 Prep)
 
-| # | Task | Module | Est | Impact |
-|---|------|--------|-----|--------|
-| 23 | **Design generic middleware interface** to eliminate 3x duplication | middleware | 30m | Biggest code smell, design doc only |
-| 24 | **Decouple command from event types** — extract shared types to `id/` or new `types/` module | command, event | 20m | Module boundary fix, design doc only |
-| 25 | **Set up PostgreSQL integration tests with testcontainers** | integration | 20m | PG code path has zero test coverage |
+| #   | Task                                                                                         | Module         | Est | Impact                               |
+| --- | -------------------------------------------------------------------------------------------- | -------------- | --- | ------------------------------------ |
+| 23  | **Design generic middleware interface** to eliminate 3x duplication                          | middleware     | 30m | Biggest code smell, design doc only  |
+| 24  | **Decouple command from event types** — extract shared types to `id/` or new `types/` module | command, event | 20m | Module boundary fix, design doc only |
+| 25  | **Set up PostgreSQL integration tests with testcontainers**                                  | integration    | 20m | PG code path has zero test coverage  |
 
 ---
 
@@ -366,47 +370,47 @@ This determines whether the next 25 tasks should focus on v2.x polish or v3 prep
 
 ## Module Coverage Summary
 
-| Module | Coverage | Grade |
-|--------|----------|-------|
-| dispatcher | 100.0% | A+ |
-| decider | 100.0% | A+ |
-| middleware | 98.5% | A+ |
-| memory | 98.2% | A+ |
-| otel | 96.4% | A |
-| id | 94.5% | A |
-| query | 94.3% | A |
-| listing | 94.9% | A |
-| signing | 85.5%* | B+ |
-| command | 80.5% | B |
-| event | 89.4% | B+ |
-| projection | ~95% | A |
-| schema | 89.7% | B+ |
-| snapshot | 92.3% | A- |
-| storage (root) | 86.9% | B+ |
-| storage/sql | 34.7% | D |
-| pebble | 86.7% | B+ |
-| watermill | 92.6% | A- |
-| codec | 93.3% | A |
-| catalog | 87.4% | B+ |
-| turso | 28.6% | D |
+| Module         | Coverage | Grade |
+| -------------- | -------- | ----- |
+| dispatcher     | 100.0%   | A+    |
+| decider        | 100.0%   | A+    |
+| middleware     | 98.5%    | A+    |
+| memory         | 98.2%    | A+    |
+| otel           | 96.4%    | A     |
+| id             | 94.5%    | A     |
+| query          | 94.3%    | A     |
+| listing        | 94.9%    | A     |
+| signing        | 85.5%\*  | B+    |
+| command        | 80.5%    | B     |
+| event          | 89.4%    | B+    |
+| projection     | ~95%     | A     |
+| schema         | 89.7%    | B+    |
+| snapshot       | 92.3%    | A-    |
+| storage (root) | 86.9%    | B+    |
+| storage/sql    | 34.7%    | D     |
+| pebble         | 86.7%    | B+    |
+| watermill      | 92.6%    | A-    |
+| codec          | 93.3%    | A     |
+| catalog        | 87.4%    | B+    |
+| turso          | 28.6%    | D     |
 
-*signing coverage pulled down by internal testutil package
+\*signing coverage pulled down by internal testutil package
 
 ## LoC Summary
 
-| Category | LoC | Files |
-|----------|----:|------:|
-| Production code | 24,788 | — |
-| Test code | 45,033 | — |
-| Example code | 5,942 | — |
-| **Total** | **75,763** | — |
+| Category        |        LoC | Files |
+| --------------- | ---------: | ----: |
+| Production code |     24,788 |     — |
+| Test code       |     45,033 |     — |
+| Example code    |      5,942 |     — |
+| **Total**       | **75,763** |     — |
 
 ## Git Activity
 
-| Metric | Value |
-|--------|-------|
-| Commits since v2.1.0 | 49 |
-| Commits in v2.1.0 release | 63 |
-| Total v2.x commits | 112+ |
-| ADRs | 11 (8 adopted, 3 proposed) |
-| Tags | v2.0.0, v2.1.0 |
+| Metric                    | Value                      |
+| ------------------------- | -------------------------- |
+| Commits since v2.1.0      | 49                         |
+| Commits in v2.1.0 release | 63                         |
+| Total v2.x commits        | 112+                       |
+| ADRs                      | 11 (8 adopted, 3 proposed) |
+| Tags                      | v2.0.0, v2.1.0             |

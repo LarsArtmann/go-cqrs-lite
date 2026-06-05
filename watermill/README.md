@@ -8,10 +8,10 @@ go get github.com/larsartmann/go-cqrs-lite/watermill/v2
 
 ## Adapters
 
-| Adapter | From | To | Description |
-|---|---|---|---|
-| `PublisherAdapter` | `event.Publisher` | `message.Publisher` | Publish go-cqrs-lite events via Watermill |
-| `SubscriberAdapter` | `event.Bus` | `message.Subscriber` | Receive Watermill messages from go-cqrs-lite bus |
+| Adapter             | From              | To                   | Description                                      |
+| ------------------- | ----------------- | -------------------- | ------------------------------------------------ |
+| `PublisherAdapter`  | `event.Publisher` | `message.Publisher`  | Publish go-cqrs-lite events via Watermill        |
+| `SubscriberAdapter` | `event.Bus`       | `message.Subscriber` | Receive Watermill messages from go-cqrs-lite bus |
 
 ## Usage
 
@@ -32,7 +32,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 
 ## Dependencies
 
-| Dependency | Purpose |
-|---|---|
+| Dependency                | Purpose                                                       |
+| ------------------------- | ------------------------------------------------------------- |
 | `ThreeDotsLabs/watermill` | Message bus interface (message.Publisher, message.Subscriber) |
-| `event` | Event interfaces and error types |
+| `event`                   | Event interfaces and error types                              |

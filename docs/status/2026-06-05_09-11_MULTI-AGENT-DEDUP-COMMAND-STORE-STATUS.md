@@ -24,12 +24,12 @@ The working tree is **not clean** — 37 modified files and 27 untracked files f
 
 ### This Session — Code Dedup (4 clone groups, 16 clones eliminated)
 
-| Clone Group | File(s) | Helper Extracted | Commits |
-|------------|---------|-----------------|---------|
-| 9 clones: HTTP status checks | `example/todo/cmd/api/integration_test.go` | `assertStatus(t, resp, want, label)` | `0b938e16` |
-| 4 clones: aggregate upper bound | `pebble/iteration.go`, `pebble/save.go`, `pebble/store.go` | `aggregateUpperBound(ref)` method | `358c98f9` |
-| 3 clones: traced context setup | `otel/logging_test.go` | `newTracedContext(t)` using `t.Cleanup` | `f819f427` (committed by parallel session) |
-| 8 clones: AppendBatch boilerplate | integration/event, memory/, storage/ | **Skipped** — cross-module test similarity, 0 at threshold 50 | N/A |
+| Clone Group                       | File(s)                                                    | Helper Extracted                                              | Commits                                    |
+| --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------ |
+| 9 clones: HTTP status checks      | `example/todo/cmd/api/integration_test.go`                 | `assertStatus(t, resp, want, label)`                          | `0b938e16`                                 |
+| 4 clones: aggregate upper bound   | `pebble/iteration.go`, `pebble/save.go`, `pebble/store.go` | `aggregateUpperBound(ref)` method                             | `358c98f9`                                 |
+| 3 clones: traced context setup    | `otel/logging_test.go`                                     | `newTracedContext(t)` using `t.Cleanup`                       | `f819f427` (committed by parallel session) |
+| 8 clones: AppendBatch boilerplate | integration/event, memory/, storage/                       | **Skipped** — cross-module test similarity, 0 at threshold 50 | N/A                                        |
 
 Verification: `art-dupl --semantic -t 50` on all flagged files → **0 clone groups**.
 
@@ -65,6 +65,7 @@ Verification: `art-dupl --semantic -t 50` on all flagged files → **0 clone gro
 ### 1. Working Tree — 37 Modified + 27 Untracked Files
 
 The parallel session has been committing aggressively but has left behind:
+
 - **37 modified files**: go.mod/go.sum tidy across 15+ modules, example/todo changes, schema changes, docs updates
 - **27 untracked files**: doc.go/README.md for 15+ modules, 3 new ADRs (0010, 0011, 0012), example binaries, schema/watermill errors.go, example_test.go files
 - These are mid-sprint artifacts that need review and commit
@@ -110,18 +111,21 @@ The parallel session has been committing aggressively but has left behind:
 ### Open TODO Items (carried forward)
 
 **`[v2]` Deferred:**
+
 - TransactionID branded type
 - `io.Closer` removal from core interfaces (ADR-0010 drafted but uncommitted)
 - Split `event.Store` into Writer/Reader/Deleter
 - Make event core truly immutable
 
 **`[FUTURE]` Planned but No Code:**
+
 - Outbox pattern, schema registry, catalog diff tool
 - High-level test utilities (AggregateTester, ProjectionTester)
 - Server-side timestamps, bi-temporal support, HLC
 - Thin PostgreSQL/NATS adapters, documentation site
 
 **`[BLOCKED]` External:**
+
 - PostgreSQL integration tests (needs Docker)
 - Push v2.1.0 tags to remote (manual action)
 - License change decision
@@ -188,48 +192,48 @@ The parallel session has been committing aggressively but has left behind:
 
 ### Tier 1: Immediate (Now)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Push v2.1.0 tags to remote | Prevents data loss | 1 command |
-| 2 | Commit or discard 64 uncommitted files | Clean working tree | 15 min |
-| 3 | Review Command Store interfaces before consumers depend on them | API stability | 30 min |
+| #   | Task                                                            | Impact             | Effort    |
+| --- | --------------------------------------------------------------- | ------------------ | --------- |
+| 1   | Push v2.1.0 tags to remote                                      | Prevents data loss | 1 command |
+| 2   | Commit or discard 64 uncommitted files                          | Clean working tree | 15 min    |
+| 3   | Review Command Store interfaces before consumers depend on them | API stability      | 30 min    |
 
 ### Tier 2: Today
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 4 | Fix BuildFlow pre-commit hook | Unblocks normal git workflow | 15 min |
-| 5 | Review + commit 3 new ADRs (0010-0012) | Documentation integrity | 20 min |
-| 6 | Commit 15+ module README.md/doc.go files | pkg.go.dev readiness | 10 min |
-| 7 | Fix 7 catalog lint issues | Zero-lint across ALL modules | 30 min |
-| 8 | Create ROADMAP.md | Long-term clarity | 2 hours |
-| 9 | Archive 100+ stale status reports | Signal over noise | 10 min |
+| #   | Task                                     | Impact                       | Effort  |
+| --- | ---------------------------------------- | ---------------------------- | ------- |
+| 4   | Fix BuildFlow pre-commit hook            | Unblocks normal git workflow | 15 min  |
+| 5   | Review + commit 3 new ADRs (0010-0012)   | Documentation integrity      | 20 min  |
+| 6   | Commit 15+ module README.md/doc.go files | pkg.go.dev readiness         | 10 min  |
+| 7   | Fix 7 catalog lint issues                | Zero-lint across ALL modules | 30 min  |
+| 8   | Create ROADMAP.md                        | Long-term clarity            | 2 hours |
+| 9   | Archive 100+ stale status reports        | Signal over noise            | 10 min  |
 
 ### Tier 3: This Week
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 10 | Fill ADR-0005 gap (or renumber) | Documentation integrity | 15 min |
-| 11 | Implement SQL Journal (ReadAll/ReadFrom) | Storage parity | 2-4 hours |
-| 12 | Implement Pebble BackwardsSource | Interface completeness | 1 hour |
-| 13 | Turso integration tests | Coverage 29% → 80%+ | 4 hours |
-| 14 | Command Store test coverage | New feature needs tests | 2 hours |
-| 15 | Update all examples to v2.1.0 | Consumer experience | 30 min |
+| #   | Task                                     | Impact                  | Effort    |
+| --- | ---------------------------------------- | ----------------------- | --------- |
+| 10  | Fill ADR-0005 gap (or renumber)          | Documentation integrity | 15 min    |
+| 11  | Implement SQL Journal (ReadAll/ReadFrom) | Storage parity          | 2-4 hours |
+| 12  | Implement Pebble BackwardsSource         | Interface completeness  | 1 hour    |
+| 13  | Turso integration tests                  | Coverage 29% → 80%+     | 4 hours   |
+| 14  | Command Store test coverage              | New feature needs tests | 2 hours   |
+| 15  | Update all examples to v2.1.0            | Consumer experience     | 30 min    |
 
 ### Tier 4: Strategic
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 16 | Documentation site (Docusaurus/MkDocs) | Public visibility | 1 day |
-| 17 | pkg.go.dev readiness audit | Developer experience | 4 hours |
-| 18 | Thin PostgreSQL adapter (no Watermill) | Adoption | 1 day |
-| 19 | High-level test utilities | Testing ergonomics | 1 day |
-| 20 | Schema registry / event validation middleware | Runtime safety | 1 day |
-| 21 | Outbox pattern implementation | Transactional consistency | 2 days |
-| 22 | Bi-temporal support | Compliance use cases | 1 day |
-| 23 | Thin NATS bus adapter | Transport flexibility | 1 day |
-| 24 | Catalog diff / breaking-change detection tool | Evolution safety | 2 days |
-| 25 | Convert brainstorming into actionable ROADMAP.md sections | v3.0 planning | 2 hours |
+| #   | Task                                                      | Impact                    | Effort  |
+| --- | --------------------------------------------------------- | ------------------------- | ------- |
+| 16  | Documentation site (Docusaurus/MkDocs)                    | Public visibility         | 1 day   |
+| 17  | pkg.go.dev readiness audit                                | Developer experience      | 4 hours |
+| 18  | Thin PostgreSQL adapter (no Watermill)                    | Adoption                  | 1 day   |
+| 19  | High-level test utilities                                 | Testing ergonomics        | 1 day   |
+| 20  | Schema registry / event validation middleware             | Runtime safety            | 1 day   |
+| 21  | Outbox pattern implementation                             | Transactional consistency | 2 days  |
+| 22  | Bi-temporal support                                       | Compliance use cases      | 1 day   |
+| 23  | Thin NATS bus adapter                                     | Transport flexibility     | 1 day   |
+| 24  | Catalog diff / breaking-change detection tool             | Evolution safety          | 2 days  |
+| 25  | Convert brainstorming into actionable ROADMAP.md sections | v3.0 planning             | 2 hours |
 
 ---
 

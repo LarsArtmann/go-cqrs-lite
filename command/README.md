@@ -28,10 +28,10 @@ command.RegisterTyped[CreateUserCmd](cmds, "user.create",
 
 ## Key Types
 
-| Type | Purpose |
-|---|---|
-| `Dispatcher` | Command dispatcher with handler registry + middleware chain |
-| `Command` | Interface: Type(), AggregateID(), IdempotencyKey() |
-| `BasicCommand` | Embed in command structs for interface satisfaction |
-| `TypedHandler[T]` | Type-safe handler receiving T, not Command |
-| `Middleware` | func(Handler) Handler — wraps handlers in a chain |
+| Type              | Purpose                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `Dispatcher`      | Command dispatcher with handler registry + middleware chain |
+| `Command`         | Interface: Type(), AggregateID(), IdempotencyKey()          |
+| `BasicCommand`    | Embed in command structs for interface satisfaction         |
+| `TypedHandler[T]` | Type-safe handler receiving T, not Command                  |
+| `Middleware`      | func(Handler) Handler — wraps handlers in a chain           |

@@ -21,11 +21,11 @@ user, err := query.DispatchTyped[*GetUserResult](ctx, queries, q)
 
 ## Key Types
 
-| Type | Purpose |
-|---|---|
-| `Dispatcher` | Query dispatcher with handler registry + middleware chain |
-| `Query` | Interface: Type() |
-| `BasicQuery` | Embed for interface satisfaction |
-| `TypedHandler[Q, R]` | Type-safe handler returning (R, error) |
-| `Pagination` | Page/PageSize with Offset(), Validate() |
-| `PaginatedResult[T]` | Data + TotalCount + HasNext()/HasPrev() |
+| Type                 | Purpose                                                   |
+| -------------------- | --------------------------------------------------------- |
+| `Dispatcher`         | Query dispatcher with handler registry + middleware chain |
+| `Query`              | Interface: Type()                                         |
+| `BasicQuery`         | Embed for interface satisfaction                          |
+| `TypedHandler[Q, R]` | Type-safe handler returning (R, error)                    |
+| `Pagination`         | Page/PageSize with Offset(), Validate()                   |
+| `PaginatedResult[T]` | Data + TotalCount + HasNext()/HasPrev()                   |
