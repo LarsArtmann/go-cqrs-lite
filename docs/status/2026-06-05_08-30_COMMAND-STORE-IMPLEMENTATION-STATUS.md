@@ -11,6 +11,7 @@
 ## a) FULLY DONE
 
 ### Command Store Interfaces (command/ module)
+
 - `CommandSink` — `Save(ctx, ref, cmd)`, `AppendBatch(ctx, ref, cmds)` with `io.Closer`
 - `CommandSource` — `Load(ctx, ref)`, `LoadFromTimestamp(ctx, ref, after)`, `LoadToTimestamp(ctx, ref, maxTime)` with `io.Closer`
 - `Store` — composite of `CommandSink + CommandSource`
@@ -20,6 +21,7 @@
 - Error helper taxonomy: `New*`, `Wrap*`, `Classify`, `IsRetryable`, `ExitCode` (mirrors event/errors.go)
 
 ### MemoryCommandStore (memory/ module)
+
 - Thread-safe in-memory implementation with `sync.RWMutex`
 - Global log + stream index + command ID index (duplicate detection)
 - `Save` with duplicate guard (returns `ErrDuplicateCommand`)
@@ -30,6 +32,7 @@
 - **Tests:** 9 test cases (SaveAndLoad, Duplicate, AppendBatch, NotFound, LoadFromTimestamp, LoadToTimestamp, Close, MultipleAggregates)
 
 ### SQLCommandStore (storage/ module)
+
 - PostgreSQL, SQLite, and custom dialect support via `Dialect` interface
 - `CommandSchema()` added to `Dialect` (both PostgresDialect and SQLiteDialect)
 - `Save` with transaction + duplicate key detection (SQLite `UNIQUE constraint failed` / Postgres `duplicate key value`)
@@ -40,17 +43,20 @@
 - **Tests:** 7 test cases with real SQLite in-memory database (SaveAndLoad, Duplicate, AppendBatch, NotFound, LoadFromTimestamp, LoadToTimestamp, Close)
 
 ### Schema Infrastructure
+
 - `TableCommands = "commands"` added to `storage/sql/tables.go`
 - `CommandColumns = "id, command_type, aggregate_type, aggregate_id, payload, metadata, received_at"`
 - `SQLiteInitSchema` and `PostgresInitSchema` updated to create commands table
 
 ### Module Wiring
+
 - `memory/go.mod` — added `command/v2` dependency + replace directive
 - `storage/go.mod` — added `command/v2` + `dispatcher/v2` dependencies + replace directives
 - `command/go.mod` — `go mod tidy` run
 - All modules build cleanly
 
 ### Full Test Suite Pass
+
 - `go test ./...` — ALL 30 modules pass
 - `nix run .#test` — ALL modules pass (no failures)
 - `nix run .#build` — builds cleanly
@@ -61,17 +67,20 @@
 ## b) PARTIALLY DONE
 
 ### Documentation
+
 - `storage/README.md` — updated with CommandStore mention but not fully documented
 - `command/` module has `doc.go` (untracked) — needs to document CommandSink/Source/Store interfaces
 - `memory/README.md` (untracked) — exists but doesn't document MemoryCommandStore yet
 - No ADR written for Command Store design decisions
 
 ### Error Wrapping Consistency
+
 - SQLCommandStore uses `command.WrapInfrastructure` / `command.WrapCorruption` / `command.WrapRejection` — these are new helpers
 - Some error wrapping patterns differ slightly between `Save` and `AppendBatch` (duplicate detection only in `insertCommand`, not in `Save` wrapper)
 - The `isDuplicateKeyError` helper uses string matching — could be brittle across SQL drivers
 
 ### Test Coverage
+
 - MemoryCommandStore tests exist but no benchmark tests
 - SQLCommandStore tests only cover SQLite (no PostgreSQL or sqlmock tests)
 - No integration tests for CommandStore across the CQRS pipeline
@@ -82,29 +91,36 @@
 ## c) NOT STARTED
 
 ### Query Store
+
 - No `QueryStore` / `QuerySink` / `QuerySource` interfaces exist in `query/` module
 - Query dispatcher only dispatches — no persistence layer
 
 ### Catalog/Schema Integration
+
 - Command types not auto-exported to catalog schema generators
 - No OpenAPI/AsyncAPI/EventCatalog support for command store operations
 
 ### Middleware for Command Store
+
 - No logging, metrics, or tracing middleware specific to CommandSink/Source
 - Generic middleware exists but not wired for command persistence
 
 ### Command Bus / Replay
+
 - No `CommandBus` equivalent to `event.Bus` for reactive command streams
 - No command journal / replay capability (commands are persisted but not replayed)
 
 ### Examples
+
 - No example demonstrating CommandStore usage in a real CQRS pipeline
 - `example/todo` and `example/user` don't use command persistence
 
 ### API Stability Check
+
 - `cmd/api-stability` doesn't check command store interfaces
 
 ### Pebble Command Store
+
 - No `PebbleCommandStore` in `pebble/` module
 
 ---
@@ -112,6 +128,7 @@
 ## d) TOTALLY FUCKED UP!
 
 ### id/id.go — errEmptyString Redeclaration
+
 - **CRITICAL:** `id/id.go` imports `errors` implicitly via `fmt.Errorf` referencing `errEmptyString` declared in `id/errors.go`
 - `go build ./...` fails on clean cache: `errEmptyString redeclared in this block` (../id/errors.go:5 vs ../id/id.go:13)
 - **WORKAROUND:** `go clean -cache && go build` — sometimes works, sometimes fails depending on build cache state
@@ -128,11 +145,13 @@ Actually looking at the file earlier, line 13 was `type Of[T any] = cbid.ID[T, u
 **Verdict:** Not totally fucked up — transient build cache issue. But we should verify `id/errors.go` is correct.
 
 ### Catalog Package — 7 Lint Issues (Pre-existing)
+
 - `catalog/schema.go:22` — wrapcheck: error returned from external package `schema.ToAny(s)` is unwrapped
 - `forcetypeassert: 1`, `gochecknoglobals: 1`, `goconst: 2`, `godoclint: 1`, `unused: 1` — these are PRE-EXISTING, not introduced by this session
 - These existed before this session started
 
 ### example/user/smoke_test.go — Unused Import (Pre-existing)
+
 - `projection/v2` imported but not used — pre-existing issue
 
 ---
@@ -192,11 +211,13 @@ Actually looking at the file earlier, line 13 was `type Of[T any] = cbid.ID[T, u
 **Why does `git diff` show `id/id.go` as modified with 3 lines changed, but the file content appears identical to the original?**
 
 Looking at `git diff --stat`:
+
 ```
 id/id.go | 3 ---
 ```
 
 This shows 3 deletions from `id/id.go`. But when I view the file, it looks correct with no obvious issues. The file is in the `M` (modified) state in git. I cannot determine what 3 lines were removed or whether this is related to the transient `errEmptyString` build error. This could be:
+
 - An accidental edit from earlier in the session
 - A line-ending normalization issue
 - A gofmt change that was reverted
@@ -212,6 +233,7 @@ Actually, the user told me to WAIT FOR INSTRUCTIONS after writing the status. So
 ## Files Changed This Session
 
 ### New Files (Untracked)
+
 - `memory/command_store_test.go` — 9 test cases for MemoryCommandStore
 - `storage/command_store.go` — SQLCommandStore implementation
 - `storage/command_store_scan.go` — scanCommand/scanCommands helpers
@@ -221,6 +243,7 @@ Actually, the user told me to WAIT FOR INSTRUCTIONS after writing the status. So
 - Various README.md and doc.go files (untracked, pre-existing)
 
 ### Modified Files (Tracked)
+
 - `command/errors.go` — Added error helper taxonomy (Wrap*, New*, Classify, ExitCode)
 - `command/go.mod` / `go.sum` — Tidy
 - `storage/sql/dialect.go` — Added `CommandSchema()` to Dialect interface + implementations
@@ -245,6 +268,7 @@ $ nix run .#lint    → 7 pre-existing catalog issues, 0 new issues from this se
 ---
 
 **Next Session Recommendation:**
+
 1. Resolve `id/id.go` mystery diff
 2. Write ADR-0013 for Command Store
 3. Add sqlmock tests for SQLCommandStore
