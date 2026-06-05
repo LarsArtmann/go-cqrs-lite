@@ -1,4 +1,3 @@
-// Package dispatcher provides shared infrastructure for CQRS dispatchers.
 package dispatcher
 
 import (
