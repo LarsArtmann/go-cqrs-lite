@@ -946,7 +946,7 @@
         <tr>
           <td>No reusable crash-recovery publisher</td>
           <td><span class="tag tag-gap">Medium</span></td>
-          <td>The outbox was removed (YAGNI). Crash recovery uses <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls the tail → publish → checkpoint loop. A <code>JournalPublisher</code> component would close this gap without reintroducing an outbox table.</td>
+          <td>The outbox was removed (YAGNI). Crash recovery uses <code>SeekableJournal + CheckpointStore</code>, but every consumer hand-rolls the tail → publish → checkpoint loop. A <code>Relay</code> component would close this gap without reintroducing an outbox table.</td>
         </tr>
         <tr>
           <td>No schema registry middleware</td>
@@ -1039,8 +1039,8 @@
   <div class="phase">
     <div class="phase-num">3</div>
     <div class="phase-body">
-      <h4>Add a reusable <code>JournalPublisher</code> component</h4>
-      <p>The outbox was removed because <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But consumers still hand-write the "tail journal, publish, save checkpoint" loop. A library-provided <code>JournalPublisher</code> would close this gap without reintroducing an outbox table or crossing the library/framework boundary.</p>
+      <h4>Add a reusable <code>Relay</code> component</h4>
+      <p>The outbox was removed because <code>SeekableJournal + CheckpointStore</code> already solves crash recovery. But consumers still hand-write the "tail journal, publish, save checkpoint" loop. A library-provided <code>Relay</code> would close this gap without reintroducing an outbox table or crossing the library/framework boundary.</p>
       <div class="phase-progress"><span data-width="10"></span></div>
     </div>
   </div>
@@ -1119,17 +1119,17 @@
     <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
   </ul>
 
-  <h3><code>journalpublisher/</code> — Reusable Crash-Recovery Publisher</h3>
+  <h3><code>relay/</code> — Crash-Recovery Event Relay</h3>
 
-  <pre><code><span class="hl-comment">// journalpublisher/publisher.go</span>
-<span class="hl-kw">type</span> <span class="hl-type">Publisher</span> <span class="hl-kw">struct</span> {
+  <pre><code><span class="hl-comment">// relay/relay.go</span>
+<span class="hl-kw">type</span> <span class="hl-type">Relay</span> <span class="hl-kw">struct</span> {
     <span class="hl-field">journal</span>     <span class="hl-type">event.SeekableJournal</span>
     <span class="hl-field">checkpoint</span>  <span class="hl-type">event.CheckpointStore</span>
     <span class="hl-field">publisher</span>   <span class="hl-type">event.Publisher</span>
 }
 
-<span class="hl-kw">func</span> (<span class="hl-param">p</span> *<span class="hl-type">Publisher</span>) <span class="hl-func">CatchUp</span>(ctx <span class="hl-type">context.Context</span>, projectionName <span class="hl-type">string</span>) <span class="hl-type">error</span>
-<span class="hl-kw">func</span> (<span class="hl-param">p</span> *<span class="hl-type">Publisher</span>) <span class="hl-func">Run</span>(ctx <span class="hl-type">context.Context</span>) <span class="hl-type">error</span> <span class="hl-comment">// tail + publish + checkpoint loop</span></code></pre>
+<span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Relay</span>) <span class="hl-func">CatchUp</span>(ctx <span class="hl-type">context.Context</span>, projectionName <span class="hl-type">string</span>) <span class="hl-type">error</span>
+<span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Relay</span>) <span class="hl-func">Run</span>(ctx <span class="hl-type">context.Context</span>) <span class="hl-type">error</span> <span class="hl-comment">// tail + publish + checkpoint loop</span></code></pre>
 
   <ul class="plain">
     <li>Replaces the outbox pattern without a secondary table. Uses the event store's own journal.</li>
@@ -1187,7 +1187,7 @@
     <span class="layer"><span class="layer-lvl">Layer 2:</span> <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 3:</span> <span class="layer-mod">decider/ (event, snapshot)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 4:</span> <span class="layer-mod">memory/, signing/, otel/, data/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, journalpublisher/</span></span>
+    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, relay/</span></span>
     <span class="layer"><span class="layer-lvl">Layer 6:</span> <span class="layer-mod">integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/, registry/</span></span>
   </div>
 
@@ -1247,7 +1247,7 @@
 
   <ol>
     <li><strong>Build <code>data/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
-    <li><strong>Add <code>journalpublisher/</code></strong> — reusable crash-recovery component using SeekableJournal + CheckpointStore, without an outbox table.</li>
+    <li><strong>Add <code>relay/</code></strong> — reusable crash-recovery component using SeekableJournal + CheckpointStore, without an outbox table.</li>
     <li><strong>Complete storage parity</strong> — SQL Journal, Pebble BackwardsSource/StreamLoader, shared contract tests.</li>
     <li><strong>Harden Turso</strong> — integration tests for sync semantics; target 80% coverage.</li>
     <li><strong>Add registry middleware</strong> — publish-time schema validation to complement upcasters.</li>
