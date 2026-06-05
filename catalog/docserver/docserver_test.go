@@ -74,13 +74,17 @@ func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder) map[string]an
 	return doc
 }
 
+func newTestRequest(path string) *http.Request {
+	return httptest.NewRequestWithContext(
+		context.Background(), http.MethodGet, path, nil,
+	)
+}
+
 func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.OpenAPISpec()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/openapi.json", nil,
-	)
+	req := newTestRequest("/docs/openapi.json")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -112,9 +116,7 @@ func TestDocsServer_OpenAPISpecYAML(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.OpenAPISpecYAML()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/openapi.yaml", nil,
-	)
+	req := newTestRequest("/docs/openapi.yaml")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -137,9 +139,7 @@ func TestDocsServer_OpenAPIUI(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.OpenAPIUI()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/openapi", nil,
-	)
+	req := newTestRequest("/docs/openapi")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -166,9 +166,7 @@ func TestDocsServer_AsyncAPISpecJSON(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.AsyncAPISpec()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/asyncapi.json", nil,
-	)
+	req := newTestRequest("/docs/asyncapi.json")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -186,9 +184,7 @@ func TestDocsServer_AsyncAPISpecYAML(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.AsyncAPISpecYAML()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/asyncapi.yaml", nil,
-	)
+	req := newTestRequest("/docs/asyncapi.yaml")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -211,9 +207,7 @@ func TestDocsServer_AsyncAPIUI(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.AsyncAPIUI()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/asyncapi", nil,
-	)
+	req := newTestRequest("/docs/asyncapi")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -235,9 +229,7 @@ func TestDocsServer_CatalogJSON(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.CatalogJSON()
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/docs/catalog.json", nil,
-	)
+	req := newTestRequest("/docs/catalog.json")
 	recorder := httptest.NewRecorder()
 	handler(recorder, req)
 
@@ -273,9 +265,7 @@ func TestDocsServer_RegisterRoutes(t *testing.T) {
 	}
 
 	for _, tc := range routes {
-		req := httptest.NewRequestWithContext(
-			context.Background(), http.MethodGet, tc.path, nil,
-		)
+		req := newTestRequest(tc.path)
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, req)
 
@@ -341,9 +331,7 @@ func TestDocsServer_CustomDocsPath(t *testing.T) {
 	mux := http.NewServeMux()
 	srv.RegisterRoutes(mux)
 
-	req := httptest.NewRequestWithContext(
-		context.Background(), http.MethodGet, "/api/v1/docs/openapi.json", nil,
-	)
+	req := newTestRequest("/api/v1/docs/openapi.json")
 	recorder := httptest.NewRecorder()
 	mux.ServeHTTP(recorder, req)
 
@@ -368,9 +356,7 @@ func TestDocsServer_RegisterRoutes_StaticFiles(t *testing.T) {
 		{"/docs/static/asyncapi-react.css", "text/css"},
 		{"/docs/static/scalar.js", "text/javascript"},
 	} {
-		req := httptest.NewRequestWithContext(
-			context.Background(), http.MethodGet, tc.path, nil,
-		)
+		req := newTestRequest(tc.path)
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, req)
 
