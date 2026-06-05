@@ -4,25 +4,42 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-func subscribeReadModel(bus *memory.MemoryBus, rm *ReadModelStore) {
-	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		return rm.Handle( //nolint:contextcheck // no parent context in test bus handler
-			context.Background(),
-			evt,
-		)
-	})
+func subscribeReadModel(journal event.Journal, bus *memory.MemoryBus, rm *ReadModelStore) *projection.Runner {
+	checkpointStore := memory.NewMemoryCheckpointStore()
+
+	runner, err := projection.NewRunner(journal, bus, checkpointStore)
+	if err != nil {
+		log.Fatalf("create runner: %v", err)
+	}
+
+	if err := runner.Register(rm); err != nil {
+		log.Fatalf("register projection: %v", err)
+	}
+
+	go func() {
+		if runErr := runner.Run(context.Background()); runErr != nil {
+			log.Printf("runner stopped: %v", runErr)
+		}
+	}()
+
+	time.Sleep(50 * time.Millisecond) // let runner subscribe before events flow
+
+	return runner
 }
 
 func TestDecider_CreateUser(t *testing.T) {
@@ -247,7 +264,8 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	subscribeReadModel(bus, readModel)
+	runner := subscribeReadModel(store, bus, readModel)
+	defer runner.Close()
 
 	userID := id.NewAggregateID()
 

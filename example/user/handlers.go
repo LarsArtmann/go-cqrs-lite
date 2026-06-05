@@ -3,11 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -84,13 +88,36 @@ func registerQueryHandlers(
 	)
 }
 
-func registerBusHandlers(bus event.Bus, readModel *ReadModelStore, published *[]event.Event) {
+func registerProjection(
+	journal event.Journal,
+	bus event.Subscriber,
+	readModel *ReadModelStore,
+) *projection.Runner {
+	checkpointStore := memory.NewMemoryCheckpointStore()
+
+	runner, err := projection.NewRunner(journal, bus, checkpointStore)
+	if err != nil {
+		log.Fatalf("create projection runner: %v", err)
+	}
+
+	if err := runner.Register(readModel); err != nil {
+		log.Fatalf("register projection: %v", err)
+	}
+
+	go func() {
+		if runErr := runner.Run(context.Background()); runErr != nil {
+			log.Printf("projection runner stopped: %v", runErr)
+		}
+	}()
+
+	time.Sleep(50 * time.Millisecond) // let runner subscribe before events flow
+
+	return runner
+}
+
+func trackPublishedEvents(bus event.Bus, published *[]event.Event) {
 	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		*published = append(*published, evt)
-		_ = readModel.Handle( //nolint:contextcheck // no parent context in bus handler
-			context.Background(),
-			evt,
-		)
 
 		return nil
 	})

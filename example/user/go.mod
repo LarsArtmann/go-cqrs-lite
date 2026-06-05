@@ -11,6 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.1.0
 )
@@ -32,6 +33,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -47,6 +49,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../../memory
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 => ../../middleware
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
+	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
 	github.com/larsartmann/go-cqrs-lite/signing/v2 => ../../signing
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot

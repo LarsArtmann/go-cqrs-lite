@@ -27,13 +27,16 @@ func main() {
 	fmt.Println("=== go-cqrs-lite: Full CQRS + Event Sourcing Demo ===")
 	fmt.Println()
 
-	bus, readModel, deciderRepo := setupInfrastructure()
+	store, bus, readModel, deciderRepo := setupInfrastructure()
 
 	signer := setupSigning(bus)
 
 	var publishedEvents []event.Event
 
-	registerBusHandlers(bus, readModel, &publishedEvents)
+	trackPublishedEvents(bus, &publishedEvents)
+
+	runner := registerProjection(store, bus, readModel)
+	defer runner.Close()
 
 	cmdDisp, qryDisp := setupDispatchers(deciderRepo, readModel)
 
@@ -50,6 +53,7 @@ func main() {
 }
 
 func setupInfrastructure() (
+	*memory.MemoryStore,
 	*memory.MemoryBus,
 	*ReadModelStore,
 	*decider.Repository[UserState],
@@ -69,10 +73,10 @@ func setupInfrastructure() (
 	}
 
 	fmt.Println("[infra] Store: MemoryStore | Bus: MemoryBus | Decider Repository: ready")
-	fmt.Println("[infra] Read model projection: subscribed to bus")
+	fmt.Println("[infra] Read model projection: projection.Runner with checkpoint replay")
 	fmt.Println()
 
-	return bus, readModel, deciderRepo
+	return store, bus, readModel, deciderRepo
 }
 
 func setupDispatchers(

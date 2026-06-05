@@ -45,6 +45,12 @@ func (s *ReadModelStore) List() []ReadModel {
 	return result
 }
 
+func (s *ReadModelStore) Name() string { return "user-read-model" }
+
+func (s *ReadModelStore) EventTypes() []event.Type {
+	return []event.Type{eventUserCreated, eventUserNameChanged, eventUserDeleted, eventUserReborn}
+}
+
 func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,3 +89,5 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 
 	return nil
 }
+
+var _ event.Projection = (*ReadModelStore)(nil)

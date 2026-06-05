@@ -47,7 +47,8 @@ func TestFullStack_WithSigning(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	subscribeReadModel(bus, readModel)
+	runner := subscribeReadModel(store, bus, readModel)
+	defer runner.Close()
 
 	cmdDisp := command.NewDispatcher()
 	cmdDisp.Use(
