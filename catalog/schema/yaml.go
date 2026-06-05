@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"gopkg.in/yaml.v3"
+	"github.com/go-faster/yaml"
 )
 
 func JSONToYAML(jsonBytes []byte) ([]byte, error) {

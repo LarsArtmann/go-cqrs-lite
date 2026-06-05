@@ -3,7 +3,7 @@ package asyncapi
 import (
 	"encoding/json"
 
-	"gopkg.in/yaml.v3"
+	"github.com/go-faster/yaml"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/caseutil"

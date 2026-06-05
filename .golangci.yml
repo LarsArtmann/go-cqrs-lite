@@ -137,7 +137,7 @@ linters:
             - github.com/google/uuid
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
-            - gopkg.in/yaml.v3
+            - github.com/go-faster/yaml
             - github.com/oklog/ulid
             - github.com/DATA-DOG/go-sqlmock
             - github.com/stretchr/testify

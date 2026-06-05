@@ -181,7 +181,7 @@ func AddCommandWithExamples(
 	return r
 }
 
-// CreateItemSchema returns a reusable object schema with a required "name" string property.
+// NewTestCreateOrderFlow returns a flow with a single CreateOrder step.
 func NewTestCreateOrderFlow(title string) catalog.Flow {
 	return catalog.Flow{
 		ID: "create-order", Name: "Create Order", Version: "1.0.0",
@@ -190,7 +190,7 @@ func NewTestCreateOrderFlow(title string) catalog.Flow {
 			{
 				ID:        "1",
 				Title:     title,
-				Message:   &catalog.FlowStepRef{ID: "CreateOrder", Version: ""},
+				Message:   &catalog.FlowStepRef{ID: string(testCreateOrderMsgID), Version: ""},
 				Summary:   "",
 				Service:   nil,
 				Channel:   nil,

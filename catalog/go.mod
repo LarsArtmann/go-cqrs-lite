@@ -3,12 +3,18 @@ module github.com/larsartmann/go-cqrs-lite/catalog/v2
 go 1.26.3
 
 require (
+	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-error-family v0.3.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/kr/pretty v0.3.1 // indirect
-	github.com/rogpeppe/go-internal v1.15.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/go-faster/errors v0.6.1 // indirect
+	github.com/go-faster/jx v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
+	golang.org/x/sys v0.45.0 // indirect
 )

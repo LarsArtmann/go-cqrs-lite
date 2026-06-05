@@ -16,8 +16,6 @@ import (
 
 var ErrNilSchema = errorfamily.NewRejection("catalog.nil_schema", "schema is nil")
 
-const jsonKeyType = "type"
-
 func FromType[T any]() *Schema {
 	var zero T
 
@@ -57,7 +55,7 @@ func ToAny(s *Schema) (any, error) {
 	return result, nil
 }
 
-var schemaCache sync.Map
+var schemaCache sync.Map //nolint:gochecknoglobals // package-level reflection cache
 
 func fromReflect(t reflect.Type) *Schema {
 	if t == nil {
@@ -65,7 +63,7 @@ func fromReflect(t reflect.Type) *Schema {
 	}
 
 	if cached, ok := schemaCache.Load(t); ok {
-		return cached.(*Schema)
+		return cached.(*Schema) //nolint:forcetypeassert // cache only stores *Schema values
 	}
 
 	s := buildSchema(t)
