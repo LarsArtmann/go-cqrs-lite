@@ -70,6 +70,16 @@ func (a *EventStore) aggregatePrefix(
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, ref.Type, ref.ID)
 }
 
+// aggregateUpperBound returns the exclusive upper bound for all events of an aggregate.
+// Pairs with aggregatePrefix to form a complete key range for NewIter:
+// iter := db.NewIter(&pebble.IterOptions{LowerBound: prefix, UpperBound: upperBound}).
+// The trailing 0xff byte sorts after any event version (eventKey uses %010d, max 10 digits).
+func (a *EventStore) aggregateUpperBound(
+	ref event.AggregateRef,
+) []byte {
+	return fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+}
+
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *EventStore) Save(
 	_ context.Context,

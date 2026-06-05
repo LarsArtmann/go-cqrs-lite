@@ -29,7 +29,7 @@ func (a *EventStore) checkVersion(
 
 func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 	prefix := a.aggregatePrefix(ref)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+	upperBound := a.aggregateUpperBound(ref)
 
 	iter, err := a.db.NewIter(
 		&pebble.IterOptions{ //nolint:exhaustruct // only Lower/Upper bound needed

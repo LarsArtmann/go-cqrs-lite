@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/cockroachdb/pebble"
@@ -64,7 +63,7 @@ func (a *EventStore) Load(
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	prefix := a.aggregatePrefix(ref)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+	upperBound := a.aggregateUpperBound(ref)
 
 	return a.iterateEvents(prefix, upperBound, nil)
 }
@@ -77,7 +76,7 @@ func (a *EventStore) LoadFromVersion(
 	version event.Version,
 ) ([]event.Event, error) {
 	lowerBound := a.eventKey(ref, version+1)
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+	upperBound := a.aggregateUpperBound(ref)
 
 	return a.iterateEvents(lowerBound, upperBound, nil)
 }
@@ -123,7 +122,7 @@ func (a *EventStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	upperBound := fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
+	upperBound := a.aggregateUpperBound(ref)
 	predicate := func(evt event.Event) bool {
 		return evt.OccurredAt().After(maxTime)
 	}
