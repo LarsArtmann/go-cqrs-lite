@@ -1109,10 +1109,23 @@
     <span class="hl-field">Version</span>   <span class="hl-type">uint64</span>
     <span class="hl-field">UpdatedAt</span> <span class="hl-type">time.Time</span>
     <span class="hl-field">Status</span>    <span class="hl-type">event.TombstoneStatus</span>
-}</code></pre>
+}
+
+<span class="hl-comment">// Backend chosen at runtime — no recompile needed</span>
+<span class="hl-kw">type</span> <span class="hl-type">Backend</span> <span class="hl-type">string</span>
+
+<span class="hl-kw">const</span> (
+    <span class="hl-field">BackendMemory</span>  <span class="hl-type">Backend</span> = <span class="hl-str">"memory"</span>
+    <span class="hl-field">BackendSQLite</span>   <span class="hl-type">Backend</span> = <span class="hl-str">"sqlite"</span>
+    <span class="hl-field">BackendScyllaDB</span> <span class="hl-type">Backend</span> = <span class="hl-str">"scylladb"</span>
+)
+
+<span class="hl-kw">func</span> <span class="hl-func">Open</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>](cfg <span class="hl-type">Config</span>) (<span class="hl-type">Store</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>) <span class="hl-kw">{ ... }</span></code></pre>
 
   <ul class="plain">
-    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code> (PostgreSQL/SQLite table), <code>NewInMemoryStore[K,V]</code> (map-backed), <code>NewCachedSource[K,V]</code> (otter LRU), <code>NewVersionedStore[K,V]</code> (schema migration decorator).</li>
+    <li><strong>Backend selection at runtime:</strong> <code>readmodel.Open[K,V](cfg)</code> resolves the concrete backend from config. SQLite for solo projects, ScyllaDB for 1M users — zero code changes.</li>
+    <li><strong>Concrete constructors for power users:</strong> <code>NewSQLStore[K,V]</code> (PostgreSQL/SQLite table), <code>NewInMemoryStore[K,V]</code> (map-backed), <code>NewScyllaStore[K,V]</code> (Cassandra-compatible). Use these when you need the full power of a specific backend.</li>
+    <li><strong>Decorators:</strong> <code>NewCachedSource[K,V]</code> (otter LRU), <code>NewVersionedStore[K,V]</code> (schema migration). Wrap any concrete store.</li>
     <li><strong>Integration:</strong> <code>readmodel.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
     <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
     <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
