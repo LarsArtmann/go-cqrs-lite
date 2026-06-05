@@ -12,6 +12,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
