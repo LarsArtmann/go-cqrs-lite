@@ -18,6 +18,7 @@ require (
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
@@ -41,4 +42,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
 )

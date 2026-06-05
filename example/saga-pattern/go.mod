@@ -15,6 +15,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.1.0 // indirect

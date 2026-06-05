@@ -36,9 +36,12 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/dispatcher => ../dispatcher
-
-replace github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
+)
