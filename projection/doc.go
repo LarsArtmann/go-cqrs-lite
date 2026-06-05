@@ -9,19 +9,31 @@
 //
 // # Quick Start
 //
-//	runner := projection.NewBuilder("user-projection").
-//	    On("user.created", func(ctx context.Context, evt event.Event) error {
-//	        return updateUserReadModel(evt)
-//	    }).
-//	    On("user.deleted", func(ctx context.Context, evt event.Event) error {
-//	        return removeUserReadModel(evt)
-//	    }).
-//	    Runner(store, bus)
+// Use NewBuilder to construct a projection, then register typed handlers
+// with the generic On function:
 //
+//	builder := projection.NewBuilder("user-projection")
+//
+//	err := projection.On[UserCreated](builder, "user.created", codec.JSONCodec{},
+//	    func(ctx context.Context, payload UserCreated) error {
+//	        return updateUserReadModel(payload)
+//	    },
+//	)
+//
+//	err = projection.On[UserDeleted](builder, "user.deleted", codec.JSONCodec{},
+//	    func(ctx context.Context, payload UserDeleted) error {
+//	        return removeUserReadModel(payload)
+//	    },
+//	)
+//
+//	proj := builder.Build()
+//	runner, _ := projection.NewRunner(store, bus, checkpointStore)
+//	_ = runner.Register(proj)
 //	go runner.Run(ctx)
 //
-// # Builder Pattern
+// # Handler Registration
 //
-// Use projection.On[T] for type-safe event handling with automatic payload decoding.
-// The Builder compiles event handlers into a projection.HandlerRegistry.
+// On[T] is a package-level generic function (not a method on Builder) that
+// decodes event payloads using the provided codec before passing them to
+// the handler. For raw event access, use HandlerRegistry.On directly.
 package projection
