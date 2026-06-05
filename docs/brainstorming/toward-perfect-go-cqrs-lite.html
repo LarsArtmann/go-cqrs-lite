@@ -1021,8 +1021,8 @@
   <div class="phase">
     <div class="phase-num">1</div>
     <div class="phase-body">
-      <h4>Add a typed <code>data/</code> read-model module</h4>
-      <p>This is the highest-impact missing piece. It sits between <code>projection/</code> (writes read models) and <code>query/</code> (reads them). A generic <code>Store[K,V]</code> with SQL + in-memory implementations, cursor pagination, optimistic concurrency, cache decorator, and OTel.</p>
+      <h4>Add a typed <code>readmodel/</code> store module</h4>
+      <p>This is the highest-impact missing piece. It sits between <code>projection/</code> (writes read models) and <code>query/</code> (reads them). A generic <code>Store[K,V]</code> — the common denominator across KV, SQL, and document backends — with cursor pagination, optimistic concurrency, cache decorator, and OTel.</p>
       <div class="phase-progress"><span data-width="0"></span></div>
     </div>
   </div>
@@ -1085,22 +1085,22 @@
 <section id="modules">
   <h2><span class="section-num">5</span> New Module Proposals</h2>
 
-  <h3><code>data/</code> — Typed Read-Model Store</h3>
+  <h3><code>readmodel/</code> — Typed Read-Model Store</h3>
 
-  <pre><code><span class="hl-comment">// data/store.go</span>
-<span class="hl-kw">type</span> <span class="hl-type">DataSource</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
+  <pre><code><span class="hl-comment">// readmodel/store.go — common denominator across KV, SQL, and document backends</span>
+<span class="hl-kw">type</span> <span class="hl-type">Source</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) (<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>)
     <span class="hl-func">List</span>(ctx <span class="hl-type">context.Context</span>, opts <span class="hl-type">ListOptions</span>[<span class="hl-type">K</span>]) (<span class="hl-type">Page</span>[<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]], <span class="hl-type">error</span>)
 }
 
-<span class="hl-kw">type</span> <span class="hl-type">DataSink</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
+<span class="hl-kw">type</span> <span class="hl-type">Sink</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
     <span class="hl-func">Put</span>(ctx <span class="hl-type">context.Context</span>, rec <span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]) <span class="hl-type">error</span>
     <span class="hl-func">Tombstone</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) <span class="hl-type">error</span>
 }
 
 <span class="hl-kw">type</span> <span class="hl-type">Store</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
-    <span class="hl-type">DataSource</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
-    <span class="hl-type">DataSink</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
+    <span class="hl-type">Source</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
+    <span class="hl-type">Sink</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
     <span class="hl-type">io.Closer</span>
 }
 
@@ -1113,8 +1113,8 @@
 }</code></pre>
 
   <ul class="plain">
-    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code>, <code>NewInMemoryStore[K,V]</code>, <code>NewCachedSource[K,V]</code> (otter), <code>NewVersionedStore[K,V]</code> (projection schema migration).</li>
-    <li><strong>Integration:</strong> <code>data.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
+    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code> (PostgreSQL/SQLite table), <code>NewInMemoryStore[K,V]</code> (map-backed), <code>NewCachedSource[K,V]</code> (otter LRU), <code>NewVersionedStore[K,V]</code> (schema migration decorator).</li>
+    <li><strong>Integration:</strong> <code>readmodel.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
     <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
     <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
   </ul>
@@ -1186,13 +1186,13 @@
     <span class="layer"><span class="layer-lvl">Layer 1:</span> <span class="layer-mod">event/ (id, codec), command/ (id, dispatcher), query/ (dispatcher)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 2:</span> <span class="layer-mod">schema/ (event), snapshot/ (event)</span></span>
     <span class="layer"><span class="layer-lvl">Layer 3:</span> <span class="layer-mod">decider/ (event, snapshot)</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 4:</span> <span class="layer-mod">memory/, signing/, otel/, data/</span></span>
-    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+data), listing/ (+data), watermill/, pebble/, turso/, relay/</span></span>
+    <span class="layer"><span class="layer-lvl">Layer 4:</span> <span class="layer-mod">memory/, signing/, otel/, readmodel/</span></span>
+    <span class="layer"><span class="layer-lvl">Layer 5:</span> <span class="layer-mod">middleware/, storage/, projection/ (+readmodel), listing/ (+readmodel), watermill/, pebble/, turso/, relay/</span></span>
     <span class="layer"><span class="layer-lvl">Layer 6:</span> <span class="layer-mod">integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, testing/, registry/</span></span>
   </div>
 
   <p>
-    The key addition is <code>data/</code> at Layer 4 alongside <code>memory/</code>, <code>signing/</code>, and <code>otel/</code>.
+    The key addition is <code>readmodel/</code> at Layer 4 alongside <code>memory/</code>, <code>signing/</code>, and <code>otel/</code>.
     It becomes the standard read-model persistence contract, allowing <code>projection/</code>, <code>listing/</code>, and consumers
     to write typed read models without touching SQL.
   </p>
@@ -1246,7 +1246,7 @@
   <p>If I had one quarter to move this project from "excellent" to "perfect," the order would be:</p>
 
   <ol>
-    <li><strong>Build <code>data/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
+    <li><strong>Build <code>readmodel/</code></strong> — this is the biggest missing capability and unlocks everything else.</li>
     <li><strong>Add <code>relay/</code></strong> — reusable crash-recovery component using SeekableJournal + CheckpointStore, without an outbox table.</li>
     <li><strong>Complete storage parity</strong> — SQL Journal, Pebble BackwardsSource/StreamLoader, shared contract tests.</li>
     <li><strong>Harden Turso</strong> — integration tests for sync semantics; target 80% coverage.</li>
