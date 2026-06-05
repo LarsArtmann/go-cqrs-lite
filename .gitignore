@@ -64,6 +64,8 @@ example/*/catalog
 example/*/listing
 example/*/stream
 example/*/user
+example/*/api
+example/todo/cmd/api/api
 
 # CLI tool binaries
 /api-stability
