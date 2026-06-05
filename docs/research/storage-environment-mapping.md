@@ -22,6 +22,8 @@ These are the only places in go-cqrs-lite that actually store bytes on disk or o
 | 6 | **Aggregate Listing** | `listing.AggregateReader` | ✅ Implemented | Derived index of aggregates + tombstone status | Read-only (derived from events) | Cursor-pagination list | Derived — no independent storage |
 | 7 | **Message Bus** | `event.Bus` / `event.Publisher` | ✅ In-memory only | Transient message delivery | Publish | Subscribe | None — in-memory only |
 
+`watermill/` provides protocol adapters ( PublisherAdapter / SubscriberAdapter ) to bridge with the Watermill ecosystem, but the underlying bus is still `memory.MemoryBus`. No persistent backends (NATS, Redis, SQS, Pub/Sub) exist.
+
 **Not storage modules:** `catalog/`, `schema/`, `signing/`, `middleware/`, `otel/`, `dispatcher/`, `query/`, `decider/`, `id/`, `codec/` — these are computation, transformation, or type modules. They do not persist data.
 
 ---
