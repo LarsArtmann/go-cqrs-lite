@@ -445,6 +445,22 @@
     margin-bottom: 0.35rem;
   }
 
+  <span class="hl-kw">.hl-kw</span>   { color: #c084fc; font-weight: 600; }
+  <span class="hl-kw">.hl-type</span>  { color: #38bdf8; }
+  <span class="hl-kw">.hl-func</span>  { color: #60a5fa; }
+  <span class="hl-kw">.hl-str</span>   { color: #4ade80; }
+  <span class="hl-kw">.hl-comment</span> { color: #6b7280; font-style: italic; }
+  <span class="hl-kw">.hl-field</span> { color: #f472b6; }
+  <span class="hl-kw">.hl-param</span> { color: #fb923c; }
+
+  [data-theme="dark"] <span class="hl-kw">.hl-kw</span>   { color: #c084fc; }
+  [data-theme="dark"] <span class="hl-kw">.hl-type</span>  { color: #38bdf8; }
+  [data-theme="dark"] <span class="hl-kw">.hl-func</span>  { color: #60a5fa; }
+  [data-theme="dark"] <span class="hl-kw">.hl-str</span>   { color: #4ade80; }
+  [data-theme="dark"] <span class="hl-kw">.hl-comment</span> { color: #6b7280; }
+  [data-theme="dark"] <span class="hl-kw">.hl-field</span> { color: #f472b6; }
+  [data-theme="dark"] <span class="hl-kw">.hl-param</span> { color: #fb923c; }
+
   .card-desc {
     font-size: 0.9rem;
     color: var(--text-tertiary);
@@ -1071,33 +1087,33 @@
 
   <h3><code>data/</code> — Typed Read-Model Store</h3>
 
-  <pre><code>// data/store.go
-type Reader[K comparable, V any] interface {
-    Get(ctx context.Context, key K) (Record[K, V], error)
-    List(ctx context.Context, opts ListOptions[K]) (Page[Record[K, V]], error)
+  <pre><code><span class="hl-comment">// data/store.go</span>
+<span class="hl-kw">type</span> <span class="hl-type">DataSource</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
+    <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) (<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>], <span class="hl-type">error</span>)
+    <span class="hl-func">List</span>(ctx <span class="hl-type">context.Context</span>, opts <span class="hl-type">ListOptions</span>[<span class="hl-type">K</span>]) (<span class="hl-type">Page</span>[<span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]], <span class="hl-type">error</span>)
 }
 
-type Writer[K comparable, V any] interface {
-    Put(ctx context.Context, rec Record[K, V]) error
-    Tombstone(ctx context.Context, key K) error
+<span class="hl-kw">type</span> <span class="hl-type">DataSink</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
+    <span class="hl-func">Put</span>(ctx <span class="hl-type">context.Context</span>, rec <span class="hl-type">Record</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]) <span class="hl-type">error</span>
+    <span class="hl-func">Tombstone</span>(ctx <span class="hl-type">context.Context</span>, key <span class="hl-type">K</span>) <span class="hl-type">error</span>
 }
 
-type Store[K comparable, V any] interface {
-    Reader[K, V]
-    Writer[K, V]
-    io.Closer
+<span class="hl-kw">type</span> <span class="hl-type">Store</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">interface</span> {
+    <span class="hl-type">DataSource</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
+    <span class="hl-type">DataSink</span>[<span class="hl-type">K</span>, <span class="hl-type">V</span>]
+    <span class="hl-type">io.Closer</span>
 }
 
-type Record[K comparable, V any] struct {
-    Key       K
-    Value     V
-    Version   uint64
-    UpdatedAt time.Time
-    Status    event.TombstoneStatus
+<span class="hl-kw">type</span> <span class="hl-type">Record</span>[<span class="hl-type">K</span> <span class="hl-kw">comparable</span>, <span class="hl-type">V</span> <span class="hl-kw">any</span>] <span class="hl-kw">struct</span> {
+    <span class="hl-field">Key</span>       <span class="hl-type">K</span>
+    <span class="hl-field">Value</span>     <span class="hl-type">V</span>
+    <span class="hl-field">Version</span>   <span class="hl-type">uint64</span>
+    <span class="hl-field">UpdatedAt</span> <span class="hl-type">time.Time</span>
+    <span class="hl-field">Status</span>    <span class="hl-type">event.TombstoneStatus</span>
 }</code></pre>
 
   <ul class="plain">
-    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code>, <code>NewInMemoryStore[K,V]</code>, <code>NewCachedReader[K,V]</code> (otter), <code>NewVersionedStore[K,V]</code> (projection schema migration).</li>
+    <li><strong>Implementations:</strong> <code>NewSQLStore[K,V]</code>, <code>NewInMemoryStore[K,V]</code>, <code>NewCachedSource[K,V]</code> (otter), <code>NewVersionedStore[K,V]</code> (projection schema migration).</li>
     <li><strong>Integration:</strong> <code>data.Projection[V]</code> implements <code>event.Projection</code> with a typed fold function.</li>
     <li><strong>Dependencies:</strong> <code>event</code>, <code>id</code>, <code>codec</code>, <code>otel</code> only. No coupling to <code>projection</code> or <code>query</code>.</li>
     <li><strong>Quality gate:</strong> ≥90% coverage, BDD suite, benchmarks comparing SQL vs in-memory vs cached.</li>
@@ -1105,15 +1121,15 @@ type Record[K comparable, V any] struct {
 
   <h3><code>journalpublisher/</code> — Reusable Crash-Recovery Publisher</h3>
 
-  <pre><code>// journalpublisher/publisher.go
-type Publisher struct {
-    journal     event.SeekableJournal
-    checkpoint  event.CheckpointStore
-    publisher   event.Publisher
+  <pre><code><span class="hl-comment">// journalpublisher/publisher.go</span>
+<span class="hl-kw">type</span> <span class="hl-type">Publisher</span> <span class="hl-kw">struct</span> {
+    <span class="hl-field">journal</span>     <span class="hl-type">event.SeekableJournal</span>
+    <span class="hl-field">checkpoint</span>  <span class="hl-type">event.CheckpointStore</span>
+    <span class="hl-field">publisher</span>   <span class="hl-type">event.Publisher</span>
 }
 
-func (p *Publisher) CatchUp(ctx context.Context, projectionName string) error
-func (p *Publisher) Run(ctx context.Context) error // tail + publish + checkpoint loop</code></pre>
+<span class="hl-kw">func</span> (<span class="hl-param">p</span> *<span class="hl-type">Publisher</span>) <span class="hl-func">CatchUp</span>(ctx <span class="hl-type">context.Context</span>, projectionName <span class="hl-type">string</span>) <span class="hl-type">error</span>
+<span class="hl-kw">func</span> (<span class="hl-param">p</span> *<span class="hl-type">Publisher</span>) <span class="hl-func">Run</span>(ctx <span class="hl-type">context.Context</span>) <span class="hl-type">error</span> <span class="hl-comment">// tail + publish + checkpoint loop</span></code></pre>
 
   <ul class="plain">
     <li>Replaces the outbox pattern without a secondary table. Uses the event store's own journal.</li>
@@ -1123,11 +1139,11 @@ func (p *Publisher) Run(ctx context.Context) error // tail + publish + checkpoin
 
   <h3><code>schema/registry/</code> — Publish-Time Schema Validation</h3>
 
-  <pre><code>// registry/registry.go
-type Registry struct { /* JSON schemas by (eventType, version) */ }
+  <pre><code><span class="hl-comment">// registry/registry.go</span>
+<span class="hl-kw">type</span> <span class="hl-type">Registry</span> <span class="hl-kw">struct</span> { <span class="hl-comment">/* JSON schemas by (eventType, version) */</span> }
 
-func (r *Registry) Validate(evt event.Event) error
-func ValidationMiddleware(r *Registry) event.PublishMiddleware</code></pre>
+<span class="hl-kw">func</span> (<span class="hl-param">r</span> *<span class="hl-type">Registry</span>) <span class="hl-func">Validate</span>(evt <span class="hl-type">event.Event</span>) <span class="hl-type">error</span>
+<span class="hl-kw">func</span> <span class="hl-func">ValidationMiddleware</span>(r *<span class="hl-type">Registry</span>) <span class="hl-type">event.PublishMiddleware</span></code></pre>
 
   <ul class="plain">
     <li>Reuses <code>catalog.SchemaFromType[T]()</code> to build schemas.</li>
@@ -1136,23 +1152,23 @@ func ValidationMiddleware(r *Registry) event.PublishMiddleware</code></pre>
 
   <h3><code>testing/</code> — Fluent Test Utilities</h3>
 
-  <pre><code>// testing/aggregate.go
-tester := cqtesting.NewAggregateTester(t, store, bus).
-    Given(decider.InitialState).
-    When(CreateUser{Name: "Alice"}).
-    Then(func(t *testing.T, state UserState) {
-        if state.Name != "Alice" {
-            t.Errorf("expected name Alice, got %s", state.Name)
+  <pre><code><span class="hl-comment">// testing/aggregate.go</span>
+<span class="hl-param">tester</span> := <span class="hl-type">cqtesting</span>.<span class="hl-func">NewAggregateTester</span>(t, store, bus).
+    <span class="hl-func">Given</span>(decider.<span class="hl-field">InitialState</span>).
+    <span class="hl-func">When</span>(<span class="hl-type">CreateUser</span>{<span class="hl-field">Name</span>: <span class="hl-str">"Alice"</span>}).
+    <span class="hl-func">Then</span>(<span class="hl-kw">func</span>(t *<span class="hl-type">testing.T</span>, state <span class="hl-type">UserState</span>) {
+        <span class="hl-kw">if</span> state.<span class="hl-field">Name</span> != <span class="hl-str">"Alice"</span> {
+            t.<span class="hl-func">Errorf</span>(<span class="hl-str">"expected name Alice, got %s"</span>, state.<span class="hl-field">Name</span>)
         }
     })
 
-// testing/projection.go
-checker := cqtesting.NewProjectionTester(t, runner).
-    ExpectProjection("user-summary").
-    After(UserCreated{Name: "Alice"}).
-    To(func(t *testing.T, rec UserSummary) {
-        if rec.Name != "Alice" {
-            t.Errorf("expected name Alice, got %s", rec.Name)
+<span class="hl-comment">// testing/projection.go</span>
+<span class="hl-param">checker</span> := <span class="hl-type">cqtesting</span>.<span class="hl-func">NewProjectionTester</span>(t, runner).
+    <span class="hl-func">ExpectProjection</span>(<span class="hl-str">"user-summary"</span>).
+    <span class="hl-func">After</span>(<span class="hl-type">UserCreated</span>{<span class="hl-field">Name</span>: <span class="hl-str">"Alice"</span>}).
+    <span class="hl-func">To</span>(<span class="hl-kw">func</span>(t *<span class="hl-type">testing.T</span>, rec <span class="hl-type">UserSummary</span>) {
+        <span class="hl-kw">if</span> rec.<span class="hl-field">Name</span> != <span class="hl-str">"Alice"</span> {
+            t.<span class="hl-func">Errorf</span>(<span class="hl-str">"expected name Alice, got %s"</span>, rec.<span class="hl-field">Name</span>)
         }
     })</code></pre>
 
