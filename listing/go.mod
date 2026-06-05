@@ -26,7 +26,7 @@ require (
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
@@ -37,10 +37,10 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
 )

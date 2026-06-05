@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
-	github.com/larsartmann/httputil v0.0.0-20260601113755-7b9a6cbc3d5c
+	github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7
 )
 
 require (
@@ -52,7 +52,7 @@ require (
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
-	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

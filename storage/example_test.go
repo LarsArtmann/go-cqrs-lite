@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
-
-	_ "modernc.org/sqlite"
 )
 
 func ExampleNewSQLiteEventStore() {
