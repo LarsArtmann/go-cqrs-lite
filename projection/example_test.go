@@ -4,18 +4,30 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
-func ExampleNewBuilder() {
-	b := projection.NewBuilder("user-projection").
-		On("user.created", func(_ context.Context, _ event.Event) error {
-			return nil
-		})
+type userCreatedPayload struct {
+	Name string `json:"name"`
+}
 
-	fmt.Println(b != nil)
+func ExampleNewBuilder() {
+	b := projection.NewBuilder("user-projection")
+
+	_ = projection.On[userCreatedPayload](
+		b,
+		"user.created",
+		codec.JSONCodec{},
+		func(_ context.Context, _ userCreatedPayload) error {
+			return nil
+		},
+	)
+
+	p := b.Build()
+
+	fmt.Println(p.Name())
 
 	// Output:
-	// true
+	// user-projection
 }

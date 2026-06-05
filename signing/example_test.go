@@ -8,8 +8,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
-func ExampleHMAC_signAndVerify() {
-	signer, err := signing.NewHMAC([]byte("my-secret-key"))
+func ExampleNewHMAC() {
+	signer, err := signing.NewHMAC([]byte("my-super-secret-key-that-is-long-enough-32"))
 	if err != nil {
 		fmt.Println("error:", err)
 
@@ -34,19 +34,29 @@ func ExampleHMAC_signAndVerify() {
 	// verified: true
 }
 
-func ExampleHMAC_tamperDetection() {
-	signer, _ := signing.NewHMAC([]byte("my-secret-key"))
+func ExampleNewHMAC_tamperDetection() {
+	signer, err := signing.NewHMAC([]byte("my-super-secret-key-that-is-long-enough-32"))
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 
-	sig, _ := signer.Sign(evt)
+	sig, err := signer.Sign(evt)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
 
 	tampered, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Bob"}`))
 
-	err := signer.Verify(tampered, sig)
+	err = signer.Verify(tampered, sig)
 	fmt.Println("tamper detected:", err != nil)
 
 	// Output:

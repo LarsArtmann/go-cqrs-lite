@@ -8,17 +8,13 @@ import (
 )
 
 func ExampleNewUpcaster() {
-	upcaster, err := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
+	upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
 		return event.NewEvent(
 			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
-			map[string]any{"name": "unknown", "email": "pending"},
+			[]byte(`{"name":"unknown","email":"pending"}`),
 			event.WithSchemaVersion(2),
 		)
 	})
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
 
 	fmt.Println(upcaster.SourceType())
 	fmt.Println(upcaster.SourceVersion())
