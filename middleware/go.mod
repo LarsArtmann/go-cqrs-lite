@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
 	github.com/onsi/ginkgo/v2 v2.29.0
