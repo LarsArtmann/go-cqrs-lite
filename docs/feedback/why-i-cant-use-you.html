@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Why I Can't Use You — go-cqrs-lite Feedback</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #07070a;
+        --surface: #0e0e12;
+        --surface-2: #151519;
+        --surface-3: #1c1c22;
+        --border: #25252d;
+        --border-light: #35353f;
+        --text: #e8e8ec;
+        --text-dim: #a0a0aa;
+        --text-muted: #66667a;
+        --accent: #f59e0b;
+        --accent-dim: rgba(245, 158, 11, 0.15);
+        --accent-glow: rgba(245, 158, 11, 0.06);
+        --red: #ef4444;
+        --red-dim: rgba(239, 68, 68, 0.12);
+        --green: #22c55e;
+        --green-dim: rgba(34, 197, 94, 0.12);
+        --blue: #60a5fa;
+        --blue-dim: rgba(96, 165, 250, 0.1);
+        --purple: #c084fc;
+        --purple-dim: rgba(192, 132, 252, 0.1);
+        --mono: "JetBrains Mono", monospace;
+        --serif: "Instrument Serif", serif;
+        --sans: "DM Sans", sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── noise overlay ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      /* ── layout ── */
+      .page {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* ── hero ── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        padding: 80px 0;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: -200px;
+        right: -200px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+      }
+
+      .hero-kicker {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease 0.2s forwards;
+      }
+
+      .hero h1 {
+        font-family: var(--serif);
+        font-size: clamp(42px, 6vw, 72px);
+        font-weight: 400;
+        line-height: 1.05;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        margin-bottom: 32px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease 0.35s forwards;
+      }
+
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
+
+      .hero-sub {
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--text-dim);
+        max-width: 580px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease 0.5s forwards;
+      }
+
+      .hero-sub strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .hero-meta {
+        margin-top: 48px;
+        display: flex;
+        gap: 32px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+        opacity: 0;
+        animation: fadeUp 0.8s ease 0.65s forwards;
+      }
+
+      .hero-meta span::before {
+        content: "→ ";
+        color: var(--accent);
+      }
+
+      /* ── sections ── */
+      section {
+        padding: 100px 0;
+        position: relative;
+      }
+
+      section + section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -200px;
+        right: -200px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+      }
+
+      .section-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-family: var(--serif);
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 400;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        margin-bottom: 24px;
+      }
+
+      h3 {
+        font-family: var(--sans);
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        margin-top: 48px;
+        color: var(--text);
+      }
+
+      h3:first-child {
+        margin-top: 0;
+      }
+
+      p {
+        color: var(--text-dim);
+        margin-bottom: 16px;
+        max-width: 640px;
+      }
+
+      p strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* ── verdict banner ── */
+      .verdict {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+        margin: 40px 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .verdict::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+      }
+
+      .verdict p {
+        font-size: 17px;
+        line-height: 1.75;
+        color: var(--text-dim);
+        max-width: 100%;
+      }
+
+      .verdict p strong {
+        color: var(--text);
+      }
+
+      .verdict.highlight {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, var(--accent-dim), var(--surface));
+      }
+
+      .verdict.highlight::before {
+        background: var(--accent);
+      }
+
+      /* ── dependency graph ── */
+      .dep-graph {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2px;
+        margin: 32px 0;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .dep-row {
+        display: grid;
+        grid-template-columns: 140px 1fr 60px;
+        align-items: center;
+        background: var(--surface);
+        padding: 10px 16px;
+        font-family: var(--mono);
+        font-size: 12px;
+        transition: background 0.2s;
+      }
+
+      .dep-row:hover {
+        background: var(--surface-2);
+      }
+
+      .dep-row.header {
+        background: var(--surface-3);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .dep-name {
+        color: var(--text);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .dep-name .icon {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .dep-deps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .dep-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .dep-tag.internal {
+        background: var(--surface-3);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+      }
+
+      .dep-tag.external {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .dep-tag.heavy {
+        background: var(--red-dim);
+        color: var(--red);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .dep-count {
+        text-align: right;
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      .dep-count.bad {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .dep-count.ok {
+        color: var(--accent);
+      }
+      .dep-count.good {
+        color: var(--green);
+      }
+
+      /* ── comparison grid ── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 32px 0;
+      }
+
+      .compare-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 24px;
+        position: relative;
+      }
+
+      .compare-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 24px;
+        right: 24px;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+      }
+
+      .compare-card.before::before {
+        background: var(--red);
+      }
+      .compare-card.after::before {
+        background: var(--green);
+      }
+
+      .compare-card h4 {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+
+      .compare-card.before h4 {
+        color: var(--red);
+      }
+      .compare-card.after h4 {
+        color: var(--green);
+      }
+
+      .compare-card pre {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 16px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        line-height: 1.7;
+        color: var(--text-dim);
+        overflow-x: auto;
+        white-space: pre;
+      }
+
+      .compare-card pre .comment {
+        color: var(--text-muted);
+      }
+      .compare-card pre .keyword {
+        color: var(--purple);
+      }
+      .compare-card pre .type {
+        color: var(--blue);
+      }
+      .compare-card pre .accent {
+        color: var(--accent);
+      }
+      .compare-card pre .string {
+        color: var(--green);
+      }
+
+      /* ── code blocks ── */
+      .code-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 24px;
+        margin: 24px 0;
+        overflow-x: auto;
+      }
+
+      .code-block pre {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.75;
+        color: var(--text-dim);
+      }
+
+      .code-block .comment {
+        color: var(--text-muted);
+      }
+      .code-block .keyword {
+        color: var(--purple);
+      }
+      .code-block .type {
+        color: var(--blue);
+      }
+      .code-block .accent {
+        color: var(--accent);
+      }
+      .code-block .string {
+        color: var(--green);
+      }
+
+      /* ── proposal cards ── */
+      .proposals {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin: 32px 0;
+      }
+
+      .proposal {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 28px;
+        position: relative;
+        transition: border-color 0.3s;
+      }
+
+      .proposal:hover {
+        border-color: var(--border-light);
+      }
+
+      .proposal-number {
+        position: absolute;
+        top: -1px;
+        left: 28px;
+        background: var(--accent);
+        color: var(--bg);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        padding: 4px 12px;
+        border-radius: 0 0 6px 6px;
+      }
+
+      .proposal h3 {
+        margin-top: 12px;
+        font-size: 17px;
+      }
+
+      .proposal p {
+        font-size: 14.5px;
+        line-height: 1.75;
+      }
+
+      .proposal .rationale {
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--surface-2);
+        border-left: 2px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+      }
+
+      .proposal .rationale p {
+        font-size: 13px;
+        margin-bottom: 0;
+        color: var(--text-dim);
+      }
+
+      /* ── matrix table ── */
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 24px 0;
+        font-size: 13px;
+      }
+
+      .matrix th {
+        text-align: left;
+        padding: 10px 16px;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .matrix td {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-dim);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .matrix tr:hover td {
+        background: var(--surface);
+      }
+
+      .matrix td:first-child {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        font-family: var(--mono);
+        letter-spacing: 0.03em;
+      }
+
+      .badge.green {
+        background: var(--green-dim);
+        color: var(--green);
+      }
+      .badge.red {
+        background: var(--red-dim);
+        color: var(--red);
+      }
+      .badge.amber {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .badge.blue {
+        background: var(--blue-dim);
+        color: var(--blue);
+      }
+      .badge.purple {
+        background: var(--purple-dim);
+        color: var(--purple);
+      }
+
+      /* ── timeline ── */
+      .timeline {
+        position: relative;
+        padding-left: 32px;
+        margin: 32px 0;
+      }
+
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 8px;
+        bottom: 8px;
+        width: 1px;
+        background: var(--border-light);
+      }
+
+      .timeline-step {
+        position: relative;
+        padding-bottom: 36px;
+      }
+
+      .timeline-step:last-child {
+        padding-bottom: 0;
+      }
+
+      .timeline-step::before {
+        content: "";
+        position: absolute;
+        left: -28px;
+        top: 8px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--bg);
+      }
+
+      .timeline-step h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .timeline-step p {
+        font-size: 13.5px;
+        line-height: 1.7;
+        margin-bottom: 0;
+      }
+
+      /* ── pull quote ── */
+      .pull {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 24px;
+        line-height: 1.45;
+        color: var(--text);
+        padding: 40px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin: 40px 0;
+        max-width: 600px;
+      }
+
+      /* ── footer ── */
+      footer {
+        padding: 60px 0;
+        border-top: 1px solid var(--border);
+        margin-top: 80px;
+      }
+
+      footer p {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.8;
+      }
+
+      /* ── animations ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── responsive ── */
+      @media (max-width: 680px) {
+        .page {
+          padding: 0 20px;
+        }
+        .compare {
+          grid-template-columns: 1fr;
+        }
+        .dep-row {
+          grid-template-columns: 100px 1fr 50px;
+          font-size: 10px;
+        }
+        .dep-graph {
+          overflow-x: auto;
+        }
+        .dep-graph-inner {
+          min-width: 540px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- ═══════════ HERO ═══════════ -->
+      <header class="hero">
+        <div class="hero-kicker">Feedback from project-discovery-sdk</div>
+        <h1>Why I can't<br /><em>use you</em></h1>
+        <p class="hero-sub">
+          Your patterns are <strong>exactly right</strong>. Your retry logic, your circuit breaker,
+          your error taxonomy — I need all of it. But I can't import a single one without pulling in
+          the entire CQRS stack.
+        </p>
+        <div class="hero-meta">
+          <span>project-discovery-sdk → go-cqrs-lite</span>
+          <span>June 2026</span>
+        </div>
+      </header>
+
+      <!-- ═══════════ THE GOOD ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">01 — What you got right</div>
+        <h2>The patterns are <em>beautiful</em></h2>
+
+        <p>
+          project-discovery-sdk enriches projects by calling GitHub, GitLab, Bitbucket, and Gitea
+          APIs. It checks NPM, PyPI, Cargo, and four other registries. Every single one of those
+          calls has <strong>zero retry, zero backoff, and zero circuit breaking</strong>.
+        </p>
+
+        <p>
+          Your middleware module solves exactly this problem. The retry with exponential backoff and
+          jitter. The circuit breaker with three-state machine. The structured logging with
+          duration. I look at my enrichment pipeline and I see a 1:1 mapping to your middleware
+          chain.
+        </p>
+
+        <div class="verdict">
+          <p>
+            The <strong>Enricher interface</strong> in project-discovery-sdk is a single-method
+            interface — <code>Enrich(ctx, *Project) error</code> — the textbook Go shape for
+            decoration. Your middleware pattern would wrap it perfectly. The fit is so natural it
+            feels like the SDK was designed for it.
+          </p>
+        </div>
+
+        <p>
+          Your error taxonomy — Rejection, Conflict, Transient, Infrastructure, Corruption — would
+          let me classify "404 not found" (permanent, don't retry) vs "connection refused"
+          (transient, retry with backoff) vs "GitHub rate limit" (transient, retry after reset).
+          Right now I treat them all identically.
+        </p>
+
+        <p>
+          And the Decider pattern — load→fold→decide→save→publish — is the cleanest implementation
+          of functional event sourcing I've seen in Go. The ISP-compliant interfaces (Publisher,
+          Subscriber, EventSink, EventSource) show real architectural thought.
+        </p>
+
+        <p class="pull">
+          You built the right abstractions. The problem is purely in how they're packaged.
+        </p>
+      </section>
+
+      <!-- ═══════════ THE BLOCKERS ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">02 — Why I can't import you</div>
+        <h2>The dependency graph is <em>not lite</em></h2>
+
+        <p>
+          "Lite" means I import one module and get exactly what I asked for — no more. Let me show
+          you what actually happens.
+        </p>
+
+        <h3>What I want</h3>
+        <p>
+          Just the retry and circuit breaker logic. Two functions. That's it. My enrichment pipeline
+          needs resilience, not a CQRS framework.
+        </p>
+
+        <h3>What I get</h3>
+
+        <div class="dep-graph">
+          <div class="dep-row header">
+            <div>Module</div>
+            <div>Dependencies pulled in</div>
+            <div>Total</div>
+          </div>
+
+          <div class="dep-row">
+            <div class="dep-name">
+              <span class="icon" style="background: var(--accent)"></span>
+              <span>event/v2</span>
+            </div>
+            <div class="dep-deps">
+              <span class="dep-tag internal">command</span>
+              <span class="dep-tag internal">query</span>
+              <span class="dep-tag internal">memory</span>
+              <span class="dep-tag internal">schema</span>
+              <span class="dep-tag internal">snapshot</span>
+              <span class="dep-tag internal">codec</span>
+              <span class="dep-tag internal">id</span>
+              <span class="dep-tag external">go-error-family</span>
+              <span class="dep-tag external">samber/ro</span>
+            </div>
+            <div class="dep-count bad">9</div>
+          </div>
+
+          <div class="dep-row">
+            <div class="dep-name">
+              <span class="icon" style="background: var(--red)"></span>
+              <span>middleware/v2</span>
+            </div>
+            <div class="dep-deps">
+              <span class="dep-tag internal">event</span>
+              <span class="dep-tag internal">command</span>
+              <span class="dep-tag internal">query</span>
+              <span class="dep-tag internal">memory</span>
+              <span class="dep-tag internal">id</span>
+              <span class="dep-tag internal">otel</span>
+              <span class="dep-tag heavy">opentelemetry/sdk</span>
+              <span class="dep-tag heavy">opentelemetry/metric</span>
+              <span class="dep-tag heavy">opentelemetry/trace</span>
+            </div>
+            <div class="dep-count bad">9+</div>
+          </div>
+
+          <div class="dep-row">
+            <div class="dep-name">
+              <span class="icon" style="background: var(--green)"></span>
+              <span>id/v2</span>
+            </div>
+            <div class="dep-deps">
+              <span class="dep-tag external">go-branded-id</span>
+              <span class="dep-tag external">oklog/ulid</span>
+            </div>
+            <div class="dep-count good">2</div>
+          </div>
+
+          <div class="dep-row">
+            <div class="dep-name">
+              <span class="icon" style="background: var(--green)"></span>
+              <span>command/v2</span>
+            </div>
+            <div class="dep-deps">
+              <span class="dep-tag external">go-error-family</span>
+            </div>
+            <div class="dep-count good">1</div>
+          </div>
+        </div>
+
+        <p>
+          To get retry logic, I must import <code>middleware/v2</code>, which depends on
+          <code>event/v2</code>, which depends on 7 sibling modules. I end up with the
+          <strong>entire CQRS stack</strong> — command dispatcher, query dispatcher, event store,
+          schema, snapshot, memory implementations — plus the full OpenTelemetry SDK. For two
+          functions.
+        </p>
+
+        <h3>The concrete damage</h3>
+
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>What I need</th>
+              <th>From module</th>
+              <th>What I'd pay</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Retry with backoff</td>
+              <td>middleware/v2</td>
+              <td>~40 transitive deps + full OTel SDK</td>
+              <td><span class="badge red">dealbreaker</span></td>
+            </tr>
+            <tr>
+              <td>Circuit breaker</td>
+              <td>middleware/v2</td>
+              <td>Same as above</td>
+              <td><span class="badge red">dealbreaker</span></td>
+            </tr>
+            <tr>
+              <td>Error taxonomy</td>
+              <td>go-error-family</td>
+              <td>1 dep (standalone)</td>
+              <td><span class="badge green">works today</span></td>
+            </tr>
+            <tr>
+              <td>Event bus</td>
+              <td>event/v2</td>
+              <td>7 CQRS siblings I don't need</td>
+              <td><span class="badge red">dealbreaker</span></td>
+            </tr>
+            <tr>
+              <td>Branded IDs</td>
+              <td>id/v2</td>
+              <td>2 deps (truly standalone)</td>
+              <td><span class="badge amber">wrong backing type</span></td>
+            </tr>
+            <tr>
+              <td>Decider pattern</td>
+              <td>decider/v2</td>
+              <td>OTel trace + 6 CQRS siblings</td>
+              <td><span class="badge red">wrong domain</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          The only thing I can actually use today is <code>go-error-family</code> — and that's not
+          even part of go-cqrs-lite, it's a separate library. Everything else is locked behind a
+          dependency wall.
+        </p>
+      </section>
+
+      <!-- ═══════════ THE ROOT CAUSE ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">03 — The root cause</div>
+        <h2><em>event/v2</em> is a hub, not a leaf</h2>
+
+        <p>
+          In a healthy dependency graph, the most-used module is the lightest — a leaf that
+          everything else depends on. In go-cqrs-lite, the most-used module is the heaviest — a hub
+          that depends on everything else.
+        </p>
+
+        <div class="compare">
+          <div class="compare-card before">
+            <h4>Current — event/v2</h4>
+            <pre><span class="comment">// event/v2 depends on 7 siblings</span>
+event/v2
+├── command/v2    <span class="comment">// I don't dispatch commands</span>
+├── query/v2      <span class="comment">// I don't dispatch queries</span>
+├── memory/v2     <span class="comment">// I don't need memory store</span>
+├── schema/v2     <span class="comment">// I don't generate schemas</span>
+├── snapshot/v2   <span class="comment">// I don't snapshot aggregates</span>
+├── codec/v2      <span class="comment">// I don't encode payloads</span>
+└── id/v2         <span class="comment">// I already use go-branded-id</span></pre>
+          </div>
+          <div class="compare-card after">
+            <h4>Proposed — event/core</h4>
+            <pre><span class="comment">// event/core depends on nothing</span>
+event/core
+└── <span class="comment">(stdlib only)</span>
+
+<span class="comment">// Optional layers, imported separately</span>
+event/bus       → event/core
+event/store     → event/core, <span class="accent">codec</span>
+event/snapshot  → event/core
+middleware/retry → <span class="type">stdlib</span>  <span class="comment">// no CQRS deps</span>
+middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// no CQRS deps</span></pre>
+          </div>
+        </div>
+
+        <p>
+          The core event types — <code>Event</code>, <code>Type</code>, <code>Version</code>,
+          <code>Metadata</code> — should have <strong>zero dependencies</strong>. They're value
+          types. A struct with an ID, a timestamp, a byte slice, and a version number. The fact that
+          importing them pulls in a command dispatcher and a query dispatcher is an architectural
+          accident, not a necessity.
+        </p>
+
+        <p>
+          Similarly, the retry logic — exponential backoff with jitter, context-aware cancellation —
+          is pure algorithmic code. It operates on <code>func() error</code>. It has no business
+          knowing about events, commands, queries, or OpenTelemetry.
+        </p>
+      </section>
+
+      <!-- ═══════════ THE PROPOSALS ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">04 — What would make me adopt it</div>
+        <h2>Six changes that <em>unlock adoption</em></h2>
+
+        <p>
+          These are ordered by impact. The first three would make me adopt go-cqrs-lite immediately.
+          The last three would make me recommend it to everyone.
+        </p>
+
+        <div class="proposals">
+          <!-- P1 -->
+          <div class="proposal">
+            <div class="proposal-number">P1</div>
+            <h3>Extract generic middleware — zero CQRS deps</h3>
+            <p>
+              Create <code>middleware/retry</code> and <code>middleware/circuitbreaker</code> as
+              standalone modules with <strong>zero internal sibling dependencies</strong>. No event
+              types, no command types, no OTel. Just pure algorithms:
+            </p>
+            <div class="code-block">
+              <pre><span class="comment">// middleware/retry — stdlib only</span>
+<span class="keyword">package</span> retry
+
+<span class="keyword">type</span> <span class="type">Config</span> {
+    MaxAttempts  <span class="type">int</span>
+    InitialDelay <span class="type">time.Duration</span>
+    MaxDelay     <span class="type">time.Duration</span>
+    Multiplier   <span class="type">float64</span>
+    IsRetryable  <span class="keyword">func</span>(error) <span class="type">bool</span>
+}
+
+<span class="comment">// Do retries fn with backoff and jitter. Pure algorithm.</span>
+<span class="keyword">func</span> <span class="accent">Do</span>(ctx context.Context, cfg Config, fn <span class="keyword">func</span>() error) error</pre>
+            </div>
+            <p>Then the existing CQRS-specific middleware becomes thin wrappers:</p>
+            <div class="code-block">
+              <pre><span class="comment">// middleware/v2 keeps the typed adapters</span>
+<span class="keyword">func</span> <span class="accent">CommandRetry</span>(cfg retry.Config) Middleware {
+    <span class="keyword">return func</span>(h Handler) Handler {
+        <span class="keyword">return func</span>(ctx context.Context, cmd Command) error {
+            <span class="keyword">return</span> retry.Do(ctx, cfg, <span class="keyword">func</span>() error { <span class="keyword">return</span> h(ctx, cmd) })
+        }
+    }
+}</pre>
+            </div>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> 90% of the value of your middleware module is the
+                retry/backoff/circuit-breaker logic. Today it's locked behind 40+ transitive deps.
+                Freed from the CQRS types, it becomes useful to <em>any</em> Go project making
+                network calls.
+              </p>
+            </div>
+          </div>
+
+          <!-- P2 -->
+          <div class="proposal">
+            <div class="proposal-number">P2</div>
+            <h3>Split event/v2 into layered leaves</h3>
+            <p>Break the hub module into three layers, each independently importable:</p>
+            <div class="code-block">
+              <pre><span class="accent">event/core</span>    <span class="comment">// Event, Type, Version, Metadata, AggregateRef — stdlib only</span>
+<span class="accent">event/bus</span>     <span class="comment">// Bus, Publisher, Subscriber interfaces — depends on core only</span>
+<span class="accent">event/store</span>   <span class="comment">// Store, EventSink, EventSource — depends on core + codec</span>
+<span class="accent">event/journal</span> <span class="comment">// Journal, SeekableJournal — depends on core</span></pre>
+            </div>
+            <p>
+              The <code>event/core</code> module contains only value types. No interfaces, no
+              behavior, no codec, no ULID dependency (the EventID can be a plain string in core).
+              Projects that only need to <em>reference</em> event types (like middleware) import
+              core and get <strong>nothing else</strong>.
+            </p>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> The current event/v2 is the #1 transitive
+                dependency in the entire repo. Everything depends on it, and it depends on
+                everything. Splitting it turns the dependency graph from a tangled web into a clean
+                tree.
+              </p>
+            </div>
+          </div>
+
+          <!-- P3 -->
+          <div class="proposal">
+            <div class="proposal-number">P3</div>
+            <h3>Make OTel optional, not structural</h3>
+            <p>
+              OpenTelemetry should be a <strong>leaf module</strong> that consumers opt into, not a
+              dependency baked into core infrastructure. Today, <code>decider/v2</code>,
+              <code>projection/v2</code>, <code>storage/v2</code>, and
+              <code>middleware/v2</code> all directly import OTel packages.
+            </p>
+            <p>
+              Instead of <code>go.opentelemetry.io/otel/trace</code> in every module, accept a
+              <code>TracerProvider</code> interface or use a shim:
+            </p>
+            <div class="code-block">
+              <pre><span class="comment">// In event/core — no OTel import</span>
+<span class="keyword">type</span> <span class="type">Tracer</span> <span class="keyword">interface</span> {
+    Start(ctx context.Context, name <span class="type">string</span>) (context.Context, Span)
+}
+
+<span class="keyword">type</span> <span class="type">Span</span> <span class="keyword">interface</span> {
+    End()
+    RecordError(error)
+    SetAttributes(...Attribute)
+}
+
+<span class="comment">// In otel/v2 — thin adapter</span>
+<span class="keyword">func</span> <span class="accent">Adapt</span>(t trace.Tracer) Tracer { ... }</pre>
+            </div>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> OpenTelemetry's SDK brings in ~15 transitive
+                packages. A library that wants retry logic shouldn't pay for distributed tracing
+                infrastructure. The shim pattern is what Go's HTTP client uses (net/http doesn't
+                import OTel — it accepts interfaces).
+              </p>
+            </div>
+          </div>
+
+          <!-- P4 -->
+          <div class="proposal">
+            <div class="proposal-number">P4</div>
+            <h3>Generic decorator pattern</h3>
+            <p>
+              The retry and circuit breaker don't operate on CQRS types. They operate on
+              <code>func(ctx) error</code>. Expose this explicitly:
+            </p>
+            <div class="code-block">
+              <pre><span class="comment">// middleware/retry</span>
+<span class="keyword">func</span> <span class="accent">Do</span>(ctx context.Context, cfg Config, fn <span class="keyword">func</span>() error) error
+
+<span class="comment">// middleware/circuitbreaker</span>
+<span class="keyword">type</span> <span class="type">Breaker</span> <span class="keyword">struct</span> { ... }
+<span class="keyword">func</span> (b *<span class="type">Breaker</span>) <span class="accent">Do</span>(fn <span class="keyword">func</span>() error) error
+
+<span class="comment">// middleware/timeout</span>
+<span class="keyword">func</span> <span class="accent">Do</span>(ctx context.Context, timeout <span class="type">time.Duration</span>, fn <span class="keyword">func</span>() error) error</pre>
+            </div>
+            <p>
+              The CQRS-specific adapters (<code>CommandRetry</code>, <code>EventRetry</code>,
+              <code>QueryRetry</code>) become one-liners that call the generic implementations.
+              Non-CQRS consumers use the generic functions directly.
+            </p>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> This is the difference between "a CQRS library
+                with middleware" and "a middleware library that also works for CQRS". The second
+                formulation has 100x the potential user base.
+              </p>
+            </div>
+          </div>
+
+          <!-- P5 -->
+          <div class="proposal">
+            <div class="proposal-number">P5</div>
+            <h3>Configurable ID backing type</h3>
+            <p>
+              Today <code>id.Of[T] = cbid.ID[T, ulid.ULID]</code> is hardcoded to ULID.
+              project-discovery-sdk uses <code>cbid.ID[T, string]</code> for file paths and names.
+              The branded-id pattern is the same, but the backing type differs.
+            </p>
+            <p>Consider making the backing type a second type parameter that consumers can set:</p>
+            <div class="code-block">
+              <pre><span class="comment">// Already works via go-branded-id, but document it:</span>
+<span class="keyword">type</span> <span class="type">PathID</span> = cbid.ID[PathBrand, <span class="type">string</span>]
+<span class="keyword">type</span> <span class="type">EventID</span> = cbid.ID[EventBrand, ulid.ULID]
+
+<span class="comment">// Or provide a higher-level alias in id/:</span>
+<span class="keyword">type</span> <span class="type">Of</span>[T, B any] = cbid.ID[T, B]</pre>
+            </div>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> Branded IDs are universally useful, but not
+                everything is a ULID. File paths, project names, language identifiers — these are
+                strings with phantom types. Making the backing type configurable removes the last
+                adoption barrier for the <code>id/</code> module.
+              </p>
+            </div>
+          </div>
+
+          <!-- P6 -->
+          <div class="proposal">
+            <div class="proposal-number">P6</div>
+            <h3>Dependency budget per module</h3>
+            <p>
+              Add a mechanical rule:
+              <strong>every module must declare its dependency budget</strong>, and CI enforces it.
+              This prevents the graph from re-tangling:
+            </p>
+            <table class="matrix">
+              <thead>
+                <tr>
+                  <th>Layer</th>
+                  <th>Max external deps</th>
+                  <th>Max internal siblings</th>
+                  <th>Examples</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Core (leaf)</td>
+                  <td>≤ 2</td>
+                  <td>0</td>
+                  <td>event/core, middleware/retry, id</td>
+                </tr>
+                <tr>
+                  <td>Protocol</td>
+                  <td>≤ 3</td>
+                  <td>≤ 2</td>
+                  <td>event/bus, event/store</td>
+                </tr>
+                <tr>
+                  <td>Implementation</td>
+                  <td>≤ 5</td>
+                  <td>≤ 4</td>
+                  <td>memory, storage/sqlite</td>
+                </tr>
+                <tr>
+                  <td>Integration</td>
+                  <td>unlimited</td>
+                  <td>unlimited</td>
+                  <td>middleware, catalog, otel</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="rationale">
+              <p>
+                <strong>Why this matters:</strong> "Lite" is not a branding exercise — it's a
+                structural property that must be enforced mechanically, not by convention. A
+                dependency budget in CI would have caught the event↔memory circular dependency
+                before it formed.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ THE VISION ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">05 — What adoption looks like</div>
+        <h2>How I'd use it <em>tomorrow</em></h2>
+
+        <p>
+          With proposals P1–P3 implemented, project-discovery-sdk's enrichment pipeline would look
+          like this:
+        </p>
+
+        <div class="compare">
+          <div class="compare-card before">
+            <h4>Today — hand-rolled</h4>
+            <pre><span class="keyword">func</span> (e *enricher) Enrich(
+    ctx context.Context,
+    p *Project,
+) error {
+    <span class="comment">// Single attempt. No retry.</span>
+    <span class="comment">// No backoff. No circuit breaker.</span>
+    <span class="comment">// Transient errors kill enrichment.</span>
+    result, err := checker.Check(ctx, slug)
+    <span class="keyword">if</span> err != nil {
+        <span class="keyword">return</span> fmt.Errorf(
+            <span class="string">"visibility %s: %w"</span>,
+            checker.Provider, err,
+        )
+    }
+    p.Visibility = &RepositoryVisibility{...}
+    <span class="keyword">return nil</span>
+}</pre>
+          </div>
+          <div class="compare-card after">
+            <h4>With go-cqrs-lite</h4>
+            <pre><span class="keyword">import</span> <span class="string">"go-cqrs-lite/middleware/retry"</span>
+<span class="keyword">import</span> <span class="string">"go-cqrs-lite/middleware/circuitbreaker"</span>
+
+<span class="keyword">func</span> (e *enricher) Enrich(
+    ctx context.Context,
+    p *Project,
+) error {
+    <span class="comment">// 3 attempts, exponential backoff,</span>
+    <span class="comment">// circuit breaker prevents flood.</span>
+    <span class="keyword">return</span> cb.Do(<span class="keyword">func</span>() error {
+        <span class="keyword">return</span> retry.Do(ctx, cfg, <span class="keyword">func</span>() error {
+            result, err := checker.Check(ctx, slug)
+            <span class="keyword">if</span> err != nil {
+                <span class="keyword">return</span> errclassify.Wrap(err)
+            }
+            p.Visibility = &RepositoryVisibility{...}
+            <span class="keyword">return nil</span>
+        })
+    })
+}
+<span class="comment">// deps: 0 CQRS modules. Just retry + cb.</span></pre>
+          </div>
+        </div>
+
+        <p>
+          Notice what's <em>not</em> imported: no command dispatcher, no query dispatcher, no event
+          store, no memory bus, no snapshot, no schema, no OpenTelemetry SDK. Just two tiny packages
+          doing one job each.
+        </p>
+
+        <div class="verdict highlight">
+          <p>
+            That's what "lite" means.
+            <strong>I get exactly what I need and nothing I don't.</strong> Two imports. Zero
+            transitive CQRS deps. And my enrichment pipeline goes from "fails on every transient
+            network blip" to production-grade resilience.
+          </p>
+        </div>
+      </section>
+
+      <!-- ═══════════ THE PATH ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">06 — Suggested sequence</div>
+        <h2>How to get there <em>incrementally</em></h2>
+
+        <p>
+          This isn't a rewrite. It's a sequence of extractions that leave the existing API untouched
+          while creating new, lighter import paths.
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <h4>Extract retry + circuit breaker as standalone</h4>
+            <p>
+              Move the core algorithms from <code>middleware/v2</code> into
+              <code>middleware/retry</code> and <code>middleware/circuitbreaker</code>. The existing
+              CQRS middleware becomes thin wrappers. <strong>Zero breaking changes.</strong> New
+              modules are additive.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Extract event/core from event/v2</h4>
+            <p>
+              Move <code>Event</code>, <code>Type</code>, <code>Version</code>,
+              <code>Metadata</code>, <code>AggregateRef</code> into <code>event/core</code>. The
+              full <code>event/v2</code> re-exports everything from core.
+              <strong>Zero breaking changes.</strong> Existing imports keep working.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Shim the OTel dependency</h4>
+            <p>
+              Define <code>Tracer</code>/<code>Span</code> interfaces in core modules. Move OTel
+              imports to <code>otel/v2</code> adapter. Core modules lose their OTel dependency.
+              <strong>Zero breaking changes</strong> for consumers that don't care about tracing.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Update sibling deps to use core</h4>
+            <p>
+              Point <code>command/v2</code>, <code>query/v2</code>, <code>decider/v2</code> at
+              <code>event/core</code> instead of <code>event/v2</code>. Each sheds unnecessary
+              siblings from its transitive graph.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Document dependency budgets in CI</h4>
+            <p>
+              Add a linter that checks each module's dependency count against its budget. Prevents
+              regression.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ SUMMARY ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">07 — TL;DR</div>
+        <h2>The honest <em>summary</em></h2>
+
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>Answer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Are the patterns right?</td>
+              <td><span class="badge green">yes — world-class</span></td>
+            </tr>
+            <tr>
+              <td>Is the API well-designed?</td>
+              <td><span class="badge green">yes — ISP, generics, functional options</span></td>
+            </tr>
+            <tr>
+              <td>Can I use it today?</td>
+              <td><span class="badge red">no — dependency graph blocks adoption</span></td>
+            </tr>
+            <tr>
+              <td>Is it actually "lite"?</td>
+              <td><span class="badge red">no — event/v2 is a hub with 7 siblings</span></td>
+            </tr>
+            <tr>
+              <td>Would P1–P3 fix it?</td>
+              <td><span class="badge green">yes — immediate adoption</span></td>
+            </tr>
+            <tr>
+              <td>Is it worth fixing?</td>
+              <td>
+                <span class="badge green">absolutely — unlocks every non-CQRS Go project</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="pull">
+          You didn't build a CQRS library. You built an infrastructure library that happens to be
+          packaged as CQRS. Unpackage the infrastructure and it becomes universal.
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          Feedback from project-discovery-sdk — a reactive Go SDK for discovering software
+          projects.<br />
+          Generated June 2026 · Author: project-discovery-sdk architecture review
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08 },
+      );
+
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>
