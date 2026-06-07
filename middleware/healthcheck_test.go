@@ -9,7 +9,7 @@ import (
 )
 
 func TestHealthCheckHandler_Live(t *testing.T) {
-	handler := HealthCheckHandler("v2.1.0")
+	handler := HealthCheckHandler("v2.2.0")
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/live", nil)
 	rec := httptest.NewRecorder()
@@ -44,7 +44,7 @@ func TestHealthCheckHandler_Ready(t *testing.T) {
 		}
 	}
 
-	handler := HealthCheckHandler("v2.1.0", checker)
+	handler := HealthCheckHandler("v2.2.0", checker)
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
 	rec := httptest.NewRecorder()
@@ -79,7 +79,7 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 		}
 	}
 
-	handler := HealthCheckHandler("v2.1.0", checker)
+	handler := HealthCheckHandler("v2.2.0", checker)
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
 	rec := httptest.NewRecorder()
@@ -102,7 +102,7 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 }
 
 func TestHealthCheckHandler_Default(t *testing.T) {
-	handler := HealthCheckHandler("v2.1.0")
+	handler := HealthCheckHandler("v2.2.0")
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()

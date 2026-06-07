@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-01 · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-08 · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
