@@ -29,9 +29,9 @@ func runServer(
 	mux := http.NewServeMux()
 
 	// Health endpoints
-	mux.Handle("/health", middleware.HealthCheckHandler("v2.1.0"))
-	mux.Handle("/health/live", middleware.HealthCheckHandler("v2.1.0"))
-	mux.Handle("/health/ready", middleware.HealthCheckHandler("v2.1.0", dbHealthCheck(store)))
+	mux.Handle("/health", middleware.HealthCheckHandler("v2.2.0"))
+	mux.Handle("/health/live", middleware.HealthCheckHandler("v2.2.0"))
+	mux.Handle("/health/ready", middleware.HealthCheckHandler("v2.2.0", dbHealthCheck(store)))
 
 	// Metrics endpoint
 	mux.Handle("/metrics", middleware.MetricsHandler(metricsCollector))

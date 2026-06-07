@@ -8,46 +8,46 @@
 
 ### Sprint 1: Trust & Documentation (Week 1)
 
-- [ ] `FEATURES.md` updated with all planned features and honest status
-- [ ] `docs/DOMAIN_LANGUAGE.md` — CQRS & Event Sourcing glossary (≥20 terms)
-- [ ] `CONTEXT.md` — architecture overview & consumer patterns
-- [ ] `ROADMAP.md` — this file
-- [ ] gosec security scanning in devShell + CI with SARIF upload
-- [ ] `.go-arch-lint.yml` with module dependency layer rules + CI step
+- [x] `FEATURES.md` updated with all planned features and honest status
+- [x] `docs/DOMAIN_LANGUAGE.md` — CQRS & Event Sourcing glossary (≥20 terms)
+- [x] `CONTEXT.md` — architecture overview & consumer patterns
+- [x] `ROADMAP.md` — this file
+- [x] gosec security scanning in devShell + CI with SARIF upload
+- [x] `.go-arch-lint.yml` with module dependency layer rules + CI step
 
 ### Sprint 2: Operational Readiness (Week 2)
 
-- [ ] Health check middleware (`/health`, `/health/live`, `/health/ready`)
-- [ ] Metrics HTTP handler (request count, error rate, avg response time)
-- [ ] Graceful shutdown helper (`pkg/gracefulshutdown`)
-- [ ] Operational endpoints in `example/user/`
+- [x] Health check middleware (`/health`, `/health/live`, `/health/ready`)
+- [x] Metrics HTTP handler (request count, error rate, avg response time)
+- [x] Graceful shutdown helper (`pkg/gracefulshutdown`)
+- [x] Operational endpoints in `example/user/`
 
 ### Sprint 3: Testing Rigor — PBT & Snapshots (Week 3)
 
-- [ ] `pgregory.net/rapid` property tests on `decider/` — deterministic decide, version monotonicity
-- [ ] `rapid` property tests on `event/` — event immutability, version correctness
-- [ ] `rapid` property tests on `id/` — ULID validity, prefix correctness
-- [ ] `go-snaps` snapshot tests on `integration/` — event JSON serialization, catalog exports
+- [x] `pgregory.net/rapid` property tests on `decider/` — deterministic decide, version monotonicity
+- [x] `rapid` property tests on `event/` — event immutability, version correctness
+- [x] `rapid` property tests on `id/` — ULID validity, prefix correctness
+- [x] `go-snaps` snapshot tests on `integration/` — event JSON serialization, catalog exports
 - [ ] `go-snaps` snapshot tests on `catalog/` — AsyncAPI, OpenAPI, D2, EventCatalog exports
 - [ ] `go-snaps` snapshot tests on `projection/` — state rendering
 
 ### Sprint 4: CI & Deployment (Week 4)
 
-- [ ] Save `benchmark-baseline.txt` from all benchmarks
-- [ ] Add CI step: fail if any benchmark >2× slower than baseline
-- [ ] Dockerfile for `example/user/` (multi-stage: builder → scratch → alpine)
-- [ ] `docker-compose.yml` for example stack
+- [x] Save `benchmark-baseline.txt` from all benchmarks
+- [x] Add CI step: fail if any benchmark >2× slower than baseline
+- [x] Dockerfile for `example/user/` (multi-stage: builder → scratch → alpine)
+- [x] `docker-compose.yml` for example stack
 - [ ] Docker build CI step (linux amd64 + arm64)
 
 ### Sprint 5: Consumer Experience (Week 5–6)
 
-- [ ] `example/catalog-server/` — embedded EventCatalog SPA server
-- [ ] `middleware/sse.go` — SSE broker over event bus + tests
+- [x] `example/catalog-server/` — embedded EventCatalog SPA server
+- [x] `middleware/sse.go` — SSE broker over event bus + tests
 - [ ] SSE handler in `example/user/` + JavaScript client
-- [ ] `pkg/config/` module — YAML config loader with env-specific overlays
+- [x] `pkg/config/` module — YAML config loader with env-specific overlays
 - [ ] Config usage example in `example/user/`
-- [ ] `integration/simulation/` — event sequence generator + decider stress tests
-- [ ] Event store throughput simulation benchmark
+- [x] `integration/simulation/` — event sequence generator + decider stress tests
+- [x] Event store throughput simulation benchmark
 - [ ] Playwright setup in `example/user/`
 - [ ] Playwright E2E test: health endpoint
 - [ ] Playwright E2E test: core command→event→query flow

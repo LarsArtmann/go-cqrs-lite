@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.0] - 2026-06-08
+
+81 commits since v2.1.0. Operational readiness, testing rigor, and developer experience release.
+
+### Added
+
+- **Health check middleware** (`middleware/`) — `/health`, `/health/live`, `/health/ready` endpoints
+- **Metrics HTTP handler** (`middleware/`) — request count, error rate, avg response time
+- **SSE broker** (`middleware/`) — server-sent events over event bus with subscription management
+- **Config loader** (`pkg/config/`) — YAML config with env-specific overlays
+- **Graceful shutdown** (`pkg/gracefulshutdown/`) — signal-aware shutdown with timeout and hook support
+- **Docker packaging** (`example/user/`) — multi-stage Dockerfile + docker-compose.yml
+- **Production server example** (`example/user/server.go`) — operational endpoints demonstrating health, metrics, graceful shutdown
+- **Property-based tests** (`decider/`, `event/`, `id/`) — `pgregory.net/rapid` for deterministic decide, version monotonicity, ULID validity
+- **Snapshot tests** (`integration/`) — `go-snaps` for event JSON serialization, catalog exports
+- **Simulation framework** (`integration/simulation/`) — event sequence generator + decider stress tests
+- **Benchmark baseline** (`benchmark-baseline.txt`) — saved from all benchmarks for regression detection
+- **Module READMEs** — 9 modules with usage and API surface documentation
+- **Package doc.go** — 7 library modules with usage examples for pkg.go.dev
+- **example_test.go** coverage — storage, otel, projection, watermill, schema, signing, snapshot, listing, pebble, turso, codec, dispatcher
+- **docserver** (`catalog/docserver/`) — embedded EventCatalog SPA server with AsyncAPI + Scalar rendering
+
+### Changed
+
+- **Standardized flake configuration** — dev shell, test apps, benchmark apps unified
+- **Command store split** — `storage/command_store.go` (387L → 3 focused files)
+- **Snapshot errors extracted** — `snapshot/errors.go` with all sentinel errors
+- **Projection replay refactored** — `loadReplayEvents` extracted (65L → 37L + 28L)
+- **Dependencies bumped** — `golang.org/x/exp` across all workspace modules
+- **Lint issues resolved** — all catalog, infrastructure, and pre-commit hook failures fixed
+
+### Fixed
+
+- **Catalog ToPascal byte underflow** — unicode boundary bug in case conversion
+- **Duplicate package godoc** — removed from non-doc.go files in event, middleware, dispatcher
+- **Broken example_test.go** — repaired in projection, schema, signing, watermill
+
+### Security
+
+- **gosec scanning** — Go security scanner integrated in CI with SARIF upload
+- **Module layer check** — `.go-arch-lint.yml` architecture rules enforced in CI
+
 ## [2.1.0] - 2026-06-03
 
 62 commits since v2.0.0. Performance-focused release with production bug fixes, new query types, and comprehensive benchmarking.

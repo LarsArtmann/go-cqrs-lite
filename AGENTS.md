@@ -187,6 +187,8 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 
 **v2.1.0 Released**: Performance-focused release with 62 commits since v2.0.0. Major perf improvements (alloc reductions across event/signing/listing/catalog/memory), production bug fixes (HealthCheck OOM, race conditions, closed state tracking), new `query.TypedHandler[Q, R]`, and comprehensive benchmarking infrastructure. All 22 library + 2 cmd modules tagged at v2.1.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
 
+**v2.2.0 Released**: Operational readiness, testing rigor, and developer experience release with 81 commits since v2.1.0. Health check/metrics/SSE middleware, config loader, graceful shutdown, Docker packaging, property-based tests (rapid), snapshot tests, simulation framework, benchmark baseline regression detection in CI, gosec security scanning, module layer architecture checks, module READMEs, and doc.go with pkg.go.dev examples across 12 modules.
+
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)
 > and [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).

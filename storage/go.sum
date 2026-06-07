@@ -26,12 +26,6 @@ github.com/hashicorp/golang-lru/v2 v2.0.7/go.mod h1:QeFd9opnmA6QUJc5vARoKUSoFhyf
 github.com/kisielk/sqlstruct v0.0.0-20201105191214-5f3e10d3ab46/go.mod h1:yyMNCyc/Ib3bDTKd379tNMpB/7/H5TjM2Y9QJ5THLbE=
 github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frqR5Ub3Cj+w0=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
-github.com/larsartmann/go-cqrs-lite/memory/v2 v2.1.0 h1:wR+6OhMp6XwlZhqNnUCsGtGwICZTqEW/m/LHnnUBxVo=
-github.com/larsartmann/go-cqrs-lite/memory/v2 v2.1.0/go.mod h1:zLgrbF7EbfQQGmWZEadNPf5bHTaBrIQMTOQCTR6yFxg=
-github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0 h1:YbOh4fywAMZCQMCFvtiWSJ+/0T2/Gpx3bJMzzxoPAEc=
-github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0/go.mod h1:9WDv6cPegAZhPvcQ/NY+L8suMixrY/8oXjPzmKNj9a8=
-github.com/larsartmann/go-cqrs-lite/schema/v2 v2.1.0 h1:72w/VTOsZvX6xVxzW4IgYHb4t/kCejAd0U/I8X94r4A=
-github.com/larsartmann/go-cqrs-lite/schema/v2 v2.1.0/go.mod h1:gG+5sHwVYQ0BWbYqv29NK6QCO6BZSaQiYQpXn1D4exA=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=
