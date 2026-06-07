@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -31,8 +32,9 @@ func TestEventStore_ReadAll_SingleAggregate(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Issue", aggID)
 
-	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	evt2 := cfg.NewTestEvent(t, aggID, 2)
+	now := time.Now()
+	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
 
 	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2}, event.Version(0))
 	if err != nil {
@@ -112,9 +114,10 @@ func TestEventStore_ReadFrom_AfterFirstEvent(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Issue", aggID)
 
-	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	evt2 := cfg.NewTestEvent(t, aggID, 2)
-	evt3 := cfg.NewTestEvent(t, aggID, 3)
+	now := time.Now()
+	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
 
 	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2, evt3}, event.Version(0))
 	if err != nil {
@@ -147,9 +150,10 @@ func TestEventStore_ReadFrom_WithLimit(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Issue", aggID)
 
-	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	evt2 := cfg.NewTestEvent(t, aggID, 2)
-	evt3 := cfg.NewTestEvent(t, aggID, 3)
+	now := time.Now()
+	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
 
 	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2, evt3}, event.Version(0))
 	if err != nil {
