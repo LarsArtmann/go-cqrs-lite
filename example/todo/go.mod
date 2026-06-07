@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
-	github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7
+	github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b
 )
 
 require (

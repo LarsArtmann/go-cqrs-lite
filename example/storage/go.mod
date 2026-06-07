@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.1.0
-	modernc.org/sqlite v1.51.0
+	modernc.org/sqlite v1.52.0
 )
 
 require (
