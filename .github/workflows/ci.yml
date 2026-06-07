@@ -199,3 +199,37 @@ jobs:
           name: benchmark-results
           path: benchmark-results.txt
           retention-days: 30
+
+  gosec:
+    name: Security Scan (gosec)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Run gosec on core modules
+        run: |
+          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif -no-fail ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./projection/... ./signing/... ./listing/..."
+
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif
+          category: gosec
+
+  module-layers:
+    name: Module Layer Architecture Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Verify module dependency layers
+        run: bash scripts/check-module-layers.sh

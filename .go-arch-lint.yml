@@ -1,0 +1,188 @@
+# go-arch-lint configuration for go-cqrs-lite
+# Enforces module dependency layer rules per the architecture design.
+# https://github.com/fe3dback/go-arch-lint
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*eventtest/.*$"
+  - "^.*testdata/.*$"
+  - "^.*benchmarks/.*$"
+
+components:
+  id:
+    in: id/**
+  dispatcher:
+    in: dispatcher/**
+  codec:
+    in: codec/**
+  event:
+    in: event/**
+  command:
+    in: command/**
+  query:
+    in: query/**
+  schema:
+    in: schema/**
+  snapshot:
+    in: snapshot/**
+  decider:
+    in: decider/**
+  memory:
+    in: memory/**
+  signing:
+    in: signing/**
+  otel:
+    in: otel/**
+  middleware:
+    in: middleware/**
+  storage:
+    in: storage/**
+  projection:
+    in: projection/**
+  listing:
+    in: listing/**
+  watermill:
+    in: watermill/**
+  pebble:
+    in: pebble/**
+  turso:
+    in: turso/**
+  catalog:
+    in: catalog/**
+  integration:
+    in: integration/**
+  examples:
+    in: example/**
+  cmd:
+    in: cmd/**
+
+# Layered dependency rules (Layer N can depend on Layer < N)
+# Layer 0: id, dispatcher, codec (no internal deps)
+# Layer 1: event (→id, codec), command (→id, dispatcher), query (→dispatcher)
+# Layer 2: schema (→event), snapshot (→event)
+# Layer 3: decider (→event, snapshot)
+# Layer 4: memory, signing, otel (no internal deps)
+# Layer 5: middleware, storage, projection, listing, watermill, pebble, turso
+# Layer 6: integration, catalog, examples, cmd
+
+deps:
+  # Layer 0: leaf modules — no internal deps (not listed in deps = unrestricted,
+  # which is fine because they genuinely have no internal dependencies)
+
+  # Layer 1: depends on Layer 0
+  event:
+    mayDependOn:
+      - id
+      - codec
+  command:
+    mayDependOn:
+      - id
+      - dispatcher
+  query:
+    mayDependOn:
+      - dispatcher
+
+  # Layer 2: depends on Layer 1
+  schema:
+    mayDependOn:
+      - event
+  snapshot:
+    mayDependOn:
+      - event
+
+  # Layer 3: depends on Layer 2
+  decider:
+    mayDependOn:
+      - event
+      - snapshot
+
+  # Layer 4: independent modules — not listed in deps = unrestricted
+
+  # Layer 5: depends on lower layers
+  middleware:
+    mayDependOn:
+      - event
+      - command
+      - query
+      - otel
+  storage:
+    mayDependOn:
+      - event
+      - snapshot
+      - otel
+  projection:
+    mayDependOn:
+      - event
+      - schema
+      - otel
+  listing:
+    mayDependOn:
+      - event
+  watermill:
+    mayDependOn:
+      - event
+  pebble:
+    mayDependOn:
+      - event
+      - snapshot
+      - codec
+  turso:
+    mayDependOn:
+      - event
+      - storage
+
+  # Layer 6: top-level integration/examples
+  catalog:
+    mayDependOn:
+      - event
+      - command
+      - query
+      - schema
+      - id
+  integration:
+    mayDependOn:
+      - event
+      - command
+      - query
+      - decider
+      - schema
+      - snapshot
+      - memory
+      - signing
+      - middleware
+      - storage
+      - projection
+      - listing
+      - otel
+      - catalog
+  examples:
+    mayDependOn:
+      - event
+      - command
+      - query
+      - decider
+      - schema
+      - snapshot
+      - memory
+      - signing
+      - middleware
+      - storage
+      - projection
+      - listing
+      - otel
+      - catalog
+      - watermill
+      - pebble
+      - turso
+  cmd:
+    mayDependOn:
+      - event
+      - command
+      - query
+      - id
+      - catalog

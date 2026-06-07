@@ -110,6 +110,8 @@
               pkgs.golangci-lint
               pkgs.gotools
               pkgs.trash-cli
+              pkgs.gosec
+              pkgs.go-arch-lint
             ];
 
             GOWORK = "off";
