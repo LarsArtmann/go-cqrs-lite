@@ -60,32 +60,34 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 			Checks:  make(map[string]Check),
 		}
 
-		// Liveness check: always pass if the process is running
+		resp.Checks["liveness"] = Check{
+			ComponentType: "process",
+			Status:        HealthStatusPass,
+			Time:          now,
+		}
+
 		if isLive {
-			resp.Checks["liveness"] = Check{
-				ComponentType: "process",
-				Status:        HealthStatusPass,
-				Time:          now,
-			}
 			writeHealthResponse(w, resp)
 
 			return
 		}
 
-		// Readiness check: run all provided checks
 		if isReady {
 			for i, check := range checks {
 				result := check(ctx)
+
 				if result.Time == "" {
 					result.Time = now
 				}
 
 				name := result.ComponentID
+
 				if name == "" {
 					name = "check-" + strconv.Itoa(i)
 				}
 
 				resp.Checks[name] = result
+
 				if result.Status == HealthStatusFail {
 					resp.Status = HealthStatusFail
 				} else if result.Status == HealthStatusWarn && resp.Status == HealthStatusPass {
@@ -98,25 +100,21 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 			return
 		}
 
-		// Default: full health check
-		resp.Checks["liveness"] = Check{
-			ComponentType: "process",
-			Status:        HealthStatusPass,
-			Time:          now,
-		}
-
 		for i, check := range checks {
 			result := check(ctx)
+
 			if result.Time == "" {
 				result.Time = now
 			}
 
 			name := result.ComponentID
+
 			if name == "" {
 				name = "check-" + strconv.Itoa(i)
 			}
 
 			resp.Checks[name] = result
+
 			if result.Status == HealthStatusFail {
 				resp.Status = HealthStatusFail
 			} else if result.Status == HealthStatusWarn && resp.Status == HealthStatusPass {
@@ -131,14 +129,16 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 func writeHealthResponse(w http.ResponseWriter, resp HealthCheckResponse) {
 	code := http.StatusOK
 
-	switch resp.Status {
-	case HealthStatusFail:
+	if resp.Status == HealthStatusFail {
 		code = http.StatusServiceUnavailable
-	case HealthStatusWarn:
-		code = http.StatusOK
 	}
 
 	w.Header().Set("Content-Type", "application/health+json; charset=utf-8")
 	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(resp)
+
+	err := json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		// Error encoding response; client likely disconnected.
+		_ = err
+	}
 }

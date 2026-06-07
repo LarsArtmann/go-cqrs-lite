@@ -49,11 +49,13 @@ func (m *MetricsCollector) RecordRequest(statusCode int, duration time.Duration)
 // Snapshot returns the current metrics snapshot.
 func (m *MetricsCollector) Snapshot() MetricsSnapshot {
 	var mem runtime.MemStats
+
 	runtime.ReadMemStats(&mem)
 
 	total := m.requestsTotal.Load()
 
 	var avgMs float64
+
 	if total > 0 {
 		avgMs = float64(m.responseSum.Load()) / float64(total) / 1000.0
 	}
@@ -75,7 +77,12 @@ func (m *MetricsCollector) Snapshot() MetricsSnapshot {
 func MetricsHandler(collector *MetricsCollector) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_ = json.NewEncoder(w).Encode(collector.Snapshot())
+
+		err := json.NewEncoder(w).Encode(collector.Snapshot())
+		if err != nil {
+			// Error encoding metrics response; client likely disconnected.
+			_ = err
+		}
 	})
 }
 
@@ -84,7 +91,9 @@ func MetricsMiddleware(collector *MetricsCollector) func(http.Handler) http.Hand
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
+
 			rec := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+
 			next.ServeHTTP(rec, r)
 			collector.RecordRequest(rec.statusCode, time.Since(start))
 		})
