@@ -142,7 +142,11 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 
 		parsedID, err := id.ParseAggregateID(aggID)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "listing.sql_parse_id", "listing sql parse id")
+			return nil, event.WrapInfrastructure(
+				err,
+				"listing.sql_parse_id",
+				"listing sql parse id",
+			)
 		}
 
 		items = append(items, listing.AggregateStatus{
@@ -163,7 +167,10 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 	return items, nil
 }
 
-func paginateStatuses(items []listing.AggregateStatus, limit uint) *listing.Page[listing.AggregateStatus] {
+func paginateStatuses(
+	items []listing.AggregateStatus,
+	limit uint,
+) *listing.Page[listing.AggregateStatus] {
 	hasMore := uint(len(items)) > limit
 	if hasMore {
 		items = items[:limit]

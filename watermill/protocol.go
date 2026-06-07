@@ -154,7 +154,11 @@ func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
 	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
 		eventID, err := id.ParseEventID(eventIDStr)
 		if err != nil {
-			return nil, event.WrapRejection(err, "watermill.parse_event_id_failed", "parse event_id")
+			return nil, event.WrapRejection(
+				err,
+				"watermill.parse_event_id_failed",
+				"parse event_id",
+			)
 		}
 		opts = append(opts, event.WithEventID(eventID))
 	}
@@ -162,7 +166,11 @@ func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
 	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
 		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
 		if err != nil {
-			return nil, event.WrapRejection(err, "watermill.parse_occurred_at_failed", "parse occurred_at")
+			return nil, event.WrapRejection(
+				err,
+				"watermill.parse_occurred_at_failed",
+				"parse occurred_at",
+			)
 		}
 		opts = append(opts, event.WithOccurredAt(occurredAt))
 	}
@@ -174,10 +182,28 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	m := event.NewMetadata()
 	var errs []error
 
-	parseIDField(md, metaCorrelationID, id.ParseCorrelationID, func(v id.CorrelationID) { m.CorrelationID = v }, &errs)
-	parseIDField(md, metaCausationID, id.ParseCausationID, func(v id.CausationID) { m.CausationID = v }, &errs)
+	parseIDField(
+		md,
+		metaCorrelationID,
+		id.ParseCorrelationID,
+		func(v id.CorrelationID) { m.CorrelationID = v },
+		&errs,
+	)
+	parseIDField(
+		md,
+		metaCausationID,
+		id.ParseCausationID,
+		func(v id.CausationID) { m.CausationID = v },
+		&errs,
+	)
 	parseIDField(md, metaUserID, id.ParseUserID, func(v id.UserID) { m.UserID = v }, &errs)
-	parseIDField(md, metaRequestID, id.ParseRequestID, func(v id.RequestID) { m.RequestID = v }, &errs)
+	parseIDField(
+		md,
+		metaRequestID,
+		id.ParseRequestID,
+		func(v id.RequestID) { m.RequestID = v },
+		&errs,
+	)
 
 	if v := md.Get(metaSource); v != "" {
 		m.Source = event.Source(v)
@@ -199,7 +225,13 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	return m, errors.Join(errs...)
 }
 
-func parseIDField[T any](md message.Metadata, key string, parse func(string) (T, error), set func(T), errs *[]error) {
+func parseIDField[T any](
+	md message.Metadata,
+	key string,
+	parse func(string) (T, error),
+	set func(T),
+	errs *[]error,
+) {
 	v := md.Get(key)
 	if v == "" {
 		return

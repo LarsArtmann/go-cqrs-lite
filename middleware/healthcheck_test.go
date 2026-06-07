@@ -11,7 +11,7 @@ import (
 func TestHealthCheckHandler_Live(t *testing.T) {
 	handler := HealthCheckHandler("v2.1.0")
 
-	req := httptest.NewRequest(http.MethodGet, "/health/live", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/live", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -21,6 +21,7 @@ func TestHealthCheckHandler_Live(t *testing.T) {
 	}
 
 	var resp HealthCheckResponse
+
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -45,7 +46,7 @@ func TestHealthCheckHandler_Ready(t *testing.T) {
 
 	handler := HealthCheckHandler("v2.1.0", checker)
 
-	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -55,6 +56,7 @@ func TestHealthCheckHandler_Ready(t *testing.T) {
 	}
 
 	var resp HealthCheckResponse
+
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -79,7 +81,7 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 
 	handler := HealthCheckHandler("v2.1.0", checker)
 
-	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -89,6 +91,7 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 	}
 
 	var resp HealthCheckResponse
+
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -101,7 +104,7 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 func TestHealthCheckHandler_Default(t *testing.T) {
 	handler := HealthCheckHandler("v2.1.0")
 
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -111,6 +114,7 @@ func TestHealthCheckHandler_Default(t *testing.T) {
 	}
 
 	var resp HealthCheckResponse
+
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}

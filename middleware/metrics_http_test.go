@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -36,11 +37,12 @@ func TestMetricsCollector(t *testing.T) {
 
 func TestMetricsHandler(t *testing.T) {
 	col := NewMetricsCollector()
+
 	col.RecordRequest(http.StatusOK, 10*time.Millisecond)
 
 	handler := MetricsHandler(col)
 
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -50,6 +52,7 @@ func TestMetricsHandler(t *testing.T) {
 	}
 
 	var snap MetricsSnapshot
+
 	if err := json.Unmarshal(rec.Body.Bytes(), &snap); err != nil {
 		t.Fatalf("failed to decode: %v", err)
 	}
@@ -68,7 +71,7 @@ func TestMetricsMiddleware(t *testing.T) {
 		_, _ = w.Write([]byte("ok"))
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -78,6 +81,7 @@ func TestMetricsMiddleware(t *testing.T) {
 	}
 
 	snap := col.Snapshot()
+
 	if snap.RequestsTotal != 1 {
 		t.Fatalf("expected 1 request, got %d", snap.RequestsTotal)
 	}

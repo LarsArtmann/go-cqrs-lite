@@ -14,6 +14,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/samber/ro v0.3.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

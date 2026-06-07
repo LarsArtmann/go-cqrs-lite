@@ -32,7 +32,7 @@ type HealthCheckResponse struct {
 type Check struct {
 	ComponentID       string            `json:"componentId,omitempty"`
 	ComponentType     string            `json:"componentType,omitempty"`
-	ObservedValue     interface{}       `json:"observedValue,omitempty"`
+	ObservedValue     any               `json:"observedValue,omitempty"`
 	ObservedUnit      string            `json:"observedUnit,omitempty"`
 	Status            HealthStatus      `json:"status"`
 	AffectedEndpoints []string          `json:"affectedEndpoints,omitempty"`
@@ -68,6 +68,7 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 				Time:          now,
 			}
 			writeHealthResponse(w, resp)
+
 			return
 		}
 
@@ -78,10 +79,12 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 				if result.Time == "" {
 					result.Time = now
 				}
+
 				name := result.ComponentID
 				if name == "" {
 					name = "check-" + strconv.Itoa(i)
 				}
+
 				resp.Checks[name] = result
 				if result.Status == HealthStatusFail {
 					resp.Status = HealthStatusFail
@@ -89,7 +92,9 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 					resp.Status = HealthStatusWarn
 				}
 			}
+
 			writeHealthResponse(w, resp)
+
 			return
 		}
 
@@ -99,15 +104,18 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 			Status:        HealthStatusPass,
 			Time:          now,
 		}
+
 		for i, check := range checks {
 			result := check(ctx)
 			if result.Time == "" {
 				result.Time = now
 			}
+
 			name := result.ComponentID
 			if name == "" {
 				name = "check-" + strconv.Itoa(i)
 			}
+
 			resp.Checks[name] = result
 			if result.Status == HealthStatusFail {
 				resp.Status = HealthStatusFail
@@ -115,15 +123,18 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 				resp.Status = HealthStatusWarn
 			}
 		}
+
 		writeHealthResponse(w, resp)
 	})
 }
 
 func writeHealthResponse(w http.ResponseWriter, resp HealthCheckResponse) {
 	code := http.StatusOK
-	if resp.Status == HealthStatusFail {
+
+	switch resp.Status {
+	case HealthStatusFail:
 		code = http.StatusServiceUnavailable
-	} else if resp.Status == HealthStatusWarn {
+	case HealthStatusWarn:
 		code = http.StatusOK
 	}
 

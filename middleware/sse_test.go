@@ -52,7 +52,7 @@ func TestSSEHandler(t *testing.T) {
 	defer broker.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequest(http.MethodGet, "/events?client=test", nil).WithContext(ctx)
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=test", nil)
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
@@ -98,7 +98,7 @@ func TestSSEHandler_MissingClient(t *testing.T) {
 	broker := NewSSEBroker(bus)
 	defer broker.Close()
 
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/events", nil)
 	rec := httptest.NewRecorder()
 
 	SSEHandler(broker).ServeHTTP(rec, req)

@@ -40,6 +40,7 @@ func NewMetricsCollector() *MetricsCollector {
 func (m *MetricsCollector) RecordRequest(statusCode int, duration time.Duration) {
 	m.requestsTotal.Add(1)
 	m.responseSum.Add(uint64(duration.Microseconds()))
+
 	if statusCode >= 400 {
 		m.requestsError.Add(1)
 	}
@@ -51,6 +52,7 @@ func (m *MetricsCollector) Snapshot() MetricsSnapshot {
 	runtime.ReadMemStats(&mem)
 
 	total := m.requestsTotal.Load()
+
 	var avgMs float64
 	if total > 0 {
 		avgMs = float64(m.responseSum.Load()) / float64(total) / 1000.0
@@ -91,6 +93,7 @@ func MetricsMiddleware(collector *MetricsCollector) func(http.Handler) http.Hand
 
 type statusRecorder struct {
 	http.ResponseWriter
+
 	statusCode int
 }
 

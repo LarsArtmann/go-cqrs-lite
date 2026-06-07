@@ -30,7 +30,8 @@ func NewSSEBroker(bus event.Bus) *SSEBroker {
 		return b.handleEvent(c, evt)
 	}
 
-	if err := bus.SubscribeAll(b.handler); err != nil {
+	err := bus.SubscribeAll(b.handler)
+	if err != nil {
 		cancel()
 
 		return nil

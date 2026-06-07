@@ -180,7 +180,10 @@ func TestExtractIDParameter_NilSchema(t *testing.T) {
 func TestExtractIDParameter_NilProperties(t *testing.T) {
 	t.Parallel()
 
-	path, params := extractIDParameter("/api/svc/get-item", &catalog.Schema{Type: catalog.TypeObject})
+	path, params := extractIDParameter(
+		"/api/svc/get-item",
+		&catalog.Schema{Type: catalog.TypeObject},
+	)
 	if path != "/api/svc/get-item" {
 		t.Errorf("path = %q, want unchanged", path)
 	}

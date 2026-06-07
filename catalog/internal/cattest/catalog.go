@@ -23,7 +23,10 @@ func BuildTestCatalog() *catalog.Catalog {
 		WritesTo: []catalog.DataStoreID{"orders-db"},
 	})
 	reg.AddCommand("order-svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: testCreateOrderMsgID, Name: "Create Order", Version: testVersion,
+		Kind:    catalog.CommandMessage,
+		ID:      testCreateOrderMsgID,
+		Name:    "Create Order",
+		Version: testVersion,
 		Summary: "Create a new order",
 		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
 			"orderId": {Type: catalog.TypeString},
