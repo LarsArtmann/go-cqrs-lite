@@ -14,7 +14,7 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 
 **The project is in EXCELLENT shape** — 39/40 test packages pass consistently, 22 minor lint issues remain (all non-critical), documentation is comprehensive, and the codebase is well-structured with 71,880 lines across 555 Go files.
 
-**One concern:** `otel/v2` tests show intermittent failures under parallel test execution (race condition in metrics tests). Passes 100% when run in isolation.
+**One concern (now resolved):** `otel/v2` tests had intermittent failures under parallel execution due to a race on the global `otel.SetTracerProvider()` in `withGlobalProvider()`. Fixed by replacing global state mutation with local `testTracerWithRecorder()` instances.
 
 ---
 
@@ -84,7 +84,7 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 | CI workflows | 2 (ci.yml, release.yml) |
 | Test packages | 40 |
 | Passing packages (individual) | 40/40 (100%) |
-| Passing packages (parallel) | 39/40 (97.5%) |
+| Passing packages (parallel) | 40/40 (100%) |
 
 ### Documentation
 
@@ -183,22 +183,15 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 
 ## d) TOTALLY FUCKED UP 🔴
 
-### 1. otel/v2 Flaky Parallel Test (`CRITICAL`)
+### 1. otel/v2 Flaky Parallel Test (`RESOLVED ✅`)
 
-**What:** `otel/v2` tests fail intermittently when run as part of the full workspace test suite (`nix run .#test`), but pass 100% when run individually (`go test ./...` in otel/).
+**What:** `otel/v2` tests failed intermittently when run as part of the full workspace test suite (`nix run .#test`), but passed 100% when run individually.
 
-**Evidence:**
-```
-FAIL  github.com/larsartmann/go-cqrs-lite/otel/v2  (Gomega truncated output)
-```
+**Root cause:** `withGlobalProvider()` helper in `otel_test.go` called `otel.SetTracerProvider(tp)` — mutating global state. Three tests (`TestRecordError_SetsErrorStatus`, `TestEndWithError_NilError_EndsSpanWithoutError`, `TestEndWithError_NonNilError_RecordsAndEnds`) used this helper while also calling `t.Parallel()`. When run in parallel, tests raced on the global `TracerProvider`, causing one test to read another test's provider.
 
-**Root cause hypothesis:** Race condition in metrics test using `opentelemetry` global state. Multiple parallel test packages may be registering/unregistering global meters/tracers simultaneously.
+**Fix:** Replaced `withGlobalProvider(t)` + `NewTracer("test")` with `testTracerWithRecorder()` + `provider.Tracer(ComponentTracer("test"))` in all three tests. Eliminated global state mutation entirely. Removed the `withGlobalProvider` helper and unused `otel` import.
 
-**Impact:** CI instability. 2.5% failure rate.
-
-**Workaround:** Run otel tests in isolation.
-
-**Fix needed:** Investigate `TestNewMeter_ReturnsMeterWithCorrectName` and `TestStartSpan_CreatesSpanWithCorrectKind` for shared global state pollution.
+**Verification:** 20 consecutive runs with `-count=20 -race -parallel=8` — all pass.
 
 ### 2. 22 Lint Issues Remaining (`MEDIUM`)
 
@@ -236,7 +229,7 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 ### Immediate (Next Session)
 
-1. **Fix otel flaky test** — Add mutex or test isolation for global OTel state
+1. ~~Fix otel flaky test~~ ✅ **DONE** — Replaced `withGlobalProvider()` global state mutation with local `testTracerWithRecorder()`
 2. **Fix snaptest compilation** — Fix the `:=` vs `=` issue
 3. **Add nolint directives** for intentional tagliatelle violations in metrics_http.go
 4. **Fix gomodguard_v2 → gomodguard** in .golangci.yml
@@ -272,7 +265,7 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 | # | Priority | Item | Effort | Impact | Category |
 |---|----------|------|--------|--------|----------|
-| 1 | 🔴 CRITICAL | Fix otel flaky parallel test | 2h | High | Bug |
+| 1 | ✅ DONE | ~~Fix otel flaky parallel test~~ | — | — | Bug |
 | 2 | 🟡 HIGH | Add go-snaps to catalog/ exports | 4h | High | Testing |
 | 3 | 🟡 HIGH | Fix snaptest compilation error | 30m | Low | Bug |
 | 4 | 🟡 HIGH | Add nolint for intentional tagliatelle | 30m | Low | Lint |
@@ -302,26 +295,11 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 ## g) Top Question I Cannot Figure Out
 
-### Why does `otel/v2` fail only under parallel test execution?
+### Why does `otel/v2` fail only under parallel test execution? (`RESOLVED ✅`)
 
-**Symptoms:**
-- `go test ./...` in `otel/` → ✅ PASS (100% reliable)
-- `nix run .#test` (full workspace) → ❌ FAIL (~50% of the time)
-- Error output is truncated by Gomega (exceeds MaxLength)
-- No clear panic or error message visible
+**Answer:** The `withGlobalProvider()` helper called `otel.SetTracerProvider(tp)` — writing to a process-global variable. Three tests used this while also calling `t.Parallel()`, causing a data race: one parallel test would overwrite the global provider that another test was still reading from.
 
-**Hypotheses checked:**
-1. Race condition in global OTel state? — Plausible. `otel` uses global MeterProvider/TracerProvider.
-2. Memory issue? — Unlikely, test is fast (<2s).
-3. Test ordering dependency? — Possible if tests mutate shared global registries.
-
-**What I need:**
-- Run with `-race` detector enabled
-- Capture full Gomega output (increase MaxLength or disable truncation)
-- Check if `TestNewMeter_ReturnsMeterWithCorrectName` or `TestStartSpan_CreatesSpanWithCorrectKind` use `t.Parallel()` and access shared state
-- Check if `opentelemetry` global state is being reset between tests
-
-**This is blocking CI reliability** and should be the #1 fix priority.
+**Fix:** Replaced all `withGlobalProvider()` + `NewTracer("test")` usage with `testTracerWithRecorder()` + `provider.Tracer(ComponentTracer("test"))` — purely local state, no global mutation. The deleted `withGlobalProvider` was the only source of global state pollution.
 
 ---
 
@@ -406,7 +384,7 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 Modules:              31 (23 lib + 2 cmd + 6 example)
 Test Packages:        40
 Pass Rate (individual): 100%
-Pass Rate (parallel):   97.5% (otel flaky)
+Pass Rate (parallel):   100% (otel flaky test fixed)
 Go Files:             555 (288 prod + 267 test)
 Lines of Code:        71,880
 Benchmark Files:      23
@@ -422,8 +400,8 @@ Release Tags:         24 pushed
 
 ## Conclusion
 
-go-cqrs-lite v2.2.0 is a **solid, production-ready release**. The codebase is well-tested, well-documented, and well-structured. The only significant issue is the flaky otel test under parallel execution, which is a test isolation problem rather than a production bug.
+go-cqrs-lite v2.2.0 is a **solid, production-ready release**. The codebase is well-tested, well-documented, and well-structured. The otel flaky parallel test has been resolved — all 40/40 test packages now pass consistently under parallel execution.
 
 The project has excellent momentum with 81 commits since v2.1.0, comprehensive operational readiness features, and a clear roadmap for the next sprints.
 
-**Next immediate action:** Fix the otel flaky test. Everything else can wait.
+**Next immediate action:** Fix snaptest compilation, add nolint directives for intentional lint violations.
