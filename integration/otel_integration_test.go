@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
@@ -22,10 +21,6 @@ func TestOTel_CommandDispatch_EmitsSpans(t *testing.T) {
 	recorder := tracetest.NewSpanRecorder()
 	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
-
-	original := otel.GetTracerProvider()
-	otel.SetTracerProvider(tracerProvider)
-	t.Cleanup(func() { otel.SetTracerProvider(original) })
 
 	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
@@ -82,10 +77,6 @@ func TestOTel_EventBus_EmitsSpans(t *testing.T) {
 	recorder := tracetest.NewSpanRecorder()
 	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 	defer func() { _ = tracerProvider.Shutdown(context.Background()) }()
-
-	original := otel.GetTracerProvider()
-	otel.SetTracerProvider(tracerProvider)
-	t.Cleanup(func() { otel.SetTracerProvider(original) })
 
 	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
