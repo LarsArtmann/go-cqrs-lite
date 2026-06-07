@@ -575,9 +575,26 @@ Found during 2026-06-01 full code review. See `docs/planning/2026-06-01_CODE-QUA
 Features mentioned in project docs/planning but with **no production code**:
 
 || Feature | Description | Notes |
-|| --------------- | ------------------------------------------- | -------------------------------------------- |
+|| ----------------------- | ------------------------------------------- | -------------------------------------------- |
 || Outbox pattern | Reliable at-least-once event publishing | Documented in CONTEXT.md but no implementation |
 | Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
+|| gosec security scanning | Static security analysis via securego/gosec | Sprint 1 — CI step + SARIF upload |
+|| go-arch-lint | Architecture boundary enforcement at lint time | Sprint 1 — module dependency layer rules |
+|| Health check middleware | `/health`, `/health/live`, `/health/ready` | Sprint 2 — production operational readiness |
+|| Metrics HTTP handler | Request count, error rate, response time | Sprint 2 — operational observability |
+|| Graceful shutdown | `os.Signal` handler with timeout | Sprint 2 — `pkg/gracefulshutdown` |
+|| Property-based testing | `pgregory.net/rapid` invariants (decider, event, id) | Sprint 3 — deterministic decide, version monotonicity, ULID validity |
+|| Snapshot testing | `go-snaps` for stable export outputs | Sprint 3 — AsyncAPI, OpenAPI, D2, EventCatalog, projection state |
+|| Benchmark regression CI | Fail if any benchmark >2× slower than baseline | Sprint 4 — `benchmark-baseline.txt` + comparison script |
+|| Docker packaging | Multi-stage Dockerfile for `example/user/` | Sprint 4 — builder → scratch → alpine |
+|| Embedded EventCatalog server | Serve generated docs SPA from Go binary | Sprint 5 — `example/catalog-server/` |
+|| SSE broker | Server-Sent Events over reactive event bus | Sprint 5 — `middleware/sse.go` + JS client |
+|| `pkg/config` module | YAML config loader with env-specific overlays | Sprint 5 — consumer onboarding |
+|| Simulation framework | Bulk event sequence generator for stress testing | Sprint 5 — `integration/simulation/` |
+|| Playwright E2E tests | End-to-end browser tests for `example/user/` | Sprint 5 — command→event→query flow |
+|| Dual store runtime example | Memory vs SQL selection via config | Sprint 5 — `example/user/` runtime switching |
+|| Extended snapshot coverage | `go-snaps` across all 22 library modules | Sprint 6 — signing, middleware, storage, listing, etc. |
+|| Build tag experiments | `jsonv2`, `arenas`, `simd` behind tags | Sprint 6 — forward-looking performance |
 
 ---
 

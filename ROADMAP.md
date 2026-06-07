@@ -1,0 +1,114 @@
+# Roadmap — go-cqrs-lite
+
+> Where we are, where we're going, and what's next.
+
+---
+
+## Short Term (Next 90 Days)
+
+### Sprint 1: Trust & Documentation (Week 1)
+
+- [ ] `FEATURES.md` updated with all planned features and honest status
+- [ ] `docs/DOMAIN_LANGUAGE.md` — CQRS & Event Sourcing glossary (≥20 terms)
+- [ ] `CONTEXT.md` — architecture overview & consumer patterns
+- [ ] `ROADMAP.md` — this file
+- [ ] gosec security scanning in devShell + CI with SARIF upload
+- [ ] `.go-arch-lint.yml` with module dependency layer rules + CI step
+
+### Sprint 2: Operational Readiness (Week 2)
+
+- [ ] Health check middleware (`/health`, `/health/live`, `/health/ready`)
+- [ ] Metrics HTTP handler (request count, error rate, avg response time)
+- [ ] Graceful shutdown helper (`pkg/gracefulshutdown`)
+- [ ] Operational endpoints in `example/user/`
+
+### Sprint 3: Testing Rigor — PBT & Snapshots (Week 3)
+
+- [ ] `pgregory.net/rapid` property tests on `decider/` — deterministic decide, version monotonicity
+- [ ] `rapid` property tests on `event/` — event immutability, version correctness
+- [ ] `rapid` property tests on `id/` — ULID validity, prefix correctness
+- [ ] `go-snaps` snapshot tests on `integration/` — event JSON serialization, catalog exports
+- [ ] `go-snaps` snapshot tests on `catalog/` — AsyncAPI, OpenAPI, D2, EventCatalog exports
+- [ ] `go-snaps` snapshot tests on `projection/` — state rendering
+
+### Sprint 4: CI & Deployment (Week 4)
+
+- [ ] Save `benchmark-baseline.txt` from all benchmarks
+- [ ] Add CI step: fail if any benchmark >2× slower than baseline
+- [ ] Dockerfile for `example/user/` (multi-stage: builder → scratch → alpine)
+- [ ] `docker-compose.yml` for example stack
+- [ ] Docker build CI step (linux amd64 + arm64)
+
+### Sprint 5: Consumer Experience (Week 5–6)
+
+- [ ] `example/catalog-server/` — embedded EventCatalog SPA server
+- [ ] `middleware/sse.go` — SSE broker over event bus + tests
+- [ ] SSE handler in `example/user/` + JavaScript client
+- [ ] `pkg/config/` module — YAML config loader with env-specific overlays
+- [ ] Config usage example in `example/user/`
+- [ ] `integration/simulation/` — event sequence generator + decider stress tests
+- [ ] Event store throughput simulation benchmark
+- [ ] Playwright setup in `example/user/`
+- [ ] Playwright E2E test: health endpoint
+- [ ] Playwright E2E test: core command→event→query flow
+- [ ] Playwright CI step
+- [ ] Dual store runtime switching in `example/user/` (memory vs SQL)
+
+### Sprint 6: Polish & Experiments (Week 7–8)
+
+- [ ] Document experimental build tags (`jsonv2`, `arenas`, `simd`, `runtimesecret`)
+- [ ] `go-snaps` across all remaining modules (signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory)
+- [ ] `rapid` PBT on `command/` and `query/` modules
+- [ ] `jsonv2` codec experiment behind build tag
+- [ ] Arena allocation experiment in event module
+
+---
+
+## Long Term Vision (6–12 Months)
+
+### Performance
+
+- [ ] SIMD-accelerated event serialization (Go experiment)
+- [ ] Arena allocation for high-throughput event creation
+- [ ] Zero-allocation event encoding path (jsonv2)
+- [ ] Streaming event reads without materializing full slice
+
+### Reliability
+
+- [ ] Outbox pattern implementation (reliable at-least-once publishing)
+- [ ] Saga module (orchestrated multi-step transactions)
+- [ ] Event schema registry with validation middleware
+- [ ] Distributed checkpointing for projections
+
+### Consumer Experience
+
+- [ ] Code generator (`cqrs-gen`) v2 with struct tag scanning
+- [ ] WebAssembly compilation target for decider module
+- [ ] gRPC transport adapter
+- [ ] NATS / Redis Stream adapter
+- [ ] GraphQL query adapter for projections
+
+### Observability
+
+- [ ] Built-in pprof endpoints
+- [ ] Custom metrics exporter (Prometheus format)
+- [ ] Structured logging middleware with configurable levels
+- [ ] Distributed tracing span propagation across module boundaries
+
+---
+
+## Raw Ideas (No Design Yet)
+
+- Event stream compaction / log truncation strategies
+- Multi-tenant event store (schema-per-tenant)
+- Event archival to S3 / GCS / Azure Blob
+- CQRS-lite dashboard (web UI for inspecting aggregates, events, projections)
+- Automatic migration generator for schema evolution
+- Property-based integration testing with state machine verification
+- Chaos engineering integration (random network partitions, disk failures)
+- Performance regression dashboard (historical benchmark tracking)
+
+---
+
+_Last updated: 2026-06-08_
+_See `docs/planning/2026-06-08_00_08-SEC_LESSONS_INTEGRATION_PLAN.md` for detailed execution plan._

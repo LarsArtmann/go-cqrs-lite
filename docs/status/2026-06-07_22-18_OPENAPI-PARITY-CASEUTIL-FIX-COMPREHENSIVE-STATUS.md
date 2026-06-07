@@ -55,15 +55,15 @@ The `catalog/openapi` package is now at **100% test coverage** (up from 96.4%) a
 
 ### Catalog Coverage Gaps (Non-Critical)
 
-| Package | Coverage | Gap |
-| ------- | -------- | --- |
-| `catalog/v2` (root) | 95.9% | `DataStoreID.String()`, `TeamID.String()`, `UserID.String()` (0%) — trivial String() methods |
-| `catalog/asyncapi` | 93.9% | `operationTitleAndName` (87.5%), `kindToTagName` (80%), `buildTags` (62.5%) |
-| `catalog/d2` | 95.0% | `buildTooltip` (73.7%), `writeDomains` (90.9%) |
-| `catalog/docserver` | 90.1% | `serveOpenAPIYAML` (60%), `serveAsyncAPIYAML` (66.7%), `serveYAML` (66.7%), `mustStaticFS` (75%) |
-| `catalog/eventcatalog` | 92.7% | `writeFlowSteps` (67.6%), `writeSchema` (75%), `writePackageJSON` (80%), several resource writers at 83-92% |
-| `catalog/schema` | 86.0% | `JSONToYAML` (0%), `ToAny` error branch (80%), `buildSchema` map/func branches (84.6%), `goTypeToJSON` (81.8%) |
-| `internal/cattest` | 0.0% | Test helpers — acceptable (consumed by tests, not production) |
+| Package                | Coverage | Gap                                                                                                            |
+| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `catalog/v2` (root)    | 95.9%    | `DataStoreID.String()`, `TeamID.String()`, `UserID.String()` (0%) — trivial String() methods                   |
+| `catalog/asyncapi`     | 93.9%    | `operationTitleAndName` (87.5%), `kindToTagName` (80%), `buildTags` (62.5%)                                    |
+| `catalog/d2`           | 95.0%    | `buildTooltip` (73.7%), `writeDomains` (90.9%)                                                                 |
+| `catalog/docserver`    | 90.1%    | `serveOpenAPIYAML` (60%), `serveAsyncAPIYAML` (66.7%), `serveYAML` (66.7%), `mustStaticFS` (75%)               |
+| `catalog/eventcatalog` | 92.7%    | `writeFlowSteps` (67.6%), `writeSchema` (75%), `writePackageJSON` (80%), several resource writers at 83-92%    |
+| `catalog/schema`       | 86.0%    | `JSONToYAML` (0%), `ToAny` error branch (80%), `buildSchema` map/func branches (84.6%), `goTypeToJSON` (81.8%) |
+| `internal/cattest`     | 0.0%     | Test helpers — acceptable (consumed by tests, not production)                                                  |
 
 ### Workspace Health
 
@@ -150,48 +150,48 @@ Ranked by **impact × effort**:
 
 ### P0 — Quick Wins (≤30 min)
 
-| # | Task | Module | Est | Impact |
-| - | ---- | ------ | --- | ------ |
-| 1 | Fix `example/listing` compilation conflict | example/listing | 10m | CI green |
-| 2 | Add OpenAPI YAML golden test | catalog/openapi | 10m | Parity with asyncapi |
-| 3 | Add `TestSchemaJSONToYAML` | catalog/schema | 10m | Coverage gap closed |
-| 4 | Add catalog root `String()` tests | catalog | 10m | Coverage honesty |
-| 5 | Add `TestDocument_MarshalJSON` direct test | catalog/openapi | 10m | Coverage honesty |
+| #   | Task                                       | Module          | Est | Impact               |
+| --- | ------------------------------------------ | --------------- | --- | -------------------- |
+| 1   | Fix `example/listing` compilation conflict | example/listing | 10m | CI green             |
+| 2   | Add OpenAPI YAML golden test               | catalog/openapi | 10m | Parity with asyncapi |
+| 3   | Add `TestSchemaJSONToYAML`                 | catalog/schema  | 10m | Coverage gap closed  |
+| 4   | Add catalog root `String()` tests          | catalog         | 10m | Coverage honesty     |
+| 5   | Add `TestDocument_MarshalJSON` direct test | catalog/openapi | 10m | Coverage honesty     |
 
 ### P1 — Quality (1-4 hours)
 
-| # | Task | Module | Est | Impact |
-| - | ---- | ------ | --- | ------ |
-| 6 | Populate `MediaType.Example` from message examples | catalog/openapi | 1h | Better OpenAPI output |
-| 7 | Extract query params for GET operations | catalog/openapi | 2h | More realistic API specs |
-| 8 | Test docserver YAML error branches | catalog/docserver | 1h | Coverage + reliability |
-| 9 | Add storage benchmarks (PG vs SQLite) | storage | 2h | Performance visibility |
-| 10 | Add projection replay benchmarks | projection | 2h | Regression detection |
-| 11 | OpenAPI schema deduplication ($ref reuse) | catalog/openapi | 3h | Cleaner output |
-| 12 | Run API stability check in CI | cmd/api-stability | 2h | Breaking change protection |
+| #   | Task                                               | Module            | Est | Impact                     |
+| --- | -------------------------------------------------- | ----------------- | --- | -------------------------- |
+| 6   | Populate `MediaType.Example` from message examples | catalog/openapi   | 1h  | Better OpenAPI output      |
+| 7   | Extract query params for GET operations            | catalog/openapi   | 2h  | More realistic API specs   |
+| 8   | Test docserver YAML error branches                 | catalog/docserver | 1h  | Coverage + reliability     |
+| 9   | Add storage benchmarks (PG vs SQLite)              | storage           | 2h  | Performance visibility     |
+| 10  | Add projection replay benchmarks                   | projection        | 2h  | Regression detection       |
+| 11  | OpenAPI schema deduplication ($ref reuse)          | catalog/openapi   | 3h  | Cleaner output             |
+| 12  | Run API stability check in CI                      | cmd/api-stability | 2h  | Breaking change protection |
 
 ### P2 — Features (4-8 hours)
 
-| # | Task | Module | Est | Impact |
-| - | ---- | ------ | --- | ------ |
-| 13 | Support PUT/PATCH/DELETE in OpenAPI exporter | catalog/openapi | 4h | Full REST coverage |
-| 14 | OpenAPI security scheme generation | catalog/openapi | 4h | Production-ready specs |
-| 15 | Add event webhook semantics (not REST endpoints) | catalog/openapi | 4h | Correct async semantics |
-| 16 | Turso integration test (embedded libSQL) | turso | 4h | Reliability |
-| 17 | Watermill integration test (in-process broker) | watermill | 4h | Reliability |
-| 18 | Snapshot compression (gzip option) | snapshot | 4h | Storage efficiency |
-| 19 | cqrs-gen: query handler generation | cmd/cqrs-gen | 4h | Feature parity |
-| 20 | Storage connection pool metrics | storage | 3h | Observability |
+| #   | Task                                             | Module          | Est | Impact                  |
+| --- | ------------------------------------------------ | --------------- | --- | ----------------------- |
+| 13  | Support PUT/PATCH/DELETE in OpenAPI exporter     | catalog/openapi | 4h  | Full REST coverage      |
+| 14  | OpenAPI security scheme generation               | catalog/openapi | 4h  | Production-ready specs  |
+| 15  | Add event webhook semantics (not REST endpoints) | catalog/openapi | 4h  | Correct async semantics |
+| 16  | Turso integration test (embedded libSQL)         | turso           | 4h  | Reliability             |
+| 17  | Watermill integration test (in-process broker)   | watermill       | 4h  | Reliability             |
+| 18  | Snapshot compression (gzip option)               | snapshot        | 4h  | Storage efficiency      |
+| 19  | cqrs-gen: query handler generation               | cmd/cqrs-gen    | 4h  | Feature parity          |
+| 20  | Storage connection pool metrics                  | storage         | 3h  | Observability           |
 
 ### P3 — Strategic (1+ day)
 
-| # | Task | Module | Est | Impact |
-| - | ---- | ------ | --- | ------ |
-| 21 | Hosted documentation site (docserver deploy) | docs/ | 2d | Discoverability |
-| 22 | v3 planning ADRs | docs/adr/ | 1d | Strategic clarity |
-| 23 | AsyncAPI/OpenAPI exporter interface unification | catalog/ | 2d | Code reuse |
-| 24 | Remove replace directives for consumers | all | 1d | Simpler imports |
-| 25 | Performance regression CI (benchstat) | ci | 1d | Quality gate |
+| #   | Task                                            | Module    | Est | Impact            |
+| --- | ----------------------------------------------- | --------- | --- | ----------------- |
+| 21  | Hosted documentation site (docserver deploy)    | docs/     | 2d  | Discoverability   |
+| 22  | v3 planning ADRs                                | docs/adr/ | 1d  | Strategic clarity |
+| 23  | AsyncAPI/OpenAPI exporter interface unification | catalog/  | 2d  | Code reuse        |
+| 24  | Remove replace directives for consumers         | all       | 1d  | Simpler imports   |
+| 25  | Performance regression CI (benchstat)           | ci        | 1d  | Quality gate      |
 
 ---
 
@@ -209,6 +209,7 @@ The OpenAPI spec has two ways to represent this:
 The asyncapi exporter handles this correctly (send/receive actions on channels). But OpenAPI has no native event semantics.
 
 **What is the intended consumer pattern?**
+
 - If the OpenAPI spec is for **external API consumers** to call our service → events shouldn't be in it at all (they're internal)
 - If the OpenAPI spec is for **webhook subscribers** to understand what they'll receive → should use `callbacks`
 - If the OpenAPI spec is for **event bridge/API gateway** routing → POST endpoints might be correct
