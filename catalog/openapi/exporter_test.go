@@ -80,39 +80,6 @@ func TestExporter_Export(t *testing.T) {
 	}
 }
 
-func TestToKebab(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"CreateItem", "create-item"},
-		{"GetItemByID", "get-item-by-id"},
-		{"HTTPRequest", "http-request"},
-		{"item_created", "item-created"},
-		{"item created", "item-created"},
-	}
-	runToKebabTests(t, tests)
-}
-
-func TestToPascal(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"create-item", "CreateItem"},
-		{"item_created", "ItemCreated"},
-		{"item created", "ItemCreated"},
-		{"", ""},
-	}
-
-	for _, tt := range tests {
-		got := toPascal(tt.input)
-		if got != tt.expected {
-			t.Errorf("toPascal(%q) = %q, want %q", tt.input, got, tt.expected)
-		}
-	}
-}
-
 func TestExporter_WithBasePath(t *testing.T) {
 	t.Parallel()
 
@@ -198,35 +165,63 @@ func TestSchemaToAny_Nil(t *testing.T) {
 	}
 }
 
-func TestToKebab_EdgeCases(t *testing.T) {
+func TestExtractIDParameter_NilSchema(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"item2name", "item-2name"},
-		{"HTTP", "http"},
-		{"JSONParser", "json-parser"},
-		{"already-lower", "already-lower"},
-		{"lowercase", "lowercase"},
-		{"ABC123", "abc-123"},
-		{"v2User", "v-2user"},
+	path, params := extractIDParameter("/api/svc/get-item", nil)
+	if path != "/api/svc/get-item" {
+		t.Errorf("path = %q, want unchanged", path)
 	}
-	runToKebabTests(t, tests)
+	if len(params) != 0 {
+		t.Errorf("params = %d, want 0", len(params))
+	}
 }
 
-func runToKebabTests(t *testing.T, tests []struct {
-	input    string
-	expected string
-},
-) {
-	t.Helper()
-	for _, tt := range tests {
-		got := toKebab(tt.input)
-		if got != tt.expected {
-			t.Errorf("toKebab(%q) = %q, want %q", tt.input, got, tt.expected)
-		}
+func TestExtractIDParameter_NilProperties(t *testing.T) {
+	t.Parallel()
+
+	path, params := extractIDParameter("/api/svc/get-item", &catalog.Schema{Type: catalog.TypeObject})
+	if path != "/api/svc/get-item" {
+		t.Errorf("path = %q, want unchanged", path)
+	}
+	if len(params) != 0 {
+		t.Errorf("params = %d, want 0", len(params))
+	}
+}
+
+func TestExtractIDParameter_NoIDField(t *testing.T) {
+	t.Parallel()
+
+	path, params := extractIDParameter("/api/svc/list-items", &catalog.Schema{
+		Type: catalog.TypeObject,
+		Properties: map[string]catalog.Property{
+			"name": {Type: catalog.TypeString},
+		},
+	})
+	if path != "/api/svc/list-items" {
+		t.Errorf("path = %q, want unchanged", path)
+	}
+	if len(params) != 0 {
+		t.Errorf("params = %d, want 0", len(params))
+	}
+}
+
+func TestDocument_MarshalYAML(t *testing.T) {
+	t.Parallel()
+
+	doc := &Document{
+		OpenAPI:    "3.0.3",
+		Info:       Info{Title: "Test", Version: "1.0.0"},
+		Paths:      map[string]*PathItem{},
+		Components: Components{Schemas: map[string]any{}},
+	}
+
+	data, err := doc.MarshalYAML()
+	if err != nil {
+		t.Fatalf("MarshalYAML: %v", err)
+	}
+	if len(data) == 0 {
+		t.Fatal("expected non-empty YAML")
 	}
 }
 

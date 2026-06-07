@@ -73,6 +73,8 @@ func TestToPascal(t *testing.T) {
 		{"", ""},
 		{"a b", "AB"},
 		{"x", "X"},
+		{"CreateOrder", "Createorder"},
+		{"AlreadyPascal", "Alreadypascal"},
 	}
 
 	for _, tt := range tests {

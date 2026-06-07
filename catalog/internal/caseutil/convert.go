@@ -70,7 +70,12 @@ func ToPascal(s string) string {
 
 	for _, w := range words {
 		if len(w) > 0 {
-			result.WriteRune(rune(w[0] - 'a' + 'A'))
+			first := w[0]
+			if first >= 'a' && first <= 'z' {
+				result.WriteRune(rune(first - 'a' + 'A'))
+			} else {
+				result.WriteRune(rune(first))
+			}
 
 			if len(w) > 1 {
 				result.WriteString(strings.ToLower(w[1:]))

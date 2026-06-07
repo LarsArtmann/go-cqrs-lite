@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/caseutil"
 )
 
 const (
@@ -118,7 +119,7 @@ func (e *Exporter) addCommand(
 	tagName string,
 	msg catalog.Message,
 ) {
-	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
+	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, caseutil.ToKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	obj := objectSchema()
@@ -129,7 +130,7 @@ func (e *Exporter) addCommand(
 			Tags:        []string{tagName},
 			Summary:     msg.Name,
 			Description: msg.Summary,
-			OperationID: "post" + toPascal(string(msg.ID)),
+			OperationID: "post" + caseutil.ToPascal(string(msg.ID)),
 			Deprecated:  msg.Deprecated,
 			RequestBody: &RequestBody{
 				Description: msg.Name + " request",
@@ -150,14 +151,14 @@ func (e *Exporter) addQuery(
 	tagName string,
 	msg catalog.Message,
 ) {
-	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
+	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, caseutil.ToKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	op := &Operation{ //nolint:exhaustruct
 		Tags:        []string{tagName},
 		Summary:     msg.Name,
 		Description: msg.Summary,
-		OperationID: "get" + toPascal(string(msg.ID)),
+		OperationID: "get" + caseutil.ToPascal(string(msg.ID)),
 		Deprecated:  msg.Deprecated,
 		Responses: map[string]*Response{
 			"200": responseWithContent("Success", schemaRef),
@@ -200,7 +201,7 @@ func (e *Exporter) addEvent(
 	tagName string,
 	msg catalog.Message,
 ) {
-	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, serviceID, toKebab(string(msg.ID)))
+	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, serviceID, caseutil.ToKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
 	//nolint:exhaustruct
@@ -209,7 +210,7 @@ func (e *Exporter) addEvent(
 			Tags:        []string{tagName},
 			Summary:     "Event: " + msg.Name,
 			Description: msg.Summary,
-			OperationID: "event" + toPascal(string(msg.ID)),
+			OperationID: "event" + caseutil.ToPascal(string(msg.ID)),
 			Deprecated:  msg.Deprecated,
 			RequestBody: &RequestBody{
 				Description: msg.Name + " event payload",
