@@ -1,0 +1,92 @@
+package simulation
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+)
+
+// EventGenerator produces deterministic event sequences for stress testing.
+type EventGenerator struct {
+	aggregateType event.AggregateType
+	eventType     event.Type
+	payloadGen    func(int) any
+}
+
+// NewEventGenerator creates a generator for the given aggregate and event types.
+func NewEventGenerator(
+	aggregateType event.AggregateType,
+	eventType event.Type,
+	payloadGen func(int) any,
+) *EventGenerator {
+	return &EventGenerator{
+		aggregateType: aggregateType,
+		eventType:     eventType,
+		payloadGen:    payloadGen,
+	}
+}
+
+// Generate creates a sequence of events for a single aggregate.
+func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
+	aggID := id.NewAggregateID()
+	types := make([]event.Type, count)
+	payloads := make([]any, count)
+
+	for i := range count {
+		types[i] = g.eventType
+		payloads[i] = g.payloadGen(i)
+	}
+
+	return event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+}
+
+// GenerateMulti creates events across multiple aggregates.
+func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]event.Event, error) {
+	var allEvents []event.Event
+
+	for a := range aggregates {
+		aggID := id.NewAggregateID()
+		types := make([]event.Type, eventsPerAggregate)
+		payloads := make([]any, eventsPerAggregate)
+
+		for i := range eventsPerAggregate {
+			types[i] = g.eventType
+			payloads[i] = g.payloadGen(a*eventsPerAggregate + i)
+		}
+
+		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+		if err != nil {
+			return nil, fmt.Errorf("generate aggregate %d: %w", a, err)
+		}
+
+		allEvents = append(allEvents, events...)
+	}
+
+	return allEvents, nil
+}
+
+// DefaultUserGenerator returns a generator that produces UserCreated events.
+func DefaultUserGenerator() *EventGenerator {
+	return NewEventGenerator(
+		"User",
+		"UserCreated",
+		func(i int) any {
+			return map[string]string{
+				"name":  fmt.Sprintf("User-%d", i),
+				"email": fmt.Sprintf("user%d@example.com", i),
+			}
+		},
+	)
+}
+
+// MustSerialize serializes a value to JSON bytes, panicking on error.
+func MustSerialize(v any) []byte {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(fmt.Sprintf("serialize: %v", err))
+	}
+
+	return data
+}

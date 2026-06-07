@@ -1,0 +1,7 @@
+[
+  {
+    "aggregateType": "User",
+    "type": "UserCreated",
+    "version": 1
+  }
+]
