@@ -1,0 +1,11 @@
+# 2026/06/08 00:23:51.619633 [TestFoldIdempotency] [rapid] draw events: []event.Event{(*event.ImmutableEvent)(0x31b59c3d0480)}
+# 2026/06/08 00:23:51.619645 [TestFoldIdempotency] fold not idempotent: first={Value:1} second={Value:2}
+# 
+v0.4.8#2508271982370123370
+0x0
+0x0
+0x1
+0x0
+0x0
+0x0
+0x0

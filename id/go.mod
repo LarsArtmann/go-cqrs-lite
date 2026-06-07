@@ -6,3 +6,5 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.0
 	github.com/oklog/ulid/v2 v2.1.1
 )
+
+require pgregory.net/rapid v1.3.0
