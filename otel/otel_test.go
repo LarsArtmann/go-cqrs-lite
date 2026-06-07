@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -25,20 +24,6 @@ func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 
 	return provider, recorder
-}
-
-func withGlobalProvider(t *testing.T) *tracetest.SpanRecorder {
-	t.Helper()
-
-	recorder := tracetest.NewSpanRecorder()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
-
-	otel.SetTracerProvider(tp)
-	t.Cleanup(func() {
-		otel.SetTracerProvider(otel.GetTracerProvider())
-	})
-
-	return recorder
 }
 
 func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
@@ -107,8 +92,8 @@ func TestRecordError_SetsErrorStatus(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	recorder := withGlobalProvider(t)
-	tracer := NewTracer("test")
+	provider, recorder := testTracerWithRecorder()
+	tracer := provider.Tracer(ComponentTracer("test"))
 
 	_, span := tracer.Start(context.Background(), "test")
 	testErr := errors.New("something broke")
@@ -125,8 +110,8 @@ func TestEndWithError_NilError_EndsSpanWithoutError(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	recorder := withGlobalProvider(t)
-	tracer := NewTracer("test")
+	provider, recorder := testTracerWithRecorder()
+	tracer := provider.Tracer(ComponentTracer("test"))
 
 	_, span := tracer.Start(context.Background(), "test")
 	defer span.End()
@@ -141,8 +126,8 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	recorder := withGlobalProvider(t)
-	tracer := NewTracer("test")
+	provider, recorder := testTracerWithRecorder()
+	tracer := provider.Tracer(ComponentTracer("test"))
 
 	_, span := tracer.Start(context.Background(), "test")
 	defer span.End()
