@@ -21,7 +21,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 
 	statuses := []listing.AggregateStatus{
 		{
-			Ref: listing.AggregateRef{
+			Ref: listing.AggregateListing{
 				ID:          aggID,
 				Type:        "User",
 				Version:     event.Version(10),
@@ -31,7 +31,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 			Status: event.TombstoneActive,
 		},
 		{
-			Ref: listing.AggregateRef{
+			Ref: listing.AggregateListing{
 				ID:          aggID,
 				Type:        "Order",
 				Version:     event.Version(5),
@@ -41,7 +41,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 			Status: event.TombstoneTombstoned,
 		},
 		{
-			Ref: listing.AggregateRef{
+			Ref: listing.AggregateListing{
 				ID:          aggID,
 				Type:        "Cart",
 				Version:     event.Version(0),
@@ -66,7 +66,7 @@ func TestGolden_PageJSON(t *testing.T) {
 	page := listing.Page[listing.AggregateStatus]{
 		Items: []listing.AggregateStatus{
 			{
-				Ref: listing.AggregateRef{
+				Ref: listing.AggregateListing{
 					ID:          aggID,
 					Type:        "User",
 					Version:     event.Version(3),

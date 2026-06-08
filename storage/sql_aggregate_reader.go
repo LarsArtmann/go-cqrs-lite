@@ -48,7 +48,7 @@ func NewSQLAggregateReader(
 func (r *SQLAggregateReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateRef], error) {
+) (*listing.Page[listing.AggregateListing], error) {
 	return listRefsFromStatus(r, ctx, opts)
 }
 
@@ -150,7 +150,7 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 		}
 
 		items = append(items, listing.AggregateStatus{
-			Ref: listing.AggregateRef{
+			Ref: listing.AggregateListing{
 				ID:         parsedID,
 				Type:       event.AggregateType(aggType),
 				Version:    event.Version(version),
@@ -183,16 +183,16 @@ func listRefsFromStatus(
 	r listing.AggregateReader,
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateRef], error) {
+) (*listing.Page[listing.AggregateListing], error) {
 	statusPage, err := r.ListWithStatus(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	refs := make([]listing.AggregateRef, len(statusPage.Items))
+	refs := make([]listing.AggregateListing, len(statusPage.Items))
 	for i, s := range statusPage.Items {
 		refs[i] = s.Ref
 	}
 
-	return &listing.Page[listing.AggregateRef]{Items: refs, HasMore: statusPage.HasMore}, nil
+	return &listing.Page[listing.AggregateListing]{Items: refs, HasMore: statusPage.HasMore}, nil
 }

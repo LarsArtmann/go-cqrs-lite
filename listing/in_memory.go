@@ -32,7 +32,7 @@ func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader 
 func (r *InMemoryAggregateReader) List(
 	ctx context.Context,
 	opts ListOptions,
-) (*Page[AggregateRef], error) {
+) (*Page[AggregateListing], error) {
 	return listRefsFromStatus(r, ctx, opts)
 }
 
@@ -111,7 +111,7 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	}
 
 	type streamBuilder struct {
-		ref       AggregateRef
+		ref       AggregateListing
 		lastEvent event.Event
 	}
 
@@ -123,7 +123,7 @@ func buildRefs(events []event.Event) []AggregateStatus {
 		b, ok := builders[key]
 		if !ok {
 			b = &streamBuilder{ //nolint:exhaustruct // fields populated incrementally below
-				ref: AggregateRef{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
+				ref: AggregateListing{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
 					ID:   evt.AggregateID(),
 					Type: evt.AggregateType(),
 				},

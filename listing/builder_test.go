@@ -38,7 +38,7 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 
 	called := false
 	reader := &stubReader{
-		listFn: func(_ context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateRef], error) {
+		listFn: func(_ context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateListing], error) {
 			called = true
 
 			if opts.Limit != 20 {
@@ -49,7 +49,7 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 				t.Errorf("default tombstone = %v, want TombstoneExclude", opts.Tombstone)
 			}
 
-			return &listing.Page[listing.AggregateRef]{}, nil
+			return &listing.Page[listing.AggregateListing]{}, nil
 		},
 	}
 
@@ -64,19 +64,19 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 }
 
 type stubReader struct {
-	listFn           func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateRef], error)
+	listFn           func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateListing], error)
 	listWithStatusFn func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateStatus], error)
 }
 
 func (s *stubReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateRef], error) {
+) (*listing.Page[listing.AggregateListing], error) {
 	if s.listFn != nil {
 		return s.listFn(ctx, opts)
 	}
 
-	return &listing.Page[listing.AggregateRef]{}, nil
+	return &listing.Page[listing.AggregateListing]{}, nil
 }
 
 func (s *stubReader) ListWithStatus(
@@ -118,7 +118,7 @@ func TestAggregateStatus_MarshalJSON(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	status := listing.AggregateStatus{
-		Ref: listing.AggregateRef{
+		Ref: listing.AggregateListing{
 			ID:          aggID,
 			Type:        event.AggregateType("User"),
 			Version:     event.Version(3),

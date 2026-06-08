@@ -9,9 +9,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-// AggregateRef is a lightweight identity reference to an aggregate stream.
+// AggregateListing is a summary of an aggregate stream.
 // No derived state. Status is computed separately by the reader.
-type AggregateRef struct {
+type AggregateListing struct {
 	ID          id.AggregateID      `json:"id"`
 	Type        event.AggregateType `json:"type"`
 	Version     event.Version       `json:"version"`
@@ -21,7 +21,7 @@ type AggregateRef struct {
 
 // AggregateStatus pairs an aggregate with its computed tombstone state.
 type AggregateStatus struct {
-	Ref    AggregateRef
+	Ref    AggregateListing
 	Status event.TombstoneStatus
 }
 
@@ -59,12 +59,12 @@ func (p TombstonePolicy) String() string {
 
 func (s AggregateStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct { //nolint:wrapcheck // JSON serialization
-		AggregateRef
+		AggregateListing
 
 		Status string `json:"status"`
 	}{
-		AggregateRef: s.Ref,
-		Status:       s.Status.String(),
+		AggregateListing: s.Ref,
+		Status:           s.Status.String(),
 	})
 }
 
@@ -74,7 +74,7 @@ type ListOptions struct {
 	Type event.AggregateType
 
 	// After is the cursor for the next page.
-	// Pass the last AggregateRef.ID from the previous Page.
+	// Pass the last AggregateListing.ID from the previous Page.
 	After id.AggregateID
 
 	// Limit is the maximum number of items per page.

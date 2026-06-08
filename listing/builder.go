@@ -37,7 +37,7 @@ func (b *ListBuilder) OfType(t event.AggregateType) *ListBuilder {
 }
 
 // After sets the cursor for the next page.
-// Pass the last AggregateRef.ID from the previous Page.
+// Pass the last AggregateListing.ID from the previous Page.
 func (b *ListBuilder) After(id id.AggregateID) *ListBuilder {
 	b.opts.After = id
 
@@ -73,7 +73,7 @@ func (b *ListBuilder) OnlyDeleted() *ListBuilder {
 }
 
 // List executes the query and returns a page of aggregate references.
-func (b *ListBuilder) List(ctx context.Context) (*Page[AggregateRef], error) {
+func (b *ListBuilder) List(ctx context.Context) (*Page[AggregateListing], error) {
 	return b.reader.List(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }
 
