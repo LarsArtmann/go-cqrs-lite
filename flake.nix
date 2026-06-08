@@ -122,7 +122,9 @@
             '';
           };
 
-          checks = { };
+          checks = {
+            format = config.treefmt.build.check inputs.self;
+          };
 
           apps = {
             test = mkApp "test" goModules ''
