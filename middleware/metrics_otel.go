@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"

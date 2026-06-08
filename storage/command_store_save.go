@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"

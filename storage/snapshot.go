@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
@@ -48,9 +47,15 @@ func SnapshotSchema() string { return sqlpkg.PostgresDialect{}.SnapshotSchema() 
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
-	ctx, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "snapshot.save", cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...))
+	ctx, span := cqrsotel.StartSpan(
+		ctx,
+		sqlpkg.Tracer(),
+		"snapshot.save",
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(
+			append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
+				cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...),
+	)
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
 		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5)

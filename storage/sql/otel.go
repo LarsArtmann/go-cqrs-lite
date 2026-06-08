@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
@@ -23,9 +22,12 @@ func StartAggregateSpan(
 	extraAttrs ...cqrsotel.KeyValue,
 ) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(
-		ctx, Tracer(), spanName,
+		ctx,
+		Tracer(),
+		spanName,
 		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
+		cqrsotel.WithAttributes(
+			append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
 	)
 }
 

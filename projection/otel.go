@@ -1,7 +1,6 @@
 package projection
 
 import (
-
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 

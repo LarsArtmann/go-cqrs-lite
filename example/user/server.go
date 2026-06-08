@@ -76,5 +76,3 @@ func dbHealthCheck(store event.EventSource) middleware.HealthChecker {
 		}
 	}
 }
-
-
