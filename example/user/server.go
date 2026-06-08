@@ -15,6 +15,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+const serverVersion = "v2.2.0"
+
 // runServer starts an HTTP server with operational endpoints.
 // This demonstrates how consumers can expose health, metrics, and graceful
 // shutdown in production.
@@ -29,9 +31,17 @@ func runServer(
 	mux := http.NewServeMux()
 
 	// Health endpoints
-	mux.Handle("/health", middleware.HealthCheckHandler("v2.2.0"))
-	mux.Handle("/health/live", middleware.HealthCheckHandler("v2.2.0"))
-	mux.Handle("/health/ready", middleware.HealthCheckHandler("v2.2.0", dbHealthCheck(store)))
+	mux.Handle("/health", middleware.HealthCheckHandler(
+		serverVersion,
+		componentHealthCheck("command-dispatch", cmdDisp),
+		componentHealthCheck("query-dispatch", qryDisp),
+		componentHealthCheck("event-bus", bus),
+	))
+	mux.Handle("/health/live", middleware.HealthCheckHandler(serverVersion))
+	mux.Handle("/health/ready", middleware.HealthCheckHandler(
+		serverVersion,
+		dbHealthCheck(store),
+	))
 
 	// Metrics endpoint
 	mux.Handle("/metrics", middleware.MetricsHandler(metricsCollector))
@@ -74,6 +84,21 @@ func dbHealthCheck(store event.EventSource) middleware.HealthChecker {
 		return middleware.Check{
 			ComponentID:   "event-store",
 			ComponentType: "datastore",
+			Status:        status,
+		}
+	}
+}
+
+// componentHealthCheck creates a generic readiness check for any component.
+func componentHealthCheck(name string, component any) middleware.HealthChecker {
+	return func(_ context.Context) middleware.Check {
+		status := middleware.HealthStatusPass
+		if component == nil {
+			status = middleware.HealthStatusFail
+		}
+		return middleware.Check{
+			ComponentID:   name,
+			ComponentType: "service",
 			Status:        status,
 		}
 	}
