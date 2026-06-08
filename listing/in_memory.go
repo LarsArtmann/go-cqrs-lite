@@ -24,7 +24,9 @@ var _ AggregateReader = (*InMemoryAggregateReader)(nil)
 
 // NewInMemoryAggregateReader creates a reader that enumerates via Journal.ReadAll.
 func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader {
-	return &InMemoryAggregateReader{journal: journal}
+	return &InMemoryAggregateReader{ //nolint:exhaustruct // mu and cached zero-initialized
+		journal: journal,
+	}
 }
 
 func (r *InMemoryAggregateReader) List(

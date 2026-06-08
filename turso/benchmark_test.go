@@ -13,21 +13,21 @@ import (
 func benchTursoEventStore(b *testing.B) (*storage.SQLEventStore, func()) {
 	b.Helper()
 
-	db, err := turso.OpenInMemory()
+	conn, err := turso.OpenInMemory()
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	if err := turso.InitSchema(context.Background(), db); err != nil {
+	if err := turso.InitSchema(context.Background(), conn); err != nil {
 		b.Fatal(err)
 	}
 
-	store, err := turso.NewEventStore(db)
+	store, err := turso.NewEventStore(conn)
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	return store, func() { _ = store.Close(); _ = db.Close() }
+	return store, func() { _ = store.Close(); _ = conn.Close() }
 }
 
 func BenchmarkTursoEventStore_Save(b *testing.B) {

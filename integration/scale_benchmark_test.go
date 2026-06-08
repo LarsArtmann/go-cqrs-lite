@@ -143,7 +143,10 @@ func BenchmarkScale_EventCreation_WithPayload(b *testing.B) {
 	b.ReportAllocs()
 
 	aggID := id.NewAggregateID()
-	payload, _ := json.Marshal(map[string]string{"name": "test-item", "sku": "ABC-123"})
+	payload, err := json.Marshal(map[string]string{"name": "test-item", "sku": "ABC-123"})
+	if err != nil {
+		b.Fatalf("json.Marshal: %v", err)
+	}
 
 	b.ResetTimer()
 
@@ -562,7 +565,10 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 	aggIDs := make([]id.AggregateID, aggCount)
 	for i := range aggCount {
 		aggIDs[i] = id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
+		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
+		if err != nil {
+			b.Fatalf("json.Marshal: %v", err)
+		}
 
 		evt, err := event.NewEvent("ItemCreated", aggIDs[i], "Item", 1, payload)
 		if err != nil {
@@ -605,9 +611,15 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 
 	for i := range aggCount {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
+		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
+		if err != nil {
+			b.Fatalf("json.Marshal: %v", err)
+		}
 
-		evt, _ := event.NewEvent("ItemCreated", aggID, "Item", 1, payload)
+		evt, err := event.NewEvent("ItemCreated", aggID, "Item", 1, payload)
+		if err != nil {
+			b.Fatalf("NewEvent: %v", err)
+		}
 		_ = store.AppendBatch(ctx, event.NewAggregateRef("Item", aggID), []event.Event{evt})
 	}
 

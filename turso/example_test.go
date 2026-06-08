@@ -7,33 +7,33 @@ import (
 )
 
 func ExampleOpenInMemory() {
-	db, err := turso.OpenInMemory()
+	conn, err := turso.OpenInMemory()
 	if err != nil {
 		fmt.Println("error:", err)
 
 		return
 	}
 
-	defer db.Close()
+	defer func() { _ = conn.Close() }()
 
-	fmt.Println(db != nil)
+	fmt.Println(conn != nil)
 
 	// Output:
 	// true
 }
 
 func ExampleNewEventStore() {
-	db, _ := turso.OpenInMemory()
-	defer db.Close()
+	conn, _ := turso.OpenInMemory()
+	defer func() { _ = conn.Close() }()
 
-	store, err := turso.NewEventStore(db)
+	store, err := turso.NewEventStore(conn)
 	if err != nil {
 		fmt.Println("error:", err)
 
 		return
 	}
 
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	fmt.Println(store != nil)
 

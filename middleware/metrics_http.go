@@ -9,16 +9,17 @@ import (
 )
 
 // MetricsSnapshot holds a point-in-time view of runtime metrics.
+// JSON tags use snake_case per Prometheus/OpenMetrics convention.
 type MetricsSnapshot struct {
 	Timestamp     string  `json:"timestamp"`
-	UptimeSeconds float64 `json:"uptime_seconds"`
-	RequestsTotal uint64  `json:"requests_total"`
-	RequestsError uint64  `json:"requests_error"`
-	AvgResponseMs float64 `json:"avg_response_ms"`
+	UptimeSeconds float64 `json:"uptime_seconds"`  //nolint:tagliatelle
+	RequestsTotal uint64  `json:"requests_total"`  //nolint:tagliatelle
+	RequestsError uint64  `json:"requests_error"`  //nolint:tagliatelle
+	AvgResponseMs float64 `json:"avg_response_ms"` //nolint:tagliatelle
 	Goroutines    int     `json:"goroutines"`
-	MemoryAllocMB float64 `json:"memory_alloc_mb"`
-	MemorySysMB   float64 `json:"memory_sys_mb"`
-	GCCount       uint32  `json:"gc_count"`
+	MemoryAllocMB float64 `json:"memory_alloc_mb"` //nolint:tagliatelle
+	MemorySysMB   float64 `json:"memory_sys_mb"`   //nolint:tagliatelle
+	GCCount       uint32  `json:"gc_count"`        //nolint:tagliatelle
 }
 
 // MetricsCollector tracks HTTP request metrics.
@@ -31,17 +32,30 @@ type MetricsCollector struct {
 
 // NewMetricsCollector creates a new metrics collector.
 func NewMetricsCollector() *MetricsCollector {
-	return &MetricsCollector{
+	return &MetricsCollector{ //nolint:exhaustruct // atomic fields zero-initialized
 		startTime: time.Now(),
 	}
 }
 
-// RecordRequest records a completed HTTP request.
-func (m *MetricsCollector) RecordRequest(statusCode int, duration time.Duration) {
-	m.requestsTotal.Add(1)
-	m.responseSum.Add(uint64(duration.Microseconds()))
+const (
+	statusCodeErrThreshold = 400
+	microsPerMs            = 1000.0
+	bytesPerMB             = 1024.0
+)
 
-	if statusCode >= 400 {
+func microsToUint64(d time.Duration) uint64 {
+	return uint64(d.Microseconds()) //nolint:gosec // Microseconds() always returns a positive value
+}
+
+// RecordRequest records a completed HTTP request.
+func (m *MetricsCollector) RecordRequest(
+	statusCode int,
+	duration time.Duration,
+) {
+	m.requestsTotal.Add(1)
+	m.responseSum.Add(microsToUint64(duration))
+
+	if statusCode >= statusCodeErrThreshold {
 		m.requestsError.Add(1)
 	}
 }
@@ -57,7 +71,7 @@ func (m *MetricsCollector) Snapshot() MetricsSnapshot {
 	var avgMs float64
 
 	if total > 0 {
-		avgMs = float64(m.responseSum.Load()) / float64(total) / 1000.0
+		avgMs = float64(m.responseSum.Load()) / float64(total) / microsPerMs
 	}
 
 	return MetricsSnapshot{
@@ -67,15 +81,15 @@ func (m *MetricsCollector) Snapshot() MetricsSnapshot {
 		RequestsError: m.requestsError.Load(),
 		AvgResponseMs: avgMs,
 		Goroutines:    runtime.NumGoroutine(),
-		MemoryAllocMB: float64(mem.Alloc) / 1024.0 / 1024.0,
-		MemorySysMB:   float64(mem.Sys) / 1024.0 / 1024.0,
+		MemoryAllocMB: float64(mem.Alloc) / bytesPerMB / bytesPerMB,
+		MemorySysMB:   float64(mem.Sys) / bytesPerMB / bytesPerMB,
 		GCCount:       mem.NumGC,
 	}
 }
 
 // MetricsHandler returns an HTTP handler that exposes metrics.
 func MetricsHandler(collector *MetricsCollector) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		err := json.NewEncoder(w).Encode(collector.Snapshot())

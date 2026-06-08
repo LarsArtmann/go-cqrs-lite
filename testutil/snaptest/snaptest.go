@@ -24,7 +24,7 @@ func Match(tb testing.TB, name string, data []byte) {
 			tb.Fatalf("create snapshot dir: %v", err)
 		}
 
-		err := os.WriteFile(golden, data, 0o600)
+		err = os.WriteFile(golden, data, 0o600)
 		if err != nil {
 			tb.Fatalf("write snapshot: %v", err)
 		}

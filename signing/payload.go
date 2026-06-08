@@ -57,9 +57,16 @@ func canonicalPayload(evt event.Event) []byte {
 }
 
 func appendPrefixed(buf, lenBuf []byte, s string) []byte {
-	binary.BigEndian.PutUint32(lenBuf, uint32(len(s)))
+	putUint32(lenBuf, len(s))
 	buf = append(buf, lenBuf...)
 	buf = append(buf, s...)
 
 	return buf
+}
+
+func putUint32(b []byte, n int) {
+	binary.BigEndian.PutUint32(
+		b,
+		uint32(n), //nolint:gosec // bounded by signing context
+	)
 }

@@ -105,7 +105,8 @@ func (a *EventStore) ReadFrom(
 		}
 	}
 
-	if err := checkIteratorError(iter); err != nil {
+	err = checkIteratorError(iter)
+	if err != nil {
 		return nil, err
 	}
 

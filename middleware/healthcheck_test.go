@@ -46,7 +46,12 @@ func TestHealthCheckHandler_Ready(t *testing.T) {
 
 	handler := HealthCheckHandler("v2.2.0", checker)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
+	req := httptest.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"/health/ready",
+		nil,
+	)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -81,7 +86,12 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 
 	handler := HealthCheckHandler("v2.2.0", checker)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/ready", nil)
+	req := httptest.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"/health/ready",
+		nil,
+	)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)

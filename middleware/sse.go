@@ -21,7 +21,7 @@ type SSEBroker struct {
 func NewSSEBroker(bus event.Bus) *SSEBroker {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	b := &SSEBroker{
+	b := &SSEBroker{ //nolint:exhaustruct // mu zero-value is ready, handler set below
 		clients: make(map[string]chan event.Event),
 		cancel:  cancel,
 	}
@@ -58,12 +58,14 @@ func (b *SSEBroker) handleEvent(_ context.Context, evt event.Event) error {
 	return nil
 }
 
+const sseChannelBufSize = 100
+
 // AddClient registers a new SSE client and returns its event channel.
 func (b *SSEBroker) AddClient(id string) chan event.Event {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	ch := make(chan event.Event, 100)
+	ch := make(chan event.Event, sseChannelBufSize)
 	b.clients[id] = ch
 
 	return ch
@@ -134,9 +136,10 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 					return
 				}
 
-				fmt.Fprintf(w, "event: %s\n", evt.Type())
-				fmt.Fprintf(w, "id: %s\n", evt.ID().String())
-				fmt.Fprintf(w, "data: %s\n\n", string(evt.Payload()))
+				_, _ = fmt.Fprintf(w, "event: %s\n", evt.Type())
+				_, _ = fmt.Fprintf(w, "id: %s\n", evt.ID().String())
+				_, _ = fmt.Fprintf(w, "data: %s\n\n", string(evt.Payload()))
+
 				flusher.Flush()
 			case <-r.Context().Done():
 				return

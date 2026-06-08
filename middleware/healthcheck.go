@@ -54,13 +54,13 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 		isLive := path == "/health/live" || path == "/health"
 		isReady := path == "/health/ready"
 
-		resp := HealthCheckResponse{
+		resp := HealthCheckResponse{ //nolint:exhaustruct // optional fields omitted by design
 			Status:  HealthStatusPass,
 			Version: version,
 			Checks:  make(map[string]Check),
 		}
 
-		resp.Checks["liveness"] = Check{
+		resp.Checks["liveness"] = Check{ //nolint:exhaustruct // optional fields omitted by design
 			ComponentType: "process",
 			Status:        HealthStatusPass,
 			Time:          now,

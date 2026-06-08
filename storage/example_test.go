@@ -16,7 +16,7 @@ func ExampleNewSQLiteEventStore() {
 	ctx := context.Background()
 
 	db, _ := sql.Open("sqlite", "file::memory:?_loc=auto&_time_format=sqlite")
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	_ = storage.SQLiteInitSchema(ctx, db)
 

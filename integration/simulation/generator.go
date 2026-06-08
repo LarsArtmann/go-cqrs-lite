@@ -39,26 +39,31 @@ func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 		payloads[i] = g.payloadGen(i)
 	}
 
-	return event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+	events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+	if err != nil {
+		return nil, fmt.Errorf("generate %d events: %w", count, err)
+	}
+
+	return events, nil
 }
 
 // GenerateMulti creates events across multiple aggregates.
 func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]event.Event, error) {
 	var allEvents []event.Event
 
-	for a := range aggregates {
+	for aggIdx := range aggregates {
 		aggID := id.NewAggregateID()
 		types := make([]event.Type, eventsPerAggregate)
 		payloads := make([]any, eventsPerAggregate)
 
 		for i := range eventsPerAggregate {
 			types[i] = g.eventType
-			payloads[i] = g.payloadGen(a*eventsPerAggregate + i)
+			payloads[i] = g.payloadGen(aggIdx*eventsPerAggregate + i)
 		}
 
 		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 		if err != nil {
-			return nil, fmt.Errorf("generate aggregate %d: %w", a, err)
+			return nil, fmt.Errorf("generate aggregate %d: %w", aggIdx, err)
 		}
 
 		allEvents = append(allEvents, events...)

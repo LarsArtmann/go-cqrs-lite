@@ -156,6 +156,7 @@ linters:
             - go/parser
             - go/token
             - golang.org/x/tools
+            - golang.org/x/sync
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -377,7 +378,6 @@ linters:
     paths:
       - \.gen\.go$
       - _templ\.go$
-      - core/event/
       - event/
       - vendor/
 formatters:
@@ -399,7 +399,6 @@ formatters:
     generated: lax
     paths:
       - _templ\.go$
-      - core/event/
       - event/
 issues:
   max-issues-per-linter: 50

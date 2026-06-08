@@ -14,7 +14,7 @@ import (
 func ExampleNewRecovery() {
 	adapter := middleware.EventAdapter
 
-	mw := middleware.NewRecovery(adapter)
+	recoveryMW := middleware.NewRecovery(adapter)
 
 	var called bool
 
@@ -23,7 +23,7 @@ func ExampleNewRecovery() {
 		panic("something went wrong")
 	}
 
-	wrapped := mw(handler)
+	wrapped := recoveryMW(handler)
 
 	aggID := id.NewAggregateID()
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
@@ -39,8 +39,8 @@ func ExampleNewLogging() {
 	adapter := middleware.EventAdapter
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	mw := middleware.NewLogging(adapter, logger)
-	fmt.Println(mw != nil)
+	loggingMW := middleware.NewLogging(adapter, logger)
+	fmt.Println(loggingMW != nil)
 
 	// Output:
 	// true

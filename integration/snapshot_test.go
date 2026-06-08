@@ -21,8 +21,7 @@ type snapUserState struct {
 }
 
 func foldSnapUser(state snapUserState, evt event.Event) (snapUserState, error) {
-	switch evt.Type() {
-	case "UserCreated":
+	if evt.Type() == "UserCreated" {
 		var payload struct {
 			Name  string `json:"name"`
 			Email string `json:"email"`
@@ -130,7 +129,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 
-	var serialized []map[string]any
+	serialized := make([]map[string]any, 0, len(events))
 	for _, evt := range events {
 		serialized = append(serialized, map[string]any{
 			"type":          string(evt.Type()),
