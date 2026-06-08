@@ -988,8 +988,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>Six changes that <em>unlock adoption</em></h2>
 
         <p>
-          These are ordered by impact. The first three would make me adopt go-cqrs-lite immediately.
-          The last three would make me recommend it to everyone.
+          These are ordered by impact. <strong>P1 and P2 would make me adopt go-cqrs-lite immediately.</strong>
+          P3 turned out to be weaker than expected (P1 already solves it). P5 was withdrawn — the wrong problem.
+          P4 and P6 would make me recommend it to everyone.
         </p>
 
         <div class="proposals">
@@ -1065,41 +1066,28 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </div>
           </div>
 
-          <!-- P3 -->
-          <div class="proposal">
-            <div class="proposal-number">P3</div>
-            <h3>Make OTel optional, not structural</h3>
+          <!-- P3 — self-pushback: this is weaker than P1 -->
+          <div class="proposal" style="border-color: var(--border-light);">
+            <div class="proposal-number" style="background: var(--text-muted);">P3</div>
+            <h3>Make OTel optional, not structural <span class="badge amber" style="font-size:9px; vertical-align:middle; margin-left:8px;">weaker than P1</span></h3>
             <p>
-              OpenTelemetry should be a <strong>leaf module</strong> that consumers opt into, not a
-              dependency baked into core infrastructure. Today, <code>decider/v2</code>,
-              <code>projection/v2</code>, <code>storage/v2</code>, and
-              <code>middleware/v2</code> all directly import OTel packages.
+              Today, <code>decider/v2</code>, <code>projection/v2</code>, <code>storage/v2</code>, and
+              <code>middleware/v2</code> all directly import OTel packages. The heavy ones are
+              <code>otel/sdk</code> and <code>otel/sdk/metric</code> in middleware/v2 — the trace API
+              alone (<code>otel/trace</code>) is relatively lightweight.
             </p>
             <p>
-              Instead of <code>go.opentelemetry.io/otel/trace</code> in every module, accept a
-              <code>TracerProvider</code> interface or use a shim:
+              <strong>Honest pushback:</strong> the OTel trace API is the Go ecosystem standard.
+              Shimming Tracer/Span behind custom interfaces adds maintenance burden — every new OTel
+              feature (links, events, status codes) requires updating the shim. This proposal is
+              <em>weaker than it appeared</em> because:
             </p>
-            <div class="code-block">
-              <pre><span class="comment">// In event/core — no OTel import</span>
-<span class="keyword">type</span> <span class="type">Tracer</span> <span class="keyword">interface</span> {
-    Start(ctx context.Context, name <span class="type">string</span>) (context.Context, Span)
-}
-
-<span class="keyword">type</span> <span class="type">Span</span> <span class="keyword">interface</span> {
-    End()
-    RecordError(error)
-    SetAttributes(...Attribute)
-}
-
-<span class="comment">// In otel/v2 — thin adapter</span>
-<span class="keyword">func</span> <span class="accent">Adapt</span>(t trace.Tracer) Tracer { ... }</pre>
-            </div>
-            <div class="rationale">
+            <div class="rationale" style="border-left-color: var(--text-muted);">
               <p>
-                <strong>Why this matters:</strong> OpenTelemetry's SDK brings in ~15 transitive
-                packages. A library that wants retry logic shouldn't pay for distributed tracing
-                infrastructure. The shim pattern is what Go's HTTP client uses (net/http doesn't
-                import OTel — it accepts interfaces).
+                <strong>P1 already solves this.</strong> Extracting generic middleware as stdlib-only
+                removes the OTel dependency for external consumers entirely. The remaining modules
+                (decider, projection, storage) are CQRS-internal — their OTel usage is justified for
+                the audience that imports them. Only middleware was the problem, and P1 fixes it.
               </p>
             </div>
           </div>
@@ -1137,30 +1125,26 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </div>
           </div>
 
-          <!-- P5 -->
-          <div class="proposal">
-            <div class="proposal-number">P5</div>
-            <h3>Configurable ID backing type</h3>
+          <!-- P5 — self-pushback: wrong problem -->
+          <div class="proposal" style="border-color: var(--border-light);">
+            <div class="proposal-number" style="background: var(--text-muted);">P5</div>
+            <h3>Configurable ID backing type <span class="badge amber" style="font-size:9px; vertical-align:middle; margin-left:8px;">withdrawn — wrong problem</span></h3>
             <p>
-              Today <code>id.Of[T] = cbid.ID[T, ulid.ULID]</code> is hardcoded to ULID.
-              project-discovery-sdk uses <code>cbid.ID[T, string]</code> for file paths and names.
-              The branded-id pattern is the same, but the backing type differs.
+              Original proposal: make <code>id.Of[T]</code> accept a configurable backing type so
+              non-ULID use cases (file paths, project names) could use the same module.
             </p>
-            <p>Consider making the backing type a second type parameter that consumers can set:</p>
-            <div class="code-block">
-              <pre><span class="comment">// Already works via go-branded-id, but document it:</span>
-<span class="keyword">type</span> <span class="type">PathID</span> = cbid.ID[PathBrand, <span class="type">string</span>]
-<span class="keyword">type</span> <span class="type">EventID</span> = cbid.ID[EventBrand, ulid.ULID]
-
-<span class="comment">// Or provide a higher-level alias in id/:</span>
-<span class="keyword">type</span> <span class="type">Of</span>[T, B any] = cbid.ID[T, B]</pre>
-            </div>
-            <div class="rationale">
+            <p>
+              <strong>Withdrawn.</strong> ULID backing is a deliberate, correct choice for
+              event-sourced systems — time-ordered, globally unique, binary-sortable, extractable
+              timestamp. Making it string-backable would dilute these guarantees.
+            </p>
+            <div class="rationale" style="border-left-color: var(--text-muted);">
               <p>
-                <strong>Why this matters:</strong> Branded IDs are universally useful, but not
-                everything is a ULID. File paths, project names, language identifiers — these are
-                strings with phantom types. Making the backing type configurable removes the last
-                adoption barrier for the <code>id/</code> module.
+                <strong>This was the wrong problem.</strong> project-discovery-sdk already uses
+                <code>go-branded-id</code> directly for its string-backed needs. go-cqrs-lite's
+                <code>id/</code> module serves a different domain (event identifiers) where ULID is
+                the right answer. No change needed — the two projects already share the underlying
+                <code>go-branded-id</code> library and specialize appropriately.
               </p>
             </div>
           </div>
@@ -1228,7 +1212,7 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>How I'd use it <em>tomorrow</em></h2>
 
         <p>
-          With proposals P1–P3 implemented, project-discovery-sdk's enrichment pipeline would look
+          With proposals P1–P2 implemented, project-discovery-sdk's enrichment pipeline would look
           like this:
         </p>
 
@@ -1325,11 +1309,11 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
             </p>
           </div>
           <div class="timeline-step">
-            <h4>Shim the OTel dependency</h4>
+            <h4>Revisit OTel coupling if needed</h4>
             <p>
-              Define <code>Tracer</code>/<code>Span</code> interfaces in core modules. Move OTel
-              imports to <code>otel/v2</code> adapter. Core modules lose their OTel dependency.
-              <strong>Zero breaking changes</strong> for consumers that don't care about tracing.
+              After P1, the OTel problem is largely solved for external consumers (generic middleware
+              is stdlib-only). If CQRS-internal consumers still need lighter OTel integration, the
+              shim pattern can be evaluated then — but it's no longer a blocker for adoption.
             </p>
           </div>
           <div class="timeline-step">
@@ -1380,7 +1364,7 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
               <td><span class="badge red">no — event/v2 is a hub with 7 siblings</span></td>
             </tr>
             <tr>
-              <td>Would P1–P3 fix it?</td>
+              <td>Would P1–P2 fix it?</td>
               <td><span class="badge green">yes — immediate adoption</span></td>
             </tr>
             <tr>
@@ -1393,8 +1377,9 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </table>
 
         <p class="pull">
-          You didn't build a CQRS library. You built an infrastructure library that happens to be
-          packaged as CQRS. Unpackage the infrastructure and it becomes universal.
+          You built a genuinely excellent CQRS library. Extract the reusable algorithms (retry,
+          backoff, circuit breaker) as standalone modules, and every Go project making network calls
+          benefits — not just the ones doing event sourcing.
         </p>
       </section>
 
