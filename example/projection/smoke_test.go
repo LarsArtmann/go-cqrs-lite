@@ -77,7 +77,7 @@ func TestProjection_ReplayAndLive(t *testing.T) {
 	}
 
 	for i, evt := range events {
-		payloadBytes, _ := json.Marshal(evt.payload)
+		payloadBytes, _ := json.Marshal(evt.payload) //nolint:errchkjson
 
 		e, createErr := event.NewEvent(
 			evt.eventType, aggregateID, "Inventory", event.Version(i+1), payloadBytes,

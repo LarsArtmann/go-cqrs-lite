@@ -1741,19 +1741,22 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>What I <em>overstated</em> and what I <em>missed</em></h2>
 
         <p>
-          After reflection, two things are wrong with the original feedback. One inflates the ask. The other misses the real prize entirely.
+          After reflection, two things are wrong with the original feedback. One inflates the ask.
+          The other misses the real prize entirely.
         </p>
 
-        <div class="correction wrong" style="margin-top: 32px;">
-          <div class="claim">Overstatement: "I want the full middleware suite from go-cqrs-lite"</div>
+        <div class="correction wrong" style="margin-top: 32px">
+          <div class="claim">
+            Overstatement: "I want the full middleware suite from go-cqrs-lite"
+          </div>
           <div class="fact">
-            <strong>The SDK already imports <code>samber/ro</code>.</strong> It's the reactive library
-            that backs the entire event bus. And it already provides most of what I claimed go-cqrs-lite
-            uniquely solves:
+            <strong>The SDK already imports <code>samber/ro</code>.</strong> It's the reactive
+            library that backs the entire event bus. And it already provides most of what I claimed
+            go-cqrs-lite uniquely solves:
           </div>
         </div>
 
-        <table class="matrix" style="margin-top: 16px;">
+        <table class="matrix" style="margin-top: 16px">
           <thead>
             <tr>
               <th>Concern</th>
@@ -1833,23 +1836,25 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </table>
 
         <p>
-          The real middleware ask shrinks from <strong>"8 concerns"</strong> to <strong>"circuit
-          breaker + smart backoff"</strong>. ro's <code>RetryWithConfig</code> only supports a fixed
-          <code>Delay</code> — no <code>InitialDelay * Multiplier^attempt + jitter</code>. That's the
-          gap. But it's a <em>small</em> gap — small enough to implement as a custom ro operator
-          without importing any external library.
+          The real middleware ask shrinks from <strong>"8 concerns"</strong> to
+          <strong>"circuit breaker + smart backoff"</strong>. ro's <code>RetryWithConfig</code> only
+          supports a fixed <code>Delay</code> — no
+          <code>InitialDelay * Multiplier^attempt + jitter</code>. That's the gap. But it's a
+          <em>small</em> gap — small enough to implement as a custom ro operator without importing
+          any external library.
         </p>
 
         <div class="verdict">
           <p>
-            <strong>Corrected ask:</strong> The middleware section of the original feedback overstated
-            the need by ~70%. The SDK already has retry, timeout, error fallback, rate limiting,
-            logging, debounce, and throttle via <code>samber/ro</code>. Only circuit breaker and
-            exponential backoff with jitter are genuine gaps — and those could be custom ro operators.
+            <strong>Corrected ask:</strong> The middleware section of the original feedback
+            overstated the need by ~70%. The SDK already has retry, timeout, error fallback, rate
+            limiting, logging, debounce, and throttle via <code>samber/ro</code>. Only circuit
+            breaker and exponential backoff with jitter are genuine gaps — and those could be custom
+            ro operators.
           </p>
         </div>
 
-        <div class="correction wrong" style="margin-top: 48px;">
+        <div class="correction wrong" style="margin-top: 48px">
           <div class="claim">Missed opportunity: "the SDK doesn't need CQRS at all"</div>
           <div class="fact">
             <strong>The daemon module is a textbook CQRS surface.</strong> The original feedback
@@ -1950,11 +1955,12 @@ query.Dispatcher
 
         <div class="verdict highlight">
           <p>
-            The original feedback asked the wrong question: "should the SDK use go-cqrs-lite?" It should
-            have asked: <strong>"which <em>part</em> of the SDK should use go-cqrs-lite?"</strong> The
-            reactive pipeline doesn't need it. The daemon does. And the daemon is exactly the part
-            where the dependency cost of event/v2 + command/v2 + query/v2 would be justified — because
-            those CQRS concepts map 1:1 to what the daemon actually does.
+            The original feedback asked the wrong question: "should the SDK use go-cqrs-lite?" It
+            should have asked:
+            <strong>"which <em>part</em> of the SDK should use go-cqrs-lite?"</strong> The reactive
+            pipeline doesn't need it. The daemon does. And the daemon is exactly the part where the
+            dependency cost of event/v2 + command/v2 + query/v2 would be justified — because those
+            CQRS concepts map 1:1 to what the daemon actually does.
           </p>
         </div>
 
@@ -1962,16 +1968,14 @@ query.Dispatcher
 
         <p>
           Even for the daemon, the dependency cost isn't trivial. The daemon module imports the root
-          SDK (reverse dependency). Adding go-cqrs-lite's event bus means the daemon's dependency tree
-          grows by event/v2 (2 production siblings + 2 external deps) + command/v2 (1 external dep) +
-          query/v2 (1 external dep). That's <strong>reasonable</strong> for a daemon process — but
-          only after the go.mod hygiene fix (step 3 in the action plan) ensures those are the real
-          production counts, not inflated by test deps.
+          SDK (reverse dependency). Adding go-cqrs-lite's event bus means the daemon's dependency
+          tree grows by event/v2 (2 production siblings + 2 external deps) + command/v2 (1 external
+          dep) + query/v2 (1 external dep). That's <strong>reasonable</strong> for a daemon process
+          — but only after the go.mod hygiene fix (step 3 in the action plan) ensures those are the
+          real production counts, not inflated by test deps.
         </p>
 
-        <p>
-          The revised adoption path:
-        </p>
+        <p>The revised adoption path:</p>
 
         <div class="timeline">
           <div class="timeline-step">
@@ -1984,16 +1988,16 @@ query.Dispatcher
           <div class="timeline-step">
             <h4>Error taxonomy: go-error-family directly</h4>
             <p>
-              Already standalone. Use it to classify API errors (Transient vs Rejection)
-              to power smarter retry decisions in the ro operators.
+              Already standalone. Use it to classify API errors (Transient vs Rejection) to power
+              smarter retry decisions in the ro operators.
             </p>
           </div>
           <div class="timeline-step">
             <h4>Daemon: adopt go-cqrs-lite event bus + command/query dispatchers</h4>
             <p>
-              After go.mod hygiene fix. Replace hand-rolled EventBus, SSEBroker, and ad-hoc
-              JSON handlers with typed command dispatcher, reactive event bus, and SSEBroker.
-              The CQRS concepts map 1:1 to the daemon's actual architecture.
+              After go.mod hygiene fix. Replace hand-rolled EventBus, SSEBroker, and ad-hoc JSON
+              handlers with typed command dispatcher, reactive event bus, and SSEBroker. The CQRS
+              concepts map 1:1 to the daemon's actual architecture.
             </p>
           </div>
         </div>

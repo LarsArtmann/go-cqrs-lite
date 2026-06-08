@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-06-01 — Session 140 (full code quality + architecture review)
+**Reconciled:** 2026-06-08 — verified all items current
 **Files Processed:** 252
 
 ## Legend
@@ -413,7 +413,7 @@
 - [x] ~~**catalog/types.go:153** — `GetID` returns Name as fallback~~ — DONE (Session 8): renamed to `Key` with honest doc comment
 - [x] ~~**catalog/eventcatalog/writer_frontmatter.go:63** — `writeIDListField` clone~~ — DONE: now delegates to `addObjectIDsListField`
 - [x] ~~**pebble/errors.go:12-15** — `ErrUnknownBackend` dead code~~ — DONE (Session 8): removed
-- [ ] **pebble/config.go:59-69** — 20 lines of backward-compat aliases
+- [x] ~~**pebble/config.go:59-69** — 20 lines of backward-compat aliases~~ — DONE (aliases removed during v2 restructuring)
 - [x] ~~**listing/in_memory.go:124-147** — `TombstoneInclude` unreachable dead code~~ — DONE (Session 8): replaced with `panic("unreachable")`
 - [x] ~~**middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch~~ — DONE (Session 8): replaced with `panic("unreachable")`
 - [x] ~~**query/query.go:54** — `TypedHandler[T]` takes `Query` not `T`~~ — DONE (Session 145: `TypedHandler[Q Query, R any]` with type assertion in `RegisterTyped`)

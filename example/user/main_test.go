@@ -269,7 +269,7 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 	}
 
 	runner := subscribeReadModel(store, bus, readModel)
-	defer runner.Close()
+	defer func() { _ = runner.Close() }()
 
 	userID := id.NewAggregateID()
 

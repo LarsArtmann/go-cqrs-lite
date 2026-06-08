@@ -162,6 +162,13 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 - `t.Parallel()` for independent tests; core packages >80% coverage (most >90%)
 - Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
+### Lint Conventions
+
+- **Always `nix fmt` BEFORE placing `//nolint` directives** — golines (max-len: 120) reformats long lines and moves nolint comments to wrong positions
+- For `gosec` G115 (integer overflow) conversions, extract a helper function that isolates the `uint64()`/`uint32()` call on a short single line
+- Keep `//nolint` comments under ~40 chars to survive formatting
+- When adding new dependencies, add them to `.golangci.yml` depguard allow list at the same time
+
 ## Dependencies
 
 | Category   | Packages                                                                                                                                                                            |

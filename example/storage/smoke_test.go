@@ -35,7 +35,9 @@ func TestSQLite_SaveAndLoad(t *testing.T) {
 	eventStore := backend.EventStore()
 
 	userID := id.NewAggregateID()
-	payload, _ := json.Marshal(UserCreated{Name: "Alice", Email: "alice@example.com"})
+	payload, _ := json.Marshal(
+		UserCreated{Name: "Alice", Email: "alice@example.com"},
+	)
 
 	evt, err := event.NewEvent("user.created", userID, "User", event.Version(1), payload)
 	if err != nil {

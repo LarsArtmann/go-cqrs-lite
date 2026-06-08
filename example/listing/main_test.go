@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,7 +12,7 @@ func TestListingExampleCompiles(t *testing.T) {
 	t.Parallel()
 
 	dir := filepath.Join("..", "..")
-	cmd := exec.Command("go", "build", "./example/listing/...")
+	cmd := exec.CommandContext(context.Background(), "go", "build", "./example/listing/...")
 	cmd.Dir = dir
 
 	if output, err := cmd.CombinedOutput(); err != nil {

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-08 · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-08 (updated) · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -572,64 +572,61 @@ Found during 2026-06-01 full code review. See `docs/planning/2026-06-01_CODE-QUA
 
 ## Not Yet Implemented 📐 PLANNED
 
-Features mentioned in project docs/planning but with **no production code**:
+Features mentioned in project docs/planning but with **no production code yet**:
 
-|| Feature | Description | Notes |
-|| ----------------------- | ------------------------------------------- | -------------------------------------------- |
-|| Outbox pattern | Reliable at-least-once event publishing | Documented in CONTEXT.md but no implementation |
-| Schema registry | JSON Schema middleware for event validation | Design decisions on schema versioning needed |
-|| gosec security scanning | Static security analysis via securego/gosec | Sprint 1 — CI step + SARIF upload |
-|| go-arch-lint | Architecture boundary enforcement at lint time | Sprint 1 — module dependency layer rules |
-|| Health check middleware | `/health`, `/health/live`, `/health/ready` | Sprint 2 — production operational readiness |
-|| Metrics HTTP handler | Request count, error rate, response time | Sprint 2 — operational observability |
-|| Graceful shutdown | `os.Signal` handler with timeout | Sprint 2 — `pkg/gracefulshutdown` |
-|| Property-based testing | `pgregory.net/rapid` invariants (decider, event, id) | Sprint 3 — deterministic decide, version monotonicity, ULID validity |
-|| Snapshot testing | `go-snaps` for stable export outputs | Sprint 3 — AsyncAPI, OpenAPI, D2, EventCatalog, projection state |
-|| Benchmark regression CI | Fail if any benchmark >2× slower than baseline | Sprint 4 — `benchmark-baseline.txt` + comparison script |
-|| Docker packaging | Multi-stage Dockerfile for `example/user/` | Sprint 4 — builder → scratch → alpine |
-|| Embedded EventCatalog server | Serve generated docs SPA from Go binary | Sprint 5 — `example/catalog-server/` |
-|| SSE broker | Server-Sent Events over reactive event bus | Sprint 5 — `middleware/sse.go` + JS client |
-|| `pkg/config` module | YAML config loader with env-specific overlays | Sprint 5 — consumer onboarding |
-|| Simulation framework | Bulk event sequence generator for stress testing | Sprint 5 — `integration/simulation/` |
-|| Playwright E2E tests | End-to-end browser tests for `example/user/` | Sprint 5 — command→event→query flow |
-|| Dual store runtime example | Memory vs SQL selection via config | Sprint 5 — `example/user/` runtime switching |
-|| Extended snapshot coverage | `go-snaps` across all 22 library modules | Sprint 6 — signing, middleware, storage, listing, etc. |
-|| Build tag experiments | `jsonv2`, `arenas`, `simd` behind tags | Sprint 6 — forward-looking performance |
+| Feature                    | Description                                  | Sprint |
+| -------------------------- | -------------------------------------------- | ------ |
+| Outbox pattern             | Reliable at-least-once event publishing      | Future |
+| Schema registry            | JSON Schema middleware for event validation  | Future |
+| Playwright E2E tests       | End-to-end browser tests for `example/user/` | 5      |
+| Dual store runtime example | Memory vs SQL selection via config           | 5      |
+| Extended snapshot coverage | `go-snaps` across all 22 library modules     | 6      |
+| Build tag experiments      | `jsonv2`, `arenas`, `simd` behind tags       | 6      |
+
+---
 
 ---
 
 ## Module Maturity Matrix
 
-|| Module | Import Path | Coverage | Maturity |
-|| ---------------------- | ------------------------ | -------- | --------------- |
-|| `core/command` | `…/core/command` | 100.0% | ✅ Production |
-|| `core/query` | `…/core/query` | 100.0% | ✅ Production |
-|| `core/event` | `…/core/event` | 94.4% | ✅ Production |
-|| `core/aggregate` | `…/core/aggregate` | 95.5% | ✅ Production (deprecated) |
-|| `core/decider` | `…/core/decider` | 95.0% | ✅ Production |
-|| `core/pkg/id` | `…/core/pkg/id` | 100.0% | ✅ Production |
-|| `core/pkg/dispatcher` | `…/core/pkg/dispatcher` | 100.0% | ✅ Production |
-|| `memory` | `…/memory` | 99.1% | 🧪 Test utility |
-|| `catalog` | `…/catalog` | ~94% | ✅ Production |
-|| `catalog/asyncapi` | `…/catalog/asyncapi` | 95.9% | ✅ Production |
-|| `catalog/d2` | `…/catalog/d2` | 97.6% | ✅ Production |
-|| `catalog/eventcatalog` | `…/catalog/eventcatalog` | 95.6% | ✅ Production |
-|| `catalog/openapi` | `…/catalog/openapi` | 94.4% | ✅ Production |
-|| `catalog/docserver` | `…/catalog/docserver` | 91.0% | ✅ Production |
-|| `middleware` | `…/middleware` | 100.0% | ✅ Production |
-|| `signing` | `…/signing` | ~95% | ✅ Production |
-|| `testhelpers` | `…/testhelpers` | 94.8% | 🧪 Test utility |
-|| `integration` | `…/integration` | N/A | ✅ Test suite |
-|| `storage` | `…/storage` | 89.6% | ✅ Production |
-|| `projection` | `…/projection` | ~95% | ✅ Production |
-|| `watermill` | `…/watermill` | 89.6% | ✅ Production |
-|| `listing` | `…/listing` | ~90% | ✅ Production |
-|| `otel` | `…/otel` | N/A | ✅ Production |
-|| `cmd/cqrs-gen` | `…/cmd/cqrs-gen` | 70.8% | ⚠️ Partial |
-|| `pebble` | `…/pebble` | ~90% | ✅ Production |
-| `turso` | `…/turso` | ~85% | ✅ Production |
-| `cmd/api-stability` | `…/cmd/api-stability` | N/A | 🔧 Tool |
-| `example/user` | `…/example/user` | N/A | 💡 Demo |
+| Module                 | Import Path                      | Coverage | Maturity        |
+| ---------------------- | -------------------------------- | -------- | --------------- |
+| `event`                | `…/event/v2`                     | 89.4%    | ✅ Production   |
+| `event/eventtest`      | `…/event/v2/eventtest`           | 18.4%    | 🧪 Test helper  |
+| `command`              | `…/command/v2`                   | 80.5%    | ✅ Production   |
+| `query`                | `…/query/v2`                     | 94.3%    | ✅ Production   |
+| `decider`              | `…/decider/v2`                   | 100.0%   | ✅ Production   |
+| `id`                   | `…/id/v2`                        | 96.4%    | ✅ Production   |
+| `dispatcher`           | `…/dispatcher/v2`                | 100.0%   | ✅ Production   |
+| `schema`               | `…/schema/v2`                    | 89.7%    | ✅ Production   |
+| `snapshot`             | `…/snapshot/v2`                  | 92.3%    | ✅ Production   |
+| `codec`                | `…/codec/v2`                     | 93.3%    | ✅ Production   |
+| `memory`               | `…/memory/v2`                    | 98.2%    | 🧪 Test utility |
+| `catalog`              | `…/catalog/v2`                   | 95.9%    | ✅ Production   |
+| `catalog/asyncapi`     | `…/catalog/v2/asyncapi`          | 93.9%    | ✅ Production   |
+| `catalog/d2`           | `…/catalog/v2/d2`                | 95.0%    | ✅ Production   |
+| `catalog/openapi`      | `…/catalog/v2/openapi`           | 100.0%   | ✅ Production   |
+| `catalog/eventcatalog` | `…/catalog/v2/eventcatalog`      | 92.7%    | ✅ Production   |
+| `catalog/docserver`    | `…/catalog/v2/docserver`         | 90.1%    | ✅ Production   |
+| `catalog/schema`       | `…/catalog/v2/schema`            | 86.0%    | ✅ Production   |
+| `catalog/caseutil`     | `…/catalog/v2/internal/caseutil` | 100.0%   | ✅ Production   |
+| `middleware`           | `…/middleware/v2`                | 93.5%    | ✅ Production   |
+| `integration`          | `…/integration/v2`               | N/A      | ✅ Test suite   |
+| `projection`           | `…/projection/v2`                | 91.2%    | ✅ Production   |
+| `signing`              | `…/signing/v2`                   | 94.1%    | ✅ Production   |
+| `signing/multisig`     | `…/signing/v2/multisig`          | 94.1%    | ✅ Production   |
+| `storage`              | `…/storage/v2`                   | 86.8%    | ✅ Production   |
+| `storage/sql`          | `…/storage/v2/sql`               | 34.7%    | 🧪 Shared infra |
+| `watermill`            | `…/watermill/v2`                 | 94.3%    | ✅ Production   |
+| `listing`              | `…/listing/v2`                   | 94.9%    | ✅ Production   |
+| `otel`                 | `…/otel/v2`                      | 96.4%    | ✅ Production   |
+| `pebble`               | `…/pebble/v2`                    | 86.7%    | ✅ Production   |
+| `turso`                | `…/turso/v2`                     | 28.6%    | ✅ Production   |
+| `cmd/cqrs-gen`         | `…/cmd/cqrs-gen/v2`              | 89.9%    | 🔧 Tool         |
+| `cmd/api-stability`    | `…/cmd/api-stability/v2`         | N/A      | 🔧 Tool         |
+| `example/user`         | `…/example/user`                 | N/A      | 💡 Demo         |
+
+---
 
 ---
 

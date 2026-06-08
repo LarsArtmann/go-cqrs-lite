@@ -48,7 +48,7 @@ func TestFullStack_WithSigning(t *testing.T) {
 	}
 
 	runner := subscribeReadModel(store, bus, readModel)
-	defer runner.Close()
+	defer func() { _ = runner.Close() }()
 
 	cmdDisp := command.NewDispatcher()
 	cmdDisp.Use(
