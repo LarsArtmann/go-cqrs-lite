@@ -27,7 +27,8 @@ func StartAggregateSpan(
 		spanName,
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
+			append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...,
+		),
 	)
 }
 

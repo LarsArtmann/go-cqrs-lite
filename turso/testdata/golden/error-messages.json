@@ -1,0 +1,3 @@
+{
+  "ErrMemorySync": "[rejection:turso.memory_sync] turso: sync requires a file path for dbPath"
+}

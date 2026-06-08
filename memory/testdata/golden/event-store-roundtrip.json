@@ -1,0 +1,30 @@
+[
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR9A",
+    "type": "OrderCreated",
+    "version": 1,
+    "payload": "{\"customer\":\"Alice\"}",
+    "occurredAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR9B",
+    "type": "ItemAdded",
+    "version": 2,
+    "payload": "{\"sku\":\"W-001\",\"qty\":3}",
+    "occurredAt": "2026-01-01T00:01:00Z"
+  },
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR9C",
+    "type": "ItemAdded",
+    "version": 3,
+    "payload": "{\"sku\":\"G-002\",\"qty\":1}",
+    "occurredAt": "2026-01-01T00:02:00Z"
+  },
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR9D",
+    "type": "OrderShipped",
+    "version": 4,
+    "payload": "{\"tracking\":\"TRK-123\"}",
+    "occurredAt": "2026-01-01T00:03:00Z"
+  }
+]

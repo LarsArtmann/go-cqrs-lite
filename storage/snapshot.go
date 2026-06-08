@@ -54,7 +54,8 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
 			append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
-				cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...),
+				cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...,
+		),
 	)
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),

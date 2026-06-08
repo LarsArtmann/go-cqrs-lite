@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -15,9 +13,6 @@ import (
 
 const serverVersion = "v2.2.0"
 
-// runServer starts an HTTP server with operational endpoints.
-// This demonstrates how consumers can expose health, metrics, and graceful
-// shutdown in production.
 func runServer(store event.EventSource) {
 	metricsCollector := middleware.NewMetricsCollector()
 

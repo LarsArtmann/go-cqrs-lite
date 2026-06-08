@@ -1,0 +1,17 @@
+{
+  "AttrAggregateID": "cqrs.aggregate.id",
+  "AttrAggregateType": "cqrs.aggregate.type",
+  "AttrAggregateVersion": "cqrs.aggregate.version",
+  "AttrCommandType": "cqrs.command.type",
+  "AttrEventCount": "cqrs.event.count",
+  "AttrEventType": "cqrs.event.type",
+  "AttrMessageKind": "cqrs.message.kind",
+  "AttrProjectionName": "cqrs.projection.name",
+  "AttrQueryType": "cqrs.query.type",
+  "AttrStatus": "cqrs.status",
+  "KindCommand": "command",
+  "KindEvent": "event",
+  "KindQuery": "query",
+  "StatusError": "error",
+  "StatusSuccess": "success"
+}

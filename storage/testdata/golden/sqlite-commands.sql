@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS commands (
+    id               TEXT PRIMARY KEY,
+    command_type     TEXT NOT NULL,
+    aggregate_type   TEXT NOT NULL,
+    aggregate_id     TEXT NOT NULL,
+    payload          BLOB,
+    metadata         TEXT,
+    received_at      TEXT NOT NULL,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_commands_aggregate ON commands(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_commands_type ON commands(command_type);
+CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);

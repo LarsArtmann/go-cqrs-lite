@@ -1,0 +1,123 @@
+package pebble_test
+
+import (
+	"encoding/json"
+	"flag"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/cockroachdb/pebble"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	pb "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+)
+
+var update = flag.Bool("update", false, "update golden files")
+
+func TestGolden_EventStoreRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+
+	db, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+
+	store := pb.NewStore(db, nil)
+	t.Cleanup(func() { _ = store.Close() })
+
+	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	ref := event.NewAggregateRef("Order", aggID)
+
+	types := []struct {
+		typ     event.Type
+		version int
+		payload string
+	}{
+		{"OrderCreated", 1, `{"customer":"Bob"}`},
+		{"ItemAdded", 2, `{"sku":"W-001","qty":5}`},
+		{"OrderShipped", 3, `{"tracking":"TRK-456"}`},
+	}
+
+	baseTime := time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)
+	evts := make([]event.Event, len(types))
+
+	for i, tc := range types {
+		evtID := id.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+
+		evt, err := event.NewEvent(
+			tc.typ, aggID, "Order", event.Version(tc.version),
+			[]byte(tc.payload),
+			event.WithEventID(evtID),
+			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Hour)),
+		)
+		if err != nil {
+			t.Fatalf("create event %d: %v", i, err)
+		}
+
+		evts[i] = evt
+	}
+
+	if err := store.Save(t.Context(), ref, evts, event.Version(0)); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	loaded, err := store.Load(t.Context(), ref)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	type snapEvent struct {
+		ID       string `json:"id"`
+		Type     string `json:"type"`
+		Version  int    `json:"version"`
+		Payload  string `json:"payload"`
+		Occurred string `json:"occurredAt"`
+	}
+
+	snaps := make([]snapEvent, len(loaded))
+	for i, e := range loaded {
+		snaps[i] = snapEvent{
+			ID:       e.ID().String(),
+			Type:     string(e.Type()),
+			Version:  e.Version().Int(),
+			Payload:  string(e.Payload()),
+			Occurred: e.OccurredAt().Format(time.RFC3339Nano),
+		}
+	}
+
+	got, err := json.MarshalIndent(snaps, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	assertPebbleGolden(t, filepath.Join("testdata", "golden", "event-store-roundtrip.json"), got)
+}
+
+func assertPebbleGolden(t *testing.T, path string, got []byte) {
+	t.Helper()
+
+	if *update {
+		if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+			t.Fatalf("mkdir: %v", err)
+		}
+
+		if err := os.WriteFile(path, append(got, '\n'), 0o644); err != nil {
+			t.Fatalf("write golden: %v", err)
+		}
+
+		return
+	}
+
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read golden %s (run with -update to create): %v", path, err)
+	}
+
+	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
+		t.Errorf("golden mismatch for %s (run with -update to refresh)", path)
+	}
+}

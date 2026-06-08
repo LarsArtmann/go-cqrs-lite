@@ -1,0 +1,4 @@
+{
+  "cqrs.message.kind": "query",
+  "cqrs.query.type": "GetUser"
+}

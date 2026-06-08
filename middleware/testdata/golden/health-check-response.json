@@ -1,0 +1,23 @@
+{
+  "status": "pass",
+  "version": "2.2.0",
+  "releaseId": "2026-06-08",
+  "notes": [
+    "All systems nominal"
+  ],
+  "checks": {
+    "event-store": {
+      "componentType": "datastore",
+      "observedValue": 3,
+      "observedUnit": "ms",
+      "status": "pass",
+      "time": "2026-06-08T06:00:00Z"
+    },
+    "projection-runner": {
+      "componentType": "worker",
+      "observedValue": "lagging by 50 events",
+      "status": "warn",
+      "time": "2026-06-08T06:00:00Z"
+    }
+  }
+}

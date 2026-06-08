@@ -10,6 +10,7 @@ use (
 	./decider
 	./dispatcher
 	./event
+	./example/catalog-server
 	./example/listing
 	./example/projection
 	./example/saga-pattern
