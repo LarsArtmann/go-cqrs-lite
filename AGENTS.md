@@ -82,6 +82,7 @@ go-cqrs-lite/
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct dep limits enforced by `nix run .#check-layers`. Adding deps requires explicit budget review.
+13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files.
 
 ## Error Handling
 
