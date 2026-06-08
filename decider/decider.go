@@ -3,9 +3,6 @@ package decider
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -107,8 +104,8 @@ func (r *Repository[State]) Execute(
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
-		trace.SpanKindInternal,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 
@@ -130,7 +127,7 @@ func (r *Repository[State]) Execute(
 		return nil
 	}
 
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(newEvents)))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(newEvents)))
 
 	r.applyEnricher(ctx, newEvents)
 
@@ -178,7 +175,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
 			cqrsotel.RecordError(
-				trace.SpanFromContext(ctx),
+				cqrsotel.SpanFromContext(ctx),
 				opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr),
 			)
 
@@ -189,7 +186,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	encoded, encErr := r.codec.Encode(finalState)
 	if encErr != nil {
 		cqrsotel.RecordError(
-			trace.SpanFromContext(ctx),
+			cqrsotel.SpanFromContext(ctx),
 			opError(ref, "encode snapshot: %w", encErr),
 		)
 
@@ -198,7 +195,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 	saveErr := snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
 	if saveErr != nil {
-		cqrsotel.RecordError(trace.SpanFromContext(ctx), saveErr)
+		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), saveErr)
 	}
 }
 
@@ -211,8 +208,8 @@ func (r *Repository[State]) Load(
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
-		trace.SpanKindInternal,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
 	)
 	defer span.End()
 

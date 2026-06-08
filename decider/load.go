@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -83,11 +80,11 @@ func (r *Repository[State]) LoadAtVersion(
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
-		trace.SpanKindInternal,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrAggregateType, string(aggregateType)),
-			attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
-			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(aggregateType)),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateID, aggregateID.String()),
+			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
 		),
 	)
 	defer span.End()
@@ -117,10 +114,10 @@ func (r *Repository[State]) LoadAtTime(
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
-		trace.SpanKindInternal,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrAggregateType, string(aggregateType)),
-			attribute.String(cqrsotel.AttrAggregateID, aggregateID.String()),
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(aggregateType)),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateID, aggregateID.String()),
 		),
 	)
 	defer span.End()
