@@ -574,12 +574,12 @@ Found during 2026-06-01 full code review. See `docs/planning/2026-06-01_CODE-QUA
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                    | Description                                  | Sprint |
-| -------------------------- | -------------------------------------------- | ------ |
-| Outbox pattern             | Reliable at-least-once event publishing      | Future |
-| Schema registry            | JSON Schema middleware for event validation  | Future |
-| Playwright E2E tests       | End-to-end browser tests for `example/user/` | 5      |
-| Extended snapshot coverage | `go-snaps` across remaining 11 library modules | 6    |
+| Feature                    | Description                                    | Sprint |
+| -------------------------- | ---------------------------------------------- | ------ |
+| Outbox pattern             | Reliable at-least-once event publishing        | Future |
+| Schema registry            | JSON Schema middleware for event validation    | Future |
+| Playwright E2E tests       | End-to-end browser tests for `example/user/`   | 5      |
+| Extended snapshot coverage | `go-snaps` across remaining 11 library modules | 6      |
 
 ---
 

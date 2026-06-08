@@ -13,21 +13,22 @@ Resumed execution of the 90-task SEC lessons integration plan. Cleaned up debt f
 
 Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅ Pass
 
-|| Metric | Value |
-|--------|-------|
-| **Sprint 1 (Trust & Docs)** | 100% complete |
-| **Sprint 2 (Operational)** | 100% complete |
-| **Sprint 3 (Testing Rigor)** | ~45% complete (PBT done for 5/5 core modules; snapshot tests partial) |
-| **Sprint 4 (CI & Deployment)** | ~20% (gosec + module-layers in CI; no benchmark regression or Docker CI) |
-| **Sprint 5 (Consumer Experience)** | ~15% (SSE, config, sim, dual-store examples done; no Playwright, no catalog-server) |
-| **Sprint 6 (Polish & Experiments)** | 0% |
-| **Overall completion** | ~45% of 90 planned tasks |
+|                                     | Metric                                                                              | Value |
+| ----------------------------------- | ----------------------------------------------------------------------------------- | ----- |
+| **Sprint 1 (Trust & Docs)**         | 100% complete                                                                       |
+| **Sprint 2 (Operational)**          | 100% complete                                                                       |
+| **Sprint 3 (Testing Rigor)**        | ~45% complete (PBT done for 5/5 core modules; snapshot tests partial)               |
+| **Sprint 4 (CI & Deployment)**      | ~20% (gosec + module-layers in CI; no benchmark regression or Docker CI)            |
+| **Sprint 5 (Consumer Experience)**  | ~15% (SSE, config, sim, dual-store examples done; no Playwright, no catalog-server) |
+| **Sprint 6 (Polish & Experiments)** | 0%                                                                                  |
+| **Overall completion**              | ~45% of 90 planned tasks                                                            |
 
 ---
 
 ## a) FULLY DONE
 
 ### Previous Session (carried forward)
+
 - ✅ **FEATURES.md** — 19 planned features added
 - ✅ **docs/DOMAIN_LANGUAGE.md** — ~40 CQRS domain terms
 - ✅ **CONTEXT.md** — Architecture overview
@@ -56,6 +57,7 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 - ✅ **benchmarks/benchmark-baseline.txt** — All benchmark results saved
 
 ### This Session
+
 - ✅ **Removed `testutil/snaptest/` orphan** — Had no go.mod, no consumers, was dead code
 - ✅ **Fixed `example/user/server.go`** — Removed 3 unused parameters (cmdDisp, qryDisp, bus), removed unused componentHealthCheck function, cleaned up unused imports (command/v2, query/v2). Still has `//go:build ignore` — it's a reference file, not compiled.
 - ✅ **Verified `nix run .#check-layers`** — Passes cleanly: "Module layer check passed"
@@ -67,6 +69,7 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 ## b) PARTIALLY DONE
 
 ### Testing Rigor — Snapshots (Sprint 3)
+
 - ⚠️ **integration/snapshot_test.go** — 1 test (event serialization) + golden file
   - catalog snapshot test was created then deleted in previous session (wrong API)
   - Needs rewrite using correct API: `asyncapi.NewExporter(name, ver).Export(cat)` → `doc.MarshalYAML()`
@@ -78,22 +81,26 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 ## c) NOT STARTED
 
 ### Sprint 3 — Remaining Testing Rigor
+
 - ❌ **catalog/snapshot_test.go** — Rewrite with correct API (was deleted)
 - ❌ **Snapshot tests for projection/, signing/, memory/** — State/payload serialization verification
 - ❌ **PBT for pagination edge cases** — `query.NewPagination(0, 0)` default behavior, `PaginatedResult.HasNext()/HasPrev()` boundary cases
 
 ### Sprint 4 — CI & Deployment
+
 - ❌ **Benchmark regression CI step** — Compare against `benchmarks/benchmark-baseline.txt`
 - ❌ **Docker build CI step** — Multi-platform build (linux/amd64 + arm64)
 - ❌ **benchmark-baseline.txt auto-update** — Manual save only currently
 
 ### Sprint 5 — Consumer Experience
+
 - ❌ **example/catalog-server/** — New module for embedded EventCatalog SPA
 - ❌ **example/user/ SSE JavaScript client** — `web/static/sse-client.js`
 - ❌ **Playwright setup** — `playwright.config.ts` + E2E tests
 - ❌ **Playwright CI step** — Not added to workflow
 
 ### Sprint 6 — Polish & Experiments
+
 - ❌ **Build tag documentation** (`jsonv2`, `arenas`, `simd`, `runtimesecret`)
 - ❌ **jsonv2 codec experiment** behind build tag
 - ❌ **Arena allocation experiment** in event module
@@ -106,12 +113,14 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 ## d) TOTALLY FUCKED UP
 
 ### Previous Session (carried forward)
+
 - 💀 **catalog/snapshot_test.go** — Created with wrong API (`catalog.NewAsyncAPIExporter` doesn't exist), wrong `catalog.Event[T]()` signature (needs `(id, direction, ...opts)` not `(string)`). Deleted but never rewritten.
 - ⚠️ **TestFoldIdempotency** — Was the wrong invariant; renamed to `TestFoldAccumulation`
 - ⚠️ **SSE broker** — 3 iterations to get right: v1 used `ro.Observer` (no Unsubscribe), v2 used `ro.OnNext` (same issue), v3 used `event.Bus.SubscribeAll` ✓
 - ⚠️ **testutil/snaptest** — Created as snapshot helper, never integrated into any module's go.mod, had zero consumers. NOW DELETED.
 
 ### This Session
+
 - Nothing fucked up. Clean session — only removed dead code and fixed existing issues.
 
 ---
@@ -142,33 +151,33 @@ Build: ✅ | Tests: ✅ 39/39 packages | Lint: ✅ 0 issues | Module layers: ✅
 
 Ordered by impact × customer-value / (effort × risk).
 
-| Rank | Task | Module | Impact | Effort | Why |
-|------|------|--------|--------|--------|-----|
-| 1 | **Rewrite `catalog/snapshot_test.go`** with correct API | catalog | 8 | 2 | Sprint 3 gap — was deleted, needs redo. Pattern: `asyncapi.NewExporter(name, ver).Export(cat)` |
-| 2 | **Add snapshot tests for `projection/` state** | projection | 7 | 2 | Core module with zero snapshot coverage |
-| 3 | **Add snapshot tests for `signing/` payloads** | signing | 6 | 1 | Security-critical module needs golden file verification |
-| 4 | **Add snapshot tests for `memory/` serialization** | memory | 5 | 1 | Test-only impl but used everywhere |
-| 5 | **Wire `runServer()` into example/user/main.go** or remove it | example/user | 6 | 1 | Dead code with build-ignore tag |
-| 6 | **Build `example/catalog-server/`** module | example | 7 | 4 | Full new example for catalog consumers |
-| 7 | **Add JavaScript SSE client** to `example/user/web/static/` | example/user | 5 | 2 | Required for SSE demo to work end-to-end |
-| 8 | **Playwright setup** in `example/user/` | example/user | 7 | 4 | E2E testing for example app |
-| 9 | **Add Playwright CI step** | ci.yml | 6 | 2 | Sprint 5 — gate on E2E |
-| 10 | **Benchmark regression CI step** | ci.yml | 6 | 3 | Detect perf regressions against baseline |
-| 11 | **Docker build CI step** (multi-platform) | ci.yml | 5 | 3 | Sprint 4 — deployment readiness |
-| 12 | **Document gosec + go-arch-lint** in CONTRIBUTING.md | docs | 5 | 1 | New contributors need to know about security/layers tools |
-| 13 | **Add `nix run .#check-deps`** app for dep budget visualization | flake.nix | 5 | 2 | Surfaces dependency budget state per module |
-| 14 | **Document build tag experiments** in flake.nix comments | flake.nix | 4 | 1 | Sprint 6 — surfaces what's available |
-| 15 | **Add PBT for `query.Pagination` edge cases** (zero inputs, overflow) | query | 4 | 1 | Boundary testing for pagination math |
-| 16 | **Add snapshot tests for `storage/` SQL** | storage | 6 | 3 | SQL schema verification |
-| 17 | **Add snapshot tests for `codec/` encoding** | codec | 4 | 1 | Encoding round-trip verification |
-| 18 | **jsonv2 codec experiment** behind build tag | codec | 4 | 3 | Sprint 6 — experimental performance |
-| 19 | **Arena allocation experiment** in event module | event | 3 | 4 | Sprint 6 — experimental performance |
-| 20 | **Add snapshot tests for `watermill/` adapter** | watermill | 4 | 2 | Protocol adapter verification |
-| 21 | **Add snapshot tests for `pebble/` store** | pebble | 4 | 2 | Embedded store verification |
-| 22 | **Add snapshot tests for `turso/` connector** | turso | 4 | 2 | Database connector verification |
-| 23 | **Add snapshot tests for `otel/` helpers** | otel | 3 | 1 | Telemetry helper verification |
-| 24 | **Add snapshot tests for `schema/` upcaster** | schema | 5 | 2 | Schema evolution verification |
-| 25 | **Coverage regression gate** in CI | ci.yml | 5 | 3 | Track coverage delta per PR |
+| Rank | Task                                                                  | Module       | Impact | Effort | Why                                                                                            |
+| ---- | --------------------------------------------------------------------- | ------------ | ------ | ------ | ---------------------------------------------------------------------------------------------- |
+| 1    | **Rewrite `catalog/snapshot_test.go`** with correct API               | catalog      | 8      | 2      | Sprint 3 gap — was deleted, needs redo. Pattern: `asyncapi.NewExporter(name, ver).Export(cat)` |
+| 2    | **Add snapshot tests for `projection/` state**                        | projection   | 7      | 2      | Core module with zero snapshot coverage                                                        |
+| 3    | **Add snapshot tests for `signing/` payloads**                        | signing      | 6      | 1      | Security-critical module needs golden file verification                                        |
+| 4    | **Add snapshot tests for `memory/` serialization**                    | memory       | 5      | 1      | Test-only impl but used everywhere                                                             |
+| 5    | **Wire `runServer()` into example/user/main.go** or remove it         | example/user | 6      | 1      | Dead code with build-ignore tag                                                                |
+| 6    | **Build `example/catalog-server/`** module                            | example      | 7      | 4      | Full new example for catalog consumers                                                         |
+| 7    | **Add JavaScript SSE client** to `example/user/web/static/`           | example/user | 5      | 2      | Required for SSE demo to work end-to-end                                                       |
+| 8    | **Playwright setup** in `example/user/`                               | example/user | 7      | 4      | E2E testing for example app                                                                    |
+| 9    | **Add Playwright CI step**                                            | ci.yml       | 6      | 2      | Sprint 5 — gate on E2E                                                                         |
+| 10   | **Benchmark regression CI step**                                      | ci.yml       | 6      | 3      | Detect perf regressions against baseline                                                       |
+| 11   | **Docker build CI step** (multi-platform)                             | ci.yml       | 5      | 3      | Sprint 4 — deployment readiness                                                                |
+| 12   | **Document gosec + go-arch-lint** in CONTRIBUTING.md                  | docs         | 5      | 1      | New contributors need to know about security/layers tools                                      |
+| 13   | **Add `nix run .#check-deps`** app for dep budget visualization       | flake.nix    | 5      | 2      | Surfaces dependency budget state per module                                                    |
+| 14   | **Document build tag experiments** in flake.nix comments              | flake.nix    | 4      | 1      | Sprint 6 — surfaces what's available                                                           |
+| 15   | **Add PBT for `query.Pagination` edge cases** (zero inputs, overflow) | query        | 4      | 1      | Boundary testing for pagination math                                                           |
+| 16   | **Add snapshot tests for `storage/` SQL**                             | storage      | 6      | 3      | SQL schema verification                                                                        |
+| 17   | **Add snapshot tests for `codec/` encoding**                          | codec        | 4      | 1      | Encoding round-trip verification                                                               |
+| 18   | **jsonv2 codec experiment** behind build tag                          | codec        | 4      | 3      | Sprint 6 — experimental performance                                                            |
+| 19   | **Arena allocation experiment** in event module                       | event        | 3      | 4      | Sprint 6 — experimental performance                                                            |
+| 20   | **Add snapshot tests for `watermill/` adapter**                       | watermill    | 4      | 2      | Protocol adapter verification                                                                  |
+| 21   | **Add snapshot tests for `pebble/` store**                            | pebble       | 4      | 2      | Embedded store verification                                                                    |
+| 22   | **Add snapshot tests for `turso/` connector**                         | turso        | 4      | 2      | Database connector verification                                                                |
+| 23   | **Add snapshot tests for `otel/` helpers**                            | otel         | 3      | 1      | Telemetry helper verification                                                                  |
+| 24   | **Add snapshot tests for `schema/` upcaster**                         | schema       | 5      | 2      | Schema evolution verification                                                                  |
+| 25   | **Coverage regression gate** in CI                                    | ci.yml       | 5      | 3      | Track coverage delta per PR                                                                    |
 
 ---
 
@@ -189,13 +198,13 @@ For a library SDK, option 1 (inline per-module) seems cleanest but tedious. Opti
 
 ## Verification Summary
 
-| Gate | Status | Details |
-|------|--------|---------|
-| `nix run .#build` | ✅ PASS | All modules compile |
-| `nix run .#test` | ✅ PASS | 39/39 packages OK |
-| `nix run .#lint` | ✅ PASS | 0 issues across all modules |
-| `nix run .#check-layers` | ✅ PASS | Module layer check passed |
-| Git working tree | ⚠️ MODIFIED | `example/user/server.go` (fixed), `testutil/snaptest/snaptest.go` (deleted) |
+| Gate                     | Status      | Details                                                                     |
+| ------------------------ | ----------- | --------------------------------------------------------------------------- |
+| `nix run .#build`        | ✅ PASS     | All modules compile                                                         |
+| `nix run .#test`         | ✅ PASS     | 39/39 packages OK                                                           |
+| `nix run .#lint`         | ✅ PASS     | 0 issues across all modules                                                 |
+| `nix run .#check-layers` | ✅ PASS     | Module layer check passed                                                   |
+| Git working tree         | ⚠️ MODIFIED | `example/user/server.go` (fixed), `testutil/snaptest/snaptest.go` (deleted) |
 
 ## Git Changes (Uncommitted)
 

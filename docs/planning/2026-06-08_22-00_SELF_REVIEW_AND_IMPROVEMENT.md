@@ -18,33 +18,37 @@
 
 ### What Could Still Be Improved
 
-| Area | Description | Impact |
-|------|-------------|--------|
-| Golden test dedup | 13 copies of `assertGolden` | Medium |
-| go-snaps adoption | Replace manual pattern with library | Medium |
-| listing type models | Add json tags to `Page[T]`, `AggregateRef`; rename to `AggregateListing` | High |
-| snapshot type model | Add json tags to `Snapshot` | Low |
-| Error re-export cleanup | Remove unused re-exports from `command/errors.go` | Medium |
-| Test file naming | Rename `coverage_test.go` to describe what it tests | Low |
+| Area                    | Description                                                              | Impact |
+| ----------------------- | ------------------------------------------------------------------------ | ------ |
+| Golden test dedup       | 13 copies of `assertGolden`                                              | Medium |
+| go-snaps adoption       | Replace manual pattern with library                                      | Medium |
+| listing type models     | Add json tags to `Page[T]`, `AggregateRef`; rename to `AggregateListing` | High   |
+| snapshot type model     | Add json tags to `Snapshot`                                              | Low    |
+| Error re-export cleanup | Remove unused re-exports from `command/errors.go`                        | Medium |
+| Test file naming        | Rename `coverage_test.go` to describe what it tests                      | Low    |
 
 ## Execution Plan (sorted by impact/effort)
 
 ### Phase 1: Type Model Fixes (High impact, low effort)
+
 1. Add json tags to `listing.Page[T]` and `listing.AggregateRef`
 2. Rename `listing.AggregateRef` → `listing.AggregateListing`
 3. Add json tags to `snapshot.Snapshot`
 4. Update golden tests to use the fixed types directly
 
 ### Phase 2: Golden Test Deduplication (Medium impact, medium effort)
+
 5. Create `event/eventtest/golden.go` shared helper
 6. Migrate all 13 golden_test.go files to use shared helper
 7. Delete per-module `assertGolden` copies
 
 ### Phase 3: Cleanup (Low impact, low effort)
+
 8. Rename `command/coverage_test.go` → `command/errors_test.go`
 9. Remove unused error re-exports or make them canonical
 10. Update CONTRIBUTING.md with golden test conventions
 
 ### Deferred (requires more thought)
+
 - go-snaps migration: requires adding dep to 13 go.mod files. Defer.
 - Error re-export consolidation: affects API surface. Defer to v3.
