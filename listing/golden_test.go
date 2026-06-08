@@ -3,13 +3,12 @@ package listing_test
 import (
 	"encoding/json"
 	"flag"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/listing/v2"
 )
@@ -57,7 +56,12 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 
-	assertListingGolden(t, filepath.Join("testdata", "golden", "aggregate-status.json"), got)
+	eventtest.AssertGolden(
+		t,
+		filepath.Join("testdata", "golden", "aggregate-status.json"),
+		got,
+		*update,
+	)
 }
 
 func TestGolden_PageJSON(t *testing.T) {
@@ -84,30 +88,5 @@ func TestGolden_PageJSON(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 
-	assertListingGolden(t, filepath.Join("testdata", "golden", "page.json"), got)
-}
-
-func assertListingGolden(t *testing.T, path string, got []byte) {
-	t.Helper()
-
-	if *update {
-		if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-			t.Fatalf("mkdir: %v", err)
-		}
-
-		if err := os.WriteFile(path, append(got, '\n'), 0o644); err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read golden %s (run with -update to create): %v", path, err)
-	}
-
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
-		t.Errorf("golden mismatch for %s (run with -update to refresh)", path)
-	}
+	eventtest.AssertGolden(t, filepath.Join("testdata", "golden", "page.json"), got, *update)
 }
