@@ -31,6 +31,8 @@
         --blue-dim: rgba(96, 165, 250, 0.1);
         --purple: #c084fc;
         --purple-dim: rgba(192, 132, 252, 0.1);
+        --cyan: #22d3ee;
+        --cyan-dim: rgba(34, 211, 238, 0.1);
         --mono: "JetBrains Mono", monospace;
         --serif: "Instrument Serif", serif;
         --sans: "DM Sans", sans-serif;
@@ -653,6 +655,144 @@
         max-width: 600px;
       }
 
+      /* ── response section ── */
+      .response-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .response-header .badge {
+        font-size: 10px;
+        padding: 4px 12px;
+        border-radius: 6px;
+        background: var(--cyan-dim);
+        color: var(--cyan);
+        border: 1px solid rgba(34, 211, 238, 0.2);
+      }
+
+      .correction {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 28px;
+        margin: 20px 0;
+        position: relative;
+        border-left: 3px solid var(--cyan);
+      }
+
+      .correction.wrong {
+        border-left-color: var(--red);
+      }
+
+      .correction.right {
+        border-left-color: var(--green);
+      }
+
+      .correction .claim {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--red);
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .correction.wrong .claim {
+        color: var(--red);
+      }
+
+      .correction.right .claim {
+        color: var(--green);
+      }
+
+      .correction .fact {
+        font-size: 14.5px;
+        line-height: 1.75;
+        color: var(--text-dim);
+      }
+
+      .correction .fact strong {
+        color: var(--text);
+      }
+
+      .correction .fact code {
+        background: var(--surface-2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+
+      .correction .evidence {
+        margin-top: 12px;
+        padding: 12px 16px;
+        background: var(--surface-2);
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.7;
+      }
+
+      .revised-plan {
+        display: grid;
+        grid-template-columns: 60px 1fr 100px;
+        gap: 2px;
+        margin: 24px 0;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .revised-row {
+        display: contents;
+      }
+
+      .revised-row > div {
+        padding: 12px 16px;
+        background: var(--surface);
+        font-size: 13px;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+      }
+
+      .revised-row.header > div {
+        background: var(--surface-3);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .revised-row > .step {
+        font-family: var(--mono);
+        font-weight: 600;
+        color: var(--cyan);
+        justify-content: center;
+      }
+
+      .revised-row > .desc {
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      .revised-row > .desc .dim {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .revised-row > .effort {
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
       /* ── footer ── */
       footer {
         padding: 60px 0;
@@ -988,9 +1128,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         <h2>Six changes that <em>unlock adoption</em></h2>
 
         <p>
-          These are ordered by impact. <strong>P1 and P2 would make me adopt go-cqrs-lite immediately.</strong>
-          P3 turned out to be weaker than expected (P1 already solves it). P5 was withdrawn — the wrong problem.
-          P4 and P6 would make me recommend it to everyone.
+          These are ordered by impact.
+          <strong>P1 and P2 would make me adopt go-cqrs-lite immediately.</strong>
+          P3 turned out to be weaker than expected (P1 already solves it). P5 was withdrawn — the
+          wrong problem. P4 and P6 would make me recommend it to everyone.
         </p>
 
         <div class="proposals">
@@ -1067,14 +1208,21 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           </div>
 
           <!-- P3 — self-pushback: this is weaker than P1 -->
-          <div class="proposal" style="border-color: var(--border-light);">
-            <div class="proposal-number" style="background: var(--text-muted);">P3</div>
-            <h3>Make OTel optional, not structural <span class="badge amber" style="font-size:9px; vertical-align:middle; margin-left:8px;">weaker than P1</span></h3>
+          <div class="proposal" style="border-color: var(--border-light)">
+            <div class="proposal-number" style="background: var(--text-muted)">P3</div>
+            <h3>
+              Make OTel optional, not structural
+              <span
+                class="badge amber"
+                style="font-size: 9px; vertical-align: middle; margin-left: 8px"
+                >weaker than P1</span
+              >
+            </h3>
             <p>
-              Today, <code>decider/v2</code>, <code>projection/v2</code>, <code>storage/v2</code>, and
-              <code>middleware/v2</code> all directly import OTel packages. The heavy ones are
-              <code>otel/sdk</code> and <code>otel/sdk/metric</code> in middleware/v2 — the trace API
-              alone (<code>otel/trace</code>) is relatively lightweight.
+              Today, <code>decider/v2</code>, <code>projection/v2</code>, <code>storage/v2</code>,
+              and <code>middleware/v2</code> all directly import OTel packages. The heavy ones are
+              <code>otel/sdk</code> and <code>otel/sdk/metric</code> in middleware/v2 — the trace
+              API alone (<code>otel/trace</code>) is relatively lightweight.
             </p>
             <p>
               <strong>Honest pushback:</strong> the OTel trace API is the Go ecosystem standard.
@@ -1082,12 +1230,13 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
               feature (links, events, status codes) requires updating the shim. This proposal is
               <em>weaker than it appeared</em> because:
             </p>
-            <div class="rationale" style="border-left-color: var(--text-muted);">
+            <div class="rationale" style="border-left-color: var(--text-muted)">
               <p>
-                <strong>P1 already solves this.</strong> Extracting generic middleware as stdlib-only
-                removes the OTel dependency for external consumers entirely. The remaining modules
-                (decider, projection, storage) are CQRS-internal — their OTel usage is justified for
-                the audience that imports them. Only middleware was the problem, and P1 fixes it.
+                <strong>P1 already solves this.</strong> Extracting generic middleware as
+                stdlib-only removes the OTel dependency for external consumers entirely. The
+                remaining modules (decider, projection, storage) are CQRS-internal — their OTel
+                usage is justified for the audience that imports them. Only middleware was the
+                problem, and P1 fixes it.
               </p>
             </div>
           </div>
@@ -1126,9 +1275,16 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           </div>
 
           <!-- P5 — self-pushback: wrong problem -->
-          <div class="proposal" style="border-color: var(--border-light);">
-            <div class="proposal-number" style="background: var(--text-muted);">P5</div>
-            <h3>Configurable ID backing type <span class="badge amber" style="font-size:9px; vertical-align:middle; margin-left:8px;">withdrawn — wrong problem</span></h3>
+          <div class="proposal" style="border-color: var(--border-light)">
+            <div class="proposal-number" style="background: var(--text-muted)">P5</div>
+            <h3>
+              Configurable ID backing type
+              <span
+                class="badge amber"
+                style="font-size: 9px; vertical-align: middle; margin-left: 8px"
+                >withdrawn — wrong problem</span
+              >
+            </h3>
             <p>
               Original proposal: make <code>id.Of[T]</code> accept a configurable backing type so
               non-ULID use cases (file paths, project names) could use the same module.
@@ -1138,7 +1294,7 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
               event-sourced systems — time-ordered, globally unique, binary-sortable, extractable
               timestamp. Making it string-backable would dilute these guarantees.
             </p>
-            <div class="rationale" style="border-left-color: var(--text-muted);">
+            <div class="rationale" style="border-left-color: var(--text-muted)">
               <p>
                 <strong>This was the wrong problem.</strong> project-discovery-sdk already uses
                 <code>go-branded-id</code> directly for its string-backed needs. go-cqrs-lite's
@@ -1311,9 +1467,10 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
           <div class="timeline-step">
             <h4>Revisit OTel coupling if needed</h4>
             <p>
-              After P1, the OTel problem is largely solved for external consumers (generic middleware
-              is stdlib-only). If CQRS-internal consumers still need lighter OTel integration, the
-              shim pattern can be evaluated then — but it's no longer a blocker for adoption.
+              After P1, the OTel problem is largely solved for external consumers (generic
+              middleware is stdlib-only). If CQRS-internal consumers still need lighter OTel
+              integration, the shim pattern can be evaluated then — but it's no longer a blocker for
+              adoption.
             </p>
           </div>
           <div class="timeline-step">
@@ -1383,10 +1540,206 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </p>
       </section>
 
+      <!-- ═══════════ RESPONSE ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">08 — Author response</div>
+        <div class="response-header">
+          <h2>Where the <em>facts</em> diverge</h2>
+          <span class="badge">go-cqrs-lite → project-discovery-sdk</span>
+        </div>
+
+        <p>
+          This feedback is generous and the <strong>core diagnosis is correct</strong>: middleware's
+          retry and circuit-breaker algorithms are locked behind the full CQRS + OTel dependency
+          tree, and that blocks adoption for non-CQRS projects. We accept that fully.
+        </p>
+
+        <p>
+          But three specific claims are factually wrong, and they inflate the perceived severity.
+          The real fix is <strong>narrower and cheaper</strong> than proposed.
+        </p>
+
+        <h3>Claim vs. Fact</h3>
+
+        <div class="correction wrong">
+          <div class="claim">Claim: "event/v2 depends on 7 siblings"</div>
+          <div class="fact">
+            <strong>False.</strong> The production code in <code>event/*.go</code> imports exactly
+            <strong>2 internal siblings</strong>: <code>id/v2</code> and <code>codec/v2</code>, plus
+            <code>go-error-family</code> and <code>samber/ro</code>. The <code>command</code>,
+            <code>query</code>, <code>memory</code>, <code>schema</code>, and
+            <code>snapshot</code> entries in <code>go.mod</code> are <strong>test-only</strong> —
+            they appear exclusively in <code>_test.go</code> files and the
+            <code>eventtest/</code> sub-package.
+          </div>
+          <div class="evidence">
+            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2' event/*.go | grep
+            -v _test<br />
+            (no results — zero production imports)<br /><br />
+            $ grep -rn 'command/v2\|query/v2\|memory/v2\|schema/v2\|snapshot/v2' event/*_test.go<br />
+            errors_taxonomy_test.go: imports command, query, snapshot (error classification
+            tests)<br />
+            event_bdd_test.go: imports memory, schema (BDD integration tests)<br />
+            stream_test.go: imports memory (stream tests)
+          </div>
+        </div>
+
+        <div class="correction wrong">
+          <div class="claim">Claim: "event/v2 is a hub that depends on everything"</div>
+          <div class="fact">
+            <strong>False in production.</strong> <code>event/v2</code> is a
+            <strong>leaf node</strong> in the real import graph. The go.mod is misleading because Go
+            doesn't distinguish test-only from production direct dependencies. The problem is
+            <strong>go.mod hygiene</strong>, not architectural coupling.
+          </div>
+          <div class="fact" style="margin-top: 12px">
+            The actual production dependency graph for <code>event/v2</code> is:
+          </div>
+          <div class="evidence">
+            event/v2 (production only)<br />
+            ├── id/v2 → go-branded-id, oklog/ulid<br />
+            ├── codec/v2 → (stdlib only)<br />
+            ├── go-error-family<br />
+            └── samber/ro<br /><br />
+            Total: 2 internal siblings + 2 external libs. Not 7.
+          </div>
+        </div>
+
+        <div class="correction wrong">
+          <div class="claim">Claim: "the event↔memory circular dependency" (P6 rationale)</div>
+          <div class="fact">
+            <strong>No circular dependency exists.</strong> <code>memory→event</code> is production.
+            <code>event→memory</code> is test-only. It's a one-way dependency. The P6 dependency
+            budget idea is still excellent — but the motivating example is incorrect.
+          </div>
+        </div>
+
+        <p class="pull">
+          The CQRS explosion comes from middleware's <em>own</em> direct imports of command, query,
+          and otel — not from event acting as a hub. Fix middleware, and the graph collapses.
+        </p>
+
+        <h3>What we accept without dispute</h3>
+
+        <div class="correction right">
+          <div class="claim">Accepted: middleware/v2 locks retry/CB behind CQRS deps</div>
+          <div class="fact">
+            <strong>Valid.</strong> The retry core operates on <code>func() error</code> internally,
+            but <code>NewRetry[M]</code> lives in a go.mod that requires <code>command/v2</code>,
+            <code>event/v2</code>, <code>query/v2</code>, <code>id/v2</code>, <code>otel/v2</code>.
+            Error wrapping uses <code>event.WrapInfrastructure()</code> and the default
+            <code>IsRetryable</code> delegates to <code>event.IsRetryable</code>. The algorithm is
+            generic; the packaging is not. We'll fix this.
+          </div>
+        </div>
+
+        <div class="correction right">
+          <div class="claim">Accepted: OTel SDK in production imports</div>
+          <div class="fact">
+            <strong>Valid.</strong> <code>middleware/tracing.go</code> directly imports
+            <code>go.opentelemetry.io/otel/trace</code>. <code>decider/load.go</code> and
+            <code>decider/decider.go</code> do the same.
+            <code>go.opentelemetry.io/otel/sdk</code> is in middleware's go.mod — that's the full
+            SDK, not just the API. The shim pattern (define <code>Tracer</code>/<code>Span</code>
+            interfaces in core, adapter in <code>otel/</code>) is the right fix.
+          </div>
+        </div>
+
+        <div class="correction right">
+          <div class="claim">Accepted: dependency budget CI (P6)</div>
+          <div class="fact">
+            <strong>Excellent idea.</strong> Mechanical enforcement of per-module dependency limits
+            prevents regression regardless of convention. We'll implement this.
+          </div>
+        </div>
+
+        <h3>Revised action plan</h3>
+
+        <p>
+          The proposals P1 and P3 are accepted. P2 (splitting event into 4 modules) is
+          <strong>rejected</strong> — the production code is already a leaf; the fix is go.mod
+          cleanup. P4 is already partially done (<code>NewRetry[M any]()</code> exists). P5 is
+          documentation, not code. P6 is accepted.
+        </p>
+
+        <div class="revised-plan">
+          <div class="revised-row header">
+            <div>Step</div>
+            <div>Action</div>
+            <div>Effort</div>
+          </div>
+          <div class="revised-row">
+            <div class="step">1</div>
+            <div class="desc">
+              Extract <code>resilience/</code> module — pure retry, backoff, circuit breaker,
+              timeout. Stdlib only. <br /><span class="dim"
+                >Existing CQRS middleware becomes thin wrappers. Zero breaking changes.</span
+              >
+            </div>
+            <div class="effort"><span class="badge green">1–2 days</span></div>
+          </div>
+          <div class="revised-row">
+            <div class="step">2</div>
+            <div class="desc">
+              OTel shim pattern — define Tracer/Span/Meter interfaces in core modules.
+              <br /><span class="dim"
+                >Move go.opentelemetry.io/otel imports to otel/ adapter. ~15 transitive deps
+                eliminated.</span
+              >
+            </div>
+            <div class="effort"><span class="badge amber">2–3 days</span></div>
+          </div>
+          <div class="revised-row">
+            <div class="step">3</div>
+            <div class="desc">
+              Clean up event/go.mod — move test-only sibling deps out of direct requires.
+              <br /><span class="dim"
+                >Either into eventtest/ as a separate module or use build constraints.</span
+              >
+            </div>
+            <div class="effort"><span class="badge green">0.5 days</span></div>
+          </div>
+          <div class="revised-row">
+            <div class="step">4</div>
+            <div class="desc">
+              Dependency budget CI — mechanical enforcement of per-module dep limits.
+              <br /><span class="dim"
+                >Prevents regression. The best long-term structural investment.</span
+              >
+            </div>
+            <div class="effort"><span class="badge green">1 day</span></div>
+          </div>
+          <div class="revised-row">
+            <div class="step">5</div>
+            <div class="desc">
+              Document configurable ID backing type.
+              <br /><span class="dim"
+                >go-branded-id already supports cbid.ID[T, B]. Just needs examples.</span
+              >
+            </div>
+            <div class="effort"><span class="badge green">0.5 days</span></div>
+          </div>
+        </div>
+
+        <div class="verdict highlight">
+          <p>
+            The diagnosis is correct:
+            <strong
+              >retry and circuit-breaker are the most broadly useful parts of this library, and
+              they're locked behind the full CQRS + OTel dependency tree.</strong
+            >
+            But the fix is narrower than proposed. Extract resilience. Shim OTel. Clean up go.mod.
+            <strong>No module splits needed.</strong> The architecture is already right — the
+            packaging needs two targeted extractions and a go.mod audit.
+          </p>
+        </div>
+      </section>
+
       <footer>
         <p>
           Feedback from project-discovery-sdk — a reactive Go SDK for discovering software
           projects.<br />
+          Response from go-cqrs-lite maintainer — June 2026<br />
           Generated June 2026 · Author: project-discovery-sdk architecture review
         </p>
       </footer>

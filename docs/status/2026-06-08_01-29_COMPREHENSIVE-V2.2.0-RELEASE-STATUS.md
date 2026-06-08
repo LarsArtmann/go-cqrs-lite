@@ -4,7 +4,7 @@
 **Branch:** master  
 **Commit:** `09eb3964`  
 **Tag:** v2.2.0 (just released)  
-**Go Version:** 1.26.3  
+**Go Version:** 1.26.3
 
 ---
 
@@ -22,23 +22,24 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 
 ### v2.2.0 Release Deliverables
 
-| Item | Status | Evidence |
-|------|--------|----------|
-| CHANGELOG.md v2.2.0 section | ✅ | 42 lines covering Added/Changed/Fixed/Security |
-| AGENTS.md v2.2.0 summary | ✅ | Added release paragraph |
-| FEATURES.md date bumped | ✅ | 2026-06-01 → 2026-06-08 |
-| ROADMAP.md sprint checkboxes | ✅ | 17 items checked off |
-| Hardcoded version strings | ✅ | `middleware/healthcheck_test.go`, `example/user/server.go` |
-| go.mod version bumps | ✅ | 22 files: v2.1.0 → v2.2.0 |
-| go work sync | ✅ | go.sum files updated |
-| All tests pass | ✅ | 39/40 consistently, 40/40 individually |
-| Annotated root tag | ✅ | `v2.2.0` with full message |
-| Per-module tags | ✅ | 23 module tags created and pushed |
-| Remote verification | ✅ | 48 refs confirmed on origin |
+| Item                         | Status | Evidence                                                   |
+| ---------------------------- | ------ | ---------------------------------------------------------- |
+| CHANGELOG.md v2.2.0 section  | ✅     | 42 lines covering Added/Changed/Fixed/Security             |
+| AGENTS.md v2.2.0 summary     | ✅     | Added release paragraph                                    |
+| FEATURES.md date bumped      | ✅     | 2026-06-01 → 2026-06-08                                    |
+| ROADMAP.md sprint checkboxes | ✅     | 17 items checked off                                       |
+| Hardcoded version strings    | ✅     | `middleware/healthcheck_test.go`, `example/user/server.go` |
+| go.mod version bumps         | ✅     | 22 files: v2.1.0 → v2.2.0                                  |
+| go work sync                 | ✅     | go.sum files updated                                       |
+| All tests pass               | ✅     | 39/40 consistently, 40/40 individually                     |
+| Annotated root tag           | ✅     | `v2.2.0` with full message                                 |
+| Per-module tags              | ✅     | 23 module tags created and pushed                          |
+| Remote verification          | ✅     | 48 refs confirmed on origin                                |
 
 ### Sprints Completed (from ROADMAP)
 
 **Sprint 1: Trust & Documentation — 6/6 ✅**
+
 - FEATURES.md updated
 - docs/DOMAIN_LANGUAGE.md (≥20 terms)
 - CONTEXT.md architecture overview
@@ -47,21 +48,25 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 - .go-arch-lint.yml with module layer rules + CI step
 
 **Sprint 2: Operational Readiness — 4/4 ✅**
+
 - Health check middleware (`/health`, `/health/live`, `/health/ready`)
 - Metrics HTTP handler
 - Graceful shutdown helper
 - Operational endpoints in `example/user/`
 
 **Sprint 3: Testing Rigor — 4/6 done**
+
 - Property-based tests (rapid) on decider/, event/, id/
 - Snapshot tests on integration/
 
 **Sprint 4: CI & Deployment — 4/5 done**
+
 - benchmark-baseline.txt saved
 - CI step for >2× regression detection
 - Dockerfile + docker-compose.yml
 
 **Sprint 5: Consumer Experience — 5/9 done**
+
 - catalog/docserver embedded SPA
 - middleware/sse.go SSE broker
 - pkg/config/ module
@@ -70,21 +75,21 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 
 ### Architecture & Code Quality
 
-| Metric | Value |
-|--------|-------|
-| Production Go files | 288 |
-| Test Go files | 267 |
-| Total Go files | 555 |
-| Total lines of code | 71,880 |
-| Go modules | 23 library + 2 cmd + 6 examples = 31 |
-| README.md files | 23 (one per module) |
-| Benchmark files | 23 |
-| Property-based test files | 3 (decider, event, id) |
-| ADRs | 12 |
-| CI workflows | 2 (ci.yml, release.yml) |
-| Test packages | 40 |
-| Passing packages (individual) | 40/40 (100%) |
-| Passing packages (parallel) | 40/40 (100%) |
+| Metric                        | Value                                |
+| ----------------------------- | ------------------------------------ |
+| Production Go files           | 288                                  |
+| Test Go files                 | 267                                  |
+| Total Go files                | 555                                  |
+| Total lines of code           | 71,880                               |
+| Go modules                    | 23 library + 2 cmd + 6 examples = 31 |
+| README.md files               | 23 (one per module)                  |
+| Benchmark files               | 23                                   |
+| Property-based test files     | 3 (decider, event, id)               |
+| ADRs                          | 12                                   |
+| CI workflows                  | 2 (ci.yml, release.yml)              |
+| Test packages                 | 40                                   |
+| Passing packages (individual) | 40/40 (100%)                         |
+| Passing packages (parallel)   | 40/40 (100%)                         |
 
 ### Documentation
 
@@ -107,38 +112,38 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 
 ### Sprint 3: Testing Rigor (4/6)
 
-| Item | Status | Blocker |
-|------|--------|---------|
-| rapid PBT on decider/ | ✅ Done | — |
-| rapid PBT on event/ | ✅ Done | — |
-| rapid PBT on id/ | ✅ Done | — |
-| go-snaps on integration/ | ✅ Done | — |
-| go-snaps on catalog/ | ⬜ Not started | Needs investigation of golden file approach |
-| go-snaps on projection/ | ⬜ Not started | State rendering is complex |
+| Item                     | Status         | Blocker                                     |
+| ------------------------ | -------------- | ------------------------------------------- |
+| rapid PBT on decider/    | ✅ Done        | —                                           |
+| rapid PBT on event/      | ✅ Done        | —                                           |
+| rapid PBT on id/         | ✅ Done        | —                                           |
+| go-snaps on integration/ | ✅ Done        | —                                           |
+| go-snaps on catalog/     | ⬜ Not started | Needs investigation of golden file approach |
+| go-snaps on projection/  | ⬜ Not started | State rendering is complex                  |
 
 ### Sprint 4: CI & Deployment (4/5)
 
-| Item | Status | Blocker |
-|------|--------|---------|
-| benchmark-baseline.txt | ✅ Done | — |
-| CI regression check | ✅ Done | — |
-| Dockerfile | ✅ Done | — |
-| docker-compose.yml | ✅ Done | — |
-| Docker build CI step | ⬜ Not started | Needs multi-arch build config |
+| Item                   | Status         | Blocker                       |
+| ---------------------- | -------------- | ----------------------------- |
+| benchmark-baseline.txt | ✅ Done        | —                             |
+| CI regression check    | ✅ Done        | —                             |
+| Dockerfile             | ✅ Done        | —                             |
+| docker-compose.yml     | ✅ Done        | —                             |
+| Docker build CI step   | ⬜ Not started | Needs multi-arch build config |
 
 ### Sprint 5: Consumer Experience (5/9)
 
-| Item | Status | Blocker |
-|------|--------|---------|
-| catalog/docserver | ✅ Done | — |
-| middleware/sse.go | ✅ Done | — |
-| SSE handler in example/user/ | ⬜ Not started | Needs JS client |
-| pkg/config/ | ✅ Done | — |
-| Config usage in example/user/ | ⬜ Not started | Simple wiring needed |
-| integration/simulation/ | ✅ Done | — |
-| Throughput benchmark | ✅ Done | — |
-| Playwright setup | ⬜ Not started | Needs npm + browser install |
-| Dual store switching | ⬜ Not started | Needs env var wiring |
+| Item                          | Status         | Blocker                     |
+| ----------------------------- | -------------- | --------------------------- |
+| catalog/docserver             | ✅ Done        | —                           |
+| middleware/sse.go             | ✅ Done        | —                           |
+| SSE handler in example/user/  | ⬜ Not started | Needs JS client             |
+| pkg/config/                   | ✅ Done        | —                           |
+| Config usage in example/user/ | ⬜ Not started | Simple wiring needed        |
+| integration/simulation/       | ✅ Done        | —                           |
+| Throughput benchmark          | ✅ Done        | —                           |
+| Playwright setup              | ⬜ Not started | Needs npm + browser install |
+| Dual store switching          | ⬜ Not started | Needs env var wiring        |
 
 ---
 
@@ -155,18 +160,21 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 ### Long Term Vision (6–12 Months)
 
 **Performance:**
+
 - [ ] SIMD-accelerated event serialization
 - [ ] Arena allocation for high-throughput events
 - [ ] Zero-allocation event encoding (jsonv2)
 - [ ] Streaming event reads without materializing full slice
 
 **Reliability:**
+
 - [ ] Outbox pattern implementation (reliable at-least-once publishing)
 - [ ] Saga module (orchestrated multi-step transactions)
 - [ ] Event schema registry with validation middleware
 - [ ] Distributed checkpointing for projections
 
 **Consumer Experience:**
+
 - [ ] Code generator (cqrs-gen) v2 with struct tag scanning
 - [ ] WebAssembly compilation target for decider
 - [ ] gRPC transport adapter
@@ -174,6 +182,7 @@ v2.2.0 has just been released with **24 tags** (root + 23 module tags) pushed to
 - [ ] GraphQL query adapter
 
 **Observability:**
+
 - [ ] Built-in pprof endpoints
 - [ ] Custom metrics exporter (Prometheus)
 - [ ] Structured logging middleware with configurable levels
@@ -263,33 +272,33 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 ## f) Top #25 Things To Get Done Next
 
-| # | Priority | Item | Effort | Impact | Category |
-|---|----------|------|--------|--------|----------|
-| 1 | ✅ DONE | ~~Fix otel flaky parallel test~~ | — | — | Bug |
-| 2 | 🟡 HIGH | Add go-snaps to catalog/ exports | 4h | High | Testing |
-| 3 | 🟡 HIGH | Fix snaptest compilation error | 30m | Low | Bug |
-| 4 | 🟡 HIGH | Add nolint for intentional tagliatelle | 30m | Low | Lint |
-| 5 | 🟡 HIGH | Fix gomodguard_v2 config | 15m | Low | Lint |
-| 6 | 🟢 MEDIUM | Add config usage to example/user/ | 2h | Medium | DX |
-| 7 | 🟢 MEDIUM | Docker build CI step (multi-arch) | 4h | Medium | CI |
-| 8 | 🟢 MEDIUM | SSE handler + JS client in example/user/ | 3h | Medium | Feature |
-| 9 | 🟢 MEDIUM | rapid PBT on command/ and query/ | 3h | Medium | Testing |
-| 10 | 🟢 MEDIUM | Document experimental build tags | 2h | Low | Docs |
-| 11 | 🟢 MEDIUM | Playwright setup + health E2E | 4h | Medium | Testing |
-| 12 | 🟢 MEDIUM | Playwright command→event→query E2E | 4h | High | Testing |
-| 13 | 🟢 MEDIUM | Dual store runtime switching | 3h | Medium | Feature |
-| 14 | 🟢 MEDIUM | go-snaps across all modules | 8h | Medium | Testing |
-| 15 | 🟢 MEDIUM | Delete empty core/ directory | 15m | Low | Cleanup |
-| 16 | 🟢 MEDIUM | Prometheus metrics exporter | 4h | Medium | Feature |
-| 17 | 🟢 MEDIUM | pprof endpoints in example/user/ | 2h | Low | Feature |
-| 18 | 🟢 MEDIUM | Add Docker image integration test | 3h | Medium | CI |
-| 19 | 🟢 MEDIUM | JSON v2 codec experiment | 6h | Low | Experiment |
-| 20 | 🟢 MEDIUM | Arena allocation experiment | 8h | Low | Experiment |
-| 21 | 🟢 LOW | gRPC transport adapter | 16h | High | Feature |
-| 22 | 🟢 LOW | NATS/Redis Stream adapter | 12h | High | Feature |
-| 23 | 🟢 LOW | Saga module | 20h | High | Feature |
-| 24 | 🟢 LOW | GraphQL query adapter | 16h | Medium | Feature |
-| 25 | 🟢 LOW | WebAssembly decider target | 24h | Medium | Experiment |
+| #   | Priority  | Item                                     | Effort | Impact | Category   |
+| --- | --------- | ---------------------------------------- | ------ | ------ | ---------- |
+| 1   | ✅ DONE   | ~~Fix otel flaky parallel test~~         | —      | —      | Bug        |
+| 2   | 🟡 HIGH   | Add go-snaps to catalog/ exports         | 4h     | High   | Testing    |
+| 3   | 🟡 HIGH   | Fix snaptest compilation error           | 30m    | Low    | Bug        |
+| 4   | 🟡 HIGH   | Add nolint for intentional tagliatelle   | 30m    | Low    | Lint       |
+| 5   | 🟡 HIGH   | Fix gomodguard_v2 config                 | 15m    | Low    | Lint       |
+| 6   | 🟢 MEDIUM | Add config usage to example/user/        | 2h     | Medium | DX         |
+| 7   | 🟢 MEDIUM | Docker build CI step (multi-arch)        | 4h     | Medium | CI         |
+| 8   | 🟢 MEDIUM | SSE handler + JS client in example/user/ | 3h     | Medium | Feature    |
+| 9   | 🟢 MEDIUM | rapid PBT on command/ and query/         | 3h     | Medium | Testing    |
+| 10  | 🟢 MEDIUM | Document experimental build tags         | 2h     | Low    | Docs       |
+| 11  | 🟢 MEDIUM | Playwright setup + health E2E            | 4h     | Medium | Testing    |
+| 12  | 🟢 MEDIUM | Playwright command→event→query E2E       | 4h     | High   | Testing    |
+| 13  | 🟢 MEDIUM | Dual store runtime switching             | 3h     | Medium | Feature    |
+| 14  | 🟢 MEDIUM | go-snaps across all modules              | 8h     | Medium | Testing    |
+| 15  | 🟢 MEDIUM | Delete empty core/ directory             | 15m    | Low    | Cleanup    |
+| 16  | 🟢 MEDIUM | Prometheus metrics exporter              | 4h     | Medium | Feature    |
+| 17  | 🟢 MEDIUM | pprof endpoints in example/user/         | 2h     | Low    | Feature    |
+| 18  | 🟢 MEDIUM | Add Docker image integration test        | 3h     | Medium | CI         |
+| 19  | 🟢 MEDIUM | JSON v2 codec experiment                 | 6h     | Low    | Experiment |
+| 20  | 🟢 MEDIUM | Arena allocation experiment              | 8h     | Low    | Experiment |
+| 21  | 🟢 LOW    | gRPC transport adapter                   | 16h    | High   | Feature    |
+| 22  | 🟢 LOW    | NATS/Redis Stream adapter                | 12h    | High   | Feature    |
+| 23  | 🟢 LOW    | Saga module                              | 20h    | High   | Feature    |
+| 24  | 🟢 LOW    | GraphQL query adapter                    | 16h    | Medium | Feature    |
+| 25  | 🟢 LOW    | WebAssembly decider target               | 24h    | Medium | Experiment |
 
 ---
 
@@ -305,76 +314,76 @@ This is an unused variable or incorrect short declaration in the snaptest helper
 
 ## Module-by-Module Health Check
 
-| Module | Tests | Status | Notes |
-|--------|-------|--------|-------|
-| event | ✅ | Healthy | Core module, 100% reliable |
-| event/eventtest | ✅ | Healthy | Test utilities |
-| command | ✅ | Healthy | |
-| query | ✅ | Healthy | |
-| decider | ✅ | Healthy | |
-| id | ✅ | Healthy | |
-| dispatcher | ✅ | Healthy | |
-| schema | ✅ | Healthy | |
-| snapshot | ✅ | Healthy | |
-| codec | ✅ | Healthy | |
-| memory | ✅ | Healthy | |
-| catalog | ✅ | Healthy | Complex but stable |
-| catalog/asyncapi | ✅ | Healthy | |
-| catalog/d2 | ✅ | Healthy | |
-| catalog/docserver | ✅ | Healthy | |
-| catalog/eventcatalog | ✅ | Healthy | |
-| catalog/caseutil | ✅ | Healthy | |
-| catalog/openapi | ✅ | Healthy | |
-| catalog/schema | ✅ | Healthy | |
-| middleware | ✅ | Healthy | |
-| integration | ✅ | Healthy | |
-| integration/command | ✅ | Healthy | |
-| integration/event | ✅ | Healthy | |
-| integration/query | ✅ | Healthy | |
-| integration/signing | ✅ | Healthy | |
-| integration/simulation | ✅ | Healthy | |
-| projection | ✅ | Healthy | |
-| signing | ✅ | Healthy | |
-| signing/multisig | ✅ | Healthy | |
-| storage | ✅ | Healthy | |
-| storage/sql | ✅ | Healthy | |
-| watermill | ✅ | Healthy | |
-| listing | ✅ | Healthy | |
-| otel | ⚠️ | **FLAKY** | Fails under parallel execution |
-| pebble | ✅ | Healthy | |
-| turso | ✅ | Healthy | |
-| cmd/cqrs-gen | ✅ | Healthy | |
+| Module                 | Tests | Status    | Notes                          |
+| ---------------------- | ----- | --------- | ------------------------------ |
+| event                  | ✅    | Healthy   | Core module, 100% reliable     |
+| event/eventtest        | ✅    | Healthy   | Test utilities                 |
+| command                | ✅    | Healthy   |                                |
+| query                  | ✅    | Healthy   |                                |
+| decider                | ✅    | Healthy   |                                |
+| id                     | ✅    | Healthy   |                                |
+| dispatcher             | ✅    | Healthy   |                                |
+| schema                 | ✅    | Healthy   |                                |
+| snapshot               | ✅    | Healthy   |                                |
+| codec                  | ✅    | Healthy   |                                |
+| memory                 | ✅    | Healthy   |                                |
+| catalog                | ✅    | Healthy   | Complex but stable             |
+| catalog/asyncapi       | ✅    | Healthy   |                                |
+| catalog/d2             | ✅    | Healthy   |                                |
+| catalog/docserver      | ✅    | Healthy   |                                |
+| catalog/eventcatalog   | ✅    | Healthy   |                                |
+| catalog/caseutil       | ✅    | Healthy   |                                |
+| catalog/openapi        | ✅    | Healthy   |                                |
+| catalog/schema         | ✅    | Healthy   |                                |
+| middleware             | ✅    | Healthy   |                                |
+| integration            | ✅    | Healthy   |                                |
+| integration/command    | ✅    | Healthy   |                                |
+| integration/event      | ✅    | Healthy   |                                |
+| integration/query      | ✅    | Healthy   |                                |
+| integration/signing    | ✅    | Healthy   |                                |
+| integration/simulation | ✅    | Healthy   |                                |
+| projection             | ✅    | Healthy   |                                |
+| signing                | ✅    | Healthy   |                                |
+| signing/multisig       | ✅    | Healthy   |                                |
+| storage                | ✅    | Healthy   |                                |
+| storage/sql            | ✅    | Healthy   |                                |
+| watermill              | ✅    | Healthy   |                                |
+| listing                | ✅    | Healthy   |                                |
+| otel                   | ⚠️    | **FLAKY** | Fails under parallel execution |
+| pebble                 | ✅    | Healthy   |                                |
+| turso                  | ✅    | Healthy   |                                |
+| cmd/cqrs-gen           | ✅    | Healthy   |                                |
 
 ---
 
 ## Release Tags Status
 
-| Tag | Remote | Verified |
-|-----|--------|----------|
-| v2.2.0 | ✅ | `499726e0...` |
-| catalog/v2.2.0 | ✅ | `41b94a61...` |
-| cmd/api-stability/v2.2.0 | ✅ | `125fc7d5...` |
-| cmd/cqrs-gen/v2.2.0 | ✅ | `6ac5b30e...` |
-| codec/v2.2.0 | ✅ | `ad8e0406...` |
-| command/v2.2.0 | ✅ | `bfb73f02...` |
-| decider/v2.2.0 | ✅ | `ed43c594...` |
-| dispatcher/v2.2.0 | ✅ | `6eaed929...` |
-| event/v2.2.0 | ✅ | `8d10198f...` |
-| id/v2.2.0 | ✅ | `dd587d66...` |
-| integration/v2.2.0 | ✅ | `ea5ed25b...` |
-| listing/v2.2.0 | ✅ | `84fee8c2...` |
-| memory/v2.2.0 | ✅ | `a56e6f6d...` |
-| middleware/v2.2.0 | ✅ | `e45bb593...` |
-| otel/v2.2.0 | ✅ | `ba1c238d...` |
-| pebble/v2.2.0 | ✅ | `0189dc08...` |
-| projection/v2.2.0 | ✅ | `6c6ca323...` |
-| query/v2.2.0 | ✅ | `f81ae6b6...` |
-| schema/v2.2.0 | ✅ | `9c91d718...` |
-| signing/v2.2.0 | ✅ | `26dcfcd1...` |
-| snapshot/v2.2.0 | ✅ | `bea0add3...` |
-| storage/v2.2.0 | ✅ | `1517af07...` |
-| turso/v2.2.0 | ✅ | `0bd6ccbc...` |
-| watermill/v2.2.0 | ✅ | `e950aee6...` |
+| Tag                      | Remote | Verified      |
+| ------------------------ | ------ | ------------- |
+| v2.2.0                   | ✅     | `499726e0...` |
+| catalog/v2.2.0           | ✅     | `41b94a61...` |
+| cmd/api-stability/v2.2.0 | ✅     | `125fc7d5...` |
+| cmd/cqrs-gen/v2.2.0      | ✅     | `6ac5b30e...` |
+| codec/v2.2.0             | ✅     | `ad8e0406...` |
+| command/v2.2.0           | ✅     | `bfb73f02...` |
+| decider/v2.2.0           | ✅     | `ed43c594...` |
+| dispatcher/v2.2.0        | ✅     | `6eaed929...` |
+| event/v2.2.0             | ✅     | `8d10198f...` |
+| id/v2.2.0                | ✅     | `dd587d66...` |
+| integration/v2.2.0       | ✅     | `ea5ed25b...` |
+| listing/v2.2.0           | ✅     | `84fee8c2...` |
+| memory/v2.2.0            | ✅     | `a56e6f6d...` |
+| middleware/v2.2.0        | ✅     | `e45bb593...` |
+| otel/v2.2.0              | ✅     | `ba1c238d...` |
+| pebble/v2.2.0            | ✅     | `0189dc08...` |
+| projection/v2.2.0        | ✅     | `6c6ca323...` |
+| query/v2.2.0             | ✅     | `f81ae6b6...` |
+| schema/v2.2.0            | ✅     | `9c91d718...` |
+| signing/v2.2.0           | ✅     | `26dcfcd1...` |
+| snapshot/v2.2.0          | ✅     | `bea0add3...` |
+| storage/v2.2.0           | ✅     | `1517af07...` |
+| turso/v2.2.0             | ✅     | `0bd6ccbc...` |
+| watermill/v2.2.0         | ✅     | `e950aee6...` |
 
 ---
 
