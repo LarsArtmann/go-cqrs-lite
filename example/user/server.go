@@ -8,11 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	"github.com/larsartmann/go-cqrs-lite/pkg/gracefulshutdown"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 const serverVersion = "v2.2.0"
@@ -20,22 +18,14 @@ const serverVersion = "v2.2.0"
 // runServer starts an HTTP server with operational endpoints.
 // This demonstrates how consumers can expose health, metrics, and graceful
 // shutdown in production.
-func runServer(
-	cmdDisp *command.Dispatcher,
-	qryDisp *query.Dispatcher,
-	store event.EventSource,
-	bus event.EventBus,
-) {
+func runServer(store event.EventSource) {
 	metricsCollector := middleware.NewMetricsCollector()
 
 	mux := http.NewServeMux()
 
-	// Health endpoints
 	mux.Handle("/health", middleware.HealthCheckHandler(
 		serverVersion,
-		componentHealthCheck("command-dispatch", cmdDisp),
-		componentHealthCheck("query-dispatch", qryDisp),
-		componentHealthCheck("event-bus", bus),
+		dbHealthCheck(store),
 	))
 	mux.Handle("/health/live", middleware.HealthCheckHandler(serverVersion))
 	mux.Handle("/health/ready", middleware.HealthCheckHandler(
@@ -43,10 +33,8 @@ func runServer(
 		dbHealthCheck(store),
 	))
 
-	// Metrics endpoint
 	mux.Handle("/metrics", middleware.MetricsHandler(metricsCollector))
 
-	// Wrap all handlers with metrics middleware
 	wrapped := middleware.MetricsMiddleware(metricsCollector)(mux)
 
 	server := &http.Server{
@@ -89,17 +77,4 @@ func dbHealthCheck(store event.EventSource) middleware.HealthChecker {
 	}
 }
 
-// componentHealthCheck creates a generic readiness check for any component.
-func componentHealthCheck(name string, component any) middleware.HealthChecker {
-	return func(_ context.Context) middleware.Check {
-		status := middleware.HealthStatusPass
-		if component == nil {
-			status = middleware.HealthStatusFail
-		}
-		return middleware.Check{
-			ComponentID:   name,
-			ComponentType: "service",
-			Status:        status,
-		}
-	}
-}
+
