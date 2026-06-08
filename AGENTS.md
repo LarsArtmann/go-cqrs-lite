@@ -57,7 +57,7 @@ go-cqrs-lite/
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
-├── listing/             # Aggregate listing, tombstone detection, StatusMiddleware, InMemoryAggregateReader
+├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
 ├── pebble/              # Embedded key-value event store (PebbleDB)
 ├── codec/               # Payload encoding: JSON, Raw passthrough
@@ -163,6 +163,8 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 - Table-driven tests preferred; BDD via Ginkgo v2 + Gomega for event/decider/query
 - `t.Parallel()` for independent tests; core packages >80% coverage (most >90%)
 - Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
+- Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v2/eventtest`
+- Modules without event dependency (otel, codec) keep their own local golden helper
 
 ### Lint Conventions
 
