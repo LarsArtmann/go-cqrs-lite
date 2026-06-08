@@ -579,11 +579,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | Outbox pattern             | Reliable at-least-once event publishing      | Future |
 | Schema registry            | JSON Schema middleware for event validation  | Future |
 | Playwright E2E tests       | End-to-end browser tests for `example/user/` | 5      |
-| Dual store runtime example | Memory vs SQL selection via config           | 5      |
-| Extended snapshot coverage | `go-snaps` across all 22 library modules     | 6      |
-| Build tag experiments      | `jsonv2`, `arenas`, `simd` behind tags       | 6      |
-
----
+| Extended snapshot coverage | `go-snaps` across remaining 11 library modules | 6    |
 
 ---
 
